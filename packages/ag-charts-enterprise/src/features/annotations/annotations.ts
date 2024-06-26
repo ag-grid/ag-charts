@@ -282,6 +282,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             return;
         }
 
+        if (!state.is('idle')) {
+            this.cancel();
+        }
+
         interactionManager.pushState(InteractionState.Annotations);
         for (const annotationType of ANNOTATION_BUTTONS) {
             toolbarManager.toggleButton('annotations', annotationType, { active: annotationType === event.value });
@@ -820,17 +824,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onCancel() {
-        const { active, annotationData, state } = this;
-
-        if (!state.is('idle')) {
-            state.transition('cancel');
-
-            // Delete active annotation if it is in the process of being created
-            if (active != null && annotationData) {
-                annotationData.splice(active, 1);
-            }
+        if (!this.state.is('idle')) {
+            this.cancel();
         }
-
         this.reset();
         this.update();
     }
@@ -902,6 +898,17 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.active = undefined;
         this.ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', false);
         this.colorPicker.hide();
+    }
+
+    private cancel() {
+        const { active, annotationData, state } = this;
+
+        state.transition('cancel');
+
+        // Delete active annotation if it is in the process of being created
+        if (active != null && annotationData) {
+            annotationData.splice(active, 1);
+        }
     }
 
     private update() {
