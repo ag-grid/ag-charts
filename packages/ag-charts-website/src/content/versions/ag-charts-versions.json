@@ -12,11 +12,11 @@
                 "path": "./annotations"
             },
             {
-                "text": "Sankey Series Type",
+                "text": "Sankey Series",
                 "path": "./sankey-series"
             },
             {
-                "text": "Chord Series Type",
+                "text": "Chord Series",
                 "path": "./chord-series"
             },
             {
