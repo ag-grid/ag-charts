@@ -95,11 +95,6 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
         // Buttons have no visible rendering change
         'interaction-range': { skipCanvasUpdateCheck: true },
     },
-
-    // BROKEN!!!!!!!
-    'api-download': {
-        download: { frameworks: [] },
-    },
 };
 
 function convertPageUrls(path: string) {
