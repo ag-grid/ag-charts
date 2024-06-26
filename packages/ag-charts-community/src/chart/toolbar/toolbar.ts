@@ -7,6 +7,7 @@ import { BBox } from '../../scene/bbox';
 import { setAttribute } from '../../util/attributeUtil';
 import { createElement } from '../../util/dom';
 import { initToolbarKeyNav, makeAccessibleClickListener } from '../../util/keynavUtil';
+import { clamp } from '../../util/number';
 import { ObserveChanges } from '../../util/proxy';
 import { BOOLEAN, Validate } from '../../util/validation';
 import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
@@ -233,21 +234,42 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     private onFloatingAnchorChanged(event: ToolbarFloatingAnchorChangedEvent) {
+        const {
+            elements,
+            groupButtons,
+            positions,
+            horizontalSpacing,
+            verticalSpacing,
+            ctx: { domManager, toolbarManager },
+        } = this;
+
         const { group, anchor } = event;
 
-        if (!this.positions[ToolbarPosition.Floating].has(group)) return;
+        if (!positions[ToolbarPosition.Floating].has(group)) return;
 
-        const element = this.elements[ToolbarPosition.Floating];
+        const element = elements[ToolbarPosition.Floating];
         if (element.classList.contains(styles.modifiers.hidden)) return;
 
-        element.style.top = `${anchor.y - element.offsetHeight - this.verticalSpacing}px`;
-        element.style.left = `${anchor.x - element.offsetWidth / 2}px`;
+        let top = anchor.y - element.offsetHeight - verticalSpacing;
+        let left = anchor.x - element.offsetWidth / 2;
 
-        for (const button of this.groupButtons[group]) {
+        if (anchor.position === 'above') {
+            top = anchor.y - element.offsetHeight / 2;
+            left = anchor.x + horizontalSpacing;
+        }
+
+        const canvasRect = domManager.getBoundingClientRect();
+        top = clamp(0, top, canvasRect.height - element.offsetHeight);
+        left = clamp(0, left, canvasRect.width - element.offsetWidth);
+
+        element.style.top = `${top}px`;
+        element.style.left = `${left}px`;
+
+        for (const button of groupButtons[group]) {
             if (button.classList.contains(styles.modifiers.button.hiddenToggled)) return;
 
             const parent = button.offsetParent as HTMLElement | null;
-            this.ctx.toolbarManager.buttonMoved(
+            toolbarManager.buttonMoved(
                 group,
                 button.dataset.toolbarValue,
                 new BBox(
