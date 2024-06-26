@@ -34,6 +34,7 @@ export interface LayoutCompleteEvent {
 
 export interface LayoutContext {
     shrinkRect: BBox;
+    positions: { [K in 'title']?: BBox };
 }
 
 type EventTypes = LayoutStage | LayoutComplete;

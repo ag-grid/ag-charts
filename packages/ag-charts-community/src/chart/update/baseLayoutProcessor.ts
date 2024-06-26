@@ -1,10 +1,9 @@
 import type { TextAlign } from 'ag-charts-types';
 
-import type { BBox } from '../../scene/bbox';
 import { Text } from '../../scene/shape/text';
 import { Logger } from '../../util/logger';
 import { Caption } from '../caption';
-import type { LayoutService } from '../layout/layoutService';
+import type { LayoutContext, LayoutService } from '../layout/layoutService';
 import type { ChartLike, UpdateProcessor } from './processor';
 
 export class BaseLayoutProcessor implements UpdateProcessor {
@@ -16,8 +15,8 @@ export class BaseLayoutProcessor implements UpdateProcessor {
     ) {
         this.destroyFns.push(
             // eslint-disable-next-line sonarjs/no-duplicate-string
-            this.layoutService.addListener('start-layout', (e) => this.positionPadding(e.shrinkRect)),
-            this.layoutService.addListener('start-layout', (e) => this.positionCaptions(e.shrinkRect))
+            this.layoutService.addListener('start-layout', (e) => this.positionPadding(e)),
+            this.layoutService.addListener('start-layout', (e) => this.positionCaptions(e))
         );
     }
 
@@ -25,7 +24,8 @@ export class BaseLayoutProcessor implements UpdateProcessor {
         this.destroyFns.forEach((cb) => cb());
     }
 
-    private positionPadding(shrinkRect: BBox) {
+    private positionPadding(ctx: LayoutContext) {
+        const { shrinkRect } = ctx;
         const { padding } = this.chartLike;
 
         shrinkRect.shrink(padding.left, 'left');
@@ -33,10 +33,11 @@ export class BaseLayoutProcessor implements UpdateProcessor {
         shrinkRect.shrink(padding.right, 'right');
         shrinkRect.shrink(padding.bottom, 'bottom');
 
-        return { shrinkRect };
+        return { ...ctx, shrinkRect };
     }
 
-    private positionCaptions(shrinkRect: BBox) {
+    private positionCaptions(ctx: LayoutContext) {
+        const { shrinkRect } = ctx;
         const { title, subtitle, footnote } = this.chartLike;
         const newShrinkRect = shrinkRect.clone();
 
@@ -108,6 +109,6 @@ export class BaseLayoutProcessor implements UpdateProcessor {
             positionBottomAndShrinkBBox(footnote, footnote.spacing ?? 0);
         }
 
-        return { shrinkRect: newShrinkRect };
+        return { ...ctx, shrinkRect: newShrinkRect };
     }
 }

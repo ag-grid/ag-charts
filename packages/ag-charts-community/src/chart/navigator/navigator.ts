@@ -11,6 +11,7 @@ import { ActionOnSet, ObserveChanges } from '../../util/proxy';
 import { AND, BOOLEAN, GREATER_THAN, LESS_THAN, OBJECT, POSITIVE_NUMBER, RATIO, Validate } from '../../util/validation';
 import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
 import type { ZoomChangeEvent } from '../interaction/zoomManager';
+import type { LayoutContext } from '../layout/layoutService';
 import { RangeHandle } from './shapes/rangeHandle';
 import { RangeMask } from './shapes/rangeMask';
 import { RangeSelector } from './shapes/rangeSelector';
@@ -155,7 +156,8 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         }
     }
 
-    async performLayout({ shrinkRect }: { shrinkRect: BBox }): Promise<{ shrinkRect: BBox }> {
+    async performLayout(ctx: LayoutContext): Promise<LayoutContext> {
+        const { shrinkRect } = ctx;
         if (this.enabled) {
             const navigatorTotalHeight = this.height + this.spacing;
             shrinkRect.shrink(navigatorTotalHeight, 'bottom');
@@ -164,7 +166,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             this.y = 0;
         }
 
-        return { shrinkRect };
+        return { ...ctx, shrinkRect };
     }
 
     async performCartesianLayout(opts: { seriesRect: BBox }): Promise<void> {

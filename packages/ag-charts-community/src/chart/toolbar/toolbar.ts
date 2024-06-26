@@ -16,6 +16,7 @@ import type {
     ToolbarGroupToggledEvent,
     ToolbarProxyGroupOptionsEvent,
 } from '../interaction/toolbarManager';
+import type { LayoutContext } from '../layout/layoutService';
 import { ToolbarGroupProperties } from './toolbarProperties';
 import * as styles from './toolbarStyles';
 import toolbarCss from './toolbarStyles.css';
@@ -376,13 +377,13 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.pendingButtonToggledEvents = [];
     }
 
-    async performLayout({ shrinkRect }: { shrinkRect: BBox }): Promise<{ shrinkRect: BBox }> {
-        if (!this.enabled) return { shrinkRect };
+    async performLayout(ctx: LayoutContext): Promise<LayoutContext> {
+        if (!this.enabled) return ctx;
 
-        this.refreshOuterLayout(shrinkRect);
+        this.refreshOuterLayout(ctx.shrinkRect);
         this.refreshLocale();
 
-        return { shrinkRect };
+        return ctx;
     }
 
     async performCartesianLayout(opts: { seriesRect: BBox }): Promise<void> {

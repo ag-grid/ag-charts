@@ -36,6 +36,9 @@ export class StatusBar
     @Validate(OBJECT)
     readonly negative = new StatusBarLabel();
 
+    @Validate(STRING)
+    layoutStyle: 'block' | 'overlay' = 'block';
+
     readonly id = 'status-bar';
     data?: any[] = undefined;
 
@@ -149,7 +152,7 @@ export class StatusBar
         }
     }
 
-    startPerformLayout(opts: { shrinkRect: _Scene.BBox }): { shrinkRect: _Scene.BBox } {
+    startPerformLayout(opts: _ModuleSupport.LayoutContext): _ModuleSupport.LayoutContext {
         const { shrinkRect } = opts;
         const innerSpacing = 4;
         const outerSpacing = 12;
@@ -159,13 +162,16 @@ export class StatusBar
         this.labelGroup.translationX = 0;
         this.labelGroup.translationY = 0;
 
-        if (!this.enabled) return { shrinkRect };
+        if (!this.enabled) return { ...opts, shrinkRect };
 
         this.labelGroup.translationY = shrinkRect.y + spacingAbove;
 
         const maxFontSize = Math.max(this.title.fontSize, this.positive.fontSize, this.negative.fontSize);
         const lineHeight = maxFontSize * Text.defaultLineHeightRatio;
-        shrinkRect.shrink(spacingAbove + lineHeight + spacingBelow, 'top');
+
+        if (this.layoutStyle === 'block') {
+            shrinkRect.shrink(spacingAbove + lineHeight + spacingBelow, 'top');
+        }
 
         const offsetTop = maxFontSize + (lineHeight - maxFontSize) / 2;
 
@@ -204,7 +210,7 @@ export class StatusBar
             left += maxValueWidth + outerSpacing;
         }
 
-        return { shrinkRect };
+        return { ...opts, shrinkRect };
     }
 
     async performCartesianLayout(opts: { seriesRect: _Scene.BBox }): Promise<void> {
