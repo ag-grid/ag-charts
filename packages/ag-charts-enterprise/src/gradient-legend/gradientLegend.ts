@@ -111,7 +111,7 @@ export class GradientLegend {
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         this.layoutService = ctx.layoutService;
-        this.destroyFns.push(this.layoutService.addListener('start-layout', (e) => this.update(e.shrinkRect)));
+        this.destroyFns.push(this.layoutService.addListener('start-layout', (e) => this.update(e)));
 
         this.highlightManager = ctx.highlightManager;
         this.destroyFns.push(this.highlightManager.addListener('highlight-change', () => this.onChartHoverChange()));
@@ -150,12 +150,13 @@ export class GradientLegend {
 
     private latestGradientBox?: _Scene.BBox = undefined;
 
-    private update(shrinkRect: _Scene.BBox) {
+    private update(ctx: _ModuleSupport.LayoutContext) {
+        const { shrinkRect } = ctx;
         const data = this.data[0];
 
         if (!this.enabled || !data || !data.enabled) {
             this.group.visible = false;
-            return { shrinkRect: shrinkRect.clone() };
+            return { ...ctx, shrinkRect: shrinkRect.clone() };
         }
 
         const { colorRange } = this.normalizeColorArrays(data);
@@ -171,7 +172,7 @@ export class GradientLegend {
 
         this.latestGradientBox = gradientBox;
 
-        return { shrinkRect: newShrinkRect };
+        return { ...ctx, shrinkRect: newShrinkRect };
     }
 
     private normalizeColorArrays(data: _ModuleSupport.GradientLegendDatum) {

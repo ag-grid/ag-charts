@@ -1040,7 +1040,7 @@ export abstract class Chart extends Observable {
 
     protected async performLayout() {
         const { width, height } = this.ctx.scene;
-        let ctx = { shrinkRect: new BBox(0, 0, width, height) };
+        let ctx = { shrinkRect: new BBox(0, 0, width, height), positions: {} };
         ctx = this.ctx.layoutService.dispatchPerformLayout('start-layout', ctx);
         ctx = this.ctx.layoutService.dispatchPerformLayout('before-series', ctx);
 

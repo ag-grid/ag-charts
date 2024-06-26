@@ -1,4 +1,4 @@
-import type { ModuleInstance } from '../../module/baseModule';
+import type { LayoutContext, ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { BBox } from '../../scene/bbox';
@@ -155,7 +155,8 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         }
     }
 
-    async performLayout({ shrinkRect }: { shrinkRect: BBox }): Promise<{ shrinkRect: BBox }> {
+    async performLayout(ctx: LayoutContext): Promise<LayoutContext> {
+        const { shrinkRect } = ctx;
         if (this.enabled) {
             const navigatorTotalHeight = this.height + this.spacing;
             shrinkRect.shrink(navigatorTotalHeight, 'bottom');
@@ -164,7 +165,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             this.y = 0;
         }
 
-        return { shrinkRect };
+        return { ...ctx, shrinkRect };
     }
 
     async performCartesianLayout(opts: { seriesRect: BBox }): Promise<void> {

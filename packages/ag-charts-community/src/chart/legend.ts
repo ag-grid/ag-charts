@@ -11,6 +11,7 @@ import type {
     Formatter,
 } from 'ag-charts-types';
 
+import type { LayoutContext } from '../module/baseModule';
 import type { ModuleContext } from '../module/moduleContext';
 import { BBox } from '../scene/bbox';
 import { Group } from '../scene/group';
@@ -271,7 +272,7 @@ export class Legend extends BaseProperties {
             region.addListener('hover', (e) => this.handleLegendMouseMove(e)),
             region.addListener('leave', (e) => this.handleLegendMouseExit(e), animationState),
             region.addListener('enter', (e) => this.handleLegendMouseEnter(e), animationState),
-            ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e.shrinkRect)),
+            ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e)),
             () => this.detachLegend(),
             ctx.localeManager.addListener('locale-changed', () => this.onLocaleChanged())
         );
@@ -1205,11 +1206,12 @@ export class Legend extends BaseProperties {
         return lm.t('ariaLabelLegendItemUnknown');
     }
 
-    private positionLegend(shrinkRect: BBox) {
+    private positionLegend(ctx: LayoutContext) {
+        const { shrinkRect } = ctx;
         const newShrinkRect = shrinkRect.clone();
 
         if (!this.enabled || !this.data.length) {
-            return { shrinkRect: newShrinkRect };
+            return { ...ctx, shrinkRect: newShrinkRect };
         }
 
         const [legendWidth, legendHeight] = this.calculateLegendDimensions(shrinkRect);
@@ -1276,7 +1278,7 @@ export class Legend extends BaseProperties {
             legendPositionedBBox.y += this.group.translationY;
         }
 
-        return { shrinkRect: newShrinkRect };
+        return { ...ctx, shrinkRect: newShrinkRect };
     }
 
     private calculateLegendDimensions(shrinkRect: BBox): [number, number] {

@@ -108,6 +108,7 @@ export function priceVolume(
                       },
                       ranges: {
                           enabled: rangeToolbar,
+                          position: 'bottom',
                       },
                   } satisfies AgToolbarOptions,
               }

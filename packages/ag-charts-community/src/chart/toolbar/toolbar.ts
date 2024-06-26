@@ -1,6 +1,6 @@
 import type { AgToolbarGroupPosition } from 'ag-charts-types';
 
-import type { ModuleInstance } from '../../module/baseModule';
+import type { LayoutContext, ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
@@ -55,7 +55,8 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.onGroupButtonsChanged.bind(this, 'zoom')
     );
 
-    private readonly margin = 10;
+    private readonly horizontalSpacing = 10;
+    private readonly verticalSpacing = 10;
     private readonly floatingDetectionRange = 38;
 
     private readonly elements: Record<ToolbarPosition, HTMLElement>;
@@ -239,7 +240,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         const element = this.elements[ToolbarPosition.Floating];
         if (element.classList.contains(styles.modifiers.hidden)) return;
 
-        element.style.top = `${anchor.y - element.offsetHeight - this.margin}px`;
+        element.style.top = `${anchor.y - element.offsetHeight - this.verticalSpacing}px`;
         element.style.left = `${anchor.x - element.offsetWidth / 2}px`;
 
         for (const button of this.groupButtons[group]) {
@@ -375,13 +376,13 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.pendingButtonToggledEvents = [];
     }
 
-    async performLayout({ shrinkRect }: { shrinkRect: BBox }): Promise<{ shrinkRect: BBox }> {
-        if (!this.enabled) return { shrinkRect };
+    async performLayout(ctx: LayoutContext): Promise<LayoutContext> {
+        if (!this.enabled) return ctx;
 
-        this.refreshOuterLayout(shrinkRect);
+        this.refreshOuterLayout(ctx.shrinkRect);
         this.refreshLocale();
 
-        return { shrinkRect };
+        return ctx;
     }
 
     async performCartesianLayout(opts: { seriesRect: BBox }): Promise<void> {
@@ -391,25 +392,25 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     private refreshOuterLayout(shrinkRect: BBox) {
-        const { elements, margin } = this;
+        const { elements, horizontalSpacing, verticalSpacing } = this;
 
         if (!elements.top.classList.contains(styles.modifiers.hidden)) {
-            shrinkRect.shrink(elements.top.offsetHeight + margin * 2, 'top');
+            shrinkRect.shrink(elements.top.offsetHeight + verticalSpacing, 'top');
         }
 
         if (!elements.right.classList.contains(styles.modifiers.hidden)) {
-            shrinkRect.shrink(elements.right.offsetWidth + margin * 2, 'right');
+            shrinkRect.shrink(elements.right.offsetWidth + horizontalSpacing, 'right');
         }
 
         if (!elements.bottom.classList.contains(styles.modifiers.hidden)) {
-            shrinkRect.shrink(elements.bottom.offsetHeight + margin * 2, 'bottom');
+            shrinkRect.shrink(elements.bottom.offsetHeight + verticalSpacing, 'bottom');
 
             // See: https://ag-grid.atlassian.net/browse/AG-11852
-            elements.bottom.style.top = `${shrinkRect.y + shrinkRect.height + margin}px`;
+            elements.bottom.style.top = `${shrinkRect.y + shrinkRect.height + verticalSpacing}px`;
         }
 
         if (!elements.left.classList.contains(styles.modifiers.hidden)) {
-            shrinkRect.shrink(elements.left.offsetWidth + margin * 2, 'left');
+            shrinkRect.shrink(elements.left.offsetWidth + horizontalSpacing, 'left');
         }
     }
 
@@ -427,24 +428,24 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     private refreshInnerLayout(rect: BBox) {
-        const { elements, margin } = this;
+        const { elements, verticalSpacing } = this;
         const { FloatingBottom, FloatingTop } = ToolbarPosition;
 
-        elements.top.style.top = `${rect.y - elements.top.offsetHeight - margin * 2}px`;
+        elements.top.style.top = `${rect.y - elements.top.offsetHeight - verticalSpacing}px`;
         elements.top.style.left = `${rect.x}px`;
         elements.top.style.width = `${rect.width}px`;
 
         // See: https://ag-grid.atlassian.net/browse/AG-11852
-        // elements.bottom.style.top = `${rect.y + rect.height + margin}px`;
+        // elements.bottom.style.top = `${rect.y + rect.height}px`;
         elements.bottom.style.left = `${rect.x}px`;
         elements.bottom.style.width = `${rect.width}px`;
 
         elements.right.style.top = `${rect.y}px`;
-        elements.right.style.right = `${margin}px`;
+        elements.right.style.right = `0px`;
         elements.right.style.height = `${rect.height}px`;
 
         elements.left.style.top = `${rect.y}px`;
-        elements.left.style.left = `${margin}px`;
+        elements.left.style.left = `0px`;
         elements.left.style.height = `${rect.height}px`;
 
         elements[FloatingTop].style.top = `${rect.y}px`;
@@ -497,7 +498,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         position: ToolbarPosition.FloatingBottom | ToolbarPosition.FloatingTop,
         visible: boolean
     ) {
-        const { elements, margin, positionAlignments } = this;
+        const { elements, verticalSpacing: verticalMargin, positionAlignments } = this;
 
         const element = elements[position];
         const alignments = Object.values(positionAlignments[position]);
@@ -509,7 +510,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             align.style.transform =
                 visible && align.style.transform !== ''
                     ? 'translateY(0)'
-                    : `translateY(${(element.offsetHeight + margin) * dir}px)`;
+                    : `translateY(${(element.offsetHeight + verticalMargin) * dir}px)`;
         }
     }
 
