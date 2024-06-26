@@ -41,6 +41,7 @@ const clickBehaviorExamples = {
     // First button is the default option, so no rendering change.
     legend: { 'legend-position': 'reverse' },
     themes: { 'stock-themes': 'reverse', 'advanced-theme': 'reverse' },
+    'financial-chart-types': { 'toggle-financial-features': 'reverse' },
 
     // Too complex to test with a naive button-click sweep.
     'axis-labels': { 'axis-label-rotation': 'skip' },
