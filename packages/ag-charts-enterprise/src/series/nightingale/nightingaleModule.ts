@@ -29,7 +29,7 @@ export const NightingaleModule: _ModuleSupport.SeriesModule<'nightingale'> = {
         } = takeColors(1);
         return {
             fill,
-            stroke: userPalette ? stroke : _Theme.DEFAULT_POLAR_SERIES_STROKE,
+            stroke: userPalette !== 'inbuilt' ? stroke : _Theme.DEFAULT_POLAR_SERIES_STROKE,
         };
     },
     stackable: true,

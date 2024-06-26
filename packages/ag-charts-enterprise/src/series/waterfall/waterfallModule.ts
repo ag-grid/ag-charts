@@ -26,31 +26,52 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
     ],
     themeTemplate: WATERFALL_SERIES_THEME,
     swapDefaultAxesCondition: ({ direction }) => direction === 'horizontal',
-    paletteFactory: ({ takeColors, colorsCount, userPalette, themeTemplateParameters }) => {
-        const { fills, strokes } = takeColors(colorsCount);
-        return userPalette
-            ? {
-                  item: {
-                      positive: {
-                          fill: fills[0],
-                          stroke: strokes[0],
-                      },
-                      negative: {
-                          fill: fills[1],
-                          stroke: strokes[1],
-                      },
-                      total: {
-                          fill: fills[2],
-                          stroke: strokes[2],
-                      },
-                  },
-              }
-            : {
-                  item: {
-                      positive: themeTemplateParameters.get(_Theme.DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS),
-                      negative: themeTemplateParameters.get(_Theme.DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS),
-                      total: themeTemplateParameters.get(_Theme.DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS),
-                  },
-              };
+    paletteFactory: ({ takeColors, colorsCount, userPalette, palette }) => {
+        if (userPalette === 'user-indexed') {
+            const { fills, strokes } = takeColors(colorsCount);
+            return {
+                line: { stroke: palette.neutral.stroke },
+                item: {
+                    positive: {
+                        fill: fills[0],
+                        stroke: strokes[0],
+                    },
+                    negative: {
+                        fill: fills[1],
+                        stroke: strokes[1],
+                    },
+                    total: {
+                        fill: fills[2],
+                        stroke: strokes[2],
+                    },
+                },
+            };
+        }
+        return {
+            line: { stroke: palette.neutral.stroke },
+            item: {
+                positive: {
+                    fill: palette.up.fill,
+                    stroke: palette.up.stroke,
+                    label: {
+                        color: _Theme.DEFAULT_LABEL_COLOUR,
+                    },
+                },
+                negative: {
+                    fill: palette.down.fill,
+                    stroke: palette.down.stroke,
+                    label: {
+                        color: _Theme.DEFAULT_LABEL_COLOUR,
+                    },
+                },
+                total: {
+                    fill: palette.neutral.fill,
+                    stroke: palette.neutral.stroke,
+                    label: {
+                        color: _Theme.DEFAULT_LABEL_COLOUR,
+                    },
+                },
+            },
+        };
     },
 };

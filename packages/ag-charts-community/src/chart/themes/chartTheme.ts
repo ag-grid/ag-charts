@@ -6,6 +6,7 @@ import type {
     AgCommonThemeableChartOptions,
 } from 'ag-charts-types';
 
+import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
 import { deepClone, jsonWalk } from '../../util/json';
 import { mergeDefaults } from '../../util/object';
 import { isArray } from '../../util/type-guards';
@@ -22,7 +23,6 @@ import {
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_AXIS_LINE_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
-    DEFAULT_COLOURS,
     DEFAULT_CROSS_LINES_COLOUR,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
     DEFAULT_FONT_FAMILY,
@@ -34,11 +34,10 @@ import {
     DEFAULT_MUTED_LABEL_COLOUR,
     DEFAULT_POLAR_SERIES_STROKE,
     DEFAULT_SHADOW_COLOUR,
-    DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
-    DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
-    DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
-    DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
     IS_DARK_THEME,
+    PALETTE_DOWN_STROKE,
+    PALETTE_NEUTRAL_STROKE,
+    PALETTE_UP_STROKE,
 } from './symbols';
 
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
@@ -78,6 +77,7 @@ const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).redu
 
 export class ChartTheme {
     readonly palette: AgChartThemePalette;
+    readonly paletteType: PaletteType;
 
     protected getPalette(): AgChartThemePalette {
         return DEFAULT_PALETTE;
@@ -253,8 +253,11 @@ export class ChartTheme {
             this.mergeOverrides(defaults, overrides);
         }
 
+        const { fills: _fills, strokes: _strokes, ...otherColors } = this.getDefaultColors();
+        this.palette = mergeDefaults(palette, this.getPalette(), { ...otherColors });
+        this.paletteType = paletteType(palette);
+
         this.config = Object.freeze(this.templateTheme(defaults));
-        this.palette = mergeDefaults(palette, this.getPalette());
     }
 
     private mergeOverrides(defaults: AgChartThemeOverrides, overrides: AgChartThemeOverrides) {
@@ -352,40 +355,13 @@ export class ChartTheme {
         return deepClone(themeInstance);
     }
 
-    protected static getDefaultColors(): DefaultColors {
+    protected getDefaultColors(): DefaultColors {
         return {
             fills: DEFAULT_FILLS,
             strokes: DEFAULT_STROKES,
-        };
-    }
-
-    protected static getWaterfallSeriesDefaultPositiveColors() {
-        return {
-            fill: DEFAULT_FILLS.BLUE,
-            stroke: DEFAULT_STROKES.BLUE,
-            label: {
-                color: DEFAULT_LABEL_COLOUR,
-            },
-        };
-    }
-
-    protected static getWaterfallSeriesDefaultNegativeColors() {
-        return {
-            fill: DEFAULT_FILLS.ORANGE,
-            stroke: DEFAULT_STROKES.ORANGE,
-            label: {
-                color: DEFAULT_LABEL_COLOUR,
-            },
-        };
-    }
-
-    protected static getWaterfallSeriesDefaultTotalColors() {
-        return {
-            fill: DEFAULT_FILLS.GRAY,
-            stroke: DEFAULT_STROKES.GRAY,
-            label: {
-                color: DEFAULT_LABEL_COLOUR,
-            },
+            up: { fill: DEFAULT_FILLS.BLUE, stroke: DEFAULT_STROKES.BLUE },
+            down: { fill: DEFAULT_FILLS.ORANGE, stroke: DEFAULT_STROKES.ORANGE },
+            neutral: { fill: DEFAULT_FILLS.GRAY, stroke: DEFAULT_STROKES.GRAY },
         };
     }
 
@@ -410,17 +386,14 @@ export class ChartTheme {
         params.set(DEFAULT_HIERARCHY_FILLS, ['#ffffff', '#e0e5ea', '#c1ccd5', '#a3b4c1', '#859cad']);
         params.set(DEFAULT_HIERARCHY_STROKES, ['#ffffff', '#c5cbd1', '#a4b1bd', '#8498a9', '#648096']);
         params.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_BACKGROUND_FILL);
-        params.set(DEFAULT_COLOURS, ChartTheme.getDefaultColors());
-        params.set(DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS, ChartTheme.getWaterfallSeriesDefaultPositiveColors());
-        params.set(DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS, ChartTheme.getWaterfallSeriesDefaultNegativeColors());
-        params.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, ChartTheme.getWaterfallSeriesDefaultTotalColors());
-        params.set(
-            DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
-            ChartTheme.getWaterfallSeriesDefaultTotalColors().stroke
-        );
         params.set(DEFAULT_ANNOTATION_STROKE, DEFAULT_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, DEFAULT_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_HANDLE_FILL, DEFAULT_BACKGROUND_FILL);
+
+        const defaultColors = this.getDefaultColors();
+        params.set(PALETTE_UP_STROKE, this.palette.up?.stroke ?? defaultColors.up.stroke);
+        params.set(PALETTE_DOWN_STROKE, this.palette.down?.stroke ?? defaultColors.down.stroke);
+        params.set(PALETTE_NEUTRAL_STROKE, this.palette.neutral?.stroke ?? defaultColors.neutral.stroke);
 
         return params;
     }

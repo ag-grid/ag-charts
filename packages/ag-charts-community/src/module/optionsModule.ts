@@ -2,6 +2,7 @@ import {
     type AgBaseAxisOptions,
     type AgCartesianAxisOptions,
     type AgChartOptions,
+    type AgChartThemePalette,
     type AgPolarAxisOptions,
     type AgTooltipPositionOptions,
     AgTooltipPositionType,
@@ -24,7 +25,7 @@ import {
     isAxisOptionType,
     isSeriesOptionType,
 } from '../chart/mapping/types';
-import type { ChartTheme } from '../chart/themes/chartTheme';
+import { type ChartTheme } from '../chart/themes/chartTheme';
 import { circularSliceArray, groupBy, unique } from '../util/array';
 import { Debug } from '../util/debug';
 import { setDocument, setWindow } from '../util/dom';
@@ -34,6 +35,7 @@ import { mergeArrayDefaults, mergeDefaults } from '../util/object';
 import { isEnumValue, isFiniteNumber, isObject, isPlainObject, isString, isSymbol } from '../util/type-guards';
 import type { AxisContext } from './axisContext';
 import type { BaseModule, ModuleInstance } from './baseModule';
+import { type PaletteType, paletteType } from './coreModulesTypes';
 import { enterpriseModule } from './enterpriseModule';
 import type { ModuleContextWithParent } from './moduleContext';
 import type { SeriesType } from './optionsModuleTypes';
@@ -97,7 +99,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.type = specialOverrides?.type;
         if (this.type != null) {
-            const presetOptions = (PRESETS as any)[this.type]?.(options) ?? options;
+            const presetOptions = (PRESETS as any)[this.type]?.(options, () => this.activeTheme) ?? options;
             this.debug('>>> AgCharts.createOrUpdate() - applying preset', options, presetOptions);
             options = presetOptions;
         }
@@ -223,7 +225,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     protected processSeriesOptions(options: T) {
         const defaultSeriesType = this.getDefaultSeriesType(options);
         const defaultTooltipPosition = this.getTooltipPositionDefaults(options);
-        const userPalette = Boolean(isObject(options.theme) && options.theme.palette);
+        const userPalette = isObject(options.theme) ? paletteType(options.theme?.palette) : 'inbuilt';
         const paletteOptions = {
             colourIndex: 0,
             userPalette,
@@ -265,7 +267,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         const paletteOptions = {
             colourIndex: 0,
-            userPalette: Boolean(isObject(options.theme) && options.theme.palette),
+            userPalette: isObject(options.theme) ? paletteType(options.theme.palette) : 'inbuilt',
         };
 
         miniChartSeries = miniChartSeries.map((series) => {
@@ -282,7 +284,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         options.navigator!.miniChart!.series = this.setSeriesGroupingOptions(miniChartSeries) as any;
     }
 
-    protected getSeriesPalette(seriesType: SeriesType, options: { colourIndex: number; userPalette: boolean }) {
+    protected getSeriesPalette(seriesType: SeriesType, options: { colourIndex: number; userPalette: PaletteType }) {
         const paletteFactory = seriesRegistry.getPaletteFactory(seriesType);
         const { colourIndex: colourOffset, userPalette } = options;
         const { fills = [], strokes = [] } = this.activeTheme.palette;
@@ -291,6 +293,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             userPalette,
             colorsCount: Math.max(fills.length, strokes.length),
             themeTemplateParameters: this.activeTheme.getTemplateParameters(),
+            palette: this.activeTheme.palette as Required<AgChartThemePalette>,
             takeColors(count) {
                 options.colourIndex += count;
                 return {

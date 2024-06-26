@@ -24,4 +24,10 @@ export const DEFAULT_STROKES = {
     RED: '#a82529',
 };
 
-export type DefaultColors = { fills: { [key: string]: string }; strokes: { [key: string]: string } };
+export type DefaultColors = {
+    fills: { [key: string]: string };
+    strokes: { [key: string]: string };
+    up: { stroke: string; fill: string };
+    down: { stroke: string; fill: string };
+    neutral: { stroke: string; fill: string };
+};
