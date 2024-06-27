@@ -404,19 +404,79 @@ export class AreaSeries extends CartesianSeries<
                     });
                 }
 
-                const shouldConnect = validPoint || connectMissingData;
-                if (!shouldConnect) {
-                    moveTo = true;
-                }
+                if (validPoint || !connectMissingData) {
+                    if (!validPoint) {
+                        moveTo = true;
+                    }
 
-                const willDrawLine = !moveTo && !connectMissingData;
-                if (willDrawLine && lastYValueContinuity === false && yValueContinuity === true) {
-                    // Fill forwards
+                    const willDrawLine = !moveTo && !connectMissingData;
+                    if (willDrawLine && lastYValueContinuity === false && yValueContinuity === true) {
+                        // Fill forwards
+                        fillPoints.push({
+                            point: {
+                                x: point.x,
+                                y: yScale.convert(yValueEnd),
+                                moveTo: false,
+                            },
+                            yValue: yDatum,
+                            xValue: xDatum,
+                        });
+                        fillPhantomPoints.push({
+                            point: {
+                                x: point.x,
+                                y: yScale.convert(yValueStart),
+                                moveTo: false,
+                            },
+                            yValue: yDatum,
+                            xValue: xDatum,
+                        });
+                        strokePoints.push({
+                            point: {
+                                x: point.x,
+                                y: yScale.convert(yValueEnd),
+                                moveTo: false,
+                            },
+                            yValue: yDatum,
+                            xValue: xDatum,
+                        });
+                        moveTo = true;
+                    } else if (willDrawLine && lastYValueContinuity === true && yValueContinuity === false) {
+                        // Fill backwards
+                        fillPoints.push({
+                            point: {
+                                x: xScale.convert(lastXDatum) + xOffset,
+                                y: yScale.convert(yValuePreviousEnd),
+                                moveTo: true,
+                            },
+                            yValue: yDatum,
+                            xValue: xDatum,
+                        });
+                        fillPhantomPoints.push({
+                            point: {
+                                x: xScale.convert(lastXDatum) + xOffset,
+                                y: yScale.convert(yValuePreviousStart),
+                                moveTo: true,
+                            },
+                            yValue: yDatum,
+                            xValue: xDatum,
+                        });
+                        strokePoints.push({
+                            point: {
+                                x: xScale.convert(lastXDatum) + xOffset,
+                                y: yScale.convert(yValuePreviousEnd),
+                                moveTo: true,
+                            },
+                            yValue: yDatum,
+                            xValue: xDatum,
+                        });
+                        moveTo = false;
+                    }
+
                     fillPoints.push({
                         point: {
                             x: point.x,
-                            y: yScale.convert(yValueEnd),
-                            moveTo: false,
+                            y: yScale.convert(yValueCumulative),
+                            moveTo,
                         },
                         yValue: yDatum,
                         xValue: xDatum,
@@ -424,8 +484,8 @@ export class AreaSeries extends CartesianSeries<
                     fillPhantomPoints.push({
                         point: {
                             x: point.x,
-                            y: yScale.convert(yValueStart),
-                            moveTo: false,
+                            y: yScale.convert(yValueCumulative - yValue),
+                            moveTo,
                         },
                         yValue: yDatum,
                         xValue: xDatum,
@@ -433,74 +493,15 @@ export class AreaSeries extends CartesianSeries<
                     strokePoints.push({
                         point: {
                             x: point.x,
-                            y: yScale.convert(yValueEnd),
-                            moveTo: false,
+                            y: yScale.convert(yValueCumulative),
+                            moveTo,
                         },
                         yValue: yDatum,
                         xValue: xDatum,
                     });
-                    moveTo = true;
-                } else if (willDrawLine && lastYValueContinuity === true && yValueContinuity === false) {
-                    // Fill backwards
-                    fillPoints.push({
-                        point: {
-                            x: xScale.convert(lastXDatum) + xOffset,
-                            y: yScale.convert(yValuePreviousEnd),
-                            moveTo: true,
-                        },
-                        yValue: yDatum,
-                        xValue: xDatum,
-                    });
-                    fillPhantomPoints.push({
-                        point: {
-                            x: xScale.convert(lastXDatum) + xOffset,
-                            y: yScale.convert(yValuePreviousStart),
-                            moveTo: true,
-                        },
-                        yValue: yDatum,
-                        xValue: xDatum,
-                    });
-                    strokePoints.push({
-                        point: {
-                            x: xScale.convert(lastXDatum) + xOffset,
-                            y: yScale.convert(yValuePreviousEnd),
-                            moveTo: true,
-                        },
-                        yValue: yDatum,
-                        xValue: xDatum,
-                    });
-                    moveTo = false;
+
+                    moveTo = !validPoint;
                 }
-
-                fillPoints.push({
-                    point: {
-                        x: point.x,
-                        y: yScale.convert(yValueCumulative),
-                        moveTo,
-                    },
-                    yValue: yDatum,
-                    xValue: xDatum,
-                });
-                fillPhantomPoints.push({
-                    point: {
-                        x: point.x,
-                        y: yScale.convert(yValueCumulative - yValue),
-                        moveTo,
-                    },
-                    yValue: yDatum,
-                    xValue: xDatum,
-                });
-                strokePoints.push({
-                    point: {
-                        x: point.x,
-                        y: yScale.convert(yValueCumulative),
-                        moveTo,
-                    },
-                    yValue: yDatum,
-                    xValue: xDatum,
-                });
-
-                moveTo = !shouldConnect;
 
                 lastXDatum = xDatum;
                 lastYValueContinuity = yValueContinuity;
