@@ -639,21 +639,27 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             labelSelection,
             innerLabelsSelection,
         } = this;
-        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight() as DonutNodeDatum | undefined;
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         const highlightedNodeData =
             highlightedDatum?.series === this
                 ? this.nodeData.filter((node) => node.itemId === highlightedDatum?.itemId)
                 : [];
 
-        itemSelection.update(this.nodeData, undefined, (datum) => this.getDatumId(datum));
-        if (this.ctx.animationManager.isSkipped()) {
-            itemSelection.cleanup();
-        }
-        highlightSelection.update(
-            highlightedNodeData.map((datum) => ({ ...datum, sectorFormat: { ...datum.sectorFormat } })),
-            undefined,
-            (datum) => this.getDatumId(datum)
-        );
+        const update = (selection: typeof this.itemSelection, clone: boolean) => {
+            let nodeData = this.nodeData;
+            if (clone) {
+                // Allow mutable sectorFormat, so formatted sector styles can be updated and varied
+                // between normal and highlighted cases.
+                nodeData = nodeData.map((datum) => ({ ...datum, sectorFormat: { ...datum.sectorFormat } }));
+            }
+            selection.update(nodeData, undefined, (datum) => this.getDatumId(datum));
+            if (this.ctx.animationManager.isSkipped()) {
+                selection.cleanup();
+            }
+        };
+
+        update(itemSelection, false);
+        update(highlightSelection, true);
 
         calloutLabelSelection.update(this.nodeData, (group) => {
             const line = new Line();
@@ -719,11 +725,13 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             datum.sectorFormat.stroke = format.stroke;
 
             const animationDisabled = this.ctx.animationManager.isSkipped();
-            if (isDatumHighlighted || animationDisabled) {
+            if (animationDisabled) {
                 sector.startAngle = datum.startAngle;
                 sector.endAngle = datum.endAngle;
                 sector.innerRadius = datum.innerRadius;
                 sector.outerRadius = datum.outerRadius;
+            }
+            if (isDatumHighlighted || animationDisabled) {
                 sector.fill = format.fill;
                 sector.stroke = format.stroke;
             }
