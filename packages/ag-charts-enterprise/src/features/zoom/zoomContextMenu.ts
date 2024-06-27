@@ -1,4 +1,4 @@
-import type { AgNodeContextMenuActionEvent, _ModuleSupport, _Scene } from 'ag-charts-community';
+import type { AgChartContextMenuEvent, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
@@ -34,13 +34,13 @@ export class ZoomContextMenu {
 
         contextMenuRegistry.registerDefaultAction({
             id: CONTEXT_ZOOM_ACTION_ID,
-            type: 'series',
+            type: 'all',
             label: 'contextMenuZoomToCursor',
             action: (params) => this.onZoomToHere(params, props),
         });
         contextMenuRegistry.registerDefaultAction({
             id: CONTEXT_PAN_ACTION_ID,
-            type: 'series',
+            type: 'all',
             label: 'contextMenuPanToCursor',
             action: (params) => this.onPanToHere(params, props),
         });
@@ -64,7 +64,7 @@ export class ZoomContextMenu {
         }
     }
 
-    private onZoomToHere({ event }: AgNodeContextMenuActionEvent, props: ZoomProperties) {
+    private onZoomToHere({ event }: AgChartContextMenuEvent, props: ZoomProperties) {
         const { rect } = this;
         const { enabled, isScalingX, isScalingY, minRatioX, minRatioY } = props;
 
@@ -90,7 +90,7 @@ export class ZoomContextMenu {
         this.updateZoom(constrainZoom(newZoom));
     }
 
-    private onPanToHere({ event }: AgNodeContextMenuActionEvent, props: ZoomProperties) {
+    private onPanToHere({ event }: AgChartContextMenuEvent, props: ZoomProperties) {
         const { rect } = this;
         const { enabled } = props;
 
