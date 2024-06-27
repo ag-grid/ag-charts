@@ -64,7 +64,7 @@ export abstract class ChannelScene<
     }
 
     override getAnchor() {
-        const bbox = this.getCachedBBox();
+        const bbox = this.getCachedBBoxWithoutHandles();
         return { x: bbox.x + bbox.width / 2, y: bbox.y };
     }
 

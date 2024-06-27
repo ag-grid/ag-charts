@@ -1,4 +1,4 @@
-import type { _Scene } from 'ag-charts-community';
+import { _Scene } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords } from '../annotationTypes';
 import { convertLine, invertCoords, validateDatumPoint } from '../annotationUtils';
@@ -115,7 +115,7 @@ export class Line extends LinearScene<LineAnnotation> {
     }
 
     override getAnchor() {
-        const bbox = this.getCachedBBox();
+        const bbox = this.getCachedBBoxWithoutHandles();
         return { x: bbox.x + bbox.width / 2, y: bbox.y };
     }
 
