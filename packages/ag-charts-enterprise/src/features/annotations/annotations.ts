@@ -253,8 +253,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (styles) datum.set(styles);
 
         if (this.defaultColor) {
-            datum.stroke = this.defaultColor;
-            if ('background' in datum) datum.background.fill = this.defaultColor;
+            this.colorDatum(datum, this.defaultColor);
         }
     }
 
@@ -360,17 +359,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (active == null) return;
 
-        const datum = this.getTypedDatum(annotationData[active]);
-
-        if (datum) {
-            datum.stroke = color;
-            if ('axisLabel' in datum) {
-                datum.axisLabel.fill = color;
-                datum.axisLabel.stroke = color;
-            }
-            if ('background' in datum) datum.background.fill = color;
-        }
-
+        this.colorDatum(annotationData[active], color);
         this.defaultColor = color;
         this.update();
     }
@@ -875,7 +864,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         toolbarManager.toggleButton('annotationOptions', 'unlock', { visible: locked });
     }
 
-    getTypedDatum(datum: unknown) {
+    private getTypedDatum(datum: unknown) {
         if (
             LineAnnotation.is(datum) ||
             HorizontalLineAnnotation.is(datum) ||
@@ -885,6 +874,17 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         ) {
             return datum;
         }
+    }
+
+    private colorDatum(datum: AnnotationProperties, color: string) {
+        datum.stroke = color;
+
+        if ('axisLabel' in datum) {
+            datum.axisLabel.fill = color;
+            datum.axisLabel.stroke = color;
+        }
+
+        if ('background' in datum) datum.background.fill = color;
     }
 
     private isOtherElement({ targetElement }: { targetElement?: HTMLElement }) {
