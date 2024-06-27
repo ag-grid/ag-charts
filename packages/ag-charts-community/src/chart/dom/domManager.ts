@@ -6,7 +6,8 @@ import { BaseManager } from '../baseManager';
 import BASE_DOM from './domLayout.html';
 import STYLES from './domStyles.css';
 
-const DOM_ELEMENT_CLASSES = ['styles', 'canvas-center', 'canvas', 'canvas-proxy', 'canvas-overlay'] as const;
+const CANVAS_CENTER_CLASS = 'canvas-center';
+const DOM_ELEMENT_CLASSES = ['styles', CANVAS_CENTER_CLASS, 'canvas', 'canvas-proxy', 'canvas-overlay'] as const;
 export type DOMElementClass = (typeof DOM_ELEMENT_CLASSES)[number];
 
 type DOMElementConfig = {
@@ -20,7 +21,7 @@ const domElementConfig: Map<DOMElementClass, DOMElementConfig> = new Map([
     ['canvas', { childElementType: 'canvas', eventTypes: ['focus', 'blur'] }],
     ['canvas-proxy', { childElementType: 'div' }],
     ['canvas-overlay', { childElementType: 'div' }],
-    ['canvas-center', { childElementType: 'div' }],
+    [CANVAS_CENTER_CLASS, { childElementType: 'div' }],
 ]);
 
 function setupObserver(element: HTMLElement, cb: (intersectionRatio: number) => void) {
@@ -123,7 +124,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     }
 
     private updateContainerSize() {
-        const { style: centerStyle } = this.rootElements['canvas-center'].element;
+        const { style: centerStyle } = this.rootElements[CANVAS_CENTER_CLASS].element;
 
         centerStyle.width = `${this.containerSize?.width ?? 0}px`;
         centerStyle.height = `${this.containerSize?.height ?? 0}px`;
