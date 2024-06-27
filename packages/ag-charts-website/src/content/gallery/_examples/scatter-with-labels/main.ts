@@ -13,6 +13,9 @@ const options: AgChartOptions = {
     footnote: {
         text: 'Source: Completely made up and random',
     },
+    padding: {
+        left: 35,
+    },
     series: [
         {
             data: data.filter((d) => d.gender === 'Girl'),
@@ -41,6 +44,7 @@ const options: AgChartOptions = {
         {
             position: 'bottom',
             type: 'number',
+            nice: false,
             gridLine: {
                 enabled: false,
             },
