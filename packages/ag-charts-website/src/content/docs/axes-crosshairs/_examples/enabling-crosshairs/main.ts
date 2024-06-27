@@ -24,7 +24,12 @@ const options: AgCartesianChartOptions = {
             type: 'number',
             position: 'left',
             label: {
-                formatter: (params) => `${params.value / 1000000000}B`,
+                formatter: ({ value }) => {
+                    return `${Number(value).toLocaleString('en-GB', {
+                        notation: 'compact',
+                        maximumFractionDigits: 1,
+                    })}`;
+                },
             },
             crosshair: {
                 enabled: true,
