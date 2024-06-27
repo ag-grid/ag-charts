@@ -40,8 +40,11 @@ import {
     DEFAULT_SHADOW_COLOUR,
     DEFAULT_TOOLBAR_POSITION,
     IS_DARK_THEME,
+    PALETTE_DOWN_FILL,
     PALETTE_DOWN_STROKE,
+    PALETTE_NEUTRAL_FILL,
     PALETTE_NEUTRAL_STROKE,
+    PALETTE_UP_FILL,
     PALETTE_UP_STROKE,
 } from './symbols';
 
@@ -411,8 +414,11 @@ export class ChartTheme {
 
         const defaultColors = this.getDefaultColors();
         params.set(PALETTE_UP_STROKE, this.palette.up?.stroke ?? defaultColors.up.stroke);
+        params.set(PALETTE_UP_FILL, this.palette.up?.fill ?? defaultColors.up.fill);
         params.set(PALETTE_DOWN_STROKE, this.palette.down?.stroke ?? defaultColors.down.stroke);
+        params.set(PALETTE_DOWN_FILL, this.palette.down?.fill ?? defaultColors.down.fill);
         params.set(PALETTE_NEUTRAL_STROKE, this.palette.neutral?.stroke ?? defaultColors.neutral.stroke);
+        params.set(PALETTE_NEUTRAL_FILL, this.palette.neutral?.fill ?? defaultColors.neutral.fill);
 
         return params;
     }
