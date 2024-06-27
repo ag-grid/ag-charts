@@ -95,11 +95,13 @@ If a format string is not provided, the `axis.label.formatter` function or `axis
 
 If neither is present, default formatting will be used: one granularity above axis tick fraction digits for number axes and no formatting for category axes.
 
-The example below demonstrates this behaviour.
-
-Notice how when you click on one of the buttons in the example to change the provided configuration, the crosshair label format changes.
-
 {% chartExampleRunner title="Crosshair Label Format" name="crosshair-label-format" type="generated" /%}
+
+In this example:
+
+-   Clicking 'Remove formats' will remove both the axis and crosshair label formats, with both showing the default format.
+-   Clicking 'Set axis.label.format' will add a format to the axis label. Both the axis and crosshair labels will use this format, unless a crosshair label format has been added.
+-   Clicking 'Set crosshair.label.format' will add a format to the crosshair label. The crosshair labels will use this format, and the axis labels will be unaffected.
 
 ### Default Label Renderer
 
