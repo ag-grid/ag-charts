@@ -7,11 +7,11 @@ import BASE_DOM from './domLayout.html';
 import STYLES from './domStyles.css';
 
 const CANVAS_CENTER_CLASS = 'canvas-center';
-const DOM_ELEMENT_CLASSES = ['styles', CANVAS_CENTER_CLASS, 'canvas', 'canvas-overlay'] as const;
+const DOM_ELEMENT_CLASSES = ['styles', CANVAS_CENTER_CLASS, 'canvas', 'canvas-proxy', 'canvas-overlay'] as const;
 export type DOMElementClass = (typeof DOM_ELEMENT_CLASSES)[number];
 
 type DOMElementConfig = {
-    childElementType: 'style' | 'canvas' | 'div';
+    childElementType: 'style' | 'canvas' | 'div' | 'p';
     style?: Partial<CSSStyleDeclaration>;
     eventTypes?: string[];
 };
@@ -19,6 +19,7 @@ type DOMElementConfig = {
 const domElementConfig: Map<DOMElementClass, DOMElementConfig> = new Map([
     ['styles', { childElementType: 'style' }],
     ['canvas', { childElementType: 'canvas', eventTypes: ['focus', 'blur'] }],
+    ['canvas-proxy', { childElementType: 'div' }],
     ['canvas-overlay', { childElementType: 'div' }],
     [CANVAS_CENTER_CLASS, { childElementType: 'div' }],
 ]);
