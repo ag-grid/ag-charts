@@ -196,13 +196,14 @@ export function priceVolume(
         },
         tooltip: { enabled: false },
         data,
+        // @ts-expect-error
         titlePadding: 4,
         ...navigatorOpts,
         ...statusBarOpts,
         ...zoomOpts,
         ...toolbarOpts,
         ...unusedOpts,
-    };
+    } satisfies AgCartesianChartOptions;
 }
 
 function createVolumeSeries(
