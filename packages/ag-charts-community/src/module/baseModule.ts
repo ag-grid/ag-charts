@@ -5,6 +5,7 @@ type LayoutPositions = 'title' | 'subtitle' | 'footnote';
 export interface LayoutContext {
     shrinkRect: BBox;
     positions: { [K in LayoutPositions]?: BBox };
+    padding: { [K in LayoutPositions]?: number };
 }
 
 export interface ModuleInstance {

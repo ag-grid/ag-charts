@@ -29,7 +29,7 @@ import { BaseProperties } from '../util/properties';
 import { ActionOnSet } from '../util/proxy';
 import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
 import { isDefined, isFiniteNumber, isFunction, isNumber } from '../util/type-guards';
-import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
+import { BOOLEAN, NUMBER, OBJECT, UNION, Validate } from '../util/validation';
 import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxis } from './chartAxis';
@@ -229,6 +229,9 @@ export abstract class Chart extends Observable {
 
     @Validate(OBJECT)
     readonly padding = new Padding(20);
+
+    @Validate(NUMBER)
+    readonly titlePadding = 0;
 
     @Validate(OBJECT)
     readonly seriesArea = new SeriesArea();
@@ -1042,7 +1045,7 @@ export abstract class Chart extends Observable {
 
     protected async performLayout() {
         const { width, height } = this.ctx.scene;
-        let ctx = { shrinkRect: new BBox(0, 0, width, height), positions: {} };
+        let ctx = { shrinkRect: new BBox(0, 0, width, height), positions: {}, padding: {} };
         ctx = this.ctx.layoutService.dispatchPerformLayout('start-layout', ctx);
         ctx = this.ctx.layoutService.dispatchPerformLayout('before-series', ctx);
 
