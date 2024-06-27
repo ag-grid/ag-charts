@@ -14,15 +14,15 @@ Users of integrated charting on AG Grid, should refer to this migration guide wh
 This release includes the following breaking changes:
 
 -   The `AgChart` entrypoint is renamed to `AgCharts`.
--   AgCharts.update() moved to AgChartInstance.update().
--   AgCharts.updateDelta() moved to AgChartInstance.updateDelta().
--   AgCharts.download() moved to AgChartInstance.download().
--   AgCharts.getImageDataURL() moved to AgChartInstance.getImageDataURL().
--   Support for Vue 2 has been dropped as it has reached EOL. See the {% link href="https://v2.vuejs.org/lts/" isExternal=true %}Vue project page{% /link %} for more details.
+-   `AgCharts.update()` moved to `AgChartInstance.update()`.
+-   `AgCharts.updateDelta()` moved to `AgChartInstance.updateDelta()`.
+-   `AgCharts.download()` moved to `AgChartInstance.download()`.
+-   `AgCharts.getImageDataURL()` moved to `AgChartInstance.getImageDataURL()`.
 -   `autosize` is removed. Charts will autosize automatically by default. Use `height`, `width`, `minHeight`, `minWidth` to change this.
 -   Charts smaller than the provided container, now display in the centre of the container instead of top-left.
 -   Series `key` properties no longer support general expressions. The only acceptable property paths are `.dot` and `['square-bracket']` expressions.
 -   `AgNodeDoubleClickEvent `, `AgSeriesNodeClickEvent` and `AgSeriesNodeDoubleClickEvent` are all replaced by `AgNodeClickEvent`.
+-   Support for Vue 2 has been dropped as it has reached EOL. See the {% link href="https://v2.vuejs.org/lts/" isExternal=true %}Vue project page{% /link %} for more details.
 
 **Series Changes**
 
@@ -85,6 +85,7 @@ This release includes the following behaviour changes:
 -   `pie` and `donut` series strokes now default to palette colours.
 -   `pie` and `donut` series `strokeWidth` now defaults to `0`.
 -   Crosshairs now `snap` by default for number axis of `range-bar` and `range-area` series. Use `snap: false` to change.
+-   Crosshair labels for dark modes now have a different background colour.
 -   `legend.item.showSeriesStroke` defaults to `true`.
 
 **Other Changes**
