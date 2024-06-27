@@ -1,13 +1,14 @@
 import type { _Scene } from 'ag-charts-community';
 
-import type { Coords, UpdateContext, ValidationContext } from '../annotationTypes';
+import type { AnnotationContext, Coords } from '../annotationTypes';
 import { convertLine, invertCoords, validateDatumPoint } from '../annotationUtils';
 import { Annotation } from '../scenes/annotation';
 import { DivariantHandle } from '../scenes/handle';
+import { LinearScene } from '../scenes/linearScene';
 import { CollidableLine } from '../scenes/shapes';
 import type { LineAnnotation } from './lineProperties';
 
-export class Line extends Annotation {
+export class Line extends LinearScene<LineAnnotation> {
     static override is(value: unknown): value is Line {
         return Annotation.isCheck(value, 'line');
     }
@@ -27,15 +28,14 @@ export class Line extends Annotation {
         this.append([this.line, this.start, this.end]);
     }
 
-    public update(datum: LineAnnotation, context: UpdateContext) {
+    public update(datum: LineAnnotation, context: AnnotationContext) {
         const { line, start, end } = this;
         const { locked, visible, lineDash, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
-        const { scaleX, scaleY, seriesRect } = context;
 
         this.locked = locked ?? false;
-        this.seriesRect = seriesRect;
+        this.seriesRect = context.seriesRect;
 
-        const coords = convertLine(datum, scaleX, scaleY);
+        const coords = convertLine(datum, context);
 
         if (coords == null) {
             this.visible = false;
@@ -64,6 +64,7 @@ export class Line extends Annotation {
             fill: datum.handle.fill,
             stroke: datum.handle.stroke ?? stroke,
             strokeOpacity: datum.handle.strokeOpacity ?? strokeOpacity,
+            strokeWidth: datum.handle.strokeWidth ?? strokeWidth,
         };
 
         start.update({ ...handleStyles, x: x1, y: y1 });
@@ -91,13 +92,13 @@ export class Line extends Annotation {
         this.end.toggleActive(active);
     }
 
-    override dragHandle(datum: LineAnnotation, target: Coords, context: ValidationContext, onInvalid: () => void) {
+    override dragHandle(datum: LineAnnotation, target: Coords, context: AnnotationContext, onInvalid: () => void) {
         const { activeHandle } = this;
 
-        if (!activeHandle || datum.start == null || datum.end == null) return;
+        if (!activeHandle) return;
 
         this[activeHandle].toggleDragging(true);
-        const point = invertCoords(this[activeHandle].drag(target).point, context.scaleX, context.scaleY);
+        const point = invertCoords(this[activeHandle].drag(target).point, context);
 
         if (!validateDatumPoint(context, point)) {
             onInvalid();

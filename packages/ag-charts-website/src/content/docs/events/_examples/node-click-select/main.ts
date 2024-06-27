@@ -25,7 +25,7 @@ const options: AgCartesianChartOptions = {
             },
             marker: {
                 size: 16,
-                formatter: (params) => {
+                itemStyler: (params) => {
                     // Use a different size and color for selected nodes.
                     if (params.datum.selected) {
                         return {

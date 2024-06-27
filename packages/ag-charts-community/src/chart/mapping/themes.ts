@@ -1,13 +1,11 @@
-import type {
-    AgChartTheme,
-    AgChartThemeName,
-    AgChartThemeOverrides,
-    AgChartThemePalette,
-} from '../../options/agChartOptions';
+import type { AgChartTheme, AgChartThemeName, AgChartThemeOverrides, AgChartThemePalette } from 'ag-charts-types';
+
 import { Logger } from '../../util/logger';
 import { mergeDefaults } from '../../util/object';
 import { ChartTheme } from '../themes/chartTheme';
 import { DarkTheme } from '../themes/darkTheme';
+import { FinancialDark } from '../themes/financialDark';
+import { FinancialLight } from '../themes/financialLight';
 import { MaterialDark } from '../themes/materialDark';
 import { MaterialLight } from '../themes/materialLight';
 import { PolychromaDark } from '../themes/polychromaDark';
@@ -17,7 +15,8 @@ import { SheetsLight } from '../themes/sheetsLight';
 import { VividDark } from '../themes/vividDark';
 import { VividLight } from '../themes/vividLight';
 
-export type ThemeMap = { [key in AgChartThemeName | 'undefined' | 'null']?: () => ChartTheme };
+type SpecialThemeName = 'ag-financial' | 'ag-financial-dark';
+export type ThemeMap = { [key in AgChartThemeName | SpecialThemeName | 'undefined' | 'null']?: () => ChartTheme };
 
 const lightTheme = () => new ChartTheme();
 const darkTheme = () => new DarkTheme();
@@ -30,6 +29,7 @@ const lightThemes: ThemeMap = {
     'ag-polychroma': () => new PolychromaLight(),
     'ag-vivid': () => new VividLight(),
     'ag-material': () => new MaterialLight(),
+    'ag-financial': () => new FinancialLight(),
 };
 
 const darkThemes: ThemeMap = {
@@ -40,6 +40,7 @@ const darkThemes: ThemeMap = {
     'ag-polychroma-dark': () => new PolychromaDark(),
     'ag-vivid-dark': () => new VividDark(),
     'ag-material-dark': () => new MaterialDark(),
+    'ag-financial-dark': () => new FinancialDark(),
 };
 
 export const themes: ThemeMap = {

@@ -1,4 +1,5 @@
-import type { AgCartesianAxisPosition } from '../../options/agChartOptions';
+import type { AgCartesianAxisPosition } from 'ag-charts-types';
+
 import { CartesianAxis } from '../axis/cartesianAxis';
 import type { ChartAxis } from '../chartAxis';
 

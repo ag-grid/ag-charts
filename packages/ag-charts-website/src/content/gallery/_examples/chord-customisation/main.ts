@@ -28,17 +28,14 @@ const options: AgChartOptions = {
             sizeKey: 'passengers',
             sizeName: 'Passengers',
             node: {
-                fill: '#888',
-                fillOpacity: 0.25,
-                stroke: '#888',
-                strokeOpacity: 0.5,
+                width: 40,
                 strokeWidth: 1,
             },
             link: {
                 fill: '#888',
-                fillOpacity: 0.125,
+                fillOpacity: 0.225,
                 stroke: '#888',
-                strokeOpacity: 0.25,
+                strokeOpacity: 0.55,
                 strokeWidth: 1,
             },
             label: {

@@ -1,4 +1,5 @@
-import type { InteractionRange } from '../../options/chart/types';
+import type { InteractionRange } from 'ag-charts-types';
+
 import { BaseProperties } from '../../util/properties';
 import {
     BOOLEAN,

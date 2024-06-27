@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import { type AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
-import { clickAction, extractImageData, setupMockCanvas, waitForChartStability } from 'ag-charts-community-test';
+import { extractImageData, setupMockCanvas, waitForChartStability } from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -20,22 +20,20 @@ describe('Annotations', () => {
         annotations: {
             enabled: true,
         },
+        toolbar: {
+            enabled: false,
+        },
     };
 
-    let width = 0;
-    let height = 0;
-
     async function prepareChart(
-        annotationsOptions?: AgCartesianChartOptions['annotations'],
+        initialStateOptions?: AgCartesianChartOptions['initialState'],
         baseOptions = EXAMPLE_OPTIONS
     ) {
         const options: AgCartesianChartOptions = {
             ...baseOptions,
-            annotations: { ...baseOptions.annotations, ...(annotationsOptions ?? {}) },
+            initialState: { ...baseOptions.initialState, ...(initialStateOptions ?? {}) },
         };
         prepareEnterpriseTestOptions(options);
-        width = options.width!;
-        height = options.height!;
         chart = AgCharts.create(options);
         await waitForChartStability(chart);
     }
@@ -60,11 +58,11 @@ describe('Annotations', () => {
     describe('initial', () => {
         it('should render a line annotation', async () => {
             await prepareChart({
-                initial: [
+                annotations: [
                     {
                         type: 'line',
-                        start: { x: new Date('2024-03-01'), y: 25 },
-                        end: { x: new Date('2024-09-01'), y: 75 },
+                        start: { x: { __type: 'date', value: '2024-03-01' }, y: 25 },
+                        end: { x: { __type: 'date', value: '2024-09-01' }, y: 75 },
                     },
                 ],
             });
@@ -73,10 +71,9 @@ describe('Annotations', () => {
 
         it('should render a horizontal cross-line annotation', async () => {
             await prepareChart({
-                initial: [
+                annotations: [
                     {
-                        type: 'cross-line',
-                        direction: 'horizontal',
+                        type: 'horizontal-line',
                         value: 75,
                     },
                 ],
@@ -86,11 +83,10 @@ describe('Annotations', () => {
 
         it('should render a vertical cross-line annotation', async () => {
             await prepareChart({
-                initial: [
+                annotations: [
                     {
-                        type: 'cross-line',
-                        direction: 'vertical',
-                        value: new Date('2024-09-01'),
+                        type: 'vertical-line',
+                        value: { __type: 'date', value: '2024-09-01' },
                     },
                 ],
             });
@@ -99,11 +95,11 @@ describe('Annotations', () => {
 
         it('should render a parallel-channel annotation', async () => {
             await prepareChart({
-                initial: [
+                annotations: [
                     {
                         type: 'parallel-channel',
-                        start: { x: new Date('2024-03-01'), y: 40 },
-                        end: { x: new Date('2024-09-01'), y: 90 },
+                        start: { x: { __type: 'date', value: '2024-03-01' }, y: 40 },
+                        end: { x: { __type: 'date', value: '2024-09-01' }, y: 90 },
                         height: 30,
                     },
                 ],
@@ -113,30 +109,16 @@ describe('Annotations', () => {
 
         it('should render a disjoint-channel annotation', async () => {
             await prepareChart({
-                initial: [
+                annotations: [
                     {
                         type: 'disjoint-channel',
-                        start: { x: new Date('2024-03-01'), y: 35 },
-                        end: { x: new Date('2024-09-01'), y: 95 },
+                        start: { x: { __type: 'date', value: '2024-03-01' }, y: 35 },
+                        end: { x: { __type: 'date', value: '2024-09-01' }, y: 95 },
                         startHeight: 20,
                         endHeight: 40,
                     },
                 ],
             });
-            await compare();
-        });
-    });
-
-    describe('cross-line', () => {
-        it('when y-axis is clicked it should create a horizontal cross-line', async () => {
-            await prepareChart();
-            await clickAction(40, height / 3)(chart);
-            await compare();
-        });
-
-        it('when x-axis is clicked it should create a vertical cross-line', async () => {
-            await prepareChart();
-            await clickAction(width / 3, height - 30)(chart);
             await compare();
         });
     });

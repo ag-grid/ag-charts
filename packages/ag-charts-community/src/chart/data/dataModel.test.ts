@@ -14,7 +14,7 @@ import {
     sumValues,
 } from './aggregateFunctions';
 import type { AggregatePropertyDefinition, GroupByFn, PropertyId } from './dataModel';
-import { DataModel } from './dataModel';
+import { DataModel, getPathComponents } from './dataModel';
 import {
     SMALLEST_KEY_INTERVAL,
     SORT_DOMAIN_GROUPS,
@@ -491,7 +491,7 @@ describe('DataModel', () => {
                 expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - invalid value of type [object] ignored:",
+    "AG Charts - invalid value of type [object] for [undefined / undefined] ignored:",
     "[null]",
   ],
 ]
@@ -510,7 +510,7 @@ describe('DataModel', () => {
                 expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - invalid value of type [object] ignored:",
+    "AG Charts - invalid value of type [object] for [undefined / undefined] ignored:",
     "[null]",
   ],
 ]
@@ -529,7 +529,7 @@ describe('DataModel', () => {
                 expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - invalid value of type [object] ignored:",
+    "AG Charts - invalid value of type [object] for [undefined / undefined] ignored:",
     "[null]",
   ],
 ]
@@ -544,7 +544,7 @@ describe('DataModel', () => {
                 expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - invalid value of type [object] ignored:",
+    "AG Charts - invalid value of type [object] for [undefined / undefined] ignored:",
     "[null]",
   ],
 ]
@@ -1088,12 +1088,28 @@ describe('DataModel', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - invalid value of type [string] ignored:",
+    "AG Charts - invalid value of type [string] for [series-a / undefined] ignored:",
     "[illegal value]",
   ],
   [
-    "AG Charts - invalid value of type [undefined] ignored:",
+    "AG Charts - invalid value of type [string] for [undefined / undefined] ignored:",
+    "[illegal value]",
+  ],
+  [
+    "AG Charts - invalid value of type [undefined] for [series-b / undefined] ignored:",
     "[undefined]",
+  ],
+  [
+    "AG Charts - invalid value of type [undefined] for [series-c / undefined] ignored:",
+    "[undefined]",
+  ],
+  [
+    "AG Charts - invalid value of type [string] for [series-c / undefined] ignored:",
+    "[illegal value]",
+  ],
+  [
+    "AG Charts - invalid value of type [string] for [series-b / undefined] ignored:",
+    "[illegal value]",
   ],
 ]
 `);
@@ -1128,7 +1144,11 @@ describe('DataModel', () => {
                 expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - invalid value of type [string] ignored:",
+    "AG Charts - invalid value of type [string] for [undefined / undefined] ignored:",
+    "[illegal value]",
+  ],
+  [
+    "AG Charts - invalid value of type [string] for [scope-1 / undefined] ignored:",
     "[illegal value]",
   ],
 ]
@@ -1145,7 +1165,11 @@ describe('DataModel', () => {
                 expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - invalid value of type [string] ignored:",
+    "AG Charts - invalid value of type [string] for [undefined / undefined] ignored:",
+    "[illegal value]",
+  ],
+  [
+    "AG Charts - invalid value of type [string] for [scope-1 / undefined] ignored:",
     "[illegal value]",
   ],
 ]
@@ -1241,6 +1265,25 @@ describe('DataModel', () => {
             expect(processedData).toMatchSnapshot({
                 time: expect.any(Number),
             });
+        });
+    });
+
+    describe('getPathComponents', () => {
+        it('parses valid paths', () => {
+            expect(getPathComponents(`a . b [ 'c' ] [ "d" ] [ 0 ] [ 99 ]`)).toEqual(['a', 'b', 'c', 'd', '0', '99']);
+            expect(getPathComponents(`. b [ 'c' ] [ "d" ] [ 0 ] [ 99 ]`)).toEqual(['b', 'c', 'd', '0', '99']);
+            expect(getPathComponents(`[ 'c' ] [ "d" ] [ 0 ] [ 99 ]`)).toEqual(['c', 'd', '0', '99']);
+        });
+
+        it('handles string escapes paths', () => {
+            expect(getPathComponents(`[ 'a\\'b' ] [ "a\\"b" ]`)).toEqual([`a'b`, `a"b`]);
+            expect(getPathComponents(`[ 'a\\\\'b' ]`)).toBe(undefined);
+            expect(getPathComponents(`[ "a\\\\"b" ]`)).toBe(undefined);
+        });
+
+        it('rejects invalid paths', () => {
+            expect(getPathComponents(`["test"]other`)).toBe(undefined);
+            expect(getPathComponents(`[test]`)).toBe(undefined);
         });
     });
 });

@@ -69,9 +69,9 @@ series: [
 
 Please see the [Series Markers](./markers/) page for more information or the [API Reference](./line-series/#reference-AgLineSeriesOptions-marker) for a list of all available marker options.
 
-### Line
+### Interpolation
 
-A straight line is used to connect points by default in the Line Series. Use the `line` option to change the line style.
+A straight line is used to connect points by default in the Line Series. Use the `interpolation` option to change the line style.
 
 {% chartExampleRunner title="Customised Line Style" name="line-style" type="generated" /%}
 
@@ -79,14 +79,14 @@ A straight line is used to connect points by default in the Line Series. Use the
 series: [
     {
         // ...
-        line: {
-            style: 'smooth'
+        interpolation: {
+            type: 'smooth'
         },
     },
 ],
 ```
 
-Please see the the [API Reference](./line-series/#reference-AgLineSeriesOptions-line) for a list of all available line options.
+Please see the the [API Reference](./line-series/#reference-AgLineSeriesOptions-interpolation) for a list of all available interpolation options.
 
 ## Data
 

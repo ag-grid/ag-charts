@@ -152,3 +152,6 @@ export const getFileList = async ({ folderPath, fileList }: { folderPath: string
 
 // TODO: Find a better way to determine if an example is enterprise or not
 export const getIsEnterprise = ({ entryFile }: { entryFile: string }) => entryFile?.includes('ag-charts-enterprise');
+
+// TODO: Find a better way to determine if an example is enterprise or not
+export const getHasLocale = ({ entryFile }: { entryFile: string }) => entryFile?.includes('ag-charts-locale');

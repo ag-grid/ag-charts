@@ -26,8 +26,7 @@ axes: [
 ],
 ```
 
-The category axis will attempt to render an [Axis Tick](./axes-ticks/), [Axis Label](./axes-labels/) and
-[Grid Line](./axes-grid-lines/) for each category with even spacing.
+The category axis will attempt to render an [Axis Label](./axes-labels/), [Grid Line](./axes-grid-lines/) and Tick for each category with even spacing.
 
 For a full list of configuration options see [Category Axis Options](#reference-AgCategoryAxisOptions).
 
@@ -39,8 +38,8 @@ The number axis displays continuous numerical values, unlike the [Category](#cat
 discrete categories or groups of data. This means that while categories are spaced out evenly, the distance between values
 in a number axis will depend on their magnitude.
 
-Instead of using one [Axis Tick](./axes-ticks/) per value, the number axis will determine the range of all values,
-round it up and try to segment the rounded range with evenly spaced ticks.
+Instead of using an [Axis Interval](./axes-intervals/) with one item per value, the number axis will determine the range of all values,
+round it up and try to segment the rounded range with evenly spaced intervals.
 
 If no `axes` are supplied, a number axis will be used as the y-axis by default. However, it can also be explicitly
 configured as shown below:
@@ -182,4 +181,4 @@ The difference between a continuous [Time Axis](#time) and an [Ordinal Time Axis
 
 ## Next Up
 
-Continue to the next section to learn about the [Axis Ticks](./axes-ticks/).
+Continue to the next section to learn about the [Axis Intervals](./axes-intervals/).

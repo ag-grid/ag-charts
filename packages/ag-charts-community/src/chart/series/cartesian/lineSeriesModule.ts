@@ -13,6 +13,7 @@ export const LineSeriesModule: SeriesModule<'line'> = {
     identifier: 'line',
     instanceConstructor: LineSeries,
     stackable: true,
+    tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,
@@ -30,8 +31,8 @@ export const LineSeriesModule: SeriesModule<'line'> = {
             strokeOpacity: 1,
             lineDash: [0],
             lineDashOffset: 0,
-            line: {
-                style: 'linear',
+            interpolation: {
+                type: 'linear',
                 // @ts-expect-error - users shouldn't specify all options, but we have to for theming to work
                 tension: 1,
                 position: 'end',

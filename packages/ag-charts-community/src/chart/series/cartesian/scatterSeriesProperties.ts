@@ -1,10 +1,13 @@
 import type {
+    AgScatterSeriesItemStylerParams,
     AgScatterSeriesLabelFormatterParams,
     AgScatterSeriesOptions,
     AgScatterSeriesOptionsKeys,
     AgScatterSeriesTooltipRendererParams,
     AgSeriesMarkerStyle,
-} from '../../../options/agChartOptions';
+    Styler,
+} from 'ag-charts-types';
+
 import type { SizedPoint } from '../../../scene/point';
 import type { LabelPlacement, MeasuredLabel } from '../../../scene/util/labelPlacement';
 import { ProxyProperty } from '../../../util/proxy';
@@ -84,8 +87,8 @@ export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatter
     @ProxyProperty('marker.strokeOpacity')
     strokeOpacity!: number;
 
-    @ProxyProperty('marker.formatter', { optional: true })
-    formatter?: (params: any) => AgSeriesMarkerStyle | undefined;
+    @ProxyProperty('marker.itemStyler', { optional: true })
+    itemStyler?: Styler<AgScatterSeriesItemStylerParams<unknown>, AgSeriesMarkerStyle>;
 
     @Validate(OBJECT)
     readonly label = new ScatterSeriesLabel();
@@ -94,5 +97,5 @@ export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatter
     readonly tooltip = new SeriesTooltip<AgScatterSeriesTooltipRendererParams>();
 
     // No validation. Not a part of the options contract.
-    readonly marker = new SeriesMarker<AgScatterSeriesOptionsKeys, ScatterNodeDatum>();
+    readonly marker = new SeriesMarker<AgScatterSeriesOptionsKeys>();
 }

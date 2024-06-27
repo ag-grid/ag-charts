@@ -1,9 +1,10 @@
 import type {
-    AgMapMarkerSeriesFormatterParams,
+    AgMapMarkerSeriesItemStylerParams,
     AgMapMarkerSeriesLabelFormatterParams,
     AgMapMarkerSeriesOptions,
     AgMapMarkerSeriesStyle,
     AgMapMarkerSeriesTooltipRendererParams,
+    Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
@@ -144,7 +145,7 @@ export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSerie
     strokeOpacity: number = 1;
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgMapMarkerSeriesFormatterParams<any>) => AgMapMarkerSeriesStyle;
+    itemStyler?: Styler<AgMapMarkerSeriesItemStylerParams<unknown>, AgMapMarkerSeriesStyle>;
 
     @Validate(OBJECT)
     readonly label = new MapMarkerSeriesLabel();

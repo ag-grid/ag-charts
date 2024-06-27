@@ -1,13 +1,16 @@
 import type {
-    AgBarSeriesFormatterParams,
+    AgBarSeriesItemStylerParams,
     AgBarSeriesLabelFormatterParams,
     AgBarSeriesLabelPlacement,
     AgBarSeriesOptions,
     AgBarSeriesStyle,
     AgBarSeriesTooltipRendererParams,
-} from '../../../options/series/cartesian/barOptions';
+    Styler,
+} from 'ag-charts-types';
+
 import { DropShadow } from '../../../scene/dropShadow';
 import {
+    BOOLEAN,
     COLOR_STRING,
     FUNCTION,
     LINE_DASH,
@@ -71,8 +74,11 @@ export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeries
     @Validate(POSITIVE_NUMBER)
     cornerRadius: number = 0;
 
+    @Validate(BOOLEAN, { optional: true })
+    crisp?: boolean = undefined;
+
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgBarSeriesFormatterParams<any>) => AgBarSeriesStyle;
+    itemStyler?: Styler<AgBarSeriesItemStylerParams<unknown>, AgBarSeriesStyle>;
 
     @Validate(OBJECT, { optional: true })
     readonly shadow = new DropShadow();

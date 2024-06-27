@@ -1,6 +1,6 @@
 import type { ExtensibleTheme } from '../../../module/coreModules';
 import type { SeriesPaletteFactory } from '../../../module/coreModulesTypes';
-import { FONT_WEIGHT } from '../../themes/constants';
+import { FONT_SIZE, FONT_WEIGHT } from '../../themes/constants';
 import {
     DEFAULT_FONT_FAMILY,
     DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
@@ -13,7 +13,6 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
     series: {
         title: {
             enabled: true,
-            fontStyle: undefined,
             fontWeight: FONT_WEIGHT.NORMAL,
             fontSize: 14,
             fontFamily: DEFAULT_FONT_FAMILY,
@@ -22,9 +21,7 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
         },
         calloutLabel: {
             enabled: true,
-            fontStyle: undefined,
-            fontWeight: undefined,
-            fontSize: 12,
+            fontSize: FONT_SIZE.SMALL,
             fontFamily: DEFAULT_FONT_FAMILY,
             color: DEFAULT_LABEL_COLOUR,
             offset: 3,
@@ -32,9 +29,8 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
         },
         sectorLabel: {
             enabled: true,
-            fontStyle: undefined,
             fontWeight: FONT_WEIGHT.NORMAL,
-            fontSize: 12,
+            fontSize: FONT_SIZE.SMALL,
             fontFamily: DEFAULT_FONT_FAMILY,
             color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
             positionOffset: 0,
@@ -63,11 +59,5 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
 
 export const piePaletteFactory: SeriesPaletteFactory<'pie'> = ({ takeColors, colorsCount }) => {
     const { fills, strokes } = takeColors(colorsCount);
-    return {
-        fills,
-        strokes,
-        calloutLine: {
-            colors: strokes,
-        },
-    };
+    return { fills, strokes, calloutLine: { colors: strokes } };
 };

@@ -1,11 +1,7 @@
+import type { AgBarSeriesStyle, AgErrorBoundSeriesTooltipRendererParams, FontStyle, FontWeight } from 'ag-charts-types';
+
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
-import type {
-    AgBarSeriesStyle,
-    AgErrorBoundSeriesTooltipRendererParams,
-    FontStyle,
-    FontWeight,
-} from '../../../options/agChartOptions';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { BBox } from '../../../scene/bbox';
 import { PointerEvents } from '../../../scene/node';
@@ -109,7 +105,6 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
             directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
-            defaultTooltipRange: 'exact',
             pathsPerSeries: 0,
             hasHighlightedLabels: true,
             datumSelectionGarbageCollection: false,
@@ -417,18 +412,15 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             strokeOpacity,
             lineDash,
             lineDashOffset,
-            formatter,
+            itemStyler,
             shadow,
             highlightStyle: { item: itemHighlightStyle },
         } = this.properties;
 
         const xAxis = this.axes[ChartAxisDirection.X];
-        const crisp = checkCrisp(
-            xAxis?.scale,
-            xAxis?.visibleRange,
-            this.smallestDataInterval,
-            this.largestDataInterval
-        );
+        const crisp =
+            this.properties.crisp ??
+            checkCrisp(xAxis?.scale, xAxis?.visibleRange, this.smallestDataInterval, this.largestDataInterval);
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
 
         opts.datumSelection.each((rect, datum) => {
@@ -459,7 +451,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 highlightStyle: itemHighlightStyle,
                 yKey,
                 style,
-                formatter,
+                itemStyler,
                 stackGroup,
             });
             config.crisp = crisp;
@@ -498,7 +490,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             return EMPTY_TOOLTIP_CONTENT;
         }
 
-        const { xKey, yKey, xName, yName, fill, stroke, strokeWidth, tooltip, formatter, stackGroup, legendItemName } =
+        const { xKey, yKey, xName, yName, fill, stroke, strokeWidth, tooltip, itemStyler, stackGroup, legendItemName } =
             this.properties;
         const { xValue, yValue, datum, itemId } = nodeDatum;
 
@@ -509,8 +501,8 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
         let format: AgBarSeriesStyle | undefined;
 
-        if (formatter) {
-            format = callbackCache.call(formatter, {
+        if (itemStyler) {
+            format = callbackCache.call(itemStyler, {
                 seriesId,
                 datum,
                 xKey,
@@ -520,6 +512,11 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 stroke,
                 strokeWidth: this.getStrokeWidth(strokeWidth),
                 highlighted: false,
+                cornerRadius: this.properties.cornerRadius,
+                fillOpacity: this.properties.fillOpacity,
+                strokeOpacity: this.properties.strokeOpacity,
+                lineDash: this.properties.lineDash ?? [],
+                lineDashOffset: this.properties.lineDashOffset,
             });
         }
 

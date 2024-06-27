@@ -2,127 +2,13 @@ import { StateTracker } from '../../util/stateTracker';
 import type { DOMManager } from '../dom/domManager';
 import type { ErrorBoundSeriesNodeDatum, SeriesNodeDatum } from '../series/seriesTypes';
 import type { Tooltip, TooltipContent, TooltipMeta } from '../tooltip/tooltip';
-import { DEFAULT_TOOLTIP_CLASS, type TooltipPointerEvent } from '../tooltip/tooltip';
+import { type TooltipPointerEvent } from '../tooltip/tooltip';
+import defaultTooltipCss from './tooltipManager.css';
 
 interface TooltipState {
     content?: TooltipContent;
     meta?: TooltipMeta;
 }
-
-const defaultTooltipCss = `
-.${DEFAULT_TOOLTIP_CLASS} {
-    transition: transform 0.1s ease;
-    max-width: 100%;
-    z-index: 99999;
-    font: 12px Verdana, sans-serif;
-    color: rgb(70, 70, 70);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-}
-
-.${DEFAULT_TOOLTIP_CLASS}-wrap-always {
-    overflow-wrap: break-word;
-    word-break: break-word;
-    hyphens: none;
-}
-
-.${DEFAULT_TOOLTIP_CLASS}-wrap-hyphenate {
-    overflow-wrap: break-word;
-    word-break: break-word;
-    hyphens: auto;
-}
-
-.${DEFAULT_TOOLTIP_CLASS}-wrap-on-space {
-    overflow-wrap: normal;
-    word-break: normal;
-}
-
-.${DEFAULT_TOOLTIP_CLASS}-wrap-never {
-    white-space: pre;
-    text-overflow: ellipsis;
-}
-
-.${DEFAULT_TOOLTIP_CLASS}-no-interaction {
-    pointer-events: none;
-    user-select: none;
-}
-
-.${DEFAULT_TOOLTIP_CLASS}-no-animation {
-    transition: none !important;
-}
-
-.${DEFAULT_TOOLTIP_CLASS}-hidden {
-    visibility: hidden;
-}
-
-.${DEFAULT_TOOLTIP_CLASS}-title {
-    overflow: hidden;
-    position: relative;
-    padding: 8px 14px;
-    border-top-left-radius: 2px;
-    border-top-right-radius: 2px;
-    color: white;
-    background-color: #888888;
-    z-index: 1;
-    text-overflow: inherit;
-}
-
-.${DEFAULT_TOOLTIP_CLASS}-title:only-child {
-    border-bottom-left-radius: 2px;
-    border-bottom-right-radius: 2px;
-}
-
-.${DEFAULT_TOOLTIP_CLASS}-content {
-    overflow: hidden;
-    padding: 6px 14px;
-    line-height: 1.7em;
-    background: white;
-    border-bottom-left-radius: 2px;
-    border-bottom-right-radius: 2px;
-    border: 1px solid rgba(0, 0, 0, 0.15);
-    overflow: hidden;
-    text-overflow: inherit;
-}
-
-.${DEFAULT_TOOLTIP_CLASS}-arrow::before {
-    content: "";
-
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-
-    border: 5px solid #d9d9d9;
-
-    border-left-color: transparent;
-    border-right-color: transparent;
-    border-bottom-color: transparent;
-
-    width: 0;
-    height: 0;
-
-    margin: 0 auto;
-}
-
-.${DEFAULT_TOOLTIP_CLASS}-arrow::after {
-    content: "";
-
-    position: absolute;
-    top: calc(100% - 1px);
-    left: 50%;
-    transform: translateX(-50%);
-
-    border: 5px solid white;
-
-    border-left-color: transparent;
-    border-right-color: transparent;
-    border-bottom-color: transparent;
-
-    width: 0;
-    height: 0;
-
-    margin: 0 auto;
-}
-`;
 
 /**
  * Manages the tooltip HTML an element. Tracks the requested HTML from distinct dependents and
@@ -195,7 +81,7 @@ export class TooltipManager {
     }
 
     public static makeTooltipMeta(
-        event: TooltipPointerEvent<'hover' | 'keyboard'>,
+        event: TooltipPointerEvent<'hover' | 'drag' | 'keyboard'>,
         datum: SeriesNodeDatum & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>
     ): TooltipMeta {
         const { offsetX, offsetY } = event;

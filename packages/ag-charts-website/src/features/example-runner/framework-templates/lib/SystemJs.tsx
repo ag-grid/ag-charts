@@ -29,6 +29,8 @@ const localConfiguration: Configuration = {
     chartPaths: {
         'ag-charts-community': `${localPrefix}/ag-charts-community/dist/package/main.cjs.js`,
         'ag-charts-enterprise': `${localPrefix}/ag-charts-enterprise/dist/package/main.cjs.js`,
+        'ag-charts-types': `${localPrefix}/ag-charts-types/dist/package/main.cjs.js`,
+        'ag-charts-locale': `${localPrefix}/ag-charts-locale/dist/package/main.cjs.js`,
     },
 };
 
@@ -41,6 +43,8 @@ const buildAndArchivesConfiguration: Configuration = {
     chartPaths: {
         'ag-charts-community': `${localPrefix}/ag-charts-community/dist/package/main.cjs.js`,
         'ag-charts-enterprise': `${localPrefix}/ag-charts-enterprise/dist/package/main.cjs.js`,
+        'ag-charts-types': `${localPrefix}/ag-charts-types/dist/package/main.cjs.js`,
+        'ag-charts-locale': `${localPrefix}/ag-charts-locale/dist/package/main.cjs.js`,
     },
 };
 
@@ -99,6 +103,8 @@ export const SystemJs = ({ boilerplatePath, appLocation, startFile, internalFram
             ...configuration.chartMap,
             'ag-charts-community': `${localPrefix}/ag-charts-community`,
             'ag-charts-enterprise': `${localPrefix}/ag-charts-enterprise`,
+            'ag-charts-types': `${localPrefix}/ag-charts-types`,
+            'ag-charts-locale': `${localPrefix}/ag-charts-locale`,
         };
     }
     configuration = getRelevantConfig(configuration, internalFramework);

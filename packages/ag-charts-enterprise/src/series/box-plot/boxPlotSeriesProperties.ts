@@ -1,8 +1,9 @@
 import type {
-    AgBoxPlotSeriesFormatterParams,
+    AgBoxPlotSeriesItemStylerParams,
     AgBoxPlotSeriesOptions,
-    AgBoxPlotSeriesStyles,
+    AgBoxPlotSeriesStyle,
     AgBoxPlotSeriesTooltipRendererParams,
+    Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
@@ -108,7 +109,7 @@ export class BoxPlotSeriesProperties extends AbstractBarSeriesProperties<AgBoxPl
     cornerRadius: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgBoxPlotSeriesFormatterParams<unknown>) => AgBoxPlotSeriesStyles;
+    itemStyler?: Styler<AgBoxPlotSeriesItemStylerParams<unknown>, AgBoxPlotSeriesStyle>;
 
     @Validate(OBJECT)
     readonly cap = new BoxPlotSeriesCap();
@@ -117,7 +118,10 @@ export class BoxPlotSeriesProperties extends AbstractBarSeriesProperties<AgBoxPl
     readonly whisker = new BoxPlotSeriesWhisker();
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgBoxPlotSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgBoxPlotSeriesTooltipRendererParams<any>>();
+
+    @Validate(COLOR_STRING) // Internal: Set by paletteFactory.
+    backgroundFill: string = 'white';
 
     override toJson() {
         const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this;

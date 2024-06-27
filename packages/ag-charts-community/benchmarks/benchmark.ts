@@ -1,15 +1,15 @@
 import { afterEach, beforeEach } from '@jest/globals';
 
 import { flushTimings, loadBuiltExampleOptions, logTimings, recordTiming, setupMockConsole } from 'ag-charts-test';
+import { AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
 import {
     CartesianSeries,
     CartesianSeriesNodeDataContext,
     CartesianSeriesNodeDatum,
 } from '../src/chart/series/cartesian/cartesianSeries';
-import { AgChartProxy, IMAGE_SNAPSHOT_DEFAULTS, deproxy, prepareTestOptions } from '../src/chart/test/utils';
+import { AgChartProxy, deproxy, prepareTestOptions } from '../src/chart/test/utils';
 import { AgCharts } from '../src/main';
-import { AgChartInstance, AgChartOptions } from '../src/options/agChartOptions';
 import { Point } from '../src/scene/point';
 import { extractImageData, setupMockCanvas } from '../src/util/test/mockCanvas';
 
@@ -55,6 +55,11 @@ export function benchmark(
         return process.memoryUsage();
     }
 
+    beforeEach(() => {
+        if (!global.gc) return;
+        global.gc();
+    });
+
     it(
         name,
         async () => {
@@ -93,7 +98,7 @@ export function benchmark(
             });
 
             const newImageData = extractImageData(ctx.canvasCtx);
-            expect(newImageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            expect(newImageData).toMatchImageSnapshot({ failureThresholdType: 'pixel', failureThreshold: 5 });
 
             if (memoryUse != null) {
                 const BYTES_PER_MB = 1024 ** 2;

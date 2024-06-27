@@ -1,4 +1,5 @@
-import type { Direction } from '../../options/agChartOptions';
+import type { Direction } from 'ag-charts-types';
+
 import type { BBoxProvider, BBoxValues } from '../../util/bboxinterface';
 import { Debug } from '../../util/debug';
 import { createElement } from '../../util/dom';
@@ -12,6 +13,7 @@ type ElemParams<T extends ProxyElementType> = {
     readonly id: string;
     readonly parent: HTMLElement;
     readonly focusable: BBoxProvider<BBoxValues>;
+    readonly tabIndex?: number;
     readonly onclick?: (ev: MouseEvent) => void;
     readonly onchange?: (ev: Event) => void;
     readonly onfocus?: (ev: FocusEvent) => void;
@@ -30,7 +32,7 @@ type ContainerParams<T extends ProxyContainerType> = {
 
 type ProxyMeta = {
     button: {
-        params: ElemParams<'button'> & { readonly textContent: TranslationKey };
+        params: ElemParams<'button'> & { readonly textContent: string | TranslationKey };
         result: HTMLButtonElement;
     };
     slider: {
@@ -41,14 +43,14 @@ type ProxyMeta = {
         params: ContainerParams<'toolbar'>;
         result: HTMLDivElement;
     };
-    div: {
-        params: ContainerParams<'div'>;
+    group: {
+        params: ContainerParams<'group'>;
         result: HTMLDivElement;
     };
 };
 
 type ProxyElementType = 'button' | 'slider';
-type ProxyContainerType = 'toolbar' | 'div';
+type ProxyContainerType = 'toolbar' | 'group';
 
 function checkType<T extends keyof ProxyMeta>(
     type: T,
@@ -58,7 +60,7 @@ function checkType<T extends keyof ProxyMeta>(
 }
 
 function allocateMeta<T extends keyof ProxyMeta>(params: ProxyMeta[T]['params']) {
-    const map = { button: 'button', slider: 'input', toolbar: 'div', div: 'div' } as const;
+    const map = { button: 'button', slider: 'input', toolbar: 'div', group: 'div' } as const;
     return { params, result: createElement(map[params.type]) } as ProxyMeta[T];
 }
 
@@ -84,7 +86,7 @@ export class ProxyInteractionService {
 
     private update() {
         if (this.focusable) {
-            this.focusIndicator.updateBBox(this.focusable.computeTransformedBBox());
+            this.focusIndicator.updateBounds(this.focusable.computeTransformedBBox());
         }
     }
 
@@ -119,9 +121,14 @@ export class ProxyInteractionService {
             const { params, result: button } = meta;
             this.initElement(params, button);
 
-            this.addLocalisation(() => {
-                button.textContent = this.localeManager.t(params.textContent.id, params.textContent.params);
-            });
+            if (typeof params.textContent === 'string') {
+                button.textContent = params.textContent;
+            } else {
+                const { textContent } = params;
+                this.addLocalisation(() => {
+                    button.textContent = this.localeManager.t(textContent.id, textContent.params);
+                });
+            }
         }
 
         if (checkType('slider', meta)) {
@@ -144,24 +151,28 @@ export class ProxyInteractionService {
         params: ProxyMeta[T]['params'],
         element: TElem
     ) {
-        const { focusable, onclick, onchange, onfocus, onblur, id, parent } = params;
+        const { focusable, onclick, onchange, onfocus, onblur, tabIndex, id, parent } = params;
 
         element.id = id;
         element.style.pointerEvents = 'none';
         element.style.opacity = this.debugShowDOMProxies ? '0.25' : '0';
         element.style.position = 'absolute';
+        element.style.overflow = 'hidden';
+        if (tabIndex !== undefined) {
+            element.tabIndex = tabIndex;
+        }
 
         parent.appendChild(element);
 
         element.addEventListener('focus', (_event: FocusEvent): any => {
             this.focusable = focusable;
             element.style.setProperty('pointerEvents', null);
-            this.focusIndicator.updateBBox(focusable.computeTransformedBBox());
+            this.focusIndicator.updateBounds(focusable.computeTransformedBBox());
         });
         element.addEventListener('blur', (_event: FocusEvent): any => {
             this.focusable = undefined;
             element.style.pointerEvents = 'none';
-            this.focusIndicator.updateBBox(undefined);
+            this.focusIndicator.updateBounds(undefined);
         });
         if (onclick) {
             element.addEventListener('click', onclick);

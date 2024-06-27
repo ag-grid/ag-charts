@@ -15,58 +15,17 @@ interface FormatterOptions {
     suffix?: string;
 }
 
-const group = (content: string) => `(${content})`;
-const optionalGroup = (content: string) => `${group(content)}?`;
-const nonCapturingGroup = (content: string) => optionalGroup(`?:${content}`);
-
-const formatRegEx = (() => {
-    const fill = '.';
-    const align = '[<>=^]';
-    const sign = '[+\\-( ]';
-    const symbol = '[$€£¥₣₹#]';
-    const zero = '0';
-    const width = '\\d+';
-    const comma = ',';
-    const precision = '\\d+';
-    const tilde = '~';
-    const type = '[%a-z]';
-
-    return new RegExp(
-        [
-            '^',
-            nonCapturingGroup(`${optionalGroup(fill)}${group(align)}`),
-            optionalGroup(sign),
-            optionalGroup(symbol),
-            optionalGroup(zero),
-            optionalGroup(width),
-            optionalGroup(comma),
-            nonCapturingGroup(`\\.${group(precision)}`),
-            optionalGroup(tilde),
-            optionalGroup(type),
-            '$',
-        ].join(''),
-        'i'
-    );
-})();
-
-const surroundedRegEx = (() => {
-    const prefix = '.*?';
-    const content = '.+?';
-    const suffix = '.*?';
-    return new RegExp(['^', group(prefix), `#\\{${group(content)}\\}`, group(suffix), '$'].join(''));
-})();
-
-function parseFormatter(formatter: string): FormatterOptions {
+export function parseFormat(format: string): FormatterOptions {
     let prefix: string | undefined;
     let suffix: string | undefined;
-    const surrounded = surroundedRegEx.exec(formatter);
+    const surrounded = surroundedRegEx.exec(format);
     if (surrounded) {
-        [, prefix, formatter, suffix] = surrounded;
+        [, prefix, format, suffix] = surrounded;
     }
 
-    const match = formatRegEx.exec(formatter);
+    const match = formatRegEx.exec(format);
     if (!match) {
-        throw new Error(`The number formatter is invalid: ${formatter}`);
+        throw new Error(`The number formatter is invalid: ${format}`);
     }
     const [, fill, align, sign, symbol, zero, width, comma, precision, trim, type] = match;
     return {
@@ -85,12 +44,12 @@ function parseFormatter(formatter: string): FormatterOptions {
     };
 }
 
-export function format(formatter: string | FormatterOptions) {
-    const options = typeof formatter === 'string' ? parseFormatter(formatter) : formatter;
+export function numberFormat(format: string | FormatterOptions) {
+    const options = typeof format === 'string' ? parseFormat(format) : format;
     const { fill, align, sign = '-', symbol, zero, width, comma, type, prefix = '', suffix = '', precision } = options;
     let { trim } = options;
 
-    const precisionIsNaN = precision === undefined || isNaN(precision);
+    const precisionIsNaN = precision == null || isNaN(precision);
     let formatBody: (n: number, f: number) => string;
     if (!type) {
         formatBody = decimalTypes['g'];
@@ -141,7 +100,9 @@ export function format(formatter: string | FormatterOptions) {
     };
 }
 
-const absFloor = (n: number) => Math.floor(Math.abs(n));
+// formatRegEx structure: (fill? + align)? sign? symbol? zero? width? comma? precision? tilde? type?
+const formatRegEx = /^(?:(.)?([<>=^]))?([+\-( ])?([$€£¥₣₹#])?(0)?(\d+)?(,)?(?:\.(\d+))?(~)?([%a-z])?$/i;
+const surroundedRegEx = /^((?:[^#]|#[^{])*)#{([^}]+)}(.*)$/;
 
 const integerTypes: Record<string, (n: number) => string> = {
     b: (n) => absFloor(n).toString(2),
@@ -183,15 +144,43 @@ const decimalTypes: Record<string, (n: number, f: number) => string> = {
         if (q <= 0) {
             return a.toFixed(-q);
         }
-        const x = Math.pow(10, q);
+        const x = 10 ** q;
         return (Math.round(a / x) * x).toFixed();
     },
     s: (n, f) => {
         const p = getSIPrefixPower(n);
-        return decimalTypes.r(n / Math.pow(10, p), f);
+        return decimalTypes.r(n / 10 ** p, f);
     },
     '%': (n, f) => decimalTypes.f(n * 100, f),
 };
+
+const minSIPrefix = -24;
+const maxSIPrefix = 24;
+const siPrefixes: Record<number, string> = {
+    [minSIPrefix]: 'y',
+    [-21]: 'z',
+    [-18]: 'a',
+    [-15]: 'f',
+    [-12]: 'p',
+    [-9]: 'n',
+    [-6]: 'µ',
+    [-3]: 'm',
+    [0]: '',
+    [3]: 'k',
+    [6]: 'M',
+    [9]: 'G',
+    [12]: 'T',
+    [15]: 'P',
+    [18]: 'E',
+    [21]: 'Z',
+    [maxSIPrefix]: 'Y',
+};
+
+const minusSign = '\u2212';
+
+function absFloor(n: number) {
+    return Math.floor(Math.abs(n));
+}
 
 function removeTrailingZeros(numString: string) {
     return numString.replace(/\.0+$/, '').replace(/(\.[1-9])0+$/, '$1');
@@ -219,30 +208,6 @@ function getSIPrefixPower(n: number) {
     return clamp(minSIPrefix, n ? Math.floor(Math.log10(Math.abs(n)) / 3) * 3 : 0, maxSIPrefix);
 }
 
-const minSIPrefix = -24;
-const maxSIPrefix = 24;
-const siPrefixes: Record<number, string> = {
-    [minSIPrefix]: 'y',
-    [-21]: 'z',
-    [-18]: 'a',
-    [-15]: 'f',
-    [-12]: 'p',
-    [-9]: 'n',
-    [-6]: 'µ',
-    [-3]: 'm',
-    [0]: '',
-    [3]: 'k',
-    [6]: 'M',
-    [9]: 'G',
-    [12]: 'T',
-    [15]: 'P',
-    [18]: 'E',
-    [21]: 'Z',
-    [maxSIPrefix]: 'Y',
-};
-
-const minusSign = '\u2212';
-
 function addSign(num: number, numString: string, signType = '') {
     if (signType === '(') {
         return num >= 0 ? numString : `(${numString})`;
@@ -265,41 +230,4 @@ function addPadding(numString: string, width: number, fill = ' ', align = '>') {
         result = result.padEnd(padRight + result.length, fill);
     }
     return result;
-}
-
-export function tickFormat(ticks: any[], formatter?: string): (n: number | { valueOf(): number }) => string {
-    const options = parseFormatter(formatter ?? ',f');
-    const { precision } = options;
-    if (precision == null || isNaN(precision!)) {
-        if (options.type === 'f' || options.type === '%') {
-            options.precision = Math.max(
-                ...ticks.map((x) => {
-                    if (typeof x !== 'number' || x === 0) {
-                        return 0;
-                    }
-                    const l = Math.floor(Math.log10(Math.abs(x)));
-                    const digits = options.type ? 6 : 12;
-                    const exp = x.toExponential(digits - 1).replace(/\.?0+e/, 'e');
-                    const dotIndex = exp.indexOf('.');
-                    if (dotIndex < 0) {
-                        return l >= 0 ? 0 : -l;
-                    }
-                    const s = exp.indexOf('e') - dotIndex;
-                    return Math.max(0, s - l - 1);
-                })
-            );
-        } else if (!options.type || options.type in decimalTypes) {
-            options.precision = Math.max(
-                ...ticks.map((x) => {
-                    if (typeof x !== 'number') {
-                        return 0;
-                    }
-                    const exp = x.toExponential((options.type ? 6 : 12) - 1).replace(/\.?0+e/, 'e');
-                    return exp.substring(0, exp.indexOf('e')).replace('.', '').length;
-                })
-            );
-        }
-    }
-    const f = format(options);
-    return (n) => f(Number(n));
 }

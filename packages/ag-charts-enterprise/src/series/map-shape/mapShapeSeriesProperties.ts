@@ -1,9 +1,10 @@
 import type {
-    AgMapShapeSeriesFormatterParams,
+    AgMapShapeSeriesItemStylerParams,
     AgMapShapeSeriesLabelFormatterParams,
     AgMapShapeSeriesOptions,
     AgMapShapeSeriesStyle,
     AgMapShapeSeriesTooltipRendererParams,
+    Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
@@ -101,7 +102,7 @@ export class MapShapeSeriesProperties extends SeriesProperties<AgMapShapeSeriesO
     padding: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgMapShapeSeriesFormatterParams<any>) => AgMapShapeSeriesStyle;
+    itemStyler?: Styler<AgMapShapeSeriesItemStylerParams<unknown>, AgMapShapeSeriesStyle>;
 
     @Validate(OBJECT)
     readonly label = new AutoSizeableSecondaryLabel<AgMapShapeSeriesLabelFormatterParams>();

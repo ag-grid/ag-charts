@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
+import type { AgCartesianChartOptions } from 'ag-charts-types';
+
 import { AgCharts } from '../../api/agCharts';
-import type { AgCartesianChartOptions } from '../../options/agChartOptions';
 import type { ChartAxis } from '../chartAxis';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -47,7 +48,9 @@ const TIME_AXIS_EXAMPLE: AgCartesianChartOptions = {
             type: 'time',
             position: 'bottom',
             nice: false,
-            maxSpacing: 150,
+            interval: {
+                maxSpacing: 150,
+            },
         },
         {
             type: 'number',

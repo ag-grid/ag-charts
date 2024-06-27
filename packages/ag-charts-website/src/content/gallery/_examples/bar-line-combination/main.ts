@@ -84,7 +84,7 @@ const options: AgChartOptions = {
         {
             type: 'number',
             position: 'left',
-            values: [0],
+            interval: { values: [0] },
             label: {
                 enabled: false,
             },

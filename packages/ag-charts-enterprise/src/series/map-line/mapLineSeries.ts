@@ -1,16 +1,9 @@
-import {
-    type AgMapLineSeriesFormatterParams,
-    type AgMapLineSeriesStyle,
-    _ModuleSupport,
-    _Scale,
-    _Scene,
-    _Util,
-} from 'ag-charts-community';
+import { type AgMapLineSeriesStyle, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestLineString, projectGeometry } from '../map-util/geometryUtil';
 import { lineStringCenter } from '../map-util/lineStringUtil';
-import { computeGeoFocusBounds } from '../map-util/mapUtil';
+import { findFocusedGeoGeometry } from '../map-util/mapUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import { type MapLineNodeDatum, type MapLineNodeLabelDatum, MapLineSeriesProperties } from './mapLineSeriesProperties';
 
@@ -73,7 +66,6 @@ export class MapLineSeries
             contentGroupVirtual: false,
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
-            defaultTooltipRange: 'exact',
         });
     }
 
@@ -363,7 +355,7 @@ export class MapLineSeries
             ctx: { callbackCache },
         } = this;
         const { datumSelection, isHighlight } = opts;
-        const { idKey, labelKey, sizeKey, colorKey, stroke, strokeOpacity, lineDash, lineDashOffset, formatter } =
+        const { idKey, labelKey, sizeKey, colorKey, stroke, strokeOpacity, lineDash, lineDashOffset, itemStyler } =
             properties;
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
@@ -377,11 +369,10 @@ export class MapLineSeries
             }
 
             let format: AgMapLineSeriesStyle | undefined;
-            if (formatter != null) {
-                const params: _Util.RequireOptional<AgMapLineSeriesFormatterParams> = {
+            if (itemStyler != null) {
+                format = callbackCache.call(itemStyler, {
                     seriesId,
                     datum: datum.datum,
-                    itemId: datum.itemId,
                     idKey,
                     labelKey,
                     sizeKey,
@@ -392,8 +383,7 @@ export class MapLineSeries
                     lineDash,
                     lineDashOffset,
                     highlighted: isHighlight,
-                };
-                format = callbackCache.call(formatter, params as AgMapLineSeriesFormatterParams);
+                });
             }
 
             geoGeometry.visible = true;
@@ -598,8 +588,11 @@ export class MapLineSeries
             sizeName,
             labelKey,
             labelName,
-            formatter,
+            itemStyler,
             tooltip,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
         } = properties;
         const { datum, stroke, idValue, colorValue, sizeValue, labelValue, itemId } = nodeDatum;
 
@@ -619,14 +612,20 @@ export class MapLineSeries
 
         let format: AgMapLineSeriesStyle | undefined;
 
-        if (formatter) {
-            format = callbackCache.call(formatter, {
+        if (itemStyler) {
+            format = callbackCache.call(itemStyler, {
+                highlighted: false,
                 seriesId,
                 datum,
                 idKey,
-                stroke,
+                sizeKey,
+                colorKey,
+                labelKey,
+                stroke: stroke!,
                 strokeWidth: this.getStrokeWidth(nodeDatum.strokeWidth ?? properties.strokeWidth),
-                highlighted: false,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
             });
         }
 
@@ -654,6 +653,6 @@ export class MapLineSeries
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
-        return computeGeoFocusBounds(this, opts);
+        return findFocusedGeoGeometry(this, opts)?.computeTransformedBBox();
     }
 }

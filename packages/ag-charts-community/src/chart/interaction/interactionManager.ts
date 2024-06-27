@@ -6,7 +6,7 @@ import { partialAssign } from '../../util/object';
 import { isFiniteNumber } from '../../util/type-guards';
 import { BaseManager } from '../baseManager';
 import type { DOMManager } from '../dom/domManager';
-import { type PreventableEvent, dispatchTypedEvent } from './preventableEvent';
+import { type PreventableEvent, type Unpreventable, dispatchTypedEvent } from './preventableEvent';
 
 export const POINTER_INTERACTION_TYPES = [
     'click',
@@ -45,7 +45,7 @@ type SUPPORTED_EVENTS =
     | 'mousedown'
     | 'mousemove'
     | 'mouseup'
-    | 'mouseout'
+    | 'mouseleave'
     | 'mouseenter'
     | 'touchstart'
     | 'touchmove'
@@ -54,13 +54,13 @@ type SUPPORTED_EVENTS =
     | 'pagehide'
     | 'wheel';
 const SHADOW_DOM_HANDLERS: SUPPORTED_EVENTS[] = ['mousemove', 'mouseup'];
-const WINDOW_EVENT_HANDLERS: SUPPORTED_EVENTS[] = ['pagehide'];
+const WINDOW_EVENT_HANDLERS: SUPPORTED_EVENTS[] = ['pagehide', 'mousemove', 'mouseup'];
 const EVENT_HANDLERS = [
     'click',
     'dblclick',
     'contextmenu',
     'mousedown',
-    'mouseout',
+    'mouseleave',
     'mouseenter',
     'touchstart',
     'touchmove',
@@ -141,7 +141,7 @@ export enum InteractionState {
 export class InteractionManager extends BaseManager<InteractionTypes, InteractionEvent> {
     private readonly debug = Debug.create(true, 'interaction');
 
-    private rootElement: HTMLElement;
+    private rootElement: HTMLElement | undefined;
 
     private readonly eventHandler = (event: SupportedEvent) => this.processEvent(event);
 
@@ -186,14 +186,14 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         if (!force && newRoot === this.rootElement) return;
 
         for (const type of SHADOW_DOM_HANDLERS) {
-            this.rootElement.removeEventListener(type, this.eventHandler);
+            this.rootElement?.removeEventListener(type, this.eventHandler);
         }
 
         this.rootElement = newRoot;
         this.debug('[InteractionManager] Switching rootElement to:', this.rootElement);
 
         for (const type of SHADOW_DOM_HANDLERS) {
-            this.rootElement.addEventListener(type, this.eventHandler);
+            this.rootElement?.addEventListener(type, this.eventHandler);
         }
     }
 
@@ -204,7 +204,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             getWindow().removeEventListener(type, this.eventHandler);
         }
         for (const type of SHADOW_DOM_HANDLERS) {
-            this.rootElement.removeEventListener(type, this.eventHandler);
+            this.rootElement?.removeEventListener(type, this.eventHandler);
         }
 
         for (const type of EVENT_HANDLERS) {
@@ -243,6 +243,13 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
     private processEvent(event: SupportedEvent) {
         const types: InteractionTypes[] = this.decideInteractionEventTypes(event);
+
+        // AG-11385 Ignore clicks on focusable & disabled elements.
+        const target: (EventTarget & { ariaDisabled?: string }) | null = event.target;
+        if (event.type === 'click' && target?.ariaDisabled === 'true') {
+            event.preventDefault();
+            return;
+        }
 
         if (types.length > 0) {
             // Async dispatch to avoid blocking the event-processing thread.
@@ -328,7 +335,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
                 return [event.type];
 
             case 'mousedown':
-                if (!this.isEventOverElement(event)) {
+                if (!this.isEventOverElement(event) || !('button' in event) || event.button !== 0) {
                     return [];
                 }
                 this.mouseDown = true;
@@ -370,7 +377,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
                 this.recordUp(event);
                 return ['drag-end'];
 
-            case 'mouseout':
+            case 'mouseleave':
             case 'touchcancel':
                 return ['leave'];
 
@@ -452,7 +459,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         offsetY?: number;
         pageX?: number;
         pageY?: number;
-    }): Omit<PointerInteractionEvent<PointerInteractionTypes>, 'preventDefault'> {
+    }): Unpreventable<PointerInteractionEvent<PointerInteractionTypes>> {
         const { type, event, clientX, clientY } = opts;
         let { offsetX, offsetY, pageX, pageY } = opts;
 
@@ -462,9 +469,9 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             offsetY = clientY - rect.top;
         }
         if (!isFiniteNumber(pageX) || !isFiniteNumber(pageY)) {
-            const pageRect = this.rootElement.getBoundingClientRect();
-            pageX = clientX - pageRect.left;
-            pageY = clientY - pageRect.top;
+            const pageRect = this.rootElement?.getBoundingClientRect();
+            pageX = clientX - (pageRect?.left ?? 0);
+            pageY = clientY - (pageRect?.top ?? 0);
         }
 
         let [deltaX, deltaY] = [NaN, NaN];

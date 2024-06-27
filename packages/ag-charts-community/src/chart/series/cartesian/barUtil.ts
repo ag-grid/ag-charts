@@ -1,7 +1,8 @@
+import type { AgBarSeriesItemStylerParams, AgBarSeriesStyle, Styler } from 'ag-charts-types';
+
 import type { ModuleContext } from '../../../module/moduleContext';
 import type { FromToMotionPropFn, NodeUpdateState } from '../../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../../motion/fromToMotion';
-import type { AgBarSeriesFormatterParams, AgBarSeriesStyle } from '../../../options/agChartOptions';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import type { Scale } from '../../../scale/scale';
 import { BBox } from '../../../scene/bbox';
@@ -69,15 +70,12 @@ export function updateRect({ rect, config }: { rect: Rect; config: RectConfig })
 
 interface NodeDatum extends Omit<CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {}
 
-export function getRectConfig<
-    Params extends Omit<AgBarSeriesFormatterParams<any>, 'yKey' | 'value'>,
-    ExtraParams extends {},
->({
+export function getRectConfig<Params extends Omit<AgBarSeriesItemStylerParams<any>, 'yKey'>, ExtraParams extends {}>({
     datum,
     isHighlighted,
     style,
     highlightStyle,
-    formatter,
+    itemStyler,
     seriesId,
     ctx: { callbackCache },
     ...opts
@@ -86,17 +84,22 @@ export function getRectConfig<
     isHighlighted: boolean;
     style: RectConfig;
     highlightStyle: SeriesItemHighlightStyle;
-    formatter?: (params: Params & ExtraParams) => AgBarSeriesStyle;
+    itemStyler?: Styler<Params & ExtraParams, AgBarSeriesStyle>;
     seriesId: string;
     ctx: ModuleContext;
 } & ExtraParams): RectConfig {
-    const { fill, fillOpacity, stroke, strokeWidth } = mergeDefaults(isHighlighted && highlightStyle, style);
     const {
+        fill,
+        fillOpacity,
+        stroke,
+        strokeWidth,
         strokeOpacity,
-        fillShadow,
         lineDash,
         lineDashOffset,
         cornerRadius = 0,
+    } = mergeDefaults(isHighlighted && highlightStyle, style);
+    const {
+        fillShadow,
         topLeftCornerRadius = true,
         topRightCornerRadius = true,
         bottomRightCornerRadius = true,
@@ -104,13 +107,17 @@ export function getRectConfig<
     } = style;
 
     let format: AgBarSeriesStyle | undefined;
-    if (formatter) {
-        format = callbackCache.call(formatter as any, {
+    if (itemStyler) {
+        format = callbackCache.call(itemStyler as any, {
             datum: datum.datum,
             xKey: datum.xKey,
             fill,
+            fillOpacity,
             stroke,
             strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
             cornerRadius,
             highlighted: isHighlighted,
             seriesId,
@@ -120,18 +127,18 @@ export function getRectConfig<
 
     return {
         fill: format?.fill ?? fill,
+        fillOpacity: format?.fillOpacity ?? fillOpacity,
         stroke: format?.stroke ?? stroke,
         strokeWidth: format?.strokeWidth ?? strokeWidth,
-        fillOpacity: format?.fillOpacity ?? fillOpacity,
         strokeOpacity: format?.strokeOpacity ?? strokeOpacity,
-        lineDash,
-        lineDashOffset,
-        fillShadow,
+        lineDash: format?.lineDash ?? lineDash,
+        lineDashOffset: format?.lineDashOffset ?? lineDashOffset,
         cornerRadius: format?.cornerRadius ?? cornerRadius,
         topLeftCornerRadius,
         topRightCornerRadius,
         bottomRightCornerRadius,
         bottomLeftCornerRadius,
+        fillShadow,
     };
 }
 

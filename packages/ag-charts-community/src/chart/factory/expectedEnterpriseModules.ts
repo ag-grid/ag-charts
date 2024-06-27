@@ -28,11 +28,7 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
         optionsKey: 'contextMenu',
         chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion'],
     },
-    {
-        type: 'root',
-        optionsKey: 'colorPicker',
-        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion'],
-    },
+    { type: 'root', optionsKey: 'statusBar', chartTypes: ['cartesian'], identifier: 'status-bar' },
     {
         type: 'root',
         optionsKey: 'dataSource',

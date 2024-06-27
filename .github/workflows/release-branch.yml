@@ -6,7 +6,7 @@ on:
             version:
                 type: string
                 required: true
-                default: '9.3.0'
+                default: '10.0.0'
             type:
                 type: 'choice'
                 required: true
@@ -50,11 +50,11 @@ jobs:
               run: |
                   yarn install --ignore-scripts
 
-            - name: Merge Latest
-              id: merge_branch
-              if: ${{ github.event.inputs.type == 'update' }}
+            - name: Create Relase Branch
+              id: git_branch
+              if: ${{ github.event.inputs.type == 'create' }}
               run: |
-                  git merge origin/latest
+                  git branch -b b${{ github.event.inputs.version }}
 
             - name: Reset Package Version
               id: reset_version
@@ -77,11 +77,29 @@ jobs:
                   echo "version=${NEW_VERSION}" >> $GITHUB_OUTPUT
                   echo "tag=b${NEW_VERSION}" >> $GITHUB_OUTPUT
 
+            - name: Sync README.md Changes
+              id: update_readme
+              run: node ./tools/readme/sync-readme.js
+
             - name: Commit Changes
               id: commit_changes
               run: |
+                  # Based on https://github.com/actions/checkout?tab=readme-ov-file#push-a-commit-using-the-built-in-token
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
                   git add .
                   git commit -m "Release prep for ${{ steps.update_version.outputs.version }}."
+
+            - name: Push Branch (Create)
+              id: git_branch_push
+              if: ${{ github.event.inputs.type == 'create' }}
+              run: |
+                  git push -f --set-upstream origin b${{ github.event.inputs.version }}
+
+            - name: Push Branch (Update)
+              id: git_branch_push_update
+              if: ${{ github.event.inputs.type == 'update' }}
+              run: |
                   git push -f origin ${BRANCH_NAME}
 
             - name: Tag Latest Successful Commit For Publish

@@ -29,6 +29,12 @@ export class ToolbarGroupProperties extends BaseProperties {
     position: ToolbarPosition = ToolbarPosition.Top;
 
     @ObserveChanges<ToolbarGroupProperties>((target) => {
+        target.onChange(target.enabled);
+    })
+    @Validate(UNION(['small', 'normal']), { optional: true })
+    size: 'small' | 'normal' = 'normal';
+
+    @ObserveChanges<ToolbarGroupProperties>((target) => {
         target.onButtonsChange(target.buttons);
     })
     @Validate(ARRAY, { optional: true })

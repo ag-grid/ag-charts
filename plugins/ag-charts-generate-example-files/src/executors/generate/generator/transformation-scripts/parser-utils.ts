@@ -343,7 +343,7 @@ export function getTypes(node: ts.Node) {
     return typesToInclude;
 }
 
-const CHART_API_EXPRESSIONS = [/AgCharts.(?!create)/, /chart.(?!(update))/];
+const CHART_API_EXPRESSIONS = [/AgCharts\.(?!create|createFinancialChart)/, /chart\.(?!update)/];
 export function usesChartApi(node: ts.Node) {
     if (ts.isCallExpression(node)) {
         const nodeText = node.getText();
@@ -723,4 +723,8 @@ export function addGenericInterfaceImport(imports: string[], tData: string, bind
     if (tData && !bindings.interfaces.some((i) => i.includes(tData)) && !imports.some((i) => i.includes(tData))) {
         imports.push(`import { ${tData} } from './interfaces'`);
     }
+}
+
+export function isFinancialCharts(bindings: any) {
+    return bindings.optionsTypeInfo?.typeStr === 'AgFinancialChartOptions';
 }

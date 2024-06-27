@@ -1,6 +1,6 @@
 import { type _ModuleSupport, _Theme } from 'ag-charts-community';
 
-import { RangeBarSeries } from './rangeBar';
+import { RangeBarSeries } from './rangeBarSeries';
 import { RANGE_BAR_SERIES_THEME } from './rangeBarThemes';
 
 export const RangeBarModule: _ModuleSupport.SeriesModule<'range-bar'> = {
@@ -11,6 +11,7 @@ export const RangeBarModule: _ModuleSupport.SeriesModule<'range-bar'> = {
 
     identifier: 'range-bar',
     instanceConstructor: RangeBarSeries,
+    tooltipDefaults: { range: 'exact' },
     defaultAxes: [
         {
             type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,

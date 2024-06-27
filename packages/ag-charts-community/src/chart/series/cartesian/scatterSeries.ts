@@ -1,5 +1,6 @@
+import type { AgErrorBoundSeriesTooltipRendererParams } from 'ag-charts-types';
+
 import type { ModuleContext } from '../../../module/moduleContext';
-import type { AgErrorBoundSeriesTooltipRendererParams } from '../../../options/agChartOptions';
 import { ColorScale } from '../../../scale/colorScale';
 import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
@@ -51,7 +52,6 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             ],
             pathsPerSeries: 0,
             hasMarkers: true,
-            defaultTooltipRange: 'nearest',
             markerSelectionGarbageCollection: false,
             animationResetFns: {
                 marker: resetMarkerFn,

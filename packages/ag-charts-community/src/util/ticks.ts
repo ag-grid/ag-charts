@@ -1,6 +1,7 @@
 import { times } from './array';
 import { Logger } from './logger';
 import { countFractionDigits } from './number';
+import { numberFormat, parseFormat } from './numberFormat';
 import timeDay from './time/day';
 import {
     durationDay,
@@ -131,6 +132,43 @@ export function tickStep(start: number, end: number, count: number, minCount = 0
     }
 
     return m * step;
+}
+
+function decimalPlaces(decimal: string) {
+    for (let i = decimal.length - 1; i >= 0; i -= 1) {
+        if (decimal[i] !== '0') {
+            return i + 1;
+        }
+    }
+    return 0;
+}
+
+export function tickFormat(ticks: any[], format?: string): (n: number | { valueOf(): number }) => string {
+    const options = parseFormat(format ?? ',f');
+    if (options.precision == null || isNaN(options.precision)) {
+        if (!options.type || 'eEFgGnprs'.includes(options.type)) {
+            options.precision = Math.max(
+                ...ticks.map((x) => {
+                    if (!Number.isFinite(x)) return 0;
+                    const [integer, decimal] = x.toExponential((options.type ? 6 : 12) - 1).split(/\.|e/g);
+                    return (integer !== '1' && integer !== '-1' ? 1 : 0) + decimalPlaces(decimal) + 1;
+                })
+            );
+        } else if ('f%'.includes(options.type)) {
+            options.precision = Math.max(
+                ...ticks.map((x) => {
+                    if (!Number.isFinite(x) || x === 0) return 0;
+                    const l = Math.floor(Math.log10(Math.abs(x)));
+                    const digits = options.type ? 6 : 12;
+                    const [_integer, decimal] = x.toExponential(digits - 1).split(/\.|e/g);
+                    const decimalLength = decimalPlaces(decimal);
+                    return Math.max(0, decimalLength - l);
+                })
+            );
+        }
+    }
+    const formatter = numberFormat(options);
+    return (n) => formatter(Number(n));
 }
 
 export function range(start: number, end: number, step: number): number[] {

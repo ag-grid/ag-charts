@@ -1,9 +1,10 @@
 import type {
-    AgSunburstSeriesFormatterParams,
+    AgSunburstSeriesItemStylerParams,
     AgSunburstSeriesLabelFormatterParams,
     AgSunburstSeriesOptions,
     AgSunburstSeriesStyle,
     AgSunburstSeriesTooltipRendererParams,
+    Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
@@ -75,7 +76,7 @@ export class SunburstSeriesProperties extends HierarchySeriesProperties<AgSunbur
     padding?: number;
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgSunburstSeriesFormatterParams) => AgSunburstSeriesStyle;
+    itemStyler?: Styler<AgSunburstSeriesItemStylerParams<unknown>, AgSunburstSeriesStyle>;
 
     @Validate(OBJECT)
     override highlightStyle = new SunburstSeriesTileHighlightStyle();

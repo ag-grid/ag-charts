@@ -1,5 +1,6 @@
 import { Logger } from '../util/logger';
 import { clamp } from '../util/number';
+import { dateToNumber } from '../util/timeFormatDefaults';
 import { Invalidating } from './invalidating';
 import type { Scale } from './scale';
 
@@ -39,7 +40,7 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
      * Maps datum to its index in the {@link domain} array.
      * Used to check for duplicate data (not allowed).
      */
-    protected index = new Map<D | D[], number>();
+    protected index = new Map<D, number>();
 
     /**
      * The output range values for datum at each index.
@@ -60,7 +61,7 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
         // { toString: () => 'Italy' }
         // { toString: () => 'Italy' }
         for (const value of values) {
-            const key = value instanceof Date ? (value.getTime() as D) : value;
+            const key = dateToNumber(value) as D;
             if (this.getIndex(key) === undefined) {
                 this.index.set(key, this._domain.push(value) - 1);
             }
@@ -124,6 +125,12 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
         return this._step;
     }
 
+    private _inset: number = 1;
+    get inset(): number {
+        this.refresh();
+        return this._inset;
+    }
+
     private _rawBandwidth: number = 1;
     get rawBandwidth(): number {
         this.refresh();
@@ -172,30 +179,31 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
         const { _paddingOuter: paddingOuter, round } = this;
         const rangeDistance = r1 - r0;
 
-        let rawStep: number, step: number, start: number;
+        let rawStep: number, step: number, inset: number;
 
         if (count === 1) {
             paddingInner = 0;
             rawStep = rangeDistance * (1 - paddingOuter * 2);
             step = round ? Math.round(rawStep) : rawStep;
-            start = rangeDistance * paddingOuter;
+            inset = rangeDistance * paddingOuter;
         } else {
             rawStep = rangeDistance / Math.max(1, count - paddingInner + paddingOuter * 2);
             step = round ? Math.floor(rawStep) : rawStep;
-            start = r0 + (rangeDistance - step * (count - paddingInner)) / 2;
+            inset = r0 + (rangeDistance - step * (count - paddingInner)) / 2;
         }
 
         let bandwidth = step * (1 - paddingInner);
 
         if (round) {
-            start = Math.round(start);
+            inset = Math.round(inset);
             bandwidth = Math.round(bandwidth);
         }
 
         this._step = step;
+        this._inset = inset;
         this._bandwidth = bandwidth;
         this._rawBandwidth = rawStep * (1 - paddingInner);
-        this.ordinalRange = this._domain.map((_, i) => start + step * i);
+        this.ordinalRange = this._domain.map((_, i) => inset + step * i);
     }
 
     private getIndex(value: D) {

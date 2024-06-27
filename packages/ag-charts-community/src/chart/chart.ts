@@ -1,19 +1,17 @@
+import type { AgBaseAxisOptions, AgChartClickEvent, AgChartDoubleClickEvent, AgChartOptions } from 'ag-charts-types';
+
 import type { ModuleInstance } from '../module/baseModule';
 import type { LegendModule, RootModule } from '../module/coreModules';
 import { moduleRegistry } from '../module/module';
 import type { ModuleContext } from '../module/moduleContext';
 import type { AxisOptionModule, ChartOptions } from '../module/optionsModule';
 import type { SeriesOptionModule } from '../module/optionsModuleTypes';
-import type { AgBaseAxisOptions } from '../options/chart/axisOptions';
-import type { AgChartOptions } from '../options/chart/chartBuilderOptions';
-import type { AgChartClickEvent, AgChartDoubleClickEvent } from '../options/chart/eventOptions';
 import { BBox } from '../scene/bbox';
 import { Group } from '../scene/group';
 import type { Point } from '../scene/point';
 import type { Scene } from '../scene/scene';
 import type { PlacedLabel, PointLabelDatum } from '../scene/util/labelPlacement';
 import { isPointLabelDatum, placeLabels } from '../scene/util/labelPlacement';
-import styles from '../styles/styles';
 import { groupBy } from '../util/array';
 import { sleep } from '../util/async';
 import { setAttribute } from '../util/attributeUtil';
@@ -116,6 +114,7 @@ export interface ChartSpecialOverrides {
     window?: Window;
     overrideDevicePixelRatio?: number;
     sceneMode?: 'simple';
+    _type?: string;
 }
 
 export type ChartExtendedOptions = AgChartOptions & ChartSpecialOverrides;
@@ -264,13 +263,11 @@ export abstract class Chart extends Observable {
 
     private readonly processors: UpdateProcessor[] = [];
 
-    processedOptions: AgChartOptions & { type?: SeriesOptionsTypes['type'] } = {};
-    userOptions: AgChartOptions = {};
     queuedUserOptions: AgChartOptions[] = [];
     chartOptions: ChartOptions;
 
     getOptions() {
-        return this.queuedUserOptions.at(-1) ?? this.userOptions;
+        return this.queuedUserOptions.at(-1) ?? this.chartOptions.userOptions;
     }
 
     protected constructor(options: ChartOptions, resources?: TransferableResources) {
@@ -282,12 +279,18 @@ export abstract class Chart extends Observable {
         const container = resources?.container;
 
         const root = new Group({ name: 'root' });
+        const titleGroup = new Group({ name: 'titles', layer: true, zIndex: Layers.SERIES_LABEL_ZINDEX });
         // Prevent the scene from rendering chart components in an invalid state
         // (before first layout is performed).
         root.visible = false;
+        root.append(titleGroup);
         root.append(this.seriesRoot);
         root.append(this.highlightRoot);
         root.append(this.annotationRoot);
+
+        titleGroup.append(this.title.node);
+        titleGroup.append(this.subtitle.node);
+        titleGroup.append(this.footnote.node);
 
         const { overrideDevicePixelRatio } = options.specialOverrides;
 
@@ -302,7 +305,10 @@ export abstract class Chart extends Observable {
             updateMutex: this.updateMutex,
             overrideDevicePixelRatio,
         }));
-        ctx.domManager.addListener('resize', (e) => this.parentResize(e.size));
+
+        this._destroyFns.push(
+            ctx.domManager.addListener('resize', () => this.parentResize(ctx.domManager.containerSize))
+        );
 
         this.overlays = new ChartOverlays();
         this.overlays.loading.renderer ??= () =>
@@ -330,7 +336,7 @@ export abstract class Chart extends Observable {
         const seriesRegion = ctx.regionManager.addRegion(
             REGIONS.SERIES,
             this.seriesRoot,
-            this.ctx.axisManager.axisGroup
+            this.ctx.axisManager.axisGridGroup
         );
 
         const horizontalAxesRegion = this.ctx.regionManager.addRegion(REGIONS.HORIZONTAL_AXES);
@@ -343,17 +349,22 @@ export abstract class Chart extends Observable {
                 this.data = event.data;
             }),
 
-            ctx.scene.attachNode(this.title.node),
-            ctx.scene.attachNode(this.subtitle.node),
-            ctx.scene.attachNode(this.footnote.node),
-
             this.title.registerInteraction(moduleContext),
             this.subtitle.registerInteraction(moduleContext),
             this.footnote.registerInteraction(moduleContext),
 
             ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
             ctx.regionManager.listenAll('dblclick', (event) => this.onDoubleClick(event)),
-            seriesRegion.addListener('hover', (event) => this.onMouseMove(event)),
+            seriesRegion.addListener(
+                'hover',
+                (event) => this.onMouseMove(event),
+                InteractionState.Default | InteractionState.Annotations
+            ),
+            seriesRegion.addListener(
+                'drag',
+                (event) => this.onMouseMove(event),
+                InteractionState.Default | InteractionState.Annotations
+            ),
             horizontalAxesRegion.addListener('hover', (event) => this.onMouseMove(event)),
             verticalAxesRegion.addListener('hover', (event) => this.onMouseMove(event)),
             seriesRegion.addListener('leave', (event) => this.onLeave(event)),
@@ -376,11 +387,14 @@ export abstract class Chart extends Observable {
             ctx.zoomManager.addListener('zoom-pan-start', () => this.resetPointer()),
             ctx.zoomManager.addListener('zoom-change', () => {
                 this.resetPointer();
+                this.ctx.focusIndicator.updateBounds(undefined);
                 this.series.map((s) => (s as any).animationState?.transition('updateData'));
                 const skipAnimations = this.chartAnimationPhase !== 'initial';
                 this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true, skipAnimations });
             })
         );
+
+        this.parentResize(ctx.domManager.containerSize);
     }
 
     getModuleContext(): ModuleContext {
@@ -395,14 +409,15 @@ export abstract class Chart extends Observable {
     }
 
     getAriaLabel(): string {
-        return this.ctx.localeManager.t('aria-announce.chart', {
+        return this.ctx.localeManager.t('ariaAnnounceChart', {
             seriesCount: this.series.length,
             caption: this.getCaptionText(),
         });
     }
 
-    getDatumAriaText(_datum: SeriesNodeDatum, html: TooltipContent): string {
-        return html.ariaLabel;
+    private getDatumAriaText(datum: SeriesNodeDatum, html: TooltipContent): string {
+        const description = html.ariaLabel;
+        return datum.series.getDatumAriaText?.(datum, description) ?? description;
     }
 
     resetAnimations() {
@@ -635,6 +650,8 @@ export abstract class Chart extends Observable {
                 for (const key in splits) {
                     delete splits[key];
                 }
+
+                this.ctx.domManager.incrementDataCounter('sceneRenders');
             // fallthrough
 
             case ChartUpdateType.NONE:
@@ -659,9 +676,7 @@ export abstract class Chart extends Observable {
     }
 
     private updateThemeClassName() {
-        const {
-            processedOptions: { theme },
-        } = this;
+        const { theme } = this.chartOptions.processedOptions;
 
         const themeClassNamePrefix = 'ag-charts-theme-';
         const validThemeClassNames = [`${themeClassNamePrefix}default`, `${themeClassNamePrefix}default-dark`];
@@ -867,8 +882,10 @@ export abstract class Chart extends Observable {
         });
     }
 
-    private parentResize({ width, height }: { width: number; height: number }) {
-        if (this.width != null && this.height != null) return;
+    private parentResize(size: { width: number; height: number } | undefined) {
+        if (size == null || (this.width != null && this.height != null)) return;
+
+        let { width, height } = size;
 
         width = Math.floor(width);
         height = Math.floor(height);
@@ -1025,16 +1042,15 @@ export abstract class Chart extends Observable {
 
     protected async performLayout() {
         const { width, height } = this.ctx.scene;
-        let ctx = { shrinkRect: new BBox(0, 0, width, height) };
+        let ctx = { shrinkRect: new BBox(0, 0, width, height), positions: {} };
         ctx = this.ctx.layoutService.dispatchPerformLayout('start-layout', ctx);
         ctx = this.ctx.layoutService.dispatchPerformLayout('before-series', ctx);
 
-        const modulePromises = this.modulesManager.mapModules(async (m) => {
+        for (const m of this.modulesManager.modules()) {
             if (m.performLayout != null) {
                 ctx = await m.performLayout(ctx);
             }
-        });
-        await Promise.all(modulePromises);
+        }
 
         return ctx.shrinkRect;
     }
@@ -1116,7 +1132,7 @@ export abstract class Chart extends Observable {
 
     private lastPick?: SeriesNodeDatum;
 
-    protected onMouseMove(event: PointerInteractionEvent<'hover'>): void {
+    protected onMouseMove(event: PointerInteractionEvent<'hover' | 'drag'>): void {
         this.lastInteractionEvent = event;
         this.pointerScheduler.schedule();
 
@@ -1155,7 +1171,7 @@ export abstract class Chart extends Observable {
     }
 
     private onBlur(): void {
-        this.ctx.focusIndicator.updateBBox(undefined);
+        this.ctx.focusIndicator.updateBounds(undefined);
         this.resetPointer();
         this.focus.hasFocus = false;
         // Do not consume blur events to allow the browser-focus to leave the canvas element.
@@ -1226,7 +1242,7 @@ export abstract class Chart extends Observable {
         if (overlayFocus == null) {
             this.handleSeriesFocus(seriesIndexDelta, datumIndexDelta);
         } else {
-            this.ctx.focusIndicator.updateBBox(overlayFocus.rect);
+            this.ctx.focusIndicator.updateBounds(overlayFocus.rect);
             this.ctx.ariaAnnouncementService.announceValue(overlayFocus.text);
         }
     }
@@ -1263,15 +1279,20 @@ export abstract class Chart extends Observable {
             const aria = this.getDatumAriaText(datum, html);
             this.ctx.highlightManager.updateHighlight(this.id, datum);
             this.ctx.tooltipManager.updateTooltip(this.id, meta, html);
-            this.ctx.ariaAnnouncementService.announceValue('aria-announce.hover-datum', { datum: aria });
+            this.ctx.ariaAnnouncementService.announceValue('ariaAnnounceHoverDatum', { datum: aria });
         }
     }
 
-    private lastInteractionEvent?: TooltipPointerEvent<'hover'> | TooltipPointerEvent<'keyboard'>;
+    private lastInteractionEvent?: TooltipPointerEvent<'hover' | 'drag' | 'keyboard'>;
     private static isHoverEvent(
         event: TooltipPointerEvent<TooltipEventType> | undefined
     ): event is TooltipPointerEvent<'hover'> {
         return event !== undefined && event.type === 'hover';
+    }
+    private static isDragEvent(
+        event: TooltipPointerEvent<TooltipEventType> | undefined
+    ): event is TooltipPointerEvent<'drag'> {
+        return event !== undefined && event.type === 'drag';
     }
     private readonly pointerScheduler = debouncedAnimationFrame(() => {
         if (!this.lastInteractionEvent) return;
@@ -1286,11 +1307,15 @@ export abstract class Chart extends Observable {
         this.handlePointer(this.lastInteractionEvent, false);
         this.lastInteractionEvent = undefined;
     });
-    protected handlePointer(event: TooltipPointerEvent<'hover' | 'keyboard'>, redisplay: boolean) {
+    protected handlePointer(event: TooltipPointerEvent<'hover' | 'drag' | 'keyboard'>, redisplay: boolean) {
         // Ignored "pointer event" that comes from a keyboard. We don't need to worry about finding out
         // which datum to use in the highlight & tooltip because the keyboard just navigates through the
         // data directly.
-        if (this.ctx.interactionManager.getState() !== InteractionState.Default || !Chart.isHoverEvent(event)) {
+        const state = this.ctx.interactionManager.getState();
+        if (
+            (state !== InteractionState.Default && state !== InteractionState.Annotations) ||
+            (!Chart.isHoverEvent(event) && !Chart.isDragEvent(event))
+        ) {
             return;
         }
 
@@ -1316,7 +1341,7 @@ export abstract class Chart extends Observable {
     }
 
     protected handlePointerTooltip(
-        event: TooltipPointerEvent<'hover'>,
+        event: TooltipPointerEvent<'hover' | 'drag'>,
         disablePointer: (highlightOnly?: boolean) => void
     ) {
         const { lastPick } = this;
@@ -1385,6 +1410,7 @@ export abstract class Chart extends Observable {
         if (this.checkSeriesNodeClick(event)) {
             this.update(ChartUpdateType.SERIES_UPDATE);
             event.preventDefault();
+            return;
         }
         this.fireEvent<AgChartClickEvent>({ type: 'click', event: event.sourceEvent });
     }
@@ -1393,6 +1419,7 @@ export abstract class Chart extends Observable {
         if (this.checkSeriesNodeDoubleClick(event)) {
             this.update(ChartUpdateType.SERIES_UPDATE);
             event.preventDefault();
+            return;
         }
         this.fireEvent<AgChartDoubleClickEvent>({ type: 'doubleClick', event: event.sourceEvent });
     }
@@ -1408,7 +1435,7 @@ export abstract class Chart extends Observable {
     }
 
     private checkSeriesNodeRange(
-        event: PointerOffsetsAndHistory,
+        event: PointerOffsetsAndHistory & { preventZoomDblClick?: boolean },
         callback: (series: ISeries<any, any>, datum: SeriesNodeDatum) => void
     ): boolean {
         const nearestNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, false);
@@ -1423,6 +1450,17 @@ export abstract class Chart extends Observable {
 
         // Find the node if exactly matched and update the highlight picked node
         let pickedNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, true);
+        if (pickedNode) {
+            // See: AG-11737#TC3, AG-11676
+            //
+            // The Zoom module's double-click handler resets the zoom, but only if there isn't an
+            // exact match on a node. This is counter-intuitive, and there's no built-in mechanism
+            // in the InteractionManager / RegionManager for the Zoom module to listen to non-exact
+            // series-rect double-clicks. As a workaround, we'll set this boolean to tell the Zoom
+            // double-click handler to ignore the event whenever we are double-clicking exactly on
+            // a node.
+            event.preventZoomDblClick = true;
+        }
 
         // First check if we should trigger the callback based on nearest node
         if (datum && nodeClickRange === 'nearest') {
@@ -1600,17 +1638,19 @@ export abstract class Chart extends Observable {
         return series?.filter((s) => s.showInMiniChart !== false);
     }
 
-    applyOptions(chartOptions: ChartOptions) {
-        const oldOpts = this.processedOptions;
-        const deltaOptions = chartOptions.diffOptions(oldOpts);
-        const userOptions = chartOptions.userOptions;
+    applyOptions(newChartOptions: ChartOptions) {
+        // Detect first creation case.
+        const isDifferentOpts = newChartOptions !== this.chartOptions;
+
+        const oldOpts = isDifferentOpts ? this.chartOptions.processedOptions : {};
+        const newOpts = newChartOptions.processedOptions;
+        const deltaOptions = newChartOptions.diffOptions(oldOpts);
 
         if (deltaOptions == null) return;
 
         debug('Chart.applyOptions() - applying delta', deltaOptions);
 
-        const completeOptions = mergeDefaults(deltaOptions, oldOpts);
-        const modulesChanged = this.applyModules(completeOptions);
+        const modulesChanged = this.applyModules(newOpts);
 
         const skip = [
             'type',
@@ -1625,6 +1665,7 @@ export abstract class Chart extends Observable {
             'axes',
             'topology',
             'nodes',
+            'initialState',
         ];
 
         // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added
@@ -1643,7 +1684,7 @@ export abstract class Chart extends Observable {
         if (seriesStatus === 'replaced') {
             this.resetAnimations();
         }
-        if (this.applyAxes(this, completeOptions, oldOpts, seriesStatus)) {
+        if (this.applyAxes(this, newOpts, oldOpts, seriesStatus)) {
             forceNodeDataRefresh = true;
         }
 
@@ -1657,9 +1698,7 @@ export abstract class Chart extends Observable {
             this.updateAllSeriesListeners();
         }
 
-        this.chartOptions = chartOptions;
-        this.processedOptions = completeOptions;
-        this.userOptions = mergeDefaults(userOptions, this.userOptions);
+        this.chartOptions = newChartOptions;
 
         const navigatorModule = this.modulesManager.getModule<any>('navigator');
         const zoomModule = this.modulesManager.getModule<any>('zoom');
@@ -1670,16 +1709,15 @@ export abstract class Chart extends Observable {
         }
 
         const miniChart = navigatorModule?.miniChart;
-        const miniChartSeries = completeOptions.navigator?.miniChart?.series ?? completeOptions.series;
+        const miniChartSeries = newOpts.navigator?.miniChart?.series ?? newOpts.series;
         if (miniChart?.enabled === true && miniChartSeries != null) {
-            this.applyMiniChartOptions(miniChart, miniChartSeries, completeOptions, oldOpts);
+            this.applyMiniChartOptions(miniChart, miniChartSeries, newOpts, oldOpts);
         } else if (miniChart?.enabled === false) {
             miniChart.series = [];
             miniChart.axes = [];
         }
 
-        this.ctx.domManager.addStyles('chart', styles);
-        this.ctx.annotationManager.setAnnotationStyles(chartOptions.annotationThemes);
+        this.ctx.annotationManager.setAnnotationStyles(newChartOptions.annotationThemes);
 
         forceNodeDataRefresh ||= this.shouldForceNodeDataRefresh(deltaOptions, seriesStatus);
         const majorChange = forceNodeDataRefresh || modulesChanged;
@@ -1691,6 +1729,23 @@ export abstract class Chart extends Observable {
             forceNodeDataRefresh,
         });
         this.update(updateType, { forceNodeDataRefresh, newAnimationBatch: true });
+    }
+
+    applyInitialState() {
+        const {
+            ctx: { annotationManager, stateManager },
+        } = this;
+
+        const options = this.getOptions();
+
+        if (options.initialState?.annotations != null) {
+            const annotations = options.initialState.annotations.map((annotation) => {
+                const annotationTheme = annotationManager.getAnnotationTypeStyles(annotation.type);
+                return mergeDefaults(annotation, annotationTheme);
+            });
+
+            stateManager.setState(annotationManager, annotations);
+        }
     }
 
     private maybeResetAnimations(seriesStatus: SeriesChangeType) {
@@ -1764,7 +1819,7 @@ export abstract class Chart extends Observable {
 
             const step = intervalOptions?.step;
             if (step != null) {
-                horizontalAxis.interval = step;
+                horizontalAxis.interval.step = step;
             }
         }
     }
@@ -1952,7 +2007,6 @@ export abstract class Chart extends Observable {
         }
 
         target.properties.set(seriesOptions);
-        this.applySeriesTooltipDefaults(target);
 
         if ('data' in options) {
             target.setOptionsData(data);
@@ -1969,17 +2023,6 @@ export abstract class Chart extends Observable {
                 target.seriesGrouping = { ...target.seriesGrouping, ...(seriesGrouping as SeriesGrouping) };
             }
         }
-    }
-
-    // The `chart.series[].tooltip.range` option is a bit different for legacy reason. This use to be
-    // global option (`chart.tooltip.range`) that could overriden the theme. But now, the tooltip range
-    // option is series-specific.
-    //
-    // To preserve backward compatiblity, the `chart.tooltip.range` theme default has been changed from
-    // 'nearest' to undefined.
-    private applySeriesTooltipDefaults(target: Series<SeriesNodeDatum, SeriesProperties<never>>) {
-        target.properties.tooltip.range ??= this.tooltip.range;
-        target.properties.tooltip.range ??= target.defaultTooltipRange;
     }
 
     private createAxis(options: AgBaseAxisOptions[], skip: string[]): ChartAxis[] {

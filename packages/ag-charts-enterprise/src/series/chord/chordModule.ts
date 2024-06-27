@@ -12,6 +12,7 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
     solo: true,
 
     identifier: 'chord',
+    tooltipDefaults: { range: 'exact' },
     instanceConstructor: ChordSeries,
 
     themeTemplate: {
@@ -35,6 +36,7 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
             link: {
                 fillOpacity: 0.5,
                 strokeWidth: 0,
+                tension: 0.4,
             },
         },
         legend: {

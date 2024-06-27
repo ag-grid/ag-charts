@@ -1,4 +1,5 @@
-import type { AgCartesianAxisPosition } from '../../options/agChartOptions';
+import type { AgCartesianAxisPosition } from 'ag-charts-types';
+
 import type { BBox } from '../../scene/bbox';
 import type { Point } from '../../scene/point';
 

@@ -13,8 +13,11 @@ const options: AgChartOptions = {
         overrides: {
             line: {
                 series: {
+                    interpolation: {
+                        type: 'smooth',
+                    },
                     marker: {
-                        size: 5,
+                        enabled: false,
                     },
                     tooltip: {
                         renderer: ({ title, datum, xKey, yKey, xName }: AgLineSeriesTooltipRendererParams) => ({
@@ -96,7 +99,7 @@ const options: AgChartOptions = {
             title: {
                 text: 'Time',
             },
-            values: [0, 180, 360, 540],
+            interval: { values: [0, 180, 360, 540] },
             label: {
                 formatter: ({ value }) => `${Math.floor(value / 60)}h`,
             },

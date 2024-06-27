@@ -62,7 +62,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             canHaveAxes: true,
-            defaultTooltipRange: 'nearest',
             animationResetFns: {
                 item: resetMarkerFn,
             },
@@ -281,6 +280,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
         this.itemSelection.update(this.properties.marker.enabled ? this.nodeData : []);
     }
+
     protected getMarkerFill(highlightedStyle?: _ModuleSupport.SeriesItemHighlightStyle) {
         return highlightedStyle?.fill ?? this.properties.marker.fill;
     }
@@ -303,16 +303,21 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         const highlightedStyle = highlight ? this.properties.highlightStyle.item : undefined;
         selection.update(selectionData).each((node, datum) => {
             const fill = this.getMarkerFill(highlightedStyle);
+            const fillOpacity = highlightedStyle?.fillOpacity ?? this.properties.marker.fillOpacity;
             const stroke = highlightedStyle?.stroke ?? marker.stroke ?? this.properties.stroke;
             const strokeWidth = highlightedStyle?.strokeWidth ?? marker.strokeWidth ?? this.properties.strokeWidth ?? 1;
-            const format = marker.formatter
-                ? this.ctx.callbackCache.call(marker.formatter, {
+            const strokeOpacity = highlightedStyle?.strokeOpacity ?? this.properties.marker.strokeOpacity;
+            const format = marker.itemStyler
+                ? this.ctx.callbackCache.call(marker.itemStyler, {
                       datum: datum.datum,
                       angleKey,
                       radiusKey,
                       fill,
+                      fillOpacity,
                       stroke,
                       strokeWidth,
+                      strokeOpacity,
+                      shape: marker.shape,
                       size: marker.size,
                       highlighted: highlight,
                       seriesId: this.id,
@@ -370,17 +375,28 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         const title = sanitizeHtml(radiusName);
         const content = sanitizeHtml(`${formattedAngleValue}: ${formattedRadiusValue}`);
 
-        const { formatter: markerFormatter, fill, stroke, strokeWidth: markerStrokeWidth, size } = marker;
-        const strokeWidth = markerStrokeWidth ?? this.properties.strokeWidth;
+        const {
+            itemStyler,
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth = this.properties.strokeWidth,
+            strokeOpacity,
+            shape,
+            size,
+        } = marker;
 
-        const { fill: color } = (markerFormatter &&
-            this.ctx.callbackCache.call(markerFormatter, {
+        const { fill: color } = (itemStyler &&
+            this.ctx.callbackCache.call(itemStyler, {
                 datum,
                 angleKey,
                 radiusKey,
                 fill,
+                fillOpacity,
                 stroke,
                 strokeWidth,
+                strokeOpacity,
+                shape,
                 size,
                 highlighted: false,
                 seriesId,
@@ -689,7 +705,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         return this.getMarkerStyle(this.properties.marker, { datum, angleKey, radiusKey, highlighted: true });
     }
 
-    protected computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
         return computeMarkerFocusBounds(this, opts);
     }
 }

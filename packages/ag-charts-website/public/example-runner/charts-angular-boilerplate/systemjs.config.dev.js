@@ -44,6 +44,8 @@
 
             css: 'npm:systemjs-plugin-css@0.1.37/css.js',
 
+            deepclone: 'npm:deepclone@1.0.2',
+
             ts: 'npm:plugin-typescript@8.0.0/lib/plugin.js',
             tslib: 'npm:tslib@2.3.1/tslib.js',
             typescript: 'npm:typescript@4.4/lib/typescript.min.js',
@@ -66,6 +68,14 @@
                 defaultExtension: 'js',
             },
             'ag-charts-enterprise': {
+                main: './dist/package/main.cjs.js',
+                defaultExtension: 'js',
+            },
+            'ag-charts-types': {
+                main: './dist/package/main.cjs.js',
+                defaultExtension: 'js',
+            },
+            'ag-charts-locale': {
                 main: './dist/package/main.cjs.js',
                 defaultExtension: 'js',
             },

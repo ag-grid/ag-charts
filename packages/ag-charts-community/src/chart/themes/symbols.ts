@@ -10,18 +10,12 @@ export const DEFAULT_CROSS_LINES_COLOUR = Symbol('default-cross-lines-colour') a
 export const DEFAULT_BACKGROUND_COLOUR = Symbol('default-background-colour') as unknown as string;
 export const DEFAULT_SHADOW_COLOUR = Symbol('default-shadow-colour') as unknown as string;
 export const DEFAULT_COLOURS = Symbol('default-colours') as unknown as string;
-export const DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS = Symbol(
-    'default-waterfall-series-positive-colors'
-) as unknown as string;
-export const DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS = Symbol(
-    'default-waterfall-series-negative-colors'
-) as unknown as string;
-export const DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS = Symbol(
-    'default-waterfall-series-total-colors'
-) as unknown as string;
-export const DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE = Symbol(
-    'default-waterfall-series-connector-line-stroke'
-) as unknown as string;
+export const DEFAULT_PADDING = Symbol('default-padding') as unknown as string;
+export const DEFAULT_CAPTION_LAYOUT_STYLE = Symbol('default-caption-layout-style') as unknown as string;
+export const DEFAULT_CAPTION_ALIGNMENT = Symbol('default-caption-alignment') as unknown as string;
+export const PALETTE_UP_STROKE = Symbol('palette-up-stroke') as unknown as string;
+export const PALETTE_DOWN_STROKE = Symbol('palette-down-stroke') as unknown as string;
+export const PALETTE_NEUTRAL_STROKE = Symbol('palette-neutral-stroke') as unknown as string;
 
 export const DEFAULT_POLAR_SERIES_STROKE = Symbol('default-polar-series-stroke') as unknown as string;
 export const DEFAULT_DIVERGING_SERIES_COLOUR_RANGE = Symbol(
@@ -32,3 +26,5 @@ export const DEFAULT_HIERARCHY_STROKES = Symbol('default-hierarchy-strokes') as 
 export const DEFAULT_ANNOTATION_STROKE = Symbol('default-annotation-stroke') as unknown as string;
 export const DEFAULT_ANNOTATION_BACKGROUND_FILL = Symbol('default-annotation-background-fill') as unknown as string;
 export const DEFAULT_ANNOTATION_HANDLE_FILL = Symbol('default-annotation-handle-fill') as unknown as string;
+export const DEFAULT_TOOLBAR_POSITION = Symbol('default-toolbar-position') as unknown as string;
+export const DEFAULT_GRIDLINE_ENABLED = Symbol('default-gridline-enabled') as unknown as string;

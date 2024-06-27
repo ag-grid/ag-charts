@@ -1,4 +1,5 @@
-import type { AgChartThemeOptions, AgChartThemePalette } from '../../options/agChartOptions';
+import type { AgChartThemeOptions, AgChartThemePalette } from 'ag-charts-types';
+
 import { ChartTheme } from './chartTheme';
 import type { DefaultColors } from './defaultColors';
 import {
@@ -7,7 +8,6 @@ import {
     DEFAULT_ANNOTATION_STROKE,
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
-    DEFAULT_COLOURS,
     DEFAULT_CROSS_LINES_COLOUR,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
     DEFAULT_HIERARCHY_FILLS,
@@ -16,10 +16,6 @@ import {
     DEFAULT_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
     DEFAULT_POLAR_SERIES_STROKE,
-    DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
-    DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
-    DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
-    DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
     IS_DARK_THEME,
 } from './symbols';
 
@@ -58,40 +54,13 @@ const palette: AgChartThemePalette = {
 };
 
 export class DarkTheme extends ChartTheme {
-    protected static override getDefaultColors(): DefaultColors {
+    override getDefaultColors(): DefaultColors {
         return {
             fills: DEFAULT_DARK_FILLS,
             strokes: DEFAULT_DARK_STROKES,
-        };
-    }
-
-    protected static override getWaterfallSeriesDefaultPositiveColors() {
-        return {
-            fill: DEFAULT_DARK_FILLS.BLUE,
-            stroke: DEFAULT_DARK_STROKES.BLUE,
-            label: {
-                color: 'white',
-            },
-        };
-    }
-
-    protected static override getWaterfallSeriesDefaultNegativeColors() {
-        return {
-            fill: DEFAULT_DARK_FILLS.ORANGE,
-            stroke: DEFAULT_DARK_STROKES.ORANGE,
-            label: {
-                color: 'white',
-            },
-        };
-    }
-
-    protected static override getWaterfallSeriesDefaultTotalColors() {
-        return {
-            fill: DEFAULT_DARK_FILLS.GRAY,
-            stroke: DEFAULT_DARK_STROKES.GRAY,
-            label: {
-                color: 'white',
-            },
+            up: { fill: DEFAULT_DARK_FILLS.BLUE, stroke: DEFAULT_DARK_STROKES.BLUE },
+            down: { fill: DEFAULT_DARK_FILLS.ORANGE, stroke: DEFAULT_DARK_STROKES.ORANGE },
+            neutral: { fill: DEFAULT_DARK_FILLS.GRAY, stroke: DEFAULT_DARK_STROKES.GRAY },
         };
     }
 
@@ -99,15 +68,6 @@ export class DarkTheme extends ChartTheme {
         const params = super.getTemplateParameters();
 
         params.set(IS_DARK_THEME, true);
-        params.set(DEFAULT_COLOURS, DarkTheme.getDefaultColors());
-        params.set(DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS, DarkTheme.getWaterfallSeriesDefaultPositiveColors());
-        params.set(DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS, DarkTheme.getWaterfallSeriesDefaultNegativeColors());
-        params.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, DarkTheme.getWaterfallSeriesDefaultTotalColors());
-
-        params.set(
-            DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
-            DarkTheme.getWaterfallSeriesDefaultTotalColors().stroke
-        );
         params.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_DARK_BACKGROUND_FILL);
 
         params.set(DEFAULT_LABEL_COLOUR, 'white');
@@ -124,7 +84,7 @@ export class DarkTheme extends ChartTheme {
         params.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_DARK_BACKGROUND_FILL);
         params.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_DARK_BACKGROUND_FILL);
 
-        params.set(DEFAULT_ANNOTATION_STROKE, DEFAULT_DARK_STROKES.BLUE);
+        params.set(DEFAULT_ANNOTATION_STROKE, DEFAULT_DARK_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, DEFAULT_DARK_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_HANDLE_FILL, DEFAULT_DARK_BACKGROUND_FILL);
 

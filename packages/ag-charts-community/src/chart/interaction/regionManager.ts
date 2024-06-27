@@ -4,7 +4,7 @@ import type { FocusIndicator } from '../dom/focusIndicator';
 import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
 import { InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
 import type { KeyNavEvent, KeyNavEventType, KeyNavManager } from './keyNavManager';
-import { buildPreventable } from './preventableEvent';
+import { type Unpreventable, buildPreventable } from './preventableEvent';
 import type { RegionName } from './regions';
 
 const REGION_TAB_ORDERING: RegionName[] = ['series'];
@@ -149,10 +149,13 @@ export class RegionManager {
         return true;
     }
 
-    private dispatch(region: Region | undefined, partialEvent: PointerInteractionEvent | KeyNavEvent) {
+    // Create and dispatch a copy of the InteractionEvent.
+    private dispatch(
+        region: Region | undefined,
+        partialEvent: Unpreventable<PointerInteractionEvent> | Unpreventable<KeyNavEvent>
+    ) {
         if (region == null) return;
-
-        const event: RegionEvent = { ...partialEvent, region: region.properties.name };
+        const event: RegionEvent = buildPreventable({ ...partialEvent, region: region.properties.name });
         this.allRegionsListeners.dispatch(event.type, event);
         region.listeners.dispatch(event.type, event);
     }
@@ -294,7 +297,7 @@ export class RegionManager {
             this.dispatch(focusedRegion, blurEvent);
         }
         if (newRegion === undefined) {
-            this.focusIndicator.updateBBox(undefined);
+            this.focusIndicator.updateBounds(undefined);
         } else {
             this.dispatch(newRegion, event);
         }

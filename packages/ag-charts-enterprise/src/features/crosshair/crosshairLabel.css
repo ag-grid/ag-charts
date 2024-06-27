@@ -1,0 +1,26 @@
+.ag-crosshair-label {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    user-select: none;
+    pointer-events: none;
+    font:
+        12px Verdana,
+        sans-serif;
+    overflow: hidden;
+    white-space: nowrap;
+    z-index: var(--ag-charts-layer-crosshair);
+    box-sizing: border-box;
+}
+
+.ag-crosshair-label-content {
+    padding: 0 8px;
+    border-radius: 2px;
+    line-height: 20px;
+    background-color: var(--ag-charts-axis-label-background-color);
+    color: var(--ag-charts-axis-label-color);
+}
+
+.ag-crosshair-label-hidden {
+    top: -10000px !important;
+}

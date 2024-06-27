@@ -13,6 +13,7 @@ export const RadarAreaModule: _ModuleSupport.SeriesModule<'radar-area'> = {
 
     identifier: 'radar-area',
     instanceConstructor: RadarAreaSeries,
+    tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
         {
             type: _Theme.POLAR_AXIS_TYPE.ANGLE_CATEGORY,

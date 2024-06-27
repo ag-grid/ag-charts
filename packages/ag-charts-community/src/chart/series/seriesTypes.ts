@@ -1,4 +1,5 @@
-import type { AgContextMenuOptions } from '../../options/chart/contextMenuOptions';
+import type { AgContextMenuOptions } from 'ag-charts-types';
+
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import type { Point, SizedPoint } from '../../scene/point';
@@ -29,6 +30,7 @@ export interface ISeries<TDatum, TProps> {
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
     getTooltipHtml(seriesDatum: any): TooltipContent;
+    getDatumAriaText?(seriesDatum: TDatum, description: string): string | undefined;
     // BoundSeries
     getBandScalePadding?(): { inner: number; outer: number };
     getDomain(direction: ChartAxisDirection): any[];

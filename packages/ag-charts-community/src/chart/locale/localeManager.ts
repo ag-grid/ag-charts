@@ -1,41 +1,36 @@
-import type { MessageFormatter } from '../../options/chart/localeOptions';
+import { AG_CHARTS_LOCALE_EN_US } from 'ag-charts-locale';
+import type { MessageFormatter } from 'ag-charts-types';
+
 import { Listeners } from '../../util/listeners';
 import { defaultMessageFormatter } from './defaultMessageFormatter';
-import { en } from './en';
-
-type MessageFormat = any;
 
 export class LocaleManager extends Listeners<'locale-changed', () => void> {
-    private messages: Record<string, MessageFormat> | undefined = undefined;
-    private messageFormatter: MessageFormatter<MessageFormat> | undefined = undefined;
+    private localeText: Record<string, string> | undefined = undefined;
+    private getLocaleText: MessageFormatter | undefined = undefined;
 
-    setMessages(messages: Record<string, MessageFormat> | undefined) {
-        if (this.messages !== messages) {
-            this.messages = messages;
+    setLocaleText(localeText: Record<string, string> | undefined) {
+        if (this.localeText !== localeText) {
+            this.localeText = localeText;
             this.dispatch('locale-changed');
         }
     }
 
-    setMessageFormatter(messageFormatter: MessageFormatter<MessageFormat> | undefined) {
-        this.messageFormatter = messageFormatter;
-        if (this.messageFormatter !== messageFormatter) {
-            this.messageFormatter = messageFormatter;
+    setLocaleTextFormatter(getLocaleText: MessageFormatter | undefined) {
+        this.getLocaleText = getLocaleText;
+        if (this.getLocaleText !== getLocaleText) {
+            this.getLocaleText = getLocaleText;
             this.dispatch('locale-changed');
         }
     }
 
-    t(id: string, params: Record<string, any> = {}): string {
-        const { messageFormatter = defaultMessageFormatter } = this;
+    t(key: string, variables: Record<string, any> = {}): string {
+        const { localeText = AG_CHARTS_LOCALE_EN_US, getLocaleText } = this;
+        const defaultValue: string | undefined = localeText[key];
 
-        const userMessage = this.messages?.[id];
-        // Be careful not to pass our preset messages to the user's formatter (i.e. something like react-intl)
-        const formattedMessage =
-            userMessage != null ? messageFormatter({ id, message: userMessage, params }) : undefined;
-        if (formattedMessage != null) return formattedMessage;
-
-        const defaultMessage = en[id];
-        if (defaultMessage != null) return defaultMessageFormatter({ id, message: defaultMessage, params });
-
-        return id;
+        return (
+            getLocaleText?.({ key, defaultValue, variables }) ??
+            defaultMessageFormatter({ key, defaultValue, variables }) ??
+            key
+        );
     }
 }

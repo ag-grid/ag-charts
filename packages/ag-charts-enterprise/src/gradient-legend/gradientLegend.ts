@@ -1,8 +1,6 @@
 import {
     type AgChartLegendOrientation,
     type AgChartLegendPosition,
-    type AgGradientLegendIntervalOptions,
-    type AgGradientLegendLabelOptions,
     type AgGradientLegendScaleOptions,
     _ModuleSupport,
     _Scale,
@@ -10,21 +8,7 @@ import {
     _Util,
 } from 'ag-charts-community';
 
-const {
-    ARRAY,
-    BOOLEAN,
-    OBJECT,
-    Layers,
-    POSITION,
-    Validate,
-    Default,
-    MIN_SPACING,
-    MAX_SPACING,
-    POSITIVE_NUMBER,
-    TICK_INTERVAL,
-    BaseProperties,
-    ProxyProperty,
-} = _ModuleSupport;
+const { BOOLEAN, OBJECT, Layers, POSITION, Validate, POSITIVE_NUMBER, ProxyProperty } = _ModuleSupport;
 const { BBox, Group, Rect, LinearGradientFill, Triangle } = _Scene;
 const { createId } = _Util;
 
@@ -54,62 +38,16 @@ class GradientLegendAxis extends _ModuleSupport.CartesianAxis<_Scale.LinearScale
     }
 }
 
-class GradientLegendLabel implements AgGradientLegendLabelOptions {
-    label: GradientLegendAxis['label'];
-
-    constructor(label: GradientLegendAxis['label']) {
-        this.label = label;
-    }
-
-    @ProxyProperty('label.fontStyle')
-    fontStyle?: GradientLegendAxis['label']['fontStyle'];
-
-    @ProxyProperty('label.fontWeight')
-    fontWeight?: GradientLegendAxis['label']['fontWeight'];
-
-    @ProxyProperty('label.fontSize')
-    fontSize?: GradientLegendAxis['label']['fontSize'];
-
-    @ProxyProperty('label.fontFamily')
-    fontFamily?: GradientLegendAxis['label']['fontFamily'];
-
-    @ProxyProperty('label.color')
-    color?: GradientLegendAxis['label']['color'];
-
-    @ProxyProperty('label.format')
-    format?: GradientLegendAxis['label']['format'];
-
-    @ProxyProperty('label.formatter')
-    formatter?: GradientLegendAxis['label']['formatter'];
-}
-
-class GradientLegendInterval extends BaseProperties implements AgGradientLegendIntervalOptions {
-    @Validate(ARRAY, { optional: true })
-    values?: any[];
-
-    @Validate(TICK_INTERVAL, { optional: true })
-    step?: number;
-
-    @Validate(MIN_SPACING)
-    @Default(NaN)
-    minSpacing: number = NaN;
-
-    @Validate(MAX_SPACING)
-    @Default(NaN)
-    maxSpacing: number = NaN;
-}
-
 class GradientLegendScale implements AgGradientLegendScaleOptions {
-    axis: GradientLegendAxis;
-    label: GradientLegendLabel;
+    constructor(public axis: GradientLegendAxis) {}
 
     @Validate(OBJECT)
-    readonly interval = new GradientLegendInterval();
+    @ProxyProperty('axis.label')
+    label!: _ModuleSupport.AxisLabel;
 
-    constructor(axis: GradientLegendAxis) {
-        this.axis = axis;
-        this.label = new GradientLegendLabel(axis.label);
-    }
+    @Validate(OBJECT)
+    @ProxyProperty('axis.interval')
+    interval!: _ModuleSupport.AxisInterval<number>;
 
     @ProxyProperty('axis.seriesAreaPadding')
     padding?: GradientLegendAxis['seriesAreaPadding'];
@@ -173,7 +111,7 @@ export class GradientLegend {
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         this.layoutService = ctx.layoutService;
-        this.destroyFns.push(this.layoutService.addListener('start-layout', (e) => this.update(e.shrinkRect)));
+        this.destroyFns.push(this.layoutService.addListener('start-layout', (e) => this.update(e)));
 
         this.highlightManager = ctx.highlightManager;
         this.destroyFns.push(this.highlightManager.addListener('highlight-change', () => this.onChartHoverChange()));
@@ -212,12 +150,13 @@ export class GradientLegend {
 
     private latestGradientBox?: _Scene.BBox = undefined;
 
-    private update(shrinkRect: _Scene.BBox) {
+    private update(ctx: _ModuleSupport.LayoutContext) {
+        const { shrinkRect } = ctx;
         const data = this.data[0];
 
         if (!this.enabled || !data || !data.enabled) {
             this.group.visible = false;
-            return { shrinkRect: shrinkRect.clone() };
+            return { ...ctx, shrinkRect: shrinkRect.clone() };
         }
 
         const { colorRange } = this.normalizeColorArrays(data);
@@ -233,7 +172,7 @@ export class GradientLegend {
 
         this.latestGradientBox = gradientBox;
 
-        return { shrinkRect: newShrinkRect };
+        return { ...ctx, shrinkRect: newShrinkRect };
     }
 
     private normalizeColorArrays(data: _ModuleSupport.GradientLegendDatum) {

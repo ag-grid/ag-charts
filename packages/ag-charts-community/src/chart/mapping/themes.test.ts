@@ -1,6 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { AgCharts } from '../../api/agCharts';
 import type {
     AgBarSeriesOptions,
     AgChartInstance,
@@ -8,7 +7,9 @@ import type {
     AgChartTheme,
     AgChartThemeName,
     AgChartThemePalette,
-} from '../../options/agChartOptions';
+} from 'ag-charts-types';
+
+import { AgCharts } from '../../api/agCharts';
 import {
     deproxy,
     expectWarningsCalls,
@@ -30,7 +31,7 @@ describe('themes module', () => {
 
     const getActualPalette = (chart: AgChartInstance) => {
         let result = undefined;
-        for (const series of deproxy(chart).processedOptions.series ?? []) {
+        for (const series of deproxy(chart).chartOptions.processedOptions.series ?? []) {
             result ??= { fills: [] as string[], strokes: [] as string[] };
 
             expect(series.type).toEqual('bar');

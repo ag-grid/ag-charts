@@ -302,12 +302,18 @@ export function formatNode(node: ts.Node) {
             docs: getJsDoc(node),
             name: formatNode(node.name),
             members: node.members.map((n) => {
-                const memberDocs = getJsDoc(n);
-                const matchDefault = memberDocs?.[memberDocs.length - 1].match(/^\s*Default:\s*`([^`]+)`\s*$/);
+                let memberDocs = getJsDoc(n);
+                const matchDefault = memberDocs?.at(-1).match(/^\s*Default:\s*`([^`]+)`\s*$/);
                 let defaultValue: string | undefined;
                 if (matchDefault) {
                     defaultValue = matchDefault[1];
                     memberDocs.pop();
+                }
+                if (memberDocs?.some((v) => v.startsWith('@returns'))) {
+                    memberDocs = memberDocs.map((v) => {
+                        if (!v.startsWith('@returns')) return v;
+                        return v.replace('@returns', 'Returns');
+                    });
                 }
                 return {
                     kind: 'member',
@@ -416,6 +422,19 @@ function getJsDoc(node: ts.Node & { jsDoc?: { getFullText(): string }[] }) {
                         .replace(/\*\/\s*$/, '')
                         .replace(/^\s*(\/\*{1,2}|\*)/, '')
                         .trim()
+                )
+                .reduce(
+                    (result, next) => {
+                        // Re-join lines split due to line-length constraints; paragraphs should
+                        // end on a double newline or use `\` at the end of the line. (standard markdown)
+                        if (!result.at(-1)?.endsWith('\\') && /^[a-zA-Z0-9]+/.test(next)) {
+                            result[result.length - 1] += ' ' + next;
+                        } else {
+                            result.push(next);
+                        }
+                        return result;
+                    },
+                    [''] as string[]
                 )
         )
     );

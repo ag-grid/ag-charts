@@ -8,12 +8,12 @@ import { RadiusNumberAxisModule } from './axes/radius-number/main';
 import { AnimationModule } from './features/animation/main';
 import { AnnotationsModule } from './features/annotations/annotationsModule';
 import { BackgroundModule } from './features/background/main';
-import { ColorPickerModule } from './features/color-picker/main';
 import { ContextMenuModule } from './features/context-menu/main';
 import { CrosshairModule } from './features/crosshair/main';
 import { DataSourceModule } from './features/data-source/main';
 import { ErrorBarsModule } from './features/error-bar/errorBarModule';
 import { NavigatorModule } from './features/navigator/navigatorModule';
+import { StatusBarModule } from './features/status-bar/main';
 import { SyncModule } from './features/sync/syncModule';
 import { ZoomModule } from './features/zoom/main';
 import { GradientLegendModule } from './gradient-legend/gradientLegendModule';
@@ -54,7 +54,6 @@ export function setupEnterpriseModules() {
         ChordModule,
         OhlcModule,
         BulletModule,
-        ColorPickerModule,
         ContextMenuModule,
         CrosshairModule,
         DataSourceModule,
@@ -65,6 +64,7 @@ export function setupEnterpriseModules() {
         MapShapeModule,
         MapShapeBackgroundModule,
         NavigatorModule,
+        StatusBarModule,
         GradientLegendModule,
         HeatmapModule,
         NightingaleModule,

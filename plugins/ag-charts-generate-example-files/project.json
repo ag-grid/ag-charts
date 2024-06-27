@@ -9,6 +9,7 @@
       "dependsOn": ["ag-charts-community:build:types"],
       "inputs": ["{projectRoot}/src/**"],
       "outputs": ["{options.outputPath}"],
+      "cache": true,
       "options": {
         "outputPath": "{projectRoot}/dist",
         "main": "{projectRoot}/src/index.ts",
@@ -32,5 +33,5 @@
       }
     }
   },
-  "tags": []
+  "tags": ["no-batching"]
 }

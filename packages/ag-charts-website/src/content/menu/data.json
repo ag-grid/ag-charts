@@ -74,6 +74,10 @@
                     {
                         "title": "Upgrading to Enterprise",
                         "path": "licensing"
+                    },
+                    {
+                        "title": "Installing Your Licence Key",
+                        "path": "license-install"
                     }
                 ]
             },
@@ -86,8 +90,8 @@
                         "path": "axes-types"
                     },
                     {
-                        "title": "Axis Ticks",
-                        "path": "axes-ticks"
+                        "title": "Axis Intervals",
+                        "path": "axes-intervals"
                     },
                     {
                         "title": "Axis Domain",
@@ -115,8 +119,8 @@
                         "path": "axes-cross-lines"
                     },
                     {
-                        "title": "Formatters",
-                        "path": "formatters"
+                        "title": "Stylers",
+                        "path": "stylers"
                     },
                     {
                         "title": "Legend",
@@ -254,6 +258,11 @@
                     {
                         "title": "Overview",
                         "path": "financial-charts",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Chart Types",
+                        "path": "financial-chart-types",
                         "isEnterprise": true
                     },
                     {

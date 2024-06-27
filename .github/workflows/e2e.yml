@@ -1,0 +1,316 @@
+name: e2e
+
+on:
+    push:
+        tags: ['latest-success']
+    schedule:
+        - cron: '0 7 * * 1-5'
+    workflow_dispatch:
+        inputs:
+            update:
+                type: 'choice'
+                required: true
+                default: 'false'
+                options:
+                    - 'true'
+                    - 'false'
+env:
+    NX_REJECT_UNKNOWN_LOCAL_CACHE: 0
+    NX_NO_CLOUD: true
+    NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
+    NX_BRANCH: ${{ github.ref }}
+    # Set to --batch to enable batch execution.
+    NX_BATCH_FLAG: '--batch'
+    AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
+    BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: ${{ github.ref != 'refs/heads/latest' }}
+
+jobs:
+    init:
+        runs-on: ubuntu-latest
+        name: initialisation
+        outputs:
+            nx_base: ${{ steps.nx_config.outputs.base }}
+        steps:
+            - id: status
+              name: Update Status
+              uses: LouisBrunner/checks-action@v2.0.0
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  name: format
+                  status: in_progress
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+            - name: Nx Affected SHA Setup
+              id: nx_config
+              run: |
+                  branch=$(git branch --show-current)
+                  if [[ ${branch} == 'latest' ]] ; then
+                    # Latest
+                    echo "base=latest-e2e-success" >> $GITHUB_OUTPUT
+                    echo "NX_BASE=latest-e2e-success" >> $GITHUB_ENV
+                    echo "type=latest" >> $GITHUB_OUTPUT
+                    git fetch origin latest-e2e-success
+                  elif [[ ${branch} =~ 'b[0-9][0-9]\..+' ]] ; then
+                    # Release
+                    echo "base=${branch}" >> $GITHUB_OUTPUT
+                    echo "NX_BASE=${branch}" >> $GITHUB_ENV
+                    echo "type=release" >> $GITHUB_OUTPUT
+                  else
+                    # PR
+                    echo "base=origin/latest" >> $GITHUB_OUTPUT
+                    echo "NX_BASE=origin/latest" >> $GITHUB_ENV
+                    echo "type=pr" >> $GITHUB_OUTPUT
+                    git fetch origin latest
+                  fi
+            - name: Cache node_modules
+              id: cache
+              uses: actions/cache@v3
+              with:
+                  path: |
+                      node_modules/
+                      packages/*/node_modules/
+                      plugins/*/node_modules/
+                      libraries/*/node_modules/
+                  key: node_modules-${{hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json')}}
+                  restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
+            - name: Cache Nx
+              uses: actions/cache@v3
+              with:
+                  path: .nx/cache
+                  key: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-${{ github.sha }}
+                  restore-keys: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-
+            - name: Setup Node.js
+              id: setup_node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+                  cache: ${{ github.event.inputs.clean_checkout != 'true' && steps.cache.outputs.cache-hit != 'true' && 'yarn' || '' }}
+            - name: yarn install
+              if: steps.cache.outputs.cache-hit != 'true'
+              id: yarn_install
+              run: (yarn check --integrity && yarn postinstall) || yarn install --ci
+            - name: yarn postinstall
+              if: steps.cache.outputs.cache-hit == 'true'
+              run: yarn postinstall
+
+            - name: build examples
+              run: |
+                  # Non-batched builds - some TS/JS targets will fail if run with --batch, so build them unbatched first.
+                  yarn nx run-many -p tag:no-batching -t build --parallel=3
+                  # Batched builds.
+                  yarn nx run-many -t generate-example --parallel=3 --batch
+            - name: nx run generate-gallery-thumbnail
+              run: yarn nx run generate-gallery-thumbnail --example simple-bar
+
+            - name: Perist build outputs
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: e2e-init-outputs
+                  path: |
+                      dist/
+                      packages/*/dist/
+            - name: Update Status
+              uses: LouisBrunner/checks-action@v2.0.0
+              if: always()
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  check_id: ${{ steps.status.outputs.check_id }}
+                  conclusion: ${{job.status}}
+
+    e2e:
+        runs-on: ubuntu-latest
+        needs: [init]
+        strategy:
+            fail-fast: false
+            matrix:
+                shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        name: test (${{ matrix.shard }}/${{ strategy.job-total }})
+        env:
+            NX_PARALLEL: 1
+            NX_BASE: ${{ needs.init.outputs.nx_base }}
+        steps:
+            - id: status
+              name: Update Status
+              uses: LouisBrunner/checks-action@v2.0.0
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  name: e2e test (${{ matrix.shard }}/${{ strategy.job-total }})
+                  status: in_progress
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+            - name: Cache node_modules
+              id: cache
+              uses: actions/cache@v3
+              with:
+                  path: |
+                      node_modules/
+                      packages/*/node_modules/
+                      plugins/*/node_modules/
+                      libraries/*/node_modules/
+                  key: node_modules-${{hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json')}}
+                  restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
+            - name: Setup Node.js
+              id: setup_node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+                  cache: ${{ github.event.inputs.clean_checkout != 'true' && steps.cache.outputs.cache-hit != 'true' && 'yarn' || '' }}
+            - name: Restore Init Build Outputs
+              uses: actions/download-artifact@v4
+              with:
+                  name: e2e-init-outputs
+            - name: yarn install
+              if: steps.cache.outputs.cache-hit != 'true'
+              id: yarn_install
+              run: yarn check --integrity || yarn install --ci --ignore-scripts
+            - name: playwright install
+              run: npx playwright install chromium --with-deps
+
+            - name: nx test:e2e
+              if: github.event.inputs.update != 'true'
+              run: |
+                  cd packages/ag-charts-website/
+                  npx playwright test --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+              timeout-minutes: 10
+            - name: nx test:e2e (update)
+              if: github.event.inputs.update == 'true'
+              run: |
+                  cd packages/ag-charts-website/
+                  npx playwright test --shard=${{ matrix.shard }}/${{ strategy.job-total }} -u
+              timeout-minutes: 10
+
+            - name: Commit Snapshot Changes
+              id: commit_changes
+              if: github.event.inputs.update == 'true'
+              run: |
+                  # Based on https://github.com/actions/checkout?tab=readme-ov-file#push-a-commit-using-the-built-in-token
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  git add .
+                  if [[ $(git diff --cached --name-only | wc -l) -gt 0 ]] ; then
+                    git commit -m "Update snapshots (shard ${{ matrix.shard }})."
+                    git push origin ${BRANCH_NAME}
+                  fi
+
+            - name: Perist test results
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: test-results-e2e-shard-${{matrix.shard}}
+                  path: |
+                      reports/
+            - name: Update Status
+              uses: LouisBrunner/checks-action@v2.0.0
+              if: always()
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  check_id: ${{ steps.status.outputs.check_id }}
+                  conclusion: ${{job.status}}
+
+    report:
+        runs-on: ubuntu-latest
+        needs: [e2e]
+        if: cancelled() != true
+        steps:
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+            - name: Fetch Refs
+              run: git fetch origin latest-success latest
+
+            - uses: actions/download-artifact@v4
+              with:
+                  path: test-results/
+
+            - name: Merge JUnit Report XMLs
+              run: |
+                  ls -R test-results/
+                  yarn global add junit-report-merger
+                  reports=$(find test-results/ -name \*.xml -type f -exec basename \{\} \; | sort | uniq)
+                  mkdir -p reports/
+                  echo "$reports" | (while read name ; do
+                    yarn exec -s jrm reports/${name} "test-results/**/${name}"
+                  done)
+
+            - name: Test Report
+              uses: dorny/test-reporter@v1
+              if: needs.e2e.result == 'success' || needs.e2e.result == 'failure'
+              id: testReport
+              continue-on-error: true
+              with:
+                  name: 'Tests Results'
+                  path: reports/*.xml
+                  reporter: jest-junit
+
+            - name: Check last job status
+              id: lastJobStatus
+              if: always() && github.ref == 'refs/heads/latest'
+              run: |
+                  WORKFLOW_STATUS="success"
+                  if [[ "${{ needs.e2e.result }}" == "failure" ]] ; then
+                    WORKFLOW_STATUS="failure"
+                  fi
+                  echo "workflowStatus=${WORKFLOW_STATUS}" >> $GITHUB_OUTPUT
+
+                  STATUSES=$(gh run list --workflow .github/workflows/e2e.yml -b latest -s completed --json conclusion,status | jq -r '.[] | .conclusion')
+                  LAST_WORKFLOW_STATUS=$(echo "$STATUSES" | grep -v "cancelled" | head -1)
+
+                  if [ "$GITHUB_RUN_ATTEMPT" -ge 2 ]; then
+                    # Handle re-run cases - there is no way to query the previous run status, so we assume the most
+                    # common scenario will be re-run after failure.
+                    LAST_WORKFLOW_STATUS="failure"
+                  fi
+                  if [ "$LAST_WORKFLOW_STATUS" != "$WORKFLOW_STATUS" ]; then
+                    echo "status changed from $LAST_WORKFLOW_STATUS to $WORKFLOW_STATUS"
+                    echo "changedState=true" >> $GITHUB_OUTPUT
+                  else
+                    echo "status is still $WORKFLOW_STATUS"
+                    echo "changedState=false" >> $GITHUB_OUTPUT
+                  fi
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Commit History
+              id: commits
+              if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.changedState == 'true'
+              run: |
+                  GIT_LOG=$(git log HEAD ^latest-e2e-success --format="%an (%h) %s")
+                  echo "GIT_LOG<<EOF" >> $GITHUB_ENV
+                  echo "$GIT_LOG" >> $GITHUB_ENV
+                  echo "EOF" >> $GITHUB_ENV
+
+            - name: Tag Latest Successful Commit
+              if: success() && github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.workflowStatus == 'success'
+              uses: EndBug/latest-tag@latest
+              with:
+                  ref: latest-e2e-success
+                  description: Latest commit to pass GitHub Actions workflow on latest branch.
+
+            - name: Slack Notification
+              uses: rtCamp/action-slack-notify@v2
+              if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.changedState == 'true'
+              env:
+                  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+                  SLACK_COLOR: ${{ steps.lastJobStatus.outputs.workflowStatus }}
+                  SLACK_ICON: https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_192.png
+                  SLACK_USERNAME: ag-charts CI
+                  SLACK_FOOTER: ''
+                  SLACK_MESSAGE: >
+                      E2E: ${{ needs.e2e.result == 'success' && '✅' || needs.e2e.result== 'failure' && '❌' || 'NA' }}
+
+                      *Changes:*
+
+                      ${{ env.GIT_LOG }}

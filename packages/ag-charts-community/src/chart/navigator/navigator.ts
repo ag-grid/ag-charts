@@ -1,4 +1,4 @@
-import type { ModuleInstance } from '../../module/baseModule';
+import type { LayoutContext, ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { BBox } from '../../scene/bbox';
@@ -37,7 +37,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     public height: number = 30;
 
     @Validate(POSITIVE_NUMBER)
-    public margin: number = 10;
+    public spacing: number = 10;
 
     @ActionOnSet<Navigator>({
         newValue(min) {
@@ -94,24 +94,15 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             id: `navigator-toolbar`,
             classList: ['ag-charts-proxy-navigator-toolbar'],
             ariaOrientation: 'vertical',
-            ariaLabel: { id: 'aria-label.navigator' },
+            ariaLabel: { id: 'ariaLabelNavigator' },
         });
         this.updateGroupVisibility();
 
         this.proxyNavigatorElements = [
             this.ctx.proxyInteractionService.createProxyElement({
                 type: 'slider',
-                id: 'ag-charts-navigator-pan',
-                ariaLabel: { id: 'aria-label.navigator-range' },
-                ariaOrientation: 'horizontal',
-                parent: this.proxyNavigatorToolbar,
-                focusable: this.maskVisibleRange,
-                onchange: (ev) => this.onPanSliderChange(ev),
-            }),
-            this.ctx.proxyInteractionService.createProxyElement({
-                type: 'slider',
                 id: 'ag-charts-navigator-min',
-                ariaLabel: { id: 'aria-label.navigator-minimum' },
+                ariaLabel: { id: 'ariaLabelNavigatorMinimum' },
                 ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
                 focusable: this.minHandle,
@@ -119,8 +110,17 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             }),
             this.ctx.proxyInteractionService.createProxyElement({
                 type: 'slider',
+                id: 'ag-charts-navigator-pan',
+                ariaLabel: { id: 'ariaLabelNavigatorRange' },
+                ariaOrientation: 'horizontal',
+                parent: this.proxyNavigatorToolbar,
+                focusable: this.maskVisibleRange,
+                onchange: (ev) => this.onPanSliderChange(ev),
+            }),
+            this.ctx.proxyInteractionService.createProxyElement({
+                type: 'slider',
                 id: 'ag-charts-navigator-max',
-                ariaLabel: { id: 'aria-label.navigator-maximum' },
+                ariaLabel: { id: 'ariaLabelNavigatorMaximum' },
                 ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
                 focusable: this.maxHandle,
@@ -155,16 +155,17 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         }
     }
 
-    async performLayout({ shrinkRect }: { shrinkRect: BBox }): Promise<{ shrinkRect: BBox }> {
+    async performLayout(ctx: LayoutContext): Promise<LayoutContext> {
+        const { shrinkRect } = ctx;
         if (this.enabled) {
-            const navigatorTotalHeight = this.height + this.margin;
+            const navigatorTotalHeight = this.height + this.spacing;
             shrinkRect.shrink(navigatorTotalHeight, 'bottom');
-            this.y = shrinkRect.y + shrinkRect.height + this.margin;
+            this.y = shrinkRect.y + shrinkRect.height + this.spacing;
         } else {
             this.y = 0;
         }
 
-        return { shrinkRect };
+        return { ...ctx, shrinkRect };
     }
 
     async performCartesianLayout(opts: { seriesRect: BBox }): Promise<void> {
@@ -269,7 +270,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     }
 
     private onPanSliderChange(_event: Event) {
-        const ratio = this.getSliderRatio(this.proxyNavigatorElements[0]);
+        const ratio = this.getSliderRatio(this.proxyNavigatorElements[1]);
         const span = this._max - this._min;
         this._min = clamp(0, ratio, 1 - span);
         this._max = this._min + span;
@@ -277,7 +278,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     }
 
     private onMinSliderChange(_event: Event) {
-        const slider = this.proxyNavigatorElements[1];
+        const slider = this.proxyNavigatorElements[0];
         this._min = this.setSliderRatioClamped(slider, 0, this._max - this.minRange);
         this.updateZoom();
     }
@@ -289,8 +290,8 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     }
 
     private setPanSliderValue(min: number, max: number) {
-        this.proxyNavigatorElements[0].value = `${Math.round(min * 100)}`;
-        this.proxyNavigatorElements[0].ariaValueText = this.ctx.localeManager.t('aria-value.pan-range', { min, max });
+        this.proxyNavigatorElements[1].value = `${Math.round(min * 100)}`;
+        this.proxyNavigatorElements[1].ariaValueText = this.ctx.localeManager.t('ariaValuePanRange', { min, max });
     }
 
     private setSliderRatioClamped(slider: HTMLInputElement, clampMin: number, clampMax: number) {
@@ -328,7 +329,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             maxHandle.zIndex = 3;
         }
 
-        [this.maskVisibleRange, minHandle, maxHandle].forEach((node, index) => {
+        [minHandle, this.maskVisibleRange, maxHandle].forEach((node, index) => {
             const bbox = node.computeBBox();
             const tbox = { x: bbox.x - x, y: bbox.y - y, height: bbox.height, width: bbox.width };
             setElementBBox(this.proxyNavigatorElements[index], tbox);
@@ -354,7 +355,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         };
 
         this.setPanSliderValue(min, max);
-        this.setSliderRatio(this.proxyNavigatorElements[1], min);
+        this.setSliderRatio(this.proxyNavigatorElements[0], min);
         this.setSliderRatio(this.proxyNavigatorElements[2], max);
         return this.ctx.zoomManager.updateZoom('navigator', { x: { min, max }, y: zoom?.y }, false, warnOnConflict);
     }

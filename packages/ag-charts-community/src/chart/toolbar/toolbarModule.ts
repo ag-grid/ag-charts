@@ -1,5 +1,7 @@
+import type { AgToolbarGroupPosition, AgToolbarOptions } from 'ag-charts-types';
+
 import type { Module } from '../../module/module';
-import type { AgToolbarOptions } from '../../options/chart/toolbarOptions';
+import { DEFAULT_TOOLBAR_POSITION } from '../themes/symbols';
 import { Toolbar } from './toolbar';
 
 const DAY = 1000 * 60 * 60 * 24;
@@ -7,46 +9,72 @@ const MONTH = DAY * 30;
 const YEAR = DAY * 365;
 
 const annotations: AgToolbarOptions['annotations'] = {
-    enabled: false,
+    enabled: true,
     position: 'left',
     align: 'start',
     buttons: [
         {
             icon: 'trend-line',
-            tooltip: 'toolbar-annotations.trend-line',
+            tooltip: 'toolbarAnnotationsTrendLine',
             value: 'line',
+            section: 'create',
         },
         {
             icon: 'parallel-channel',
-            tooltip: 'toolbar-annotations.parallel-channel',
+            tooltip: 'toolbarAnnotationsParallelChannel',
             value: 'parallel-channel',
+            section: 'create',
         },
         {
             icon: 'disjoint-channel',
-            tooltip: 'toolbar-annotations.disjoint-channel',
+            tooltip: 'toolbarAnnotationsDisjointChannel',
             value: 'disjoint-channel',
+            section: 'create',
+        },
+        {
+            icon: 'horizontal-line',
+            tooltip: 'toolbarAnnotationsHorizontalLine',
+            value: 'horizontal-line',
+            section: 'create',
+        },
+        {
+            icon: 'vertical-line',
+            tooltip: 'toolbarAnnotationsVerticalLine',
+            value: 'vertical-line',
+            section: 'create',
+        },
+        {
+            icon: 'delete',
+            tooltip: 'toolbarAnnotationsClearAll',
+            value: 'clear',
+            section: 'tools',
         },
     ],
 };
 
 const annotationOptions: AgToolbarOptions['annotationOptions'] = {
-    enabled: false,
+    enabled: true,
     position: 'floating',
     align: 'start',
     buttons: [
         {
+            icon: 'line-color',
+            tooltip: 'toolbarAnnotationsColor',
+            value: 'line-color',
+        },
+        {
             icon: 'lock',
-            tooltip: 'toolbar-annotations.lock',
+            tooltip: 'toolbarAnnotationsLock',
             value: 'lock',
         },
         {
             icon: 'unlock',
-            tooltip: 'toolbar-annotations.unlock',
+            tooltip: 'toolbarAnnotationsUnlock',
             value: 'unlock',
         },
         {
             icon: 'delete',
-            tooltip: 'toolbar-annotations.delete',
+            tooltip: 'toolbarAnnotationsDelete',
             value: 'delete',
         },
     ],
@@ -54,74 +82,80 @@ const annotationOptions: AgToolbarOptions['annotationOptions'] = {
 
 const ranges: AgToolbarOptions['ranges'] = {
     enabled: false,
-    position: 'top',
+    position: DEFAULT_TOOLBAR_POSITION as AgToolbarGroupPosition,
     align: 'start',
     buttons: [
         {
-            label: 'toolbar-range.1-month',
+            label: 'toolbarRange1Month',
+            ariaLabel: 'toolbarRange1MonthAria',
             value: MONTH,
         },
         {
-            label: 'toolbar-range.3-months',
+            label: 'toolbarRange3Months',
+            ariaLabel: 'toolbarRange3MonthsAria',
             value: 3 * MONTH,
         },
         {
-            label: 'toolbar-range.6-months',
+            label: 'toolbarRange6Months',
+            ariaLabel: 'toolbarRange6MonthsAria',
             value: 6 * MONTH,
         },
         {
-            label: 'toolbar-range.year-to-date',
+            label: 'toolbarRangeYearToDate',
+            ariaLabel: 'toolbarRangeYearToDateAria',
             value: (_start, end) => [new Date(`${new Date(end).getFullYear()}-01-01`).getTime(), end],
         },
         {
-            label: 'toolbar-range.1-year',
+            label: 'toolbarRange1Year',
+            ariaLabel: 'toolbarRange1YearAria',
             value: YEAR,
         },
         {
-            label: 'toolbar-range.all',
+            label: 'toolbarRangeAll',
+            ariaLabel: 'toolbarRangeAllAria',
             value: (start, end) => [start, end],
         },
     ],
 };
 
 const zoom: AgToolbarOptions['zoom'] = {
-    enabled: false,
+    enabled: true,
     position: 'top',
     align: 'end',
     buttons: [
         {
-            icon: 'zoom-out',
-            tooltip: 'toolbar-zoom.zoom-out',
+            icon: 'zoom-out-alt',
+            tooltip: 'toolbarZoomZoomOut',
             value: 'zoom-out',
         },
         {
-            icon: 'zoom-in',
-            tooltip: 'toolbar-zoom.zoom-in',
+            icon: 'zoom-in-alt',
+            tooltip: 'toolbarZoomZoomIn',
             value: 'zoom-in',
         },
         {
             icon: 'pan-left',
-            tooltip: 'toolbar-zoom.pan-left',
+            tooltip: 'toolbarZoomPanLeft',
             value: 'pan-left',
         },
         {
             icon: 'pan-right',
-            tooltip: 'toolbar-zoom.pan-right',
+            tooltip: 'toolbarZoomPanRight',
             value: 'pan-right',
         },
         {
             icon: 'pan-start',
-            tooltip: 'toolbar-zoom.pan-start',
+            tooltip: 'toolbarZoomPanStart',
             value: 'pan-start',
         },
         {
             icon: 'pan-end',
-            tooltip: 'toolbar-zoom.pan-end',
+            tooltip: 'toolbarZoomPanEnd',
             value: 'pan-end',
         },
         {
             icon: 'reset',
-            tooltip: 'toolbar-zoom.zoom',
+            tooltip: 'toolbarZoomReset',
             value: 'reset',
         },
     ],

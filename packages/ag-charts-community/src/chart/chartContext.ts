@@ -1,3 +1,4 @@
+import { StateManager } from '../api/state/stateManager';
 import type { ModuleContext } from '../module/moduleContext';
 import type { Group } from '../scene/group';
 import { Scene } from '../scene/scene';
@@ -58,6 +59,7 @@ export class ChartContext implements ModuleContext {
     proxyInteractionService: ProxyInteractionService;
     regionManager: RegionManager;
     seriesStateManager: SeriesStateManager;
+    stateManager: StateManager;
     syncManager: SyncManager;
     toolbarManager: ToolbarManager;
     tooltipManager: TooltipManager;
@@ -87,7 +89,6 @@ export class ChartContext implements ModuleContext {
 
         this.localeManager = new LocaleManager();
         this.annotationManager = new AnnotationManager(chart.annotationRoot);
-        this.ariaAnnouncementService = new AriaAnnouncementService(this.localeManager, this.scene.canvas.element);
         this.chartEventManager = new ChartEventManager();
         this.cursorManager = new CursorManager(this.domManager);
         this.highlightManager = new HighlightManager();
@@ -99,6 +100,11 @@ export class ChartContext implements ModuleContext {
         this.toolbarManager = new ToolbarManager();
         this.gestureDetector = new GestureDetector(this.domManager);
         this.layoutService = new LayoutService();
+        this.ariaAnnouncementService = new AriaAnnouncementService(
+            this.localeManager,
+            this.domManager,
+            this.layoutService
+        );
         this.updateService = new UpdateService(updateCallback);
         this.proxyInteractionService = new ProxyInteractionService(
             this.updateService,
@@ -107,6 +113,7 @@ export class ChartContext implements ModuleContext {
             this.focusIndicator
         );
         this.seriesStateManager = new SeriesStateManager();
+        this.stateManager = new StateManager();
         this.callbackCache = new CallbackCache();
 
         this.animationManager = new AnimationManager(this.interactionManager, updateMutex);

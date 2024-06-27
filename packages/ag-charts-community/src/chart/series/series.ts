@@ -1,18 +1,21 @@
+import type {
+    AgChartLabelFormatterParams,
+    AgChartLabelOptions,
+    AgSeriesMarkerStyle,
+    AgSeriesMarkerStylerParams,
+    ISeriesMarker,
+} from 'ag-charts-types';
+
 import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
 import type { SeriesOptionInstance, SeriesOptionModule, SeriesType } from '../../module/optionsModuleTypes';
-import type { AgChartLabelFormatterParams, AgChartLabelOptions, InteractionRange } from '../../options/agChartOptions';
-import type {
-    AgSeriesMarkerFormatterParams,
-    AgSeriesMarkerStyle,
-    ISeriesMarker,
-} from '../../options/series/markerOptions';
 import type { ScaleType } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import type { ZIndexSubOrder } from '../../scene/layersManager';
 import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
+import type { Path } from '../../scene/shape/path';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import { createId } from '../../util/id';
 import { jsonDiff } from '../../util/json';
@@ -61,10 +64,10 @@ export type SeriesNodePickMatch = {
 };
 
 export type PickFocusInputs = {
-    // datum delta is stricly +ve/-ve when changing datum focus, or 0 when changing series focus.
+    // datum delta is strictly +ve/-ve when changing datum focus, or 0 when changing series focus.
     readonly datumIndex: number;
     readonly datumIndexDelta: number;
-    // 'other' means 'depth' for hierarchial charts, or 'series' for all other charts
+    // 'other' means 'depth' for hierarchical charts, or 'series' for all other charts
     readonly otherIndex: number;
     readonly otherIndexDelta: number;
     readonly seriesRect?: Readonly<BBox>;
@@ -74,7 +77,7 @@ export type PickFocusOutputs = {
     datumIndex: number;
     datum: SeriesNodeDatum;
     otherIndex?: number;
-    bbox: BBox;
+    bounds: BBox | Path;
     showFocusBox: boolean;
 };
 
@@ -265,7 +268,6 @@ export type SeriesConstructorOpts<TProps extends SeriesProperties<any>> = {
     directionKeys?: SeriesDirectionKeysMapping<TProps>;
     directionNames?: SeriesDirectionKeysMapping<TProps>;
     canHaveAxes?: boolean;
-    defaultTooltipRange: InteractionRange;
 };
 
 export abstract class Series<
@@ -300,9 +302,6 @@ export abstract class Series<
     }
 
     readonly canHaveAxes: boolean;
-
-    // This property is used to keep backward compatibility with the old global `tooltip.range` option.
-    readonly defaultTooltipRange: InteractionRange;
 
     get type(): SeriesType {
         return (this.constructor as any).type ?? '';
@@ -357,7 +356,7 @@ export abstract class Series<
 
     set visible(value: boolean) {
         this.properties.visible = value;
-        this.visibleChanged();
+        this.visibleMaybeChanged();
     }
 
     get visible() {
@@ -419,14 +418,12 @@ export abstract class Series<
             directionNames = {},
             contentGroupVirtual = true,
             canHaveAxes = false,
-            defaultTooltipRange,
         } = seriesOpts;
 
         this.ctx = moduleCtx;
         this.directionKeys = directionKeys;
         this.directionNames = directionNames;
         this.canHaveAxes = canHaveAxes;
-        this.defaultTooltipRange = defaultTooltipRange;
 
         this.contentGroup = this.rootGroup.appendChild(
             new Group({
@@ -574,9 +571,10 @@ export abstract class Series<
     // Indicate that something external changed and we should recalculate nodeData.
     markNodeDataDirty() {
         this.nodeDataRefresh = true;
+        this.visibleMaybeChanged();
     }
 
-    visibleChanged() {
+    private visibleMaybeChanged() {
         this.ctx.seriesStateManager.registerSeries(this);
     }
 
@@ -762,14 +760,14 @@ export abstract class Series<
     }
 
     public getMarkerStyle<TParams>(
-        marker: ISeriesMarker<TDatum, TParams>,
-        params: TParams & Omit<AgSeriesMarkerFormatterParams<TDatum>, 'seriesId'>,
+        marker: ISeriesMarker<TParams>,
+        params: TParams & Omit<AgSeriesMarkerStylerParams<TDatum>, 'seriesId'>,
         defaultStyle: AgSeriesMarkerStyle = marker.getStyle()
     ) {
         const defaultSize = { size: params.datum.point?.size ?? 0 };
         const markerStyle = mergeDefaults(defaultSize, defaultStyle);
-        if (marker.formatter) {
-            const style = this.ctx.callbackCache.call(marker.formatter, {
+        if (marker.itemStyler) {
+            const style = this.ctx.callbackCache.call(marker.itemStyler, {
                 seriesId: this.id,
                 ...markerStyle,
                 ...params,
@@ -782,8 +780,8 @@ export abstract class Series<
 
     protected updateMarkerStyle<TParams>(
         markerNode: Marker,
-        marker: ISeriesMarker<TDatum, TParams>,
-        params: TParams & Omit<AgSeriesMarkerFormatterParams<TDatum>, 'seriesId'>,
+        marker: ISeriesMarker<TParams>,
+        params: TParams & Omit<AgSeriesMarkerStylerParams<TDatum>, 'seriesId'>,
         defaultStyle: AgSeriesMarkerStyle = marker.getStyle(),
         { applyTranslation = true } = {}
     ) {

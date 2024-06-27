@@ -1,6 +1,7 @@
 import { describe, expect, test } from '@jest/globals';
 
-import type { TextAlign } from '../options/agChartOptions';
+import type { TextAlign } from 'ag-charts-types';
+
 import type { Chart } from './chart';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,

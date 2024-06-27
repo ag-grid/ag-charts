@@ -1,8 +1,5 @@
-import type {
-    AgCartesianChartOptions,
-    AgHierarchyChartOptions,
-    AgPolarChartOptions,
-} from '../../options/agChartOptions';
+import type { AgCartesianChartOptions, AgHierarchyChartOptions, AgPolarChartOptions } from 'ag-charts-types';
+
 import {
     DATA_APPLE_REVENUE_BY_PRODUCT,
     DATA_BROWSER_MARKET_SHARE,
@@ -2842,7 +2839,9 @@ export const LINE_TIME_X_AXIS_NUMBER_Y_AXIS_LABELS: AgCartesianChartOptions = {
         {
             type: 'number',
             position: 'left',
-            maxSpacing: 20,
+            interval: {
+                maxSpacing: 20,
+            },
         },
     ],
     series: [
@@ -2872,7 +2871,9 @@ export const LINE_TIME_X_AXIS_POSITION_TOP_NUMBER_Y_AXIS_LABELS: AgCartesianChar
         {
             type: 'number',
             position: 'left',
-            maxSpacing: 20,
+            interval: {
+                maxSpacing: 20,
+            },
         },
     ],
     series: [
@@ -2902,7 +2903,9 @@ export const LINE_TIME_X_AXIS_NUMBER_Y_AXIS_POSITION_RIGHT_LABELS: AgCartesianCh
         {
             type: 'number',
             position: 'right',
-            maxSpacing: 20,
+            interval: {
+                maxSpacing: 20,
+            },
         },
     ],
     series: [

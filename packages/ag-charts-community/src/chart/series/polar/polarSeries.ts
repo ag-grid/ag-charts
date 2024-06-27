@@ -1,18 +1,18 @@
 import type { ModuleContext } from '../../../module/moduleContext';
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
-import type { InteractionRange } from '../../../options/chart/types';
 import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import { type Node, PointerEvents } from '../../../scene/node';
 import { Selection } from '../../../scene/selection';
+import { Path } from '../../../scene/shape/path';
 import { Text } from '../../../scene/shape/text';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { StateMachine } from '../../../util/stateMachine';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { DataModelSeries } from '../dataModelSeries';
-import { SeriesNodePickMode } from '../series';
+import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import type { SeriesProperties } from '../seriesProperties';
 import type { SeriesNodeDatum } from '../seriesTypes';
 
@@ -94,7 +94,6 @@ export abstract class PolarSeries<
         useLabelLayer = false,
         pickModes = [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
         canHaveAxes = false,
-        defaultTooltipRange,
         animationResetFns,
         ...opts
     }: {
@@ -102,7 +101,6 @@ export abstract class PolarSeries<
         useLabelLayer?: boolean;
         pickModes?: SeriesNodePickMode[];
         canHaveAxes?: boolean;
-        defaultTooltipRange: InteractionRange;
         animationResetFns?: {
             item?: (node: TNode, datum: TDatum) => AnimationValue & Partial<TNode>;
             label?: (node: Text, datum: TDatum) => AnimationValue & Partial<Text>;
@@ -122,10 +120,8 @@ export abstract class PolarSeries<
                 [ChartAxisDirection.Y]: ['radiusName'],
             },
             canHaveAxes,
-            defaultTooltipRange,
         });
 
-        this.showFocusBox = false;
         this.itemGroup.zIndexSubOrder = [() => this._declarationOrder, 1];
         this.animationResetFns = animationResetFns;
 
@@ -256,5 +252,13 @@ export abstract class PolarSeries<
 
     private getAnimationData(seriesRect?: BBox) {
         return { seriesRect };
+    }
+
+    protected override computeFocusBounds(opts: PickFocusInputs): BBox | Path | undefined {
+        const datum = this.getNodeData()?.[opts.datumIndex];
+        if (datum !== undefined) {
+            return this.itemSelection.select((node): node is Path => node instanceof Path && node.datum === datum)[0];
+        }
+        return undefined;
     }
 }

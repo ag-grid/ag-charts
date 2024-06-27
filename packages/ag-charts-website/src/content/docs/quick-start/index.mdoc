@@ -183,7 +183,7 @@ Replace your `index.js` file (or root component) with the following code:
 ```jsx
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
-import { AgChartsReact } from 'ag-charts-react';
+import { AgCharts } from 'ag-charts-react';
 
 // React Chart Component
 const ChartExample = () => {
@@ -203,8 +203,8 @@ const ChartExample = () => {
   });
 
   return (
-    // AgChartsReact component with options passed as prop
-    <AgChartsReact options={chartOptions} />
+    // AgCharts component with options passed as prop
+    <AgCharts options={chartOptions} />
   );
 }
 
@@ -225,20 +225,20 @@ Replace your `app.component.ts` file (or root component) with the following:
 
 ```js
 import { Component } from '@angular/core';
-import { AgChartsAngular } from 'ag-charts-angular';
+import { AgCharts } from 'ag-charts-angular';
 import { AgChartOptions } from 'ag-charts-community';
 
 // Angular Chart Component
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [AgChartsAngular],
+  imports: [AgCharts],
   // ag-charts-angular component with chartOptions attribute
   template:
-  `<ag-charts-angular
+  `<ag-charts
     style="height: 100%"
     [options]="chartOptions">
-   </ag-charts-angular>`,
+   </ag-charts>`,
 })
 export class AppComponent {
   // Chart Options
@@ -274,19 +274,19 @@ Replace your `app.vue` (or root component) with the following code:
 ```html
 <template>
     <!-- The AG Charts component with chartsOptions as an attribute -->
-    <ag-charts-vue :options="options"> </ag-charts-vue>
+    <ag-charts :options="options"> </ag-charts>
 </template>
 
 <script>
     import { ref } from 'vue';
 
-    import { AgChartsVue } from 'ag-charts-vue3';
+    import { AgCharts } from 'ag-charts-vue3';
 
     // Vue Chart Component
     export default {
         name: 'App',
         components: {
-            AgChartsVue,
+            'ag-charts': AgCharts,
         },
         setup() {
             // Chart Options

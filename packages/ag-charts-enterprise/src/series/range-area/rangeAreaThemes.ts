@@ -20,8 +20,8 @@ export const RANGE_AREA_SERIES_THEME: {
             fontFamily: _Theme.DEFAULT_FONT_FAMILY,
             color: _Theme.DEFAULT_LABEL_COLOUR,
         },
-        line: {
-            style: 'linear',
+        interpolation: {
+            type: 'linear',
             // @ts-expect-error - users shouldn't specify all options, but we have to for theming to work
             tension: 1,
             position: 'end',

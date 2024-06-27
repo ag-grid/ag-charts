@@ -14,6 +14,7 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
 
     identifier: 'map-line',
     instanceConstructor: MapLineSeries,
+    tooltipDefaults: { range: 'exact' },
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
@@ -37,7 +38,7 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
         const defaultColorRange = themeTemplateParameters.get(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE);
         const { fills } = takeColors(colorsCount);
         return {
-            colorRange: userPalette ? [fills[0], fills[1]] : defaultColorRange,
+            colorRange: userPalette === 'inbuilt' ? defaultColorRange : [fills[0], fills[1]],
             stroke: fill,
         };
     },

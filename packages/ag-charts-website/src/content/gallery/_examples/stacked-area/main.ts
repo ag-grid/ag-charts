@@ -2,12 +2,14 @@ import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgCharts } from
 
 import { getData } from './data';
 
+const interpolation = { type: 'smooth' } as const;
 const tooltip = {
     renderer: ({ datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams) => {
         const date = Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric' }).format(datum[xKey]);
         return { content: `${date}: ${Math.round(datum[yKey] / 100) / 10 + 'k'}` };
     },
 };
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -24,6 +26,7 @@ const options: AgChartOptions = {
             stacked: true,
             yKey: 'Science Museum',
             yName: 'Science Museum',
+            interpolation,
             tooltip,
         },
         {
@@ -32,6 +35,7 @@ const options: AgChartOptions = {
             stacked: true,
             yKey: 'National Media Museum',
             yName: 'National Media Museum',
+            interpolation,
             tooltip,
         },
         {
@@ -40,6 +44,7 @@ const options: AgChartOptions = {
             stacked: true,
             yKey: 'National Railway Museum',
             yName: 'National Railway Museum',
+            interpolation,
             tooltip,
         },
         {
@@ -48,6 +53,7 @@ const options: AgChartOptions = {
             stacked: true,
             yKey: 'Locomotion',
             yName: 'Locomotion',
+            interpolation,
             tooltip,
         },
         {
@@ -56,6 +62,7 @@ const options: AgChartOptions = {
             yKey: 'Museum of Science and Industry, Manchester',
             yName: 'Museum of Science and Industry, Manchester',
             stacked: true,
+            interpolation,
             tooltip,
         },
         {
@@ -64,6 +71,7 @@ const options: AgChartOptions = {
             yKey: 'National Coal Mining Museum for England',
             yName: 'National Coal Mining Museum for England',
             stacked: true,
+            interpolation,
             tooltip,
         },
     ],

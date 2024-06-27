@@ -10,6 +10,10 @@ const options: AgChartOptions = {
     },
     footnote: {
         text: 'Source: Statistics Online Computational Resource',
+        spacing: 35,
+    },
+    padding: {
+        left: 35,
     },
     series: [
         {

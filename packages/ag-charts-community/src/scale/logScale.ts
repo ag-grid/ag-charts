@@ -1,7 +1,7 @@
 import { identity } from '../util/function';
 import { Logger } from '../util/logger';
 import { findRangeExtent } from '../util/number';
-import { format } from '../util/numberFormat';
+import { numberFormat } from '../util/numberFormat';
 import { createTicks, isDenseInterval, range } from '../util/ticks';
 import { isString } from '../util/type-guards';
 import { ContinuousScale } from './continuousScale';
@@ -151,7 +151,7 @@ export class LogScale extends ContinuousScale<number> {
         }
 
         specifier ??= this.base === 10 ? '.0e' : ',';
-        return isString(specifier) ? format(specifier) : specifier;
+        return isString(specifier) ? numberFormat(specifier) : specifier;
     }
 
     static getBaseLogMethod(base: number) {

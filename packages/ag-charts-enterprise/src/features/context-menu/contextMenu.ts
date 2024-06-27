@@ -18,7 +18,8 @@ type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
 type ContextMenuAction<T extends ContextType = ContextType> = _ModuleSupport.ContextMenuAction<T>;
 type ContextMenuCallback<T extends ContextType> = _ModuleSupport.ContextMenuCallback<T>;
 
-const { BOOLEAN, Validate, createElement, initMenuKeyNav, ContextMenuRegistry } = _ModuleSupport;
+const { BOOLEAN, Validate, createElement, initMenuKeyNav, makeAccessibleClickListener, ContextMenuRegistry } =
+    _ModuleSupport;
 
 const moduleId = 'context-menu';
 
@@ -117,7 +118,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.registry.registerDefaultAction({
             id: 'download',
             type: 'all',
-            label: 'context-menu.download',
+            label: 'contextMenuDownload',
             action: () => {
                 const title = ctx.chartService.title;
                 let fileName = 'image';
@@ -183,10 +184,22 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (groupCount === 0) return;
 
-        if (event.sourceEvent.target instanceof HTMLElement) {
-            this.lastFocus = event.sourceEvent.target;
-        }
+        this.lastFocus = this.getLastFocus(event);
         this.show();
+    }
+
+    private getLastFocus(event: ContextMenuEvent): HTMLElement | undefined {
+        // We need to guess whether the event comes the mouse or keyboard, which isn't an obvious task because
+        // the event.sourceEvent instances are mostly indistinguishable.
+        //
+        // However, when right-clicking with the mouse, the target element will the
+        // <div class="ag-charts-canvas-overlay"> element. But when the contextmenu is requested using the
+        // keyboard, then the target should be an element with the tabindex attribute set. So that's what we'll
+        // use to determine the device that triggered the contextmenu event.
+        if (event.sourceEvent.target instanceof HTMLElement && 'tabindex' in event.sourceEvent.target.attributes) {
+            return event.sourceEvent.target;
+        }
+        return undefined;
     }
 
     private show() {
@@ -213,7 +226,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             orientation: 'vertical',
             onEscape: () => this.hide(),
         });
-        buttons[0]?.focus();
+        newMenuElement.focus();
     }
 
     private hide() {
@@ -276,10 +289,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private createActionElement({ id, label, type, action }: ContextMenuAction): HTMLElement {
-        if (id && this.registry.isDisabled(id)) {
-            return this.createDisabledElement(label);
-        }
-        return this.createButtonElement(type, label, action);
+        const disabled = !!(id && this.registry.isDisabled(id));
+        return this.createButtonElement(type, label, action, disabled);
     }
 
     private createButtonOnClick<T extends ContextType>(type: T, callback: ContextMenuCallback<T>) {
@@ -313,24 +324,16 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     private createButtonElement<T extends ContextType>(
         type: T,
         label: string,
-        callback: ContextMenuCallback<T>
+        callback: ContextMenuCallback<T>,
+        disabled: boolean
     ): HTMLElement {
         const el = createElement('button');
         el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
         el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
-        el.textContent = this.ctx.localeManager.t(label);
-        el.onclick = this.createButtonOnClick(type, callback);
-        el.role = 'menuitem';
-        return el;
-    }
-
-    private createDisabledElement(label: string): HTMLElement {
-        const el = createElement('button');
-        el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
-        el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
-        el.disabled = true;
+        el.ariaDisabled = disabled.toString();
         el.textContent = this.ctx.localeManager.t(label);
         el.role = 'menuitem';
+        el.onclick = makeAccessibleClickListener(el, this.createButtonOnClick(type, callback));
         return el;
     }
 

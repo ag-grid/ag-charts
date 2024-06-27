@@ -2,36 +2,121 @@
 title: 'Localisation'
 ---
 
-All the displayed text in the chart is customisable for the purposes of localisation. This is done by providing locale information to the chart for the required language.
+All the displayed text in AG Charts is customisable for the purposes of localisation.
 
-We include a minimal internationalisation implementation and full set of American English translations, each of which can be replaced. The built-in internationalisation implementation is optimised for file size, and only supports American English for formatting of numbers and dates.
+This is done by providing locale information to charts for the required language. Either provide an object of key/value pairs via the `localeText` property, or provide a `getLocaleText` callback to hook charts up to your application's localisation.
+
+We include a minimal internationalisation implementation and full set of American English translations, each of which can be replaced. The built-in internationalisation implementation is optimised for file size.
+
+## Provided Locales
+
+The default language in charts is American English. However, we provide a number of translations that can be used as a starting point for commonly requested languages:
+
+| Locale               | BCP 47 Tag | Import name              |
+| -------------------- | ---------- | ------------------------ |
+| Arabic (Egyptian)    | ar-EG      | `AG_CHARTS_LOCALE_AR_EG` |
+| Bulgarian            | bg-BG      | `AG_CHARTS_LOCALE_BG_BG` |
+| Chinese (Hong Kong)  | zh-HK      | `AG_CHARTS_LOCALE_ZH_HK` |
+| Chinese (Simplified) | zh-CN      | `AG_CHARTS_LOCALE_ZH_CN` |
+| Chinese (Taiwan)     | zh-TW      | `AG_CHARTS_LOCALE_ZH_TW` |
+| Croatian             | hr-HR      | `AG_CHARTS_LOCALE_HR_HR` |
+| Czech                | cs-CZ      | `AG_CHARTS_LOCALE_CS_CZ` |
+| Danish               | da-DK      | `AG_CHARTS_LOCALE_DA_DK` |
+| Dutch                | nl-NL      | `AG_CHARTS_LOCALE_NL_NL` |
+| Finnish              | fi-FI      | `AG_CHARTS_LOCALE_FI_FI` |
+| French               | fr-FR      | `AG_CHARTS_LOCALE_FR_FR` |
+| German               | de-DE      | `AG_CHARTS_LOCALE_DE_DE` |
+| Greek                | el-GR      | `AG_CHARTS_LOCALE_EL_GR` |
+| Hebrew               | he-IL      | `AG_CHARTS_LOCALE_HE_IL` |
+| Hungarian            | hu-HU      | `AG_CHARTS_LOCALE_HU_HU` |
+| Italian              | it-IT      | `AG_CHARTS_LOCALE_IT_IT` |
+| Japanese             | ja-JP      | `AG_CHARTS_LOCALE_JA_JP` |
+| Korean               | ko-KR      | `AG_CHARTS_LOCALE_KO_KR` |
+| Norwegian (Bokmål)   | nb-NO      | `AG_CHARTS_LOCALE_NB_NO` |
+| Persian              | fa-IR      | `AG_CHARTS_LOCALE_FA_IR` |
+| Polish               | pl-PL      | `AG_CHARTS_LOCALE_PL_PL` |
+| Portuguese           | pt-PT      | `AG_CHARTS_LOCALE_PT_PT` |
+| Portuguese (Brazil)  | pt-BR      | `AG_CHARTS_LOCALE_PT_BR` |
+| Romanian             | ro-RO      | `AG_CHARTS_LOCALE_RO_RO` |
+| Slovak               | sk-SK      | `AG_CHARTS_LOCALE_SK_SK` |
+| Spanish              | es-ES      | `AG_CHARTS_LOCALE_ES_ES` |
+| Swedish              | sv-SE      | `AG_CHARTS_LOCALE_SV_SE` |
+| Turkish              | tr-TR      | `AG_CHARTS_LOCALE_TR_TR` |
+| Ukrainian            | uk-UA      | `AG_CHARTS_LOCALE_UK_UA` |
+| Urdu (Pakistan)      | ur-PK      | `AG_CHARTS_LOCALE_UR_PK` |
+| Vietnamese           | vi-VN      | `AG_CHARTS_LOCALE_VI_VN` |
+
+{% warning %}
+Translations are provided as a starting point and may contain errors. We recommend you audit these files before using them in production.
+{% /warning %}
+
+## Installing a Locale
+
+To change the locale, set the `localeText` property in `locale` options to one of the built-in locales.
+
+Each built-in locale is available from the `ag-charts-locale` package, with each export defined in the table above.
+
+The locale `AG_CHARTS_LOCALE_EN_US` is also exported from `ag-charts-community`/`ag-charts-enterprise`.
+
+{% chartExampleRunner title="Installing a Locale" name="installing-locale" type="generated" /%}
+
+```js
+import { AG_CHARTS_LOCALE_FR_FR } from 'ag-charts-locale';
+
+{
+    locale: {
+        localeText: AG_CHARTS_LOCALE_FR_FR,
+    }
+}
+```
+
+In the above example:
+
+-   Hover over the zoom toolbar buttons to see the translated tooltips.
+-   Right click on the series area to see the translated context menu options.
+-   Click on the legend item to see the translated "no visible series" overlay.
+
+If a locale is provided but is missing values, the default English values will be used for the missing values.
 
 ## Customising Text Values
 
-Overrides for American English text can be configured in the `locale` options.
+Overrides for individual translations can be done by applying overrides to an existing locale.
+
+{% chartExampleRunner title="Custom Text Values" name="custom-text-values" type="generated" /%}
 
 ```js
 {
     locale: {
-        messages: {
-            'context-menu.download': 'Download a copy of this chart',
+        localeText: {
+            ...AG_CHARTS_LOCALE_EN_US,
+            toolbarZoomZoomOut: 'Zoom Out of the Chart',
+            toolbarZoomZoomIn: 'Zoom In to the Chart',
+            toolbarZoomPanLeft: 'Pan the Chart Left',
+            toolbarZoomPanRight: 'Pan the Chart Right',
+            toolbarZoomPanStart: 'Pan the Chart to the Start',
+            toolbarZoomPanEnd: 'Pan the Chart to the End',
+            toolbarZoomReset: 'Reset the Chart\'s Zoom',
+            contextMenuDownload: 'Save this Chart to My Computer',
+            contextMenuZoomToCursor: 'Zoom the Chart to Your Cursor',
+            contextMenuPanToCursor: 'Pan the Chart to Your Cursor',
         },
     }
 }
 ```
 
-In this configuration, `messages` is a dictionary mapping translation keys to the translated text.
+In this configuration, `localeText` is a dictionary mapping translation keys to the translated text.
 
-Some translations have parameters, which can be included in the translation using `'${value}'` syntax. Note your strings should not use backticks.
+Some translations have parameters, which can be included in the translation using `'${value}'` syntax. Provided strings should not use backticks.
 
 Values can be formatted by appending a format style in square brackets, like `'${value}[percent]'`. The available formatters are `[number]`, `[percent]`, `[date]`, `[time]`, and `[datetime]`.
 
 ```js
 {
     locale: {
-        messages: {
-            'aria-announce.chart': 'chart with ${seriesCount} series',
-            'aria-value.pan-range': '${min}[percent] to ${max}[percent]',
+        localeText: {
+            ...AG_CHARTS_LOCALE_EN_US,
+            ariaAnnounceChart: 'chart with ${seriesCount} series',
+            ariaValuePanRange: '${min}[percent] to ${max}[percent]',
         },
     }
 }
@@ -39,30 +124,21 @@ Values can be formatted by appending a format style in square brackets, like `'$
 
 Please see [All Built-In Translations](./localisation/#all-built-in-translations) for a full list of built-in translations.
 
-## Supporting Other Languages
+## Using External Frameworks
 
-To support other languages, you need to use an internationalisation framework such as FormatJS or i18next.
-
-You can integrate the internationalisation framework using the `locale` options.
+You can integrate the internationalisation framework using the `getLocaleText` option within the `locale` options.
 
 ```js
 {
     locale: {
-        messages: {
-            // ...
-        },
-        formatMessage({ id, message, params }) {
-            return internationalisationFramework.formatMessage({ id, message, params });
+        getLocaleText({ key, defaultValue, variables }) {
+            return internationalisationFramework.getLocaleText({ key, defaultValue, variables });
         }
     }
 }
 ```
 
-{% warning %}
-You must provide a value for every built-in message, as built-in messages will never be passed to your `formatMessage` function. Any missing messages will fall back to the built-in American English translation, formatted with our default internationalisation implementation.
-
-Please see [All Built-In Translations](./localisation/#all-built-in-translations) for a full list of built-in translations.
-{% /warning %}
+If you return `undefined` from this function, it will fall back to the default behaviour of using `localeText` with the default formatter.
 
 ### Framework Integration Examples
 
@@ -75,21 +151,22 @@ Please see [All Built-In Translations](./localisation/#all-built-in-translations
 ```js
 import { createIntl } from '@formatjs/intl';
 
-const messages = {
-    'context-menu.download': 'Téléchargez une copie de ce tableau',
-};
-
 const intl = createIntl({
     locale: 'fr-FR',
-    messages: messages,
+    messages: {
+        contextMenuDownload: 'Téléchargez une copie de ce tableau',
+    },
 });
 
 AgCharts.create({
     // ...
     locale: {
-        messages: messages,
-        formatMessage({ id, params }) {
-            return intl.formatMessage({ id }, params);
+        getLocaleText({ key, variables }) {
+            if (!intl.messages[key]) {
+                // Fallback to default behaviour for missing messages
+                return undefined;
+            }
+            return intl.formatMessage({ id: key }, variables);
         },
     },
 });
@@ -102,15 +179,13 @@ AgCharts.create({
 ```js
 import i18next from 'i18next';
 
-const messages = {
-    'context-menu.download': 'Téléchargez une copie de ce tableau',
-};
-
 await i18next.init({
     lng: 'fr',
     resources: {
         fr: {
-            translation: messages,
+            translation: {
+                contextMenuDownload: 'Téléchargez une copie de ce tableau',
+            },
         },
     },
 });
@@ -118,9 +193,12 @@ await i18next.init({
 AgCharts.create({
     // ...
     locale: {
-        messages: messages,
-        formatMessage({ id, params }) {
-            return i18next.t(id, params);
+        getLocaleText({ key, variables }) {
+            if (!i18next.exists(key)) {
+                // Fallback to default behaviour for missing messages
+                return undefined;
+            }
+            return i18next.t(key, variables);
         },
     },
 });
@@ -138,7 +216,7 @@ AgCharts.create({
 import { IntlProvider, useIntl } from 'react-intl';
 
 const messages = {
-    'context-menu.download': 'Téléchargez une copie de ce tableau',
+    'contextMenuDownload': 'Téléchargez une copie de ce tableau',
 };
 
 const MyChart = () => {
@@ -147,14 +225,17 @@ const MyChart = () => {
     const options = {
         // ...
         locale: {
-            messages: messages,
-            formatMessage({ id, params }) {
-                return intl.formatMessage({ id }, params);
+            getLocaleText({ key, variables }) {
+                if (!intl.messages[key]) {
+                    // Fallback to default behaviour for missing messages
+                    return undefined;
+                }
+                return intl.formatMessage({ id: key }, variables);
             },
         },
     };
 
-    return <AgChartsReact options={options} />;
+    return <AgCharts options={options} />;
 }
 
 const App = () => {
@@ -174,33 +255,34 @@ const App = () => {
 import i18next from 'i18next';
 import { initReactI18next, useTranslation } from 'react-i18next';
 
-const messages = {
-    'context-menu.download': 'Téléchargez une copie de ce tableau',
-};
-
 await i18next.use(initReactI18next).init({
     lng: 'fr',
     resources: {
         fr: {
-            translation: messages,
+            translation: {
+                contextMenuDownload: 'Téléchargez une copie de ce tableau',
+            },
         },
     },
 });
 
 const MyChart = () => {
-     const { t } = useTranslation();
+     const { i18n, t } = useTranslation();
 
     const options = {
         // ...
         locale: {
-            messages: messages,
-            formatMessage({ id, params }) {
-                return t(id, params);
+            getLocaleText({ key, variables }) {
+                if (!i18n.exists(key)) {
+                    // Fallback to default behaviour for missing messages
+                    return undefined;
+                }
+                return t(key, variables);
             },
         },
     };
 
-    return <AgChartsReact options={options} />;
+    return <AgCharts options={options} />;
 }
 ```
 
@@ -210,6 +292,16 @@ const MyChart = () => {
 
 {% /tabs %}
 
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgLocaleOptions" label="Locale" %}
+{% apiReference id="AgLocaleOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}
+
 ## All Built-In Translations
 
-{% embedSnippet url="/dev/en.ts" language="ts" /%}
+{% embedSnippet url="/dev/ag-charts-locale/dist/package/en-US.esm.mjs" language="ts" /%}

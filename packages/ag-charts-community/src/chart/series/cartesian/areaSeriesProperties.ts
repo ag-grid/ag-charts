@@ -3,7 +3,8 @@ import type {
     AgAreaSeriesOptionsKeys,
     AgCartesianSeriesTooltipRendererParams,
     AgSeriesAreaOptions,
-} from '../../../options/agChartOptions';
+} from 'ag-charts-types';
+
 import { DropShadow } from '../../../scene/dropShadow';
 import {
     BOOLEAN,
@@ -18,9 +19,8 @@ import {
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
-import type { MarkerSelectionDatum } from './areaUtil';
 import { CartesianSeriesProperties } from './cartesianSeries';
-import { LineProperties } from './lineProperties';
+import { InterpolationProperties } from './interpolationProperties';
 
 export class AreaSeriesProperties extends CartesianSeriesProperties<AgSeriesAreaOptions> {
     @Validate(STRING)
@@ -60,13 +60,13 @@ export class AreaSeriesProperties extends CartesianSeriesProperties<AgSeriesArea
     lineDashOffset: number = 0;
 
     @Validate(OBJECT)
-    line?: LineProperties = new LineProperties();
+    interpolation: InterpolationProperties = new InterpolationProperties();
 
     @Validate(OBJECT)
     readonly shadow = new DropShadow();
 
     @Validate(OBJECT)
-    readonly marker = new SeriesMarker<AgAreaSeriesOptionsKeys, MarkerSelectionDatum>();
+    readonly marker = new SeriesMarker<AgAreaSeriesOptionsKeys>();
 
     @Validate(OBJECT)
     readonly label = new Label<AgAreaSeriesLabelFormatterParams>();

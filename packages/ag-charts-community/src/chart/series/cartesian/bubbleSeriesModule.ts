@@ -12,6 +12,7 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
 
     identifier: 'bubble',
     instanceConstructor: BubbleSeries,
+    tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,

@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
+import type { AgChartOptions } from 'ag-charts-types';
+
 import { AgCharts } from '../api/agCharts';
-import type { AgChartOptions } from '../options/agChartOptions';
 import { EXAMPLES } from './test/examples-integrated-charts';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,

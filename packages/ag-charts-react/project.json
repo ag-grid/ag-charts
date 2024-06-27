@@ -6,7 +6,15 @@
   "tags": ["fw", "no-batching"],
   "targets": {
     "lint": {
-      "executor": "nx:noop"
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "eslintConfig": "{projectRoot}/.eslintrc.json"
+      },
+      "configurations": {
+        "fix": {
+          "fix": true
+        }
+      }
     },
     "build": {
       "executor": "nx:noop",
@@ -63,7 +71,7 @@
         "external": ["ag-charts-community", "react", "react-dom", "react/jsx-runtime"],
         "esbuildConfig": "esbuild.config.cjs",
         "platform": "browser",
-        "target": "es6",
+        "target": "es2020",
         "format": ["cjs", "esm"],
         "sourcemap": true
       },
@@ -140,5 +148,7 @@
         "commands": ["node tools/sanity-check-package.js dist/packages/contents/ag-charts-react/package"]
       }
     }
-  }
+  },
+  "tags": ["fw", "no-batching"],
+  "implicitDependencies": ["ag-charts-community"]
 }

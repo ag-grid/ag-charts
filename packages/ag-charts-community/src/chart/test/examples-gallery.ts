@@ -1,4 +1,5 @@
-import type { AgChartOptions } from '../../options/agChartOptions';
+import type { AgChartOptions } from 'ag-charts-types';
+
 import * as examples from './examples';
 import {
     cartesianChartAssertions,

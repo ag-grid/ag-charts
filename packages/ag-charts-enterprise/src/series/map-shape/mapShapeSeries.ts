@@ -1,5 +1,4 @@
 import {
-    type AgMapShapeSeriesFormatterParams,
     type AgMapShapeSeriesLabelFormatterParams,
     type AgMapShapeSeriesStyle,
     _ModuleSupport,
@@ -10,7 +9,7 @@ import {
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestPolygon, projectGeometry } from '../map-util/geometryUtil';
-import { computeGeoFocusBounds } from '../map-util/mapUtil';
+import { findFocusedGeoGeometry } from '../map-util/mapUtil';
 import { polygonMarkerCenter } from '../map-util/markerUtil';
 import { maxWidthInPolygonForRectOfHeight, preferredLabelCenter } from '../map-util/polygonLabelUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
@@ -98,11 +97,9 @@ export class MapShapeSeries
             contentGroupVirtual: false,
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
-            defaultTooltipRange: 'exact',
         });
 
         this.itemLabelGroup.pointerEvents = PointerEvents.None;
-        this.showFocusBox = false;
     }
 
     setChartTopology(topology: any): void {
@@ -442,7 +439,7 @@ export class MapShapeSeries
             ctx: { callbackCache },
         } = this;
         const { datumSelection, isHighlight } = opts;
-        const { idKey, colorKey, labelKey, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset, formatter } =
+        const { idKey, colorKey, labelKey, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset, itemStyler } =
             properties;
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
@@ -456,11 +453,10 @@ export class MapShapeSeries
             }
 
             let format: AgMapShapeSeriesStyle | undefined;
-            if (formatter != null) {
-                const params: _Util.RequireOptional<AgMapShapeSeriesFormatterParams> = {
+            if (itemStyler != null) {
+                format = callbackCache.call(itemStyler, {
                     seriesId,
                     datum: datum.datum,
-                    itemId: datum.itemId,
                     idKey,
                     colorKey,
                     labelKey,
@@ -472,8 +468,7 @@ export class MapShapeSeries
                     lineDash,
                     lineDashOffset,
                     highlighted: isHighlight,
-                };
-                format = callbackCache.call(formatter, params as AgMapShapeSeriesFormatterParams);
+                });
             }
 
             geoGeometry.visible = true;
@@ -671,7 +666,11 @@ export class MapShapeSeries
             labelName,
             stroke,
             strokeWidth,
-            formatter,
+            strokeOpacity,
+            fillOpacity,
+            lineDash,
+            lineDashOffset,
+            itemStyler,
             tooltip,
         } = properties;
         const { datum, fill, idValue, colorValue, labelValue, itemId } = nodeDatum;
@@ -689,15 +688,21 @@ export class MapShapeSeries
 
         let format: AgMapShapeSeriesStyle | undefined;
 
-        if (formatter) {
-            format = callbackCache.call(formatter, {
+        if (itemStyler) {
+            format = callbackCache.call(itemStyler, {
                 seriesId,
                 datum,
                 idKey,
+                colorKey,
+                labelKey,
                 fill,
                 stroke,
                 strokeWidth: this.getStrokeWidth(strokeWidth),
                 highlighted: false,
+                fillOpacity,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
             });
         }
 
@@ -722,7 +727,7 @@ export class MapShapeSeries
         );
     }
 
-    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
-        return computeGeoFocusBounds(this, opts);
+    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.Path | undefined {
+        return findFocusedGeoGeometry(this, opts);
     }
 }

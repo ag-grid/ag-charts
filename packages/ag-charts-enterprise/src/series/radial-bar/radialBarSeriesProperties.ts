@@ -1,9 +1,10 @@
 import type {
     AgRadialBarSeriesOptions,
-    AgRadialSeriesFormat,
-    AgRadialSeriesFormatterParams,
+    AgRadialSeriesItemStylerParams,
     AgRadialSeriesLabelFormatterParams,
+    AgRadialSeriesStyle,
     AgRadialSeriesTooltipRendererParams,
+    Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
@@ -61,7 +62,7 @@ export class RadialBarSeriesProperties<T extends AgRadialBarSeriesOptions> exten
     cornerRadius: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgRadialSeriesFormatterParams<any>) => AgRadialSeriesFormat;
+    itemStyler?: Styler<AgRadialSeriesItemStylerParams<unknown>, AgRadialSeriesStyle>;
 
     @Validate(DEGREE)
     rotation: number = 0;
@@ -76,5 +77,5 @@ export class RadialBarSeriesProperties<T extends AgRadialBarSeriesOptions> exten
     readonly label = new Label<AgRadialSeriesLabelFormatterParams>();
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgRadialSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgRadialSeriesTooltipRendererParams<any>>();
 }

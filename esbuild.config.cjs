@@ -2,13 +2,44 @@ const esbuild = require('esbuild');
 const { umdWrapper } = require('esbuild-plugin-umd-wrapper');
 const fs = require('fs/promises');
 const path = require('path');
+const postcss = require('postcss');
+const cssnano = require('cssnano');
+const cssnanoPresetLite = require('cssnano-preset-lite');
+const htmlMinifier = require('html-minifier-terser');
 
 const exportedNames = {
     react: 'React',
     'react-dom': 'ReactDOM',
     'ag-charts-community': 'agCharts',
     'ag-charts-enterprise': 'agCharts',
-    'ag-charts-react': 'AgChartsReact',
+    'ag-charts-react': 'AgCharts',
+    'ag-charts-locale': 'agChartsLocale',
+};
+
+/** @type {import('esbuild').Plugin} */
+const cssPlugin = {
+    name: 'css',
+    setup(build) {
+        build.onLoad({ filter: /\.css$/ }, async (args) => {
+            const { css } = await postcss([cssnano({ preset: cssnanoPresetLite })]).process(
+                await fs.readFile(args.path, 'utf8')
+            );
+            return { contents: css, loader: 'text' };
+        });
+    },
+};
+
+/** @type {import('esbuild').Plugin} */
+const htmlPlugin = {
+    name: 'html',
+    setup(build) {
+        build.onLoad({ filter: /\.html$/ }, async (args) => {
+            const html = await htmlMinifier.minify(await fs.readFile(args.path, 'utf8'), {
+                collapseWhitespace: true,
+            });
+            return { contents: html, loader: 'text' };
+        });
+    },
 };
 
 /** @type {import('esbuild').Plugin} */
@@ -95,7 +126,7 @@ if (typeof require === 'undefined') {
     },
 };
 
-const plugins = [];
+const plugins = [cssPlugin, htmlPlugin];
 let outExtension = {};
 if (process.env.NX_TASK_TARGET_TARGET?.endsWith('umd')) {
     plugins.push(umdWrapperAdaptorPlugin);
@@ -116,5 +147,9 @@ const options = {
     outExtension,
     plugins,
 };
+
+if (!process.env.NX_TASK_TARGET_TARGET?.endsWith('umd') && process.env.NX_TASK_TARGET_PROJECT === 'ag-charts-locale') {
+    options.outdir = path.join(__dirname, 'packages/ag-charts-locale/dist/package');
+}
 
 module.exports = options;

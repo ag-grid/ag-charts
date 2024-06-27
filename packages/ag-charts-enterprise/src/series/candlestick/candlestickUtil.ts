@@ -15,10 +15,7 @@ export type AnimatableCandlestickGroupDatum = {
     height?: number;
 };
 
-export function resetCandlestickSelectionsFn(
-    _node: CandlestickBaseGroup<CandlestickNodeBaseDatum, any>,
-    datum: CandlestickNodeBaseDatum
-) {
+export function resetCandlestickSelectionsFn(_node: any, datum: CandlestickNodeBaseDatum) {
     return getCoordinates(datum);
 }
 

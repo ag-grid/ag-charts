@@ -1,17 +1,20 @@
 import { BaseProperties } from '../../util/properties';
-import { OBJECT, Validate } from '../../util/validation';
+import { BOOLEAN, OBJECT, Validate } from '../../util/validation';
 import type { LocaleManager } from '../locale/localeManager';
 import { Overlay } from './overlay';
 
 export class ChartOverlays extends BaseProperties {
-    @Validate(OBJECT)
-    readonly loading = new Overlay('ag-chart-loading-overlay', 'overlay.loading-data');
+    @Validate(BOOLEAN)
+    darkTheme = false;
 
     @Validate(OBJECT)
-    readonly noData = new Overlay('ag-chart-no-data-overlay', 'overlay.no-data');
+    readonly loading = new Overlay('ag-chart-loading-overlay', 'overlayLoadingData');
 
     @Validate(OBJECT)
-    readonly noVisibleSeries = new Overlay('ag-chart-no-visible-series', 'overlay.no-visible-series');
+    readonly noData = new Overlay('ag-chart-no-data-overlay', 'overlayNoData');
+
+    @Validate(OBJECT)
+    readonly noVisibleSeries = new Overlay('ag-chart-no-visible-series', 'overlayNoVisibleSeries');
 
     getFocusInfo(
         localeManager: LocaleManager

@@ -19,6 +19,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
     chartTypes: ['hierarchy'],
     identifier: 'treemap',
     instanceConstructor: TreemapSeries,
+    tooltipDefaults: { range: 'exact' },
     solo: true,
     themeTemplate: {
         series: {

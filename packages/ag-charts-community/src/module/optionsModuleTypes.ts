@@ -1,11 +1,14 @@
+import type {
+    AgCartesianSeriesOptions,
+    AgFlowProportionSeriesOptions,
+    AgHierarchySeriesOptions,
+    AgPolarSeriesOptions,
+    AgTopologySeriesOptions,
+} from 'ag-charts-types';
+
 import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { PropertyDefinition } from '../chart/data/dataModel';
 import type { SeriesNodeDatum } from '../chart/series/seriesTypes';
-import type { AgCartesianSeriesOptions } from '../options/series/cartesian/cartesianSeriesTypes';
-import type { AgFlowProportionSeriesOptions } from '../options/series/flow-proportion/flowProportionOptions';
-import type { AgHierarchySeriesOptions } from '../options/series/hierarchy/hierarchyOptions';
-import type { AgPolarSeriesOptions } from '../options/series/polar/polarOptions';
-import type { AgTopologySeriesOptions } from '../options/series/topology/topologyOptions';
 import type { ScaleType } from '../scale/scale';
 import type { Point } from '../scene/point';
 import type { BaseModule, ModuleInstance } from './baseModule';

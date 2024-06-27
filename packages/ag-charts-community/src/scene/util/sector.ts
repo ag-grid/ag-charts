@@ -1,5 +1,5 @@
-import { angleBetween, normalizeAngle180, normalizeAngle360 } from '../../util/angle';
-import type { BBox } from '../bbox';
+import { angleBetween, isBetweenAngles, normalizeAngle180, normalizeAngle360 } from '../../util/angle';
+import { BBox } from '../bbox';
 import { arcIntersections, segmentIntersection } from '../intersection';
 
 interface SectorBoundaries {
@@ -12,6 +12,40 @@ interface SectorBoundaries {
 interface LineCoordinates {
     start: { x: number; y: number };
     end: { x: number; y: number };
+}
+
+export function sectorBox({ startAngle, endAngle, innerRadius, outerRadius }: SectorBoundaries) {
+    let x0 = Infinity;
+    let y0 = Infinity;
+    let x1 = -Infinity;
+    let y1 = -Infinity;
+
+    const addPoint = (x: number, y: number) => {
+        x0 = Math.min(x, x0);
+        y0 = Math.min(y, y0);
+        x1 = Math.max(x, x1);
+        y1 = Math.max(y, y1);
+    };
+
+    addPoint(innerRadius * Math.cos(startAngle), innerRadius * Math.sin(startAngle));
+    addPoint(innerRadius * Math.cos(endAngle), innerRadius * Math.sin(endAngle));
+    addPoint(outerRadius * Math.cos(startAngle), outerRadius * Math.sin(startAngle));
+    addPoint(outerRadius * Math.cos(endAngle), outerRadius * Math.sin(endAngle));
+
+    if (isBetweenAngles(0, startAngle, endAngle)) {
+        addPoint(outerRadius, 0);
+    }
+    if (isBetweenAngles(Math.PI * 0.5, startAngle, endAngle)) {
+        addPoint(0, outerRadius);
+    }
+    if (isBetweenAngles(Math.PI, startAngle, endAngle)) {
+        addPoint(-outerRadius, 0);
+    }
+    if (isBetweenAngles(Math.PI * 1.5, startAngle, endAngle)) {
+        addPoint(0, -outerRadius);
+    }
+
+    return new BBox(x0, y0, x1 - x0, y1 - y0);
 }
 
 export function isPointInSector(x: number, y: number, sector: SectorBoundaries) {

@@ -1,10 +1,5 @@
 import { describe } from '@jest/globals';
 
-import { registerInbuiltModules } from '../chart/factory/registerInbuiltModules';
-import { seriesRegistry } from '../chart/factory/seriesRegistry';
-import { setupModules } from '../chart/factory/setupModules';
-import * as examples from '../chart/test/examples';
-import { ChartTheme } from '../chart/themes/chartTheme';
 import type {
     AgAreaSeriesOptions,
     AgBarSeriesOptions,
@@ -12,7 +7,13 @@ import type {
     AgChartOptions,
     AgLineSeriesOptions,
     AgNumberAxisOptions,
-} from '../options/agChartOptions';
+} from 'ag-charts-types';
+
+import { registerInbuiltModules } from '../chart/factory/registerInbuiltModules';
+import { seriesRegistry } from '../chart/factory/seriesRegistry';
+import { setupModules } from '../chart/factory/setupModules';
+import * as examples from '../chart/test/examples';
+import { ChartTheme } from '../chart/themes/chartTheme';
 import { doOnce } from '../util/function';
 import { ChartOptions } from './optionsModule';
 import type { SeriesType } from './optionsModuleTypes';
@@ -294,7 +295,9 @@ const ENABLED_FALSE_OPTIONS: AgCartesianChartOptions = {
         {
             position: 'bottom',
             type: 'time',
-            maxSpacing: 26,
+            interval: {
+                maxSpacing: 26,
+            },
             tick: {
                 enabled: false,
                 width: 66,
@@ -431,6 +434,9 @@ describe('ChartOptions', () => {
     "showInLegend": true,
     "stroke": "#2b5c95",
     "strokeWidth": 0,
+    "tooltip": {
+      "range": "exact",
+    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -469,6 +475,9 @@ describe('ChartOptions', () => {
     "showInLegend": false,
     "stroke": "#1e652e",
     "strokeWidth": 0,
+    "tooltip": {
+      "range": "exact",
+    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -507,6 +516,9 @@ describe('ChartOptions', () => {
     "showInLegend": true,
     "stroke": "#a69400",
     "strokeWidth": 0,
+    "tooltip": {
+      "range": "exact",
+    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -545,6 +557,9 @@ describe('ChartOptions', () => {
     "showInLegend": false,
     "stroke": "#603c88",
     "strokeWidth": 0,
+    "tooltip": {
+      "range": "exact",
+    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -552,16 +567,16 @@ describe('ChartOptions', () => {
     "yName": "Services",
   },
   {
+    "interpolation": {
+      "position": "end",
+      "tension": 1,
+      "type": "linear",
+    },
     "label": {
       "color": "rgb(70, 70, 70)",
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
-    },
-    "line": {
-      "position": "end",
-      "style": "linear",
-      "tension": 1,
     },
     "lineDash": [
       0,
@@ -581,6 +596,7 @@ describe('ChartOptions', () => {
       "position": {
         "type": "node",
       },
+      "range": "nearest",
     },
     "type": "line",
     "visible": true,
@@ -589,16 +605,16 @@ describe('ChartOptions', () => {
     "yName": "Mac",
   },
   {
+    "interpolation": {
+      "position": "end",
+      "tension": 1,
+      "type": "linear",
+    },
     "label": {
       "color": "rgb(70, 70, 70)",
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
-    },
-    "line": {
-      "position": "end",
-      "style": "linear",
-      "tension": 1,
     },
     "lineDash": [
       0,
@@ -618,6 +634,7 @@ describe('ChartOptions', () => {
       "position": {
         "type": "node",
       },
+      "range": "nearest",
     },
     "type": "line",
     "visible": true,
@@ -668,6 +685,9 @@ describe('ChartOptions', () => {
     "showInLegend": true,
     "stroke": "#2b5c95",
     "strokeWidth": 0,
+    "tooltip": {
+      "range": "exact",
+    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -706,6 +726,9 @@ describe('ChartOptions', () => {
     "showInLegend": false,
     "stroke": "#1e652e",
     "strokeWidth": 0,
+    "tooltip": {
+      "range": "exact",
+    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -744,6 +767,9 @@ describe('ChartOptions', () => {
     "showInLegend": true,
     "stroke": "#a69400",
     "strokeWidth": 0,
+    "tooltip": {
+      "range": "exact",
+    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -782,6 +808,9 @@ describe('ChartOptions', () => {
     "showInLegend": false,
     "stroke": "#603c88",
     "strokeWidth": 0,
+    "tooltip": {
+      "range": "exact",
+    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -789,16 +818,16 @@ describe('ChartOptions', () => {
     "yName": "Services",
   },
   {
+    "interpolation": {
+      "position": "end",
+      "tension": 1,
+      "type": "linear",
+    },
     "label": {
       "color": "rgb(70, 70, 70)",
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
-    },
-    "line": {
-      "position": "end",
-      "style": "linear",
-      "tension": 1,
     },
     "lineDash": [
       0,
@@ -818,6 +847,7 @@ describe('ChartOptions', () => {
       "position": {
         "type": "node",
       },
+      "range": "nearest",
     },
     "type": "line",
     "visible": true,
@@ -826,16 +856,16 @@ describe('ChartOptions', () => {
     "yName": "Mac",
   },
   {
+    "interpolation": {
+      "position": "end",
+      "tension": 1,
+      "type": "linear",
+    },
     "label": {
       "color": "rgb(70, 70, 70)",
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
-    },
-    "line": {
-      "position": "end",
-      "style": "linear",
-      "tension": 1,
     },
     "lineDash": [
       0,
@@ -855,6 +885,7 @@ describe('ChartOptions', () => {
       "position": {
         "type": "node",
       },
+      "range": "nearest",
     },
     "type": "line",
     "visible": true,
@@ -905,6 +936,9 @@ describe('ChartOptions', () => {
     "showInLegend": true,
     "stroke": "#2b5c95",
     "strokeWidth": 0,
+    "tooltip": {
+      "range": "exact",
+    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -943,6 +977,9 @@ describe('ChartOptions', () => {
     "showInLegend": false,
     "stroke": "#1e652e",
     "strokeWidth": 0,
+    "tooltip": {
+      "range": "exact",
+    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -981,6 +1018,9 @@ describe('ChartOptions', () => {
     "showInLegend": true,
     "stroke": "#a69400",
     "strokeWidth": 0,
+    "tooltip": {
+      "range": "exact",
+    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -1019,6 +1059,9 @@ describe('ChartOptions', () => {
     "showInLegend": false,
     "stroke": "#603c88",
     "strokeWidth": 0,
+    "tooltip": {
+      "range": "exact",
+    },
     "type": "bar",
     "visible": true,
     "xKey": "quarter",
@@ -1026,16 +1069,16 @@ describe('ChartOptions', () => {
     "yName": "Services",
   },
   {
+    "interpolation": {
+      "position": "end",
+      "tension": 1,
+      "type": "linear",
+    },
     "label": {
       "color": "rgb(70, 70, 70)",
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
-    },
-    "line": {
-      "position": "end",
-      "style": "linear",
-      "tension": 1,
     },
     "lineDash": [
       0,
@@ -1055,6 +1098,7 @@ describe('ChartOptions', () => {
       "position": {
         "type": "node",
       },
+      "range": "nearest",
     },
     "type": "line",
     "visible": true,
@@ -1063,16 +1107,16 @@ describe('ChartOptions', () => {
     "yName": "Mac",
   },
   {
+    "interpolation": {
+      "position": "end",
+      "tension": 1,
+      "type": "linear",
+    },
     "label": {
       "color": "rgb(70, 70, 70)",
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
-    },
-    "line": {
-      "position": "end",
-      "style": "linear",
-      "tension": 1,
     },
     "lineDash": [
       0,
@@ -1092,6 +1136,7 @@ describe('ChartOptions', () => {
       "position": {
         "type": "node",
       },
+      "range": "nearest",
     },
     "type": "line",
     "visible": true,

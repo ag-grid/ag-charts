@@ -1,0 +1,39 @@
+---
+import { getOptionsStaticPaths } from '@features/api-documentation/apiReferenceHelpers';
+import { ApiReferencePage } from '@features/api-documentation/components/ApiReferencePage';
+import APIViewLayout from '@layouts/APIViewLayout.astro';
+import { getInterfacesReference } from '@utils/server/getInterfacesReference';
+
+export async function getStaticPaths() {
+    const reference = getInterfacesReference();
+    return getOptionsStaticPaths(reference);
+}
+
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+const reference = getInterfacesReference();
+const type = capitalizeFirstLetter(Astro.props?.pageTitle?.type);
+const name = capitalizeFirstLetter(Astro.props?.pageTitle?.name);
+---
+
+<APIViewLayout
+    title=`Options API (${type} ${name})`
+    description=`${type} ${name} API reference for AG Charts JavaScript Charting Library. Search for any property or browse our tree-data explorer; access types, defaults, and child properties.`
+>
+    <ApiReferencePage
+        client:only="react"
+        {...Astro.props}
+        rootInterface="AgChartOptions"
+        breadcrumbs={['options']}
+        basePath="options"
+        reference={reference}
+        specialTypes={{
+            AgAnnotation: 'InterfaceArray',
+            AgChartAxisOptions: 'InterfaceArray',
+            AgChartSeriesOptions: 'InterfaceArray',
+            AgMiniChartSeriesOptions: 'InterfaceArray',
+        }}
+    />
+</APIViewLayout>

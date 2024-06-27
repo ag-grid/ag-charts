@@ -5,12 +5,71 @@
   "sourceRoot": "packages/ag-charts-vue3/src",
   "targets": {
     "build": {
-      "executor": "nx:run-script",
-      "dependsOn": ["ag-charts-community:build:types"],
-      "inputs": ["{projectRoot}/(vue|postcss).config.js", "{projectRoot}/src/**", "{projectRoot}/main.(js|d.ts)"],
-      "outputs": ["{projectRoot}/dist"],
+      "executor": "nx:noop",
+      "dependsOn": ["build:package", "build:types"],
+      "inputs": [],
+      "outputs": [],
+      "configurations": {
+        "watch": {},
+        "production": {}
+      }
+    },
+    "build:types": {
+      "executor": "@nx/js:tsc",
+      "dependsOn": ["^build:types"],
+      "inputs": [
+        "{projectRoot}/package.json",
+        "{projectRoot}/src/**/*",
+        "{projectRoot}/tsconfig.*.json",
+        "tsDeclarations",
+        "sharedGlobals",
+        "defaultExcludes",
+        {
+          "externalDependencies": ["npm:typescript"]
+        }
+      ],
+      "outputs": ["{options.outputPath}"],
       "options": {
-        "script": "build"
+        "outputPath": "packages/ag-charts-vue3/dist/types",
+        "main": "packages/ag-charts-vue3/src/index.ts",
+        "tsConfig": "packages/ag-charts-vue3/tsconfig.types.json",
+        "compiler": "tsc"
+      },
+      "configurations": {
+        "watch": {},
+        "production": {}
+      }
+    },
+    "build:package": {
+      "executor": "@nx/esbuild:esbuild",
+      "dependsOn": ["^build"],
+      "inputs": [
+        "{projectRoot}/package.json",
+        "{projectRoot}/src/**/*",
+        "{projectRoot}/tsconfig.*.json",
+        "tsDeclarations",
+        "sharedGlobals",
+        "defaultExcludes"
+      ],
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "packages/ag-charts-vue3/dist/package",
+        "main": "packages/ag-charts-vue3/src/index.ts",
+        "tsConfig": "packages/ag-charts-vue3/tsconfig.lib.json",
+        "external": ["ag-charts-community", "vue"],
+        "esbuildConfig": "esbuild.config.cjs",
+        "platform": "browser",
+        "target": "es2020",
+        "format": ["cjs", "esm"],
+        "sourcemap": true
+      },
+      "configurations": {
+        "watch": {
+          "tsConfig": "packages/ag-charts-vue3/tsconfig.watch.json"
+        },
+        "production": {
+          "sourcemap": false
+        }
       }
     },
     "pack": {
@@ -45,5 +104,6 @@
       }
     }
   },
-  "tags": ["fw"]
+  "tags": ["fw", "no-batching"],
+  "implicitDependencies": ["ag-charts-community"]
 }

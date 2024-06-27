@@ -41,7 +41,7 @@ const options: AgChartOptions = {
             yName: 'Actual',
             marker: {
                 shape: 'circle',
-                formatter: ({ datum, xKey }) => {
+                itemStyler: ({ datum, xKey }) => {
                     const industries = ['Technology', 'Healthcare', 'Energy'];
                     return {
                         size: industries.includes(datum[xKey]) ? 9 : 0,

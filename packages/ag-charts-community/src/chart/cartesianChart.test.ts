@@ -2,8 +2,9 @@ import { afterEach, describe, expect, it } from '@jest/globals';
 import { fail } from 'assert';
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
+import type { AgCartesianChartOptions, AgChartOptions } from 'ag-charts-types';
+
 import { AgCharts } from '../api/agCharts';
-import type { AgCartesianChartOptions, AgChartOptions } from '../options/agChartOptions';
 import type { CartesianChart } from './cartesianChart';
 import type { Chart } from './chart';
 import type { SeriesNodeDataContext } from './series/series';
@@ -280,7 +281,9 @@ describe('CartesianChart', () => {
                         title: {
                             text: 'Date',
                         },
-                        maxSpacing: 80,
+                        interval: {
+                            maxSpacing: 80,
+                        },
                     },
                     {
                         type: 'number',

@@ -1,11 +1,12 @@
 import type {
     AgTooltipRendererResult,
-    AgWaterfallSeriesFormat,
-    AgWaterfallSeriesFormatterParams,
+    AgWaterfallSeriesItemStylerParams,
     AgWaterfallSeriesLabelFormatterParams,
     AgWaterfallSeriesLabelPlacement,
     AgWaterfallSeriesOptions,
+    AgWaterfallSeriesStyle,
     AgWaterfallSeriesTooltipRendererParams,
+    Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
@@ -82,7 +83,7 @@ export class WaterfallSeriesItem extends BaseProperties {
     cornerRadius: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgWaterfallSeriesFormatterParams<any>) => AgWaterfallSeriesFormat;
+    itemStyler?: Styler<AgWaterfallSeriesItemStylerParams<unknown>, AgWaterfallSeriesStyle>;
 
     @Validate(OBJECT)
     readonly shadow = new DropShadow().set({ enabled: false });

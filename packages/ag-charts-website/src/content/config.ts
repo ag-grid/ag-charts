@@ -17,6 +17,22 @@ const docs = defineCollection({
          * Hide left hand page menu
          */
         hidePageMenu: z.boolean().optional(),
+        /**
+         * Make examples on page very large
+         */
+        largeExamples: z.boolean().optional(),
+        /**
+         * Override side navigation headings
+         */
+        headings: z
+            .array(
+                z.object({
+                    depth: z.number(),
+                    slug: z.string(),
+                    text: z.string(),
+                })
+            )
+            .optional(),
     }),
 });
 

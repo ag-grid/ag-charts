@@ -1,6 +1,7 @@
+import type { AgPieSeriesStyle } from 'ag-charts-types';
+
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
-import type { AgPieSeriesFormat } from '../../../options/agChartOptions';
 import { LinearScale } from '../../../scale/linearScale';
 import { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
@@ -28,23 +29,13 @@ import { Layers } from '../../layers';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { Circle } from '../../marker/circle';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
-import {
-    type PickFocusInputs,
-    type SeriesNodeEventTypes,
-    type SeriesNodePickMatch,
-    SeriesNodePickMode,
-} from '../series';
+import { type SeriesNodeEventTypes, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { SeriesNodeEvent, accumulativeValueProperty, keyProperty, rangedValueProperty, valueProperty } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { PieTitle } from './pieSeriesProperties';
 import { PieSeriesProperties } from './pieSeriesProperties';
-import {
-    computeSectorSeriesFocusBounds,
-    pickByMatchingAngle,
-    preparePieSeriesAnimationFunctions,
-    resetPieSelectionsFn,
-} from './pieUtil';
+import { pickByMatchingAngle, preparePieSeriesAnimationFunctions, resetPieSelectionsFn } from './pieUtil';
 import { type PolarAnimationData, PolarSeries } from './polarSeries';
 
 class PieSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeEvent<PieNodeDatum, TEvent> {
@@ -90,7 +81,7 @@ interface PieNodeDatum extends SeriesNodeDatum {
         readonly text: string;
     };
 
-    readonly sectorFormat: { [key in keyof Required<AgPieSeriesFormat>]: AgPieSeriesFormat[key] };
+    readonly sectorFormat: { [key in keyof Required<AgPieSeriesStyle>]: AgPieSeriesStyle[key] };
     readonly legendItem?: { key: string; text: string };
     readonly legendItemValue?: string;
     enabled: boolean;
@@ -128,8 +119,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     readonly zerosumRingsGroup = this.backgroundGroup.appendChild(new Group({ name: `${this.id}-zerosumRings` }));
     readonly zerosumOuterRing = this.zerosumRingsGroup.appendChild(new Circle());
 
-    readonly innerCircleGroup = this.backgroundGroup.appendChild(new Group({ name: `${this.id}-innerCircle` }));
-
     private readonly angleScale: LinearScale;
 
     // When a user toggles a series item (e.g. from the legend), its boolean state is recorded here.
@@ -143,7 +132,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
-            defaultTooltipRange: 'exact',
             useLabelLayer: true,
             animationResetFns: { item: resetPieSelectionsFn, label: resetLabelFn },
         });
@@ -444,35 +432,43 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
     private getSectorFormat(datum: any, formatIndex: number, highlight: boolean) {
         const { callbackCache, highlightManager } = this.ctx;
-        const { angleKey, radiusKey, fills, strokes, formatter } = this.properties;
+        const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey, fills, strokes, itemStyler } =
+            this.properties;
 
         const highlightedDatum = highlightManager.getActiveHighlight();
         const isDatumHighlighted =
             highlight && highlightedDatum?.series === this && formatIndex === highlightedDatum.itemId;
 
         const defaultStroke: string | undefined = strokes[formatIndex % strokes.length];
-        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = mergeDefaults(
-            isDatumHighlighted && this.properties.highlightStyle.item,
-            {
-                fill: fills.length > 0 ? fills[formatIndex % fills.length] : undefined,
-                fillOpacity: this.properties.fillOpacity,
-                stroke: defaultStroke,
-                strokeWidth: this.getStrokeWidth(this.properties.strokeWidth),
-                strokeOpacity: this.getOpacity(),
-            }
-        );
+        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cornerRadius } =
+            mergeDefaults(
+                isDatumHighlighted && this.properties.highlightStyle.item,
+                {
+                    fill: fills.length > 0 ? fills[formatIndex % fills.length] : undefined,
+                    stroke: defaultStroke,
+                    strokeWidth: this.getStrokeWidth(this.properties.strokeWidth),
+                    strokeOpacity: this.getOpacity(),
+                },
+                this.properties
+            );
 
-        let format: AgPieSeriesFormat | undefined;
-        if (formatter) {
-            format = callbackCache.call(formatter, {
+        let format: AgPieSeriesStyle | undefined;
+        if (itemStyler) {
+            format = callbackCache.call(itemStyler, {
                 datum,
                 angleKey,
                 radiusKey,
-                fill,
+                calloutLabelKey,
+                sectorLabelKey,
+                legendItemKey,
+                fill: fill!,
+                strokeOpacity,
                 stroke,
-                fills,
-                strokes,
                 strokeWidth,
+                fillOpacity,
+                lineDash,
+                lineDashOffset,
+                cornerRadius,
                 highlighted: isDatumHighlighted,
                 seriesId: this.id,
             });
@@ -484,6 +480,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             stroke: format?.stroke ?? stroke,
             strokeWidth: format?.strokeWidth ?? strokeWidth,
             strokeOpacity: format?.strokeOpacity ?? strokeOpacity,
+            lineDash: format?.lineDash ?? lineDash,
+            lineDashOffset: format?.lineDashOffset ?? lineDashOffset,
+            cornerRadius: format?.cornerRadius ?? cornerRadius,
         };
     }
 
@@ -601,21 +600,27 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     private async updateGroupSelection() {
         const { itemSelection, highlightSelection, highlightLabelSelection, calloutLabelSelection, labelSelection } =
             this;
-        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight() as PieNodeDatum | undefined;
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         const highlightedNodeData =
             highlightedDatum?.series === this
                 ? this.nodeData.filter((node) => node.itemId === highlightedDatum?.itemId)
                 : [];
 
-        itemSelection.update(this.nodeData, undefined, (datum) => this.getDatumId(datum));
-        if (this.ctx.animationManager.isSkipped()) {
-            itemSelection.cleanup();
-        }
-        highlightSelection.update(
-            highlightedNodeData.map((datum) => ({ ...datum, sectorFormat: { ...datum.sectorFormat } })),
-            undefined,
-            (datum) => this.getDatumId(datum)
-        );
+        const update = (selection: typeof this.itemSelection, clone: boolean) => {
+            let nodeData = this.nodeData;
+            if (clone) {
+                // Allow mutable sectorFormat, so formatted sector styles can be updated and varied
+                // between normal and highlighted cases.
+                nodeData = nodeData.map((datum) => ({ ...datum, sectorFormat: { ...datum.sectorFormat } }));
+            }
+            selection.update(nodeData, undefined, (datum) => this.getDatumId(datum));
+            if (this.ctx.animationManager.isSkipped()) {
+                selection.cleanup();
+            }
+        };
+
+        update(itemSelection, false);
+        update(highlightSelection, true);
 
         calloutLabelSelection.update(this.nodeData, (group) => {
             const line = new Line();
@@ -665,15 +670,15 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 sector.stroke = format.stroke;
             }
 
-            sector.strokeWidth = format.strokeWidth!;
-            sector.fillOpacity = format.fillOpacity!;
-            sector.strokeOpacity = this.properties.strokeOpacity;
-            sector.lineDash = this.properties.lineDash;
-            sector.lineDashOffset = this.properties.lineDashOffset;
+            sector.strokeWidth = format.strokeWidth;
+            sector.fillOpacity = format.fillOpacity;
+            sector.strokeOpacity = format.strokeOpacity;
+            sector.lineDash = format.lineDash;
+            sector.lineDashOffset = format.lineDashOffset;
+            sector.cornerRadius = format.cornerRadius;
             sector.fillShadow = this.properties.shadow;
-            sector.cornerRadius = this.properties.cornerRadius;
             const inset = Math.max(
-                (this.properties.sectorSpacing + (format.stroke != null ? format.strokeWidth! : 0)) / 2,
+                (this.properties.sectorSpacing + (format.stroke != null ? format.strokeWidth : 0)) / 2,
                 0
             );
             sector.inset = inset;
@@ -1399,9 +1404,5 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     protected override onDataChange() {
         const { data, seriesItemEnabled } = this;
         this.seriesItemEnabled = data?.map((_, index) => seriesItemEnabled[index] ?? true) ?? [];
-    }
-
-    protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
-        return computeSectorSeriesFocusBounds(this, opts);
     }
 }

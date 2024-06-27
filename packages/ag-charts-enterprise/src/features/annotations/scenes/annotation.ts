@@ -1,7 +1,5 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import type { Coords, ValidationContext } from '../annotationTypes';
-
 const { isObject } = _ModuleSupport;
 
 export abstract class Annotation extends _Scene.Group {
@@ -14,14 +12,11 @@ export abstract class Annotation extends _Scene.Group {
     public abstract type: string;
     public abstract activeHandle?: string;
 
-    // TODO: stats
-
     abstract override containsPoint(x: number, y: number): boolean;
 
     public abstract toggleHandles(show: boolean | Record<string, boolean>): void;
     public abstract toggleActive(active: boolean): void;
-    public abstract dragHandle(datum: any, target: Coords, context: ValidationContext, onInvalid: () => void): void;
     public abstract stopDragging(): void;
-    public abstract getAnchor(): { x: number; y: number };
+    public abstract getAnchor(): { x: number; y: number; position?: string };
     public abstract getCursor(): string;
 }

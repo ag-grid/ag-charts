@@ -56,7 +56,7 @@ const options: AgChartOptions = {
                     return itemId === 'high' ? `↑£${increase / 1000}K` : '';
                 },
             },
-            formatter: ({ datum, yHighKey, yLowKey }) => ({
+            itemStyler: ({ datum, yHighKey, yLowKey }) => ({
                 fillOpacity: (datum[yHighKey] - datum[yLowKey]) / 100000,
             }),
             cornerRadius: 4,

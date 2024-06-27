@@ -57,14 +57,14 @@ legend: {
 
 ## Series Stroke
 
-It is possible to display a line in the Legend item, representing the stroke style of the series.
+The Legend item includes a line, representing the stroke style of the series. Use `showSeriesStroke` to disable this.
 
 {% chartExampleRunner title="Series Stroke" name="legend-seriesStroke" type="generated" /%}
 
 ```js
 legend: {
     item: {
-        showSeriesStroke: true,
+        showSeriesStroke: false,
     },
 }
 ```
@@ -91,28 +91,24 @@ See the [API Reference](#reference-AgChartLegendOptions-pagination) for more det
 
 ### Labels
 
-It is possible to customise the look of the item label using `legend.item.label`.
+It is possible to customise the label style using the `legend.item.label` options,
+and the displayed text by using `legend.item.label.formatter` function.
 
 ```js
 legend: {
     item: {
         label: {
             fontSize: 14,
-            fontStyle: 'italic',
-            fontWeight: 'bold',
             fontFamily: 'Papyrus',
             color: 'red',
-            maxLength: 25,
+            maxLength: 12,
+            formatter: ({value}) => value == "Coal" ? value + " *" : value
         },
     },
 }
 ```
 
-`maxLength` constrains the length of the labels to the specified number of characters, after which the text will be truncated with ellipsis.
-
-See the [API Reference](#reference-AgChartLegendOptions-item-label) for more details about customising the appearance of the labels.
-
-See [Formatters](./formatters/#legend-item-label-formatter) for details about customising the label text.
+See the [API Reference](#reference-AgChartLegendOptions-item-label) for more details.
 
 ### Markers
 
@@ -127,10 +123,6 @@ legend: {
             size: 20,
             strokeWidth: 3,
             shape: 'diamond', // 'circle', 'square', 'cross', 'plus', 'triangle'
-        },
-        line: {
-            strokeWidth: 4,
-            length: 10,
         },
     },
 }
@@ -147,7 +139,7 @@ legend: {
         showSeriesStroke: true,
         line: {
             strokeWidth: 4,
-            length: 15,
+            length: 40, //20 for the marker and 10 on each side
         },
     },
 }
@@ -181,9 +173,11 @@ legend: {
 }
 ```
 
-The `legendItemClick` and `legendItemDoubleClick` events can be used to listen to Legend item clicks and double clicks, respectively. For more information see [Legend Events](./events/#legend-events---legenditemclick-and-legenditemdoubleclick).
+The `legendItemClick` and `legendItemDoubleClick` events can be used to listen to Legend item clicks and double clicks, respectively.
+For more information see [Legend Events](./events/#legend-events---legenditemclick-and-legenditemdoubleclick).
 
-In this scenario, both the listener and the item toggle behaviour will occur. In the above example, clicking or double clicking a Legend item will toggle the series visibility as well as logging a message to the browser console via a `legendItemClick` event.
+In this scenario, both the listener and the item toggle behaviour will occur. In the above example, clicking or double clicking a Legend item
+will toggle the series visibility as well as logging a message to the browser console via a `legendItemClick` event.
 
 ## API Reference
 

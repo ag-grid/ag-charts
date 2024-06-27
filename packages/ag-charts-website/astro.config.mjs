@@ -26,6 +26,7 @@ const {
     PUBLIC_HTTPS_SERVER = '1',
     PUBLIC_GALLERY_IMAGE_DPR_ENHANCEMENT,
     HTACCESS = 'false',
+    WATCH_INTEGRATION = 'true',
 } = dotenvExpand.expand(dotenv).parsed;
 
 const OUTPUT_DIR = '../../dist/packages/ag-charts-website';
@@ -41,6 +42,7 @@ console.log(
             OUTPUT_DIR,
             PUBLIC_GALLERY_IMAGE_DPR_ENHANCEMENT,
             HTACCESS,
+            WATCH_INTEGRATION,
         },
         null,
         2
@@ -56,7 +58,7 @@ export default defineConfig({
         enabled: false,
     },
     vite: {
-        plugins: [mkcert(), svgr(), agHotModuleReload()],
+        plugins: [mkcert(), svgr(), agHotModuleReload(Boolean(WATCH_INTEGRATION))],
         resolve: {
             conditions: ['require'],
         },
@@ -65,6 +67,8 @@ export default defineConfig({
                 'ag-charts-angular',
                 'ag-charts-community',
                 'ag-charts-enterprise',
+                'ag-charts-types',
+                'ag-charts-locale',
                 'ag-charts-react',
                 'ag-charts-vue3',
             ],

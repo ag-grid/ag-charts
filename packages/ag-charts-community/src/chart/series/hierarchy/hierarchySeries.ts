@@ -7,6 +7,7 @@ import type { Group } from '../../../scene/group';
 import type { Node } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
+import type { Path } from '../../../scene/shape/path';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { Logger } from '../../../util/logger';
 import { clamp } from '../../../util/number';
@@ -128,7 +129,6 @@ export abstract class HierarchySeries<
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
-            defaultTooltipRange: 'exact',
             contentGroupVirtual: false,
         });
 
@@ -403,10 +403,9 @@ export abstract class HierarchySeries<
         return this.getDatumIdFromData(node);
     }
 
-    private focusPath: FocusPathNode<TDatum>[] = [];
-    private focusDepth: number = 0;
+    protected focusPath: FocusPathNode<TDatum>[] = [];
 
-    protected abstract computeFocusBounds(node: HierarchyNode<TDatum>): BBox | undefined;
+    protected abstract computeFocusBounds(node: HierarchyNode<TDatum>): BBox | Path | undefined;
 
     public override pickFocus(opts: PickFocusInputs): PickFocusOutputs | undefined {
         if (this.rootNode.children.length === 0) return undefined;
@@ -415,11 +414,13 @@ export abstract class HierarchySeries<
         }
 
         const { datumIndexDelta: childDelta, otherIndexDelta: depthDelta } = opts;
-        const { focusPath: path, focusDepth: depth } = this;
+        const { focusPath: path } = this;
+        const depth = path.length - 2;
 
         if (depthDelta !== 0 || path.length === 1) {
             const targetDepth = Math.max(0, depth + depthDelta);
             if (path[targetDepth + 1] !== undefined) {
+                path.length = targetDepth + 2;
                 return this.computeFocusOutputs(path[targetDepth + 1]);
             } else {
                 let deepest = path[path.length - 1];
@@ -446,15 +447,26 @@ export abstract class HierarchySeries<
         }
     }
 
-    private computeFocusOutputs({ nodeDatum, childIndex }: FocusPathNode<TDatum>): PickFocusOutputs | undefined {
-        const bbox = this.computeFocusBounds(nodeDatum);
-        if (bbox) {
-            this.focusDepth = nodeDatum.depth ?? 0;
+    getDatumAriaText(datum: SeriesNodeDatum, description: string): string | undefined {
+        if (!(datum instanceof HierarchyNode)) {
+            Logger.error(`datum is not HierarchyNode: ${datum}`);
+            return;
+        }
+        return this.ctx.localeManager.t('ariaAnnounceHierarchyDatum', {
+            level: (datum.depth ?? -1) + 1,
+            count: datum.children.length,
+            description,
+        });
+    }
+
+    protected computeFocusOutputs({ nodeDatum, childIndex }: FocusPathNode<TDatum>): PickFocusOutputs | undefined {
+        const bounds = this.computeFocusBounds(nodeDatum);
+        if (bounds) {
             return {
                 datum: nodeDatum,
                 datumIndex: childIndex,
                 otherIndex: nodeDatum.depth,
-                bbox,
+                bounds,
                 showFocusBox: true,
             };
         }

@@ -4,8 +4,9 @@ import type {
     AgHierarchyChartOptions,
     AgPolarChartOptions,
     AgTopologyChartOptions,
-} from '../../options/agChartOptions';
-import type { AgChartOptions } from '../../options/chart/chartBuilderOptions';
+} from 'ag-charts-types';
+import type { AgChartOptions } from 'ag-charts-types';
+
 import { Logger } from '../../util/logger';
 import { axisRegistry } from '../factory/axisRegistry';
 import { chartTypes } from '../factory/chartTypes';

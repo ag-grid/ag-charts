@@ -1,13 +1,13 @@
 import { _Scene } from 'ag-charts-community';
 
 import type { AnnotationPoint } from '../annotationProperties';
-import type { LineCoords, UpdateContext } from '../annotationTypes';
+import type { AnnotationContext, LineCoords } from '../annotationTypes';
 import { convertLine } from '../annotationUtils';
-import { Annotation } from './annotation';
 import type { Handle } from './handle';
+import { LinearScene } from './linearScene';
 import { CollidableLine } from './shapes';
 
-export abstract class Channel<
+export abstract class ChannelScene<
     Datum extends {
         background: { fill?: string; fillOpacity?: number };
         locked?: boolean;
@@ -16,7 +16,7 @@ export abstract class Channel<
         end: Pick<AnnotationPoint, 'x' | 'y'>;
         bottom: { start: Pick<AnnotationPoint, 'x' | 'y'>; end: Pick<AnnotationPoint, 'x' | 'y'> };
     },
-> extends Annotation {
+> extends LinearScene<Datum> {
     protected handles: { [key: string]: Handle } = {};
     protected seriesRect?: _Scene.BBox;
 
@@ -24,15 +24,14 @@ export abstract class Channel<
     protected bottomLine = new CollidableLine();
     protected background = new _Scene.Path({ zIndex: -1 });
 
-    public update(datum: Datum, context: UpdateContext) {
+    public update(datum: Datum, context: AnnotationContext) {
         const { locked, visible } = datum;
-        const { scaleX, scaleY, seriesRect } = context;
 
         this.locked = locked ?? false;
-        this.seriesRect = seriesRect;
+        this.seriesRect = context.seriesRect;
 
-        const top = convertLine(datum, scaleX, scaleY);
-        const bottom = convertLine(datum.bottom, scaleX, scaleY);
+        const top = convertLine(datum, context);
+        const bottom = convertLine(datum.bottom, context);
 
         if (top == null || bottom == null) {
             this.visible = false;

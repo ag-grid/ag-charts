@@ -1,7 +1,7 @@
 type AttributeTypeMap = {
     role: 'status' | 'figure';
     'aria-live': 'assertive' | 'polite';
-    'aria-label': string;
+    'aria-label': string | undefined;
     'aria-hidden': boolean;
 };
 

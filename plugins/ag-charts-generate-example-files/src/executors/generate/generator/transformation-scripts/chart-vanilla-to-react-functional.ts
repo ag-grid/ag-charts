@@ -1,5 +1,10 @@
 import { getChartImports, wrapOptionsUpdateCode } from './chart-utils';
-import { convertFunctionToConstProperty, convertFunctionToProperty } from './parser-utils';
+import {
+    addBindingImports,
+    convertFunctionToConstProperty,
+    convertFunctionToProperty,
+    isFinancialCharts,
+} from './parser-utils';
 import { convertFunctionalTemplate, getImport, styleAsObject } from './react-utils';
 import { toTitleCase } from './string-utils';
 
@@ -17,6 +22,7 @@ function needsWrappingInFragment(bindings: any) {
 }
 
 function getImports(componentFilenames: string[], bindings): string[] {
+    const type = isFinancialCharts(bindings) ? 'AgFinancialCharts' : 'AgCharts';
     const reactImports = ['useState'];
     if (bindings.usesChartApi) reactImports.push('useRef');
     if (needsWrappingInFragment(bindings)) reactImports.push('Fragment');
@@ -24,17 +30,27 @@ function getImports(componentFilenames: string[], bindings): string[] {
     const imports = [
         `import React, { ${reactImports.join(', ')} } from 'react';`,
         `import { createRoot } from 'react-dom/client';`,
-        `import { AgChartsReact } from 'ag-charts-react';`,
+        `import { ${type} } from 'ag-charts-react';`,
     ];
 
-    const chartImport = getChartImports(bindings.imports, bindings.usesChartApi);
+    const chartImports = bindings.imports.map((i) => ({
+        ...i,
+        imports: i.imports.filter((imp) => imp !== 'AgCharts'),
+    }));
+    const chartImport = getChartImports(chartImports, bindings.usesChartApi);
     if (chartImport) {
         imports.push(chartImport);
-    }
-
-    if (bindings.chartSettings.enterprise) {
+    } else if (bindings.chartSettings.enterprise) {
         imports.push(`import 'ag-charts-enterprise';`);
     }
+
+    const skipModules = ["'ag-charts-community'", "'ag-charts-enterprise'"];
+    addBindingImports(
+        bindings.imports.filter((i) => !skipModules.includes(i.module) && !i.module.startsWith("'./")),
+        imports,
+        false,
+        true
+    );
 
     if (bindings.externalEventHandlers.length > 0 || bindings.instanceMethods.length > 0) {
         imports.push(`import deepClone from 'deepclone';`);
@@ -48,7 +64,8 @@ function getImports(componentFilenames: string[], bindings): string[] {
 }
 
 function getAgChartTag(bindings: any, componentAttributes: string[]): string {
-    return `<AgChartsReact
+    const tag = isFinancialCharts(bindings) ? 'AgFinancialCharts' : 'AgCharts';
+    return `<${tag}
         ${bindings.usesChartApi ? 'ref={chartRef}' : ''}
         ${componentAttributes.join(`
         `)}
@@ -182,9 +199,9 @@ export async function vanillaToReactFunctional(bindings: any, componentFilenames
     }
 
     if (bindings.usesChartApi) {
-        indexFile = indexFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(chartRef.current.chart$3');
-        indexFile = indexFile.replace(/chart.(\w*)\(/g, 'chartRef.current.chart.$1(');
-        indexFile = indexFile.replace(/this.chartRef.current.chart/g, 'chartRef.current.chart');
+        indexFile = indexFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(chartRef.current$3');
+        indexFile = indexFile.replace(/chart.(\w*)\(/g, 'chartRef.current.$1(');
+        indexFile = indexFile.replace(/this.chartRef.current/g, 'chartRef.current');
     }
 
     return indexFile;

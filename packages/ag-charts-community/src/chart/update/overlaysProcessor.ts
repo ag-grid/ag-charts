@@ -6,32 +6,12 @@ import type { LayoutCompleteEvent, LayoutService } from '../layout/layoutService
 import type { LocaleManager } from '../locale/localeManager';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import { DEFAULT_OVERLAY_CLASS, DEFAULT_OVERLAY_DARK_CLASS, type Overlay } from '../overlay/overlay';
+import defaultOverlayCss from './overlaysProcessor.css';
 import type { ChartLike, UpdateProcessor } from './processor';
-
-const defaultOverlayCss = `
-.${DEFAULT_OVERLAY_CLASS} {
-    color: #181d1f;
-}
-
-.${DEFAULT_OVERLAY_CLASS}.${DEFAULT_OVERLAY_DARK_CLASS} {
-    color: #ffffff;
-}
-
-.${DEFAULT_OVERLAY_CLASS}--loading {
-    color: rgb(140, 140, 140); /* DEFAULT_MUTED_LABEL_COLOUR */
-}
-
-.${DEFAULT_OVERLAY_CLASS}__loading-background {
-    background: white; /* DEFAULT_BACKGROUND_FILL */
-}
-
-.${DEFAULT_OVERLAY_CLASS}.${DEFAULT_OVERLAY_DARK_CLASS} .${DEFAULT_OVERLAY_CLASS}__loading-background {
-    background: #192232; /* DEFAULT_DARK_BACKGROUND_FILL */
-}
-`;
 
 export class OverlaysProcessor<D extends object> implements UpdateProcessor {
     private readonly destroyFns: (() => void)[] = [];
+    private readonly overlayElem: HTMLElement;
 
     constructor(
         private readonly chartLike: ChartLike,
@@ -42,17 +22,35 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         private readonly animationManager: AnimationManager,
         private readonly domManager: DOMManager
     ) {
+        this.overlayElem = this.domManager.addChild('canvas-overlay', 'overlay');
+        this.overlayElem.role = 'status';
+        this.overlayElem.ariaAtomic = 'false';
+        this.overlayElem.ariaLive = 'polite';
+        this.overlayElem.classList.toggle(DEFAULT_OVERLAY_CLASS);
+        this.domManager.addStyles('overlays', defaultOverlayCss);
         this.destroyFns.push(this.layoutService.addListener('layout-complete', (e) => this.onLayoutComplete(e)));
     }
 
     public destroy() {
         this.destroyFns.forEach((cb) => cb());
+        this.domManager.removeStyles('overlays');
+        this.domManager.removeChild('canvas-overlay', 'overlay');
     }
 
     private onLayoutComplete({ series: { rect } }: LayoutCompleteEvent) {
         const isLoading = this.dataService.isLoading();
         const hasData = this.chartLike.series.some((s) => s.hasData);
         const anySeriesVisible = this.chartLike.series.some((s) => s.visible);
+
+        if (this.overlays.darkTheme) {
+            this.overlayElem.classList.add(DEFAULT_OVERLAY_DARK_CLASS);
+        } else {
+            this.overlayElem.classList.remove(DEFAULT_OVERLAY_DARK_CLASS);
+        }
+        this.overlayElem.style.left = `${rect.x}px`;
+        this.overlayElem.style.top = `${rect.y}px`;
+        this.overlayElem.style.width = `${rect.width}px`;
+        this.overlayElem.style.height = `${rect.height}px`;
 
         this.toggleOverlay(this.overlays.loading, rect, isLoading);
         this.toggleOverlay(this.overlays.noData, rect, !isLoading && !hasData);
@@ -61,15 +59,18 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
 
     private toggleOverlay(overlay: Overlay, seriesRect: BBox, visible: boolean) {
         if (visible) {
-            this.domManager.addStyles('overlays', defaultOverlayCss);
             const element = overlay.getElement(this.animationManager, this.localeManager, seriesRect);
-            this.domManager.addChild('canvas-overlay', 'overlay').appendChild(element);
+            this.overlayElem.appendChild(element);
         } else {
-            overlay.removeElement(
-                () => this.domManager.removeChild('canvas-overlay', 'overlay'),
-                this.animationManager
-            );
-            this.domManager.removeStyles('overlays');
+            // AG-11424 Frustratingly, browsers do not reliable announce aria-live changes to overlayElem when
+            // re-adding an identical element. This seems that if, for example, the user toggle the last visible
+            // series off/on/off, then the second "No visible series" overlay announcement may not get fired.
+            // Firefox & Safari seem to handle this correctly, whereas Chromium does not. However setting the
+            // content to a No-Break Space helps the browser to understand that the aria status has changed,
+            // and also tells the no screenreader not to announce anything because it's just whitespace.
+            overlay.removeElement(() => {
+                this.overlayElem.innerText = '\xA0';
+            }, this.animationManager);
         }
     }
 }

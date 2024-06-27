@@ -1,13 +1,17 @@
-import type { Coords, LineCoords, ValidationContext } from '../annotationTypes';
-import { invertCoords } from '../annotationUtils';
+import { _Util } from 'ag-charts-community';
+
+import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
+import { convertPoint, invertCoords } from '../annotationUtils';
 import { Annotation } from '../scenes/annotation';
-import { Channel } from '../scenes/channelScene';
+import { ChannelScene } from '../scenes/channelScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
 import type { DisjointChannelAnnotation } from './disjointChannelProperties';
 
+const { Vec2 } = _Util;
+
 type ChannelHandle = keyof DisjointChannel['handles'];
 
-export class DisjointChannel extends Channel<DisjointChannelAnnotation> {
+export class DisjointChannel extends ChannelScene<DisjointChannelAnnotation> {
     static override is(value: unknown): value is DisjointChannel {
         return Annotation.isCheck(value, 'disjoint-channel');
     }
@@ -54,18 +58,16 @@ export class DisjointChannel extends Channel<DisjointChannelAnnotation> {
     override dragHandle(
         datum: DisjointChannelAnnotation,
         target: Coords,
-        context: ValidationContext,
+        context: AnnotationContext,
         onInvalid: () => void
     ) {
         const { activeHandle, handles } = this;
-        const { scaleX, scaleY } = context;
-
         if (activeHandle == null) return;
 
         const { offset } = handles[activeHandle].drag(target);
         handles[activeHandle].toggleDragging(true);
 
-        const invert = (coords: Coords) => invertCoords(coords, scaleX, scaleY);
+        const invert = (coords: Coords) => invertCoords(coords, context);
         const prev = datum.toJson();
 
         switch (activeHandle) {
@@ -135,6 +137,25 @@ export class DisjointChannel extends Channel<DisjointChannelAnnotation> {
         }
     }
 
+    protected override getOtherCoords(
+        datum: DisjointChannelAnnotation,
+        topLeft: Coords,
+        topRight: Coords,
+        context: AnnotationContext
+    ): Coords[] {
+        const { dragState } = this;
+
+        if (!dragState) return [];
+
+        const startHeight = convertPoint(datum.bottom.start, context).y - convertPoint(datum.start, context).y;
+        const endHeight = convertPoint(datum.bottom.end, context).y - convertPoint(datum.end, context).y;
+
+        const bottomLeft = Vec2.add(topLeft, Vec2.from(0, startHeight));
+        const bottomRight = Vec2.add(topRight, Vec2.from(0, endHeight));
+
+        return [bottomLeft, bottomRight];
+    }
+
     override updateLines(datum: DisjointChannelAnnotation, top: LineCoords, bottom: LineCoords) {
         const { topLine, bottomLine } = this;
         const { lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } = datum;
@@ -168,6 +189,7 @@ export class DisjointChannel extends Channel<DisjointChannelAnnotation> {
             fill: datum.handle.fill,
             stroke: datum.handle.stroke ?? datum.stroke,
             strokeOpacity: datum.handle.strokeOpacity ?? datum.strokeOpacity,
+            strokeWidth: datum.handle.strokeWidth ?? datum.strokeWidth,
         };
 
         topLeft.update({ ...handleStyles, x: top.x1, y: top.y1 });

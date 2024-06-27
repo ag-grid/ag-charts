@@ -1,4 +1,3 @@
-import type { ModuleContext } from '../module/moduleContext';
 import type {
     AgChartLegendClickEvent,
     AgChartLegendContextMenuEvent,
@@ -9,7 +8,11 @@ import type {
     AgChartLegendPosition,
     FontStyle,
     FontWeight,
-} from '../options/agChartOptions';
+    Formatter,
+} from 'ag-charts-types';
+
+import type { LayoutContext } from '../module/baseModule';
+import type { ModuleContext } from '../module/moduleContext';
 import { BBox } from '../scene/bbox';
 import { Group } from '../scene/group';
 import { RedrawType } from '../scene/node';
@@ -70,7 +73,7 @@ class LegendLabel extends BaseProperties {
     fontFamily: string = 'Verdana, sans-serif';
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgChartLegendLabelFormatterParams) => string = undefined;
+    formatter?: Formatter<AgChartLegendLabelFormatterParams>;
 }
 
 class LegendMarker extends BaseProperties {
@@ -230,8 +233,8 @@ export class Legend extends BaseProperties {
 
     private readonly proxyLegendToolbar: HTMLDivElement;
     private readonly proxyLegendPagination: HTMLDivElement;
-    private readonly proxyPrevButton: HTMLButtonElement;
-    private readonly proxyNextButton: HTMLButtonElement;
+    private proxyPrevButton?: HTMLButtonElement;
+    private proxyNextButton?: HTMLButtonElement;
 
     constructor(private readonly ctx: ModuleContext) {
         super();
@@ -248,13 +251,13 @@ export class Legend extends BaseProperties {
         ctx.contextMenuRegistry.registerDefaultAction({
             id: ID_LEGEND_VISIBILITY,
             type: 'legend',
-            label: 'context-menu.toggle-series-visibility',
+            label: 'contextMenuToggleSeriesVisibility',
             action: (params) => this.contextToggleVisibility(params),
         });
         ctx.contextMenuRegistry.registerDefaultAction({
             id: ID_LEGEND_OTHER_SERIES,
             type: 'legend',
-            label: 'context-menu.toggle-other-series',
+            label: 'contextMenuToggleOtherSeries',
             action: (params) => this.contextToggleOtherSeries(params),
         });
 
@@ -269,39 +272,24 @@ export class Legend extends BaseProperties {
             region.addListener('hover', (e) => this.handleLegendMouseMove(e)),
             region.addListener('leave', (e) => this.handleLegendMouseExit(e), animationState),
             region.addListener('enter', (e) => this.handleLegendMouseEnter(e), animationState),
-            ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e.shrinkRect)),
-            () => this.detachLegend()
+            ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e)),
+            () => this.detachLegend(),
+            ctx.localeManager.addListener('locale-changed', () => this.onLocaleChanged())
         );
 
         this.proxyLegendToolbar = this.ctx.proxyInteractionService.createProxyContainer({
             type: 'toolbar',
             id: `${this.id}-toolbar`,
             classList: ['ag-charts-proxy-legend-toolbar'],
-            ariaLabel: { id: 'aria-label.legend' },
+            ariaLabel: { id: 'ariaLabelLegend' },
             ariaOrientation: 'horizontal',
         });
         this.proxyLegendPagination = this.ctx.proxyInteractionService.createProxyContainer({
-            type: 'div',
+            type: 'group',
             id: `${this.id}-pagination`,
             classList: ['ag-charts-proxy-legend-pagination'],
-            ariaLabel: { id: 'aria-label.legend-pagination' },
+            ariaLabel: { id: 'ariaLabelLegendPagination' },
             ariaOrientation: 'horizontal',
-        });
-        this.proxyPrevButton ??= this.ctx.proxyInteractionService.createProxyElement({
-            type: 'button',
-            id: `${this.id}-prev-page`,
-            textContent: { id: 'aria-label.legend-page-previous' },
-            parent: this.proxyLegendPagination,
-            focusable: this.pagination.previousButton,
-            onclick: () => this.pagination.clickPrevious(),
-        });
-        this.proxyNextButton ??= this.ctx.proxyInteractionService.createProxyElement({
-            type: 'button',
-            id: `${this.id}-next-page`,
-            textContent: { id: 'aria-label.legend-page-next' },
-            parent: this.proxyLegendPagination,
-            focusable: this.pagination.nextButton,
-            onclick: () => this.pagination.clickNext(),
         });
     }
 
@@ -326,11 +314,14 @@ export class Legend extends BaseProperties {
                 // Retrieve the datum from the node rather than from the method parameter.
                 // The method parameter `datum` gets destroyed when the data is refreshed
                 // using Series.getLegendData(). But the scene node will stay the same.
-                onclick: () => this.doClick(markerLabel.datum),
+                onclick: () => {
+                    this.doClick(markerLabel.datum);
+                    markerLabel.proxyButton!.textContent = this.getItemAriaText(i, !markerLabel.datum.enabled);
+                },
                 onblur: () => this.doMouseExit(),
                 onfocus: () => {
-                    const bbox = markerLabel?.computeTransformedBBox();
-                    const event = makeKeyboardPointerEvent(this.ctx.focusIndicator, { bbox, showFocusBox: true });
+                    const bounds = markerLabel?.computeTransformedBBox();
+                    const event = makeKeyboardPointerEvent(this.ctx.focusIndicator, { bounds, showFocusBox: true });
                     this.doHover(event, markerLabel.datum);
                     this.pagination.setPage(markerLabel.pageIndex);
                 },
@@ -464,7 +455,7 @@ export class Legend extends BaseProperties {
             markerLabel.fontSize = fontSize;
             markerLabel.fontFamily = fontFamily;
 
-            const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum);
+            const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, this.calcMarkerWidth());
             const id = datum.itemId ?? datum.id;
             const labelText = this.getItemLabel(datum);
             const text = (labelText ?? '<unknown>').replace(/\r?\n/g, ' ');
@@ -477,7 +468,7 @@ export class Legend extends BaseProperties {
         height = Math.max(1, height);
 
         if (!isFinite(width)) {
-            return false;
+            return {};
         }
 
         const size = this.size;
@@ -491,7 +482,7 @@ export class Legend extends BaseProperties {
         }
 
         const { pages, maxPageHeight, maxPageWidth } = this.updatePagination(bboxes, width, height);
-
+        const oldPages = this.pages;
         this.pages = pages;
         this.maxPageSize = [maxPageWidth - paddingX, maxPageHeight - paddingY];
 
@@ -500,7 +491,7 @@ export class Legend extends BaseProperties {
 
         if (this.pages.length < 1 || !page) {
             this.visible = false;
-            return;
+            return { oldPages };
         }
 
         this.visible = true;
@@ -510,55 +501,66 @@ export class Legend extends BaseProperties {
 
         // Update legend item properties that don't affect the layout.
         this.update();
+
+        return { oldPages };
     }
 
-    private updateMarkerLabel(markerLabel: MarkerLabel, datum: CategoryLegendDatum): number {
-        const { showSeriesStroke, marker: itemMarker, line: itemLine, paddingX } = this.item;
+    private calcSymbolsLengths(symbol: LegendSymbolOptions) {
+        const { showSeriesStroke, marker, line } = this.item;
+        const markerEnabled = marker.enabled ?? (showSeriesStroke && (symbol.marker.enabled ?? true));
+        const markerLength = markerEnabled ? marker.size : 0;
+        const lineEnabled = !!(symbol.line && showSeriesStroke);
+        const lineLength = lineEnabled ? line.length ?? 25 : 0;
+        return { markerEnabled, markerLength, lineEnabled, lineLength };
+    }
 
+    private calcMarkerWidth(): number {
+        // AG-11950 Calculate the length of the longest legend symbol to ensure that the text / symbols stay aligned.
+        let result: number = 0;
+        this.itemSelection.each((_, datum) => {
+            datum.symbols.forEach((symbol) => {
+                const { lineLength, markerLength } = this.calcSymbolsLengths(symbol);
+                result = Math.max(result, lineLength, markerLength);
+            });
+        });
+        return result;
+    }
+
+    private updateMarkerLabel(markerLabel: MarkerLabel, datum: CategoryLegendDatum, markerWidth: number): number {
+        const { marker: itemMarker, paddingX } = this.item;
+        const dimensionProps: { length: number; spacing: number }[] = [];
         let paddedSymbolWidth = paddingX;
-        if (markerLabel.markers.length > 0 || markerLabel.lines.length > 0) {
-            return paddedSymbolWidth;
+
+        if (markerLabel.markers.length !== datum.symbols.length && markerLabel.lines.length !== datum.symbols.length) {
+            const markers: Marker[] = [];
+            const lines: Line[] = [];
+
+            datum.symbols.forEach((symbol) => {
+                const { shape: markerShape = symbol.marker.shape } = itemMarker;
+                const MarkerCtr = getMarker(markerShape);
+
+                lines.push(new Line());
+                // Important! marker must be created after line to ensure zIndex correctness
+                markers.push(new MarkerCtr());
+            });
+
+            markerLabel.markers = markers;
+            markerLabel.lines = lines;
         }
 
-        const dimensionProps: { length: number; spacing: number }[] = [];
-        const markers: Marker[] = [];
-        const lines: Line[] = [];
-
-        datum.symbols.forEach((symbol) => {
-            const markerEnabled =
-                this.item.marker.enabled ??
-                (showSeriesStroke && symbol.marker.enabled !== undefined ? symbol.marker.enabled : true);
-            const lineEnabled = !!(symbol.line && showSeriesStroke);
-
+        datum.symbols.forEach((symbol, i) => {
             const spacing = symbol.marker.padding ?? itemMarker.padding;
+            const { markerEnabled, lineEnabled } = this.calcSymbolsLengths(symbol);
 
-            if (lineEnabled) {
-                lines.push(new Line());
-            }
-
-            const { size: markerSize, shape: markerShape = symbol.marker.shape } = itemMarker;
-
-            if (markerEnabled) {
-                const MarkerCtr = getMarker(markerShape);
-                const marker = new MarkerCtr();
-
-                marker.size = markerSize;
-                markers.push(marker);
-            }
-
-            const lineLength = lineEnabled ? itemLine.length ?? 25 : 0;
-            const markerLength = markerEnabled ? markerSize : 0;
-            dimensionProps.push({ length: lineLength, spacing });
+            markerLabel.markers[i].size = markerEnabled || !lineEnabled ? itemMarker.size : 0;
+            dimensionProps.push({ length: markerWidth, spacing });
 
             if (markerEnabled || lineEnabled) {
-                paddedSymbolWidth += spacing + Math.max(lineLength, markerLength);
+                paddedSymbolWidth += spacing + markerWidth;
             }
         });
 
-        markerLabel.markers = markers;
-        markerLabel.lines = lines;
         markerLabel.update(dimensionProps);
-
         return paddedSymbolWidth;
     }
 
@@ -671,6 +673,44 @@ export class Legend extends BaseProperties {
             maxPageWidth,
             pages,
         };
+    }
+
+    private updatePaginationProxyButtons(oldPages: Page[] | undefined) {
+        this.proxyLegendPagination.style.display = this.pagination.visible ? 'absolute' : 'none';
+
+        const oldNeedsButtons = (oldPages?.length ?? this.pages.length) > 1;
+        const newNeedsButtons = this.pages.length > 1;
+        if (oldNeedsButtons === newNeedsButtons) return;
+
+        if (newNeedsButtons) {
+            this.proxyPrevButton = this.ctx.proxyInteractionService.createProxyElement({
+                type: 'button',
+                id: `${this.id}-prev-page`,
+                textContent: { id: 'ariaLabelLegendPagePrevious' },
+                tabIndex: 0,
+                parent: this.proxyLegendPagination,
+                focusable: this.pagination.previousButton,
+                onclick: () => this.pagination.clickPrevious(),
+            });
+            this.proxyNextButton ??= this.ctx.proxyInteractionService.createProxyElement({
+                type: 'button',
+                id: `${this.id}-next-page`,
+                textContent: { id: 'ariaLabelLegendPageNext' },
+                tabIndex: 0,
+                parent: this.proxyLegendPagination,
+                focusable: this.pagination.nextButton,
+                onclick: () => this.pagination.clickNext(),
+            });
+
+            const { group, prev, next } = this.pagination.computeCSSBounds();
+            setElementBBox(this.proxyLegendPagination, group);
+            setElementBBox(this.proxyPrevButton, prev);
+            setElementBBox(this.proxyNextButton, next);
+        } else {
+            this.proxyNextButton?.remove();
+            this.proxyPrevButton?.remove();
+            [this.proxyNextButton, this.proxyPrevButton] = [undefined, undefined];
+        }
     }
 
     private calculatePagination(bboxes: BBox[], width: number, height: number) {
@@ -832,7 +872,7 @@ export class Legend extends BaseProperties {
 
                     marker.fill = fill;
                     marker.stroke = stroke;
-                    marker.strokeWidth = Math.min(2, strokeWidth);
+                    marker.strokeWidth = strokeWidth;
                     marker.fillOpacity = fillOpacity;
                     marker.strokeOpacity = strokeOpacity;
                 }
@@ -995,7 +1035,7 @@ export class Legend extends BaseProperties {
                 }
             }
 
-            const status: string = newEnabled ? 'aria-announce.visible' : 'aria-announce.hidden';
+            const status: string = newEnabled ? 'ariaAnnounceVisible' : 'ariaAnnounceHidden';
             this.ctx.ariaAnnouncementService.announceValue(status);
             this.ctx.chartEventManager.legendItemClick(series, itemId, newEnabled, datum.legendItemName);
         }
@@ -1143,35 +1183,42 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private getItemAriaText(nodeIndex: number): { id: string; params?: Record<string, any> } {
-        const datum = this.data[nodeIndex];
-        const label = datum && this.getItemLabel(datum);
-        if (nodeIndex >= 0 && label && datum) {
-            return {
-                id: 'aria-label.legend-item',
-                params: {
-                    label,
-                    visibility: datum.enabled ? 'visible' : 'hidden',
-                    index: nodeIndex + 1,
-                    count: this.data.length,
-                },
-            };
-        }
-        return { id: 'aria-label.legend-item-unknown' };
+    private onLocaleChanged() {
+        this.itemSelection.each(({ proxyButton }, _, i) => {
+            if (proxyButton != null) {
+                proxyButton.textContent = this.getItemAriaText(i);
+            }
+        });
     }
 
-    private positionLegend(shrinkRect: BBox) {
+    private getItemAriaText(nodeIndex: number, enabled?: boolean): string {
+        const datum = this.data[nodeIndex];
+        const label = datum && this.getItemLabel(datum);
+        enabled ??= datum.enabled;
+        const lm = this.ctx.localeManager;
+        if (nodeIndex >= 0 && label) {
+            const index = nodeIndex + 1;
+            const count = this.data.length;
+            const part1 = lm.t('ariaLabelLegendItem', { label, index, count });
+            const part2 = lm.t(enabled ? 'ariaAnnounceVisible' : 'ariaAnnounceHidden');
+            return [part1, part2].join('');
+        }
+        return lm.t('ariaLabelLegendItemUnknown');
+    }
+
+    private positionLegend(ctx: LayoutContext) {
+        const { shrinkRect } = ctx;
         const newShrinkRect = shrinkRect.clone();
 
         if (!this.enabled || !this.data.length) {
-            return { shrinkRect: newShrinkRect };
+            return { ...ctx, shrinkRect: newShrinkRect };
         }
 
         const [legendWidth, legendHeight] = this.calculateLegendDimensions(shrinkRect);
 
         this.group.translationX = 0;
         this.group.translationY = 0;
-        this.calcLayout(legendWidth, legendHeight);
+        const { oldPages } = this.calcLayout(legendWidth, legendHeight);
         const legendBBox = this.computePagedBBox();
 
         const calculateTranslationPerpendicularDimension = () => {
@@ -1220,13 +1267,7 @@ export class Legend extends BaseProperties {
             this.proxyLegendToolbar.style.display = 'none';
         }
 
-        if (this.pagination.visible) {
-            this.proxyLegendPagination.style.display = 'absolute';
-            setElementBBox(this.proxyPrevButton, this.pagination.previousButton.computeTransformedBBox()!);
-            setElementBBox(this.proxyNextButton, this.pagination.nextButton.computeTransformedBBox()!);
-        } else {
-            this.proxyLegendPagination.style.display = 'none';
-        }
+        this.updatePaginationProxyButtons(oldPages);
 
         if (this.visible && this.enabled && this.data.length) {
             const legendPadding = this.spacing;
@@ -1237,7 +1278,7 @@ export class Legend extends BaseProperties {
             legendPositionedBBox.y += this.group.translationY;
         }
 
-        return { shrinkRect: newShrinkRect };
+        return { ...ctx, shrinkRect: newShrinkRect };
     }
 
     private calculateLegendDimensions(shrinkRect: BBox): [number, number] {

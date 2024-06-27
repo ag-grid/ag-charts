@@ -10,7 +10,7 @@ import {
 import { formatLabels } from '../util/labelFormatter';
 import { SunburstSeriesProperties } from './sunburstSeriesProperties';
 
-const { fromToMotion, computeSectorFocusBounds } = _ModuleSupport;
+const { fromToMotion } = _ModuleSupport;
 const { Sector, Group, Selection, Text } = _Scene;
 const { sanitizeHtml } = _Util;
 
@@ -468,33 +468,39 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         });
     }
 
-    private getSectorFormat(node: _ModuleSupport.HierarchyNode, isHighlighted: boolean): AgSunburstSeriesStyle {
+    private getSectorFormat(
+        node: _ModuleSupport.HierarchyNode,
+        isHighlighted: boolean
+    ): AgSunburstSeriesStyle | undefined {
         const { datum, fill, stroke, depth } = node;
         const {
             ctx: { callbackCache },
-            properties: { formatter },
+            properties: { itemStyler },
         } = this;
 
-        if (!formatter || datum == null || depth == null) {
+        if (!itemStyler || datum == null || depth == null) {
             return {};
         }
 
-        const { colorKey, labelKey, sizeKey, strokeWidth } = this.properties;
+        const { colorKey, childrenKey, labelKey, secondaryLabelKey, sizeKey, strokeWidth, fillOpacity, strokeOpacity } =
+            this.properties;
 
-        const result = callbackCache.call(formatter, {
+        return callbackCache.call(itemStyler, {
             seriesId: this.id,
-            depth,
-            datum,
-            colorKey,
-            labelKey,
-            sizeKey,
-            fill,
-            stroke,
-            strokeWidth,
             highlighted: isHighlighted,
+            datum,
+            depth,
+            colorKey,
+            childrenKey,
+            labelKey,
+            secondaryLabelKey,
+            sizeKey,
+            fill: fill!,
+            fillOpacity,
+            stroke: stroke!,
+            strokeWidth,
+            strokeOpacity,
         });
-
-        return result ?? {};
     }
 
     override getTooltipHtml(node: _ModuleSupport.HierarchyNode): _ModuleSupport.TooltipContent {
@@ -595,11 +601,15 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         });
     }
 
-    protected computeFocusBounds(
-        node: _ModuleSupport.HierarchyNode<_ModuleSupport.SeriesNodeDatum>
-    ): _Scene.BBox | undefined {
-        const sector = this.groupSelection.selectByClass(Sector)[node.index];
-        const { x, y } = sector.inverseTransformPoint(0, 0);
-        return computeSectorFocusBounds(sector, x, y);
+    protected override computeFocusBounds(
+        nodeDatum: _ModuleSupport.HierarchyNode<_ModuleSupport.SeriesNodeDatum>
+    ): _Scene.Path | undefined {
+        let match: _Scene.Sector | undefined;
+        for (const { node, datum } of this.groupSelection) {
+            if (datum === nodeDatum) {
+                match = _Scene.Selection.selectByClass<_Scene.Sector>(node, _Scene.Sector)[0];
+            }
+        }
+        return match;
     }
 }

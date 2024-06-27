@@ -1,95 +1,47 @@
 ---
 title: 'Toolbar'
 enterprise: true
-hidden: true
 ---
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+Toolbars contain buttons, allowing users to interact with the chart at runtime.
+
+## Range Toolbar
+
+The Range Toolbar contains buttons allowing the user to jump to a specific range along the chart timeline.
 
 {% chartExampleRunner title="Toolbar" name="toolbar" type="generated" /%}
 
-```ts
-toolbar: {
-    ranges: {
-        enabled: true,
-    },
-    zoom: {
-        enabled: true,
-    },
-}
-```
+### Custom Buttons
 
-## Positions & Alignment
-
-{% chartExampleRunner title="Toolbar" name="toolbar-positions" type="generated" /%}
-
-```ts
-toolbar: {
-    ranges: {
-        align: 'center',
-    },
-    zoom: {
-        position: 'right',
-        align: 'start',
-    }
-}
-```
-
-## Buttons
+It is possible to override the default buttons by providing an array of button objects.
 
 {% chartExampleRunner title="Toolbar" name="toolbar-buttons" type="generated" /%}
 
 ```ts
-const MONTH = 30 * 24 * 60 * 60 * 1000;
-
-// ...
-
 toolbar: {
     ranges: {
-        buttons: [
-            { label: '6 months', value: 6 * MONTH },
-            { label: '12 months', value: 12 * MONTH },
-            { label: 'All', value: (start, end) => [start, end] },
-        ]
+      enabled: true,
+      buttons: [
+        {
+          label: "6 Months",
+          value: 6 * MONTH,
+        },
+        {
+          label: "12 Months",
+          value: 12 * MONTH,
+        },
+        {
+          label: 'February',
+          value: [new Date(2023, 1, 1), new Date(2023, 2, 1)],
+        },
+        {
+          label: "All Data",
+          value: (start, end) => [start, end],
+        },
+      ],
     },
-}
+  },
 ```
-
-## Groups
-
-### Annotations
-
-```ts
-toolbar: {
-    annotations: {
-        enabled: true,
-    }
-}
-```
-
-[Further reading on Annotations](./annotations/#adding--editing).
-
-### Ranges
-
-```ts
-toolbar: {
-    ranges: {
-        enabled: true,
-    }
-}
-```
-
-### Zoom
-
-```ts
-toolbar: {
-    zoom: {
-        enabled: true,
-    }
-}
-```
-
-[Further reading on Zoom](./zoom/).
 
 ## API Reference
 

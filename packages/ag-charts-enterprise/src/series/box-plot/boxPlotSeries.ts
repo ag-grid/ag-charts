@@ -1,4 +1,4 @@
-import { type AgBoxPlotSeriesStyles, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { type AgBoxPlotSeriesStyle, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
 import { BoxPlotGroup } from './boxPlotGroup';
@@ -22,6 +22,7 @@ const {
 } = _ModuleSupport;
 const { motion } = _Scene;
 const { ContinuousScale } = _Scale;
+const { Color } = _Util;
 
 class BoxPlotSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -68,7 +69,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 x: ['xName'],
                 y: ['medianName', 'q1Name', 'q3Name', 'minName', 'maxName'],
             },
-            defaultTooltipRange: 'exact',
             pathsPerSeries: 1,
             hasHighlightedLabels: true,
         });
@@ -215,8 +215,24 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 y: isVertical ? midY : midX,
             };
 
-            const focusRectWidth = isVertical ? bandwidth : height;
-            const focusRectHeight = isVertical ? height : bandwidth;
+            let focusRect: (typeof nodeData)[number]['focusRect'];
+
+            if (isVertical) {
+                focusRect = {
+                    x: midPoint.x - bandwidth / 2,
+                    y: scaledValues.minValue,
+                    width: bandwidth,
+                    height: scaledValues.maxValue - scaledValues.minValue,
+                };
+            } else {
+                focusRect = {
+                    x: scaledValues.minValue,
+                    y: midPoint.y - bandwidth / 2,
+                    width: scaledValues.maxValue - scaledValues.minValue,
+                    height: bandwidth,
+                };
+            }
+
             nodeData.push({
                 series: this,
                 itemId: xValue,
@@ -234,12 +250,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 lineDash,
                 lineDashOffset,
                 midPoint,
-                focusRect: {
-                    x: midPoint.x - focusRectWidth / 2,
-                    y: midPoint.y - focusRectHeight / 2,
-                    width: focusRectWidth,
-                    height: focusRectHeight,
-                },
+                focusRect,
             });
         });
 
@@ -380,7 +391,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }) {
         const isVertical = this.isVertical();
         const isReversedValueAxis = this.getValueAxis()?.isReversed();
-        const { cornerRadius } = this.properties;
         datumSelection.each((boxPlotGroup, nodeDatum) => {
             let activeStyles = this.getFormattedStyles(nodeDatum, highlighted);
 
@@ -400,10 +410,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
             boxPlotGroup.updateDatumStyles(
                 nodeDatum,
-                activeStyles as _ModuleSupport.DeepRequired<AgBoxPlotSeriesStyles>,
+                activeStyles as _ModuleSupport.DeepRequired<AgBoxPlotSeriesStyle>,
                 isVertical,
-                isReversedValueAxis,
-                cornerRadius
+                isReversedValueAxis
             );
         });
     }
@@ -428,28 +437,51 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         return new BoxPlotGroup();
     }
 
-    getFormattedStyles(nodeDatum: BoxPlotNodeDatum, highlighted = false): AgBoxPlotSeriesStyles {
+    getFormattedStyles(nodeDatum: BoxPlotNodeDatum, highlighted = false): AgBoxPlotSeriesStyle {
         const {
             id: seriesId,
             ctx: { callbackCache },
+            properties,
         } = this;
-        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, formatter } = this.properties;
-        const { datum, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cap, whisker } =
-            nodeDatum;
-        const activeStyles: AgBoxPlotSeriesStyles = {
+        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, itemStyler, backgroundFill, cornerRadius } = properties;
+        const { datum, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cap, whisker } = nodeDatum;
+        let fill: string;
+        let fillOpacity: number | undefined;
+
+        // @todo(AG-11876) Use fillOpacity to match area, range area, radar area, chord, and sankey series
+        const useFakeFill = true;
+        if (useFakeFill) {
+            fill = nodeDatum.fill;
+            fillOpacity = properties.fillOpacity;
+        } else {
+            try {
+                fill = Color.mix(
+                    Color.fromString(backgroundFill),
+                    Color.fromString(nodeDatum.fill),
+                    properties.fillOpacity
+                ).toString();
+            } catch {
+                fill = nodeDatum.fill;
+            }
+
+            fillOpacity = undefined;
+        }
+
+        const activeStyles: Required<AgBoxPlotSeriesStyle> = {
             fill,
-            fillOpacity,
+            fillOpacity: fillOpacity!,
             stroke,
             strokeWidth,
             strokeOpacity,
             lineDash,
             lineDashOffset,
+            cornerRadius,
             cap: extractDecoratedProperties(cap),
             whisker: extractDecoratedProperties(whisker),
         };
 
-        if (formatter) {
-            const formatStyles = callbackCache.call(formatter, {
+        if (itemStyler) {
+            const formatStyles = callbackCache.call(itemStyler, {
                 datum,
                 seriesId,
                 highlighted,

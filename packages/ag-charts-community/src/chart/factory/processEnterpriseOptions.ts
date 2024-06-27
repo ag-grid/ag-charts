@@ -1,4 +1,5 @@
-import type { AgChartOptions } from '../../options/chart/chartBuilderOptions';
+import type { AgChartOptions } from 'ag-charts-types';
+
 import { Logger } from '../../util/logger';
 import { optionsType } from '../mapping/types';
 import { chartTypes } from './chartTypes';

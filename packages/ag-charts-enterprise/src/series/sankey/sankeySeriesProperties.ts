@@ -1,11 +1,14 @@
 import {
-    type AgSankeySeriesFormatterParams,
     type AgSankeySeriesLabelFormatterParams,
+    type AgSankeySeriesLinkItemStylerParams,
     type AgSankeySeriesLinkOptions,
     type AgSankeySeriesLinkStyle,
+    type AgSankeySeriesNodeItemStylerParams,
     type AgSankeySeriesNodeOptions,
+    type AgSankeySeriesNodeStyle,
     type AgSankeySeriesOptions,
     type AgSankeySeriesTooltipRendererParams,
+    type Styler,
     _ModuleSupport,
     _Scene,
     _Util,
@@ -62,7 +65,7 @@ export class SankeySeriesLabelProperties extends Label<AgSankeySeriesLabelFormat
     spacing: number = 1;
 }
 
-export class SankeySeriesLinkProperties extends BaseProperties<AgSankeySeriesLinkOptions> {
+export class SankeySeriesLinkProperties extends BaseProperties<AgSankeySeriesLinkOptions<any>> {
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined = undefined;
 
@@ -83,9 +86,12 @@ export class SankeySeriesLinkProperties extends BaseProperties<AgSankeySeriesLin
 
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
+
+    @Validate(FUNCTION, { optional: true })
+    itemStyler?: Styler<AgSankeySeriesLinkItemStylerParams<unknown>, AgSankeySeriesLinkStyle>;
 }
 
-export class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNodeOptions> {
+export class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNodeOptions<any>> {
     @Validate(POSITIVE_NUMBER)
     spacing: number = 1;
 
@@ -115,6 +121,9 @@ export class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNod
 
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
+
+    @Validate(FUNCTION, { optional: true })
+    itemStyler?: Styler<AgSankeySeriesNodeItemStylerParams<unknown>, AgSankeySeriesNodeStyle>;
 }
 export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptions> {
     @Validate(ARRAY, { optional: true })
@@ -159,9 +168,6 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
     @Validate(OBJECT)
     readonly node = new SankeySeriesNodeProperties();
 
-    @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgSankeySeriesFormatterParams<any>) => AgSankeySeriesLinkStyle;
-
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgSankeySeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgSankeySeriesTooltipRendererParams<any>>();
 }

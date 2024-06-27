@@ -2,14 +2,15 @@
     "extends": "../../tsconfig.base.json",
     "compilerOptions": {
         "module": "commonjs",
-        "target": "es2016",
+        "target": "es2020",
         "strict": true,
         "noEmit": true,
         "noUnusedParameters": true,
         "noUnusedLocals": false,
         "paths": {
             "ag-charts-community": ["../ag-charts-community/dist/types/main.d.ts"],
-            "ag-charts-enterprise": ["../ag-charts-enterprise/dist/types/main.d.ts"]
+            "ag-charts-enterprise": ["../ag-charts-enterprise/dist/types/main.d.ts"],
+            "ag-charts-locale": ["../ag-charts-locale/dist/types/main.d.ts"]
         }
     },
     "files": [],

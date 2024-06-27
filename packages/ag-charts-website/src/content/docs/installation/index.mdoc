@@ -153,10 +153,10 @@ agCharts.AgCharts.create(/* chart options */);
 {% if isFramework("react") %}
 
 ```jsx
-import { AgChartsReact } from 'ag-charts-react';
+import { AgCharts } from 'ag-charts-react';
 
 const MyChart = (options) => {
-  return <AgChartsReact options={options} />;
+  return <AgCharts options={options} />;
 };
 ```
 
@@ -165,13 +165,13 @@ const MyChart = (options) => {
 {% if isFramework("angular") %}
 
 ```javascript
-import { AgChartsAngular } from 'ag-charts-angular';
+import { AgCharts } from 'ag-charts-angular';
 
 @Component({
     selector: 'my-app',
     standalone: true,
-    imports: [AgChartsAngular],
-    template: `<ag-charts-angular style="height: 100%" [options]="options"></ag-charts-angular> `,
+    imports: [AgCharts],
+    template: `<ag-charts style="height: 100%" [options]="options"></ag-charts> `,
 })
 export class MyAppComponent {
     /* ... */
@@ -183,11 +183,11 @@ export class MyAppComponent {
 {% if isFramework("vue") %}
 
 ```javascript
-import { AgChartsVue } from 'ag-charts-vue3';
+import { AgCharts } from 'ag-charts-vue3';
 
 const MyChart = {
-    template: `<ag-charts-vue :options="options"></ag-charts-vue>`,
-    components: { 'ag-charts-vue': AgChartsVue },
+    template: `<ag-charts :options="options"></ag-charts>`,
+    components: { 'ag-charts': AgCharts },
     /* ... */
 };
 ```
@@ -196,7 +196,7 @@ const MyChart = {
 
 ### Enabling Enterprise Features
 
-Enterprise Charts features are enabled by loading the `ag-charts-enterprise` module and setting your license key before
+Enterprise Charts features are enabled by loading the `ag-charts-enterprise` module and [setting your license key](./license-install/) before
 using the [Charts API](./api-create-update/).
 
 {% tabs omitFromOverview=true %}
@@ -262,7 +262,7 @@ The [Charts API](./api-create-update) is then available via the global `agCharts
 
 ### Enabling Enterprise Features
 
-Enterprise Charts features are enabled by loading the `ag-charts-enterprise.js` bundle and setting your license key before
+Enterprise Charts features are enabled by loading the `ag-charts-enterprise.js` bundle and [setting your license key](./license-install/) before
 using the [Charts API](./api-create-update).
 
 ```html

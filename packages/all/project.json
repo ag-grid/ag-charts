@@ -93,11 +93,10 @@
       "inputs": [],
       "outputs": [],
       "options": {
-        "parallel": true,
+        "parallel": false,
         "commands": [
-          "nx run generate-gallery-thumbnail --example=simple-bar",
-          "node {projectRoot}/watch.js",
-          "nx run ag-charts-website:dev"
+          "nx run ag-charts-website-gallery_simple-bar_main.ts:generate-thumbnail",
+          "node {projectRoot}/watch.js & nx run ag-charts-website:dev"
         ]
       },
       "configurations": {
@@ -152,7 +151,9 @@
     "ag-charts-community-examples",
     "ag-charts-website",
     "ag-charts-angular",
+    "ag-charts-locale",
     "ag-charts-react",
+    "ag-charts-types",
     "ag-charts-vue3",
     "ag-charts-task-autogen",
     "ag-charts-generate-code-reference-files",

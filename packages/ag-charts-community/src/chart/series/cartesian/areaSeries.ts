@@ -1,3 +1,5 @@
+import type { AgSeriesMarkerStyle } from 'ag-charts-types';
+
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
@@ -85,7 +87,6 @@ export class AreaSeries extends CartesianSeries<
             pathsPerSeries: 2,
             pathsZIndexSubOrderOffset: [0, 1000],
             hasMarkers: true,
-            defaultTooltipRange: 'nearest',
             markerSelectionGarbageCollection: false,
             pickModes: [SeriesNodePickMode.NEAREST_BY_MAIN_AXIS_FIRST, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             animationResetFns: {
@@ -403,19 +404,79 @@ export class AreaSeries extends CartesianSeries<
                     });
                 }
 
-                const shouldConnect = validPoint || connectMissingData;
-                if (!shouldConnect) {
-                    moveTo = true;
-                }
+                if (validPoint || !connectMissingData) {
+                    if (!validPoint) {
+                        moveTo = true;
+                    }
 
-                const willDrawLine = !moveTo && !connectMissingData;
-                if (willDrawLine && lastYValueContinuity === false && yValueContinuity === true) {
-                    // Fill forwards
+                    const willDrawLine = !moveTo && !connectMissingData;
+                    if (willDrawLine && lastYValueContinuity === false && yValueContinuity === true) {
+                        // Fill forwards
+                        fillPoints.push({
+                            point: {
+                                x: point.x,
+                                y: yScale.convert(yValueEnd),
+                                moveTo: false,
+                            },
+                            yValue: yDatum,
+                            xValue: xDatum,
+                        });
+                        fillPhantomPoints.push({
+                            point: {
+                                x: point.x,
+                                y: yScale.convert(yValueStart),
+                                moveTo: false,
+                            },
+                            yValue: yDatum,
+                            xValue: xDatum,
+                        });
+                        strokePoints.push({
+                            point: {
+                                x: point.x,
+                                y: yScale.convert(yValueEnd),
+                                moveTo: false,
+                            },
+                            yValue: yDatum,
+                            xValue: xDatum,
+                        });
+                        moveTo = true;
+                    } else if (willDrawLine && lastYValueContinuity === true && yValueContinuity === false) {
+                        // Fill backwards
+                        fillPoints.push({
+                            point: {
+                                x: xScale.convert(lastXDatum) + xOffset,
+                                y: yScale.convert(yValuePreviousEnd),
+                                moveTo: true,
+                            },
+                            yValue: yDatum,
+                            xValue: xDatum,
+                        });
+                        fillPhantomPoints.push({
+                            point: {
+                                x: xScale.convert(lastXDatum) + xOffset,
+                                y: yScale.convert(yValuePreviousStart),
+                                moveTo: true,
+                            },
+                            yValue: yDatum,
+                            xValue: xDatum,
+                        });
+                        strokePoints.push({
+                            point: {
+                                x: xScale.convert(lastXDatum) + xOffset,
+                                y: yScale.convert(yValuePreviousEnd),
+                                moveTo: true,
+                            },
+                            yValue: yDatum,
+                            xValue: xDatum,
+                        });
+                        moveTo = false;
+                    }
+
                     fillPoints.push({
                         point: {
                             x: point.x,
-                            y: yScale.convert(yValueEnd),
-                            moveTo: false,
+                            y: yScale.convert(yValueCumulative),
+                            moveTo,
                         },
                         yValue: yDatum,
                         xValue: xDatum,
@@ -423,8 +484,8 @@ export class AreaSeries extends CartesianSeries<
                     fillPhantomPoints.push({
                         point: {
                             x: point.x,
-                            y: yScale.convert(yValueStart),
-                            moveTo: false,
+                            y: yScale.convert(yValueCumulative - yValue),
+                            moveTo,
                         },
                         yValue: yDatum,
                         xValue: xDatum,
@@ -432,74 +493,15 @@ export class AreaSeries extends CartesianSeries<
                     strokePoints.push({
                         point: {
                             x: point.x,
-                            y: yScale.convert(yValueEnd),
-                            moveTo: false,
+                            y: yScale.convert(yValueCumulative),
+                            moveTo,
                         },
                         yValue: yDatum,
                         xValue: xDatum,
                     });
-                    moveTo = true;
-                } else if (willDrawLine && lastYValueContinuity === true && yValueContinuity === false) {
-                    // Fill backwards
-                    fillPoints.push({
-                        point: {
-                            x: xScale.convert(lastXDatum) + xOffset,
-                            y: yScale.convert(yValuePreviousEnd),
-                            moveTo: true,
-                        },
-                        yValue: yDatum,
-                        xValue: xDatum,
-                    });
-                    fillPhantomPoints.push({
-                        point: {
-                            x: xScale.convert(lastXDatum) + xOffset,
-                            y: yScale.convert(yValuePreviousStart),
-                            moveTo: true,
-                        },
-                        yValue: yDatum,
-                        xValue: xDatum,
-                    });
-                    strokePoints.push({
-                        point: {
-                            x: xScale.convert(lastXDatum) + xOffset,
-                            y: yScale.convert(yValuePreviousEnd),
-                            moveTo: true,
-                        },
-                        yValue: yDatum,
-                        xValue: xDatum,
-                    });
-                    moveTo = false;
+
+                    moveTo = !validPoint;
                 }
-
-                fillPoints.push({
-                    point: {
-                        x: point.x,
-                        y: yScale.convert(yValueCumulative),
-                        moveTo,
-                    },
-                    yValue: yDatum,
-                    xValue: xDatum,
-                });
-                fillPhantomPoints.push({
-                    point: {
-                        x: point.x,
-                        y: yScale.convert(yValueCumulative - yValue),
-                        moveTo,
-                    },
-                    yValue: yDatum,
-                    xValue: xDatum,
-                });
-                strokePoints.push({
-                    point: {
-                        x: point.x,
-                        y: yScale.convert(yValueCumulative),
-                        moveTo,
-                    },
-                    yValue: yDatum,
-                    xValue: xDatum,
-                });
-
-                moveTo = !shouldConnect;
 
                 lastXDatum = xDatum;
                 lastYValueContinuity = yValueContinuity;
@@ -574,12 +576,12 @@ export class AreaSeries extends CartesianSeries<
     private updateFillPath(paths: Path[], contextData: AreaSeriesNodeDataContext) {
         const { points, phantomPoints } = contextData.fillData;
         const [fill] = paths;
-        const { line } = this.properties;
+        const { interpolation } = this.properties;
 
         fill.path.clear(true);
         for (const range of pathRanges(points)) {
-            plotPath(pathRangePoints(points, range), fill, line, false);
-            plotPath(pathRangePointsReverse(phantomPoints, range), fill, line, true);
+            plotPath(pathRangePoints(points, range), fill, interpolation, false);
+            plotPath(pathRangePointsReverse(phantomPoints, range), fill, interpolation, true);
             fill.path.closePath();
         }
         fill.checkPathDirty();
@@ -589,11 +591,11 @@ export class AreaSeries extends CartesianSeries<
         const { points } = contextData.strokeData;
         const [, stroke] = paths;
         const { path: strokePath } = stroke;
-        const { line } = this.properties;
+        const { interpolation } = this.properties;
 
         strokePath.clear(true);
         for (const range of pathRanges(points)) {
-            plotPath(pathRangePoints(points, range), stroke, line);
+            plotPath(pathRangePoints(points, range), stroke, interpolation);
         }
         stroke.checkPathDirty();
     }
@@ -825,7 +827,7 @@ export class AreaSeries extends CartesianSeries<
             contextData,
             previousContextData,
             this.processedData?.reduced?.diff,
-            this.properties.line
+            this.properties.interpolation
         );
         if (fns === undefined) {
             // Un-animatable diff in data, skip all animations.
@@ -852,7 +854,7 @@ export class AreaSeries extends CartesianSeries<
         return new Group();
     }
 
-    public getFormattedMarkerStyle(datum: MarkerSelectionDatum) {
+    public getFormattedMarkerStyle(datum: MarkerSelectionDatum): AgSeriesMarkerStyle & { size: number } {
         const { xKey, yKey } = datum;
         return this.getMarkerStyle(this.properties.marker, { datum, xKey, yKey, highlighted: true });
     }

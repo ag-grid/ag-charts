@@ -86,7 +86,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
             directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
-            defaultTooltipRange: 'exact',
             pathsPerSeries: 1,
             hasHighlightedLabels: true,
             pathsZIndexSubOrderOffset: [-1, -1],
@@ -561,7 +560,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 lineDash,
                 lineDashOffset,
                 cornerRadius,
-                formatter,
+                itemStyler,
                 shadow: fillShadow,
             } = this.getItemConfig(seriesItemType);
             const style: _ModuleSupport.RectConfig = {
@@ -582,7 +581,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 isHighlighted: isHighlight,
                 style,
                 highlightStyle: itemHighlightStyle,
-                formatter,
+                itemStyler,
                 seriesId,
                 itemId: datum.itemId,
                 ctx,
@@ -629,18 +628,34 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const { id: seriesId } = this;
         const { xKey, yKey, xName, yName, tooltip } = this.properties;
         const { datum, itemId, xValue, yValue } = nodeDatum;
-        const { fill, strokeWidth, name, formatter } = this.getItemConfig(itemId);
+        const {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash = [],
+            lineDashOffset,
+            cornerRadius,
+            name,
+            itemStyler,
+        } = this.getItemConfig(itemId);
 
         let format;
 
-        if (formatter) {
-            format = this.ctx.callbackCache.call(formatter, {
+        if (itemStyler) {
+            format = this.ctx.callbackCache.call(itemStyler, {
                 datum,
-                value: yValue,
                 xKey,
                 yKey,
                 fill,
+                fillOpacity,
+                stroke,
                 strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+                cornerRadius,
                 highlighted: false,
                 seriesId,
                 itemId: nodeDatum.itemId,

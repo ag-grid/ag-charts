@@ -1,9 +1,10 @@
 import type {
-    AgMapLineSeriesFormatterParams,
+    AgMapLineSeriesItemStylerParams,
     AgMapLineSeriesLabelFormatterParams,
     AgMapLineSeriesOptions,
     AgMapLineSeriesStyle,
     AgMapLineSeriesTooltipRendererParams,
+    Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
@@ -101,7 +102,7 @@ export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOpt
     lineDashOffset: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgMapLineSeriesFormatterParams<any>) => AgMapLineSeriesStyle;
+    itemStyler?: Styler<AgMapLineSeriesItemStylerParams<unknown>, AgMapLineSeriesStyle>;
 
     @Validate(OBJECT)
     readonly label = new Label<AgMapLineSeriesLabelFormatterParams>();

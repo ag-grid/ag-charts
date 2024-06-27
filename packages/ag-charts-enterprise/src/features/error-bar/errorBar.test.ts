@@ -1,10 +1,11 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import type {
-    AgErrorBarFormatterParams,
-    AgErrorBarOptions,
+    AgErrorBarItemStylerParams,
+    AgErrorBarThemeableOptions,
     AgScatterSeriesOptions,
     AgScatterSeriesTooltipRendererParams,
+    Styler,
 } from 'ag-charts-community';
 import {
     Chart,
@@ -20,9 +21,6 @@ import {
 } from 'ag-charts-community-test';
 
 import { createEnterpriseChart } from '../../test/utils';
-
-export type ErrorBarFormatter = NonNullable<AgErrorBarOptions['formatter']>;
-export type ErrorBarCapFormatter = NonNullable<NonNullable<AgErrorBarOptions['cap']>['formatter']>;
 
 const SERIES_CANADA = {
     data: [
@@ -697,46 +695,43 @@ describe('ErrorBars', () => {
         await compare();
     });
 
-    it('should apply formatter as expected', async () => {
-        const whisker_formatter: ErrorBarFormatter = (params) => {
-            let color = undefined;
+    it('should apply itemStyler as expected', async () => {
+        const itemStyler: Styler<AgErrorBarItemStylerParams<any>, AgErrorBarThemeableOptions> = (params) => {
+            let stroke, cap;
             switch (params.datum[params.xKey]) {
                 case 'Jan':
-                    return { cap: { length: 40 } };
+                    cap = { length: 40, strokeWidth: 10 };
+                    break;
                 case 'Feb':
-                    return { cap: { lengthRatio: 0.5 } };
+                    cap = { lengthRatio: 0.5, strokeWidth: 10 };
+                    break;
+                case 'Mar':
+                    cap = { strokeWidth: 10 };
+                    break;
                 case 'Apr':
                 case 'May':
                 case 'Jun':
-                    color = 'blue';
+                    stroke = 'blue';
+                    cap = { strokeWidth: 10 };
                     break;
                 case 'Jul':
                 case 'Aug':
                 case 'Sep':
-                    color = 'green';
+                    stroke = 'green';
                     break;
                 case 'Oct':
+                    stroke = 'gold';
+                    break;
                 case 'Nov':
+                    stroke = 'gold';
+                    cap = { length: 50 };
+                    break;
                 case 'Dec':
-                    color = 'gold';
+                    stroke = 'gold';
+                    cap = { lengthRatio: 0.5 };
                     break;
             }
-            return { stroke: color };
-        };
-        const cap_formatter: ErrorBarCapFormatter = (params) => {
-            switch (params.datum[params.xKey]) {
-                case 'Jan':
-                case 'Feb':
-                case 'Mar':
-                case 'Apr':
-                case 'May':
-                case 'Jun':
-                    return { strokeWidth: 10 };
-                case 'Nov':
-                    return { length: 50 };
-                case 'Dec':
-                    return { lengthRatio: 0.5 };
-            }
+            return { stroke, cap };
         };
         chart = await createEnterpriseChart({
             series: [
@@ -746,8 +741,7 @@ describe('ErrorBars', () => {
                     errorBar: {
                         ...SERIES_CANADA.errorBar,
                         strokeWidth: 3,
-                        formatter: whisker_formatter,
-                        cap: { formatter: cap_formatter },
+                        itemStyler,
                     },
                 },
             ],
@@ -755,51 +749,39 @@ describe('ErrorBars', () => {
         await compare();
     });
 
-    it('should set formatter highlighted param as expected', async () => {
-        const whiskerResult: boolean[] = [];
-        const capResult: boolean[] = [];
+    it('should set itemStyler highlighted param as expected', async () => {
+        const result: boolean[] = [];
         chart = await createEnterpriseChart({
             series: [
                 {
                     ...SERIES_CANADA,
                     errorBar: {
                         ...SERIES_CANADA.errorBar,
-                        formatter: (param: AgErrorBarFormatterParams) => {
-                            whiskerResult.push(param.highlighted);
+                        itemStyler: (param: AgErrorBarItemStylerParams<any>) => {
+                            result.push(param.highlighted);
                             return {};
-                        },
-                        cap: {
-                            formatter: (param: AgErrorBarFormatterParams) => {
-                                capResult.push(param.highlighted);
-                                return {};
-                            },
                         },
                     },
                 },
             ],
         });
 
-        // Check formatter initialisation
+        // Check itemStyler initialisation
         const allfalse = [false, false, false, false, false, false, false, false, false, false, false, false];
-        expect(whiskerResult).toStrictEqual(allfalse);
-        expect(capResult).toStrictEqual(allfalse);
-        whiskerResult.length = 0;
-        capResult.length = 0;
+        expect(result).toStrictEqual(allfalse);
+        result.length = 0;
 
         // Hover over an error bar
         const { x, y } = getItemCoords(4);
         await hoverAction(x, y - 20)(chart);
         await waitForChartStability(chart);
-        expect(whiskerResult).toStrictEqual([true]);
-        expect(capResult).toStrictEqual([true]);
-        whiskerResult.length = 0;
-        capResult.length = 0;
+        expect(result).toStrictEqual([true]);
+        result.length = 0;
 
         // Hover over nothing
         await hoverAction(0, 0)(chart);
         await waitForChartStability(chart);
-        expect(whiskerResult).toStrictEqual([false]);
-        expect(capResult).toStrictEqual([false]);
+        expect(result).toStrictEqual([false]);
     });
 
     it('should use correct cursor', async () => {

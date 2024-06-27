@@ -8,7 +8,7 @@ import {
     LineDash,
     Stroke,
 } from '../annotationProperties';
-import { AnnotationType, type ValidationContext } from '../annotationTypes';
+import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { validateDatumLine } from '../annotationUtils';
 
 const { NUMBER, STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
@@ -40,14 +40,13 @@ export class DisjointChannelAnnotation extends Annotation(
             bottom.start.y -= this.startHeight;
             bottom.end.y -= this.endHeight;
         } else {
-            // TODO
             _Util.Logger.warnOnce(`Annotation [${this.type}] can only be used with a numeric y-axis.`);
         }
 
         return bottom;
     }
 
-    override isValidWithContext(context: ValidationContext, warningPrefix?: string) {
+    override isValidWithContext(context: AnnotationContext, warningPrefix?: string) {
         return (
             super.isValid(warningPrefix) &&
             validateDatumLine(context, this, warningPrefix) &&

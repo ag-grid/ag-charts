@@ -26,7 +26,7 @@ const options: AgChartOptions = {
             labelKey: 'franchiseName',
             labelName: 'Franchise',
             maxSize: 90,
-            formatter: ({ datum }) => ({ fillOpacity: datum.growthRate / 18 }),
+            itemStyler: ({ datum }) => ({ fillOpacity: datum.growthRate / 18 }),
             label: { enabled: true },
         },
         {
@@ -41,7 +41,7 @@ const options: AgChartOptions = {
             labelKey: 'franchiseName',
             labelName: 'Franchise',
             maxSize: 90,
-            formatter: ({ datum }) => ({ fillOpacity: datum.growthRate / 24 }),
+            itemStyler: ({ datum }) => ({ fillOpacity: datum.growthRate / 24 }),
             label: { enabled: true },
         },
     ],

@@ -1,8 +1,9 @@
 import { afterEach, beforeEach, describe, expect, test } from '@jest/globals';
 import { fail } from 'assert';
 
+import type { AgCartesianChartOptions, AgChartTheme, AgPolarChartOptions } from 'ag-charts-types';
+
 import { AgCharts } from '../../api/agCharts';
-import type { AgCartesianChartOptions, AgChartTheme, AgPolarChartOptions } from '../../options/agChartOptions';
 import { CartesianChart } from '../cartesianChart';
 import { PolarChart } from '../polarChart';
 import type { AreaSeries } from '../series/cartesian/areaSeries';
@@ -76,7 +77,7 @@ describe('ChartTheme', () => {
                 area: {
                     series: {
                         marker: {
-                            formatter: markerFormatter,
+                            itemStyler: markerFormatter,
                         },
                     },
                 },
@@ -206,7 +207,7 @@ describe('ChartTheme', () => {
                 expect(chart.series[i].type).toBe('area');
                 expect((chart.series[i] as unknown as AreaSeries).properties.fill).toEqual(areaFills[i - 5]);
                 expect((chart.series[i] as unknown as AreaSeries).properties.stroke).toEqual(areaStrokes[i - 5]);
-                expect((chart.series[i] as unknown as AreaSeries).properties.marker.formatter).toBe(markerFormatter);
+                expect((chart.series[i] as unknown as AreaSeries).properties.marker.itemStyler).toBe(markerFormatter);
             }
         });
     });

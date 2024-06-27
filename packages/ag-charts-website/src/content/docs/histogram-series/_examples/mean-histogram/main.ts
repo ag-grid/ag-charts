@@ -23,7 +23,7 @@ const options: AgChartOptions = {
             type: 'number',
             position: 'bottom',
             title: { text: 'Age band (years)' },
-            interval: 2,
+            interval: { step: 2 },
         },
         {
             type: 'number',

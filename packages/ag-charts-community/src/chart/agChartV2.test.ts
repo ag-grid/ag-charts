@@ -1,12 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
 
+import type { AgCartesianAxisOptions, AgCartesianChartOptions, AgChartInstance, AgChartOptions } from 'ag-charts-types';
+
 import { AgCharts } from '../api/agCharts';
-import type {
-    AgCartesianAxisOptions,
-    AgCartesianChartOptions,
-    AgChartInstance,
-    AgChartOptions,
-} from '../options/agChartOptions';
 import * as examples from './test/examples';
 import type { TestCase } from './test/utils';
 import {

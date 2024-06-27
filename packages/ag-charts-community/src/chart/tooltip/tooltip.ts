@@ -1,4 +1,5 @@
-import type { AgTooltipRendererResult, InteractionRange, TextWrap } from '../../options/agChartOptions';
+import type { AgTooltipRendererResult, InteractionRange, TextWrap } from 'ag-charts-types';
+
 import { setAttribute } from '../../util/attributeUtil';
 import { getWindow } from '../../util/dom';
 import { clamp } from '../../util/number';
@@ -34,7 +35,7 @@ type TooltipPositionType =
     | 'bottom-right'
     | 'bottom-left';
 
-export type TooltipEventType = 'hover' | 'keyboard';
+export type TooltipEventType = 'hover' | 'drag' | 'keyboard';
 export type TooltipPointerEvent<T extends TooltipEventType> = PointerOffsets & {
     type: T;
     relatedElement?: HTMLElement;
@@ -70,7 +71,7 @@ function toAccessibleText(inputHtml: string): string {
         .replace(/<br\s*\/?>/g, lineConverter)
         .replace(/<\/p\s+>/g, lineConverter)
         .replace(/<\/li\s*>/g, lineConverter)
-        .replace(/<[^>]+>/g, '')
+        .replace(/<[^<>]+>/g, '')
         .replace(/\n+/g, ' ')
         .replace(/\s+/g, ' ');
 }

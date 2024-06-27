@@ -1,11 +1,15 @@
-import type { Direction, _Scene } from 'ag-charts-community';
+import { _ModuleSupport, type _Scene, _Util } from 'ag-charts-community';
 
-import type { Coords, Scale, UpdateContext, ValidationContext } from '../annotationTypes';
-import { invertCoords, validateDatumPoint } from '../annotationUtils';
+import type { AnnotationAxisContext, AnnotationContext, Coords, LineCoords } from '../annotationTypes';
+import { convert, invertCoords, validateDatumPoint } from '../annotationUtils';
 import { Annotation } from '../scenes/annotation';
+import { AxisLabel } from '../scenes/axisLabel';
 import { UnivariantHandle } from '../scenes/handle';
 import { CollidableLine } from '../scenes/shapes';
-import type { CrossLineAnnotation } from './crossLineProperties';
+import { type CrossLineAnnotation, HorizontalLineAnnotation } from './crossLineProperties';
+
+const { Vec2 } = _Util;
+const { ChartAxisDirection } = _ModuleSupport;
 
 export class CrossLine extends Annotation {
     static override is(value: unknown): value is CrossLine {
@@ -18,23 +22,32 @@ export class CrossLine extends Annotation {
 
     private readonly line = new CollidableLine();
     private readonly middle = new UnivariantHandle();
+    private axisLabel?: AxisLabel;
 
     private seriesRect?: _Scene.BBox;
+    private dragState?: {
+        offset: Coords;
+        middle: Coords;
+    };
+    private isHorizontal = false;
 
     constructor() {
         super();
         this.append([this.line, this.middle]);
     }
 
-    public update(datum: CrossLineAnnotation, context: UpdateContext) {
+    public update(datum: CrossLineAnnotation, context: AnnotationContext) {
         const { line, middle } = this;
-        const { direction, locked, visible, lineDash, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
-        const { scaleX, scaleY, seriesRect } = context;
+        const { locked, visible, lineDash, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
+        const { seriesRect } = context;
 
         this.locked = locked ?? false;
         this.seriesRect = seriesRect;
 
-        const coords = this.convertCrossLine(datum, scaleX, scaleY);
+        this.isHorizontal = HorizontalLineAnnotation.is(datum);
+        const axisContext = this.isHorizontal ? context.yAxis : context.xAxis;
+
+        const coords = this.convertCrossLine(datum, axisContext);
 
         if (coords == null) {
             this.visible = false;
@@ -63,18 +76,68 @@ export class CrossLine extends Annotation {
             fill: datum.handle.fill,
             stroke: datum.handle.stroke ?? stroke,
             strokeOpacity: datum.handle.strokeOpacity ?? strokeOpacity,
+            strokeWidth: datum.handle.strokeWidth ?? strokeWidth,
         };
 
         const x = x1 + (x2 - x1) / 2;
         const y = y1 + (y2 - y1) / 2;
         const { width: handleWidth, height: handleHeight } = middle.handle;
-        middle.gradient = direction;
+        middle.gradient = this.isHorizontal ? 'horizontal' : 'vertical';
         middle.update({ ...handleStyles, x: x - handleWidth / 2, y: y - handleHeight / 2 });
+
+        middle.toggleLocked(this.locked);
+
+        this.updateAxisLabel(datum, axisContext, coords);
+    }
+
+    private createAxisLabel(context: AnnotationAxisContext) {
+        const axisLabel = new AxisLabel();
+        context.attachLabel(axisLabel);
+        return axisLabel;
+    }
+
+    private updateAxisLabel(
+        datum: CrossLineAnnotation,
+        axisContext: AnnotationAxisContext,
+        { x1, y1, x2, y2 }: LineCoords
+    ) {
+        if (!this.axisLabel) {
+            this.axisLabel = this.createAxisLabel(axisContext);
+        }
+
+        const { axisLabel, seriesRect } = this;
+        if (datum.axisLabel.enabled) {
+            axisLabel.visible = this.visible;
+
+            const [labelX, labelY] =
+                axisContext.position === 'left' || axisContext.position === 'top' ? [x1, y1] : [x2, y2];
+
+            const labelPosition = axisContext.direction === ChartAxisDirection.X ? labelX : labelY;
+            if (!axisContext.inRange(labelPosition)) {
+                axisLabel.visible = false;
+                return;
+            }
+
+            axisLabel.update({
+                x: labelX + (seriesRect?.x ?? 0),
+                y: labelY + (seriesRect?.y ?? 0),
+                value: datum.value,
+                styles: datum.axisLabel,
+                context: axisContext,
+            });
+        } else {
+            axisLabel.visible = false;
+        }
     }
 
     public toggleHandles(show: boolean) {
         this.middle.visible = show;
-        this.middle.toggleHovered(show);
+        this.middle.toggleHovered(this.activeHandle === 'middle');
+    }
+
+    public override destroy(): void {
+        super.destroy();
+        this.axisLabel?.destroy();
     }
 
     public toggleActive(active: boolean) {
@@ -82,22 +145,42 @@ export class CrossLine extends Annotation {
         this.middle.toggleActive(active);
     }
 
-    override dragHandle(datum: CrossLineAnnotation, target: Coords, context: ValidationContext, onInvalid: () => void) {
-        const { activeHandle } = this;
+    public dragStart(datum: CrossLineAnnotation, target: Coords, context: AnnotationContext) {
+        const middle = HorizontalLineAnnotation.is(datum)
+            ? { x: target.x, y: convert(datum.value, context.yAxis) }
+            : { x: convert(datum.value, context.xAxis), y: target.y };
 
-        if (!activeHandle || datum.value == null) return;
+        this.dragState = {
+            offset: target,
+            middle,
+        };
+    }
 
-        const { direction } = datum;
-        this[activeHandle].toggleDragging(true);
-        const point = invertCoords(this[activeHandle].drag(target).point, context.scaleX, context.scaleY);
+    public drag(datum: CrossLineAnnotation, target: Coords, context: AnnotationContext, onInvalid: () => void) {
+        const { activeHandle, dragState, locked } = this;
+
+        if (locked) return;
+
+        let coords;
+
+        if (activeHandle) {
+            this[activeHandle].toggleDragging(true);
+            coords = this[activeHandle].drag(target).point;
+        } else if (dragState) {
+            coords = Vec2.add(dragState.middle, Vec2.sub(target, dragState.offset));
+        } else {
+            return;
+        }
+
+        const point = invertCoords(coords, context);
 
         if (!validateDatumPoint(context, point)) {
             onInvalid();
             return;
         }
 
-        const horizontal = direction === 'horizontal';
-        datum?.set({ value: horizontal ? point.y : point.x });
+        const isHorizontal = HorizontalLineAnnotation.is(datum);
+        datum.set({ value: isHorizontal ? point.y : point.x });
     }
 
     override stopDragging() {
@@ -126,38 +209,42 @@ export class CrossLine extends Annotation {
     }
 
     override getAnchor() {
-        const bbox = this.getCachedBBox();
-        return { x: bbox.x + bbox.width / 2, y: bbox.y };
+        let bbox = this.getCachedBBox();
+
+        // Since crosslines are created in a single click, the anchor is required before their first render and
+        // caching of the bbox. So force a computation of it here.
+        if (bbox.width === 0 && bbox.height === 0) {
+            bbox = this.computeBBox();
+        }
+
+        if (this.isHorizontal) {
+            return { x: bbox.x + bbox.width / 2, y: bbox.y };
+        }
+
+        return { x: bbox.x + bbox.width, y: bbox.y + bbox.height / 2, position: 'above' };
     }
 
-    private convertCrossLine(
-        datum: { value?: string | number | Date; direction: Direction },
-        scaleX?: Scale,
-        scaleY?: Scale
-    ) {
+    private convertCrossLine(datum: CrossLineAnnotation, context: AnnotationAxisContext) {
         if (datum.value == null) return;
-
-        if (!scaleX || !scaleY) return;
 
         let x1 = 0;
         let x2 = 0;
         let y1 = 0;
         let y2 = 0;
 
-        if (datum.direction === 'vertical') {
-            const scaledValue = scaleX.convert(datum.value);
-            const yDomain = scaleY.getDomain?.() ?? [0, 0];
-            x1 = scaledValue;
-            x2 = scaledValue;
-            y1 = scaleY.convert(yDomain[0]);
-            y2 = scaleY.convert(yDomain.at(-1));
-        } else {
-            const scaledValue = scaleY.convert(datum.value);
-            const xDomain = scaleX.getDomain?.() ?? [0, 0];
-            x1 = scaleX.convert(xDomain[0]);
-            x2 = scaleX.convert(xDomain.at(-1));
+        const { bounds, scaleConvert, scaleBandwidth } = context;
+        const halfBandwidth = (scaleBandwidth() ?? 0) / 2;
+
+        if (HorizontalLineAnnotation.is(datum)) {
+            const scaledValue = scaleConvert(datum.value) + halfBandwidth;
+            x2 = bounds.width;
             y1 = scaledValue;
             y2 = scaledValue;
+        } else {
+            const scaledValue = scaleConvert(datum.value) + halfBandwidth;
+            x1 = scaledValue;
+            x2 = scaledValue;
+            y2 = bounds.height;
         }
 
         return { x1, y1, x2, y2 };

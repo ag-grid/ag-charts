@@ -13,6 +13,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
     identifier: 'area',
     instanceConstructor: AreaSeries,
     stackable: true,
+    tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,
@@ -39,8 +40,8 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
                 yOffset: 3,
                 blur: 5,
             },
-            line: {
-                style: 'linear',
+            interpolation: {
+                type: 'linear',
                 // @ts-expect-error - users shouldn't specify all options, but we have to for theming to work
                 tension: 1,
                 position: 'end',

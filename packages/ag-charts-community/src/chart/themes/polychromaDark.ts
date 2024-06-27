@@ -1,14 +1,10 @@
-import type { AgChartThemePalette } from '../../options/agChartOptions';
+import type { AgChartThemePalette } from 'ag-charts-types';
+
 import { DarkTheme } from './darkTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_ANNOTATION_STROKE,
-    DEFAULT_COLOURS,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
-    DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
-    DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
-    DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
-    DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
 } from './symbols';
 
 const POLYCHROMA_DARK_FILLS = {
@@ -46,59 +42,22 @@ const palette: AgChartThemePalette = {
 };
 
 export class PolychromaDark extends DarkTheme {
-    protected static override getDefaultColors() {
+    override getDefaultColors() {
         return {
             fills: POLYCHROMA_DARK_FILLS,
             strokes: POLYCHROMA_DARK_STROKES,
-        };
-    }
-
-    protected static override getWaterfallSeriesDefaultPositiveColors() {
-        return {
-            fill: POLYCHROMA_DARK_FILLS.BLUE,
-            stroke: POLYCHROMA_DARK_STROKES.BLUE,
-            label: {
-                color: 'white',
-            },
-        };
-    }
-
-    protected static override getWaterfallSeriesDefaultNegativeColors() {
-        return {
-            fill: POLYCHROMA_DARK_FILLS.RED,
-            stroke: POLYCHROMA_DARK_STROKES.RED,
-            label: {
-                color: 'white',
-            },
-        };
-    }
-
-    protected static override getWaterfallSeriesDefaultTotalColors() {
-        return {
-            fill: POLYCHROMA_DARK_FILL_GRAY,
-            stroke: POLYCHROMA_DARK_STROKE_GRAY,
-            label: {
-                color: 'white',
-            },
+            up: { fill: POLYCHROMA_DARK_FILLS.BLUE, stroke: POLYCHROMA_DARK_STROKES.BLUE },
+            down: { fill: POLYCHROMA_DARK_FILLS.RED, stroke: POLYCHROMA_DARK_STROKES.RED },
+            neutral: { fill: POLYCHROMA_DARK_FILL_GRAY, stroke: POLYCHROMA_DARK_STROKE_GRAY },
         };
     }
 
     override getTemplateParameters() {
         const params = super.getTemplateParameters();
 
-        params.set(DEFAULT_COLOURS, PolychromaDark.getDefaultColors());
-        params.set(DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS, PolychromaDark.getWaterfallSeriesDefaultPositiveColors());
-        params.set(DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS, PolychromaDark.getWaterfallSeriesDefaultNegativeColors());
-        params.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, PolychromaDark.getWaterfallSeriesDefaultTotalColors());
-
         params.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [POLYCHROMA_DARK_FILLS.BLUE, POLYCHROMA_DARK_FILLS.RED]);
 
-        params.set(
-            DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
-            PolychromaDark.getWaterfallSeriesDefaultTotalColors().stroke
-        );
-
-        params.set(DEFAULT_ANNOTATION_STROKE, POLYCHROMA_DARK_STROKES.BLUE);
+        params.set(DEFAULT_ANNOTATION_STROKE, POLYCHROMA_DARK_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, POLYCHROMA_DARK_FILLS.BLUE);
 
         return params;

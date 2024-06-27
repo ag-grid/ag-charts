@@ -1,3 +1,5 @@
+import type { AgChartInstance, AgChartOptions, AgFinancialChartOptions } from 'ag-charts-types';
+
 import { CartesianChart } from '../chart/cartesianChart';
 import { Chart, type ChartExtendedOptions } from '../chart/chart';
 import { AgChartInstanceProxy, type FactoryApi } from '../chart/chartProxy';
@@ -12,18 +14,17 @@ import {
     isAgPolarChartOptions,
     isAgTopologyChartOptions,
 } from '../chart/mapping/types';
-import { MementoCaretaker } from '../chart/memento';
 import { PolarChart } from '../chart/polarChart';
 import { TopologyChart } from '../chart/topologyChart';
 import type { LicenseManager } from '../module/enterpriseModule';
 import { enterpriseModule } from '../module/enterpriseModule';
 import { ChartOptions } from '../module/optionsModule';
-import type { AgChartInstance, AgChartOptions, AgFinancialChartOptions } from '../options/agChartOptions';
 import { Debug } from '../util/debug';
 import { deepClone, jsonWalk } from '../util/json';
 import { mergeDefaults } from '../util/object';
 import type { DeepPartial } from '../util/types';
 import { VERSION } from '../version';
+import { MementoCaretaker } from './state/memento';
 
 const debug = Debug.create(true, 'opts');
 
@@ -64,7 +65,7 @@ export abstract class AgCharts {
     }
 
     /** @private - for use by Charts website dark-mode support. */
-    static optionsMutationFn?: (opts: AgChartOptions) => AgChartOptions;
+    static optionsMutationFn?: (opts: AgChartOptions, preset?: string) => AgChartOptions;
 
     public static setLicenseKey(licenseKey: string) {
         this.licenseKey = licenseKey;
@@ -98,8 +99,11 @@ export abstract class AgCharts {
         return chart as unknown as AgChartInstance<O>;
     }
 
-    public static createFinancialChart(opts: AgFinancialChartOptions) {
-        return this.create<AgFinancialChartOptions>(opts);
+    public static createFinancialChart(options: AgFinancialChartOptions) {
+        return this.create({
+            _type: 'price-volume',
+            ...options,
+        } as AgChartOptions) as unknown as AgChartInstance<AgFinancialChartOptions>;
     }
 }
 
@@ -135,16 +139,26 @@ class AgChartsInternal {
         AgChartsInternal.initialiseModules();
 
         debug('>>> AgCharts.createOrUpdate() user options', options);
+
+        const defaultType = proxy?.chart.chartOptions.type;
+        const { _type = defaultType, ...otherOptions } = options;
+
+        let mutableOptions = otherOptions;
         if (AgCharts.optionsMutationFn) {
-            options = AgCharts.optionsMutationFn(options);
+            mutableOptions = AgCharts.optionsMutationFn(mutableOptions, _type);
             debug('>>> AgCharts.createOrUpdate() MUTATED user options', options);
         }
 
-        const { overrideDevicePixelRatio, document, window: userWindow, ...userOptions } = options;
-        const chartOptions = new ChartOptions(userOptions, { overrideDevicePixelRatio, document, window: userWindow });
+        const { overrideDevicePixelRatio, document, window: userWindow, ...userOptions } = mutableOptions;
+        const chartOptions = new ChartOptions(userOptions, {
+            overrideDevicePixelRatio,
+            document,
+            window: userWindow,
+            type: _type,
+        });
 
         let chart = proxy?.chart;
-        if (chart == null || chartType(userOptions) !== chartType(chart.processedOptions)) {
+        if (chart == null || chartType(userOptions) !== chartType(chart?.chartOptions.processedOptions)) {
             chart = AgChartsInternal.createChartInstance(chartOptions, chart);
         }
 
@@ -166,6 +180,7 @@ class AgChartsInternal {
             // so we need to remove all queue items up to the last successfully applied item.
             const queueIdx = chartRef.queuedUserOptions.indexOf(userOptions) + 1;
             chartRef.queuedUserOptions.splice(0, queueIdx);
+            chartRef.applyInitialState();
         });
 
         return proxy;

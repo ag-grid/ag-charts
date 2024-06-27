@@ -2,6 +2,12 @@
 
 .docsPageHeader {
     position: relative;
+
+    :global(.largeExamples) & {
+        @media screen and (min-width: $breakpoint-docs-nav-large) {
+            width: calc(139% - 40px);
+        }
+    }
 }
 
 .docsPageTitle {

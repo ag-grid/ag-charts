@@ -2,9 +2,9 @@ name: CI
 
 on:
     push:
-        branches: [latest, b9.3.0]
+        branches: [latest, b9.3.0, b10.0.0]
     pull_request:
-        branches: [latest, b9.3.0]
+        branches: [latest, b9.3.0, b10.0.0]
     workflow_dispatch:
         inputs:
             clean_checkout:
@@ -47,21 +47,21 @@ jobs:
         steps:
             - id: init_format
               name: Update Status (format)
-              uses: LouisBrunner/checks-action@v1.6.1
+              uses: LouisBrunner/checks-action@v2.0.0
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   name: format
                   status: queued
             - id: init_lint
               name: Update Status (lint)
-              uses: LouisBrunner/checks-action@v1.6.1
+              uses: LouisBrunner/checks-action@v2.0.0
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   name: lint
                   status: queued
             - id: init_build
               name: Update Status (build)
-              uses: LouisBrunner/checks-action@v1.6.1
+              uses: LouisBrunner/checks-action@v2.0.0
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   name: build
@@ -84,7 +84,7 @@ jobs:
                     echo "NX_BASE=latest-success" >> $GITHUB_ENV
                     echo "type=latest" >> $GITHUB_OUTPUT
                     git fetch origin latest-success
-                  elif [[ ${branch} =~ 'b[0-9]\..+' ]] ; then
+                  elif [[ ${branch} =~ 'b[0-9][0-9]\..+' ]] ; then
                     # Release
                     echo "base=${branch}" >> $GITHUB_OUTPUT
                     echo "NX_BASE=${branch}" >> $GITHUB_ENV
@@ -151,7 +151,7 @@ jobs:
                     yarn nx format:check --base ${{ steps.nx_config.outputs.base }}
                   fi
             - name: Update Status (format)
-              uses: LouisBrunner/checks-action@v1.6.1
+              uses: LouisBrunner/checks-action@v2.0.0
               if: always()
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
@@ -169,12 +169,12 @@ jobs:
               env:
                   ESLINT_PLUGIN_DIFF_COMMIT: ${{ github.event.pull_request.base.ref }}
             - name: Update Status (lint)
-              uses: LouisBrunner/checks-action@v1.6.1
+              uses: LouisBrunner/checks-action@v2.0.0
               if: always()
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   check_id: ${{ steps.init_lint.outputs.check_id }}
-                  conclusion: ${{ steps.nx_config.type != 'pr' && steps.lint.outcome || steps.lint_diff.outcome }}
+                  conclusion: ${{ steps.nx_config.type == 'pr' && steps.lint_diff.outcome || steps.lint.outcome }}
 
             - name: nx build
               id: build
@@ -194,7 +194,7 @@ jobs:
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t validate-examples --parallel=3 --exclude all
 
             - name: Update Status (build)
-              uses: LouisBrunner/checks-action@v1.6.1
+              uses: LouisBrunner/checks-action@v2.0.0
               if: always()
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
@@ -222,7 +222,7 @@ jobs:
         if: needs.execute_blt.outputs.test_count > 0
         strategy:
             matrix:
-                shard: [0, 1, 2, 3, 4]
+                shard: [0, 1, 2, 3, 4, 5, 6, 7, 8]
         name: test (${{ matrix.shard }}/${{ strategy.job-total }})
         env:
             NX_PARALLEL: 1
@@ -268,11 +268,19 @@ jobs:
             - name: nx test
               if: matrix.shard != 0
               id: test
-              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t test --configuration=ci --exclude all --shard=${{ matrix.shard }}/$((${{ strategy.job-total }} - 1))
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t test --configuration=ci --exclude tag:no-sharding --exclude all --shard=${{ matrix.shard }}/$((${{ strategy.job-total }} - 1))
+            - name: nx test (non-sharded)
+              if: matrix.shard == 0
+              id: test-no-shard
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t test --configuration=ci --exclude '*,!tag:no-sharding'
             - name: nx benchmark
               if: matrix.shard == 0
               id: benchmark
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t benchmark --configuration=ci --exclude all
+            - name: nx pack:verify
+              if: matrix.shard == 0
+              id: pack-verify
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t pack:verify
             - name: Perist test results
               if: always()
               uses: actions/upload-artifact@v4
@@ -383,6 +391,12 @@ jobs:
                       *Changes:*
 
                       ${{ env.GIT_LOG }}
+
+            - name: Kick-off E2E tests
+              if: needs.test.result == 'success'
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: gh workflow run e2e.yml --ref ${{github.head_ref || github.ref}}
 
     sonarqube:
         runs-on: ubuntu-24.04

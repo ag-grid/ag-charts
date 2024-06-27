@@ -8,6 +8,16 @@
     #{$selector-darkmode} & {
         --example-border-color: color-mix(in srgb, var(--color-bg-primary), white 10%);
     }
+
+    :global(.largeExamples) & {
+        @media screen and (min-width: $breakpoint-docs-nav-large) {
+            width: calc(139% - 40px);
+
+            > div > div {
+                height: 640px !important;
+            }
+        }
+    }
 }
 
 iframe {

@@ -1,6 +1,6 @@
 import { convertTemplate, getImport } from './angular-utils';
 import { wrapOptionsUpdateCode } from './chart-utils';
-import { addBindingImports, convertFunctionToProperty, isInstanceMethod } from './parser-utils';
+import { addBindingImports, convertFunctionToProperty, isFinancialCharts, isInstanceMethod } from './parser-utils';
 import { toKebabCase, toTitleCase } from './string-utils';
 
 export function processFunction(code: string): string {
@@ -9,10 +9,14 @@ export function processFunction(code: string): string {
 
 function getImports(bindings, componentFileNames: string[], { typeParts }): string[] {
     const {
-        imports: bImports = [],
         chartSettings: { enterprise = false },
     } = bindings;
 
+    const type = isFinancialCharts(bindings) ? 'AgFinancialCharts' : 'AgCharts';
+    const bImports = bindings.imports.map((i) => ({
+        ...i,
+        imports: i.imports.filter((imp) => imp !== 'AgCharts'),
+    }));
     bImports.push({
         module: enterprise ? `'ag-charts-enterprise'` : `'ag-charts-community'`,
         isNamespaced: false,
@@ -20,12 +24,16 @@ function getImports(bindings, componentFileNames: string[], { typeParts }): stri
     });
 
     const imports = [`import { Component${bindings.usesChartApi ? ', ViewChild' : ''} } from '@angular/core';`];
-    imports.push(`import { AgChartsAngular } from 'ag-charts-angular';`);
+    imports.push(`import { ${type} } from 'ag-charts-angular';`);
 
     addBindingImports([...bImports], imports, true, true);
 
     if (componentFileNames) {
         imports.push(...componentFileNames.map(getImport));
+    }
+
+    if (bindings.externalEventHandlers.length > 0 || bindings.instanceMethods.length > 0) {
+        imports.push(`import deepClone from 'deepclone';`);
     }
 
     return imports;
@@ -45,16 +53,28 @@ function getComponentMetadata(bindings: any, property: any) {
     return { propertyAttributes, propertyVars, propertyAssignments };
 }
 
-function getAngularTag(attributes: string[]) {
-    return `<ag-charts-angular
-        style="height: 100%;"
+function getAngularTag(bindings: any, attributes: string[]) {
+    const tag = isFinancialCharts(bindings) ? 'ag-financial-charts' : 'ag-charts';
+    return `<${tag}
         ${attributes.join(`
         `)}
-    ></ag-charts-angular>`;
+    ></${tag}>`;
 }
 
-function getTemplate(bindings: any, attributes: string[]): string {
-    const agChartTag = getAngularTag(attributes);
+function getTemplate(bindings: any, id: string, attributes: string[]): string {
+    attributes = [...attributes];
+
+    Object.entries(bindings.chartAttributes[id]).forEach(([key, value]) => {
+        if (key === 'style') {
+            attributes.push(`style=${JSON.stringify(value as any)}`);
+        } else if (key === 'class') {
+            attributes.push(`class=${JSON.stringify(value as any)}`);
+        } else {
+            throw new Error(`Unknown chart attribute: ${key}`);
+        }
+    });
+
+    const agChartTag = getAngularTag(bindings, attributes);
 
     let template = bindings.template ?? agChartTag;
     Object.values(bindings.placeholders).forEach((placeholder) => {
@@ -66,6 +86,7 @@ function getTemplate(bindings: any, attributes: string[]): string {
 
 export async function vanillaToAngular(bindings: any, componentFileNames: string[]): Promise<string> {
     const { properties, declarations, optionsTypeInfo } = bindings;
+    const type = isFinancialCharts(bindings) ? 'AgFinancialCharts' : 'AgCharts';
     const opsTypeInfo = optionsTypeInfo;
     const imports = getImports(bindings, componentFileNames, opsTypeInfo);
     const placeholders = Object.keys(bindings.placeholders);
@@ -75,7 +96,7 @@ export async function vanillaToAngular(bindings: any, componentFileNames: string
     if (placeholders.length <= 1) {
         const options = properties.find((p) => p.name === 'options');
         const { propertyAttributes, propertyAssignments, propertyVars } = getComponentMetadata(bindings, options);
-        const template = getTemplate(bindings, propertyAttributes);
+        const template = getTemplate(bindings, placeholders[0], propertyAttributes);
 
         const instanceMethods = bindings.instanceMethods.map(processFunction);
         const externalEventHandlers = bindings.externalEventHandlers.map((handler) => processFunction(handler.body));
@@ -87,7 +108,7 @@ export async function vanillaToAngular(bindings: any, componentFileNames: string
         @Component({
             selector: 'my-app',
             standalone: true,
-            imports: [AgChartsAngular],
+            imports: [${type}],
             template: \`${template}\`
         })
         export class AppComponent {
@@ -96,8 +117,8 @@ export async function vanillaToAngular(bindings: any, componentFileNames: string
 
             ${
                 bindings.usesChartApi
-                    ? `\n    @ViewChild(AgChartsAngular)
-            public agCharts!: AgChartsAngular;\n`
+                    ? `\n    @ViewChild(${type})
+            public agCharts!: ${type};\n`
                     : ''
             }
             constructor() {
@@ -126,7 +147,9 @@ export async function vanillaToAngular(bindings: any, componentFileNames: string
         let template = bindings.template.trim();
         Object.entries(bindings.placeholders).forEach(([id, placeholder]) => {
             const selector = toKebabCase(id);
-            const { style } = bindings.chartAttributes[id];
+            let { style } = bindings.chartAttributes[id];
+            // display: grid needed because Angular adds additional dom nodes compared to other frameworks
+            style = `display: grid; ${style}`.trim();
             template = template.replace(placeholder, `<${selector} style="${style}"></${selector}>`);
         });
 
@@ -145,14 +168,14 @@ export async function vanillaToAngular(bindings: any, componentFileNames: string
                 properties.find((p) => p.name === propertyName)
             );
 
-            const template = getAngularTag(propertyAttributes);
+            const template = getAngularTag(bindings, propertyAttributes);
 
             indexFile = `${indexFile}
 
             @Component({
                 selector: '${selector}',
                 standalone: true,
-                imports: [AgChartsAngular],
+                imports: [${type}],
                 template: \`${template}\`
             })
             class ${className} {

@@ -2,10 +2,13 @@ import type {
     AgBubbleSeriesLabelFormatterParams,
     AgBubbleSeriesOptions,
     AgBubbleSeriesOptionsKeys,
+    AgBubbleSeriesStyles,
     AgBubbleSeriesTooltipRendererParams,
-    AgSeriesMarkerStyle,
+    BubbleSeriesItemStylerParams,
     LabelPlacement,
-} from '../../../options/agChartOptions';
+    Styler,
+} from 'ag-charts-types';
+
 import { RedrawType, SceneChangeDetection } from '../../../scene/changeDetectable';
 import type { SizedPoint } from '../../../scene/point';
 import type { MeasuredLabel } from '../../../scene/util/labelPlacement';
@@ -34,7 +37,7 @@ export interface BubbleNodeDatum extends CartesianSeriesNodeDatum {
     readonly fill: string | undefined;
 }
 
-class BubbleSeriesMarker extends SeriesMarker<AgBubbleSeriesOptionsKeys, BubbleNodeDatum> {
+class BubbleSeriesMarker extends SeriesMarker<AgBubbleSeriesOptionsKeys> {
     /**
      * The series `sizeKey` values along with the `size` and `maxSize` configs will be used to
      * determine the size of the marker. All values will be mapped to a marker size within the
@@ -122,8 +125,8 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     @ProxyProperty('marker.strokeOpacity')
     strokeOpacity!: number;
 
-    @ProxyProperty('marker.formatter', { optional: true })
-    formatter?: (params: any) => AgSeriesMarkerStyle | undefined;
+    @ProxyProperty('marker.itemStyler', { optional: true })
+    itemStyler?: Styler<BubbleSeriesItemStylerParams<unknown>, AgBubbleSeriesStyles>;
 
     @Validate(OBJECT)
     readonly label = new BubbleSeriesLabel();

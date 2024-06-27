@@ -3,7 +3,6 @@ import { AgChartOptions, AgChartTheme, AgCharts } from 'ag-charts-community';
 import { getData } from './data';
 
 var myTheme: AgChartTheme = {
-    baseTheme: 'ag-default',
     palette: {
         fills: ['#5C2983', '#0076C5', '#21B372', '#FDDE02', '#F76700', '#D30018'],
         strokes: ['gray'],

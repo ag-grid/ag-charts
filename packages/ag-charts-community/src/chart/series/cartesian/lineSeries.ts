@@ -1,8 +1,9 @@
+import type { AgErrorBoundSeriesTooltipRendererParams } from 'ag-charts-types';
+
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
-import type { AgErrorBoundSeriesTooltipRendererParams } from '../../../options/agChartOptions';
 import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
@@ -62,7 +63,6 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
             directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
             hasMarkers: true,
-            defaultTooltipRange: 'nearest',
             pickModes: [
                 SeriesNodePickMode.NEAREST_BY_MAIN_CATEGORY_AXIS_FIRST,
                 SeriesNodePickMode.NEAREST_NODE,
@@ -496,12 +496,13 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
     }
 
     private updateLinePaths(paths: Path[], contextData: CartesianSeriesNodeDataContext<LineNodeDatum>) {
+        const { interpolation } = this.properties;
         const { nodeData } = contextData;
         const [lineNode] = paths;
 
         lineNode.path.clear(true);
         for (const range of pathRanges(nodeData)) {
-            plotPath(pathRangePoints(nodeData, range), lineNode, this.properties.line);
+            plotPath(pathRangePoints(nodeData, range), lineNode, interpolation);
         }
         lineNode.checkPathDirty();
     }
@@ -562,7 +563,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             contextData,
             previousContextData,
             this.processedData?.reduced?.diff,
-            this.properties.line
+            this.properties.interpolation
         );
         if (fns === undefined) {
             skip();

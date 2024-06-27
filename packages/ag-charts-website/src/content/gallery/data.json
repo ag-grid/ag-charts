@@ -678,6 +678,11 @@
                         "title": "Sankey",
                         "description": "",
                         "name": "sankey"
+                    },
+                    {
+                        "title": "Sankey Customisation",
+                        "description": "",
+                        "name": "sankey-customisation"
                     }
                 ]
             }

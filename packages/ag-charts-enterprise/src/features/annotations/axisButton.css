@@ -1,0 +1,37 @@
+.ag-charts-annotations__axis-button-wrapper {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    user-select: none;
+    font:
+        16px Verdana,
+        sans-serif;
+    overflow: hidden;
+    white-space: nowrap;
+    z-index: var(--ag-charts-layer-annotations);
+    box-sizing: border-box;
+}
+
+.ag-charts-annotations__axis-button-wrapper--hidden {
+    display: none;
+}
+
+.ag-charts-annotations__axis-button {
+    cursor: pointer;
+    padding: 2px;
+    border: none;
+    border-radius: 2px;
+    line-height: 16px;
+    background-color: var(--ag-charts-axis-label-background-color);
+    color: var(--ag-charts-axis-label-color);
+}
+
+.ag-charts-annotations__axis-button-icon {
+    height: 1.2em;
+    width: 1.2em;
+}
+
+.ag-charts-annotations__axis-button:hover {
+    opacity: 0.8;
+    color: var(--ag-charts-axis-label-color);
+}

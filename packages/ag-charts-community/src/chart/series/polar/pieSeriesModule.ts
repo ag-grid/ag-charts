@@ -10,6 +10,7 @@ export const PieSeriesModule: SeriesModule<'pie'> = {
 
     identifier: 'pie',
     instanceConstructor: PieSeries,
+    tooltipDefaults: { range: 'exact' },
     themeTemplate: pieTheme,
     paletteFactory: piePaletteFactory,
 };

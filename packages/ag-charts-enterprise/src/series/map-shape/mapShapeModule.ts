@@ -18,6 +18,7 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
 
     identifier: 'map-shape',
     instanceConstructor: MapShapeSeries,
+    tooltipDefaults: { range: 'exact' },
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
@@ -41,7 +42,7 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
         return {
             fill,
             stroke: themeTemplateParameters.get(DEFAULT_BACKGROUND_COLOUR) as string,
-            colorRange: userPalette ? [fills[0], fills[1]] : defaultColorRange,
+            colorRange: userPalette === 'inbuilt' ? defaultColorRange : [fills[0], fills[1]],
         };
     },
 };

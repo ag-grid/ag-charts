@@ -67,7 +67,9 @@ const options: AgCartesianChartOptions = {
             nice: false,
             min: new Date(2004, 0, 1),
             max: new Date(2020, 0, 1),
-            maxSpacing: 200,
+            interval: {
+                maxSpacing: 200,
+            },
         },
         {
             type: 'number',

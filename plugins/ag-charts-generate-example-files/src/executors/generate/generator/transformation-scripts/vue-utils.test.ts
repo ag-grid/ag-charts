@@ -90,7 +90,7 @@ describe('indentTemplate', () => {
                         <button v-on:click="changeSeriesArea()">Area</button>
                         <button v-on:click="changeSeriesPie()">Pie</button>
                     </div>
-                    <ag-charts-vue
+                    <ag-charts
                         ref="agCharts"
                         :options="options"
                     />
@@ -108,7 +108,7 @@ describe('indentTemplate', () => {
                     <button v-on:click="changeSeriesArea()">Area</button>
                     <button v-on:click="changeSeriesPie()">Pie</button>
                 </div>
-                <ag-charts-vue
+                <ag-charts
                     ref="agCharts"
                     :options="options"
                 />

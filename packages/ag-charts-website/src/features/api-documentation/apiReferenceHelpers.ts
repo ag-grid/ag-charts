@@ -3,10 +3,12 @@ import type {
     ApiReferenceNode,
     ApiReferenceType,
     EnumNode,
+    FunctionNode,
     InterfaceNode,
     MemberNode,
     TypeLiteralNode,
     TypeNode,
+    TypeParameterNode,
 } from '@generate-code-reference-plugin/doc-interfaces/types';
 
 type PossibleTypeNode = TypeNode | undefined | PossibleTypeNode[];
@@ -43,6 +45,7 @@ const hiddenInterfaces = [
     'Ratio',
     'Degree',
     'DurationMs',
+    'TimeInterval',
 ];
 
 export function cleanupName(name: string) {
@@ -58,18 +61,25 @@ export function getMemberType(member: MemberNode): string {
         if ('type' in member.type && typeof member.type.type === 'string') {
             return member.type.type;
         }
+        if (
+            member.type.kind === 'array' &&
+            typeof member.type.type === 'object' &&
+            member.type.type.kind === 'typeRef'
+        ) {
+            return member.type.type.type;
+        }
         return member.type.kind;
     }
     return member.type;
 }
 
-export function normalizeType(refType: TypeNode, includeGenerics?: boolean): string {
+export function normalizeType(refType: TypeNode): string {
     if (typeof refType === 'string') {
         return refType;
     }
     switch (refType.kind) {
         case 'array':
-            return `${normalizeType(refType.type, includeGenerics)}[]`;
+            return `${normalizeType(refType.type)}[]`;
         case 'typeRef':
             return refType.type;
         case 'union':
@@ -91,10 +101,23 @@ export function normalizeType(refType: TypeNode, includeGenerics?: boolean): str
     }
 }
 
-export function processMembers(interfaceRef: InterfaceNode | TypeLiteralNode | EnumNode, config: ApiReferenceConfig) {
+export function processMembers(
+    interfaceRef: InterfaceNode | TypeLiteralNode | EnumNode,
+    config: ApiReferenceConfig,
+    typeArguments?: string[]
+) {
     let { members } = interfaceRef;
     const { prioritise, include, exclude } = config;
     const isInterface = interfaceRef.kind === 'interface';
+    const genericsMap = new Map(isInterface ? Object.entries(interfaceRef.genericsMap ?? {}) : null);
+    if (isInterface && interfaceRef.typeParams) {
+        for (const [i, typeParam] of interfaceRef.typeParams.entries()) {
+            genericsMap.set(
+                typeParam.name,
+                normalizeType(typeArguments?.[i] ?? typeParam.default ?? typeParam.constraint ?? typeParam.name)
+            );
+        }
+    }
     if (include?.length || exclude?.length) {
         members = members.filter(
             (member) => !exclude?.includes(member.name) && (include?.includes(member.name) ?? true)
@@ -104,15 +127,19 @@ export function processMembers(interfaceRef: InterfaceNode | TypeLiteralNode | E
         return members.sort((a, b) => (prioritise.includes(a.name) ? -1 : prioritise.includes(b.name) ? 1 : 0));
     }
     return members.map((member) => {
-        const memberType = normalizeType(member.type);
-        if (isInterface && interfaceRef.genericsMap?.[memberType]) {
-            return { ...member, type: interfaceRef.genericsMap?.[memberType] };
+        if (isInterface) {
+            const memberType = normalizeType(member.type);
+            return genericsMap.has(memberType) ? { ...member, type: genericsMap.get(memberType) } : member;
         }
         return member;
     });
 }
 
-export function formatTypeToCode(apiNode: ApiReferenceNode | MemberNode, reference: ApiReferenceType): string {
+export function formatTypeToCode(
+    apiNode: ApiReferenceNode | MemberNode,
+    member: MemberNode,
+    reference: ApiReferenceType
+): string {
     if (apiNode.kind === 'interface') {
         return `interface ${apiNode.name} {\n    ${apiNode.members
             .map((member) => {
@@ -128,6 +155,10 @@ export function formatTypeToCode(apiNode: ApiReferenceNode | MemberNode, referen
             .join('\n    ')}\n}`;
     }
 
+    if (apiNode.kind === 'typeAlias' && typeof apiNode.type === 'object' && apiNode.type.kind === 'function') {
+        return formatFunctionCode(member.name, apiNode.type, member, reference);
+    }
+
     if (apiNode.kind === 'typeAlias') {
         let nodeType = normalizeType(apiNode.type);
         if (typeof apiNode.type === 'object' && apiNode.type.kind === 'union') {
@@ -137,7 +168,7 @@ export function formatTypeToCode(apiNode: ApiReferenceNode | MemberNode, referen
                     apiNode.type.type
                         .map((type) => {
                             if (typeof type === 'string' && reference.has(type) && !hiddenInterfaces.includes(type)) {
-                                return formatTypeToCode(reference.get(type)!, reference);
+                                return formatTypeToCode(reference.get(type)!, member, reference);
                             }
                         })
                         .filter(<T>(x: T | undefined): x is T => Boolean(x))
@@ -159,33 +190,7 @@ export function formatTypeToCode(apiNode: ApiReferenceNode | MemberNode, referen
         }
 
         if (apiNode.type.kind === 'function') {
-            const additionalTypes = apiNode.type.params
-                ?.map((param) => param.type)
-                .concat(apiNode.type.returnType)
-                .flatMap(function typeMapper(type): PossibleTypeNode {
-                    if (typeof type === 'string') {
-                        return reference.get(type);
-                    }
-                    if (type.kind === 'typeRef') {
-                        return reference.get(type.type);
-                    }
-                    if (type.kind === 'union' || type.kind === 'intersection') {
-                        return type.type.map(typeMapper);
-                    }
-                    // eslint-disable-next-line no-console
-                    console.warn('Unknown type', type);
-                })
-                .filter((t): t is Exclude<TypeNode, string> => Boolean(t));
-
-            const params = apiNode.type.params
-                ?.map((param) => `${param.name}: ${normalizeType(param.type)}`)
-                .join(', ');
-
-            const codeSample = `function ${apiNode.name}(${params ?? ''}): ${normalizeType(apiNode.type.returnType)};`;
-
-            return additionalTypes
-                ? [codeSample].concat(additionalTypes.map((type) => formatTypeToCode(type, reference))).join('\n\n')
-                : codeSample;
+            return formatFunctionCode(apiNode.name, apiNode.type, member, reference);
         }
     }
 
@@ -194,10 +199,60 @@ export function formatTypeToCode(apiNode: ApiReferenceNode | MemberNode, referen
     return '';
 }
 
+function formatFunctionCode(name: string, apiNode: FunctionNode, member: MemberNode, reference: ApiReferenceType) {
+    if (typeof member.type === 'object' && member.type.kind === 'typeRef' && member.type.typeArguments) {
+        const { type, typeArguments } = member.type;
+        const typeParams: TypeParameterNode[] = (reference.get(type) as any)?.typeParams;
+        if (typeParams) {
+            apiNode.params = apiNode.params?.map((nodeParam) => {
+                const genericValue = typeArguments[typeParams.findIndex((param) => param.name === nodeParam.type)];
+                return genericValue ? { ...nodeParam, type: genericValue } : nodeParam;
+            });
+
+            if (typeof apiNode.returnType === 'object' && apiNode.returnType.kind === 'union') {
+                apiNode.returnType.type = apiNode.returnType.type.map(
+                    (type) => typeArguments[typeParams.findIndex((param) => param.name === type)] ?? type
+                );
+            } else {
+                apiNode.returnType =
+                    typeArguments[typeParams.findIndex((param) => param.name === apiNode.returnType)] ??
+                    apiNode.returnType;
+            }
+        }
+    }
+
+    const additionalTypes = apiNode.params
+        ?.map((param) => param.type)
+        .concat(apiNode.returnType)
+        .flatMap(function typeMapper(type): PossibleTypeNode {
+            if (typeof type === 'string') {
+                return reference.get(type);
+            }
+            if (type.kind === 'typeRef') {
+                return reference.get(type.type);
+            }
+            if (type.kind === 'union' || type.kind === 'intersection') {
+                return type.type.map(typeMapper);
+            }
+            // eslint-disable-next-line no-console
+            console.warn('Unknown type', type);
+        })
+        .filter((t): t is Exclude<TypeNode, string> => Boolean(t));
+
+    const params = apiNode.params?.map((param) => `${param.name}: ${normalizeType(param.type)}`).join(', ');
+
+    const codeSample = `function ${name}(${params ?? ''}): ${normalizeType(apiNode.returnType)};`;
+
+    return additionalTypes
+        ? [codeSample].concat(additionalTypes.map((type) => formatTypeToCode(type, member, reference))).join('\n\n')
+        : codeSample;
+}
+
 export function getNavigationDataFromPath([basePath, ...path]: NavigationPath[], specialType?: SpecialTypesMap) {
+    const baseHash = `reference-${basePath.type}`;
     const data: NavigationData = {
         pathname: basePath.name,
-        hash: `reference-${basePath.type}`,
+        hash: baseHash,
         pageTitle: { name: basePath.type },
         pageInterface: basePath.type,
     };
@@ -205,9 +260,19 @@ export function getNavigationDataFromPath([basePath, ...path]: NavigationPath[],
         if (specialType?.[item.type] === 'InterfaceArray') {
             const child = path.shift();
             if (child) {
-                data.pathname += `${item.name}/${child.name}/`;
+                if (data.hash.startsWith(baseHash)) {
+                    const prePath = data.hash
+                        .slice(baseHash.length + 1)
+                        .split('-')
+                        .filter(Boolean)
+                        .concat(item.name);
+                    data.pathname += `${prePath.join('/')}/${child.name}/`;
+                    data.pageTitle = { name: prePath.join('.'), type: child.name };
+                } else {
+                    data.pathname += `${item.name}/${child.name}/`;
+                    data.pageTitle = { name: item.name, type: child.name };
+                }
                 data.hash = `reference-${child.type}`;
-                data.pageTitle = { name: item.name, type: child.name };
                 data.pageInterface = child.type;
                 if (path.length === 0) {
                     data.hash += '-type';
@@ -334,17 +399,21 @@ export function getOptionsStaticPaths(reference: ApiReferenceType) {
             const type = extractTypeValue(pageInterface);
             return {
                 params: { memberName, type },
-                props: { pageInterface, pageTitle: { name: memberName, type } },
+                props: { pageInterface, pageTitle: { name: memberName.replaceAll('/', '.'), type } },
             };
         };
     };
 
     const axesRef = reference.get('AgChartAxisOptions')!;
     const seriesRef = reference.get('AgChartSeriesOptions')!;
+    const annotationRef = reference.get('AgAnnotation')!;
+    const miniChartSeriesRef = reference.get('AgMiniChartSeriesOptions')!;
 
     return [
         ...getSubTypes(axesRef).map(createPageMapper('axes')),
         ...getSubTypes(seriesRef).map(createPageMapper('series')),
+        ...getSubTypes(annotationRef).map(createPageMapper('initialState/annotations')),
+        ...getSubTypes(miniChartSeriesRef).map(createPageMapper('navigator/miniChart/series')),
     ];
 }
 

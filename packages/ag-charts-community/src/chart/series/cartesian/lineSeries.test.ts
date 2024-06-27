@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
+import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
+
 import { AgCharts } from '../../../api/agCharts';
-import type { AgChartInstance, AgChartOptions } from '../../../options/agChartOptions';
 import { deepClone } from '../../../util/json';
 import {
     DATA_FRACTIONAL_LOG_AXIS,
@@ -55,7 +56,9 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
                 axisTypes: ['number', 'number'],
                 seriesTypes: ['line'],
             }),
-            warnings: [['AG Charts - invalid value of type [undefined] ignored:', '[undefined]']],
+            warnings: [
+                ['AG Charts - invalid value of type [undefined] for [LineSeries-1 / xValue] ignored:', '[undefined]'],
+            ],
         },
         LINE_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: {
             options: examples.LINE_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE,
@@ -63,7 +66,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
                 axisTypes: ['time', 'number'],
                 seriesTypes: ['line'],
             }),
-            warnings: [['AG Charts - invalid value of type [object] ignored:', '[null]']],
+            warnings: [['AG Charts - invalid value of type [object] for [LineSeries-1 / xValue] ignored:', '[null]']],
         },
         LINE_NUMBER_AXES_0_X_DOMAIN: {
             options: examples.LINE_NUMBER_AXES_0_X_DOMAIN,

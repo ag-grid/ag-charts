@@ -28,7 +28,7 @@ const options: AgChartOptions = {
             label: {
                 formatter: ({ value }) => `£${value.toFixed(0)}`,
             },
-            formatter: ({ datum, yKey }) => ({
+            itemStyler: ({ datum, yKey }) => ({
                 fillOpacity: getOpacity(datum[yKey], yKey as YKey, 0.4, 1),
             }),
         },
