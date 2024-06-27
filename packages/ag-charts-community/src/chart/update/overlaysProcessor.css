@@ -1,5 +1,6 @@
 .ag-chart-overlay {
     color: #181d1f;
+    pointer-events: none;
 }
 
 .ag-chart-overlay.ag-chart-dark-overlay {
@@ -12,6 +13,7 @@
 
 .ag-chart-overlay__loading-background {
     background: white; /* DEFAULT_BACKGROUND_FILL */
+    pointer-events: none;
 }
 
 .ag-chart-overlay.ag-chart-dark-overlay .ag-chart-overlay__loading-background {
