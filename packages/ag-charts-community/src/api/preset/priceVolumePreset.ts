@@ -130,7 +130,7 @@ export function priceVolume(
                   // @ts-expect-error
                   layoutConstraints: {
                       stacked: false,
-                      width: 25,
+                      width: 20,
                       unit: 'percentage',
                       align: 'end',
                   },

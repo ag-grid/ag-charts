@@ -73,11 +73,21 @@
     }
 }
 
-.navContainer {
+pre.navContainer {
     --nav-options-indent: 24px;
 
     display: none;
     user-select: none;
+
+    #{$selector-darkmode} & {
+        border-right: none;
+        border-bottom: none;
+        border-left: none;
+
+        code {
+            border-radius: 0;
+        }
+    }
 
     @media screen and (min-width: $breakpoint-options-medium) {
         display: block;
@@ -123,10 +133,6 @@
 
 .navItem {
     padding: 0 16px 0 calc(var(--layout-horizontal-margins) + var(--nav-options-indent) * var(--options-nav-depth, 0));
-
-    @media screen and (min-width: $breakpoint-options-extra-large) {
-        padding: 0 16px 0 calc(#{$spacing-size-4} + var(--nav-options-indent) * var(--options-nav-depth, 0));
-    }
 
     &:global(.highlight) {
         position: relative;
