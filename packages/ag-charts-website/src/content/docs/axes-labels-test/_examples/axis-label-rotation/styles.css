@@ -21,4 +21,5 @@
     height: 100%;
     resize: both;
     /* 'auto' has different behaviour on Windows! */
+    overflow: hidden;
 }
