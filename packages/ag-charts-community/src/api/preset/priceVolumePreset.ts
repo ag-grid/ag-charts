@@ -196,6 +196,7 @@ export function priceVolume(
         },
         tooltip: { enabled: false },
         data,
+        titlePadding: 4,
         ...navigatorOpts,
         ...statusBarOpts,
         ...zoomOpts,

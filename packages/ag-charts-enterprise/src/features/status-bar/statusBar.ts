@@ -170,14 +170,19 @@ export class StatusBar
         const lineHeight = maxFontSize * Text.defaultLineHeightRatio;
 
         let left = 0;
+        let offsetTop = 0;
+        let textVAlign: CanvasTextBaseline = 'alphabetic';
         if (this.layoutStyle === 'block') {
             shrinkRect.shrink(spacingAbove + lineHeight + spacingBelow, 'top');
+            offsetTop = maxFontSize + (lineHeight - maxFontSize) / 2;
         } else {
             const { title } = opts.positions;
+            const { title: padding = 0 } = opts.padding;
             left = (title?.x ?? 0) + (title?.width ?? 0) + outerSpacing;
+            textVAlign = 'top';
+            offsetTop = spacingAbove + padding;
+            // offsetTop = (title?.y ?? 0) + ((title?.height ?? maxFontSize) - maxFontSize) / 2;
         }
-
-        const offsetTop = maxFontSize + (lineHeight - maxFontSize) / 2;
 
         for (const { label, title, value, domain, formatter } of this.labels) {
             if (domain == null) {
@@ -187,26 +192,26 @@ export class StatusBar
             }
 
             const maxValueWidth = Math.max(
-                Text.measureText(formatter.format(domain[0]), this.positive.getFont(), 'alphabetic', 'left').width,
-                Text.measureText(formatter.format(domain[1]), this.positive.getFont(), 'alphabetic', 'left').width,
-                Text.measureText(formatter.format(domain[0]), this.negative.getFont(), 'alphabetic', 'left').width,
-                Text.measureText(formatter.format(domain[1]), this.negative.getFont(), 'alphabetic', 'left').width
+                Text.measureText(formatter.format(domain[0]), this.positive.getFont(), textVAlign, 'left').width,
+                Text.measureText(formatter.format(domain[1]), this.positive.getFont(), textVAlign, 'left').width,
+                Text.measureText(formatter.format(domain[0]), this.negative.getFont(), textVAlign, 'left').width,
+                Text.measureText(formatter.format(domain[1]), this.negative.getFont(), textVAlign, 'left').width
             );
 
             title.visible = true;
             value.visible = true;
 
-            const titleMetrics = Text.measureText(label, this.title.getFont(), 'alphabetic', 'left');
+            const titleMetrics = Text.measureText(label, this.title.getFont(), textVAlign, 'left');
             title.setFont(this.title);
             title.fill = this.title.color;
             title.text = label;
-            title.textBaseline = 'alphabetic';
+            title.textBaseline = textVAlign;
             title.translationY = offsetTop;
             title.translationX = left;
 
             left += titleMetrics.width + innerSpacing;
 
-            value.textBaseline = 'alphabetic';
+            value.textBaseline = textVAlign;
             value.translationY = offsetTop;
             value.translationX = left;
 

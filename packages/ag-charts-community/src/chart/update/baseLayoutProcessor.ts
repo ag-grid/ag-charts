@@ -40,8 +40,9 @@ export class BaseLayoutProcessor implements UpdateProcessor {
     }
 
     private positionCaptions(ctx: LayoutContext) {
-        const { shrinkRect, positions } = ctx;
-        const { title, subtitle, footnote } = this.chartLike;
+        const { shrinkRect, positions, padding } = ctx;
+        const { title, subtitle, footnote, titlePadding } = this.chartLike;
+        const paddedShrinkRect = shrinkRect.clone().shrink(titlePadding);
         const newShrinkRect = shrinkRect.clone();
 
         const updateCaption = (caption: Caption) => {
@@ -54,17 +55,17 @@ export class BaseLayoutProcessor implements UpdateProcessor {
 
         const computeX = (align: TextAlign): number => {
             if (align === 'left') {
-                return newShrinkRect.x;
+                return paddedShrinkRect.x;
             } else if (align === 'right') {
-                return newShrinkRect.x + newShrinkRect.width;
+                return paddedShrinkRect.x + paddedShrinkRect.width;
             } else if (align !== 'center') {
                 Logger.error(`invalid textAlign value: ${align}`);
             }
-            return newShrinkRect.x + newShrinkRect.width / 2;
+            return paddedShrinkRect.x + paddedShrinkRect.width / 2;
         };
 
         const positionTopAndShrinkBBox = (caption: Caption, spacing: number) => {
-            const baseY = newShrinkRect.y;
+            const baseY = paddedShrinkRect.y;
             caption.node.x = computeX(caption.textAlign);
             caption.node.y = baseY;
             caption.node.textBaseline = 'top';
@@ -77,12 +78,13 @@ export class BaseLayoutProcessor implements UpdateProcessor {
             const bboxHeight = Math.ceil(bbox.y - baseY + bbox.height + spacing);
 
             if (caption.layoutStyle === 'block') {
-                newShrinkRect.shrink(bboxHeight, 'top');
+                newShrinkRect.shrink(bboxHeight + 2 * titlePadding, 'top');
+                paddedShrinkRect.shrink(bboxHeight, 'top');
             }
             return bbox;
         };
         const positionBottomAndShrinkBBox = (caption: Caption, spacing: number) => {
-            const baseY = newShrinkRect.y + newShrinkRect.height;
+            const baseY = paddedShrinkRect.y + paddedShrinkRect.height;
             caption.node.x = computeX(caption.textAlign);
             caption.node.y = baseY;
             caption.node.textBaseline = 'bottom';
@@ -92,7 +94,8 @@ export class BaseLayoutProcessor implements UpdateProcessor {
             const bboxHeight = Math.ceil(baseY - bbox.y + spacing);
 
             if (caption.layoutStyle === 'block') {
-                newShrinkRect.shrink(bboxHeight, 'bottom');
+                newShrinkRect.shrink(bboxHeight + 2 * titlePadding, 'bottom');
+                paddedShrinkRect.shrink(bboxHeight, 'bottom');
             }
             return bbox;
         };
@@ -104,6 +107,7 @@ export class BaseLayoutProcessor implements UpdateProcessor {
         if (title.enabled) {
             const { spacing = subtitle.enabled ? Caption.SMALL_PADDING : Caption.LARGE_PADDING } = title;
             positions.title = positionTopAndShrinkBBox(title, spacing);
+            padding.title = titlePadding;
         }
 
         if (subtitle.enabled) {
@@ -118,16 +122,16 @@ export class BaseLayoutProcessor implements UpdateProcessor {
     }
 
     alignCaptions(ctx: LayoutCompleteEvent): void {
-        const { title, subtitle, footnote } = this.chartLike;
+        const { title, subtitle, footnote, titlePadding } = this.chartLike;
 
         const align = (caption: Caption, seriesRect: BBox) => {
             if (caption.layoutStyle !== 'overlay') return;
 
             if (caption.textAlign === 'left') {
-                caption.node.x = seriesRect.x;
+                caption.node.x = seriesRect.x + titlePadding;
             } else if (caption.textAlign === 'right') {
                 const bbox = caption.node.computeBBox();
-                caption.node.x = seriesRect.x + seriesRect.width - bbox.width;
+                caption.node.x = seriesRect.x + seriesRect.width - bbox.width - titlePadding;
             }
         };
 

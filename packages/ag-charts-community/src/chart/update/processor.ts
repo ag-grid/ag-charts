@@ -10,6 +10,7 @@ export interface ChartLike {
     seriesArea: { clip?: boolean };
     seriesRoot: Group;
     padding: Padding;
+    titlePadding: number;
     title: Caption;
     subtitle: Caption;
     footnote: Caption;
