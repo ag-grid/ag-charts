@@ -289,7 +289,8 @@ export abstract class OhlcSeriesBase<
                 closeValue,
                 highValue,
                 lowValue,
-                bandwidth: Math.round(barWidth),
+                // CRT-340 Use atleast 1px width to prevent nothing being drawn.
+                bandwidth: Math.max(1, Math.round(barWidth)),
                 scaledValues,
                 midPoint,
                 aggregatedValue: closeValue,
