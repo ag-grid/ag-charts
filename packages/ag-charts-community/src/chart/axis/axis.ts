@@ -1,6 +1,5 @@
 import type {
     AgAxisCaptionFormatterParams,
-    AgAxisLabelFormatterParams,
     CssColor,
     FontFamily,
     FontSize,
@@ -1402,12 +1401,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     // For formatting (nice rounded) tick values.
     formatTick(datum: any, fractionDigits: number, index: number): string {
-        return this.getFormatter(index, true)(datum, fractionDigits);
+        return String(this.getFormatter(index, true)(datum, fractionDigits));
     }
 
     // For formatting arbitrary values between the ticks.
     formatDatum(datum: any): string {
-        return this.getFormatter()(datum);
+        return String(this.getFormatter()(datum));
     }
 
     getFormatter(index: number = 0, isTickLabel?: boolean): (datum: any, fractionDigits?: number) => string {
@@ -1420,11 +1419,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         if (label.formatter) {
             return (datum, fractionDigits) =>
-                callbackCache.call(label.formatter as (params: AgAxisLabelFormatterParams) => string, {
-                    value: (fractionDigits ?? 0) > 0 ? datum : String(datum),
-                    index,
-                    fractionDigits,
-                }) ?? datum;
+                callbackCache.call(label.formatter!, { value: datum, index, fractionDigits }) ?? datum;
         } else if (!isTickLabel && datumFormatter) {
             return (datum) => callbackCache.call(datumFormatter, datum) ?? String(datum);
         } else if (labelFormatter) {
