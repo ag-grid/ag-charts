@@ -178,10 +178,9 @@ export class StatusBar
         } else {
             const { title } = opts.positions;
             const { title: padding = 0 } = opts.padding;
-            left = (title?.x ?? 0) + (title?.width ?? 0) + outerSpacing;
+            left = (title?.x ?? 0) + (title?.width ?? 0) + (title ? outerSpacing : padding);
             textVAlign = 'top';
             offsetTop = spacingAbove + padding;
-            // offsetTop = (title?.y ?? 0) + ((title?.height ?? maxFontSize) - maxFontSize) / 2;
         }
 
         for (const { label, title, value, domain, formatter } of this.labels) {
