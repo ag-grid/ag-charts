@@ -78,7 +78,8 @@ export class BaseLayoutProcessor implements UpdateProcessor {
             const bboxHeight = Math.ceil(bbox.y - baseY + bbox.height + spacing);
 
             if (caption.layoutStyle === 'block') {
-                newShrinkRect.shrink(bboxHeight + titlePadding, 'top');
+                newShrinkRect.shrink(bboxHeight + 2 * titlePadding, 'top');
+                paddedShrinkRect.shrink(bboxHeight, 'top');
             }
             return bbox;
         };
@@ -93,7 +94,8 @@ export class BaseLayoutProcessor implements UpdateProcessor {
             const bboxHeight = Math.ceil(baseY - bbox.y + spacing);
 
             if (caption.layoutStyle === 'block') {
-                newShrinkRect.shrink(bboxHeight + titlePadding, 'bottom');
+                newShrinkRect.shrink(bboxHeight + 2 * titlePadding, 'bottom');
+                paddedShrinkRect.shrink(bboxHeight, 'bottom');
             }
             return bbox;
         };
