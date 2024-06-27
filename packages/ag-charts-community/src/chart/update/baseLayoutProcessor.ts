@@ -107,7 +107,6 @@ export class BaseLayoutProcessor implements UpdateProcessor {
         if (title.enabled) {
             const { spacing = subtitle.enabled ? Caption.SMALL_PADDING : Caption.LARGE_PADDING } = title;
             positions.title = positionTopAndShrinkBBox(title, spacing);
-            padding.title = titlePadding;
         }
 
         if (subtitle.enabled) {
@@ -117,6 +116,8 @@ export class BaseLayoutProcessor implements UpdateProcessor {
         if (footnote.enabled) {
             positions.footnote = positionBottomAndShrinkBBox(footnote, footnote.spacing ?? 0);
         }
+
+        padding.title = titlePadding;
 
         return { ...ctx, shrinkRect: newShrinkRect, positions };
     }
