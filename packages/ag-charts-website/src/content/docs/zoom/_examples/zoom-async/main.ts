@@ -44,12 +44,17 @@ const options: AgCartesianChartOptions = {
                 maxSpacing: 200,
             },
             label: {
-                formatter: ({ value }) =>
-                    Intl.DateTimeFormat('en-GB', {
+                formatter: (event) => {
+                    let date = new Date(event.value);
+                    if (isNaN(date as any)) {
+                        date = new Date(parseInt(event.value));
+                    }
+                    return Intl.DateTimeFormat('en-GB', {
                         day: '2-digit',
                         month: 'short',
                         year: '2-digit',
-                    }).format(new Date(value)),
+                    }).format(date);
+                },
             },
         },
     ],
