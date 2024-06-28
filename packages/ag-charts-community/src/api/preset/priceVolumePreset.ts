@@ -230,6 +230,7 @@ function createVolumeSeries(
             type: 'bar',
             xKey: 'date',
             yKey: volumeKey,
+            tooltip: { enabled: false },
             fillOpacity: fromTheme(theme, (t) => t.overrides?.bar?.series?.fillOpacity) ?? 0.5,
             ...itemStyler,
         } satisfies AgBarSeriesOptions,
