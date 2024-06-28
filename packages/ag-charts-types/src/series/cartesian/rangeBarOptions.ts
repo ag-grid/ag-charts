@@ -8,14 +8,14 @@ import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOption
 
 export type AgRangeBarSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
     AgRangeBarSeriesOptionsKeys &
-    Required<AgRangeBarSeriesStyles>;
+    Required<AgRangeBarSeriesStyle>;
 
-export interface AgRangeBarSeriesStyles extends FillOptions, StrokeOptions, LineDashOptions {
+export interface AgRangeBarSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Apply rounded corners to each bar. */
     cornerRadius?: PixelSize;
 }
 
-export type AgRangeBarSeriesTooltipRendererParams<TDatum = any> = AgSeriesTooltipRendererParams<TDatum> &
+export type AgRangeBarSeriesTooltipRendererParams<TDatum> = AgSeriesTooltipRendererParams<TDatum> &
     AgRangeBarSeriesOptionsKeys &
     AgRangeBarSeriesOptionsNames;
 
@@ -31,7 +31,7 @@ export type AgRangeBarSeriesLabelPlacement = 'inside' | 'outside';
 
 export interface AgRangeBarSeriesThemeableOptions<TDatum = any>
     extends AgBaseCartesianThemeableOptions<TDatum>,
-        AgRangeBarSeriesStyles {
+        AgRangeBarSeriesStyle {
     /**
      * Bar rendering direction.
      *
@@ -47,7 +47,7 @@ export interface AgRangeBarSeriesThemeableOptions<TDatum = any>
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
     /** Function used to return formatting for individual RangeBar series item cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler?: Styler<AgRangeBarSeriesItemStylerParams<TDatum>, AgRangeBarSeriesStyles>;
+    itemStyler?: Styler<AgRangeBarSeriesItemStylerParams<TDatum>, AgRangeBarSeriesStyle>;
 }
 
 export type AgRangeBarSeriesLabelFormatterParams = AgRangeBarSeriesOptionsKeys & AgRangeBarSeriesOptionsNames;

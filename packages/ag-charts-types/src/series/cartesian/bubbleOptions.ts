@@ -20,14 +20,14 @@ export interface AgBubbleSeriesLabel<TDatum> extends AgChartLabelOptions<TDatum,
     placement?: LabelPlacement;
 }
 
-export type AgBubbleSeriesStyles = AgSeriesMarkerStyle;
+export type AgBubbleSeriesStyle = AgSeriesMarkerStyle;
 
 export type BubbleSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
     AgBubbleSeriesOptionsKeys &
-    Required<AgBubbleSeriesStyles>;
+    Required<AgBubbleSeriesStyle>;
 
 export interface AgBubbleSeriesThemeableOptions<TDatum = any>
-    extends AgBubbleSeriesStyles,
+    extends AgBubbleSeriesStyle,
         AgBaseCartesianThemeableOptions<TDatum> {
     /** Explicitly specifies the extent of the domain for series `sizeKey`. */
     domain?: [number, number];
@@ -42,7 +42,7 @@ export interface AgBubbleSeriesThemeableOptions<TDatum = any>
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgBubbleSeriesTooltipRendererParams<TDatum>>;
     /** Function used to return formatting for individual markers, based on the supplied information. If the current marker is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler?: Styler<BubbleSeriesItemStylerParams<TDatum>, AgBubbleSeriesStyles>;
+    itemStyler?: Styler<BubbleSeriesItemStylerParams<TDatum>, AgBubbleSeriesStyle>;
 }
 
 export interface AgBubbleSeriesOptionsKeys {

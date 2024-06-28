@@ -2,7 +2,7 @@ import type {
     AgBubbleSeriesLabelFormatterParams,
     AgBubbleSeriesOptions,
     AgBubbleSeriesOptionsKeys,
-    AgBubbleSeriesStyles,
+    AgBubbleSeriesStyle,
     AgBubbleSeriesTooltipRendererParams,
     BubbleSeriesItemStylerParams,
     LabelPlacement,
@@ -126,7 +126,7 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     strokeOpacity!: number;
 
     @ProxyProperty('marker.itemStyler', { optional: true })
-    itemStyler?: Styler<BubbleSeriesItemStylerParams<unknown>, AgBubbleSeriesStyles>;
+    itemStyler?: Styler<BubbleSeriesItemStylerParams<unknown>, AgBubbleSeriesStyle>;
 
     @Validate(OBJECT)
     readonly label = new BubbleSeriesLabel();
