@@ -49,7 +49,9 @@ export type AgChartThemeName =
     | 'ag-vivid'
     | 'ag-vivid-dark'
     | 'ag-material'
-    | 'ag-material-dark';
+    | 'ag-material-dark'
+    | 'ag-financial'
+    | 'ag-financial-dark';
 
 interface AgPaletteColors {
     fill?: CssColor;
