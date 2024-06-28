@@ -1687,7 +1687,7 @@ export abstract class Chart extends Observable {
         if (seriesStatus === 'replaced') {
             this.resetAnimations();
         }
-        if (this.applyAxes(this, newOpts, oldOpts, seriesStatus)) {
+        if (this.applyAxes(this, newOpts, oldOpts, seriesStatus, [], true)) {
             forceNodeDataRefresh = true;
         }
 
@@ -1932,7 +1932,8 @@ export abstract class Chart extends Observable {
         options: AgChartOptions,
         oldOpts: AgChartOptions,
         seriesStatus: SeriesChangeType,
-        skip: string[] = []
+        skip: string[] = [],
+        registerRegions = false
     ) {
         if (!('axes' in options) || !options.axes) {
             return false;
@@ -1969,8 +1970,10 @@ export abstract class Chart extends Observable {
 
         chart.axes.forEach((axis) => axisGroups[axis.direction].push(axis.getAxisGroup()));
 
-        this.ctx.regionManager.updateRegion(REGIONS.HORIZONTAL_AXES, ...axisGroups[ChartAxisDirection.X]);
-        this.ctx.regionManager.updateRegion(REGIONS.VERTICAL_AXES, ...axisGroups[ChartAxisDirection.Y]);
+        if (registerRegions) {
+            this.ctx.regionManager.updateRegion(REGIONS.HORIZONTAL_AXES, ...axisGroups[ChartAxisDirection.X]);
+            this.ctx.regionManager.updateRegion(REGIONS.VERTICAL_AXES, ...axisGroups[ChartAxisDirection.Y]);
+        }
 
         return true;
     }
