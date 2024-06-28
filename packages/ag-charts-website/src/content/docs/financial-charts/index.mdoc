@@ -9,7 +9,37 @@ AG Charts provides fully featured Financial Charts, requiring minimum configurat
 
 {% chartExampleRunner title="Basic Financial Chart" name="basic-financial-chart" type="generated" /%}
 
--   [Annotations](./annotations/)
--   [Range Buttons](./toolbar/)
--   Status Bar
--   [Multiple Chart Types](./financial-chart-types/)
+## Out of the box
+
+Creating a financial chart could not be easier. The minimum configuration requires only an HTML container and data. The data should include keys of 'open', 'high', 'low', 'close' and optionally 'volume'.
+
+```ts
+// Chart Options
+const options = {
+    // HTML Element to hold the chart
+    container: document.getElementById('myChart'),
+    // data
+    data: getData(),
+};
+
+// Create Chart
+const chart = AgCharts.createFinancialChart(options);
+```
+
+## Annotations
+
+{% imageCaption pageName="financial-charts" imageName="gif-animation.gif" alt="EXAMPLE" constrained=true/%}
+
+Some **Annotations** copy...
+
+## Zoom / Navigator / Range
+
+{% imageCaption pageName="financial-charts" imageName="gif-animation.gif" alt="EXAMPLE" constrained=true/%}
+
+Some **Zoom / Navigator / Range** copy...
+
+## Chart types
+
+{% imageCaption pageName="financial-charts" imageName="gif-animation.gif" alt="EXAMPLE" constrained=true/%}
+
+Some **Chart types** copy...
