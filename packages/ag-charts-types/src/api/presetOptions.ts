@@ -1,4 +1,4 @@
-export type AgPriceVolumePreset = {
+export interface AgPriceVolumePreset {
     chartType?: 'candlestick' | 'hollow-candlestick' | 'ohlc' | 'line' | 'step-line' | 'area' | 'range-area';
     xKey?: string;
     openKey?: string;
@@ -14,7 +14,7 @@ export type AgPriceVolumePreset = {
     statusBar?: boolean;
     annotations?: boolean;
     zoom?: boolean;
-};
+}
 
 export type AgFinancialChartPresets = AgPriceVolumePreset;
 
