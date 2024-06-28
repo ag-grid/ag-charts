@@ -1,5 +1,4 @@
 import type {
-    AgAreaSeriesOptions,
     AgBarSeriesItemStylerParams,
     AgBarSeriesOptions,
     AgBaseFinancialPresetOptions,
@@ -291,17 +290,6 @@ function createPriceSeries(
                 } satisfies AgLineSeriesOptions,
             ];
 
-        case 'area':
-            return [
-                {
-                    type: 'area',
-                    ...singleKeys,
-                    fill: fromTheme(theme, (t) => t.overrides?.['radar-area']?.series?.fill) ?? PALETTE_NEUTRAL_STROKE,
-                    fillOpacity: fromTheme(theme, (t) => t.overrides?.area?.series?.fillOpacity) ?? 0.5,
-                    stroke: fromTheme(theme, (t) => t.overrides?.area?.series?.stroke) ?? PALETTE_NEUTRAL_STROKE,
-                    strokeWidth: fromTheme(theme, (t) => t.overrides?.area?.series?.strokeWidth) ?? 2,
-                } satisfies AgAreaSeriesOptions,
-            ];
         case RANGE_AREA_TYPE:
             const fill = fromTheme(theme, (t) => t.overrides?.['range-area']?.series?.fill);
             const stoke = fromTheme(theme, (t) => t.overrides?.['range-area']?.series?.stroke);
