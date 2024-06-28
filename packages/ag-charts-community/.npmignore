@@ -11,6 +11,8 @@ tsconfig.*
 project.json
 .esbuild.*
 .env*
+benchmarks/
+__image-snapshots__/
 
 dist/*.d.ts
 dist/**/*.test.*
