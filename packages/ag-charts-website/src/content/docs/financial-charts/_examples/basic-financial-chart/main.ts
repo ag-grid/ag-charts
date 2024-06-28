@@ -10,19 +10,39 @@ const options: AgFinancialChartOptions = {
         annotations: [
             {
                 type: 'parallel-channel',
-                start: { x: { __type: 'date', value: 1672756200000 }, y: 136.28 },
-                end: { x: { __type: 'date', value: 1689773400000 }, y: 200 },
+                start: { x: { __type: 'date', value: 1646058600000 }, y: 160.15 },
+                end: { x: { __type: 'date', value: 1709000000000 }, y: 160.15 },
                 height: 12,
+                stroke: '#808080B0',
+                background: {
+                    fill: '#808080B0',
+                },
             },
             {
-                type: 'line',
-                start: { x: { __type: 'date', value: 1701959400000 }, y: 193.63 },
-                end: { x: { __type: 'date', value: 1707489000000 }, y: 188.85 },
+                type: 'parallel-channel',
+                start: { x: { __type: 'date', value: 1678900000000 }, y: 160.0 },
+                end: { x: { __type: 'date', value: 1689900000000 }, y: 198.0 },
+                height: 8,
+                stroke: '#4075E0C4',
+                background: {
+                    fill: '#4075E0C4',
+                },
             },
             {
-                type: 'line',
-                start: { x: { __type: 'date', value: 1691155800000 }, y: 185.52 },
-                end: { x: { __type: 'date', value: 1698413400000 }, y: 166.91 },
+                type: 'horizontal-line',
+                value: 180.0,
+                stroke: 'lightseagreen',
+                axisLabel: {
+                    fill: 'lightseagreen',
+                },
+            },
+            {
+                type: 'horizontal-line',
+                value: 195.0,
+                stroke: 'red',
+                axisLabel: {
+                    fill: 'red',
+                },
             },
         ],
     },
