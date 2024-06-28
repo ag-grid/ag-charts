@@ -283,15 +283,19 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     private onProxyGroupOptions(event: ToolbarProxyGroupOptionsEvent) {
+        if (!this.enabled) return;
+
         const { caller, group, options } = event;
 
         this.groupProxied.set(group, options);
-
-        this.createGroup(group, options.enabled, options.position);
-        this.createGroupButtons(group, options.buttons);
-        this.toggleGroup(caller, group, options.enabled);
-
         this[group].set(options);
+
+        this.toggleGroup(caller, group, options.enabled);
+        this.createGroup(group, options.enabled, options.position);
+
+        if (options.enabled) {
+            this.createGroupButtons(group, options.buttons);
+        }
     }
 
     private createGroup(group: ToolbarGroup, enabled?: boolean, position?: AgToolbarGroupPosition) {
@@ -311,25 +315,28 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         for (const button of this.groupButtons[group]) {
             button.remove();
         }
+
         this.groupButtons[group] = [];
         this.groupDestroyFns[group].forEach((d) => d());
         this.groupDestroyFns[group] = [];
 
         if (buttons.length === 0) return;
 
-        const align = this[group].align ?? 'start';
-        const position = this[group].position ?? 'top';
+        const { align, position } = this[group];
         const alignElement = this.positionAlignments[position][align];
 
         if (!alignElement) return;
 
-        const toolbarElement = createElement('div');
-        alignElement.classList.forEach((className) => toolbarElement.classList.add(className));
-        alignElement.appendChild(toolbarElement);
+        let index = 0;
         const nextSection = () => {
-            const newSection = createElement('div');
+            let newSection = alignElement.children.item(index);
+            if (!newSection) {
+                newSection = createElement('div');
+                alignElement.appendChild(newSection);
+                this.destroyFns.push(() => newSection!.remove());
+            }
             newSection.classList.add(styles.elements.section, styles.modifiers[this[group].size]);
-            toolbarElement.appendChild(newSection);
+            index++;
             return newSection;
         };
 
@@ -361,13 +368,13 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         const orientation = this.computeAriaOrientation(this[group].position);
         this.groupDestroyFns[group] = initToolbarKeyNav({
             orientation,
-            toolbar: toolbarElement,
+            toolbar: alignElement,
             buttons: this.groupButtons[group],
             onEscape,
             onFocus,
             onBlur,
         });
-        this.updateToolbarAriaLabel(group, toolbarElement);
+        this.updateToolbarAriaLabel(group, alignElement);
     }
 
     private computeAriaOrientation(position: ToolbarPosition): 'horizontal' | 'vertical' {
@@ -576,8 +583,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
     private updateToolbarAriaLabel(group: ToolbarGroup, alignElement?: HTMLElement) {
         if (!alignElement) {
-            const align = this[group].align ?? 'start';
-            const position = this[group].position ?? 'top';
+            const { align, position } = this[group];
             alignElement = this.positionAlignments[position][align];
             if (!alignElement) return;
         }
