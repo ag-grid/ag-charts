@@ -1,6 +1,6 @@
 import { type OverflowStrategy, type TextWrap, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-const { Validate, NUMBER, TEXT_WRAP, OVERFLOW_STRATEGY } = _ModuleSupport;
+const { Validate, TextMeasurer, NUMBER, TEXT_WRAP, OVERFLOW_STRATEGY } = _ModuleSupport;
 const { Logger } = _Util;
 const { Text, Label } = _Scene;
 
@@ -89,7 +89,7 @@ export function maximumValueSatisfying<T>(
     let found: T | undefined;
 
     while (max >= min) {
-        const index = ((max + min) / 2) | 0;
+        const index = Math.floor((max + min) / 2);
         const value = iteratee(index);
         if (value == null) {
             max = index - 1;
@@ -317,9 +317,7 @@ export function formatSingleLabel<Meta, FormatterParams>(
         const availableWidth = sizeFitting.width - sizeAdjust;
         const availableHeight = sizeFitting.height - sizeAdjust;
 
-        if (lineHeight > availableHeight) {
-            return;
-        }
+        if (lineHeight > availableHeight) return;
 
         textSizeProps.fontSize = fontSize;
         const lines = Text.wrapLines(
@@ -331,23 +329,25 @@ export function formatSingleLabel<Meta, FormatterParams>(
             allowTruncation ? props.overflowStrategy : 'hide'
         );
 
-        if (lines == null) {
-            return;
-        }
+        if (lines == null) return;
 
-        const text = lines.join('\n');
-        textNode.text = text;
         textNode.fontSize = fontSize;
         textNode.lineHeight = lineHeight;
-        const size = textNode.computeBBox();
-        const width = textNode.computeBBox().width;
-        const height = lineHeight * lines.length;
+        textNode.text = lines.join('\n');
 
-        if (size.width > availableWidth || height > availableHeight) {
-            return;
+        let height = lineHeight * lines.length;
+        while (height > availableHeight) {
+            if (lines.length === 1) return;
+            lines.pop();
+            lines[lines.length - 1] += TextMeasurer.EllipsisChar;
+            textNode.text = lines.join('\n');
+            height = lineHeight * lines.length;
         }
 
-        return [{ text, fontSize, lineHeight, width, height }, sizeFitting.meta];
+        const { width } = textNode.computeBBox();
+        if (width > availableWidth) return;
+
+        return [{ text: textNode.text, fontSize, lineHeight, width, height }, sizeFitting.meta];
     });
 }
 

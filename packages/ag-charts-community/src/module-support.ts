@@ -13,6 +13,7 @@ export * from './util/object';
 export * from './util/properties';
 export * from './util/proxy';
 export * from './util/timeFormatDefaults';
+export * from './util/textMeasurer';
 export * from './util/timeFormat';
 export * from './util/types';
 export * from './util/type-guards';
