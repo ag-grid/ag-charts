@@ -1154,7 +1154,7 @@ export abstract class Chart extends Observable {
     }
 
     private onBrowserFocus(event: KeyNavEvent<'browserfocus'>): void {
-        if (event.delta > 0) {
+        if (event.delta >= 0) {
             this.focus.datum = undefined;
             this.focus.series = undefined;
             this.focus.datumIndex = 0;
