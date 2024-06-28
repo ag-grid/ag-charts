@@ -34,13 +34,13 @@ export class ZoomContextMenu {
 
         contextMenuRegistry.registerDefaultAction({
             id: CONTEXT_ZOOM_ACTION_ID,
-            type: 'all',
+            type: 'series',
             label: 'contextMenuZoomToCursor',
             action: (params) => this.onZoomToHere(params, props),
         });
         contextMenuRegistry.registerDefaultAction({
             id: CONTEXT_PAN_ACTION_ID,
-            type: 'all',
+            type: 'series',
             label: 'contextMenuPanToCursor',
             action: (params) => this.onPanToHere(params, props),
         });
