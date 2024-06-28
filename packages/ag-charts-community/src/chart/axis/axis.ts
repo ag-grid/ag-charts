@@ -171,6 +171,10 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     @Validate(OBJECT)
     readonly interval = new AxisInterval();
 
+    /** CRT-400 - Release fix to disable panning bug. */
+    @Validate(BOOLEAN)
+    disableZoom = false;
+
     dataDomain: { domain: D[]; clipped: boolean } = { domain: [], clipped: false };
 
     get type(): string {

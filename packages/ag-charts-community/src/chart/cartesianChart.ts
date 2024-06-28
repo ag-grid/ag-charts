@@ -442,7 +442,7 @@ export class CartesianChart extends Chart {
         const isCategory = axis instanceof CategoryAxis || axis instanceof GroupedCategoryAxis;
         const isLeftRight = position === 'left' || position === 'right';
 
-        let { min, max } = this.ctx.zoomManager.getAxisZoom(axis.id);
+        let { min = 0, max = 1 } = axis.disableZoom ? {} : this.ctx.zoomManager.getAxisZoom(axis.id);
         const { width, height } = seriesRect;
 
         const minStart = 0;
