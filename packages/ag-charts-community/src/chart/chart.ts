@@ -1154,7 +1154,10 @@ export abstract class Chart extends Observable {
     }
 
     private onBrowserFocus(event: KeyNavEvent<'browserfocus'>): void {
-        if (event.delta > 0) {
+        if (event.delta >= 0) {
+            // CRT-337: delta 0 case is when getting focus for the first time. For tab-switching
+            // cases this will also be the case, but we care less about that case for now.
+            // (See AG-11357 for more info).
             this.focus.datum = undefined;
             this.focus.series = undefined;
             this.focus.datumIndex = 0;
