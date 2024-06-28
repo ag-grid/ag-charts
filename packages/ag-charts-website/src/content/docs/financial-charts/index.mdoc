@@ -5,15 +5,13 @@ hideSideMenu: true
 largeExamples: true
 ---
 
-AG Charts provides fully featured Financial Charts, requiring minimum configuration to setup and use.
+Add high-performance, interactive Financial Charts to your application in seconds, without any configuation.
 
 {% chartExampleRunner title="Basic Financial Chart" name="basic-financial-chart" type="generated" /%}
 
-## Out of the box
+## Add Financial Charts in Seconds
 
-Creating a financial chart could not be easier. The minimum configuration requires only an HTML container and data.
-
-The data should include keys of 'open', 'high', 'low', 'close' and optionally 'volume'.
+Financial charts do not require any configuration - all you need to provide is a HTML container and your data:
 
 {% if isFramework("javascript") %}
 
@@ -130,31 +128,116 @@ createApp(ChartExample).mount('#app');
 
 {% /if %}
 
-## Annotations
+{% note %}
+The data should include keys of 'open', 'high', 'low', 'close' and optionally 'volume'.
+{% /note %}
+
+## Annotate Financial Charts
 
 {% imageCaption pageName="financial-charts" imageName="annotations.gif" alt="Annotations" constrained=true/%}
 
-Allow users to add, edit and customise their own trend, channel and crosslines for analysis with the option to save and restore.
+AG Charts' Financial Charts support a range of annotations to help users analyse their data and identify trends. When annotations are enabled, users have the ability to create, edit and delete their own annotations. Annotations can be added to the chart by clicking on the annotation toolbar, which is displayed when the chart is in annotation mode, as shown above.
 
-## Zoom / Range
+To enable annotations simply set the `annotations` property to `true` in the chart options, which will then display the annotations toolbar on the chart:
+
+```ts
+annotations: {
+    enabled: true,
+}
+```
+
+### Annotation Types
+
+Financial Charts currently support the following annotations:
+
+-   **Trend Line**: A single line between two points on the chart.
+-   **Parallel Channel**: Two parallel lines, with a fill between them and an optional centre line as well.
+-   **Disjoint Channel**: Two lines which do not need to be parallel, with a fill between them.
+-   **Horizontal Line**: A horizontal line across the entire chart. There is also an optional label over the axis.
+-   **Vertical Line**: A vertical line across the entire chart. There is also an optional label over the axis.
+
+### Adding, Saving & Restoring Annotations
+
+Developers can use the `initialState` property to add annotations at runtime:
+
+```ts
+initialState: {
+    annotations: [
+        {
+            type: 'line',
+            start: {
+                x: { __type: 'date', value: '2024-03-21' },
+                y: 1234,
+            },
+            end: {
+                x: { __type: 'date', value: '2024-06-21' },
+                y: 2345,
+            }
+        },
+    ],
+}
+```
+
+Additionally, annotations added by users can also be saved and later restored using the `getState` and `setState` methods:
+
+```ts
+function saveAnnotations() {
+    const newState = chart.getState();
+    //save to database...
+}
+
+function restoreAnnotations() {
+    // retrieve state from database...
+    chart.setState(state);
+}
+```
+
+### Example
+
+{% chartExampleRunner title="Annotations Initial" name="annotation-initial" type="generated" /%}
+
+## Interact with Financial Charts
+
+AG Charts' Financial Charts come with a number of features to enable interactive data analysis, including [Zoom](./zoom) and [Range](./toolbar/#range-toolbar) controls.
 
 {% imageCaption pageName="financial-charts" imageName="zoom.gif" alt="Zoom" constrained=true/%}
 
-Users can [Zoom](./zoom/) by interacting with the chart area, dragging the axis or clicking on the zoom buttons.
+### Zoom
 
-[Range buttons](./toolbar/) are also available.
+Users can zoom directly within the chart by using the mouse wheel or trackpad:
 
-## Chart types
+-   Scroll in and out with the mouse wheel or trackpad.
+-   Click and drag to pan around the zoomed in chart.
+-   Click and drag an axis to zoom in or out on only that axis.
+-   Double click anywhere to reset the zoom.
 
-Choose from a variety of financial chart types to visualise your data.
+Zoom buttons are also enabled by default and allow the user to perform various operations. These will appear when the mouse is hovered near the bottom of a chart which has zoom enabled.
+
+### Range Toolbar
+
+The Range Toolbar contains buttons allowing the user to jump to a specific range along the chart timeline. It is also possible to override the default buttons by providing an array of button objects.
+
+### Example
+
+{% chartExampleRunner title="Toolbar" name="toolbar-buttons" type="generated" /%}
+
+## Financial Chart types
+
+Our default Financial Chart type is [Candlestick](/candlestick-series/), however, we also support a number of additional Financial Chart types:
 
 {% imageCaption pageName="financial-charts" imageName="chart-types.gif" alt="Chart Types" constrained=true/%}
 
-Available series types are:
+AG Charts' Financial Charts currently supports the following chart types:
 
--   [Candlestick](./candlestick-series/) (default)
--   [Hollow Candlestick](./candlestick-series/#customisation)
--   [OHLC](./ohlc-series/)
--   [Line](./line-series/)
--   [Step Line](./line/#line)
--   [Range Area](./range-area-series/)
+-   **OHLC**: Shows open and close data with horizontal tick lines, and high and low ranges with a vertical line.
+-   **Line**: Visualises continuous data, and is typically used to see trends or fluctuations over time.
+-   **Hollow Candlestick**: Shows open and close data with bars, and high and low data with wicks.
+-   **Step Line**: Visualises trends for non-continuous data
+-   **Area**: Visualises continuous data, and is primarily used to compare multiple datasets over time.
+-   **Range Area**: Represents data ranges using a shaded area between high and low data values.
+
+### Example
+
+See each of these in action by using the buttons in the example below to switch between different chart types:
+
+{% chartExampleRunner title="Basic Financial Chart" name="switching-chart-types" type="generated" /%}
