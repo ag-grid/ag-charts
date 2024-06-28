@@ -30,6 +30,8 @@ const THEMES: Record<AgChartThemeName, boolean> = {
     'ag-sheets-dark': true,
     'ag-vivid': true,
     'ag-vivid-dark': true,
+    'ag-financial': false,
+    'ag-financial-dark': false,
 };
 
 export default async function (options: ExecutorOptions, ctx: ExecutorContext) {
@@ -59,6 +61,8 @@ export async function generateFiles(options: ExecutorOptions, ctx: ExecutorConte
 
     const timesCalled = await consolePrefix(`[${ctx.projectName}] `, async () => {
         for (const theme of Object.keys(THEMES) as AgChartThemeName[]) {
+            if (!THEMES[theme]) continue;
+
             for (const dpi of dpiOutputs) {
                 try {
                     await generateThumbnail({ example, theme, outputPath, dpi, mockText: false });
