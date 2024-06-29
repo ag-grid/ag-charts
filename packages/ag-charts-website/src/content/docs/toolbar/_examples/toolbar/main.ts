@@ -8,6 +8,7 @@ const options: AgFinancialChartOptions = {
     data: getData(),
     volume: false,
     navigator: true,
+    // toolbar: false,
 };
 
 AgCharts.createFinancialChart(options);
