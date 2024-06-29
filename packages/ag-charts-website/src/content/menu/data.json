@@ -271,7 +271,7 @@
                         "isEnterprise": true
                     },
                     {
-                        "title": "Toolbar",
+                        "title": "Range Toolbar",
                         "path": "toolbar",
                         "isEnterprise": true
                     }

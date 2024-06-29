@@ -1,9 +1,9 @@
 ---
-title: 'Toolbar'
+title: 'Range Toolbar'
 enterprise: true
 ---
 
-Toolbars contain buttons, allowing users to interact with the chart at runtime.
+The Range Toolbar includes buttons for navigating different time periods.
 
 ## Range Toolbar
 
@@ -11,11 +11,15 @@ The Range Toolbar contains buttons allowing the user to jump to a specific range
 
 {% chartExampleRunner title="Toolbar" name="toolbar" type="generated" /%}
 
-### Custom Buttons
+The Range Toolbar is enabled by default. To hide the Range Toolbar set the`toolbar` chart option to `false`.
+
+## Custom Buttons
 
 It is possible to override the default buttons by providing an array of button objects.
 
 {% chartExampleRunner title="Toolbar" name="toolbar-buttons" type="generated" /%}
+
+Custom buttons can be defined through the `toolbar` options object.
 
 ```ts
 toolbar: {
@@ -42,6 +46,14 @@ toolbar: {
     },
   },
 ```
+
+In this configuration:
+
+-   `label` specifies the text displayed on the button.
+-   `value` determines the time range the button applies:
+    -   For "6 Months" and "12 Months", it sets the range to the past 6 or 12 months, respectively.
+    -   For "February", it sets the range to February 2023, from February 1 to March 1.
+    -   For "All Data", it dynamically sets the range to include all available data from the start to the end date.
 
 ## API Reference
 
