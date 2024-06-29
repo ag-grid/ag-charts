@@ -216,6 +216,35 @@
             }
         ]
     },
+    "financialCharts": {
+        "items": [
+            {
+                "title": "Financial Charts",
+                "items": [
+                    {
+                        "title": "Overview",
+                        "path": "financial-charts",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Configuration",
+                        "path": "financial-charts-configuration",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Annotations",
+                        "path": "annotations",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Range Toolbar",
+                        "path": "toolbar",
+                        "isEnterprise": true
+                    }
+                ]
+            }
+        ]
+    },
     "maps": {
         "items": [
             {
@@ -244,35 +273,6 @@
                     {
                         "title": "Map Topology",
                         "path": "map-topology",
-                        "isEnterprise": true
-                    }
-                ]
-            }
-        ]
-    },
-    "financialCharts": {
-        "items": [
-            {
-                "title": "Financial Charts",
-                "items": [
-                    {
-                        "title": "Overview",
-                        "path": "financial-charts",
-                        "isEnterprise": true
-                    },
-                    {
-                        "title": "Chart Types",
-                        "path": "financial-chart-types",
-                        "isEnterprise": true
-                    },
-                    {
-                        "title": "Annotations",
-                        "path": "annotations",
-                        "isEnterprise": true
-                    },
-                    {
-                        "title": "Range Toolbar",
-                        "path": "toolbar",
                         "isEnterprise": true
                     }
                 ]
