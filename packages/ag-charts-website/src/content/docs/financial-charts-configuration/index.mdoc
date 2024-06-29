@@ -1,0 +1,216 @@
+---
+title: 'Financial Charts - Configuration'
+enterprise: true
+---
+
+Learn how to create Financial Charts with minimal configuration and customisations.
+
+## Default Configuration
+
+{% chartExampleRunner title="Default Configuration" name="default-configuration" type="generated" /%}
+
+Financial Charts come pre-configured with built-in features – just add your data to produce the chart shown above.
+
+{% if isFramework("javascript") %}
+
+```js
+import { AgCharts, AgFinancialChartOptions } from "ag-charts-enterprise";
+
+import { getData } from "./data";
+
+const options: AgFinancialChartOptions = {
+  container: document.getElementById("myChart"),
+  data: getData(),
+};
+
+const chart = AgCharts.createFinancialChart(options);
+```
+
+{% /if %}
+
+{% if isFramework("react") %}
+
+```jsx
+import React, { useState } from "react";
+import { createRoot } from "react-dom/client";
+import { AgFinancialCharts } from "ag-charts-react";
+import { AgFinancialChartOptions } from "ag-charts-enterprise";
+import { getData } from "./data";
+import "ag-charts-enterprise";
+
+const ChartExample = () => {
+  const [options, setOptions] = useState<AgFinancialChartOptions>({
+    data: getData(),
+  });
+
+  return <AgFinancialCharts options={options as any} />;
+};
+
+const root = createRoot(document.getElementById("root")!);
+root.render(<ChartExample />);
+```
+
+{% /if %}
+
+{% if isFramework("angular") %}
+
+```js
+import { Component } from '@angular/core';
+import { AgFinancialCharts } from 'ag-charts-angular';
+import { AgFinancialChartOptions } from 'ag-charts-enterprise';
+import { getData } from './data';
+import 'ag-charts-enterprise';
+
+@Component({
+  selector: "my-app",
+  standalone: true,
+  imports: [AgFinancialCharts],
+  template: `<ag-financial-charts [options]="options"></ag-financial-charts> `,
+})
+export class AppComponent {
+  public options;
+
+  constructor() {
+    this.options = {
+      data: getData(),
+    };
+  }
+}
+```
+
+{% /if %}
+
+{% if isFramework("vue") %}
+
+```js
+import { createApp } from 'vue';
+
+import 'ag-charts-enterprise';
+import { AgFinancialCharts } from 'ag-charts-vue3';
+
+const ChartExample = {
+    template: `
+    <ag-financial-charts
+      :options="options"
+    />
+  `,
+    components: {
+        'ag-financial-charts': AgFinancialCharts,
+    },
+    data() {
+        return {
+            options: {
+                data: getData(),
+            },
+        };
+    },
+};
+
+createApp(ChartExample).mount('#app');
+```
+
+{% /if %}
+
+{% note %}
+This snippet assumes the supplied data includes 'open', 'high', 'low', 'close' and 'volume' (optional) keys.
+{% /note %}
+
+For custom data keys, map your data properties to the appropriate [AgFinancialChartOptions](#reference-AgFinancialChartOptions) keys:
+
+-   `openKey`: key for the open values.
+-   `highKey`: key for the high values.
+-   `lowKey`: key for the low values.
+-   `closeKey`: key for the close values.
+-   `volumeKey`: key for the volume values (optional).
+
+## Customisation
+
+### Chart Types
+
+{% chartExampleRunner title="Chart Types" name="chart-types" type="generated" /%}
+
+The default chart type is `candlestick`. To use a different chart type, set the `chartType` property.
+
+```js
+const options: AgFinancialChartOptions = {
+  // ...
+  chartType: 'line', // Set to line
+};
+```
+
+The following chart types are supported:
+
+-   `candlestick`
+-   `hollow-candlestick`
+-   `ohlc`
+-   `line`
+-   `step-line`
+-   `range-area`
+
+### Chart Features
+
+{% chartExampleRunner title="Chart Features" name="chart-features" type="generated" /%}
+
+Financial Chart features can be enabled or disabled via the following properties:
+
+```js
+const options: AgFinancialChartOptions = {
+  // ...
+  navigator: false, // disabled by default!
+  annotations: true,
+  rangeToolbar: true,
+  volume: true,
+  statusBar: true,
+  zoom: true,
+};
+```
+
+In this configuration:
+
+-   `navigator`: Enables the mini chart navigator for easy dataset navigation.
+-   `annotations`: Allows users to add annotations on the chart using the annotations toolbar.
+-   `rangeToolbar`: Provides range buttons for navigating different time periods.
+-   `volume`: Displays volume data on the chart.
+-   `statusBar`: Shows a status bar at the top of the chart when hovering over the chart series.
+-   `zoom`: Enables zoom functionality for detailed analysis of the data.
+
+### Chart Styling
+
+{% chartExampleRunner title="Chart Styling" name="chart-styling" type="generated" /%}
+
+Use the `theme` property in `AgFinancialChartOptions` to customise chart styles.
+
+```js
+const options: AgFinancialChartOptions = {
+  // ...
+  theme: {
+    palette: {
+      up: { fill: "#F3A93C", stroke: "#A8492D" },
+      down: { fill: "#1A00F4", stroke: "#75FBFD" }
+    },
+  },
+};
+```
+
+In this configuration:
+
+-   `palette`: Specifies custom colours.
+    -   `up`: Colours for "rising values"
+    -   `down`: Colours for "falling values"
+
+For additional customisation, use [Theme Override Options](/themes-api/) in the `theme` option.
+
+{% note %}
+Financial Charts use the `ag-financial` and `ag-financial-dark` themes.
+{% /note %}
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgFinancialChartOptions" label="Options" %}
+{% apiReference id="AgFinancialChartOptions" /%}
+{% apiReference id="AgPriceVolumePreset" hideHeader=true /%}
+{% /tabItem %}
+
+{% /tabs %}

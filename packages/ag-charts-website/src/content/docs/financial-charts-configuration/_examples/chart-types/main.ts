@@ -5,19 +5,12 @@ import { getData } from './data';
 const options: AgFinancialChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
-
-    // Default configuration.
-    volume: true,
-    annotations: true,
-    rangeToolbar: true,
-    statusBar: true,
-    zoom: true,
-    navigator: false,
+    chartType: 'candlestick', // default!
 };
 
 const chart = AgCharts.createFinancialChart(options);
 
-function toggleFeature(type: 'volume' | 'annotations' | 'rangeToolbar' | 'statusBar' | 'zoom' | 'navigator') {
-    options[type] = !options[type];
+function changeType(type: 'candlestick' | 'ohlc' | 'hollow-candlestick' | 'line' | 'step-line' | 'range-area') {
+    options.chartType = type;
     chart.update(options);
 }
