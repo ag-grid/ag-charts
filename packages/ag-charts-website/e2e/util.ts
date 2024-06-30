@@ -1,7 +1,36 @@
 import { Page, expect, test } from '@playwright/test';
+import { execSync } from 'child_process';
+import glob from 'glob';
 
 const baseUrl = 'http://localhost:4601';
 const fws = ['vanilla', 'typescript', 'reactFunctional', 'reactFunctionalTs', 'angular', 'vue3'];
+
+export function getExamples() {
+    const examples = glob.glob.sync('./src/content/**/_examples/*/main.ts').map((e) => ({ path: e, affected: true }));
+    if (process.env.NX_BASE && process.env.AG_FORCE_ALL_TESTS !== '1') {
+        const exampleGenChanged = execSync(
+            `git diff --name-only ${process.env.NX_BASE} -- ../../plugins/ag-charts-generate-example-files/`
+        )
+            .toString()
+            .split('\n')
+            .some((t) => t.trim().length > 0);
+        const changedFiles = new Set(
+            execSync(`git diff --name-only ${process.env.NX_BASE} -- ./src/content/`)
+                .toString()
+                .split('\n')
+                .map((v) => v.replace(/^packages\/ag-charts-website\//, './'))
+        );
+        let affectedCount = 0;
+        for (const example of examples) {
+            example.affected = exampleGenChanged || changedFiles.has(example.path);
+            affectedCount += example.affected ? 1 : 0;
+        }
+
+        // eslint-disable-next-line no-console
+        console.warn(`NX_BASE set - applied changed example processing, ${affectedCount} changed examples found.`);
+    }
+    return examples;
+}
 
 export function toExamplePageUrls(page: string, example: string) {
     return fws.map((framework) => ({ framework, url: `${baseUrl}/${framework}/${page}/examples/${example}`, example }));

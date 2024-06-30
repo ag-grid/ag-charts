@@ -1,8 +1,6 @@
 import { expect, test } from '@playwright/test';
-import { execSync } from 'child_process';
-import * as glob from 'glob';
 
-import { gotoExample, setupIntrinsicAssertions, toExamplePageUrls, toGalleryPageUrls } from './util';
+import { getExamples, gotoExample, setupIntrinsicAssertions, toExamplePageUrls, toGalleryPageUrls } from './util';
 
 type Status = 'ok' | '404';
 type ClickOrder = 'normal' | 'reverse';
@@ -139,29 +137,7 @@ function convertPageUrls(path: string) {
 test.describe('examples', () => {
     const config = setupIntrinsicAssertions();
 
-    const examples = glob.glob.sync('./src/content/**/_examples/*/main.ts').map((e) => ({ path: e, affected: true }));
-    if (process.env.NX_BASE) {
-        const exampleGenChanged = execSync(
-            `git diff --name-only ${process.env.NX_BASE} -- ../../plugins/ag-charts-generate-example-files/`
-        )
-            .toString()
-            .split('\n')
-            .some((t) => t.trim().length > 0);
-        const changedFiles = new Set(
-            execSync(`git diff --name-only ${process.env.NX_BASE} -- ./src/content/`)
-                .toString()
-                .split('\n')
-                .map((v) => v.replace(/^packages\/ag-charts-website\//, './'))
-        );
-        let affectedCount = 0;
-        for (const example of examples) {
-            example.affected = exampleGenChanged || changedFiles.has(example.path);
-            affectedCount += example.affected ? 1 : 0;
-        }
-
-        // eslint-disable-next-line no-console
-        console.warn(`NX_BASE set - applied changed example processing, ${affectedCount} changed examples found.`);
-    }
+    const examples = getExamples();
 
     for (const { path, affected } of examples) {
         for (const opts of convertPageUrls(path)) {

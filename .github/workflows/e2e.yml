@@ -136,6 +136,7 @@ jobs:
         env:
             NX_PARALLEL: 1
             NX_BASE: ${{ needs.init.outputs.nx_base }}
+            AG_FORCE_ALL_TESTS: ${{ (github.ref == 'refs/heads/latest') && '1' || '0' }}
         steps:
             - id: status
               name: Update Status
