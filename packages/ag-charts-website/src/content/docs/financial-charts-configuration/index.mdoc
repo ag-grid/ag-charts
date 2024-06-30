@@ -112,11 +112,12 @@ createApp(ChartExample).mount('#app');
 {% /if %}
 
 {% note %}
-This snippet assumes the supplied data includes 'open', 'high', 'low', 'close' and 'volume' (optional) keys.
+This snippet assumes the supplied data includes 'date', 'open', 'high', 'low', 'close' and 'volume' (optional) keys.
 {% /note %}
 
 For custom data keys, map your data properties to the appropriate [AgFinancialChartOptions](#reference-AgFinancialChartOptions) keys:
 
+-   `xKey` : key for the date values.
 -   `openKey`: key for the open values.
 -   `highKey`: key for the high values.
 -   `lowKey`: key for the low values.
