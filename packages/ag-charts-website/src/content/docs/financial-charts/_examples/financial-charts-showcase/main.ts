@@ -10,8 +10,8 @@ const options: AgFinancialChartOptions = {
         annotations: [
             {
                 type: 'parallel-channel',
-                start: { x: { __type: 'date', value: 1646058600000 }, y: 160.15 },
-                end: { x: { __type: 'date', value: 1709000000000 }, y: 160.15 },
+                start: { x: { __type: 'date', value: new Date('2022-03-01').getTime() }, y: 160.15 },
+                end: { x: { __type: 'date', value: new Date('2024-06-28').getTime() }, y: 160.15 },
                 height: 12,
                 stroke: '#808080B0',
                 background: {
@@ -20,8 +20,8 @@ const options: AgFinancialChartOptions = {
             },
             {
                 type: 'parallel-channel',
-                start: { x: { __type: 'date', value: 1678900000000 }, y: 160.0 },
-                end: { x: { __type: 'date', value: 1689900000000 }, y: 198.0 },
+                start: { x: { __type: 'date', value: new Date('2023-03-15').getTime() }, y: 160.0 },
+                end: { x: { __type: 'date', value: new Date('2023-07-21').getTime() }, y: 198.0 },
                 height: 8,
                 stroke: '#4075E0C4',
                 background: {
