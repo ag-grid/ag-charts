@@ -1,8 +1,10 @@
 import type { FontStyle, FontWeight, TextAlign, TextWrap } from 'ag-charts-types';
 
+import type { DOMManager } from '../module-support';
 import type { ModuleContext } from '../module/moduleContext';
 import { PointerEvents } from '../scene/node';
 import { Text } from '../scene/shape/text';
+import { setElementBBox } from '../util/dom';
 import { joinFunctions } from '../util/function';
 import { createId } from '../util/id';
 import { BaseProperties } from '../util/properties';
@@ -85,6 +87,8 @@ export class Caption extends BaseProperties implements CaptionLike {
     @Validate(STRING)
     layoutStyle: 'block' | 'overlay' = 'block';
 
+    private proxyParagraph?: HTMLElement;
+
     registerInteraction(moduleCtx: ModuleContext) {
         const region = moduleCtx.regionManager.getRegion('root');
         const destroyFns = [
@@ -106,6 +110,23 @@ export class Caption extends BaseProperties implements CaptionLike {
         const wrappedText = TextWrapper.wrapText(text ?? '', { maxWidth, maxHeight, font: this, textWrap: wrapping });
         this.node.text = wrappedText;
         this.truncated = wrappedText.includes(TextMeasurer.EllipsisChar);
+    }
+
+    updateA11yParagraph(domManager: DOMManager) {
+        if (this.enabled && this.text) {
+            this.proxyParagraph ??= domManager.addChild('canvas-proxy', this.id);
+            this.proxyParagraph.style.opacity = '0';
+            this.proxyParagraph.style.position = 'absolute';
+            this.proxyParagraph.style.overflow = 'hidden';
+            this.proxyParagraph.textContent = this.text;
+            const bbox = this.node.computeTransformedBBox();
+            if (bbox) {
+                setElementBBox(this.proxyParagraph, bbox);
+            }
+        } else {
+            this.proxyParagraph?.remove();
+            this.proxyParagraph = undefined;
+        }
     }
 
     handleMouseMove(moduleCtx: ModuleContext, event: PointerInteractionEvent<'hover'>) {

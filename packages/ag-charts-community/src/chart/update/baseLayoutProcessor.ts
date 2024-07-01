@@ -4,6 +4,7 @@ import type { LayoutContext } from '../../module/baseModule';
 import { Text } from '../../scene/shape/text';
 import { Logger } from '../../util/logger';
 import { Caption } from '../caption';
+import type { DOMManager } from '../dom/domManager';
 import type { LayoutCompleteEvent, LayoutService } from '../layout/layoutService';
 import type { ChartLike, UpdateProcessor } from './processor';
 
@@ -12,7 +13,8 @@ export class BaseLayoutProcessor implements UpdateProcessor {
 
     constructor(
         private readonly chartLike: ChartLike,
-        private readonly layoutService: LayoutService
+        private readonly layoutService: LayoutService,
+        private readonly domManager: DOMManager
     ) {
         this.destroyFns.push(
             // eslint-disable-next-line sonarjs/no-duplicate-string
@@ -135,5 +137,7 @@ export class BaseLayoutProcessor implements UpdateProcessor {
                 caption.node.x = rect.x + rect.width - bbox.width - titlePadding;
             }
         }
+
+        [title, subtitle, footnote].forEach((c) => c.updateA11yParagraph(this.domManager));
     }
 }
