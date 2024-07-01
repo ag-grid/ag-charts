@@ -61,9 +61,6 @@ runs:
               key: node_modules-${{hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json')}}
               restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
 
-        - name: Tidy Nx Cache (Post Job)
-          uses: ./.github/actions/tidy-nx-cache
-
         - name: Cache Nx
           if: inputs.clean != 'true' && inputs.nx_restore != 'false'
           uses: actions/cache@v3
@@ -71,6 +68,9 @@ runs:
               path: .nx/cache
               key: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-${{ github.sha }}
               restore-keys: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-
+
+        - name: Tidy Nx Cache (Post Job)
+          uses: ./.github/actions/tidy-nx-cache
 
         - name: Setup Node.js
           id: setup_node
