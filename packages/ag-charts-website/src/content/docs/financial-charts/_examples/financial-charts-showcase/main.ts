@@ -5,7 +5,7 @@ import { getData } from './data';
 const options: AgFinancialChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
-    title: { text: 'FTSE: XYZ' },
+    title: { text: 'Acme Inc.' },
     initialState: {
         annotations: [
             {
