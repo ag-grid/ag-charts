@@ -10,38 +10,40 @@ const options: AgFinancialChartOptions = {
         annotations: [
             {
                 type: 'parallel-channel',
-                start: { x: { __type: 'date', value: 1646058600000 }, y: 160.15 },
-                end: { x: { __type: 'date', value: 1709000000000 }, y: 160.15 },
-                height: 12,
-                stroke: '#808080B0',
-                background: {
-                    fill: '#808080B0',
-                },
+                start: { x: { __type: 'date', value: 1698200000000 }, y: 148.0 },
+                end: { x: { __type: 'date', value: 1712900000000 }, y: 207.0 },
+                height: 14,
             },
             {
-                type: 'parallel-channel',
-                start: { x: { __type: 'date', value: 1678900000000 }, y: 160.0 },
-                end: { x: { __type: 'date', value: 1689900000000 }, y: 198.0 },
-                height: 8,
-                stroke: '#4075E0C4',
-                background: {
-                    fill: '#4075E0C4',
+                type: 'horizontal-line',
+                value: 111.0,
+                stroke: '#089981',
+                axisLabel: {
+                    fill: '#089981',
                 },
             },
             {
                 type: 'horizontal-line',
-                value: 180.0,
-                stroke: 'lightseagreen',
+                value: 125.0,
+                stroke: '#089981',
                 axisLabel: {
-                    fill: 'lightseagreen',
+                    fill: '#089981',
                 },
             },
             {
                 type: 'horizontal-line',
-                value: 195.0,
-                stroke: 'red',
+                value: 143.8,
+                stroke: '#F23645',
                 axisLabel: {
-                    fill: 'red',
+                    fill: '#F23645',
+                },
+            },
+            {
+                type: 'horizontal-line',
+                value: 200.8,
+                stroke: '#F23645',
+                axisLabel: {
+                    fill: '#F23645',
                 },
             },
         ],
