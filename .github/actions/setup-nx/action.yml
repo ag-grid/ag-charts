@@ -9,6 +9,10 @@ inputs:
         description: 'Additional yarn install opts.'
         required: false
         default: ''
+    yarn_postinstall:
+        description: 'Always ensure yarn postinstall is run.'
+        required: false
+        default: 'true'
     nx_restore:
         description: 'Restore Nx Cache.'
         required: false
@@ -87,6 +91,6 @@ runs:
               (yarn check --integrity && yarn postinstall) || yarn install --ci ${{ inputs.yarn_opts }}
 
         - name: yarn postinstall
-          if: steps.cache.outputs.cache-hit == 'true'
+          if: steps.cache.outputs.cache-hit == 'true' && inputs.yarn_postinstall == 'true'
           shell: bash
           run: yarn postinstall
