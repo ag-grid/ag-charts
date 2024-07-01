@@ -29,6 +29,8 @@ jobs:
             - name: Setup
               id: setup
               uses: ./.github/actions/setup-nx
+              with:
+                  nx_restore: false # We deliberately want a clean starting state.
 
             - name: nx build
               id: build
@@ -42,9 +44,3 @@ jobs:
               id: blt
               run: |
                   yarn nx run blt
-
-            - name: Tidy Nx Cache
-              run: |
-                  sudo du -sh .nx/cache
-                  ./tools/tidy-nx-cache.sh
-                  sudo du -sh .nx/cache
