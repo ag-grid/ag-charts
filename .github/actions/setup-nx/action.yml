@@ -1,28 +1,28 @@
 name: setup-nx
 
+inputs:
+    clean:
+        description: 'Force a clean setup.'
+        required: false
+        default: 'false'
+    yarn_opts:
+        description: 'Additional yarn install opts.'
+        required: false
+        default: ''
+    nx_restore:
+        description: 'Restore Nx Cache.'
+        required: false
+        default: 'true'
+outputs:
+    base:
+        description: 'Base branch/SHA for diff detection'
+        value: ${{ steps.nx_config.outputs.base }}
+    type:
+        description: 'Type of job execution detected'
+        value: ${{ steps.nx_config.type }}
+
 runs:
     using: 'composite'
-    post: ./tools/tidy-nx-cache.sh
-    inputs:
-        clean:
-            description: 'Force a clean setup.'
-            required: false
-            default: 'false'
-        yarn_opts:
-            description: 'Additional yarn install opts.'
-            required: false
-            default: ''
-        nx_restore:
-            description: 'Restore Nx Cache.'
-            required: false
-            default: 'true'
-    outputs:
-        base:
-            description: 'Base branch/SHA for diff detection'
-            value: ${{ steps.nx_config.outputs.base }}
-        type:
-            description: 'Type of job execution detected'
-            value: ${{ steps.nx_config.type }}
     steps:
         - name: Nx Affected SHA Setup
           id: nx_config
