@@ -3,6 +3,7 @@ import type { AgAnnotation, AgAnnotationsThemeableOptions } from 'ag-charts-type
 import type { MementoOriginator } from '../../api/state/memento';
 import type { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
+import { mergeDefaults } from '../../util/object';
 import { isArray } from '../../util/type-guards';
 import { BaseManager } from '../baseManager';
 
@@ -37,9 +38,14 @@ export class AnnotationManager
     public restoreMemento(_version: string, _mementoVersion: string, memento: AnnotationsMemento) {
         // Migration from older versions can be implemented here.
 
+        const annotations = memento.map((annotation) => {
+            const annotationTheme = this.getAnnotationTypeStyles(annotation.type);
+            return mergeDefaults(annotation, annotationTheme);
+        });
+
         this.listeners.dispatch('restore-annotations', {
             type: 'restore-annotations',
-            annotations: memento,
+            annotations,
         });
     }
 
