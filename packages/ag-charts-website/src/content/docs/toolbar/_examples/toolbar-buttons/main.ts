@@ -6,7 +6,7 @@ const MONTH = 30 * 24 * 60 * 60 * 1000;
 
 const options: AgFinancialChartOptions = {
     container: document.getElementById('myChart'),
-    title: { text: 'FTSE: XYZ' },
+    title: { text: 'Acme Inc.' },
     data: getData(),
     volume: false,
     theme: {
