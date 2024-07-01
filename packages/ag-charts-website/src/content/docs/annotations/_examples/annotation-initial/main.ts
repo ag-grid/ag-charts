@@ -26,10 +26,22 @@ const options: AgFinancialChartOptions = {
                     },
                     y: 39844.70176730486,
                 },
+
+                stroke: '#5090dc',
+                strokeOpacity: 1,
+                strokeWidth: 2,
             },
             {
                 type: 'parallel-channel',
                 height: 13.282400589101599,
+                middle: {
+                    strokeWidth: 1,
+                    lineDash: [6, 5],
+                },
+                background: {
+                    fill: '#5090dc',
+                    fillOpacity: 0.2,
+                },
                 start: {
                     x: {
                         __type: 'date',
@@ -44,11 +56,19 @@ const options: AgFinancialChartOptions = {
                     },
                     y: 39842.30854197349,
                 },
+
+                stroke: '#5090dc',
+                strokeOpacity: 1,
+                strokeWidth: 2,
             },
             {
                 type: 'disjoint-channel',
                 startHeight: 16.872238586154708,
                 endHeight: 4.666789396178501,
+                background: {
+                    fill: '#5090dc',
+                    fillOpacity: 0.2,
+                },
                 start: {
                     x: {
                         __type: 'date',
@@ -63,6 +83,10 @@ const options: AgFinancialChartOptions = {
                     },
                     y: 39845.30007363771,
                 },
+
+                stroke: '#5090dc',
+                strokeOpacity: 1,
+                strokeWidth: 2,
             },
             {
                 type: 'vertical-line',
@@ -70,10 +94,23 @@ const options: AgFinancialChartOptions = {
                     __type: 'date',
                     value: 'Thu Mar 21 2024 19:08:00 GMT+0000 (Greenwich Mean Time)',
                 },
+
+                axisLabel: {
+                    enabled: true,
+                },
+                stroke: '#5090dc',
+                strokeOpacity: 1,
+                strokeWidth: 2,
             },
             {
                 type: 'horizontal-line',
                 value: 39863.48858615611,
+                axisLabel: {
+                    enabled: true,
+                },
+                stroke: '#5090dc',
+                strokeOpacity: 1,
+                strokeWidth: 2,
             },
         ],
     },
