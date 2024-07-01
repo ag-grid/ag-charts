@@ -18,6 +18,8 @@ let state: AgChartState = {
         {
             type: 'parallel-channel',
             height: 9.692307692304894,
+            middle: { strokeWidth: 1, lineDash: [6, 5] },
+            background: { fill: '#5090dc', fillOpacity: 0.2 },
             start: {
                 x: { __type: 'date', value: 'Thu Mar 21 2024 18:45:00 GMT+0000 (Greenwich Mean Time)' },
                 y: 39821.692307692305,
@@ -26,6 +28,10 @@ let state: AgChartState = {
                 x: { __type: 'date', value: 'Thu Mar 21 2024 18:55:00 GMT+0000 (Greenwich Mean Time)' },
                 y: 39838.46153846154,
             },
+            handle: { fill: 'white' },
+            stroke: '#5090dc',
+            strokeOpacity: 1,
+            strokeWidth: 2,
         },
     ],
 };
