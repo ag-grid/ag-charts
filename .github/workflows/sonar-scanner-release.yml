@@ -34,7 +34,7 @@ jobs:
                   java-version: '17'
             - name: yarn install
               id: yarn_install
-              run: yarn install --ci
+              run: yarn install --ci --ignore-scripts
 
             - name: Run Scan
               run: |

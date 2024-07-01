@@ -4,11 +4,10 @@ import { getData } from './data';
 
 const options: AgFinancialChartOptions = {
     container: document.getElementById('myChart'),
-    title: { text: 'FTSE: XYZ' },
+    title: { text: 'Acme Inc.' },
     data: getData(),
     volume: false,
     navigator: true,
-    // toolbar: false,
 };
 
 AgCharts.createFinancialChart(options);

@@ -77,8 +77,45 @@ export default defineMarkdocConfig({
             },
         },
         image,
+        imageCaptionNew: {
+            render: component('./src/components/image/ImageCaption.astro'),
+            attributes: {
+                /**
+                 * Docs page name in `src/content/[pageName]
+                 *
+                 * If not provided, will default to the location of the markdoc file
+                 */
+                pageName: { type: String },
+                /**
+                 * Relative path within markdoc page folder
+                 */
+                imagePath: { type: String, required: true },
+                alt: { type: String, required: true },
+                centered: { type: Boolean },
+                constrained: { type: Boolean },
+                descriptionTop: { type: Boolean },
+                width: { type: String },
+                height: { type: String },
+                minWidth: { type: String },
+                maxWidth: { type: String },
+                /**
+                 * Enable dark mode CSS filter for image
+                 *
+                 * Alternatively, add `-dark` suffixed image in `imagePath` to add
+                 * dark mode image manually
+                 */
+                enableDarkModeFilter: { type: Boolean },
+                /**
+                 * Autoplay gif
+                 */
+                autoPlay: { type: Boolean },
+            },
+        },
+        /**
+         * @deprecated Replace with `imageCaptionNew`
+         */
         imageCaption: {
-            render: component('./src/components/image/ImageCaption'),
+            render: component('./src/components/image/ImageCaptionLegacy'),
             attributes: {
                 pageName: { type: String, required: true },
                 imageName: { type: String, required: true },
