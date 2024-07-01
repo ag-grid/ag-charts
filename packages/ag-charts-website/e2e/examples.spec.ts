@@ -169,7 +169,7 @@ test.describe('examples', () => {
                             const canvas = canvases[0];
 
                             // Try pressing the buttons to see if any errors are thrown.
-                            const buttons = await page.locator('.toolPanel > button').all();
+                            const buttons = await page.locator('.toolbar > button').all();
                             if (clickOrder === 'reverse') buttons.reverse();
 
                             for (const button of buttons) {

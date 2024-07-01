@@ -1,32 +1,32 @@
-<div class="wrapper">
-    <div class="toolPanel">
+<div class="toolbar">
+    <div class="toolbar__row">
         <button onclick="actionReset()">Reset</button>
         <button onclick="actionAddSeries()">Add Series</button>
         <button onclick="actionRemoveSeries()">Remove Series</button>
     </div>
-    <div class="toolPanel">
+    <div class="toolbar__row">
         <button onclick="actionRemovePoints()">Remove points middle</button>
         <button onclick="actionRemoveFirstPoint()">Remove the first point</button>
         <button onclick="actionRemoveLastPoint()">Remove the last point</button>
         <button onclick="actionRemoveHalf()">Remove half of points</button>
     </div>
-    <div class="toolPanel">
+    <div class="toolbar__row">
         <button onclick="actionAddPoints()">Add points middle</button>
         <button onclick="actionAddPointsBefore()">Add points before</button>
         <button onclick="actionAddPointsAfter()">Add points after</button>
         <button onclick="actionAddDouble()">Add double of points</button>
     </div>
-    <div class="toolPanel">
+    <div class="toolbar__row">
         <button onclick="actionUpdatePoints()">Update points</button>
         <button onclick="actionUpdatePointUndefined()">Update points to undefined</button>
     </div>
-    <div class="toolPanel">
+    <div class="toolbar__row">
         <button onclick="actionShiftLeft()">Shift left</button>
         <button onclick="actionShiftRight()">Shift right</button>
     </div>
-    <div class="toolPanel">
+    <div class="toolbar__row">
         <button onclick="actionTickStart()">Start ticking</button>
         <button onclick="actionTickStop()">Stop ticking</button>
     </div>
-    <div id="myChart" class="chart"></div>
 </div>
+<div id="myChart"></div>

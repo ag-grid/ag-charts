@@ -1,20 +1,14 @@
-<div class="wrapper">
-    <div class="toolPanel">
+<div class="toolbar">
+    <div class="toolbar__row">
         <button onclick="setLegendEnabled(true)">Show Legend</button>
-        <span class="spacer"></span>
         <button onclick="setLegendEnabled(false)">Hide Legend</button>
-        <span class="spacer"></span>
-        <div class="button-group">
-            Legend Position:
-            <span class="spacer"></span>
-            <button class="button--code" onclick="updateLegendPosition('right')">'right'</button>
-            <span class="spacer"></span>
-            <button class="button--code" onclick="updateLegendPosition('bottom')">'bottom'</button>
-            <span class="spacer"></span>
-            <button class="button--code" onclick="updateLegendPosition('left')">'left'</button>
-            <span class="spacer"></span>
-            <button class="button--code" onclick="updateLegendPosition('top')">'top'</button>
-        </div>
     </div>
-    <div id="myChart" class="chart"></div>
+    <div class="toolbar__row">
+        Legend Position:
+        <button class="button--code" onclick="updateLegendPosition('right')">'right'</button>
+        <button class="button--code" onclick="updateLegendPosition('bottom')">'bottom'</button>
+        <button class="button--code" onclick="updateLegendPosition('left')">'left'</button>
+        <button class="button--code" onclick="updateLegendPosition('top')">'top'</button>
+    </div>
 </div>
+<div id="myChart"></div>

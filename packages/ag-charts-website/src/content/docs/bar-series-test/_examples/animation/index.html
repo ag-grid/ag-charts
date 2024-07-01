@@ -1,16 +1,14 @@
-<div style="display: flex; flex-direction: column">
-    <div style="flex: none">
-        <button onclick="reset()">Reset</button>
-        <button onclick="toggleMode()" id="modeButton">Mode: standalone</button>
-        <button onclick="randomise()">Randomise</button>
-        <button onclick="removeData()">Remove Data</button>
-        <button onclick="removeSeries()">Remove Series</button>
-        <button onclick="addSeries()">Add Series</button>
-        <button onclick="switchDirection()">Switch Direction</button>
-        <button onclick="switchToGrouped()">Switch to Grouped</button>
-        <button onclick="switchToStacked()">Switch to Stacked</button>
-        <button onclick="moveLegend()">Move legend</button>
-        <button onclick="changeTheme()">Change Theme</button>
-    </div>
-    <div id="myChart" style="flex: 1; min-height: 0"></div>
+<div class="toolbar">
+    <button onclick="reset()">Reset</button>
+    <button onclick="toggleMode()" id="modeButton">Mode: standalone</button>
+    <button onclick="randomise()">Randomise</button>
+    <button onclick="removeData()">Remove Data</button>
+    <button onclick="removeSeries()">Remove Series</button>
+    <button onclick="addSeries()">Add Series</button>
+    <button onclick="switchDirection()">Switch Direction</button>
+    <button onclick="switchToGrouped()">Switch to Grouped</button>
+    <button onclick="switchToStacked()">Switch to Stacked</button>
+    <button onclick="moveLegend()">Move legend</button>
+    <button onclick="changeTheme()">Change Theme</button>
 </div>
+<div id="myChart"></div>

@@ -1,13 +1,13 @@
-<div class="wrapper">
-    <div style="display: flex; flex-direction: row; justify-content: center; gap: 0.5em">
+<div class="toolbar">
+    <div class="toolbar__row">
         <button onclick="changeSeriesBar()">Bar</button>
         <button onclick="changeSeriesLine()">Line</button>
         <button onclick="changeSeriesArea()">Area</button>
         <button onclick="changeSeriesDonut()">Pie &amp; Donut</button>
     </div>
-    <div style="display: flex; flex-direction: row; justify-content: center; gap: 1em">
+    <div class="toolbar__row">
         <button onclick="changeDuration(500)">Duration: 500ms</button>
         <button onclick="changeDuration(2000)">Duration: 2000ms</button>
     </div>
-    <div id="myChart" class="chart"></div>
 </div>
+<div id="myChart"></div>

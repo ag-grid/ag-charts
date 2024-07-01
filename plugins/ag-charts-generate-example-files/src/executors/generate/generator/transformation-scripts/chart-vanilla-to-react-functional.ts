@@ -18,7 +18,10 @@ export function processFunction(code: string): string {
 }
 
 function needsWrappingInFragment(bindings: any) {
-    return Object.keys(bindings.placeholders).length > 1 && !bindings.template.includes('</');
+    return (
+        bindings.template.includes('toolbar') ||
+        (Object.keys(bindings.placeholders).length > 1 && !bindings.template.includes('</'))
+    );
 }
 
 function getImports(componentFilenames: string[], bindings): string[] {
@@ -120,7 +123,12 @@ export async function vanillaToReactFunctional(bindings: any, componentFilenames
             properties.find((p) => p.name === 'options')
         );
 
-        const template = getTemplate(bindings, componentAttributes);
+        let template = getTemplate(bindings, componentAttributes);
+        if (needsWrappingInFragment(bindings)) {
+            template = `<Fragment>
+                ${template}
+            </Fragment>`;
+        }
 
         const externalEventHandlers = bindings.externalEventHandlers.map((handler) =>
             processFunction(convertFunctionToConstProperty(handler.body))

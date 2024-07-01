@@ -1,9 +1,3 @@
-.wrapper {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
 .sliders {
     display: grid;
     grid: auto-flow auto / auto 1fr minmax(60px, max-content);
@@ -18,8 +12,4 @@
 
 .slider-value {
     opacity: 0.4;
-}
-
-.chart {
-    flex: 1;
 }
