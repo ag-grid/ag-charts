@@ -26,6 +26,7 @@ runs:
     steps:
         - name: Nx Affected SHA Setup
           id: nx_config
+          shell: bash
           run: |
               branch=$(git branch --show-current)
               if [[ ${branch} == 'latest' ]] ; then
@@ -81,9 +82,11 @@ runs:
         - name: yarn install
           if: steps.cache.outputs.cache-hit != 'true'
           id: yarn_install
+          shell: bash
           run: |
               (yarn check --integrity && yarn postinstall) || yarn install --ci ${{ inputs.yarn_opts }}
 
         - name: yarn postinstall
           if: steps.cache.outputs.cache-hit == 'true'
+          shell: bash
           run: yarn postinstall
