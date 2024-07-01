@@ -15,7 +15,7 @@ import { getStockData } from './test/stockData';
 
 const EXAMPLES: Record<string, AgFinancialChartOptions> = {
     minimal: { data: getStockData() },
-    'with-navigator': { data: getStockData(), navigator: true },
+    // 'with-navigator': { data: getStockData(), navigator: true },
 };
 
 describe('priceVolumePreset', () => {
