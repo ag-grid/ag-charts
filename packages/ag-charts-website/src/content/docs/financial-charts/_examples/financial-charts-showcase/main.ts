@@ -10,8 +10,8 @@ const options: AgFinancialChartOptions = {
         annotations: [
             {
                 type: 'parallel-channel',
-                start: { x: { __type: 'date', value: 1698200000000 }, y: 148.0 },
-                end: { x: { __type: 'date', value: 1712900000000 }, y: 207.0 },
+                start: { x: { __type: 'date', value: new Date('2023-10-23').getTime() }, y: 148.0 },
+                end: { x: { __type: 'date', value: new Date('2024-04-12').getTime() }, y: 207.0 },
                 height: 14,
             },
             {
