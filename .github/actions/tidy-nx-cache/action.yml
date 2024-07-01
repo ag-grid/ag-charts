@@ -1,0 +1,5 @@
+name: setup-nx
+
+runs:
+    using: 'node20'
+    post: 'post.js'

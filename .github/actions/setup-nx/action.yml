@@ -1,0 +1,89 @@
+name: setup-nx
+
+runs:
+    using: 'composite'
+    post: ./tools/tidy-nx-cache.sh
+    inputs:
+        clean:
+            description: 'Force a clean setup.'
+            required: false
+            default: 'false'
+        yarn_opts:
+            description: 'Additional yarn install opts.'
+            required: false
+            default: ''
+        nx_restore:
+            description: 'Restore Nx Cache.'
+            required: false
+            default: 'true'
+    outputs:
+        base:
+            description: 'Base branch/SHA for diff detection'
+            value: ${{ steps.nx_config.outputs.base }}
+        type:
+            description: 'Type of job execution detected'
+            value: ${{ steps.nx_config.type }}
+    steps:
+        - name: Nx Affected SHA Setup
+          id: nx_config
+          run: |
+              branch=$(git branch --show-current)
+              if [[ ${branch} == 'latest' ]] ; then
+                # Latest
+                echo "base=latest-success" >> $GITHUB_OUTPUT
+                echo "NX_BASE=latest-success" >> $GITHUB_ENV
+                echo "type=latest" >> $GITHUB_OUTPUT
+                git fetch origin latest-success
+              elif [[ ${branch} =~ 'b[0-9][0-9]\..+' ]] ; then
+                # Release
+                echo "base=${branch}" >> $GITHUB_OUTPUT
+                echo "NX_BASE=${branch}" >> $GITHUB_ENV
+                echo "type=release" >> $GITHUB_OUTPUT
+              else
+                # PR
+                echo "base=origin/latest" >> $GITHUB_OUTPUT
+                echo "NX_BASE=origin/latest" >> $GITHUB_ENV
+                echo "type=pr" >> $GITHUB_OUTPUT
+                git fetch origin latest
+              fi
+
+        - name: Cache node_modules
+          if: inputs.clean != 'true'
+          id: cache
+          uses: actions/cache@v3
+          with:
+              path: |
+                  node_modules/
+                  packages/*/node_modules/
+                  plugins/*/node_modules/
+                  libraries/*/node_modules/
+              key: node_modules-${{hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json')}}
+              restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
+
+        - name: Tidy Nx Cache (Post Job)
+          uses: ./.github/actions/tidy-nx-cache
+
+        - name: Cache Nx
+          if: inputs.clean != 'true' && inputs.nx_restore != 'false'
+          uses: actions/cache@v3
+          with:
+              path: .nx/cache
+              key: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-${{ github.sha }}
+              restore-keys: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-
+
+        - name: Setup Node.js
+          id: setup_node
+          uses: actions/setup-node@v4
+          with:
+              node-version: '20'
+              cache: ${{ inputs.clean != 'true' && steps.cache.outputs.cache-hit != 'true' && 'yarn' || '' }}
+
+        - name: yarn install
+          if: steps.cache.outputs.cache-hit != 'true'
+          id: yarn_install
+          run: |
+              (yarn check --integrity && yarn postinstall) || yarn install --ci ${{ inputs.yarn_opts }}
+
+        - name: yarn postinstall
+          if: steps.cache.outputs.cache-hit == 'true'
+          run: yarn postinstall

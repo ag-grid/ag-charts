@@ -47,58 +47,9 @@ jobs:
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
-            - name: Nx Affected SHA Setup
-              id: nx_config
-              run: |
-                  branch=$(git branch --show-current)
-                  if [[ ${branch} == 'latest' ]] ; then
-                    # Latest
-                    echo "base=latest-e2e-success" >> $GITHUB_OUTPUT
-                    echo "NX_BASE=latest-e2e-success" >> $GITHUB_ENV
-                    echo "type=latest" >> $GITHUB_OUTPUT
-                    git fetch origin latest-e2e-success
-                  elif [[ ${branch} =~ 'b[0-9][0-9]\..+' ]] ; then
-                    # Release
-                    echo "base=${branch}" >> $GITHUB_OUTPUT
-                    echo "NX_BASE=${branch}" >> $GITHUB_ENV
-                    echo "type=release" >> $GITHUB_OUTPUT
-                  else
-                    # PR
-                    echo "base=origin/latest" >> $GITHUB_OUTPUT
-                    echo "NX_BASE=origin/latest" >> $GITHUB_ENV
-                    echo "type=pr" >> $GITHUB_OUTPUT
-                    git fetch origin latest
-                  fi
-            - name: Cache node_modules
-              id: cache
-              uses: actions/cache@v3
-              with:
-                  path: |
-                      node_modules/
-                      packages/*/node_modules/
-                      plugins/*/node_modules/
-                      libraries/*/node_modules/
-                  key: node_modules-${{hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json')}}
-                  restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
-            - name: Cache Nx
-              uses: actions/cache@v3
-              with:
-                  path: .nx/cache
-                  key: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-${{ github.sha }}
-                  restore-keys: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-
-            - name: Setup Node.js
-              id: setup_node
-              uses: actions/setup-node@v4
-              with:
-                  node-version: '20'
-                  cache: ${{ github.event.inputs.clean_checkout != 'true' && steps.cache.outputs.cache-hit != 'true' && 'yarn' || '' }}
-            - name: yarn install
-              if: steps.cache.outputs.cache-hit != 'true'
-              id: yarn_install
-              run: (yarn check --integrity && yarn postinstall) || yarn install --ci
-            - name: yarn postinstall
-              if: steps.cache.outputs.cache-hit == 'true'
-              run: yarn postinstall
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
 
             - name: build examples
               run: |
@@ -150,31 +101,19 @@ jobs:
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
-            - name: Cache node_modules
-              id: cache
-              uses: actions/cache@v3
-              with:
-                  path: |
-                      node_modules/
-                      packages/*/node_modules/
-                      plugins/*/node_modules/
-                      libraries/*/node_modules/
-                  key: node_modules-${{hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json')}}
-                  restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
-            - name: Setup Node.js
-              id: setup_node
-              uses: actions/setup-node@v4
-              with:
-                  node-version: '20'
-                  cache: ${{ github.event.inputs.clean_checkout != 'true' && steps.cache.outputs.cache-hit != 'true' && 'yarn' || '' }}
+
             - name: Restore Init Build Outputs
               uses: actions/download-artifact@v4
               with:
                   name: e2e-init-outputs
-            - name: yarn install
-              if: steps.cache.outputs.cache-hit != 'true'
-              id: yarn_install
-              run: yarn check --integrity || yarn install --ci --ignore-scripts
+
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  yarn_opts: --ignore-scripts
+                  nx_restore: false # Restored in previous step.
+
             - name: playwright install
               run: npx playwright install chromium --with-deps
 

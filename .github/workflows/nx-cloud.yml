@@ -25,32 +25,10 @@ jobs:
               uses: actions/checkout@v4
               with:
                   fetch-depth: 1
-            - name: Cache node_modules
-              if: github.event.inputs.clean_checkout != 'true'
-              id: cache
-              uses: actions/cache@v3
-              with:
-                  path: |
-                      node_modules/
-                      packages/*/node_modules/
-                      plugins/*/node_modules/
-                      libraries/*/node_modules/
-                  key: node_modules-${{hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json')}}
-                  restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
-            - name: Setup Node.js
-              id: setup_node
-              uses: actions/setup-node@v4
-              with:
-                  node-version: '20'
-                  cache: 'yarn'
-            - name: yarn install
-              id: yarn_install
-              run: |
-                  (yarn check --integrity && yarn postinstall) || yarn install --ci
-                  if [[ ! -f node_modules/canvas/build/Release/canvas.node ]] ; then
-                    echo "canvas.node binary not found, cannot proceed."
-                    exit 1
-                  fi
+
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
 
             - name: nx build
               id: build
