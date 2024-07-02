@@ -10,6 +10,7 @@ import { kbd } from '@ag-website-shared/markdoc/tags/kbd';
 import { note } from '@ag-website-shared/markdoc/tags/note';
 import { oneTrustCookies } from '@ag-website-shared/markdoc/tags/oneTrustCookies';
 import { tabItem, tabs } from '@ag-website-shared/markdoc/tags/tabs';
+import { video } from '@ag-website-shared/markdoc/tags/video';
 import { videoSection } from '@ag-website-shared/markdoc/tags/videoSection';
 import { warning } from '@ag-website-shared/markdoc/tags/warning';
 import { component, defineMarkdocConfig } from '@astrojs/markdoc/config';
@@ -40,6 +41,7 @@ export default defineMarkdocConfig({
         idea,
         enterpriseIcon,
         embedSnippet,
+        video,
         licenseSetup: {
             render: component('./src/components/license-setup/LicenseSetup.astro'),
         },
