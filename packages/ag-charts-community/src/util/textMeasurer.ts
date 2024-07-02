@@ -1,13 +1,22 @@
-import type { TextWrap } from 'ag-charts-types';
+import type { FontFamily, FontSize, FontStyle, FontWeight, Ratio, TextWrap } from 'ag-charts-types';
 
 import { createCanvasContext } from './canvas.util';
 
 // Allows for mutation of a readonly type by making all properties writable.
 export type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
+// Configuration options create a font string.
+export interface FontOptions {
+    fontSize: FontSize;
+    fontStyle?: FontStyle;
+    fontWeight?: FontWeight;
+    fontFamily?: FontFamily;
+    lineHeight?: Ratio;
+}
+
 // Configuration options for measuring text.
 export interface MeasureOptions {
-    font: string;
+    font: string | FontOptions;
     textAlign?: CanvasTextAlign;
     textBaseline?: CanvasTextBaseline;
 }
@@ -48,9 +57,26 @@ export interface LegacyTextMetrics extends Writeable<TextMetrics> {
 // Manages text measurement and wrapping functionalities.
 export class TextMeasurer {
     static readonly EllipsisChar = '\u2026'; // Representation for text clipping.
+    static readonly defaultLineHeight = 1.15; // Normally between 1.1 and 1.2
 
     private static readonly instanceMap = new Map<string, TextMeasurer>();
     private static readonly lineSplitter = /\r?\n/g;
+
+    static toFontString({ fontSize, fontStyle, fontWeight, fontFamily, lineHeight }: FontOptions) {
+        let fontString = '';
+        if (fontStyle) {
+            fontString += `${fontStyle} `;
+        }
+        if (fontWeight) {
+            fontString += `${fontWeight} `;
+        }
+        fontString += `${fontSize}px`;
+        if (lineHeight) {
+            fontString += `/${lineHeight}`;
+        }
+        fontString += ` ${fontFamily}`;
+        return fontString.trim();
+    }
 
     // Creates or retrieves a TextMeasurer instance for a specific font.
     private static createFontMeasurer(font: string) {
@@ -63,7 +89,8 @@ export class TextMeasurer {
 
     // Gets a TextMeasurer instance, configuring text alignment and baseline if provided.
     private static getFontMeasurer(options: MeasureOptions) {
-        const measurer = this.instanceMap.get(options.font) ?? this.createFontMeasurer(options.font);
+        const font = typeof options.font === 'string' ? options.font : TextMeasurer.toFontString(options.font);
+        const measurer = this.instanceMap.get(font) ?? this.createFontMeasurer(font);
         if (options.textAlign) {
             measurer.ctx.textAlign = options.textAlign;
         }

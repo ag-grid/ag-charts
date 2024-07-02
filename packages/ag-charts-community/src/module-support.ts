@@ -12,6 +12,7 @@ export * from './util/number';
 export * from './util/object';
 export * from './util/properties';
 export * from './util/proxy';
+export * from './util/search.util';
 export * from './util/timeFormatDefaults';
 export * from './util/textMeasurer';
 export * from './util/timeFormat';

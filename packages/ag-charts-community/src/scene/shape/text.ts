@@ -1,7 +1,7 @@
 import type { FontFamily, FontSize, FontStyle, FontWeight, OverflowStrategy, TextWrap } from 'ag-charts-types';
 
 import { memoizeFunction } from '../../util/memo';
-import { type LineMetrics, TextMeasurer } from '../../util/textMeasurer';
+import { TextMeasurer } from '../../util/textMeasurer';
 import { BBox } from '../bbox';
 import type { RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
@@ -100,7 +100,7 @@ export class Text extends Shape {
     }
 
     private getLineHeight(line: string): number {
-        return this.lineHeight ?? (TextMeasurer.measureText(line, this) as LineMetrics).lineHeight;
+        return this.lineHeight ?? TextMeasurer.measureText(line, this).lineHeight;
     }
 
     isPointInPath(x: number, y: number): boolean {
