@@ -113,6 +113,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.elements = {} as Record<ToolbarPosition, HTMLElement>;
         for (const position of TOOLBAR_POSITIONS) {
             this.elements[position] = ctx.domManager.addChild('canvas-overlay', `toolbar-${position}`);
+            this.elements[position].role = 'presentation';
             this.renderToolbar(position);
         }
         this.toggleVisibilities();
