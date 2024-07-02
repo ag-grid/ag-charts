@@ -1,5 +1,7 @@
+import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { useDarkmode } from '@utils/hooks/useDarkmode';
-import { useEffect, useState } from 'react';
+import classnames from 'classnames';
+import { useEffect, useRef, useState } from 'react';
 
 import styles from './Video.module.scss';
 
@@ -10,9 +12,11 @@ interface Props {
     showPlayPauseButtons?: boolean;
 }
 
-export const Video = ({ videoSrc, darkModeVideoSrc, autoplay, showPlayPauseButtons }: Props) => {
+export const Video = ({ videoSrc, darkModeVideoSrc, autoplay = true, showPlayPauseButtons }: Props) => {
     const [darkMode] = useDarkmode();
     const [src, setSrc] = useState<string>(videoSrc);
+    const [isPlaying, setIsPlaying] = useState<Boolean>(autoplay);
+    const videoRef = useRef(null);
 
     useEffect(() => {
         if (darkModeVideoSrc && darkMode) {
@@ -22,5 +26,27 @@ export const Video = ({ videoSrc, darkModeVideoSrc, autoplay, showPlayPauseButto
         }
     }, [darkMode]);
 
-    return <video className={styles.dummyVideoStyle} src={src} autoPlay muted loop></video>;
+    const toggleVideo = () => {
+        if (isPlaying) {
+            setIsPlaying(false);
+            videoRef.current.pause();
+        } else {
+            setIsPlaying(true);
+            videoRef.current.play();
+        }
+    };
+
+    return (
+        <div className={classnames(styles.videoOuter, isPlaying ? styles.isPaused : styles.isPlaying)}>
+            <video ref={videoRef} src={src} autoPlay muted loop></video>;
+            <span className={styles.buttonsOuter}>
+                <button className={classnames(styles.playButton, 'button-style-none')} onClick={toggleVideo}>
+                    <Icon name="play" />
+                </button>
+                <button className={classnames(styles.pauseButton, 'button-style-none')} onClick={toggleVideo}>
+                    <Icon name="pause" />
+                </button>
+            </span>
+        </div>
+    );
 };
