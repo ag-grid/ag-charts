@@ -8,7 +8,7 @@ import type {
 
 import { AutoSizeableSecondaryLabel, AutoSizedLabel } from './autoSizedLabel';
 
-const { TextMeasurer } = _ModuleSupport;
+const { TextMeasurer, findMaxValue } = _ModuleSupport;
 const { Logger } = _Util;
 const { Text } = _Scene;
 
@@ -70,34 +70,6 @@ export function generateLabelSecondaryLabelFontSizeCandidates(
     out.reverse();
 
     return out;
-}
-
-export function maximumValueSatisfying<T>(
-    from: number,
-    to: number,
-    iteratee: (value: number) => T | undefined
-): T | undefined {
-    // Binary search of layouts returning the largest value
-
-    if (from > to) {
-        return;
-    }
-    let min = from;
-    let max = to;
-    let found: T | undefined;
-
-    while (max >= min) {
-        const index = Math.floor((max + min) / 2);
-        const value = iteratee(index);
-        if (value == null) {
-            max = index - 1;
-        } else {
-            found = value;
-            min = index + 1;
-        }
-    }
-
-    return found;
 }
 
 type LayoutParams = {
@@ -185,7 +157,7 @@ export function formatStackedLabels<Meta>(
     let label: LabelFormatting | undefined;
     let secondaryLabel: LabelFormatting | undefined;
 
-    return maximumValueSatisfying<StackedLabelFormatting<Meta>>(0, fontSizeCandidates.length - 1, (index) => {
+    return findMaxValue<StackedLabelFormatting<Meta>>(0, fontSizeCandidates.length - 1, (index) => {
         const { labelFontSize, secondaryLabelFontSize } = fontSizeCandidates[index];
         const allowTruncation = index === 0;
         const labelLineHeight = AutoSizedLabel.lineHeight(labelFontSize);
@@ -308,7 +280,7 @@ export const formatSingleLabel = <Meta>(
         fontWeight: props.fontWeight,
     };
 
-    return maximumValueSatisfying<[LabelFormatting, Meta]>(minimumFontSize, props.fontSize, (fontSize) => {
+    return findMaxValue<[LabelFormatting, Meta]>(minimumFontSize, props.fontSize, (fontSize) => {
         const lineHeight = AutoSizedLabel.lineHeight(fontSize);
         const allowTruncation = fontSize === minimumFontSize;
         const sizeFitting = sizeFittingHeight(lineHeight + sizeAdjust, allowTruncation);
