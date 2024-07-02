@@ -1,5 +1,12 @@
 import styles from './Video.module.scss';
 
-export const Video = () => {
-    return <h1 className={styles.dummyVideoStyle}>I AM A VIDEO</h1>;
+interface Props {
+    videoSrc?: string;
+    darkModeVideoSrc?: string;
+    autoplay?: boolean;
+    showPlayPauseButtons?: boolean;
+}
+
+export const Video = ({ videoSrc, darkModeVideoSrc, autoplay, showPlayPauseButtons }: Props) => {
+    return <video className={styles.dummyVideoStyle} src={videoSrc} autoPlay muted></video>;
 };

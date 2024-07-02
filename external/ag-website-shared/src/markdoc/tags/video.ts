@@ -3,5 +3,10 @@ import type { Config, Schema } from '@markdoc/markdoc';
 
 export const video: Schema<Config, Render> = {
     render: component('../../external/ag-website-shared/src/components/video/Video.astro'),
-    attributes: {},
+    attributes: {
+        videoSrc: { type: String },
+        darkModeVideoSrc: { type: String },
+        autoplay: { type: Boolean },
+        showPlayPauseButtons: { type: Boolean },
+    },
 };
