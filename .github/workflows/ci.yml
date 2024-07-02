@@ -39,7 +39,7 @@ jobs:
     execute_blt:
         runs-on: ubuntu-24.04
         outputs:
-            nx_base: ${{ steps.nx_config.outputs.base }}
+            nx_base: ${{ steps.setup.outputs.base }}
             build: ${{ steps.build.outcome || '' }}
             lint: ${{ steps.lint.outcome || '' }}
             format: ${{ steps.format.outcome || '' }}
@@ -74,81 +74,21 @@ jobs:
                   fetch-depth: 0
             - name: Fetch Refs
               run: git fetch origin latest-success latest
-            - name: Nx Affected SHA Setup
-              id: nx_config
-              run: |
-                  branch=$(git branch --show-current)
-                  if [[ ${branch} == 'latest' ]] ; then
-                    # Latest
-                    echo "base=latest-success" >> $GITHUB_OUTPUT
-                    echo "NX_BASE=latest-success" >> $GITHUB_ENV
-                    echo "type=latest" >> $GITHUB_OUTPUT
-                    git fetch origin latest-success
-                  elif [[ ${branch} =~ 'b[0-9][0-9]\..+' ]] ; then
-                    # Release
-                    echo "base=${branch}" >> $GITHUB_OUTPUT
-                    echo "NX_BASE=${branch}" >> $GITHUB_ENV
-                    echo "type=release" >> $GITHUB_OUTPUT
-                  else
-                    # PR
-                    echo "base=origin/latest" >> $GITHUB_OUTPUT
-                    echo "NX_BASE=origin/latest" >> $GITHUB_ENV
-                    echo "type=pr" >> $GITHUB_OUTPUT
-                    git fetch origin latest
-                  fi
-            - name: Cache node_modules
-              if: github.event.inputs.clean_checkout != 'true'
-              id: cache
-              uses: actions/cache@v3
-              with:
-                  path: |
-                      node_modules/
-                      packages/*/node_modules/
-                      plugins/*/node_modules/
-                      libraries/*/node_modules/
-                  key: node_modules-${{hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json')}}
-                  restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
-            - name: Cache Nx
-              if: github.event.inputs.clean_checkout != 'true'
-              uses: actions/cache@v3
-              with:
-                  path: .nx/cache
-                  key: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-${{ github.sha }}
-                  restore-keys: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-
-            - name: Setup Node.js
-              id: setup_node
-              uses: actions/setup-node@v4
-              with:
-                  node-version: '20'
-                  cache: ${{ github.event.inputs.clean_checkout != 'true' && steps.cache.outputs.cache-hit != 'true' && 'yarn' || '' }}
-            - name: yarn install
-              if: steps.cache.outputs.cache-hit != 'true'
-              id: yarn_install
-              run: |
-                  (yarn check --integrity && yarn postinstall) || yarn install --ci
-                  if [[ ! -f node_modules/canvas/build/Release/canvas.node ]] ; then
-                    echo "canvas.node binary not found, cannot proceed."
-                    exit 1
-                  fi
-            - name: yarn postinstall
-              if: steps.cache.outputs.cache-hit == 'true'
-              run: yarn postinstall
 
-            - name: Post-install volume info
-              if: always()
-              run: |
-                  sudo df -h
-                  sudo du -sh .
-                  sudo du -sh .nx .git node_modules
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  clean: ${{ github.event.inputs.clean_checkout }}
 
             - name: nx format:check
               id: format
-              if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
+              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: |
                   if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
                     yarn nx format:check --all
                   else
-                    yarn nx format:check --base ${{ steps.nx_config.outputs.base }}
+                    yarn nx format:check --base ${{ steps.setup.outputs.base }}
                   fi
             - name: Update Status (format)
               uses: LouisBrunner/checks-action@v2.0.0
@@ -160,11 +100,11 @@ jobs:
 
             - name: nx lint
               id: lint
-              if: steps.nx_config.type != 'pr' && (steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped')
+              if: steps.setup.outputs.type != 'pr' && (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t lint --parallel=3 --exclude all
             - name: nx lint (diff)
               id: lint_diff
-              if: steps.nx_config.type == 'pr' && (steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped')
+              if: steps.setup.outputs.type == 'pr' && (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t lint --parallel=3 --exclude all
               env:
                   ESLINT_PLUGIN_DIFF_COMMIT: ${{ github.event.pull_request.base.ref }}
@@ -174,11 +114,11 @@ jobs:
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   check_id: ${{ steps.init_lint.outputs.check_id }}
-                  conclusion: ${{ steps.nx_config.type == 'pr' && steps.lint_diff.outcome || steps.lint.outcome }}
+                  conclusion: ${{ steps.setup.outputs.type == 'pr' && steps.lint_diff.outcome || steps.lint.outcome }}
 
             - name: nx build
               id: build
-              if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
+              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: |
                   # Non-batched builds - some TS/JS targets will fail if run with --batch, so build them unbatched first.
                   yarn nx run-many -p tag:no-batching -t build --parallel=3
@@ -186,11 +126,11 @@ jobs:
                   yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --parallel=3  --exclude all ${NX_BATCH_FLAG}
 
             - name: nx run generate-gallery-thumbnail
-              if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
+              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: yarn nx run generate-gallery-thumbnail --example simple-bar
 
             - name: nx run-many -t validate-examples
-              if: steps.yarn_install.outcome == 'success' || steps.yarn_install.outcome == 'skipped'
+              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t validate-examples --parallel=3 --exclude all
 
             - name: Update Status (build)
@@ -201,19 +141,13 @@ jobs:
                   check_id: ${{ steps.init_build.outputs.check_id }}
                   conclusion: ${{ steps.build.outcome }}
 
-            - name: Tidy Nx Cache
-              run: |
-                  sudo du -sh .nx/cache
-                  ./tools/tidy-nx-cache.sh
-                  sudo du -sh .nx/cache
-
             - name: Count test targets to run
               id: test_count
               run: |
                   if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
                     echo "test_count=1000" >> $GITHUB_OUTPUT
                   else
-                    echo "test_count=$(yarn -s nx show projects --affected --base ${{ steps.nx_config.outputs.base }} -t test | wc -l)" >> $GITHUB_OUTPUT
+                    echo "test_count=$(yarn -s nx show projects --affected --base ${{ steps.setup.outputs.base }} -t test | wc -l)" >> $GITHUB_OUTPUT
                   fi
 
     test:
@@ -233,38 +167,11 @@ jobs:
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
-            - name: Cache node_modules
-              if: github.event.inputs.clean_checkout != 'true'
-              id: cache
-              uses: actions/cache@v3
-              with:
-                  path: |
-                      node_modules/
-                      packages/*/node_modules/
-                      plugins/*/node_modules/
-                      libraries/*/node_modules/
-                  key: node_modules-${{hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json')}}
-                  restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
-            - name: Cache Nx
-              if: github.event.inputs.clean_checkout != 'true'
-              uses: actions/cache@v3
-              with:
-                  path: .nx/cache
-                  key: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-${{ github.sha }}
-                  restore-keys: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-
-            - name: Setup Node.js
-              id: setup_node
-              uses: actions/setup-node@v4
-              with:
-                  node-version: '20'
-                  cache: ${{ github.event.inputs.clean_checkout != 'true' && steps.cache.outputs.cache-hit != 'true' && 'yarn' || '' }}
-            - name: yarn install
-              if: steps.cache.outputs.cache-hit != 'true'
-              id: yarn_install
-              run: (yarn check --integrity && yarn postinstall) || yarn install --ci
-            - name: yarn postinstall
-              if: steps.cache.outputs.cache-hit == 'true'
-              run: yarn postinstall
+
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
+
             - name: nx test
               if: matrix.shard != 0
               id: test
