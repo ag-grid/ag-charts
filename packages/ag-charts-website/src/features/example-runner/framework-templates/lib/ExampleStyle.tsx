@@ -51,17 +51,19 @@ export const ExampleStyle = ({ rootSelector, extraStyles }: { rootSelector?: str
             grid: 'toolbar' auto 'canvas' 1fr / 1fr;
         }
 
-        .toolbar,
-        .toolbar__row {
+        .toolbar {
             position: relative;
             display: flex;
             align-items: baseline;
             justify-content: center;
             flex-wrap: wrap;
-            gap: 6px 8px;
+            gap: calc(var(--gap-vertical) * 0.5) var(--gap-horizontal);
+            --gap-vertical: 6px;
+            --gap-horizontal: 8px;
         }
 
-        .toolbar__row {
+        .toolbar hr {
+            all: initial;
             flex: 0 0 100%;
         }
 

@@ -54,6 +54,9 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
         '100--stacked-bar': { status: '404' },
     },
 
+    annotations: {
+        'annotation-save-restore': { skipCanvasUpdateCheck: true },
+    },
     'axes-labels': {
         // Too complex to test with a naive button-click sweep
         'axis-label-rotation': { skipCanvasUpdateCheck: true },

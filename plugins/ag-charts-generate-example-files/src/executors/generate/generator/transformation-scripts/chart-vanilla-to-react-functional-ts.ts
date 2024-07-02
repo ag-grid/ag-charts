@@ -79,6 +79,8 @@ function getTemplate(bindings: any, componentAttributes: string[]): string {
         template = template.replace(placeholder, agChartTag);
     });
 
+    template = template.replace(/<hr>/g, '<hr />');
+
     return convertFunctionalTemplate(template);
 }
 

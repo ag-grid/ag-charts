@@ -1,14 +1,11 @@
 <div class="toolbar">
-    <div class="toolbar__row">
-        <button onclick="setLegendEnabled(true)">Show Legend</button>
-        <button onclick="setLegendEnabled(false)">Hide Legend</button>
-    </div>
-    <div class="toolbar__row">
-        Legend Position:
-        <button class="button--code" onclick="updateLegendPosition('right')">'right'</button>
-        <button class="button--code" onclick="updateLegendPosition('bottom')">'bottom'</button>
-        <button class="button--code" onclick="updateLegendPosition('left')">'left'</button>
-        <button class="button--code" onclick="updateLegendPosition('top')">'top'</button>
-    </div>
+    <button onclick="setLegendEnabled(true)">Show Legend</button>
+    <button onclick="setLegendEnabled(false)">Hide Legend</button>
+    <hr />
+    Legend Position:
+    <button class="button--code" onclick="updateLegendPosition('right')">'right'</button>
+    <button class="button--code" onclick="updateLegendPosition('bottom')">'bottom'</button>
+    <button class="button--code" onclick="updateLegendPosition('left')">'left'</button>
+    <button class="button--code" onclick="updateLegendPosition('top')">'top'</button>
 </div>
 <div id="myChart"></div>
