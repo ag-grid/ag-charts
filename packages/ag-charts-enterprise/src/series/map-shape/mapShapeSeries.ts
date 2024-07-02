@@ -1,11 +1,5 @@
-import {
-    type AgMapShapeSeriesLabelFormatterParams,
-    type AgMapShapeSeriesStyle,
-    _ModuleSupport,
-    _Scale,
-    _Scene,
-    _Util,
-} from 'ag-charts-community';
+import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import type { AgMapShapeSeriesStyle } from 'ag-charts-types';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestPolygon, projectGeometry } from '../map-util/geometryUtil';
@@ -13,7 +7,8 @@ import { findFocusedGeoGeometry } from '../map-util/mapUtil';
 import { polygonMarkerCenter } from '../map-util/markerUtil';
 import { maxWidthInPolygonForRectOfHeight, preferredLabelCenter } from '../map-util/polygonLabelUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
-import { AutoSizedLabel, formatSingleLabel } from '../util/labelFormatter';
+import { AutoSizedLabel } from '../util/autoSizedLabel';
+import { formatSingleLabel } from '../util/labelFormatter';
 import {
     type MapShapeNodeDatum,
     type MapShapeNodeLabelDatum,
@@ -266,21 +261,16 @@ export class MapShapeSeries
             height: Math.ceil((maxWidth * scaling) / aspectRatio),
             meta: untruncatedX,
         };
-        const labelFormatting = formatSingleLabel<number, AgMapShapeSeriesLabelFormatterParams>(
-            labelText,
-            label,
-            { padding },
-            (height, allowTruncation) => {
-                if (!allowTruncation) return maxSizeWithoutTruncation;
+        const labelFormatting = formatSingleLabel<number>(labelText, label, { padding }, (height, allowTruncation) => {
+            if (!allowTruncation) return maxSizeWithoutTruncation;
 
-                const result = maxWidthInPolygonForRectOfHeight(fixedPolygon, untruncatedX, y, height / scaling);
-                return {
-                    width: result.width * scaling,
-                    height,
-                    meta: result.x,
-                };
-            }
-        );
+            const result = maxWidthInPolygonForRectOfHeight(fixedPolygon, untruncatedX, y, height / scaling);
+            return {
+                width: result.width * scaling,
+                height,
+                meta: result.x,
+            };
+        });
         if (labelFormatting == null) return;
 
         const [{ text, fontSize, lineHeight, width }, formattingX] = labelFormatting;

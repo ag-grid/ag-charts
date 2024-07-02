@@ -1,25 +1,27 @@
-import { _Scene } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import {
     formatLabels,
     formatSingleLabel,
     formatStackedLabels,
     generateLabelSecondaryLabelFontSizeCandidates,
-    maximumValueSatisfying,
 } from './labelFormatter';
 
-const { Text } = _Scene;
+const { TextMeasurer } = _ModuleSupport;
 
 describe('label formatter', () => {
-    let wrapLines: jest.SpyInstance<ReturnType<typeof Text.wrapLines>, Parameters<typeof Text.wrapLines>> = undefined!;
-    let computeBBox: jest.SpyInstance<
-        ReturnType<typeof Text.prototype.computeBBox>,
-        Parameters<typeof Text.prototype.computeBBox>
+    let wrapLines: jest.SpyInstance<
+        ReturnType<typeof TextMeasurer.wrapLines>,
+        Parameters<typeof TextMeasurer.wrapLines>
+    > = undefined!;
+    let measureLines: jest.SpyInstance<
+        ReturnType<typeof TextMeasurer.measureLines>,
+        Parameters<typeof TextMeasurer.measureLines>
     > = undefined!;
 
     beforeEach(() => {
-        wrapLines = jest.spyOn(Text, 'wrapLines');
-        computeBBox = jest.spyOn(Text.prototype, 'computeBBox');
+        wrapLines = jest.spyOn(TextMeasurer, 'wrapLines');
+        measureLines = jest.spyOn(TextMeasurer, 'measureLines');
     });
 
     afterEach(() => {
@@ -30,7 +32,6 @@ describe('label formatter', () => {
         it('creates a font scale', () => {
             expect(
                 generateLabelSecondaryLabelFontSizeCandidates(
-                    // @ts-expect-error Fix typechecking here
                     { fontSize: 12, minimumFontSize: 9 },
                     { fontSize: 10, minimumFontSize: 9 }
                 )
@@ -46,7 +47,6 @@ describe('label formatter', () => {
         it('prefers shrinking secondary label', () => {
             expect(
                 generateLabelSecondaryLabelFontSizeCandidates(
-                    // @ts-expect-error Fix typechecking here
                     { fontSize: 10, minimumFontSize: 9 },
                     { fontSize: 10, minimumFontSize: 9 }
                 )
@@ -58,7 +58,6 @@ describe('label formatter', () => {
 
             expect(
                 generateLabelSecondaryLabelFontSizeCandidates(
-                    // @ts-expect-error Fix typechecking here
                     { fontSize: 11, minimumFontSize: 8 },
                     { fontSize: 10, minimumFontSize: 9 }
                 )
@@ -72,7 +71,6 @@ describe('label formatter', () => {
 
             expect(
                 generateLabelSecondaryLabelFontSizeCandidates(
-                    // @ts-expect-error Fix typechecking here
                     { fontSize: 10, minimumFontSize: 9 },
                     { fontSize: 11, minimumFontSize: 8 }
                 )
@@ -86,26 +84,11 @@ describe('label formatter', () => {
         });
     });
 
-    describe('maximumValueSatisfying', () => {
-        it('finds the minimum value', () => {
-            expect(maximumValueSatisfying(0, 10, (x) => (x === 0 ? x : undefined))).toBe(0);
-        });
-
-        it('finds the maximum value', () => {
-            expect(maximumValueSatisfying(0, 10, (x) => x)).toBe(10);
-        });
-
-        it('finds a middle value', () => {
-            expect(maximumValueSatisfying(0, 10, (x) => (x <= 7 ? x : undefined))).toBe(7);
-            expect(maximumValueSatisfying(0, 10, (x) => (x <= 2 ? x : undefined))).toBe(2);
-        });
-    });
-
     describe('formatSingleLabel', () => {
         it('formats a label without shrinking within large bounds', () => {
             wrapLines.mockImplementation((text) => [text]);
-            computeBBox.mockImplementation(function (this: _Scene.Text) {
-                return { width: this.fontSize, height: this.fontSize } as _Scene.BBox;
+            measureLines.mockImplementation(function (this: _Scene.Text) {
+                return { width: this.fontSize, height: this.fontSize } as any;
             });
 
             const [format] = formatSingleLabel(
@@ -116,11 +99,9 @@ describe('label formatter', () => {
                     minimumFontSize: 10,
                     wrapping: 'never',
                     overflowStrategy: 'hide',
-                    // @ts-expect-error Fix typechecking here
-                    spacing: 10,
                 },
                 { padding: 10 },
-                () => ({ width: 1000, height: 1000 })
+                () => ({ width: 1000, height: 1000, meta: undefined })
             )!;
             expect(format).toEqual({
                 text: 'Hello',
@@ -133,8 +114,8 @@ describe('label formatter', () => {
 
         it('shrinks a label to fit within smaller bounds', () => {
             wrapLines.mockImplementation((text) => [text]);
-            computeBBox.mockImplementation(function (this: _Scene.Text) {
-                return { width: this.fontSize, height: this.fontSize } as _Scene.BBox;
+            measureLines.mockImplementation(function (this: _Scene.Text) {
+                return { width: this.fontSize, height: this.fontSize } as any;
             });
 
             const [format] = formatSingleLabel(
@@ -145,11 +126,9 @@ describe('label formatter', () => {
                     minimumFontSize: 10,
                     wrapping: 'never',
                     overflowStrategy: 'hide',
-                    // @ts-expect-error Fix typechecking here
-                    spacing: 10,
                 },
                 { padding: 10 },
-                () => ({ width: 35, height: 35 })
+                () => ({ width: 35, height: 35, meta: undefined })
             )!;
             expect(format).toEqual({
                 text: 'Hello',
@@ -162,13 +141,12 @@ describe('label formatter', () => {
 
         it('ignores minimumFontSizes greater than fontSize', () => {
             wrapLines.mockImplementation((text) => [text]);
-            computeBBox.mockImplementation(function (this: _Scene.Text) {
-                return { width: this.fontSize, height: this.fontSize } as _Scene.BBox;
+            measureLines.mockImplementation(function (this: _Scene.Text) {
+                return { width: this.fontSize, height: this.fontSize } as any;
             });
 
             const [format] = formatSingleLabel(
                 'Hello',
-                // @ts-expect-error Fix typechecking here
                 {
                     enabled: true,
                     fontSize: 20,
@@ -176,8 +154,8 @@ describe('label formatter', () => {
                     wrapping: 'never',
                     overflowStrategy: 'hide',
                 },
-                { padding: 10, spacing: 10 },
-                () => ({ width: 1000, height: 1000 })
+                { padding: 10 },
+                () => ({ width: 1000, height: 1000, meta: undefined })
             )!;
             expect(format).toEqual({
                 text: 'Hello',
@@ -192,13 +170,12 @@ describe('label formatter', () => {
     describe('formatStackedLabels', () => {
         it('formats stacked labels without shrinking within large bounds', () => {
             wrapLines.mockImplementation((text) => [text]);
-            computeBBox.mockImplementation(function (this: _Scene.Text) {
-                return { width: this.fontSize, height: this.fontSize } as _Scene.BBox;
+            measureLines.mockImplementation(function (this: _Scene.Text) {
+                return { width: this.fontSize, height: this.fontSize } as any;
             });
 
             const format = formatStackedLabels(
                 'Hello',
-                // @ts-expect-error Fix typechecking here
                 {
                     enabled: true,
                     fontSize: 20,
@@ -216,7 +193,7 @@ describe('label formatter', () => {
                     overflowStrategy: 'hide',
                 },
                 { padding: 10 },
-                () => ({ width: 1000, height: 1000 })
+                () => ({ width: 1000, height: 1000, meta: undefined })
             );
             expect(format).toEqual({
                 width: 20,
@@ -240,8 +217,8 @@ describe('label formatter', () => {
 
         it('shrinks stacked labels to fit within smaller bounds', () => {
             wrapLines.mockImplementation((text) => [text]);
-            computeBBox.mockImplementation(function (this: _Scene.Text) {
-                return { width: this.fontSize, height: this.fontSize } as _Scene.BBox;
+            measureLines.mockImplementation(function (this: _Scene.Text) {
+                return { width: this.fontSize, height: this.fontSize } as any;
             });
 
             const height = 50;
@@ -250,7 +227,6 @@ describe('label formatter', () => {
 
             const format = formatStackedLabels(
                 'Hello',
-                // @ts-expect-error Fix typechecking here
                 {
                     enabled: true,
                     fontSize: 20,
@@ -268,7 +244,7 @@ describe('label formatter', () => {
                     overflowStrategy: 'hide',
                 },
                 { padding },
-                () => ({ width: 50, height })
+                () => ({ width: 50, height, meta: undefined })
             );
             expect(format).toEqual({
                 width: 12,
@@ -293,13 +269,12 @@ describe('label formatter', () => {
 
         it('ignores minimumFontSizes greater than fontSize', () => {
             wrapLines.mockImplementation((text) => [text]);
-            computeBBox.mockImplementation(function (this: _Scene.Text) {
-                return { width: this.fontSize, height: this.fontSize } as _Scene.BBox;
+            measureLines.mockImplementation(function (this: _Scene.Text) {
+                return { width: this.fontSize, height: this.fontSize } as any;
             });
 
             const format = formatStackedLabels(
                 'Hello',
-                // @ts-expect-error Fix typechecking here
                 {
                     enabled: true,
                     fontSize: 20,
@@ -317,7 +292,7 @@ describe('label formatter', () => {
                     overflowStrategy: 'hide',
                 },
                 { padding: 10 },
-                () => ({ width: 1000, height: 1000 })
+                () => ({ width: 1000, height: 1000, meta: undefined })
             );
             expect(format).toEqual({
                 width: 20,
@@ -343,13 +318,12 @@ describe('label formatter', () => {
     describe('formatLabels', () => {
         it('formats the secondaryLabel on its own if and only if the primary label is not present', () => {
             wrapLines.mockImplementation((text) => [text]);
-            computeBBox.mockImplementation(function (this: _Scene.Text) {
-                return { width: 1, height: 1 } as _Scene.BBox;
+            measureLines.mockImplementation(function (this: _Scene.Text) {
+                return { width: 1, height: 1 } as any;
             });
 
             const output = formatLabels(
                 undefined,
-                // @ts-expect-error Fix typechecking here
                 {
                     enabled: true,
                     fontSize: 20,
@@ -367,7 +341,7 @@ describe('label formatter', () => {
                     overflowStrategy: 'hide',
                 },
                 { padding: 10 },
-                () => ({ width: Infinity, height: Infinity })
+                () => ({ width: Infinity, height: Infinity, meta: undefined })
             );
 
             expect(output!.label).toBe(undefined);

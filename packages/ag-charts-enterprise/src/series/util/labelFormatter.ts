@@ -1,39 +1,37 @@
-import { type OverflowStrategy, type TextWrap, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import type {
+    AgChartAutoSizedBaseLabelOptions,
+    AgChartAutoSizedLabelOptions,
+    AgChartAutoSizedSecondaryLabelOptions,
+    FontSize,
+} from 'ag-charts-types';
 
-const { Validate, TextMeasurer, NUMBER, TEXT_WRAP, OVERFLOW_STRATEGY } = _ModuleSupport;
+import { AutoSizeableSecondaryLabel, AutoSizedLabel } from './autoSizedLabel';
+
+const { TextMeasurer } = _ModuleSupport;
 const { Logger } = _Util;
-const { Text, Label } = _Scene;
+const { Text } = _Scene;
 
-class BaseAutoSizedLabel<FormatterParams> extends Label<FormatterParams> {
-    static lineHeight(fontSize: number): number {
-        return Math.ceil(fontSize * Text.defaultLineHeightRatio);
-    }
-
-    @Validate(TEXT_WRAP)
-    wrapping: TextWrap = 'on-space';
-
-    @Validate(OVERFLOW_STRATEGY)
-    overflowStrategy: OverflowStrategy = 'ellipsis';
-
-    @Validate(NUMBER, { optional: true })
-    minimumFontSize?: number;
+interface AutoSizedBaseLabelOptions extends AgChartAutoSizedBaseLabelOptions<unknown, any> {
+    fontSize: FontSize;
 }
 
-export class AutoSizedLabel<FormatterParams> extends BaseAutoSizedLabel<FormatterParams> {
-    @Validate(NUMBER)
-    spacing: number = 0;
+interface AutoSizedLabelOptions extends AgChartAutoSizedLabelOptions<unknown, any> {
+    fontSize: FontSize;
 }
 
-export class AutoSizeableSecondaryLabel<FormatterParams> extends BaseAutoSizedLabel<FormatterParams> {}
+interface AutoSizedSecondaryLabelOptions extends AgChartAutoSizedSecondaryLabelOptions<unknown, any> {
+    fontSize: FontSize;
+}
 
 type FontSizeCandidate = {
     labelFontSize: number;
     secondaryLabelFontSize: number;
 };
 
-export function generateLabelSecondaryLabelFontSizeCandidates<FormatterParams>(
-    label: BaseAutoSizedLabel<FormatterParams>,
-    secondaryLabel: BaseAutoSizedLabel<FormatterParams>
+export function generateLabelSecondaryLabelFontSizeCandidates(
+    label: AutoSizedBaseLabelOptions,
+    secondaryLabel: AutoSizedBaseLabelOptions
 ): FontSizeCandidate[] {
     const { fontSize: labelFontSize, minimumFontSize: labelMinimumFontSize = labelFontSize } = label;
     const {
@@ -142,15 +140,15 @@ type SizeFittingHeightFn<Meta> = (
     meta: Meta;
 };
 
-export function formatStackedLabels<Meta, FormatterParams>(
+export function formatStackedLabels<Meta>(
     labelValue: string,
-    labelProps: AutoSizedLabel<FormatterParams>,
+    labelProps: AutoSizedLabelOptions,
     secondaryLabelValue: string,
-    secondaryLabelProps: AutoSizeableSecondaryLabel<FormatterParams>,
+    secondaryLabelProps: AutoSizedSecondaryLabelOptions,
     { padding }: LayoutParams,
     sizeFittingHeight: SizeFittingHeightFn<Meta>
 ) {
-    const { spacing } = labelProps;
+    const { spacing = 0 } = labelProps;
 
     const widthAdjust = 2 * padding;
     const heightAdjust = 2 * padding + spacing;
@@ -210,8 +208,8 @@ export function formatStackedLabels<Meta, FormatterParams>(
                 availableWidth,
                 availableHeight,
                 labelTextSizeProps,
-                labelProps.wrapping,
-                allowTruncation ? labelProps.overflowStrategy : 'hide'
+                labelProps.wrapping ?? 'on-space',
+                allowTruncation ? labelProps.overflowStrategy ?? 'ellipsis' : 'hide'
             );
 
             if (labelLines == null) {
@@ -246,8 +244,8 @@ export function formatStackedLabels<Meta, FormatterParams>(
                 availableWidth,
                 availableHeight,
                 secondaryLabelTextSizeProps,
-                secondaryLabelProps.wrapping,
-                allowTruncation ? secondaryLabelProps.overflowStrategy : 'hide'
+                secondaryLabelProps.wrapping ?? 'on-space',
+                allowTruncation ? secondaryLabelProps.overflowStrategy ?? 'ellipsis' : 'hide'
             );
 
             if (secondaryLabelLines == null) {
@@ -291,12 +289,12 @@ export function formatStackedLabels<Meta, FormatterParams>(
     });
 }
 
-export function formatSingleLabel<Meta, FormatterParams>(
+export const formatSingleLabel = <Meta>(
     value: string,
-    props: BaseAutoSizedLabel<FormatterParams>,
+    props: AutoSizedBaseLabelOptions,
     { padding }: LayoutParams,
     sizeFittingHeight: SizeFittingHeightFn<Meta>
-): [LabelFormatting, Meta] | undefined {
+): [LabelFormatting, Meta] | undefined => {
     const sizeAdjust = 2 * padding;
     const minimumFontSize = Math.min(props.minimumFontSize ?? props.fontSize, props.fontSize);
 
@@ -325,8 +323,8 @@ export function formatSingleLabel<Meta, FormatterParams>(
             availableWidth,
             availableHeight,
             textSizeProps,
-            props.wrapping,
-            allowTruncation ? props.overflowStrategy : 'hide'
+            props.wrapping ?? 'on-space',
+            allowTruncation ? props.overflowStrategy ?? 'ellipsis' : 'hide'
         );
 
         if (lines == null) return;
@@ -349,17 +347,17 @@ export function formatSingleLabel<Meta, FormatterParams>(
 
         return [{ text: textNode.text, fontSize, lineHeight, width, height }, sizeFitting.meta];
     });
-}
+};
 
-function hasInvalidFontSize<FormatterParams>(label?: BaseAutoSizedLabel<FormatterParams>) {
+function hasInvalidFontSize(label?: AutoSizedBaseLabelOptions) {
     return label?.minimumFontSize != null && label?.fontSize && label?.minimumFontSize > label?.fontSize;
 }
 
-export function formatLabels<Meta = never, FormatterParams = any>(
+export function formatLabels<Meta = never>(
     baseLabelValue: string | undefined,
-    labelProps: AutoSizedLabel<FormatterParams>,
+    labelProps: AutoSizedLabelOptions,
     baseSecondaryLabelValue: string | undefined,
-    secondaryLabelProps: AutoSizeableSecondaryLabel<FormatterParams>,
+    secondaryLabelProps: AutoSizedSecondaryLabelOptions,
     layoutParams: LayoutParams,
     sizeFittingHeight: SizeFittingHeightFn<Meta>
 ): StackedLabelFormatting<Meta> | undefined {

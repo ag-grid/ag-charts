@@ -1,11 +1,5 @@
-import {
-    type AgSunburstSeriesLabelFormatterParams,
-    type AgSunburstSeriesStyle,
-    type AgTooltipRendererResult,
-    _ModuleSupport,
-    _Scene,
-    _Util,
-} from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import type { AgSunburstSeriesStyle, AgTooltipRendererResult } from 'ag-charts-types';
 
 import { formatLabels } from '../util/labelFormatter';
 import { SunburstSeriesProperties } from './sunburstSeriesProperties';
@@ -325,7 +319,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                     : { width: perpendicularWidth, height: perpendicularHeight, meta: LabelPlacement.Perpendicular };
             };
 
-            const formatting = formatLabels<LabelPlacement, AgSunburstSeriesLabelFormatterParams>(
+            const formatting = formatLabels<LabelPlacement>(
                 labelDatum?.label,
                 this.properties.label,
                 labelDatum?.secondaryLabel,
