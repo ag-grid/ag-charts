@@ -133,7 +133,6 @@ export function priceVolume(
                       unit: 'percentage',
                       align: 'end',
                   },
-                  disableZoom: true,
               } satisfies AgNumberAxisOptions,
           ]
         : [];

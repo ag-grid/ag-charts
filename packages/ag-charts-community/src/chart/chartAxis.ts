@@ -76,7 +76,6 @@ export interface ChartAxis {
         width: number;
         unit: 'percent' | 'px';
     };
-    disableZoom: boolean;
 }
 
 export interface ChartAxisLabel extends FontOptions {
