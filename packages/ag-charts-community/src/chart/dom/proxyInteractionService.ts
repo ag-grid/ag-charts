@@ -28,6 +28,7 @@ type ContainerParams<T extends ProxyContainerType> = {
     readonly classList: string[];
     readonly ariaLabel: TranslationKey;
     readonly ariaOrientation: Direction;
+    readonly ariaHidden?: boolean;
 };
 
 type ProxyMeta = {
@@ -106,6 +107,10 @@ export class ProxyInteractionService {
         div.style.pointerEvents = 'none';
         div.role = params.type;
         div.ariaOrientation = params.ariaOrientation;
+
+        if (typeof params.ariaHidden === 'boolean') {
+            div.ariaHidden = params.ariaHidden.toString();
+        }
 
         this.addLocalisation(() => {
             div.ariaLabel = this.localeManager.t(params.ariaLabel.id, params.ariaLabel.params);
