@@ -242,12 +242,14 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.ctx.toolbarManager.proxyGroupOptions('zoom', 'zoom', buttonsJson);
     }
 
-    private onRangeChange(direction: _ModuleSupport.ChartAxisDirection, rangeZoom?: DefinedZoomState['x' | 'y']) {
-        if (!rangeZoom) return;
+    private onRangeChange(
+        direction: _ModuleSupport.ChartAxisDirection,
+        axisId?: string,
+        rangeZoom?: DefinedZoomState['x' | 'y']
+    ) {
+        if (!axisId || !rangeZoom) return;
 
-        const zoom = this.getZoom();
-        zoom[direction] = rangeZoom;
-        this.updateZoom(constrainZoom(zoom));
+        this.updateAxisZoom(axisId, direction, rangeZoom);
     }
 
     private onRatioChange(direction: _ModuleSupport.ChartAxisDirection, ratioZoom?: DefinedZoomState['x' | 'y']) {
