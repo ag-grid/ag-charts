@@ -1,23 +1,13 @@
-<div class="wrapper">
-    <div
-        style="flex: none; display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 0.5em"
-    >
-        <div style="display: flex; flex-direction: row; justify-content: center; gap: 0.5em">
-            <button onclick="changeSeriesBar()">Bar</button>
-            <button onclick="changeSeriesLine()">Line</button>
-            <button onclick="changeSeriesArea()">Area</button>
-            <button onclick="changeSeriesDonut()">Pie &amp; Donut</button>
-        </div>
-    </div>
-    <div
-        style="flex: none; display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 0.5em"
-    >
-        <div style="display: flex; flex-direction: row; justify-content: center; gap: 0.5em">
-            <button class="animation-data-updates__action" onclick="add()">Add</button>
-            <button class="animation-data-updates__action" onclick="remove()">Remove</button>
-            <button class="animation-data-updates__action" onclick="update()">Update</button>
-        </div>
-        <button class="animation-data-updates__action" onclick="addRemoveUpdate()">Add & Remove & Update</button>
-    </div>
-    <div id="myChart" class="chart"></div>
+<div class="toolbar">
+    <button onclick="changeSeriesBar()">Bar</button>
+    <button onclick="changeSeriesLine()">Line</button>
+    <button onclick="changeSeriesArea()">Area</button>
+    <button onclick="changeSeriesDonut()">Pie &amp; Donut</button>
+    <hr />
+    <button class="animation-data-updates__action" onclick="add()">Add</button>
+    <button class="animation-data-updates__action" onclick="remove()">Remove</button>
+    <button class="animation-data-updates__action" onclick="update()">Update</button>
+    <hr />
+    <button class="animation-data-updates__action" onclick="addRemoveUpdate()">Add & Remove & Update</button>
 </div>
+<div id="myChart"></div>

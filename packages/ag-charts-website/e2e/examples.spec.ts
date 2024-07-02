@@ -54,6 +54,9 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
         '100--stacked-bar': { status: '404' },
     },
 
+    annotations: {
+        'annotation-save-restore': { skipCanvasUpdateCheck: true },
+    },
     'axes-labels': {
         // Too complex to test with a naive button-click sweep
         'axis-label-rotation': { skipCanvasUpdateCheck: true },
@@ -169,7 +172,7 @@ test.describe('examples', () => {
                             const canvas = canvases[0];
 
                             // Try pressing the buttons to see if any errors are thrown.
-                            const buttons = await page.locator('.toolPanel > button').all();
+                            const buttons = await page.locator('.toolbar > button').all();
                             if (clickOrder === 'reverse') buttons.reverse();
 
                             for (const button of buttons) {

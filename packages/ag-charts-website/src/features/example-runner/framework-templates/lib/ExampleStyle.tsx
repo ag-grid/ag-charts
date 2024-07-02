@@ -16,11 +16,20 @@ export const ExampleStyle = ({ rootSelector, extraStyles }: { rootSelector?: str
             font-family: -apple-system, 'system-ui', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
                 'Liberation Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
                 'Noto Color Emoji';
+
+            --button-background-color: transparent;
+            --button-text-color: #212529;
+            --button-color-border-primary: #d0d5dd;
+            --button-hover-background-color: rgba(0, 0, 0, 0.1);
         }
 
         :root[data-dark-mode='true'] {
             background: #192232;
             color: white;
+
+            --button-text-color: #f8f9fa;
+            --button-color-border-primary: rgba(255, 255, 255, 0.2);
+            --button-hover-background-color: #2a343e;
         }
 
         :root,
@@ -38,18 +47,33 @@ export const ExampleStyle = ({ rootSelector, extraStyles }: { rootSelector?: str
             padding: 1rem;
         }
 
-        button:not(#myGrid button, #myChart button, button[class*='ag-'], .ag-chart-context-menu button) {
-            --background-color: transparent;
-            --text-color: #212529;
-            --color-border-primary: #d0d5dd;
-            --hover-background-color: rgba(0, 0, 0, 0.1);
+        ${rootSelector ?? 'body'}:has(.toolbar) {
+            grid: 'toolbar' auto 'canvas' 1fr / 1fr;
+        }
 
+        .toolbar {
+            position: relative;
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: calc(var(--gap-vertical) * 0.5) var(--gap-horizontal);
+            --gap-vertical: 6px;
+            --gap-horizontal: 8px;
+        }
+
+        .toolbar hr {
+            all: initial;
+            flex: 0 0 100%;
+        }
+
+        .toolbar button {
             appearance: none;
-            border: 1px solid var(--color-border-primary);
+            border: 1px solid var(--button-color-border-primary);
             border-radius: 6px;
             height: 36px;
-            color: var(--text-color);
-            background-color: var(--background-color);
+            color: var(--button-text-color);
+            background: var(--button-background-color);
             cursor: pointer;
             display: inline-block;
             font-size: 14px;
@@ -57,20 +81,11 @@ export const ExampleStyle = ({ rootSelector, extraStyles }: { rootSelector?: str
             letter-spacing: 0.01em;
             padding: 0.375em 1em 0.5em;
             white-space: nowrap;
-            margin-right: 6px;
-            margin-bottom: 8px;
             transition: background-color 0.25s ease-in-out;
         }
 
-        button:not(#myGrid button, #myChart button, button[class*='ag-'], .ag-chart-context-menu button):hover {
-            background-color: var(--hover-background-color);
-        }
-
-        :root[data-dark-mode='true']
-            button:not(#myGrid button, #myChart button, button[class*='ag-'], .ag-chart-context-menu button) {
-            --text-color: #f8f9fa;
-            --color-border-primary: rgba(255, 255, 255, 0.2);
-            --hover-background-color: #2a343e;
+        .toolbar button:hover {
+            background: var(--button-hover-background-color);
         }
 
         ${extraStyles ? extraStyles : ''}
