@@ -1,3 +1,6 @@
+import { useDarkmode } from '@utils/hooks/useDarkmode';
+import { useEffect, useState } from 'react';
+
 import styles from './Video.module.scss';
 
 interface Props {
@@ -8,5 +11,16 @@ interface Props {
 }
 
 export const Video = ({ videoSrc, darkModeVideoSrc, autoplay, showPlayPauseButtons }: Props) => {
-    return <video className={styles.dummyVideoStyle} src={videoSrc} autoPlay muted></video>;
+    const [darkMode] = useDarkmode();
+    const [src, setSrc] = useState<string>(videoSrc);
+
+    useEffect(() => {
+        if (darkModeVideoSrc && darkMode) {
+            setSrc(darkModeVideoSrc);
+        } else {
+            setSrc(videoSrc);
+        }
+    }, [darkMode]);
+
+    return <video className={styles.dummyVideoStyle} src={src} autoPlay muted loop></video>;
 };
