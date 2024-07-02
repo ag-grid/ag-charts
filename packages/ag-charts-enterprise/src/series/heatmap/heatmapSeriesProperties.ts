@@ -10,7 +10,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
-import { AutoSizedLabel } from '../util/labelFormatter';
+import { AutoSizedLabel } from '../util/autoSizedLabel';
 
 const {
     CartesianSeriesProperties,

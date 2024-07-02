@@ -9,7 +9,8 @@ import {
     _Util,
 } from 'ag-charts-community';
 
-import { AutoSizedLabel, formatLabels } from '../util/labelFormatter';
+import { AutoSizedLabel } from '../util/autoSizedLabel';
+import { formatLabels } from '../util/labelFormatter';
 import { TreemapSeriesProperties } from './treemapSeriesProperties';
 
 const { Rect, Group, BBox, Selection, Text } = _Scene;

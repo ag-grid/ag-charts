@@ -1,12 +1,10 @@
 import type {
     AgBaseRadarSeriesOptions,
-    AgRadarSeriesItemStylerParams,
     AgRadarSeriesLabelFormatterParams,
     AgRadarSeriesTooltipRendererParams,
     AgRadialSeriesOptionsKeys,
     FillOptions,
     StrokeOptions,
-    Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
@@ -32,7 +30,6 @@ const {
     BOOLEAN,
     COLOR_STRING,
     DEGREE,
-    FUNCTION,
     LINE_DASH,
     OBJECT,
     POSITIVE_NUMBER,
@@ -69,9 +66,6 @@ export class RadarSeriesProperties<T extends AgBaseRadarSeriesOptions> extends S
 
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
-
-    @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgRadarSeriesItemStylerParams<unknown>, AgRadarSeriesFormat>;
 
     @Validate(DEGREE)
     rotation: number = 0;
