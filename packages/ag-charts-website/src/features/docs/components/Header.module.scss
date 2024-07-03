@@ -62,6 +62,15 @@
     &:hover {
         background-color: var(--color-util-brand-100);
     }
+
+    #{$selector-darkmode} & {
+        color: var(--color-text-brand-primary) !important;
+        background-color: color-mix(in srgb, var(--color-util-gray-200), var(--color-util-gray-300));
+
+        &:hover {
+            background-color: var(--color-util-gray-300);
+        }
+    }
 }
 
 .enterpriseLabel {
