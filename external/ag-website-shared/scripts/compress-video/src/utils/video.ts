@@ -23,7 +23,7 @@ export async function getVideo({ source }: { source: string }) {
     };
 }
 
-export async function resizeVideo({
+export async function reduceVideo({
     video,
     destination,
     width,

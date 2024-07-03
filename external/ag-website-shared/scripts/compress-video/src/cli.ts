@@ -2,12 +2,23 @@ import { join, parse } from 'path';
 
 import { getContentFolder } from './utils/agFiles';
 import { copyFiles, deleteFile, exists, fileSize, getFilePathsRecursively } from './utils/files';
-import { getVideo, resizeVideo } from './utils/video';
+import { getVideo, reduceVideo } from './utils/video';
 
 const VIDEO_EXTENSIONS = ['.mp4', '.avi', '.mov', '.webm'];
 const VIDEO_MAX_WIDTH = 1036;
+const VIDEO_MAX_FRAMERATE = 30;
 
-async function main({ maxWidth, skipReplace, log }: { maxWidth: number; skipReplace?: boolean; log?: boolean }) {
+async function main({
+    maxWidth,
+    maxFrameRate,
+    skipReplace,
+    log,
+}: {
+    maxWidth: number;
+    maxFrameRate: number;
+    skipReplace?: boolean;
+    log?: boolean;
+}) {
     const contentFolder = getContentFolder();
     if (!contentFolder) {
         throw new Error('No content folder found');
@@ -21,7 +32,7 @@ async function main({ maxWidth, skipReplace, log }: { maxWidth: number; skipRepl
     videoFiles.map(async (source) => {
         const originalFileSize = await fileSize(source);
         const { video, metadata } = await getVideo({ source });
-        if (metadata.width > maxWidth) {
+        if (metadata.width > maxWidth || metadata.fps > maxFrameRate) {
             const { name, dir, ext } = parse(source);
             const destination = join(dir, `${name}-optimized${ext}`);
 
@@ -29,10 +40,12 @@ async function main({ maxWidth, skipReplace, log }: { maxWidth: number; skipRepl
                 await deleteFile(destination);
             }
 
-            const { fileSize } = await resizeVideo({
+            const width = metadata.width > maxWidth ? maxWidth : metadata.width;
+            const frameRate = metadata.fps > maxFrameRate ? maxFrameRate : metadata.fps;
+            const { fileSize } = await reduceVideo({
                 video,
-                width: maxWidth,
-                frameRate: 30,
+                width,
+                frameRate,
                 destination,
             });
 
@@ -43,7 +56,7 @@ async function main({ maxWidth, skipReplace, log }: { maxWidth: number; skipRepl
 
             if (log) {
                 console.log(
-                    `Resized video: ${skipReplace ? destination : source} (${originalFileSize} -> ${fileSize})`
+                    `Resized video: ${skipReplace ? destination : source} (${originalFileSize} -> ${fileSize}, width ${metadata.width} -> ${width}, fps ${metadata.fps} -> ${frameRate})`
                 );
             }
         }
@@ -52,5 +65,6 @@ async function main({ maxWidth, skipReplace, log }: { maxWidth: number; skipRepl
 
 main({
     maxWidth: VIDEO_MAX_WIDTH,
+    maxFrameRate: VIDEO_MAX_FRAMERATE,
     log: true,
 });
