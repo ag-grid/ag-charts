@@ -7,6 +7,7 @@
     "new-version": "./tools/bump-versions.sh",
     "package": "nx pack --prod && nx pack:verify --prod",
     "subrepo": "tsx external/ag-website-shared/scripts/subrepo",
+    "compressVideo": "tsx external/ag-website-shared/scripts/compress-video",
     "clean": "rimraf dist/ packages/*/dist packages/*/lib",
     "preinstall": "npx --package=npm-run-all -- run-s preinstall:*",
     "preinstall:verify-native-dep-versions": "./tools/dependencies/check-versions.sh",
