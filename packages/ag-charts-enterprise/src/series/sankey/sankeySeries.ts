@@ -18,7 +18,7 @@ import {
     SankeySeriesProperties,
 } from './sankeySeriesProperties';
 
-const { SeriesNodePickMode, createDatumId, EMPTY_TOOLTIP_CONTENT } = _ModuleSupport;
+const { SeriesNodePickMode, TextWrapper, createDatumId, EMPTY_TOOLTIP_CONTENT } = _ModuleSupport;
 const { sanitizeHtml } = _Util;
 const { Rect, Text, BBox } = _Scene;
 
@@ -282,11 +282,22 @@ export class SankeySeries extends FlowProportionSeries<
                         }
                     });
                     const maxWidth = maxX - node.x - 2 * labelSpacing;
-                    text = Text.wrap(node.label, maxWidth, node.height, this.properties.label, 'never', 'hide');
+                    text = TextWrapper.wrapText(node.label, {
+                        maxWidth,
+                        maxHeight: node.height,
+                        font: this.properties.label,
+                        textWrap: 'never',
+                        overflow: 'hide',
+                    });
                 }
                 if (text == null || text === '') {
                     const labelInset = leading || trailing ? labelSpacing : labelSpacing * 2;
-                    text = Text.wrap(node.label, columnWidth - labelInset, node.height, this.properties.label, 'never');
+                    text = TextWrapper.wrapText(node.label, {
+                        maxWidth: columnWidth - labelInset,
+                        maxHeight: node.height,
+                        font: this.properties.label,
+                        textWrap: 'never',
+                    });
                 }
                 if (text === '') return;
 

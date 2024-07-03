@@ -12,7 +12,7 @@ import {
 import { formatLabels } from '../util/labelFormatter';
 import { TreemapSeriesProperties } from './treemapSeriesProperties';
 
-const { TextMeasurer } = _ModuleSupport;
+const { TextMeasurer, TextWrapper } = _ModuleSupport;
 const { Rect, Group, BBox, Selection, Text } = _Scene;
 const { Color, Logger, clamp, isEqual, sanitizeHtml } = _Util;
 
@@ -623,7 +623,11 @@ export class TreemapSeries<
                 }
 
                 const innerWidth = bbox.width - 2 * padding;
-                const text = Text.wrap(labelDatum.label, bbox.width - 2 * padding, Infinity, group.label, 'never');
+                const text = TextWrapper.wrapText(labelDatum.label, {
+                    maxWidth: bbox.width - 2 * padding,
+                    font: group.label,
+                    textWrap: 'never',
+                });
                 const textAlignFactor = textAlignFactors[textAlign] ?? 0.5;
 
                 return {

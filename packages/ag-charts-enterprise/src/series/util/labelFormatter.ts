@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Util } from 'ag-charts-community';
 import type {
     AgChartAutoSizedBaseLabelOptions,
     AgChartAutoSizedLabelOptions,
@@ -13,7 +13,6 @@ import type {
 
 const { TextMeasurer, TextWrapper, findMaxValue } = _ModuleSupport;
 const { Logger } = _Util;
-const { Text } = _Scene;
 
 interface AutoSizedBaseLabelOptions extends AgChartAutoSizedBaseLabelOptions<unknown, any> {
     fontSize: FontSize;
@@ -143,18 +142,12 @@ export function formatStackedLabels<Meta>(
 
     const fontSizeCandidates = generateLabelSecondaryLabelFontSizeCandidates(labelProps, secondaryLabelProps);
 
-    const labelTextNode = new Text();
-    labelTextNode.setFont(labelProps);
-
     const labelTextSizeProps = {
         fontFamily: labelProps.fontFamily,
         fontSize: labelProps.fontSize,
         fontStyle: labelProps.fontStyle,
         fontWeight: labelProps.fontWeight,
     };
-
-    const secondaryLabelTextNode = new Text();
-    secondaryLabelTextNode.setFont(secondaryLabelProps);
 
     const secondaryLabelTextSizeProps = {
         fontFamily: secondaryLabelProps.fontFamily,
@@ -188,8 +181,8 @@ export function formatStackedLabels<Meta>(
                 availableWidth,
                 availableHeight,
                 labelTextSizeProps,
-                labelProps.wrapping ?? 'on-space',
-                allowTruncation ? labelProps.overflowStrategy ?? 'ellipsis' : 'hide'
+                labelProps.wrapping,
+                allowTruncation ? labelProps.overflowStrategy : 'hide'
             );
         }
 
@@ -202,8 +195,8 @@ export function formatStackedLabels<Meta>(
                 availableWidth,
                 availableHeight,
                 secondaryLabelTextSizeProps,
-                secondaryLabelProps.wrapping ?? 'on-space',
-                allowTruncation ? secondaryLabelProps.overflowStrategy ?? 'ellipsis' : 'hide'
+                secondaryLabelProps.wrapping,
+                allowTruncation ? secondaryLabelProps.overflowStrategy : 'hide'
             );
         }
 
@@ -316,7 +309,7 @@ export function formatLabels<Meta = never>(
         value = {
             width: label.width,
             height: label.height,
-            meta: meta,
+            meta,
             label,
             secondaryLabel: undefined,
         };
@@ -351,19 +344,15 @@ function wrapLabel(
     maxWidth: number,
     maxHeight: number,
     font: TextProperties,
-    textWrap: TextWrap,
-    overflow: OverflowStrategy
+    textWrap?: TextWrap,
+    overflow?: OverflowStrategy
 ) {
     const lines = TextWrapper.wrapLines(text, { maxWidth, maxHeight, font, textWrap, overflow });
 
     if (!lines.length) return;
 
     const lineHeight = TextMeasurer.getLineHeight(font.fontSize);
-    const { width } = TextMeasurer.measureLines(lines, {
-        font,
-        textAlign: 'start',
-        textBaseline: 'alphabetic',
-    });
+    const { width } = TextMeasurer.measureLines(lines, { font });
 
     return {
         width,

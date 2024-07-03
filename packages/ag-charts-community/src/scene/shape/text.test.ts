@@ -3,6 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 import type { TextWrap } from 'ag-charts-types';
 
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
+import { TextWrapper } from '../../util/textWrapper';
 import type { LayersManager } from '../layersManager';
 import { Text } from './text';
 
@@ -274,13 +275,12 @@ describe('Text', () => {
                     } else if (breakWord) {
                         wrapping = 'always';
                     }
-                    textNode.text = Text.wrap(
-                        textNode.text ?? '',
+                    textNode.text = TextWrapper.wrapText(textNode.text ?? '', {
                         maxWidth,
-                        truncate ? maxHeight : Infinity,
-                        textNode,
-                        wrapping
-                    );
+                        maxHeight: truncate ? maxHeight : Infinity,
+                        font: textNode,
+                        textWrap: wrapping,
+                    });
                     textNode._setLayerManager(mockLayerManager);
 
                     ctx.save();
@@ -306,19 +306,83 @@ describe('Text', () => {
         const font = BASE_OPTIONS;
 
         it('should handle all text wrapping options for a small box', () => {
-            expect(Text.wrap(exampleString, 50, 50, font, 'on-space', 'hide')).toBe('');
-            expect(Text.wrap(exampleString, 50, 50, font, 'never', 'hide')).toBe('');
-            expect(Text.wrap(exampleString, 50, 50, font, 'hyphenate', 'hide')).toBe('');
-            expect(Text.wrap(exampleString, 50, 50, font, 'always', 'hide')).toBe('');
+            expect(
+                TextWrapper.wrapText(exampleString, {
+                    maxWidth: 50,
+                    maxHeight: 50,
+                    font,
+                    textWrap: 'on-space',
+                    overflow: 'hide',
+                })
+            ).toBe('');
+            expect(
+                TextWrapper.wrapText(exampleString, {
+                    maxWidth: 50,
+                    maxHeight: 50,
+                    font,
+                    textWrap: 'never',
+                    overflow: 'hide',
+                })
+            ).toBe('');
+            expect(
+                TextWrapper.wrapText(exampleString, {
+                    maxWidth: 50,
+                    maxHeight: 50,
+                    font,
+                    textWrap: 'hyphenate',
+                    overflow: 'hide',
+                })
+            ).toBe('');
+            expect(
+                TextWrapper.wrapText(exampleString, {
+                    maxWidth: 50,
+                    maxHeight: 50,
+                    font,
+                    textWrap: 'always',
+                    overflow: 'hide',
+                })
+            ).toBe('');
         });
 
         it('should handle all text wrapping options for a tall box', () => {
-            expect(Text.wrap(exampleString, 50, 1000, font, 'on-space', 'hide')).toBe('');
-            expect(Text.wrap(exampleString, 50, 1000, font, 'never', 'hide')).toBe('');
+            expect(
+                TextWrapper.wrapText(exampleString, {
+                    maxWidth: 50,
+                    maxHeight: 1000,
+                    font,
+                    textWrap: 'on-space',
+                    overflow: 'hide',
+                })
+            ).toBe('');
+            expect(
+                TextWrapper.wrapText(exampleString, {
+                    maxWidth: 50,
+                    maxHeight: 1000,
+                    font,
+                    textWrap: 'never',
+                    overflow: 'hide',
+                })
+            ).toBe('');
 
             // The word is broken here, so does not overflow
-            expect(Text.wrap(exampleString, 50, 1000, font, 'hyphenate', 'hide')).not.toBe('');
-            expect(Text.wrap(exampleString, 50, 1000, font, 'always', 'hide')).not.toBe('');
+            expect(
+                TextWrapper.wrapText(exampleString, {
+                    maxWidth: 50,
+                    maxHeight: 1000,
+                    font,
+                    textWrap: 'hyphenate',
+                    overflow: 'hide',
+                })
+            ).not.toBe('');
+            expect(
+                TextWrapper.wrapText(exampleString, {
+                    maxWidth: 50,
+                    maxHeight: 1000,
+                    font,
+                    textWrap: 'always',
+                    overflow: 'hide',
+                })
+            ).not.toBe('');
         });
     });
 

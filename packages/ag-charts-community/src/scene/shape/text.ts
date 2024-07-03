@@ -1,8 +1,7 @@
-import type { FontFamily, FontSize, FontStyle, FontWeight, OverflowStrategy, TextWrap } from 'ag-charts-types';
+import type { FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-types';
 
 import { memoizeFunction } from '../../util/memo';
 import { TextMeasurer } from '../../util/textMeasurer';
-import { TextWrapper } from '../../util/textWrapper';
 import { BBox } from '../bbox';
 import type { RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
@@ -173,25 +172,6 @@ export class Text extends Shape {
             renderCallback(line, x, y + offsetY);
             offsetY += lineHeight;
         }
-    }
-
-    static wrap(
-        text: string,
-        maxWidth: number,
-        maxHeight: number,
-        textProps: TextSizeProperties,
-        wrapping: TextWrap,
-        overflow: OverflowStrategy = 'ellipsis'
-    ): string {
-        return TextWrapper.wrapText(text, {
-            maxWidth,
-            maxHeight,
-            font: textProps,
-            textAlign: textProps.textAlign,
-            textBaseline: textProps.textBaseline,
-            textWrap: wrapping,
-            overflow,
-        });
     }
 
     setFont(props: TextSizeProperties) {
