@@ -20,6 +20,7 @@ function setUpMockLayerManager(canvasCtx: any): LayersManager {
 const BASE_OPTIONS = {
     textAlign: 'start' as CanvasTextAlign,
     fontSize: 15,
+    lineHeight: 15,
     fontFamily: 'sans-serif',
     textBaseline: 'top' as CanvasTextBaseline,
 };

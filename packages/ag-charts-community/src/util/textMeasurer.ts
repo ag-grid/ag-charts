@@ -85,6 +85,22 @@ export class TextMeasurer {
         return this.getMultilineMetrics(ctx, lines);
     }
 
+    // Determines vertical offset modifier based on text baseline.
+    static getVerticalModifier(textBaseline?: CanvasTextBaseline): number {
+        switch (textBaseline) {
+            case 'hanging':
+            case 'top':
+                return 0;
+            case 'middle':
+                return 0.5;
+            case 'alphabetic':
+            case 'bottom':
+            case 'ideographic':
+            default:
+                return 1;
+        }
+    }
+
     // Gets a TextMeasurer instance, configuring text alignment and baseline if provided.
     static getFontMeasurer(options: MeasureOptions) {
         const font = typeof options.font === 'string' ? options.font : TextMeasurer.toFontString(options.font);
@@ -169,22 +185,6 @@ export class TextMeasurer {
         offsetTop += baselineDistance * verticalModifier;
 
         return { width, height, offsetTop, offsetLeft, lineMetrics };
-    }
-
-    // Determines vertical offset modifier based on text baseline.
-    private static getVerticalModifier(textBaseline?: CanvasTextBaseline): number {
-        switch (textBaseline) {
-            case 'hanging':
-            case 'top':
-                return 0;
-            case 'middle':
-                return 0.5;
-            case 'alphabetic':
-            case 'bottom':
-            case 'ideographic':
-            default:
-                return 1;
-        }
     }
 
     // local chars width cache per TextMeasurer

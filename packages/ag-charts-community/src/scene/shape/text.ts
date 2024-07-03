@@ -89,10 +89,6 @@ export class Text extends Shape {
         return new BBox(x - offsetLeft, y - offsetTop, width, height);
     }
 
-    private getLineHeight(line: string): number {
-        return this.lineHeight ?? TextMeasurer.measureText(line, this).lineHeight;
-    }
-
     isPointInPath(x: number, y: number): boolean {
         const point = this.transformPoint(x, y);
         const bbox = this.computeBBox();
@@ -170,13 +166,12 @@ export class Text extends Shape {
 
     private renderLines(renderCallback: (line: string, x: number, y: number) => void): void {
         const { lines, x, y } = this;
-        const lineHeights = lines.map((line) => this.getLineHeight(line));
-        const totalHeight = lineHeights.reduce((a, b) => a + b, 0);
-        let offsetY: number = (lineHeights[0] - totalHeight) * Text.getVerticalModifier(this.textBaseline);
+        const lineHeight = this.lineHeight ?? TextMeasurer.getLineHeight(this.fontSize!);
+        let offsetY = (lineHeight - lineHeight * lines.length) * TextMeasurer.getVerticalModifier(this.textBaseline);
 
-        for (let i = 0; i < lines.length; i++) {
-            renderCallback(lines[i], x, y + offsetY);
-            offsetY += lineHeights[i];
+        for (const line of lines) {
+            renderCallback(line, x, y + offsetY);
+            offsetY += lineHeight;
         }
     }
 
@@ -224,20 +219,6 @@ export class Text extends Shape {
     setAlign(props: { textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline }) {
         this.textAlign = props.textAlign;
         this.textBaseline = props.textBaseline;
-    }
-
-    protected static getVerticalModifier(textBaseline: CanvasTextBaseline): number {
-        switch (textBaseline) {
-            case 'top':
-            case 'hanging':
-                return 0;
-            case 'bottom':
-            case 'alphabetic':
-            case 'ideographic':
-                return 1;
-            case 'middle':
-                return 0.5;
-        }
     }
 
     private static readonly _measureText = memoizeFunction(
