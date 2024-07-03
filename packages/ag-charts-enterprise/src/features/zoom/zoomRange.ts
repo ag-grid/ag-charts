@@ -6,7 +6,7 @@ export class ZoomRange {
     @ActionOnSet<ZoomRange>({
         changeValue(start) {
             this.initialStart ??= start;
-            this.onChange?.(this.getRangeWithValues(start, this.end));
+            this.onChange?.(this.axisId, this.getRangeWithValues(start, this.end));
         },
     })
     // @todo(AG-11069)
@@ -16,18 +16,19 @@ export class ZoomRange {
     @ActionOnSet<ZoomRange>({
         changeValue(end) {
             this.initialEnd ??= end;
-            this.onChange?.(this.getRangeWithValues(this.start, end));
+            this.onChange?.(this.axisId, this.getRangeWithValues(this.start, end));
         },
     })
     // @todo(AG-11069)
     @Validate(AND(OR(DATE, NUMBER) /* GREATER_THAN('start') */), { optional: true })
     public end?: Date | number;
 
+    private axisId?: string;
     private domain?: Array<Date | number>;
     private initialStart?: number;
     private initialEnd?: number;
 
-    constructor(private readonly onChange: (range?: { min: number; max: number }) => void) {}
+    constructor(private readonly onChange: (axisId?: string, range?: { min: number; max: number }) => void) {}
 
     public getRange() {
         return this.getRangeWithValues(this.start, this.end);
@@ -54,7 +55,7 @@ export class ZoomRange {
         this.start = start;
 
         // If neither start or end were changed, ensure we still call the `onChange` callback
-        if (!changed) this.onChange?.(this.getRange());
+        if (!changed) this.onChange?.(this.axisId, this.getRange());
     }
 
     public updateWith(fn: (start: Date | number, end: Date | number) => [Date | number, Date | number]) {
@@ -69,7 +70,7 @@ export class ZoomRange {
         this.start = start;
 
         // If neither start or end were changed, ensure we still call the `onChange` callback
-        if (!changed) this.onChange?.(this.getRange());
+        if (!changed) this.onChange?.(this.axisId, this.getRange());
     }
 
     public extendAll() {
@@ -83,10 +84,10 @@ export class ZoomRange {
         this.end = end;
 
         // If neither start or end were changed, ensure we still call the `onChange` callback
-        if (!changed) this.onChange?.(this.getRange());
+        if (!changed) this.onChange?.(this.axisId, this.getRange());
     }
 
-    public updateAxis(axes: Array<_ModuleSupport.AxisLayout>) {
+    public updateAxis(axes: Array<_ModuleSupport.AxisLayout & { id: string }>) {
         const validAxis = axes.find(({ domain }) => {
             const isNumberAxis = !isFiniteNumber(domain[0]) || !isFiniteNumber(domain.at(-1));
             const isDateAxis = !isValidDate(domain[0]) || !isValidDate(domain.at(-1));
@@ -96,6 +97,7 @@ export class ZoomRange {
 
         if (!validAxis) return this.domain != null;
 
+        this.axisId = validAxis.id;
         let validAxisDomain = validAxis.domain;
 
         if (validAxisDomain != null) {
