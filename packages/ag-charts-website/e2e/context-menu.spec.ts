@@ -5,7 +5,7 @@ import { gotoExample, setupIntrinsicAssertions, toExamplePageUrls } from './util
 test.describe('context-menu', () => {
     setupIntrinsicAssertions();
 
-    const testUrls = toExamplePageUrls('financial-charts', 'financial-charts-showcase');
+    const testUrls = toExamplePageUrls('zoom', 'zoom-min-visible-items');
 
     for (const { framework, url } of testUrls) {
         test.describe(`for ${framework}`, () => {
@@ -18,7 +18,7 @@ test.describe('context-menu', () => {
 
                 await page.click('canvas', {
                     button: 'right',
-                    position: { x: width / 2, y: height / 2 },
+                    position: { x: width * (2 / 3), y: height / 2 },
                 });
                 await page.locator('.ag-chart-context-menu__item').filter({ hasText: 'Zoom to here' }).click();
                 await expect(page).toHaveScreenshot('zoom-to-here.png', { animations: 'disabled' });
