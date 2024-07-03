@@ -3,7 +3,6 @@ import type { FontStyle, FontWeight, TextAlign, TextWrap } from 'ag-charts-types
 import type { ModuleContext } from '../module/moduleContext';
 import { PointerEvents } from '../scene/node';
 import { Text } from '../scene/shape/text';
-import { setElementBBox } from '../util/dom';
 import { joinFunctions } from '../util/function';
 import { createId } from '../util/id';
 import { BaseProperties } from '../util/properties';
