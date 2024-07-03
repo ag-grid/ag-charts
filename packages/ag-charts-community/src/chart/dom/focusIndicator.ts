@@ -19,6 +19,7 @@ export class FocusIndicator {
 
         this.element = domManager.addChild('canvas-overlay', block);
         this.element.classList.add(block, elements.indicator, modifiers.hidden);
+        this.element.ariaHidden = 'true';
         this.element.append(this.svg);
     }
 
