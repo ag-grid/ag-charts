@@ -61,9 +61,13 @@ export function getPath(object: object, path: string | string[]) {
     return pathArray.reduce<any>((value, pathKey) => value[pathKey], object);
 }
 
+export const SKIP_JS_BUILTINS = new Set('__proto__');
+
 export function setPath(object: object, path: string | string[], newValue: unknown) {
     const pathArray = isArray(path) ? path.slice() : path.split('.');
     const lastKey = pathArray.pop()!;
+    if (SKIP_JS_BUILTINS.has(lastKey)) return;
+
     const lastObject = pathArray.reduce<any>((value, pathKey) => value[pathKey], object);
     lastObject[lastKey] = newValue;
 }
