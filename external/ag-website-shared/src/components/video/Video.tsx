@@ -38,12 +38,14 @@ export const Video = ({ videoSrc, darkModeVideoSrc, autoplay = true, showPlayPau
 
     return (
         <div className={classnames(styles.videoOuter, isPlaying ? styles.isPaused : styles.isPlaying)}>
-            <video ref={videoRef} src={src} autoPlay={autoplay} muted loop></video>;
+            <video ref={videoRef} src={src} autoPlay={autoplay} muted loop></video>
+
             {showPlayPauseButtons && (
                 <span className={styles.buttonsOuter}>
                     <button className={classnames(styles.playButton, 'button-style-none')} onClick={toggleVideo}>
                         <Icon name="play" />
                     </button>
+
                     <button className={classnames(styles.pauseButton, 'button-style-none')} onClick={toggleVideo}>
                         <Icon name="pause" />
                     </button>

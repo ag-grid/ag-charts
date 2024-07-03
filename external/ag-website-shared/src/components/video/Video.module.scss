@@ -3,6 +3,10 @@
 .videoOuter {
     display: inline-block;
     position: relative;
+
+    video {
+        max-width: 100%;
+    }
 }
 
 .isPaused .pauseButton {
