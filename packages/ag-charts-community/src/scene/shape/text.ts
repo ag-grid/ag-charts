@@ -1,6 +1,5 @@
 import type { FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-types';
 
-import { memoizeFunction } from '../../util/memo';
 import { TextMeasurer } from '../../util/textMeasurer';
 import { BBox } from '../bbox';
 import type { RenderContext } from '../node';
@@ -17,11 +16,8 @@ export interface TextSizeProperties {
     textAlign?: CanvasTextAlign;
 }
 
-const ellipsis = '\u2026';
-
 function SceneFontChangeDetection(opts?: { redraw?: RedrawType; changeCb?: (t: any) => any }) {
     const { redraw = RedrawType.MAJOR, changeCb } = opts ?? {};
-
     return SceneChangeDetection({ redraw, type: 'font', changeCb });
 }
 
@@ -39,8 +35,6 @@ export class Text extends Shape {
         fontFamily: 'sans-serif',
         textBaseline: 'alphabetic' as CanvasTextBaseline,
     });
-
-    static ellipsis = ellipsis;
 
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     x: number = 0;
@@ -184,28 +178,5 @@ export class Text extends Shape {
     setAlign(props: { textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline }) {
         this.textAlign = props.textAlign;
         this.textBaseline = props.textBaseline;
-    }
-
-    private static readonly _getTextSize = memoizeFunction(({ text, font }: { text: string; font: string }) =>
-        TextMeasurer.measureText(text, { font })
-    );
-
-    /**
-     * Returns the width and height of the measured text.
-     * @param text The single-line text to measure.
-     * @param font The font shorthand string.
-     */
-    static getTextSize(text: string, font: string) {
-        return this._getTextSize({ text, font });
-    }
-
-    static getTextSizeMultiline(
-        lines: string[],
-        font: string,
-        textBaseline: CanvasTextBaseline = Text.defaultStyles.textBaseline,
-        textAlign: CanvasTextAlign = Text.defaultStyles.textAlign
-    ): { top: number; left: number; width: number; height: number } {
-        const r = TextMeasurer.measureLines(lines, { font, textBaseline, textAlign });
-        return { top: r.offsetTop, left: r.offsetLeft, width: r.width, height: r.height };
     }
 }

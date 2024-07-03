@@ -19,7 +19,6 @@ import { RedrawType } from '../scene/node';
 import type { Scene } from '../scene/scene';
 import { Selection } from '../scene/selection';
 import { Line } from '../scene/shape/line';
-import { Text } from '../scene/shape/text';
 import { setElementBBox } from '../util/dom';
 import { createId } from '../util/id';
 import { initToolbarKeyNav } from '../util/keynavUtil';
@@ -28,6 +27,7 @@ import { clamp } from '../util/number';
 import { BaseProperties } from '../util/properties';
 import { ObserveChanges } from '../util/proxy';
 import { TextMeasurer } from '../util/textMeasurer';
+import { TextWrapper } from '../util/textWrapper';
 import {
     BOOLEAN,
     COLOR_STRING,
@@ -228,8 +228,6 @@ export class Legend extends BaseProperties {
     @Validate(POSITIVE_NUMBER)
     spacing = 20;
 
-    private readonly characterWidths = new Map();
-
     private readonly destroyFns: Function[] = [];
 
     private readonly proxyLegendToolbar: HTMLDivElement;
@@ -357,20 +355,6 @@ export class Legend extends BaseProperties {
             case 'top':
                 return 'horizontal';
         }
-    }
-
-    private getCharacterWidths(font: string) {
-        const { characterWidths } = this;
-
-        if (characterWidths.has(font)) {
-            return characterWidths.get(font);
-        }
-
-        const cw: { [key: string]: number } = {
-            '...': Text.getTextSize('...', font).width,
-        };
-        characterWidths.set(font, cw);
-        return cw;
     }
 
     readonly size: [number, number] = [0, 0];
@@ -573,48 +557,22 @@ export class Legend extends BaseProperties {
         font: string,
         id: string
     ): string {
-        const ellipsis = `...`;
-
-        const textChars = text.split('');
         let addEllipsis = false;
-
         if (text.length > maxCharLength) {
-            text = `${text.substring(0, maxCharLength)}`;
+            text = text.substring(0, maxCharLength);
             addEllipsis = true;
         }
 
-        const labelWidth = Math.floor(paddedMarkerWidth + Text.getTextSize(text, font).width);
-        if (labelWidth > maxItemWidth) {
-            let truncatedText = '';
-            const characterWidths = this.getCharacterWidths(font);
-            let cumulativeWidth = paddedMarkerWidth + characterWidths[ellipsis];
+        const measurer = TextMeasurer.getFontMeasurer({ font });
+        const result = TextWrapper.truncateLine(text, measurer, maxItemWidth - paddedMarkerWidth, addEllipsis);
 
-            for (const char of textChars) {
-                if (!characterWidths[char]) {
-                    characterWidths[char] = Text.getTextSize(char, font).width;
-                }
-
-                cumulativeWidth += characterWidths[char];
-
-                if (cumulativeWidth > maxItemWidth) {
-                    break;
-                }
-
-                truncatedText += char;
-            }
-
-            text = truncatedText;
-            addEllipsis = true;
-        }
-
-        if (addEllipsis) {
-            text += ellipsis;
+        if (result.endsWith(TextWrapper.EllipsisChar)) {
             this.truncatedItems.add(id);
         } else {
             this.truncatedItems.delete(id);
         }
 
-        return text;
+        return result;
     }
 
     private updatePagination(
@@ -804,8 +762,8 @@ export class Legend extends BaseProperties {
             }
 
             const pageIndex = i - visibleStart;
-            let columnIndex = 0;
-            let rowIndex = 0;
+            let columnIndex: number;
+            let rowIndex: number;
             if (horizontal) {
                 columnIndex = pageIndex % columnCount;
                 rowIndex = Math.floor(pageIndex / columnCount);
@@ -848,7 +806,7 @@ export class Legend extends BaseProperties {
             // Stay on last page on pagination update.
             this.paginationTrackingIndex = endIndex;
         } else {
-            // Track the middle item on the page).
+            // Track the middle item on the page.
             this.paginationTrackingIndex = Math.floor((startIndex + endIndex) / 2);
         }
 
@@ -1295,7 +1253,7 @@ export class Legend extends BaseProperties {
         switch (this.position) {
             case 'top':
             case 'bottom':
-                // A horizontal legend should take maximum between 20 to 50 percent of the chart height if height is larger than width
+                // A horizontal legend should take maximum between 20 and 50 percent of the chart height if height is larger than width
                 // and maximum 20 percent of the chart height if height is smaller than width.
                 const heightCoefficient =
                     aspectRatio < 1
@@ -1310,7 +1268,7 @@ export class Legend extends BaseProperties {
             case 'left':
             case 'right':
             default:
-                // A vertical legend should take maximum between 25 to 50 percent of the chart width if width is larger than height
+                // A vertical legend should take maximum between 25 and 50 percent of the chart width if width is larger than height
                 // and maximum 25 percent of the chart width if width is smaller than height.
                 const widthCoefficient =
                     aspectRatio > 1 ? Math.min(maxCoefficient, minWidthCoefficient * aspectRatio) : minWidthCoefficient;

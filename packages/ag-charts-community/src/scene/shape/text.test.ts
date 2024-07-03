@@ -406,15 +406,8 @@ describe('Text', () => {
         });
 
         it('should measure text size currently', () => {
-            expect(Text.getTextSize('Hello world!', '24px serif')).toMatchSnapshot();
-            expect(Text.getTextSize('Hello world!', 'bold 48px serif')).toMatchSnapshot();
-        });
-
-        it('should measure multiline text size currently', () => {
-            expect(Text.getTextSizeMultiline(['Hello', 'world!'], '24px serif', 'bottom', 'start')).toMatchSnapshot();
-            expect(
-                Text.getTextSizeMultiline(['Hello', 'world!'], 'bold 48px serif', 'middle', 'center')
-            ).toMatchSnapshot();
+            expect(TextMeasurer.measureText('Hello world!', { font: '24px serif' })).toMatchSnapshot();
+            expect(TextMeasurer.measureText('Hello world!', { font: 'bold 48px serif' })).toMatchSnapshot();
         });
     });
 });

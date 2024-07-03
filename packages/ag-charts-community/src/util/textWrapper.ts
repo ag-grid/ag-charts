@@ -25,6 +25,25 @@ export class TextWrapper extends TextMeasurer {
         return clippedResult;
     }
 
+    static truncateLine(text: string, measurer: TextMeasurer, maxWidth: number, ellipsisForce?: boolean) {
+        const ellipsisWidth = measurer.textWidth(this.EllipsisChar);
+        let estimatedWidth = 0;
+        let i = 0;
+        for (; i < text.length; i++) {
+            const charWidth = measurer.textWidth(text.charAt(i));
+            if (estimatedWidth + charWidth > maxWidth) break;
+            estimatedWidth += charWidth;
+        }
+        if (text.length === i && (!ellipsisForce || estimatedWidth + ellipsisWidth <= maxWidth)) {
+            return ellipsisForce ? text + this.EllipsisChar : text;
+        }
+        text = text.slice(0, i).trimEnd();
+        while (text.length && measurer.textWidth(text) + ellipsisWidth > maxWidth) {
+            text = text.slice(0, -1).trimEnd();
+        }
+        return text + this.EllipsisChar;
+    }
+
     private static textWrap(text: string, options: WrapOptions) {
         const lines: string[] = text.split(this.lineSplitter);
         const measurer = this.getFontMeasurer(options);
@@ -162,24 +181,5 @@ export class TextWrapper extends TextMeasurer {
             lines[length - 2] = beforeLast.slice(0, lastSpaceIndex);
             lines[length - 1] = lastWord + ' ' + lastLine;
         }
-    }
-
-    private static truncateLine(text: string, measurer: TextMeasurer, maxWidth: number, ellipsisForce?: boolean) {
-        const ellipsisWidth = measurer.textWidth(this.EllipsisChar);
-        let estimatedWidth = 0;
-        let i = 0;
-        for (; i < text.length; i++) {
-            const charWidth = measurer.textWidth(text.charAt(i));
-            if (estimatedWidth + charWidth > maxWidth) break;
-            estimatedWidth += charWidth;
-        }
-        if (text.length === i && (!ellipsisForce || estimatedWidth + ellipsisWidth <= maxWidth)) {
-            return ellipsisForce ? text + this.EllipsisChar : text;
-        }
-        text = text.slice(0, i).trimEnd();
-        while (text.length && measurer.textWidth(text) + ellipsisWidth > maxWidth) {
-            text = text.slice(0, -1).trimEnd();
-        }
-        return text + this.EllipsisChar;
     }
 }

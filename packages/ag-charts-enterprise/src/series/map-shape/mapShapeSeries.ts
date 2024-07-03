@@ -221,7 +221,7 @@ export class MapShapeSeries
         });
         if (labelText == null) return;
 
-        const baseSize = Text.getTextSize(String(labelText), font);
+        const baseSize = TextMeasurer.measureText(String(labelText), { font });
         const numLines = labelText.split('\n').length;
         const aspectRatio =
             (baseSize.width + 2 * padding) / (numLines * TextMeasurer.getLineHeight(label.fontSize) + 2 * padding);
@@ -275,7 +275,7 @@ export class MapShapeSeries
 
         const [{ text, fontSize, lineHeight, width }, formattingX] = labelFormatting;
         // FIXME - formatSingleLabel should never return an ellipsis
-        if (text === Text.ellipsis) return;
+        if (text === TextMeasurer.EllipsisChar) return;
 
         // Only shift horizontally if necessary
         const x = width < maxSizeWithoutTruncation.width ? untruncatedX : formattingX;
