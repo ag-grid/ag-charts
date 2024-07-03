@@ -163,7 +163,9 @@ export class Sector extends Path {
         const innerAngleOffset = this.getAngleOffset(innerRadius);
         const outerAngleOffset = this.getAngleOffset(outerRadius);
 
-        const angleOffset = inner ? this.getAngleOffset(innerRadius + r) : this.getAngleOffset(outerRadius - r);
+        const angleOffset = inner
+            ? this.getAngleOffset(Math.sqrt((innerRadius + r) ** 2 - r ** 2))
+            : this.getAngleOffset(Math.sqrt((outerRadius - r) ** 2 - r ** 2));
         const angle = start ? startAngle + angleOffset + angleSweep : endAngle - angleOffset - angleSweep;
 
         const radius = inner ? innerRadius + r : outerRadius - r;
@@ -301,7 +303,8 @@ export class Sector extends Path {
 
         // radiiScalingFactor doesn't find outer radii factors when the corners are larger than the sector radius
         // First, scale everything down so every corner radius individually fits within the sector's radial range
-        const radialLength = outerRadius - innerRadius;
+        // Use full radius, as we inset by the concentric edge inset later
+        const radialLength = this.outerRadius - this.innerRadius;
         const maxRadialLength = Math.max(
             startOuterCornerRadius,
             startInnerCornerRadius,
@@ -352,6 +355,12 @@ export class Sector extends Path {
         startInnerCornerRadius *= edgesScalingFactor;
         endInnerCornerRadius *= edgesScalingFactor;
 
+        // Inset by concentric edge inset so we can get overlapping sectors with strokes to align
+        startOuterCornerRadius = Math.max(startOuterCornerRadius - concentricEdgeInset, 0);
+        endOuterCornerRadius = Math.max(endOuterCornerRadius - concentricEdgeInset, 0);
+        startInnerCornerRadius = Math.max(startInnerCornerRadius - concentricEdgeInset, 0);
+        endInnerCornerRadius = Math.max(endInnerCornerRadius - concentricEdgeInset, 0);
+
         let startOuterCornerRadiusAngleSweep = 0;
         let endOuterCornerRadiusAngleSweep = 0;
         const startOuterCornerRadiusSweep = startOuterCornerRadius / (outerRadius - startOuterCornerRadius);
@@ -359,14 +368,15 @@ export class Sector extends Path {
         if (startOuterCornerRadiusSweep >= 0 && startOuterCornerRadiusSweep < 1 - delta) {
             startOuterCornerRadiusAngleSweep = Math.asin(startOuterCornerRadiusSweep);
         } else {
-            startOuterCornerRadiusAngleSweep = sweepAngle / 2;
+            // FIXME - inset by concentricEdgeInset
+            startOuterCornerRadiusAngleSweep = sweepAngle / 2 - this.getAngleOffset((outerRadius + innerRadius) / 2);
             const maxStartOuterCornerRadius = outerRadius / (1 / Math.sin(startOuterCornerRadiusAngleSweep) + 1);
             startOuterCornerRadius = Math.min(maxStartOuterCornerRadius, startOuterCornerRadius);
         }
         if (endOuterCornerRadiusSweep >= 0 && endOuterCornerRadiusSweep < 1 - delta) {
             endOuterCornerRadiusAngleSweep = Math.asin(endOuterCornerRadiusSweep);
         } else {
-            endOuterCornerRadiusAngleSweep = sweepAngle / 2;
+            endOuterCornerRadiusAngleSweep = sweepAngle / 2 - this.getAngleOffset((outerRadius + innerRadius) / 2);
             const maxEndOuterCornerRadius = outerRadius / (1 / Math.sin(endOuterCornerRadiusAngleSweep) + 1);
             endOuterCornerRadius = Math.min(maxEndOuterCornerRadius, endOuterCornerRadius);
         }
@@ -439,7 +449,11 @@ export class Sector extends Path {
             true
         );
 
-        if (innerAngleExceeded) {
+        if (!innerAngleExceeded && (startInnerArc?.isValid() === true || innerArc?.isValid() === true)) {
+            // The first point of the path will be the first point on an arc
+            // We don't need to call moveTo here - it's implicit
+            // Not having a moveTo also fixes some issues Chrome has about mitering
+        } else {
             // Draw a wedge on a cartesian co-ordinate with radius `sweep`
             // Inset from bottom - i.e. y = innerRadius
             // Inset the top - i.e. y = (x - x0) * tan(sweep)
@@ -457,22 +471,14 @@ export class Sector extends Path {
             if (x > 0 && x < outerRadius) {
                 // Even within the formula limits, floating point precision isn't always enough,
                 // so ensure we never go less than the inner radius
-                r = Math.max(Math.hypot(radialEdgeInset, x), innerRadius);
+                r = Math.hypot(radialEdgeInset, x);
             } else {
-                // Formula limits exceeded - just use the inner radius
-                r = innerRadius;
+                // Formula limits exceeded
+                r = radialEdgeInset;
             }
+            r = Math.max(r, innerRadius);
             const midAngle = startAngle + sweepAngle * 0.5;
             path.moveTo(centerX + r * Math.cos(midAngle), centerY + r * Math.sin(midAngle));
-        } else if (startInnerArc?.isValid() === true || innerArc?.isValid() === true) {
-            // The first point of the path will be the first point on an arc
-            // We don't need to call moveTo here - it's implicit
-            // Not having a moveTo also fixes some issues Chrome has about mitering
-        } else {
-            const midAngle = startAngle + sweepAngle / 2;
-            const cx = innerRadius * Math.cos(midAngle);
-            const cy = innerRadius * Math.sin(midAngle);
-            path.moveTo(centerX + cx, centerY + cy);
         }
 
         if (startOuterArc?.isValid() === true) {

@@ -677,12 +677,11 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             sector.lineDashOffset = format.lineDashOffset;
             sector.cornerRadius = format.cornerRadius;
             sector.fillShadow = this.properties.shadow;
-            const inset = Math.max(
-                (this.properties.sectorSpacing + (format.stroke != null ? format.strokeWidth : 0)) / 2,
-                0
-            );
-            sector.inset = inset;
-            sector.lineJoin = this.properties.sectorSpacing >= 0 || inset > 0 ? 'miter' : 'round';
+            const insetStrokeWidth = format.stroke != null ? format.strokeWidth : 0;
+            const radialEdgeInset = Math.max((this.properties.sectorSpacing + insetStrokeWidth) / 2, 0);
+            sector.radialEdgeInset = radialEdgeInset;
+            sector.concentricEdgeInset = Math.max(insetStrokeWidth / 2, 0);
+            sector.lineJoin = this.properties.sectorSpacing >= 0 || radialEdgeInset > 0 ? 'miter' : 'round';
         };
 
         this.itemSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false));
