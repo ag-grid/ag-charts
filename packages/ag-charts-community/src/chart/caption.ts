@@ -1,6 +1,5 @@
 import type { FontStyle, FontWeight, TextAlign, TextWrap } from 'ag-charts-types';
 
-import type { DOMManager } from '../module-support';
 import type { ModuleContext } from '../module/moduleContext';
 import { PointerEvents } from '../scene/node';
 import { Text } from '../scene/shape/text';
@@ -25,6 +24,8 @@ import {
 import type { CaptionLike } from './captionLike';
 import type { PointerInteractionEvent } from './interaction/interactionManager';
 import { toTooltipHtml } from './tooltip/tooltip';
+import type { BoundedText } from './dom/boundedText';
+import type { ProxyInteractionService } from './dom/proxyInteractionService';
 
 export class Caption extends BaseProperties implements CaptionLike {
     static readonly SMALL_PADDING = 10;
@@ -87,7 +88,7 @@ export class Caption extends BaseProperties implements CaptionLike {
     @Validate(STRING)
     layoutStyle: 'block' | 'overlay' = 'block';
 
-    private proxyParagraph?: HTMLElement;
+    private proxyText?: BoundedText;
 
     registerInteraction(moduleCtx: ModuleContext) {
         const region = moduleCtx.regionManager.getRegion('root');
@@ -112,20 +113,18 @@ export class Caption extends BaseProperties implements CaptionLike {
         this.truncated = wrappedText.includes(TextMeasurer.EllipsisChar);
     }
 
-    updateA11yParagraph(domManager: DOMManager) {
+    updateA11yText(proxyService: ProxyInteractionService, parent: HTMLElement) {
         if (this.enabled && this.text) {
-            this.proxyParagraph ??= domManager.addChild('canvas-proxy', this.id);
-            this.proxyParagraph.style.opacity = '0';
-            this.proxyParagraph.style.position = 'absolute';
-            this.proxyParagraph.style.overflow = 'hidden';
-            this.proxyParagraph.textContent = this.text;
             const bbox = this.node.computeTransformedBBox();
             if (bbox) {
-                setElementBBox(this.proxyParagraph, bbox);
+                const { id } =this;
+                this.proxyText ??= proxyService.createProxyElement({type: 'text', id ,parent});
+                this.proxyText.textContent = this.text;
+                this.proxyText.updateBounds(bbox);
             }
         } else {
-            this.proxyParagraph?.remove();
-            this.proxyParagraph = undefined;
+            this.proxyText?.remove();
+            this.proxyText = undefined;
         }
     }
 

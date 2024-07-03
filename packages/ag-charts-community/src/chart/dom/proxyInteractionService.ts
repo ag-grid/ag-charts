@@ -144,7 +144,7 @@ export class ProxyInteractionService {
 
         if (checkType('button', meta)) {
             const { params, result: button } = meta;
-            this.initElement(params, button);
+            this.initInteract(params, button);
 
             if (typeof params.textContent === 'string') {
                 button.textContent = params.textContent;
@@ -158,7 +158,7 @@ export class ProxyInteractionService {
 
         if (checkType('slider', meta)) {
             const { params, result: slider } = meta;
-            this.initElement(params, slider);
+            this.initInteract(params, slider);
             slider.type = 'range';
             slider.role = 'presentation';
             slider.style.margin = '0px';
@@ -169,25 +169,37 @@ export class ProxyInteractionService {
             });
         }
 
+        if (checkType('text', meta)) {
+            const { params, result: text } = meta;
+            this.initElement(params, text.getContainer());
+        }
+
         return meta.result;
     }
 
     private initElement<T extends ProxyElementType, TElem extends HTMLElement>(
-        params: InteractParams<T>,
+        params: ElemParams<T>,
         element: TElem
     ) {
-        const { focusable, onclick, onchange, onfocus, onblur, tabIndex, id, parent } = params;
-
+        const { id, parent } = params;
         element.id = id;
         element.style.pointerEvents = 'none';
         element.style.opacity = this.debugShowDOMProxies ? '0.25' : '0';
         element.style.position = 'absolute';
         element.style.overflow = 'hidden';
+        parent.appendChild(element);
+    }
+
+    private initInteract<T extends ProxyElementType, TElem extends HTMLElement>(
+        params: InteractParams<T>,
+        element: TElem
+    ) {
+        const { focusable, onclick, onchange, onfocus, onblur, tabIndex } = params;
+        this.initElement(params, element);
+
         if (tabIndex !== undefined) {
             element.tabIndex = tabIndex;
         }
-
-        parent.appendChild(element);
 
         element.addEventListener('focus', (_event: FocusEvent): any => {
             this.focusable = focusable;

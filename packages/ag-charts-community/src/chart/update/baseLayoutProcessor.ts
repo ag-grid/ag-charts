@@ -7,14 +7,17 @@ import { Caption } from '../caption';
 import type { DOMManager } from '../dom/domManager';
 import type { LayoutCompleteEvent, LayoutService } from '../layout/layoutService';
 import type { ChartLike, UpdateProcessor } from './processor';
+import type { ProxyInteractionService } from '../dom/proxyInteractionService';
 
 export class BaseLayoutProcessor implements UpdateProcessor {
     private readonly destroyFns: (() => void)[] = [];
 
+    private readonly proxyTextContainer: HTMLDivElement;
     constructor(
         private readonly chartLike: ChartLike,
         private readonly layoutService: LayoutService,
-        private readonly domManager: DOMManager
+        private readonly proxyInteractionService: ProxyInteractionService,
+        readonly domManager: DOMManager
     ) {
         this.destroyFns.push(
             // eslint-disable-next-line sonarjs/no-duplicate-string
@@ -22,6 +25,10 @@ export class BaseLayoutProcessor implements UpdateProcessor {
             this.layoutService.addListener('layout-complete', (e) => this.alignCaptions(e)),
             this.layoutService.addListener('start-layout', (e) => this.positionCaptions(e))
         );
+        // TODO tidy up
+        const tmp = domManager.addChild('canvas-proxy', 'tmp');
+        this.proxyTextContainer = tmp.parentNode as HTMLDivElement;
+        tmp.remove();
     }
 
     destroy() {
@@ -138,6 +145,6 @@ export class BaseLayoutProcessor implements UpdateProcessor {
             }
         }
 
-        [title, subtitle, footnote].forEach((c) => c.updateA11yParagraph(this.domManager));
+        [title, subtitle, footnote].forEach((c) => c.updateA11yText(this.proxyInteractionService, this.proxyTextContainer));
     }
 }
