@@ -63,7 +63,7 @@ export class TextMeasurer {
         }
         fontString += `${fontSize}px`;
         if (lineHeight) {
-            fontString += `/${lineHeight}`;
+            fontString += `/${lineHeight}px`;
         }
         fontString += ` ${fontFamily}`;
         return fontString.trim();

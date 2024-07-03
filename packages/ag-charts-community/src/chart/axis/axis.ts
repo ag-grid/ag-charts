@@ -26,7 +26,7 @@ import { Matrix } from '../../scene/matrix';
 import type { Node } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
-import { Text, type TextSizeProperties, getFont } from '../../scene/shape/text';
+import { Text, type TextSizeProperties } from '../../scene/shape/text';
 import type { PlacedLabelDatum } from '../../scene/util/labelPlacement';
 import { axisLabelsOverlap } from '../../scene/util/labelPlacement';
 import { normalizeAngle360, toRadians } from '../../util/angle';
@@ -807,7 +807,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         let textAlign = getTextAlign(parallel, configuredRotation, 0, sideFlag, regularFlipFlag);
         const textBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);
-        const font = getFont({ fontFamily, fontSize, fontStyle, fontWeight });
+        const font = TextMeasurer.toFontString({ fontFamily, fontSize, fontStyle, fontWeight });
 
         const textProps: TextSizeProperties = {
             fontFamily,

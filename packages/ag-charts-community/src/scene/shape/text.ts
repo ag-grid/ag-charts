@@ -57,17 +57,6 @@ export class Text extends Shape {
     @SceneChangeDetection({ redraw: RedrawType.MAJOR, changeCb: (o: Text) => o.onTextChange() })
     text?: string = undefined;
 
-    private _dirtyFont: boolean = true;
-    private _font?: string;
-    get font(): string {
-        if (this._font == null || this._dirtyFont) {
-            this._dirtyFont = false;
-            this._font = getFont(this);
-        }
-
-        return this._font;
-    }
-
     @SceneFontChangeDetection()
     fontStyle?: FontStyle;
 
@@ -93,7 +82,7 @@ export class Text extends Shape {
     override computeBBox(): BBox {
         const { x, y, lines, textBaseline, textAlign } = this;
         const { offsetTop, offsetLeft, width, height } = TextMeasurer.measureLines(lines, {
-            font: getFont(this),
+            font: this,
             textBaseline,
             textAlign,
         });
@@ -130,7 +119,7 @@ export class Text extends Shape {
         const { fill, stroke, strokeWidth } = this;
         const { pixelRatio } = this.layerManager.canvas;
 
-        ctx.font = this.font;
+        ctx.font = TextMeasurer.toFontString(this);
         ctx.textAlign = this.textAlign;
         ctx.textBaseline = this.textBaseline;
 
@@ -202,7 +191,7 @@ export class Text extends Shape {
         const result = TextWrapper.wrapLines(text, {
             maxWidth,
             maxHeight,
-            font: getFont(textProps),
+            font: textProps,
             textAlign: textProps.textAlign,
             textBaseline: textProps.textBaseline,
             textWrap: wrapping,
@@ -291,9 +280,4 @@ export class Text extends Shape {
         const r = TextMeasurer.measureLines(lines, { font, textBaseline, textAlign });
         return { top: r.offsetTop, left: r.offsetLeft, width: r.width, height: r.height };
     }
-}
-
-export function getFont(fontProps: TextSizeProperties): string {
-    const { fontFamily, fontSize, fontStyle, fontWeight } = fontProps;
-    return [fontStyle ?? '', fontWeight ?? '', fontSize + 'px', fontFamily].join(' ').trim();
 }

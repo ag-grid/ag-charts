@@ -19,7 +19,7 @@ import { RedrawType } from '../scene/node';
 import type { Scene } from '../scene/scene';
 import { Selection } from '../scene/selection';
 import { Line } from '../scene/shape/line';
-import { Text, getFont } from '../scene/shape/text';
+import { Text } from '../scene/shape/text';
 import { setElementBBox } from '../util/dom';
 import { createId } from '../util/id';
 import { initToolbarKeyNav } from '../util/keynavUtil';
@@ -27,6 +27,7 @@ import { Logger } from '../util/logger';
 import { clamp } from '../util/number';
 import { BaseProperties } from '../util/properties';
 import { ObserveChanges } from '../util/proxy';
+import { TextMeasurer } from '../util/textMeasurer';
 import {
     BOOLEAN,
     COLOR_STRING,
@@ -444,7 +445,7 @@ export class Legend extends BaseProperties {
         // Update properties that affect the size of the legend items and measure them.
         const bboxes: BBox[] = [];
 
-        const font = getFont(label);
+        const font = TextMeasurer.toFontString(label);
 
         const itemMaxWidthPercentage = 0.8;
         const maxItemWidth = maxWidth ?? width * itemMaxWidthPercentage;
