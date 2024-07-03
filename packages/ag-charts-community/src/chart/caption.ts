@@ -22,10 +22,10 @@ import {
     Validate,
 } from '../util/validation';
 import type { CaptionLike } from './captionLike';
-import type { PointerInteractionEvent } from './interaction/interactionManager';
-import { toTooltipHtml } from './tooltip/tooltip';
 import type { BoundedText } from './dom/boundedText';
 import type { ProxyInteractionService } from './dom/proxyInteractionService';
+import type { PointerInteractionEvent } from './interaction/interactionManager';
+import { toTooltipHtml } from './tooltip/tooltip';
 
 export class Caption extends BaseProperties implements CaptionLike {
     static readonly SMALL_PADDING = 10;
@@ -117,8 +117,8 @@ export class Caption extends BaseProperties implements CaptionLike {
         if (this.enabled && this.text) {
             const bbox = this.node.computeTransformedBBox();
             if (bbox) {
-                const { id } =this;
-                this.proxyText ??= proxyService.createProxyElement({type: 'text', id ,parent});
+                const { id } = this;
+                this.proxyText ??= proxyService.createProxyElement({ type: 'text', id, parent });
                 this.proxyText.textContent = this.text;
                 this.proxyText.updateBounds(bbox);
             }

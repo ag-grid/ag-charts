@@ -38,7 +38,9 @@ export class BoundedText {
         this.boundedContainer.remove();
     }
 
-    getContainer(): HTMLDivElement{return this.boundedContainer};
+    getContainer(): HTMLDivElement {
+        return this.boundedContainer;
+    }
 
     updateBounds(bounds: BBoxValues) {
         setElementBBox(this.boundedContainer, bounds);

@@ -5,9 +5,9 @@ import { Text } from '../../scene/shape/text';
 import { Logger } from '../../util/logger';
 import { Caption } from '../caption';
 import type { DOMManager } from '../dom/domManager';
+import type { ProxyInteractionService } from '../dom/proxyInteractionService';
 import type { LayoutCompleteEvent, LayoutService } from '../layout/layoutService';
 import type { ChartLike, UpdateProcessor } from './processor';
-import type { ProxyInteractionService } from '../dom/proxyInteractionService';
 
 export class BaseLayoutProcessor implements UpdateProcessor {
     private readonly destroyFns: (() => void)[] = [];
@@ -145,6 +145,8 @@ export class BaseLayoutProcessor implements UpdateProcessor {
             }
         }
 
-        [title, subtitle, footnote].forEach((c) => c.updateA11yText(this.proxyInteractionService, this.proxyTextContainer));
+        [title, subtitle, footnote].forEach((c) =>
+            c.updateA11yText(this.proxyInteractionService, this.proxyTextContainer)
+        );
     }
 }

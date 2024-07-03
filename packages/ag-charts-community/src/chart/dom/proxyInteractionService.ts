@@ -177,10 +177,7 @@ export class ProxyInteractionService {
         return meta.result;
     }
 
-    private initElement<T extends ProxyElementType, TElem extends HTMLElement>(
-        params: ElemParams<T>,
-        element: TElem
-    ) {
+    private initElement<T extends ProxyElementType, TElem extends HTMLElement>(params: ElemParams<T>, element: TElem) {
         const { id, parent } = params;
         element.id = id;
         element.style.pointerEvents = 'none';
