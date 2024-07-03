@@ -163,7 +163,7 @@ export function formatStackedLabels<Meta>(
         fontWeight: secondaryLabelProps.fontWeight,
     };
 
-    // The font size candidates will repeat some font sizes, so cache the results so we don't do extra text measuring
+    // The font size candidates will repeat some font sizes, so cache the results, so we don't do extra text measuring
     let label: LabelFormatting | undefined;
     let secondaryLabel: LabelFormatting | undefined;
 
@@ -232,9 +232,6 @@ export function formatSingleLabel<Meta>(
     const sizeAdjust = 2 * padding;
     const minimumFontSize = Math.min(props.minimumFontSize ?? props.fontSize, props.fontSize);
 
-    const textNode = new Text();
-    textNode.setFont(props);
-
     const textSizeProps = {
         fontFamily: props.fontFamily,
         fontSize: props.fontSize,
@@ -263,23 +260,19 @@ export function formatSingleLabel<Meta>(
 
         if (lines == null) return;
 
-        textNode.fontSize = fontSize;
-        textNode.lineHeight = lineHeight;
-        textNode.text = lines.join('\n');
-
         let height = lineHeight * lines.length;
         while (height > availableHeight) {
             if (lines.length === 1) return;
             lines.pop();
             lines[lines.length - 1] += TextMeasurer.EllipsisChar;
-            textNode.text = lines.join('\n');
             height = lineHeight * lines.length;
         }
 
-        const { width } = textNode.computeBBox();
+        const { width } = TextMeasurer.measureLines(lines, { font: textSizeProps });
+
         if (width > availableWidth) return;
 
-        return [{ text: textNode.text, fontSize, lineHeight, width, height }, sizeFitting.meta];
+        return [{ text: lines.join('\n'), fontSize, lineHeight, width, height }, sizeFitting.meta];
     });
 }
 

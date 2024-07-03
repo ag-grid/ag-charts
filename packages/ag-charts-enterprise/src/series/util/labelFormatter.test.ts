@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import {
     formatLabels,
@@ -9,15 +9,11 @@ import {
 
 const { TextMeasurer } = _ModuleSupport;
 
+type SpyInstance<T extends (...args: any) => any> = jest.SpyInstance<ReturnType<T>, Parameters<T>>;
+
 describe('label formatter', () => {
-    let wrapLines: jest.SpyInstance<
-        ReturnType<typeof TextMeasurer.wrapLines>,
-        Parameters<typeof TextMeasurer.wrapLines>
-    > = undefined!;
-    let measureLines: jest.SpyInstance<
-        ReturnType<typeof TextMeasurer.measureLines>,
-        Parameters<typeof TextMeasurer.measureLines>
-    > = undefined!;
+    let wrapLines: SpyInstance<typeof TextMeasurer.wrapLines> = undefined!;
+    let measureLines: SpyInstance<typeof TextMeasurer.measureLines> = undefined!;
 
     beforeEach(() => {
         wrapLines = jest.spyOn(TextMeasurer, 'wrapLines');
@@ -87,9 +83,7 @@ describe('label formatter', () => {
     describe('formatSingleLabel', () => {
         it('formats a label without shrinking within large bounds', () => {
             wrapLines.mockImplementation((text) => [text]);
-            measureLines.mockImplementation(function (this: _Scene.Text) {
-                return { width: this.fontSize, height: this.fontSize } as any;
-            });
+            measureLines.mockImplementation((_: any, { font }: any) => ({ width: font.fontSize }) as any);
 
             const [format] = formatSingleLabel(
                 'Hello',
@@ -101,7 +95,7 @@ describe('label formatter', () => {
                     overflowStrategy: 'hide',
                 },
                 { padding: 10 },
-                () => ({ width: 1000, height: 1000, meta: undefined })
+                () => ({ width: 1000, height: 1000 }) as any
             )!;
             expect(format).toEqual({
                 text: 'Hello',
@@ -114,9 +108,7 @@ describe('label formatter', () => {
 
         it('shrinks a label to fit within smaller bounds', () => {
             wrapLines.mockImplementation((text) => [text]);
-            measureLines.mockImplementation(function (this: _Scene.Text) {
-                return { width: this.fontSize, height: this.fontSize } as any;
-            });
+            measureLines.mockImplementation((_: any, { font }: any) => ({ width: font.fontSize }) as any);
 
             const [format] = formatSingleLabel(
                 'Hello',
@@ -128,7 +120,7 @@ describe('label formatter', () => {
                     overflowStrategy: 'hide',
                 },
                 { padding: 10 },
-                () => ({ width: 35, height: 35, meta: undefined })
+                () => ({ width: 35, height: 35 }) as any
             )!;
             expect(format).toEqual({
                 text: 'Hello',
@@ -141,9 +133,7 @@ describe('label formatter', () => {
 
         it('ignores minimumFontSizes greater than fontSize', () => {
             wrapLines.mockImplementation((text) => [text]);
-            measureLines.mockImplementation(function (this: _Scene.Text) {
-                return { width: this.fontSize, height: this.fontSize } as any;
-            });
+            measureLines.mockImplementation((_: any, { font }: any) => ({ width: font.fontSize }) as any);
 
             const [format] = formatSingleLabel(
                 'Hello',
@@ -155,7 +145,7 @@ describe('label formatter', () => {
                     overflowStrategy: 'hide',
                 },
                 { padding: 10 },
-                () => ({ width: 1000, height: 1000, meta: undefined })
+                () => ({ width: 1000, height: 1000 }) as any
             )!;
             expect(format).toEqual({
                 text: 'Hello',
@@ -170,9 +160,7 @@ describe('label formatter', () => {
     describe('formatStackedLabels', () => {
         it('formats stacked labels without shrinking within large bounds', () => {
             wrapLines.mockImplementation((text) => [text]);
-            measureLines.mockImplementation(function (this: _Scene.Text) {
-                return { width: this.fontSize, height: this.fontSize } as any;
-            });
+            measureLines.mockImplementation((_: any, { font }: any) => ({ width: font.fontSize }) as any);
 
             const format = formatStackedLabels(
                 'Hello',
@@ -193,11 +181,12 @@ describe('label formatter', () => {
                     overflowStrategy: 'hide',
                 },
                 { padding: 10 },
-                () => ({ width: 1000, height: 1000, meta: undefined })
+                () => ({ width: 1000, height: 1000 }) as any
             );
             expect(format).toEqual({
                 width: 20,
                 height: 45,
+                meta: undefined,
                 label: {
                     text: 'Hello',
                     fontSize: 20,
@@ -217,9 +206,7 @@ describe('label formatter', () => {
 
         it('shrinks stacked labels to fit within smaller bounds', () => {
             wrapLines.mockImplementation((text) => [text]);
-            measureLines.mockImplementation(function (this: _Scene.Text) {
-                return { width: this.fontSize, height: this.fontSize } as any;
-            });
+            measureLines.mockImplementation((_: any, { font }: any) => ({ width: font.fontSize }) as any);
 
             const height = 50;
             const padding = 10;
@@ -244,7 +231,7 @@ describe('label formatter', () => {
                     overflowStrategy: 'hide',
                 },
                 { padding },
-                () => ({ width: 50, height, meta: undefined })
+                () => ({ width: 50, height }) as any
             );
             expect(format).toEqual({
                 width: 12,
@@ -269,9 +256,7 @@ describe('label formatter', () => {
 
         it('ignores minimumFontSizes greater than fontSize', () => {
             wrapLines.mockImplementation((text) => [text]);
-            measureLines.mockImplementation(function (this: _Scene.Text) {
-                return { width: this.fontSize, height: this.fontSize } as any;
-            });
+            measureLines.mockImplementation((_: any, { font }: any) => ({ width: font.fontSize }) as any);
 
             const format = formatStackedLabels(
                 'Hello',
@@ -292,7 +277,7 @@ describe('label formatter', () => {
                     overflowStrategy: 'hide',
                 },
                 { padding: 10 },
-                () => ({ width: 1000, height: 1000, meta: undefined })
+                () => ({ width: 1000, height: 1000 }) as any
             );
             expect(format).toEqual({
                 width: 20,
@@ -318,9 +303,7 @@ describe('label formatter', () => {
     describe('formatLabels', () => {
         it('formats the secondaryLabel on its own if and only if the primary label is not present', () => {
             wrapLines.mockImplementation((text) => [text]);
-            measureLines.mockImplementation(function (this: _Scene.Text) {
-                return { width: 1, height: 1 } as any;
-            });
+            measureLines.mockImplementation(() => ({ width: 1 }) as any);
 
             const output = formatLabels(
                 undefined,
@@ -341,7 +324,7 @@ describe('label formatter', () => {
                     overflowStrategy: 'hide',
                 },
                 { padding: 10 },
-                () => ({ width: Infinity, height: Infinity, meta: undefined })
+                () => ({ width: Infinity, height: Infinity }) as any
             );
 
             expect(output!.label).toBe(undefined);
