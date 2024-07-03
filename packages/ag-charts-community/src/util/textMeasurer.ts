@@ -78,6 +78,10 @@ export class TextMeasurer {
         return fontString.trim();
     }
 
+    static getLineHeight(fontSize: number) {
+        return Math.ceil(fontSize * TextMeasurer.defaultLineHeight);
+    }
+
     // Creates or retrieves a TextMeasurer instance for a specific font.
     private static createFontMeasurer(font: string) {
         const ctx = createCanvasContext();

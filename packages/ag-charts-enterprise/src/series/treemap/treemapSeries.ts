@@ -9,10 +9,10 @@ import {
     _Util,
 } from 'ag-charts-community';
 
-import { AutoSizedLabel } from '../util/autoSizedLabel';
 import { formatLabels } from '../util/labelFormatter';
 import { TreemapSeriesProperties } from './treemapSeriesProperties';
 
+const { TextMeasurer } = _ModuleSupport;
 const { Rect, Group, BBox, Selection, Text } = _Scene;
 const { Color, Logger, clamp, isEqual, sanitizeHtml } = _Util;
 
@@ -630,7 +630,7 @@ export class TreemapSeries<
                     label: {
                         text,
                         fontSize: group.label.fontSize,
-                        lineHeight: AutoSizedLabel.lineHeight(group.label.fontSize),
+                        lineHeight: TextMeasurer.getLineHeight(group.label.fontSize),
                         style: this.properties.group.label,
                         x: bbox.x + padding + innerWidth * textAlignFactor,
                         y: bbox.y + padding + groupTitleHeight * 0.5,

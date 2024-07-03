@@ -7,7 +7,6 @@ import { findFocusedGeoGeometry } from '../map-util/mapUtil';
 import { polygonMarkerCenter } from '../map-util/markerUtil';
 import { maxWidthInPolygonForRectOfHeight, preferredLabelCenter } from '../map-util/polygonLabelUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
-import { AutoSizedLabel } from '../util/autoSizedLabel';
 import { formatSingleLabel } from '../util/labelFormatter';
 import {
     type MapShapeNodeDatum,
@@ -15,7 +14,8 @@ import {
     MapShapeSeriesProperties,
 } from './mapShapeSeriesProperties';
 
-const { getMissCount, createDatumId, DataModelSeries, SeriesNodePickMode, valueProperty, Validate } = _ModuleSupport;
+const { getMissCount, createDatumId, DataModelSeries, SeriesNodePickMode, valueProperty, TextMeasurer, Validate } =
+    _ModuleSupport;
 const { ColorScale } = _Scale;
 const { Group, Selection, Text, PointerEvents } = _Scene;
 const { sanitizeHtml, Logger } = _Util;
@@ -224,7 +224,7 @@ export class MapShapeSeries
         const baseSize = Text.getTextSize(String(labelText), font);
         const numLines = labelText.split('\n').length;
         const aspectRatio =
-            (baseSize.width + 2 * padding) / (numLines * AutoSizedLabel.lineHeight(label.fontSize) + 2 * padding);
+            (baseSize.width + 2 * padding) / (numLines * TextMeasurer.getLineHeight(label.fontSize) + 2 * padding);
 
         if (
             previousLabelLayout?.geometry === geometry &&

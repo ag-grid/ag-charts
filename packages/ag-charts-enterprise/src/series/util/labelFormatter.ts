@@ -3,10 +3,13 @@ import type {
     AgChartAutoSizedBaseLabelOptions,
     AgChartAutoSizedLabelOptions,
     AgChartAutoSizedSecondaryLabelOptions,
+    FontFamily,
     FontSize,
+    FontStyle,
+    FontWeight,
+    OverflowStrategy,
+    TextWrap,
 } from 'ag-charts-types';
-
-import { AutoSizeableSecondaryLabel, AutoSizedLabel } from './autoSizedLabel';
 
 const { TextMeasurer, findMaxValue } = _ModuleSupport;
 const { Logger } = _Util;
@@ -22,6 +25,14 @@ interface AutoSizedLabelOptions extends AgChartAutoSizedLabelOptions<unknown, an
 
 interface AutoSizedSecondaryLabelOptions extends AgChartAutoSizedSecondaryLabelOptions<unknown, any> {
     fontSize: FontSize;
+}
+
+interface TextProperties {
+    fontSize: FontSize;
+    fontStyle?: FontStyle;
+    fontWeight?: FontWeight;
+    fontFamily?: FontFamily;
+    lineHeight?: number;
 }
 
 type FontSizeCandidate = {
@@ -127,9 +138,8 @@ export function formatStackedLabels<Meta>(
     const minimumHeight =
         (labelProps.minimumFontSize ?? labelProps.fontSize) +
         (secondaryLabelProps.minimumFontSize ?? secondaryLabelProps.fontSize);
-    if (minimumHeight > sizeFittingHeight(minimumHeight + heightAdjust, false).height - heightAdjust) {
-        return;
-    }
+
+    if (minimumHeight > sizeFittingHeight(minimumHeight + heightAdjust, false).height - heightAdjust) return;
 
     const fontSizeCandidates = generateLabelSecondaryLabelFontSizeCandidates(labelProps, secondaryLabelProps);
 
@@ -160,8 +170,8 @@ export function formatStackedLabels<Meta>(
     return findMaxValue<StackedLabelFormatting<Meta>>(0, fontSizeCandidates.length - 1, (index) => {
         const { labelFontSize, secondaryLabelFontSize } = fontSizeCandidates[index];
         const allowTruncation = index === 0;
-        const labelLineHeight = AutoSizedLabel.lineHeight(labelFontSize);
-        const secondaryLabelLineHeight = AutoSizeableSecondaryLabel.lineHeight(secondaryLabelFontSize);
+        const labelLineHeight = TextMeasurer.getLineHeight(labelFontSize);
+        const secondaryLabelLineHeight = TextMeasurer.getLineHeight(secondaryLabelFontSize);
         const sizeFitting = sizeFittingHeight(
             labelLineHeight + secondaryLabelLineHeight + heightAdjust,
             allowTruncation
@@ -169,13 +179,11 @@ export function formatStackedLabels<Meta>(
         const availableWidth = sizeFitting.width - widthAdjust;
         const availableHeight = sizeFitting.height - heightAdjust;
 
-        if (labelLineHeight + secondaryLabelLineHeight > availableHeight) {
-            return;
-        }
+        if (labelLineHeight + secondaryLabelLineHeight > availableHeight) return;
 
         if (label == null || label.fontSize !== labelFontSize) {
             labelTextSizeProps.fontSize = labelFontSize;
-            const labelLines = Text.wrapLines(
+            label = wrapLabel(
                 labelValue,
                 availableWidth,
                 availableHeight,
@@ -183,35 +191,13 @@ export function formatStackedLabels<Meta>(
                 labelProps.wrapping ?? 'on-space',
                 allowTruncation ? labelProps.overflowStrategy ?? 'ellipsis' : 'hide'
             );
-
-            if (labelLines == null) {
-                label = undefined;
-            } else {
-                const labelText = labelLines.join('\n');
-
-                labelTextNode.text = labelText;
-                labelTextNode.fontSize = labelFontSize;
-                labelTextNode.lineHeight = labelFontSize;
-                const labelWidth = labelTextNode.computeBBox().width;
-                const labelHeight = labelLines.length * labelLineHeight;
-
-                label = {
-                    text: labelText,
-                    fontSize: labelFontSize,
-                    lineHeight: labelLineHeight,
-                    width: labelWidth,
-                    height: labelHeight,
-                };
-            }
         }
 
-        if (label == null || label.width > availableWidth || label.height > availableHeight) {
-            return;
-        }
+        if (label == null || label.width > availableWidth || label.height > availableHeight) return;
 
         if (secondaryLabel == null || secondaryLabel.fontSize !== secondaryLabelFontSize) {
             secondaryLabelTextSizeProps.fontSize = secondaryLabelFontSize;
-            const secondaryLabelLines = Text.wrapLines(
+            secondaryLabel = wrapLabel(
                 secondaryLabelValue,
                 availableWidth,
                 availableHeight,
@@ -219,37 +205,13 @@ export function formatStackedLabels<Meta>(
                 secondaryLabelProps.wrapping ?? 'on-space',
                 allowTruncation ? secondaryLabelProps.overflowStrategy ?? 'ellipsis' : 'hide'
             );
-
-            if (secondaryLabelLines == null) {
-                secondaryLabel = undefined;
-            } else {
-                const secondaryLabelText = secondaryLabelLines.join('\n');
-
-                secondaryLabelTextNode.text = secondaryLabelText;
-                secondaryLabelTextNode.fontSize = secondaryLabelFontSize;
-                secondaryLabelTextNode.lineHeight = secondaryLabelLineHeight;
-                const secondaryLabelWidth = secondaryLabelTextNode.computeBBox().width;
-                const secondaryLabelHeight = secondaryLabelLines.length * secondaryLabelLineHeight;
-
-                secondaryLabel = {
-                    text: secondaryLabelText,
-                    fontSize: secondaryLabelFontSize,
-                    lineHeight: secondaryLabelLineHeight,
-                    width: secondaryLabelWidth,
-                    height: secondaryLabelHeight,
-                };
-            }
         }
 
-        if (secondaryLabel == null) {
-            return;
-        }
+        if (secondaryLabel == null) return;
 
         const totalLabelHeight = label.height + secondaryLabel.height;
 
-        if (secondaryLabel.width > availableWidth || totalLabelHeight > availableHeight) {
-            return;
-        }
+        if (secondaryLabel.width > availableWidth || totalLabelHeight > availableHeight) return;
 
         return {
             width: Math.max(label.width, secondaryLabel.width),
@@ -261,12 +223,12 @@ export function formatStackedLabels<Meta>(
     });
 }
 
-export const formatSingleLabel = <Meta>(
+export function formatSingleLabel<Meta>(
     value: string,
     props: AutoSizedBaseLabelOptions,
     { padding }: LayoutParams,
     sizeFittingHeight: SizeFittingHeightFn<Meta>
-): [LabelFormatting, Meta] | undefined => {
+): [LabelFormatting, Meta] | undefined {
     const sizeAdjust = 2 * padding;
     const minimumFontSize = Math.min(props.minimumFontSize ?? props.fontSize, props.fontSize);
 
@@ -281,7 +243,7 @@ export const formatSingleLabel = <Meta>(
     };
 
     return findMaxValue<[LabelFormatting, Meta]>(minimumFontSize, props.fontSize, (fontSize) => {
-        const lineHeight = AutoSizedLabel.lineHeight(fontSize);
+        const lineHeight = TextMeasurer.getLineHeight(fontSize);
         const allowTruncation = fontSize === minimumFontSize;
         const sizeFitting = sizeFittingHeight(lineHeight + sizeAdjust, allowTruncation);
         const availableWidth = sizeFitting.width - sizeAdjust;
@@ -319,7 +281,7 @@ export const formatSingleLabel = <Meta>(
 
         return [{ text: textNode.text, fontSize, lineHeight, width, height }, sizeFitting.meta];
     });
-};
+}
 
 function hasInvalidFontSize(label?: AutoSizedBaseLabelOptions) {
     return label?.minimumFontSize != null && label?.fontSize && label?.minimumFontSize > label?.fontSize;
@@ -390,4 +352,32 @@ export function formatLabels<Meta = never>(
     }
 
     return value;
+}
+
+function wrapLabel(
+    text: string,
+    maxWidth: number,
+    maxHeight: number,
+    textProps: TextProperties,
+    wrapping: TextWrap,
+    overflow: OverflowStrategy
+) {
+    const lines = Text.wrapLines(text, maxWidth, maxHeight, textProps, wrapping, overflow);
+
+    if (lines == null) return;
+
+    const lineHeight = TextMeasurer.getLineHeight(textProps.fontSize);
+    const { width } = TextMeasurer.measureLines(lines, {
+        font: textProps,
+        textAlign: 'start',
+        textBaseline: 'alphabetic',
+    });
+
+    return {
+        width,
+        lineHeight,
+        text: lines.join('\n'),
+        height: lines.length * lineHeight,
+        fontSize: textProps.fontSize,
+    };
 }
