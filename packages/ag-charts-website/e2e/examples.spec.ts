@@ -55,10 +55,7 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
     },
 
     annotations: {
-        'annotation-save-restore': {
-            skipCanvasUpdateCheck: true,
-            frameworks: ['vanilla', 'typescript', 'angular', 'reactFunctional', 'reactFunctionalTs'],
-        },
+        'annotation-save-restore': { skipCanvasUpdateCheck: true },
     },
     'axes-labels': {
         // Too complex to test with a naive button-click sweep
