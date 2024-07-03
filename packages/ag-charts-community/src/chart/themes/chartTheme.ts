@@ -253,13 +253,13 @@ export class ChartTheme {
         [POLAR_AXIS_TYPE.ANGLE_NUMBER]: ChartTheme.getAxisDefaults({ gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED } }),
         [POLAR_AXIS_TYPE.RADIUS_CATEGORY]: ChartTheme.getAxisDefaults({
             line: { enabled: false },
-            tick: { enabled: false },
         }),
         [POLAR_AXIS_TYPE.RADIUS_NUMBER]: ChartTheme.getAxisDefaults({
             line: { enabled: false },
-            tick: { enabled: false },
         }),
-        'grouped-category': ChartTheme.getAxisDefaults(),
+        'grouped-category': ChartTheme.getAxisDefaults({
+            tick: { enabled: true },
+        }),
     };
 
     constructor(options: AgChartTheme = {}) {
