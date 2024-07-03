@@ -22,6 +22,7 @@ export class BoundedText {
 
     constructor() {
         this.textElement = createElementNS('http://www.w3.org/2000/svg', 'text');
+        this.textElement.role = 'presentation';
 
         this.svgElement = createElementNS('http://www.w3.org/2000/svg', 'svg');
         this.svgElement.appendChild(this.textElement);
