@@ -1,5 +1,5 @@
 export const AG_CHARTS_LOCALE_NB_NO: Record<string, string> = {
-    ariaAnnounceChart: 'diagram, ${seriesCount}[number] serier, ${caption}',
+    ariaAnnounceChart: 'diagram, ${seriesCount}[number] serier',
     ariaAnnounceFlowProportionLink: 'lenke ${index} av ${count}, fra ${from} til ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'node ${index} av ${count}, ${description}',
     ariaAnnounceHidden: 'skjult',

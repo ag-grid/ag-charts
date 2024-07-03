@@ -1,5 +1,5 @@
 export const AG_CHARTS_LOCALE_SK_SK: Record<string, string> = {
-    ariaAnnounceChart: 'graf, ${seriesCount}[number] sérií, ${caption}',
+    ariaAnnounceChart: 'graf, ${seriesCount}[number] sérií',
     ariaAnnounceFlowProportionLink: 'odkaz ${index} z ${count}, od ${from} do ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'uzol ${index} z ${count}, ${description}',
     ariaAnnounceHidden: 'skryté',

@@ -1,5 +1,5 @@
 export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
-    ariaAnnounceChart: 'نمودار، ${seriesCount}[number] سری، ${caption}',
+    ariaAnnounceChart: 'نمودار، ${seriesCount}[number] سری،',
     ariaAnnounceFlowProportionLink: 'لینک ${index} از ${count}، از ${from} به ${to}، ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'گره ${index} از ${count}، ${description}',
     ariaAnnounceHidden: 'پنهان',

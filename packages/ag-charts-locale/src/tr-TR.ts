@@ -1,5 +1,5 @@
 export const AG_CHARTS_LOCALE_TR_TR: Record<string, string> = {
-    ariaAnnounceChart: 'grafik, ${seriesCount}[number] seri, ${caption}',
+    ariaAnnounceChart: 'grafik, ${seriesCount}[number] seri',
     ariaAnnounceFlowProportionLink: 'bağlantı ${index} / ${count}, ${from} - ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'düğüm ${index} / ${count}, ${description}',
     ariaAnnounceHidden: 'gizli',

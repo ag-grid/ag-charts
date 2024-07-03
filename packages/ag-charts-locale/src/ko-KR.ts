@@ -1,5 +1,5 @@
 export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
-    ariaAnnounceChart: '차트, ${seriesCount}[number] 시리즈, ${caption}',
+    ariaAnnounceChart: '차트, ${seriesCount}[number] 시리즈',
     ariaAnnounceFlowProportionLink: '링크 ${index} / ${count}, ${from}에서 ${to}로, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: '노드 ${index} / ${count}, ${description}',
     ariaAnnounceHidden: '숨김',

@@ -1,5 +1,5 @@
 export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
-    ariaAnnounceChart: 'kaavio, ${seriesCount}[number] sarjat, ${caption}',
+    ariaAnnounceChart: 'kaavio, ${seriesCount}[number] sarjat',
     ariaAnnounceFlowProportionLink: 'linkki ${index} / ${count}, lähtien ${from} päättyen ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'solmu ${index} ${count} näkyvissä, ${description}',
     ariaAnnounceHidden: 'piilotettu',

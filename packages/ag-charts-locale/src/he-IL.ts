@@ -1,5 +1,5 @@
 export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
-    ariaAnnounceChart: 'תרשים, ${seriesCount}[number] סדרות, ${caption}',
+    ariaAnnounceChart: 'תרשים, ${seriesCount}[number] סדרות',
     ariaAnnounceFlowProportionLink: 'קישור ${index} מתוך ${count}, מ-${from} ל-${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'צומת ${index} מתוך ${count}, ${description}',
     ariaAnnounceHidden: 'נסתר',

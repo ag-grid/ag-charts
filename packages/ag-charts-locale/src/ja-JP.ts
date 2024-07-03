@@ -1,5 +1,5 @@
 export const AG_CHARTS_LOCALE_JA_JP: Record<string, string> = {
-    ariaAnnounceChart: 'チャート、${seriesCount}[number] シリーズ、${caption}',
+    ariaAnnounceChart: 'チャート、${seriesCount}[number] シリーズ',
     ariaAnnounceFlowProportionLink: 'リンク ${index} / ${count}、${from} から ${to} へ、${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'ノード ${index} / ${count}、${description}',
     ariaAnnounceHidden: '非表示',

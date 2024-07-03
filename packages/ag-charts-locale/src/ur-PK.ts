@@ -1,5 +1,5 @@
 export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
-    ariaAnnounceChart: 'چارٹ، ${seriesCount}[number] سیریز، ${caption}',
+    ariaAnnounceChart: 'چارٹ، ${seriesCount}[number] سیریز،',
     ariaAnnounceFlowProportionLink: 'لنک ${index} کا ${count} میں سے، ${from} سے ${to} تک، ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'نوڈ ${index} کا ${count}، ${description}',
     ariaAnnounceHidden: 'چھپایا گیا',

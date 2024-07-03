@@ -1,5 +1,5 @@
 export const AG_CHARTS_LOCALE_ZH_TW: Record<string, string> = {
-    ariaAnnounceChart: '圖表，${seriesCount}[number] 系列，${caption}',
+    ariaAnnounceChart: '圖表，${seriesCount}[number] 系列',
     ariaAnnounceFlowProportionLink: '連結 ${index} / ${count}，從 ${from} 到 ${to}，${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: '節點 ${index} 之 ${count}, ${description}',
     ariaAnnounceHidden: '隱藏',

@@ -1,5 +1,5 @@
 export const AG_CHARTS_LOCALE_ES_ES: Record<string, string> = {
-    ariaAnnounceChart: 'gráfico, ${seriesCount}[number] series, ${caption}',
+    ariaAnnounceChart: 'gráfico, ${seriesCount}[number] series',
     ariaAnnounceFlowProportionLink: 'enlace ${index} de ${count}, de ${from} a ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'nodo ${index} de ${count}, ${description}',
     ariaAnnounceHidden: 'oculto',

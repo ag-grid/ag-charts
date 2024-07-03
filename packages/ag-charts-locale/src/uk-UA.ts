@@ -1,5 +1,5 @@
 export const AG_CHARTS_LOCALE_UK_UA: Record<string, string> = {
-    ariaAnnounceChart: 'діаграма, ${seriesCount}[number] серій, ${caption}',
+    ariaAnnounceChart: 'діаграма, ${seriesCount}[number] серій',
     ariaAnnounceFlowProportionLink: 'посилання ${index} з ${count}, від ${from} до ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'вузол ${index} з ${count}, ${description}',
     ariaAnnounceHidden: 'приховано',

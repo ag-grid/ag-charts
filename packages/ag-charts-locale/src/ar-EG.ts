@@ -1,5 +1,5 @@
 export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
-    ariaAnnounceChart: 'الرسم البياني، ${seriesCount}[number] سلسلة، ${caption}',
+    ariaAnnounceChart: 'الرسم البياني، ${seriesCount}[number] سلسلة،',
     ariaAnnounceFlowProportionLink: 'رابط ${index} من ${count}، من ${from} إلى ${to}، ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'العقدة ${index} من ${count}, ${description}',
     ariaAnnounceHidden: 'مخفي',

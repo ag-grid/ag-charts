@@ -1,5 +1,5 @@
 export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
-    ariaAnnounceChart: 'biểu đồ, ${seriesCount}[number] dãy, ${caption}',
+    ariaAnnounceChart: 'biểu đồ, ${seriesCount}[number] dãy',
     ariaAnnounceFlowProportionLink: 'liên kết ${index} của ${count}, từ ${from} đến ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'nút ${index} của ${count}, ${description}',
     ariaAnnounceHidden: 'ẩn',
