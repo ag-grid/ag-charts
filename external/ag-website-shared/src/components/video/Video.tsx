@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import styles from './Video.module.scss';
 
 interface Props {
-    videoSrc?: string;
+    videoSrc: string;
     darkModeVideoSrc?: string;
     autoplay?: boolean;
     showPlayPauseButtons?: boolean;
@@ -16,7 +16,7 @@ export const Video = ({ videoSrc, darkModeVideoSrc, autoplay = true, showPlayPau
     const [darkMode] = useDarkmode();
     const [src, setSrc] = useState<string>(videoSrc);
     const [isPlaying, setIsPlaying] = useState<Boolean>(autoplay);
-    const videoRef = useRef(null);
+    const videoRef = useRef<HTMLVideoElement>(null);
 
     useEffect(() => {
         if (darkModeVideoSrc && darkMode) {
@@ -29,10 +29,10 @@ export const Video = ({ videoSrc, darkModeVideoSrc, autoplay = true, showPlayPau
     const toggleVideo = () => {
         if (isPlaying) {
             setIsPlaying(false);
-            videoRef.current.pause();
+            videoRef.current?.pause();
         } else {
             setIsPlaying(true);
-            videoRef.current.play();
+            videoRef.current?.play();
         }
     };
 
