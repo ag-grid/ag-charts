@@ -189,13 +189,40 @@ async function touchBuildQueueEmptyFile() {
     }
 }
 
+const CONSEQUTIVE_RESPAWN_THRESHOLD_MS = 500;
 async function run() {
+    let lastRespawn;
+    let consequtiveRespawns = 0;
     while (true) {
+        lastRespawn = Date.now();
         success('Starting watch...');
-
         await spawnNxWatch(processWatchOutput);
+
+        if (Date.now() - lastRespawn < CONSEQUTIVE_RESPAWN_THRESHOLD_MS) {
+            consequtiveRespawns++;
+        } else {
+            consequtiveRespawns = 0;
+        }
+
+        if (consequtiveRespawns > 5) {
+            respawnError();
+            return;
+        }
+
         await waitMs(1_000);
     }
+}
+
+function respawnError() {
+    error(`Repeated respawn detected!
+        
+    The Nx Daemon maybe erroring, try restarting it to resolve with either:
+    - \`nx daemon --stop\`
+    - \`yarn\`
+
+    Or alternatively view its logs at:
+    - .nx/cache/d/daemon.log
+`);
 }
 
 function waitMs(timeMs) {
