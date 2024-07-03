@@ -1,5 +1,5 @@
 import { Logger } from './logger';
-import { mapValues } from './object';
+import { SKIP_JS_BUILTINS, mapValues } from './object';
 import { isProperties } from './properties';
 import { isArray, isDate, isFunction, isHtmlElement, isObject, isPlainObject, isRegExp } from './type-guards';
 import type { DeepPartial } from './types';
@@ -173,6 +173,8 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
     const targetAny = target as any;
     const targetType = classify(target);
     for (const property in source) {
+        if (SKIP_JS_BUILTINS.has(property)) continue;
+
         const propertyMatcherPath = `${matcherPath ? matcherPath + '.' : ''}${property}`;
         if (skip.includes(propertyMatcherPath)) continue;
 
