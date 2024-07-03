@@ -63,7 +63,11 @@ const getHiddenPages = async () => {
 };
 
 const getIgnoredPages = () => {
-    return [urlWithBaseUrl('/404'), addTrailingSlash(urlWithBaseUrl('/gallery/examples'))];
+    return [
+        urlWithBaseUrl('/404'),
+        addTrailingSlash(urlWithBaseUrl('/gallery/examples')),
+        addTrailingSlash(urlWithBaseUrl('/archive')),
+    ];
 };
 
 export async function getSitemapIgnorePaths() {
