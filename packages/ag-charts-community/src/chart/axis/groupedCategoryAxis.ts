@@ -198,7 +198,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
             line.x2 = datum.x2;
             line.y1 = datum.y;
             line.y2 = datum.y;
-            line.visible = datum.y >= range[0] - epsilon && datum.y <= range[1] + epsilon;
+            line.visible = this.tick.enabled && datum.y >= range[0] - epsilon && datum.y <= range[1] + epsilon;
             line.stroke = this.tick.stroke;
             line.fill = undefined;
             line.strokeWidth = 1;
@@ -239,7 +239,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
                 line.x2 = -sideFlag * gridLength;
                 line.y1 = y;
                 line.y2 = y;
-                line.visible = y >= range[0] && y <= range[1];
+                line.visible = gridLine.enabled && y >= range[0] && y <= range[1];
 
                 const { stroke, lineDash } = style[index % styleCount];
                 line.stroke = stroke;
@@ -519,13 +519,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
 
     override calculateLayout(): { bbox: BBox; primaryTickCount: number | undefined } {
         const { axisLineLayout, separatorLayout, tickLabelLayout, bbox } = this.computeLayout();
-
-        this.computedLayout = {
-            axisLineLayout,
-            separatorLayout,
-            tickLabelLayout,
-        };
-
+        this.computedLayout = { axisLineLayout, separatorLayout, tickLabelLayout };
         return { bbox, primaryTickCount: undefined };
     }
 }
