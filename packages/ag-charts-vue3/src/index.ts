@@ -39,7 +39,7 @@ export const AgFinancialCharts = /*#__PURE__*/ defineComponent({
             default: (): AgFinancialChartOptions => ({}),
         },
     },
-    data(): { chart: AgChartInstance<AgFinancialChartOptions> | undefined } {
+    setup(): { chart: AgChartInstance<AgFinancialChartOptions> | undefined } {
         return {
             chart: undefined,
         };
@@ -49,7 +49,7 @@ export const AgFinancialCharts = /*#__PURE__*/ defineComponent({
     },
     watch: {
         options(options) {
-            toRaw(this.chart)?.update({ ...options, container: this.$el });
+            this.chart?.update({ ...options, container: this.$el });
         },
     },
     mounted() {
