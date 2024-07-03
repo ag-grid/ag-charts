@@ -2,9 +2,13 @@ name: CI
 
 on:
     push:
-        branches: [latest, b9.3.0, b10.0.0]
+        branches:
+            - 'latest'
+            - 'b[0-9][0-9]?.[0-9][0-9]?.[0-9][0-9]?'
     pull_request:
-        branches: [latest, b9.3.0, b10.0.0]
+        branches:
+            - 'latest'
+            - 'b[0-9][0-9]?.[0-9][0-9]?.[0-9][0-9]?'
     workflow_dispatch:
         inputs:
             clean_checkout:
