@@ -52,6 +52,18 @@
     }
 }
 
+.headerVersion {
+    padding: $spacing-size-1 $spacing-size-2;
+    font-variant-numeric: tabular-nums;
+    border-radius: var(--radius-2xl);
+    background-color: var(--color-util-brand-50);
+    transition: background-color $transition-default-timing;
+
+    &:hover {
+        background-color: var(--color-util-brand-100);
+    }
+}
+
 .enterpriseLabel {
     display: inline-block;
     position: relative;
