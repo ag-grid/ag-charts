@@ -11,7 +11,7 @@ import type {
     TextWrap,
 } from 'ag-charts-types';
 
-const { TextMeasurer, findMaxValue } = _ModuleSupport;
+const { TextMeasurer, TextWrapper, findMaxValue } = _ModuleSupport;
 const { Logger } = _Util;
 const { Text } = _Scene;
 
@@ -249,16 +249,15 @@ export function formatSingleLabel<Meta>(
         if (lineHeight > availableHeight) return;
 
         textSizeProps.fontSize = fontSize;
-        const lines = Text.wrapLines(
-            value,
-            availableWidth,
-            availableHeight,
-            textSizeProps,
-            props.wrapping ?? 'on-space',
-            allowTruncation ? props.overflowStrategy ?? 'ellipsis' : 'hide'
-        );
+        const lines = TextWrapper.wrapLines(value, {
+            maxWidth: availableWidth,
+            maxHeight: availableHeight,
+            font: textSizeProps,
+            textWrap: props.wrapping,
+            overflow: allowTruncation ? props.overflowStrategy : 'hide',
+        });
 
-        if (lines == null) return;
+        if (!lines.length) return;
 
         let height = lineHeight * lines.length;
         while (height > availableHeight) {
@@ -351,17 +350,17 @@ function wrapLabel(
     text: string,
     maxWidth: number,
     maxHeight: number,
-    textProps: TextProperties,
-    wrapping: TextWrap,
+    font: TextProperties,
+    textWrap: TextWrap,
     overflow: OverflowStrategy
 ) {
-    const lines = Text.wrapLines(text, maxWidth, maxHeight, textProps, wrapping, overflow);
+    const lines = TextWrapper.wrapLines(text, { maxWidth, maxHeight, font, textWrap, overflow });
 
-    if (lines == null) return;
+    if (!lines.length) return;
 
-    const lineHeight = TextMeasurer.getLineHeight(textProps.fontSize);
+    const lineHeight = TextMeasurer.getLineHeight(font.fontSize);
     const { width } = TextMeasurer.measureLines(lines, {
-        font: textProps,
+        font,
         textAlign: 'start',
         textBaseline: 'alphabetic',
     });
@@ -371,6 +370,6 @@ function wrapLabel(
         lineHeight,
         text: lines.join('\n'),
         height: lines.length * lineHeight,
-        fontSize: textProps.fontSize,
+        fontSize: font.fontSize,
     };
 }

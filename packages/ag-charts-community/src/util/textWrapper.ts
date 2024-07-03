@@ -18,6 +18,14 @@ export class TextWrapper extends TextMeasurer {
     }
 
     static wrapLines(text: string, options: WrapOptions) {
+        const clippedResult = this.textWrap(text, options);
+        if (options.overflow === 'hide' && clippedResult.some((l) => l.endsWith(this.EllipsisChar))) {
+            return [];
+        }
+        return clippedResult;
+    }
+
+    private static textWrap(text: string, options: WrapOptions) {
         const lines: string[] = text.split(this.lineSplitter);
         const measurer = this.getFontMeasurer(options);
 
@@ -124,6 +132,9 @@ export class TextWrapper extends TextMeasurer {
             const { lineHeight } = lineMetrics[i];
             cumulativeHeight += lineHeight;
             if (cumulativeHeight > options.maxHeight) {
+                if (options.overflow === 'hide') {
+                    return [];
+                }
                 const clippedResults = lines.slice(0, i || 1);
                 const lastLine = clippedResults.pop()!;
                 return clippedResults.concat(this.truncateLine(lastLine, measurer, options.maxWidth, true));

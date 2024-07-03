@@ -175,28 +175,6 @@ export class Text extends Shape {
         }
     }
 
-    static wrapLines(
-        text: string,
-        maxWidth: number,
-        maxHeight: number,
-        textProps: TextSizeProperties,
-        wrapping: TextWrap,
-        overflow: OverflowStrategy
-    ): string[] | undefined {
-        const result = TextWrapper.wrapLines(text, {
-            maxWidth,
-            maxHeight,
-            font: textProps,
-            textAlign: textProps.textAlign,
-            textBaseline: textProps.textBaseline,
-            textWrap: wrapping,
-        });
-        if (overflow === 'hide' && result.some((l) => l.endsWith(TextMeasurer.EllipsisChar))) {
-            return;
-        }
-        return result;
-    }
-
     static wrap(
         text: string,
         maxWidth: number,
@@ -205,8 +183,15 @@ export class Text extends Shape {
         wrapping: TextWrap,
         overflow: OverflowStrategy = 'ellipsis'
     ): string {
-        const lines = Text.wrapLines(text, maxWidth, maxHeight, textProps, wrapping, overflow);
-        return lines?.join('\n').trim() ?? '';
+        return TextWrapper.wrapText(text, {
+            maxWidth,
+            maxHeight,
+            font: textProps,
+            textAlign: textProps.textAlign,
+            textBaseline: textProps.textBaseline,
+            textWrap: wrapping,
+            overflow,
+        });
     }
 
     setFont(props: TextSizeProperties) {
