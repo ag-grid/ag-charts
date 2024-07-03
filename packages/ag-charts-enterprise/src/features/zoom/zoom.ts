@@ -179,7 +179,13 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         const selectionRect = new ZoomRect();
         this.selector = new ZoomSelector(selectionRect);
-        this.contextMenu = new ZoomContextMenu(ctx.contextMenuRegistry, ctx.zoomManager, this.updateZoom.bind(this));
+        this.contextMenu = new ZoomContextMenu(
+            ctx.contextMenuRegistry,
+            ctx.zoomManager,
+            this.getModuleProperties.bind(this),
+            () => this.paddedRect,
+            this.updateZoom.bind(this)
+        );
         this.toolbar = new ZoomToolbar(
             ctx.toolbarManager,
             ctx.zoomManager,
@@ -230,7 +236,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         const zoom = this.getZoom();
         const props = this.getModuleProperties({ enabled });
-        this.contextMenu.registerActions(enabled, zoom, props);
+        this.contextMenu.registerActions(enabled, zoom);
         this.onZoomButtonsChange(enabled);
         this.toolbar.toggle(enabled, zoom, props);
     }
@@ -561,7 +567,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         this.seriesRect = rect;
         this.paddedRect = paddedRect;
-        this.contextMenu.rect = paddedRect;
         this.shouldFlipXY = shouldFlipXY;
 
         if (!axes) return;
@@ -617,7 +622,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         const zoom = this.getZoom();
         const props = this.getModuleProperties();
-        this.contextMenu.toggleActions(zoom, props);
+        this.contextMenu.toggleActions(zoom);
         this.toolbar.toggleButtons(zoom, props);
     }
 
