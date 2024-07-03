@@ -1,5 +1,5 @@
 export function getStockData() {
-    const data = [
+    return [
         {
             date: new Date('2022-03-01'),
             open: 140.039993,
@@ -4689,5 +4689,4 @@ export function getStockData() {
             volume: 15301900,
         },
     ];
-    return data;
 }
