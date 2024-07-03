@@ -15,6 +15,7 @@ export * from './util/proxy';
 export * from './util/search.util';
 export * from './util/timeFormatDefaults';
 export * from './util/textMeasurer';
+export * from './util/textWrapper';
 export * from './util/timeFormat';
 export * from './util/types';
 export * from './util/type-guards';

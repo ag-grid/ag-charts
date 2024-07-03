@@ -2,6 +2,7 @@ import type { FontFamily, FontSize, FontStyle, FontWeight, OverflowStrategy, Tex
 
 import { memoizeFunction } from '../../util/memo';
 import { TextMeasurer } from '../../util/textMeasurer';
+import { TextWrapper } from '../../util/textWrapper';
 import { BBox } from '../bbox';
 import type { RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
@@ -198,7 +199,7 @@ export class Text extends Shape {
         wrapping: TextWrap,
         overflow: OverflowStrategy
     ): string[] | undefined {
-        const result = TextMeasurer.wrapLines(text, {
+        const result = TextWrapper.wrapLines(text, {
             maxWidth,
             maxHeight,
             font: getFont(textProps),

@@ -7,16 +7,16 @@ import {
     generateLabelSecondaryLabelFontSizeCandidates,
 } from './labelFormatter';
 
-const { TextMeasurer } = _ModuleSupport;
+const { TextMeasurer, TextWrapper } = _ModuleSupport;
 
 type SpyInstance<T extends (...args: any) => any> = jest.SpyInstance<ReturnType<T>, Parameters<T>>;
 
 describe('label formatter', () => {
-    let wrapLines: SpyInstance<typeof TextMeasurer.wrapLines> = undefined!;
+    let wrapLines: SpyInstance<typeof TextWrapper.wrapLines> = undefined!;
     let measureLines: SpyInstance<typeof TextMeasurer.measureLines> = undefined!;
 
     beforeEach(() => {
-        wrapLines = jest.spyOn(TextMeasurer, 'wrapLines');
+        wrapLines = jest.spyOn(TextWrapper, 'wrapLines');
         measureLines = jest.spyOn(TextMeasurer, 'measureLines');
     });
 
