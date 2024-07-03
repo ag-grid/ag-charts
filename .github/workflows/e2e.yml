@@ -33,7 +33,7 @@ jobs:
         runs-on: ubuntu-latest
         name: initialisation
         outputs:
-            nx_base: ${{ steps.nx_config.outputs.base }}
+            nx_base: ${{ steps.setup.outputs.base }}
         steps:
             - id: status
               name: Update Status

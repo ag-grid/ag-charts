@@ -45,28 +45,6 @@ jobs:
             format: ${{ steps.format.outcome || '' }}
             test_count: ${{ steps.test_count.outputs.test_count }}
         steps:
-            - id: init_format
-              name: Update Status (format)
-              uses: LouisBrunner/checks-action@v2.0.0
-              with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  name: format
-                  status: queued
-            - id: init_lint
-              name: Update Status (lint)
-              uses: LouisBrunner/checks-action@v2.0.0
-              with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  name: lint
-                  status: queued
-            - id: init_build
-              name: Update Status (build)
-              uses: LouisBrunner/checks-action@v2.0.0
-              with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  name: build
-                  status: queued
-
             - name: Checkout
               id: checkout
               uses: actions/checkout@v4
@@ -90,13 +68,6 @@ jobs:
                   else
                     yarn nx format:check --base ${{ steps.setup.outputs.base }}
                   fi
-            - name: Update Status (format)
-              uses: LouisBrunner/checks-action@v2.0.0
-              if: always()
-              with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  check_id: ${{ steps.init_format.outputs.check_id }}
-                  conclusion: ${{ steps.format.outcome }}
 
             - name: nx lint
               id: lint
@@ -108,13 +79,6 @@ jobs:
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t lint --parallel=3 --exclude all
               env:
                   ESLINT_PLUGIN_DIFF_COMMIT: ${{ github.event.pull_request.base.ref }}
-            - name: Update Status (lint)
-              uses: LouisBrunner/checks-action@v2.0.0
-              if: always()
-              with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  check_id: ${{ steps.init_lint.outputs.check_id }}
-                  conclusion: ${{ steps.setup.outputs.type == 'pr' && steps.lint_diff.outcome || steps.lint.outcome }}
 
             - name: nx build
               id: build
@@ -132,14 +96,6 @@ jobs:
             - name: nx run-many -t validate-examples
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t validate-examples --parallel=3 --exclude all
-
-            - name: Update Status (build)
-              uses: LouisBrunner/checks-action@v2.0.0
-              if: always()
-              with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  check_id: ${{ steps.init_build.outputs.check_id }}
-                  conclusion: ${{ steps.build.outcome }}
 
             - name: Count test targets to run
               id: test_count
