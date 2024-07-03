@@ -186,27 +186,9 @@ export class Text extends Shape {
         this.textBaseline = props.textBaseline;
     }
 
-    private static readonly _measureText = memoizeFunction(
-        ({
-            text,
-            font,
-            textBaseline,
-            textAlign,
-        }: {
-            text: string;
-            font: string;
-            textBaseline: CanvasTextBaseline;
-            textAlign: CanvasTextAlign;
-        }) => TextMeasurer.measureText(text, { font, textBaseline, textAlign })
-    );
-
     private static readonly _getTextSize = memoizeFunction(({ text, font }: { text: string; font: string }) =>
         TextMeasurer.measureText(text, { font })
     );
-
-    static measureText(text: string, font: string, textBaseline: CanvasTextBaseline, textAlign: CanvasTextAlign) {
-        return this._measureText({ text, font, textBaseline, textAlign });
-    }
 
     /**
      * Returns the width and height of the measured text.

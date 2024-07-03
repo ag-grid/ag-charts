@@ -3,6 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 import type { TextWrap } from 'ag-charts-types';
 
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
+import { TextMeasurer } from '../../util/textMeasurer';
 import { TextWrapper } from '../../util/textWrapper';
 import type { LayersManager } from '../layersManager';
 import { Text } from './text';
@@ -388,8 +389,20 @@ describe('Text', () => {
 
     describe('text measurements', () => {
         it('should measure text currently', () => {
-            expect(Text.measureText('Hello world!', '24px serif', 'bottom', 'start')).toMatchSnapshot();
-            expect(Text.measureText('Hello world!', 'bold 48px serif', 'middle', 'center')).toMatchSnapshot();
+            expect(
+                TextMeasurer.measureText('Hello world!', {
+                    font: '24px serif',
+                    textBaseline: 'bottom',
+                    textAlign: 'start',
+                })
+            ).toMatchSnapshot();
+            expect(
+                TextMeasurer.measureText('Hello world!', {
+                    font: 'bold 48px serif',
+                    textBaseline: 'middle',
+                    textAlign: 'center',
+                })
+            ).toMatchSnapshot();
         });
 
         it('should measure text size currently', () => {
