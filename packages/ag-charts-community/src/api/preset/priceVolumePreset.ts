@@ -151,6 +151,7 @@ export function priceVolume(
         padding: {
             top: 6,
             right: 8,
+            left: 8,
         },
         axes: [
             {
@@ -196,7 +197,7 @@ export function priceVolume(
         tooltip: { enabled: false },
         data,
         // @ts-expect-error
-        titlePadding: 0,
+        titlePadding: 4,
         ...navigatorOpts,
         ...statusBarOpts,
         ...zoomOpts,
