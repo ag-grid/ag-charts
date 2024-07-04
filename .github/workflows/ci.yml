@@ -35,6 +35,7 @@ env:
     # Set to --batch to enable batch execution.
     NX_BATCH_FLAG: '--batch'
     BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+    E2E_OS: ubuntu
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
@@ -160,7 +161,7 @@ jobs:
                       packages/**/__diff_output__/*
 
     e2e_init:
-        runs-on: macos-latest
+        runs-on: ${{ github.env.E2E_OS }}-latest
         name: E2E Test Setup
         env:
             AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
@@ -176,7 +177,7 @@ jobs:
               id: setup
               uses: ./.github/actions/setup-nx
               with:
-                  os: macos
+                  os: ${{ github.env.E2E_OS }}
 
             - name: build examples
               run: |
@@ -197,7 +198,7 @@ jobs:
                       packages/*/dist/
 
     e2e:
-        runs-on: macos-latest
+        runs-on: ${{ github.env.E2E_OS }}-latest
         name: E2E Tests (${{ matrix.shard }}/${{ strategy.job-total }})
         needs: [e2e_init]
         strategy:
@@ -223,7 +224,7 @@ jobs:
               id: setup
               uses: ./.github/actions/setup-nx
               with:
-                  os: macos
+                  os: ${{ github.env.E2E_OS }}
                   yarn_opts: --ignore-scripts
                   yarn_postinstall: false
                   nx_restore: false # Restored in previous step.
