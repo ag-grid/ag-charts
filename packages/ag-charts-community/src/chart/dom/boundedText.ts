@@ -4,9 +4,9 @@ import { createElement, createElementNS, setElementBBox } from '../../util/dom';
 // This class represents text that is sized by bounds rather than font size.
 // Its main purpose to tell screenreaders about the bounds & content of text scene nodes.
 export class BoundedText {
-    private boundedContainer: HTMLDivElement;
-    private svgElement: SVGElement;
-    private textElement: SVGTextElement;
+    private readonly boundedContainer: HTMLDivElement;
+    private readonly svgElement: SVGElement;
+    private readonly textElement: SVGTextElement;
 
     set textContent(text: string | null) {
         this.textElement.textContent = text;
