@@ -3,7 +3,6 @@ import type { AgAxisCaptionFormatterParams } from 'ag-charts-types';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BandScale } from '../../scale/bandScale';
 import { BBox } from '../../scene/bbox';
-import { Matrix } from '../../scene/matrix';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
 import { Text } from '../../scene/shape/text';
@@ -488,26 +487,8 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
             axisLineLayout.push({ x, y1: range[0], y2: range[1], visible });
         }
 
-        const getTransformBox = (bbox: BBox) => {
-            const matrix = new Matrix();
-            const {
-                rotation: axisRotation,
-                translationX,
-                translationY,
-                rotationCenterX,
-                rotationCenterY,
-            } = this.getAxisTransform();
-            Matrix.updateTransformMatrix(matrix, 1, 1, axisRotation, translationX, translationY, {
-                scalingCenterX: 0,
-                scalingCenterY: 0,
-                rotationCenterX,
-                rotationCenterY,
-            });
-            return matrix.transformBBox(bbox);
-        };
-
         const bbox = BBox.merge([...labelBBoxes.values(), ...separatorBoxes, ...axisLineBoxes]);
-        const transformedBBox = getTransformBox(bbox);
+        const transformedBBox = this.getTransformBox(bbox);
 
         return {
             bbox: transformedBBox,

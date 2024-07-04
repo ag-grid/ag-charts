@@ -151,8 +151,4 @@ export abstract class PolarCrossLine implements _ModuleSupport.CrossLine {
 
         node.visible = true;
     }
-
-    calculateLayout(_visible: boolean): _Scene.BBox | undefined {
-        return;
-    }
 }
