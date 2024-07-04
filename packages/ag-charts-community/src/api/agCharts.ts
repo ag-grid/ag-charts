@@ -93,6 +93,9 @@ export abstract class AgCharts {
         this.licenseCheck(options);
         const chart = AgChartsInternal.createOrUpdate(options);
 
+        if (enterpriseModule.styles != null) {
+            chart.chart.ctx.domManager.addStyles('ag-charts-enterprise', enterpriseModule.styles);
+        }
         if (this.licenseManager?.isDisplayWatermark()) {
             enterpriseModule.injectWatermark?.(chart.chart.ctx.domManager, this.licenseManager.getWatermarkMessage());
         }

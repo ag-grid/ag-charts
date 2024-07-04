@@ -13,7 +13,6 @@ import type {
 import { ANNOTATION_BUTTONS, AnnotationType, stringToAnnotationType } from './annotationTypes';
 import { calculateAxisLabelPadding, invertCoords, validateDatumPoint } from './annotationUtils';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
-import axisButtonCss from './axisButton.css';
 import { HorizontalLineAnnotation, VerticalLineAnnotation } from './cross-line/crossLineProperties';
 import { CrossLine } from './cross-line/crossLineScene';
 import { CrossLineStateMachine } from './cross-line/crossLineState';
@@ -211,8 +210,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     ].includes(region)
             )
             .map((region) => ctx.regionManager.getRegion(region));
-
-        ctx.domManager.addStyles(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS, axisButtonCss);
 
         this.destroyFns.push(
             ctx.annotationManager.attachNode(this.container),
