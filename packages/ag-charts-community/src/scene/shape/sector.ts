@@ -154,6 +154,7 @@ export class Sector extends Path {
     ): Arc | undefined {
         if (r <= 0) return;
 
+        const { concentricEdgeInset } = this;
         const { startAngle, endAngle } = clockwiseAngles(this.startAngle, this.endAngle);
         const { innerRadius, outerRadius } = this.normalizedRadii();
         const clipSector = this.normalizedClipSector();
@@ -163,12 +164,12 @@ export class Sector extends Path {
         const innerAngleOffset = this.getAngleOffset(innerRadius);
         const outerAngleOffset = this.getAngleOffset(outerRadius);
 
+        const radius = inner ? innerRadius + r : outerRadius - r;
         const angleOffset = inner
-            ? this.getAngleOffset(Math.sqrt((innerRadius + r) ** 2 - r ** 2))
-            : this.getAngleOffset(Math.sqrt((outerRadius - r) ** 2 - r ** 2));
+            ? this.getAngleOffset(Math.sqrt(radius ** 2 - r ** 2))
+            : this.getAngleOffset(Math.sqrt(radius ** 2 - r ** 2));
         const angle = start ? startAngle + angleOffset + angleSweep : endAngle - angleOffset - angleSweep;
 
-        const radius = inner ? innerRadius + r : outerRadius - r;
         const cx = radius * Math.cos(angle);
         const cy = radius * Math.sin(angle);
 
@@ -303,8 +304,8 @@ export class Sector extends Path {
 
         // radiiScalingFactor doesn't find outer radii factors when the corners are larger than the sector radius
         // First, scale everything down so every corner radius individually fits within the sector's radial range
-        // Use full radius, as we inset by the concentric edge inset later
-        const radialLength = this.outerRadius - this.innerRadius;
+        const cornerRadiusInset = Math.min(radialEdgeInset, concentricEdgeInset);
+        const radialLength = outerRadius - innerRadius + 2 * concentricEdgeInset;
         const maxRadialLength = Math.max(
             startOuterCornerRadius,
             startInnerCornerRadius,
@@ -318,9 +319,10 @@ export class Sector extends Path {
         endInnerCornerRadius *= initialScalingFactor;
 
         // Then scale the both outer corner radii so they both fit within the sector's sweep when placed together
+        const baseOuterRadius = outerRadius + concentricEdgeInset;
         const outerScalingFactor = radiiScalingFactor(
-            outerRadius,
-            sweepAngle - 2 * outerAngleOffset,
+            baseOuterRadius,
+            sweepAngle - 2 * this.getAngleOffset(baseOuterRadius),
             -startOuterCornerRadius,
             -endOuterCornerRadius
         );
@@ -329,9 +331,10 @@ export class Sector extends Path {
 
         if (!innerAngleExceeded && hasInnerSweep) {
             // ... then the inner corner radii
+            const baseInnerRadius = Math.max(innerRadius - concentricEdgeInset, 0);
             const innerScalingFactor = radiiScalingFactor(
-                innerRadius,
-                sweepAngle - 2 * innerAngleOffset,
+                baseInnerRadius,
+                sweepAngle - 2 * this.getAngleOffset(baseInnerRadius),
                 startInnerCornerRadius,
                 endInnerCornerRadius
             );
@@ -356,29 +359,38 @@ export class Sector extends Path {
         endInnerCornerRadius *= edgesScalingFactor;
 
         // Inset by concentric edge inset so we can get overlapping sectors with strokes to align
+        startOuterCornerRadius = Math.max(startOuterCornerRadius - cornerRadiusInset, 0);
+        endOuterCornerRadius = Math.max(endOuterCornerRadius - cornerRadiusInset, 0);
+        startInnerCornerRadius = Math.max(startInnerCornerRadius - cornerRadiusInset, 0);
+        endInnerCornerRadius = Math.max(endInnerCornerRadius - cornerRadiusInset, 0);
+
         startOuterCornerRadius = Math.max(startOuterCornerRadius - concentricEdgeInset, 0);
         endOuterCornerRadius = Math.max(endOuterCornerRadius - concentricEdgeInset, 0);
         startInnerCornerRadius = Math.max(startInnerCornerRadius - concentricEdgeInset, 0);
         endInnerCornerRadius = Math.max(endInnerCornerRadius - concentricEdgeInset, 0);
 
-        let startOuterCornerRadiusAngleSweep = 0;
-        let endOuterCornerRadiusAngleSweep = 0;
+        startOuterCornerRadius = Math.min(
+            startOuterCornerRadius,
+            (outerRadius - innerRadius - 2 * cornerRadiusInset - radialEdgeInset) / 2
+        );
+        endOuterCornerRadius = Math.min(
+            endOuterCornerRadius,
+            (outerRadius - innerRadius - 2 * cornerRadiusInset - radialEdgeInset) / 2
+        );
+
+        let startOuterCornerRadiusAngleSweep = NaN;
+        let endOuterCornerRadiusAngleSweep = NaN;
         const startOuterCornerRadiusSweep = startOuterCornerRadius / (outerRadius - startOuterCornerRadius);
         const endOuterCornerRadiusSweep = endOuterCornerRadius / (outerRadius - endOuterCornerRadius);
         if (startOuterCornerRadiusSweep >= 0 && startOuterCornerRadiusSweep < 1 - delta) {
             startOuterCornerRadiusAngleSweep = Math.asin(startOuterCornerRadiusSweep);
         } else {
-            // FIXME - inset by concentricEdgeInset
-            startOuterCornerRadiusAngleSweep = sweepAngle / 2 - this.getAngleOffset((outerRadius + innerRadius) / 2);
-            const maxStartOuterCornerRadius = outerRadius / (1 / Math.sin(startOuterCornerRadiusAngleSweep) + 1);
-            startOuterCornerRadius = Math.min(maxStartOuterCornerRadius, startOuterCornerRadius);
+            startOuterCornerRadiusAngleSweep = sweepAngle / 2;
         }
         if (endOuterCornerRadiusSweep >= 0 && endOuterCornerRadiusSweep < 1 - delta) {
             endOuterCornerRadiusAngleSweep = Math.asin(endOuterCornerRadiusSweep);
         } else {
-            endOuterCornerRadiusAngleSweep = sweepAngle / 2 - this.getAngleOffset((outerRadius + innerRadius) / 2);
-            const maxEndOuterCornerRadius = outerRadius / (1 / Math.sin(endOuterCornerRadiusAngleSweep) + 1);
-            endOuterCornerRadius = Math.min(maxEndOuterCornerRadius, endOuterCornerRadius);
+            startOuterCornerRadiusAngleSweep = sweepAngle / 2;
         }
 
         const startInnerCornerRadiusAngleSweep = Math.asin(
@@ -449,7 +461,17 @@ export class Sector extends Path {
             true
         );
 
-        if (!innerAngleExceeded && (startInnerArc?.isValid() === true || innerArc?.isValid() === true)) {
+        let outerArcsTouchOnInside = false;
+        if (startOuterArc != null && endOuterArc != null) {
+            const p0 = startOuterArc.pointAt(startOuterArc.a0);
+            const p1 = endOuterArc.pointAt(endOuterArc.a1);
+            outerArcsTouchOnInside = Math.hypot(p0.x - p1.x, p0.y - p1.y) < 1;
+        }
+
+        if (
+            !innerAngleExceeded &&
+            (startInnerArc?.isValid() === true || innerArc?.isValid() === true || outerArcsTouchOnInside)
+        ) {
             // The first point of the path will be the first point on an arc
             // We don't need to call moveTo here - it's implicit
             // Not having a moveTo also fixes some issues Chrome has about mitering
