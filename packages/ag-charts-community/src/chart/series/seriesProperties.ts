@@ -83,7 +83,7 @@ export abstract class SeriesProperties<T extends object> extends BaseProperties<
     cursor = 'default';
 
     @Validate(INTERACTION_RANGE)
-    nodeClickRange: InteractionRange | 'none' = 'exact';
+    nodeClickRange: InteractionRange = 'exact';
 
     @Validate(OBJECT)
     readonly highlight = new HighlightProperties();
