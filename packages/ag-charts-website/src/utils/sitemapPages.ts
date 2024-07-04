@@ -1,13 +1,16 @@
 import { getDocsExamplePages, getDocsPages } from '@features/docs/utils/pageData';
 import * as docsUrlPaths from '@features/docs/utils/urlPaths';
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
-import { getGalleryExamplePages } from '@features/gallery/utils/pageData';
-import * as galleryUrlPaths from '@features/gallery/utils/urlPaths';
-import { getCollection, getEntry } from 'astro:content';
+import { getCollection } from 'astro:content';
 
 import { getDebugPageUrls } from './pages';
 import { isTestPage } from './sitemap';
 import { urlWithBaseUrl } from './urlWithBaseUrl';
+
+/**
+ * Legacy archive versions that don't have `noindex` on the generated pages
+ */
+const LEGACY_ARCHIVE_VERSIONS = ['9.0.1', '9.0.2', '9.1.0', '9.2.0', '9.3.0', '9.3.1', '10.0.0'];
 
 function addTrailingSlash(path: string) {
     return path.slice(-1) === '/' ? path : `${path}/`;
@@ -63,11 +66,10 @@ const getHiddenPages = async () => {
 };
 
 const getIgnoredPages = () => {
-    return [
-        urlWithBaseUrl('/404'),
-        addTrailingSlash(urlWithBaseUrl('/gallery/examples')),
-        addTrailingSlash(urlWithBaseUrl('/archive')),
-    ];
+    const legacyArchiveVersions = LEGACY_ARCHIVE_VERSIONS.map((version) =>
+        addTrailingSlash(urlWithBaseUrl(`/archive/${version}`))
+    );
+    return [urlWithBaseUrl('/404'), addTrailingSlash(urlWithBaseUrl('/gallery/examples')), ...legacyArchiveVersions];
 };
 
 export async function getSitemapIgnorePaths() {
