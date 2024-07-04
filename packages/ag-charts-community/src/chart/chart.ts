@@ -969,7 +969,7 @@ export abstract class Chart extends Observable {
 
     placeLabels(): Map<Series<any, any>, PlacedLabel[]> {
         const visibleSeries: Series<any, any>[] = [];
-        const data: (readonly PointLabelDatum[])[] = [];
+        const data: PointLabelDatum[][] = [];
         for (const series of this.series) {
             if (!series.visible) continue;
 
@@ -1109,9 +1109,7 @@ export abstract class Chart extends Observable {
         const pickModes = exactMatchOnly ? [SeriesNodePickMode.EXACT_SHAPE_MATCH] : undefined;
         return this.pickNode(
             point,
-            this.series.map((series) => {
-                return { series, pickModes, maxDistance };
-            })
+            this.series.map((series) => ({ series, pickModes, maxDistance }))
         );
     }
 

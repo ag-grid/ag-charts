@@ -196,7 +196,7 @@ export function priceVolume(
         tooltip: { enabled: false },
         data,
         // @ts-expect-error
-        titlePadding: 4,
+        titlePadding: 0,
         ...navigatorOpts,
         ...statusBarOpts,
         ...zoomOpts,
