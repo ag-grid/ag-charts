@@ -115,7 +115,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         const {
             axes: axesThemes = {},
-            annotations: { axesButtons = undefined, ...annotationsThemes } = {},
+            annotations: { axesButtons = null, ...annotationsThemes } = {},
             series: _,
             ...themeDefaults
         } = this.getSeriesThemeConfig(chartType);
