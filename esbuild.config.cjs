@@ -21,6 +21,7 @@ const cssPlugin = {
             const result = await esbuild.build({
                 entryPoints: [args.path],
                 bundle: true,
+                minify: true,
                 sourcemap: false,
                 outdir: 'null',
                 write: false,
