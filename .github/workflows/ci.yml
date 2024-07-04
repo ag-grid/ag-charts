@@ -34,14 +34,16 @@ env:
     NX_BRANCH: ${{ github.ref }}
     # Set to --batch to enable batch execution.
     NX_BATCH_FLAG: '--batch'
+    BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: ${{ github.ref != 'refs/heads/latest' }}
 
 jobs:
-    execute_blt:
+    build_lint:
         runs-on: ubuntu-24.04
+        name: Build & Lint
         outputs:
             nx_base: ${{ steps.setup.outputs.base }}
             build: ${{ steps.build.outcome || '' }}
@@ -112,15 +114,15 @@ jobs:
 
     test:
         runs-on: ubuntu-24.04
-        needs: execute_blt
-        if: needs.execute_blt.outputs.test_count > 0
+        name: Unit & Integration Tests (${{ matrix.shard }}/${{ strategy.job-total }})
+        needs: build_lint
+        if: needs.build_lint.outputs.test_count > 0
         strategy:
             matrix:
                 shard: [0, 1, 2, 3, 4, 5, 6, 7, 8]
-        name: test (${{ matrix.shard }}/${{ strategy.job-total }})
         env:
             NX_PARALLEL: 1
-            NX_BASE: ${{ needs.execute_blt.outputs.nx_base }}
+            NX_BASE: ${{ needs.build_lint.outputs.nx_base }}
         steps:
             - name: Checkout
               id: checkout
@@ -157,9 +159,108 @@ jobs:
                       reports/
                       packages/**/__diff_output__/*
 
+    e2e_init:
+        runs-on: macos-latest
+        name: E2E Test Setup
+        env:
+            AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
+        outputs:
+            nx_base: ${{ steps.setup.outputs.base }}
+        steps:
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  os: macos
+
+            - name: build examples
+              run: |
+                  # Non-batched builds - some TS/JS targets will fail if run with --batch, so build them unbatched first.
+                  yarn nx run-many -p tag:no-batching -t build --parallel=3
+                  # Batched builds.
+                  yarn nx run-many -t generate-example --parallel=3 --batch
+            - name: nx run generate-gallery-thumbnail
+              run: yarn nx run generate-gallery-thumbnail --example simple-bar
+
+            - name: Perist build outputs
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: e2e-init-outputs
+                  path: |
+                      dist/
+                      packages/*/dist/
+
+    e2e:
+        runs-on: macos-latest
+        name: E2E Tests (${{ matrix.shard }}/${{ strategy.job-total }})
+        needs: [e2e_init]
+        strategy:
+            fail-fast: false
+            matrix:
+                shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        env:
+            NX_PARALLEL: 1
+            NX_BASE: ${{ needs.e2e_init.outputs.nx_base }}
+            AG_FORCE_ALL_TESTS: ${{ (github.ref == 'refs/heads/latest') && '1' || '0' }}
+            AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
+        steps:
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v4
+
+            - name: Restore Init Build Outputs
+              uses: actions/download-artifact@v4
+              with:
+                  name: e2e-init-outputs
+
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  os: macos
+                  yarn_opts: --ignore-scripts
+                  yarn_postinstall: false
+                  nx_restore: false # Restored in previous step.
+
+            - name: playwright install
+              run: npx playwright install chromium --with-deps
+
+            - name: nx test:e2e
+              run: |
+                  cd packages/ag-charts-website/
+                  npx playwright test --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+              timeout-minutes: 10
+
+            # - name: Commit Snapshot Changes
+            #   id: commit_changes
+            #   if: github.event.inputs.update == 'true'
+            #   run: |
+            #       # Based on https://github.com/actions/checkout?tab=readme-ov-file#push-a-commit-using-the-built-in-token
+            #       git config user.name "github-actions[bot]"
+            #       git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            #       git add .
+            #       if [[ $(git diff --cached --name-only | wc -l) -gt 0 ]] ; then
+            #         git commit -m "Update snapshots (shard ${{ matrix.shard }})."
+            #         git push origin ${BRANCH_NAME}
+            #       fi
+
+            - name: Perist test results
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: test-results-e2e-shard-${{matrix.shard}}
+                  path: |
+                      reports/
+
     report:
         runs-on: ubuntu-24.04
-        needs: [execute_blt, test, sonarqube]
+        needs: [build_lint, test, e2e, sonarqube]
         if: cancelled() != true
         steps:
             - name: Checkout
@@ -170,7 +271,7 @@ jobs:
             - name: Fetch Refs
               run: git fetch origin latest-success latest
 
-            - uses: actions/download-artifact@v3
+            - uses: actions/download-artifact@v4
               with:
                   path: test-results/
 
@@ -198,7 +299,7 @@ jobs:
               if: always() && github.ref == 'refs/heads/latest'
               run: |
                   WORKFLOW_STATUS="success"
-                  if [[ "${{ needs.execute_blt.result }}" == "failure" ]] ; then
+                  if [[ "${{ needs.build_lint.result }}" == "failure" ]] ; then
                     WORKFLOW_STATUS="failure"
                   elif [ "${{ needs.test.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="failure"
@@ -227,7 +328,7 @@ jobs:
               id: commits
               if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.changedState == 'true'
               run: |
-                  GIT_LOG=$(git log HEAD ^${{ needs.execute_blt.outputs.nx_base }} --format="%an (%h) %s")
+                  GIT_LOG=$(git log HEAD ^${{ needs.build_lint.outputs.nx_base }} --format="%an (%h) %s")
                   echo "GIT_LOG<<EOF" >> $GITHUB_ENV
                   echo "$GIT_LOG" >> $GITHUB_ENV
                   echo "EOF" >> $GITHUB_ENV
@@ -249,21 +350,16 @@ jobs:
                   SLACK_USERNAME: ag-charts CI
                   SLACK_FOOTER: ''
                   SLACK_MESSAGE: >
-                      Build: ${{ needs.execute_blt.outputs.build == 'success' && '✅' || needs.execute_blt.outputs.build == 'failure' && '❌' || 'NA' }}
-                      Lint: ${{ needs.execute_blt.outputs.lint == 'success' && '✅' || needs.execute_blt.outputs.lint == 'failure' && '❌' || 'NA' }}
-                      Format: ${{ needs.execute_blt.outputs.format == 'success' && '✅' || needs.execute_blt.outputs.format == 'failure' && '❌' || 'NA' }}
+                      Build: ${{ needs.build_lint.outputs.build == 'success' && '✅' || needs.build_lint.outputs.build == 'failure' && '❌' || 'NA' }}
+                      Lint: ${{ needs.build_lint.outputs.lint == 'success' && '✅' || needs.build_lint.outputs.lint == 'failure' && '❌' || 'NA' }}
+                      Format: ${{ needs.build_lint.outputs.format == 'success' && '✅' || needs.build_lint.outputs.format == 'failure' && '❌' || 'NA' }}
                       Test: ${{ needs.test.result == 'success' && '✅' || needs.test.result == 'failure' && '❌' || 'NA' }}
+                      E2E: ${{ needs.e2e.result == 'success' && '✅' || needs.e2e.result == 'failure' && '❌' || 'NA' }}
                       SonarQube: ${{ needs.sonarqube.result == 'success' && '✅' || needs.sonarqube.result == 'failure' && '❌' || 'NA' }}
 
                       *Changes:*
 
                       ${{ env.GIT_LOG }}
-
-            - name: Kick-off E2E tests
-              if: needs.test.result == 'success'
-              env:
-                  GH_TOKEN: ${{ github.token }}
-              run: gh workflow run e2e.yml --ref ${{github.head_ref || github.ref}}
 
     sonarqube:
         runs-on: ubuntu-24.04

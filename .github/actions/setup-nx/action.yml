@@ -17,6 +17,10 @@ inputs:
         description: 'Restore Nx Cache.'
         required: false
         default: 'true'
+    os:
+        description: 'OS for Nx + Yarn Caches'
+        require: false
+        default: 'ubuntu'
 outputs:
     base:
         description: 'Base branch/SHA for diff detection'
@@ -62,19 +66,25 @@ runs:
                   packages/*/node_modules/
                   plugins/*/node_modules/
                   libraries/*/node_modules/
-              key: node_modules-${{hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json')}}
-              restore-keys: node_modules- # Take any latest cache if failed to find it for current yarn.lock
+              key: node_modules-${{inputs.os}}-${{hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json')}}
+              restore-keys: node_modules-${{inputs.os}}- # Take any latest cache if failed to find it for current yarn.lock
 
         - name: Cache Nx
           if: inputs.clean != 'true' && inputs.nx_restore != 'false'
           uses: actions/cache@v3
           with:
               path: .nx/cache
-              key: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-${{ github.sha }}
-              restore-keys: cache-nx-v17-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-
+              key: cache-nx-v18-${{inputs.os}}-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-${{ github.sha }}
+              restore-keys: cache-nx-v18-${{inputs.os}}-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-
 
         - name: Tidy Nx Cache (Post Job)
           uses: ./.github/actions/tidy-nx-cache
+
+        - name: MacOS Setup
+          if: inputs.os == 'macos'
+          shell: bash
+          run: |
+              brew install pkg-config cairo pango libpng jpeg giflib librsvg python-setuptools
 
         - name: Setup Node.js
           id: setup_node
