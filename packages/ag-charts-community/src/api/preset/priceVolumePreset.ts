@@ -230,6 +230,8 @@ function createVolumeSeries(
             xKey: 'date',
             yKey: volumeKey,
             tooltip: { enabled: false },
+            // @ts-expect-error
+            highlight: { enabled: false },
             fillOpacity: fromTheme(theme, (t) => t.overrides?.bar?.series?.fillOpacity) ?? 0.5,
             ...itemStyler,
         } satisfies AgBarSeriesOptions,
