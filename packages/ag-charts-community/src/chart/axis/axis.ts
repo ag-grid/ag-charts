@@ -701,7 +701,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             }
             crossLine.parallelFlipRotation = parallelFlipRotation;
             crossLine.regularFlipRotation = regularFlipRotation;
-            crossLine.calculateLayout(anySeriesActive, this.reverse);
+            crossLine.calculateLayout?.(anySeriesActive, this.reverse);
         });
 
         return {
@@ -1135,12 +1135,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         maxTickCount: number;
         defaultTickCount: number;
     } {
-        const {
-            minRect,
-            label: { avoidCollisions },
-        } = this;
+        const { minRect } = this;
 
-        if (!avoidCollisions) {
+        if (!this.label.avoidCollisions) {
             return {
                 minTickCount: ContinuousScale.defaultMaxTickCount,
                 maxTickCount: ContinuousScale.defaultMaxTickCount,

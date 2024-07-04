@@ -73,8 +73,8 @@ export const validateCrossLineValues = (
 };
 
 export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
-    calculateLayout(visible: boolean, reversedAxis?: boolean): void;
-    calculatePadding?: (padding: Partial<Record<AgCrossLineLabelPosition, number>>) => void;
+    calculateLayout?(visible: boolean, reversedAxis?: boolean): void;
+    calculatePadding?(padding: Partial<Record<AgCrossLineLabelPosition, number>>): void;
     clippedRange: [number, number];
     direction: ChartAxisDirection;
     enabled?: boolean;

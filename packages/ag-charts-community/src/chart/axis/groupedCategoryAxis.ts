@@ -3,7 +3,6 @@ import type { AgAxisCaptionFormatterParams } from 'ag-charts-types';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BandScale } from '../../scale/bandScale';
 import { BBox } from '../../scene/bbox';
-import { Matrix } from '../../scene/matrix';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
 import { Text } from '../../scene/shape/text';
