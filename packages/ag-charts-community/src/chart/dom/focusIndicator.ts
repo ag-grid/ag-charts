@@ -11,13 +11,12 @@ export class FocusIndicator {
     private readonly div: HTMLDivElement;
 
     constructor(private readonly domManager: DOMManager) {
-        const { css, block, elements, modifiers } = focusStyles;
+        const { block, elements, modifiers } = focusStyles;
         this.div = getDocument().createElement('div');
         this.svg = getDocument().createElementNS('http://www.w3.org/2000/svg', 'svg');
         this.path = getDocument().createElementNS('http://www.w3.org/2000/svg', 'path');
         this.svg.append(this.path);
 
-        domManager.addStyles(block, css);
         this.element = domManager.addChild('canvas-overlay', block);
         this.element.classList.add(block, elements.indicator, modifiers.hidden);
         this.element.append(this.svg);

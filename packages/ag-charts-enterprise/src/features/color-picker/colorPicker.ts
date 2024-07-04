@@ -1,6 +1,5 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import colorPickerStyles from './colorPickerStyles.css';
 import colorPickerTemplate from './colorPickerTemplate.html';
 
 const { clamp, createElement } = _ModuleSupport;
@@ -27,8 +26,6 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         super();
-
-        ctx.domManager.addStyles(moduleId, colorPickerStyles);
 
         this.element = ctx.domManager.addChild(canvasOverlay, moduleId);
 
