@@ -1680,6 +1680,7 @@ export abstract class Chart extends Observable {
             'legend.listeners',
             'navigator.miniChart.series',
             'navigator.miniChart.label',
+            'locale.localeText',
             'axes',
             'topology',
             'nodes',
@@ -1714,6 +1715,9 @@ export abstract class Chart extends Observable {
         }
         if (deltaOptions.listeners) {
             this.updateAllSeriesListeners();
+        }
+        if (deltaOptions.locale?.localeText) {
+            this.modulesManager.getModule<any>('locale').localeText = deltaOptions.locale?.localeText;
         }
 
         this.chartOptions = newChartOptions;
