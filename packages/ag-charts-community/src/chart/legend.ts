@@ -1193,6 +1193,8 @@ export class Legend extends BaseProperties {
             }
         };
         if (this.visible) {
+            const legendPadding = this.spacing;
+
             let translationX;
             let translationY;
 
@@ -1201,7 +1203,7 @@ export class Legend extends BaseProperties {
                 case 'bottom':
                     translationX = (shrinkRect.width - legendBBox.width) / 2;
                     translationY = calculateTranslationPerpendicularDimension();
-                    newShrinkRect.shrink(legendBBox.height, this.position);
+                    newShrinkRect.shrink(legendBBox.height + legendPadding, this.position);
                     break;
 
                 case 'left':
@@ -1209,7 +1211,7 @@ export class Legend extends BaseProperties {
                 default:
                     translationX = calculateTranslationPerpendicularDimension();
                     translationY = (shrinkRect.height - legendBBox.height) / 2;
-                    newShrinkRect.shrink(legendBBox.width, this.position);
+                    newShrinkRect.shrink(legendBBox.width + legendPadding, this.position);
             }
 
             // Round off for pixel grid alignment to work properly.
@@ -1227,15 +1229,6 @@ export class Legend extends BaseProperties {
         }
 
         this.updatePaginationProxyButtons(oldPages);
-
-        if (this.visible && this.enabled && this.data.length) {
-            const legendPadding = this.spacing;
-            newShrinkRect.shrink(legendPadding, this.position);
-
-            const legendPositionedBBox = legendBBox.clone();
-            legendPositionedBBox.x += this.group.translationX;
-            legendPositionedBBox.y += this.group.translationY;
-        }
 
         return { ...ctx, shrinkRect: newShrinkRect };
     }
