@@ -649,15 +649,9 @@ export abstract class Series<
     ): { pickMode: SeriesNodePickMode; match: SeriesNodeDatum; distance: number } | undefined {
         const { pickModes, visible, rootGroup } = this;
 
-        if (!visible || !rootGroup.visible) {
-            return;
-        }
-
-        if (intent === 'highlight' && !this.properties.highlight.enabled) {
-            return;
-        } else if (intent === 'tooltip' && !this.properties.tooltip.enabled) {
-            return;
-        }
+        if (!visible || !rootGroup.visible) return;
+        if (intent === 'highlight' && !this.properties.highlight.enabled) return;
+        if (intent === 'tooltip' && !this.properties.tooltip.enabled) return;
 
         for (const pickMode of pickModes) {
             if (limitPickModes && !limitPickModes.includes(pickMode)) {

@@ -1388,7 +1388,7 @@ export abstract class Chart extends Observable {
         if (isNewDatum) {
             html = pick.series.getTooltipHtml(pick.datum);
 
-            if (this.highlight.range === 'tooltip') {
+            if (this.highlight.range === 'tooltip' && pick.series.properties.highlight.enabled) {
                 this.ctx.highlightManager.updateHighlight(this.id, pick.datum);
             }
         }
@@ -1404,23 +1404,21 @@ export abstract class Chart extends Observable {
     }
 
     protected handlePointerNode(event: PointerOffsetsAndHistory, intent: SeriesNodePickIntent) {
+        const { range } = this.highlight;
+
         const found = this.checkSeriesNodeRange(intent, event, (series, datum) => {
             if (series.hasEventListener('nodeClick') || series.hasEventListener('nodeDoubleClick')) {
                 this.ctx.cursorManager.updateCursor('chart', 'pointer');
             }
 
-            if (this.highlight.range === 'node') {
-                this.ctx.highlightManager.updateHighlight(this.id, datum);
-            }
+            if (range === 'tooltip' && series.properties.tooltip.enabled) return;
+            this.ctx.highlightManager.updateHighlight(this.id, datum);
         });
+        if (found) return;
 
-        if (!found) {
-            this.ctx.cursorManager.updateCursor('chart');
-
-            if (this.highlight.range === 'node') {
-                this.ctx.highlightManager.updateHighlight(this.id);
-            }
-        }
+        this.ctx.cursorManager.updateCursor('chart');
+        if (range !== 'node') return;
+        this.ctx.highlightManager.updateHighlight(this.id);
     }
 
     protected onClick(event: PointerInteractionEvent<'click'>) {
