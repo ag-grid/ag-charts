@@ -658,8 +658,8 @@ export abstract class CartesianSeries<
         const [primaryDirection = ChartAxisDirection.X] = directions;
 
         const hitPoint = rootGroup.transformPoint(x, y);
-        const hitPointCoords =
-            primaryDirection === ChartAxisDirection.X ? [hitPoint.x, hitPoint.y] : [hitPoint.y, hitPoint.x];
+        const hitPointCoords = [hitPoint.x, hitPoint.y];
+        if (primaryDirection !== ChartAxisDirection.X) hitPointCoords.reverse();
 
         const minDistance = [Infinity, Infinity];
         let closestDatum: SeriesNodeDatum | undefined;
@@ -670,12 +670,14 @@ export abstract class CartesianSeries<
                 continue;
             }
 
-            const isInRange = xAxis?.inRange(datumX) && yAxis?.inRange(datumY);
-            if (!isInRange) {
+            const isInPrimaryRange =
+                primaryDirection === ChartAxisDirection.X ? xAxis?.inRange(datumX) : yAxis?.inRange(datumY);
+            if (!isInPrimaryRange) {
                 continue;
             }
 
-            const datumPoint = primaryDirection === ChartAxisDirection.X ? [datumX, datumY] : [datumY, datumX];
+            const datumPoint = [datumX, datumY];
+            if (primaryDirection !== ChartAxisDirection.X) datumPoint.reverse();
 
             // Compare distances from most significant dimension to least.
             let newMinDistance = true;
