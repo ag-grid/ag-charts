@@ -1,11 +1,7 @@
 import type { AgContextMenuOptions, _Scene } from 'ag-charts-community';
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import {
-    DEFAULT_CONTEXT_MENU_CLASS,
-    DEFAULT_CONTEXT_MENU_DARK_CLASS,
-    defaultContextMenuCss,
-} from './contextMenuStyles';
+import { DEFAULT_CONTEXT_MENU_CLASS, DEFAULT_CONTEXT_MENU_DARK_CLASS } from './contextMenuStyles';
 
 type ContextMenuGroups = {
     default: Array<ContextMenuAction>;
@@ -113,8 +109,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             this.mutationObserver = observer;
             this.destroyFns.push(() => observer.disconnect());
         }
-
-        ctx.domManager.addStyles(moduleId, defaultContextMenuCss);
 
         this.registry.registerDefaultAction({
             id: 'download',

@@ -2,9 +2,6 @@ const esbuild = require('esbuild');
 const { umdWrapper } = require('esbuild-plugin-umd-wrapper');
 const fs = require('fs/promises');
 const path = require('path');
-const postcss = require('postcss');
-const cssnano = require('cssnano');
-const cssnanoPresetLite = require('cssnano-preset-lite');
 const htmlMinifier = require('html-minifier-terser');
 
 const exportedNames = {
@@ -21,9 +18,18 @@ const cssPlugin = {
     name: 'css',
     setup(build) {
         build.onLoad({ filter: /\.css$/ }, async (args) => {
-            const { css } = await postcss([cssnano({ preset: cssnanoPresetLite })]).process(
-                await fs.readFile(args.path, 'utf8')
-            );
+            const result = await esbuild.build({
+                entryPoints: [args.path],
+                bundle: true,
+                sourcemap: false,
+                outdir: 'null',
+                write: false,
+            });
+            if (result.outputFiles.length !== 1) {
+                throw new Error('Invalid CSS bundle');
+            }
+
+            const css = result.outputFiles[0].text;
             return { contents: css, loader: 'text' };
         });
     },

@@ -41,6 +41,7 @@ import { SankeyModule } from './series/sankey/main';
 import { SunburstModule } from './series/sunburst/main';
 import { TreemapModule } from './series/treemap/main';
 import { WaterfallModule } from './series/waterfall/main';
+import styles from './styles.css';
 
 export function setupEnterpriseModules() {
     _ModuleSupport.moduleRegistry.register(
@@ -86,6 +87,7 @@ export function setupEnterpriseModules() {
     );
 
     _ModuleSupport.enterpriseModule.isEnterprise = true;
+    _ModuleSupport.enterpriseModule.styles = styles;
     _ModuleSupport.enterpriseModule.licenseManager = (options: AgChartOptions) =>
         new LicenseManager(
             options.container?.ownerDocument ?? (typeof document === 'undefined' ? undefined : document)
