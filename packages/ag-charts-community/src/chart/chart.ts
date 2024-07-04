@@ -62,7 +62,13 @@ import { type SeriesOptionsTypes, isAgCartesianChartOptions } from './mapping/ty
 import { ModulesManager } from './modulesManager';
 import { ChartOverlays } from './overlay/chartOverlays';
 import { getLoadingSpinner } from './overlay/loadingSpinner';
-import { type PickFocusOutputs, type Series, SeriesGroupingChangedEvent, SeriesNodePickMode } from './series/series';
+import {
+    type PickFocusOutputs,
+    type Series,
+    SeriesGroupingChangedEvent,
+    type SeriesNodePickIntent,
+    SeriesNodePickMode,
+} from './series/series';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesProperties } from './series/seriesProperties';
 import type { SeriesGrouping } from './series/seriesStateManager';
@@ -1068,6 +1074,7 @@ export abstract class Chart extends Observable {
     // x/y are local canvas coordinates in CSS pixels, not actual pixels
     private pickNode(
         point: Point,
+        intent: SeriesNodePickIntent,
         collection: {
             series: Series<SeriesNodeDatum, SeriesProperties<object[]>>;
             pickModes?: SeriesNodePickMode[];
@@ -1085,7 +1092,7 @@ export abstract class Chart extends Observable {
             if (!series.visible || !series.rootGroup.visible) {
                 continue;
             }
-            const { match, distance } = series.pickNode(point, pickModes) ?? {};
+            const { match, distance } = series.pickNode(point, intent, pickModes) ?? {};
             if (!match || distance == null) {
                 continue;
             }
@@ -1104,11 +1111,17 @@ export abstract class Chart extends Observable {
         return result;
     }
 
-    private pickSeriesNode(point: Point, exactMatchOnly: boolean, maxDistance?: number): PickedNode | undefined {
+    private pickSeriesNode(
+        point: Point,
+        intent: SeriesNodePickIntent,
+        exactMatchOnly: boolean,
+        maxDistance?: number
+    ): PickedNode | undefined {
         // Disable 'nearest match' options if looking for exact matches only
         const pickModes = exactMatchOnly ? [SeriesNodePickMode.EXACT_SHAPE_MATCH] : undefined;
         return this.pickNode(
             point,
+            intent,
             this.series.map((series) => {
                 return { series, pickModes, maxDistance };
             })
@@ -1118,6 +1131,7 @@ export abstract class Chart extends Observable {
     private pickTooltip(point: Point): PickedNode | undefined {
         return this.pickNode(
             point,
+            'tooltip',
             this.series.map((series) => {
                 const tooltipRange = series.properties.tooltip.range;
                 let pickModes: SeriesNodePickMode[] | undefined;
@@ -1222,7 +1236,7 @@ export abstract class Chart extends Observable {
 
         let pickedNode: SeriesNodeDatum | undefined;
         if (this.ctx.interactionManager.getState() & (Default | ContextMenu)) {
-            this.checkSeriesNodeRange(event, (_series, datum) => {
+            this.checkSeriesNodeRange('context-menu', event, (_series, datum) => {
                 this.ctx.highlightManager.updateHighlight(this.id);
                 pickedNode = datum;
             });
@@ -1340,7 +1354,7 @@ export abstract class Chart extends Observable {
         this.handlePointerTooltip(event, disablePointer);
 
         // Handle node highlighting and mouse cursor when pointer withing `series[].nodeClickRange`
-        this.handlePointerNode(event);
+        this.handlePointerNode(event, 'highlight');
     }
 
     protected handlePointerTooltip(
@@ -1389,8 +1403,8 @@ export abstract class Chart extends Observable {
         }
     }
 
-    protected handlePointerNode(event: PointerOffsetsAndHistory) {
-        const found = this.checkSeriesNodeRange(event, (series, datum) => {
+    protected handlePointerNode(event: PointerOffsetsAndHistory, intent: SeriesNodePickIntent) {
+        const found = this.checkSeriesNodeRange(intent, event, (series, datum) => {
             if (series.hasEventListener('nodeClick') || series.hasEventListener('nodeDoubleClick')) {
                 this.ctx.cursorManager.updateCursor('chart', 'pointer');
             }
@@ -1428,20 +1442,23 @@ export abstract class Chart extends Observable {
     }
 
     private checkSeriesNodeClick(event: PointerInteractionEvent<'click'>): boolean {
-        return this.checkSeriesNodeRange(event, (series, datum) => series.fireNodeClickEvent(event.sourceEvent, datum));
+        return this.checkSeriesNodeRange('event', event, (series, datum) =>
+            series.fireNodeClickEvent(event.sourceEvent, datum)
+        );
     }
 
     private checkSeriesNodeDoubleClick(event: PointerInteractionEvent<'dblclick'>): boolean {
-        return this.checkSeriesNodeRange(event, (series, datum) =>
+        return this.checkSeriesNodeRange('event', event, (series, datum) =>
             series.fireNodeDoubleClickEvent(event.sourceEvent, datum)
         );
     }
 
     private checkSeriesNodeRange(
+        intent: SeriesNodePickIntent,
         event: PointerOffsetsAndHistory & { preventZoomDblClick?: boolean },
         callback: (series: ISeries<any, any>, datum: SeriesNodeDatum) => void
     ): boolean {
-        const nearestNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, false);
+        const nearestNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, intent, false);
 
         const datum = nearestNode?.datum;
         const nodeClickRange = datum?.series.properties.nodeClickRange;
@@ -1452,7 +1469,7 @@ export abstract class Chart extends Observable {
         }
 
         // Find the node if exactly matched and update the highlight picked node
-        let pickedNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, true);
+        let pickedNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, intent, true);
         if (pickedNode) {
             // See: AG-11737#TC3, AG-11676
             //
@@ -1472,7 +1489,7 @@ export abstract class Chart extends Observable {
         }
 
         if (nodeClickRange !== 'exact') {
-            pickedNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, false, pixelRange);
+            pickedNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, intent, false, pixelRange);
         }
 
         if (!pickedNode) return false;
@@ -1486,7 +1503,7 @@ export abstract class Chart extends Observable {
                 event.pointerHistory === undefined ||
                 event.pointerHistory?.every((pastEvent) => {
                     const historyPoint = { x: pastEvent.offsetX, y: pastEvent.offsetY };
-                    const historyNode = this.pickSeriesNode(historyPoint, false, pixelRange);
+                    const historyNode = this.pickSeriesNode(historyPoint, intent, false, pixelRange);
                     return historyNode?.datum === pickedNode?.datum;
                 });
             if (allMatch) {

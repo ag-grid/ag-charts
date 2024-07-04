@@ -58,6 +58,8 @@ export enum SeriesNodePickMode {
     NEAREST_NODE,
 }
 
+export type SeriesNodePickIntent = 'tooltip' | 'highlight' | 'context-menu' | 'event';
+
 export type SeriesNodePickMatch = {
     datum: SeriesNodeDatum;
     distance: number;
@@ -642,11 +644,18 @@ export abstract class Series<
 
     pickNode(
         point: Point,
+        intent: SeriesNodePickIntent,
         limitPickModes?: SeriesNodePickMode[]
     ): { pickMode: SeriesNodePickMode; match: SeriesNodeDatum; distance: number } | undefined {
         const { pickModes, visible, rootGroup } = this;
 
         if (!visible || !rootGroup.visible) {
+            return;
+        }
+
+        if (intent === 'highlight' && !this.properties.highlight.enabled) {
+            return;
+        } else if (intent === 'tooltip' && !this.properties.tooltip.enabled) {
             return;
         }
 

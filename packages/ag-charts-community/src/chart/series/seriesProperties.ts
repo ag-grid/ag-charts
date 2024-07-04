@@ -53,6 +53,11 @@ class TextHighlightStyle extends BaseProperties {
     color?: string = 'black';
 }
 
+export class HighlightProperties extends BaseProperties {
+    @Validate(BOOLEAN, { optional: true })
+    enabled = true;
+}
+
 export class HighlightStyle extends BaseProperties {
     @Validate(OBJECT)
     readonly item = new SeriesItemHighlightStyle();
@@ -78,7 +83,10 @@ export abstract class SeriesProperties<T extends object> extends BaseProperties<
     cursor = 'default';
 
     @Validate(INTERACTION_RANGE)
-    nodeClickRange: InteractionRange = 'exact';
+    nodeClickRange: InteractionRange | 'none' = 'exact';
+
+    @Validate(OBJECT)
+    readonly highlight = new HighlightProperties();
 
     @Validate(OBJECT)
     readonly highlightStyle = new HighlightStyle();
