@@ -19,6 +19,6 @@ const menuEntry = await getEntry('menu', 'data');
 >
     <div class="layout-grid">
         <PagesNavigationFromLocalStorage client:load menuData={menuEntry.data} framework={framework} />
-        <Changelog currentFramework={framework} client:load />
+        <Changelog currentFramework={framework} client:only="react" />
     </div>
 </Layout>
