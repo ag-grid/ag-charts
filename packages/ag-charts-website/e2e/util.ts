@@ -98,3 +98,24 @@ export async function gotoExample(page: Page, url: string) {
         await expect(elements).toHaveAttribute('data-scene-renders', { timeout: 5_000 });
     }
 }
+
+// The in-built `page.dragAndDrop()` methods do not trigger our canvas drag events
+export async function dragCanvas(
+    page: Page,
+    start: { x: number; y: number },
+    end: { x: number; y: number },
+    options = { steps: 4 }
+) {
+    await page.hover('canvas', { position: start });
+    await page.mouse.down();
+    await page.mouse.move(end.x - start.x, end.y - start.y, options);
+    await page.mouse.up();
+}
+
+export async function locateCanvas(page: Page) {
+    const canvas = await page.locator('canvas');
+    const width = Number(await canvas.getAttribute('width'));
+    const height = Number(await canvas.getAttribute('height'));
+
+    return { canvas, width, height };
+}

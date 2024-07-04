@@ -1,19 +1,6 @@
 import { Page, expect, test } from '@playwright/test';
 
-import { gotoExample, setupIntrinsicAssertions, toExamplePageUrls } from './util';
-
-// The in-built `page.dragAndDrop()` methods do not trigger our canvas drag events
-async function dragCanvas(
-    page: Page,
-    start: { x: number; y: number },
-    end: { x: number; y: number },
-    options = { steps: 4 }
-) {
-    await page.hover('canvas', { position: start });
-    await page.mouse.down();
-    await page.mouse.move(end.x - start.x, end.y - start.y, options);
-    await page.mouse.up();
-}
+import { dragCanvas, gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrls } from './util';
 
 test.describe('zoom', () => {
     setupIntrinsicAssertions();
@@ -25,12 +12,8 @@ test.describe('zoom', () => {
             test('with navigator mini chart', async ({ page }) => {
                 await gotoExample(page, url);
 
-                let width = 0;
+                const { canvas, width } = await locateCanvas(page);
                 let height = 0;
-
-                const canvas = await page.locator('canvas');
-                width = Number(await canvas.getAttribute('width'));
-
                 const updateCanvasSize = async () => {
                     height = Number(await canvas.getAttribute('height'));
                 };
