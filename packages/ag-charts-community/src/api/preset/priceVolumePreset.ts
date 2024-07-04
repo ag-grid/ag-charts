@@ -151,7 +151,6 @@ export function priceVolume(
         padding: {
             top: 6,
             right: 8,
-            left: 8,
         },
         axes: [
             {
