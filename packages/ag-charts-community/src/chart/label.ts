@@ -8,10 +8,10 @@ import type {
 
 import { BBox } from '../scene/bbox';
 import type { Matrix } from '../scene/matrix';
-import { getFont } from '../scene/shape/text';
 import type { PlacedLabelDatum } from '../scene/util/labelPlacement';
 import { normalizeAngle360, toRadians } from '../util/angle';
 import { BaseProperties } from '../util/properties';
+import { TextMeasurer } from '../util/textMeasurer';
 import type { RequireOptional } from '../util/types';
 import {
     BOOLEAN,
@@ -51,7 +51,7 @@ export class Label<TParams = never, TDatum = any>
     formatter?: Formatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>;
 
     getFont(): string {
-        return getFont(this);
+        return TextMeasurer.toFontString(this);
     }
 }
 

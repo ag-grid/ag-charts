@@ -8,7 +8,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
-import { AutoSizeableSecondaryLabel, AutoSizedLabel } from '../util/labelFormatter';
+import { AutoSizeableSecondaryLabel, AutoSizedLabel } from '../util/autoSizedLabel';
 
 const {
     HierarchySeriesProperties,

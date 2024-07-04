@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-const { Validate, OBJECT, BOOLEAN, STRING, valueProperty } = _ModuleSupport;
+const { TextMeasurer, Validate, OBJECT, BOOLEAN, STRING, valueProperty } = _ModuleSupport;
 const { Label, Text, Group } = _Scene;
 
 class StatusBarLabel extends Label {}
@@ -170,7 +170,7 @@ export class StatusBar
         const lineHeight = maxFontSize * Text.defaultLineHeightRatio;
 
         let left = 0;
-        let offsetTop = 0;
+        let offsetTop: number;
         let textVAlign: CanvasTextBaseline = 'alphabetic';
         if (this.layoutStyle === 'block') {
             shrinkRect.shrink(spacingAbove + lineHeight + spacingBelow, 'top');
@@ -191,16 +191,36 @@ export class StatusBar
             }
 
             const maxValueWidth = Math.max(
-                Text.measureText(formatter.format(domain[0]), this.positive.getFont(), textVAlign, 'left').width,
-                Text.measureText(formatter.format(domain[1]), this.positive.getFont(), textVAlign, 'left').width,
-                Text.measureText(formatter.format(domain[0]), this.negative.getFont(), textVAlign, 'left').width,
-                Text.measureText(formatter.format(domain[1]), this.negative.getFont(), textVAlign, 'left').width
+                TextMeasurer.measureText(formatter.format(domain[0]), {
+                    font: this.positive.getFont(),
+                    textBaseline: textVAlign,
+                    textAlign: 'left',
+                }).width,
+                TextMeasurer.measureText(formatter.format(domain[1]), {
+                    font: this.positive.getFont(),
+                    textBaseline: textVAlign,
+                    textAlign: 'left',
+                }).width,
+                TextMeasurer.measureText(formatter.format(domain[0]), {
+                    font: this.negative.getFont(),
+                    textBaseline: textVAlign,
+                    textAlign: 'left',
+                }).width,
+                TextMeasurer.measureText(formatter.format(domain[1]), {
+                    font: this.negative.getFont(),
+                    textBaseline: textVAlign,
+                    textAlign: 'left',
+                }).width
             );
 
             title.visible = true;
             value.visible = true;
 
-            const titleMetrics = Text.measureText(label, this.title.getFont(), textVAlign, 'left');
+            const titleMetrics = TextMeasurer.measureText(label, {
+                font: this.title.getFont(),
+                textBaseline: textVAlign,
+                textAlign: 'left',
+            });
             title.setFont(this.title);
             title.fill = this.title.color;
             title.text = label;

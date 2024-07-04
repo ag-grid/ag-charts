@@ -8,6 +8,7 @@ import { createId } from '../util/id';
 import { BaseProperties } from '../util/properties';
 import { ProxyPropertyOnWrite } from '../util/proxy';
 import { TextMeasurer } from '../util/textMeasurer';
+import { TextWrapper } from '../util/textWrapper';
 import {
     BOOLEAN,
     COLOR_STRING,
@@ -102,7 +103,7 @@ export class Caption extends BaseProperties implements CaptionLike {
             this.node.text = text;
             return;
         }
-        const wrappedText = Text.wrap(text ?? '', maxWidth, maxHeight, this, wrapping);
+        const wrappedText = TextWrapper.wrapText(text ?? '', { maxWidth, maxHeight, font: this, textWrap: wrapping });
         this.node.text = wrappedText;
         this.truncated = wrappedText.includes(TextMeasurer.EllipsisChar);
     }

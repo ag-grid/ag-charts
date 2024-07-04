@@ -10,7 +10,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import { AutoSizeableSecondaryLabel, AutoSizedLabel } from '../util/labelFormatter';
+import { AutoSizeableSecondaryLabel, AutoSizedLabel } from '../util/autoSizedLabel';
 
 const { Label } = _Scene;
 const {
