@@ -165,6 +165,7 @@ jobs:
         runs-on: ubuntu-latest
         name: E2E Test Setup
         env:
+            AG_FORCE_ALL_TESTS: ${{ (github.ref == 'refs/heads/latest') && '1' || '0' }}
             AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
         outputs:
             nx_base: ${{ steps.setup.outputs.base }}
