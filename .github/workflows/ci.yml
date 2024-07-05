@@ -63,7 +63,7 @@ jobs:
               id: setup
               uses: ./.github/actions/setup-nx
               with:
-                  clean: ${{ github.event.inputs.clean_checkout }}
+                  cache_mode: ${{ github.event.inputs.clean_checkout == 'true' && 'none' || 'rw' }}
 
             - name: nx format:check
               id: format
@@ -133,6 +133,8 @@ jobs:
             - name: Setup
               id: setup
               uses: ./.github/actions/setup-nx
+              with:
+                  cache_mode: ro
 
             - name: nx test
               if: matrix.shard != 0
@@ -166,6 +168,7 @@ jobs:
             AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
         outputs:
             nx_base: ${{ steps.setup.outputs.base }}
+            matrix: ${{ steps.matrix.outputs.matrix }}
         steps:
             - name: Checkout
               id: checkout
@@ -176,7 +179,7 @@ jobs:
               id: setup
               uses: ./.github/actions/setup-nx
               with:
-                  os: ${{ github.env.E2E_OS }}
+                  cache_mode: ro
 
             - name: build examples
               run: |
@@ -186,6 +189,14 @@ jobs:
                   yarn nx run-many -t generate-example --parallel=3 --batch
             - name: nx run generate-gallery-thumbnail
               run: yarn nx run generate-gallery-thumbnail --example simple-bar
+
+            - name: calculate matrix
+              id: matrix
+              run: |
+                  count=$(cd packages/ag-charts-website/ ; npx playwright test --list | grep -v '!!!SKIPPED!!!' | wc -l)
+                  matrix=$(node ./tools/test/calculate-shards.js eval ${count})
+                  echo "matrix=${matrix}" >> $GITHUB_OUTPUT
+                  echo "E2E matrix determined to be: ${matrix}"
 
             - name: Perist build outputs
               if: always()
@@ -202,8 +213,7 @@ jobs:
         needs: [e2e_init]
         strategy:
             fail-fast: false
-            matrix:
-                shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+            matrix: ${{ fromJson(needs.e2e_init.outputs.matrix )}}
         env:
             NX_PARALLEL: 1
             NX_BASE: ${{ needs.e2e_init.outputs.nx_base }}
@@ -223,10 +233,10 @@ jobs:
               id: setup
               uses: ./.github/actions/setup-nx
               with:
-                  os: ${{ github.env.E2E_OS }}
                   yarn_opts: --ignore-scripts
                   yarn_postinstall: false
                   nx_restore: false # Restored in previous step.
+                  cache_mode: ro
 
             - name: playwright install
               run: npx playwright install chromium --with-deps

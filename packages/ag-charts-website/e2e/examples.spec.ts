@@ -155,10 +155,12 @@ test.describe('examples', () => {
                 ignoreConsoleWarnings,
             } = opts;
 
+            const testFn = affected ? test : test.skip;
+
             test.describe(`Framework: ${framework}`, () => {
-                test.describe(`Example ${pagePath}: ${example}`, () => {
+                test.describe(`Example ${pagePath}: ${example}${affected ? '' : ' (!!!SKIPPED!!!)'}`, () => {
                     if (status === 'ok') {
-                        test(`should load ${url}`, async ({ page }) => {
+                        testFn(`should load ${url}`, async ({ page }) => {
                             config.ignoreConsoleWarnings = ignoreConsoleWarnings;
 
                             test.skip(!affected, 'unaffected example');
@@ -195,9 +197,7 @@ test.describe('examples', () => {
                     }
 
                     if (status === '404') {
-                        test(`should 404 on ${url}`, async ({ page }) => {
-                            test.skip(!affected, 'unaffected example');
-
+                        testFn(`should 404 on ${url}`, async ({ page }) => {
                             config.ignore404s = true;
                             await page.goto(url);
                             expect(await page.title()).toMatch(/Page Not Found/);

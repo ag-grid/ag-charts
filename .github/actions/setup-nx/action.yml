@@ -1,10 +1,6 @@
 name: setup-nx
 
 inputs:
-    clean:
-        description: 'Force a clean setup.'
-        required: false
-        default: 'false'
     yarn_opts:
         description: 'Additional yarn install opts.'
         required: false
@@ -17,10 +13,14 @@ inputs:
         description: 'Restore Nx Cache.'
         required: false
         default: 'true'
-    os:
-        description: 'OS for Nx + Yarn Caches'
+    cache_mode:
+        description: 'Read/write mode for caches'
         require: false
-        default: 'ubuntu'
+        default: 'rw'
+        options:
+            - 'rw'
+            - 'ro'
+            - 'off'
 outputs:
     base:
         description: 'Base branch/SHA for diff detection'
@@ -56,26 +56,47 @@ runs:
                 git fetch origin latest
               fi
 
-        - name: Cache node_modules
-          if: inputs.clean != 'true'
-          id: cache
-          uses: actions/cache@v3
+        - name: Restore node_modules
+          if: inputs.cache_mode == 'ro'
+          id: cache_ro
+          uses: actions/cache/restore@v4
           with:
               path: |
                   node_modules/
                   packages/*/node_modules/
                   plugins/*/node_modules/
                   libraries/*/node_modules/
-              key: node_modules-${{inputs.os}}-${{hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json')}}
-              restore-keys: node_modules-${{inputs.os}}- # Take any latest cache if failed to find it for current yarn.lock
+              key: node_modules-${{ runner.os }}-${{hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json')}}
+              restore-keys: node_modules-${{ runner.os }}- # Take any latest cache if failed to find it for current yarn.lock
+
+        - name: Cache node_modules
+          if: inputs.cache_mode == 'rw'
+          id: cache_rw
+          uses: actions/cache@v4
+          with:
+              path: |
+                  node_modules/
+                  packages/*/node_modules/
+                  plugins/*/node_modules/
+                  libraries/*/node_modules/
+              key: node_modules-${{ runner.os }}-${{hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json')}}
+              restore-keys: node_modules-${{ runner.os }}- # Take any latest cache if failed to find it for current yarn.lock
 
         - name: Cache Nx
-          if: inputs.clean != 'true' && inputs.nx_restore != 'false'
-          uses: actions/cache@v3
+          if: inputs.cache_mode == 'rw' && inputs.nx_restore != 'false'
+          uses: actions/cache@v4
           with:
               path: .nx/cache
-              key: cache-nx-v18-${{inputs.os}}-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-${{ github.sha }}
-              restore-keys: cache-nx-v18-${{inputs.os}}-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-
+              key: cache-nx-v18-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-${{ github.sha }}
+              restore-keys: cache-nx-v18-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-
+
+        - name: Restore Nx
+          if: inputs.cache_mode == 'ro' && inputs.nx_restore != 'false'
+          uses: actions/cache/restore@v4
+          with:
+              path: .nx/cache
+              key: cache-nx-v18-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-${{ github.sha }}
+              restore-keys: cache-nx-v18-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-
 
         - name: Tidy Nx Cache (Post Job)
           uses: ./.github/actions/tidy-nx-cache
@@ -91,10 +112,10 @@ runs:
           uses: actions/setup-node@v4
           with:
               node-version: '20'
-              cache: ${{ inputs.clean != 'true' && steps.cache.outputs.cache-hit != 'true' && 'yarn' || '' }}
+              cache: ${{ inputs.cache_mode != 'none' && !(steps.cache_rw.outputs.cache-hit == 'true' || steps.cache_ro.outputs.cache-hit == 'true') && 'yarn' || '' }}
 
         - name: yarn install
-          if: steps.cache.outputs.cache-hit != 'true'
+          if: ${{ !(steps.cache_rw.outputs.cache-hit == 'true' || steps.cache_ro.outputs.cache-hit == 'true') }}
           id: yarn_install
           shell: bash
           run: |
