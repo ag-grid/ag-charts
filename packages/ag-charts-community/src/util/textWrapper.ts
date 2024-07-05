@@ -25,6 +25,10 @@ export class TextWrapper extends TextMeasurer {
         return clippedResult;
     }
 
+    static appendEllipsis(text: string) {
+        return text.replace(/[.,]+$/, '') + this.EllipsisChar;
+    }
+
     static truncateLine(text: string, measurer: TextMeasurer, maxWidth: number, ellipsisForce?: boolean) {
         const ellipsisWidth = measurer.textWidth(this.EllipsisChar);
         let estimatedWidth = 0;

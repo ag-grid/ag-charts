@@ -256,15 +256,28 @@ export function formatSingleLabel<Meta>(
         while (height > availableHeight) {
             if (lines.length === 1) return;
             lines.pop();
-            lines[lines.length - 1] += TextMeasurer.EllipsisChar;
+            lines[lines.length - 1] = TextWrapper.appendEllipsis(lines.at(-1)!);
             height = lineHeight * lines.length;
         }
 
-        const { width } = TextMeasurer.measureLines(lines, { font: textSizeProps });
-
-        if (width > availableWidth) return;
-
-        return [{ text: lines.join('\n'), fontSize, lineHeight, width, height }, sizeFitting.meta];
+        let text: string;
+        let { width, lineMetrics } = TextMeasurer.measureLines(lines, { font: textSizeProps });
+        if (width > availableWidth) {
+            const clippedLines: string[] = [];
+            width = 0;
+            for (const line of lineMetrics) {
+                if (line.width > availableWidth) {
+                    if (!clippedLines.length) return;
+                    break;
+                }
+                clippedLines.push(line.text);
+                width = Math.max(width, line.width);
+            }
+            text = TextWrapper.appendEllipsis(clippedLines.join('\n'));
+        } else {
+            text = lines.join('\n');
+        }
+        return [{ text, fontSize, lineHeight, width, height }, sizeFitting.meta];
     });
 }
 
