@@ -17,6 +17,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaLabelAnnotationsToolbar: 'Annotations',
     // Screen reader text for annotation-options toolbar
     ariaLabelAnnotationOptionsToolbar: 'Annotation Options',
+    // Screen reader text for the color picker dialog
+    ariaLabelColorPicker: 'Color picker',
     // Screen reader text for the legend toolbar
     ariaLabelLegend: 'Legend',
     // Screen reader text for the legend pagination button
