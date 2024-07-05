@@ -1,4 +1,5 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
+import type { WrapOptions } from 'ag-charts-community/dist/types/src/util/textWrapper';
 import type {
     AgChartAutoSizedBaseLabelOptions,
     AgChartAutoSizedLabelOptions,
@@ -252,19 +253,16 @@ export function formatSingleLabel<Meta>(
 
         if (!lines.length) return;
 
-        let height = lineHeight * lines.length;
-        while (height > availableHeight) {
-            if (lines.length === 1) return;
-            lines.pop();
-            lines[lines.length - 1] += TextMeasurer.EllipsisChar;
-            height = lineHeight * lines.length;
-        }
+        const clippedLabel = clipLines(lines, {
+            lineHeight,
+            font: textSizeProps,
+            maxWidth: availableWidth,
+            maxHeight: availableHeight,
+        });
 
-        const { width } = TextMeasurer.measureLines(lines, { font: textSizeProps });
+        if (!clippedLabel) return;
 
-        if (width > availableWidth) return;
-
-        return [{ text: lines.join('\n'), fontSize, lineHeight, width, height }, sizeFitting.meta];
+        return [{ fontSize, lineHeight, ...clippedLabel }, sizeFitting.meta];
     });
 }
 
@@ -361,4 +359,39 @@ function wrapLabel(
         height: lines.length * lineHeight,
         fontSize: font.fontSize,
     };
+}
+
+function clipLines(
+    lines: string[],
+    { font, lineHeight = TextWrapper.defaultLineHeight, maxWidth, maxHeight = Infinity }: WrapOptions
+) {
+    let height = lineHeight * lines.length;
+    while (height > maxHeight) {
+        if (lines.length === 1) return;
+        lines.pop();
+        lines[lines.length - 1] = TextWrapper.appendEllipsis(lines.at(-1)!);
+        height = lineHeight * lines.length;
+    }
+
+    const metrics = TextMeasurer.measureLines(lines, { font });
+
+    let text: string, width: number;
+    if (metrics.width > maxWidth) {
+        const clippedLines: string[] = [];
+        width = 0;
+        for (const line of metrics.lineMetrics) {
+            if (line.width > maxWidth) {
+                if (!clippedLines.length) return;
+                break;
+            }
+            clippedLines.push(line.text);
+            width = Math.max(width, line.width);
+        }
+        text = TextWrapper.appendEllipsis(clippedLines.join('\n'));
+    } else {
+        text = lines.join('\n');
+        width = metrics.width;
+    }
+
+    return { text, width, height };
 }

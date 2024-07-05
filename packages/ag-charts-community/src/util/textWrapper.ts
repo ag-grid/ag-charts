@@ -5,7 +5,6 @@ import { type MeasureOptions, TextMeasurer } from './textMeasurer';
 // Extended measurement options including wrapping behavior.
 export interface WrapOptions extends MeasureOptions {
     maxWidth: number;
-    maxLines?: number;
     maxHeight?: number;
     lineHeight?: number;
     textWrap?: TextWrap;
@@ -23,6 +22,10 @@ export class TextWrapper extends TextMeasurer {
             return [];
         }
         return clippedResult;
+    }
+
+    static appendEllipsis(text: string) {
+        return text.replace(/[.,]{1,5}$/, '') + this.EllipsisChar;
     }
 
     static truncateLine(text: string, measurer: TextMeasurer, maxWidth: number, ellipsisForce?: boolean) {
