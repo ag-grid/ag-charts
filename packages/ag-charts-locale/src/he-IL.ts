@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
     ariaAnnounceVisible: 'גלוי',
     ariaLabelAnnotationOptionsToolbar: 'אפשרויות הערות',
     ariaLabelAnnotationsToolbar: 'הערות שוליים',
+    ariaLabelColorPicker: 'בוחר צבעים',
     ariaLabelLegend: 'מקרא',
     ariaLabelLegendItem: '${label}, פריט מקרא ${index}[number] מתוך ${count}[number], ',
     ariaLabelLegendItemUnknown: 'פריט אגדה לא ידוע',

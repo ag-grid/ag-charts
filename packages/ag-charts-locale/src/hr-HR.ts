@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_HR_HR: Record<string, string> = {
     ariaAnnounceVisible: 'vidljivo',
     ariaLabelAnnotationOptionsToolbar: 'Opcije komentara',
     ariaLabelAnnotationsToolbar: 'Bilješke',
+    ariaLabelColorPicker: 'Birač boja',
     ariaLabelLegend: 'Legenda',
     ariaLabelLegendItem: '${label}, Stavka legende ${index}[number] od ${count}[number], ',
     ariaLabelLegendItemUnknown: 'Nepoznata stavka legende',

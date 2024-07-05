@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
     ariaAnnounceVisible: 'نظر آرہا ہے',
     ariaLabelAnnotationOptionsToolbar: 'تشریح کے اختیارات',
     ariaLabelAnnotationsToolbar: 'تشریحات',
+    ariaLabelColorPicker: 'رنگ چننے والا',
     ariaLabelLegend: 'علامات',
     ariaLabelLegendItem: '${label}, لیجنڈ آئٹم ${index}[number] کا ${count}[number], ',
     ariaLabelLegendItemUnknown: 'نامعلوم علامات کی شے',

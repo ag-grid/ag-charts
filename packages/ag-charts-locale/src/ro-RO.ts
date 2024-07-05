@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_RO_RO: Record<string, string> = {
     ariaAnnounceVisible: 'vizibil',
     ariaLabelAnnotationOptionsToolbar: 'Opțiuni adnotare',
     ariaLabelAnnotationsToolbar: 'Adnotări',
+    ariaLabelColorPicker: 'Selector de culoare',
     ariaLabelLegend: 'Legendă',
     ariaLabelLegendItem: '${label}, Elementul legendei ${index}[number] din ${count}[number], ',
     ariaLabelLegendItemUnknown: 'Element necunoscut din legendă',

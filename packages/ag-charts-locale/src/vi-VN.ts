@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     ariaAnnounceVisible: 'hiển thị',
     ariaLabelAnnotationOptionsToolbar: 'Tùy chọn Chú thích',
     ariaLabelAnnotationsToolbar: 'Chú thích',
+    ariaLabelColorPicker: 'Trình chọn màu',
     ariaLabelLegend: 'Chú giải',
     ariaLabelLegendItem: '${label}, Mục chú giải ${index}[number] trong số ${count}[number], ',
     ariaLabelLegendItemUnknown: 'Mục chú giải không xác định',

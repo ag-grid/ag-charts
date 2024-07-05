@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_JA_JP: Record<string, string> = {
     ariaAnnounceVisible: '表示',
     ariaLabelAnnotationOptionsToolbar: '注釈オプション',
     ariaLabelAnnotationsToolbar: 'アノテーション',
+    ariaLabelColorPicker: 'カラーピッカー',
     ariaLabelLegend: '凡例',
     ariaLabelLegendItem: '${label}, 凡例項目 ${index}[number] の ${count}[number], ',
     ariaLabelLegendItemUnknown: '不明な凡例項目',

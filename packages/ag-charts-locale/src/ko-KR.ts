@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
     ariaAnnounceVisible: '보이는',
     ariaLabelAnnotationOptionsToolbar: '주석 옵션',
     ariaLabelAnnotationsToolbar: '주석',
+    ariaLabelColorPicker: '색상 선택기',
     ariaLabelLegend: '범례',
     ariaLabelLegendItem: '${label}, 범례 항목 ${index}[number] / ${count}[number], ',
     ariaLabelLegendItemUnknown: '알 수 없는 범례 항목',

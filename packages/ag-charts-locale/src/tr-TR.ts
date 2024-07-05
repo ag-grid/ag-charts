@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_TR_TR: Record<string, string> = {
     ariaAnnounceVisible: 'görünür',
     ariaLabelAnnotationOptionsToolbar: 'Ek Açıklama Seçenekleri',
     ariaLabelAnnotationsToolbar: 'Ek Açıklamalar',
+    ariaLabelColorPicker: 'Renk seçici',
     ariaLabelLegend: 'Efsane',
     ariaLabelLegendItem: '${label}, Gösterge öğesi ${index}[number] / ${count}[number], ',
     ariaLabelLegendItemUnknown: 'Bilinmeyen efsane öğesi',

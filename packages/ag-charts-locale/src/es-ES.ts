@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_ES_ES: Record<string, string> = {
     ariaAnnounceVisible: 'visible',
     ariaLabelAnnotationOptionsToolbar: 'Opciones de anotación',
     ariaLabelAnnotationsToolbar: 'Anotaciones',
+    ariaLabelColorPicker: 'Selector de color',
     ariaLabelLegend: 'Leyenda',
     ariaLabelLegendItem: '${label}, Elemento de leyenda ${index}[number] de ${count}[number], ',
     ariaLabelLegendItemUnknown: 'Elemento desconocido de la leyenda',

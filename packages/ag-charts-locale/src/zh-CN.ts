@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_ZH_CN: Record<string, string> = {
     ariaAnnounceVisible: '可见',
     ariaLabelAnnotationOptionsToolbar: '注释选项',
     ariaLabelAnnotationsToolbar: '注释',
+    ariaLabelColorPicker: '颜色选择器',
     ariaLabelLegend: '图例',
     ariaLabelLegendItem: '${label}，图例项 ${index}[number]，共有 ${count}[number] 个',
     ariaLabelLegendItemUnknown: '未知图例项目',

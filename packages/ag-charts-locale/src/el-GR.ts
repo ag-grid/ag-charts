@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
     ariaAnnounceVisible: 'ορατό',
     ariaLabelAnnotationOptionsToolbar: 'Επιλογές σχολιασμού',
     ariaLabelAnnotationsToolbar: 'Σχολιασμοί',
+    ariaLabelColorPicker: 'Επιλογή χρώματος',
     ariaLabelLegend: 'Υπόμνημα',
     ariaLabelLegendItem: '${label}, Στοιχείο θρύλου ${index}[number] από ${count}[number], ',
     ariaLabelLegendItemUnknown: 'Άγνωστο στοιχείο υπόμνημα',

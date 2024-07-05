@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
     ariaAnnounceVisible: 'مرئي',
     ariaLabelAnnotationOptionsToolbar: 'خيارات التعليق',
     ariaLabelAnnotationsToolbar: 'التعليقات التوضيحية',
+    ariaLabelColorPicker: 'منتقي الألوان',
     ariaLabelLegend: 'الأسطورة',
     ariaLabelLegendItem: '${label}، عنصر الأسطورة ${index}[number] من ${count}[number]، ',
     ariaLabelLegendItemUnknown: 'عنصر غير معروف في الأسطورة',

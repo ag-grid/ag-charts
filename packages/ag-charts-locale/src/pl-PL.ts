@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_PL_PL: Record<string, string> = {
     ariaAnnounceVisible: 'widoczny',
     ariaLabelAnnotationOptionsToolbar: 'Opcje Adnotacji',
     ariaLabelAnnotationsToolbar: 'Adnotacje',
+    ariaLabelColorPicker: 'Wybór koloru',
     ariaLabelLegend: 'Legenda',
     ariaLabelLegendItem: '${label}, Element legendy ${index}[number] z ${count}[number], ',
     ariaLabelLegendItemUnknown: 'Nieznany element legendy',

@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_DA_DK: Record<string, string> = {
     ariaAnnounceVisible: 'synlig',
     ariaLabelAnnotationOptionsToolbar: 'Annotationmuligheder',
     ariaLabelAnnotationsToolbar: 'Annotationer',
+    ariaLabelColorPicker: 'Farvevælger',
     ariaLabelLegend: 'Forklaring',
     ariaLabelLegendItem: '${label}, Forklaringspost ${index}[number] af ${count}[number], ',
     ariaLabelLegendItemUnknown: 'Ukendt element i legenden',

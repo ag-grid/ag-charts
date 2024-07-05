@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_CS_CZ: Record<string, string> = {
     ariaAnnounceVisible: 'viditelný',
     ariaLabelAnnotationOptionsToolbar: 'Možnosti anotace',
     ariaLabelAnnotationsToolbar: 'Anotace',
+    ariaLabelColorPicker: 'Výběr barev',
     ariaLabelLegend: 'Legenda',
     ariaLabelLegendItem: '${label}, Položka legendy ${index}[number] z ${count}[number], ',
     ariaLabelLegendItemUnknown: 'Neznámá položka legendy',

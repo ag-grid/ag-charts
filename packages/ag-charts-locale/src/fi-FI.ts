@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
     ariaAnnounceVisible: 'näkyvissä',
     ariaLabelAnnotationOptionsToolbar: 'Merkinnän vaihtoehdot',
     ariaLabelAnnotationsToolbar: 'Huomautukset',
+    ariaLabelColorPicker: 'Värinvalitsin',
     ariaLabelLegend: 'Selite',
     ariaLabelLegendItem: '${label}, Selitteen kohde ${index}[number] ${count}[number]:sta, ',
     ariaLabelLegendItemUnknown: 'Tuntematon legenda-esiintymä',

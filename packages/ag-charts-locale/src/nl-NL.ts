@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_NL_NL: Record<string, string> = {
     ariaAnnounceVisible: 'zichtbaar',
     ariaLabelAnnotationOptionsToolbar: 'Annotatie-opties',
     ariaLabelAnnotationsToolbar: 'Annotaties',
+    ariaLabelColorPicker: 'Kleurkiezer',
     ariaLabelLegend: 'Legenda',
     ariaLabelLegendItem: '${label}, Legend-item ${index}[number] van ${count}[number], ',
     ariaLabelLegendItemUnknown: 'Onbekend legende-item',

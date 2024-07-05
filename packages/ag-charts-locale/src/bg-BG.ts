@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
     ariaAnnounceVisible: 'видим',
     ariaLabelAnnotationOptionsToolbar: 'Опции за анотация',
     ariaLabelAnnotationsToolbar: 'Анотации',
+    ariaLabelColorPicker: 'Цветова палитра',
     ariaLabelLegend: 'Легенда',
     ariaLabelLegendItem: '${label}, Елемент от легендата ${index}[number] от ${count}[number], ',
     ariaLabelLegendItemUnknown: 'Неизвестен елемент в легендата',

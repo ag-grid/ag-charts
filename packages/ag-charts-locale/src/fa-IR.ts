@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
     ariaAnnounceVisible: 'قابل مشاهده',
     ariaLabelAnnotationOptionsToolbar: 'گزینه‌های حاشیه‌نویسی',
     ariaLabelAnnotationsToolbar: 'حاشیه‌نویسی‌ها',
+    ariaLabelColorPicker: 'انتخاب‌گر رنگ',
     ariaLabelLegend: 'راهنما',
     ariaLabelLegendItem: '${label}، افسانه مورد ${index}[number] از ${count}[number]، ',
     ariaLabelLegendItemUnknown: 'مورد ناشناخته در فهرست علائم',
