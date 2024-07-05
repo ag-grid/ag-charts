@@ -115,7 +115,7 @@ runs:
               cache: ${{ inputs.cache_mode != 'none' && !(steps.cache_rw.outputs.cache-hit == 'true' || steps.cache_ro.outputs.cache-hit == 'true') && 'yarn' || '' }}
 
         - name: yarn install
-          if: ${{ !(steps.cache_rw.outputs.cache-hit == 'true' || steps.cache_ro.outputs.cache-hit == 'true') }}
+          if: steps.cache_rw.outputs.cache-hit == 'false' || steps.cache_ro.outputs.cache-hit == 'false'
           id: yarn_install
           shell: bash
           run: |
