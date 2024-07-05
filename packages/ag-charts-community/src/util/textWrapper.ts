@@ -5,7 +5,6 @@ import { type MeasureOptions, TextMeasurer } from './textMeasurer';
 // Extended measurement options including wrapping behavior.
 export interface WrapOptions extends MeasureOptions {
     maxWidth: number;
-    maxLines?: number;
     maxHeight?: number;
     lineHeight?: number;
     textWrap?: TextWrap;
