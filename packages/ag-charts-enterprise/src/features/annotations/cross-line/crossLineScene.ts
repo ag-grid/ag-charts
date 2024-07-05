@@ -209,12 +209,12 @@ export class CrossLine extends Annotation {
     }
 
     override getAnchor() {
-        let bbox = this.getCachedBBox();
+        let bbox = this.getCachedBBoxWithoutHandles();
 
         // Since crosslines are created in a single click, the anchor is required before their first render and
         // caching of the bbox. So force a computation of it here.
         if (bbox.width === 0 && bbox.height === 0) {
-            bbox = this.computeBBox();
+            bbox = this.computeBBoxWithoutHandles();
         }
 
         if (this.isHorizontal) {

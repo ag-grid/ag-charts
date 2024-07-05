@@ -1,16 +1,13 @@
 import type { AgContextMenuOptions, _Scene } from 'ag-charts-community';
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import {
-    DEFAULT_CONTEXT_MENU_CLASS,
-    DEFAULT_CONTEXT_MENU_DARK_CLASS,
-    defaultContextMenuCss,
-} from './contextMenuStyles';
+import { DEFAULT_CONTEXT_MENU_CLASS, DEFAULT_CONTEXT_MENU_DARK_CLASS } from './contextMenuStyles';
 
 type ContextMenuGroups = {
     default: Array<ContextMenuAction>;
     extra: Array<ContextMenuAction<'all'>>;
-    extraNode: Array<ContextMenuAction<'series'>>;
+    extraSeries: Array<ContextMenuAction<'series'>>;
+    extraNode: Array<ContextMenuAction<'node'>>;
     extraLegendItem: Array<ContextMenuAction<'legend'>>;
 };
 type ContextType = _ModuleSupport.ContextType;
@@ -91,7 +88,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.destroyFns.push(ctx.regionManager.listenAll('click', (_region) => this.onClick(), All));
 
         // State
-        this.groups = { default: [], extra: [], extraNode: [], extraLegendItem: [] };
+        this.groups = { default: [], extra: [], extraSeries: [], extraNode: [], extraLegendItem: [] };
 
         this.element = ctx.domManager.addChild('canvas-overlay', moduleId);
         this.element.classList.add(DEFAULT_CONTEXT_MENU_CLASS);
@@ -112,8 +109,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             this.mutationObserver = observer;
             this.destroyFns.push(() => observer.disconnect());
         }
-
-        ctx.domManager.addStyles(moduleId, defaultContextMenuCss);
 
         this.registry.registerDefaultAction({
             id: 'download',
@@ -163,7 +158,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             this.pickedNode = event.context.pickedNode;
             if (this.pickedNode) {
                 this.groups.extraNode = this.extraNodeActions.map(({ label, action }) => {
-                    return { type: 'series', label, action };
+                    return { type: 'node', label, action };
                 });
             }
         }
@@ -302,7 +297,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                     this.hide();
                 }
             };
-        } else if (ContextMenuRegistry.checkCallback('series', type, callback)) {
+        } else if (ContextMenuRegistry.checkCallback('node', type, callback)) {
             return () => {
                 const { pickedNode, showEvent } = this;
                 const event = pickedNode?.series.createNodeContextMenuActionEvent(showEvent!, pickedNode);

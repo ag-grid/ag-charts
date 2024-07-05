@@ -64,8 +64,8 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
     }
 
     private onClickStop(event: PointerInteractionEvent<'drag-end' | 'click'>) {
-        this.isClicking = false;
         this.mouseBlur(event);
+        this.isClicking = false;
     }
 
     private mouseBlur(event: PointerInteractionEvent) {
@@ -84,18 +84,21 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
     }
 
     private onFocus(event: FocusInteractionEvent<'focus'>) {
+        const delta = this.domManager.getBrowserFocusDelta();
+
+        this.dispatch('browserfocus', delta, event);
         this.hasBrowserFocus = true;
+
         if (this.isClicking) {
             this.isMouseBlurred = true;
-        } else {
-            const delta = this.domManager.getBrowserFocusDelta();
-            this.dispatch('browserfocus', delta, event);
-            this.dispatch('tab', delta, event);
+            return;
         }
+
+        this.dispatch('tab', delta, event);
     }
 
     private onKeyDown(event: KeyInteractionEvent<'keydown'>) {
-        if (!this.hasBrowserFocus || this.isClicking) return;
+        if (!this.hasBrowserFocus) return;
 
         this.isMouseBlurred = false;
 

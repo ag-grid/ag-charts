@@ -303,13 +303,22 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         }
     }
 
+    private getEventHTMLTarget(event: SupportedEvent): HTMLElement | undefined {
+        if (event.target instanceof HTMLElement) {
+            return event.target;
+        } else if (event.currentTarget instanceof HTMLElement) {
+            return event.currentTarget;
+        }
+        return undefined;
+    }
+
     private recordDown(event: SupportedEvent) {
         if (event instanceof MouseEvent) {
             partialAssign(['offsetX', 'offsetY'], this.clickHistory[0], event);
             partialAssign(['offsetX', 'offsetY'], this.dblclickHistory[2], this.dblclickHistory[0]);
             partialAssign(['offsetX', 'offsetY'], this.dblclickHistory[0], event);
         }
-        this.dragStartElement = event.target as HTMLElement;
+        this.dragStartElement = this.getEventHTMLTarget(event);
     }
 
     private recordUp(event: SupportedEvent) {
@@ -431,7 +440,8 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         const { clientX, clientY, pageX, pageY } = event;
         let { offsetX, offsetY } = event;
 
-        const { x, y } = this.domManager.calculateCanvasPosition(event.target as HTMLElement);
+        const target = this.getEventHTMLTarget(event);
+        const { x = 0, y = 0 } = target ? this.domManager.calculateCanvasPosition(target) : {};
         if (this.dragStartElement != null && event.target !== this.dragStartElement) {
             // Offsets need to be relative to the drag-start element to avoid jumps when
             // the pointer moves between element boundaries.

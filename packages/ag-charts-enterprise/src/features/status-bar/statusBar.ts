@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-const { Validate, OBJECT, BOOLEAN, STRING, valueProperty } = _ModuleSupport;
+const { TextMeasurer, Validate, OBJECT, BOOLEAN, STRING, valueProperty } = _ModuleSupport;
 const { Label, Text, Group } = _Scene;
 
 class StatusBarLabel extends Label {}
@@ -43,7 +43,7 @@ export class StatusBar
     data?: any[] = undefined;
 
     private readonly highlightManager: _ModuleSupport.HighlightManager;
-    private readonly labelGroup = new Group();
+    private readonly labelGroup = new Group({ name: 'StatusBar' });
     private readonly labels = [
         {
             label: 'O',
@@ -116,7 +116,7 @@ export class StatusBar
         this.labelGroup.visible = false;
 
         this.destroyFns.push(
-            ctx.scene.attachNode(this.labelGroup),
+            ctx.scene.attachNode(this.labelGroup, 'titles'),
             ctx.layoutService.addListener('before-series', (e) => this.startPerformLayout(e)),
             ctx.highlightManager.addListener('highlight-change', () => this.updateHighlight())
         );
@@ -170,14 +170,18 @@ export class StatusBar
         const lineHeight = maxFontSize * Text.defaultLineHeightRatio;
 
         let left = 0;
+        let offsetTop: number;
+        let textVAlign: CanvasTextBaseline = 'alphabetic';
         if (this.layoutStyle === 'block') {
             shrinkRect.shrink(spacingAbove + lineHeight + spacingBelow, 'top');
+            offsetTop = maxFontSize + (lineHeight - maxFontSize) / 2;
         } else {
             const { title } = opts.positions;
-            left = (title?.x ?? 0) + (title?.width ?? 0) + outerSpacing;
+            const { title: padding = 0 } = opts.padding;
+            left = (title?.x ?? 0) + (title?.width ?? 0) + (title ? outerSpacing : padding);
+            textVAlign = 'top';
+            offsetTop = spacingAbove + padding;
         }
-
-        const offsetTop = maxFontSize + (lineHeight - maxFontSize) / 2;
 
         for (const { label, title, value, domain, formatter } of this.labels) {
             if (domain == null) {
@@ -187,26 +191,46 @@ export class StatusBar
             }
 
             const maxValueWidth = Math.max(
-                Text.measureText(formatter.format(domain[0]), this.positive.getFont(), 'alphabetic', 'left').width,
-                Text.measureText(formatter.format(domain[1]), this.positive.getFont(), 'alphabetic', 'left').width,
-                Text.measureText(formatter.format(domain[0]), this.negative.getFont(), 'alphabetic', 'left').width,
-                Text.measureText(formatter.format(domain[1]), this.negative.getFont(), 'alphabetic', 'left').width
+                TextMeasurer.measureText(formatter.format(domain[0]), {
+                    font: this.positive.getFont(),
+                    textBaseline: textVAlign,
+                    textAlign: 'left',
+                }).width,
+                TextMeasurer.measureText(formatter.format(domain[1]), {
+                    font: this.positive.getFont(),
+                    textBaseline: textVAlign,
+                    textAlign: 'left',
+                }).width,
+                TextMeasurer.measureText(formatter.format(domain[0]), {
+                    font: this.negative.getFont(),
+                    textBaseline: textVAlign,
+                    textAlign: 'left',
+                }).width,
+                TextMeasurer.measureText(formatter.format(domain[1]), {
+                    font: this.negative.getFont(),
+                    textBaseline: textVAlign,
+                    textAlign: 'left',
+                }).width
             );
 
             title.visible = true;
             value.visible = true;
 
-            const titleMetrics = Text.measureText(label, this.title.getFont(), 'alphabetic', 'left');
+            const titleMetrics = TextMeasurer.measureText(label, {
+                font: this.title.getFont(),
+                textBaseline: textVAlign,
+                textAlign: 'left',
+            });
             title.setFont(this.title);
             title.fill = this.title.color;
             title.text = label;
-            title.textBaseline = 'alphabetic';
+            title.textBaseline = textVAlign;
             title.translationY = offsetTop;
             title.translationX = left;
 
             left += titleMetrics.width + innerSpacing;
 
-            value.textBaseline = 'alphabetic';
+            value.textBaseline = textVAlign;
             value.translationY = offsetTop;
             value.translationX = left;
 

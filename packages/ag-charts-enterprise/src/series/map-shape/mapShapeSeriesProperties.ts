@@ -9,7 +9,7 @@ import type {
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { GEOJSON_OBJECT } from '../map-util/validation';
-import { AutoSizeableSecondaryLabel } from '../util/labelFormatter';
+import { AutoSizeableSecondaryLabel } from '../util/autoSizedLabel';
 
 const {
     AND,

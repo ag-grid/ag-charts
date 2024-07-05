@@ -30,7 +30,49 @@ This release includes the following breaking changes:
 -   `pie` and `donut` series strokes are now rendered on the inside of each sector. Instead of using `strokeWidth` to add spacing between the sectors, use `sectorSpacing`.
 -   `innerLabels.margin` on `donut` series is renamed to `innerLabels.spacing`.
 -   `scatter` and `bubble` series options contained within `marker` object are moved to the top level. `marker.enabled` is removed.
--   `formatter` function on series, marker and error-bars is renamed to `itemStyler`.
+-   `formatter` function on all series, marker and error-bars is renamed to `itemStyler`.
+
+-   All `SeriesFormatterParams` are renamed to `SeriesItemStylerParams`.
+    -   `AgBarSeriesFormatterParams` is renamed to `AgBarSeriesItemStylerParams``.
+    -   `AgPieSeriesFormatterParams` is renamed to `AgPieSeriesItemStylerParams`.
+    -   `AgDonutSeriesFormatterParams` is renamed to `AgDonutSeriesItemStylerParams`.
+    -   `AgBoxPlotSeriesFormatterParams` is renamed to `AgBoxPlotSeriesItemStylerParams`.
+    -   `AgCandlestickSeriesFormatterParams` is renamed to `AgCandlestickSeriesItemStylerParams`.
+    -   `AgHeatmapSeriesFormatterParams` is renamed to `AgHeatmapSeriesItemStylerParams`.
+    -   `AgOhlcSeriesFormatterParams` is renamed to `AgOhlcSeriesItemStylerParams`.
+    -   `AgWaterfallSeriesFormatterParams` is renamed to `AgWaterfallSeriesItemStylerParams`.
+    -   `AgSunburstSeriesFormatterParams` is renamed to `AgSunburstSeriesItemStylerParams`.
+    -   `AgTreemapSeriesFormatterParams` is renamed to `AgTreemapSeriesItemStylerParams`.
+    -   `AgRadialSeriesFormatterParams` is renamed to `AgRadialSeriesItemStylerParams`.
+    -   `AgMapLineSeriesFormatterParams` is renamed to `AgMapLineSeriesItemStylerParams`.
+    -   `AgMapMarkerSeriesFormatterParams` is renamed to `AgMapMarkerSeriesItemStylerParams`.
+    -   `AgMapShapeSeriesFormatterParams` is renamed to `AgMapShapeSeriesItemStylerParams`.
+-   `AgSeriesMarkerFormatterParams` is renamed `AgSeriesMarkerStylerParams
+-   `AgErrorBarFormatterParams` is renamed to `AgErrorBarItemStylerParams`.
+
+-   `fills[]` and `strokes[]` are removed from `AgPieSeriesItemStylerParams` and `AgDonutSeriesItemStylerParams`.
+-   `value` is removed from waterfall `AgWaterfallSeriesItemStylerParams`.
+
+-   `AgPieSeriesFormat` is renamed to `AgPieSeriesStyle`.
+-   `AgDonutSeriesFormat` is renamed to `AgDonutSeriesStyle`.
+-   `AgRadialSeriesFormat` is renamed to `AgRadialSeriesStyle`.
+-   `AgWaterfallSeriesFormat` is renamed to `AgWaterfallSeriesStyle`.
+-   `AgRangeBarSeriesFormat` is renamed to `AgRangeBarSeriesStyle`.
+-   `AgHeatmapSeriesFormat` is renamed to `AgHeatmapSeriesStyle`.
+-   `AgBoxPlotSeriesStyles` is renamed to `AgBoxPlotSeriesStyle`.
+
+-   `AgRadarSeriesItemStylerParams` added a `<TDatum>` generic.
+-   `AgSunburstSeriesItemStylerParams` generic no longer has a default value.
+-   `AgTreemapSeriesItemStylerParams` generic no longer has a default value.
+
+-   `AgErrorBarOptions` added a `<TDatum>` generic.
+-   `AgPieSeriesTooltipRendererParams` added a `<TDatum>` generic.
+-   `AgDonutSeriesTooltipRendererParams` added a `<TDatum>` generic.
+-   `AgCandlestickSeriesTooltipRendererParams` added a `<TDatum>` generic.
+-   `AgHeatmapSeriesTooltipRendererParams` added a `<TDatum>` generic.
+-   `AgOhlcSeriesTooltipRendererParams` added a `<TDatum>` generic.
+-   `AgRangeBarSeriesTooltipRendererParams` added a `<TDatum>` generic.
+-   `AgRadialSeriesTooltipRendererParams` added a `<TDatum>` generic.
 
 **Axes Changes**
 

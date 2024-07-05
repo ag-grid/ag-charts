@@ -464,12 +464,10 @@ export class Sector extends Path {
             }
             const midAngle = startAngle + sweepAngle * 0.5;
             path.moveTo(centerX + r * Math.cos(midAngle), centerY + r * Math.sin(midAngle));
-        } else if (startInnerArc?.isValid() === true) {
-            const { x, y } = startInnerArc.pointAt(startInnerArc.a1);
-            path.moveTo(centerX + x, centerY + y);
-        } else if (innerArc?.isValid() === true) {
-            const { x, y } = innerArc.pointAt(innerArc.a0);
-            path.moveTo(centerX + x, centerY + y);
+        } else if (startInnerArc?.isValid() === true || innerArc?.isValid() === true) {
+            // The first point of the path will be the first point on an arc
+            // We don't need to call moveTo here - it's implicit
+            // Not having a moveTo also fixes some issues Chrome has about mitering
         } else {
             const midAngle = startAngle + sweepAngle / 2;
             const cx = innerRadius * Math.cos(midAngle);

@@ -1,5 +1,4 @@
 import type {
-    AgAreaSeriesOptions,
     AgBarSeriesItemStylerParams,
     AgBarSeriesOptions,
     AgBaseFinancialPresetOptions,
@@ -130,7 +129,7 @@ export function priceVolume(
                   // @ts-expect-error
                   layoutConstraints: {
                       stacked: false,
-                      width: 25,
+                      width: 20,
                       unit: 'percentage',
                       align: 'end',
                   },
@@ -196,12 +195,14 @@ export function priceVolume(
         },
         tooltip: { enabled: false },
         data,
+        // @ts-expect-error
+        titlePadding: 4,
         ...navigatorOpts,
         ...statusBarOpts,
         ...zoomOpts,
         ...toolbarOpts,
         ...unusedOpts,
-    };
+    } satisfies AgCartesianChartOptions;
 }
 
 function createVolumeSeries(
@@ -228,6 +229,9 @@ function createVolumeSeries(
             type: 'bar',
             xKey: 'date',
             yKey: volumeKey,
+            tooltip: { enabled: false },
+            // @ts-expect-error
+            highlight: { enabled: false },
             fillOpacity: fromTheme(theme, (t) => t.overrides?.bar?.series?.fillOpacity) ?? 0.5,
             ...itemStyler,
         } satisfies AgBarSeriesOptions,
@@ -288,17 +292,6 @@ function createPriceSeries(
                 } satisfies AgLineSeriesOptions,
             ];
 
-        case 'area':
-            return [
-                {
-                    type: 'area',
-                    ...singleKeys,
-                    fill: fromTheme(theme, (t) => t.overrides?.['radar-area']?.series?.fill) ?? PALETTE_NEUTRAL_STROKE,
-                    fillOpacity: fromTheme(theme, (t) => t.overrides?.area?.series?.fillOpacity) ?? 0.5,
-                    stroke: fromTheme(theme, (t) => t.overrides?.area?.series?.stroke) ?? PALETTE_NEUTRAL_STROKE,
-                    strokeWidth: fromTheme(theme, (t) => t.overrides?.area?.series?.strokeWidth) ?? 2,
-                } satisfies AgAreaSeriesOptions,
-            ];
         case RANGE_AREA_TYPE:
             const fill = fromTheme(theme, (t) => t.overrides?.['range-area']?.series?.fill);
             const stoke = fromTheme(theme, (t) => t.overrides?.['range-area']?.series?.stroke);

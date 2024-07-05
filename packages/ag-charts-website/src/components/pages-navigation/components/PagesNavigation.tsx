@@ -357,7 +357,7 @@ export function PagesNavigation({
                     framework={framework}
                     activeMenuItem={activeMenuItem}
                     activeTopLevelMenuItem={activeTopLevelMenuItem}
-                    menuGroupKey="maps"
+                    menuGroupKey="financialCharts"
                     className={styles.menuGroupTypesNav}
                 />
                 <MenuGroupPagesNavigation
@@ -365,7 +365,7 @@ export function PagesNavigation({
                     framework={framework}
                     activeMenuItem={activeMenuItem}
                     activeTopLevelMenuItem={activeTopLevelMenuItem}
-                    menuGroupKey="financialCharts"
+                    menuGroupKey="maps"
                     className={styles.menuGroupTypesNav}
                 />
                 <MenuGroupPagesNavigation

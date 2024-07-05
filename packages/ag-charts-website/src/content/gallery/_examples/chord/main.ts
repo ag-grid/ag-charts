@@ -50,7 +50,7 @@ const options: AgChartOptions = {
             tooltip: {
                 renderer: ({ datum, fromKey, toKey, sizeKey }) => ({
                     content:
-                        datum != null
+                        datum[sizeKey!] != null
                             ? `${numberFormatter.format(datum[sizeKey!])} ${datum[fromKey!]} developers want to learn ${datum[toKey!]}`
                             : '',
                 }),

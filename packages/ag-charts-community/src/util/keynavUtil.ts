@@ -70,9 +70,11 @@ export function initToolbarKeyNav(opts: {
 }): (() => void)[] {
     const { orientation, toolbar, buttons, onEscape, onFocus, onBlur } = opts;
     const { nextKey, prevKey } = PREV_NEXT_KEYS[orientation];
+    const ariaHidden: boolean = buttons.length === 0;
 
     toolbar.role = 'toolbar';
     toolbar.ariaOrientation = orientation;
+    toolbar.ariaHidden = ariaHidden.toString();
 
     // Assistive Technologies might provide functionality to focus on any element at random.
     // For example, in VoiceOver the user can press Ctrl+Opt+Shift Up to leave the toolbar, and then

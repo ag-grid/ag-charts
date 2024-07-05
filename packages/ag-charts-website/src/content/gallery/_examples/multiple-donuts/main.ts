@@ -19,29 +19,14 @@ const options: AgChartOptions = {
     },
     series: [
         {
-            data: data['cities'],
-            type: 'donut',
-            angleKey: 'value',
-            sectorLabelKey: 'city',
-            outerRadiusRatio: 0.8,
-            innerRadiusRatio: 0.6,
-            fillOpacity: 0.5,
-            itemStyler({ datum }) {
-                return { fill: datum['index'] < 9 ? '#5090dc' : '#ffa03a' };
-            },
-            tooltip,
-        },
-        {
             data: data['countries'],
             type: 'donut',
             angleKey: 'value',
             sectorLabelKey: 'country',
-            outerRadiusRatio: 0.6,
-            innerRadiusRatio: 0.4,
-            fillOpacity: 0.8,
-            itemStyler({ datum }) {
-                return { fill: datum['index'] < 3 ? '#5090dc' : '#ffa03a' };
-            },
+            outerRadiusRatio: 1,
+            innerRadiusRatio: 0.6,
+            cornerRadius: 4,
+            fillOpacity: 0.9,
             tooltip,
         },
         {
@@ -49,9 +34,9 @@ const options: AgChartOptions = {
             type: 'donut',
             angleKey: 'value',
             sectorLabelKey: 'continent',
-            outerRadiusRatio: 0.2,
-            innerRadiusRatio: 0.4,
-            strokeWidth: 2,
+            outerRadiusRatio: 0.5,
+            innerRadiusRatio: 0.1,
+            cornerRadius: 4,
             tooltip,
         },
     ],

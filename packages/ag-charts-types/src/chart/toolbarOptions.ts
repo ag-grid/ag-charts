@@ -108,10 +108,12 @@ export interface AgToolbarRangesButton extends AgToolbarButton {
     value: AgToolbarRangesButtonValue;
 }
 
-export type AgToolbarRangesButtonValue =
-    | number
-    | [Date | number, Date | number]
-    | ((start: Date | number, end: Date | number) => [Date | number, Date | number]);
+export type AgToolbarRangesButtonValue = number | AgToolbarRangesButtonValuePair | AgToolbarRangesButtonValueFunction;
+export type AgToolbarRangesButtonValuePair = [Date | number, Date | number];
+export type AgToolbarRangesButtonValueFunction = (
+    start: Date | number,
+    end: Date | number
+) => [Date | number, Date | number];
 
 /* Zoom */
 export interface AgToolbarZoomGroup extends AgToolbarGroup {

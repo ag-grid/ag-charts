@@ -3,7 +3,6 @@ import type { DOMManager } from '../dom/domManager';
 import type { ErrorBoundSeriesNodeDatum, SeriesNodeDatum } from '../series/seriesTypes';
 import type { Tooltip, TooltipContent, TooltipMeta } from '../tooltip/tooltip';
 import { type TooltipPointerEvent } from '../tooltip/tooltip';
-import defaultTooltipCss from './tooltipManager.css';
 
 interface TooltipState {
     content?: TooltipContent;
@@ -26,7 +25,6 @@ export class TooltipManager {
         tooltip.setup(domManager);
 
         domManager.addListener('hidden', () => this.tooltip.toggle(false));
-        domManager.addStyles('tooltip', defaultTooltipCss);
     }
 
     public updateTooltip(callerId: string, meta?: TooltipMeta, content?: TooltipContent) {

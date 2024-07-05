@@ -86,8 +86,9 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         const ticks: Date[] = [];
         const count = this.timestamps.length;
         const tickEvery = Math.ceil((count * (this.visibleRange[1] - this.visibleRange[0])) / maxTickCount);
+        const tickOffset = Math.floor(tickEvery / 2);
         for (const [index, value] of this.timestamps.entries()) {
-            if (tickEvery > 0 && index % tickEvery) continue;
+            if (tickEvery > 0 && (index + tickOffset) % tickEvery) continue;
             if (isReversed) {
                 ticks.push(new Date(this.timestamps[count - index - 1]));
             } else {

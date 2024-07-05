@@ -15,7 +15,7 @@ import {
 import { ChordLink } from './chordLink';
 import { ChordSeriesProperties } from './chordSeriesProperties';
 
-const { SeriesNodePickMode, createDatumId, EMPTY_TOOLTIP_CONTENT } = _ModuleSupport;
+const { SeriesNodePickMode, TextMeasurer, TextWrapper, createDatumId, EMPTY_TOOLTIP_CONTENT } = _ModuleSupport;
 const { angleBetween, normalizeAngle360, isBetweenAngles, sanitizeHtml, Logger } = _Util;
 const { Sector, Text } = _Scene;
 
@@ -163,8 +163,16 @@ export class ChordSeries extends FlowProportionSeries<
                 const { id, label } = node;
                 if (label == null) return;
 
-                const text = Text.wrap(label, labelMaxWidth, Infinity, this.properties.label, 'never', 'ellipsis');
-                const { width } = Text.measureText(text, canvasFont, 'middle', 'left');
+                const text = TextWrapper.wrapText(label, {
+                    maxWidth: labelMaxWidth,
+                    font: this.properties.label,
+                    textWrap: 'never',
+                });
+                const { width } = TextMeasurer.measureText(text, {
+                    font: canvasFont,
+                    textAlign: 'left',
+                    textBaseline: 'middle',
+                });
                 maxMeasuredLabelWidth = Math.max(width, maxMeasuredLabelWidth);
 
                 labelData.push({

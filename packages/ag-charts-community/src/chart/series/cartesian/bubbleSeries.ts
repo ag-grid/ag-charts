@@ -11,6 +11,7 @@ import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
+import { TextMeasurer } from '../../../util/textMeasurer';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
@@ -173,7 +174,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 labelName,
             });
 
-            const size = Text.getTextSize(String(labelText), font);
+            const size = TextMeasurer.measureText(String(labelText), { font });
             const markerSize = sizeKey ? sizeScale.convert(values[sizeDataIdx]) : marker.size;
             const fill = colorKey ? colorScale.convert(values[colorDataIdx]) : undefined;
 

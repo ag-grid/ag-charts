@@ -140,11 +140,11 @@ You can integrate the internationalisation framework using the `getLocaleText` o
 
 If you return `undefined` from this function, it will fall back to the default behaviour of using `localeText` with the default formatter.
 
+{% if isFramework("javascript") %}
+
 ### Framework Integration Examples
 
 {% tabs %}
-
-{% if isFramework("javascript", "angular", "vue") %}
 
 {% tabItem id="FormatJS" label="FormatJS" %}
 
@@ -206,9 +206,15 @@ AgCharts.create({
 
 {% /tabItem %}
 
+{% /tabs %}
+
 {% /if %}
 
 {% if isFramework("react") %}
+
+### Framework Integration Examples
+
+{% tabs %}
 
 {% tabItem id="React Intl" label="React Intl" %}
 
@@ -288,9 +294,9 @@ const MyChart = () => {
 
 {% /tabItem %}
 
-{% /if %}
-
 {% /tabs %}
+
+{% /if %}
 
 ## API Reference
 

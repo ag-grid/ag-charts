@@ -13,7 +13,6 @@ import type {
 import { ANNOTATION_BUTTONS, AnnotationType, stringToAnnotationType } from './annotationTypes';
 import { calculateAxisLabelPadding, invertCoords, validateDatumPoint } from './annotationUtils';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
-import axisButtonCss from './axisButton.css';
 import { HorizontalLineAnnotation, VerticalLineAnnotation } from './cross-line/crossLineProperties';
 import { CrossLine } from './cross-line/crossLineScene';
 import { CrossLineStateMachine } from './cross-line/crossLineState';
@@ -212,8 +211,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             )
             .map((region) => ctx.regionManager.getRegion(region));
 
-        ctx.domManager.addStyles(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS, axisButtonCss);
-
         this.destroyFns.push(
             ctx.annotationManager.attachNode(this.container),
             () => this.colorPicker.destroy(),
@@ -253,8 +250,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (styles) datum.set(styles);
 
         if (this.defaultColor) {
-            datum.stroke = this.defaultColor;
-            if ('background' in datum) datum.background.fill = this.defaultColor;
+            this.colorDatum(datum, this.defaultColor);
         }
     }
 
@@ -360,17 +356,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (active == null) return;
 
-        const datum = this.getTypedDatum(annotationData[active]);
-
-        if (datum) {
-            datum.stroke = color;
-            if ('axisLabel' in datum) {
-                datum.axisLabel.fill = color;
-                datum.axisLabel.stroke = color;
-            }
-            if ('background' in datum) datum.background.fill = color;
-        }
-
+        this.colorDatum(annotationData[active], color);
         this.defaultColor = color;
         this.update();
     }
@@ -875,7 +861,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         toolbarManager.toggleButton('annotationOptions', 'unlock', { visible: locked });
     }
 
-    getTypedDatum(datum: unknown) {
+    private getTypedDatum(datum: unknown) {
         if (
             LineAnnotation.is(datum) ||
             HorizontalLineAnnotation.is(datum) ||
@@ -885,6 +871,17 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         ) {
             return datum;
         }
+    }
+
+    private colorDatum(datum: AnnotationProperties, color: string) {
+        datum.stroke = color;
+
+        if ('axisLabel' in datum) {
+            datum.axisLabel.fill = color;
+            datum.axisLabel.stroke = color;
+        }
+
+        if ('background' in datum) datum.background.fill = color;
     }
 
     private isOtherElement({ targetElement }: { targetElement?: HTMLElement }) {

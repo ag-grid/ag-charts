@@ -1,15 +1,103 @@
 ---
-title: 'Financial Charts Overview'
+title: 'Financial Charts - Overview'
 enterprise: true
 hideSideMenu: true
 largeExamples: true
 ---
 
-AG Charts provides fully featured Financial Charts, requiring minimum configuration to setup and use.
+Build interactive financial charts featuring advanced annotations with minimal configuration.
 
-{% chartExampleRunner title="Basic Financial Chart" name="basic-financial-chart" type="generated" /%}
+{% chartExampleRunner title="Financial Charts Showcase" name="financial-charts-showcase" type="generated" /%}
 
--   [Annotations](./annotations/)
--   [Range Buttons](./toolbar/)
--   Status Bar
--   [Multiple Chart Types](./financial-chart-types/)
+## Minimal Configuration
+
+Financial Charts come pre-configured with built-in features - just add your data!
+
+{% if isFramework("javascript") %}
+
+```js
+const options = {
+    data: getData(),
+};
+
+AgCharts.createFinancialChart(options);
+```
+
+{% /if %}
+
+{% if isFramework("react") %}
+
+```jsx
+const [options, setOptions] = useState({
+    data: getData(),
+});
+
+return (
+    <AgFinancialCharts options={options} />
+);
+```
+
+{% /if %}
+
+{% if isFramework("angular") %}
+
+```js
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [AgFinancialCharts],
+  template: `<ag-financial-charts [options]="options"></ag-financial-charts>`,
+})
+export class AppComponent {
+  public options: AgFinancialChartOptions;
+  constructor() {
+    this.options = {
+      data: getData(),
+    };
+  }
+}
+```
+
+{% /if %}
+
+{% if isFramework("vue") %}
+
+```js
+template: `<ag-financial-charts:options="options"/>`,
+components: {
+    'ag-financial-charts': AgFinancialCharts,
+},
+data() {
+    return {
+        options: {
+            data: getData(),
+        },
+    };
+}
+```
+
+{% /if %}
+
+{% note %}
+This snippet assumes the supplied data includes 'date', 'open', 'high', 'low', 'close' and 'volume' (optional) keys.
+{% /note %}
+
+For more details see [Financial Charts Configuration](./financial-charts-configuration/).
+
+## Chart Annotations
+
+Add and manage [Annotations](./annotations/) like Trend Lines and Channels from the intuitive toolbar for enhanced data analysis.
+
+{% video videoSrc="resources/annotations.mp4" /%}
+
+## Interactive Charts
+
+Interactive analysis is enhanced with advanced [Zoom](./zoom/) capabilities and [Range Buttons](./toolbar/) for seamless time period navigation.
+
+{% video videoSrc="resources/zoom.mp4" /%}
+
+## Financial Chart types
+
+The default chart type is [Candlestick](./candlestick-series/), with additional types like [OHLC](./ohlc-series/) and [Line](./line-series/) for versatile data visualisation.
+
+{% video videoSrc="resources/chart-types.mp4" /%}

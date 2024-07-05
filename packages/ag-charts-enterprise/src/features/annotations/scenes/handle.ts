@@ -2,6 +2,7 @@ import { _Scene } from 'ag-charts-community';
 
 import type { Coords } from '../annotationTypes';
 
+type InvariantHandleStyles = { x: number; y: number } & { [K in keyof _Scene.Circle]?: _Scene.Circle[K] };
 type UnivariantHandleStyles = { x: number; y: number } & { [K in keyof _Scene.Rect]?: _Scene.Rect[K] };
 type DivariantHandleStyles = { x: number; y: number } & { [K in keyof _Scene.Circle]?: _Scene.Circle[K] };
 
@@ -83,7 +84,7 @@ export class InvariantHandle extends Handle {
         this.handle.zIndex = 2;
     }
 
-    override update(styles: { [K in keyof _Scene.Circle]?: _Scene.Circle[K] }) {
+    override update(styles: InvariantHandleStyles) {
         this.handle.setProperties({ ...styles, strokeWidth: Handle.INACTIVE_STROKE_WIDTH });
     }
 
@@ -102,7 +103,7 @@ export class UnivariantHandle extends Handle {
 
     public gradient: 'horizontal' | 'vertical' = 'horizontal';
 
-    private cachedStyles?: { [K in keyof _Scene.Rect]?: _Scene.Rect[K] };
+    private cachedStyles?: UnivariantHandleStyles;
 
     constructor() {
         super();
@@ -150,6 +151,8 @@ export class UnivariantHandle extends Handle {
     }
 
     override update(styles: UnivariantHandleStyles) {
+        this.cachedStyles = { ...styles };
+
         if (!this.active) {
             delete styles.strokeWidth;
         }
@@ -161,8 +164,8 @@ export class UnivariantHandle extends Handle {
             const offset = (UnivariantHandle.HANDLE_SIZE - InvariantHandle.HANDLE_SIZE) / 2;
             styles.x -= offset;
             styles.y -= offset;
-        } else {
-            this.cachedStyles = styles;
+            this.cachedStyles.x -= offset;
+            this.cachedStyles.y -= offset;
         }
 
         this.handle.setProperties(styles);
@@ -240,6 +243,8 @@ export class DivariantHandle extends Handle {
     }
 
     override update(styles: DivariantHandleStyles) {
+        this.cachedStyles = { ...styles };
+
         if (!this.active) {
             delete styles.strokeWidth;
         }
@@ -247,8 +252,6 @@ export class DivariantHandle extends Handle {
         if (this.locked) {
             delete styles.fill;
             delete styles.strokeWidth;
-        } else {
-            this.cachedStyles = styles;
         }
 
         this.handle.setProperties(styles);

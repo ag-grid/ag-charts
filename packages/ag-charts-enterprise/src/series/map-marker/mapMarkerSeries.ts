@@ -12,6 +12,7 @@ import {
 } from './mapMarkerSeriesProperties';
 
 const {
+    TextMeasurer,
     Validate,
     fromToMotion,
     StateMachine,
@@ -322,7 +323,7 @@ export class MapMarkerSeries
         });
         if (labelText == null) return;
 
-        const { width, height } = Text.getTextSize(String(labelText), font);
+        const { width, height } = TextMeasurer.measureText(String(labelText), { font });
 
         return {
             point: { x, y, size },

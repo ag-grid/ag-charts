@@ -2,5 +2,6 @@
 body {
     all: initial;
     display: block;
+    overflow: hidden;
     height: 100%;
 }

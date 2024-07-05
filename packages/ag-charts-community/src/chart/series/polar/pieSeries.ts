@@ -1320,6 +1320,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
         seriesLabelFadeInAnimation(this, 'callout', animationManager, this.calloutLabelSelection);
         seriesLabelFadeInAnimation(this, 'sector', animationManager, this.labelSelection);
+        seriesLabelFadeInAnimation(this, 'highlight', animationManager, this.highlightLabelSelection);
 
         this.previousRadiusScale.range = this.radiusScale.range;
     }
@@ -1356,6 +1357,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
         seriesLabelFadeInAnimation(this, 'callout', this.ctx.animationManager, this.calloutLabelSelection);
         seriesLabelFadeInAnimation(this, 'sector', this.ctx.animationManager, this.labelSelection);
+        seriesLabelFadeInAnimation(this, 'highlight', this.ctx.animationManager, this.highlightLabelSelection);
 
         this.previousRadiusScale.range = this.radiusScale.range;
     }
@@ -1374,6 +1376,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
         seriesLabelFadeOutAnimation(this, 'callout', this.ctx.animationManager, this.calloutLabelSelection);
         seriesLabelFadeOutAnimation(this, 'sector', this.ctx.animationManager, this.labelSelection);
+        seriesLabelFadeOutAnimation(this, 'highlight', this.ctx.animationManager, this.highlightLabelSelection);
 
         this.previousRadiusScale.range = this.radiusScale.range;
     }
