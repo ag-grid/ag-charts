@@ -25,7 +25,7 @@ export class TextWrapper extends TextMeasurer {
     }
 
     static appendEllipsis(text: string) {
-        return text.replace(/[.,]+$/, '') + this.EllipsisChar;
+        return text.replace(/[.,]{1,5}$/, '') + this.EllipsisChar;
     }
 
     static truncateLine(text: string, measurer: TextMeasurer, maxWidth: number, ellipsisForce?: boolean) {
