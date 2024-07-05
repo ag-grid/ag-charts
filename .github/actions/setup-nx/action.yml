@@ -132,4 +132,5 @@ runs:
 
         - name: playwright install
           if: inputs.playwright_install == 'true'
+          shell: bash
           run: npx playwright install chromium --with-deps
