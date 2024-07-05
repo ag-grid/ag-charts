@@ -13,6 +13,19 @@ const isDebugPage = (page: string) => {
 };
 
 /*
+ * Documentation redirect pages
+ */
+const isRedirectPage = (page: string) => {
+    return (
+        page.endsWith('/documentation/') ||
+        page.endsWith('/react/') ||
+        page.endsWith('/angular/') ||
+        page.endsWith('/javascript/') ||
+        page.endsWith('/vue/')
+    );
+};
+
+/*
  * Test pages for integration testing
  */
 export const isTestPage = (page: string) => {
@@ -20,7 +33,7 @@ export const isTestPage = (page: string) => {
 };
 
 const filterIgnoredPages = (page: string) => {
-    return !isExamplePage(page) && !isDebugPage(page) && !isTestPage(page);
+    return !isExamplePage(page) && !isDebugPage(page) && !isTestPage(page) && !isRedirectPage(page);
 };
 
 export function getSitemapConfig() {
