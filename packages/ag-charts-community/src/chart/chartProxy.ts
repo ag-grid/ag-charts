@@ -14,6 +14,7 @@ import { ActionOnSet } from '../util/proxy';
 import type { DeepPartial } from '../util/types';
 import type { Chart, ChartExtendedOptions } from './chart';
 import { ChartUpdateType } from './chartUpdateType';
+import { NoopAgChartInstance } from './noopAgChartInstance';
 
 export interface AgChartProxy extends AgChartInstance {
     chart: Chart;
@@ -68,6 +69,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
         private readonly factoryApi: FactoryApi
     ) {
         this.chart = chart;
+        chart.publicApi = this;
     }
 
     async update(options: AgChartOptions) {
@@ -131,11 +133,25 @@ export class AgChartInstanceProxy implements AgChartProxy {
 
     destroy() {
         this.chart.destroy();
+        this.chart.publicApi = new NoopAgChartInstance();
     }
 
     private async prepareResizedChart({ chart }: AgChartInstanceProxy, opts: DownloadOptions = {}) {
         const width: number = opts.width ?? chart.width ?? chart.ctx.scene.canvas.width;
         const height: number = opts.height ?? chart.height ?? chart.ctx.scene.canvas.height;
+
+        const isEnterprise = moduleRegistry.hasEnterpriseModules();
+        const overrideOptions: Partial<AgChartOptions> = {};
+
+        // Disable enterprise features that may interfere with image generation.
+        if (isEnterprise) {
+            overrideOptions.animation = { enabled: false };
+
+            if (chart.chartOptions.type == null) {
+                // Non-preset case - adjust options for normal chart.
+                overrideOptions.toolbar = { enabled: false };
+            }
+        }
 
         const options: ChartExtendedOptions = mergeDefaults(
             {
@@ -144,9 +160,8 @@ export class AgChartInstanceProxy implements AgChartProxy {
                 width,
                 height,
             },
-            // Disable enterprise features that may interfere with image generation.
-            moduleRegistry.hasEnterpriseModules() && { animation: { enabled: false } },
-            chart.getOptions()
+            overrideOptions,
+            chart.chartOptions.getOptions()
         );
 
         const cloneProxy = await this.factoryApi.createOrUpdate(options);

@@ -1,4 +1,10 @@
-import type { AgBaseAxisOptions, AgChartClickEvent, AgChartDoubleClickEvent, AgChartOptions } from 'ag-charts-types';
+import type {
+    AgBaseAxisOptions,
+    AgChartClickEvent,
+    AgChartDoubleClickEvent,
+    AgChartInstance,
+    AgChartOptions,
+} from 'ag-charts-types';
 
 import type { ModuleInstance } from '../module/baseModule';
 import type { LegendModule, RootModule } from '../module/coreModules';
@@ -60,6 +66,7 @@ import { guessInvalidPositions } from './mapping/prepareAxis';
 import { matchSeriesOptions } from './mapping/prepareSeries';
 import { type SeriesOptionsTypes, isAgCartesianChartOptions } from './mapping/types';
 import { ModulesManager } from './modulesManager';
+import { NoopAgChartInstance } from './noopAgChartInstance';
 import { ChartOverlays } from './overlay/chartOverlays';
 import { getLoadingSpinner } from './overlay/loadingSpinner';
 import {
@@ -274,6 +281,12 @@ export abstract class Chart extends Observable {
 
     queuedUserOptions: AgChartOptions[] = [];
     chartOptions: ChartOptions;
+
+    /**
+     * Public API for this Chart instance. NOTE: This is initialized after construction by the
+     * wrapping class that implements AgChartInstance.
+     */
+    publicApi: AgChartInstance = new NoopAgChartInstance();
 
     getOptions() {
         return this.queuedUserOptions.at(-1) ?? this.chartOptions.userOptions;

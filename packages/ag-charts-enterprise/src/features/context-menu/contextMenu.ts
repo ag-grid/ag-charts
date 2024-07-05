@@ -57,7 +57,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     public extraLegendItemActions: NonNullable<AgContextMenuOptions['extraLegendItemActions']> = [];
 
     // Module context
-    private readonly scene: _Scene.Scene;
     private readonly interactionManager: _ModuleSupport.InteractionManager;
     private readonly registry: _ModuleSupport.ContextMenuRegistry;
 
@@ -82,7 +81,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         // Module context
         this.interactionManager = ctx.interactionManager;
         this.registry = ctx.contextMenuRegistry;
-        this.scene = ctx.scene;
 
         const { All } = _ModuleSupport.InteractionState;
         this.destroyFns.push(ctx.regionManager.listenAll('click', (_region) => this.onClick(), All));
@@ -114,13 +112,13 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             id: 'download',
             type: 'all',
             label: 'contextMenuDownload',
-            action: () => {
+            action: async () => {
                 const title = ctx.chartService.title;
                 let fileName = 'image';
                 if (title?.enabled && title?.text !== undefined) {
                     fileName = title.text;
                 }
-                this.scene.download(fileName);
+                await this.ctx.chartService.publicApi.download({ fileName });
             },
         });
 
