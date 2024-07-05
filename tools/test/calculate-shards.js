@@ -14,9 +14,9 @@ const args = yargs(hideBin(process.argv))
 const { count, min, max, ratio } = args;
 
 const shardCount = Math.max(Math.min(Math.ceil(count / ratio), max), min);
-const result = { shards: [] };
+const result = { shard: [] };
 for (let i = 1; i <= shardCount; i++) {
-    result.shards.push(i);
+    result.shard.push(i);
 }
 
 console.log(JSON.stringify(result));
