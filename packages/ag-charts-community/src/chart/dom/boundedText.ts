@@ -12,8 +12,12 @@ export class BoundedText {
         this.textElement.textContent = text;
 
         // Set the viewBox of the SVG to match the bounding box of the text
-        const bbox = this.textElement.getBBox();
-        this.svgElement.setAttribute('viewBox', `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`);
+        // Note: our SVG mocks do not implement getBBox(), so ignore bounds in tests.
+        const bboxCalculator: { getBBox?: () => DOMRect } = this.textElement;
+        const bbox = bboxCalculator.getBBox?.();
+        if (bbox) {
+            this.svgElement.setAttribute('viewBox', `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`);
+        }
     }
 
     get textContent() {
