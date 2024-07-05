@@ -306,19 +306,22 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                     placement,
                 } = label;
 
-                const labelText = this.getLabelText(
-                    this.properties.label,
-                    {
-                        datum: seriesDatum[valueIndex],
-                        value: yRawValue,
-                        xKey,
-                        yKey,
-                        xName,
-                        yName,
-                        legendItemName,
-                    },
-                    (v) => (isFiniteNumber(v) ? v.toFixed(2) : String(v))
-                );
+                const labelText =
+                    yRawValue != null
+                        ? this.getLabelText(
+                              this.properties.label,
+                              {
+                                  datum: seriesDatum[valueIndex],
+                                  value: yRawValue,
+                                  xKey,
+                                  yKey,
+                                  xName,
+                                  yName,
+                                  legendItemName,
+                              },
+                              (v) => (isFiniteNumber(v) ? v.toFixed(2) : String(v))
+                          )
+                        : undefined;
                 const labelDatum = labelText
                     ? {
                           text: labelText,
