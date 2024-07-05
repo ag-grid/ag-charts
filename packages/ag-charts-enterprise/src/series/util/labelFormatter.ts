@@ -260,12 +260,13 @@ export function formatSingleLabel<Meta>(
             height = lineHeight * lines.length;
         }
 
-        let text: string;
-        let { width, lineMetrics } = TextMeasurer.measureLines(lines, { font: textSizeProps });
-        if (width > availableWidth) {
+        const metrics = TextMeasurer.measureLines(lines, { font: textSizeProps });
+
+        let text: string, width: number;
+        if (metrics.width > availableWidth) {
             const clippedLines: string[] = [];
             width = 0;
-            for (const line of lineMetrics) {
+            for (const line of metrics.lineMetrics) {
                 if (line.width > availableWidth) {
                     if (!clippedLines.length) return;
                     break;
@@ -276,6 +277,7 @@ export function formatSingleLabel<Meta>(
             text = TextWrapper.appendEllipsis(clippedLines.join('\n'));
         } else {
             text = lines.join('\n');
+            width = metrics.width;
         }
         return [{ text, fontSize, lineHeight, width, height }, sizeFitting.meta];
     });
