@@ -26,7 +26,7 @@ test.describe('financial-charts-showcase', () => {
                 await expect(
                     page.locator('.ag-crosshair-label-content', { hasText: /[0-9]{2,3}\.[0-9]{2}/ })
                 ).toBeVisible();
-                expect(canvas).toHaveScreenshot('zoom-and-hover-on-out-of-y-range-prices.png');
+                await expect(canvas).toHaveScreenshot('zoom-and-hover-on-out-of-y-range-prices.png');
             });
         });
     }
