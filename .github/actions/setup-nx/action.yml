@@ -122,6 +122,6 @@ runs:
               (yarn check --integrity && yarn postinstall) || yarn install --ci ${{ inputs.yarn_opts }}
 
         - name: yarn postinstall
-          if: steps.cache.outputs.cache-hit == 'true' && inputs.yarn_postinstall == 'true'
+          if: (steps.cache_rw.outputs.cache-hit == 'true' || steps.cache_ro.outputs.cache-hit == 'true') && inputs.yarn_postinstall == 'true'
           shell: bash
           run: yarn postinstall
