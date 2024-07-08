@@ -58,8 +58,11 @@ jobs:
                   git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
                   git add .
                   if [[ $(git diff --cached --name-only | wc -l) -gt 0 ]] ; then
+                    echo "Committing changes to ${BRANCH_NAME}."
                     git commit -m "Update snapshots."
                     git push origin ${BRANCH_NAME}
+                  else
+                    echo "No changes to commit."
                   fi
 
             - name: Perist test results
