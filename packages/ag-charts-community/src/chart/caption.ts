@@ -112,12 +112,12 @@ export class Caption extends BaseProperties implements CaptionLike {
         this.truncated = wrappedText.includes(TextMeasurer.EllipsisChar);
     }
 
-    updateA11yText(proxyService: ProxyInteractionService, parent: HTMLElement) {
+    updateA11yText(proxyService: ProxyInteractionService) {
         if (this.enabled && this.text) {
             const bbox = this.node.computeTransformedBBox();
             if (bbox) {
                 const { id } = this;
-                this.proxyText ??= proxyService.createProxyElement({ type: 'text', id, parent });
+                this.proxyText ??= proxyService.createProxyElement({ type: 'text', id, parent: 'canvas-proxy' });
                 this.proxyText.textContent = this.text;
                 this.proxyText.updateBounds(bbox);
             }

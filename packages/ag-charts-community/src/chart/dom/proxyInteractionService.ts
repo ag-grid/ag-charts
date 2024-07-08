@@ -6,13 +6,13 @@ import { createElement } from '../../util/dom';
 import type { LocaleManager } from '../locale/localeManager';
 import type { UpdateService } from '../updateService';
 import { BoundedText } from './boundedText';
-import type { DOMManager } from './domManager';
+import type { DOMElementClass, DOMManager } from './domManager';
 import type { FocusIndicator } from './focusIndicator';
 
 type ElemParams<T extends ProxyElementType> = {
     readonly type: T;
     readonly id: string;
-    readonly parent: HTMLElement;
+    readonly parent: HTMLElement | DOMElementClass;
 };
 
 type InteractParams<T extends ProxyElementType> = ElemParams<T> & {
@@ -184,7 +184,12 @@ export class ProxyInteractionService {
         element.style.opacity = this.debugShowDOMProxies ? '0.25' : '0';
         element.style.position = 'absolute';
         element.style.overflow = 'hidden';
-        parent.appendChild(element);
+
+        if (typeof parent === 'string') {
+            this.domManager.addChild(parent, id, element);
+        } else {
+            parent.appendChild(element);
+        }
     }
 
     private initInteract<T extends ProxyElementType, TElem extends HTMLElement>(

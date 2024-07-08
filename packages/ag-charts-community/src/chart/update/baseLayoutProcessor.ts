@@ -4,20 +4,15 @@ import type { LayoutContext } from '../../module/baseModule';
 import { Text } from '../../scene/shape/text';
 import { Logger } from '../../util/logger';
 import { Caption } from '../caption';
-import type { DOMManager } from '../dom/domManager';
-import type { ProxyInteractionService } from '../dom/proxyInteractionService';
 import type { LayoutCompleteEvent, LayoutService } from '../layout/layoutService';
 import type { ChartLike, UpdateProcessor } from './processor';
 
 export class BaseLayoutProcessor implements UpdateProcessor {
     private readonly destroyFns: (() => void)[] = [];
 
-    private readonly proxyTextContainer: HTMLDivElement;
     constructor(
         private readonly chartLike: ChartLike,
-        private readonly layoutService: LayoutService,
-        private readonly proxyInteractionService: ProxyInteractionService,
-        readonly domManager: DOMManager
+        private readonly layoutService: LayoutService
     ) {
         this.destroyFns.push(
             // eslint-disable-next-line sonarjs/no-duplicate-string
@@ -25,10 +20,6 @@ export class BaseLayoutProcessor implements UpdateProcessor {
             this.layoutService.addListener('layout-complete', (e) => this.alignCaptions(e)),
             this.layoutService.addListener('start-layout', (e) => this.positionCaptions(e))
         );
-        // TODO tidy up
-        const tmp = domManager.addChild('canvas-proxy', 'tmp');
-        this.proxyTextContainer = tmp.parentNode as HTMLDivElement;
-        tmp.remove();
     }
 
     destroy() {
@@ -144,9 +135,5 @@ export class BaseLayoutProcessor implements UpdateProcessor {
                 caption.node.x = rect.x + rect.width - bbox.width - titlePadding;
             }
         }
-
-        [title, subtitle, footnote].forEach((c) =>
-            c.updateA11yText(this.proxyInteractionService, this.proxyTextContainer)
-        );
     }
 }
