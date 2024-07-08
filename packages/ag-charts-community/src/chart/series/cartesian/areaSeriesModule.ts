@@ -1,13 +1,7 @@
 import type { SeriesModule } from '../../../module/coreModules';
 import { markerPaletteFactory } from '../../../module/theme';
 import { CARTESIAN_AXIS_TYPE, POSITION } from '../../themes/constants';
-import {
-    DEFAULT_FONT_FAMILY,
-    DEFAULT_LABEL_COLOUR,
-    DEFAULT_SHADOW_COLOUR,
-    EXTENDS_CARTESIAN_MARKER_DEFAULTS,
-    EXTENDS_SERIES_DEFAULTS,
-} from '../../themes/symbols';
+import { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR, DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 import { AreaSeries } from './areaSeries';
 
 export const AreaSeriesModule: SeriesModule<'area'> = {
@@ -19,6 +13,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
     identifier: 'area',
     instanceConstructor: AreaSeries,
     stackable: true,
+    tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,
@@ -31,7 +26,6 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
     ],
     themeTemplate: {
         series: {
-            __extends__: EXTENDS_SERIES_DEFAULTS,
             nodeClickRange: 'nearest',
             tooltip: { position: { type: 'node' } },
             fillOpacity: 0.8,
@@ -46,11 +40,16 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
                 yOffset: 3,
                 blur: 5,
             },
+            interpolation: {
+                type: 'linear',
+                // @ts-expect-error - users shouldn't specify all options, but we have to for theming to work
+                tension: 1,
+                position: 'end',
+            },
             marker: {
-                __extends__: EXTENDS_CARTESIAN_MARKER_DEFAULTS,
                 enabled: false,
-                fillOpacity: 1,
-                strokeOpacity: 1,
+                shape: 'circle',
+                size: 7,
                 strokeWidth: 0,
             },
             label: {

@@ -5,7 +5,7 @@ import timeMonth from '../util/time/month';
 import timeSecond from '../util/time/second';
 import timeWeek from '../util/time/week';
 import timeYear from '../util/time/year';
-import { durationDay, durationHour, durationMinute, durationWeek, durationYear } from './time/duration';
+import { durationDay, durationHour, durationMinute, durationSecond, durationWeek, durationYear } from './time/duration';
 import { buildFormatter } from './timeFormat';
 
 enum DefaultTimeFormats {
@@ -16,7 +16,6 @@ enum DefaultTimeFormats {
     WEEK_DAY,
     SHORT_MONTH,
     MONTH,
-    SHORT_YEAR,
     YEAR,
 }
 
@@ -26,32 +25,43 @@ export function dateToNumber(x: any) {
 
 export function defaultTimeTickFormat(ticks?: any[], domain?: any[], formatOffset?: number) {
     const formatString = calculateDefaultTimeTickFormat(ticks, domain, formatOffset);
-    return (date: Date) => buildFormatter(formatString)(date);
+    const formatter = buildFormatter(formatString);
+    return (date: Date) => formatter(date);
 }
 
-export function calculateDefaultTimeTickFormat(ticks: any[] | undefined = [], domain = ticks, formatOffset = 0) {
-    let defaultTimeFormat = DefaultTimeFormats.YEAR;
-
-    const updateFormat = (format: DefaultTimeFormats) => {
-        if (format < defaultTimeFormat) {
-            defaultTimeFormat = format;
-        }
-    };
-
-    for (const value of ticks) {
-        const format = getLowestGranularityFormat(value);
-        updateFormat(format);
+export function calculateDefaultTimeTickFormat(ticks: any[] = [], domain = ticks, formatOffset = 0) {
+    let minInterval: number = Infinity;
+    for (let i = 1; i < ticks.length; i++) {
+        minInterval = Math.min(minInterval, Math.abs(ticks[i] - ticks[i - 1]));
     }
 
-    const startDomain = dateToNumber(domain[0]);
-    const endDomain = dateToNumber(domain.at(-1)!);
-    const startYear = new Date(startDomain).getFullYear();
-    const stopYear = new Date(endDomain).getFullYear();
+    const startYear = new Date(domain[0]).getFullYear();
+    const stopYear = new Date(domain.at(-1)!).getFullYear();
     const yearChange = stopYear - startYear > 0;
+    const timeFormat = isFinite(minInterval)
+        ? getIntervalLowestGranularityFormat(minInterval, ticks)
+        : getLowestGranularityFormat(ticks[0]);
 
-    defaultTimeFormat = Math.max(defaultTimeFormat - formatOffset, 0);
+    return formatStringBuilder(Math.max(timeFormat - formatOffset, 0), yearChange, ticks);
+}
 
-    return formatStringBuilder(defaultTimeFormat, yearChange, ticks);
+function getIntervalLowestGranularityFormat(value: number, ticks: any[]): DefaultTimeFormats {
+    if (value < durationSecond) {
+        return DefaultTimeFormats.MILLISECOND;
+    } else if (value < durationMinute) {
+        return DefaultTimeFormats.SECOND;
+    } else if (value < durationHour) {
+        return DefaultTimeFormats.MINUTE;
+    } else if (value < durationDay) {
+        return DefaultTimeFormats.HOUR;
+    } else if (value < durationWeek) {
+        return DefaultTimeFormats.WEEK_DAY;
+    } else if (value < durationDay * 28 || (value < durationDay * 31 && hasDuplicateMonth(ticks))) {
+        return DefaultTimeFormats.SHORT_MONTH;
+    } else if (value < durationYear) {
+        return DefaultTimeFormats.MONTH;
+    }
+    return DefaultTimeFormats.YEAR;
 }
 
 function getLowestGranularityFormat(value: Date | number): DefaultTimeFormats {
@@ -75,6 +85,18 @@ function getLowestGranularityFormat(value: Date | number): DefaultTimeFormats {
     return DefaultTimeFormats.YEAR;
 }
 
+function hasDuplicateMonth(ticks: any[]) {
+    let prevMonth = new Date(ticks[0]).getMonth();
+    for (let i = 1; i < ticks.length; i++) {
+        const tickMonth = new Date(ticks[i]).getMonth();
+        if (prevMonth === tickMonth) {
+            return true;
+        }
+        prevMonth = tickMonth;
+    }
+    return false;
+}
+
 function formatStringBuilder(defaultTimeFormat: DefaultTimeFormats, yearChange: boolean, ticks: any[]): string {
     const firstTick = dateToNumber(ticks[0]);
     const lastTick = dateToNumber(ticks.at(-1)!);
@@ -89,7 +111,7 @@ function formatStringBuilder(defaultTimeFormat: DefaultTimeFormats, yearChange: 
         ['ms', 0, 6 * durationHour, DefaultTimeFormats.MILLISECOND, '.%L'],
         ['am/pm', durationMinute, 6 * durationHour, DefaultTimeFormats.HOUR, '%p'],
         ' ',
-        ['day', durationDay, 1 * durationWeek, DefaultTimeFormats.WEEK_DAY, '%a'],
+        ['day', durationDay, durationWeek, DefaultTimeFormats.WEEK_DAY, '%a'],
         ['month', activeDate ? 0 : durationWeek, 52 * durationWeek, DefaultTimeFormats.SHORT_MONTH, '%b %d'],
         ['month', 5 * durationWeek, 10 * durationYear, DefaultTimeFormats.MONTH, '%B'],
         ' ',

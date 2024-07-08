@@ -1,4 +1,5 @@
-import type { AgChartLegendOrientation, FontStyle, FontWeight } from '../../options/agChartOptions';
+import type { AgChartLegendOrientation, FontStyle, FontWeight } from 'ag-charts-types';
+
 import { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import { Text } from '../../scene/shape/text';
@@ -335,13 +336,12 @@ export class Pagination extends BaseProperties {
 
     private onPaginationClick(event: PointerInteractionEvent<'click'>) {
         const { offsetX, offsetY } = event;
+        event.preventDefault();
 
         if (this.nextButtonContainsPoint(offsetX, offsetY)) {
             this.clickNext();
-            event.consume();
         } else if (this.previousButtonContainsPoint(offsetX, offsetY)) {
             this.clickPrevious();
-            event.consume();
         }
     }
 
@@ -391,5 +391,16 @@ export class Pagination extends BaseProperties {
 
     computeBBox() {
         return this.group.computeBBox();
+    }
+
+    computeCSSBounds() {
+        const group = this.group.computeTransformedBBox();
+        const prev = this._previousButton.computeTransformedBBox();
+        const next = this._nextButton.computeTransformedBBox();
+        prev.x -= group.x;
+        prev.y -= group.y;
+        next.x -= group.x;
+        next.y -= group.y;
+        return { group, prev, next };
     }
 }

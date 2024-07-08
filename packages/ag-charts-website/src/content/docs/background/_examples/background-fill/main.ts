@@ -1,8 +1,8 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgChartOptions, AgCharts, AgPolarChartOptions } from 'ag-charts-community';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     series: [
@@ -27,5 +27,5 @@ function randomColor() {
     options.background = {
         fill: color,
     };
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

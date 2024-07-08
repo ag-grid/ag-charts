@@ -25,6 +25,7 @@ import { SearchBox } from './SearchBox';
 export const SelectionContext = createContext<{
     selection: NavigationData;
     setSelection: Dispatch<SetStateAction<NavigationData>>;
+    rootInterface: string;
 } | null>(null);
 
 export function OptionsNavigation({
@@ -146,22 +147,43 @@ function NavProperty({
 
     const navData = getNavigationDataFromPath(path, config.specialTypes);
 
-    const [isExpanded, toggleExpanded] = useAutoExpand(() =>
-        config.keepExpanded?.includes(member.name)
-            ? true
-            : isInterfaceArray
-              ? typeof selection?.selection.pageInterface === 'string' &&
+    const [isExpanded, toggleExpanded] = useAutoExpand(() => {
+        if (config.keepExpanded?.includes(member.name)) {
+            return true;
+        }
+        if (isInterfaceArray) {
+            return (
+                typeof selection?.selection.pageInterface === 'string' &&
                 getInterfaceArrayTypes(reference, interfaceRef).some(
                     (item) => item.type === selection?.selection.pageInterface
                 )
-              : hasNestedPages
-                ? interfaceRef?.kind === 'interface' &&
-                  interfaceRef.members.some((member) => member.type === selection?.selection.pageInterface)
-                : (selection?.selection.pageInterface === navData.pageInterface &&
-                      selection?.selection.hash?.startsWith(navData.hash) &&
-                      selection?.selection.hash !== navData.hash) ??
-                  false
-    );
+            );
+        }
+        if (hasNestedPages) {
+            return (
+                interfaceRef?.kind === 'interface' &&
+                interfaceRef.members.some((member) => member.type === selection?.selection.pageInterface)
+            );
+        }
+        if (
+            selection?.selection.pageInterface === navData.pageInterface &&
+            selection?.selection.hash?.startsWith(navData.hash) &&
+            selection?.selection.hash !== navData.hash
+        ) {
+            return true;
+        }
+        const baseHash = `reference-${selection?.rootInterface}`;
+        if (navData.hash.startsWith(baseHash)) {
+            const prePath = navData.hash
+                .slice(baseHash.length + 1)
+                .split('-')
+                .filter(Boolean);
+            if (selection?.selection.pathname.includes(prePath.join('/'))) {
+                return true;
+            }
+        }
+        return false;
+    });
 
     const isSelected =
         location?.pathname === navData.pathname &&

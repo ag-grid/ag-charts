@@ -1,11 +1,14 @@
 import {
-    type AgSankeySeriesFormatterParams,
     type AgSankeySeriesLabelFormatterParams,
+    type AgSankeySeriesLinkItemStylerParams,
     type AgSankeySeriesLinkOptions,
     type AgSankeySeriesLinkStyle,
+    type AgSankeySeriesNodeItemStylerParams,
     type AgSankeySeriesNodeOptions,
+    type AgSankeySeriesNodeStyle,
     type AgSankeySeriesOptions,
     type AgSankeySeriesTooltipRendererParams,
+    type Styler,
     _ModuleSupport,
     _Scene,
     _Util,
@@ -26,9 +29,12 @@ const {
     POSITIVE_NUMBER,
     RATIO,
     STRING,
+    UNION,
     Validate,
 } = _ModuleSupport;
 const { Label } = _Scene;
+
+const ALIGNMENT = UNION(['left', 'right', 'center', 'justify'], 'a justification value');
 
 export interface SankeyNodeDatum extends FlowProportionNodeDatum {
     size: number;
@@ -47,9 +53,11 @@ export interface SankeyLinkDatum extends FlowProportionLinkDatum<SankeyNodeDatum
 
 export type SankeyDatum = SankeyLinkDatum | SankeyNodeDatum;
 
-export interface SankeyNodeLabelDatum extends _Util.PointLabelDatum {
+export interface SankeyNodeLabelDatum {
     x: number;
+    y: number;
     leading: boolean;
+    text: string;
 }
 
 export class SankeySeriesLabelProperties extends Label<AgSankeySeriesLabelFormatterParams> {
@@ -57,7 +65,7 @@ export class SankeySeriesLabelProperties extends Label<AgSankeySeriesLabelFormat
     spacing: number = 1;
 }
 
-export class SankeySeriesLinkProperties extends BaseProperties<AgSankeySeriesLinkOptions> {
+export class SankeySeriesLinkProperties extends BaseProperties<AgSankeySeriesLinkOptions<any>> {
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined = undefined;
 
@@ -78,17 +86,20 @@ export class SankeySeriesLinkProperties extends BaseProperties<AgSankeySeriesLin
 
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
+
+    @Validate(FUNCTION, { optional: true })
+    itemStyler?: Styler<AgSankeySeriesLinkItemStylerParams<unknown>, AgSankeySeriesLinkStyle>;
 }
 
-export class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNodeOptions> {
+export class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNodeOptions<any>> {
     @Validate(POSITIVE_NUMBER)
     spacing: number = 1;
 
     @Validate(POSITIVE_NUMBER)
     width: number = 1;
 
-    @Validate(STRING)
-    justify: 'left' | 'right' | 'center' | 'justify' = 'justify';
+    @Validate(ALIGNMENT)
+    alignment: 'left' | 'right' | 'center' | 'justify' = 'justify';
 
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined = undefined;
@@ -110,22 +121,19 @@ export class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNod
 
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
+
+    @Validate(FUNCTION, { optional: true })
+    itemStyler?: Styler<AgSankeySeriesNodeItemStylerParams<unknown>, AgSankeySeriesNodeStyle>;
 }
 export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptions> {
     @Validate(ARRAY, { optional: true })
     nodes: any[] | undefined = undefined;
 
     @Validate(STRING)
-    fromKey: string = '';
-
-    @Validate(STRING, { optional: true })
-    fromIdName: string | undefined = undefined;
+    fromKey!: string;
 
     @Validate(STRING)
-    toKey: string = '';
-
-    @Validate(STRING, { optional: true })
-    toIdName: string | undefined = undefined;
+    toKey!: string;
 
     @Validate(STRING)
     idKey: string = '';
@@ -160,9 +168,6 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
     @Validate(OBJECT)
     readonly node = new SankeySeriesNodeProperties();
 
-    @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgSankeySeriesFormatterParams<any>) => AgSankeySeriesLinkStyle;
-
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgSankeySeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgSankeySeriesTooltipRendererParams<any>>();
 }

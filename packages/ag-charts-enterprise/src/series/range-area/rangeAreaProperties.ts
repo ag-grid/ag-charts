@@ -20,6 +20,7 @@ export interface RangeAreaMarkerDatum extends Omit<_ModuleSupport.CartesianSerie
 const { DropShadow, Label } = _Scene;
 const {
     CartesianSeriesProperties,
+    InterpolationProperties,
     SeriesMarker,
     SeriesTooltip,
     Validate,
@@ -85,10 +86,13 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
     lineDashOffset: number = 0;
 
     @Validate(OBJECT)
+    interpolation: _ModuleSupport.InterpolationProperties = new InterpolationProperties();
+
+    @Validate(OBJECT)
     readonly shadow = new DropShadow().set({ enabled: false });
 
     @Validate(OBJECT)
-    readonly marker = new SeriesMarker<AgRangeAreaSeriesOptionsKeys, RangeAreaMarkerDatum>();
+    readonly marker = new SeriesMarker<AgRangeAreaSeriesOptionsKeys>();
 
     @Validate(OBJECT)
     readonly label = new RangeAreaSeriesLabel();

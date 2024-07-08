@@ -1,8 +1,5 @@
-import type {
-    AgAxisCategoryTickOptions,
-    AgAxisTimeTickOptions,
-    AgCartesianChartOptions,
-} from '../../options/agChartOptions';
+import type { AgCartesianChartOptions } from 'ag-charts-types';
+
 import day from '../../util/time/day';
 import { DATA_TOTAL_GAME_WINNINGS_GROUPED_BY_COUNTRY_EXTENDED } from './data';
 import * as data from './data-axes';
@@ -62,7 +59,7 @@ export const CATEGORY_AXIS_UNIFORM_BASIC_EXAMPLE: AgCartesianChartOptions = {
 export const TIME_AXIS_BASIC_EXAMPLE: AgCartesianChartOptions = {
     data: data.DATA_YOUTUBE_VIDEOS_STATS_BY_DATE,
     axes: [
-        { type: 'time', position: 'bottom', tick: { interval: day.every(7, { snapTo: 'start' }) } },
+        { type: 'time', position: 'bottom', interval: { step: day.every(7, { snapTo: 'start' }) } },
         { type: 'number', position: 'left' },
     ],
     series: [
@@ -84,7 +81,7 @@ export const TIME_AXIS_MIN_MAX_DATE_EXAMPLE: AgCartesianChartOptions = {
             position: 'bottom',
             min: new Date(2022, 1, 15, 0, 0, 0),
             max: new Date(2022, 2, 15, 0, 0, 0),
-            tick: { interval: day.every(3, { snapTo: 'start' }) },
+            interval: { step: day.every(3, { snapTo: 'start' }) },
         },
         { type: 'number', position: 'left' },
     ],
@@ -98,7 +95,7 @@ export const TIME_AXIS_MIN_MAX_NUMBER_EXAMPLE: AgCartesianChartOptions = {
             position: 'bottom',
             min: new Date(2022, 1, 15, 0, 0, 0).getTime(),
             max: new Date(2022, 2, 15, 0, 0, 0).getTime(),
-            tick: { interval: day.every(3, { snapTo: 'start' }) },
+            interval: { step: day.every(3, { snapTo: 'start' }) },
         },
         { type: 'number', position: 'left' },
     ],
@@ -181,7 +178,7 @@ export const NUMBER_AXIS_NO_SERIES: AgCartesianChartOptions = {
 export const NUMBER_AXIS_TICK_VALUES: AgCartesianChartOptions = {
     ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,
     axes: [
-        { type: 'number', position: 'bottom', tick: { values: [142, 153, 203, 220, 290] } },
+        { type: 'number', position: 'bottom', interval: { values: [142, 153, 203, 220, 290] } },
         { type: 'number', position: 'left' },
     ],
 };
@@ -192,9 +189,9 @@ export const TIME_AXIS_TICK_VALUES: AgCartesianChartOptions = {
         {
             type: 'time',
             position: 'bottom',
-            tick: {
+            interval: {
                 values: [new Date(2020, 0, 1), new Date(2020, 0, 4), new Date(2020, 0, 17), new Date(2020, 0, 28)],
-            } as AgAxisTimeTickOptions,
+            },
         },
         {
             type: 'number',
@@ -210,7 +207,9 @@ export const LOG_AXIS_TICK_VALUES: AgCartesianChartOptions = {
         {
             type: 'log',
             position: 'left',
-            tick: { values: [2, 4, 8, 16, 12, 20, 200, 400, 800] },
+            interval: {
+                values: [2, 4, 8, 16, 12, 20, 200, 400, 800],
+            },
         },
     ],
 };
@@ -221,7 +220,9 @@ export const CATEGORY_AXIS_TICK_VALUES: AgCartesianChartOptions = {
         {
             type: 'category',
             position: 'bottom',
-            tick: { values: ['2016', '2018'] } as AgAxisCategoryTickOptions,
+            interval: {
+                values: ['2016', '2018'],
+            },
         },
         { type: 'number', position: 'left' },
     ],
@@ -233,12 +234,12 @@ export const AXIS_TICK_MIN_SPACING: AgCartesianChartOptions = {
         {
             type: 'time',
             position: 'bottom',
-            tick: { minSpacing: 200 } as AgAxisTimeTickOptions,
+            interval: { minSpacing: 200 },
         },
         {
             type: 'number',
             position: 'left',
-            tick: { minSpacing: 100 } as AgAxisTimeTickOptions,
+            interval: { minSpacing: 100 },
         },
     ],
 };
@@ -246,16 +247,16 @@ export const AXIS_TICK_MIN_SPACING: AgCartesianChartOptions = {
 export const AXIS_TICK_MAX_SPACING: AgCartesianChartOptions = {
     ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,
     axes: [
-        { type: 'number', position: 'left', tick: { maxSpacing: 30 } },
-        { type: 'number', position: 'bottom', tick: { maxSpacing: 30 } },
+        { type: 'number', position: 'left', interval: { maxSpacing: 30 } },
+        { type: 'number', position: 'bottom', interval: { maxSpacing: 30 } },
     ],
 };
 
 export const AXIS_TICK_MIN_MAX_SPACING: AgCartesianChartOptions = {
     ...examples.GROUPED_COLUMN_EXAMPLE,
     axes: [
-        { type: 'category', position: 'bottom', tick: { minSpacing: 150 } },
-        { type: 'number', position: 'left', tick: { minSpacing: 50, maxSpacing: 100 } },
+        { type: 'category', position: 'bottom', interval: { minSpacing: 150 } },
+        { type: 'number', position: 'left', interval: { minSpacing: 50, maxSpacing: 100 } },
     ],
 };
 
@@ -363,6 +364,52 @@ export const COMBO_SERIES_AREA_PADDING_WITHOUT_LABELS_OR_TITLES: AgCartesianChar
     })),
 };
 
+export const COMBO_SERIES_COMPLEX_LAYOUT: AgCartesianChartOptions = {
+    ...COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES,
+    axes: [
+        ...(COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES.axes?.map((a) => {
+            if (a.position === 'left' && a.type === 'number') {
+                return { ...a, min: 0, max: 4000 };
+            } else if (a.position === 'right' && a.type === 'number') {
+                return { ...a, min: 100000, max: 140000 };
+            }
+            return a;
+        }) ?? []),
+        ...(COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES.axes
+            ?.filter((a) => a.type === 'number')
+            .map((a) => {
+                const layoutConstraints = {
+                    stacked: false,
+                    width: 50,
+                    unit: 'percentage',
+                    align: 'start',
+                };
+                if (a.position === 'left' && a.type === 'number') {
+                    return { ...a, min: 0, max: 4000, layoutConstraints };
+                } else if (a.position === 'right' && a.type === 'number') {
+                    return { ...a, min: 100000, max: 140000, layoutConstraints };
+                }
+                return a;
+            }) ?? []),
+        ...(COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES.axes
+            ?.filter((a) => a.type === 'number')
+            .map((a) => {
+                const layoutConstraints = {
+                    stacked: false,
+                    width: 50,
+                    unit: 'percentage',
+                    align: 'end',
+                };
+                if (a.position === 'left' && a.type === 'number') {
+                    return { ...a, min: 0, max: 4000, layoutConstraints, reverse: true };
+                } else if (a.position === 'right' && a.type === 'number') {
+                    return { ...a, min: 100000, max: 140000, layoutConstraints, reverse: true };
+                }
+                return a;
+            }) ?? []),
+    ],
+};
+
 export const AREA_CHART_NO_SERIES: AgCartesianChartOptions = {
     ...examples.STACKED_AREA_GRAPH_EXAMPLE,
     series: examples.STACKED_AREA_GRAPH_EXAMPLE.series?.map((s) => ({ ...s, visible: false })),
@@ -378,11 +425,11 @@ const extremeAxisConfig = {
         text: 'Axis title',
     },
     line: {
-        color: 'yellow',
+        stroke: 'yellow',
         width: 20,
     },
     tick: {
-        color: 'blue',
+        stroke: 'blue',
         size: 20,
         width: 400,
     },

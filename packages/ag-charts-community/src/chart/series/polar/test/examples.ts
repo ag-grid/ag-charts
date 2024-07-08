@@ -1,4 +1,5 @@
-import type { AgPolarChartOptions } from '../../../../options/agChartOptions';
+import type { AgPolarChartOptions } from 'ag-charts-types';
+
 import { DATA_MANY_LONG_LABELS, DATA_MARKET_SHARE, DATA_MARKET_SHARE_WITH_NEGATIVE_VALUES } from './data';
 
 export const PIE_SERIES: AgPolarChartOptions = {
@@ -157,7 +158,7 @@ export const DONUT_SERIES_INNER_TEXT: AgPolarChartOptions = {
             innerRadiusOffset: -30,
             innerLabels: [
                 { text: '35%', color: 'white', fontSize: 50 },
-                { text: 'Market', margin: 10 },
+                { text: 'Market', spacing: 10 },
             ],
             innerCircle: {
                 fill: '#a3a2a1',

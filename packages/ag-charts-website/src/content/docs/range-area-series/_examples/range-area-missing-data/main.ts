@@ -1,8 +1,8 @@
-import { AgChartOptions, AgCharts, AgRangeAreaSeriesOptions } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, AgRangeAreaSeriesOptions } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
@@ -46,10 +46,10 @@ function toggleConnectMissingData() {
         connectMissingData: !series.connectMissingData,
     }));
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function reset() {
     options.data = getData();
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

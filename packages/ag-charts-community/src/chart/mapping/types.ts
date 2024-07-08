@@ -4,13 +4,15 @@ import type {
     AgHierarchyChartOptions,
     AgPolarChartOptions,
     AgTopologyChartOptions,
-} from '../../options/agChartOptions';
-import type { AgChartOptions } from '../../options/chart/chartBuilderOptions';
+} from 'ag-charts-types';
+import type { AgChartOptions } from 'ag-charts-types';
+
 import { Logger } from '../../util/logger';
 import { axisRegistry } from '../factory/axisRegistry';
 import { chartTypes } from '../factory/chartTypes';
 import {
     isEnterpriseCartesian,
+    isEnterpriseFlowProportion,
     isEnterpriseHierarchy,
     isEnterprisePolar,
     isEnterpriseTopology,
@@ -91,7 +93,7 @@ export function isAgFlowProportionChartOptions(input: AgChartOptions): input is 
         return true;
     }
 
-    return chartTypes.isFlowProportion(specifiedType) || isEnterpriseTopology(specifiedType);
+    return chartTypes.isFlowProportion(specifiedType) || isEnterpriseFlowProportion(specifiedType);
 }
 
 export function isAgPolarChartOptionsWithSeriesBasedLegend(input: AgChartOptions): input is AgPolarChartOptions {

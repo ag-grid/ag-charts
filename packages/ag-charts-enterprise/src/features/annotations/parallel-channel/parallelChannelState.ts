@@ -1,28 +1,32 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import type { StateClickEvent, StateHoverEvent } from '../annotationTypes';
+import type { Point, StateClickEvent, StateDragEvent, StateHoverEvent } from '../annotationTypes';
 import { ParallelChannelAnnotation } from './parallelChannelProperties';
 import type { ParallelChannel } from './parallelChannelScene';
 
+type Click = StateClickEvent<ParallelChannelAnnotation, ParallelChannel>;
+type Drag = StateDragEvent<ParallelChannelAnnotation, ParallelChannel>;
+type Hover = StateHoverEvent<ParallelChannelAnnotation, ParallelChannel>;
+
 export class ParallelChannelStateMachine extends _ModuleSupport.StateMachine<
-    'start' | 'end' | 'size',
-    'click' | 'hover'
+    'start' | 'end' | 'height',
+    'click' | 'hover' | 'drag' | 'cancel'
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(
-        createDatum: (datum: ParallelChannelAnnotation) => void,
-        validateDatumPoint: (point: { x?: number | string | Date; y?: number | string | Date }) => boolean
+        appendDatum: (datum: ParallelChannelAnnotation) => void,
+        validateDatumPoint: (point: Point) => boolean
     ) {
-        const onStartClick = ({ point }: StateClickEvent<ParallelChannelAnnotation, ParallelChannel>) => {
+        const onStartClick = ({ point }: Click | Drag) => {
             const datum = new ParallelChannelAnnotation();
-            datum.set({ start: point, end: point, size: 0 });
-            createDatum(datum);
+            datum.set({ start: point, end: point, height: 0 });
+            appendDatum(datum);
         };
 
-        const onEndHover = ({ datum, node, point }: StateHoverEvent<ParallelChannelAnnotation, ParallelChannel>) => {
-            datum.set({ end: point, size: 0 });
-            node.toggleHandles({
+        const onEndHover = ({ datum, node, point }: Hover | Drag) => {
+            datum?.set({ end: point, height: 0 });
+            node?.toggleHandles({
                 topMiddle: false,
                 topRight: false,
                 bottomLeft: false,
@@ -31,16 +35,16 @@ export class ParallelChannelStateMachine extends _ModuleSupport.StateMachine<
             });
         };
 
-        const onEndClick = ({ datum, node, point }: StateClickEvent<ParallelChannelAnnotation, ParallelChannel>) => {
+        const onEndClick = ({ datum, node, point }: Click) => {
             datum?.set({ end: point });
             node?.toggleHandles({ topMiddle: false, bottomMiddle: false });
         };
 
-        const onSizeHover = ({ datum, node, point }: StateHoverEvent<ParallelChannelAnnotation, ParallelChannel>) => {
+        const onHeightHover = ({ datum, node, point }: Hover) => {
             if (datum.start.y == null || datum.end.y == null) return;
 
-            const size = datum.end.y - point.y;
-            const bottomStartY = datum.start.y - size;
+            const height = datum.end.y - point.y;
+            const bottomStartY = datum.start.y - height;
 
             node.toggleHandles({ topMiddle: false, bottomMiddle: false });
 
@@ -51,14 +55,14 @@ export class ParallelChannelStateMachine extends _ModuleSupport.StateMachine<
                 return;
             }
 
-            datum.set({ size });
+            datum.set({ height });
         };
 
-        const onSizeClick = ({ datum, node, point }: StateClickEvent<ParallelChannelAnnotation, ParallelChannel>) => {
+        const onHeightClick = ({ datum, node, point }: Click) => {
             if (!datum || !node || datum.start.y == null || datum.end.y == null) return;
 
-            const size = datum.end.y - point.y;
-            const bottomStartY = datum.start.y - size;
+            const height = datum.end.y - point.y;
+            const bottomStartY = datum.start.y - height;
 
             node.toggleHandles(true);
 
@@ -66,7 +70,7 @@ export class ParallelChannelStateMachine extends _ModuleSupport.StateMachine<
                 validateDatumPoint({ x: datum.start.x, y: bottomStartY }) &&
                 validateDatumPoint({ x: datum.end.x, y: point.y })
             ) {
-                datum.set({ size });
+                datum.set({ height });
             }
         };
 
@@ -76,20 +80,28 @@ export class ParallelChannelStateMachine extends _ModuleSupport.StateMachine<
                     target: 'end',
                     action: onStartClick,
                 },
+                drag: {
+                    target: 'end',
+                    action: onStartClick,
+                },
+                cancel: '__parent',
             },
             end: {
                 hover: onEndHover,
                 click: {
-                    target: 'size',
+                    target: 'height',
                     action: onEndClick,
                 },
+                drag: onEndHover,
+                cancel: '__parent',
             },
-            size: {
-                hover: onSizeHover,
+            height: {
+                hover: onHeightHover,
                 click: {
                     target: '__parent',
-                    action: onSizeClick,
+                    action: onHeightClick,
                 },
+                cancel: '__parent',
             },
         });
     }

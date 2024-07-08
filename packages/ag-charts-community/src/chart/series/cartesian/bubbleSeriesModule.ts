@@ -1,12 +1,7 @@
 import type { SeriesModule } from '../../../module/coreModules';
-import { markerPaletteFactory } from '../../../module/theme';
+import { singleSeriesPaletteFactory } from '../../../module/theme';
 import { CARTESIAN_AXIS_TYPE, POSITION } from '../../themes/constants';
-import {
-    DEFAULT_FONT_FAMILY,
-    DEFAULT_LABEL_COLOUR,
-    EXTENDS_CARTESIAN_MARKER_DEFAULTS,
-    EXTENDS_SERIES_DEFAULTS,
-} from '../../themes/symbols';
+import { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR } from '../../themes/symbols';
 import { BubbleSeries } from './bubbleSeries';
 
 export const BubbleSeriesModule: SeriesModule<'bubble'> = {
@@ -17,6 +12,7 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
 
     identifier: 'bubble',
     instanceConstructor: BubbleSeries,
+    tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,
@@ -29,13 +25,11 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
     ],
     themeTemplate: {
         series: {
-            __extends__: EXTENDS_SERIES_DEFAULTS,
+            shape: 'circle',
+            size: 7,
+            maxSize: 30,
+            fillOpacity: 0.8,
             tooltip: { position: { type: 'node' } },
-            marker: {
-                __extends__: EXTENDS_CARTESIAN_MARKER_DEFAULTS,
-                maxSize: 30,
-                fillOpacity: 0.8,
-            },
             label: {
                 enabled: false,
                 fontSize: 12,
@@ -44,5 +38,5 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
             },
         },
     },
-    paletteFactory: markerPaletteFactory,
+    paletteFactory: singleSeriesPaletteFactory,
 };

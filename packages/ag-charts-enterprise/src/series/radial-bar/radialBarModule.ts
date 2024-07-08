@@ -11,6 +11,7 @@ export const RadialBarModule: _ModuleSupport.SeriesModule<'radial-bar'> = {
 
     identifier: 'radial-bar',
     instanceConstructor: RadialBarSeries,
+    tooltipDefaults: { range: 'exact' },
     defaultAxes: [
         {
             type: _Theme.POLAR_AXIS_TYPE.ANGLE_NUMBER,

@@ -95,10 +95,10 @@ const chart = AgCharts.create(options);
 
 function barLine() {
     options.series = BAR_AND_LINE;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function areaBar() {
     options.series = AREA_AND_BAR;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

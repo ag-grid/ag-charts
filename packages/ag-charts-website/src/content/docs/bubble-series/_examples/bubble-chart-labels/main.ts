@@ -1,8 +1,8 @@
-import { AgBubbleSeriesOptions, AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgBubbleSeriesOptions, AgCartesianChartOptions, AgChartOptions, AgCharts } from 'ag-charts-community';
 
 import { femaleHeightWeight, maleHeightWeight } from './height-weight-data';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Weight vs Height)',
@@ -22,11 +22,9 @@ const options: AgChartOptions = {
             sizeKey: 'age',
             sizeName: 'Age',
             labelKey: 'name',
-            marker: {
-                shape: 'square',
-                fill: '#e36f6ab5',
-                stroke: '#9f4e4a',
-            },
+            shape: 'square',
+            fill: '#e36f6ab5',
+            stroke: '#9f4e4a',
             label: {
                 enabled: true,
             },
@@ -42,10 +40,8 @@ const options: AgChartOptions = {
             sizeKey: 'age',
             sizeName: 'Age',
             labelKey: 'name',
-            marker: {
-                fill: '#7b91deb5',
-                stroke: '#56659b',
-            },
+            fill: '#7b91deb5',
+            stroke: '#56659b',
             label: {
                 enabled: true,
             },
@@ -86,7 +82,7 @@ function updateFontSize(event: any) {
 
     (options.series![0] as AgBubbleSeriesOptions).label!.fontSize = value;
     (options.series![1] as AgBubbleSeriesOptions).label!.fontSize = value;
-    AgCharts.update(chart, options);
+    chart.update(options);
 
     document.getElementById('fontSizeSliderValue')!.innerHTML = String(value);
 }

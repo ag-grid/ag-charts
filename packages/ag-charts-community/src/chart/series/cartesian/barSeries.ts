@@ -1,11 +1,7 @@
+import type { AgBarSeriesStyle, AgErrorBoundSeriesTooltipRendererParams, FontStyle, FontWeight } from 'ag-charts-types';
+
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
-import type {
-    AgBarSeriesStyle,
-    AgErrorBoundSeriesTooltipRendererParams,
-    FontStyle,
-    FontWeight,
-} from '../../../options/agChartOptions';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { BBox } from '../../../scene/bbox';
 import { PointerEvents } from '../../../scene/node';
@@ -22,6 +18,7 @@ import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
 import {
+    LARGEST_KEY_INTERVAL,
     SMALLEST_KEY_INTERVAL,
     animationValidation,
     createDatumId,
@@ -184,7 +181,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                     },
                     yScaleType
                 ),
-                ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
+                ...(isContinuousX ? [SMALLEST_KEY_INTERVAL, LARGEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
             groupByKeys: true,
@@ -192,6 +189,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         });
 
         this.smallestDataInterval = processedData.reduced?.smallestKeyInterval;
+        this.largestDataInterval = processedData.reduced?.largestKeyInterval;
 
         this.animationState.transition('updateData');
     }
@@ -308,19 +306,22 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                     placement,
                 } = label;
 
-                const labelText = this.getLabelText(
-                    this.properties.label,
-                    {
-                        datum: seriesDatum[valueIndex],
-                        value: yRawValue,
-                        xKey,
-                        yKey,
-                        xName,
-                        yName,
-                        legendItemName,
-                    },
-                    (v) => (isFiniteNumber(v) ? v.toFixed(2) : String(v))
-                );
+                const labelText =
+                    yRawValue != null
+                        ? this.getLabelText(
+                              this.properties.label,
+                              {
+                                  datum: seriesDatum[valueIndex],
+                                  value: yRawValue,
+                                  xKey,
+                                  yKey,
+                                  xName,
+                                  yName,
+                                  legendItemName,
+                              },
+                              (v) => (isFiniteNumber(v) ? v.toFixed(2) : String(v))
+                          )
+                        : undefined;
                 const labelDatum = labelText
                     ? {
                           text: labelText,
@@ -414,13 +415,15 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             strokeOpacity,
             lineDash,
             lineDashOffset,
-            formatter,
+            itemStyler,
             shadow,
             highlightStyle: { item: itemHighlightStyle },
         } = this.properties;
 
         const xAxis = this.axes[ChartAxisDirection.X];
-        const crisp = checkCrisp(xAxis?.visibleRange);
+        const crisp =
+            this.properties.crisp ??
+            checkCrisp(xAxis?.scale, xAxis?.visibleRange, this.smallestDataInterval, this.largestDataInterval);
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
 
         opts.datumSelection.each((rect, datum) => {
@@ -451,7 +454,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 highlightStyle: itemHighlightStyle,
                 yKey,
                 style,
-                formatter,
+                itemStyler,
                 stackGroup,
             });
             config.crisp = crisp;
@@ -490,7 +493,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             return EMPTY_TOOLTIP_CONTENT;
         }
 
-        const { xKey, yKey, xName, yName, fill, stroke, strokeWidth, tooltip, formatter, stackGroup, legendItemName } =
+        const { xKey, yKey, xName, yName, fill, stroke, strokeWidth, tooltip, itemStyler, stackGroup, legendItemName } =
             this.properties;
         const { xValue, yValue, datum, itemId } = nodeDatum;
 
@@ -501,8 +504,8 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
         let format: AgBarSeriesStyle | undefined;
 
-        if (formatter) {
-            format = callbackCache.call(formatter, {
+        if (itemStyler) {
+            format = callbackCache.call(itemStyler, {
                 seriesId,
                 datum,
                 xKey,
@@ -512,6 +515,11 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 stroke,
                 strokeWidth: this.getStrokeWidth(strokeWidth),
                 highlighted: false,
+                cornerRadius: this.properties.cornerRadius,
+                fillOpacity: this.properties.fillOpacity,
+                strokeOpacity: this.properties.strokeOpacity,
+                lineDash: this.properties.lineDash ?? [],
+                lineDashOffset: this.properties.lineDashOffset,
             });
         }
 

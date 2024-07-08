@@ -3,29 +3,10 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { RadiusCrossLine } from '../polar-crosslines/radiusCrossLine';
 
-const {
-    assignJsonApplyConstructedArray,
-    ChartAxisDirection,
-    Default,
-    Layers,
-    DEGREE,
-    MIN_SPACING,
-    MAX_SPACING,
-    BOOLEAN,
-    Validate,
-} = _ModuleSupport;
+const { assignJsonApplyConstructedArray, ChartAxisDirection, Default, Layers, DEGREE, BOOLEAN, Validate } =
+    _ModuleSupport;
 const { Caption, Group, Path, Selection } = _Scene;
 const { isNumberEqual, normalizeAngle360, toRadians } = _Util;
-
-class RadiusAxisTick extends _ModuleSupport.AxisTick<_Scale.LinearScale, number> {
-    @Validate(MIN_SPACING)
-    @Default(NaN)
-    override minSpacing: number = NaN;
-
-    @Validate(MAX_SPACING)
-    @Default(NaN)
-    override maxSpacing: number = NaN;
-}
 
 class RadiusAxisLabel extends _ModuleSupport.AxisLabel {
     @Validate(BOOLEAN, { optional: true })
@@ -208,10 +189,6 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
         }
 
         titleNode.visible = titleVisible;
-    }
-
-    protected override createTick() {
-        return new RadiusAxisTick();
     }
 
     protected override updateCrossLines() {

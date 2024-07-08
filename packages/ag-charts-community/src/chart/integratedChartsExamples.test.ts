@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import type { AgChartOptions } from '../options/agChartOptions';
-import { AgCharts } from './agChartV2';
-import type { Chart } from './chart';
+import type { AgChartOptions } from 'ag-charts-types';
+
+import { AgCharts } from '../api/agCharts';
 import { EXAMPLES } from './test/examples-integrated-charts';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -12,11 +12,12 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from './test/utils';
+import type { ChartOrProxy } from './test/utils';
 
 describe('Integrated Charts Examples', () => {
     setupMockConsole();
 
-    let chart: Chart;
+    let chart: ChartOrProxy;
 
     afterEach(() => {
         if (chart) {
@@ -52,10 +53,10 @@ describe('Integrated Charts Examples', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(startingOptions) as Chart;
+                chart = AgCharts.create(startingOptions);
                 await waitForChartStability(chart);
 
-                AgCharts.update(chart, options);
+                await chart.update(options);
                 await compare();
             });
         }

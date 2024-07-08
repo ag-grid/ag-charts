@@ -67,7 +67,7 @@ const options: AgCartesianChartOptions = {
             nice: false,
             min: new Date(2004, 0, 1),
             max: new Date(2020, 0, 1),
-            tick: {
+            interval: {
                 maxSpacing: 200,
             },
         },
@@ -93,5 +93,5 @@ const chart = AgCharts.create(options);
 
 function toggleEnabled(value: boolean) {
     options.navigator!.enabled = value;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

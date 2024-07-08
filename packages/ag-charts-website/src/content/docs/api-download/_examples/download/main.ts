@@ -28,15 +28,15 @@ const options: AgChartOptions = {
 const chart = AgCharts.create(options);
 
 function download() {
-    AgCharts.download(chart);
+    chart.download();
 }
 
 function downloadFixedSize() {
-    AgCharts.download(chart, { width: 600, height: 300 });
+    chart.download({ width: 600, height: 300 });
 }
 
 function openImage() {
-    AgCharts.getImageDataURL(chart, { width: 600, height: 300 }).then((imageDataURL) => {
+    chart.getImageDataURL({ width: 600, height: 300 }).then((imageDataURL) => {
         const image = new Image();
         image.src = imageDataURL;
 

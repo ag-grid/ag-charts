@@ -91,24 +91,41 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         const mainFileName = getMainFileName(internalFramework)!;
         let mainJs = readAsJsFile(entryFile);
 
+        const localeImports = typedBindings.imports
+            .filter((i: any) => i.module.includes('ag-charts-locale'))
+            .flatMap((imp) => imp.imports);
+        if (localeImports.length > 0) {
+            mainJs = `const { ${localeImports.join(', ')} } = agChartsLocale;` + '\n' + mainJs;
+        }
+
         // Chart classes that need scoping
-        const chartImports = typedBindings.imports.find(
-            (i: any) => i.module.includes('ag-charts-community') || i.module.includes('ag-charts-enterprise')
-        );
-        if (chartImports) {
-            chartImports.imports.forEach((i: any) => {
-                const toReplace = `(?<!\\.)${i}([\\s/.])`;
-                const reg = new RegExp(toReplace, 'g');
-                mainJs = mainJs.replace(reg, `agCharts.${i}$1`);
-            });
+        const chartsExports = new Set([
+            'time',
+            'AgCharts',
+            'VERSION',
+            'Marker',
+            'AG_CHARTS_LOCALE_EN_US',
+            '_Scene',
+            '_Theme',
+            '_Scale',
+            '_Util',
+            '_ModuleSupport',
+        ]);
+        const chartImports = typedBindings.imports
+            .filter((i: any) => i.module.includes('ag-charts-community') || i.module.includes('ag-charts-enterprise'))
+            .flatMap((imp) => imp.imports)
+            .filter((imp) => chartsExports.has(imp));
+        if (chartImports.length > 0) {
+            mainJs = `const { ${chartImports.join(', ')} } = agCharts;` + '\n' + mainJs;
+        }
+
+        if (localeImports.length > 0 || chartImports.length > 0) {
+            mainJs = '\n' + mainJs;
         }
 
         // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
         if (!ignoreDarkMode) {
-            mainJs =
-                mainJs +
-                `\n
-            ${getDarkModeSnippet({ chartAPI: 'agCharts.AgCharts' })}`;
+            mainJs = mainJs + '\n\n' + getDarkModeSnippet({ chartAPI: 'AgCharts' });
         }
 
         mainJs = await prettier.format(mainJs, { parser: 'babel' });

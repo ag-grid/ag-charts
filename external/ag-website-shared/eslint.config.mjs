@@ -4,7 +4,7 @@ export default [
     ...rootESLint,
     {
         rules: {
-            '@typescript-eslint/no-explicit-any': 'off',
+            'import-x/consistent-type-specifier-style': 'off',
         },
     },
 ];

@@ -1,7 +1,7 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 const { Validate, BOOLEAN, POSITIVE_NUMBER, Layers, ActionOnSet, CategoryAxis, GroupedCategoryAxis } = _ModuleSupport;
-const { toRadians, Padding, Logger } = _Util;
+const { Padding, Logger } = _Util;
 const { Text, Group, BBox } = _Scene;
 
 class MiniChartPadding {
@@ -286,7 +286,7 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
             axis.gridPadding = 0;
 
             axis.calculateLayout();
-            axis.updatePosition({ rotation: toRadians(axis.rotation), sideFlag: axis.label.getSideFlag() });
+            axis.updatePosition();
 
             axis.update(undefined, animated);
         });

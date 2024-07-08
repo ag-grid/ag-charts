@@ -1,3 +1,14 @@
+import {
+    type AgBaseAxisOptions,
+    type AgCartesianAxisOptions,
+    type AgChartOptions,
+    type AgChartThemePalette,
+    type AgPolarAxisOptions,
+    type AgTooltipPositionOptions,
+    AgTooltipPositionType,
+} from 'ag-charts-types';
+
+import { PRESETS } from '../api/preset/presets';
 import { axisRegistry } from '../chart/factory/axisRegistry';
 import { publicChartTypes } from '../chart/factory/chartTypes';
 import { isEnterpriseSeriesType } from '../chart/factory/expectedEnterpriseModules';
@@ -14,12 +25,7 @@ import {
     isAxisOptionType,
     isSeriesOptionType,
 } from '../chart/mapping/types';
-import type { ChartTheme } from '../chart/themes/chartTheme';
-import type { AgBaseAxisOptions } from '../options/chart/axisOptions';
-import type { AgChartOptions } from '../options/chart/chartBuilderOptions';
-import { type AgTooltipPositionOptions, AgTooltipPositionType } from '../options/chart/tooltipOptions';
-import type { AgCartesianAxisOptions } from '../options/series/cartesian/cartesianOptions';
-import type { AgPolarAxisOptions } from '../options/series/polar/polarOptions';
+import { type ChartTheme } from '../chart/themes/chartTheme';
 import { circularSliceArray, groupBy, unique } from '../util/array';
 import { Debug } from '../util/debug';
 import { setDocument, setWindow } from '../util/dom';
@@ -27,9 +33,11 @@ import { deepClone, jsonDiff, jsonWalk } from '../util/json';
 import { Logger } from '../util/logger';
 import { mergeArrayDefaults, mergeDefaults } from '../util/object';
 import { isEnumValue, isFiniteNumber, isObject, isPlainObject, isString, isSymbol } from '../util/type-guards';
+import type { AxisContext } from './axisContext';
 import type { BaseModule, ModuleInstance } from './baseModule';
+import { type PaletteType, paletteType } from './coreModulesTypes';
 import { enterpriseModule } from './enterpriseModule';
-import type { AxisContext, ModuleContextWithParent } from './moduleContext';
+import type { ModuleContextWithParent } from './moduleContext';
 import type { SeriesType } from './optionsModuleTypes';
 
 type AxisType = 'category' | 'number' | 'log' | 'time' | 'ordinal-time';
@@ -46,6 +54,7 @@ interface ChartSpecialOverrides {
     window: Window;
     overrideDevicePixelRatio?: number;
     sceneMode?: 'simple';
+    type?: string;
 }
 
 type GroupingOptions = {
@@ -77,35 +86,55 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     userOptions: Partial<T>;
     specialOverrides: ChartSpecialOverrides;
     annotationThemes: any;
+    type?: string;
+
+    private readonly debug = Debug.create(true, 'opts');
 
     constructor(userOptions: T, specialOverrides?: Partial<ChartSpecialOverrides>) {
         const cloneOptions = { shallow: ['data'] };
-        const options = deepClone(userOptions, cloneOptions);
-        const chartType = this.optionsType(options);
+        this.userOptions = deepClone(userOptions, cloneOptions);
+        const chartType = this.optionsType(this.userOptions);
+
+        let options = deepClone(userOptions, cloneOptions);
+
+        this.type = specialOverrides?.type;
+        if (this.type != null) {
+            const presetOptions = (PRESETS as any)[this.type]?.(options, () => this.activeTheme) ?? options;
+            this.debug('>>> AgCharts.createOrUpdate() - applying preset', options, presetOptions);
+            options = presetOptions;
+        }
+
+        this.activeTheme = getChartTheme(options.theme);
+        if (this.type) {
+            options = this.activeTheme.templateTheme(options);
+        }
 
         this.sanityCheckAndCleanup(options);
-
-        this.userOptions = options;
-        this.activeTheme = getChartTheme(options.theme);
         this.defaultAxes = this.getDefaultAxes(options);
         this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
 
         const {
             axes: axesThemes = {},
-            annotations: annotationsThemes = {},
+            annotations: { axesButtons = null, ...annotationsThemes } = {},
             series: _,
             ...themeDefaults
         } = this.getSeriesThemeConfig(chartType);
 
         this.processedOptions = deepClone(
-            mergeDefaults(this.userOptions, themeDefaults, this.defaultAxes),
+            mergeDefaults(
+                options,
+                axesButtons != null ? { annotations: { axesButtons } } : {},
+                themeDefaults,
+                this.defaultAxes
+            ),
             cloneOptions
         ) as T;
 
         this.processAxesOptions(this.processedOptions, axesThemes);
         this.processSeriesOptions(this.processedOptions);
         this.processMiniChartSeriesOptions(this.processedOptions);
-        this.processAnnotationsOptions(this.processedOptions, annotationsThemes);
+
+        this.annotationThemes = annotationsThemes;
 
         // Disable legend by default for single series cartesian charts and polar charts which display legend items per series rather than data items
         if (
@@ -208,13 +237,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     protected processSeriesOptions(options: T) {
         const defaultSeriesType = this.getDefaultSeriesType(options);
         const defaultTooltipPosition = this.getTooltipPositionDefaults(options);
-        const userPalette = Boolean(isObject(options.theme) && options.theme.palette);
+        const userPalette = isObject(options.theme) ? paletteType(options.theme?.palette) : 'inbuilt';
         const paletteOptions = {
             colourIndex: 0,
             userPalette,
         };
 
-        const processedSeries = options.series!.map((series) => {
+        const processedSeries = options.series?.map((series) => {
             series.type ??= defaultSeriesType;
             const { innerLabels: innerLabelsTheme, ...seriesTheme } =
                 this.getSeriesThemeConfig(series.type).series ?? {};
@@ -223,12 +252,15 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 ? { colourIndex: 0, userPalette }
                 : paletteOptions;
             const palette = this.getSeriesPalette(series.type, seriesPaletteOptions);
+            const defaultTooltipRange = this.getTooltipRangeDefaults(options, series.type);
             const seriesOptions = mergeDefaults(
                 this.getSeriesGroupingOptions(series),
                 series,
                 defaultTooltipPosition,
+                defaultTooltipRange,
                 seriesTheme,
-                palette
+                palette,
+                { visible: true }
             );
 
             if (seriesOptions.innerLabels) {
@@ -238,7 +270,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             return this.activeTheme.templateTheme(seriesOptions);
         });
 
-        options.series = this.setSeriesGroupingOptions(processedSeries);
+        options.series = this.setSeriesGroupingOptions(processedSeries ?? []);
     }
 
     protected processMiniChartSeriesOptions(options: T) {
@@ -247,7 +279,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         const paletteOptions = {
             colourIndex: 0,
-            userPalette: Boolean(isObject(options.theme) && options.theme.palette),
+            userPalette: isObject(options.theme) ? paletteType(options.theme.palette) : 'inbuilt',
         };
 
         miniChartSeries = miniChartSeries.map((series) => {
@@ -264,22 +296,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         options.navigator!.miniChart!.series = this.setSeriesGroupingOptions(miniChartSeries) as any;
     }
 
-    protected processAnnotationsOptions(options: T, annotationsThemes: any) {
-        if (!isAgCartesianChartOptions(options)) return;
-
-        if (options.annotations == null) return;
-
-        this.annotationThemes = annotationsThemes;
-
-        const processedAnnotations = options.annotations.initial?.map((annotation) => {
-            const annotationTheme = annotationsThemes[annotation.type];
-            return mergeDefaults(annotation, annotationTheme);
-        });
-
-        options.annotations.initial = processedAnnotations;
-    }
-
-    protected getSeriesPalette(seriesType: SeriesType, options: { colourIndex: number; userPalette: boolean }) {
+    protected getSeriesPalette(seriesType: SeriesType, options: { colourIndex: number; userPalette: PaletteType }) {
         const paletteFactory = seriesRegistry.getPaletteFactory(seriesType);
         const { colourIndex: colourOffset, userPalette } = options;
         const { fills = [], strokes = [] } = this.activeTheme.palette;
@@ -288,6 +305,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             userPalette,
             colorsCount: Math.max(fills.length, strokes.length),
             themeTemplateParameters: this.activeTheme.getTemplateParameters(),
+            palette: this.activeTheme.palette as Required<AgChartThemePalette>,
             takeColors(count) {
                 options.colourIndex += count;
                 return {
@@ -324,7 +342,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     protected setSeriesGroupingOptions(allSeries: GroupingSeriesOptions[]) {
         const seriesGroups = this.getSeriesGrouping(allSeries);
 
-        Debug.create(true, 'opts')('setSeriesGroupingOptions() - series grouping: ', seriesGroups);
+        this.debug('setSeriesGroupingOptions() - series grouping: ', seriesGroups);
 
         const groupIdx: Record<string, number> = {};
         const groupCount = seriesGroups.reduce<Record<string, number>>((countMap, seriesGroup) => {
@@ -435,6 +453,22 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return { tooltip: { position: result } };
     }
 
+    // AG-11591 Support for new series-specific & legacy chart-global 'tooltip.range' options
+    //
+    // The `chart.series[].tooltip.range` option is a bit different for legacy reason. This use to be
+    // global option (`chart.tooltip.range`) that could override the theme. But now, the tooltip range
+    // option is series-specific.
+    //
+    // To preserve backward compatiblity, the `chart.tooltip.range` theme default has been changed from
+    // 'nearest' to undefined.
+    private getTooltipRangeDefaults(options: T, seriesType: SeriesType) {
+        return {
+            tooltip: {
+                range: options.tooltip?.range ?? seriesRegistry.getTooltipDefauls(seriesType)?.range,
+            },
+        };
+    }
+
     private deprecationWarnings(options: Partial<T>) {
         const deprecatedArrayProps = { yKeys: 'yKey', yNames: 'yName' };
         Object.entries(deprecatedArrayProps).forEach(([oldProp, newProp]) => {
@@ -461,8 +495,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private seriesTypeIntegrity(options: Partial<T>) {
-        const series = (options.series ?? []) as SeriesOptions[];
-        options.series = series.filter(({ type }) => {
+        options.series = options.series?.filter(({ type }) => {
             if (type == null || isSeriesOptionType(type) || isEnterpriseSeriesType(type)) {
                 return true;
             }

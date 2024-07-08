@@ -1,13 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
 
-import type {
-    AgCartesianAxisOptions,
-    AgCartesianChartOptions,
-    AgChartInstance,
-    AgChartOptions,
-} from '../options/agChartOptions';
-import { AgCharts } from './agChartV2';
-import type { Chart } from './chart';
+import type { AgCartesianAxisOptions, AgCartesianChartOptions, AgChartInstance, AgChartOptions } from 'ag-charts-types';
+
+import { AgCharts } from '../api/agCharts';
 import * as examples from './test/examples';
 import type { TestCase } from './test/utils';
 import {
@@ -107,7 +102,7 @@ describe('AgChartV2', () => {
             const snapshots: any[] = [];
 
             // Create initial chart instance.
-            chart = AgCharts.create(exampleCycle[0]) as Chart;
+            chart = AgCharts.create(exampleCycle[0]);
             snapshots[0] = await snapshot();
 
             // Execute 2 rounds of comparisons to try and catch any issues. On first round, just
@@ -116,7 +111,7 @@ describe('AgChartV2', () => {
             let previousSnapshot: any = undefined;
             for (let round = 0; round <= 1; round++) {
                 for (let index = 0; index < exampleCycle.length; index++) {
-                    AgCharts.update(chart, exampleCycle[index]);
+                    await chart.update(exampleCycle[index]);
 
                     const exampleSnapshot = await snapshot();
                     if (snapshots[index] != null) {
@@ -157,7 +152,7 @@ describe('AgChartV2', () => {
             exampleCycle.forEach((opts) => prepareTestOptions(opts));
 
             // Create initial chart instance.
-            chart = AgCharts.create(exampleCycle[0]) as Chart;
+            chart = AgCharts.create(exampleCycle[0]);
             await waitForChartStability(chart);
 
             // Execute 2 rounds of comparisons to try and catch any issues. On first round, just
@@ -165,9 +160,7 @@ describe('AgChartV2', () => {
             // generated.
             for (let round = 0; round <= 1; round++) {
                 for (let index = 0; index < exampleCycle.length; index++) {
-                    AgCharts.update(chart, exampleCycle[index]);
-
-                    await waitForChartStability(chart);
+                    await chart.update(exampleCycle[index]);
                 }
             }
         });

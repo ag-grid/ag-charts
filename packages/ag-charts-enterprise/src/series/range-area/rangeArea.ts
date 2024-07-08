@@ -23,6 +23,10 @@ const {
     updateClipPath,
     isFiniteNumber,
     computeMarkerFocusBounds,
+    plotPath,
+    pathRanges,
+    pathRangePoints,
+    pathRangePointsReverse,
 } = _ModuleSupport;
 const { getMarker, PointerEvents } = _Scene;
 const { sanitizeHtml, extent } = _Util;
@@ -60,7 +64,8 @@ class RangeAreaSeriesNodeEvent<
 type RadarAreaPoint = _ModuleSupport.AreaPathPoint & { size: number; enabled: boolean };
 
 type RadarAreaPathDatum = {
-    readonly points: RadarAreaPoint[];
+    readonly highPoints: RadarAreaPoint[];
+    readonly lowPoints: RadarAreaPoint[];
     readonly itemId: string;
 };
 
@@ -181,27 +186,41 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         const defs = dataModel.resolveProcessedDataDefsByIds(this, [`xValue`, `yHighValue`, `yLowValue`]);
 
-        const createCoordinates = (xValue: any, yHigh: number, yLow: number): [RadarAreaPoint, RadarAreaPoint] => {
+        const createCoordinates = (
+            xValue: any,
+            yHigh: number,
+            yLow: number,
+            moveTo: boolean
+        ): [RadarAreaPoint, RadarAreaPoint] => {
             const x = xScale.convert(xValue) + xOffset;
             const yHighCoordinate = yScale.convert(yHigh);
             const yLowCoordinate = yScale.convert(yLow);
             const { size } = marker;
 
             return [
-                { point: { x, y: yHighCoordinate }, size, itemId: `high`, yValue: yHigh, xValue, enabled: true },
-                { point: { x, y: yLowCoordinate }, size, itemId: `low`, yValue: yLow, xValue, enabled: false },
+                {
+                    point: { x, y: yHighCoordinate, moveTo },
+                    size,
+                    itemId: `high`,
+                    yValue: yHigh,
+                    xValue,
+                    enabled: true,
+                },
+                {
+                    point: { x, y: yLowCoordinate, moveTo },
+                    size,
+                    itemId: `low`,
+                    yValue: yLow,
+                    xValue,
+                    enabled: false,
+                },
             ];
-        };
-
-        const createMovePoint = (plainPoint: RadarAreaPoint) => {
-            const { point, ...stroke } = plainPoint;
-            return { ...stroke, point: { ...point, moveTo: true } };
         };
 
         const labelData: RangeAreaLabelDatum[] = [];
         const markerData: RangeAreaMarkerDatum[] = [];
-        const strokeData: RadarAreaPathDatum = { itemId, points: [] };
-        const fillData: RadarAreaPathDatum = { itemId, points: [] };
+        const strokeData: RadarAreaPathDatum = { itemId, highPoints: [], lowPoints: [] };
+        const fillData: RadarAreaPathDatum = { itemId, highPoints: [], lowPoints: [] };
         const context: RangeAreaContext = {
             itemId,
             labelData,
@@ -213,21 +232,18 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         };
         if (!this.visible) return context;
 
-        const fillHighPoints = fillData.points;
-        const fillLowPoints: RadarAreaPoint[] = [];
+        const fillHighPoints = fillData.highPoints;
+        const fillLowPoints = fillData.lowPoints;
+        const strokeHighPoints = strokeData.highPoints;
+        const strokeLowPoints = strokeData.lowPoints;
 
-        const strokeHighPoints = strokeData.points;
-        const strokeLowPoints: RadarAreaPoint[] = [];
-
-        let lastXValue: any;
-        let lastYHighDatum: any = -Infinity;
-        let lastYLowDatum: any = -Infinity;
+        let moveTo = true;
         this.processedData?.data.forEach(({ keys, datum, values }, datumIdx) => {
             const dataValues = dataModel.resolveProcessedDataDefsValues(defs, { keys, values });
             const { xValue, yHighValue, yLowValue } = dataValues;
 
             const invalidRange = yHighValue == null || yLowValue == null;
-            const points = invalidRange ? [] : createCoordinates(xValue, yHighValue, yLowValue);
+            const points = invalidRange ? [] : createCoordinates(xValue, yHighValue, yLowValue, false);
 
             const inverted = yLowValue > yHighValue;
             points.forEach(({ point: { x, y }, enabled, size, itemId: datumItemId = '', yValue }) => {
@@ -263,57 +279,21 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             });
 
             // fill data
-            const lastYValid = lastYHighDatum != null && lastYLowDatum != null;
-            const lastValid = lastXValue != null && lastYValid;
             const xValid = xValue != null;
             const yValid = yHighValue != null && yLowValue != null;
 
-            let [high, low] = createCoordinates(xValue, yHighValue ?? 0, yLowValue ?? 0);
-
-            if (!connectMissingData) {
-                // Handle missing Y-values by 'hiding' the area by making the area height zero between
-                // valid points.
-                if (!yValid) {
-                    const [prevHigh, prevLow] = createCoordinates(lastXValue, 0, 0);
-                    fillHighPoints.push(prevHigh);
-                    fillLowPoints.push(prevLow);
-                } else if (!lastYValid) {
-                    const [prevHigh, prevLow] = createCoordinates(xValue, 0, 0);
-                    fillHighPoints.push(prevHigh);
-                    fillLowPoints.push(prevLow);
-                }
-            }
+            const [high, low] = createCoordinates(xValue, yHighValue ?? 0, yLowValue ?? 0, moveTo);
 
             if (xValid && yValid) {
                 fillHighPoints.push(high);
                 fillLowPoints.push(low);
-            }
-
-            // stroke data
-            const move = xValid && yValid && !lastValid && !connectMissingData && datumIdx > 0;
-            if (move) {
-                high = createMovePoint(high);
-                low = createMovePoint(low);
-            }
-            if (xValid && yValid) {
                 strokeHighPoints.push(high);
                 strokeLowPoints.push(low);
+                moveTo = false;
+            } else if (!connectMissingData) {
+                moveTo = true;
             }
-
-            lastXValue = xValue;
-            lastYHighDatum = yHighValue;
-            lastYLowDatum = yLowValue;
         });
-
-        if (fillHighPoints.length > 0) {
-            fillHighPoints[0] = createMovePoint(fillHighPoints[0]);
-        }
-        fillHighPoints.push(...fillLowPoints.reverse());
-
-        if (strokeLowPoints.length > 0) {
-            strokeLowPoints[0] = createMovePoint(strokeLowPoints[0]);
-        }
-        strokeHighPoints.push(...strokeLowPoints);
 
         return context;
     }
@@ -421,32 +401,26 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     private updateFillPath(paths: _Scene.Path[], contextData: RangeAreaContext) {
+        const { interpolation } = this.properties;
         const { fillData } = contextData;
         const [fill] = paths;
-        const { path: fillPath } = fill;
-        fillPath.clear(true);
-        for (const { point } of fillData.points) {
-            if (point.moveTo) {
-                fillPath.moveTo(point.x, point.y);
-            } else {
-                fillPath.lineTo(point.x, point.y);
-            }
+        fill.path.clear();
+        for (const range of pathRanges(fillData.highPoints)) {
+            plotPath(pathRangePoints(fillData.highPoints, range), fill, interpolation);
+            plotPath(pathRangePointsReverse(fillData.lowPoints, range), fill, interpolation, true);
+            fill.path.closePath();
         }
-        fillPath.closePath();
         fill.checkPathDirty();
     }
 
     private updateStrokePath(paths: _Scene.Path[], contextData: RangeAreaContext) {
+        const { interpolation } = this.properties;
         const { strokeData } = contextData;
         const [, stroke] = paths;
-        const { path: strokePath } = stroke;
-        strokePath.clear(true);
-        for (const { point } of strokeData.points) {
-            if (point.moveTo) {
-                strokePath.moveTo(point.x, point.y);
-            } else {
-                strokePath.lineTo(point.x, point.y);
-            }
+        stroke.path.clear(true);
+        for (const range of pathRanges(strokeData.highPoints)) {
+            plotPath(pathRangePoints(strokeData.highPoints, range), stroke, interpolation);
+            plotPath(pathRangePoints(strokeData.lowPoints, range), stroke, interpolation);
         }
         stroke.checkPathDirty();
     }

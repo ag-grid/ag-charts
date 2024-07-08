@@ -1,10 +1,9 @@
+import type { AgCartesianAxisPosition } from 'ag-charts-types';
+
 import type { ChartOptions } from '../module/optionsModule';
 import { staticFromToMotion } from '../motion/fromToMotion';
-import type { AgCartesianAxisPosition } from '../options/agChartOptions';
 import type { BBox } from '../scene/bbox';
-import { toRadians } from '../util/angle';
 import { Logger } from '../util/logger';
-import { mapValues } from '../util/object';
 import { CategoryAxis } from './axis/categoryAxis';
 import { GroupedCategoryAxis } from './axis/groupedCategoryAxis';
 import type { TransferableResources } from './chart';
@@ -103,12 +102,7 @@ export class CartesianChart extends Chart {
     }
 
     private _lastCrossLineIds?: string[] = undefined;
-    private _lastAxisWidths: Partial<Record<AgCartesianAxisPosition, number>> = {
-        top: 0,
-        bottom: 0,
-        left: 0,
-        right: 0,
-    };
+    private _lastAxisAreaWidths: Map<AgCartesianAxisPosition, number> = new Map();
     private _lastClipSeries: boolean = false;
     private _lastVisibility: VisibilityMap = {
         crossLines: true,
@@ -123,17 +117,17 @@ export class CartesianChart extends Chart {
             this._lastCrossLineIds.length === crossLineIds.length &&
             this._lastCrossLineIds.every((id, index) => crossLineIds[index] === id);
 
-        let axisWidths: typeof this._lastAxisWidths;
+        let axisAreaWidths: typeof this._lastAxisAreaWidths;
         let clipSeries: boolean;
         let visibility: typeof this._lastVisibility;
         if (axesValid) {
             // Start with a good approximation from the last update - this should mean that in many resize
             // cases that only a single pass is needed \o/.
-            axisWidths = { ...this._lastAxisWidths };
+            axisAreaWidths = new Map(this._lastAxisAreaWidths.entries());
             clipSeries = this._lastClipSeries;
             visibility = { ...this._lastVisibility };
         } else {
-            axisWidths = { top: 0, bottom: 0, left: 0, right: 0 };
+            axisAreaWidths = new Map();
             clipSeries = false;
             visibility = { crossLines: true, series: true };
             this._lastCrossLineIds = crossLineIds;
@@ -142,70 +136,74 @@ export class CartesianChart extends Chart {
         // Clean any positions which aren't valid with the current axis status (otherwise we end up
         // never being able to find a stable result).
         const liveAxisWidths = new Set(this.axes.map((a) => a.position));
-        for (const position of Object.keys(axisWidths) as AgCartesianAxisPosition[]) {
+        for (const position of axisAreaWidths.keys()) {
             if (!liveAxisWidths.has(position)) {
-                delete axisWidths[position];
+                axisAreaWidths.delete(position);
             }
         }
 
-        const stableOutputs = <T extends typeof axisWidths>(
+        const stableOutputs = <T extends typeof axisAreaWidths>(
             otherAxisWidths: T,
             otherClipSeries: boolean,
             otherVisibility: Partial<VisibilityMap>
         ) => {
             // Check for new axis positions.
-            if (Object.keys(otherAxisWidths).some((k) => (axisWidths as any)[k] == null)) {
+            if ([...otherAxisWidths.keys()].some((k) => !axisAreaWidths.has(k))) {
                 return false;
             }
-            return (
-                visibility.crossLines === otherVisibility.crossLines &&
-                visibility.series === otherVisibility.series &&
-                // Check for existing axis positions and equality.
-                Object.entries(axisWidths).every(([p, w]) => {
-                    const otherW = (otherAxisWidths as any)[p];
-                    if (w != null || otherW != null) {
-                        return w === otherW;
-                    }
-                    return true;
-                }) &&
-                clipSeries === otherClipSeries
-            );
+            if (
+                visibility.crossLines !== otherVisibility.crossLines ||
+                visibility.series !== otherVisibility.series ||
+                clipSeries !== otherClipSeries
+            ) {
+                return false;
+            }
+            // Check for existing axis positions and equality.
+            return [...axisAreaWidths.entries()].every(([p, w]) => {
+                const otherW = otherAxisWidths.get(p);
+                if (w != null || otherW != null) {
+                    return w === otherW;
+                }
+                return true;
+            });
         };
 
-        const ceilValues = (records: Record<string, number | undefined>) =>
-            mapValues(records, (value) => {
+        const ceilValues = <K extends string>(map: Map<K, number>) => {
+            for (const [key, value] of map.entries()) {
                 if (value && Math.abs(value) === Infinity) {
-                    return 0;
+                    map.set(key, 0);
+                    continue;
                 }
-                return value != null ? Math.ceil(value) : value;
-            });
+                map.set(key, value != null ? Math.ceil(value) : value);
+            }
+            return map;
+        };
 
         // Iteratively try to resolve axis widths - since X axis width affects Y axis range,
         // and vice-versa, we need to iteratively try and find a fit for the axes and their
         // ticks/labels.
-        let lastPassAxisWidths: typeof axisWidths = {};
+        let lastPassAxisAreaWidths: typeof axisAreaWidths = new Map();
         let lastPassVisibility: Partial<VisibilityMap> = {};
         let lastPassClipSeries = false;
         let seriesRect = this.seriesRect?.clone();
         let count = 0;
         let primaryTickCounts: Partial<Record<ChartAxisDirection, number>> = {};
         do {
-            Object.assign(axisWidths, lastPassAxisWidths);
+            axisAreaWidths = new Map(lastPassAxisAreaWidths.entries());
             clipSeries = lastPassClipSeries;
             Object.assign(visibility, lastPassVisibility);
 
-            const result = this.updateAxesPass(axisWidths, inputShrinkRect.clone(), seriesRect);
-            lastPassAxisWidths = ceilValues(result.axisWidths);
+            const result = this.updateAxesPass(axisAreaWidths, inputShrinkRect.clone(), seriesRect);
+            lastPassAxisAreaWidths = ceilValues(result.axisAreaWidths);
             lastPassVisibility = result.visibility;
             lastPassClipSeries = result.clipSeries;
-            seriesRect = result.seriesRect;
-            primaryTickCounts = result.primaryTickCounts;
+            ({ seriesRect, primaryTickCounts } = result);
 
             if (count++ > 10) {
                 Logger.warn('unable to find stable axis layout.');
                 break;
             }
-        } while (!stableOutputs(lastPassAxisWidths, lastPassClipSeries, lastPassVisibility));
+        } while (!stableOutputs(lastPassAxisAreaWidths, lastPassClipSeries, lastPassVisibility));
 
         this.axes.forEach((axis) => {
             axis.update(primaryTickCounts[axis.direction]);
@@ -249,7 +247,7 @@ export class CartesianChart extends Chart {
             }
         });
 
-        this._lastAxisWidths = axisWidths;
+        this._lastAxisAreaWidths = axisAreaWidths;
         this._lastVisibility = visibility;
         this._lastClipSeries = clipSeries;
 
@@ -257,12 +255,12 @@ export class CartesianChart extends Chart {
     }
 
     private updateAxesPass(
-        axisWidths: Partial<Record<AgCartesianAxisPosition, number>>,
+        axisAreaWidths: Map<AgCartesianAxisPosition, number>,
         bounds: BBox,
         lastPassSeriesRect?: BBox
     ) {
-        const visited: Partial<Record<AgCartesianAxisPosition, number>> = {};
-        const newAxisWidths: Partial<Record<AgCartesianAxisPosition, number>> = {};
+        const axisWidths: Map<string, number> = new Map();
+        const axisGroups: Map<AgCartesianAxisPosition, ChartAxis[]> = new Map();
         const visibility: Partial<VisibilityMap> = {
             series: true,
             crossLines: true,
@@ -272,60 +270,63 @@ export class CartesianChart extends Chart {
         const primaryTickCounts: Partial<Record<ChartAxisDirection, number>> = {};
 
         const paddedBounds = this.applySeriesPadding(bounds);
-        const crossLinePadding = lastPassSeriesRect ? this.buildCrossLinePadding(axisWidths) : {};
-        const axisBound = this.buildAxisBound(paddedBounds, axisWidths, crossLinePadding, visibility);
-        const seriesRect = this.buildSeriesRect(axisBound, axisWidths);
+        const crossLinePadding = lastPassSeriesRect ? this.buildCrossLinePadding(axisAreaWidths) : {};
+        const axisAreaBound = this.buildAxisBound(paddedBounds, axisAreaWidths, crossLinePadding, visibility);
+        const seriesRect = this.buildSeriesRect(axisAreaBound, axisAreaWidths);
 
-        // Set the number of ticks for continuous axes based on the available range
-        // before updating the axis domain via `this.updateAxes()` as the tick count has an effect on the calculated `nice` domain extent
-        this.axes.forEach((axis) => {
+        // Step 1) Calculate individual axis widths.
+        for (const axis of this.axes) {
             const { position = 'left' } = axis;
 
-            const {
-                clipSeries: newClipSeries,
-                axisThickness,
-                axisOffset,
-            } = this.calculateAxisDimensions({
+            const { clipSeries: newClipSeries, axisThickness } = this.calculateAxisDimensions({
                 axis,
                 seriesRect,
                 paddedBounds,
-                axisWidths,
-                newAxisWidths,
                 primaryTickCounts,
                 clipSeries,
-                addInterAxisPadding: (visited[position] ?? 0) > 0,
             });
+            axisWidths.set(axis.id, axisThickness);
 
-            visited[position] = (visited[position] ?? 0) + 1;
+            if (!axisGroups.has(position)) axisGroups.set(position, []);
+            axisGroups.get(position)?.push(axis);
+
             clipSeries = clipSeries || newClipSeries;
+        }
 
-            this.positionAxis({
-                axis,
-                axisBound,
-                axisOffset,
-                axisThickness,
+        // Step 2) calculate axis offsets and total depth for each position.
+        const newAxisAreaWidths = new Map<AgCartesianAxisPosition, number>();
+        const axisOffsets = new Map<string, number>();
+        for (const [position, axes] of axisGroups.entries()) {
+            newAxisAreaWidths.set(position, this.calculateAxisArea(axes, axisWidths, axisOffsets));
+        }
+
+        // Step 3) position all axes taking adjacent positions into account.
+        for (const [position, axes] of axisGroups.entries()) {
+            this.positionAxes({
+                axes,
+                position,
                 axisWidths,
-                primaryTickCounts,
+                axisOffsets,
+                axisAreaWidths: newAxisAreaWidths,
+                axisBound: axisAreaBound,
                 seriesRect,
             });
-        });
+        }
 
-        return { clipSeries, seriesRect, axisWidths: newAxisWidths, visibility, primaryTickCounts };
+        return { clipSeries, seriesRect, axisAreaWidths: newAxisAreaWidths, visibility, primaryTickCounts };
     }
 
-    private buildCrossLinePadding(axisWidths: Partial<Record<AgCartesianAxisPosition, number>>) {
+    private buildCrossLinePadding(axisAreaSize: Map<AgCartesianAxisPosition, number>) {
         const crossLinePadding: Partial<Record<AgCartesianAxisPosition, number>> = {};
 
         this.axes.forEach((axis) => {
-            if (axis.crossLines) {
-                axis.crossLines.forEach((crossLine) => {
-                    crossLine.calculatePadding?.(crossLinePadding);
-                });
-            }
+            axis.crossLines?.forEach((crossLine) => {
+                crossLine.calculatePadding?.(crossLinePadding);
+            });
         });
         // Reduce cross-line padding to account for overlap with axes.
         for (const [side, padding = 0] of Object.entries(crossLinePadding) as [AgCartesianAxisPosition, number][]) {
-            crossLinePadding[side] = Math.max(padding - (axisWidths[side] ?? 0), 0);
+            crossLinePadding[side] = Math.max(padding - (axisAreaSize.get(side) ?? 0), 0);
         }
 
         return crossLinePadding;
@@ -348,7 +349,7 @@ export class CartesianChart extends Chart {
 
     private buildAxisBound(
         bounds: BBox,
-        axisWidths: Partial<Record<AgCartesianAxisPosition, number>>,
+        axisAreaWidths: Map<AgCartesianAxisPosition, number>,
         crossLinePadding: Partial<Record<AgCartesianAxisPosition, number>>,
         visibility: Partial<VisibilityMap>
     ) {
@@ -356,8 +357,8 @@ export class CartesianChart extends Chart {
         const { top = 0, right = 0, bottom = 0, left = 0 } = crossLinePadding;
         const horizontalPadding = left + right;
         const verticalPadding = top + bottom;
-        const totalWidth = (axisWidths.left ?? 0) + (axisWidths.right ?? 0) + horizontalPadding;
-        const totalHeight = (axisWidths.top ?? 0) + (axisWidths.bottom ?? 0) + verticalPadding;
+        const totalWidth = (axisAreaWidths.get('left') ?? 0) + (axisAreaWidths.get('right') ?? 0) + horizontalPadding;
+        const totalHeight = (axisAreaWidths.get('top') ?? 0) + (axisAreaWidths.get('bottom') ?? 0) + verticalPadding;
         if (result.width <= totalWidth || result.height <= totalHeight) {
             // Not enough space for crossLines and series
             visibility.crossLines = false;
@@ -373,13 +374,12 @@ export class CartesianChart extends Chart {
         return result;
     }
 
-    private buildSeriesRect(axisBound: BBox, axisWidths: Partial<Record<AgCartesianAxisPosition, number>>) {
+    private buildSeriesRect(axisBound: BBox, axisAreaWidths: Map<AgCartesianAxisPosition, number>) {
         const result = axisBound.clone();
-        const { top, bottom, left, right } = axisWidths;
-        result.x += left ?? 0;
-        result.y += top ?? 0;
-        result.width -= (left ?? 0) + (right ?? 0);
-        result.height -= (top ?? 0) + (bottom ?? 0);
+        result.x += axisAreaWidths.get('left') ?? 0;
+        result.y += axisAreaWidths.get('top') ?? 0;
+        result.width -= (axisAreaWidths.get('left') ?? 0) + (axisAreaWidths.get('right') ?? 0);
+        result.height -= (axisAreaWidths.get('top') ?? 0) + (axisAreaWidths.get('bottom') ?? 0);
 
         // Width and height should not be negative.
         result.width = Math.max(0, result.width);
@@ -401,38 +401,14 @@ export class CartesianChart extends Chart {
         axis: ChartAxis;
         seriesRect: BBox;
         paddedBounds: BBox;
-        axisWidths: Partial<Record<AgCartesianAxisPosition, number>>;
-        newAxisWidths: Partial<Record<AgCartesianAxisPosition, number>>;
         primaryTickCounts: Partial<Record<ChartAxisDirection, number>>;
         clipSeries: boolean;
-        addInterAxisPadding: boolean;
     }) {
-        const { axis, seriesRect, paddedBounds, axisWidths, newAxisWidths, primaryTickCounts, addInterAxisPadding } =
-            opts;
+        const { axis, seriesRect, paddedBounds, primaryTickCounts } = opts;
         let { clipSeries } = opts;
         const { position = 'left', direction } = axis;
 
-        const isCategory = axis instanceof CategoryAxis || axis instanceof GroupedCategoryAxis;
-        const isLeftRight = position === 'left' || position === 'right';
-
-        const axisOffset = newAxisWidths[position] ?? 0;
-
-        const { min, max } = this.ctx.zoomManager.getAxisZoom(axis.id);
-
-        if (isLeftRight) {
-            if (isCategory) {
-                axis.range = [0, seriesRect.height];
-                axis.visibleRange = [1 - max, 1 - min];
-            } else {
-                axis.range = [seriesRect.height, 0];
-                axis.visibleRange = [min, max];
-            }
-            axis.gridLength = seriesRect.width;
-        } else {
-            axis.range = [0, seriesRect.width];
-            axis.visibleRange = [min, max];
-            axis.gridLength = seriesRect.height;
-        }
+        this.sizeAxis(axis, seriesRect, position);
 
         let primaryTickCount = axis.nice ? primaryTickCounts[direction] : undefined;
         const isVertical = direction === ChartAxisDirection.Y;
@@ -454,76 +430,111 @@ export class CartesianChart extends Chart {
         if (axis.thickness != null && axis.thickness > 0) {
             axisThickness = axis.thickness;
         } else {
-            const { bbox } = layout;
-            axisThickness = isVertical ? bbox.width : bbox.height;
+            axisThickness = isVertical ? layout.bbox.width : layout.bbox.height;
         }
 
-        // for multiple axes in the same direction and position, apply padding at the top of each inner axis (i.e. between axes).
-        const axisPadding = 15;
-        if (addInterAxisPadding) {
-            axisThickness += axisPadding;
-        }
         axisThickness = Math.ceil(axisThickness);
-        const newAxisWidth = (newAxisWidths[position] ?? 0) + axisThickness;
-        newAxisWidths[position] = newAxisWidth;
 
-        axis.gridPadding = (axisWidths[position] ?? 0) - newAxisWidth;
-
-        return { clipSeries, axisThickness, axisOffset, primaryTickCount };
+        return { clipSeries, axisThickness, primaryTickCount };
     }
 
-    private positionAxis(opts: {
-        axis: ChartAxis;
-        axisBound: BBox;
-        axisWidths: Partial<Record<AgCartesianAxisPosition, number>>;
-        primaryTickCounts: Partial<Record<ChartAxisDirection, number>>;
-        seriesRect: BBox;
-        axisOffset: number;
-        axisThickness: number;
-    }) {
-        const { axis, axisBound, axisWidths, seriesRect, axisOffset, axisThickness } = opts;
-        const { position } = axis;
+    private sizeAxis(axis: ChartAxis, seriesRect: BBox, position: AgCartesianAxisPosition) {
+        const isCategory = axis instanceof CategoryAxis || axis instanceof GroupedCategoryAxis;
+        const isLeftRight = position === 'left' || position === 'right';
 
-        switch (position) {
-            case 'top':
-                axis.translation.x = axisBound.x + (axisWidths.left ?? 0);
-                axis.translation.y = this.clampToOutsideSeriesRect(
-                    seriesRect,
-                    axisBound.y + 1 + axisOffset + axisThickness,
-                    'y',
-                    1
-                );
-                break;
-            case 'bottom':
-                axis.translation.x = axisBound.x + (axisWidths.left ?? 0);
-                axis.translation.y = this.clampToOutsideSeriesRect(
-                    seriesRect,
-                    axisBound.y + axisBound.height + 1 - axisThickness - axisOffset,
-                    'y',
-                    -1
-                );
-                break;
-            case 'left':
-                axis.translation.y = axisBound.y + (axisWidths.top ?? 0);
-                axis.translation.x = this.clampToOutsideSeriesRect(
-                    seriesRect,
-                    axisBound.x + axisOffset + axisThickness,
-                    'x',
-                    1
-                );
-                break;
-            case 'right':
-                axis.translation.y = axisBound.y + (axisWidths.top ?? 0);
-                axis.translation.x = this.clampToOutsideSeriesRect(
-                    seriesRect,
-                    axisBound.x + axisBound.width - axisThickness - axisOffset,
-                    'x',
-                    -1
-                );
-                break;
+        let { min, max } = this.ctx.zoomManager.getAxisZoom(axis.id);
+        const { width, height } = seriesRect;
+
+        const minStart = 0;
+        const maxEnd = isLeftRight ? height : width;
+        let start = minStart;
+        let end = maxEnd;
+
+        const { width: axisWidth, unit, align } = axis.layoutConstraints;
+        if (unit === 'px') {
+            end = start + axisWidth;
+        } else {
+            end = (end * axisWidth) / 100;
+        }
+        if (align === 'end') {
+            start = maxEnd - (end - start);
+            end = maxEnd;
         }
 
-        axis.updatePosition({ rotation: toRadians(axis.rotation), sideFlag: axis.label.getSideFlag() });
+        if (isCategory && isLeftRight) {
+            [min, max] = [1 - max, 1 - min];
+        } else if (isLeftRight) {
+            [start, end] = [end, start];
+        }
+
+        axis.range = [start, end];
+        axis.visibleRange = [min, max];
+        axis.gridLength = isLeftRight ? width : height;
+    }
+
+    private calculateAxisArea(axes: ChartAxis[], axisWidths: Map<string, number>, axisOffsets: Map<string, number>) {
+        let totalAxisWidth = 0;
+        let currentOffset = 0;
+
+        for (const axis of axes) {
+            axisOffsets.set(axis.id, currentOffset);
+
+            const axisThickness = axisWidths.get(axis.id) ?? 0;
+            totalAxisWidth = Math.max(totalAxisWidth, currentOffset + axisThickness);
+            if (axis.layoutConstraints.stacked) {
+                // for multiple axes in the same direction and position, apply padding at the top of each inner axis (i.e. between axes).
+                currentOffset += axisThickness + 15;
+            }
+        }
+
+        return totalAxisWidth;
+    }
+
+    private positionAxes(opts: {
+        axes: ChartAxis[];
+        position: AgCartesianAxisPosition;
+        axisBound: BBox;
+        axisWidths: Map<string, number>;
+        axisOffsets: Map<string, number>;
+        axisAreaWidths: Map<AgCartesianAxisPosition, number>;
+        seriesRect: BBox;
+    }) {
+        const { axes, axisBound, axisWidths, axisOffsets, axisAreaWidths, seriesRect, position } = opts;
+        const axisAreaWidth = axisAreaWidths.get(position) ?? 0;
+
+        let mainDimension: 'x' | 'y' = 'x';
+        let minorDimension: 'x' | 'y' = 'y';
+        let direction: -1 | 1 = 1;
+        let axisBoundMainOffset = 0;
+        if (position === 'top' || position === 'bottom') {
+            mainDimension = 'y';
+            minorDimension = 'x';
+            axisBoundMainOffset += 1; // TODO: Not sure we need this extra 1px!
+        }
+
+        axisBoundMainOffset += axisBound[mainDimension];
+        if (position === 'right' || position === 'bottom') {
+            direction = -1;
+            axisBoundMainOffset += mainDimension === 'x' ? axisBound.width : axisBound.height;
+        }
+
+        for (const axis of axes) {
+            const minorOffset = axisAreaWidths.get(minorDimension === 'x' ? 'left' : 'top') ?? 0;
+            axis.translation[minorDimension] = axisBound[minorDimension] + minorOffset;
+
+            const axisThickness = axisWidths.get(axis.id) ?? 0;
+            const axisOffset = axisOffsets.get(axis.id) ?? 0;
+            axis.translation[mainDimension] = this.clampToOutsideSeriesRect(
+                seriesRect,
+                axisBoundMainOffset + direction * (axisOffset + axisThickness),
+                mainDimension,
+                direction
+            );
+
+            axis.gridPadding = axisAreaWidth - axisOffset - axisThickness;
+
+            axis.updatePosition();
+        }
     }
 
     private shouldFlipXY() {

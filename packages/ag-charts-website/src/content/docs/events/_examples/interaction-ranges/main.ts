@@ -56,7 +56,7 @@ function exact() {
         nodeClickRange: 'exact',
     }));
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function nearest() {
@@ -65,7 +65,7 @@ function nearest() {
         nodeClickRange: 'nearest',
     }));
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function distance() {
@@ -74,5 +74,5 @@ function distance() {
         nodeClickRange: 10,
     }));
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

@@ -21,11 +21,9 @@ const options: AgChartOptions = {
             yName: 'Weight',
             sizeKey: 'age',
             sizeName: 'Age',
-            marker: {
-                shape: 'square',
-                fill: '#e36f6ab5',
-                stroke: '#9f4e4a',
-            },
+            shape: 'square',
+            fill: '#e36f6ab5',
+            stroke: '#9f4e4a',
         },
         {
             type: 'bubble',
@@ -37,10 +35,8 @@ const options: AgChartOptions = {
             yName: 'Weight',
             sizeKey: 'age',
             sizeName: 'Age',
-            marker: {
-                fill: '#7b91deb5',
-                stroke: '#56659b',
-            },
+            fill: '#7b91deb5',
+            stroke: '#56659b',
         },
     ],
     axes: [

@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartInstance, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 const data = [
     { quarter: 'week 3', week: 3, iphone: 60 },
@@ -40,11 +40,11 @@ const options: AgChartOptions = {
     ],
 };
 
-const chart = AgCharts.create(options);
+const chart = AgCharts.create(options as AgChartOptions);
 
 function actionReset() {
     options.data = [...data];
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function actionAddEndWeek() {
@@ -58,7 +58,7 @@ function actionAddEndWeek() {
             iphone: 78 * (Math.random() - 0.5),
         },
     ];
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function actionAddStartWeek() {
@@ -72,7 +72,7 @@ function actionAddStartWeek() {
         },
         ...data,
     ];
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function actionAddWeek12and13() {
@@ -84,7 +84,7 @@ function actionAddWeek12and13() {
     data.sort((a: any, b: any) => a.week - b.week);
     options.data = data;
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function actionAddWeek7and8() {
@@ -96,7 +96,7 @@ function actionAddWeek7and8() {
     data.sort((a: any, b: any) => a.week - b.week);
     options.data = data;
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function reorder() {
@@ -104,15 +104,15 @@ function reorder() {
     data.sort((a, b) => a.random - b.random);
     options.data = data;
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function rapidUpdate() {
     options.data = [...data, { quarter: 'week 12', iphone: 78 }];
-    AgCharts.update(chart, options);
+    chart.update(options);
 
-    (chart as any).chart.waitForUpdate().then(() => {
+    chart.waitForUpdate().then(() => {
         options.data = [...data, { quarter: 'week 12', iphone: 78 }, { quarter: 'week 13', iphone: 138 }];
-        AgCharts.update(chart, options);
+        chart.update(options);
     });
 }

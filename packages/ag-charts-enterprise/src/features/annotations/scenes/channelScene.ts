@@ -1,13 +1,22 @@
 import { _Scene } from 'ag-charts-community';
 
-import type { LineCoords } from '../annotationTypes';
-import { Annotation } from './annotation';
+import type { AnnotationPoint } from '../annotationProperties';
+import type { AnnotationContext, LineCoords } from '../annotationTypes';
+import { convertLine } from '../annotationUtils';
 import type { Handle } from './handle';
+import { LinearScene } from './linearScene';
 import { CollidableLine } from './shapes';
 
-export abstract class Channel<
-    Datum extends { background: { fill?: string; fillOpacity?: number }; locked?: boolean; visible?: boolean },
-> extends Annotation {
+export abstract class ChannelScene<
+    Datum extends {
+        background: { fill?: string; fillOpacity?: number };
+        locked?: boolean;
+        visible?: boolean;
+        start: Pick<AnnotationPoint, 'x' | 'y'>;
+        end: Pick<AnnotationPoint, 'x' | 'y'>;
+        bottom: { start: Pick<AnnotationPoint, 'x' | 'y'>; end: Pick<AnnotationPoint, 'x' | 'y'> };
+    },
+> extends LinearScene<Datum> {
     protected handles: { [key: string]: Handle } = {};
     protected seriesRect?: _Scene.BBox;
 
@@ -15,11 +24,14 @@ export abstract class Channel<
     protected bottomLine = new CollidableLine();
     protected background = new _Scene.Path({ zIndex: -1 });
 
-    public update(datum: Datum, seriesRect: _Scene.BBox, top?: LineCoords, bottom?: LineCoords) {
+    public update(datum: Datum, context: AnnotationContext) {
         const { locked, visible } = datum;
 
         this.locked = locked ?? false;
-        this.seriesRect = seriesRect;
+        this.seriesRect = context.seriesRect;
+
+        const top = convertLine(datum, context);
+        const bottom = convertLine(datum.bottom, context);
 
         if (top == null || bottom == null) {
             this.visible = false;
@@ -31,6 +43,10 @@ export abstract class Channel<
         this.updateLines(datum, top, bottom);
         this.updateHandles(datum, top, bottom);
         this.updateBackground(datum, top, bottom);
+
+        for (const handle of Object.values(this.handles)) {
+            handle.toggleLocked(this.locked);
+        }
     }
 
     override toggleActive(active: boolean) {
@@ -45,6 +61,11 @@ export abstract class Channel<
         if (activeHandle == null) return;
 
         handles[activeHandle].toggleDragging(false);
+    }
+
+    override getAnchor() {
+        const bbox = this.getCachedBBoxWithoutHandles();
+        return { x: bbox.x + bbox.width / 2, y: bbox.y };
     }
 
     override getCursor() {

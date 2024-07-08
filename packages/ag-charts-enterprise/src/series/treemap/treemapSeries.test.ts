@@ -48,7 +48,7 @@ describe('TreemapSeries', () => {
     describe('Series Highlighting', () => {
         const SIMPLIFIED_EXAMPLE = {
             ...GALLERY_EXAMPLES.TREEMAP_WITH_COLOR_RANGE_EXAMPLE.options,
-            data: GALLERY_EXAMPLES.TREEMAP_WITH_COLOR_RANGE_EXAMPLE.options.data.slice(0, 1),
+            data: GALLERY_EXAMPLES.TREEMAP_WITH_COLOR_RANGE_EXAMPLE.options.data?.slice(0, 1),
         };
 
         it('should render a complex chart', async () => {
@@ -186,7 +186,7 @@ describe('TreemapSeries', () => {
         };
 
         const checkNodeClick = async (
-            chartInstance: any,
+            chartInstance: Chart,
             onNodeClick: () => void,
             offset?: { x: number; y: number }
         ) => {
@@ -297,9 +297,9 @@ describe('TreemapSeries', () => {
                 data: datasets.data,
             },
             getNodeData: (series) => {
-                const nodes = series.contentGroup.children.map((group) => group.children[0]);
-                const maxDepth = Math.max(...nodes.map((n) => n.datum.depth ?? -1));
-                return nodes.filter((node) => node.datum.depth === maxDepth);
+                const nodes = series.contentGroup.children.map((group: any) => group.children[0]);
+                const maxDepth = Math.max(...nodes.map((n: any) => n.datum.depth ?? -1));
+                return nodes.filter((node: any) => node.datum.depth === maxDepth);
             },
             getNodePoint: (item) => {
                 const { x, y, width, height } = item.clipBBox ?? item;

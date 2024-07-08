@@ -17,7 +17,7 @@ export type BatchExecutorTaskResult = {
     result: TaskResult;
 };
 
-async function exists(filePath: string) {
+export async function exists(filePath: string) {
     try {
         return (await fs.stat(filePath))?.isFile();
     } catch (e) {
@@ -42,6 +42,12 @@ export async function writeFile(filePath: string, newContent: string | Buffer) {
     const outputDir = path.dirname(filePath);
     await fs.mkdir(outputDir, { recursive: true });
     await fs.writeFile(filePath, newContent);
+}
+
+export async function deleteFile(filePath: string) {
+    if (await exists(filePath)) {
+        await fs.rm(filePath);
+    }
 }
 
 export function parseFile(filePath: string) {

@@ -110,5 +110,5 @@ function updateLegendPosition(value: AgChartLegendPosition) {
             break;
     }
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

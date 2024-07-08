@@ -19,12 +19,12 @@ const options: AgCartesianChartOptions = {
             type: 'time',
             position: 'bottom',
             nice: false,
-            label: {
-                autoRotate: false,
-            },
-            tick: {
+            interval: {
                 minSpacing: 50,
                 maxSpacing: 200,
+            },
+            label: {
+                autoRotate: false,
             },
             crosshair: {
                 label: {

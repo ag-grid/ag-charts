@@ -12,6 +12,7 @@ export const RangeAreaModule: _ModuleSupport.SeriesModule<'range-area'> = {
 
     identifier: 'range-area',
     instanceConstructor: RangeAreaSeries,
+    tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
         {
             type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,

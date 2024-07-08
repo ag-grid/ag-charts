@@ -1,15 +1,16 @@
 import type {
-    AgHeatmapSeriesFormat,
-    AgHeatmapSeriesFormatterParams,
+    AgHeatmapSeriesItemStylerParams,
     AgHeatmapSeriesLabelFormatterParams,
     AgHeatmapSeriesOptions,
+    AgHeatmapSeriesStyle,
     AgHeatmapSeriesTooltipRendererParams,
+    Styler,
     TextAlign,
     VerticalAlign,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
-import { AutoSizedLabel } from '../util/labelFormatter';
+import { AutoSizedLabel } from '../util/autoSizedLabel';
 
 const {
     CartesianSeriesProperties,
@@ -72,11 +73,11 @@ export class HeatmapSeriesProperties extends CartesianSeriesProperties<AgHeatmap
     itemPadding: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgHeatmapSeriesFormatterParams<any>) => AgHeatmapSeriesFormat;
+    itemStyler?: Styler<AgHeatmapSeriesItemStylerParams<unknown>, AgHeatmapSeriesStyle>;
 
     @Validate(OBJECT)
     readonly label = new AutoSizedLabel<AgHeatmapSeriesLabelFormatterParams>();
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgHeatmapSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgHeatmapSeriesTooltipRendererParams<any>>();
 }

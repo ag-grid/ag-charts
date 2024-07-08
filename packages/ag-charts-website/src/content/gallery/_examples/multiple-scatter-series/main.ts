@@ -40,10 +40,8 @@ const options: AgChartOptions = {
         labelKey: 'country',
         labelName: 'Country',
         label: {},
-        marker: {
-            shape: Star,
-            size: 5,
-        },
+        shape: Star,
+        size: 5,
     })),
     axes: [
         {

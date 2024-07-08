@@ -23,4 +23,6 @@ export const BACKGROUND_COLORS: Record<AgChartThemeName, string> = {
     'ag-vivid-dark': '#141D2C',
     'ag-material': '#ffffff',
     'ag-material-dark': '#141D2C',
+    'ag-financial': '#ffffff',
+    'ag-financial-dark': '#141D2C',
 };

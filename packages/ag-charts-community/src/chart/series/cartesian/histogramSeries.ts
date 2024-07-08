@@ -1,6 +1,7 @@
+import type { AgTooltipRendererResult } from 'ag-charts-types';
+
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
-import type { AgTooltipRendererResult } from '../../../options/agChartOptions';
 import type { BBox } from '../../../scene/bbox';
 import { PointerEvents } from '../../../scene/node';
 import type { Point } from '../../../scene/point';

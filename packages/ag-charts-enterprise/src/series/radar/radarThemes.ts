@@ -2,7 +2,6 @@ import { _ModuleSupport, _Theme } from 'ag-charts-community';
 
 const BASE_RADAR_SERIES_THEME = {
     series: {
-        __extends__: _Theme.EXTENDS_SERIES_DEFAULTS,
         label: {
             enabled: false,
             fontSize: 12,

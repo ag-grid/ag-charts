@@ -56,12 +56,9 @@ const options: AgChartOptions = {
         {
             type: 'ordinal-time',
             position: 'bottom',
+            interval: { step: time.year.every(1) },
             line: {
                 enabled: false,
-            },
-            tick: {
-                width: 0,
-                interval: time.year.every(1),
             },
             gridLine: {
                 enabled: true,
@@ -75,9 +72,9 @@ const options: AgChartOptions = {
         {
             type: 'number',
             position: 'right',
+            interval: { step: 10000 },
             tick: {
                 width: 0,
-                interval: 10000,
             },
             label: {
                 formatter: ({ value }) => Number(value).toLocaleString(),

@@ -1,11 +1,12 @@
 import { afterEach, describe, expect, jest, test } from '@jest/globals';
 
-import type { AgPolarChartOptions } from '../../../options/agChartOptions';
+import type { AgPolarChartOptions } from 'ag-charts-types';
+
 import type { Chart } from '../../chart';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     createChart,
-    expectWarnings,
+    expectWarningsCalls,
     extractImageData,
     prepareTestOptions,
     setupMockCanvas,
@@ -52,11 +53,19 @@ describe('PieSeries', () => {
                 series: [{ type: 'pie', calloutLabelKey: 'cat', angleKey: 'dog', sectorLabelKey: 'fox' }],
             });
 
-            expectWarnings([
-                [`AG Charts - no value was found for the key 'dog' on 3 data elements`],
-                [`AG Charts - no value was found for the key 'cat' on 1 data element`],
-                [`AG Charts - no value was found for the key 'fox' on 4 data elements`],
-            ]);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - no value was found for the key 'dog' on 3 data elements",
+  ],
+  [
+    "AG Charts - no value was found for the key 'cat' on 1 data element",
+  ],
+  [
+    "AG Charts - no value was found for the key 'fox' on 4 data elements",
+  ],
+]
+`);
         });
     });
 

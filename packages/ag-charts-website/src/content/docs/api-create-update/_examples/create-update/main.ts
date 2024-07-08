@@ -1,4 +1,10 @@
-import { AgAreaSeriesOptions, AgChartLegendPosition, AgChartOptions, AgCharts } from 'ag-charts-community';
+import {
+    AgAreaSeriesOptions,
+    AgChartInstance,
+    AgChartLegendPosition,
+    AgChartOptions,
+    AgCharts,
+} from 'ag-charts-community';
 
 import { getData } from './data';
 
@@ -32,11 +38,11 @@ const options: AgChartOptions = {
     legend,
 };
 
-const chart = AgCharts.create(options);
+const chart = AgCharts.create(options as AgChartOptions);
 
 function reverseSeries() {
     options.series = series.reverse();
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function swapTitles() {
@@ -44,7 +50,7 @@ function swapTitles() {
     options.title = options.subtitle;
     options.subtitle = oldTitle;
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function rotateLegend() {
@@ -52,5 +58,5 @@ function rotateLegend() {
     legend.position = positions[(currentIdx + 1) % positions.length];
 
     options.legend = legend;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

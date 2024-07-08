@@ -4,24 +4,27 @@ exports[`Feature Combinations Context Menu and Zoom when fully zoomed in it shou
 HTMLCollection [
   <div
     class="ag-chart-context-menu"
-    style="display: block; left: 401px; top: calc(300px - 0.5em);"
+    style="display: block; left: 0px; top: calc(0px - 0.5em);"
   >
     <div
       class="ag-chart-context-menu__menu"
+      tabindex="-1"
     >
       <button
         class="ag-chart-context-menu__item"
+        tabindex="-1"
       >
         Download
       </button>
       <button
         class="ag-chart-context-menu__item"
-        disabled=""
+        tabindex="-1"
       >
         Zoom to here
       </button>
       <button
         class="ag-chart-context-menu__item"
+        tabindex="-1"
       >
         Pan to here
       </button>
@@ -34,24 +37,27 @@ exports[`Feature Combinations Context Menu and Zoom when fully zoomed out it sho
 HTMLCollection [
   <div
     class="ag-chart-context-menu"
-    style="display: block; left: 401px; top: calc(300px - 0.5em);"
+    style="display: block; left: 0px; top: calc(0px - 0.5em);"
   >
     <div
       class="ag-chart-context-menu__menu"
+      tabindex="-1"
     >
       <button
         class="ag-chart-context-menu__item"
+        tabindex="-1"
       >
         Download
       </button>
       <button
         class="ag-chart-context-menu__item"
+        tabindex="-1"
       >
         Zoom to here
       </button>
       <button
         class="ag-chart-context-menu__item"
-        disabled=""
+        tabindex="-1"
       >
         Pan to here
       </button>
@@ -64,23 +70,27 @@ exports[`Feature Combinations Context Menu and Zoom when zoomed in it should ena
 HTMLCollection [
   <div
     class="ag-chart-context-menu"
-    style="display: block; left: 401px; top: calc(300px - 0.5em);"
+    style="display: block; left: 0px; top: calc(0px - 0.5em);"
   >
     <div
       class="ag-chart-context-menu__menu"
+      tabindex="-1"
     >
       <button
         class="ag-chart-context-menu__item"
+        tabindex="-1"
       >
         Download
       </button>
       <button
         class="ag-chart-context-menu__item"
+        tabindex="-1"
       >
         Zoom to here
       </button>
       <button
         class="ag-chart-context-menu__item"
+        tabindex="-1"
       >
         Pan to here
       </button>

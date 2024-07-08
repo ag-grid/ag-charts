@@ -1,35 +1,52 @@
-import type { BBox } from '../../../scene/bbox';
-import type { ChartLegendDatum, ChartLegendType } from '../../legendDatum';
-import type { TooltipContent } from '../../tooltip/tooltip';
-import type { SeriesNodeDataContext } from '../series';
+import { Group } from '../../../scene/group';
+import { Selection } from '../../../scene/selection';
 import type { SeriesTooltip } from '../seriesTooltip';
+import type { SeriesNodeDatum } from '../seriesTypes';
 import { HierarchySeries } from './hierarchySeries';
 import { HierarchySeriesProperties } from './hierarchySeriesProperties';
 
-class ExampleHierarchySeriesProperties extends HierarchySeriesProperties<any> {
-    readonly tooltip: SeriesTooltip<any> = null!;
+class ExampleHierarchySeriesProperties extends HierarchySeriesProperties<never> {
+    readonly tooltip: SeriesTooltip<never> = null!;
 }
 
-class ExampleHierarchySeries extends HierarchySeries<any, any> {
+class ExampleHierarchySeries extends HierarchySeries<
+    Group,
+    ExampleHierarchySeriesProperties,
+    { order: number } & SeriesNodeDatum
+> {
     override properties = new ExampleHierarchySeriesProperties();
 
-    override getSeriesDomain(): number[] {
+    groupSelection = Selection.select(this.contentGroup, Group);
+
+    override getSeriesDomain(): never {
         throw new Error('Method not implemented.');
     }
 
-    override createNodeData(): Promise<SeriesNodeDataContext<any, any>> {
+    override createNodeData(): Promise<never> {
         throw new Error('Method not implemented.');
     }
 
-    override update(_opts: { seriesRect?: BBox | undefined }): Promise<void> {
+    override update(_opts: never): Promise<never> {
         throw new Error('Method not implemented.');
     }
 
-    override getTooltipHtml(_seriesDatum: any): TooltipContent {
+    override updateNodes(): never {
         throw new Error('Method not implemented.');
     }
 
-    override getLegendData(_legendType: unknown): ChartLegendDatum<any>[] | ChartLegendDatum<ChartLegendType>[] {
+    override async updateSelections(): Promise<never> {
+        throw new Error('Method not implemented.');
+    }
+
+    override getTooltipHtml(_seriesDatum: never): never {
+        throw new Error('Method not implemented.');
+    }
+
+    override getLegendData(_legendType: never): never {
+        throw new Error('Method not implemented.');
+    }
+
+    override computeFocusBounds(_node: never): never {
         throw new Error('Method not implemented.');
     }
 }

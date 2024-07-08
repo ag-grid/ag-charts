@@ -16,6 +16,10 @@ const options: AgChartOptions = {
             line: {
                 series: {
                     lineDash: [12, 3],
+                    interpolation: {
+                        type: 'step',
+                        position: 'middle',
+                    },
                     marker: {
                         enabled: false,
                     },

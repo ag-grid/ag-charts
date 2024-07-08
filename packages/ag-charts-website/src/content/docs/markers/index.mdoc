@@ -2,9 +2,11 @@
 title: 'Series Markers'
 ---
 
-Data points in `line`, `area`, `scatter` and `bubble` series can be represented by markers.
+Data points can be represented by markers in many series types, including `line`, `area`, `scatter`, and `bubble`.
 
 Marker attributes such as `shape`, `size`, `fill` and `stroke` are configurable within each series.
+
+These options are identical across series types, but differ in their location. Series without lines, such as `scatter` and `bubble` have these options on the series level, otherwise they are contained within the `marker` property.
 
 ```js
 series: [
@@ -22,9 +24,11 @@ Please see the [API reference](#api-reference) for the list of all available opt
 
 ### Marker Shape, Size and Colour
 
-Notice how the shape and colour of the legend markers match the shape and colour of the markers used by the series, but the size of the markers in the legend is always the same.
-
 {% chartExampleRunner title="Marker Shape, Size and Colour" name="marker-shape" type="generated" /%}
+
+Notice how the shape and colour of the legend markers automatically match the shape and colour of the markers used by the series, but the size of the markers in the legend remains the same.
+
+The legend item marker can be modified within the [Legend Options](./legend/#markers).
 
 ## Custom Marker Shapes
 

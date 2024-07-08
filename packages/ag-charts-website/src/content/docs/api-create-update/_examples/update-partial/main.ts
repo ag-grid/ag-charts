@@ -44,13 +44,13 @@ function reverseSeries() {
     const series = chart.getOptions().series as AgAreaSeriesOptions[];
     series!.reverse();
 
-    AgCharts.updateDelta(chart, { series });
+    chart.updateDelta({ series });
 }
 
 function swapTitles() {
     const { title, subtitle } = chart.getOptions();
 
-    AgCharts.updateDelta(chart, { title: subtitle, subtitle: title });
+    chart.updateDelta({ title: subtitle, subtitle: title });
 }
 
 function rotateLegend() {
@@ -59,13 +59,13 @@ function rotateLegend() {
     const currentIdx = positions.indexOf(position ?? 'top');
     const newPosition = positions[(currentIdx + 1) % positions.length];
 
-    AgCharts.updateDelta(chart, { legend: { position: newPosition } });
+    chart.updateDelta({ legend: { position: newPosition } });
 }
 
 function changeTheme() {
     const theme = chart.getOptions()?.theme as AgChartTheme;
     const markersEnabled = theme?.overrides?.area?.series?.marker?.enabled ?? false;
-    AgCharts.updateDelta(chart, {
+    chart.updateDelta({
         theme: { overrides: { area: { series: { marker: { enabled: !markersEnabled } } } } },
     });
 }

@@ -38,7 +38,7 @@ function setAxisMinMax() {
     const numberAxisOptions = options.axes![1] as AgNumberAxisOptions;
     numberAxisOptions.min = -50;
     numberAxisOptions.max = 150;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function resetAxisDomain() {
@@ -49,5 +49,5 @@ function resetAxisDomain() {
     if (numberAxisOptions.max) {
         delete numberAxisOptions.max;
     }
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

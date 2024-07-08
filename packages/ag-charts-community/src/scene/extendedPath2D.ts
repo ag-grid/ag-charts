@@ -1,3 +1,4 @@
+import { angleDiff } from '../util/angle';
 import { arcDistanceSquared, lineDistanceSquared } from '../util/distance';
 import { Logger } from '../util/logger';
 import { arcIntersections, cubicSegmentIntersections, segmentIntersection } from './intersection';
@@ -295,5 +296,56 @@ export class ExtendedPath2D {
         }
 
         return coords;
+    }
+
+    // https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d
+    computeSVGDataPath(ox: number, oy: number): string {
+        const buffer: (string | number)[] = [];
+        const { commands, params } = this;
+
+        let pi = 0;
+        for (let ci = 0; ci < commands.length; ci++) {
+            switch (commands[ci]) {
+                case Command.Move:
+                    buffer.push('M', ox + params[pi++], oy + params[pi++]);
+                    break;
+                case Command.Line:
+                    buffer.push('L', ox + params[pi++], oy + params[pi++]);
+                    break;
+                case Command.Curve:
+                    buffer.push(
+                        'C',
+                        ox + params[pi++],
+                        oy + params[pi++],
+                        ox + params[pi++],
+                        oy + params[pi++],
+                        ox + params[pi++],
+                        oy + params[pi++]
+                    );
+                    break;
+                case Command.Arc:
+                    const [cx, cy, r, a0, a1, ccw] = [
+                        params[pi++],
+                        params[pi++],
+                        params[pi++],
+                        params[pi++],
+                        params[pi++],
+                        params[pi++],
+                    ];
+                    const x0 = ox + cx + Math.cos(a0) * r;
+                    const y0 = oy + cy + Math.sin(a0) * r;
+                    const x1 = ox + cx + Math.cos(a1) * r;
+                    const y1 = oy + cy + Math.sin(a1) * r;
+                    const largeArcFlag = angleDiff(a0, a1, !!ccw) > Math.PI ? 1 : 0;
+                    const sweepFlag = (ccw + 1) % 2;
+                    buffer.push('L', x0, y0, 'A', r, r, 0, largeArcFlag, sweepFlag, x1, y1);
+                    break;
+                case Command.ClosePath:
+                    buffer.push('Z');
+                    break;
+            }
+        }
+
+        return buffer.join(' ');
     }
 }

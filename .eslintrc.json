@@ -13,10 +13,6 @@
     "allowImportExportEverywhere": true,
     "project": "tsconfig.base.json"
   },
-  "globals": {
-    "Atomics": "readonly",
-    "SharedArrayBuffer": "readonly"
-  },
   "overrides": [
     {
       "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],

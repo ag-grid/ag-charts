@@ -1,15 +1,10 @@
-import type { AgChartThemePalette } from '../../options/agChartOptions';
+import type { AgChartThemePalette } from 'ag-charts-types';
+
 import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_ANNOTATION_STROKE,
-    DEFAULT_COLOURS,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
-    DEFAULT_LABEL_COLOUR,
-    DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
-    DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
-    DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
-    DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
 } from './symbols';
 
 const VIVID_FILLS = {
@@ -44,75 +39,25 @@ const palette: AgChartThemePalette = {
 };
 
 export class VividLight extends ChartTheme {
-    protected static override getDefaultColors() {
+    override getDefaultColors() {
         return {
             fills: VIVID_FILLS,
             strokes: VIVID_STROKES,
-        };
-    }
-
-    protected static override getWaterfallSeriesDefaultPositiveColors() {
-        return {
-            fill: VIVID_FILLS.BLUE,
-            stroke: VIVID_STROKES.BLUE,
-            label: {
-                color: DEFAULT_LABEL_COLOUR,
-            },
-        };
-    }
-
-    protected static override getWaterfallSeriesDefaultNegativeColors() {
-        return {
-            fill: VIVID_FILLS.ORANGE,
-            stroke: VIVID_STROKES.ORANGE,
-            label: {
-                color: DEFAULT_LABEL_COLOUR,
-            },
-        };
-    }
-
-    protected static override getWaterfallSeriesDefaultTotalColors() {
-        return {
-            fill: VIVID_FILLS.GRAY,
-            stroke: VIVID_STROKES.GRAY,
-            label: {
-                color: DEFAULT_LABEL_COLOUR,
-            },
+            up: { fill: VIVID_FILLS.BLUE, stroke: VIVID_STROKES.BLUE },
+            down: { fill: VIVID_FILLS.ORANGE, stroke: VIVID_STROKES.ORANGE },
+            neutral: { fill: VIVID_FILLS.GRAY, stroke: VIVID_STROKES.GRAY },
         };
     }
 
     override getTemplateParameters() {
-        const result = super.getTemplateParameters();
+        const params = super.getTemplateParameters();
 
-        result.properties.set(DEFAULT_COLOURS, VividLight.getDefaultColors());
-        result.properties.set(
-            DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
-            VividLight.getWaterfallSeriesDefaultPositiveColors()
-        );
-        result.properties.set(
-            DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
-            VividLight.getWaterfallSeriesDefaultNegativeColors()
-        );
-        result.properties.set(
-            DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
-            VividLight.getWaterfallSeriesDefaultTotalColors()
-        );
+        params.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [VIVID_FILLS.ORANGE, VIVID_FILLS.YELLOW, VIVID_FILLS.GREEN]);
 
-        result.properties.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
-            VIVID_FILLS.ORANGE,
-            VIVID_FILLS.YELLOW,
-            VIVID_FILLS.GREEN,
-        ]);
+        params.set(DEFAULT_ANNOTATION_STROKE, VIVID_FILLS.BLUE);
+        params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, VIVID_FILLS.BLUE);
 
-        result.properties.set(
-            DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
-            VividLight.getWaterfallSeriesDefaultTotalColors().stroke
-        );
-
-        result.properties.set(DEFAULT_ANNOTATION_STROKE, VIVID_STROKES.BLUE);
-        result.properties.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, VIVID_FILLS.BLUE);
-
-        return result;
+        return params;
     }
     protected override getPalette(): AgChartThemePalette {
         return palette;

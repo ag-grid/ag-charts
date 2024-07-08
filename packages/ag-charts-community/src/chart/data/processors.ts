@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 import { arraysEqual } from '../../util/array';
 import { memo } from '../../util/memo';
 import { isNegative } from '../../util/number';
@@ -27,6 +28,24 @@ export const SMALLEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'smallestKey
                 return interval;
             }
             return smallestSoFar;
+        };
+    },
+};
+
+export const LARGEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'largestKeyInterval'> = {
+    type: 'reducer',
+    property: 'largestKeyInterval',
+    initialValue: -Infinity,
+    reducer: () => {
+        let prevX = NaN;
+        return (largestSoFar = -Infinity, next) => {
+            const nextX = next.keys[0];
+            const interval = Math.abs(nextX - prevX);
+            prevX = nextX;
+            if (!isNaN(interval) && interval > 0 && interval > largestSoFar) {
+                return interval;
+            }
+            return largestSoFar;
         };
     },
 };
@@ -258,6 +277,33 @@ export function accumulateGroup(
     } else {
         adjust = memo({ mode: mode as 'normal' | 'trailing', separateNegative }, buildGroupAccFn);
     }
+
+    return {
+        type: 'group-value-processor',
+        matchGroupIds: [matchGroupId],
+        adjust,
+    };
+}
+
+function buildGroupContinuityAccFn({ separateNegative }: { separateNegative: boolean }) {
+    return () => () => (values: any[], valueIndexes: number[]) => {
+        // Datum scope.
+        const acc = [true, true];
+        for (const valueIdx of valueIndexes) {
+            const currentVal = values[valueIdx];
+            const accIndex = isNegative(currentVal) && separateNegative ? 0 : 1;
+
+            acc[accIndex] &&= isFiniteNumber(currentVal);
+            values[valueIdx] = acc[accIndex];
+        }
+    };
+}
+
+export function accumulateContinuity(
+    matchGroupId: string,
+    separateNegative = false
+): GroupValueProcessorDefinition<any, any> {
+    const adjust = memo({ separateNegative }, buildGroupContinuityAccFn);
 
     return {
         type: 'group-value-processor',

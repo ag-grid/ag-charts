@@ -6,7 +6,7 @@ import { partialAssign } from '../../util/object';
 import { isFiniteNumber } from '../../util/type-guards';
 import { BaseManager } from '../baseManager';
 import type { DOMManager } from '../dom/domManager';
-import { type ConsumableEvent, buildConsumable, dispatchTypedConsumable } from './consumableEvent';
+import { type PreventableEvent, type Unpreventable, dispatchTypedEvent } from './preventableEvent';
 
 export const POINTER_INTERACTION_TYPES = [
     'click',
@@ -45,7 +45,7 @@ type SUPPORTED_EVENTS =
     | 'mousedown'
     | 'mousemove'
     | 'mouseup'
-    | 'mouseout'
+    | 'mouseleave'
     | 'mouseenter'
     | 'touchstart'
     | 'touchmove'
@@ -54,13 +54,13 @@ type SUPPORTED_EVENTS =
     | 'pagehide'
     | 'wheel';
 const SHADOW_DOM_HANDLERS: SUPPORTED_EVENTS[] = ['mousemove', 'mouseup'];
-const WINDOW_EVENT_HANDLERS: SUPPORTED_EVENTS[] = ['pagehide'];
+const WINDOW_EVENT_HANDLERS: SUPPORTED_EVENTS[] = ['pagehide', 'mousemove', 'mouseup'];
 const EVENT_HANDLERS = [
     'click',
     'dblclick',
     'contextmenu',
     'mousedown',
-    'mouseout',
+    'mouseleave',
     'mouseenter',
     'touchstart',
     'touchmove',
@@ -73,9 +73,8 @@ const EVENT_HANDLERS = [
     'keyup',
 ] as const;
 
-type BaseInteractionEvent<T extends InteractionTypes, TEvent extends Event> = ConsumableEvent & {
+type BaseInteractionEvent<T extends InteractionTypes, TEvent extends Event> = PreventableEvent & {
     type: T;
-    region?: string;
     sourceEvent: TEvent;
     relatedElement?: HTMLElement;
     targetElement?: HTMLElement;
@@ -142,7 +141,7 @@ export enum InteractionState {
 export class InteractionManager extends BaseManager<InteractionTypes, InteractionEvent> {
     private readonly debug = Debug.create(true, 'interaction');
 
-    private rootElement: HTMLElement;
+    private rootElement: HTMLElement | undefined;
 
     private readonly eventHandler = (event: SupportedEvent) => this.processEvent(event);
 
@@ -178,18 +177,23 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             getWindow().addEventListener(type, this.eventHandler);
         }
 
+        this.containerChanged(true);
         this.domManager.addListener('container-changed', () => this.containerChanged());
     }
 
-    private containerChanged() {
+    private containerChanged(force = false) {
+        const newRoot = this.domManager.getDocumentRoot();
+        if (!force && newRoot === this.rootElement) return;
+
         for (const type of SHADOW_DOM_HANDLERS) {
-            this.rootElement.removeEventListener(type, this.eventHandler);
+            this.rootElement?.removeEventListener(type, this.eventHandler);
         }
 
-        this.rootElement = this.domManager.getDocumentRoot();
+        this.rootElement = newRoot;
+        this.debug('[InteractionManager] Switching rootElement to:', this.rootElement);
 
         for (const type of SHADOW_DOM_HANDLERS) {
-            this.rootElement.addEventListener(type, this.eventHandler);
+            this.rootElement?.addEventListener(type, this.eventHandler);
         }
     }
 
@@ -200,7 +204,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             getWindow().removeEventListener(type, this.eventHandler);
         }
         for (const type of SHADOW_DOM_HANDLERS) {
-            this.rootElement.removeEventListener(type, this.eventHandler);
+            this.rootElement?.removeEventListener(type, this.eventHandler);
         }
 
         for (const type of EVENT_HANDLERS) {
@@ -240,6 +244,13 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     private processEvent(event: SupportedEvent) {
         const types: InteractionTypes[] = this.decideInteractionEventTypes(event);
 
+        // AG-11385 Ignore clicks on focusable & disabled elements.
+        const target: (EventTarget & { ariaDisabled?: string }) | null = event.target;
+        if (event.type === 'click' && target?.ariaDisabled === 'true') {
+            event.preventDefault();
+            return;
+        }
+
         if (types.length > 0) {
             // Async dispatch to avoid blocking the event-processing thread.
             this.dispatchEvent(event, types).catch((e) => Logger.errorOnce(e));
@@ -255,19 +266,13 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         const { relatedElement, targetElement } = this.extractElements(event);
         if (allInStringUnion(FOCUS_INTERACTION_TYPES, types)) {
             for (const type of types) {
-                dispatchTypedConsumable(
-                    this.listeners,
-                    type,
-                    buildConsumable({ type, sourceEvent: event as FocusEvent, relatedElement, targetElement })
-                );
+                const sourceEvent = event as FocusEvent;
+                dispatchTypedEvent(this.listeners, { type, sourceEvent, relatedElement, targetElement });
             }
         } else if (allInStringUnion(KEY_INTERACTION_TYPES, types)) {
             for (const type of types) {
-                dispatchTypedConsumable(
-                    this.listeners,
-                    type,
-                    buildConsumable({ type, sourceEvent: event as KeyboardEvent, relatedElement, targetElement })
-                );
+                const sourceEvent = event as KeyboardEvent;
+                dispatchTypedEvent(this.listeners, { type, sourceEvent, relatedElement, targetElement });
             }
         }
     }
@@ -294,8 +299,17 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         }
 
         for (const type of types) {
-            dispatchTypedConsumable(this.listeners, type, this.buildPointerEvent({ type, event, ...coords }));
+            dispatchTypedEvent(this.listeners, this.buildPointerEvent({ type, event, ...coords }));
         }
+    }
+
+    private getEventHTMLTarget(event: SupportedEvent): HTMLElement | undefined {
+        if (event.target instanceof HTMLElement) {
+            return event.target;
+        } else if (event.currentTarget instanceof HTMLElement) {
+            return event.currentTarget;
+        }
+        return undefined;
     }
 
     private recordDown(event: SupportedEvent) {
@@ -304,7 +318,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             partialAssign(['offsetX', 'offsetY'], this.dblclickHistory[2], this.dblclickHistory[0]);
             partialAssign(['offsetX', 'offsetY'], this.dblclickHistory[0], event);
         }
-        this.dragStartElement = event.target as HTMLElement;
+        this.dragStartElement = this.getEventHTMLTarget(event);
     }
 
     private recordUp(event: SupportedEvent) {
@@ -330,7 +344,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
                 return [event.type];
 
             case 'mousedown':
-                if (!this.isEventOverElement(event)) {
+                if (!this.isEventOverElement(event) || !('button' in event) || event.button !== 0) {
                     return [];
                 }
                 this.mouseDown = true;
@@ -372,7 +386,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
                 this.recordUp(event);
                 return ['drag-end'];
 
-            case 'mouseout':
+            case 'mouseleave':
             case 'touchcancel':
                 return ['leave'];
 
@@ -426,7 +440,8 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         const { clientX, clientY, pageX, pageY } = event;
         let { offsetX, offsetY } = event;
 
-        const { x, y } = this.domManager.calculateCanvasPosition(event.target as HTMLElement);
+        const target = this.getEventHTMLTarget(event);
+        const { x = 0, y = 0 } = target ? this.domManager.calculateCanvasPosition(target) : {};
         if (this.dragStartElement != null && event.target !== this.dragStartElement) {
             // Offsets need to be relative to the drag-start element to avoid jumps when
             // the pointer moves between element boundaries.
@@ -454,7 +469,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         offsetY?: number;
         pageX?: number;
         pageY?: number;
-    }): PointerInteractionEvent<PointerInteractionTypes> {
+    }): Unpreventable<PointerInteractionEvent<PointerInteractionTypes>> {
         const { type, event, clientX, clientY } = opts;
         let { offsetX, offsetY, pageX, pageY } = opts;
 
@@ -464,9 +479,9 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             offsetY = clientY - rect.top;
         }
         if (!isFiniteNumber(pageX) || !isFiniteNumber(pageY)) {
-            const pageRect = this.rootElement.getBoundingClientRect();
-            pageX = clientX - pageRect.left;
-            pageY = clientY - pageRect.top;
+            const pageRect = this.rootElement?.getBoundingClientRect();
+            pageX = clientX - (pageRect?.left ?? 0);
+            pageY = clientY - (pageRect?.top ?? 0);
         }
 
         let [deltaX, deltaY] = [NaN, NaN];
@@ -490,7 +505,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
         const { relatedElement, targetElement } = this.extractElements(event);
 
-        const builtEvent = buildConsumable({
+        const builtEvent = {
             type,
             offsetX,
             offsetY,
@@ -502,7 +517,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             sourceEvent: event,
             relatedElement,
             targetElement,
-        });
+        };
 
         this.debug('InteractionManager - builtEvent: ', builtEvent);
         return builtEvent;

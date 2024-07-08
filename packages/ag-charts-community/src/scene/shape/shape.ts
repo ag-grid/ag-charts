@@ -14,7 +14,7 @@ export type CanvasContext = CanvasFillStrokeStyles &
     CanvasTransform &
     CanvasState;
 
-const LINEAR_GRADIENT_REGEXP = /^linear-gradient\((.*?)deg,\s*(.*?)\s*\)$/i;
+const LINEAR_GRADIENT_REGEXP = /^linear-gradient\((-?[\d.]+)deg,(.*?)\)$/i;
 
 export abstract class Shape extends Node {
     /**

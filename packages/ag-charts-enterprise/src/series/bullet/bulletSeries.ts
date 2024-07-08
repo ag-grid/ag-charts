@@ -17,7 +17,7 @@ const {
     computeBarFocusBounds,
 } = _ModuleSupport;
 const { fromToMotion } = _Scene.motion;
-const { sanitizeHtml } = _Util;
+const { sanitizeHtml, Color } = _Util;
 
 interface BulletNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
     readonly x: number;
@@ -267,7 +267,15 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
             return colorRanges;
         }
         const defaultColorRange = new BulletColorRange();
-        defaultColorRange.color = _Util.Color.interpolate(fill, backgroundFill)(0.7);
+        try {
+            defaultColorRange.color = Color.mix(
+                Color.fromString(fill),
+                Color.fromString(backgroundFill),
+                0.7
+            ).toString();
+        } catch {
+            defaultColorRange.color = fill;
+        }
         return [defaultColorRange];
     }
 

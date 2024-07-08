@@ -1,7 +1,33 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import {
+    type FontStyle,
+    type FontWeight,
+    type Formatter,
+    type TextAlign,
+    _ModuleSupport,
+    _Util,
+} from 'ag-charts-community';
 
-const { BOOLEAN, COLOR_STRING, DATE, LINE_DASH, NUMBER, RATIO, STRING, OBJECT, OR, UNION, BaseProperties, Validate } =
-    _ModuleSupport;
+import type { AnnotationContext } from './annotationTypes';
+
+const {
+    BOOLEAN,
+    COLOR_STRING,
+    DATE,
+    LINE_DASH,
+    NUMBER,
+    RATIO,
+    STRING,
+    OBJECT,
+    FUNCTION,
+    TEXT_ALIGN,
+    FONT_STYLE,
+    FONT_WEIGHT,
+    POSITIVE_NUMBER,
+    OR,
+    UNION,
+    BaseProperties,
+    Validate,
+} = _ModuleSupport;
 
 type Constructor<T = {}> = new (...args: any[]) => T;
 
@@ -16,13 +42,31 @@ export class AnnotationPoint extends BaseProperties {
 
 export class ChannelAnnotationBackground extends Fill(BaseProperties) {}
 
-export class ChannelAnnotationMiddle extends Stroke(LineDash(BaseProperties)) {}
+export class ChannelAnnotationMiddle extends Stroke(LineDash(Visible(BaseProperties))) {}
 
 export class AnnotationHandleProperties extends Stroke(LineDash(Fill(BaseProperties))) {}
 
+export class AnnotationAxisLabelProperties extends Stroke(LineDash(Fill(Label(BaseProperties)))) {
+    @Validate(BOOLEAN)
+    enabled?: boolean;
+
+    @Validate(POSITIVE_NUMBER)
+    cornerRadius: number = 2;
+}
+
 // --- Annotations Mixins ---
-export function Annotation<T extends string, U extends Constructor>(_type: T, Parent: U) {
-    class AnnotationProperties extends Lockable(Visible(Parent)) {}
+export function Annotation<T extends string, U extends Constructor<_ModuleSupport.BaseProperties>>(
+    _type: T,
+    Parent: U
+) {
+    class AnnotationProperties extends Lockable(Visible(Parent)) {
+        // A uuid is required, over the usual incrementing index, as annotations can be restored from external databases
+        id = _Util.uuid();
+
+        isValidWithContext(_context: AnnotationContext, warningPrefix: string) {
+            return super.isValid(warningPrefix);
+        }
+    }
     return AnnotationProperties;
 }
 
@@ -35,6 +79,14 @@ export function AnnotationLine<T extends Constructor>(Parent: T) {
         end = new AnnotationPoint();
     }
     return AnnotationLinePoints;
+}
+
+export function AnnotationCrossLine<T extends Constructor>(Parent: T) {
+    class AnnotationCrossLineOptions extends Parent {
+        @Validate(OR(STRING, NUMBER, DATE))
+        value?: string | number | Date;
+    }
+    return AnnotationCrossLineOptions;
 }
 
 export function ChannelAnnotation<T extends Constructor>(Parent: T) {
@@ -51,6 +103,14 @@ export function AnnotationHandle<T extends Constructor>(Parent: T) {
         handle = new AnnotationHandleProperties();
     }
     return WithAnnotationHandle;
+}
+
+export function AnnotationAxisLabel<T extends Constructor>(Parent: T) {
+    class WithAxisLabel extends Parent {
+        @Validate(OBJECT, { optional: true })
+        axisLabel = new AnnotationAxisLabelProperties();
+    }
+    return WithAxisLabel;
 }
 
 export function Cappable<T extends Constructor>(Parent: T) {
@@ -115,6 +175,39 @@ export function Stroke<T extends Constructor>(Parent: T) {
         strokeWidth?: number;
     }
     return StrokeOptions;
+}
+
+export interface AnnotationAxisLabelFormatterParams {
+    readonly value: any;
+}
+
+export function Label<T extends Constructor>(Parent: T) {
+    class LabelOptions extends Parent {
+        @Validate(POSITIVE_NUMBER, { optional: true })
+        padding?: number;
+
+        @Validate(TEXT_ALIGN, { optional: true })
+        textAlign: TextAlign = 'center';
+
+        @Validate(FONT_STYLE, { optional: true })
+        fontStyle?: FontStyle;
+
+        @Validate(FONT_WEIGHT, { optional: true })
+        fontWeight?: FontWeight;
+
+        @Validate(POSITIVE_NUMBER)
+        fontSize: number = 12;
+
+        @Validate(STRING)
+        fontFamily: string = 'Verdana, sans-serif';
+
+        @Validate(COLOR_STRING, { optional: true })
+        color?: string;
+
+        @Validate(FUNCTION, { optional: true })
+        formatter?: Formatter<AnnotationAxisLabelFormatterParams>;
+    }
+    return LabelOptions;
 }
 
 export function LineDash<T extends Constructor>(Parent: T) {

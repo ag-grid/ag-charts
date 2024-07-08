@@ -17,7 +17,7 @@ const options: AgChartOptions = {
                         enabled: true,
                         formatter: ({ value }) => `${Math.abs(value)}`,
                     },
-                    formatter: ({ datum, yKey }) => ({
+                    itemStyler: ({ datum, yKey }) => ({
                         fillOpacity: getOpacity(Math.abs(datum[yKey]), yKey, 0.4, 1),
                     }),
                     tooltip: {
@@ -91,11 +91,9 @@ const options: AgChartOptions = {
         {
             type: 'category',
             position: 'left',
+            interval: { values: [2013, 2023] },
             line: {
                 enabled: false,
-            },
-            tick: {
-                values: [2013, 2023],
             },
             gridLine: {
                 enabled: true,
@@ -107,11 +105,11 @@ const options: AgChartOptions = {
             nice: false,
             min: -40,
             max: 60,
+            interval: { values: [0] },
             label: {
                 enabled: false,
             },
             tick: {
-                values: [0],
                 size: 0,
             },
             gridLine: {

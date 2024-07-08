@@ -1,18 +1,8 @@
 import type { ModuleContext } from '../../module/moduleContext';
 import { BandScale } from '../../scale/bandScale';
 import type { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
-import { Default } from '../../util/default';
-import { MIN_SPACING, RATIO, Validate } from '../../util/validation';
-import { AxisTick } from './axisTick';
+import { RATIO, Validate } from '../../util/validation';
 import { CartesianAxis } from './cartesianAxis';
-
-export class CategoryAxisTick<
-    S extends BandScale<string | object, number> | OrdinalTimeScale = BandScale<string | object, number>,
-> extends AxisTick<S> {
-    @Validate(MIN_SPACING)
-    @Default(NaN)
-    override minSpacing: number = NaN;
-}
 
 export class CategoryAxis<
     S extends BandScale<string | object, number> | OrdinalTimeScale = BandScale<string | object, number>,
@@ -47,10 +37,6 @@ export class CategoryAxis<
         return this.scale.paddingOuter;
     }
 
-    protected override createTick(): AxisTick<S, any, any> {
-        return new CategoryAxisTick();
-    }
-
     override normaliseDataDomain(d: (string | object)[]) {
         const domain = [];
         const uniqueValues = new Set();
@@ -67,11 +53,16 @@ export class CategoryAxis<
 
     protected override calculateDomain() {
         if (!this._paddingOverrideEnabled) {
-            const paddings = this.boundSeries.map((s) => s.getBandScalePadding?.()).filter((p) => p != null);
-            if (paddings.length > 0) {
-                this.scale.paddingInner = Math.min(...paddings.map((p) => p!.inner));
-                this.scale.paddingOuter = Math.max(...paddings.map((p) => p!.outer));
+            let paddingInner = Infinity;
+            let paddingOuter = -Infinity;
+            for (const s of this.boundSeries) {
+                const padding = s.getBandScalePadding?.();
+                if (padding == null) continue;
+                paddingInner = Math.min(paddingInner, padding.inner);
+                paddingOuter = Math.max(paddingOuter, padding.outer);
             }
+            this.scale.paddingInner = Number.isFinite(paddingInner) ? paddingInner : 0;
+            this.scale.paddingOuter = Number.isFinite(paddingOuter) ? paddingOuter : 0;
         }
 
         return super.calculateDomain();

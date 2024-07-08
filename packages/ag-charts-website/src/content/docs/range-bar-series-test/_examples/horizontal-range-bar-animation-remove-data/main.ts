@@ -1,10 +1,10 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
 const data = getData();
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data,
     title: {
@@ -30,5 +30,5 @@ function removeValue() {
     const removeIndex = Math.floor(dataLength * Math.random());
     data.splice(removeIndex, 1);
     options.data = data;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

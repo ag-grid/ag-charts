@@ -67,7 +67,7 @@ const options: AgCartesianChartOptions = {
             type: 'time',
             position: 'bottom',
             nice: false,
-            tick: {
+            interval: {
                 maxSpacing: 200,
             },
             crosshair: {

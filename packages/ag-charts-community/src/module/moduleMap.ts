@@ -1,17 +1,28 @@
 import { isString } from '../util/type-guards';
 import type { BaseModule, ModuleInstance } from './baseModule';
-import type { ModuleContext } from './moduleContext';
 
-interface Module<I extends ModuleInstance = ModuleInstance, C = ModuleContext> extends BaseModule {
+interface Module<I extends ModuleInstance = ModuleInstance, C = {}> extends BaseModule {
     instanceConstructor: new (ctx: C) => I;
 }
 
-export class ModuleMap<M extends Module<I, C>, I extends ModuleInstance, C = ModuleContext> {
+export class ModuleMap<M extends Module<I, C>, I extends ModuleInstance, C = {}> {
     protected moduleMap = new Map<string, { module: M; moduleInstance: I }>();
 
     *modules() {
+        const sequencedModules = ['toolbar', 'navigator'];
+
         for (const m of this.moduleMap.values()) {
+            if (sequencedModules.includes(m.module.optionsKey)) {
+                continue;
+            }
             yield m.moduleInstance;
+        }
+
+        for (const key of sequencedModules) {
+            const module = this.moduleMap.get(key);
+            if (module) {
+                yield module.moduleInstance;
+            }
         }
     }
 

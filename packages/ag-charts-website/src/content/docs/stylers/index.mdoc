@@ -1,0 +1,68 @@
+---
+title: 'Stylers'
+---
+
+Stylers allow customisation of the visual appearance of specific items <!-- or series -->based on the data or other conditions.
+
+## Item Stylers
+
+An `itemStyler` is a callback function that is called once for each item within the series. These can be found:
+
+-   In the `series` object, for customising primitive properties on the series level.
+-   Inside nested series property objects, such as `marker` <!-- or label -->.
+
+Each `itemStyler` receives a `params` object containing the `datum` of the item, as well as the current styles applied to it.
+It should return an object containing the styles to be applied to the item.
+
+The exact details differ between the different series types and components which implement the `itemStyler` function.
+
+{% chartExampleRunner title="Item Styler" name="item-styler" type="generated" /%}
+
+```js
+series: [
+    {
+        type: 'line',
+        xKey: 'month',
+        yKey: 'coal',
+        yName: 'Coal',
+        marker: {
+            itemStyler: (params) => {
+                if (params.datum.coal > params.datum.nuclear) return { fill: 'red', size: 15 };
+                else return { fill: p.fill, size: p.size };
+            },
+        },
+    },
+    {
+        type: 'bar',
+        xKey: 'month',
+        yKey: 'imported',
+        yName: 'Imported',
+        itemStyler: ({ datum, xKey, fill, highlighted }) => {
+            return {
+                fill: datum[xKey] === 'Jul' ? (highlighted ? 'lime' : 'red') : fill,
+            };
+        },
+    },
+];
+```
+
+In this configuration:
+
+-   The markers in the 'Coal' series will be larger and red if they are higher than 'Nuclear' series for the same month.
+-   The 'Imported' series bar for 'Jul' will be red with a lime highlight style.
+
+Please use the [Options Reference](/options) to learn more about Stylers, the inputs they receive and the attributes that can be customised.
+
+<!--
+## Series Stylers
+
+An `styler` is a callback function that is called once for each series.
+These can be found in the `series` object, and are used to change the appearance of the entire series based on a condition.
+
+The Series Styler is most often used within a [Theme](./themes/).
+
+Each `styler` receives a `params` object containing information about the series, as well as the top level styles applied to it.
+It should return an object containing the styles to be applied to the series.
+
+Any styling of nested property objects must be done with an `itemStyler`.
+ -->

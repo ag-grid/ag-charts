@@ -66,7 +66,7 @@ function scatter() {
             series.type = 'scatter';
         }
     }
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function line() {
@@ -75,7 +75,7 @@ function line() {
             series.type = 'line';
         }
     }
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function resetData() {
@@ -84,7 +84,7 @@ function resetData() {
         options.series[1].data = getHelium();
         options.series[2].data = getArgon();
     }
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function randomDelta(min: number, max: number) {
@@ -113,7 +113,7 @@ function randomiseData() {
         options.series[1].data = options.series[1].data?.map(fn);
         options.series[2].data = options.series[2].data?.map(fn);
     }
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function randomiseErrors() {
@@ -132,7 +132,7 @@ function randomiseErrors() {
         options.series[1].data = options.series[1].data?.map(fn);
         options.series[2].data = options.series[2].data?.map(fn);
     }
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function removeRandomElem() {
@@ -148,5 +148,5 @@ function removeRandomElem() {
         const { seriesIndex, datumIndex } = meta[randomIndex(meta.length)];
         series[seriesIndex].data?.splice(datumIndex, 1);
     }
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

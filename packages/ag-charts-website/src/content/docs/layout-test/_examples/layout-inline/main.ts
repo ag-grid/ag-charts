@@ -1,5 +1,5 @@
 // @ag-skip-fws
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import { AgCartesianChartOptions } from 'ag-charts-community';
 
 // Chart Options
 const options: AgCartesianChartOptions = {
@@ -51,7 +51,7 @@ doc?.write(`
         <div style="display: flex; aspect-ratio: 2 / 1; border: 1px solid black">
             <textarea style="width: 200px; resize: both">Resize me</textarea>
             <div class="chart" style="flex: 1"></div>
-        </div> 
+        </div>
         <h1>WebApp Example (Simple Flexbox)</h1>
         <div style="display: flex">
             <div class="chart"></div>
@@ -83,6 +83,7 @@ doc?.write(`
         </div>
         <script src="${script}"></script>
         <script>
+            const { AgCharts } = agCharts;
             for (const container of document.getElementsByClassName('chart')) {
                 const width = Number(container.getAttribute('data-width'));
                 const height = Number(container.getAttribute('data-height'));

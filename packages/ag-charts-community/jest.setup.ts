@@ -2,9 +2,12 @@ import { expect } from '@jest/globals';
 import { CanvasRenderingContext2D } from 'canvas';
 import { type MatchImageSnapshotOptions, toMatchImageSnapshot } from 'jest-image-snapshot';
 import { Path2D, applyPath2DToCanvasRenderingContext } from 'path2d';
+import { URL } from 'url';
 import { TextDecoder, TextEncoder } from 'util';
 
 import { toMatchImage } from './src/chart/test/utils';
+
+global.Blob = Blob;
 
 // @ts-expect-error
 global.Path2D = Path2D;
@@ -12,6 +15,9 @@ global.Path2D = Path2D;
 // @ts-expect-error
 global.TextDecoder = TextDecoder;
 global.TextEncoder = TextEncoder;
+
+// @ts-expect-error
+global.URL = URL;
 
 applyPath2DToCanvasRenderingContext(CanvasRenderingContext2D);
 

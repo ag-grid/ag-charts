@@ -1,8 +1,10 @@
+import type { StateManager } from '../api/state/stateManager';
 import type { AnnotationManager } from '../chart/annotation/annotationManager';
-import type { ChartAxisDirection } from '../chart/chartAxisDirection';
+import type { AxisManager } from '../chart/axis/axisManager';
 import type { ChartService } from '../chart/chartService';
 import type { DataService } from '../chart/data/dataService';
 import type { DOMManager } from '../chart/dom/domManager';
+import type { FocusIndicator } from '../chart/dom/focusIndicator';
 import type { ProxyInteractionService } from '../chart/dom/proxyInteractionService';
 import type { AnimationManager } from '../chart/interaction/animationManager';
 import type { AriaAnnouncementService } from '../chart/interaction/ariaAnnouncementServices';
@@ -18,9 +20,9 @@ import type { ToolbarManager } from '../chart/interaction/toolbarManager';
 import type { TooltipManager } from '../chart/interaction/tooltipManager';
 import type { ZoomManager } from '../chart/interaction/zoomManager';
 import type { LayoutService } from '../chart/layout/layoutService';
+import type { LocaleManager } from '../chart/locale/localeManager';
 import type { SeriesStateManager } from '../chart/series/seriesStateManager';
 import type { UpdateService } from '../chart/updateService';
-import type { AgCartesianAxisPosition } from '../options/agChartOptions';
 import type { Scene } from '../scene/scene';
 import type { CallbackCache } from '../util/callbackCache';
 
@@ -35,6 +37,8 @@ export interface ModuleContext {
     readonly layoutService: LayoutService;
     readonly updateService: UpdateService;
 
+    readonly axisManager: AxisManager;
+
     readonly animationManager: AnimationManager;
     readonly annotationManager: AnnotationManager;
     readonly ariaAnnouncementService: AriaAnnouncementService;
@@ -42,11 +46,14 @@ export interface ModuleContext {
     readonly contextMenuRegistry: ContextMenuRegistry;
     readonly cursorManager: CursorManager;
     readonly domManager: DOMManager;
+    readonly focusIndicator: FocusIndicator;
     readonly highlightManager: HighlightManager;
     readonly interactionManager: InteractionManager;
+    readonly localeManager: LocaleManager;
     readonly proxyInteractionService: ProxyInteractionService;
     readonly regionManager: RegionManager;
     readonly seriesStateManager: SeriesStateManager;
+    readonly stateManager: StateManager;
     readonly syncManager: SyncManager;
     readonly toolbarManager: ToolbarManager;
     readonly tooltipManager: TooltipManager;
@@ -55,19 +62,6 @@ export interface ModuleContext {
 
 export interface ModuleContextWithParent<P> extends ModuleContext {
     parent: P;
-}
-
-export interface AxisContext {
-    axisId: string;
-    continuous: boolean;
-    direction: ChartAxisDirection;
-    position?: AgCartesianAxisPosition;
-    keys(): string[];
-    seriesKeyProperties(): string[];
-    scaleBandwidth(): number;
-    scaleConvert(val: any): number;
-    scaleInvert(position: number): any;
-    scaleValueFormatter(specifier?: string): ((x: any) => string) | undefined;
 }
 
 export interface SeriesContext extends ModuleContext {

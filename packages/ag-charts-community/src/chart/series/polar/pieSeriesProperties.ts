@@ -1,11 +1,12 @@
-/* eslint-disable sonarjs/no-duplicate-string */
 import type {
-    AgPieSeriesFormat,
-    AgPieSeriesFormatterParams,
+    AgPieSeriesItemStylerParams,
     AgPieSeriesLabelFormatterParams,
     AgPieSeriesOptions,
+    AgPieSeriesStyle,
     AgPieSeriesTooltipRendererParams,
-} from '../../../options/series/polar/pieOptions';
+    Styler,
+} from 'ag-charts-types';
+
 import { DropShadow } from '../../../scene/dropShadow';
 import { BaseProperties } from '../../../util/properties';
 import {
@@ -124,7 +125,7 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
     cornerRadius: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgPieSeriesFormatterParams<any>) => AgPieSeriesFormat;
+    itemStyler?: Styler<AgPieSeriesItemStylerParams<unknown>, AgPieSeriesStyle>;
 
     @Validate(DEGREE)
     rotation: number = 0;
@@ -157,5 +158,5 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
     readonly calloutLine = new PieSeriesCalloutLine();
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgPieSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgPieSeriesTooltipRendererParams<any>>();
 }

@@ -11,6 +11,7 @@ export const BulletModule: _ModuleSupport.SeriesModule<'bullet'> = {
     identifier: 'bullet',
     solo: true,
     instanceConstructor: BulletSeries,
+    tooltipDefaults: { range: 'exact' },
     defaultAxes: [
         {
             type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
@@ -24,16 +25,15 @@ export const BulletModule: _ModuleSupport.SeriesModule<'bullet'> = {
     themeTemplate: BULLET_SERIES_THEME,
     swapDefaultAxesCondition: (series) => series?.direction === 'horizontal',
     paletteFactory: ({ takeColors, colorsCount, themeTemplateParameters }) => {
-        const { properties } = themeTemplateParameters;
         const {
             fills: [fill],
             strokes: [stroke],
         } = takeColors(colorsCount);
-        const themeBackgroundColor = themeTemplateParameters.properties.get(_Theme.DEFAULT_BACKGROUND_COLOUR);
+        const themeBackgroundColor = themeTemplateParameters.get(_Theme.DEFAULT_BACKGROUND_COLOUR);
         const backgroundFill =
             (Array.isArray(themeBackgroundColor) ? themeBackgroundColor[0] : themeBackgroundColor) ?? 'white';
 
-        const targetStroke = properties.get(_Theme.DEFAULT_CROSS_LINES_COLOUR);
+        const targetStroke = themeTemplateParameters.get(_Theme.DEFAULT_CROSS_LINES_COLOUR);
         return {
             fill,
             stroke,

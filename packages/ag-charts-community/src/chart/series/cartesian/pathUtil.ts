@@ -5,6 +5,12 @@ import type { Path } from '../../../scene/shape/path';
 import type { AnimationManager } from '../../interaction/animationManager';
 import type { NodeDataDependant } from '../seriesTypes';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
+import type { InterpolationProperties } from './interpolationProperties';
+import { plotLinearPoints, plotSmoothPoints, plotStepPoints } from './linePlotter';
+
+export interface PartialPathPoint extends Point {
+    moveTo: boolean;
+}
 
 export type PathPointChange = 'move' | 'in' | 'out';
 
@@ -118,28 +124,81 @@ function calculatePoint(from: Point, to: Point, ratio: number): Point {
     };
 }
 
-export function renderPartialPath(pairData: PathPoint[], ratios: Partial<Record<PathPointChange, number>>, path: Path) {
+const lineSteps = {
+    start: 0,
+    middle: 0.5,
+    end: 1,
+};
+
+export function plotPath(
+    points: Iterable<Point>,
+    path: Path,
+    interpolation: InterpolationProperties | undefined,
+    continuePath = false
+) {
     const { path: linePath } = path;
+
+    if (interpolation?.type === 'smooth') {
+        plotSmoothPoints(linePath, points, interpolation.tension ?? 1, continuePath);
+    } else if (interpolation?.type === 'step') {
+        plotStepPoints(linePath, points, lineSteps[interpolation.position ?? 'end'], continuePath);
+    } else {
+        plotLinearPoints(linePath, points, continuePath);
+    }
+}
+
+export function splitPairData(pairData: PathPoint[], ratios: Partial<Record<PathPointChange, number>>): Point[][] {
     let previousTo: PathPoint['to'];
+    let points: Point[] | undefined = undefined;
+    const out: Point[][] = [];
+
+    const flushCurrent = () => {
+        if (points != null) {
+            out.push(points);
+            points = undefined;
+        }
+    };
+
     for (const data of pairData) {
         const { from, to } = data;
         const ratio = ratios[data.change];
 
         if (ratio == null || from == null || to == null) continue;
 
-        const { x, y } = calculatePoint(from, to, ratio);
+        const point = calculatePoint(from, to, ratio);
         if (data.moveTo === false) {
-            linePath.lineTo(x, y);
+            points ??= [];
+            points.push(point);
         } else if (data.moveTo === true || !previousTo) {
-            linePath.moveTo(x, y);
+            flushCurrent();
+            points = [point];
         } else if (previousTo) {
             const moveToRatio = data.moveTo === 'in' ? ratio : 1 - ratio;
-            const { x: midPointX, y: midPointY } = calculatePoint(previousTo, { x, y }, moveToRatio);
-            linePath.lineTo(midPointX, midPointY);
-            linePath.moveTo(x, y);
+            const { x: midPointX, y: midPointY } = calculatePoint(previousTo, point, moveToRatio);
+
+            points ??= [];
+            points.push({ x: midPointX, y: midPointY });
+
+            flushCurrent();
+            points = [point];
         }
-        previousTo = { x, y };
+        previousTo = point;
     }
+
+    flushCurrent();
+
+    return out;
+}
+
+export function renderPartialPath(
+    pairData: PathPoint[],
+    ratios: Partial<Record<PathPointChange, number>>,
+    path: Path,
+    interpolation: InterpolationProperties | undefined
+) {
+    splitPairData(pairData, ratios).forEach((points) => {
+        plotPath(points, path, interpolation);
+    });
 }
 
 export function pathSwipeInAnimation(

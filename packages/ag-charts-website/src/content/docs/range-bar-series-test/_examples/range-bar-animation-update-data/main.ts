@@ -1,10 +1,10 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
 const data = getData();
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data,
     title: {
@@ -31,5 +31,5 @@ function updateValues() {
         high: Math.random() * d.high,
     }));
     options.data = updatedData;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

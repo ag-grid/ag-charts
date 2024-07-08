@@ -1,6 +1,9 @@
+#!node
+
 const fs = require('fs');
 const path = require('path');
 const tsNode = require('ts-node');
+const glob = require('glob');
 
 tsNode.register();
 
@@ -15,6 +18,8 @@ if (!packageJsonFile) {
     console.error("Can't find package.json: " + dir);
     process.exit(1);
 }
+
+const packageContents = glob.sync('**/*', { cwd: dir, nodir: true });
 
 const expectedVersion = JSON.parse(fs.readFileSync('./package.json').toString()).version;
 const packageJson = JSON.parse(packageJsonFile.toString());
@@ -52,7 +57,19 @@ async function check(type, field, filename) {
         success = false;
     }
 
-    if (!fs.existsSync(path.join(dir, filename))) {
+    let fileCount = 0;
+    if (filename.indexOf('*') >= 0) {
+        const matches = glob.sync(path.join(dir, filename));
+        fileCount += matches.length;
+        if (matches.length === 0) {
+            console.warn(
+                `[${packageJson.name}] ${filename}: Field '${field}' has invalid file reference glob: ${filename}`
+            );
+            success = false;
+        }
+    } else if (fs.existsSync(path.join(dir, filename))) {
+        fileCount++;
+    } else {
         console.warn(`[${packageJson.name}] ${filename}: Field '${field}' has invalid file reference: ${filename}`);
         success = false;
     }
@@ -71,7 +88,7 @@ async function check(type, field, filename) {
     // }
 
     if (success) {
-        console.log(`[${packageJson.name}] ${filename} check success.`);
+        console.log(`[${packageJson.name}] ${filename} check success. [${fileCount} matches]`);
     } else {
         exitStatus = 1;
     }
@@ -79,7 +96,7 @@ async function check(type, field, filename) {
 
 function checkOneExists(...filenames) {
     if (!filenames.some((f) => fs.existsSync(path.join(dir, f)))) {
-        console.warn(`[${packageJson.name}]: Didn't find any files with name(s): ${filenames.join(' / ')}`);
+        console.log(`[${packageJson.name}]: Didn't find any files with name(s): ${filenames.join(' / ')}`);
         exitStatus = 1;
     }
 }
@@ -109,9 +126,17 @@ async function checkExports(exports) {
     }
 }
 
+const allowedExtensions = ['.md', '.js', '.mjs', '.d.ts', '.txt', '.json'];
+function checkAllowedExtension(filename) {
+    if (!allowedExtensions.some((ext) => filename.endsWith(ext))) {
+        console.log(`[${packageJson.name}]: Unexpected file extension: ${filename}`);
+        exitStatus = 1;
+    }
+}
+
 async function run() {
     if (packageJson.version !== expectedVersion) {
-        console.warn(
+        console.log(
             `[${packageJson.name}]: Version field mismatch, expected [${expectedVersion}] but found [${packageJson.version}]`
         );
         exitStatus = 1;
@@ -137,11 +162,20 @@ async function run() {
     checkOneExists('README.md');
     checkOneExists('LICENSE.txt', 'LICENSE.html');
 
+    for (const file of packageContents) {
+        checkAllowedExtension(file);
+    }
+
     if (exitStatus === 0) {
         console.log(`[${packageJson.name}]: No problems found with package in ${dir}`);
     }
 }
 
 run()
-    .then(() => process.exit(exitStatus))
-    .catch(() => process.exit(1));
+    .then(() => {
+        process.exitStatus = exitStatus;
+    })
+    .catch((e) => {
+        console.error(e);
+        process.exit(1);
+    });

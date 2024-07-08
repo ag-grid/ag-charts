@@ -1,9 +1,12 @@
 import {
-    type AgChordSeriesFormatterParams,
     type AgChordSeriesLabelFormatterParams,
+    type AgChordSeriesLinkItemStylerParams,
     type AgChordSeriesLinkStyle,
+    type AgChordSeriesNodeItemStylerParams,
+    type AgChordSeriesNodeStyle,
     type AgChordSeriesOptions,
     type AgChordSeriesTooltipRendererParams,
+    type Styler,
     _ModuleSupport,
     _Scene,
 } from 'ag-charts-community';
@@ -25,7 +28,7 @@ const {
 } = _ModuleSupport;
 const { Label } = _Scene;
 
-export class SankeySeriesLabelProperties extends Label<AgChordSeriesLabelFormatterParams> {
+export class ChordSeriesLabelProperties extends Label<AgChordSeriesLabelFormatterParams> {
     @Validate(POSITIVE_NUMBER)
     spacing: number = 1;
 
@@ -54,6 +57,12 @@ export class ChordSeriesLinkProperties extends BaseProperties<AgChordSeriesOptio
 
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
+
+    @Validate(RATIO)
+    tension = 0;
+
+    @Validate(FUNCTION, { optional: true })
+    itemStyler?: Styler<AgChordSeriesLinkItemStylerParams<unknown>, AgChordSeriesLinkStyle>;
 }
 
 export class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptions> {
@@ -61,7 +70,7 @@ export class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptio
     spacing: number = 1;
 
     @Validate(POSITIVE_NUMBER)
-    height: number = 1;
+    width: number = 1;
 
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined = undefined;
@@ -83,20 +92,17 @@ export class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptio
 
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
+
+    @Validate(FUNCTION, { optional: true })
+    itemStyler?: Styler<AgChordSeriesNodeItemStylerParams<unknown>, AgChordSeriesNodeStyle>;
 }
 
 export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions> {
     @Validate(STRING)
-    fromKey: string = '';
-
-    @Validate(STRING, { optional: true })
-    fromIdName: string | undefined = undefined;
+    fromKey!: string;
 
     @Validate(STRING)
-    toKey: string = '';
-
-    @Validate(STRING, { optional: true })
-    toIdName: string | undefined = undefined;
+    toKey!: string;
 
     @Validate(STRING)
     idKey: string = '';
@@ -126,7 +132,7 @@ export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions
     strokes: string[] = [];
 
     @Validate(OBJECT)
-    readonly label = new SankeySeriesLabelProperties();
+    readonly label = new ChordSeriesLabelProperties();
 
     @Validate(OBJECT)
     readonly link = new ChordSeriesLinkProperties();
@@ -134,9 +140,6 @@ export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions
     @Validate(OBJECT)
     readonly node = new ChordSeriesNodeProperties();
 
-    @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgChordSeriesFormatterParams<any>) => AgChordSeriesLinkStyle;
-
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgChordSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgChordSeriesTooltipRendererParams<any>>();
 }

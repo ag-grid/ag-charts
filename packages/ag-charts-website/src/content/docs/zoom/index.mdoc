@@ -1,5 +1,6 @@
 ---
 title: 'Zoom'
+description: 'Zoom into $framework charts to navigate large datasets; supports mouse scrolling, panning, selecting, and dragging or enable the navigator / context menu.'
 enterprise: true
 ---
 
@@ -193,13 +194,13 @@ Hover near the bottom of the above example to see the default zoom buttons.
 
 -   **Zoom out**: Zooms the chart out by one [step](#scrolling-step).
 -   **Zoom in**: Zooms the chart in by one [step](#scrolling-step).
--   **Pan left**: Pans the chart to the left by one viewport width.
--   **Pan right**: Pans the chart to the right by one viewport width.
+-   **Pan left**: Pans the chart to the left by one [step](#scrolling-step).
+-   **Pan right**: Pans the chart to the right by one [step](#scrolling-step).
 -   **Reset**: Resets the zoom to the original level and position. Equivalent to [Double-Click to Reset](#double-click-to-reset).
 
 ### Customisation
 
-It is possible to customise the visibility and order of buttons, as well as modifying the icon, label text and tooltip for each.
+It is possible to customise the visibility, order and grouping of buttons, as well as modifying the icon, label text and tooltip for each.
 
 {% chartExampleRunner title="Customised Zoom Buttons" name="zoom-custom-buttons" type="generated" /%}
 
@@ -208,31 +209,36 @@ zoom: {
     buttons: {
         buttons: [
         {
-            icon: 'pan-start',
-            tooltip: 'Pan to Start',
-            value: 'pan-start',
-        },
-        {
             icon: 'zoom-in',
             tooltip: 'Decrease Visible Range',
             value: 'zoom-in',
             label: 'In',
+            section: 'zoom'
         },
         {
             icon: 'zoom-out',
             tooltip: 'Increase Visible Range',
             value: 'zoom-out',
             label: 'Out',
+            section: 'zoom'
+        },
+        {
+            icon: 'pan-start',
+            tooltip: 'Pan to Start',
+            value: 'pan-start',
+            section: 'pan'
         },
         {
             icon: 'pan-end',
             tooltip: 'Pan to End',
             value: 'pan-end',
+            section: 'pan'
         },
         {
             tooltip: 'Undo all Zoom',
             value: 'reset',
             label: 'Reset',
+            section: 'reset'
         },
         ],
     }

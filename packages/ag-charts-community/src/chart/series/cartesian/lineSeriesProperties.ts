@@ -5,7 +5,8 @@ import type {
     AgLineSeriesTooltipRendererParams,
     FontStyle,
     FontWeight,
-} from '../../../options/agChartOptions';
+} from 'ag-charts-types';
+
 import {
     BOOLEAN,
     COLOR_STRING,
@@ -21,6 +22,7 @@ import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { type CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
+import { InterpolationProperties } from './interpolationProperties';
 
 export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
     readonly point: CartesianSeriesNodeDatum['point'] & {
@@ -52,6 +54,12 @@ export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeries
     yName?: string;
 
     @Validate(STRING, { optional: true })
+    stackGroup?: string;
+
+    @Validate(POSITIVE_NUMBER, { optional: true })
+    normalizedTo?: number;
+
+    @Validate(STRING, { optional: true })
     title?: string;
 
     @Validate(COLOR_STRING)
@@ -70,7 +78,10 @@ export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeries
     lineDashOffset: number = 0;
 
     @Validate(OBJECT)
-    readonly marker = new SeriesMarker<AgLineSeriesOptionsKeys, LineNodeDatum>();
+    interpolation: InterpolationProperties = new InterpolationProperties();
+
+    @Validate(OBJECT)
+    readonly marker = new SeriesMarker<AgLineSeriesOptionsKeys>();
 
     @Validate(OBJECT)
     readonly label = new Label<AgLineSeriesLabelFormatterParams>();

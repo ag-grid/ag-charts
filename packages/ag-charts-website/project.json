@@ -112,6 +112,20 @@
         }
       }
     },
+    "test:e2e": {
+      "dependsOn": ["^build", "generate-examples"],
+      "inputs": ["{projectRoot}/playwright.config.ts", "{projectRoot}/e2e/**", { "env": "NX_BASE" }],
+      "outputs": [],
+      "command": "npx playwright test",
+      "options": {
+        "cwd": "packages/ag-charts-website"
+      },
+      "configurations": {
+        "update": {
+          "command": "npx playwright test -u"
+        }
+      }
+    },
     "lint": {
       "executor": "@nx/eslint:lint",
       "configurations": {
@@ -158,6 +172,8 @@
     }
   },
   "implicitDependencies": [
+    "ag-charts-locale",
+    "ag-charts-types",
     "ag-charts-community",
     "ag-charts-enterprise",
     "ag-charts-angular",

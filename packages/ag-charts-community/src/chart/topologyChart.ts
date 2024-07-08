@@ -1,5 +1,6 @@
+import type { AgTopologyChartOptions } from 'ag-charts-types';
+
 import type { ChartOptions } from '../module/optionsModule';
-import type { AgTopologyChartOptions } from '../options/agChartOptions';
 import { BBox } from '../scene/bbox';
 import { NumberAxis } from './axis/numberAxis';
 import type { TransferableResources } from './chart';

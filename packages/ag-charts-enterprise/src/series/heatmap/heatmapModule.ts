@@ -12,6 +12,7 @@ export const HeatmapModule: _ModuleSupport.SeriesModule<'heatmap'> = {
 
     identifier: 'heatmap',
     instanceConstructor: HeatmapSeries,
+    tooltipDefaults: { range: 'exact' },
     defaultAxes: [
         {
             type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
@@ -24,15 +25,14 @@ export const HeatmapModule: _ModuleSupport.SeriesModule<'heatmap'> = {
     ],
     themeTemplate: HEATMAP_SERIES_THEME,
     paletteFactory: ({ takeColors, colorsCount, userPalette, themeTemplateParameters }) => {
-        const { properties } = themeTemplateParameters;
-        const defaultColorRange = properties.get(_Theme.DEFAULT_DIVERGING_SERIES_COLOUR_RANGE);
-        const defaultBackgroundColor = properties.get(_Theme.DEFAULT_BACKGROUND_COLOUR);
+        const defaultColorRange = themeTemplateParameters.get(_Theme.DEFAULT_DIVERGING_SERIES_COLOUR_RANGE);
+        const defaultBackgroundColor = themeTemplateParameters.get(_Theme.DEFAULT_BACKGROUND_COLOUR);
         const backgroundFill =
             (Array.isArray(defaultBackgroundColor) ? defaultBackgroundColor[0] : defaultBackgroundColor) ?? 'white';
         const { fills, strokes } = takeColors(colorsCount);
         return {
-            stroke: userPalette ? strokes[0] : backgroundFill,
-            colorRange: userPalette ? [fills[0], fills[1]] : defaultColorRange,
+            stroke: userPalette === 'inbuilt' ? backgroundFill : strokes[0],
+            colorRange: userPalette === 'inbuilt' ? defaultColorRange : [fills[0], fills[1]],
         };
     },
 };

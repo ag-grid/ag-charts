@@ -1,15 +1,10 @@
-import type { AgChartThemePalette } from '../../options/agChartOptions';
+import type { AgChartThemePalette } from 'ag-charts-types';
+
 import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_ANNOTATION_STROKE,
-    DEFAULT_COLOURS,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
-    DEFAULT_LABEL_COLOUR,
-    DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
-    DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
-    DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
-    DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
 } from './symbols';
 
 const MATERIAL_LIGHT_FILLS = {
@@ -44,75 +39,29 @@ const palette: AgChartThemePalette = {
 };
 
 export class MaterialLight extends ChartTheme {
-    protected static override getDefaultColors() {
+    override getDefaultColors() {
         return {
             fills: MATERIAL_LIGHT_FILLS,
             strokes: MATERIAL_LIGHT_STROKES,
-        };
-    }
-
-    protected static override getWaterfallSeriesDefaultPositiveColors() {
-        return {
-            fill: MATERIAL_LIGHT_FILLS.BLUE,
-            stroke: MATERIAL_LIGHT_STROKES.BLUE,
-            label: {
-                color: DEFAULT_LABEL_COLOUR,
-            },
-        };
-    }
-
-    protected static override getWaterfallSeriesDefaultNegativeColors() {
-        return {
-            fill: MATERIAL_LIGHT_FILLS.RED,
-            stroke: MATERIAL_LIGHT_STROKES.RED,
-            label: {
-                color: DEFAULT_LABEL_COLOUR,
-            },
-        };
-    }
-
-    protected static override getWaterfallSeriesDefaultTotalColors() {
-        return {
-            fill: MATERIAL_LIGHT_FILLS.GRAY,
-            stroke: MATERIAL_LIGHT_STROKES.GRAY,
-            label: {
-                color: DEFAULT_LABEL_COLOUR,
-            },
+            up: { fill: MATERIAL_LIGHT_FILLS.BLUE, stroke: MATERIAL_LIGHT_STROKES.BLUE },
+            down: { fill: MATERIAL_LIGHT_FILLS.RED, stroke: MATERIAL_LIGHT_STROKES.RED },
+            neutral: { fill: MATERIAL_LIGHT_FILLS.GRAY, stroke: MATERIAL_LIGHT_STROKES.GRAY },
         };
     }
 
     override getTemplateParameters() {
-        const result = super.getTemplateParameters();
+        const params = super.getTemplateParameters();
 
-        result.properties.set(DEFAULT_COLOURS, MaterialLight.getDefaultColors());
-        result.properties.set(
-            DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
-            MaterialLight.getWaterfallSeriesDefaultPositiveColors()
-        );
-        result.properties.set(
-            DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
-            MaterialLight.getWaterfallSeriesDefaultNegativeColors()
-        );
-        result.properties.set(
-            DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
-            MaterialLight.getWaterfallSeriesDefaultTotalColors()
-        );
-
-        result.properties.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
+        params.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
             MATERIAL_LIGHT_FILLS.ORANGE,
             MATERIAL_LIGHT_FILLS.YELLOW,
             MATERIAL_LIGHT_FILLS.GREEN,
         ]);
 
-        result.properties.set(
-            DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
-            MaterialLight.getWaterfallSeriesDefaultTotalColors().stroke
-        );
+        params.set(DEFAULT_ANNOTATION_STROKE, MATERIAL_LIGHT_FILLS.BLUE);
+        params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, MATERIAL_LIGHT_FILLS.BLUE);
 
-        result.properties.set(DEFAULT_ANNOTATION_STROKE, MATERIAL_LIGHT_STROKES.BLUE);
-        result.properties.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, MATERIAL_LIGHT_FILLS.BLUE);
-
-        return result;
+        return params;
     }
     protected override getPalette(): AgChartThemePalette {
         return palette;

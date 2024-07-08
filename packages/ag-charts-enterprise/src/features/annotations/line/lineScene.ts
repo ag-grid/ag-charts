@@ -1,12 +1,14 @@
-import type { _Scene } from 'ag-charts-community';
+import { _Scene } from 'ag-charts-community';
 
-import type { Coords, LineCoords } from '../annotationTypes';
+import type { AnnotationContext, Coords } from '../annotationTypes';
+import { convertLine, invertCoords, validateDatumPoint } from '../annotationUtils';
 import { Annotation } from '../scenes/annotation';
 import { DivariantHandle } from '../scenes/handle';
+import { LinearScene } from '../scenes/linearScene';
 import { CollidableLine } from '../scenes/shapes';
 import type { LineAnnotation } from './lineProperties';
 
-export class Line extends Annotation {
+export class Line extends LinearScene<LineAnnotation> {
     static override is(value: unknown): value is Line {
         return Annotation.isCheck(value, 'line');
     }
@@ -26,12 +28,14 @@ export class Line extends Annotation {
         this.append([this.line, this.start, this.end]);
     }
 
-    public update(datum: LineAnnotation, seriesRect: _Scene.BBox, coords?: LineCoords) {
+    public update(datum: LineAnnotation, context: AnnotationContext) {
         const { line, start, end } = this;
         const { locked, visible, lineDash, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
 
         this.locked = locked ?? false;
-        this.seriesRect = seriesRect;
+        this.seriesRect = context.seriesRect;
+
+        const coords = convertLine(datum, context);
 
         if (coords == null) {
             this.visible = false;
@@ -60,10 +64,14 @@ export class Line extends Annotation {
             fill: datum.handle.fill,
             stroke: datum.handle.stroke ?? stroke,
             strokeOpacity: datum.handle.strokeOpacity ?? strokeOpacity,
+            strokeWidth: datum.handle.strokeWidth ?? strokeWidth,
         };
 
         start.update({ ...handleStyles, x: x1, y: y1 });
         end.update({ ...handleStyles, x: x2, y: y2 });
+
+        start.toggleLocked(this.locked);
+        end.toggleLocked(this.locked);
     }
 
     public toggleHandles(show: boolean | Partial<Record<'start' | 'end', boolean>>) {
@@ -84,14 +92,19 @@ export class Line extends Annotation {
         this.end.toggleActive(active);
     }
 
-    override dragHandle(datum: LineAnnotation, target: Coords, invertPoint: (point: Coords) => Coords | undefined) {
+    override dragHandle(datum: LineAnnotation, target: Coords, context: AnnotationContext, onInvalid: () => void) {
         const { activeHandle } = this;
 
-        if (!activeHandle || datum.start == null || datum.end == null) return;
+        if (!activeHandle) return;
 
         this[activeHandle].toggleDragging(true);
-        const point = invertPoint(this[activeHandle].drag(target).point);
-        if (!point) return;
+        const point = invertCoords(this[activeHandle].drag(target).point, context);
+
+        if (!validateDatumPoint(context, point)) {
+            onInvalid();
+            return;
+        }
+
         datum[activeHandle].x = point.x;
         datum[activeHandle].y = point.y;
     }
@@ -99,6 +112,11 @@ export class Line extends Annotation {
     override stopDragging() {
         this.start.toggleDragging(false);
         this.end.toggleDragging(false);
+    }
+
+    override getAnchor() {
+        const bbox = this.getCachedBBoxWithoutHandles();
+        return { x: bbox.x + bbox.width / 2, y: bbox.y };
     }
 
     override getCursor() {

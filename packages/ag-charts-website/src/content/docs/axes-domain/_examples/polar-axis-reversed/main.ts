@@ -31,5 +31,5 @@ const chart = AgCharts.create(options);
 function toggleAxisReverse() {
     const radiusNumberAxisOptions = options.axes![1];
     radiusNumberAxisOptions.reverse = !radiusNumberAxisOptions.reverse;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

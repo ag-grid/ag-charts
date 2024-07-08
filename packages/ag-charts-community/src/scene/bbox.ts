@@ -144,7 +144,7 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
         if (typeof amount === 'number') {
             apply(position, amount);
         } else if (typeof amount === 'object') {
-            Object.entries(amount).forEach(([pos, amt]) => apply(pos as typeof position, amt));
+            Object.entries(amount).forEach(([pos, amt]) => apply(pos as ShrinkOrGrowPosition, amt));
         }
 
         return this;
@@ -165,6 +165,12 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
             this.shrink(paddingCopy);
         }
 
+        return this;
+    }
+
+    translate(x: number, y: number) {
+        this.x += x;
+        this.y += y;
         return this;
     }
 

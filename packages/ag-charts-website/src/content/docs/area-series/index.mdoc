@@ -1,5 +1,6 @@
 ---
 title: 'Area Series'
+description: '$framework Area Charts visualise continuous data to compare multiple datasets over time. Supports stacking and normalizing multiple areas. Handles missing data.'
 ---
 
 An Area Series is used to visualise continuous data, and is primarily used to compare multiple datasets over time.
@@ -68,6 +69,25 @@ In this example
 -   A custom `lineDash` is provided for the Subscriptions series.
 -   [Markers](#reference-AgAreaSeriesOptions-marker) are enabled for the Services series.
 -   [Labels](#reference-AgAreaSeriesOptions-label) are enabled for the Products series.
+
+### Interpolation
+
+A straight line is used to connect points by default in the Area Series. Use the `interpolation` option to change the line style.
+
+{% chartExampleRunner title="Customised Line Style" name="line-style" type="generated" /%}
+
+```js
+series: [
+    {
+        // ...
+        interpolation: {
+            style: 'smooth'
+        },
+    },
+],
+```
+
+Please see the the [API Reference](./area-series/#reference-AgAreaSeriesOptions-interpolation) for a list of all available interpolation options.
 
 ### Missing Data
 

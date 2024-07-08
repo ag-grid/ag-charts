@@ -10,5 +10,5 @@ export interface BBoxContainsTester {
 }
 
 export interface BBoxProvider<T = BBoxValues> {
-    getCachedBBox(): T;
+    computeTransformedBBox(): T;
 }

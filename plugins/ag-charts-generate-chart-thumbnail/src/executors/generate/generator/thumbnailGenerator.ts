@@ -113,7 +113,7 @@ export async function generateThumbnail({ example, theme, outputPath, dpi, mockT
         const x0 = (containerWidth * column + (containerWidth - width) / 2) | 0;
         const y0 = (containerHeight * row + (containerHeight - height) / 2) | 0;
 
-        AgCharts.update(chartProxy, {
+        await chartProxy.update({
             ...options,
             animation: { enabled: false },
             document,
@@ -122,9 +122,6 @@ export async function generateThumbnail({ example, theme, outputPath, dpi, mockT
             height,
             overrideDevicePixelRatio: dpi,
         } as any);
-
-        const chart = (chartProxy as any).chart;
-        await chart.waitForUpdate(5_000);
 
         if (output.multiple === true) {
             output.ctx.drawImage(

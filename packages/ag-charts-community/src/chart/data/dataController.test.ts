@@ -445,7 +445,6 @@ describe('DataController', () => {
                         type: 'value',
                         valueType: 'range',
                         groupId: 'valueProp1',
-                        useScopedValues: false,
                         id: undefined,
                         processor: () => (next: number, total?: number) => next + (total ?? 0),
                     },

@@ -1,5 +1,4 @@
-import { tickFormat } from '../util/numberFormat';
-import { createTicks, isDenseInterval, niceTicksDomain, range, tickStep } from '../util/ticks';
+import { createTicks, isDenseInterval, niceTicksDomain, range, tickFormat, tickStep } from '../util/ticks';
 import { ContinuousScale } from './continuousScale';
 
 /**

@@ -47,12 +47,9 @@ const options: AgChartOptions = {
         {
             type: 'ordinal-time',
             position: 'bottom',
+            interval: { step: time.month.every(1) },
             line: {
                 enabled: false,
-            },
-            tick: {
-                width: 0,
-                interval: time.month.every(1),
             },
             gridLine: {
                 enabled: true,
@@ -77,9 +74,9 @@ const options: AgChartOptions = {
         {
             type: 'number',
             position: 'right',
+            interval: { step: 0.01 },
             tick: {
                 width: 0,
-                interval: 0.01,
             },
             label: {
                 formatter: ({ value }) => Number(value).toFixed(4),

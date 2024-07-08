@@ -1,3 +1,5 @@
+import type { AgSeriesMarkerStyle } from 'ag-charts-types';
+
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
@@ -10,7 +12,6 @@ import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
-import { iterate, iterateReverseArray } from '../../../util/function';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { isDefined, isFiniteNumber } from '../../../util/type-guards';
@@ -29,6 +30,7 @@ import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/toolti
 import {
     type PickFocusInputs,
     SeriesNodePickMode,
+    groupAccumulativeContinuityProperty,
     groupAccumulativeValueProperty,
     keyProperty,
     valueProperty,
@@ -36,7 +38,6 @@ import {
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { AreaSeriesProperties } from './areaSeriesProperties';
 import {
-    type AreaPathPoint,
     type AreaSeriesNodeDataContext,
     AreaSeriesTag,
     type LabelSelectionDatum,
@@ -49,6 +50,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
+import { pathRangePoints, pathRangePointsReverse, pathRanges } from './lineUtil';
 import {
     computeMarkerFocusBounds,
     markerFadeInAnimation,
@@ -56,7 +58,7 @@ import {
     resetMarkerFn,
     resetMarkerPositionFn,
 } from './markerUtil';
-import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
+import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, plotPath, updateClipPath } from './pathUtil';
 
 type AreaAnimationData = CartesianAnimationData<
     Group,
@@ -108,18 +110,21 @@ export class AreaSeries extends CartesianSeries<
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
         const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
-        const ids = [
-            `area-stack-${groupIndex}-yValues`,
-            `area-stack-${groupIndex}-yValues-trailing`,
-            `area-stack-${groupIndex}-yValues-prev`,
-            `area-stack-${groupIndex}-yValues-trailing-prev`,
-            `area-stack-${groupIndex}-yValues-marker`,
-        ];
+        const currentIds = {
+            value: `area-stack-${groupIndex}-yValue`,
+            values: `area-stack-${groupIndex}-yValues`,
+            valuesTrailing: `area-stack-${groupIndex}-yValues-trailing`,
+            marker: `area-stack-${groupIndex}-yValues-marker`,
+        };
+        const prevIds = {
+            values: `area-stack-${groupIndex}-yValues-prev`,
+            valuesTrailing: `area-stack-${groupIndex}-yValues-trailing-prev`,
+        };
 
         const extraProps = [];
         if (isDefined(normalizedTo)) {
-            extraProps.push(normaliseGroupTo([ids[0], ids[1], ids[4]], normalizedTo, 'range'));
-            extraProps.push(normaliseGroupTo([ids[2], ids[3]], normalizedTo, 'range'));
+            extraProps.push(normaliseGroupTo(Object.values(currentIds), normalizedTo, 'range'));
+            extraProps.push(normaliseGroupTo(Object.values(prevIds), normalizedTo, 'range'));
         }
 
         // If two or more datums share an x-value, i.e. lined up vertically, they will have the same datum id.
@@ -144,17 +149,16 @@ export class AreaSeries extends CartesianSeries<
             props: [
                 keyProperty(xKey, xScaleType, { id: 'xValue' }),
                 valueProperty(yKey, yScaleType, { id: `yValueRaw`, ...common }),
-                ...groupAccumulativeValueProperty(
-                    yKey,
-                    'window',
-                    'current',
-                    {
-                        id: `yValueEnd`,
-                        ...common,
-                        groupId: ids[0],
-                    },
-                    yScaleType
-                ),
+                ...groupAccumulativeContinuityProperty(yKey, {
+                    id: 'yValueContinuity',
+                    ...common,
+                    groupId: `area-stack-${groupIndex}-yValues-continuity`,
+                }),
+                valueProperty(yKey, yScaleType, {
+                    id: `yValue`,
+                    ...common,
+                    groupId: currentIds.value,
+                }),
                 ...groupAccumulativeValueProperty(
                     yKey,
                     'window-trailing',
@@ -162,29 +166,18 @@ export class AreaSeries extends CartesianSeries<
                     {
                         id: `yValueStart`,
                         ...common,
-                        groupId: ids[1],
+                        groupId: currentIds.valuesTrailing,
                     },
                     yScaleType
                 ),
                 ...groupAccumulativeValueProperty(
                     yKey,
                     'window',
-                    'last',
+                    'current',
                     {
-                        id: `yValuePreviousEnd`,
+                        id: `yValueEnd`,
                         ...common,
-                        groupId: ids[2],
-                    },
-                    yScaleType
-                ),
-                ...groupAccumulativeValueProperty(
-                    yKey,
-                    'window-trailing',
-                    'last',
-                    {
-                        id: `yValuePreviousStart`,
-                        ...common,
-                        groupId: ids[3],
+                        groupId: currentIds.values,
                     },
                     yScaleType
                 ),
@@ -195,7 +188,29 @@ export class AreaSeries extends CartesianSeries<
                     {
                         id: `yValueCumulative`,
                         ...common,
-                        groupId: ids[4],
+                        groupId: currentIds.marker,
+                    },
+                    yScaleType
+                ),
+                ...groupAccumulativeValueProperty(
+                    yKey,
+                    'window',
+                    'last',
+                    {
+                        id: `yValuePreviousEnd`,
+                        ...common,
+                        groupId: prevIds.values,
+                    },
+                    yScaleType
+                ),
+                ...groupAccumulativeValueProperty(
+                    yKey,
+                    'window-trailing',
+                    'last',
+                    {
+                        id: `yValuePreviousStart`,
+                        ...common,
+                        groupId: prevIds.valuesTrailing,
                     },
                     yScaleType
                 ),
@@ -266,24 +281,9 @@ export class AreaSeries extends CartesianSeries<
             `yValuePreviousStart`,
             `yValuePreviousEnd`,
             `yValueCumulative`,
+            `yValueContinuity`,
+            `yValue`,
         ]);
-
-        const createMovePoint = (plainPoint: AreaPathPoint) => ({
-            ...plainPoint,
-            point: { ...plainPoint.point, moveTo: true },
-        });
-
-        const createPathCoordinates = (xValue: any, lastYEnd: number, yEnd: number): [AreaPathPoint, AreaPathPoint] => {
-            const x = xScale.convert(xValue) + xOffset;
-
-            const prevYCoordinate = yScale.convert(lastYEnd);
-            const currYCoordinate = yScale.convert(yEnd);
-
-            return [
-                { point: { x, y: currYCoordinate }, yValue: yEnd, xValue },
-                { point: { x, y: prevYCoordinate }, yValue: lastYEnd, xValue },
-            ];
-        };
 
         const createMarkerCoordinate = (xDatum: any, yEnd: number, rawYDatum: any): SizedPoint => {
             let currY;
@@ -320,13 +320,13 @@ export class AreaSeries extends CartesianSeries<
         };
 
         const fillPoints = context.fillData.points;
-        const fillPhantomPoints = context.fillData.phantomPoints!;
-
+        const fillPhantomPoints = context.fillData.phantomPoints;
         const strokePoints = context.strokeData.points;
 
         let datumIdx = -1;
         let lastXDatum: any;
-        let lastYDatum: any = -Infinity;
+        let lastYValueContinuity: boolean | undefined;
+        let moveTo = true;
         groupedData?.forEach((datumGroup) => {
             const {
                 keys,
@@ -340,8 +340,8 @@ export class AreaSeries extends CartesianSeries<
 
                 const seriesDatum = datumArray[valueIdx];
                 const dataValues = dataModel.resolveProcessedDataDefsValues(defs, { keys, values });
-                const { yValueRaw: yDatum, yValueCumulative } = dataValues;
-                let { yValueStart, yValueEnd, yValuePreviousStart, yValuePreviousEnd } = dataValues;
+                const { yValueRaw: yDatum, yValueCumulative, yValueContinuity } = dataValues;
+                const { yValueStart, yValueEnd, yValuePreviousStart, yValuePreviousEnd, yValue } = dataValues;
 
                 const validPoint = yDatum != null;
 
@@ -404,39 +404,109 @@ export class AreaSeries extends CartesianSeries<
                     });
                 }
 
-                const xValid = lastXDatum != null && xDatum != null;
-                const yValid = lastYDatum != null && validPoint;
+                if (validPoint || !connectMissingData) {
+                    if (!validPoint) {
+                        moveTo = true;
+                    }
 
-                // fill data
-                if (!yValid) {
-                    // Reset all coordinates to 'zero' value.
-                    yValueStart = yValueStart ?? 0;
-                    yValueEnd = yValueStart ?? 0;
-                    yValuePreviousStart = yValuePreviousStart ?? 0;
-                    yValuePreviousEnd = yValuePreviousStart ?? 0;
-                }
+                    const willDrawLine = !moveTo && !connectMissingData;
+                    if (willDrawLine && lastYValueContinuity === false && yValueContinuity === true) {
+                        // Fill forwards
+                        fillPoints.push({
+                            point: {
+                                x: point.x,
+                                y: yScale.convert(yValueEnd),
+                                moveTo: false,
+                            },
+                            yValue: yDatum,
+                            xValue: xDatum,
+                        });
+                        fillPhantomPoints.push({
+                            point: {
+                                x: point.x,
+                                y: yScale.convert(yValueStart),
+                                moveTo: false,
+                            },
+                            yValue: yDatum,
+                            xValue: xDatum,
+                        });
+                        strokePoints.push({
+                            point: {
+                                x: point.x,
+                                y: yScale.convert(yValueEnd),
+                                moveTo: false,
+                            },
+                            yValue: yDatum,
+                            xValue: xDatum,
+                        });
+                        moveTo = true;
+                    } else if (willDrawLine && lastYValueContinuity === true && yValueContinuity === false) {
+                        // Fill backwards
+                        fillPoints.push({
+                            point: {
+                                x: xScale.convert(lastXDatum) + xOffset,
+                                y: yScale.convert(yValuePreviousEnd),
+                                moveTo: true,
+                            },
+                            yValue: yDatum,
+                            xValue: xDatum,
+                        });
+                        fillPhantomPoints.push({
+                            point: {
+                                x: xScale.convert(lastXDatum) + xOffset,
+                                y: yScale.convert(yValuePreviousStart),
+                                moveTo: true,
+                            },
+                            yValue: yDatum,
+                            xValue: xDatum,
+                        });
+                        strokePoints.push({
+                            point: {
+                                x: xScale.convert(lastXDatum) + xOffset,
+                                y: yScale.convert(yValuePreviousEnd),
+                                moveTo: true,
+                            },
+                            yValue: yDatum,
+                            xValue: xDatum,
+                        });
+                        moveTo = false;
+                    }
 
-                const [prevTop, prevBottom] = createPathCoordinates(lastXDatum, yValuePreviousStart, yValuePreviousEnd);
-                const [top, bottom] = createPathCoordinates(xDatum, yValueStart, yValueEnd);
+                    fillPoints.push({
+                        point: {
+                            x: point.x,
+                            y: yScale.convert(yValueCumulative),
+                            moveTo,
+                        },
+                        yValue: yDatum,
+                        xValue: xDatum,
+                    });
+                    fillPhantomPoints.push({
+                        point: {
+                            x: point.x,
+                            y: yScale.convert(yValueCumulative - yValue),
+                            moveTo,
+                        },
+                        yValue: yDatum,
+                        xValue: xDatum,
+                    });
+                    strokePoints.push({
+                        point: {
+                            x: point.x,
+                            y: yScale.convert(yValueCumulative),
+                            moveTo,
+                        },
+                        yValue: yDatum,
+                        xValue: xDatum,
+                    });
 
-                if (xValid && (!connectMissingData || yValid)) {
-                    fillPoints.push(prevTop, top);
-                    fillPhantomPoints.push(prevBottom, bottom);
-                }
-
-                // stroke data
-                if (yValid && datumIdx > 0) {
-                    strokePoints.push(createMovePoint(prevTop), top);
+                    moveTo = !validPoint;
                 }
 
                 lastXDatum = xDatum;
-                lastYDatum = yDatum;
+                lastYValueContinuity = yValueContinuity;
             });
         });
-
-        if (strokePoints.length > 0) {
-            strokePoints[0] = createMovePoint(strokePoints[0]);
-        }
 
         return context;
     }
@@ -504,41 +574,28 @@ export class AreaSeries extends CartesianSeries<
     }
 
     private updateFillPath(paths: Path[], contextData: AreaSeriesNodeDataContext) {
-        const { fillData } = contextData;
+        const { points, phantomPoints } = contextData.fillData;
         const [fill] = paths;
-        const { path: fillPath } = fill;
-        fillPath.clear(true);
+        const { interpolation } = this.properties;
 
-        let lastPoint: { x: number; y: number; moveTo?: boolean } | undefined;
-        for (const { point } of iterate(fillData.points, iterateReverseArray(fillData.phantomPoints!))) {
-            if (point.moveTo) {
-                fillPath.moveTo(point.x, point.y);
-            } else if (lastPoint?.y !== point.y) {
-                if (lastPoint) {
-                    fillPath.lineTo(lastPoint.x, lastPoint.y);
-                }
-                fillPath.lineTo(point.x, point.y);
-            }
-            lastPoint = point;
+        fill.path.clear(true);
+        for (const range of pathRanges(points)) {
+            plotPath(pathRangePoints(points, range), fill, interpolation, false);
+            plotPath(pathRangePointsReverse(phantomPoints, range), fill, interpolation, true);
+            fill.path.closePath();
         }
-        if (lastPoint) {
-            fillPath.lineTo(lastPoint.x, lastPoint.y);
-        }
-        fillPath.closePath();
         fill.checkPathDirty();
     }
 
     private updateStrokePath(paths: Path[], contextData: AreaSeriesNodeDataContext) {
-        const { strokeData } = contextData;
+        const { points } = contextData.strokeData;
         const [, stroke] = paths;
         const { path: strokePath } = stroke;
+        const { interpolation } = this.properties;
+
         strokePath.clear(true);
-        for (const { point } of strokeData.points) {
-            if (point.moveTo) {
-                strokePath.moveTo(point.x, point.y);
-            } else {
-                strokePath.lineTo(point.x, point.y);
-            }
+        for (const range of pathRanges(points)) {
+            plotPath(pathRangePoints(points, range), stroke, interpolation);
         }
         stroke.checkPathDirty();
     }
@@ -660,12 +717,28 @@ export class AreaSeries extends CartesianSeries<
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
-        if (!this.data?.length || !this.properties.isValid() || legendType !== 'category') {
+        if (
+            !this.data?.length ||
+            !this.properties.isValid() ||
+            !this.properties.showInLegend ||
+            legendType !== 'category'
+        ) {
             return [];
         }
 
-        const { yKey, yName, fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, marker, visible } =
-            this.properties;
+        const {
+            yKey,
+            yName,
+            fill,
+            stroke,
+            fillOpacity,
+            strokeOpacity,
+            strokeWidth,
+            lineDash,
+            marker,
+            visible,
+            legendItemName,
+        } = this.properties;
 
         const useAreaFill = !marker.enabled || marker.fill === undefined;
         return [
@@ -676,7 +749,7 @@ export class AreaSeries extends CartesianSeries<
                 seriesId: this.id,
                 enabled: visible,
                 label: {
-                    text: yName ?? yKey,
+                    text: legendItemName ?? yName ?? yKey,
                 },
                 symbols: [
                     {
@@ -697,6 +770,7 @@ export class AreaSeries extends CartesianSeries<
                         },
                     },
                 ],
+                legendItemName,
             },
         ];
     }
@@ -749,7 +823,12 @@ export class AreaSeries extends CartesianSeries<
             return;
         }
 
-        const fns = prepareAreaPathAnimation(contextData, previousContextData, this.processedData?.reduced?.diff);
+        const fns = prepareAreaPathAnimation(
+            contextData,
+            previousContextData,
+            this.processedData?.reduced?.diff,
+            this.properties.interpolation
+        );
         if (fns === undefined) {
             // Un-animatable diff in data, skip all animations.
             skip();
@@ -775,7 +854,7 @@ export class AreaSeries extends CartesianSeries<
         return new Group();
     }
 
-    public getFormattedMarkerStyle(datum: MarkerSelectionDatum) {
+    public getFormattedMarkerStyle(datum: MarkerSelectionDatum): AgSeriesMarkerStyle & { size: number } {
         const { xKey, yKey } = datum;
         return this.getMarkerStyle(this.properties.marker, { datum, xKey, yKey, highlighted: true });
     }

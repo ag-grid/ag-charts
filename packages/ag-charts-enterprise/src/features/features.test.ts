@@ -5,7 +5,7 @@ import {
     clickAction,
     contextMenuAction,
     dragAction,
-    expectWarning,
+    expectWarningsCalls,
     extractImageData,
     hoverAction,
     scrollAction,
@@ -133,9 +133,13 @@ describe('Feature Combinations', () => {
 
         it('should prioritise zoom ratio over navigator min/max', async () => {
             await prepareChart({ min: 0.1, max: 0.3 }, { ratioX: { start: 0.7, end: 0.9 } });
-            expectWarning(
-                'AG Charts - Could not apply [navigator.min] or [navigator.max] as [zoom] has modified the initial zoom state.'
-            );
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - Could not apply [navigator.min] or [navigator.max] as [zoom] has modified the initial zoom state.",
+  ],
+]
+`);
             await compare();
         });
 

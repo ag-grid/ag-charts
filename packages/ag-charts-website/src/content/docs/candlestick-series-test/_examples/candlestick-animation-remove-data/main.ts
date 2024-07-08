@@ -1,8 +1,8 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
@@ -29,5 +29,5 @@ function removeData() {
     const newData = [...options.data!];
     newData.pop();
     options.data = newData;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

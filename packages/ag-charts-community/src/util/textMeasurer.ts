@@ -1,21 +1,24 @@
-import type { TextWrap } from '../options/chart/types';
-import type { Writeable } from '../sandbox/types/generics';
+import type { FontFamily, FontSize, FontStyle, FontWeight, Ratio } from 'ag-charts-types';
+
 import { createCanvasContext } from './canvas.util';
+
+// Allows for mutation of a readonly type by making all properties writable.
+export type Writeable<T> = { -readonly [P in keyof T]: T[P] };
+
+// Configuration options create a font string.
+export interface FontOptions {
+    fontSize?: FontSize;
+    fontStyle?: FontStyle;
+    fontWeight?: FontWeight;
+    fontFamily?: FontFamily;
+    lineHeight?: Ratio;
+}
 
 // Configuration options for measuring text.
 export interface MeasureOptions {
-    font: string;
+    font: string | FontOptions;
     textAlign?: CanvasTextAlign;
     textBaseline?: CanvasTextBaseline;
-}
-
-// Extended measurement options including wrapping behavior.
-export interface WrapOptions extends MeasureOptions {
-    maxWidth: number;
-    maxLines?: number;
-    maxHeight?: number;
-    lineHeight?: number;
-    textWrap: TextWrap;
 }
 
 // Metrics for a single line of text.
@@ -45,29 +48,29 @@ export interface LegacyTextMetrics extends Writeable<TextMetrics> {
 // Manages text measurement and wrapping functionalities.
 export class TextMeasurer {
     static readonly EllipsisChar = '\u2026'; // Representation for text clipping.
+    static readonly defaultLineHeight = 1.15; // Normally between 1.1 and 1.2
 
     private static readonly instanceMap = new Map<string, TextMeasurer>();
-    private static readonly lineSplitter = /\r?\n/g;
+    protected static readonly lineSplitter = /\r?\n/g;
 
-    // Creates or retrieves a TextMeasurer instance for a specific font.
-    private static createFontMeasurer(font: string) {
-        const ctx = createCanvasContext();
-        const measurer = new this(ctx);
-        this.instanceMap.set(font, measurer);
-        ctx.font = font;
-        return measurer;
+    static toFontString({ fontSize = 10, fontStyle, fontWeight, fontFamily, lineHeight }: FontOptions) {
+        let fontString = '';
+        if (fontStyle) {
+            fontString += `${fontStyle} `;
+        }
+        if (fontWeight) {
+            fontString += `${fontWeight} `;
+        }
+        fontString += `${fontSize}px`;
+        if (lineHeight) {
+            fontString += `/${lineHeight}px`;
+        }
+        fontString += ` ${fontFamily}`;
+        return fontString.trim();
     }
 
-    // Gets a TextMeasurer instance, configuring text alignment and baseline if provided.
-    private static getFontMeasurer(options: MeasureOptions) {
-        const measurer = this.instanceMap.get(options.font) ?? this.createFontMeasurer(options.font);
-        if (options.textAlign) {
-            measurer.ctx.textAlign = options.textAlign;
-        }
-        if (options.textBaseline) {
-            measurer.ctx.textBaseline = options.textBaseline;
-        }
-        return measurer;
+    static getLineHeight(fontSize: number) {
+        return Math.ceil(fontSize * TextMeasurer.defaultLineHeight);
     }
 
     // Measures the dimensions of the provided text, handling multiline if needed.
@@ -82,163 +85,42 @@ export class TextMeasurer {
         return this.getMultilineMetrics(ctx, lines);
     }
 
-    static wrapText(text: string, options: WrapOptions) {
-        return this.wrapLines(text, options).join('\n');
-    }
-
-    static wrapLines(text: string, options: WrapOptions) {
-        const lines: string[] = text.split(this.lineSplitter);
-        const measurer = this.getFontMeasurer(options);
-
-        if (options.textWrap === 'never') {
-            return lines.map((line) => this.truncateLine(line.trimEnd(), measurer, options.maxWidth));
-        }
-
-        const result: string[] = [];
-        const wrapHyphenate = options.textWrap === 'hyphenate';
-        const wrapOnSpace = options.textWrap === 'on-space';
-
-        for (let line of lines) {
-            line = line.trimEnd();
-
-            for (let i = 0, estimatedWidth = 0, lastSpaceIndex = 0; i < line.length; i++) {
-                const char = line.charAt(i);
-
-                estimatedWidth += measurer.textWidth(char);
-
-                if (char === ' ') {
-                    lastSpaceIndex = i;
-                }
-
-                if (estimatedWidth > options.maxWidth) {
-                    if (i === 0) break; // char width is greater than options.maxWidth
-                    if (lastSpaceIndex) {
-                        const nextWord = this.getWordAt(line, lastSpaceIndex + 1);
-                        const textWidth = measurer.textWidth(nextWord);
-
-                        if (textWidth <= options.maxWidth) {
-                            result.push(line.slice(0, lastSpaceIndex).trimEnd());
-                            line = line.slice(lastSpaceIndex).trimStart();
-
-                            i = -1; // reset the index after cutting the line
-                            estimatedWidth = 0; // reset the width
-                            lastSpaceIndex = 0; // reset last space index
-                            continue;
-                        } else if (wrapOnSpace && textWidth > options.maxWidth) {
-                            result.push(
-                                line.slice(0, lastSpaceIndex).trimEnd(),
-                                this.truncateLine(
-                                    line.slice(lastSpaceIndex).trimStart(),
-                                    measurer,
-                                    options.maxWidth,
-                                    true
-                                )
-                            );
-                        }
-                    } else if (wrapOnSpace) {
-                        result.push(this.truncateLine(line, measurer, options.maxWidth, true));
-                    }
-
-                    if (wrapOnSpace) {
-                        line = '';
-                        break;
-                    }
-
-                    const postfix = wrapHyphenate ? '-' : '';
-                    let newLine = line.slice(0, i).trim();
-                    while (newLine.length && measurer.textWidth(newLine + postfix) > options.maxWidth) {
-                        newLine = newLine.slice(0, -1).trimEnd();
-                    }
-                    result.push(newLine + postfix);
-
-                    if (!newLine.length) {
-                        line = '';
-                        break;
-                    }
-
-                    line = line.slice(newLine.length).trimStart();
-
-                    i = -1; // reset the index after cutting the line
-                    estimatedWidth = 0; // reset the width
-                    lastSpaceIndex = 0; // reset last space index
-                }
-            }
-
-            if (line) {
-                result.push(line);
-            }
-        }
-
-        this.avoidOrphans(result, measurer, options);
-        return this.clipLines(result, measurer, options);
-    }
-
-    private static getWordAt(text: string, position: number) {
-        const nextSpaceIndex = text.indexOf(' ', position);
-        return nextSpaceIndex === -1 ? text.slice(position) : text.slice(position, nextSpaceIndex);
-    }
-
-    private static clipLines(lines: string[], measurer: TextMeasurer, options: WrapOptions) {
-        if (!options.maxHeight) {
-            return lines;
-        }
-
-        const { height, lineMetrics } = this.measureLines(lines, options);
-
-        if (height <= options.maxHeight) {
-            return lines;
-        }
-
-        for (let i = 0, cumulativeHeight = 0; i < lineMetrics.length; i++) {
-            const { lineHeight } = lineMetrics[i];
-            cumulativeHeight += lineHeight;
-            if (cumulativeHeight > options.maxHeight) {
-                const clippedResults = lines.slice(0, Math.max(i, 1));
-                const lastLine = clippedResults.pop()!;
-                return clippedResults.concat(this.truncateLine(lastLine, measurer, options.maxWidth, true));
-            }
-        }
-
-        return lines;
-    }
-
-    private static avoidOrphans(lines: string[], measurer: TextMeasurer, options: WrapOptions) {
-        if (lines.length < 2) return;
-
-        const { length } = lines;
-        const lastLine = lines[length - 1];
-        const beforeLast = lines[length - 2];
-
-        if (beforeLast.length < lastLine.length) return;
-
-        const lastSpaceIndex = beforeLast.lastIndexOf(' ');
-        // If last line has an orphan and previous line has more than one space
-        if (lastSpaceIndex === -1 || lastSpaceIndex === beforeLast.indexOf(' ') || lastLine.includes(' ')) return;
-
-        const lastWord = beforeLast.slice(lastSpaceIndex + 1);
-        if (measurer.textWidth(lastLine + lastWord) <= options.maxWidth) {
-            lines[length - 2] = beforeLast.slice(0, lastSpaceIndex);
-            lines[length - 1] = lastWord + ' ' + lastLine;
+    // Determines vertical offset modifier based on text baseline.
+    static getVerticalModifier(textBaseline?: CanvasTextBaseline): number {
+        switch (textBaseline) {
+            case 'hanging':
+            case 'top':
+                return 0;
+            case 'middle':
+                return 0.5;
+            case 'alphabetic':
+            case 'bottom':
+            case 'ideographic':
+            default:
+                return 1;
         }
     }
 
-    private static truncateLine(text: string, measurer: TextMeasurer, maxWidth: number, ellipsisForce?: boolean) {
-        const ellipsisWidth = measurer.textWidth(this.EllipsisChar);
-        let estimatedWidth = 0;
-        let i = 0;
-        for (; i < text.length; i++) {
-            const charWidth = measurer.textWidth(text.charAt(i));
-            if (estimatedWidth + charWidth > maxWidth) break;
-            estimatedWidth += charWidth;
+    // Gets a TextMeasurer instance, configuring text alignment and baseline if provided.
+    static getFontMeasurer(options: MeasureOptions) {
+        const font = typeof options.font === 'string' ? options.font : TextMeasurer.toFontString(options.font);
+        const measurer = this.instanceMap.get(font) ?? this.createFontMeasurer(font);
+        if (options.textAlign) {
+            measurer.ctx.textAlign = options.textAlign;
         }
-        if (text.length === i && (!ellipsisForce || estimatedWidth + ellipsisWidth <= maxWidth)) {
-            return ellipsisForce ? text + this.EllipsisChar : text;
+        if (options.textBaseline) {
+            measurer.ctx.textBaseline = options.textBaseline;
         }
-        text = text.slice(0, i).trimEnd();
-        while (text.length && measurer.textWidth(text) + ellipsisWidth > maxWidth) {
-            text = text.slice(0, -1).trimEnd();
-        }
-        return text + this.EllipsisChar;
+        return measurer;
+    }
+
+    // Creates or retrieves a TextMeasurer instance for a specific font.
+    private static createFontMeasurer(font: string) {
+        const ctx = createCanvasContext();
+        const measurer = new this(ctx);
+        this.instanceMap.set(font, measurer);
+        ctx.font = font;
+        return measurer;
     }
 
     // Measures metrics for a single line of text.
@@ -303,22 +185,6 @@ export class TextMeasurer {
         offsetTop += baselineDistance * verticalModifier;
 
         return { width, height, offsetTop, offsetLeft, lineMetrics };
-    }
-
-    // Determines vertical offset modifier based on text baseline.
-    private static getVerticalModifier(textBaseline?: CanvasTextBaseline): number {
-        switch (textBaseline) {
-            case 'hanging':
-            case 'top':
-                return 0;
-            case 'middle':
-                return 0.5;
-            case 'alphabetic':
-            case 'bottom':
-            case 'ideographic':
-            default:
-                return 1;
-        }
     }
 
     // local chars width cache per TextMeasurer

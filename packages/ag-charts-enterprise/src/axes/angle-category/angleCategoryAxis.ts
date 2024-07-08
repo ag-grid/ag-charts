@@ -1,17 +1,13 @@
 import { _ModuleSupport, _Scale, _Util } from 'ag-charts-community';
 
 import { loopSymmetrically } from '../../utils/polar';
+import { AngleAxisInterval } from '../angle-number/angleAxisInterval';
 import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
 
-const { RATIO, OR, POSITIVE_NUMBER, NAN, Validate } = _ModuleSupport;
+const { RATIO, OBJECT, Validate } = _ModuleSupport;
 const { BandScale } = _Scale;
 const { isNumberEqual } = _Util;
-
-class AngleCategoryAxisTick extends _ModuleSupport.AxisTick<_Scale.BandScale<string>> {
-    @Validate(OR(POSITIVE_NUMBER, NAN))
-    override minSpacing: number = NaN;
-}
 
 export class AngleCategoryAxis extends AngleAxis<string, _Scale.BandScale<string>> {
     static readonly className = 'AngleCategoryAxis';
@@ -23,18 +19,18 @@ export class AngleCategoryAxis extends AngleAxis<string, _Scale.BandScale<string
     @Validate(RATIO)
     paddingInner: number = 0;
 
+    @Validate(OBJECT)
+    override interval = new AngleAxisInterval();
+
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super(moduleCtx, new BandScale());
     }
 
-    protected override createTick(): _ModuleSupport.AxisTick<_Scale.BandScale<string, number>, any, any> {
-        return new AngleCategoryAxisTick();
-    }
-
     protected generateAngleTicks() {
-        const { scale, tick, gridLength: radius } = this;
-        const ticks = tick.values ?? scale.ticks() ?? [];
-        if (ticks.length < 2 || isNaN(tick.minSpacing)) {
+        const { scale, gridLength: radius } = this;
+        const { values, minSpacing } = this.interval;
+        const ticks = values ?? scale.ticks() ?? [];
+        if (ticks.length < 2 || isNaN(minSpacing)) {
             return ticks.map((value) => {
                 return { value, visible: true };
             });
@@ -55,7 +51,7 @@ export class AngleCategoryAxis extends AngleAxis<string, _Scale.BandScale<string
             const nextX = radius * Math.cos(nextAngle);
             const nextY = radius * Math.sin(nextAngle);
             const spacing = Math.sqrt((nextX - startX) ** 2 + (nextY - startY) ** 2);
-            if (spacing > tick.minSpacing) {
+            if (spacing > minSpacing) {
                 // Filter ticks by step
                 const visibleTicks = new Set([startTick]);
                 loopSymmetrically(ticks, step, (_, next) => {

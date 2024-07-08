@@ -1,9 +1,10 @@
-import type { TextAlign } from '../../options/agChartOptions';
-import type { BBox } from '../../scene/bbox';
+import type { TextAlign } from 'ag-charts-types';
+
+import type { LayoutContext } from '../../module/baseModule';
 import { Text } from '../../scene/shape/text';
 import { Logger } from '../../util/logger';
 import { Caption } from '../caption';
-import type { LayoutService } from '../layout/layoutService';
+import type { LayoutCompleteEvent, LayoutService } from '../layout/layoutService';
 import type { ChartLike, UpdateProcessor } from './processor';
 
 export class BaseLayoutProcessor implements UpdateProcessor {
@@ -15,8 +16,9 @@ export class BaseLayoutProcessor implements UpdateProcessor {
     ) {
         this.destroyFns.push(
             // eslint-disable-next-line sonarjs/no-duplicate-string
-            this.layoutService.addListener('start-layout', (e) => this.positionPadding(e.shrinkRect)),
-            this.layoutService.addListener('start-layout', (e) => this.positionCaptions(e.shrinkRect))
+            this.layoutService.addListener('start-layout', (e) => this.positionPadding(e)),
+            this.layoutService.addListener('layout-complete', (e) => this.alignCaptions(e)),
+            this.layoutService.addListener('start-layout', (e) => this.positionCaptions(e))
         );
     }
 
@@ -24,7 +26,8 @@ export class BaseLayoutProcessor implements UpdateProcessor {
         this.destroyFns.forEach((cb) => cb());
     }
 
-    private positionPadding(shrinkRect: BBox) {
+    private positionPadding(ctx: LayoutContext) {
+        const { shrinkRect } = ctx;
         const { padding } = this.chartLike;
 
         shrinkRect.shrink(padding.left, 'left');
@@ -32,11 +35,13 @@ export class BaseLayoutProcessor implements UpdateProcessor {
         shrinkRect.shrink(padding.right, 'right');
         shrinkRect.shrink(padding.bottom, 'bottom');
 
-        return { shrinkRect };
+        return { ...ctx, shrinkRect };
     }
 
-    private positionCaptions(shrinkRect: BBox) {
-        const { title, subtitle, footnote } = this.chartLike;
+    private positionCaptions(ctx: LayoutContext) {
+        const { shrinkRect, positions, padding } = ctx;
+        const { title, subtitle, footnote, titlePadding } = this.chartLike;
+        const paddedShrinkRect = shrinkRect.clone().shrink(titlePadding);
         const newShrinkRect = shrinkRect.clone();
 
         const updateCaption = (caption: Caption) => {
@@ -49,17 +54,17 @@ export class BaseLayoutProcessor implements UpdateProcessor {
 
         const computeX = (align: TextAlign): number => {
             if (align === 'left') {
-                return newShrinkRect.x;
+                return paddedShrinkRect.x;
             } else if (align === 'right') {
-                return newShrinkRect.x + newShrinkRect.width;
+                return paddedShrinkRect.x + paddedShrinkRect.width;
             } else if (align !== 'center') {
                 Logger.error(`invalid textAlign value: ${align}`);
             }
-            return newShrinkRect.x + newShrinkRect.width / 2;
+            return paddedShrinkRect.x + paddedShrinkRect.width / 2;
         };
 
         const positionTopAndShrinkBBox = (caption: Caption, spacing: number) => {
-            const baseY = newShrinkRect.y;
+            const baseY = paddedShrinkRect.y;
             caption.node.x = computeX(caption.textAlign);
             caption.node.y = baseY;
             caption.node.textBaseline = 'top';
@@ -71,10 +76,14 @@ export class BaseLayoutProcessor implements UpdateProcessor {
             // accommodate the caption.
             const bboxHeight = Math.ceil(bbox.y - baseY + bbox.height + spacing);
 
-            newShrinkRect.shrink(bboxHeight, 'top');
+            if (caption.layoutStyle === 'block') {
+                newShrinkRect.shrink(bboxHeight + 2 * titlePadding, 'top');
+                paddedShrinkRect.shrink(bboxHeight, 'top');
+            }
+            return bbox;
         };
         const positionBottomAndShrinkBBox = (caption: Caption, spacing: number) => {
-            const baseY = newShrinkRect.y + newShrinkRect.height;
+            const baseY = paddedShrinkRect.y + paddedShrinkRect.height;
             caption.node.x = computeX(caption.textAlign);
             caption.node.y = baseY;
             caption.node.textBaseline = 'bottom';
@@ -83,7 +92,11 @@ export class BaseLayoutProcessor implements UpdateProcessor {
 
             const bboxHeight = Math.ceil(baseY - bbox.y + spacing);
 
-            newShrinkRect.shrink(bboxHeight, 'bottom');
+            if (caption.layoutStyle === 'block') {
+                newShrinkRect.shrink(bboxHeight + 2 * titlePadding, 'bottom');
+                paddedShrinkRect.shrink(bboxHeight, 'bottom');
+            }
+            return bbox;
         };
 
         title.node.visible = title.enabled;
@@ -92,17 +105,35 @@ export class BaseLayoutProcessor implements UpdateProcessor {
 
         if (title.enabled) {
             const { spacing = subtitle.enabled ? Caption.SMALL_PADDING : Caption.LARGE_PADDING } = title;
-            positionTopAndShrinkBBox(title, spacing);
+            positions.title = positionTopAndShrinkBBox(title, spacing);
         }
 
         if (subtitle.enabled) {
-            positionTopAndShrinkBBox(subtitle, subtitle.spacing ?? 0);
+            positions.subtitle = positionTopAndShrinkBBox(subtitle, subtitle.spacing ?? 0);
         }
 
         if (footnote.enabled) {
-            positionBottomAndShrinkBBox(footnote, footnote.spacing ?? 0);
+            positions.footnote = positionBottomAndShrinkBBox(footnote, footnote.spacing ?? 0);
         }
 
-        return { shrinkRect: newShrinkRect };
+        padding.title = titlePadding;
+
+        return { ...ctx, shrinkRect: newShrinkRect, positions };
+    }
+
+    alignCaptions(ctx: LayoutCompleteEvent): void {
+        const { rect } = ctx.series;
+        const { title, subtitle, footnote, titlePadding } = this.chartLike;
+
+        for (const caption of [title, subtitle, footnote]) {
+            if (caption.layoutStyle !== 'overlay') continue;
+
+            if (caption.textAlign === 'left') {
+                caption.node.x = rect.x + titlePadding;
+            } else if (caption.textAlign === 'right') {
+                const bbox = caption.node.computeBBox();
+                caption.node.x = rect.x + rect.width - bbox.width - titlePadding;
+            }
+        }
     }
 }

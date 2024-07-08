@@ -1,95 +1,59 @@
 ---
-title: 'Toolbar'
+title: 'Financial Charts - Range Toolbar'
 enterprise: true
-hidden: true
 ---
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+The Range Toolbar includes buttons for navigating different time periods.
+
+## Range Toolbar
+
+The Range Toolbar contains buttons allowing the user to jump to a specific range along the chart timeline.
 
 {% chartExampleRunner title="Toolbar" name="toolbar" type="generated" /%}
 
-```ts
-toolbar: {
-    ranges: {
-        enabled: true,
-    },
-    zoom: {
-        enabled: true,
-    },
-}
-```
+The Range Toolbar is enabled by default. To hide the Range Toolbar set the `toolbar` chart option to `false`.
 
-## Positions & Alignment
+## Custom Buttons
 
-{% chartExampleRunner title="Toolbar" name="toolbar-positions" type="generated" /%}
-
-```ts
-toolbar: {
-    ranges: {
-        align: 'center',
-    },
-    zoom: {
-        position: 'right',
-        align: 'start',
-    }
-}
-```
-
-## Buttons
+It is possible to override the default buttons by providing an array of button objects.
 
 {% chartExampleRunner title="Toolbar" name="toolbar-buttons" type="generated" /%}
 
+Custom buttons can be defined through the `toolbar` options object.
+
 ```ts
-const MONTH = 30 * 24 * 60 * 60 * 1000;
-
-// ...
-
 toolbar: {
     ranges: {
-        buttons: [
-            { label: '6 months', value: 6 * MONTH },
-            { label: '12 months', value: 12 * MONTH },
-            { label: 'All', value: (start, end) => [start, end] },
-        ]
+      enabled: true,
+      buttons: [
+        {
+          label: "6 Months",
+          value: 6 * MONTH,
+        },
+        {
+          label: "12 Months",
+          value: 12 * MONTH,
+        },
+        {
+          label: 'February',
+          value: [new Date(2023, 1, 1), new Date(2023, 2, 1)],
+        },
+        {
+          label: "All Data",
+          value: (start, end) => [start, end],
+        },
+      ],
     },
-}
+  },
 ```
 
-## Groups
+In this configuration:
 
-### Annotations
-
-```ts
-toolbar: {
-    annotations: {
-        enabled: true,
-    }
-}
-```
-
-[Further reading on Annotations](./annotations/#adding--editing).
-
-### Ranges
-
-```ts
-toolbar: {
-    ranges: {
-        enabled: true,
-    }
-}
-```
-
-### Zoom
-
-```ts
-toolbar: {
-    zoom: {
-        enabled: true,
-    }
-}
-```
-
-[Further reading on Zoom](./zoom/).
+-   `label` specifies the text displayed on the button.
+-   `value` determines the time range the button applies:
+    -   For "6 Months" and "12 Months", it sets the range to the past 6 or 12 months, respectively.
+    -   For "February", it sets the range to February 2023, from February 1 to March 1.
+    -   For "All Data", it dynamically sets the range to include all available data from the start to the end date.
 
 ## API Reference
 

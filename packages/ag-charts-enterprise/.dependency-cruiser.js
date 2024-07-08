@@ -181,7 +181,7 @@ module.exports = {
             from: { path: 'src/.*/' },
             to: {
                 path: '^src/[^/]*.ts',
-                pathNot: '^src/setup.ts',
+                pathNot: ['^src/setup.ts', 'ag-charts-types/'],
             },
         },
     ],

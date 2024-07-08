@@ -71,9 +71,11 @@ const options: AgChartOptions = {
             topology: capitals,
             legendItemName: 'Markers',
             showInLegend: false,
-            data: capitals.features.map((t: any) => {
-                return { name: t.properties.city };
-            }),
+            data: capitals.features
+                .map((t: any) => {
+                    return { name: t.properties.city };
+                })
+                .filter(({ name }: any) => name != null),
             idKey: 'name',
             title: 'Capital City',
             topologyIdKey: 'city',

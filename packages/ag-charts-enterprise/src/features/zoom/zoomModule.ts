@@ -1,6 +1,42 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import type { AgZoomOptions, _ModuleSupport } from 'ag-charts-community';
 
 import { Zoom } from './zoom';
+
+const buttons: AgZoomOptions['buttons'] = {
+    enabled: true,
+    buttons: [
+        {
+            icon: 'zoom-out',
+            tooltip: 'toolbarZoomZoomOut',
+            value: 'zoom-out',
+            section: 'scale',
+        },
+        {
+            icon: 'zoom-in',
+            tooltip: 'toolbarZoomZoomIn',
+            value: 'zoom-in',
+            section: 'scale',
+        },
+        {
+            icon: 'pan-left',
+            tooltip: 'toolbarZoomPanLeft',
+            value: 'pan-left',
+            section: 'pan',
+        },
+        {
+            icon: 'pan-right',
+            tooltip: 'toolbarZoomPanRight',
+            value: 'pan-right',
+            section: 'pan',
+        },
+        {
+            icon: 'reset',
+            tooltip: 'toolbarZoomReset',
+            value: 'reset',
+            section: 'reset',
+        },
+    ],
+};
 
 export const ZoomModule: _ModuleSupport.Module = {
     type: 'root',
@@ -14,42 +50,14 @@ export const ZoomModule: _ModuleSupport.Module = {
             anchorPointX: 'end',
             anchorPointY: 'middle',
             axes: 'x',
-            buttons: {
-                enabled: true,
-                buttons: [
-                    {
-                        icon: 'zoom-out',
-                        tooltip: 'Zoom out',
-                        value: 'zoom-out',
-                    },
-                    {
-                        icon: 'zoom-in',
-                        tooltip: 'Zoom in',
-                        value: 'zoom-in',
-                    },
-                    {
-                        icon: 'pan-left',
-                        tooltip: 'Pan left',
-                        value: 'pan-left',
-                    },
-                    {
-                        icon: 'pan-right',
-                        tooltip: 'Pan right',
-                        value: 'pan-right',
-                    },
-                    {
-                        icon: 'reset',
-                        tooltip: 'Reset the zoom',
-                        value: 'reset',
-                    },
-                ],
-            },
+            buttons,
             enabled: false,
             enableAxisDragging: true,
             enableDoubleClickToReset: true,
             enablePanning: true,
             enableScrolling: true,
             enableSelecting: false,
+            deceleration: 'short',
             minVisibleItemsX: 2,
             minVisibleItemsY: 2,
             panKey: 'alt',

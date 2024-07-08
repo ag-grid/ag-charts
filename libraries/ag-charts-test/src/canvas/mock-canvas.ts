@@ -6,7 +6,11 @@ import { mockCanvasText } from './mock-canvas-text';
 export class MockContext {
     document: Document;
     realCreateElement: Document['createElement'];
-    ctx: { nodeCanvas: Canvas; getActiveCanvasInstances: () => Canvas[] };
+    ctx: {
+        nodeCanvas: Canvas;
+        getRenderContext2D: () => CanvasRenderingContext2D;
+        getActiveCanvasInstances: () => Canvas[];
+    };
     canvasStack: Canvas[];
     canvases: WeakRef<Canvas>[] = [];
 
@@ -23,6 +27,7 @@ export class MockContext {
         this.realCreateElement = realCreateElement;
         this.ctx = {
             nodeCanvas,
+            getRenderContext2D: () => this.ctx.nodeCanvas.getContext('2d') as unknown as CanvasRenderingContext2D,
             getActiveCanvasInstances: this.getActiveCanvasInstances.bind(this),
         };
         this.canvasStack = [nodeCanvas];
@@ -35,7 +40,7 @@ export class MockContext {
 
     getActiveCanvasInstances() {
         const instances = this.canvases.map((ref) => ref.deref());
-        this.canvases = this.canvases.filter((ref, index) => instances[index] != null);
+        this.canvases = this.canvases.filter((_ref, index) => instances[index] != null);
         return instances.filter((value): value is NonNullable<typeof value> => value != null);
     }
 

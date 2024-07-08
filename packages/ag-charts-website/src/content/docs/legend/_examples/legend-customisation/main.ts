@@ -1,12 +1,11 @@
-import { AgChartLegendPosition, AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgChartLegendPosition, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-
     data: getData(),
-
+    title: { text: 'Change in Energy Sources' },
     series: [
         {
             type: 'line',
@@ -41,14 +40,15 @@ const options: AgChartOptions = {
     ],
     legend: {
         item: {
-            showSeriesStroke: true,
+            showSeriesStroke: false,
             label: {
                 fontSize: 14,
                 fontStyle: 'italic',
                 fontWeight: 'bold',
                 fontFamily: 'Papyrus',
                 color: 'red',
-                maxLength: 25,
+                maxLength: 12,
+                formatter: ({ value }) => (value == 'Coal' ? value + ' *' : value),
             },
             marker: {
                 size: 20,
@@ -57,20 +57,10 @@ const options: AgChartOptions = {
             },
             line: {
                 strokeWidth: 4,
-                length: 15,
+                length: 40, //20 for the marker and 10 on each side
             },
         },
     },
 };
 
 const chart = AgCharts.create(options);
-
-function updateLegendPosition(value: AgChartLegendPosition) {
-    options.legend!.position = value;
-    AgCharts.update(chart, options);
-}
-
-function setLegendEnabled(enabled: boolean) {
-    options.legend!.enabled = enabled;
-    AgCharts.update(chart, options);
-}

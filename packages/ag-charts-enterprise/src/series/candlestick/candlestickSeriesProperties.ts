@@ -1,15 +1,11 @@
 import type {
-    AgCandlestickSeriesBaseFormatterParams,
-    AgCandlestickSeriesBaseOptions,
-    AgCandlestickSeriesFormatterParams,
     AgCandlestickSeriesItemOptions,
-    AgCandlestickSeriesOptions,
-    AgCandlestickSeriesStyles,
+    AgCandlestickSeriesItemStylerParams,
     AgCandlestickSeriesTooltipRendererParams,
+    AgOhlcSeriesBaseOptions,
+    Styler,
 } from 'ag-charts-community';
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
-
-import type { CandlestickNodeDatum } from './candlestickTypes';
+import { _ModuleSupport } from 'ag-charts-community';
 
 const {
     BaseProperties,
@@ -67,9 +63,6 @@ export class CandlestickSeriesItem extends BaseProperties {
     @Validate(POSITIVE_NUMBER)
     cornerRadius: number = 0;
 
-    @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgCandlestickSeriesFormatterParams<any>) => AgCandlestickSeriesStyles;
-
     @Validate(OBJECT)
     readonly wick = new CandlestickSeriesWick();
 }
@@ -87,12 +80,7 @@ export interface CandlestickSeriesBaseItems<T> {
     readonly down: T;
 }
 
-export class CandlestickSeriesBaseProperties<
-    T extends Omit<AgCandlestickSeriesBaseOptions, 'openKey'>,
-    TItem extends AgCandlestickSeriesItemOptions,
-    TItems extends CandlestickSeriesBaseItems<TItem>,
-    TFormatterParams extends AgCandlestickSeriesBaseFormatterParams<unknown>,
-> extends AbstractBarSeriesProperties<T> {
+export class CandlestickSeriesProperties<T extends AgOhlcSeriesBaseOptions> extends AbstractBarSeriesProperties<T> {
     @Validate(STRING)
     xKey!: string;
 
@@ -127,28 +115,11 @@ export class CandlestickSeriesBaseProperties<
     lowName?: string;
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgCandlestickSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgCandlestickSeriesTooltipRendererParams<any>>();
 
     @Validate(OBJECT)
-    readonly item: TItems;
+    readonly item: CandlestickSeriesBaseItems<any> = new CandlestickSeriesItems();
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: ((params: TFormatterParams) => AgCandlestickSeriesItemOptions) | undefined;
-
-    constructor(item: TItems, formatter?: (params: TFormatterParams) => AgCandlestickSeriesItemOptions) {
-        super();
-        this.item = item;
-        this.formatter = formatter;
-    }
-}
-
-export class CandlestickSeriesProperties extends CandlestickSeriesBaseProperties<
-    AgCandlestickSeriesOptions,
-    AgCandlestickSeriesItemOptions,
-    CandlestickSeriesItems,
-    AgCandlestickSeriesFormatterParams<CandlestickNodeDatum>
-> {
-    constructor() {
-        super(new CandlestickSeriesItems());
-    }
+    itemStyler?: Styler<AgCandlestickSeriesItemStylerParams<unknown>, AgCandlestickSeriesItemOptions>;
 }

@@ -1,12 +1,17 @@
-import type { Coords, LineCoords } from '../annotationTypes';
+import { _Util } from 'ag-charts-community';
+
+import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
+import { convertPoint, invertCoords } from '../annotationUtils';
 import { Annotation } from '../scenes/annotation';
-import { Channel } from '../scenes/channelScene';
+import { ChannelScene } from '../scenes/channelScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
 import type { DisjointChannelAnnotation } from './disjointChannelProperties';
 
+const { Vec2 } = _Util;
+
 type ChannelHandle = keyof DisjointChannel['handles'];
 
-export class DisjointChannel extends Channel<DisjointChannelAnnotation> {
+export class DisjointChannel extends ChannelScene<DisjointChannelAnnotation> {
     static override is(value: unknown): value is DisjointChannel {
         return Annotation.isCheck(value, 'disjoint-channel');
     }
@@ -53,7 +58,8 @@ export class DisjointChannel extends Channel<DisjointChannelAnnotation> {
     override dragHandle(
         datum: DisjointChannelAnnotation,
         target: Coords,
-        invertPoint: (point: Coords) => Coords | undefined
+        context: AnnotationContext,
+        onInvalid: () => void
     ) {
         const { activeHandle, handles } = this;
         if (activeHandle == null) return;
@@ -61,58 +67,93 @@ export class DisjointChannel extends Channel<DisjointChannelAnnotation> {
         const { offset } = handles[activeHandle].drag(target);
         handles[activeHandle].toggleDragging(true);
 
+        const invert = (coords: Coords) => invertCoords(coords, context);
+        const prev = datum.toJson();
+
         switch (activeHandle) {
             case 'topLeft':
             case 'bottomLeft': {
                 const direction = activeHandle === 'topLeft' ? 1 : -1;
-                const start = invertPoint({
+                const start = invert({
                     x: handles.topLeft.handle.x + offset.x,
                     y: handles.topLeft.handle.y + offset.y * direction,
                 });
+                const bottomStart = invert({
+                    x: handles.bottomLeft.handle.x + offset.x,
+                    y: handles.bottomLeft.handle.y + offset.y * -direction,
+                });
 
-                if (!start || datum.start.y == null) return;
+                if (!start || !bottomStart || datum.start.y == null) return;
 
-                const startSize = datum.startSize + (start.y - datum.start.y) * 2;
+                const startHeight = datum.startHeight + (start.y - datum.start.y) * 2;
 
                 datum.start.x = start.x;
                 datum.start.y = start.y;
-                datum.startSize = startSize;
+                datum.startHeight = startHeight;
 
                 break;
             }
 
             case 'topRight': {
-                const end = invertPoint({
+                const end = invert({
                     x: handles.topRight.handle.x + offset.x,
                     y: handles.topRight.handle.y + offset.y,
                 });
 
                 if (!end || datum.end.y == null) return;
 
-                const endSize = datum.endSize + (end.y - datum.end.y) * 2;
+                const endHeight = datum.endHeight + (end.y - datum.end.y) * 2;
 
                 datum.end.x = end.x;
                 datum.end.y = end.y;
-                datum.endSize = endSize;
+                datum.endHeight = endHeight;
 
                 break;
             }
 
             case 'bottomRight': {
-                const bottomEnd = invertPoint({
+                const bottomStart = invert({
+                    x: handles.bottomLeft.handle.x + offset.x,
+                    y: handles.bottomLeft.handle.y + offset.y,
+                });
+                const bottomEnd = invert({
                     x: handles.bottomRight.handle.x + offset.x,
                     y: handles.bottomRight.handle.y + offset.y,
                 });
 
-                if (!bottomEnd || datum.start.y == null || datum.end.y == null) return;
+                if (!bottomStart || !bottomEnd || datum.start.y == null || datum.end.y == null) return;
 
-                const endSize = datum.end.y - bottomEnd.y;
-                const startSize = datum.startSize - (datum.endSize - endSize);
+                const endHeight = datum.end.y - bottomEnd.y;
+                const startHeight = datum.startHeight - (datum.endHeight - endHeight);
 
-                datum.startSize = startSize;
-                datum.endSize = endSize;
+                datum.startHeight = startHeight;
+                datum.endHeight = endHeight;
             }
         }
+
+        if (!datum.isValidWithContext(context)) {
+            datum.set(prev);
+            onInvalid();
+        }
+    }
+
+    protected override getOtherCoords(
+        datum: DisjointChannelAnnotation,
+        topLeft: Coords,
+        topRight: Coords,
+        context: AnnotationContext
+    ): Coords[] {
+        const { dragState } = this;
+
+        if (!dragState) return [];
+
+        const startHeight = convertPoint(datum.bottom.start, context).y - convertPoint(datum.start, context).y;
+        const endHeight = convertPoint(datum.bottom.end, context).y - convertPoint(datum.end, context).y;
+
+        const bottomLeft = Vec2.add(topLeft, Vec2.from(0, startHeight));
+        const bottomRight = Vec2.add(topRight, Vec2.from(0, endHeight));
+
+        return [bottomLeft, bottomRight];
     }
 
     override updateLines(datum: DisjointChannelAnnotation, top: LineCoords, bottom: LineCoords) {
@@ -148,6 +189,7 @@ export class DisjointChannel extends Channel<DisjointChannelAnnotation> {
             fill: datum.handle.fill,
             stroke: datum.handle.stroke ?? datum.stroke,
             strokeOpacity: datum.handle.strokeOpacity ?? datum.strokeOpacity,
+            strokeWidth: datum.handle.strokeWidth ?? datum.strokeWidth,
         };
 
         topLeft.update({ ...handleStyles, x: top.x1, y: top.y1 });

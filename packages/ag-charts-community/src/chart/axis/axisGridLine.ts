@@ -1,4 +1,5 @@
-import type { AgAxisGridStyle } from '../../options/agChartOptions';
+import type { AgAxisGridStyle } from 'ag-charts-types';
+
 import { isObject } from '../../util/type-guards';
 import { ARRAY_OF, BOOLEAN, POSITIVE_NUMBER, Validate } from '../../util/validation';
 

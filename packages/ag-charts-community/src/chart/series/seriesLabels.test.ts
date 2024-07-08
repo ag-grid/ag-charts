@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import type { AgChartOptions } from '../../options/agChartOptions';
-import { AgCharts } from '../agChartV2';
-import type { Chart } from '../chart';
+import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
+
+import { AgCharts } from '../../api/agCharts';
 import type { TestCase } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -132,7 +132,7 @@ const EXAMPLES: Record<string, TestCase> = {
 describe('series labels', () => {
     setupMockConsole();
 
-    let chart: Chart;
+    let chart: AgChartInstance;
 
     afterEach(() => {
         if (chart) {
@@ -150,7 +150,7 @@ describe('series labels', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
                 await example.assertions(chart);
             }
@@ -169,7 +169,7 @@ describe('series labels', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = AgCharts.create(options);
                 await compare();
             }
         );

@@ -1,6 +1,6 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: [
         { month: 'Jan', price: 148.9, volume: 2.5 },
@@ -55,10 +55,6 @@ const options: AgChartOptions = {
     legend: {
         item: {
             showSeriesStroke: true,
-            line: {
-                strokeWidth: 3, // width of line (inherited from series strokeWidth if unset).
-                length: 28, // length of the line in pixels (8 for the marker and 10 on each side)
-            },
         },
     },
 };
@@ -67,5 +63,5 @@ const chart = AgCharts.create(options);
 
 function toggleSeriesStroke() {
     options.legend!.item!.showSeriesStroke = !options.legend!.item!.showSeriesStroke;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

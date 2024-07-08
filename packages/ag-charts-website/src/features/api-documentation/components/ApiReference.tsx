@@ -1,6 +1,6 @@
+import Code from '@ag-website-shared/components/code/Code';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { navigate, scrollIntoViewById, useLocation } from '@ag-website-shared/utils/navigation';
-import Code from '@components/Code';
 import type {
     ApiReferenceNode,
     ApiReferenceType,
@@ -65,6 +65,8 @@ interface ApiReferenceRowOptions {
     prefixPath?: string[];
     isExpanded?: boolean;
     nestedPath?: string;
+    typeArguments?: string[];
+    genericsMap?: Record<string, string>;
     onDetailsToggle?: () => void;
 }
 
@@ -131,7 +133,12 @@ export function ApiReference({ id, anchorId, className, ...props }: ApiReference
             <div className={classnames(styles.reference, styles.apiReference, 'no-zebra')}>
                 <div>
                     {processMembers(interfaceRef, config).map((member) => (
-                        <NodeFactory key={member.name} member={member} anchorId={`reference-${id}-${member.name}`} />
+                        <NodeFactory
+                            key={member.name}
+                            member={member}
+                            anchorId={`reference-${id}-${member.name}`}
+                            genericsMap={interfaceRef.genericsMap}
+                        />
                     ))}
                 </div>
             </div>
@@ -139,7 +146,7 @@ export function ApiReference({ id, anchorId, className, ...props }: ApiReference
     );
 }
 
-function NodeFactory({ member, anchorId, prefixPath = [], ...props }: ApiReferenceRowOptions) {
+function NodeFactory({ member, anchorId, genericsMap, prefixPath = [], ...props }: ApiReferenceRowOptions) {
     const [isExpanded, toggleExpanded, setExpanded] = useToggle();
     const interfaceRef = useMemberAdditionalDetails(member);
     const config = useContext(ApiReferenceConfigContext);
@@ -147,6 +154,13 @@ function NodeFactory({ member, anchorId, prefixPath = [], ...props }: ApiReferen
 
     const hasMembers = interfaceRef && 'members' in interfaceRef;
     const hasNestedPages = config.specialTypes?.[getMemberType(member)] === 'NestedPage';
+
+    let typeArguments: string[] | undefined;
+    if (hasMembers && typeof member.type === 'object' && member.type.kind === 'typeRef') {
+        typeArguments = member.type.typeArguments?.map((genericType) =>
+            normalizeType(genericsMap?.[genericType as any] ?? genericType)
+        );
+    }
 
     useEffect(() => {
         const hash = location?.hash.substring(1);
@@ -169,12 +183,13 @@ function NodeFactory({ member, anchorId, prefixPath = [], ...props }: ApiReferen
             />
             {hasMembers &&
                 isExpanded &&
-                processMembers(interfaceRef, config).map((childMember) => (
+                processMembers(interfaceRef, config, typeArguments).map((childMember) => (
                     <NodeFactory
                         key={childMember.name}
                         member={childMember}
                         anchorId={`${anchorId}-${cleanupName(childMember.name)}`}
                         prefixPath={prefixPath.concat(member.name)}
+                        genericsMap={(interfaceRef as any).genericsMap}
                         nestedPath={
                             hasNestedPages
                                 ? `${location?.pathname}/${member.name}/${cleanupName(childMember.name)}`
@@ -272,14 +287,14 @@ function MemberActions({
                     onToggle={onDetailsToggle}
                 />
             )}
-            {shouldExpand && <TypeCodeBlock apiNode={additionalDetails} />}
+            {shouldExpand && <TypeCodeBlock apiNode={additionalDetails} member={member} />}
         </div>
     );
 }
 
 type ApiNode = ApiReferenceNode | MemberNode;
 
-export function TypeCodeBlock({ apiNode }: { apiNode: ApiNode | ApiNode[] }) {
+export function TypeCodeBlock({ apiNode, member }: { apiNode: ApiNode | ApiNode[]; member: MemberNode }) {
     const reference = useContext(ApiReferenceContext);
 
     if (!reference) {
@@ -287,8 +302,8 @@ export function TypeCodeBlock({ apiNode }: { apiNode: ApiNode | ApiNode[] }) {
     }
 
     const codeSample = Array.isArray(apiNode)
-        ? apiNode.map((apiNode) => formatTypeToCode(apiNode, reference))
-        : formatTypeToCode(apiNode, reference);
+        ? apiNode.map((apiNode) => formatTypeToCode(apiNode, member, reference))
+        : formatTypeToCode(apiNode, member, reference);
 
     if (!codeSample?.length) {
         // eslint-disable-next-line no-console
@@ -329,7 +344,10 @@ function useMemberAdditionalDetails(member: MemberNode) {
     if (typeof member.type === 'object' && member.type.kind === 'union') {
         const unionTypes = member.type.type
             .map((unionType) => typeof unionType === 'string' && reference?.get(unionType))
-            .filter((apiNode): apiNode is TypeAliasNode => typeof apiNode === 'object' && apiNode.kind === 'typeAlias');
+            .filter(
+                (apiNode): apiNode is TypeAliasNode =>
+                    typeof apiNode === 'object' && apiNode.kind === 'typeAlias' && !isInterfaceHidden(apiNode.name)
+            );
         if (unionTypes.length) {
             return unionTypes;
         }

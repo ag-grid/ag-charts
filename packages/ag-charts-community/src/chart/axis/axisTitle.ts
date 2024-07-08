@@ -3,8 +3,10 @@ import type {
     AgAxisCaptionOptions,
     FontStyle,
     FontWeight,
+    Formatter,
     TextWrap,
-} from '../../options/agChartOptions';
+} from 'ag-charts-types';
+
 import { BaseProperties } from '../../util/properties';
 import {
     BOOLEAN,
@@ -48,5 +50,5 @@ export class AxisTitle extends BaseProperties implements AgAxisCaptionOptions {
     wrapping: TextWrap = 'always';
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgAxisCaptionFormatterParams) => string;
+    formatter?: Formatter<AgAxisCaptionFormatterParams>;
 }

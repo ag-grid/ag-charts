@@ -1,8 +1,10 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 import { fail } from 'assert';
+import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
-import type { AgCartesianChartOptions, AgChartOptions } from '../options/agChartOptions';
-import { AgCharts } from './agChartV2';
+import type { AgCartesianChartOptions, AgChartOptions } from 'ag-charts-types';
+
+import { AgCharts } from '../api/agCharts';
 import type { CartesianChart } from './cartesianChart';
 import type { Chart } from './chart';
 import type { SeriesNodeDataContext } from './series/series';
@@ -198,11 +200,11 @@ describe('CartesianChart', () => {
 
     const ctx = setupMockCanvas();
 
-    const compare = async (chartInstance: Chart) => {
+    const compare = async (chartInstance: Chart, options?: MatchImageSnapshotOptions) => {
         await waitForChartStability(chartInstance);
 
         const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, ...options });
     };
 
     describe.each([
@@ -226,13 +228,13 @@ describe('CartesianChart', () => {
             await waitForChartStability(chart);
 
             const seriesImpl = chart.series.find(
-                (v: any) => v.properties.yKey === yKey || v.properties.yKeys?.some((s) => s.includes(yKey))
+                (v) => v.properties.yKey === yKey || v.properties.yKeys?.some((s: unknown[]) => s.includes(yKey))
             );
             if (seriesImpl == null) fail('No seriesImpl found');
 
-            const nodeData: SeriesNodeDataContext<any, any> = seriesImpl['contextNodeData']!;
+            const nodeData: SeriesNodeDataContext<never, never> = (seriesImpl as any)['contextNodeData']!;
 
-            const highlightManager = (chart as any).ctx.highlightManager;
+            const highlightManager = chart.ctx.highlightManager;
 
             return { chart, nodeData, highlightManager };
         };
@@ -240,7 +242,10 @@ describe('CartesianChart', () => {
         it.each(YKEYS)(`should render series with yKey [%s] appropriately`, async (yKey) => {
             const { chart: testee, highlightManager, nodeData } = await buildChart({ ...tcOptions }, yKey);
             highlightManager.updateHighlight(testee.id, nodeData?.nodeData[3]);
-            await compare(testee);
+            await compare(testee, {
+                failureThreshold: 2,
+                failureThresholdType: 'pixel',
+            });
         });
 
         it('should correctly change highlighting state and reset', async () => {
@@ -251,11 +256,17 @@ describe('CartesianChart', () => {
 
             for (const nodeDataItem of nodesToTest) {
                 highlightManager.updateHighlight(testee.id, nodeDataItem);
-                await compare(testee);
+                await compare(testee, {
+                    failureThreshold: 2,
+                    failureThresholdType: 'pixel',
+                });
             }
 
             highlightManager.updateHighlight(testee.id);
-            await compare(testee);
+            await compare(testee, {
+                failureThreshold: 2,
+                failureThresholdType: 'pixel',
+            });
         });
     });
 
@@ -265,18 +276,18 @@ describe('CartesianChart', () => {
                 ...examples.SIMPLE_LINE_CHART_EXAMPLE,
                 axes: [
                     {
-                        position: 'bottom',
                         type: 'time',
+                        position: 'bottom',
                         title: {
                             text: 'Date',
                         },
-                        tick: {
+                        interval: {
                             maxSpacing: 80,
                         },
                     },
                     {
-                        position: 'left',
                         type: 'number',
+                        position: 'left',
                         title: {
                             text: 'Price in pence',
                         },

@@ -17,4 +17,12 @@ export const getChartEnterpriseScriptPath = (sitePrefix?: string) => {
     return pathJoin(sitePrefixUrl, '/dev/ag-charts-enterprise/dist/umd/ag-charts-enterprise.js');
 };
 
+export const getChartLocaleScriptPath = (sitePrefix?: string) => {
+    if (USE_PUBLISHED_PACKAGES) {
+        return PUBLISHED_UMD_URLS['ag-charts-locale'];
+    }
+    const sitePrefixUrl = sitePrefix ? sitePrefix : '';
+    return pathJoin(sitePrefixUrl, '/dev/ag-charts-locale/dist/umd/ag-charts-locale.js');
+};
+
 export const getCacheBustingUrl = (url: string, timestamp: number) => `${url}?t=${timestamp}`;

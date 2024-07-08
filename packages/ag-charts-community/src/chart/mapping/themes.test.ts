@@ -2,17 +2,17 @@ import { describe, expect, it } from '@jest/globals';
 
 import type {
     AgBarSeriesOptions,
+    AgChartInstance,
     AgChartOptions,
     AgChartTheme,
     AgChartThemeName,
     AgChartThemePalette,
-} from '../../options/agChartOptions';
-import { AgCharts } from '../agChartV2';
-import type { Chart } from '../chart';
+} from 'ag-charts-types';
+
+import { AgCharts } from '../../api/agCharts';
 import {
     deproxy,
-    expectWarning,
-    expectWarnings,
+    expectWarningsCalls,
     prepareTestOptions,
     setupMockConsole,
     waitForChartStability,
@@ -29,9 +29,9 @@ describe('themes module', () => {
         }
     };
 
-    const getActualPalette = (chart: Chart) => {
+    const getActualPalette = (chart: AgChartInstance) => {
         let result = undefined;
-        for (const series of deproxy(chart).processedOptions.series ?? []) {
+        for (const series of deproxy(chart).chartOptions.processedOptions.series ?? []) {
             result ??= { fills: [] as string[], strokes: [] as string[] };
 
             expect(series.type).toEqual('bar');
@@ -73,10 +73,16 @@ describe('themes module', () => {
         const chart = AgCharts.create({
             ...opts,
             theme: true as unknown as AgChartTheme,
-        }) as Chart;
+        });
         await waitForChartStability(chart);
 
-        expectWarning('AG Charts - invalid theme value type boolean, expected object or string.');
+        expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid theme value type boolean, expected object or string.",
+  ],
+]
+`);
     });
 
     test('missing strokes', async () => {
@@ -88,7 +94,7 @@ describe('themes module', () => {
                     fills: ['#5C2983', '#0076C5', '#21B372', '#FDDE02', '#F76700', '#D30018'],
                 } as AgChartThemePalette,
             },
-        }) as Chart;
+        });
         await waitForChartStability(chart);
 
         expect(getActualPalette(chart)?.strokes).toEqual(getPalette('ag-default-dark')?.strokes);
@@ -103,7 +109,7 @@ describe('themes module', () => {
                     strokes: ['black'],
                 } as AgChartThemePalette,
             },
-        }) as Chart;
+        });
         await waitForChartStability(chart);
 
         expect(getActualPalette(chart)?.fills).toEqual(getPalette('ag-default-dark')?.fills);
@@ -117,14 +123,22 @@ describe('themes module', () => {
                 palette: 'foobar',
                 overrides: true,
             } as unknown as AgChartTheme,
-        }) as Chart;
+        });
         await waitForChartStability(chart);
 
-        expectWarnings([
-            ['AG Charts - invalid theme.baseTheme type number, expected (string | object).'],
-            ['AG Charts - invalid theme.overrides type boolean, expected object.'],
-            ['AG Charts - invalid theme.palette type string, expected object.'],
-        ]);
+        expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid theme.baseTheme type number, expected (string | object).",
+  ],
+  [
+    "AG Charts - invalid theme.overrides type boolean, expected object.",
+  ],
+  [
+    "AG Charts - invalid theme.palette type string, expected object.",
+  ],
+]
+`);
     });
 
     it('should show 2 warnings for invalid types - palette', async () => {
@@ -137,12 +151,18 @@ describe('themes module', () => {
                     strokes: 'black',
                 } as unknown as AgChartThemePalette,
             },
-        }) as Chart;
+        });
         await waitForChartStability(chart);
 
-        expectWarnings([
-            ['AG Charts - theme.overrides.fills must be undefined or an array'],
-            ['AG Charts - theme.overrides.strokes must be undefined or an array'],
-        ]);
+        expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - theme.overrides.fills must be undefined or an array",
+  ],
+  [
+    "AG Charts - theme.overrides.strokes must be undefined or an array",
+  ],
+]
+`);
     });
 });

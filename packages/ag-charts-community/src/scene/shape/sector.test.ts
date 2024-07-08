@@ -168,7 +168,7 @@ describe('Sector', () => {
         ];
 
         it('should render as expected', () => {
-            const ctx = canvasCtx.nodeCanvas.getContext('2d');
+            const ctx = canvasCtx.getRenderContext2D();
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvasCtx.nodeCanvas.width ?? 0, canvasCtx.nodeCanvas.height ?? 0);
 
@@ -188,7 +188,7 @@ describe('Sector', () => {
 
                     // Render.
                     ctx.save();
-                    sector.render({ ctx, forceRender: true, resized: false, debugNodes: {} });
+                    sector.render({ ctx, devicePixelRatio: 1, forceRender: true, resized: false, debugNodes: {} });
                     ctx.restore();
 
                     // Prepare for next case.
@@ -307,7 +307,7 @@ describe('Sector', () => {
             ]);
 
         it('should render as expected', () => {
-            const ctx = canvasCtx.nodeCanvas.getContext('2d');
+            const ctx = canvasCtx.getRenderContext2D();
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvasCtx.nodeCanvas.width ?? 0, canvasCtx.nodeCanvas.height ?? 0);
 
@@ -330,7 +330,7 @@ describe('Sector', () => {
 
                     // Render.
                     ctx.save();
-                    sector.render({ ctx, forceRender: true, resized: false, debugNodes: {} });
+                    sector.render({ ctx, devicePixelRatio: 1, forceRender: true, resized: false, debugNodes: {} });
                     ctx.restore();
 
                     // Prepare for next case.

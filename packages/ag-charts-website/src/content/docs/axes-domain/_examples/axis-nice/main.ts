@@ -36,5 +36,5 @@ const chart = AgCharts.create(options);
 
 function toggleAxisNice() {
     (options.axes![1] as AgNumberAxisOptions).nice = !(options.axes![1] as AgNumberAxisOptions).nice;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

@@ -4,8 +4,7 @@ import type { Chart } from '../chart';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     createChart,
-    expectWarningMessages,
-    expectWarnings,
+    expectWarningsCalls,
     extractImageData,
     setupMockCanvas,
     setupMockConsole,
@@ -34,28 +33,46 @@ describe('Overlay', () => {
         test('invalid objects', async () => {
             const invalidObj = 0 as unknown as object;
             chart = await createChart({ overlays: { noData: invalidObj, noVisibleSeries: invalidObj } });
-            expectWarningMessages(
-                `AG Charts - unable to set Overlay - expecting a properties object`,
-                `AG Charts - unable to set Overlay - expecting a properties object`
-            );
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - unable to set Overlay - expecting a properties object",
+  ],
+  [
+    "AG Charts - unable to set Overlay - expecting a properties object",
+  ],
+]
+`);
         });
 
         test('invalid text', async () => {
             const invalidObj = { text: 0 as unknown as string };
             chart = await createChart({ overlays: { noData: invalidObj, noVisibleSeries: invalidObj } });
-            expectWarnings([
-                [`AG Charts - Property [text] of [Overlay] cannot be set to [0]; expecting a string, ignoring.`],
-                [`AG Charts - Property [text] of [Overlay] cannot be set to [0]; expecting a string, ignoring.`],
-            ]);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - Property [text] of [Overlay] cannot be set to [0]; expecting a string, ignoring.",
+  ],
+  [
+    "AG Charts - Property [text] of [Overlay] cannot be set to [0]; expecting a string, ignoring.",
+  ],
+]
+`);
         });
 
         test('invalid renderer', async () => {
             const invalidObj = { renderer: 0 as unknown as () => string };
             chart = await createChart({ overlays: { noData: invalidObj, noVisibleSeries: invalidObj } });
-            expectWarnings([
-                [`AG Charts - Property [renderer] of [Overlay] cannot be set to [0]; expecting a function, ignoring.`],
-                [`AG Charts - Property [renderer] of [Overlay] cannot be set to [0]; expecting a function, ignoring.`],
-            ]);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - Property [renderer] of [Overlay] cannot be set to [0]; expecting a function, ignoring.",
+  ],
+  [
+    "AG Charts - Property [renderer] of [Overlay] cannot be set to [0]; expecting a function, ignoring.",
+  ],
+]
+`);
         });
     });
 

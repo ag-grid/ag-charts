@@ -1,15 +1,16 @@
 import type {
-    AgTreemapSeriesFormatterParams,
+    AgTreemapSeriesItemStylerParams,
     AgTreemapSeriesLabelFormatterParams,
     AgTreemapSeriesOptions,
     AgTreemapSeriesStyle,
     AgTreemapSeriesTooltipRendererParams,
+    Styler,
     TextAlign,
     VerticalAlign,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import { AutoSizeableSecondaryLabel, AutoSizedLabel } from '../util/labelFormatter';
+import { AutoSizeableSecondaryLabel, AutoSizedLabel } from '../util/autoSizedLabel';
 
 const { Label } = _Scene;
 const {
@@ -171,7 +172,7 @@ export class TreemapSeriesProperties extends HierarchySeriesProperties<AgTreemap
     secondaryLabelKey?: string;
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgTreemapSeriesFormatterParams) => AgTreemapSeriesStyle;
+    itemStyler?: Styler<AgTreemapSeriesItemStylerParams<unknown>, AgTreemapSeriesStyle>;
 
     @Validate(OBJECT)
     override readonly highlightStyle = new TreemapSeriesHighlightStyle();

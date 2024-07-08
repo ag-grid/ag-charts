@@ -43,7 +43,7 @@ function setTimeAxis() {
             position: 'left',
         },
     ];
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function setOrdinalTimeAxis() {
@@ -57,5 +57,5 @@ function setOrdinalTimeAxis() {
             position: 'left',
         },
     ];
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

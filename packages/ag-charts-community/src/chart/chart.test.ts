@@ -1,11 +1,12 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
-import type { AgCartesianChartOptions, AgPolarChartOptions, InteractionRange } from '../options/agChartOptions';
+import type { AgCartesianChartOptions, AgPolarChartOptions, InteractionRange } from 'ag-charts-types';
+
+import { AgCharts } from '../api/agCharts';
 import type { Node } from '../scene/node';
 import { Selection } from '../scene/selection';
 import { Rect } from '../scene/shape/rect';
 import { Sector } from '../scene/shape/sector';
-import { AgCharts } from './agChartV2';
 import type { Chart } from './chart';
 import type { AgChartProxy } from './chartProxy';
 import { Circle } from './marker/circle';
@@ -333,7 +334,7 @@ describe('Chart', () => {
                 angleKey: datasets.economy.valueKey,
                 sectorLabelKey: datasets.economy.categoryKey,
             },
-            getNodeData: (series) => series.sectorLabelSelection.nodes(),
+            getNodeData: (series) => series.labelSelection.nodes(),
             getNodePoint: (item) => [item.x, item.y],
             getNodeExitPoint: (_item) => [20, 20],
             getDatumValues: (item, series) => {
@@ -354,28 +355,31 @@ describe('Chart', () => {
 
     describe('Chart data change', () => {
         const testDataUpdate = async (testOptions: { seriesOptions: any; getNodes: (chart: Chart) => Node[] }) => {
-            const chartOptions = prepareTestOptions({
+            const chartOptions = prepareTestOptions<{
+                data: { year: string; gdp: number; gnp: number }[];
+                series: any[];
+            }>({
                 data: [],
                 series: [testOptions.seriesOptions],
             });
-            const chartProxy = AgCharts.create(chartOptions) as AgChartProxy;
+            const chartProxy = AgCharts.create(chartOptions);
             chart = deproxy(chartProxy);
             await waitForChartStability(chart);
             expect(testOptions.getNodes(chart).length).toEqual(0);
 
-            AgCharts.updateDelta(chartProxy, {
+            await chartProxy.updateDelta({
                 data: datasets.economy.data,
             });
             await waitForChartStability(chart);
             expect(testOptions.getNodes(chart).length).toEqual(3);
 
-            AgCharts.updateDelta(chartProxy, {
+            await chartProxy.updateDelta({
                 data: datasets.economy.data.slice(0, 2),
             });
             await waitForChartStability(chart);
             expect(testOptions.getNodes(chart).length).toEqual(2);
 
-            AgCharts.updateDelta(chartProxy, {
+            await chartProxy.updateDelta({
                 data: datasets.economy.data,
             });
             await waitForChartStability(chart);
@@ -452,7 +456,7 @@ describe('Chart', () => {
 
         async function updateChart(chartProxy: AgChartProxy, options: object) {
             const chartOptions = prepareTestOptions(options);
-            AgCharts.update(chartProxy, chartOptions);
+            await chartProxy.update(chartOptions);
             await waitForChartStability(deproxy(chartProxy));
         }
 
@@ -576,7 +580,7 @@ describe('Chart', () => {
                     },
                 ],
             });
-            AgCharts.update(agChartInstance, options);
+            await agChartInstance.update(options);
             await waitForChartStability(agChartInstance);
 
             const elements = document.querySelectorAll('.ag-charts-wrapper');

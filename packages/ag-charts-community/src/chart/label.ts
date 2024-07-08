@@ -1,11 +1,17 @@
-import type { FontStyle, FontWeight } from '../options/agChartOptions';
-import type { AgChartLabelFormatterParams, AgChartLabelOptions } from '../options/chart/labelOptions';
+import type {
+    AgChartLabelFormatterParams,
+    AgChartLabelOptions,
+    FontStyle,
+    FontWeight,
+    Formatter,
+} from 'ag-charts-types';
+
 import { BBox } from '../scene/bbox';
 import type { Matrix } from '../scene/matrix';
-import { getFont } from '../scene/shape/text';
 import type { PlacedLabelDatum } from '../scene/util/labelPlacement';
 import { normalizeAngle360, toRadians } from '../util/angle';
 import { BaseProperties } from '../util/properties';
+import { TextMeasurer } from '../util/textMeasurer';
 import type { RequireOptional } from '../util/types';
 import {
     BOOLEAN,
@@ -42,10 +48,10 @@ export class Label<TParams = never, TDatum = any>
     fontFamily: string = 'Verdana, sans-serif';
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>) => string | undefined;
+    formatter?: Formatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>;
 
     getFont(): string {
-        return getFont(this);
+        return TextMeasurer.toFontString(this);
     }
 }
 

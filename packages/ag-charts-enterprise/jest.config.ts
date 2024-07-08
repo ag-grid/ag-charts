@@ -29,9 +29,9 @@ const e2eTests = tests
     })
     .map(pathToGlob);
 const unitTests = tests.map(pathToGlob).filter((path) => !e2eTests.includes(path));
-const benchmarks = glob.sync('packages/ag-charts-enterprise/benchmarks/**/*.test.ts').map(pathToGlob);
 
 const commonConfig = {
+    resolver: undefined, // NX redirects CSS imports https://github.com/nrwl/nx/blob/7495f0664b19e8fa32ef693f43d709173b6a2bc4/packages/jest/plugins/resolver.ts#L43
     prettierPath: null,
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node', 'html'],
     testEnvironment: '../ag-charts-community/jest.jsdom-env.cjs',
@@ -39,9 +39,13 @@ const commonConfig = {
     preset: '../../jest.preset.js',
     transform: {
         '^.+\\.[tj]s$': ['@swc/jest', swcJestConfig],
+        '\\.css$': 'jest-text-transformer',
+        '\\.html$': 'jest-text-transformer',
     },
     moduleNameMapper: {
         '^ag-charts-community$': '<rootDir>/../ag-charts-community/src/main.ts',
+        '^ag-charts-types$': '<rootDir>/../ag-charts-types/src/main.ts',
+        '^ag-charts-locale$': '<rootDir>/../ag-charts-locale/src/main.ts',
         '^ag-charts-community-test$': '<rootDir>/../ag-charts-community/src/main-test.ts',
     },
 };
@@ -69,12 +73,6 @@ export default {
             // maxWorkers: 1,
             // WIP discussion: https://github.com/facebook/jest/pull/10912
             // maxConcurrency: 1,
-            ...commonConfig,
-        },
-        {
-            displayName: 'ag-charts-enterprise - benchmarks',
-            testMatch: benchmarks.map(pathFix),
-            runner: 'jest-serial-runner',
             ...commonConfig,
         },
     ],

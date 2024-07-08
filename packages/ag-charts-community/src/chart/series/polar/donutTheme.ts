@@ -1,21 +1,17 @@
 import type { ExtensibleTheme } from '../../../module/coreModules';
-import type { SeriesPaletteFactory } from '../../../module/coreModulesTypes';
-import { FONT_WEIGHT } from '../../themes/constants';
+import { FONT_SIZE, FONT_WEIGHT } from '../../themes/constants';
 import {
     DEFAULT_FONT_FAMILY,
     DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
     DEFAULT_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
     DEFAULT_SHADOW_COLOUR,
-    EXTENDS_SERIES_DEFAULTS,
 } from '../../themes/symbols';
 
 export const donutTheme: ExtensibleTheme<'donut'> = {
     series: {
-        __extends__: EXTENDS_SERIES_DEFAULTS,
         title: {
             enabled: true,
-            fontStyle: undefined,
             fontWeight: FONT_WEIGHT.NORMAL,
             fontSize: 14,
             fontFamily: DEFAULT_FONT_FAMILY,
@@ -24,9 +20,7 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
         },
         calloutLabel: {
             enabled: true,
-            fontStyle: undefined,
-            fontWeight: undefined,
-            fontSize: 12,
+            fontSize: FONT_SIZE.SMALL,
             fontFamily: DEFAULT_FONT_FAMILY,
             color: DEFAULT_LABEL_COLOUR,
             offset: 3,
@@ -34,9 +28,8 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
         },
         sectorLabel: {
             enabled: true,
-            fontStyle: undefined,
             fontWeight: FONT_WEIGHT.NORMAL,
-            fontSize: 12,
+            fontSize: FONT_SIZE.SMALL,
             fontFamily: DEFAULT_FONT_FAMILY,
             color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
             positionOffset: 0,
@@ -61,23 +54,10 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
             blur: 5,
         },
         innerLabels: {
-            fontStyle: undefined,
-            fontWeight: undefined,
-            fontSize: 12,
+            fontSize: FONT_SIZE.SMALL,
             fontFamily: DEFAULT_FONT_FAMILY,
             color: DEFAULT_LABEL_COLOUR,
-            margin: 2,
+            spacing: 2,
         },
     },
-};
-
-export const piePaletteFactory: SeriesPaletteFactory<'pie'> = ({ takeColors, colorsCount }) => {
-    const { fills, strokes } = takeColors(colorsCount);
-    return {
-        fills,
-        strokes,
-        calloutLine: {
-            colors: strokes,
-        },
-    };
 };

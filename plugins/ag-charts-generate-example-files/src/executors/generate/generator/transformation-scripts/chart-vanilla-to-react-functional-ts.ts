@@ -1,6 +1,11 @@
 import { wrapOptionsUpdateCode } from './chart-utils';
-import { addBindingImports, convertFunctionToProperty } from './parser-utils';
-import { convertFunctionToCallback, convertFunctionalTemplate, getImport, styleAsObject } from './react-utils';
+import {
+    addBindingImports,
+    convertFunctionToConstProperty,
+    convertFunctionToProperty,
+    isFinancialCharts,
+} from './parser-utils';
+import { convertFunctionalTemplate, getImport, styleAsObject } from './react-utils';
 import { toTitleCase } from './string-utils';
 
 export function processFunction(code: string): string {
@@ -13,10 +18,14 @@ export function processFunction(code: string): string {
 }
 
 function needsWrappingInFragment(bindings: any) {
-    return Object.keys(bindings.placeholders).length > 1 && !bindings.template.includes('</');
+    return (
+        bindings.template.includes('toolbar') ||
+        (Object.keys(bindings.placeholders).length > 1 && !bindings.template.includes('</'))
+    );
 }
 
 function getImports(componentFilenames: string[], bindings: any): string[] {
+    const type = isFinancialCharts(bindings) ? 'AgFinancialCharts' : 'AgCharts';
     const reactImports = ['useState'];
     if (bindings.usesChartApi) reactImports.push('useRef');
     if (needsWrappingInFragment(bindings)) reactImports.push('Fragment');
@@ -24,11 +33,22 @@ function getImports(componentFilenames: string[], bindings: any): string[] {
     const imports = [
         `import React, { ${reactImports.join(', ')} } from 'react';`,
         `import { createRoot } from 'react-dom/client';`,
-        `import { AgChartsReact } from 'ag-charts-react';`,
+        `import { ${type} } from 'ag-charts-react';`,
     ];
+    const chartImports = bindings.imports.map((i) => ({
+        ...i,
+        imports: i.imports.filter((imp) => imp !== 'AgCharts'),
+    }));
+    if (bindings.usesChartApi) {
+        chartImports.push({
+            module: bindings.chartSettings.enterprise ? "'ag-charts-enterprise'" : "'ag-charts-community'",
+            isNamespaced: false,
+            imports: ['AgChartsInstance'],
+        });
+    }
 
-    if (bindings.imports.length > 0) {
-        addBindingImports(bindings.imports, imports, false, true);
+    if (chartImports.length > 0) {
+        addBindingImports(chartImports, imports, false, true);
     }
 
     if (bindings.externalEventHandlers.length > 0 || bindings.instanceMethods.length > 0) {
@@ -43,10 +63,11 @@ function getImports(componentFilenames: string[], bindings: any): string[] {
 }
 
 function getAgChartTag(bindings: any, componentAttributes: string[]): string {
-    return `<AgChartsReact
-        ${bindings.usesChartApi ? 'ref={chartRef}' : ''}
-        ${componentAttributes.join(`
-        `)}
+    const tag = isFinancialCharts(bindings) ? 'AgFinancialCharts' : 'AgCharts';
+    return `<${tag}
+            ${bindings.usesChartApi ? 'ref={chartRef}' : ''}
+            ${componentAttributes.join(`
+            `)}
     />`;
 }
 
@@ -57,6 +78,8 @@ function getTemplate(bindings: any, componentAttributes: string[]): string {
     Object.values(bindings.placeholders).forEach((placeholder: string) => {
         template = template.replace(placeholder, agChartTag);
     });
+
+    template = template.replace(/<hr>/g, '<hr />');
 
     return convertFunctionalTemplate(template);
 }
@@ -113,12 +136,17 @@ export async function vanillaToReactFunctionalTs(bindings: any, componentFilenam
             properties.find((p) => p.name === 'options')
         );
 
-        const template = getTemplate(bindings, componentAttributes);
+        let template = getTemplate(bindings, componentAttributes);
+        if (needsWrappingInFragment(bindings)) {
+            template = `<Fragment>
+                ${template}
+            </Fragment>`;
+        }
 
         const externalEventHandlers = bindings.externalEventHandlers.map((handler) =>
-            processFunction(convertFunctionToCallback(handler.body))
+            processFunction(convertFunctionToConstProperty(handler.body))
         );
-        const instanceMethods = bindings.instanceMethods.map((m) => processFunction(convertFunctionToCallback(m)));
+        const instanceMethods = bindings.instanceMethods.map((m) => processFunction(convertFunctionToConstProperty(m)));
 
         indexFile = `
             ${imports.join(`
@@ -128,7 +156,7 @@ export async function vanillaToReactFunctionalTs(bindings: any, componentFilenam
             `)}
 
             const ChartExample = () => {
-                ${bindings.usesChartApi ? `const chartRef = useRef<AgChartsReact>(null);` : ''}
+                ${bindings.usesChartApi ? `const chartRef = useRef<AgChartsInstance>(null);` : ''}
                 ${stateProperties.join(',\n            ')}
 
                 ${instanceMethods.concat(externalEventHandlers).join('\n\n    ')}
@@ -192,8 +220,9 @@ export async function vanillaToReactFunctionalTs(bindings: any, componentFilenam
     }
 
     if (bindings.usesChartApi) {
-        indexFile = indexFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(chartRef.current!.chart$3');
-        indexFile = indexFile.replace(/\(this.chartRef.current.chart, options/g, '(chartRef.current!.chart, options');
+        indexFile = indexFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(chartRef.current!$3');
+        indexFile = indexFile.replace(/chart.(\w*)\(/g, 'chartRef.current!.$1(');
+        indexFile = indexFile.replace(/this.chartRef.current/g, 'chartRef.current!');
     }
 
     return indexFile;

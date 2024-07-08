@@ -1,5 +1,6 @@
-import type { AxisContext } from '../../module/moduleContext';
-import type { AgCartesianAxisPosition } from '../../options/agChartOptions';
+import type { AgCartesianAxisPosition } from 'ag-charts-types';
+
+import type { AxisContext } from '../../module/axisContext';
 import type { Scale } from '../../scale/scale';
 import { POSITION, POSITIVE_NUMBER, Validate } from '../../util/validation';
 import { ChartAxisDirection } from '../chartAxisDirection';
@@ -67,7 +68,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         return super.calculateLayout(primaryTickCount);
     }
 
-    protected override createAxisContext(): AxisContext {
+    override createAxisContext(): AxisContext {
         return {
             ...super.createAxisContext(),
             position: this.position,

@@ -130,7 +130,9 @@ export function scaleZoomAxisWithPoint(
     oldState: _ModuleSupport.ZoomState,
     origin: number
 ) {
-    const scaledOrigin = origin * (1 - (oldState.max - oldState.min - (newState.max - newState.min)));
+    const newDelta = newState.max - newState.min;
+    const oldDelta = oldState.max - oldState.min;
+    const scaledOrigin = origin * (1 - (oldDelta - newDelta));
 
     const translation = origin - scaledOrigin;
     const min = newState.min + translation;
@@ -158,7 +160,7 @@ export function constrainZoom(zoom: DefinedZoomState): DefinedZoomState {
     return after;
 }
 
-function constrainAxis(axis: { min: number; max: number }) {
+export function constrainAxis(axis: { min: number; max: number }) {
     const size = axis.max - axis.min;
 
     let min = axis.max > UNIT.max ? UNIT.max - size : axis.min;

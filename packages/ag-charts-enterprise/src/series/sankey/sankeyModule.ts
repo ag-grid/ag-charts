@@ -2,20 +2,27 @@ import { type _ModuleSupport, _Theme } from 'ag-charts-community';
 
 import { SankeySeries } from './sankeySeries';
 
-const { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR, EXTENDS_SERIES_DEFAULTS } = _Theme;
+const { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR } = _Theme;
 
 export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'enterprise',
     chartTypes: ['flow-proportion'],
+    solo: true,
 
     identifier: 'sankey',
     instanceConstructor: SankeySeries,
+    tooltipDefaults: { range: 'exact' },
 
     themeTemplate: {
+        seriesArea: {
+            padding: {
+                top: 10,
+                bottom: 10,
+            },
+        },
         series: {
-            __extends__: EXTENDS_SERIES_DEFAULTS,
             highlightStyle: {
                 series: {
                     dimOpacity: 0.2,
@@ -39,13 +46,10 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
         },
         legend: {
             enabled: false,
+            toggleSeries: false,
         },
     },
     paletteFactory({ takeColors, colorsCount }) {
-        const { fills, strokes } = takeColors(colorsCount);
-        return {
-            fills,
-            strokes,
-        };
+        return takeColors(colorsCount);
     },
 };

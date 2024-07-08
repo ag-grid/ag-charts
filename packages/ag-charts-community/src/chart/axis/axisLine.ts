@@ -8,5 +8,5 @@ export class AxisLine {
     width: number = 1;
 
     @Validate(COLOR_STRING, { optional: true })
-    color?: string = undefined;
+    stroke?: string = undefined;
 }

@@ -1,5 +1,6 @@
+import type { FontStyle, FontWeight, TextAlign, TextWrap } from 'ag-charts-types';
+
 import type { ModuleContext } from '../module/moduleContext';
-import type { FontStyle, FontWeight, TextAlign, TextWrap } from '../options/agChartOptions';
 import { PointerEvents } from '../scene/node';
 import { Text } from '../scene/shape/text';
 import { joinFunctions } from '../util/function';
@@ -7,6 +8,7 @@ import { createId } from '../util/id';
 import { BaseProperties } from '../util/properties';
 import { ProxyPropertyOnWrite } from '../util/proxy';
 import { TextMeasurer } from '../util/textMeasurer';
+import { TextWrapper } from '../util/textWrapper';
 import {
     BOOLEAN,
     COLOR_STRING,
@@ -20,7 +22,7 @@ import {
 } from '../util/validation';
 import type { CaptionLike } from './captionLike';
 import type { PointerInteractionEvent } from './interaction/interactionManager';
-import { type TooltipPointerEvent, toTooltipHtml } from './tooltip/tooltip';
+import { toTooltipHtml } from './tooltip/tooltip';
 
 export class Caption extends BaseProperties implements CaptionLike {
     static readonly SMALL_PADDING = 10;
@@ -80,6 +82,9 @@ export class Caption extends BaseProperties implements CaptionLike {
 
     private truncated = false;
 
+    @Validate(STRING)
+    layoutStyle: 'block' | 'overlay' = 'block';
+
     registerInteraction(moduleCtx: ModuleContext) {
         const region = moduleCtx.regionManager.getRegion('root');
         const destroyFns = [
@@ -98,12 +103,12 @@ export class Caption extends BaseProperties implements CaptionLike {
             this.node.text = text;
             return;
         }
-        const wrappedText = Text.wrap(text ?? '', maxWidth, maxHeight, this, wrapping);
+        const wrappedText = TextWrapper.wrapText(text ?? '', { maxWidth, maxHeight, font: this, textWrap: wrapping });
         this.node.text = wrappedText;
         this.truncated = wrappedText.includes(TextMeasurer.EllipsisChar);
     }
 
-    private updateTooltip(moduleCtx: ModuleContext, event: TooltipPointerEvent<'hover' | 'keyboard'> | undefined) {
+    handleMouseMove(moduleCtx: ModuleContext, event: PointerInteractionEvent<'hover'>) {
         if (event !== undefined && this.enabled && this.node.visible && this.truncated) {
             const { offsetX, offsetY } = event;
             moduleCtx.tooltipManager.updateTooltip(
@@ -111,16 +116,6 @@ export class Caption extends BaseProperties implements CaptionLike {
                 { offsetX, offsetY, lastPointerEvent: event, showArrow: false },
                 toTooltipHtml({ content: this.text })
             );
-            return true;
-        }
-        return false;
-    }
-
-    handleMouseMove(moduleCtx: ModuleContext, event: PointerInteractionEvent<'hover'>) {
-        if (this.updateTooltip(moduleCtx, event)) {
-            // Prevent other handlers from consuming this event if it's generated inside the caption
-            // boundaries.
-            event.consume();
         }
     }
 

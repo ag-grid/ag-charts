@@ -1,14 +1,17 @@
 import { afterEach, beforeEach, expect, jest } from '@jest/globals';
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
-import { type IAnimation, PHASE_METADATA } from '../../motion/animation';
 import type {
     AgCartesianChartOptions,
     AgChartInstance,
     AgChartOptions,
     AgChartTheme,
+    AgFinancialChartOptions,
     AgPolarChartOptions,
-} from '../../options/agChartOptions';
+} from 'ag-charts-types';
+
+import { AgCharts } from '../../api/agCharts';
+import { type IAnimation, PHASE_METADATA } from '../../motion/animation';
 import { BBox } from '../../scene/bbox';
 import { getDocument } from '../../util/dom';
 import {
@@ -19,7 +22,6 @@ import {
     setupMockCanvas,
     toMatchImage,
 } from '../../util/test/mockCanvas';
-import { AgCharts } from '../agChartV2';
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
 import { AnimationManager } from '../interaction/animationManager';
@@ -29,10 +31,15 @@ export type { Chart } from '../chart';
 export type { AgChartProxy } from '../chartProxy';
 export * from '../../util/test/mockConsole';
 
+export type ChartOrProxy<O extends AgChartOptions | AgFinancialChartOptions = AgChartOptions> =
+    | AgChartInstance<O>
+    | AgChartProxy
+    | Chart;
+
 export interface TestCase {
     options: AgChartOptions;
-    assertions: (chart: Chart | AgChartProxy) => Promise<void>;
-    extraScreenshotActions?: (chart: AgChartInstance) => Promise<void>;
+    assertions: (chart: ChartOrProxy) => Promise<void>;
+    extraScreenshotActions?: (chart: ChartOrProxy) => Promise<void>;
     warnings?: Array<string | Array<string>>;
 }
 
@@ -56,6 +63,14 @@ export const IMAGE_SNAPSHOT_DEFAULTS: MatchImageSnapshotOptions = {
 
 export async function delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export function prepareFinancialTestOptions(options: AgFinancialChartOptions, container = getDocument('body')) {
+    options.width = CANVAS_WIDTH;
+    options.height = CANVAS_HEIGHT;
+    options.container = container;
+
+    return options;
 }
 
 export function prepareTestOptions<T extends AgChartOptions>(options: T, container = getDocument('body')) {
@@ -90,11 +105,11 @@ export function prepareTestOptions<T extends AgChartOptions>(options: T, contain
     return options;
 }
 
-function isChartInstance(chartOrProxy: AgChartInstance): chartOrProxy is Chart {
+function isChartInstance(chartOrProxy: ChartOrProxy): chartOrProxy is Chart {
     return chartOrProxy.constructor.name !== 'AgChartInstanceProxy' || (chartOrProxy as Chart).className != null;
 }
 
-export function deproxy(chartOrProxy: AgChartInstance | AgChartProxy | Chart): Chart {
+export function deproxy(chartOrProxy: ChartOrProxy<any>): Chart {
     return isChartInstance(chartOrProxy) ? chartOrProxy : ((chartOrProxy as any).chart as Chart);
 }
 
@@ -127,7 +142,10 @@ export function dateRange(start: Date, end: Date, step = 24 * 60 * 60 * 1000): D
     return result;
 }
 
-export async function waitForChartStability(chartOrProxy: Chart | AgChartProxy, animationAdvanceMs = 0): Promise<void> {
+export async function waitForChartStability<O extends AgChartOptions | AgFinancialChartOptions>(
+    chartOrProxy: ChartOrProxy<O>,
+    animationAdvanceMs = 0
+): Promise<void> {
     const timeoutMs = 5000;
     const chart = deproxy(chartOrProxy);
     const chartAny = chart as any; // to access private properties
@@ -206,7 +224,7 @@ export function wheelEvent({ clientX, clientY, deltaX, deltaY, deltaMode }: Whee
 export function cartesianChartAssertions(params?: { type?: string; axisTypes?: string[]; seriesTypes?: string[] }) {
     const { axisTypes = ['category', 'number'], seriesTypes = ['bar', 'bar'] } = params ?? {};
 
-    return async (chartOrProxy: Chart | AgChartProxy) => {
+    return async (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         expect(chart?.constructor?.name).toEqual('CartesianChart');
         expect(chart.axes).toHaveLength(axisTypes.length);
@@ -218,7 +236,7 @@ export function cartesianChartAssertions(params?: { type?: string; axisTypes?: s
 export function polarChartAssertions(params?: { seriesTypes?: string[] }) {
     const { seriesTypes = ['pie'] } = params ?? {};
 
-    return async (chartOrProxy: Chart | AgChartProxy) => {
+    return async (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         expect(chart?.constructor?.name).toEqual('PolarChart');
         expect(chart.axes).toHaveLength(0);
@@ -229,7 +247,7 @@ export function polarChartAssertions(params?: { seriesTypes?: string[] }) {
 export function hierarchyChartAssertions(params?: { seriesTypes?: string[] }) {
     const { seriesTypes = ['treemap'] } = params ?? {};
 
-    return async (chartOrProxy: Chart | AgChartProxy) => {
+    return async (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         expect(chart?.constructor?.name).toEqual('HierarchyChart');
         expect(chart.axes).toHaveLength(0);
@@ -240,7 +258,7 @@ export function hierarchyChartAssertions(params?: { seriesTypes?: string[] }) {
 export function topologyChartAssertions(params?: { seriesTypes?: string[] }) {
     const { seriesTypes = ['map-shape'] } = params ?? {};
 
-    return async (chartOrProxy: Chart | AgChartProxy) => {
+    return async (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         expect(chart?.constructor?.name).toEqual('TopologyChart');
         expect(chart.axes).toHaveLength(0);
@@ -248,12 +266,12 @@ export function topologyChartAssertions(params?: { seriesTypes?: string[] }) {
     };
 }
 
-export function sankeyChartAssertions(params?: { seriesTypes?: string[] }) {
-    const { seriesTypes = ['map-shape'] } = params ?? {};
+export function flowProportionChartAssertions(params?: { seriesTypes?: string[] }) {
+    const { seriesTypes = ['flow-proportion'] } = params ?? {};
 
-    return async (chartOrProxy: Chart | AgChartProxy) => {
+    return async (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toEqual('SankeyChart');
+        expect(chart?.constructor?.name).toEqual('FlowProportionChart');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
@@ -263,7 +281,7 @@ const checkTargetValid = (target: HTMLElement) => {
     if (!target.isConnected) throw new Error('Chart must be configured with a container for event testing to work');
 };
 
-export function hoverAction(x: number, y: number): (chart: Chart | AgChartProxy | AgChartInstance) => Promise<void> {
+export function hoverAction(x: number, y: number): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         const target = chart.ctx.scene.canvas.element;
@@ -278,7 +296,7 @@ export function clickAction(
     x: number,
     y: number,
     opts?: { mousedown?: { offsetX: number; offsetY: number } }
-): (chart: Chart | AgChartProxy) => Promise<void> {
+): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         const target = chart.ctx.scene.canvas.element;
@@ -292,7 +310,7 @@ export function clickAction(
     };
 }
 
-export function doubleClickAction(x: number, y: number): (chart: Chart | AgChartProxy) => Promise<void> {
+export function doubleClickAction(x: number, y: number): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         const target = chart.ctx.scene.canvas.element;
@@ -311,7 +329,7 @@ export function doubleClickAction(x: number, y: number): (chart: Chart | AgChart
     };
 }
 
-export function contextMenuAction(x: number, y: number): (chart: Chart | AgChartProxy) => Promise<void> {
+export function contextMenuAction(x: number, y: number): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         const target = chart.ctx.scene.canvas.element;
@@ -326,7 +344,7 @@ export function contextMenuAction(x: number, y: number): (chart: Chart | AgChart
 export function dragAction(
     from: { x: number; y: number },
     to: { x: number; y: number }
-): (chart: Chart | AgChartProxy) => Promise<void> {
+): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         const target = chart.ctx.scene.canvas.element;
@@ -348,7 +366,7 @@ export function scrollAction(
     deltaY: number,
     deltaMode: WheelDeltaMode = WheelDeltaMode.Lines,
     deltaX: number = 0
-): (chart: Chart | AgChartProxy) => Promise<void> {
+): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         const target = chart.ctx.scene.canvas.element;

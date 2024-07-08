@@ -1,5 +1,6 @@
+import type { AgChartOptions } from 'ag-charts-types';
+
 import type { DOMManager } from '../chart/dom/domManager';
-import type { AgChartOptions } from '../options/chart/chartBuilderOptions';
 
 export interface LicenseManager {
     setLicenseKey: (key?: string, gridContext?: boolean) => void;
@@ -11,6 +12,7 @@ export interface LicenseManager {
 
 interface EnterpriseModuleOptions {
     isEnterprise: boolean;
+    styles?: string;
     licenseManager?: (options: AgChartOptions) => LicenseManager;
     injectWatermark?: (domManager: DOMManager, text: string) => void;
 }

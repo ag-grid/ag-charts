@@ -154,6 +154,12 @@ describe('LinearScale', () => {
             const scale = new LinearScale();
             scale.domain = [-50000000, 50000000];
             const f = scale.tickFormat({ specifier: '~s' });
+            expect(f(-43000000)).toBe('−43M');
+        }
+        {
+            const scale = new LinearScale();
+            scale.domain = [-50000000, 50000000];
+            const f = scale.tickFormat({ specifier: '~s' });
             expect(f(43500000)).toBe('44M');
         }
         {

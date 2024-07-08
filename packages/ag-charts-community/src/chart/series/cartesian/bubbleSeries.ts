@@ -1,3 +1,5 @@
+import type { AgSeriesMarkerStyle } from 'ag-charts-types';
+
 import type { ModuleContext } from '../../../module/moduleContext';
 import { ColorScale } from '../../../scale/colorScale';
 import { LinearScale } from '../../../scale/linearScale';
@@ -9,6 +11,7 @@ import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
+import { TextMeasurer } from '../../../util/textMeasurer';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
@@ -171,7 +174,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 labelName,
             });
 
-            const size = Text.getTextSize(String(labelText), font);
+            const size = TextMeasurer.measureText(String(labelText), { font });
             const markerSize = sizeKey ? sizeScale.convert(values[sizeDataIdx]) : marker.size;
             const fill = colorKey ? colorScale.convert(values[colorDataIdx]) : undefined;
 
@@ -239,7 +242,11 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
     }) {
         const { markerSelection, isHighlight: highlighted } = opts;
         const { xKey, yKey, sizeKey, labelKey, marker } = this.properties;
-        const baseStyle = mergeDefaults(highlighted && this.properties.highlightStyle.item, marker.getStyle());
+        const { size, shape, fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = mergeDefaults(
+            highlighted && this.properties.highlightStyle.item,
+            marker.getStyle()
+        );
+        const baseStyle = { size, shape, fill, fillOpacity, stroke, strokeWidth, strokeOpacity };
 
         this.sizeScale.range = [marker.size, marker.maxSize];
 
@@ -398,7 +405,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         return new Group();
     }
 
-    public getFormattedMarkerStyle(datum: BubbleNodeDatum) {
+    public getFormattedMarkerStyle(datum: BubbleNodeDatum): AgSeriesMarkerStyle & { size: number } {
         const { xKey, yKey, sizeKey, labelKey } = this.properties;
         return this.getMarkerStyle(this.properties.marker, {
             datum,

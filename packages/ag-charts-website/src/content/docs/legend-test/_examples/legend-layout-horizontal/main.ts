@@ -1,6 +1,6 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgCharts, AgPolarChartOptions } from 'ag-charts-community';
 
-const options: AgChartOptions = {
+const options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
     width: 600,
     data: [
@@ -41,7 +41,7 @@ function updateWidth(event: any) {
     var value = +event.target.value;
 
     options.width = value;
-    AgCharts.update(chart, options);
+    chart.update(options);
 
     document.getElementById('sliderValue')!.innerHTML = String(value);
 }

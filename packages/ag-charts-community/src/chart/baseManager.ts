@@ -8,10 +8,6 @@ export abstract class BaseManager<EventType extends string = never, Event extend
         return this.listeners.addListener(type, handler);
     }
 
-    public removeListener(listenerSymbol: symbol) {
-        this.listeners.removeListener(listenerSymbol);
-    }
-
     public destroy() {
         this.listeners.destroy();
         this.destroyFns.forEach((fn) => fn());

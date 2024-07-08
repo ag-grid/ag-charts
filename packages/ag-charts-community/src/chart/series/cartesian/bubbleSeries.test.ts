@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
-import type { AgChartOptions } from '../../../options/agChartOptions';
-import { AgCharts } from '../../agChartV2';
-import type { Chart } from '../../chart';
+import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
+
+import { AgCharts } from '../../../api/agCharts';
 import * as examples from '../../test/examples';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -25,7 +25,7 @@ describe('BubbleSeries', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
-    let chart: Chart;
+    let chart: AgChartInstance;
 
     afterEach(() => {
         if (chart) {
@@ -62,17 +62,15 @@ describe('BubbleSeries', () => {
                     xKey: `x${i}`,
                     yKey: `y${i}`,
                     sizeKey: `s${i}`,
-                    marker: {
-                        size: 20,
-                        maxSize: 50,
-                    },
+                    size: 20,
+                    maxSize: 50,
                 })),
                 legend: { enabled: false },
             };
 
             prepareTestOptions(options);
 
-            chart = AgCharts.create(options) as Chart;
+            chart = AgCharts.create(options);
             await compare();
         });
 
@@ -95,7 +93,7 @@ describe('BubbleSeries', () => {
 
             prepareTestOptions(options);
 
-            chart = AgCharts.create(options) as Chart;
+            chart = AgCharts.create(options);
             await compare();
         });
     });
@@ -110,7 +108,7 @@ describe('BubbleSeries', () => {
                 const options: AgChartOptions = examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE;
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
                 await compare();
             });

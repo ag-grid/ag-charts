@@ -11,6 +11,7 @@ const {
     NUMBER,
     UNION,
     ProxyOnWrite,
+    TextWrapper,
     Validate,
 } = _ModuleSupport;
 const { Path, Text } = _Scene;
@@ -134,7 +135,7 @@ export abstract class AngleAxis<
         }
 
         node.visible = this.line.enabled;
-        node.stroke = this.line.color;
+        node.stroke = this.line.stroke;
         node.strokeWidth = this.line.width;
         node.fill = undefined;
     }
@@ -262,7 +263,7 @@ export abstract class AngleAxis<
             line.y1 = radius * sin;
             line.x2 = (radius + tick.size) * cos;
             line.y2 = (radius + tick.size) * sin;
-            line.stroke = tick.color;
+            line.stroke = tick.stroke;
             line.strokeWidth = tick.width;
         });
     }
@@ -325,8 +326,8 @@ export abstract class AngleAxis<
                 const pixelError = 1;
                 if (overflowLeft > pixelError || overflowRight > pixelError) {
                     const availWidth = box.width - Math.max(overflowLeft, overflowRight);
-                    text = Text.wrap(text, availWidth, Infinity, label, 'never');
-                    if (text === '\u2026') {
+                    text = TextWrapper.wrapText(text, { maxWidth: availWidth, font: label, textWrap: 'never' });
+                    if (text === TextWrapper.EllipsisChar) {
                         text = '';
                     }
                     tempText.text = text;

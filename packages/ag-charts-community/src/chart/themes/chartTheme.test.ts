@@ -1,13 +1,9 @@
 import { afterEach, beforeEach, describe, expect, test } from '@jest/globals';
 import { fail } from 'assert';
 
-import type {
-    AgCartesianChartOptions,
-    AgChartInstance,
-    AgChartTheme,
-    AgPolarChartOptions,
-} from '../../options/agChartOptions';
-import { AgCharts } from '../agChartV2';
+import type { AgCartesianChartOptions, AgChartTheme, AgPolarChartOptions } from 'ag-charts-types';
+
+import { AgCharts } from '../../api/agCharts';
 import { CartesianChart } from '../cartesianChart';
 import { PolarChart } from '../polarChart';
 import type { AreaSeries } from '../series/cartesian/areaSeries';
@@ -15,6 +11,7 @@ import type { BarSeries } from '../series/cartesian/barSeries';
 import type { LineSeries } from '../series/cartesian/lineSeries';
 import type { PieSeries } from '../series/polar/pieSeries';
 import { deproxy, setupMockConsole, waitForChartStability } from '../test/utils';
+import type { ChartOrProxy } from '../test/utils';
 import { ChartTheme } from './chartTheme';
 
 const data = [
@@ -28,7 +25,7 @@ const data = [
 describe('ChartTheme', () => {
     setupMockConsole();
 
-    let chart: AgChartInstance;
+    let chart: ChartOrProxy;
 
     afterEach(() => {
         if (chart) {
@@ -80,7 +77,7 @@ describe('ChartTheme', () => {
                 area: {
                     series: {
                         marker: {
-                            formatter: markerFormatter,
+                            itemStyler: markerFormatter,
                         },
                     },
                 },
@@ -175,7 +172,7 @@ describe('ChartTheme', () => {
 
         const serializedOptions = JSON.stringify(cartesianChartOptions);
         beforeEach(() => {
-            chart = deproxy(AgCharts.create(cartesianChartOptions)) as CartesianChart;
+            chart = deproxy(AgCharts.create(cartesianChartOptions));
         });
 
         test('Options are not mutated after AgCharts.create', () => {
@@ -210,7 +207,7 @@ describe('ChartTheme', () => {
                 expect(chart.series[i].type).toBe('area');
                 expect((chart.series[i] as unknown as AreaSeries).properties.fill).toEqual(areaFills[i - 5]);
                 expect((chart.series[i] as unknown as AreaSeries).properties.stroke).toEqual(areaStrokes[i - 5]);
-                expect((chart.series[i] as unknown as AreaSeries).properties.marker.formatter).toBe(markerFormatter);
+                expect((chart.series[i] as unknown as AreaSeries).properties.marker.itemStyler).toBe(markerFormatter);
             }
         });
     });
@@ -270,7 +267,7 @@ describe('ChartTheme', () => {
         const serializedOptions = JSON.stringify(polarChartOptions);
 
         beforeEach(() => {
-            chart = deproxy(AgCharts.create(polarChartOptions)) as PolarChart;
+            chart = deproxy(AgCharts.create(polarChartOptions));
         });
 
         test('Options are not mutated after AgCharts.create', () => {
@@ -480,7 +477,7 @@ describe('ChartTheme', () => {
                     axes: {
                         category: {
                             line: {
-                                color: 'red',
+                                stroke: 'red',
                             },
                             label: {
                                 fontSize: 12,
@@ -489,7 +486,7 @@ describe('ChartTheme', () => {
                             top: {},
                             right: {
                                 line: {
-                                    color: 'green',
+                                    stroke: 'green',
                                 },
                                 label: {
                                     fontSize: 14,
@@ -497,7 +494,7 @@ describe('ChartTheme', () => {
                             },
                             bottom: {
                                 line: {
-                                    color: 'blue',
+                                    stroke: 'blue',
                                 },
                                 label: {
                                     fontSize: 18,
@@ -505,7 +502,7 @@ describe('ChartTheme', () => {
                             },
                             left: {
                                 line: {
-                                    color: 'gold',
+                                    stroke: 'gold',
                                 },
                                 label: {
                                     fontSize: 20,
@@ -516,7 +513,7 @@ describe('ChartTheme', () => {
                             top: {},
                             right: {
                                 line: {
-                                    color: 'blue',
+                                    stroke: 'blue',
                                 },
                                 label: {
                                     fontSize: 18,
@@ -578,13 +575,13 @@ describe('ChartTheme', () => {
             const axis0 = chart.axes[0] as any;
             expect(axis0.type).toBe('number');
             expect(axis0.position).toBe('left');
-            expect(axis0.line.color).toBe(defaultTheme.config.area.axes.number.line.color);
+            expect(axis0.line.stroke).toBe(defaultTheme.config.area.axes.number.line.stroke);
             expect(axis0.label.fontSize).toBe(defaultTheme.config.area.axes.number.label.fontSize);
 
             const axis1 = chart.axes[1] as any;
             expect(axis1.type).toBe('category');
             expect(axis1.position).toBe('bottom');
-            expect(axis1.line.color).toBe('blue');
+            expect(axis1.line.stroke).toBe('blue');
             expect(axis1.label.fontSize).toBe(18);
         });
 
@@ -628,13 +625,13 @@ describe('ChartTheme', () => {
             const axis0 = chart.axes[0] as any;
             expect(axis0.type).toBe('number');
             expect(axis0.position).toBe('left');
-            expect(axis0.line.color).toBe(defaultTheme.config.area.axes.number.line.color);
+            expect(axis0.line.stroke).toBe(defaultTheme.config.area.axes.number.line.stroke);
             expect(axis0.label.fontSize).toBe(defaultTheme.config.area.axes.number.label.fontSize);
 
             const axis1 = chart.axes[1] as any;
             expect(axis1.type).toBe('category');
             expect(axis1.position).toBe('bottom');
-            expect(axis1.line.color).toBe('blue');
+            expect(axis1.line.stroke).toBe('blue');
             expect(axis1.label.fontSize).toBe(18);
         });
 
@@ -688,13 +685,13 @@ describe('ChartTheme', () => {
             const axis0 = chart.axes[0] as any;
             expect(axis0.type).toBe('number');
             expect(axis0.position).toBe('right');
-            expect(axis0.line.color).toBe('blue');
+            expect(axis0.line.stroke).toBe('blue');
             expect(axis0.label.fontSize).toBe(18);
 
             const axis1 = chart.axes[1] as any;
             expect(axis1.type).toBe('category');
             expect(axis1.position).toBe('top');
-            expect(axis1.line.color).toBe('red');
+            expect(axis1.line.stroke).toBe('red');
             expect(axis1.label.fontSize).toBe(12);
         });
 
@@ -708,7 +705,7 @@ describe('ChartTheme', () => {
                             type: 'number',
                             position: 'right',
                             line: {
-                                color: 'red',
+                                stroke: 'red',
                             },
                             label: {
                                 fontStyle: 'italic',
@@ -765,7 +762,7 @@ describe('ChartTheme', () => {
             const axis0 = chart.axes[0] as any;
             expect(axis0.type).toBe('number');
             expect(axis0.position).toBe('right');
-            expect(axis0.line.color).toBe('red');
+            expect(axis0.line.stroke).toBe('red');
             expect(axis0.label.fontSize).toBe(18);
             expect(axis0.label.fontStyle).toBe('italic');
             expect(axis0.label.fontFamily).toBe('Tahoma');
@@ -776,7 +773,7 @@ describe('ChartTheme', () => {
             const axis1 = chart.axes[1] as any;
             expect(axis1.type).toBe('category');
             expect(axis1.position).toBe('bottom');
-            expect(axis1.line.color).toBe('blue');
+            expect(axis1.line.stroke).toBe('blue');
             expect(axis1.line.width).toBe(5);
             expect(axis1.label.fontSize).toBe(18);
             expect(axis1.label.fontStyle).toBe(defaultTheme.config.area.axes.category.label.fontStyle);

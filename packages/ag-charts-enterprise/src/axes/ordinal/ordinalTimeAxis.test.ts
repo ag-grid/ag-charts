@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import type {
-    AgAxisOrdinalTimeTickOptions,
     AgBaseChartOptions,
     AgCartesianAxisPosition,
     AgCartesianAxisType,
@@ -17,6 +16,7 @@ import {
     setupMockCanvas,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import type { ChartOrProxy } from 'ag-charts-community-test';
 
 import { createEnterpriseChart } from '../../test/utils';
 
@@ -102,7 +102,7 @@ const DATA = [
 const BASIC_ORDINAL_TIME_AXIS_EXAMPLE: AgCartesianChartOptions = {
     data: DATA,
     axes: [
-        { type: 'ordinal-time', position: 'bottom', tick: { interval: time.day.every(7) } },
+        { type: 'ordinal-time', position: 'bottom', interval: { step: time.day.every(7) } },
         { type: 'number', position: 'left' },
     ],
     series: [
@@ -122,13 +122,13 @@ const ORDINAL_TIME_AXIS_TICK_VALUES: AgCartesianChartOptions = {
         {
             type: 'ordinal-time',
             position: 'bottom',
-            tick: {
+            interval: {
                 values: [
                     new Date('Wednesday, August 09, 2023'),
                     new Date('Friday, August 18, 2023'),
                     new Date('Wednesday, August 23, 2023'),
                 ],
-            } as AgAxisOrdinalTimeTickOptions,
+            },
         },
         {
             type: 'number',
@@ -152,7 +152,9 @@ const ORDINAL_TIME_AXIS_TICK_MIN_SPACING: AgCartesianChartOptions = {
         {
             type: 'ordinal-time',
             position: 'bottom',
-            tick: { minSpacing: 300 } as AgAxisOrdinalTimeTickOptions,
+            interval: {
+                minSpacing: 300,
+            },
         },
         {
             type: 'number',
@@ -455,8 +457,8 @@ function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
 
 type TestCase<T extends AgBaseChartOptions = AgCartesianChartOptions> = {
     options: T;
-    assertions: (chart: any) => Promise<void>;
-    extraScreenshotActions?: (chart: any) => Promise<void>;
+    assertions: (chart: ChartOrProxy) => Promise<void>;
+    extraScreenshotActions?: (chart: ChartOrProxy) => Promise<void>;
     compare?: AgCartesianAxisType[];
 };
 const EXAMPLES: Record<string, TestCase> = {

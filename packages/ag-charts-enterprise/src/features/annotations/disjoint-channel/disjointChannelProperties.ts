@@ -8,7 +8,8 @@ import {
     LineDash,
     Stroke,
 } from '../annotationProperties';
-import { AnnotationType } from '../annotationTypes';
+import { type AnnotationContext, AnnotationType } from '../annotationTypes';
+import { validateDatumLine } from '../annotationUtils';
 
 const { NUMBER, STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
 
@@ -24,10 +25,10 @@ export class DisjointChannelAnnotation extends Annotation(
     type = AnnotationType.DisjointChannel as const;
 
     @Validate(NUMBER)
-    startSize: number = 0;
+    startHeight!: number;
 
     @Validate(NUMBER)
-    endSize: number = 0;
+    endHeight!: number;
 
     get bottom() {
         const bottom = {
@@ -36,13 +37,20 @@ export class DisjointChannelAnnotation extends Annotation(
         };
 
         if (typeof bottom.start.y === 'number' && typeof bottom.end.y === 'number') {
-            bottom.start.y -= this.startSize;
-            bottom.end.y -= this.endSize;
+            bottom.start.y -= this.startHeight;
+            bottom.end.y -= this.endHeight;
         } else {
-            // TODO
             _Util.Logger.warnOnce(`Annotation [${this.type}] can only be used with a numeric y-axis.`);
         }
 
         return bottom;
+    }
+
+    override isValidWithContext(context: AnnotationContext, warningPrefix?: string) {
+        return (
+            super.isValid(warningPrefix) &&
+            validateDatumLine(context, this, warningPrefix) &&
+            validateDatumLine(context, this.bottom, warningPrefix)
+        );
     }
 }

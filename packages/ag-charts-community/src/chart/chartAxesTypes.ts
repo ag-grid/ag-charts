@@ -1,4 +1,4 @@
-import type { AgCartesianAxisType } from '../options/agChartOptions';
+import type { AgCartesianAxisType } from 'ag-charts-types';
 
 const TYPES: Record<string, AgCartesianAxisType> = {
     number: 'number',

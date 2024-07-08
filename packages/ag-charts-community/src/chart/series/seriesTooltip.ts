@@ -1,7 +1,8 @@
-import type { AgSeriesTooltipRendererParams, AgTooltipRendererResult } from '../../options/chart/tooltipOptions';
+import type { AgSeriesTooltipRendererParams, AgTooltipRendererResult, InteractionRange } from 'ag-charts-types';
+
 import { BaseProperties } from '../../util/properties';
 import type { RequireOptional } from '../../util/types';
-import { BOOLEAN, FUNCTION, OBJECT, Validate } from '../../util/validation';
+import { BOOLEAN, FUNCTION, INTERACTION_RANGE, OBJECT, Validate } from '../../util/validation';
 import { TooltipPosition, toTooltipHtml } from '../tooltip/tooltip';
 
 type TooltipRenderer<P> = (params: P) => string | AgTooltipRendererResult;
@@ -11,7 +12,7 @@ class SeriesTooltipInteraction extends BaseProperties {
     enabled: boolean = false;
 }
 
-export class SeriesTooltip<P extends AgSeriesTooltipRendererParams> extends BaseProperties {
+export class SeriesTooltip<P extends AgSeriesTooltipRendererParams<any>> extends BaseProperties {
     @Validate(BOOLEAN)
     enabled: boolean = true;
 
@@ -26,6 +27,9 @@ export class SeriesTooltip<P extends AgSeriesTooltipRendererParams> extends Base
 
     @Validate(OBJECT)
     readonly position = new TooltipPosition();
+
+    @Validate(INTERACTION_RANGE, { optional: true })
+    range?: InteractionRange = undefined;
 
     toTooltipHtml(defaults: AgTooltipRendererResult, params: RequireOptional<P>) {
         if (this.renderer) {

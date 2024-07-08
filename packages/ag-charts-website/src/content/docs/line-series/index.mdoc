@@ -1,5 +1,6 @@
 ---
 title: 'Line Series'
+description: '$framework Line Charts visualise continuous data to help analyse trends and fluctuations over time. Supports continuous and missing data. Customise labels, markers and more.'
 ---
 
 A Line Series visualises continuous data, and is typically used to see trends or fluctuations over time.
@@ -67,6 +68,25 @@ series: [
 ```
 
 Please see the [Series Markers](./markers/) page for more information or the [API Reference](./line-series/#reference-AgLineSeriesOptions-marker) for a list of all available marker options.
+
+### Interpolation
+
+A straight line is used to connect points by default in the Line Series. Use the `interpolation` option to change the line style.
+
+{% chartExampleRunner title="Customised Line Style" name="line-style" type="generated" /%}
+
+```js
+series: [
+    {
+        // ...
+        interpolation: {
+            type: 'smooth'
+        },
+    },
+],
+```
+
+Please see the the [API Reference](./line-series/#reference-AgLineSeriesOptions-interpolation) for a list of all available interpolation options.
 
 ## Data
 

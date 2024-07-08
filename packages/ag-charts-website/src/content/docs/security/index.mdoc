@@ -6,31 +6,18 @@ AG Charts allows you to work with security tools and parameters to make your app
 
 ## Content Security Policy (CSP)
 
-The basic information on Content Security Policy can be found on the [MDN web docs](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) website and will cover the necessary information on the subject. AG Charts works with CSP, but some basic configuration is necessary to have your application load correctly. Below is detailed what the minimum set of CSP rules for AG Charts is and why.
+The basic information on Content Security Policy can be found on the [MDN web docs](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP)
+website and will cover the necessary information on the subject. AG Charts works with CSP, but some basic configuration
+is necessary to have your application load correctly. Below is detailed what the minimum set of CSP rules for AG Charts
+is and why.
 
 ### script-src
 
-The `script-src` policy will work only with `'self'` rule. If you use property paths for keys, it will be necessary to add `unsafe-eval` rule to your policy.
-
-```js
-series: [
-    // unsafe-eval NOT required
-    {
-        xKey: 'name',
-    },
-    // unsafe-eval IS required
-    {
-        yKey: 'totals.stock',
-    },
-    {
-        latKey: 'coordinates[0]',
-    },
-];
-```
+The `script-src` policy will work only with `'self'` rule.
 
 ### style-src
 
-The `style-src` policy requires the `unsafe-inline` for a few reasons, including positioning tooltips, and stlyling canvases to accommodate for HiDPI screens.
+The `style-src` policy requires the `unsafe-inline` for a few reasons, including positioning tooltips, and styling canvases to accommodate for HiDPI screens.
 
 {% note %}
 Even though the `style-src` policy requires `unsafe-inline`, the specific way AG Charts uses it causes no actual security vulnerability.
@@ -57,7 +44,7 @@ However if you are using all the features mentioned above, the rule is:
 ```html
 <meta
     http-equiv="Content-Security-Policy"
-    content="default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
+    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
 />
 ```
 

@@ -30,10 +30,8 @@ const options: AgChartOptions = {
             xName: 'Engine Size',
             yKey: 'highway-mpg',
             yName: 'Highway MPG',
-            marker: {
-                strokeWidth: 0,
-                fillOpacity: 1,
-            },
+            strokeWidth: 0,
+            fillOpacity: 1,
         },
     ],
     axes: [

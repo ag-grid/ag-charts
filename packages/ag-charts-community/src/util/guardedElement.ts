@@ -4,7 +4,7 @@ export type GuardedElementProperties = {
     bottomTabGuard: HTMLElement;
 };
 
-export class GuardedElement implements GuardedElementProperties {
+export class GuardedElement<TElement extends HTMLElement = HTMLElement> implements GuardedElementProperties {
     private readonly destroyFns: (() => void)[] = [];
 
     private guardTarget?: HTMLElement;
@@ -13,7 +13,7 @@ export class GuardedElement implements GuardedElementProperties {
     private guessedDelta?: -1 | 0 | 1;
 
     constructor(
-        public readonly element: HTMLElement,
+        public readonly element: TElement,
         public readonly topTabGuard: HTMLElement,
         public readonly bottomTabGuard: HTMLElement
     ) {

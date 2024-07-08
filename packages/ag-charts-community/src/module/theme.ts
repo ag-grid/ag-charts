@@ -1,14 +1,13 @@
 import type { SeriesPaletteFactoryParams } from './coreModulesTypes';
 
-export const singleSeriesPaletteFactory = ({ takeColors }: SeriesPaletteFactoryParams) => {
+export function singleSeriesPaletteFactory({ takeColors }: SeriesPaletteFactoryParams) {
     const {
         fills: [fill],
         strokes: [stroke],
     } = takeColors(1);
     return { fill, stroke };
-};
+}
 
-export const markerPaletteFactory = (params: SeriesPaletteFactoryParams) => {
-    const { fill, stroke } = singleSeriesPaletteFactory(params);
-    return { marker: { fill, stroke } };
-};
+export function markerPaletteFactory(params: SeriesPaletteFactoryParams) {
+    return { marker: singleSeriesPaletteFactory(params) };
+}

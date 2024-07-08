@@ -40,6 +40,7 @@ const options: AgChartOptions = {
             type: 'radius-category',
             groupPaddingInner: 0.5,
             paddingInner: 0.5,
+            paddingOuter: 0.25,
         },
     ],
 };

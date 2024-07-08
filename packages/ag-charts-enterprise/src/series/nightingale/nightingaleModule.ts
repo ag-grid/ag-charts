@@ -12,6 +12,7 @@ export const NightingaleModule: _ModuleSupport.SeriesModule<'nightingale'> = {
 
     identifier: 'nightingale',
     instanceConstructor: NightingaleSeries,
+    tooltipDefaults: { range: 'exact' },
     defaultAxes: [
         {
             type: _Theme.POLAR_AXIS_TYPE.ANGLE_CATEGORY,
@@ -28,7 +29,7 @@ export const NightingaleModule: _ModuleSupport.SeriesModule<'nightingale'> = {
         } = takeColors(1);
         return {
             fill,
-            stroke: userPalette ? stroke : _Theme.DEFAULT_POLAR_SERIES_STROKE,
+            stroke: userPalette !== 'inbuilt' ? stroke : _Theme.DEFAULT_POLAR_SERIES_STROKE,
         };
     },
     stackable: true,

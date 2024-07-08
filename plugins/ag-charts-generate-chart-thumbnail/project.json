@@ -8,6 +8,7 @@
       "executor": "@nx/js:swc",
       "inputs": ["{projectRoot}/src/**"],
       "outputs": ["{options.outputPath}"],
+      "cache": true,
       "dependsOn": [
         "ag-charts-community:build:package",
         "ag-charts-enterprise:build:package",
@@ -35,5 +36,5 @@
       }
     }
   },
-  "tags": []
+  "tags": ["no-batching"]
 }

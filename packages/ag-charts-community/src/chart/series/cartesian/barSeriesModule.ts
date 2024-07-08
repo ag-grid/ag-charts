@@ -1,12 +1,7 @@
 import type { SeriesModule } from '../../../module/coreModules';
 import { singleSeriesPaletteFactory } from '../../../module/theme';
 import { CARTESIAN_AXIS_TYPE, FONT_WEIGHT, POSITION } from '../../themes/constants';
-import {
-    DEFAULT_FONT_FAMILY,
-    DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
-    DEFAULT_SHADOW_COLOUR,
-    EXTENDS_SERIES_DEFAULTS,
-} from '../../themes/symbols';
+import { DEFAULT_FONT_FAMILY, DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 import { BarSeries } from './barSeries';
 
 export const BarSeriesModule: SeriesModule<'bar'> = {
@@ -19,6 +14,7 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
     instanceConstructor: BarSeries,
     stackable: true,
     groupable: true,
+    tooltipDefaults: { range: 'exact' },
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,
@@ -32,7 +28,6 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
     swapDefaultAxesCondition: (series) => series?.direction === 'horizontal',
     themeTemplate: {
         series: {
-            __extends__: EXTENDS_SERIES_DEFAULTS,
             direction: 'vertical',
             fillOpacity: 1,
             strokeWidth: 0,

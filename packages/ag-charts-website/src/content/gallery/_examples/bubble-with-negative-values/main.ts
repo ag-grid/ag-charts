@@ -23,10 +23,8 @@ const options: AgCartesianChartOptions = {
             sizeName: 'Population',
             labelKey: 'city',
             labelName: 'City',
-            marker: {
-                size: 5,
-                maxSize: 100,
-            },
+            size: 5,
+            maxSize: 100,
         },
     ],
     axes: [

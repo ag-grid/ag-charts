@@ -4,9 +4,7 @@ export interface FlowProportionSeriesProperties<SeriesOptions extends {}>
     extends _ModuleSupport.SeriesProperties<SeriesOptions> {
     nodes: any[] | undefined;
     fromKey: string;
-    fromIdName: string | undefined;
     toKey: string;
-    toIdName: string | undefined;
     idKey: string;
     idName: string | undefined;
     labelKey: string | undefined;

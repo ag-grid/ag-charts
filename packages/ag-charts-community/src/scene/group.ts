@@ -137,7 +137,7 @@ export class Group extends Node {
         return Group.computeBBox(this.children);
     }
 
-    override computeTransformedBBox(): BBox | undefined {
+    override computeTransformedBBox(): BBox {
         return this.computeBBox();
     }
 

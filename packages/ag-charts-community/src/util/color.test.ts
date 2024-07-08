@@ -108,7 +108,7 @@ describe('Color', () => {
         {
             const color = new Color(0.5, 0.5, 0.5);
             const hsb = color.toHSB();
-            expect(hsb[0]).toBe(NaN);
+            expect(hsb[0]).toBe(0);
             expect(hsb[1]).toBe(0.0);
             expect(hsb[2]).toBe(0.5);
         }
@@ -123,12 +123,6 @@ describe('Color', () => {
         }
         {
             const rgb = Color.HSBtoRGB(0, 0.8, 0.6);
-            expect(rgb[0]).toBe(0.6);
-            expect(rgb[1]).toBe(0.11999999999999997);
-            expect(rgb[2]).toBe(0.11999999999999997);
-        }
-        {
-            const rgb = Color.HSBtoRGB(NaN, 0.8, 0.6);
             expect(rgb[0]).toBe(0.6);
             expect(rgb[1]).toBe(0.11999999999999997);
             expect(rgb[2]).toBe(0.11999999999999997);

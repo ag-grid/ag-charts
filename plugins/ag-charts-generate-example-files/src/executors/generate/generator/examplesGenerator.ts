@@ -8,6 +8,7 @@ import chartVanillaSrcParser from './transformation-scripts/chart-vanilla-src-pa
 import type { GeneratedContents, InternalFramework } from './types';
 import {
     getEntryFileName,
+    getHasLocale,
     getIsEnterprise,
     getProvidedExampleFiles,
     getProvidedExampleFolder,
@@ -15,6 +16,7 @@ import {
 } from './utils/fileUtils';
 import { frameworkFilesGenerator } from './utils/frameworkFilesGenerator';
 import { getDarkModeSnippet } from './utils/getDarkModeSnippet';
+import { getHtmlFiles } from './utils/getHtmlFiles';
 import { getOtherScriptFiles } from './utils/getOtherScriptFiles';
 import { getPackageJson } from './utils/getPackageJson';
 import { getStyleFiles } from './utils/getStyleFiles';
@@ -93,10 +95,14 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
     let indexHtml = await readFile(path.join(folderPath, 'index.html'));
     extractOptions ||= entryFile.includes('@ag-options-extract');
 
-    if (entryFile.includes('@ag-skip-fws') && internalFramework !== 'vanilla') {
-        entryFile = PLACEHOLDER_MAIN_TS;
-        indexHtml = `<div id="myChart"></div>`;
-        extractOptions = false;
+    if (entryFile.includes('@ag-skip-fws')) {
+        if (['vanilla', 'typescript'].includes(internalFramework)) {
+            entryFile = entryFile.replace(/^\s*\/\/ @ag-skip-fws\s*\n*$/g, '');
+        } else {
+            entryFile = PLACEHOLDER_MAIN_TS;
+            indexHtml = `<div id="myChart"></div>`;
+            extractOptions = false;
+        }
     }
 
     const otherScriptFiles = await getOtherScriptFiles({
@@ -125,8 +131,10 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
     const providedExamples = Object.fromEntries(providedExampleEntries);
 
     const styleFiles = await getStyleFiles({ folderPath, sourceFileList });
+    const htmlFiles = await getHtmlFiles({ folderPath, sourceFileList });
 
     const isEnterprise = getIsEnterprise({ entryFile });
+    const hasLocale = getHasLocale({ entryFile });
 
     const { bindings, typedBindings } = chartVanillaSrcParser({
         srcFile: entryFile,
@@ -174,11 +182,13 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
 
     const result: GeneratedContents = {
         isEnterprise,
+        hasLocale,
         scriptFiles: scriptFiles!,
         styleFiles: Object.keys(styleFiles),
+        htmlFiles: Object.keys(htmlFiles),
         sourceFileList,
         // Replace files with provided examples
-        files: Object.assign(styleFiles, files, providedExamples),
+        files: Object.assign(styleFiles, htmlFiles, files, providedExamples),
         // Files without provided examples
         generatedFiles: files,
         boilerPlateFiles: boilerPlateFiles!,

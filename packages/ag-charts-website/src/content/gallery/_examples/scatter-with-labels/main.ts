@@ -13,6 +13,9 @@ const options: AgChartOptions = {
     footnote: {
         text: 'Source: Completely made up and random',
     },
+    padding: {
+        left: 35,
+    },
     series: [
         {
             data: data.filter((d) => d.gender === 'Girl'),
@@ -23,7 +26,7 @@ const options: AgChartOptions = {
             labelKey: 'name',
             labelName: 'Name',
             yName: 'Girl Names',
-            label: {},
+            label: { enabled: true },
         },
         {
             data: data.filter((d) => d.gender === 'Boy'),
@@ -34,13 +37,14 @@ const options: AgChartOptions = {
             yName: 'Boy Names',
             labelKey: 'name',
             labelName: 'Name',
-            label: {},
+            label: { enabled: true },
         },
     ],
     axes: [
         {
             position: 'bottom',
             type: 'number',
+            nice: false,
             gridLine: {
                 enabled: false,
             },

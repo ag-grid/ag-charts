@@ -20,7 +20,6 @@ const options: AgChartOptions = {
     data,
     series: [
         {
-            // @ts-ignore
             type: 'map-shape',
             topology,
             data: data,
@@ -29,7 +28,6 @@ const options: AgChartOptions = {
             legendItemName: 'map-shape',
         },
         {
-            // @ts-ignore
             type: 'map-line',
             topology: routeTopology,
             data: routeData,
@@ -40,7 +38,6 @@ const options: AgChartOptions = {
             legendItemName: 'Route',
         },
         {
-            // @ts-ignore
             type: 'map-marker',
             topology: cityTopology,
             data: cityData,

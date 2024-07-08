@@ -1,6 +1,5 @@
 import { StateTracker } from '../../util/stateTracker';
 import { BaseManager } from '../baseManager';
-import type { CategoryLegendDatum } from '../legendDatum';
 import type { SeriesNodeDatum } from '../series/seriesTypes';
 
 export interface HighlightNodeDatum extends SeriesNodeDatum {
@@ -24,12 +23,7 @@ export interface HighlightChangeEvent {
  */
 export class HighlightManager extends BaseManager<'highlight-change', HighlightChangeEvent> {
     private readonly highlightStates = new StateTracker<HighlightNodeDatum>();
-    private readonly pickedStates = new StateTracker<SeriesNodeDatum>();
-    private readonly legendItemStates = new StateTracker<CategoryLegendDatum>();
-
     private activeHighlight?: HighlightNodeDatum;
-    private activePicked?: SeriesNodeDatum;
-    private activeLegendItem?: CategoryLegendDatum;
 
     public updateHighlight(callerId: string, highlightedDatum?: HighlightNodeDatum) {
         const { activeHighlight: previousHighlight } = this;
@@ -46,24 +40,6 @@ export class HighlightManager extends BaseManager<'highlight-change', HighlightC
 
     public getActiveHighlight(): HighlightNodeDatum | undefined {
         return this.activeHighlight;
-    }
-
-    public updatePicked(callerId: string, clickableDatum?: SeriesNodeDatum) {
-        this.pickedStates.set(callerId, clickableDatum);
-        this.activePicked = this.pickedStates.stateValue();
-    }
-
-    public getActivePicked(): SeriesNodeDatum | undefined {
-        return this.activePicked;
-    }
-
-    public updateLegendItem(callerId: string, clickableLegendItem?: CategoryLegendDatum) {
-        this.legendItemStates.set(callerId, clickableLegendItem);
-        this.activeLegendItem = this.legendItemStates.stateValue();
-    }
-
-    public getActiveLegendItem(): CategoryLegendDatum | undefined {
-        return this.activeLegendItem;
     }
 
     private isEqual(a?: SeriesNodeDatum, b?: SeriesNodeDatum) {

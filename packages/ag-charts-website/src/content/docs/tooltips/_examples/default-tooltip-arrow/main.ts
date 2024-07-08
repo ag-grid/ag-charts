@@ -30,5 +30,5 @@ const chart = AgCharts.create(options);
 
 function toggleTooltipArrow() {
     options.tooltip!.showArrow = !options.tooltip!.showArrow;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

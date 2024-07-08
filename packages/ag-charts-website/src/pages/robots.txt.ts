@@ -19,6 +19,7 @@ Sitemap: ${pathJoin(SITE_URL, urlWithBaseUrl('/sitemap-index.xml'))}
 `;
 
 export async function GET(_context: APIContext) {
+    // NOTE: /archive is ignored in `ignorePaths` on production
     const disallowAll = !getIsDev() && !getIsProduction();
 
     const ignorePaths = await getSitemapIgnorePaths();

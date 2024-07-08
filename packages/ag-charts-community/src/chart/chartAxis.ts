@@ -1,12 +1,15 @@
-import type { AxisContext, ModuleContextWithParent } from '../module/moduleContext';
+import type { AgAxisLabelFormatterParams, AgCartesianAxisPosition, FontOptions, Formatter } from 'ag-charts-types';
+
+import type { AxisContext } from '../module/axisContext';
+import type { ModuleContextWithParent } from '../module/moduleContext';
 import type { ModuleMap } from '../module/moduleMap';
-import type { AgAxisLabelFormatterParams, AgCartesianAxisPosition, FontOptions } from '../options/agChartOptions';
 import type { Scale } from '../scale/scale';
 import type { BBox } from '../scene/bbox';
+import type { Group } from '../scene/group';
 import type { Node } from '../scene/node';
 import type { AxisGridLine } from './axis/axisGridLine';
 import type { AxisLine } from './axis/axisLine';
-import type { AxisTick } from './axis/axisTick';
+import type { AxisTick, TickInterval } from './axis/axisTick';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxisDirection } from './chartAxisDirection';
 import type { CrossLine } from './crossline/crossLine';
@@ -17,6 +20,7 @@ export type ChartAxisLabelFlipFlag = 1 | -1;
 
 export interface ChartAxis {
     attachAxis(axisGroup: Node, gridGroup: Node): void;
+    getAxisGroup(): Group;
     boundSeries: ISeries<unknown, unknown>[];
     calculateLayout(primaryTickCount?: number): { primaryTickCount: number | undefined; bbox: BBox };
     calculatePadding(min: number, max: number): [number, number];
@@ -33,6 +37,7 @@ export interface ChartAxis {
     formatDatum(datum: any): string;
     getLayoutState(): AxisLayout;
     getModuleMap(): ModuleMap<any, any, any>;
+    createAxisContext(): AxisContext;
     gridLength: number;
     gridPadding: number;
     id: string;
@@ -41,7 +46,7 @@ export interface ChartAxis {
     line: AxisLine;
     gridLine: AxisGridLine;
     label: ChartAxisLabel;
-    tick: AxisTick<any>;
+    tick: AxisTick;
     maxThickness: number;
     nice: boolean;
     position?: AgCartesianAxisPosition;
@@ -55,10 +60,22 @@ export interface ChartAxis {
     type: string;
     update(primaryTickCount?: number, animated?: boolean): number | undefined;
     updateScale(): void;
-    updatePosition(position: { rotation: number; sideFlag: ChartAxisLabelFlipFlag }): void;
+    updatePosition(): void;
     visibleRange: [number, number];
     createModuleContext: () => ModuleContextWithParent<AxisContext>;
     resetAnimation(chartAnimationPhase: ChartAnimationPhase): unknown;
+    interval: {
+        step?: number | TickInterval<any>;
+        values?: any[];
+        minSpacing?: number;
+        maxSpacing?: number;
+    };
+    layoutConstraints: {
+        stacked: boolean;
+        align: 'start' | 'end';
+        width: number;
+        unit: 'percent' | 'px';
+    };
 }
 
 export interface ChartAxisLabel extends FontOptions {
@@ -68,7 +85,7 @@ export interface ChartAxisLabel extends FontOptions {
     avoidCollisions: boolean;
     enabled: boolean;
     format?: string;
-    formatter?: (params: AgAxisLabelFormatterParams) => string;
+    formatter?: Formatter<AgAxisLabelFormatterParams>;
     getSideFlag(): ChartAxisLabelFlipFlag;
     maxHeight?: number;
     maxWidth?: number;

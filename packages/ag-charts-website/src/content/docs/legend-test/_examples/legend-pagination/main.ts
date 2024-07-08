@@ -1,8 +1,8 @@
-import { AgChartLegendPosition, AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgChartLegendPosition, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: `Renewable sources used to generate electricity for transport fuels`,
@@ -133,5 +133,5 @@ function updateLegendPosition(value: AgChartLegendPosition) {
             break;
     }
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

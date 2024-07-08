@@ -1,31 +1,21 @@
-import type { BBoxContainsTester, BBoxProvider, BBoxValues } from '../../util/bboxinterface';
+import type { BBoxContainsTester, BBoxProvider } from '../../util/bboxinterface';
 import { Listeners } from '../../util/listeners';
 import type { FocusIndicator } from '../dom/focusIndicator';
-import { buildConsumable } from './consumableEvent';
 import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
 import { InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
 import type { KeyNavEvent, KeyNavEventType, KeyNavManager } from './keyNavManager';
-
-export type RegionName =
-    | 'title'
-    | 'subtitle'
-    | 'footnote'
-    | 'legend'
-    | 'navigator'
-    | 'pagination'
-    | 'root'
-    | 'series'
-    | 'toolbar';
+import { type Unpreventable, buildPreventable } from './preventableEvent';
+import type { RegionName } from './regions';
 
 const REGION_TAB_ORDERING: RegionName[] = ['series'];
 
 // This type-map allows the compiler to automatically figure out the parameter type of handlers
 // specifies through the `addListener` method (see the `makeObserver` method).
-type TypeInfo = { [K in PointerInteractionTypes]: PointerInteractionEvent<K> } & {
-    [K in KeyNavEventType]: KeyNavEvent<K>;
+type TypeInfo = { [K in PointerInteractionTypes]: PointerInteractionEvent<K> & { region: RegionName } } & {
+    [K in KeyNavEventType]: KeyNavEvent<K> & { region: RegionName };
 };
 
-type RegionEvent = PointerInteractionEvent | KeyNavEvent;
+type RegionEvent = (PointerInteractionEvent | KeyNavEvent) & { region: RegionName };
 type RegionHandler = (event: RegionEvent) => void;
 type RegionBBoxProvider = BBoxProvider<BBoxContainsTester & { width: number; height: number }>;
 
@@ -38,7 +28,7 @@ type Region = {
 
 export interface RegionProperties {
     readonly name: RegionName;
-    readonly bboxproviders: RegionBBoxProvider[];
+    bboxproviders: RegionBBoxProvider[];
 }
 
 function addHandler<T extends RegionEvent['type']>(
@@ -50,11 +40,9 @@ function addHandler<T extends RegionEvent['type']>(
 ): () => void {
     return (
         listeners?.addListener(type, (e: RegionEvent) => {
-            if (!e.consumed) {
-                const currentState = interactionManager.getState();
-                if (currentState & triggeringStates) {
-                    handler(e as TypeInfo[T]);
-                }
+            const currentState = interactionManager.getState();
+            if (currentState & triggeringStates) {
+                handler(e as TypeInfo[T]);
             }
         }) ?? (() => {})
     );
@@ -85,7 +73,10 @@ export class RegionManager {
             this.keyNavManager.addListener('tab', this.onTab.bind(this)),
             this.keyNavManager.addListener('nav-vert', this.onNav.bind(this)),
             this.keyNavManager.addListener('nav-hori', this.onNav.bind(this)),
-            this.keyNavManager.addListener('submit', this.onNav.bind(this))
+            this.keyNavManager.addListener('nav-zoom', this.onNav.bind(this)),
+            this.keyNavManager.addListener('submit', this.onNav.bind(this)),
+            this.keyNavManager.addListener('cancel', this.onNav.bind(this)),
+            this.keyNavManager.addListener('delete', this.onNav.bind(this))
         );
     }
 
@@ -101,13 +92,23 @@ export class RegionManager {
         this.regions.clear();
     }
 
-    public addRegion(name: RegionName, bboxprovider: RegionBBoxProvider, ...extraProviders: RegionBBoxProvider[]) {
+    public addRegion(name: RegionName, ...bboxproviders: RegionBBoxProvider[]) {
+        if (this.regions.has(name)) {
+            throw new Error(`AG Charts - Region: ${name} already exists`);
+        }
         const region = {
-            properties: { name, bboxproviders: [bboxprovider, ...extraProviders] },
+            properties: { name, bboxproviders: [...bboxproviders] },
             listeners: new RegionListeners(),
         };
         this.regions.set(name, region);
         return this.makeObserver(region);
+    }
+
+    public updateRegion(name: RegionName, ...bboxprovider: RegionBBoxProvider[]) {
+        const region = this.regions.get(name);
+        if (region) {
+            region.properties.bboxproviders = [...bboxprovider];
+        }
     }
 
     public getRegion(name: RegionName) {
@@ -120,22 +121,6 @@ export class RegionManager {
         triggeringStates: InteractionState = InteractionState.Default
     ): () => void {
         return addHandler(this.allRegionsListeners, this.interactionManager, type, handler, triggeringStates);
-    }
-
-    private find(x: number, y: number): Region[] {
-        // Sort matches by area.
-        // This ensure that we prioritise smaller regions are contained inside larger regions.
-        type Area = number;
-        const matches: [Region, Area][] = [];
-        for (const [_name, region] of this.regions.entries()) {
-            for (const provider of region.properties.bboxproviders) {
-                const bbox = provider.getCachedBBox();
-                if (bbox.containsPoint(x, y)) {
-                    matches.push([region, bbox.width * bbox.height]);
-                }
-            }
-        }
-        return matches.sort((a, b) => a[1] - b[1]).map((m) => m[0]);
     }
 
     // This method return a wrapper object that matches the interface of InteractionManager.addListener.
@@ -164,10 +149,15 @@ export class RegionManager {
         return true;
     }
 
-    private dispatch(region: Region | undefined, event: RegionEvent) {
-        event.region = region?.properties.name;
-        region?.listeners.dispatch(event.type, event);
+    // Create and dispatch a copy of the InteractionEvent.
+    private dispatch(
+        region: Region | undefined,
+        partialEvent: Unpreventable<PointerInteractionEvent> | Unpreventable<KeyNavEvent>
+    ) {
+        if (region == null) return;
+        const event: RegionEvent = buildPreventable({ ...partialEvent, region: region.properties.name });
         this.allRegionsListeners.dispatch(event.type, event);
+        region.listeners.dispatch(event.type, event);
     }
 
     // Process events during a drag action. Returns false if this event should follow the standard
@@ -235,8 +225,21 @@ export class RegionManager {
     }
 
     private pickRegion(x: number, y: number): Region | undefined {
-        const matchingRegions = this.find(x, y);
-        return matchingRegions.length > 0 ? matchingRegions[0] : undefined;
+        // Sort matches by area.
+        // This ensure that we prioritise smaller regions are contained inside larger regions.
+        let currentArea = Infinity;
+        let currentRegion: Region | undefined;
+        for (const region of this.regions.values()) {
+            for (const provider of region.properties.bboxproviders) {
+                const bbox = provider.computeTransformedBBox();
+                const area = bbox.width * bbox.height;
+                if (area < currentArea && bbox.containsPoint(x, y)) {
+                    currentArea = area;
+                    currentRegion = region;
+                }
+            }
+        }
+        return currentRegion;
     }
 
     private getTabRegion(tabIndex: number | undefined): Region | undefined {
@@ -290,22 +293,18 @@ export class RegionManager {
         if (focusedRegion !== undefined && newRegion?.properties.name !== focusedRegion.properties.name) {
             // Build a distinct consumable event, since we don't care about consumed status of blur.
             const { delta, sourceEvent } = event;
-            const blurEvent = buildConsumable({ type: 'blur' as const, delta, sourceEvent });
+            const blurEvent = buildPreventable({ type: 'blur' as const, delta, sourceEvent });
             this.dispatch(focusedRegion, blurEvent);
         }
         if (newRegion === undefined) {
-            this.updateFocusIndicatorRect(undefined);
+            this.focusIndicator.updateBounds(undefined);
         } else {
             this.dispatch(newRegion, event);
         }
     }
 
-    private onNav(event: KeyNavEvent<'blur' | 'nav-hori' | 'nav-vert' | 'submit'>) {
+    private onNav(event: KeyNavEvent<'blur' | 'nav-hori' | 'nav-vert' | 'nav-zoom' | 'submit' | 'cancel' | 'delete'>) {
         const focusedRegion = this.getTabRegion(this.currentTabIndex);
         this.dispatch(focusedRegion, event);
-    }
-
-    public updateFocusIndicatorRect(rect?: BBoxValues) {
-        this.focusIndicator.updateBBox(rect);
     }
 }

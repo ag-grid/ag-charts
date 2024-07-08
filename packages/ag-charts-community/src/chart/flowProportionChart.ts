@@ -1,4 +1,5 @@
-import type { AgFlowProportionChartOptions } from '../options/agChartOptions';
+import type { AgFlowProportionChartOptions } from 'ag-charts-types';
+
 import { BBox } from '../scene/bbox';
 import { Chart } from './chart';
 import type { FlowProportionSeries } from './series/flowProportionSeries';
@@ -49,7 +50,7 @@ export class FlowProportionChart extends Chart {
             group.translationX = Math.floor(shrinkRect.x);
             group.translationY = Math.floor(shrinkRect.y);
             group.setClipRectInGroupCoordinateSpace(
-                new BBox(shrinkRect.x, shrinkRect.y, shrinkRect.width, shrinkRect.height)
+                new BBox(fullSeriesRect.x, fullSeriesRect.y, fullSeriesRect.width, fullSeriesRect.height)
             );
         }
 

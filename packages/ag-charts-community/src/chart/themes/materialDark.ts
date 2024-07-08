@@ -1,14 +1,10 @@
-import type { AgChartThemePalette } from '../../options/agChartOptions';
+import type { AgChartThemePalette } from 'ag-charts-types';
+
 import { DarkTheme } from './darkTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_ANNOTATION_STROKE,
-    DEFAULT_COLOURS,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
-    DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
-    DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
-    DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
-    DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
 } from './symbols';
 
 const MATERIAL_DARK_FILLS = {
@@ -43,75 +39,29 @@ const palette: AgChartThemePalette = {
 };
 
 export class MaterialDark extends DarkTheme {
-    protected static override getDefaultColors() {
+    override getDefaultColors() {
         return {
             fills: MATERIAL_DARK_FILLS,
             strokes: MATERIAL_DARK_STROKES,
-        };
-    }
-
-    protected static override getWaterfallSeriesDefaultPositiveColors() {
-        return {
-            fill: MATERIAL_DARK_FILLS.BLUE,
-            stroke: MATERIAL_DARK_STROKES.BLUE,
-            label: {
-                color: 'white',
-            },
-        };
-    }
-
-    protected static override getWaterfallSeriesDefaultNegativeColors() {
-        return {
-            fill: MATERIAL_DARK_FILLS.RED,
-            stroke: MATERIAL_DARK_STROKES.RED,
-            label: {
-                color: 'white',
-            },
-        };
-    }
-
-    protected static override getWaterfallSeriesDefaultTotalColors() {
-        return {
-            fill: MATERIAL_DARK_FILLS.GRAY,
-            stroke: MATERIAL_DARK_STROKES.GRAY,
-            label: {
-                color: 'white',
-            },
+            up: { fill: MATERIAL_DARK_FILLS.BLUE, stroke: MATERIAL_DARK_STROKES.BLUE },
+            down: { fill: MATERIAL_DARK_FILLS.RED, stroke: MATERIAL_DARK_STROKES.RED },
+            neutral: { fill: MATERIAL_DARK_FILLS.GRAY, stroke: MATERIAL_DARK_STROKES.GRAY },
         };
     }
 
     override getTemplateParameters() {
-        const result = super.getTemplateParameters();
+        const params = super.getTemplateParameters();
 
-        result.properties.set(DEFAULT_COLOURS, MaterialDark.getDefaultColors());
-        result.properties.set(
-            DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
-            MaterialDark.getWaterfallSeriesDefaultPositiveColors()
-        );
-        result.properties.set(
-            DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
-            MaterialDark.getWaterfallSeriesDefaultNegativeColors()
-        );
-        result.properties.set(
-            DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
-            MaterialDark.getWaterfallSeriesDefaultTotalColors()
-        );
-
-        result.properties.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
+        params.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
             MATERIAL_DARK_FILLS.ORANGE,
             MATERIAL_DARK_FILLS.YELLOW,
             MATERIAL_DARK_FILLS.GREEN,
         ]);
 
-        result.properties.set(
-            DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
-            MaterialDark.getWaterfallSeriesDefaultTotalColors().stroke
-        );
+        params.set(DEFAULT_ANNOTATION_STROKE, MATERIAL_DARK_FILLS.BLUE);
+        params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, MATERIAL_DARK_FILLS.BLUE);
 
-        result.properties.set(DEFAULT_ANNOTATION_STROKE, MATERIAL_DARK_STROKES.BLUE);
-        result.properties.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, MATERIAL_DARK_FILLS.BLUE);
-
-        return result;
+        return params;
     }
 
     protected override getPalette(): AgChartThemePalette {

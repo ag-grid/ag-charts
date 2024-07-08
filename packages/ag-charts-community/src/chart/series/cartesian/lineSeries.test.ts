@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-import type { AgChartOptions } from '../../../options/agChartOptions';
+import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
+
+import { AgCharts } from '../../../api/agCharts';
 import { deepClone } from '../../../util/json';
-import { AgCharts } from '../../agChartV2';
-import type { Chart } from '../../chart';
 import {
     DATA_FRACTIONAL_LOG_AXIS,
     DATA_INVALID_DOMAIN_LOG_AXIS,
@@ -56,7 +56,9 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
                 axisTypes: ['number', 'number'],
                 seriesTypes: ['line'],
             }),
-            warnings: [['AG Charts - invalid value of type [undefined] ignored:', '[undefined]']],
+            warnings: [
+                ['AG Charts - invalid value of type [undefined] for [LineSeries-1 / xValue] ignored:', '[undefined]'],
+            ],
         },
         LINE_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: {
             options: examples.LINE_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE,
@@ -64,7 +66,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
                 axisTypes: ['time', 'number'],
                 seriesTypes: ['line'],
             }),
-            warnings: [['AG Charts - invalid value of type [object] ignored:', '[null]']],
+            warnings: [['AG Charts - invalid value of type [object] for [LineSeries-1 / xValue] ignored:', '[null]']],
         },
         LINE_NUMBER_AXES_0_X_DOMAIN: {
             options: examples.LINE_NUMBER_AXES_0_X_DOMAIN,
@@ -113,7 +115,7 @@ describe('LineSeries', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
-    let chart: Chart;
+    let chart: AgChartInstance;
 
     afterEach(() => {
         if (chart) {
@@ -135,7 +137,7 @@ describe('LineSeries', () => {
                 const { assertions, options, warnings = [] } = example;
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
                 await assertions(chart);
 
@@ -159,7 +161,7 @@ describe('LineSeries', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = AgCharts.create(options);
                 await compare();
 
                 if (example.extraScreenshotActions) {
@@ -182,7 +184,7 @@ describe('LineSeries', () => {
                 );
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
                 await compare();
             });
@@ -287,11 +289,11 @@ describe('LineSeries', () => {
                 it(`should animate ${testCase} at ${ratio * 100}%`, async () => {
                     animate(1200, 1);
                     prepareTestOptions(OPTIONS);
-                    chart = AgCharts.create(OPTIONS) as Chart;
+                    chart = AgCharts.create(OPTIONS);
                     await waitForChartStability(chart);
 
                     animate(duration, ratio);
-                    AgCharts.updateDelta(chart, { data: changedData });
+                    await chart.updateDelta({ data: changedData });
                     await waitForChartStability(chart);
                     await compare();
                 });
@@ -342,12 +344,12 @@ describe('LineSeries', () => {
                     const options: AgChartOptions = deepClone(OPTIONS);
                     prepareTestOptions(options);
 
-                    chart = AgCharts.create(options) as Chart;
+                    chart = AgCharts.create(options);
                     await waitForChartStability(chart);
 
                     animate(1200, ratio);
                     options.series![0].visible = false;
-                    AgCharts.update(chart, { ...options });
+                    await chart.update({ ...options });
 
                     await compare();
                 });
@@ -363,12 +365,12 @@ describe('LineSeries', () => {
                     options.series![1].visible = false;
                     prepareTestOptions(options);
 
-                    chart = AgCharts.create(options) as Chart;
+                    chart = AgCharts.create(options);
                     await waitForChartStability(chart);
 
                     animate(1200, ratio);
                     options.series![1].visible = true;
-                    AgCharts.update(chart, options);
+                    await chart.update(options);
 
                     await compare();
                 });
@@ -409,7 +411,7 @@ describe('LineSeries', () => {
 
             prepareTestOptions(options);
 
-            chart = AgCharts.create(options) as Chart;
+            chart = AgCharts.create(options);
             await compare();
         });
     });
@@ -437,7 +439,7 @@ describe('LineSeries', () => {
 
                     prepareTestOptions(options);
 
-                    chart = AgCharts.create(options) as Chart;
+                    chart = AgCharts.create(options);
                     await waitForChartStability(chart);
                     await compare();
                 });
@@ -476,7 +478,7 @@ describe('LineSeries', () => {
 
             prepareTestOptions(options);
 
-            chart = AgCharts.create(options) as Chart;
+            chart = AgCharts.create(options);
 
             // TODO: replace with `compare()` with 0 percent threshold
             await waitForChartStability(chart);
@@ -518,7 +520,7 @@ describe('LineSeries', () => {
 
             prepareTestOptions(options);
 
-            chart = AgCharts.create(options) as Chart;
+            chart = AgCharts.create(options);
 
             // TODO: replace with `compare()` with 0 percent threshold
             await waitForChartStability(chart);

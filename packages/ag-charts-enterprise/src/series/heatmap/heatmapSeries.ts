@@ -1,4 +1,4 @@
-import type { AgHeatmapSeriesFormat, FontStyle, FontWeight, TextAlign, VerticalAlign } from 'ag-charts-community';
+import type { AgHeatmapSeriesStyle, FontStyle, FontWeight, TextAlign, VerticalAlign } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { formatLabels } from '../util/labelFormatter';
@@ -15,7 +15,7 @@ const {
 } = _ModuleSupport;
 const { Rect, PointerEvents } = _Scene;
 const { ColorScale } = _Scale;
-const { sanitizeHtml, Color, Logger } = _Util;
+const { sanitizeHtml, Logger } = _Util;
 
 interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
     readonly point: Readonly<_Scene.SizedPoint>;
@@ -310,51 +310,32 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         const {
             id: seriesId,
             ctx: { callbackCache },
+            properties,
         } = this;
-        const {
-            xKey,
-            yKey,
-            colorKey,
-            formatter,
-            highlightStyle: {
-                item: {
-                    fill: highlightedFill,
-                    stroke: highlightedStroke,
-                    strokeWidth: highlightedDatumStrokeWidth,
-                    strokeOpacity: highlightedDatumStrokeOpacity,
-                    fillOpacity: highlightedFillOpacity,
-                },
-            },
-        } = this.properties;
+        const { xKey, yKey, colorKey, itemStyler } = properties;
+
+        const highlightStyle = isDatumHighlighted ? properties.highlightStyle.item : undefined;
+        const fillOpacity = highlightStyle?.fillOpacity ?? 1;
+        const stroke = highlightStyle?.stroke ?? properties.stroke;
+        const strokeWidth = highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth);
+        const strokeOpacity = highlightStyle?.strokeOpacity ?? properties.strokeOpacity ?? 1;
 
         const xAxis = this.axes[ChartAxisDirection.X];
         const [visibleMin, visibleMax] = xAxis?.visibleRange ?? [];
         const isZoomed = visibleMin !== 0 || visibleMax !== 1;
         const crisp = !isZoomed;
 
-        opts.datumSelection.each((rect, datum) => {
-            const { point, width, height } = datum;
+        opts.datumSelection.each((rect, nodeDatum) => {
+            const { datum, point, width, height } = nodeDatum;
 
-            const fill =
-                isDatumHighlighted && highlightedFill !== undefined
-                    ? Color.interpolate(datum.fill, highlightedFill)(highlightedFillOpacity ?? 1)
-                    : datum.fill;
-            const stroke =
-                isDatumHighlighted && highlightedStroke !== undefined ? highlightedStroke : this.properties.stroke;
-            const strokeOpacity =
-                isDatumHighlighted && highlightedDatumStrokeOpacity !== undefined
-                    ? highlightedDatumStrokeOpacity
-                    : this.properties.strokeOpacity;
-            const strokeWidth =
-                isDatumHighlighted && highlightedDatumStrokeWidth !== undefined
-                    ? highlightedDatumStrokeWidth
-                    : this.properties.strokeWidth;
+            const fill = highlightStyle?.fill ?? nodeDatum.fill;
 
-            let format: AgHeatmapSeriesFormat | undefined;
-            if (formatter) {
-                format = callbackCache.call(formatter, {
-                    datum: datum.datum,
+            let format: AgHeatmapSeriesStyle | undefined;
+            if (itemStyler) {
+                format = callbackCache.call(itemStyler, {
+                    datum,
                     fill,
+                    fillOpacity,
                     stroke,
                     strokeOpacity,
                     strokeWidth,
@@ -372,9 +353,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             rect.width = Math.ceil(width);
             rect.height = Math.ceil(height);
             rect.fill = format?.fill ?? fill;
+            rect.fillOpacity = format?.fillOpacity ?? fillOpacity;
             rect.stroke = format?.stroke ?? stroke;
-            rect.strokeOpacity = format?.strokeOpacity ?? strokeOpacity ?? 1;
             rect.strokeWidth = format?.strokeWidth ?? strokeWidth;
+            rect.strokeOpacity = format?.strokeOpacity ?? strokeOpacity;
         });
     }
 
@@ -418,8 +400,20 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
-        const { xKey, yKey, colorKey, xName, yName, colorName, stroke, strokeWidth, colorRange, formatter, tooltip } =
-            this.properties;
+        const {
+            xKey,
+            yKey,
+            colorKey,
+            xName,
+            yName,
+            colorName,
+            stroke,
+            strokeWidth,
+            strokeOpacity = 1,
+            colorRange,
+            itemStyler,
+            tooltip,
+        } = this.properties;
         const {
             colorScale,
             id: seriesId,
@@ -429,17 +423,19 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         const { datum, xValue, yValue, colorValue, itemId } = nodeDatum;
         const fill = this.isColorScaleValid() ? colorScale.convert(colorValue) : colorRange[0];
 
-        let format: AgHeatmapSeriesFormat | undefined;
+        let format: AgHeatmapSeriesStyle | undefined;
 
-        if (formatter) {
-            format = callbackCache.call(formatter, {
-                datum: nodeDatum,
+        if (itemStyler) {
+            format = callbackCache.call(itemStyler, {
+                datum,
                 xKey,
                 yKey,
                 colorKey,
                 fill,
+                fillOpacity: 1,
                 stroke,
                 strokeWidth,
+                strokeOpacity,
                 highlighted: false,
                 seriesId,
             });

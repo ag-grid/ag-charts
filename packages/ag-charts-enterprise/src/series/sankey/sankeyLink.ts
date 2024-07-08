@@ -113,7 +113,7 @@ export class SankeyLink extends Path {
         const p3y = y2 + height / 2;
 
         path.moveTo(p0x, p0y - height / 2);
-        if (Math.abs(y2 - y1) < 1 || x2 - x1 < height * Math.SQRT2) {
+        if (Math.abs(this.y2 - this.y1) < 1 || this.x2 - this.x1 < this.height * Math.SQRT2) {
             path.cubicCurveTo(p1x, p1y - height / 2, p2x, p2y - height / 2, p3x, p3y - height / 2);
             path.lineTo(p3x, p3y + height / 2);
             path.cubicCurveTo(p2x, p2y + height / 2, p1x, p1y + height / 2, p0x, p0y + height / 2);

@@ -8,7 +8,7 @@ import {
 
 import { getData } from './data';
 
-const tooltip: AgSeriesTooltip<AgRangeBarSeriesTooltipRendererParams> = {
+const tooltip: AgSeriesTooltip<AgRangeBarSeriesTooltipRendererParams<any>> = {
     renderer: ({ datum, xName, xKey, yLowKey, yHighKey, yLowName, yHighName }) => {
         return {
             content: `<b>${xName}:</b> ${datum[xKey]}<br/><b>${yLowName}: </b>${datum[yLowKey].toLocaleString('en-GB', {
@@ -44,7 +44,7 @@ const options: AgCartesianChartOptions = {
             yHighKey: 'high',
             yHighName: 'High',
             cornerRadius: 5,
-            formatter: ({ datum, yHighKey }) => {
+            itemStyler: ({ datum, yHighKey }) => {
                 return {
                     fillOpacity: getOpacity(datum[yHighKey], yHighKey, 0.4, 1),
                 };

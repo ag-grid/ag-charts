@@ -91,15 +91,17 @@ crosshair: {
 
 The `crosshair.label.format` property can be used to format the crosshair label.
 
-If a format string is not provided, the `axis.label.format` string will be used.
+If a format string is not provided, the `axis.label.formatter` function or `axis.label.format` string will be used.
 
-If neither is present, default formatting will be used: one granularity above axis tick fraction digits for number axes and no formatting for category and time axes.
-
-The example below demonstrates this behaviour.
-
-Notice how when you click on one of the buttons in the example to change the provided configuration, the crosshair label format changes.
+If neither is present, default formatting will be used: one granularity above axis tick fraction digits for number axes and no formatting for category axes.
 
 {% chartExampleRunner title="Crosshair Label Format" name="crosshair-label-format" type="generated" /%}
+
+In this example:
+
+-   Clicking 'Remove formats' will remove both the axis and crosshair label formats, with both showing the default format.
+-   Clicking 'Set axis.label.format' will add a format to the axis label. Both the axis and crosshair labels will use this format, unless a crosshair label format has been added.
+-   Clicking 'Set crosshair.label.format' will add a format to the crosshair label. The crosshair labels will use this format, and the axis labels will be unaffected.
 
 ### Default Label Renderer
 
@@ -151,7 +153,7 @@ Then modify the style definitions in a stylesheet file:
 
 This is shown in the example below. Note that:
 
--   The default label template is used and the style definitions are overriden in the styles.css file.
+-   The default label template is used and the style definitions are overridden in the styles.css file.
 
 {% chartExampleRunner title="Crosshair Default Label With Custom CSS" name="crosshair-default-label-custom-css" type="generated" /%}
 

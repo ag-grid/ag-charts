@@ -1,0 +1,89 @@
+.ag-chart-context-menu {
+    background: rgb(248, 248, 248);
+    border: 1px solid #babfc7;
+    border-radius: 5px;
+    box-shadow: 0 1px 4px 1px rgba(186, 191, 199, 0.4);
+    color: rgb(24, 29, 31);
+    font:
+        13px Verdana,
+        sans-serif;
+    transition: transform 0.1s ease;
+    white-space: nowrap;
+    z-index: var(--ag-charts-layer-context-menu);
+}
+
+.ag-chart-context-menu.ag-charts-dark-context-menu {
+    color: white;
+    background: #15181c;
+}
+
+.ag-chart-context-menu__cover {
+    position: fixed;
+    left: 0px;
+    top: 0px;
+}
+
+.ag-chart-context-menu__menu {
+    display: flex;
+    flex-direction: column;
+    padding: 0.5em 0;
+}
+
+.ag-chart-context-menu__menu:focus {
+    /* Do not show a focus indicator around the context-menu. This makes our custom context-menu
+     * behave more like a native context-menu, and makes the behaviour more consistent when using
+     * a keyboard or mouse to bring up the context-menu. */
+    outline: none;
+}
+
+.ag-chart-context-menu__item {
+    background: none;
+    border: none;
+    box-sizing: border-box;
+    font: inherit;
+    padding: 0.5em 1em;
+    text-align: left;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+.ag-chart-context-menu__item.ag-charts-dark-context-menu {
+    color: white;
+}
+
+.ag-chart-context-menu__item:hover {
+    background: rgb(33, 150, 243, 0.1);
+}
+
+.ag-chart-context-menu__item:hover.ag-charts-dark-context-menu {
+    background: rgb(33, 150, 243, 0.1);
+}
+
+.ag-chart-context-menu__item:active {
+    background: rgb(33, 150, 243, 0.2);
+}
+
+.ag-chart-context-menu__item:active.ag-charts-dark-context-menu {
+    background: rgb(33, 150, 243, 0.1);
+}
+
+.ag-chart-context-menu__item[aria-disabled='true'] {
+    border: none;
+    opacity: 0.5;
+    text-align: left;
+}
+
+.ag-chart-context-menu__item[aria-disabled='true']:hover {
+    background: inherit;
+    cursor: inherit;
+}
+
+.ag-chart-context-menu__divider {
+    margin: 5px 0;
+    background: #babfc7;
+    height: 1px;
+}
+
+.ag-chart-context-menu__divider.ag-charts-dark-context-menu {
+    background: rgb(33, 150, 243, 0.1);
+}

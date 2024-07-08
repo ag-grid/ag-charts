@@ -63,7 +63,7 @@ function setNumberAxis() {
             fontSize: 10,
         },
     };
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function setLogAxis() {
@@ -81,5 +81,5 @@ function setLogAxis() {
             fontSize: 10,
         },
     };
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

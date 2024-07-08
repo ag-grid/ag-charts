@@ -1,10 +1,12 @@
 import type {
-    AgDonutSeriesFormat,
-    AgDonutSeriesFormatterParams,
+    AgDonutSeriesItemStylerParams,
     AgDonutSeriesLabelFormatterParams,
     AgDonutSeriesOptions,
+    AgDonutSeriesStyle,
     AgDonutSeriesTooltipRendererParams,
-} from '../../../options/series/polar/donutOptions';
+    Styler,
+} from 'ag-charts-types';
+
 import { DropShadow } from '../../../scene/dropShadow';
 import { Logger } from '../../../util/logger';
 import { BaseProperties, PropertiesArray } from '../../../util/properties';
@@ -39,7 +41,7 @@ export class DonutInnerLabel<T extends object = any> extends Label<AgDonutSeries
     text!: string;
 
     @Validate(NUMBER)
-    margin: number = 2;
+    spacing: number = 2;
 
     override set(properties: T, _reset?: boolean) {
         return super.set(properties);
@@ -160,7 +162,7 @@ export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions
     cornerRadius: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    formatter?: (params: AgDonutSeriesFormatterParams<any>) => AgDonutSeriesFormat;
+    itemStyler?: Styler<AgDonutSeriesItemStylerParams<unknown>, AgDonutSeriesStyle>;
 
     @Validate(DEGREE)
     rotation: number = 0;
@@ -205,5 +207,5 @@ export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions
     readonly calloutLine = new DonutSeriesCalloutLine();
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgDonutSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgDonutSeriesTooltipRendererParams<any>>();
 }

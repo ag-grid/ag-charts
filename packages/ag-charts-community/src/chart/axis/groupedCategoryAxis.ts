@@ -1,8 +1,8 @@
+import type { AgAxisCaptionFormatterParams } from 'ag-charts-types';
+
 import type { ModuleContext } from '../../module/moduleContext';
-import type { AgAxisCaptionFormatterParams } from '../../options/agChartOptions';
 import { BandScale } from '../../scale/bandScale';
 import { BBox } from '../../scene/bbox';
-import { Matrix } from '../../scene/matrix';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
 import { Text } from '../../scene/shape/text';
@@ -14,9 +14,7 @@ import { ChartAxisDirection } from '../chartAxisDirection';
 import { calculateLabelRotation } from '../label';
 import { AxisLabel } from './axisLabel';
 import { AxisLine } from './axisLine';
-import type { AxisTick } from './axisTick';
 import { CartesianAxis } from './cartesianAxis';
-import { CategoryAxisTick } from './categoryAxis';
 import type { TreeLayout } from './tree';
 import { ticksToTree, treeLayout } from './tree';
 
@@ -114,10 +112,6 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         this.labelSelection.clear();
     }
 
-    protected override createTick(): AxisTick<BandScale<string | number>, any, any> {
-        return new CategoryAxisTick();
-    }
-
     protected override calculateDomain() {
         const { direction } = this;
         let isNumericX: boolean | null = null;
@@ -203,8 +197,8 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
             line.x2 = datum.x2;
             line.y1 = datum.y;
             line.y2 = datum.y;
-            line.visible = datum.y >= range[0] - epsilon && datum.y <= range[1] + epsilon;
-            line.stroke = this.tick.color;
+            line.visible = this.tick.enabled && datum.y >= range[0] - epsilon && datum.y <= range[1] + epsilon;
+            line.stroke = this.tick.stroke;
             line.fill = undefined;
             line.strokeWidth = 1;
         });
@@ -217,7 +211,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         axisLineSelection.each((line, datum) => {
             line.setProperties({
                 ...datum,
-                stroke: this.line.color,
+                stroke: this.line.stroke,
                 strokeWidth: this.line.width,
             });
             line.x1 = datum.x;
@@ -225,7 +219,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
             line.y1 = datum.y1;
             line.y2 = datum.y2;
             line.strokeWidth = this.line.width;
-            line.stroke = this.line.color;
+            line.stroke = this.line.stroke;
         });
     }
 
@@ -244,7 +238,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
                 line.x2 = -sideFlag * gridLength;
                 line.y1 = y;
                 line.y2 = y;
-                line.visible = y >= range[0] && y <= range[1];
+                line.visible = gridLine.enabled && y >= range[0] && y <= range[1];
 
                 const { stroke, lineDash } = style[index % styleCount];
                 line.stroke = stroke;
@@ -493,26 +487,8 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
             axisLineLayout.push({ x, y1: range[0], y2: range[1], visible });
         }
 
-        const getTransformBox = (bbox: BBox) => {
-            const matrix = new Matrix();
-            const {
-                rotation: axisRotation,
-                translationX,
-                translationY,
-                rotationCenterX,
-                rotationCenterY,
-            } = this.getAxisTransform();
-            Matrix.updateTransformMatrix(matrix, 1, 1, axisRotation, translationX, translationY, {
-                scalingCenterX: 0,
-                scalingCenterY: 0,
-                rotationCenterX,
-                rotationCenterY,
-            });
-            return matrix.transformBBox(bbox);
-        };
-
         const bbox = BBox.merge([...labelBBoxes.values(), ...separatorBoxes, ...axisLineBoxes]);
-        const transformedBBox = getTransformBox(bbox);
+        const transformedBBox = this.getTransformBox(bbox);
 
         return {
             bbox: transformedBBox,
@@ -524,13 +500,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
 
     override calculateLayout(): { bbox: BBox; primaryTickCount: number | undefined } {
         const { axisLineLayout, separatorLayout, tickLabelLayout, bbox } = this.computeLayout();
-
-        this.computedLayout = {
-            axisLineLayout,
-            separatorLayout,
-            tickLabelLayout,
-        };
-
+        this.computedLayout = { axisLineLayout, separatorLayout, tickLabelLayout };
         return { bbox, primaryTickCount: undefined };
     }
 }

@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
-import type { AgChartOptions } from '../../../options/agChartOptions';
-import { AgCharts } from '../../agChartV2';
-import type { Chart } from '../../chart';
+import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
+
+import { AgCharts } from '../../../api/agCharts';
 import {
     DATA_FRACTIONAL_LOG_AXIS,
     DATA_INVALID_DOMAIN_LOG_AXIS,
@@ -11,11 +11,10 @@ import {
     DATA_ZERO_EXTENT_LOG_AXIS,
 } from '../../test/data';
 import * as examples from '../../test/examples';
-import type { CartesianOrPolarTestCase } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
-    expectWarningMessages,
+    expectWarningsCalls,
     extractImageData,
     mixinReversedAxesCases,
     prepareTestOptions,
@@ -25,6 +24,7 @@ import {
     spyOnAnimationManager,
     waitForChartStability,
 } from '../../test/utils';
+import type { CartesianOrPolarTestCase } from '../../test/utils';
 
 const buildLogAxisTestCase = (data: any[]): CartesianOrPolarTestCase => {
     return {
@@ -120,7 +120,7 @@ const INVALID_DATA_EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
 describe('BarSeries', () => {
     setupMockConsole();
 
-    let chart: Chart;
+    let chart: AgChartInstance;
 
     afterEach(() => {
         if (chart) {
@@ -141,9 +141,7 @@ describe('BarSeries', () => {
 
     describe('#create', () => {
         test('no data', async () => {
-            chart = AgCharts.create(
-                prepareTestOptions({ data: [], series: [{ type: 'bar', xKey: 'x', yKey: 'y' }] })
-            ) as Chart;
+            chart = AgCharts.create(prepareTestOptions({ data: [], series: [{ type: 'bar', xKey: 'x', yKey: 'y' }] }));
             await compare();
         });
 
@@ -153,7 +151,7 @@ describe('BarSeries', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
                 await example.assertions(chart);
             }
@@ -165,7 +163,7 @@ describe('BarSeries', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = AgCharts.create(options);
                 await compare();
 
                 if (example.extraScreenshotActions) {
@@ -186,7 +184,7 @@ describe('BarSeries', () => {
                 const options: AgChartOptions = { ...examples.COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS };
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
                 await compare();
             });
@@ -199,7 +197,7 @@ describe('BarSeries', () => {
                 const options: AgChartOptions = { ...examples.BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS };
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
                 await compare();
             });
@@ -216,13 +214,13 @@ describe('BarSeries', () => {
                 const options: AgChartOptions = { ...examples.COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS };
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                AgCharts.updateDelta(chart, {
+                animate(1200, ratio);
+                await chart.updateDelta({
                     data: [...options.data!.slice(2, 4), ...options.data!.slice(6, -2)],
                 });
-                animate(1200, ratio);
 
                 await waitForChartStability(chart);
                 await compare();
@@ -236,13 +234,13 @@ describe('BarSeries', () => {
                 const options: AgChartOptions = { ...examples.BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS };
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                AgCharts.updateDelta(chart, {
+                animate(1200, ratio);
+                await chart.updateDelta({
                     data: options.data!.slice(0, options.data!.length / 2),
                 });
-                animate(1200, ratio);
 
                 await waitForChartStability(chart);
                 await compare();
@@ -260,16 +258,16 @@ describe('BarSeries', () => {
                 const options: AgChartOptions = { ...examples.COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS };
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                AgCharts.updateDelta(chart, {
+                await chart.updateDelta({
                     data: [...options.data!.slice(2, 4), ...options.data!.slice(6, -2)],
                 });
                 await waitForChartStability(chart);
 
-                AgCharts.update(chart, options);
                 animate(1200, ratio);
+                await chart.update(options);
 
                 await waitForChartStability(chart);
                 await compare();
@@ -283,16 +281,16 @@ describe('BarSeries', () => {
                 const options: AgChartOptions = { ...examples.BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS };
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                AgCharts.updateDelta(chart, {
+                await chart.updateDelta({
                     data: options.data!.slice(0, options.data!.length / 2),
                 });
                 await waitForChartStability(chart);
 
-                AgCharts.update(chart, options);
                 animate(1200, ratio);
+                await chart.update(options);
 
                 await waitForChartStability(chart);
                 await compare();
@@ -310,13 +308,13 @@ describe('BarSeries', () => {
                 const options: AgChartOptions = { ...examples.COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS };
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                AgCharts.updateDelta(chart, {
+                animate(1200, ratio);
+                await chart.updateDelta({
                     data: [...options.data!.map((d, i) => (i % 2 === 0 ? { ...d, value: d.value * 2 } : d))],
                 });
-                animate(1200, ratio);
 
                 await waitForChartStability(chart);
                 await compare();
@@ -330,13 +328,13 @@ describe('BarSeries', () => {
                 const options: AgChartOptions = { ...examples.BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS };
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                AgCharts.updateDelta(chart, {
+                animate(1200, ratio);
+                await chart.updateDelta({
                     data: [...options.data!.map((d, i) => (i % 2 === 0 ? { ...d, value: d.value * 2 } : d))],
                 });
-                animate(1200, ratio);
 
                 await waitForChartStability(chart);
                 await compare();
@@ -351,14 +349,20 @@ describe('BarSeries', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
                 await example.assertions(chart);
 
-                expectWarningMessages(
-                    'AG Charts - the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.',
-                    'AG Charts - the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.'
-                );
+                expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.",
+  ],
+  [
+    "AG Charts - the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.",
+  ],
+]
+`);
             }
         );
 
@@ -368,7 +372,7 @@ describe('BarSeries', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options) as Chart;
+                chart = AgCharts.create(options);
                 await compare();
 
                 if (example.extraScreenshotActions) {
@@ -376,10 +380,16 @@ describe('BarSeries', () => {
                     await compare();
                 }
 
-                expectWarningMessages(
-                    'AG Charts - the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.',
-                    'AG Charts - the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.'
-                );
+                expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.",
+  ],
+  [
+    "AG Charts - the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.",
+  ],
+]
+`);
             }
         );
     });

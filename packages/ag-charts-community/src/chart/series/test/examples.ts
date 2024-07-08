@@ -3,7 +3,8 @@ import type {
     AgCartesianChartOptions,
     AgHierarchyChartOptions,
     AgPolarChartOptions,
-} from '../../../options/agChartOptions';
+} from 'ag-charts-types';
+
 import { DATA_APPLE_REVENUE_BY_PRODUCT, DATA_BROWSER_MARKET_SHARE } from '../../test/data';
 import { loadExampleOptions } from '../../test/load-example';
 import {
@@ -409,11 +410,11 @@ export const BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
             title: {
                 text: 'Longitude',
             },
-            tick: {
+            interval: {
                 minSpacing: 300,
             },
             line: {
-                color: 'transparent',
+                stroke: 'transparent',
             },
             gridLine: {
                 style: [
@@ -431,11 +432,11 @@ export const BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
             title: {
                 text: 'Latitude',
             },
-            tick: {
+            interval: {
                 minSpacing: 200,
             },
             line: {
-                color: 'transparent',
+                stroke: 'transparent',
             },
             gridLine: {
                 style: [
@@ -468,12 +469,10 @@ export const GROUPED_BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
             yName: 'Weight',
             sizeKey: 'age',
             sizeName: 'Age',
-            marker: {
-                size: 6,
-                maxSize: 30,
-                fill: 'rgba(227,111,106,0.71)',
-                stroke: '#9f4e4a',
-            },
+            size: 6,
+            maxSize: 30,
+            fill: 'rgba(227,111,106,0.71)',
+            stroke: '#9f4e4a',
             labelKey: 'name',
             label: {
                 enabled: true,
@@ -489,12 +488,10 @@ export const GROUPED_BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
             yName: 'Weight',
             sizeKey: 'age',
             sizeName: 'Age',
-            marker: {
-                size: 6,
-                maxSize: 30,
-                fill: 'rgba(123,145,222,0.71)',
-                stroke: '#56659b',
-            },
+            size: 6,
+            maxSize: 30,
+            fill: 'rgba(123,145,222,0.71)',
+            stroke: '#56659b',
             labelKey: 'name',
             label: {
                 enabled: true,
@@ -519,7 +516,7 @@ export const GROUPED_BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
                 text: 'Weight',
             },
             line: {
-                color: undefined,
+                stroke: undefined,
             },
             label: {
                 formatter: (params) => {
@@ -804,13 +801,10 @@ export const HISTOGRAM_SCATTER_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
             yKey: 'age',
             yName: 'Age',
             labelKey: 'age',
-            marker: {
-                fill: '#ccb9c9',
-                stroke: '#9b7595',
-                strokeWidth: 0,
-                size: 7,
-            },
-            label: {},
+            size: 7,
+            fill: '#ccb9c9',
+            strokeWidth: 0,
+            label: { enabled: true },
         },
     ],
     axes: [
@@ -834,7 +828,7 @@ export const HISTOGRAM_SCATTER_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
                 text: 'Height',
             },
             line: {
-                color: undefined,
+                stroke: undefined,
             },
         },
         {
@@ -842,7 +836,7 @@ export const HISTOGRAM_SCATTER_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
             type: 'number',
             keys: ['age'],
             line: {
-                color: undefined,
+                stroke: undefined,
             },
         },
     ],

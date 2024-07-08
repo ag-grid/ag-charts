@@ -183,7 +183,7 @@ describe('SunburstSeries', () => {
         };
 
         const checkNodeClick = async (
-            chartInstance: any,
+            chartInstance: Chart,
             onNodeClick: () => void,
             offset?: { x: number; y: number }
         ) => {
@@ -294,9 +294,9 @@ describe('SunburstSeries', () => {
                 data: datasets.data,
             },
             getNodeData: (series) => {
-                const nodes = series.contentGroup.children.map((group) => group.children[0]);
-                const maxDepth = Math.max(...nodes.map((n) => n.datum.depth ?? -1));
-                return nodes.filter((node) => node.datum.depth === maxDepth);
+                const nodes = series.contentGroup.children.map((group: any) => group.children[0]);
+                const maxDepth = Math.max(...nodes.map((n: any) => n.datum.depth ?? -1));
+                return nodes.filter((node: any) => node.datum.depth === maxDepth);
             },
             getNodePoint: (item) => {
                 const { centerX, centerY, innerRadius, outerRadius, startAngle, endAngle } = item;

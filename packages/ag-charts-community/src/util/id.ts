@@ -16,3 +16,8 @@ export function createId(instance: any): string {
 
     return `${className}-${nextId}`;
 }
+
+export function uuid() {
+    const url = URL.createObjectURL(new Blob());
+    return url.split('/').at(-1)!;
+}

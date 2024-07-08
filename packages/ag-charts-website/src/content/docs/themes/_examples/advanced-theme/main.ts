@@ -3,7 +3,6 @@ import { AgChartOptions, AgChartTheme, AgCharts } from 'ag-charts-community';
 import { getData } from './data';
 
 var myTheme: AgChartTheme = {
-    baseTheme: 'ag-default',
     palette: {
         fills: ['#5C2983', '#0076C5', '#21B372', '#FDDE02', '#F76700', '#D30018'],
         strokes: ['gray'],
@@ -20,18 +19,18 @@ var myTheme: AgChartTheme = {
             axes: {
                 category: {
                     line: {
-                        color: 'gray',
+                        stroke: 'gray',
                     },
                     tick: {
-                        color: 'gray',
+                        stroke: 'gray',
                     },
                 },
                 number: {
                     line: {
-                        color: 'gray',
+                        stroke: 'gray',
                     },
                     tick: {
-                        color: 'gray',
+                        stroke: 'gray',
                     },
                 },
             },
@@ -71,7 +70,7 @@ var myTheme: AgChartTheme = {
     },
 };
 
-var options: AgChartOptions = {
+const options: AgChartOptions = {
     theme: myTheme,
     container: document.getElementById('myChart'),
     title: {
@@ -109,7 +108,7 @@ var options: AgChartOptions = {
     ],
 };
 
-const chart = AgCharts.create(options);
+const chart = AgCharts.create(options as AgChartOptions);
 
 function applyOptions(type: 'bar' | 'pie') {
     if (type === 'pie') {
@@ -133,5 +132,5 @@ function applyOptions(type: 'bar' | 'pie') {
         ];
     }
 
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

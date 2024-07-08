@@ -44,11 +44,11 @@ const options: AgChartOptions = {
             type: 'time',
             position: 'bottom',
             nice: false,
+            interval: {
+                values: [new Date(1958, 0, 1), new Date(2007, 0, 1), new Date(2011, 0, 1), new Date(2023, 0, 1)],
+            },
             gridLine: {
                 enabled: true,
-            },
-            tick: {
-                values: [new Date(1958, 0, 1), new Date(2007, 0, 1), new Date(2011, 0, 1), new Date(2023, 0, 1)],
             },
             label: {
                 formatter: ({ value }) => `'${String(new Date(value).getFullYear()).slice(2)}`,
@@ -66,9 +66,7 @@ const options: AgChartOptions = {
         {
             type: 'number',
             position: 'left',
-            tick: {
-                values: [4.6, 9.1],
-            },
+            interval: { values: [4.6, 9.1] },
             title: {
                 text: 'Magnitude',
             },

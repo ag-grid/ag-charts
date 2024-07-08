@@ -1,8 +1,8 @@
-import type { AgBaseCrossLineLabelOptions, AgCrossLineLabelPosition } from '../../options/agChartOptions';
+import type { AgBaseCrossLineLabelOptions, AgCrossLineLabelPosition } from 'ag-charts-types';
+
 import { ContinuousScale } from '../../scale/continuousScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
-import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import { Logger } from '../../util/logger';
 import type { TimeInterval } from '../../util/time/interval';
@@ -73,8 +73,8 @@ export const validateCrossLineValues = (
 };
 
 export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
-    calculateLayout(visible: boolean, reversedAxis?: boolean): BBox | undefined;
-    calculatePadding?: (padding: Partial<Record<AgCrossLineLabelPosition, number>>) => void;
+    calculateLayout?(visible: boolean, reversedAxis?: boolean): void;
+    calculatePadding?(padding: Partial<Record<AgCrossLineLabelPosition, number>>): void;
     clippedRange: [number, number];
     direction: ChartAxisDirection;
     enabled?: boolean;

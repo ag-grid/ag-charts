@@ -1,6 +1,57 @@
 import { times } from './array';
 import { Logger } from './logger';
 import { countFractionDigits } from './number';
+import { numberFormat, parseFormat } from './numberFormat';
+import timeDay from './time/day';
+import {
+    durationDay,
+    durationHour,
+    durationMinute,
+    durationMonth,
+    durationSecond,
+    durationWeek,
+    durationYear,
+} from './time/duration';
+import timeHour from './time/hour';
+import { type CountableTimeInterval, TimeInterval } from './time/interval';
+import timeMillisecond from './time/millisecond';
+import timeMinute from './time/minute';
+import timeMonth from './time/month';
+import timeSecond from './time/second';
+import timeWeek from './time/week';
+import timeYear from './time/year';
+
+const tInterval = (timeInterval: CountableTimeInterval, baseDuration: number, step: number) => ({
+    duration: baseDuration * step,
+    timeInterval,
+    step,
+});
+
+export const TickIntervals = [
+    tInterval(timeSecond, durationSecond, 1),
+    tInterval(timeSecond, durationSecond, 5),
+    tInterval(timeSecond, durationSecond, 15),
+    tInterval(timeSecond, durationSecond, 30),
+    tInterval(timeMinute, durationMinute, 1),
+    tInterval(timeMinute, durationMinute, 5),
+    tInterval(timeMinute, durationMinute, 15),
+    tInterval(timeMinute, durationMinute, 30),
+    tInterval(timeHour, durationHour, 1),
+    tInterval(timeHour, durationHour, 3),
+    tInterval(timeHour, durationHour, 6),
+    tInterval(timeHour, durationHour, 12),
+    tInterval(timeDay, durationDay, 1),
+    tInterval(timeDay, durationDay, 2),
+    tInterval(timeWeek, durationWeek, 1),
+    tInterval(timeWeek, durationWeek, 2),
+    tInterval(timeWeek, durationWeek, 3),
+    tInterval(timeMonth, durationMonth, 1),
+    tInterval(timeMonth, durationMonth, 2),
+    tInterval(timeMonth, durationMonth, 3),
+    tInterval(timeMonth, durationMonth, 4),
+    tInterval(timeMonth, durationMonth, 6),
+    tInterval(timeYear, durationYear, 1),
+];
 
 export const TickMultipliers = [1, 2, 5, 10];
 
@@ -21,6 +72,37 @@ export function createTicks(
     start = Math.ceil(start / step) * step;
     stop = Math.floor(stop / step) * step;
     return range(start, stop, step);
+}
+
+export function getTickInterval(
+    start: number,
+    stop: number,
+    count: number,
+    minCount?: number,
+    maxCount?: number,
+    targetInterval?: number
+): TimeInterval {
+    const target = targetInterval ?? Math.abs(stop - start) / Math.max(count, 1);
+
+    let i = 0;
+    for (const tickInterval of TickIntervals) {
+        if (target <= tickInterval.duration) break;
+        i++;
+    }
+
+    if (i === 0) {
+        const step = Math.max(tickStep(start, stop, count, minCount, maxCount), 1);
+        return timeMillisecond.every(step);
+    } else if (i === TickIntervals.length) {
+        const step =
+            targetInterval == null ? tickStep(start / durationYear, stop / durationYear, count, minCount, maxCount) : 1;
+        return timeYear.every(step);
+    }
+
+    const i0 = TickIntervals[i - 1];
+    const i1 = TickIntervals[i];
+    const { timeInterval, step } = target - i0.duration < i1.duration - target ? i0 : i1;
+    return timeInterval.every(step);
 }
 
 export function tickStep(start: number, end: number, count: number, minCount = 0, maxCount = Infinity): number {
@@ -50,6 +132,43 @@ export function tickStep(start: number, end: number, count: number, minCount = 0
     }
 
     return m * step;
+}
+
+function decimalPlaces(decimal: string) {
+    for (let i = decimal.length - 1; i >= 0; i -= 1) {
+        if (decimal[i] !== '0') {
+            return i + 1;
+        }
+    }
+    return 0;
+}
+
+export function tickFormat(ticks: any[], format?: string): (n: number | { valueOf(): number }) => string {
+    const options = parseFormat(format ?? ',f');
+    if (options.precision == null || isNaN(options.precision)) {
+        if (!options.type || 'eEFgGnprs'.includes(options.type)) {
+            options.precision = Math.max(
+                ...ticks.map((x) => {
+                    if (!Number.isFinite(x)) return 0;
+                    const [integer, decimal] = x.toExponential((options.type ? 6 : 12) - 1).split(/\.|e/g);
+                    return (integer !== '1' && integer !== '-1' ? 1 : 0) + decimalPlaces(decimal) + 1;
+                })
+            );
+        } else if ('f%'.includes(options.type)) {
+            options.precision = Math.max(
+                ...ticks.map((x) => {
+                    if (!Number.isFinite(x) || x === 0) return 0;
+                    const l = Math.floor(Math.log10(Math.abs(x)));
+                    const digits = options.type ? 6 : 12;
+                    const [_integer, decimal] = x.toExponential(digits - 1).split(/\.|e/g);
+                    const decimalLength = decimalPlaces(decimal);
+                    return Math.max(0, decimalLength - l);
+                })
+            );
+        }
+    }
+    const formatter = numberFormat(options);
+    return (n) => formatter(Number(n));
 }
 
 export function range(start: number, end: number, step: number): number[] {

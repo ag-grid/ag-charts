@@ -38,7 +38,7 @@ const options: AgChartOptions = {
             type: 'time',
             position: 'bottom',
             nice: false,
-            tick: {
+            interval: {
                 values: [
                     new Date(2023, 7, 1),
                     new Date(2023, 7, 15),

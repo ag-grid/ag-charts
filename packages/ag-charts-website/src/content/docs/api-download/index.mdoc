@@ -9,28 +9,28 @@ Saving chart images by API call.
 
 We expose the APIs for triggering download via the `AgCharts` class:
 
-{% apiReference id="AgChartInterface" include=["download", "getImageDataURL"] hideHeader=true hideRequired=true /%}
+{% apiReference id="_AgChartInstanceInterface" include=["download", "getImageDataURL"] hideHeader=true hideRequired=true /%}
 
 {% if isFramework("react") %}
-The `AgChartInstance` can be obtained using a React `Ref` to our `<AgChartsReact />` tag, which
+The `AgChartInstance` can be obtained using a React `Ref` to our `<AgCharts />` tag, which
 exposes a `chart` property.
 {% /if %}
 
 {% if isFramework("angular") %}
-The `AgChartInstance` can be obtained using an Angular `@ViewChild` decorator to reference our `AgChartsAngular` tag, which
+The `AgChartInstance` can be obtained using an Angular `@ViewChild` decorator to reference our `AgCharts` tag, which
 exposes a `chart` property.
 {% /if %}
 
 {% if isFramework("vue") %}
-The `AgChartInstance` can be obtained using the Vue `$refs` component property to reference our `AgChartsVue` tag, which
+The `AgChartInstance` can be obtained using the Vue `$refs` component property to reference our `AgCharts` tag, which
 exposes a `chart` property.
 {% /if %}
 
 This example demonstrates:
 
 -   How to obtain a reference to an `AgChartInstance`.
--   How to use `AgCharts.download()` to start a chart image download.
--   How to use `AgCharts.getImageDataURL()` to create a base64-encoded image URL, and then open it in
+-   How to use `AgChartInstance.download()` to start a chart image download.
+-   How to use `AgChartInstance.getImageDataURL()` to create a base64-encoded image URL, and then open it in
     a new tab.
 
-{% chartExampleRunner title="Download via AgCharts API" name="download" type="generated" /%}
+{% chartExampleRunner title="Download via AgChartInstance API" name="download" type="generated" /%}

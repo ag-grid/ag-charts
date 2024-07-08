@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import type { AgCartesianChartOptions } from '../../options/agChartOptions';
-import { AgCharts } from '../agChartV2';
+import type { AgCartesianChartOptions } from 'ag-charts-types';
+
+import { AgCharts } from '../../api/agCharts';
 import type { ChartAxis } from '../chartAxis';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -47,7 +48,9 @@ const TIME_AXIS_EXAMPLE: AgCartesianChartOptions = {
             type: 'time',
             position: 'bottom',
             nice: false,
-            tick: { maxSpacing: 150 },
+            interval: {
+                maxSpacing: 150,
+            },
         },
         {
             type: 'number',
@@ -106,7 +109,7 @@ describe('Time Axis Examples', () => {
         for (const [min, max] of ZOOM_LEVELS) {
             it(`for should render as expected as zoom [${min}, ${max}]`, async () => {
                 chart = AgCharts.create(prepareTestOptions({ ...TIME_AXIS_EXAMPLE }));
-                AgCharts.updateDelta(chart, { navigator: { min, max } });
+                chart.updateDelta({ navigator: { min, max } });
                 await axisCompare();
             });
         }

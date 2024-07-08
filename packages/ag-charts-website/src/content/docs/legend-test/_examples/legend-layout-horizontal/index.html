@@ -1,18 +1,16 @@
-<div class="wrapper">
-    <div class="toolPanel">
-        <div class="sliders">
-            <label for="sliderInput">Width</label>
-            <input
-                type="range"
-                id="sliderInput"
-                min="400"
-                max="800"
-                value="600"
-                oninput="updateWidth(event)"
-                onchange="updateWidth(event)"
-            />
-            <span id="sliderValue">600</span>
-        </div>
+<div class="toolbar">
+    <div class="sliders">
+        <label for="sliderInput">Width</label>
+        <input
+            type="range"
+            id="sliderInput"
+            min="400"
+            max="800"
+            value="600"
+            oninput="updateWidth(event)"
+            onchange="updateWidth(event)"
+        />
+        <span id="sliderValue">600</span>
     </div>
-    <div id="myChart" class="chart"></div>
 </div>
+<div id="myChart"></div>

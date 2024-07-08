@@ -1,4 +1,5 @@
-import type { Direction } from '../../../options/chart/types';
+import type { Direction } from 'ag-charts-types';
+
 import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import type { Point } from '../../../scene/point';
@@ -32,6 +33,7 @@ export abstract class AbstractBarSeries<
     protected groupScale = new BandScale<string>();
 
     protected smallestDataInterval?: number = undefined;
+    protected largestDataInterval?: number = undefined;
 
     override getBandScalePadding() {
         return { inner: 0.3, outer: 0.15 };

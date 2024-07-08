@@ -1,6 +1,8 @@
 import {
     AgCartesianChartOptions,
     AgCartesianSeriesTooltipRendererParams,
+    AgChartInstance,
+    AgChartOptions,
     AgCharts,
     AgPolarChartOptions,
     AgTooltipRendererResult,
@@ -227,28 +229,28 @@ let options: AgCartesianChartOptions | AgPolarChartOptions = {
     ...barOptions,
 };
 
-const chart = AgCharts.create(options);
+const chart = AgCharts.create(options as AgChartOptions);
 
 function changeSeriesBar() {
     options.series = barOptions.series;
     options.axes = barOptions.axes;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function changeSeriesLine() {
     options.series = lineOptions.series;
     options.axes = lineOptions.axes;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function changeSeriesArea() {
     options.series = areaOptions.series;
     options.axes = areaOptions.axes;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function changeSeriesDonut() {
     options.series = donutOptions.series;
     options.axes = donutOptions.axes;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

@@ -12,19 +12,16 @@ const convertColorStringToOklcha = (v: string): OKLCHA => {
     return { l, c, h, a: color.a };
 };
 
+const delta = 1e-6;
+const isAchromatic = (x: OKLCHA) => x.c < delta || x.l < delta || x.l > 1 - delta;
 const interpolateOklch = (x: OKLCHA, y: OKLCHA, d: number): Color => {
     d = clamp(0, d, 1);
+
     let h: number;
-    let c: number;
-    if (Number.isNaN(x.h) && Number.isNaN(y.h)) {
-        h = 0;
-        c = 0;
-    } else if (Number.isNaN(x.h)) {
+    if (isAchromatic(x)) {
         h = y.h;
-        c = y.c;
-    } else if (Number.isNaN(y.h)) {
+    } else if (isAchromatic(y)) {
         h = x.h;
-        c = x.c;
     } else {
         const xH = x.h;
         let yH = y.h;
@@ -35,9 +32,9 @@ const interpolateOklch = (x: OKLCHA, y: OKLCHA, d: number): Color => {
             yH += 360;
         }
         h = xH * (1 - d) + yH * d;
-        c = x.c * (1 - d) + y.c * d;
     }
 
+    const c = x.c * (1 - d) + y.c * d;
     const l = x.l * (1 - d) + y.l * d;
     const a = x.a * (1 - d) + y.a * d;
 

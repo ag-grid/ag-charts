@@ -1,7 +1,6 @@
 import { type _ModuleSupport, _Theme } from 'ag-charts-community';
 
 import { OhlcSeries } from './ohlcSeries';
-import { OHLC_SERIES_THEME } from './ohlcThemes';
 
 export const OhlcModule: _ModuleSupport.SeriesModule<'ohlc'> = {
     type: 'series',
@@ -11,6 +10,7 @@ export const OhlcModule: _ModuleSupport.SeriesModule<'ohlc'> = {
 
     identifier: 'ohlc',
     instanceConstructor: OhlcSeries,
+    tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
         {
             type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
@@ -21,23 +21,44 @@ export const OhlcModule: _ModuleSupport.SeriesModule<'ohlc'> = {
             position: _Theme.POSITION.BOTTOM,
         },
     ],
-    themeTemplate: OHLC_SERIES_THEME,
+    themeTemplate: {
+        animation: { enabled: false },
+        axes: {
+            [_Theme.CARTESIAN_AXIS_TYPE.NUMBER]: {
+                crosshair: {
+                    snap: false,
+                },
+            },
+            [_Theme.CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: {
+                groupPaddingInner: 0,
+                crosshair: {
+                    enabled: true,
+                },
+            },
+        },
+    },
     groupable: false,
-    paletteFactory: ({ takeColors, colorsCount, userPalette, themeTemplateParameters }) => {
-        const {
-            strokes: [stroke],
-        } = takeColors(colorsCount);
-        const { strokes: DEFAULT_STROKES } = themeTemplateParameters.properties.get(
-            _Theme.DEFAULT_COLOURS
-        ) as unknown as _ModuleSupport.DefaultColors;
+    paletteFactory: ({ takeColors, colorsCount, userPalette, palette }) => {
+        if (userPalette === 'user-indexed') {
+            const {
+                strokes: [stroke],
+            } = takeColors(colorsCount);
+            return {
+                item: {
+                    up: {
+                        stroke: stroke,
+                    },
+                    down: {
+                        stroke: stroke,
+                    },
+                },
+            };
+        }
+
         return {
             item: {
-                up: {
-                    stroke: userPalette ? stroke : DEFAULT_STROKES.GREEN,
-                },
-                down: {
-                    stroke: userPalette ? stroke : DEFAULT_STROKES.RED,
-                },
+                up: { stroke: palette.up.stroke },
+                down: { stroke: palette.down.stroke },
             },
         };
     },

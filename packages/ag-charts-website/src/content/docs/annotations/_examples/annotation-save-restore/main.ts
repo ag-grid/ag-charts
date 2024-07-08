@@ -1,68 +1,49 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartState, AgCharts, AgFinancialChartOptions } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgFinancialChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
         text: 'Dow Jones Industrial Average',
     },
-    subtitle: {
-        text: 'Candlestick Patterns',
-    },
-    footnote: {
-        text: '1 Minute',
-    },
-    series: [
-        {
-            type: 'candlestick',
-            xKey: 'date',
-            xName: 'Time',
-            lowKey: 'low',
-            highKey: 'high',
-            openKey: 'open',
-            closeKey: 'close',
-        },
-    ],
-    axes: [
-        {
-            type: 'ordinal-time',
-            position: 'bottom',
-            label: {
-                format: '%H:%M',
-            },
-        },
-        {
-            type: 'number',
-            position: 'right',
-            label: {
-                formatter: ({ value }) => Number(value).toLocaleString(),
-            },
-        },
-    ],
-    annotations: {
-        enabled: true,
-    },
-    toolbar: {
-        annotations: {
-            enabled: true,
-        },
-    },
-    tooltip: { enabled: false },
 };
 
-const chart = AgCharts.create(options);
+const chart = AgCharts.createFinancialChart(options);
 
-let blob =
-    'eyJhbm5vdGF0aW9ucyI6W3sidHlwZSI6InBhcmFsbGVsLWNoYW5uZWwiLCJzaXplIjoxMi40NjA3MzI5ODQyOTEwOTksIm1pZGRsZSI6eyJzdHJva2VXaWR0aCI6MSwibGluZURhc2giOls2LDVdfSwiYmFja2dyb3VuZCI6eyJmaWxsIjoiIzUwOTBkYyIsImZpbGxPcGFjaXR5IjowLjJ9LCJzdGFydCI6eyJ4IjoiMjAyNC0wMy0yMVQxODo0NTowMC4wMDBaIiwieSI6Mzk4MjYuNDkyMTQ2NTk2ODZ9LCJlbmQiOnsieCI6IjIwMjQtMDMtMjFUMTg6NTY6MDAuMDAwWiIsInkiOjM5ODQxLjM2MTI1NjU0NDV9LCJoYW5kbGUiOnsiZmlsbCI6IndoaXRlIn0sInN0cm9rZSI6IiMyYjVjOTUiLCJzdHJva2VPcGFjaXR5IjoxLCJzdHJva2VXaWR0aCI6Mn0seyJ0eXBlIjoicGFyYWxsZWwtY2hhbm5lbCIsInNpemUiOjEyLjYxNzgwMTA0NzExOTQyOCwibWlkZGxlIjp7InN0cm9rZVdpZHRoIjoxLCJsaW5lRGFzaCI6WzYsNV19LCJiYWNrZ3JvdW5kIjp7ImZpbGwiOiIjNTA5MGRjIiwiZmlsbE9wYWNpdHkiOjAuMn0sInN0YXJ0Ijp7IngiOnsiX190eXBlIjoiZGF0ZSIsInZhbHVlIjoiVGh1IE1hciAyMSAyMDI0IDE4OjQzOjAwIEdNVCswMDAwIChHcmVlbndpY2ggTWVhbiBUaW1lKSJ9LCJ5IjozOTgyNC44NjkxMDk5NDc2NH0sImVuZCI6eyJ4Ijp7Il9fdHlwZSI6ImRhdGUiLCJ2YWx1ZSI6IlRodSBNYXIgMjEgMjAyNCAxODo1NjowMCBHTVQrMDAwMCAoR3JlZW53aWNoIE1lYW4gVGltZSkifSwieSI6Mzk4NDAuMDUyMzU2MDIwOTR9LCJoYW5kbGUiOnsiZmlsbCI6IndoaXRlIn0sInN0cm9rZSI6IiMyYjVjOTUiLCJzdHJva2VPcGFjaXR5IjoxLCJzdHJva2VXaWR0aCI6Mn1dLCJ0eXBlIjoiYW5ub3RhdGlvbnMiLCJ2ZXJzaW9uIjoiMTAuMCJ9';
+let state: AgChartState = {
+    version: '10.0.0',
+    annotations: [
+        {
+            type: 'parallel-channel',
+            height: 9.692307692304894,
+            middle: { strokeWidth: 1, lineDash: [6, 5] },
+            background: { fill: '#5090dc', fillOpacity: 0.2 },
+            start: {
+                x: { __type: 'date', value: 'Thu Mar 21 2024 18:45:00 GMT+0000 (Greenwich Mean Time)' },
+                y: 39821.692307692305,
+            },
+            end: {
+                x: { __type: 'date', value: 'Thu Mar 21 2024 18:55:00 GMT+0000 (Greenwich Mean Time)' },
+                y: 39838.46153846154,
+            },
+            handle: { fill: 'white' },
+            stroke: '#5090dc',
+            strokeOpacity: 1,
+            strokeWidth: 2,
+        },
+    ],
+};
 
 function saveAnnotations() {
-    blob = AgCharts.saveAnnotations(chart);
-    console.log(`Saving [${blob}]`);
+    const newState = chart.getState();
+    state = newState;
+    console.log('Saved', state);
 }
 
 function restoreAnnotations() {
-    console.log(`Restoring [${blob}]`);
-    AgCharts.restoreAnnotations(chart, blob);
+    chart.setState(state).then(() => {
+        console.log(`Restored`, state);
+    });
 }

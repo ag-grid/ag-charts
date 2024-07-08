@@ -1,2 +1,3 @@
-export * from './lib/ag-charts-angular.component';
-export * from './lib/ag-charts-angular.module';
+export * from './lib/ag-charts.component';
+export * from './lib/ag-financial-charts.component';
+export * from './lib/ag-charts.module';

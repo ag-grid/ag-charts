@@ -1,0 +1,126 @@
+---
+title: 'Axis Intervals'
+---
+
+The Axis Interval determines which axis labels, grid lines and ticks are shown along the axis.
+
+{% note %}
+Category axes show these items for every category. Number and time axes will display around 5 items depending on the available space.
+{% /note %}
+
+## Customisation
+
+The axis interval can be configured with one of the following strategies:
+
+-   [Step](#step) - Used for regular intervals which are separated by a fixed gap.
+-   [Values](#values) - Used for irregular intervals which occur at specific values.
+-   [Min / Max Spacing](#min--max-spacing) - Used for responsive intervals based on the chart size, separated by the rendered pixel gap range.
+
+## Step
+
+The `interval.step` property defines the size of the fixed interval, expressed in the units of the respective axis.
+
+{% note %}
+If the configured `interval` results in too many items given the data domain and chart size, it will be ignored and the default interval will be applied.
+{% /note %}
+
+### Number Axes
+
+For [Number Axes](./axes-types/#number), the `step` should be a number.
+For example, a `step` of `5`, will display values at `0`, `5`, `10`.
+
+```js
+{
+    interval: { step: 5 },
+}
+```
+
+{% chartExampleRunner title="Number Axis Interval" name="axis-interval" type="generated" /%}
+
+### Log Axes
+
+For [Log Axes](./axes-types/#log), the `step` should be a number.
+
+This number increments the exponent to which the base of the logarithm is elevated.
+For example, a `step` of `2` will display values at `10^0`, `10^2`, `10^4`.
+
+### Time Axes
+
+For [Time Axes](./axes-types/#time) and [Ordinal Time Axes](./axes-types/#ordinal-time) the `step` should be a
+`TimeInterval`.
+For example, a `step` of `time.month` will display values for every month.
+You can also use `every` to specify a `step` as a multiplier of a `TimeInterval`. For example, `time.month.every(2)`,
+will display values for every second month.
+
+```js
+{
+    interval: { step: time.month },
+}
+```
+
+{% chartExampleRunner title="Time Axis Interval" name="time-axis-label-format" type="generated" /%}
+
+Available `TimeIntervals` are:
+
+-   `year`, `utcYear`
+-   `month`, `utcMonth`
+-   `day`, `utcDay`
+-   `hour`, `utcHour`
+-   `minute`
+-   `second`
+-   `millisecond`
+-   `sunday`, `monday`, `tuesday`, `wednesday`, `thursday`, `friday`, `saturday`
+
+If the `step` property of a time axis is set to a `number`, this will be interpreted as milliseconds.
+
+## Values
+
+The `interval.values` property allows you to specify the precise array of values to display. Depending on the axis type,
+this should be an array consisting of `number`, `Date`, or `String` values.
+
+```js
+{
+    interval: {
+        values: [50, 88, 100],
+    },
+}
+```
+
+{% chartExampleRunner title="Values" name="axis-values" type="generated" /%}
+
+## Min / Max Spacing
+
+The `interval.minSpacing` and `interval.maxSpacing` options defining the approximate minimum and maximum pixel gaps that
+should exist between values. You can provide one or both options as needed.
+
+An appropriate number of items will be generated to meet the specified `interval.minSpacing` and `interval.maxSpacing`
+constraints, taking the rendered size of the chart into account.
+{% note %}
+Category axes do not support `maxSpacing`, as intervals are derived from the domain of category values.
+{% /note %}
+
+```js
+{
+    interval: {
+        minSpacing: 50,
+        maxSpacing: 200,
+    }
+}
+```
+
+{% chartExampleRunner title="Min / Max Spacing" name="axis-min-max-spacing" type="generated" /%}
+
+In this example:
+
+-   There is a button at the top of the chart to apply min / max spacing.
+-   There is a grab handle in the bottom right to allow resizing of the chart to see how the interval changes with available space.
+
+{% note %}
+When `minSpacing` and `maxSpacing` are very close in value, the actual spacing may be outside the requested range.
+This is because the specified constraints may result in non-standard intervals rather than round intervals such as 1x, 2x, 5x, and 10x.
+To avoid this, set `maxSpacing` to be 2-3 times larger than `minSpacing`.
+{% /note %}
+
+## Next Up
+
+Continue to the next section to learn about [Axis Domain](./axes-domain/).

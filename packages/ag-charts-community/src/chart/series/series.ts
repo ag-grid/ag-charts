@@ -1,18 +1,21 @@
+import type {
+    AgChartLabelFormatterParams,
+    AgChartLabelOptions,
+    AgSeriesMarkerStyle,
+    AgSeriesMarkerStylerParams,
+    ISeriesMarker,
+} from 'ag-charts-types';
+
 import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
 import type { SeriesOptionInstance, SeriesOptionModule, SeriesType } from '../../module/optionsModuleTypes';
-import type { AgChartLabelFormatterParams, AgChartLabelOptions } from '../../options/agChartOptions';
-import type {
-    AgSeriesMarkerFormatterParams,
-    AgSeriesMarkerStyle,
-    ISeriesMarker,
-} from '../../options/series/markerOptions';
 import type { ScaleType } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import type { ZIndexSubOrder } from '../../scene/layersManager';
 import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
+import type { Path } from '../../scene/shape/path';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import { createId } from '../../util/id';
 import { jsonDiff } from '../../util/json';
@@ -32,7 +35,7 @@ import type { ChartMode } from '../chartMode';
 import { accumulatedValue, range, trailingAccumulatedValue } from '../data/aggregateFunctions';
 import type { DataController } from '../data/dataController';
 import type { DatumPropertyDefinition } from '../data/dataModel';
-import { accumulateGroup } from '../data/processors';
+import { accumulateContinuity, accumulateGroup } from '../data/processors';
 import { Layers } from '../layers';
 import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
 import type { Marker } from '../marker/marker';
@@ -55,16 +58,18 @@ export enum SeriesNodePickMode {
     NEAREST_NODE,
 }
 
+export type SeriesNodePickIntent = 'tooltip' | 'highlight' | 'context-menu' | 'event';
+
 export type SeriesNodePickMatch = {
     datum: SeriesNodeDatum;
     distance: number;
 };
 
 export type PickFocusInputs = {
-    // datum delta is stricly +ve/-ve when changing datum focus, or 0 when changing series focus.
+    // datum delta is strictly +ve/-ve when changing datum focus, or 0 when changing series focus.
     readonly datumIndex: number;
     readonly datumIndexDelta: number;
-    // 'other' means 'depth' for hierarchial charts, or 'series' for all other charts
+    // 'other' means 'depth' for hierarchical charts, or 'series' for all other charts
     readonly otherIndex: number;
     readonly otherIndexDelta: number;
     readonly seriesRect?: Readonly<BBox>;
@@ -74,7 +79,7 @@ export type PickFocusOutputs = {
     datumIndex: number;
     datum: SeriesNodeDatum;
     otherIndex?: number;
-    bbox: BBox;
+    bounds: BBox | Path;
     showFocusBox: boolean;
 };
 
@@ -186,6 +191,14 @@ export function groupAccumulativeValueProperty<K>(
     ];
 }
 
+export function groupAccumulativeContinuityProperty<K>(
+    propName: K,
+    opts: Partial<DatumPropertyDefinition<K>> & { rangeId?: string; groupId: string },
+    scaleType?: ScaleType
+) {
+    return [valueProperty(propName, scaleType, opts), accumulateContinuity(opts.groupId, opts.separateNegative)];
+}
+
 export type SeriesNodeEventTypes = 'nodeClick' | 'nodeDoubleClick' | 'nodeContextMenuAction' | 'groupingChanged';
 
 interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extends TypedEvent {
@@ -201,7 +214,7 @@ export interface INodeEventConstructor<
     TSeries extends Series<TDatum, any>,
     TEvent extends string = SeriesNodeEventTypes,
 > {
-    new (type: TEvent, event: Event, { datum }: TDatum, series: TSeries): INodeEvent<TEvent>;
+    new <T extends TEvent>(type: T, event: Event, { datum }: TDatum, series: TSeries): INodeEvent<T>;
 }
 
 export class SeriesNodeEvent<TDatum extends SeriesNodeDatum, TEvent extends string = SeriesNodeEventTypes>
@@ -339,13 +352,13 @@ export abstract class Series<
     protected _data?: any[];
     protected _chartData?: any[];
 
-    protected get data() {
+    get data() {
         return this._data ?? this._chartData;
     }
 
     set visible(value: boolean) {
         this.properties.visible = value;
-        this.visibleChanged();
+        this.visibleMaybeChanged();
     }
 
     get visible() {
@@ -560,9 +573,10 @@ export abstract class Series<
     // Indicate that something external changed and we should recalculate nodeData.
     markNodeDataDirty() {
         this.nodeDataRefresh = true;
+        this.visibleMaybeChanged();
     }
 
-    visibleChanged() {
+    private visibleMaybeChanged() {
         this.ctx.seriesStateManager.registerSeries(this);
     }
 
@@ -630,13 +644,14 @@ export abstract class Series<
 
     pickNode(
         point: Point,
+        intent: SeriesNodePickIntent,
         limitPickModes?: SeriesNodePickMode[]
     ): { pickMode: SeriesNodePickMode; match: SeriesNodeDatum; distance: number } | undefined {
         const { pickModes, visible, rootGroup } = this;
 
-        if (!visible || !rootGroup.visible) {
-            return;
-        }
+        if (!visible || !rootGroup.visible) return;
+        if (intent === 'highlight' && !this.properties.highlight.enabled) return;
+        if (intent === 'tooltip' && !this.properties.tooltip.enabled) return;
 
         for (const pickMode of pickModes) {
             if (limitPickModes && !limitPickModes.includes(pickMode)) {
@@ -708,7 +723,7 @@ export abstract class Series<
         this.fireEvent(new this.NodeEvent('nodeDoubleClick', event, datum, this));
     }
 
-    createNodeContextMenuActionEvent(event: Event, datum: TDatum): INodeEvent {
+    createNodeContextMenuActionEvent(event: Event, datum: TDatum): INodeEvent<'nodeContextMenuAction'> {
         return new this.NodeEvent('nodeContextMenuAction', event, datum, this);
     }
 
@@ -748,14 +763,14 @@ export abstract class Series<
     }
 
     public getMarkerStyle<TParams>(
-        marker: ISeriesMarker<TDatum, TParams>,
-        params: TParams & Omit<AgSeriesMarkerFormatterParams<TDatum>, 'seriesId'>,
+        marker: ISeriesMarker<TParams>,
+        params: TParams & Omit<AgSeriesMarkerStylerParams<TDatum>, 'seriesId'>,
         defaultStyle: AgSeriesMarkerStyle = marker.getStyle()
     ) {
         const defaultSize = { size: params.datum.point?.size ?? 0 };
         const markerStyle = mergeDefaults(defaultSize, defaultStyle);
-        if (marker.formatter) {
-            const style = this.ctx.callbackCache.call(marker.formatter, {
+        if (marker.itemStyler) {
+            const style = this.ctx.callbackCache.call(marker.itemStyler, {
                 seriesId: this.id,
                 ...markerStyle,
                 ...params,
@@ -768,8 +783,8 @@ export abstract class Series<
 
     protected updateMarkerStyle<TParams>(
         markerNode: Marker,
-        marker: ISeriesMarker<TDatum, TParams>,
-        params: TParams & Omit<AgSeriesMarkerFormatterParams<TDatum>, 'seriesId'>,
+        marker: ISeriesMarker<TParams>,
+        params: TParams & Omit<AgSeriesMarkerStylerParams<TDatum>, 'seriesId'>,
         defaultStyle: AgSeriesMarkerStyle = marker.getStyle(),
         { applyTranslation = true } = {}
     ) {

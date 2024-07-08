@@ -1,4 +1,5 @@
-import type { InteractionRange } from '../../options/chart/types';
+import type { InteractionRange } from 'ag-charts-types';
+
 import { BaseProperties } from '../../util/properties';
 import {
     BOOLEAN,
@@ -52,6 +53,11 @@ class TextHighlightStyle extends BaseProperties {
     color?: string = 'black';
 }
 
+export class HighlightProperties extends BaseProperties {
+    @Validate(BOOLEAN, { optional: true })
+    enabled = true;
+}
+
 export class HighlightStyle extends BaseProperties {
     @Validate(OBJECT)
     readonly item = new SeriesItemHighlightStyle();
@@ -78,6 +84,9 @@ export abstract class SeriesProperties<T extends object> extends BaseProperties<
 
     @Validate(INTERACTION_RANGE)
     nodeClickRange: InteractionRange = 'exact';
+
+    @Validate(OBJECT)
+    readonly highlight = new HighlightProperties();
 
     @Validate(OBJECT)
     readonly highlightStyle = new HighlightStyle();

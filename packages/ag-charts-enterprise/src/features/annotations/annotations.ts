@@ -1,8 +1,21 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { type Direction, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import type { AnnotationPoint } from './annotationProperties';
-import type { Coords, StateClickEvent, StateHoverEvent } from './annotationTypes';
-import { AnnotationType } from './annotationTypes';
+import { buildBounds } from '../../utils/position';
+import { ColorPicker } from '../color-picker/colorPicker';
+import type {
+    AnnotationContext,
+    Coords,
+    Point,
+    StateClickEvent,
+    StateDragEvent,
+    StateHoverEvent,
+} from './annotationTypes';
+import { ANNOTATION_BUTTONS, AnnotationType, stringToAnnotationType } from './annotationTypes';
+import { calculateAxisLabelPadding, invertCoords, validateDatumPoint } from './annotationUtils';
+import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
+import { HorizontalLineAnnotation, VerticalLineAnnotation } from './cross-line/crossLineProperties';
+import { CrossLine } from './cross-line/crossLineScene';
+import { CrossLineStateMachine } from './cross-line/crossLineState';
 import { DisjointChannelAnnotation } from './disjoint-channel/disjointChannelProperties';
 import { DisjointChannel } from './disjoint-channel/disjointChannelScene';
 import { DisjointChannelStateMachine } from './disjoint-channel/disjointChannelState';
@@ -16,7 +29,6 @@ import type { Annotation } from './scenes/annotation';
 
 const {
     BOOLEAN,
-    OBJECT_ARRAY,
     ChartUpdateType,
     Cursor,
     InteractionState,
@@ -24,69 +36,206 @@ const {
     StateMachine,
     ToolbarManager,
     Validate,
+    REGIONS,
+    UNION,
+    ChartAxisDirection,
 } = _ModuleSupport;
+const { Vec2 } = _Util;
 
 type Constructor<T = {}> = new (...args: any[]) => T;
 
-type AnnotationScene = Line | DisjointChannel | ParallelChannel;
-type AnnotationProperties = LineAnnotation | ParallelChannelAnnotation | DisjointChannelAnnotation;
+type AnnotationScene = Line | CrossLine | DisjointChannel | ParallelChannel;
+type AnnotationProperties =
+    | LineAnnotation
+    | HorizontalLineAnnotation
+    | VerticalLineAnnotation
+    | ParallelChannelAnnotation
+    | DisjointChannelAnnotation;
+type AnnotationPropertiesArray = _ModuleSupport.PropertiesArray<AnnotationProperties>;
+
+type AnnotationAxis = {
+    layout: _ModuleSupport.AxisLayout;
+    context: _ModuleSupport.AxisContext;
+    bounds: _Scene.BBox;
+    button?: AxisButton;
+};
 
 const annotationDatums: Record<AnnotationType, Constructor<AnnotationProperties>> = {
     [AnnotationType.Line]: LineAnnotation,
+    [AnnotationType.HorizontalLine]: HorizontalLineAnnotation,
+    [AnnotationType.VerticalLine]: VerticalLineAnnotation,
     [AnnotationType.ParallelChannel]: ParallelChannelAnnotation,
     [AnnotationType.DisjointChannel]: DisjointChannelAnnotation,
 };
 
 const annotationScenes: Record<AnnotationType, Constructor<AnnotationScene>> = {
     [AnnotationType.Line]: Line,
+    [AnnotationType.HorizontalLine]: CrossLine,
+    [AnnotationType.VerticalLine]: CrossLine,
     [AnnotationType.DisjointChannel]: DisjointChannel,
     [AnnotationType.ParallelChannel]: ParallelChannel,
 };
 
-class AnnotationsStateMachine extends StateMachine<'idle', AnnotationType | 'click' | 'hover'> {
+class AnnotationsStateMachine extends StateMachine<'idle', AnnotationType | 'click' | 'hover' | 'drag' | 'cancel'> {
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(
-        ctx: _ModuleSupport.ModuleContext,
-        createDatum: (type: AnnotationType, datum: AnnotationProperties) => void,
-        validateDatumPoint: (point: { x?: number | string | Date; y?: number | string | Date }) => boolean
+        onEnterIdle: () => void,
+        appendDatum: (type: AnnotationType, datum: AnnotationProperties) => void,
+        onExitCrossLine: () => void,
+        validateChildStateDatumPoint: (point: Point) => boolean
     ) {
         super('idle', {
             idle: {
-                onEnter: () => {
-                    ctx.cursorManager.updateCursor('annotations');
-                    ctx.interactionManager.popState(InteractionState.Annotations);
-                },
-                [AnnotationType.Line]: new LineStateMachine((datum) => createDatum(AnnotationType.Line, datum)),
+                onEnter: () => onEnterIdle(),
+                [AnnotationType.Line]: new LineStateMachine((datum) => appendDatum(AnnotationType.Line, datum)),
+                [AnnotationType.HorizontalLine]: new CrossLineStateMachine(
+                    'horizontal',
+                    (datum) => appendDatum(AnnotationType.HorizontalLine, datum),
+                    onExitCrossLine
+                ),
+                [AnnotationType.VerticalLine]: new CrossLineStateMachine(
+                    'vertical',
+                    (datum) => appendDatum(AnnotationType.VerticalLine, datum),
+                    onExitCrossLine
+                ),
                 [AnnotationType.DisjointChannel]: new DisjointChannelStateMachine(
-                    (datum) => createDatum(AnnotationType.DisjointChannel, datum),
-                    validateDatumPoint
+                    (datum) => appendDatum(AnnotationType.DisjointChannel, datum),
+                    validateChildStateDatumPoint
                 ),
                 [AnnotationType.ParallelChannel]: new ParallelChannelStateMachine(
-                    (datum) => createDatum(AnnotationType.ParallelChannel, datum),
-                    validateDatumPoint
+                    (datum) => appendDatum(AnnotationType.ParallelChannel, datum),
+                    validateChildStateDatumPoint
                 ),
             },
         });
     }
 }
 
+const AXIS_TYPE = UNION(['x', 'y', 'xy'], 'an axis type');
+
+class AxesButtons {
+    @Validate(BOOLEAN)
+    public enabled: boolean = true;
+
+    @Validate(AXIS_TYPE, { optional: true })
+    public axes?: 'x' | 'y' | 'xy' = 'y';
+}
+
 export class Annotations extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
-    @_ModuleSupport.ObserveChanges<Annotations>((target, enabled) => {
-        target.ctx.toolbarManager.toggleGroup('annotations', Boolean(enabled));
+    // TODO: When the 'restore-annotations' event is triggered from `ActionsOnSet.newValue()`, the module is still
+    // disabled when `onRestoreAnnotations()` is called, preventing the state from being restored. However,
+    // when `ObserveChanges()` is first called `target.enabled === false`, rather than `undefined`. So
+    // there is no way to detect if the module was actively disabled. This flag simulates a combined
+    // behaviour of both and is toggled when the module is actively disabled and enabled.
+    private __hackWasDisabled = false;
+
+    @_ModuleSupport.ObserveChanges<Annotations, boolean>((target, enabled) => {
+        const {
+            ctx: { annotationManager, stateManager, toolbarManager },
+        } = target;
+
+        toolbarManager.toggleGroup('annotations', 'annotations', Boolean(enabled));
+
+        // Restore the annotations only if this module was previously disabled
+        if (target.__hackWasDisabled && enabled) {
+            stateManager.restoreState(annotationManager);
+            target.__hackWasDisabled = false;
+        } else if (enabled === false) {
+            target.__hackWasDisabled = true;
+            target.clear();
+        }
     })
     @Validate(BOOLEAN)
     public enabled: boolean = true;
 
-    @_ModuleSupport.ObserveChanges<Annotations>(
-        (target, initial: _ModuleSupport.PropertiesArray<AnnotationProperties>) => {
-            target.annotationData ??= initial;
-        }
-    )
-    @Validate(OBJECT_ARRAY, { optional: true })
-    public initial = new PropertiesArray(this.annotationFactory);
+    public axesButtons = new AxesButtons();
 
-    private annotationFactory(params: { type: AnnotationType }) {
+    // State
+    private readonly state: AnnotationsStateMachine;
+    private readonly annotationData: AnnotationPropertiesArray = new PropertiesArray(this.createAnnotationDatum);
+    private hovered?: number;
+    private active?: number;
+    private dragOffset?: Coords;
+
+    // Elements
+    private seriesRect?: _Scene.BBox;
+    private readonly container = new _Scene.Group({ name: 'static-annotations' });
+    private readonly annotations = new _Scene.Selection<AnnotationScene, AnnotationProperties>(
+        this.container,
+        this.createAnnotationScene.bind(this)
+    );
+
+    private readonly colorPicker = new ColorPicker(this.ctx);
+    private defaultColor?: string;
+
+    private xAxis?: AnnotationAxis;
+    private yAxis?: AnnotationAxis;
+
+    constructor(readonly ctx: _ModuleSupport.ModuleContext) {
+        super();
+
+        this.state = new AnnotationsStateMachine(
+            () => {
+                ctx.cursorManager.updateCursor('annotations');
+                ctx.interactionManager.popState(InteractionState.Annotations);
+                ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', this.active != null);
+                ctx.tooltipManager.unsuppressTooltip('annotations');
+                for (const annotationType of ANNOTATION_BUTTONS) {
+                    ctx.toolbarManager.toggleButton('annotations', annotationType, { active: false });
+                }
+                this.toggleAnnotationOptionsButtons();
+            },
+            this.appendDatum.bind(this),
+            () => {
+                this.active = this.annotationData.length - 1;
+            },
+            this.validateChildStateDatumPoint.bind(this)
+        );
+
+        const { All, Default, Annotations: AnnotationsState, ZoomDrag } = InteractionState;
+
+        const seriesRegion = ctx.regionManager.getRegion(REGIONS.SERIES);
+
+        const otherRegions = Object.values(REGIONS)
+            .filter(
+                (region) =>
+                    ![
+                        REGIONS.SERIES,
+
+                        // TODO: Navigator wrongly enchroaches on the top of the chart, even if it is disabled. We
+                        // have to ignore it to prevent it immediately calling `onCancel()` when the top-left
+                        // annotations toolbar button is clicked.
+                        REGIONS.NAVIGATOR,
+                    ].includes(region)
+            )
+            .map((region) => ctx.regionManager.getRegion(region));
+
+        this.destroyFns.push(
+            ctx.annotationManager.attachNode(this.container),
+            () => this.colorPicker.destroy(),
+            seriesRegion.addListener('hover', (event) => this.onHover(event), All),
+            seriesRegion.addListener('click', (event) => this.onClick(event), All),
+            seriesRegion.addListener('drag-start', this.onDragStart.bind(this), Default | ZoomDrag | AnnotationsState),
+            seriesRegion.addListener('drag', this.onDrag.bind(this), Default | ZoomDrag | AnnotationsState),
+            seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
+            seriesRegion.addListener('cancel', this.onCancel.bind(this), All),
+            seriesRegion.addListener('delete', this.onDelete.bind(this), All),
+            ...otherRegions.map((region) => region.addListener('click', this.onCancel.bind(this), All)),
+            ctx.annotationManager.addListener('restore-annotations', this.onRestoreAnnotations.bind(this)),
+            ctx.toolbarManager.addListener('button-pressed', this.onToolbarButtonPress.bind(this)),
+            ctx.toolbarManager.addListener('button-moved', this.onToolbarButtonMoved.bind(this)),
+            ctx.toolbarManager.addListener('cancelled', this.onToolbarCancelled.bind(this)),
+            ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this)),
+            () => ctx.domManager.removeStyles(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS)
+        );
+    }
+
+    private createAnnotationScene(datum: AnnotationProperties) {
+        return new annotationScenes[datum.type]();
+    }
+
+    private createAnnotationDatum(params: { type: AnnotationType }) {
         if (params.type in annotationDatums) {
             return new annotationDatums[params.type]().set(params);
         }
@@ -95,204 +244,266 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         );
     }
 
-    // State
-    private annotationData?: _ModuleSupport.PropertiesArray<AnnotationProperties>;
+    private appendDatum(type: AnnotationType, datum: AnnotationProperties) {
+        this.annotationData.push(datum);
+        const styles = this.ctx.annotationManager.getAnnotationTypeStyles(type);
+        if (styles) datum.set(styles);
 
-    private readonly container = new _Scene.Group({ name: 'static-annotations' });
-    private readonly annotations = new _Scene.Selection<AnnotationScene, AnnotationProperties>(
-        this.container,
-        this.createAnnotation.bind(this)
-    );
-
-    private scaleX?: _Scene.Scale<any, number, number | _Util.TimeInterval>;
-    private scaleY?: _Scene.Scale<any, number, number | _Util.TimeInterval>;
-    private domainX?: any[];
-    private domainY?: any[];
-
-    private hovered?: number;
-    private active?: number;
-
-    private readonly state: AnnotationsStateMachine;
-
-    private seriesRect?: _Scene.BBox;
-
-    constructor(readonly ctx: _ModuleSupport.ModuleContext) {
-        super();
-
-        this.state = new AnnotationsStateMachine(ctx, this.createDatum.bind(this), (point) => {
-            const valid = this.validateDatumPoint(point);
-            if (!valid) {
-                this.ctx.cursorManager.updateCursor('annotations', Cursor.NotAllowed);
-            }
-            return valid;
-        });
-
-        const { All, Default, Annotations: AnnotationsState, ZoomDrag } = InteractionState;
-
-        const region = ctx.regionManager.getRegion('series');
-        this.destroyFns.push(
-            ctx.annotationManager.attachNode(this.container),
-            region.addListener('hover', this.onHover.bind(this), All),
-            region.addListener('click', this.onClick.bind(this), All),
-            region.addListener('drag', this.onDrag.bind(this), Default | ZoomDrag | AnnotationsState),
-            region.addListener('drag-end', this.onDragEnd.bind(this), All),
-            ctx.annotationManager.addListener('restore-annotations', this.onRestoreAnnotations.bind(this)),
-            ctx.toolbarManager.addListener('button-pressed', this.onToolbarButtonPress.bind(this)),
-            ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this))
-        );
+        if (this.defaultColor) {
+            this.colorDatum(datum, this.defaultColor);
+        }
     }
 
     private onRestoreAnnotations(event: { annotations?: any }) {
+        if (!this.enabled) return;
+
         this.clear();
-
-        this.annotationData ??= new PropertiesArray(this.annotationFactory);
         this.annotationData.set(event.annotations);
-
-        this.ctx.updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+        this.update();
     }
 
     private onToolbarButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
-        if (this.active != null) {
-            this.annotations.nodes()[this.active].toggleActive(false);
-            this.active = undefined;
+        const {
+            state,
+            ctx: { interactionManager, toolbarManager, tooltipManager },
+        } = this;
+
+        if (ToolbarManager.isGroup('annotationOptions', event)) {
+            this.onToolbarAnnotationOptionButtonPress(event);
+            return;
         }
 
         if (!ToolbarManager.isGroup('annotations', event)) {
+            this.reset();
+            this.update();
             return;
         }
 
-        const annotation = this.stringToAnnotationType(event.value);
+        if (event.value === 'clear') {
+            this.clear();
+            this.update();
+            return;
+        }
+
+        tooltipManager.suppressTooltip('annotations');
+
+        const annotation = stringToAnnotationType(event.value);
         if (!annotation) {
             _Util.Logger.errorOnce(`Can not create unknown annotation type [${event.value}], ignoring.`);
+            this.update();
             return;
         }
 
-        this.ctx.interactionManager.pushState(InteractionState.Annotations);
+        if (!state.is('idle')) {
+            this.cancel();
+        }
 
-        this.state.transition(annotation);
+        interactionManager.pushState(InteractionState.Annotations);
+        for (const annotationType of ANNOTATION_BUTTONS) {
+            toolbarManager.toggleButton('annotations', annotationType, { active: annotationType === event.value });
+        }
+        state.transition(annotation);
+
+        this.reset();
+        this.update();
     }
 
-    private createAnnotation(datum: AnnotationProperties) {
-        return new annotationScenes[datum.type]();
+    private onToolbarAnnotationOptionButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
+        if (!ToolbarManager.isGroup('annotationOptions', event)) return;
+
+        const { active, annotationData } = this;
+
+        if (active == null) return;
+
+        switch (event.value) {
+            case 'line-color':
+                this.colorPicker.show({
+                    color: this.getTypedDatum(annotationData[active])?.stroke,
+                    onChange: this.onColorPickerChange.bind(this),
+                    onClose: this.onColorPickerClose.bind(this),
+                });
+                break;
+
+            case 'delete':
+                annotationData.splice(active, 1);
+                this.reset();
+                break;
+
+            case 'lock':
+                annotationData[active].locked = true;
+                this.toggleAnnotationOptionsButtons();
+                this.colorPicker.hide();
+                break;
+
+            case 'unlock':
+                annotationData[active].locked = false;
+                this.toggleAnnotationOptionsButtons();
+                break;
+        }
+
+        this.update();
     }
 
-    private createDatum(type: AnnotationType, datum: AnnotationProperties) {
-        this.annotationData?.push(datum);
-        const styles = this.ctx.annotationManager.getAnnotationTypeStyles(type);
-        if (styles) datum.set(styles);
+    private onToolbarButtonMoved(event: _ModuleSupport.ToolbarButtonMovedEvent) {
+        const { rect } = event;
+        const anchor = Vec2.add(rect, Vec2.from(0, rect.height + 4));
+        const fallback = { y: rect.y - 4 };
+        this.colorPicker.setAnchor(anchor, fallback);
+    }
+
+    private onColorPickerChange(color: string) {
+        const { active, annotationData } = this;
+
+        if (active == null) return;
+
+        this.colorDatum(annotationData[active], color);
+        this.defaultColor = color;
+        this.update();
+    }
+
+    private onColorPickerClose() {
+        this.colorPicker.hide();
+    }
+
+    private onToolbarCancelled(event: _ModuleSupport.ToolbarCancelledEvent) {
+        if (event.group !== 'annotations') return;
+
+        this.onCancel();
+
+        for (const annotationType of ANNOTATION_BUTTONS) {
+            this.ctx.toolbarManager.toggleButton('annotations', annotationType, { active: false });
+        }
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
-        const {
-            annotationData,
-            annotations,
-            ctx: { annotationManager },
-        } = this;
+        const seriesRect = event.series.paddedRect;
+        this.seriesRect = seriesRect;
 
-        this.seriesRect = event.series.rect;
-
-        for (const axis of event.axes ?? []) {
-            if (axis.direction === _ModuleSupport.ChartAxisDirection.X) {
-                this.scaleX ??= axis.scale;
-                this.domainX ??= axis.domain;
+        for (const axisLayout of event.axes ?? []) {
+            if (axisLayout.direction === _ModuleSupport.ChartAxisDirection.X) {
+                this.xAxis = this.getAxis(axisLayout, seriesRect, this.xAxis?.button);
             } else {
-                this.scaleY ??= axis.scale;
-                this.domainY ??= axis.domain;
+                this.yAxis = this.getAxis(axisLayout, seriesRect, this.yAxis?.button);
             }
         }
 
-        annotationManager.updateData(annotationData?.map((d) => d.toJson()));
+        this.updateAnnotations();
+    }
 
-        annotations.update(annotationData ?? []).each((node, datum) => {
-            if (!this.validateDatum(datum)) {
-                return;
-            }
+    private getAxis(
+        axisLayout: _ModuleSupport.AxisLayout,
+        seriesRect: _Scene.BBox,
+        button?: AxisButton
+    ): AnnotationAxis {
+        const axisCtx = this.ctx.axisManager.getAxisContext(axisLayout.direction)[0];
 
-            if (LineAnnotation.is(datum) && Line.is(node)) {
-                node.update(datum, event.series.rect, this.convertLine(datum));
-                return;
-            }
+        const { position: axisPosition = 'bottom', direction } = axisCtx;
+        const padding = axisLayout.gridPadding + axisLayout.seriesAreaPadding;
+        const bounds = buildBounds(new _Scene.BBox(0, 0, seriesRect.width, seriesRect.height), axisPosition, padding);
 
-            if (DisjointChannelAnnotation.is(datum) && DisjointChannel.is(node)) {
-                node.update(datum, event.series.rect, this.convertLine(datum), this.convertLine(datum.bottom));
-                return;
-            }
+        const lineDirection = axisCtx.direction === ChartAxisDirection.X ? 'vertical' : 'horizontal';
 
-            if (ParallelChannelAnnotation.is(datum) && ParallelChannel.is(node)) {
-                node.update(datum, event.series.rect, this.convertLine(datum), this.convertLine(datum.bottom));
-                return;
-            }
+        const { axesButtons } = this;
+        const buttonEnabled =
+            this.enabled && axesButtons.enabled && (axesButtons.axes === 'xy' || axesButtons.axes === direction);
+        if (buttonEnabled) {
+            button ??= new AxisButton(
+                this.ctx,
+                axisCtx,
+                (coords) => this.onAxisButtonClick(coords, lineDirection),
+                seriesRect
+            );
+            const axisLabelPadding = calculateAxisLabelPadding(axisLayout);
+            button.update(seriesRect, axisLabelPadding);
+        } else {
+            button?.destroy();
+            button = undefined;
+        }
 
-            _Util.Logger.warnOnce(`Can not update unknown annotation type [${datum.type}], ignoring.`);
-        });
+        return { layout: axisLayout, context: axisCtx, bounds, button };
+    }
+
+    private updateAnnotations() {
+        const {
+            active,
+            seriesRect,
+            annotationData,
+            annotations,
+            ctx: { annotationManager, toolbarManager },
+        } = this;
+
+        const context = this.getAnnotationContext();
+        if (!seriesRect || !context) {
+            return;
+        }
+
+        annotationManager.updateData(annotationData.toJson());
+
+        annotations
+            .update(annotationData ?? [], undefined, (datum) => datum.id)
+            .each((node, datum, index) => {
+                if (!this.validateDatum(datum)) {
+                    node.visible = false;
+                    return;
+                }
+
+                if (LineAnnotation.is(datum) && Line.is(node)) {
+                    node.update(datum, context);
+                }
+
+                if (DisjointChannelAnnotation.is(datum) && DisjointChannel.is(node)) {
+                    node.update(datum, context);
+                }
+
+                if ((HorizontalLineAnnotation.is(datum) || VerticalLineAnnotation.is(datum)) && CrossLine.is(node)) {
+                    node.update(datum, context);
+                }
+
+                if (ParallelChannelAnnotation.is(datum) && ParallelChannel.is(node)) {
+                    node.update(datum, context);
+                }
+
+                if (active === index) {
+                    toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
+                }
+            });
     }
 
     // Validation of the options beyond the scope of the @Validate decorator
     private validateDatum(datum: AnnotationProperties) {
-        let valid = true;
+        const context = this.getAnnotationContext();
+        return context ? datum.isValidWithContext(context, `Annotation [${datum.type}] `) : true;
+    }
 
-        switch (datum.type) {
-            case AnnotationType.Line:
-            case AnnotationType.DisjointChannel:
-            case AnnotationType.ParallelChannel:
-                valid = this.validateDatumLine(datum, `Annotation [${datum.type}]`);
-                break;
+    private validateChildStateDatumPoint(point: Point) {
+        const context = this.getAnnotationContext();
+        const valid = context ? validateDatumPoint(context, point) : true;
+        if (!valid) {
+            this.ctx.cursorManager.updateCursor('annotations', Cursor.NotAllowed);
         }
-
         return valid;
     }
 
-    private validateDatumLine(datum: { start: AnnotationPoint; end: AnnotationPoint }, prefix: string) {
-        let valid = true;
+    private getAnnotationContext(): AnnotationContext | undefined {
+        const { seriesRect, xAxis, yAxis } = this;
 
-        valid &&= this.validateDatumPoint(datum.start, `${prefix} [start]`);
-        valid &&= this.validateDatumPoint(datum.end, `${prefix} [end]`);
-
-        return valid;
-    }
-
-    private validateDatumPoint(
-        point: { x?: number | string | Date; y?: number | string | Date },
-        loggerPrefix?: string
-    ) {
-        const { domainX, domainY, scaleX, scaleY } = this;
-
-        if (point.x == null || point.y == null) {
-            if (loggerPrefix) {
-                _Util.Logger.warnOnce(`${loggerPrefix} requires both an [x] and [y] property, ignoring.`);
-            }
-            return false;
+        if (!(seriesRect && xAxis && yAxis)) {
+            return;
         }
 
-        if (!domainX || !domainY || !scaleX || !scaleY) return true;
-
-        const validX = this.validateDatumPointDirection(domainX, scaleX, point.x);
-        const validY = this.validateDatumPointDirection(domainY, scaleY, point.y);
-
-        if (!validX || !validY) {
-            let text = 'x & y domains';
-            if (validX) text = 'y domain';
-            if (validY) text = 'x domain';
-            if (loggerPrefix) {
-                _Util.Logger.warnOnce(
-                    `${loggerPrefix} is outside the ${text}, ignoring. - x: [${point.x}], y: ${point.y}]`
-                );
-            }
-            return false;
-        }
-
-        return true;
-    }
-
-    private validateDatumPointDirection(
-        domain: any[],
-        scale: _Scene.Scale<any, any, number | _Util.TimeInterval>,
-        value: any
-    ) {
-        if (_Scene.ContinuousScale.is(scale)) {
-            return value >= domain[0] && value <= domain[1];
-        }
-        return true; // domain.includes(value); // TODO: does not work with dates
+        return {
+            seriesRect,
+            xAxis: {
+                ...xAxis.context,
+                bounds: xAxis.bounds,
+                labelPadding: calculateAxisLabelPadding(xAxis.layout),
+            },
+            yAxis: {
+                ...yAxis.context,
+                bounds: yAxis.bounds,
+                labelPadding: calculateAxisLabelPadding(xAxis.layout),
+            },
+        };
     }
 
     private onHover(event: _ModuleSupport.PointerInteractionEvent<'hover'>) {
@@ -313,7 +524,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.hovered = undefined;
 
         annotations.each((annotation, _, index) => {
-            if (annotation.locked) return;
             const contains = annotation.containsPoint(event.offsetX, event.offsetY);
             if (contains) this.hovered ??= index;
             annotation.toggleHandles(contains || active === index);
@@ -329,21 +539,21 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const {
             annotationData,
             annotations,
-            ctx: { cursorManager, updateService },
+            seriesRect,
+            state,
+            ctx: { cursorManager },
         } = this;
 
-        if (!annotationData) return;
+        const context = this.getAnnotationContext();
 
-        const offset = {
-            x: event.offsetX - (this.seriesRect?.x ?? 0),
-            y: event.offsetY - (this.seriesRect?.y ?? 0),
-        };
-        const point = this.invertPoint(offset);
+        if (!context) return;
 
-        const valid = this.validateDatumPoint(point);
+        const offset = Vec2.sub(Vec2.fromOffset(event), Vec2.required(seriesRect));
+        const point = invertCoords(offset, context);
+        const valid = validateDatumPoint(context, point);
         cursorManager.updateCursor('annotations', valid ? undefined : Cursor.NotAllowed);
 
-        if (!valid || this.state.is('start')) return;
+        if (!valid || state.is('start')) return;
 
         const datum = annotationData.at(-1);
         this.active = annotationData.length - 1;
@@ -356,27 +566,87 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const data: StateHoverEvent<AnnotationProperties, Annotation> = { datum, node, point };
         this.state.transition('hover', data);
 
-        updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+        this.update();
     }
 
     private onClick(event: _ModuleSupport.PointerInteractionEvent<'click'>) {
-        if (this.state.is('idle')) {
+        const { dragOffset, state } = this;
+
+        // Prevent clicks triggered on the exact same event as the drag when placing the second point. This "double"
+        // event causes channels to be created with start and end at the same position and render incorrectly.
+        if (state.is('end') && dragOffset && dragOffset.x === event.offsetX && dragOffset.y === event.offsetY) {
+            this.dragOffset = undefined;
+            return;
+        }
+
+        if (state.is('idle')) {
             this.onClickSelecting();
         } else {
             this.onClickAdding(event);
         }
     }
 
-    private onClickSelecting() {
-        if (this.active != null) {
-            this.annotations.nodes()[this.active].toggleActive(false);
+    private onAxisButtonClick(coords?: Coords, direction?: Direction) {
+        this.onCancel();
+
+        const context = this.getAnnotationContext();
+        if (!this.annotationData || !context) return;
+
+        const {
+            state,
+            ctx: { toolbarManager, interactionManager },
+        } = this;
+
+        interactionManager.pushState(InteractionState.Annotations);
+
+        const isHorizontal = direction === 'horizontal';
+        state.transition(isHorizontal ? AnnotationType.HorizontalLine : AnnotationType.VerticalLine);
+
+        toolbarManager.toggleGroup('annotations', 'annotationOptions', false);
+
+        if (!coords) {
+            return;
         }
 
-        this.active = this.hovered;
+        const point = invertCoords(coords, context);
 
-        if (this.active == null) return;
+        if (!validateDatumPoint(context, point)) {
+            return;
+        }
 
-        this.annotations.nodes()[this.active].toggleActive(true);
+        const data: StateClickEvent<AnnotationProperties, Annotation> = { point };
+        state.transition('click', data);
+
+        this.update();
+    }
+
+    private onClickSelecting() {
+        const {
+            annotations,
+            colorPicker,
+            hovered,
+            ctx: { toolbarManager, tooltipManager },
+        } = this;
+
+        colorPicker.hide();
+
+        if (this.active != null) {
+            annotations.nodes()[this.active].toggleActive(false);
+        }
+
+        this.active = hovered;
+        toolbarManager.toggleGroup('annotations', 'annotationOptions', this.active != null);
+
+        if (this.active == null) {
+            tooltipManager.unsuppressTooltip('annotations');
+        } else {
+            const node = annotations.nodes()[this.active];
+            node.toggleActive(true);
+            tooltipManager.suppressTooltip('annotations');
+            this.toggleAnnotationOptionsButtons();
+        }
+
+        this.update();
     }
 
     private onClickAdding(event: _ModuleSupport.PointerInteractionEvent<'click'>) {
@@ -384,81 +654,161 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             active,
             annotationData,
             annotations,
-            ctx: { updateService },
+            seriesRect,
+            state,
+            ctx: { toolbarManager },
         } = this;
-        if (!annotationData) return;
 
-        const datum = this.annotationData?.at(-1);
-        const offset = {
-            x: event.offsetX - (this.seriesRect?.x ?? 0),
-            y: event.offsetY - (this.seriesRect?.y ?? 0),
-        };
-        const point = this.invertPoint(offset);
-        const node = active ? annotations.nodes()[active] : undefined;
+        toolbarManager.toggleGroup('annotations', 'annotationOptions', false);
 
-        if (!this.validateDatumPoint(point)) {
+        const context = this.getAnnotationContext();
+        if (!context) return;
+
+        const datum = annotationData.at(-1);
+        const offset = Vec2.sub(Vec2.fromOffset(event), Vec2.required(seriesRect));
+        const point = invertCoords(offset, context);
+
+        const node = active != null ? annotations.nodes()[active] : undefined;
+
+        if (!validateDatumPoint(context, point)) {
             return;
         }
 
         const data: StateClickEvent<AnnotationProperties, Annotation> = { datum, node, point };
-        this.state.transition('click', data);
+        state.transition('click', data);
 
-        updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+        this.update();
+    }
+
+    private onDragStart(event: _ModuleSupport.PointerInteractionEvent<'drag-start'>) {
+        const { annotationData, annotations, hovered, seriesRect } = this;
+
+        if (this.isOtherElement(event)) {
+            return;
+        }
+
+        const context = this.getAnnotationContext();
+
+        if (hovered == null || annotationData == null || !this.state.is('idle') || context == null) return;
+
+        const datum = annotationData[hovered];
+        const node = annotations.nodes()[hovered];
+        const offset = Vec2.sub(Vec2.fromOffset(event), Vec2.required(seriesRect));
+
+        if (Line.is(node)) {
+            node.dragStart(datum, offset, context);
+        }
+
+        if (CrossLine.is(node)) {
+            node.dragStart(datum, offset, context);
+        }
+
+        if (DisjointChannel.is(node)) {
+            node.dragStart(datum, offset, context);
+        }
+
+        if (ParallelChannel.is(node)) {
+            node.dragStart(datum, offset, context);
+        }
     }
 
     private onDrag(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
+        const { state } = this;
+
+        if (this.isOtherElement(event)) {
+            return;
+        }
+
+        // Only track pointer offset for drag + click prevention when we are placing the first point
+        if (state.is('start')) {
+            this.dragOffset = Vec2.fromOffset(event);
+        }
+
+        if (state.is('idle')) {
+            this.onClickSelecting();
+            this.onDragAnnotation(event);
+        } else {
+            this.onDragAdding(event);
+        }
+    }
+
+    private onDragAnnotation(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
+        const {
+            annotationData,
+            annotations,
+            hovered,
+            seriesRect,
+            ctx: { cursorManager, interactionManager },
+        } = this;
+
+        const context = this.getAnnotationContext();
+
+        if (hovered == null || annotationData == null || !this.state.is('idle') || context == null) return;
+
+        interactionManager.pushState(InteractionState.Annotations);
+
+        const datum = annotationData[hovered];
+        const node = annotations.nodes()[hovered];
+        const offset = Vec2.sub(Vec2.fromOffset(event), Vec2.required(seriesRect));
+
+        cursorManager.updateCursor('annotations');
+
+        const onDragInvalid = () => cursorManager.updateCursor('annotations', Cursor.NotAllowed);
+
+        if (LineAnnotation.is(datum) && Line.is(node)) {
+            node.drag(datum, offset, context, onDragInvalid);
+        }
+
+        if ((HorizontalLineAnnotation.is(datum) || VerticalLineAnnotation.is(datum)) && CrossLine.is(node)) {
+            node.drag(datum, offset, context, onDragInvalid);
+        }
+
+        if (DisjointChannelAnnotation.is(datum) && DisjointChannel.is(node)) {
+            node.drag(datum, offset, context, onDragInvalid);
+        }
+
+        if (ParallelChannelAnnotation.is(datum) && ParallelChannel.is(node)) {
+            node.drag(datum, offset, context, onDragInvalid);
+        }
+
+        this.update();
+    }
+
+    private onDragAdding(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
         const {
             active,
             annotationData,
             annotations,
             seriesRect,
-            ctx: { cursorManager, interactionManager, updateService },
+            state,
+            ctx: { interactionManager },
         } = this;
 
-        if (active == null || annotationData == null || !this.state.is('idle')) return;
+        const context = this.getAnnotationContext();
+        if (annotationData == null || context == null) return;
+
+        const datum = active != null ? annotationData[active] : undefined;
+        const node = active != null ? annotations.nodes()[active] : undefined;
+        const offset = Vec2.sub(Vec2.fromOffset(event), Vec2.required(seriesRect));
 
         interactionManager.pushState(InteractionState.Annotations);
 
-        const { offsetX, offsetY } = event;
-        const datum = annotationData[active];
-        const node = annotations.nodes()[active];
-        const offset = {
-            x: offsetX - (seriesRect?.x ?? 0),
-            y: offsetY - (seriesRect?.y ?? 0),
-        };
+        const point = invertCoords(offset, context);
+        const data: StateDragEvent<AnnotationProperties, Annotation> = { datum, node, point };
 
-        cursorManager.updateCursor('annotations');
+        state.transition('drag', data);
 
-        if (LineAnnotation.is(datum) && Line.is(node)) {
-            node.dragHandle(datum, offset, this.onDragNodeHandle.bind(this));
-        }
+        // Assuming the first drag event appends a new datum, immediately activate it
+        this.active = annotationData.length - 1;
 
-        if (DisjointChannelAnnotation.is(datum) && DisjointChannel.is(node)) {
-            node.dragHandle(datum, offset, this.onDragNodeHandle.bind(this));
-        }
-
-        if (ParallelChannelAnnotation.is(datum) && ParallelChannel.is(node)) {
-            node.dragHandle(datum, offset, this.onDragNodeHandle.bind(this));
-        }
-
-        updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
-    }
-
-    private onDragNodeHandle(handleOffset: Coords) {
-        const point = this.invertPoint(handleOffset);
-        const valid = this.validateDatumPoint(point);
-        if (!valid) {
-            this.ctx.cursorManager.updateCursor('annotations', Cursor.NotAllowed);
-            return;
-        }
-        return point;
+        this.update();
     }
 
     private onDragEnd(_event: _ModuleSupport.PointerInteractionEvent<'drag-end'>) {
         const {
             active,
             annotations,
-            ctx: { cursorManager, interactionManager, updateService },
+            ctx: { cursorManager, interactionManager },
         } = this;
 
         if (!this.state.is('idle')) return;
@@ -469,79 +819,109 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (active == null) return;
 
         annotations.nodes()[active].stopDragging();
-        updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+        this.update();
+    }
+
+    private onCancel() {
+        if (!this.state.is('idle')) {
+            this.cancel();
+        }
+        this.reset();
+        this.update();
+    }
+
+    private onDelete() {
+        const { active, annotationData, state } = this;
+
+        if (active == null) return;
+
+        if (!state.is('idle')) {
+            state.transition('cancel');
+        }
+
+        annotationData.splice(active, 1);
+
+        this.reset();
+        this.update();
+    }
+
+    private toggleAnnotationOptionsButtons() {
+        const {
+            active,
+            annotationData,
+            ctx: { toolbarManager },
+        } = this;
+
+        if (active == null) return;
+
+        const locked = annotationData.at(active)?.locked ?? false;
+        toolbarManager.toggleButton('annotationOptions', 'line-color', { enabled: !locked });
+        toolbarManager.toggleButton('annotationOptions', 'delete', { enabled: !locked });
+        toolbarManager.toggleButton('annotationOptions', 'lock', { visible: !locked });
+        toolbarManager.toggleButton('annotationOptions', 'unlock', { visible: locked });
+    }
+
+    private getTypedDatum(datum: unknown) {
+        if (
+            LineAnnotation.is(datum) ||
+            HorizontalLineAnnotation.is(datum) ||
+            VerticalLineAnnotation.is(datum) ||
+            DisjointChannelAnnotation.is(datum) ||
+            ParallelChannelAnnotation.is(datum)
+        ) {
+            return datum;
+        }
+    }
+
+    private colorDatum(datum: AnnotationProperties, color: string) {
+        datum.stroke = color;
+
+        if ('axisLabel' in datum) {
+            datum.axisLabel.fill = color;
+            datum.axisLabel.stroke = color;
+        }
+
+        if ('background' in datum) datum.background.fill = color;
+    }
+
+    private isOtherElement({ targetElement }: { targetElement?: HTMLElement }) {
+        const {
+            colorPicker,
+            ctx: { domManager },
+        } = this;
+
+        if (!targetElement) return false;
+
+        return ToolbarManager.isChildElement(domManager, targetElement) || colorPicker.isChildElement(targetElement);
     }
 
     private clear() {
-        this.annotations.clear();
+        this.annotationData.splice(0, this.annotationData.length);
+        this.reset();
+    }
+
+    private reset() {
+        if (this.active != null) {
+            this.annotations.nodes().at(this.active)?.toggleActive(false);
+        }
         this.hovered = undefined;
         this.active = undefined;
+        this.ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', false);
+        this.colorPicker.hide();
     }
 
-    private stringToAnnotationType(value: string) {
-        switch (value) {
-            case 'line':
-                return AnnotationType.Line;
-            case 'disjoint-channel':
-                return AnnotationType.DisjointChannel;
-            case 'parallel-channel':
-                return AnnotationType.ParallelChannel;
+    private cancel() {
+        const { active, annotationData, state } = this;
+
+        state.transition('cancel');
+
+        // Delete active annotation if it is in the process of being created
+        if (active != null && annotationData) {
+            annotationData.splice(active, 1);
         }
     }
 
-    private convertLine(datum: { start: Pick<AnnotationPoint, 'x' | 'y'>; end: Pick<AnnotationPoint, 'x' | 'y'> }) {
-        if (datum.start == null || datum.end == null) return;
-
-        const start = this.convertPoint(datum.start);
-        const end = this.convertPoint(datum.end);
-
-        if (start == null || end == null) return;
-
-        return { x1: start.x, y1: start.y, x2: end.x, y2: end.y };
-    }
-
-    private convertPoint(point: Pick<AnnotationPoint, 'x' | 'y'>) {
-        const { scaleX, scaleY } = this;
-
-        let x = 0;
-        let y = 0;
-
-        if (!scaleX || !scaleY || point.x == null || point.y == null) return { x, y };
-
-        x = scaleX.convert(point.x);
-        y = scaleY.convert(point.y);
-
-        return { x, y };
-    }
-
-    private invertPoint(point: Coords) {
-        return {
-            x: this.invertX(point.x),
-            y: this.invertY(point.y),
-        };
-    }
-
-    private invertX(x: number) {
-        const { scaleX } = this;
-
-        if (_Scene.ContinuousScale.is(scaleX)) {
-            x = scaleX.invert(x);
-        } else if (_Scene.BandScale.is(scaleX)) {
-            x = scaleX.invertNearest(x);
-        }
-
-        return x;
-    }
-
-    private invertY(y: number) {
-        const { scaleY } = this;
-
-        if (_Scene.ContinuousScale.is(scaleY)) {
-            y = scaleY.invert(y);
-        } else if (_Scene.BandScale.is(scaleY)) {
-            y = scaleY.invertNearest(y);
-        }
-
-        return y;
+    private update() {
+        this.ctx.updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 }

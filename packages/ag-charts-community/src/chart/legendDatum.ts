@@ -1,4 +1,5 @@
-import type { AgChartLegendListeners } from '../options/agChartOptions';
+import type { AgChartLegendListeners } from 'ag-charts-types';
+
 import type { Scene } from '../scene/scene';
 import type { MarkerConstructor } from './marker/util';
 

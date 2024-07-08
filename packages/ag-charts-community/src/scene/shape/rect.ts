@@ -317,7 +317,7 @@ export class Rect extends Path implements DistantObject {
     private effectiveStrokeWidth: number = Shape.defaultStyles.strokeWidth;
 
     private hittester = super.isPointInPath;
-    private distanceCalculator = super.distanceSquared;
+    private distanceCalculator = super.distanceSquaredTransformedPoint;
 
     /**
      * When the rectangle's width or height is less than a pixel
@@ -434,7 +434,7 @@ export class Rect extends Path implements DistantObject {
             this.distanceSquared = (hitX: number, hitY: number) => this.getCachedBBox().distanceSquared(hitX, hitY);
         } else {
             this.hittester = super.isPointInPath;
-            this.distanceCalculator = super.distanceSquared;
+            this.distanceCalculator = super.distanceSquaredTransformedPoint;
         }
 
         this.effectiveStrokeWidth = strokeWidth;

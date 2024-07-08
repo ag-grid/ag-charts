@@ -1,67 +1,69 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import type { StateClickEvent, StateHoverEvent } from '../annotationTypes';
+import type { Point, StateClickEvent, StateDragEvent, StateHoverEvent } from '../annotationTypes';
 import { DisjointChannelAnnotation } from './disjointChannelProperties';
 import type { DisjointChannel } from './disjointChannelScene';
 
+type Click = StateClickEvent<DisjointChannelAnnotation, DisjointChannel>;
+type Drag = StateDragEvent<DisjointChannelAnnotation, DisjointChannel>;
+type Hover = StateHoverEvent<DisjointChannelAnnotation, DisjointChannel>;
+
 export class DisjointChannelStateMachine extends _ModuleSupport.StateMachine<
-    'start' | 'end' | 'size',
-    'click' | 'hover'
+    'start' | 'end' | 'height',
+    'click' | 'hover' | 'drag' | 'cancel'
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(
-        createDatum: (datum: DisjointChannelAnnotation) => void,
-        validateDatumPoint: (point: { x?: number | string | Date; y?: number | string | Date }) => boolean
+        appendDatum: (datum: DisjointChannelAnnotation) => void,
+        validateDatumPoint: (point: Point) => boolean
     ) {
-        const onStartClick = ({ point }: StateClickEvent<DisjointChannelAnnotation, DisjointChannel>) => {
+        const onStartClick = ({ point }: Click | Drag) => {
             const datum = new DisjointChannelAnnotation();
-            datum.set({ start: point, end: point, startSize: 0, endSize: 0 });
-            createDatum(datum);
+            datum.set({ start: point, end: point, startHeight: 0, endHeight: 0 });
+            appendDatum(datum);
         };
 
-        const onEndHover = ({ datum, node, point }: StateHoverEvent<DisjointChannelAnnotation, DisjointChannel>) => {
-            datum.set({ end: point });
-            node.toggleHandles({ topRight: false, bottomLeft: false, bottomRight: false });
+        const onEndHover = ({ datum, node, point }: Hover | Drag) => {
+            datum?.set({ end: point });
+            node?.toggleHandles({ topRight: false, bottomLeft: false, bottomRight: false });
         };
 
-        const onEndClick = ({ datum, point }: StateClickEvent<DisjointChannelAnnotation, DisjointChannel>) => {
+        const onEndClick = ({ datum, point }: Click) => {
             datum?.set({ end: point });
         };
 
-        const onSizeHover = ({ datum, node, point }: StateHoverEvent<DisjointChannelAnnotation, DisjointChannel>) => {
+        const onHeightHover = ({ datum, node, point }: Hover) => {
             if (datum.start.y == null || datum.end.y == null) return;
 
-            const endSize = datum.end.y - point.y;
-            const startSize = (datum.start.y - datum.end.y) * 2 + endSize;
-            const bottomStartY = datum.start.y + startSize;
+            const endHeight = datum.end.y - point.y;
+            const startHeight = (datum.start.y - datum.end.y) * 2 + endHeight;
+
+            const bottomStart = { x: datum.start.x, y: datum.start.y - startHeight };
+            const bottomEnd = { x: datum.end.x, y: point.y };
 
             node.toggleHandles({ bottomLeft: false });
 
-            if (
-                !validateDatumPoint({ x: datum.start.x, y: bottomStartY }) ||
-                !validateDatumPoint({ x: datum.end.x, y: point.y })
-            ) {
+            if (!validateDatumPoint(bottomStart) || !validateDatumPoint(bottomEnd)) {
                 return;
             }
 
-            datum.set({ startSize, endSize });
+            datum.set({ startHeight, endHeight });
         };
 
-        const onSizeClick = ({ datum, node, point }: StateClickEvent<DisjointChannelAnnotation, DisjointChannel>) => {
+        const onHeightClick = ({ datum, node, point }: Click) => {
             if (!datum || !node || datum.start.y == null || datum.end.y == null) return;
 
-            const endSize = datum.end.y - point.y;
-            const startSize = (datum.start.y - datum.end.y) * 2 + endSize;
-            const bottomStartY = datum.start.y - endSize;
+            const endHeight = datum.end.y - point.y;
+            const startHeight = (datum.start.y - datum.end.y) * 2 + endHeight;
+
+            const bottomStart = { x: datum.start.x, y: datum.start.y - endHeight };
+            const bottomEnd = { x: datum.end.x, y: point.y };
 
             node.toggleHandles(true);
 
-            if (
-                validateDatumPoint({ x: datum.start.x, y: bottomStartY }) &&
-                validateDatumPoint({ x: datum.end.x, y: point.y })
-            ) {
-                datum.set({ startSize, endSize });
+            if (validateDatumPoint(bottomStart) && validateDatumPoint(bottomEnd)) {
+                datum.set({ startHeight, endHeight });
             }
         };
 
@@ -71,20 +73,28 @@ export class DisjointChannelStateMachine extends _ModuleSupport.StateMachine<
                     target: 'end',
                     action: onStartClick,
                 },
+                drag: {
+                    target: 'end',
+                    action: onStartClick,
+                },
+                cancel: '__parent',
             },
             end: {
                 hover: onEndHover,
                 click: {
-                    target: 'size',
+                    target: 'height',
                     action: onEndClick,
                 },
+                drag: onEndHover,
+                cancel: '__parent',
             },
-            size: {
-                hover: onSizeHover,
+            height: {
+                hover: onHeightHover,
                 click: {
                     target: '__parent',
-                    action: onSizeClick,
+                    action: onHeightClick,
                 },
+                cancel: '__parent',
             },
         });
     }

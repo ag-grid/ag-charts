@@ -28,15 +28,15 @@ const chart = AgCharts.create(options);
 
 function nearest() {
     options.tooltip = { range: 'nearest' };
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function exact() {
     options.tooltip = { range: 'exact' };
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function distance() {
     options.tooltip = { range: 10 };
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

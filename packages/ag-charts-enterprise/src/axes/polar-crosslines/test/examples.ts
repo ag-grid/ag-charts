@@ -1,3 +1,5 @@
+import { AgPolarChartOptions } from 'ag-charts-community';
+
 import { DATA_REVENUE_BY_PRODUCT_CATEGORY } from './data';
 
 const sharedOptions = {
@@ -10,7 +12,11 @@ const sharedOptions = {
     data: DATA_REVENUE_BY_PRODUCT_CATEGORY,
 };
 
-export const RADAR_LINE_CIRCLE_CROSSLINES = {
+type Options = {
+    options: AgPolarChartOptions;
+};
+
+export const RADAR_LINE_CIRCLE_CROSSLINES: Options = {
     options: {
         ...sharedOptions,
         series: [
@@ -87,7 +93,7 @@ export const RADAR_LINE_CIRCLE_CROSSLINES = {
     },
 };
 
-export const RADIAL_BAR_CIRCLE_CROSSLINES = {
+export const RADIAL_BAR_CIRCLE_CROSSLINES: Options = {
     options: {
         ...sharedOptions,
         data: DATA_REVENUE_BY_PRODUCT_CATEGORY.slice(4),
@@ -114,7 +120,6 @@ export const RADIAL_BAR_CIRCLE_CROSSLINES = {
         axes: [
             {
                 type: 'radius-category',
-                shape: 'circle',
                 groupPaddingInner: 0.2,
                 paddingInner: 0.5,
                 crossLines: [
@@ -138,7 +143,6 @@ export const RADIAL_BAR_CIRCLE_CROSSLINES = {
             },
             {
                 type: 'angle-number',
-                shape: 'circle',
                 crossLines: [
                     {
                         type: 'line',
@@ -166,7 +170,7 @@ export const RADIAL_BAR_CIRCLE_CROSSLINES = {
         ],
     },
 };
-export const RADAR_LINE_POLYGON_CROSSLINES = {
+export const RADAR_LINE_POLYGON_CROSSLINES: Options = {
     options: {
         ...sharedOptions,
         series: [
@@ -242,7 +246,7 @@ export const RADAR_LINE_POLYGON_CROSSLINES = {
         ],
     },
 };
-export const RADIAL_BAR_POLYGON_CROSSLINES = {
+export const RADIAL_BAR_POLYGON_CROSSLINES: Options = {
     options: {
         ...sharedOptions,
         data: DATA_REVENUE_BY_PRODUCT_CATEGORY.slice(4),
@@ -269,6 +273,7 @@ export const RADIAL_BAR_POLYGON_CROSSLINES = {
         axes: [
             {
                 type: 'radius-category',
+                // @ts-expect-error
                 shape: 'polygon',
                 groupPaddingInner: 0.2,
                 paddingInner: 0.5,
@@ -293,6 +298,7 @@ export const RADIAL_BAR_POLYGON_CROSSLINES = {
             },
             {
                 type: 'angle-number',
+                // @ts-expect-error
                 shape: 'polygon',
                 crossLines: [
                     {
@@ -322,7 +328,7 @@ export const RADIAL_BAR_POLYGON_CROSSLINES = {
     },
 };
 
-export const RADIAL_COLUMN_CATEGORY_CROSSLINES = {
+export const RADIAL_COLUMN_CATEGORY_CROSSLINES: Options = {
     options: {
         ...sharedOptions,
         series: [

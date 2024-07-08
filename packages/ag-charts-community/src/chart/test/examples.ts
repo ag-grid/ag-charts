@@ -1,8 +1,5 @@
-import type {
-    AgCartesianChartOptions,
-    AgHierarchyChartOptions,
-    AgPolarChartOptions,
-} from '../../options/agChartOptions';
+import type { AgCartesianChartOptions, AgHierarchyChartOptions, AgPolarChartOptions } from 'ag-charts-types';
+
 import {
     DATA_APPLE_REVENUE_BY_PRODUCT,
     DATA_BROWSER_MARKET_SHARE,
@@ -41,7 +38,6 @@ export const DOCS_EXAMPLES = {
     'per-marker-customisation': loadExampleOptions('per-marker-customisation'),
     'pie-in-a-donut': loadExampleOptions('pie-in-a-donut'),
     'pie-with-variable-radius': loadExampleOptions('pie-with-variable-radius'),
-    'real-time-data-updates': loadExampleOptions('real-time-data-updates'),
     'simple-area': loadExampleOptions('simple-area'),
     'simple-bar': loadExampleOptions('simple-bar'),
     'simple-bubble': loadExampleOptions('simple-bubble'),
@@ -52,6 +48,8 @@ export const DOCS_EXAMPLES = {
     'simple-pie': loadExampleOptions('simple-pie'),
     'simple-scatter': loadExampleOptions('simple-scatter'),
     'simple-sunburst': loadExampleOptions('simple-sunburst'),
+    'simple-sankey': loadExampleOptions('simple-sankey'),
+    'simple-chord': loadExampleOptions('simple-chord'),
     'stacked-area': loadExampleOptions('stacked-area'),
     'stacked-bar': loadExampleOptions('stacked-bar'),
     'stacked-column': loadExampleOptions('stacked-column'),
@@ -89,6 +87,8 @@ export const ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAMPLE: AgCartesianChartOpt
 export const AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE: AgCartesianChartOptions =
     DOCS_EXAMPLES['area-with-negative-values'];
 export const SIMPLE_SUNBURST_EXAMPLE: AgPolarChartOptions = DOCS_EXAMPLES['simple-sunburst'];
+export const SIMPLE_SANKEY_EXAMPLE: AgPolarChartOptions = DOCS_EXAMPLES['simple-sankey'];
+export const SIMPLE_CHORD_EXAMPLE: AgPolarChartOptions = DOCS_EXAMPLES['simple-chord'];
 export const TREEMAP_WITH_COLOR_RANGE_EXAMPLE: AgHierarchyChartOptions = DOCS_EXAMPLES['treemap-with-color-range'];
 export const SIMPLE_HISTOGRAM_CHART_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['simple-histogram'];
 export const HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE: AgCartesianChartOptions =
@@ -2839,7 +2839,7 @@ export const LINE_TIME_X_AXIS_NUMBER_Y_AXIS_LABELS: AgCartesianChartOptions = {
         {
             type: 'number',
             position: 'left',
-            tick: {
+            interval: {
                 maxSpacing: 20,
             },
         },
@@ -2871,7 +2871,7 @@ export const LINE_TIME_X_AXIS_POSITION_TOP_NUMBER_Y_AXIS_LABELS: AgCartesianChar
         {
             type: 'number',
             position: 'left',
-            tick: {
+            interval: {
                 maxSpacing: 20,
             },
         },
@@ -2903,7 +2903,7 @@ export const LINE_TIME_X_AXIS_NUMBER_Y_AXIS_POSITION_RIGHT_LABELS: AgCartesianCh
         {
             type: 'number',
             position: 'right',
-            tick: {
+            interval: {
                 maxSpacing: 20,
             },
         },

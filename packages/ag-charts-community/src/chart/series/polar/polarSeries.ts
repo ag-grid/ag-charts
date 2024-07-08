@@ -3,15 +3,16 @@ import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
 import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
-import type { Node } from '../../../scene/node';
+import { type Node, PointerEvents } from '../../../scene/node';
 import { Selection } from '../../../scene/selection';
+import { Path } from '../../../scene/shape/path';
 import { Text } from '../../../scene/shape/text';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { StateMachine } from '../../../util/stateMachine';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { DataModelSeries } from '../dataModelSeries';
-import { SeriesNodePickMode } from '../series';
+import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import type { SeriesProperties } from '../seriesProperties';
 import type { SeriesNodeDatum } from '../seriesTypes';
 
@@ -54,9 +55,16 @@ export abstract class PolarSeries<
         () => this.nodeFactory(),
         false
     );
-    protected labelSelection: Selection<Text, TDatum> = Selection.select(this.labelGroup, Text, false);
+    protected labelSelection: Selection<Text, TDatum> = Selection.select(
+        this.labelGroup,
+        () => this.labelFactory(),
+        false
+    );
     protected highlightSelection: Selection<TNode, TDatum> = Selection.select(this.highlightGroup, () =>
         this.nodeFactory()
+    );
+    protected highlightLabelSelection: Selection<Text, TDatum> = Selection.select(this.highlightLabel, () =>
+        this.labelFactory()
     );
 
     animationResetFns?: {
@@ -114,7 +122,6 @@ export abstract class PolarSeries<
             canHaveAxes,
         });
 
-        this.showFocusBox = false;
         this.itemGroup.zIndexSubOrder = [() => this._declarationOrder, 1];
         this.animationResetFns = animationResetFns;
 
@@ -169,6 +176,12 @@ export abstract class PolarSeries<
 
     protected abstract nodeFactory(): TNode;
 
+    protected labelFactory(): Text {
+        const text = new Text();
+        text.pointerEvents = PointerEvents.None;
+        return text;
+    }
+
     getInnerRadius(): number {
         return 0;
     }
@@ -192,11 +205,12 @@ export abstract class PolarSeries<
             resetMotion([this.itemSelection, this.highlightSelection], item);
         }
         if (label) {
-            resetMotion([this.labelSelection], label);
+            resetMotion([this.labelSelection, this.highlightLabelSelection], label);
         }
         this.itemSelection.cleanup();
         this.labelSelection.cleanup();
         this.highlightSelection.cleanup();
+        this.highlightLabelSelection.cleanup();
     }
 
     protected animateEmptyUpdateReady(_data: PolarAnimationData) {
@@ -210,9 +224,12 @@ export abstract class PolarSeries<
     }
 
     protected animateReadyHighlight(_data: unknown) {
-        const { item } = this.animationResetFns ?? {};
+        const { item, label } = this.animationResetFns ?? {};
         if (item) {
             resetMotion([this.highlightSelection], item);
+        }
+        if (label) {
+            resetMotion([this.highlightLabelSelection], label);
         }
     }
 
@@ -235,5 +252,13 @@ export abstract class PolarSeries<
 
     private getAnimationData(seriesRect?: BBox) {
         return { seriesRect };
+    }
+
+    protected override computeFocusBounds(opts: PickFocusInputs): BBox | Path | undefined {
+        const datum = this.getNodeData()?.[opts.datumIndex];
+        if (datum !== undefined) {
+            return this.itemSelection.select((node): node is Path => node instanceof Path && node.datum === datum)[0];
+        }
+        return undefined;
     }
 }

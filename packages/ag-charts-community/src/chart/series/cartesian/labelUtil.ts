@@ -1,4 +1,5 @@
-import type { AgChartLabelOptions } from '../../../options/agChartOptions';
+import type { AgChartLabelOptions } from 'ag-charts-types';
+
 import type { Point } from '../../../scene/point';
 import type { Text } from '../../../scene/shape/text';
 

@@ -28,6 +28,7 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
         optionsKey: 'contextMenu',
         chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion'],
     },
+    { type: 'root', optionsKey: 'statusBar', chartTypes: ['cartesian'], identifier: 'status-bar' },
     {
         type: 'root',
         optionsKey: 'dataSource',
@@ -100,6 +101,10 @@ export function isEnterpriseHierarchy(seriesType: string) {
 export function isEnterpriseTopology(seriesType: string) {
     const type = getEnterpriseSeriesChartTypes(seriesType)?.find((v) => v === 'topology');
     return type === 'topology';
+}
+export function isEnterpriseFlowProportion(seriesType: string) {
+    const type = getEnterpriseSeriesChartTypes(seriesType)?.find((v) => v === 'flow-proportion');
+    return type === 'flow-proportion';
 }
 
 type UnknownPackage = { packageType: string } | EnterpriseModuleStub;

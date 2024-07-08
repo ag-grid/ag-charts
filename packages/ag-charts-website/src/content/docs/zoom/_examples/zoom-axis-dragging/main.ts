@@ -18,7 +18,7 @@ const options: AgCartesianChartOptions = {
                 text: 'Spending',
             },
             keys: ['spending'],
-            tick: {
+            interval: {
                 minSpacing: 80,
                 maxSpacing: 120,
             },
@@ -30,7 +30,7 @@ const options: AgCartesianChartOptions = {
                 text: 'Tonnes',
             },
             keys: ['tonnes'],
-            tick: {
+            interval: {
                 minSpacing: 80,
                 maxSpacing: 120,
             },
@@ -39,12 +39,12 @@ const options: AgCartesianChartOptions = {
             type: 'number',
             position: 'bottom',
             nice: false,
-            label: {
-                autoRotate: false,
-            },
-            tick: {
+            interval: {
                 minSpacing: 80,
                 maxSpacing: 120,
+            },
+            label: {
+                autoRotate: false,
             },
         },
     ],

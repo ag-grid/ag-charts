@@ -2,20 +2,11 @@ import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
+import { AngleAxisInterval } from './angleAxisInterval';
 import { LinearAngleScale } from './linearAngleScale';
 
-const { AND, Default, GREATER_THAN, LESS_THAN, OR, POSITIVE_NUMBER, NAN, NUMBER_OR_NAN, MIN_SPACING, Validate } =
-    _ModuleSupport;
+const { AND, Default, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, OBJECT, Validate } = _ModuleSupport;
 const { angleBetween, isNumberEqual, normalisedExtentWithMetadata } = _Util;
-
-class AngleNumberAxisTick extends _ModuleSupport.AxisTick<LinearAngleScale, number> {
-    @Validate(OR(POSITIVE_NUMBER, NAN))
-    override minSpacing: number = NaN;
-
-    @Validate(MIN_SPACING)
-    @Default(NaN)
-    override maxSpacing: number = NaN;
-}
 
 export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
     static readonly className = 'AngleNumberAxis';
@@ -31,6 +22,9 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
     @Default(NaN)
     max: number = NaN;
 
+    @Validate(OBJECT)
+    override interval = new AngleAxisInterval();
+
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super(moduleCtx, new LinearAngleScale());
     }
@@ -40,10 +34,6 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
         const { extent, clipped } = normalisedExtentWithMetadata(d, min, max);
 
         return { domain: extent, clipped };
-    }
-
-    protected override createTick() {
-        return new AngleNumberAxisTick();
     }
 
     protected getRangeArcLength(): number {
@@ -58,8 +48,8 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
 
     protected generateAngleTicks() {
         const arcLength = this.getRangeArcLength();
-        const { scale, tick, range: requestedRange } = this;
-        const { minSpacing = NaN, maxSpacing = NaN } = tick;
+        const { scale, range: requestedRange } = this;
+        const { values, minSpacing, maxSpacing } = this.interval;
 
         const minTicksCount = maxSpacing ? Math.floor(arcLength / maxSpacing) : 1;
         const maxTicksCount = minSpacing ? Math.floor(arcLength / minSpacing) : Infinity;
@@ -70,7 +60,7 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
         scale.maxTickCount = maxTicksCount;
         scale.arcLength = arcLength;
 
-        const ticks = tick.values ?? scale.ticks();
+        const ticks = values ?? scale.ticks();
         return ticks.map((value) => {
             return { value, visible: true };
         });

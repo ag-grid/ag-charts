@@ -1,26 +1,38 @@
-import type { AgChartLegendContextMenuEvent, _Scene } from 'ag-charts-community';
+import type { AgContextMenuOptions, _Scene } from 'ag-charts-community';
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import {
-    DEFAULT_CONTEXT_MENU_CLASS,
-    DEFAULT_CONTEXT_MENU_DARK_CLASS,
-    defaultContextMenuCss,
-} from './contextMenuStyles';
+import { DEFAULT_CONTEXT_MENU_CLASS, DEFAULT_CONTEXT_MENU_DARK_CLASS } from './contextMenuStyles';
 
 type ContextMenuGroups = {
-    default: Array<ContextMenuItem>;
-    node: Array<ContextMenuItem>;
-    extra: Array<ContextMenuItem>;
-    extraNode: Array<ContextMenuItem>;
-    extraLegendItem: Array<ContextMenuItem>;
+    default: Array<ContextMenuAction>;
+    extra: Array<ContextMenuAction<'all'>>;
+    extraSeries: Array<ContextMenuAction<'series'>>;
+    extraNode: Array<ContextMenuAction<'node'>>;
+    extraLegendItem: Array<ContextMenuAction<'legend'>>;
 };
-type ContextMenuAction = _ModuleSupport.ContextMenuAction;
-type ContextMenuActionParams = _ModuleSupport.ContextMenuActionParams;
-type ContextMenuItem = 'download' | ContextMenuAction;
+type ContextType = _ModuleSupport.ContextType;
+type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
+type ContextMenuAction<T extends ContextType = ContextType> = _ModuleSupport.ContextMenuAction<T>;
+type ContextMenuCallback<T extends ContextType> = _ModuleSupport.ContextMenuCallback<T>;
 
-const { BOOLEAN, Validate, createElement, getWindow } = _ModuleSupport;
+const { BOOLEAN, Validate, createElement, initMenuKeyNav, makeAccessibleClickListener, ContextMenuRegistry } =
+    _ModuleSupport;
 
 const moduleId = 'context-menu';
+
+function getChildrenOfType<TElem extends Element>(parent: Element, ctor: new () => TElem): TElem[] {
+    const { children } = parent ?? {};
+    if (!children) return [];
+
+    const result: TElem[] = [];
+    for (let i = 0; i < children.length; i++) {
+        const child = children[i];
+        if (child instanceof ctor) {
+            result.push(child);
+        }
+    }
+    return result;
+}
 
 export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @Validate(BOOLEAN)
@@ -32,21 +44,20 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     /**
      * Extra menu actions with a label and callback.
      */
-    public extraActions: Array<ContextMenuAction> = [];
+    public extraActions: NonNullable<AgContextMenuOptions['extraActions']> = [];
 
     /**
      * Extra menu actions that only appear when clicking on a node.
      */
-    public extraNodeActions: Array<ContextMenuAction> = [];
+    public extraNodeActions: NonNullable<AgContextMenuOptions['extraNodeActions']> = [];
 
     /**
      * Extra menu actions that only appear when clicking on a legend item
      */
-    public extraLegendItemActions: Array<ContextMenuAction> = [];
+    public extraLegendItemActions: NonNullable<AgContextMenuOptions['extraLegendItemActions']> = [];
 
     // Module context
     private readonly scene: _Scene.Scene;
-    private readonly highlightManager: _ModuleSupport.HighlightManager;
     private readonly interactionManager: _ModuleSupport.InteractionManager;
     private readonly registry: _ModuleSupport.ContextMenuRegistry;
 
@@ -61,26 +72,23 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     // HTML elements
     private readonly element: HTMLElement;
     private menuElement?: HTMLDivElement;
+    private menuElementDestroyFns: (() => void)[] = [];
+    private lastFocus?: HTMLElement;
     private readonly mutationObserver?: MutationObserver;
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
         // Module context
-        this.highlightManager = ctx.highlightManager;
         this.interactionManager = ctx.interactionManager;
         this.registry = ctx.contextMenuRegistry;
         this.scene = ctx.scene;
 
-        const { Default, ContextMenu: ContextMenuState, All } = _ModuleSupport.InteractionState;
-        const contextState = Default | ContextMenuState;
-        this.destroyFns.push(
-            ctx.regionManager.listenAll('contextmenu', (event) => this.onContextMenu(event), contextState),
-            ctx.regionManager.listenAll('click', (_region) => this.onClick(), All)
-        );
+        const { All } = _ModuleSupport.InteractionState;
+        this.destroyFns.push(ctx.regionManager.listenAll('click', (_region) => this.onClick(), All));
 
         // State
-        this.groups = { default: [], node: [], extra: [], extraNode: [], extraLegendItem: [] };
+        this.groups = { default: [], extra: [], extraSeries: [], extraNode: [], extraLegendItem: [] };
 
         this.element = ctx.domManager.addChild('canvas-overlay', moduleId);
         this.element.classList.add(DEFAULT_CONTEXT_MENU_CLASS);
@@ -89,7 +97,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.hide();
 
-        ctx.domManager.addListener('hidden', () => this.hide());
+        this.destroyFns.push(ctx.domManager.addListener('hidden', () => this.hide()));
 
         if (typeof MutationObserver !== 'undefined') {
             const observer = new MutationObserver(() => {
@@ -99,14 +107,13 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             });
             observer.observe(this.element, { childList: true });
             this.mutationObserver = observer;
+            this.destroyFns.push(() => observer.disconnect());
         }
-
-        ctx.domManager.addStyles(moduleId, defaultContextMenuCss);
 
         this.registry.registerDefaultAction({
             id: 'download',
-            region: 'all',
-            label: 'Download',
+            type: 'all',
+            label: 'contextMenuDownload',
             action: () => {
                 const title = ctx.chartService.title;
                 let fileName = 'image';
@@ -116,6 +123,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                 this.scene.download(fileName);
             },
         });
+
+        this.destroyFns.push(this.registry.addListener((e) => this.onContext(e)));
     }
 
     private isShown(): boolean {
@@ -128,43 +137,67 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         }
     }
 
-    private onContextMenu(event: _ModuleSupport.PointerInteractionEvent<'contextmenu'>) {
+    private onContext(event: ContextMenuEvent) {
         if (!this.enabled) return;
+        event.preventDefault();
 
         this.showEvent = event.sourceEvent as MouseEvent;
-        this.x = event.pageX;
-        this.y = event.pageY;
+        this.x = event.x;
+        this.y = event.y;
 
-        this.groups.default = this.registry.filterActions(event.region ?? 'all');
+        this.groups.default = this.registry.filterActions(event.type);
 
-        this.pickedNode = this.highlightManager.getActivePicked();
-        this.pickedLegendItem = this.highlightManager.getActiveLegendItem();
-        if (this.extraActions.length > 0) {
-            this.groups.extra = [...this.extraActions];
+        this.pickedNode = undefined;
+        this.pickedLegendItem = undefined;
+
+        this.groups.extra = this.extraActions.map(({ label, action }) => {
+            return { type: 'all', label, action };
+        });
+
+        if (ContextMenuRegistry.check('series', event)) {
+            this.pickedNode = event.context.pickedNode;
+            if (this.pickedNode) {
+                this.groups.extraNode = this.extraNodeActions.map(({ label, action }) => {
+                    return { type: 'node', label, action };
+                });
+            }
         }
 
-        if (this.extraNodeActions.length > 0 && this.pickedNode) {
-            this.groups.extraNode = [...this.extraNodeActions];
+        if (ContextMenuRegistry.check('legend', event)) {
+            this.pickedLegendItem = event.context.legendItem;
+            if (this.pickedLegendItem) {
+                this.groups.extraLegendItem = this.extraLegendItemActions.map(({ label, action }) => {
+                    return { type: 'legend', label, action };
+                });
+            }
         }
 
-        if (this.extraLegendItemActions.length > 0 && this.pickedLegendItem) {
-            this.groups.extraLegendItem = [...this.extraLegendItemActions];
-        }
-
-        const { default: def, node, extra, extraNode, extraLegendItem } = this.groups;
-        const groupCount = [def, node, extra, extraNode, extraLegendItem].reduce((count, e) => {
+        const { default: def, extra, extraNode, extraLegendItem } = this.groups;
+        const groupCount = [def, extra, extraNode, extraLegendItem].reduce((count, e) => {
             return e.length + count;
         }, 0);
 
         if (groupCount === 0) return;
 
-        event.consume();
-        event.sourceEvent.preventDefault();
-
+        this.lastFocus = this.getLastFocus(event);
         this.show();
     }
 
-    public show() {
+    private getLastFocus(event: ContextMenuEvent): HTMLElement | undefined {
+        // We need to guess whether the event comes the mouse or keyboard, which isn't an obvious task because
+        // the event.sourceEvent instances are mostly indistinguishable.
+        //
+        // However, when right-clicking with the mouse, the target element will the
+        // <div class="ag-charts-canvas-overlay"> element. But when the contextmenu is requested using the
+        // keyboard, then the target should be an element with the tabindex attribute set. So that's what we'll
+        // use to determine the device that triggered the contextmenu event.
+        if (event.sourceEvent.target instanceof HTMLElement && 'tabindex' in event.sourceEvent.target.attributes) {
+            return event.sourceEvent.target;
+        }
+        return undefined;
+    }
+
+    private show() {
         this.interactionManager.pushState(_ModuleSupport.InteractionState.ContextMenu);
         this.element.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
 
@@ -172,6 +205,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (this.menuElement) {
             this.element.replaceChild(newMenuElement, this.menuElement);
+            this.menuElementDestroyFns.forEach((d) => d());
         } else {
             this.element.appendChild(newMenuElement);
         }
@@ -179,29 +213,39 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.menuElement = newMenuElement;
 
         this.element.style.display = 'block';
+
+        const buttons = getChildrenOfType(newMenuElement, HTMLButtonElement);
+        this.menuElementDestroyFns = initMenuKeyNav({
+            menu: newMenuElement,
+            buttons,
+            orientation: 'vertical',
+            onEscape: () => this.hide(),
+        });
+        newMenuElement.focus();
     }
 
-    public hide() {
+    private hide() {
         this.interactionManager.popState(_ModuleSupport.InteractionState.ContextMenu);
 
         if (this.menuElement) {
             this.element.removeChild(this.menuElement);
             this.menuElement = undefined;
+            this.menuElementDestroyFns.forEach((d) => d());
+            this.menuElementDestroyFns.length = 0;
         }
 
         this.element.style.display = 'none';
+        this.lastFocus?.focus();
+        this.lastFocus = undefined;
     }
 
-    public renderMenu() {
+    private renderMenu() {
         const menuElement = createElement('div');
         menuElement.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__menu`);
         menuElement.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
+        menuElement.role = 'menu';
 
         this.appendMenuGroup(menuElement, this.groups.default, false);
-
-        if (this.pickedNode) {
-            this.appendMenuGroup(menuElement, this.groups.node);
-        }
 
         this.appendMenuGroup(menuElement, this.groups.extra);
 
@@ -210,21 +254,13 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         if (this.pickedLegendItem) {
-            const extraLegendItem = this.groups.extraLegendItem
-                .filter((value): value is ContextMenuAction => typeof value !== 'string')
-                .map((contextMenuItem: ContextMenuAction) => {
-                    return {
-                        ...contextMenuItem,
-                        region: 'legend' as const,
-                    };
-                });
-            this.appendMenuGroup(menuElement, extraLegendItem);
+            this.appendMenuGroup(menuElement, this.groups.extraLegendItem);
         }
 
         return menuElement;
     }
 
-    public appendMenuGroup(menuElement: HTMLElement, group: ContextMenuItem[], divider = true) {
+    private appendMenuGroup(menuElement: HTMLElement, group: ContextMenuAction[], divider = true) {
         if (group.length === 0) return;
         if (divider) menuElement.appendChild(this.createDividerElement());
         group.forEach((i) => {
@@ -233,7 +269,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         });
     }
 
-    public renderItem(item: ContextMenuItem): HTMLElement | void {
+    private renderItem(item: ContextMenuAction): HTMLElement | void {
         if (item && typeof item === 'object' && item.constructor === Object) {
             return this.createActionElement(item);
         }
@@ -243,88 +279,73 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         const el = createElement('div');
         el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__divider`);
         el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
+        el.role = 'separator';
         return el;
     }
 
-    private createActionElement({ id, label, region, action }: ContextMenuAction): HTMLElement {
-        if (id && this.registry.isDisabled(id)) {
-            return this.createDisabledElement(label);
-        }
-        return this.createButtonElement(region, label, action);
+    private createActionElement({ id, label, type, action }: ContextMenuAction): HTMLElement {
+        const disabled = !!(id && this.registry.isDisabled(id));
+        return this.createButtonElement(type, label, action, disabled);
     }
 
-    private createButtonOnClick(
-        region: ContextMenuAction['region'],
-        callback: (params: ContextMenuActionParams) => void
-    ): () => void {
-        if (region === 'legend') {
+    private createButtonOnClick<T extends ContextType>(type: T, callback: ContextMenuCallback<T>) {
+        if (ContextMenuRegistry.checkCallback('legend', type, callback)) {
             return () => {
                 if (this.pickedLegendItem) {
                     const { seriesId, itemId, enabled } = this.pickedLegendItem;
-                    const event: AgChartLegendContextMenuEvent & ContextMenuActionParams = {
-                        type: 'contextmenu',
-                        seriesId,
-                        itemId,
-                        enabled,
-                        event: this.showEvent!,
-                    };
-                    callback(event);
+                    callback({ type: 'contextmenu', seriesId, itemId, enabled });
+                    this.hide();
                 }
+            };
+        } else if (ContextMenuRegistry.checkCallback('node', type, callback)) {
+            return () => {
+                const { pickedNode, showEvent } = this;
+                const event = pickedNode?.series.createNodeContextMenuActionEvent(showEvent!, pickedNode);
+
+                if (event) {
+                    callback(event);
+                } else {
+                    _Util.Logger.error('series node not found');
+                }
+                this.hide();
             };
         }
         return () => {
-            const event = this.pickedNode?.series.createNodeContextMenuActionEvent(this.showEvent!, this.pickedNode);
-            if (event) {
-                callback(event);
-            } else {
-                callback({ event: this.showEvent! });
-            }
-
+            callback({ type: 'contextMenuEvent', event: this.showEvent! });
             this.hide();
         };
     }
 
-    private createButtonElement(
-        region: ContextMenuAction['region'],
+    private createButtonElement<T extends ContextType>(
+        type: T,
         label: string,
-        callback: (params: ContextMenuActionParams) => void
+        callback: ContextMenuCallback<T>,
+        disabled: boolean
     ): HTMLElement {
         const el = createElement('button');
         el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
         el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
-        el.innerHTML = label;
-        el.onclick = this.createButtonOnClick(region, callback);
-        return el;
-    }
-
-    private createDisabledElement(label: string): HTMLElement {
-        const el = createElement('button');
-        el.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
-        el.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
-        el.disabled = true;
-        el.innerHTML = label;
+        el.ariaDisabled = disabled.toString();
+        el.textContent = this.ctx.localeManager.t(label);
+        el.role = 'menuitem';
+        el.onclick = makeAccessibleClickListener(el, this.createButtonOnClick(type, callback));
         return el;
     }
 
     private reposition() {
-        const { x, y } = this;
+        let { x, y } = this;
 
         this.element.style.top = 'unset';
         this.element.style.bottom = 'unset';
-        this.element.style.left = 'unset';
-        this.element.style.right = 'unset';
 
-        if (x + this.element.offsetWidth > getWindow('innerWidth')) {
-            this.element.style.right = `calc(100% - ${x - 1}px)`;
-        } else {
-            this.element.style.left = `${x + 1}px`;
-        }
+        const canvasRect = this.ctx.domManager.getBoundingClientRect();
+        const { offsetWidth: width, offsetHeight: height } = this.element;
 
-        if (y + this.element.offsetHeight > getWindow('innerHeight')) {
-            this.element.style.bottom = `calc(100% - ${y}px - 0.5em)`;
-        } else {
-            this.element.style.top = `calc(${y}px - 0.5em)`;
-        }
+        x = _ModuleSupport.clamp(0, x, canvasRect.width - width);
+        y = _ModuleSupport.clamp(0, y, canvasRect.height - height);
+
+        this.element.style.left = `${x}px`;
+        this.element.style.top = `calc(${y}px - 0.5em)`;
     }
 
     public override destroy() {

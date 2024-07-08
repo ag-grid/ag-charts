@@ -1,4 +1,5 @@
-import type { FontStyle, FontWeight } from '../options/agChartOptions';
+import type { FontStyle, FontWeight } from 'ag-charts-types';
+
 import { BBox } from '../scene/bbox';
 import { Group } from '../scene/group';
 import type { RenderContext } from '../scene/node';
@@ -39,6 +40,8 @@ export class MarkerLabel extends Group {
     }
 
     proxyButton?: HTMLButtonElement;
+
+    pageIndex: number = NaN;
 
     @ProxyPropertyOnWrite('label')
     text?: string;
@@ -89,6 +92,7 @@ export class MarkerLabel extends Group {
     get lines(): Line[] {
         return this._lines;
     }
+
     update(dimensionProps: { length: number; spacing: number }[]) {
         const { markers, lines } = this;
 

@@ -55,6 +55,14 @@
                 main: './dist/package/main.cjs.js',
                 defaultExtension: 'js',
             },
+            'ag-charts-types': {
+                main: './dist/package/main.cjs.js',
+                defaultExtension: 'js',
+            },
+            'ag-charts-locale': {
+                main: './dist/package/main.cjs.js',
+                defaultExtension: 'js',
+            },
         },
         meta: {
             typescript: {

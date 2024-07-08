@@ -15,7 +15,7 @@ const options: AgCartesianChartOptions = {
         {
             type: 'number',
             position: 'left',
-            tick: {
+            interval: {
                 minSpacing: 80,
                 maxSpacing: 120,
             },
@@ -24,12 +24,12 @@ const options: AgCartesianChartOptions = {
             type: 'number',
             position: 'bottom',
             nice: false,
-            label: {
-                autoRotate: false,
-            },
-            tick: {
+            interval: {
                 minSpacing: 80,
                 maxSpacing: 120,
+            },
+            label: {
+                autoRotate: false,
             },
         },
     ],

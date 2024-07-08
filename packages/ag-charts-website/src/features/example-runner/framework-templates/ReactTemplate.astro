@@ -22,6 +22,7 @@ interface Props {
     ignoreSystemJs?: boolean;
     extraStyles?: string;
     children?: any;
+    headFragment?: string;
 }
 
 const {
@@ -35,6 +36,7 @@ const {
     boilerplatePath,
     ignoreSystemJs,
     extraStyles,
+    headFragment,
 } = Astro.props as Props;
 
 const startFile = pathJoin(appLocation, entryFileName);
@@ -45,6 +47,7 @@ const startFile = pathJoin(appLocation, entryFileName);
         <MetaData isDev={isDev} title={`React Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
         <ExampleStyle rootSelector="#root" extraStyles={extraStyles} />
         <Styles baseUrl={appLocation} files={styleFiles} />
+        <Fragment set:html={headFragment} />
     </head>
     <body>
         <div id="root"></div>

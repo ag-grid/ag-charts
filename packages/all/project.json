@@ -57,16 +57,14 @@
     },
     "dev:setup": {
       "executor": "nx:run-commands",
-      "dependsOn": ["^build:types"],
+      "dependsOn": ["^build:types", "^build:package"],
       "inputs": [],
       "outputs": [],
       "options": {
         "parallel": false,
         "commands": [
-          "if (test \"${BUILD_BATCH}\" != \"0\") ; then nx run ag-charts-website:generate-examples --batch ; fi",
-          "if (test \"${BUILD_BATCH}\" != \"0\") ; then nx run ag-charts-website:generate-thumbnails --batch ; fi",
-          "if (test \"${BUILD_BATCH}\" == \"0\") ; then nx run ag-charts-website:generate-examples ; fi",
-          "if (test \"${BUILD_BATCH}\" == \"0\") ; then nx run ag-charts-website:generate-thumbnails ; fi"
+          "if (test \"${BUILD_BATCH}\" != \"0\") ; then nx run-many --output-style compact -t generate-examples,generate-thumbnails -p ag-charts-website --batch ; fi",
+          "if (test \"${BUILD_BATCH}\" == \"0\") ; then nx run-many --output-style compact -t generate-examples,generate-thumbnails -p ag-charts-website ; fi"
         ]
       }
     },
@@ -77,7 +75,7 @@
       "outputs": [],
       "options": {
         "parallel": true,
-        "commands": ["{projectRoot}/watch.sh", "nx run ag-charts-website:dev"]
+        "commands": ["node {projectRoot}/watch.js", "nx run ag-charts-website:dev"]
       },
       "configurations": {
         "windows": {
@@ -95,11 +93,10 @@
       "inputs": [],
       "outputs": [],
       "options": {
-        "parallel": true,
+        "parallel": false,
         "commands": [
-          "nx run generate-gallery-thumbnail --example=simple-bar",
-          "{projectRoot}/watch.sh",
-          "nx run ag-charts-website:dev"
+          "nx run ag-charts-website-gallery_simple-bar_main.ts:generate-thumbnail",
+          "node {projectRoot}/watch.js & nx run ag-charts-website:dev"
         ]
       },
       "configurations": {
@@ -154,7 +151,9 @@
     "ag-charts-community-examples",
     "ag-charts-website",
     "ag-charts-angular",
+    "ag-charts-locale",
     "ag-charts-react",
+    "ag-charts-types",
     "ag-charts-vue3",
     "ag-charts-task-autogen",
     "ag-charts-generate-code-reference-files",

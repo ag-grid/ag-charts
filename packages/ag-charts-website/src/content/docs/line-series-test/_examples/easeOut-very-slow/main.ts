@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 const STATIONS = [
     'Finsbury\nPark',
@@ -12,7 +12,7 @@ const STATIONS = [
 // Make the maker scale-in animation duration = 0.
 (window as any).agChartsDebug = ['animationImmediateMarkerSwipeScaleIn'];
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: STATIONS.map((station) => {
         return { station, early: 4000 };

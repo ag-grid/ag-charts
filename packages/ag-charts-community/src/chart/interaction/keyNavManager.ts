@@ -1,6 +1,5 @@
 import { BaseManager } from '../baseManager';
 import type { DOMManager } from '../dom/domManager';
-import { type ConsumableEvent, buildConsumable, dispatchTypedConsumable } from './consumableEvent';
 import type {
     FocusInteractionEvent,
     InteractionEvent,
@@ -9,12 +8,21 @@ import type {
     PointerInteractionEvent,
 } from './interactionManager';
 import { InteractionState } from './interactionManager';
+import { type PreventableEvent, dispatchTypedEvent } from './preventableEvent';
 
-export type KeyNavEventType = 'blur' | 'browserfocus' | 'tab' | 'nav-hori' | 'nav-vert' | 'submit';
+export type KeyNavEventType =
+    | 'blur'
+    | 'browserfocus'
+    | 'tab'
+    | 'nav-hori'
+    | 'nav-vert'
+    | 'nav-zoom'
+    | 'submit'
+    | 'cancel'
+    | 'delete';
 
-export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = ConsumableEvent & {
+export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = PreventableEvent & {
     type: T;
-    region?: string;
     delta: -1 | 0 | 1;
     sourceEvent: InteractionEvent;
 };
@@ -56,8 +64,8 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
     }
 
     private onClickStop(event: PointerInteractionEvent<'drag-end' | 'click'>) {
-        this.isClicking = false;
         this.mouseBlur(event);
+        this.isClicking = false;
     }
 
     private mouseBlur(event: PointerInteractionEvent) {
@@ -76,28 +84,37 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
     }
 
     private onFocus(event: FocusInteractionEvent<'focus'>) {
+        const delta = this.domManager.getBrowserFocusDelta();
+
+        this.dispatch('browserfocus', delta, event);
         this.hasBrowserFocus = true;
+
         if (this.isClicking) {
             this.isMouseBlurred = true;
-        } else {
-            const delta = this.domManager.parent.getBrowserFocusDelta();
-            this.dispatch('browserfocus', delta, event);
-            this.dispatch('tab', delta, event);
+            return;
         }
+
+        this.dispatch('tab', delta, event);
     }
 
     private onKeyDown(event: KeyInteractionEvent<'keydown'>) {
-        if (!this.hasBrowserFocus || this.isClicking) return;
+        if (!this.hasBrowserFocus) return;
 
         this.isMouseBlurred = false;
 
-        switch (event.sourceEvent.code) {
-            case 'Tab':
-                if (event.sourceEvent.shiftKey) {
-                    return this.dispatch('tab', -1, event);
-                } else {
-                    return this.dispatch('tab', 1, event);
-                }
+        const { code, altKey, shiftKey, metaKey, ctrlKey } = event.sourceEvent;
+
+        if (code === 'Tab') {
+            if (shiftKey) {
+                return this.dispatch('tab', -1, event);
+            } else {
+                return this.dispatch('tab', 1, event);
+            }
+        }
+
+        if (altKey || shiftKey || metaKey || ctrlKey) return;
+
+        switch (code) {
             case 'ArrowDown':
                 return this.dispatch('nav-vert', 1, event);
             case 'ArrowUp':
@@ -106,14 +123,31 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
                 return this.dispatch('nav-hori', -1, event);
             case 'ArrowRight':
                 return this.dispatch('nav-hori', 1, event);
+            case 'ZoomIn':
+            case 'Add':
+                return this.dispatch('nav-zoom', 1, event);
+            case 'ZoomOut':
+            case 'Substract':
+                return this.dispatch('nav-zoom', -1, event);
             case 'Space':
             case 'Enter':
                 return this.dispatch('submit', 0, event);
+            case 'Escape':
+                return this.dispatch('cancel', 0, event);
+            case 'Backspace':
+            case 'Delete':
+                return this.dispatch('delete', 0, event);
+        }
+
+        switch (event.sourceEvent.key) {
+            case '+':
+                return this.dispatch('nav-zoom', 1, event);
+            case '-':
+                return this.dispatch('nav-zoom', -1, event);
         }
     }
 
-    private dispatch(type: KeyNavEventType, delta: -1 | 0 | 1, interactionEvent: InteractionEvent) {
-        const event = buildConsumable({ type, delta, sourceEvent: interactionEvent });
-        dispatchTypedConsumable(this.listeners, type, event);
+    private dispatch(type: KeyNavEventType, delta: -1 | 0 | 1, sourceEvent: InteractionEvent) {
+        dispatchTypedEvent(this.listeners, { type, delta, sourceEvent });
     }
 }

@@ -4,7 +4,7 @@ import { isFiniteNumber } from '../../util/type-guards';
 import { rangedValueProperty } from '../series/series';
 import { DATA_BROWSER_MARKET_SHARE } from '../test/data';
 import * as examples from '../test/examples';
-import { expectWarning, expectWarnings, setupMockConsole } from '../test/utils';
+import { expectWarningsCalls, setupMockConsole } from '../test/utils';
 import {
     accumulatedValue,
     area as actualArea,
@@ -14,7 +14,7 @@ import {
     sumValues,
 } from './aggregateFunctions';
 import type { AggregatePropertyDefinition, GroupByFn, PropertyId } from './dataModel';
-import { DataModel } from './dataModel';
+import { DataModel, getPathComponents } from './dataModel';
 import {
     SMALLEST_KEY_INTERVAL,
     SORT_DOMAIN_GROUPS,
@@ -488,7 +488,14 @@ describe('DataModel', () => {
                 expect(result?.data[1].keys).toEqual([new Date('2023-01-02T00:00:00.000Z')]);
                 expect(result?.data[2].keys).toEqual([new Date('2023-01-03T00:00:00.000Z')]);
                 expect(result?.data[3].keys).toEqual([new Date('2023-01-04T00:00:00.000Z')]);
-                expectWarning('AG Charts - invalid value of type [object] ignored:', '[null]');
+                expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [undefined / undefined] ignored:",
+    "[null]",
+  ],
+]
+`);
             });
 
             it('should extract the configured values', () => {
@@ -500,7 +507,14 @@ describe('DataModel', () => {
                 expect(result?.data[1].values).toEqual([[1, 2]]);
                 expect(result?.data[2].values).toEqual([[6, 9]]);
                 expect(result?.data[3].values).toEqual([[6, 9]]);
-                expectWarning('AG Charts - invalid value of type [object] ignored:', '[null]');
+                expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [undefined / undefined] ignored:",
+    "[null]",
+  ],
+]
+`);
             });
 
             it('should calculate the domains', () => {
@@ -512,7 +526,14 @@ describe('DataModel', () => {
                     [1, 6],
                     [2, 9],
                 ]);
-                expectWarning('AG Charts - invalid value of type [object] ignored:', '[null]');
+                expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [undefined / undefined] ignored:",
+    "[null]",
+  ],
+]
+`);
             });
 
             it('should not include sums', () => {
@@ -520,7 +541,14 @@ describe('DataModel', () => {
 
                 expect(result?.data.filter((g) => g.aggValues != null)).toEqual([]);
                 expect(result?.domain.aggValues).toBeUndefined();
-                expectWarning('AG Charts - invalid value of type [object] ignored:', '[null]');
+                expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [undefined / undefined] ignored:",
+    "[null]",
+  ],
+]
+`);
             });
 
             it('should only sum per data-item', () => {
@@ -1057,10 +1085,34 @@ describe('DataModel', () => {
             expect(dataModel.processData(data)).toMatchSnapshot({
                 time: expect.any(Number),
             });
-            expectWarnings([
-                ['AG Charts - invalid value of type [string] ignored:', '[illegal value]'],
-                ['AG Charts - invalid value of type [undefined] ignored:', '[undefined]'],
-            ]);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [string] for [series-a / undefined] ignored:",
+    "[illegal value]",
+  ],
+  [
+    "AG Charts - invalid value of type [string] for [undefined / undefined] ignored:",
+    "[illegal value]",
+  ],
+  [
+    "AG Charts - invalid value of type [undefined] for [series-b / undefined] ignored:",
+    "[undefined]",
+  ],
+  [
+    "AG Charts - invalid value of type [undefined] for [series-c / undefined] ignored:",
+    "[undefined]",
+  ],
+  [
+    "AG Charts - invalid value of type [string] for [series-c / undefined] ignored:",
+    "[illegal value]",
+  ],
+  [
+    "AG Charts - invalid value of type [string] for [series-b / undefined] ignored:",
+    "[illegal value]",
+  ],
+]
+`);
         });
 
         describe('property tests', () => {
@@ -1089,7 +1141,18 @@ describe('DataModel', () => {
                 expect(result?.data[0].validScopes).toEqual(new Set(['scope-2']));
                 expect(result?.data[1].validScopes).toBeUndefined();
                 expect(result?.data[2].validScopes).toBeUndefined();
-                expectWarning('AG Charts - invalid value of type [string] ignored:', '[illegal value]');
+                expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [string] for [undefined / undefined] ignored:",
+    "[illegal value]",
+  ],
+  [
+    "AG Charts - invalid value of type [string] for [scope-1 / undefined] ignored:",
+    "[illegal value]",
+  ],
+]
+`);
             });
 
             it('should handle scope validations distinctly for values', () => {
@@ -1099,7 +1162,18 @@ describe('DataModel', () => {
                 expect(result?.data[0].values).toEqual([[1, undefined, 2]]);
                 expect(result?.data[1].values).toEqual([[6, 9, 'illegal value']]);
                 expect(result?.data[2].values).toEqual([[6, 9, 4]]);
-                expectWarning('AG Charts - invalid value of type [string] ignored:', '[illegal value]');
+                expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [string] for [undefined / undefined] ignored:",
+    "[illegal value]",
+  ],
+  [
+    "AG Charts - invalid value of type [string] for [scope-1 / undefined] ignored:",
+    "[illegal value]",
+  ],
+]
+`);
             });
         });
     });
@@ -1191,6 +1265,25 @@ describe('DataModel', () => {
             expect(processedData).toMatchSnapshot({
                 time: expect.any(Number),
             });
+        });
+    });
+
+    describe('getPathComponents', () => {
+        it('parses valid paths', () => {
+            expect(getPathComponents(`a . b [ 'c' ] [ "d" ] [ 0 ] [ 99 ]`)).toEqual(['a', 'b', 'c', 'd', '0', '99']);
+            expect(getPathComponents(`. b [ 'c' ] [ "d" ] [ 0 ] [ 99 ]`)).toEqual(['b', 'c', 'd', '0', '99']);
+            expect(getPathComponents(`[ 'c' ] [ "d" ] [ 0 ] [ 99 ]`)).toEqual(['c', 'd', '0', '99']);
+        });
+
+        it('handles string escapes paths', () => {
+            expect(getPathComponents(`[ 'a\\'b' ] [ "a\\"b" ]`)).toEqual([`a'b`, `a"b`]);
+            expect(getPathComponents(`[ 'a\\\\'b' ]`)).toBe(undefined);
+            expect(getPathComponents(`[ "a\\\\"b" ]`)).toBe(undefined);
+        });
+
+        it('rejects invalid paths', () => {
+            expect(getPathComponents(`["test"]other`)).toBe(undefined);
+            expect(getPathComponents(`[test]`)).toBe(undefined);
         });
     });
 });

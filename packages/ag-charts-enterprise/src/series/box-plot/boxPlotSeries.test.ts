@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { type AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgCartesianChartOptions, type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
@@ -39,7 +39,7 @@ const CONTINUOUS_DATA = [
     { year: new Date(2023, 0, 1), min: 7.31, q1: 7.32, median: 7.32, q3: 7.33, max: 7.33 },
 ];
 
-function switchSeriesType<T>(opts: T, direction: 'horizontal' | 'vertical'): T {
+function switchSeriesType<T extends AgCartesianChartOptions>(opts: T, direction: 'horizontal' | 'vertical'): T {
     return {
         ...opts,
         series: opts['series']?.map((s) => ({

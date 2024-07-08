@@ -35,7 +35,7 @@ const chartVariableName = 'chart';
 const optionsVariableName = 'options';
 
 function tsGenerateWithOptionReferences(node, srcFile) {
-    return tsGenerate(node, srcFile).replace(new RegExp(`AgCharts\\.update\\(chart, options\\);?`, 'g'), '');
+    return tsGenerate(node, srcFile).replace(/chart[A-Za-z0-9]*\.update\(options\);?/g, '');
 }
 
 export function parser({
@@ -49,6 +49,8 @@ export function parser({
 }) {
     const bindings = internalParser(readAsJsFile(srcFile, { includeImports: true }), html, exampleSettings);
     const typedBindings = internalParser(srcFile, html, exampleSettings);
+    // Ensure options type percolates through for JS cases.
+    Object.assign(bindings.optionsTypeInfo, typedBindings.optionsTypeInfo);
     return { bindings, typedBindings };
 }
 

@@ -1,8 +1,8 @@
-import { AgAreaSeriesOptions, AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgAreaSeriesOptions, AgCartesianChartOptions, AgChartOptions, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Sales by Month',
@@ -40,5 +40,5 @@ function toggleConnectMissingData() {
         ...series,
         connectMissingData: !series.connectMissingData,
     }));
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

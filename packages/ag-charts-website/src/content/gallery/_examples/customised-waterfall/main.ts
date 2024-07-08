@@ -106,9 +106,11 @@ const options: AgChartOptions = {
                               })
                     }`,
             },
+            interval: {
+                minSpacing: 100,
+            },
             tick: {
                 size: 0,
-                minSpacing: 100,
             },
         },
     ],

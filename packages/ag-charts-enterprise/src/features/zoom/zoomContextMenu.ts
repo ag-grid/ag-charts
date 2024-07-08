@@ -1,4 +1,4 @@
-import type { _ModuleSupport, _Scene } from 'ag-charts-community';
+import type { AgChartContextMenuEvent, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
@@ -15,45 +15,44 @@ import {
     unitZoomState,
 } from './zoomUtils';
 
-type ContextMenuActionParams = _ModuleSupport.ContextMenuActionParams;
-
 const CONTEXT_ZOOM_ACTION_ID = 'zoom-action';
 const CONTEXT_PAN_ACTION_ID = 'pan-action';
 
 export class ZoomContextMenu {
-    public rect?: _Scene.BBox;
-
     constructor(
         private readonly contextMenuRegistry: _ModuleSupport.ContextMenuRegistry,
         private readonly zoomManager: _ModuleSupport.ZoomManager,
+        private readonly getModuleProperties: () => ZoomProperties,
+        private readonly getRect: () => _Scene.BBox | undefined,
         private readonly updateZoom: (zoom: DefinedZoomState) => void
     ) {}
 
-    public registerActions(enabled: boolean | undefined, zoom: DefinedZoomState, props: ZoomProperties) {
+    public registerActions(enabled: boolean | undefined, zoom: DefinedZoomState) {
         if (!enabled) return;
 
         const { contextMenuRegistry } = this;
 
         contextMenuRegistry.registerDefaultAction({
             id: CONTEXT_ZOOM_ACTION_ID,
-            region: 'series',
-            label: 'Zoom to here',
-            action: (params) => this.onZoomToHere(params, props),
+            type: 'series',
+            label: 'contextMenuZoomToCursor',
+            action: this.onZoomToHere.bind(this),
         });
         contextMenuRegistry.registerDefaultAction({
             id: CONTEXT_PAN_ACTION_ID,
-            region: 'series',
-            label: 'Pan to here',
-            action: (params) => this.onPanToHere(params, props),
+            type: 'series',
+            label: 'contextMenuPanToCursor',
+            action: this.onPanToHere.bind(this),
         });
 
-        this.toggleActions(zoom, props);
+        this.toggleActions(zoom);
     }
 
-    public toggleActions(zoom: DefinedZoomState, props: ZoomProperties) {
+    public toggleActions(zoom: DefinedZoomState) {
         const { contextMenuRegistry } = this;
+        const { minRatioX, minRatioY } = this.getModuleProperties();
 
-        if (isZoomLess(zoom, props.minRatioX, props.minRatioY)) {
+        if (isZoomLess(zoom, minRatioX, minRatioY)) {
             contextMenuRegistry.disableAction(CONTEXT_ZOOM_ACTION_ID);
         } else {
             contextMenuRegistry.enableAction(CONTEXT_ZOOM_ACTION_ID);
@@ -66,14 +65,14 @@ export class ZoomContextMenu {
         }
     }
 
-    private onZoomToHere({ event }: ContextMenuActionParams, props: ZoomProperties) {
-        const { rect } = this;
-        const { enabled, isScalingX, isScalingY, minRatioX, minRatioY } = props;
+    private onZoomToHere({ event }: AgChartContextMenuEvent) {
+        const rect = this.getRect();
+        const { enabled, isScalingX, isScalingY, minRatioX, minRatioY } = this.getModuleProperties();
 
-        if (!enabled || !rect || !event || !event.target) return;
+        if (!enabled || !rect || !event || !event.target || !(event instanceof MouseEvent)) return;
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
-        const origin = pointToRatio(rect, event.clientX, event.clientY);
+        const origin = pointToRatio(rect, event.offsetX, event.offsetX);
 
         const scaledOriginX = origin.x * dx(zoom);
         const scaledOriginY = origin.y * dy(zoom);
@@ -92,14 +91,14 @@ export class ZoomContextMenu {
         this.updateZoom(constrainZoom(newZoom));
     }
 
-    private onPanToHere({ event }: ContextMenuActionParams, props: ZoomProperties) {
-        const { rect } = this;
-        const { enabled } = props;
+    private onPanToHere({ event }: AgChartContextMenuEvent) {
+        const rect = this.getRect();
+        const { enabled } = this.getModuleProperties();
 
-        if (!enabled || !rect || !event || !event.target) return;
+        if (!enabled || !rect || !event || !event.target || !(event instanceof MouseEvent)) return;
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
-        const origin = pointToRatio(rect, event.clientX, event.clientY);
+        const origin = pointToRatio(rect, event.offsetX, event.offsetY);
 
         const scaleX = dx(zoom);
         const scaleY = dy(zoom);

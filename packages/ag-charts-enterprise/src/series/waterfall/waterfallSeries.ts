@@ -182,12 +182,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                     missingValue: undefined,
                     validation: totalTypeValue,
                 }),
-                ...(isContinuousX ? [_ModuleSupport.SMALLEST_KEY_INTERVAL] : []),
+                ...(isContinuousX ? [_ModuleSupport.SMALLEST_KEY_INTERVAL, _ModuleSupport.LARGEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
         });
 
         this.smallestDataInterval = processedData.reduced?.smallestKeyInterval;
+        this.largestDataInterval = processedData.reduced?.largestKeyInterval;
 
         this.updateSeriesItemTypes();
 
@@ -541,7 +542,12 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         } = this.properties;
 
         const categoryAxis = this.getCategoryAxis();
-        const crisp = checkCrisp(categoryAxis?.visibleRange);
+        const crisp = checkCrisp(
+            categoryAxis?.scale,
+            categoryAxis?.visibleRange,
+            this.smallestDataInterval,
+            this.largestDataInterval
+        );
 
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
 
@@ -554,7 +560,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 lineDash,
                 lineDashOffset,
                 cornerRadius,
-                formatter,
+                itemStyler,
                 shadow: fillShadow,
             } = this.getItemConfig(seriesItemType);
             const style: _ModuleSupport.RectConfig = {
@@ -575,7 +581,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 isHighlighted: isHighlight,
                 style,
                 highlightStyle: itemHighlightStyle,
-                formatter,
+                itemStyler,
                 seriesId,
                 itemId: datum.itemId,
                 ctx,
@@ -622,18 +628,34 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const { id: seriesId } = this;
         const { xKey, yKey, xName, yName, tooltip } = this.properties;
         const { datum, itemId, xValue, yValue } = nodeDatum;
-        const { fill, strokeWidth, name, formatter } = this.getItemConfig(itemId);
+        const {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash = [],
+            lineDashOffset,
+            cornerRadius,
+            name,
+            itemStyler,
+        } = this.getItemConfig(itemId);
 
         let format;
 
-        if (formatter) {
-            format = this.ctx.callbackCache.call(formatter, {
+        if (itemStyler) {
+            format = this.ctx.callbackCache.call(itemStyler, {
                 datum,
-                value: yValue,
                 xKey,
                 yKey,
                 fill,
+                fillOpacity,
+                stroke,
                 strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+                cornerRadius,
                 highlighted: false,
                 seriesId,
                 itemId: nodeDatum.itemId,

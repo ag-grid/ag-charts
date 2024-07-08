@@ -17,7 +17,7 @@ export class PolarChart extends Chart {
 
     constructor(options: ChartOptions, resources?: TransferableResources) {
         super(options, resources);
-        this.axisGroup.zIndex = Layers.AXIS_FOREGROUND_ZINDEX;
+        this.ctx.axisManager.axisGroup.zIndex = Layers.AXIS_FOREGROUND_ZINDEX;
     }
 
     override async performLayout() {

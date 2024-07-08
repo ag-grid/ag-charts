@@ -66,7 +66,7 @@ function setGridStyle1() {
     ];
     options.axes![0].gridLine!.style = gridStyle;
     options.axes![1].gridLine!.style = gridStyle;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function setGridStyle2() {
@@ -84,7 +84,7 @@ function setGridStyle2() {
     ];
     options.axes![0].gridLine!.style = xGridStyle;
     options.axes![1].gridLine!.style = yGridStyle;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }
 
 function setDefaultGridStyle() {
@@ -96,5 +96,5 @@ function setDefaultGridStyle() {
     ];
     options.axes![0].gridLine!.style = gridStyle;
     options.axes![1].gridLine!.style = gridStyle;
-    AgCharts.update(chart, options);
+    chart.update(options);
 }

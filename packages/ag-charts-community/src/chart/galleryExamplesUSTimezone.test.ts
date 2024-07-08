@@ -3,9 +3,9 @@
  */
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import type { AgChartOptions } from '../options/agChartOptions';
-import { AgCharts } from './agChartV2';
-import type { Chart } from './chart';
+import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
+
+import { AgCharts } from '../api/agCharts';
 import { isAgCartesianChartOptions } from './mapping/types';
 import { EXAMPLES } from './test/examples-gallery';
 import {
@@ -33,7 +33,7 @@ const TIME_AXIS_EXAMPLES = Object.entries(EXAMPLES)
 describe('Gallery Examples (US TZ)', () => {
     setupMockConsole();
 
-    let chart: Chart;
+    let chart: AgChartInstance;
 
     afterEach(() => {
         if (chart) {
@@ -52,7 +52,7 @@ describe('Gallery Examples (US TZ)', () => {
         'for %s it should create chart instance as expected',
         async (_exampleName, example) => {
             const options: AgChartOptions = example.options;
-            chart = AgCharts.create(options) as Chart;
+            chart = AgCharts.create(options);
             await waitForChartStability(chart);
             await example.assertions(chart);
         }
@@ -72,7 +72,7 @@ describe('Gallery Examples (US TZ)', () => {
             const options: AgChartOptions = { ...example.options };
             prepareTestOptions(options);
 
-            chart = AgCharts.create(options) as Chart;
+            chart = AgCharts.create(options);
             await compare();
 
             if (example.extraScreenshotActions) {
