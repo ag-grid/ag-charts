@@ -712,9 +712,6 @@ export abstract class Chart extends Observable {
         this.ctx.domManager.setTabIndex(enabled ? tabIndex ?? 0 : -1);
         setAttribute(this.ctx.scene.canvas.element, 'role', 'img');
         setAttribute(this.ctx.scene.canvas.element, 'aria-label', this.getAriaLabel());
-
-        const { title, subtitle, footnote } = this;
-        [title, subtitle, footnote].forEach((c) => c.updateA11yText(this.ctx.proxyInteractionService));
     }
 
     private checkUpdateShortcut(checkUpdateType: ChartUpdateType) {

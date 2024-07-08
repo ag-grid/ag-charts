@@ -90,8 +90,10 @@ export class Caption extends BaseProperties implements CaptionLike {
     private proxyText?: BoundedText;
 
     registerInteraction(moduleCtx: ModuleContext) {
-        const region = moduleCtx.regionManager.getRegion('root');
+        const { regionManager, proxyInteractionService, layoutService} =moduleCtx;
+        const region = regionManager.getRegion('root');
         const destroyFns = [
+            layoutService.addListener('layout-complete', () => this.updateA11yText(proxyInteractionService)),
             region.addListener('hover', (event) => this.handleMouseMove(moduleCtx, event)),
             region.addListener('leave', (event) => this.handleMouseLeave(moduleCtx, event)),
         ];
