@@ -66,7 +66,8 @@ export class AgChartInstanceProxy implements AgChartProxy {
 
     constructor(
         chart: Chart,
-        private readonly factoryApi: FactoryApi
+        private readonly factoryApi: FactoryApi,
+        private readonly displayWatermark: boolean
     ) {
         this.chart = chart;
         chart.publicApi = this;
@@ -143,20 +144,21 @@ export class AgChartInstanceProxy implements AgChartProxy {
         const isEnterprise = moduleRegistry.hasEnterpriseModules();
         const overrideOptions: Partial<AgChartOptions> = {};
 
-        // Disable enterprise features that may interfere with image generation.
         if (isEnterprise) {
+            // Disable enterprise features that may interfere with image generation.
             overrideOptions.animation = { enabled: false };
 
-            if (chart.chartOptions.type == null) {
-                // Non-preset case - adjust options for normal chart.
-                overrideOptions.toolbar = { enabled: false };
+            overrideOptions.toolbar = { enabled: false };
+            // Add watermark if no license
+            if (this.displayWatermark) {
+                // @ts-expect-error
+                overrideOptions.displayWatermark = true;
             }
         }
 
         const options: ChartExtendedOptions = mergeDefaults(
             {
                 container: document.createElement('div'),
-                overrideDevicePixelRatio: 1,
                 width,
                 height,
             },

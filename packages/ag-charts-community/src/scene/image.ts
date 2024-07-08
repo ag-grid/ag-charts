@@ -2,7 +2,7 @@ import type { RenderContext } from './node';
 import { Node, RedrawType, SceneChangeDetection } from './node';
 
 export class Image extends Node {
-    private readonly sourceImage: HTMLImageElement;
+    readonly sourceImage: HTMLImageElement;
 
     constructor(sourceImage: HTMLImageElement) {
         super();
