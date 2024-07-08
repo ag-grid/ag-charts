@@ -15,11 +15,10 @@ import { validateDatumLine } from '../annotationUtils';
 
 const { NUMBER, STRING, OBJECT, BaseProperties, Validate, isObject } = _ModuleSupport;
 
-export class ParallelChannelAnnotation extends Annotation(
-    AnnotationType.ParallelChannel,
+export class ParallelChannelProperties extends Annotation(
     ChannelAnnotation(AnnotationLine(AnnotationHandle(Extendable(Stroke(LineDash(BaseProperties))))))
 ) {
-    static is(value: unknown): value is ParallelChannelAnnotation {
+    static is(value: unknown): value is ParallelChannelProperties {
         return isObject(value) && value.type === AnnotationType.ParallelChannel;
     }
 

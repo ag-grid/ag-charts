@@ -55,17 +55,16 @@ export class AnnotationAxisLabelProperties extends Stroke(LineDash(Fill(Label(Ba
 }
 
 // --- Annotations Mixins ---
-export function Annotation<T extends string, U extends Constructor<_ModuleSupport.BaseProperties>>(
-    _type: T,
-    Parent: U
-) {
-    class AnnotationProperties extends Lockable(Visible(Parent)) {
+export function Annotation<U extends Constructor<_ModuleSupport.BaseProperties>>(Parent: U) {
+    abstract class AnnotationProperties extends Lockable(Visible(Parent)) {
         // A uuid is required, over the usual incrementing index, as annotations can be restored from external databases
         id = _Util.uuid();
 
         isValidWithContext(_context: AnnotationContext, warningPrefix: string) {
             return super.isValid(warningPrefix);
         }
+
+        abstract getDefaultColor(): string | undefined;
     }
     return AnnotationProperties;
 }
@@ -173,6 +172,10 @@ export function Stroke<T extends Constructor>(Parent: T) {
 
         @Validate(NUMBER, { optional: true })
         strokeWidth?: number;
+
+        getDefaultColor() {
+            return this.stroke;
+        }
     }
     return StrokeOptions;
 }

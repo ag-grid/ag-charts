@@ -2,17 +2,17 @@ import { _Util } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
 import { convertPoint, invertCoords } from '../annotationUtils';
-import { Annotation } from '../scenes/annotation';
+import { Annotation } from '../scenes/annotationScene';
 import { ChannelScene } from '../scenes/channelScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
-import type { DisjointChannelAnnotation } from './disjointChannelProperties';
+import type { DisjointChannelProperties } from './disjointChannelProperties';
 
 const { Vec2 } = _Util;
 
-type ChannelHandle = keyof DisjointChannel['handles'];
+type ChannelHandle = keyof DisjointChannelScene['handles'];
 
-export class DisjointChannel extends ChannelScene<DisjointChannelAnnotation> {
-    static override is(value: unknown): value is DisjointChannel {
+export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties> {
+    static override is(value: unknown): value is DisjointChannelScene {
         return Annotation.isCheck(value, 'disjoint-channel');
     }
 
@@ -56,7 +56,7 @@ export class DisjointChannel extends ChannelScene<DisjointChannelAnnotation> {
     }
 
     override dragHandle(
-        datum: DisjointChannelAnnotation,
+        datum: DisjointChannelProperties,
         target: Coords,
         context: AnnotationContext,
         onInvalid: () => void
@@ -138,7 +138,7 @@ export class DisjointChannel extends ChannelScene<DisjointChannelAnnotation> {
     }
 
     protected override getOtherCoords(
-        datum: DisjointChannelAnnotation,
+        datum: DisjointChannelProperties,
         topLeft: Coords,
         topRight: Coords,
         context: AnnotationContext
@@ -156,7 +156,7 @@ export class DisjointChannel extends ChannelScene<DisjointChannelAnnotation> {
         return [bottomLeft, bottomRight];
     }
 
-    override updateLines(datum: DisjointChannelAnnotation, top: LineCoords, bottom: LineCoords) {
+    override updateLines(datum: DisjointChannelProperties, top: LineCoords, bottom: LineCoords) {
         const { topLine, bottomLine } = this;
         const { lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } = datum;
 
@@ -180,7 +180,7 @@ export class DisjointChannel extends ChannelScene<DisjointChannelAnnotation> {
         bottomLine.updateCollisionBBox();
     }
 
-    override updateHandles(datum: DisjointChannelAnnotation, top: LineCoords, bottom: LineCoords) {
+    override updateHandles(datum: DisjointChannelProperties, top: LineCoords, bottom: LineCoords) {
         const {
             handles: { topLeft, topRight, bottomLeft, bottomRight },
         } = this;

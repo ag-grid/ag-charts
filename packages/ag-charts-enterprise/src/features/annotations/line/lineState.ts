@@ -1,12 +1,12 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import type { StateClickEvent, StateDragEvent, StateHoverEvent } from '../annotationTypes';
-import { LineAnnotation } from './lineProperties';
-import type { Line } from './lineScene';
+import { LineProperties } from './lineProperties';
+import type { LineScene } from './lineScene';
 
-type Click = StateClickEvent<LineAnnotation, Line>;
-type Hover = StateHoverEvent<LineAnnotation, Line>;
-type Drag = StateDragEvent<LineAnnotation, Line>;
+type Click = StateClickEvent<LineProperties, LineScene>;
+type Hover = StateHoverEvent<LineProperties, LineScene>;
+type Drag = StateDragEvent<LineProperties, LineScene>;
 
 export class LineStateMachine extends _ModuleSupport.StateMachine<
     'start' | 'end',
@@ -14,9 +14,9 @@ export class LineStateMachine extends _ModuleSupport.StateMachine<
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
-    constructor(appendDatum: (datum: LineAnnotation) => void) {
+    constructor(appendDatum: (datum: LineProperties) => void) {
         const onStartClick = ({ point }: Click | Hover) => {
-            const datum = new LineAnnotation();
+            const datum = new LineProperties();
             datum.set({ start: point, end: point });
             appendDatum(datum);
         };

@@ -14,13 +14,12 @@ import { validateDatumValue } from '../annotationUtils';
 
 const { STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
 
-export class HorizontalLineAnnotation extends Annotation(
-    AnnotationType.HorizontalLine,
+export class HorizontalLineProperties extends Annotation(
     AnnotationCrossLine(AnnotationHandle(AnnotationAxisLabel(Cappable(Stroke(LineDash(BaseProperties))))))
 ) {
     readonly direction = 'horizontal';
 
-    static is(value: unknown): value is HorizontalLineAnnotation {
+    static is(value: unknown): value is HorizontalLineProperties {
         return isObject(value) && value.type === AnnotationType.HorizontalLine;
     }
 
@@ -32,13 +31,12 @@ export class HorizontalLineAnnotation extends Annotation(
     }
 }
 
-export class VerticalLineAnnotation extends Annotation(
-    AnnotationType.VerticalLine,
+export class VerticalLineProperties extends Annotation(
     AnnotationCrossLine(AnnotationHandle(AnnotationAxisLabel(Cappable(Stroke(LineDash(BaseProperties))))))
 ) {
     readonly direction = 'vertical';
 
-    static is(value: unknown): value is VerticalLineAnnotation {
+    static is(value: unknown): value is VerticalLineProperties {
         return isObject(value) && value.type === AnnotationType.VerticalLine;
     }
 
@@ -50,4 +48,4 @@ export class VerticalLineAnnotation extends Annotation(
     }
 }
 
-export type CrossLineAnnotation = HorizontalLineAnnotation | VerticalLineAnnotation;
+export type CrossLineAnnotation = HorizontalLineProperties | VerticalLineProperties;

@@ -1,12 +1,12 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import type { Point, StateClickEvent, StateDragEvent, StateHoverEvent } from '../annotationTypes';
-import { ParallelChannelAnnotation } from './parallelChannelProperties';
-import type { ParallelChannel } from './parallelChannelScene';
+import { ParallelChannelProperties } from './parallelChannelProperties';
+import type { ParallelChannelScene } from './parallelChannelScene';
 
-type Click = StateClickEvent<ParallelChannelAnnotation, ParallelChannel>;
-type Drag = StateDragEvent<ParallelChannelAnnotation, ParallelChannel>;
-type Hover = StateHoverEvent<ParallelChannelAnnotation, ParallelChannel>;
+type Click = StateClickEvent<ParallelChannelProperties, ParallelChannelScene>;
+type Drag = StateDragEvent<ParallelChannelProperties, ParallelChannelScene>;
+type Hover = StateHoverEvent<ParallelChannelProperties, ParallelChannelScene>;
 
 export class ParallelChannelStateMachine extends _ModuleSupport.StateMachine<
     'start' | 'end' | 'height',
@@ -15,11 +15,11 @@ export class ParallelChannelStateMachine extends _ModuleSupport.StateMachine<
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(
-        appendDatum: (datum: ParallelChannelAnnotation) => void,
+        appendDatum: (datum: ParallelChannelProperties) => void,
         validateDatumPoint: (point: Point) => boolean
     ) {
         const onStartClick = ({ point }: Click | Drag) => {
-            const datum = new ParallelChannelAnnotation();
+            const datum = new ParallelChannelProperties();
             datum.set({ start: point, end: point, height: 0 });
             appendDatum(datum);
         };

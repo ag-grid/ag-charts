@@ -1,12 +1,12 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import type { Point, StateClickEvent, StateDragEvent, StateHoverEvent } from '../annotationTypes';
-import { DisjointChannelAnnotation } from './disjointChannelProperties';
-import type { DisjointChannel } from './disjointChannelScene';
+import { DisjointChannelProperties } from './disjointChannelProperties';
+import type { DisjointChannelScene } from './disjointChannelScene';
 
-type Click = StateClickEvent<DisjointChannelAnnotation, DisjointChannel>;
-type Drag = StateDragEvent<DisjointChannelAnnotation, DisjointChannel>;
-type Hover = StateHoverEvent<DisjointChannelAnnotation, DisjointChannel>;
+type Click = StateClickEvent<DisjointChannelProperties, DisjointChannelScene>;
+type Drag = StateDragEvent<DisjointChannelProperties, DisjointChannelScene>;
+type Hover = StateHoverEvent<DisjointChannelProperties, DisjointChannelScene>;
 
 export class DisjointChannelStateMachine extends _ModuleSupport.StateMachine<
     'start' | 'end' | 'height',
@@ -15,11 +15,11 @@ export class DisjointChannelStateMachine extends _ModuleSupport.StateMachine<
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(
-        appendDatum: (datum: DisjointChannelAnnotation) => void,
+        appendDatum: (datum: DisjointChannelProperties) => void,
         validateDatumPoint: (point: Point) => boolean
     ) {
         const onStartClick = ({ point }: Click | Drag) => {
-            const datum = new DisjointChannelAnnotation();
+            const datum = new DisjointChannelProperties();
             datum.set({ start: point, end: point, startHeight: 0, endHeight: 0 });
             appendDatum(datum);
         };
