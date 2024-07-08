@@ -1,5 +1,5 @@
 export const AG_CHARTS_LOCALE_SV_SE: Record<string, string> = {
-    ariaAnnounceChart: 'diagram, ${seriesCount}[number] serier, ${caption}',
+    ariaAnnounceChart: 'diagram, ${seriesCount}[number] serier',
     ariaAnnounceFlowProportionLink: 'länk ${index} av ${count}, från ${from} till ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'nod ${index} av ${count}, ${description}',
     ariaAnnounceHidden: 'dolt',
@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_SV_SE: Record<string, string> = {
     ariaAnnounceVisible: 'synlig',
     ariaLabelAnnotationOptionsToolbar: 'Alternativ för annotering',
     ariaLabelAnnotationsToolbar: 'Anteckningar',
+    ariaLabelColorPicker: 'Färgväljare',
     ariaLabelLegend: 'Teckenförklaring',
     ariaLabelLegendItem: '${label}, Legend objekt ${index}[number] av ${count}[number], ',
     ariaLabelLegendItemUnknown: 'Okänd legendpost',

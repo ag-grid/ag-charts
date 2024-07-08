@@ -1,5 +1,5 @@
 export const AG_CHARTS_LOCALE_TR_TR: Record<string, string> = {
-    ariaAnnounceChart: 'grafik, ${seriesCount}[number] seri, ${caption}',
+    ariaAnnounceChart: 'grafik, ${seriesCount}[number] seri',
     ariaAnnounceFlowProportionLink: 'bağlantı ${index} / ${count}, ${from} - ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'düğüm ${index} / ${count}, ${description}',
     ariaAnnounceHidden: 'gizli',
@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_TR_TR: Record<string, string> = {
     ariaAnnounceVisible: 'görünür',
     ariaLabelAnnotationOptionsToolbar: 'Ek Açıklama Seçenekleri',
     ariaLabelAnnotationsToolbar: 'Ek Açıklamalar',
+    ariaLabelColorPicker: 'Renk seçici',
     ariaLabelLegend: 'Efsane',
     ariaLabelLegendItem: '${label}, Gösterge öğesi ${index}[number] / ${count}[number], ',
     ariaLabelLegendItemUnknown: 'Bilinmeyen efsane öğesi',

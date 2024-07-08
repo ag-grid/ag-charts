@@ -58,7 +58,7 @@ export class HierarchyChart extends Chart {
         return shrinkRect;
     }
 
-    override getAriaLabel(): string {
+    protected override getAriaLabel(): string {
         const captionText = this.getCaptionText();
         return `hierarchical chart, ${captionText}`;
     }

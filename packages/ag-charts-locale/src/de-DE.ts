@@ -1,5 +1,5 @@
 export const AG_CHARTS_LOCALE_DE_DE: Record<string, string> = {
-    ariaAnnounceChart: 'Diagramm, ${seriesCount}[number] Reihen, ${caption}',
+    ariaAnnounceChart: 'Diagramm, ${seriesCount}[number] Reihen',
     ariaAnnounceFlowProportionLink: 'Link ${index} von ${count}, von ${from} bis ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'Knoten ${index} von ${count}, ${description}',
     ariaAnnounceHidden: 'ausgeblendet',
@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_DE_DE: Record<string, string> = {
     ariaAnnounceVisible: 'sichtbar',
     ariaLabelAnnotationOptionsToolbar: 'Anmerkungsoptionen',
     ariaLabelAnnotationsToolbar: 'Anmerkungen',
+    ariaLabelColorPicker: 'Farbwähler',
     ariaLabelLegend: 'Legende',
     ariaLabelLegendItem: '${label}, Legendenpunkt ${index}[number] von ${count}[number], ',
     ariaLabelLegendItemUnknown: 'Unbekanntes Legenden Element',

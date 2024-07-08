@@ -1,5 +1,5 @@
 export const AG_CHARTS_LOCALE_RO_RO: Record<string, string> = {
-    ariaAnnounceChart: 'diagramă, ${seriesCount}[number] serii, ${caption}',
+    ariaAnnounceChart: 'diagramă, ${seriesCount}[number] serii',
     ariaAnnounceFlowProportionLink: 'legătură ${index} din ${count}, de la ${from} la ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'nodul ${index} din ${count}, ${description}',
     ariaAnnounceHidden: 'ascuns',
@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_RO_RO: Record<string, string> = {
     ariaAnnounceVisible: 'vizibil',
     ariaLabelAnnotationOptionsToolbar: 'Opțiuni adnotare',
     ariaLabelAnnotationsToolbar: 'Adnotări',
+    ariaLabelColorPicker: 'Selector de culoare',
     ariaLabelLegend: 'Legendă',
     ariaLabelLegendItem: '${label}, Elementul legendei ${index}[number] din ${count}[number], ',
     ariaLabelLegendItemUnknown: 'Element necunoscut din legendă',

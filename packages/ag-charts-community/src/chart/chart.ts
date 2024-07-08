@@ -417,11 +417,8 @@ export abstract class Chart extends Observable {
             .join('. ');
     }
 
-    getAriaLabel(): string {
-        return this.ctx.localeManager.t('ariaAnnounceChart', {
-            seriesCount: this.series.length,
-            caption: this.getCaptionText(),
-        });
+    protected getAriaLabel(): string {
+        return this.ctx.localeManager.t('ariaAnnounceChart', { seriesCount: this.series.length });
     }
 
     private getDatumAriaText(datum: SeriesNodeDatum, html: TooltipContent): string {
@@ -713,8 +710,7 @@ export abstract class Chart extends Observable {
 
         const { enabled, tabIndex } = this.keyboard;
         this.ctx.domManager.setTabIndex(enabled ? tabIndex ?? 0 : -1);
-
-        setAttribute(this.ctx.scene.canvas.element, 'role', 'figure');
+        setAttribute(this.ctx.scene.canvas.element, 'role', 'img');
         setAttribute(this.ctx.scene.canvas.element, 'aria-label', this.getAriaLabel());
     }
 

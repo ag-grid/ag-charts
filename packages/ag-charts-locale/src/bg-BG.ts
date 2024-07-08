@@ -1,5 +1,5 @@
 export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
-    ariaAnnounceChart: 'графика, ${seriesCount}[number] серии, ${caption}',
+    ariaAnnounceChart: 'графика, ${seriesCount}[number] серии',
     ariaAnnounceFlowProportionLink: 'връзка ${index} от ${count}, от ${from} до ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'възел ${index} от ${count}, ${description}',
     ariaAnnounceHidden: 'скрит',
@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
     ariaAnnounceVisible: 'видим',
     ariaLabelAnnotationOptionsToolbar: 'Опции за анотация',
     ariaLabelAnnotationsToolbar: 'Анотации',
+    ariaLabelColorPicker: 'Цветова палитра',
     ariaLabelLegend: 'Легенда',
     ariaLabelLegendItem: '${label}, Елемент от легендата ${index}[number] от ${count}[number], ',
     ariaLabelLegendItemUnknown: 'Неизвестен елемент в легендата',
