@@ -1519,8 +1519,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
                     return keys;
                 }, [] as string[]),
-            scaleValueFormatter: (specifier?: string) =>
-                specifier ? scale.tickFormat?.({ specifier }) : this.getFormatter(),
+            scaleValueFormatter: (specifier?: string) => this.getScaleValueFormatter(specifier),
             scaleBandwidth: () => scale.bandwidth ?? 0,
             scaleDomain: () => scale.getDomain?.(),
             scaleConvert: (val) => scale.convert(val),
@@ -1531,6 +1530,19 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             attachLabel: (node: Node) => this.attachLabel(node),
             inRange: (x, tolerance) => this.inRange(x, tolerance),
         };
+    }
+
+    private getScaleValueFormatter(format?: string) {
+        const { scale } = this;
+        if (format && scale && scale.tickFormat) {
+            try {
+                return scale.tickFormat({ specifier: format });
+            } catch (e) {
+                Logger.warnOnce(`the format string ${format} is invalid, ignoring.`);
+            }
+        }
+
+        return this.getFormatter();
     }
 
     animateReadyUpdate(diff: FromToDiff) {
