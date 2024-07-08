@@ -56,6 +56,8 @@ jobs:
                   # Based on https://github.com/actions/checkout?tab=readme-ov-file#push-a-commit-using-the-built-in-token
                   git config user.name "github-actions[bot]"
                   git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  ls -lR packages/ag-charts-website/e2e/
+                  git status
                   git add .
                   if [[ $(git diff --cached --name-only | wc -l) -gt 0 ]] ; then
                     echo "Committing changes to ${BRANCH_NAME}."
