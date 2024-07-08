@@ -46,7 +46,8 @@ export function isValid<T extends object>(options: unknown, optionsDefs: Options
 function validateMessage(path: string, value: unknown, validatorOrDefs: Validator | OptionsDefs<any> | string): string {
     const description = isString(validatorOrDefs) ? validatorOrDefs : validatorOrDefs[descriptionSymbol];
     const expecting = description ? `; expecting ${description}` : '';
-    return `${path ? `Option \`${path}\`` : 'Value'} cannot be set to \`${stringifyValue(value)}\`${expecting}, ignoring.`;
+    const prefix = path ? `Option \`${path}\`` : 'Value';
+    return `${prefix} cannot be set to \`${stringifyValue(value)}\`${expecting}, ignoring.`;
 }
 
 export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path = '') {
