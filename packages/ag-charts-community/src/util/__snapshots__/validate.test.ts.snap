@@ -1,0 +1,44 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Validation Utility Functions attachDescription adds a description to a validator 1`] = `
+[
+  {
+    "key": "str",
+    "message": "Option \`str\` cannot be set to \`""\`; expecting a non-empty string, ignoring.",
+    "path": "",
+    "value": "",
+  },
+]
+`;
+
+exports[`Validation Validate Method validate returns expected validated object and errors 1`] = `
+[
+  {
+    "key": "name",
+    "message": "Option \`name\` cannot be set to \`undefined\`, ignoring.",
+    "path": "",
+    "value": undefined,
+  },
+  {
+    "key": "age",
+    "message": "Option \`age\` cannot be set to \`-5\`; expecting a number greater than or equal to 0, ignoring.",
+    "path": "",
+    "value": -5,
+  },
+  {
+    "key": "hobbies",
+    "message": "Option \`hobbies\` cannot be set to \`["reading",123]\`; expecting a string array, ignoring.",
+    "path": "",
+    "value": [
+      "reading",
+      123,
+    ],
+  },
+  {
+    "key": "extraField",
+    "message": "Unknown option \`extraField\`, ignoring.",
+    "path": "",
+    "unknown": true,
+  },
+]
+`;

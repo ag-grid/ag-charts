@@ -37,7 +37,7 @@ describe('Validation', () => {
                 [boolean, true, true],
                 [boolean, 'false', false],
                 [object, {}, true],
-                [object, [], false], // assuming array should not be considered as object
+                [object, [], false],
                 [array, [], true],
                 [array, 'not an array', false],
                 [callback, () => {}, true],
@@ -96,9 +96,8 @@ describe('Validation', () => {
 
     describe('Utility Functions', () => {
         test('required marks a validator as required', () => {
-            const requiredString = required(string);
-            expect(isValid({ value: '' }, { value: requiredString })).toBe(true); // Assuming empty string is valid for `string` validator
-            expect(isValid({ value: undefined }, { value: requiredString })).toBe(false); // Assuming `required` enforces presence
+            expect(isValid({ value: '' }, { value: required(string) })).toBe(true);
+            expect(isValid({ value: undefined }, { value: required(string) })).toBe(false);
         });
 
         // should check the description in the logger
@@ -107,14 +106,7 @@ describe('Validation', () => {
                 (value: unknown) => string(value) && value !== '',
                 'a non-empty string'
             );
-            expect(validate({ str: '' }, { str: describedValidator }).errors).toEqual([
-                {
-                    key: 'str',
-                    path: '',
-                    value: '',
-                    message: 'Option `str` cannot be set to `""`; expecting a non-empty string, ignoring.',
-                },
-            ]);
+            expect(validate({ str: '' }, { str: describedValidator }).errors).toMatchSnapshot();
         });
     });
 
@@ -159,9 +151,6 @@ describe('Validation', () => {
         });
     });
 
-    // Extending the tests for combination validators: `and`, `or`
-    // ...
-
     describe('OptionsDefs Validator', () => {
         const optionDefsValidator = optionsDefs({
             key1: string,
@@ -179,7 +168,6 @@ describe('Validation', () => {
             name: required(string),
             age: and(number, positiveNumber),
             hobbies: arrayOf(string),
-            // Adding nested object for comprehensive testing
             address: {
                 street: string,
                 city: string,
@@ -198,12 +186,10 @@ describe('Validation', () => {
             };
 
             const invalidUser = {
-                name: '', // Required failure
                 age: -5, // positiveNumber failure
                 hobbies: ['reading', 123], // arrayOf failure
                 address: {
                     street: '123 Elm St',
-                    city: '', // Assuming empty string is invalid for `string` validator
                 },
             };
 
@@ -257,33 +243,7 @@ describe('Validation', () => {
                     city: '',
                 },
             });
-            expect(errorsInvalidUser).toEqual([
-                {
-                    key: 'name',
-                    path: '',
-                    value: undefined,
-                    message: 'Option `name` cannot be set to `undefined`, ignoring.',
-                },
-                {
-                    key: 'age',
-                    path: '',
-                    value: -5,
-                    message:
-                        'Option `age` cannot be set to `-5`; expecting a number greater than or equal to 0, ignoring.',
-                },
-                {
-                    key: 'hobbies',
-                    path: '',
-                    value: ['reading', 123],
-                    message: 'Option `hobbies` cannot be set to `["reading",123]`; expecting a string array, ignoring.',
-                },
-                {
-                    key: 'extraField',
-                    path: '',
-                    unknown: true,
-                    message: 'Unknown option `extraField`, ignoring.',
-                },
-            ]);
+            expect(errorsInvalidUser).toMatchSnapshot();
         });
     });
 });
