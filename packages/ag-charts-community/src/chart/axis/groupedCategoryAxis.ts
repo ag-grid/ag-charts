@@ -9,7 +9,7 @@ import { Text } from '../../scene/shape/text';
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { extent, unique } from '../../util/array';
 import { isNumber } from '../../util/type-guards';
-import { BOOLEAN, COLOR_STRING, Validate } from '../../util/validationDecorators';
+import { BOOLEAN, COLOR_STRING, Validate } from '../../util/validation';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { calculateLabelRotation } from '../label';
 import { AxisLabel } from './axisLabel';

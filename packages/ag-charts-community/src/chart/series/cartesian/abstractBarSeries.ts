@@ -4,7 +4,7 @@ import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import type { Point } from '../../../scene/point';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
-import { DIRECTION, Validate } from '../../../util/validationDecorators';
+import { DIRECTION, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';
 import type { ChartAxis } from '../../chartAxis';

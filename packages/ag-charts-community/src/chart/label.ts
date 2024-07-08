@@ -22,7 +22,7 @@ import {
     POSITIVE_NUMBER,
     STRING,
     Validate,
-} from '../util/validationDecorators';
+} from '../util/validation';
 import type { ChartAxisLabelFlipFlag } from './chartAxis';
 
 export class Label<TParams = never, TDatum = any>

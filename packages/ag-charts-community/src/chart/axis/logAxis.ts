@@ -4,14 +4,7 @@ import { normalisedExtentWithMetadata } from '../../util/array';
 import { Default } from '../../util/default';
 import { Logger } from '../../util/logger';
 import { isNumber } from '../../util/type-guards';
-import {
-    AND,
-    GREATER_THAN,
-    LESS_THAN,
-    NUMBER_OR_NAN,
-    Validate,
-    predicateWithMessage,
-} from '../../util/validationDecorators';
+import { AND, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, Validate, predicateWithMessage } from '../../util/validation';
 import { NumberAxis } from './numberAxis';
 
 // Cannot be 0

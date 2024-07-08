@@ -18,7 +18,7 @@ import {
     STRING,
     TEXT_WRAP,
     Validate,
-} from '../../util/validationDecorators';
+} from '../../util/validation';
 import { Caption } from '../caption';
 
 export class AxisTitle extends BaseProperties implements AgAxisCaptionOptions {

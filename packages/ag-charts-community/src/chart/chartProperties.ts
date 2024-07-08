@@ -1,6 +1,6 @@
 import { Padding } from '../util/padding';
 import { BaseProperties } from '../util/properties';
-import { ARRAY, BOOLEAN, OBJECT, POSITIVE_NUMBER, UNION, Validate } from '../util/validationDecorators';
+import { ARRAY, BOOLEAN, OBJECT, POSITIVE_NUMBER, UNION, Validate } from '../util/validation';
 import { Caption } from './caption';
 import { ChartOverlays } from './overlay/chartOverlays';
 import { Tooltip } from './tooltip/tooltip';

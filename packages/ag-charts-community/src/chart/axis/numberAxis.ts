@@ -4,7 +4,7 @@ import type { LogScale } from '../../scale/logScale';
 import { normalisedExtentWithMetadata } from '../../util/array';
 import { Default } from '../../util/default';
 import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
-import { AND, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, Validate } from '../../util/validationDecorators';
+import { AND, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, Validate } from '../../util/validation';
 import { CartesianAxis } from './cartesianAxis';
 
 export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {

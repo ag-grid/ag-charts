@@ -1,6 +1,6 @@
 import { BaseProperties } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
-import { ARRAY, BOOLEAN, UNION, Validate } from '../../util/validationDecorators';
+import { ARRAY, BOOLEAN, UNION, Validate } from '../../util/validation';
 import {
     TOOLBAR_ALIGNMENTS,
     TOOLBAR_POSITIONS,

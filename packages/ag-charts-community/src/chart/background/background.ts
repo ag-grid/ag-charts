@@ -4,7 +4,7 @@ import type { ModuleContext } from '../../module/moduleContext';
 import { Group } from '../../scene/group';
 import { Rect } from '../../scene/shape/rect';
 import { ProxyPropertyOnWrite } from '../../util/proxy';
-import { BOOLEAN, COLOR_STRING, OBJECT, Validate } from '../../util/validationDecorators';
+import { BOOLEAN, COLOR_STRING, OBJECT, Validate } from '../../util/validation';
 import { Layers } from '../layers';
 import type { LayoutCompleteEvent } from '../layout/layoutService';
 

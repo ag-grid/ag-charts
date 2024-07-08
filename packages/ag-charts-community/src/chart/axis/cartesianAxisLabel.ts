@@ -1,4 +1,4 @@
-import { BOOLEAN, DEGREE, Validate } from '../../util/validationDecorators';
+import { BOOLEAN, DEGREE, Validate } from '../../util/validation';
 import { AxisLabel } from './axisLabel';
 
 export class CartesianAxisLabel extends AxisLabel {

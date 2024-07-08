@@ -1,6 +1,6 @@
 import { BaseProperties, PropertiesArray, isProperties } from './properties';
 import { expectWarningsCalls, setupMockConsole } from './test/mockConsole';
-import { NUMBER, OBJECT_ARRAY, STRING, Validate } from './validationDecorators';
+import { NUMBER, OBJECT_ARRAY, STRING, Validate } from './validation';
 
 describe('BaseProperties', () => {
     setupMockConsole();

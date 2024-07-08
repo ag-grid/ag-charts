@@ -14,7 +14,7 @@ import {
     POSITIVE_NUMBER,
     STRING,
     Validate,
-} from '../../util/validationDecorators';
+} from '../../util/validation';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 
 export class AxisLabel extends BaseProperties implements ChartAxisLabel {

@@ -11,7 +11,7 @@ import {
     RATIO,
     STRING,
     Validate,
-} from '../../util/validationDecorators';
+} from '../../util/validation';
 import type { SeriesTooltip } from './seriesTooltip';
 
 export class SeriesItemHighlightStyle extends BaseProperties {

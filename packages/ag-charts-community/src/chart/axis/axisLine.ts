@@ -1,4 +1,4 @@
-import { BOOLEAN, COLOR_STRING, POSITIVE_NUMBER, Validate } from '../../util/validationDecorators';
+import { BOOLEAN, COLOR_STRING, POSITIVE_NUMBER, Validate } from '../../util/validation';
 
 export class AxisLine {
     @Validate(BOOLEAN)

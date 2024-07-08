@@ -1,5 +1,5 @@
 import { BaseProperties } from './properties';
-import { POSITIVE_NUMBER, Validate } from './validationDecorators';
+import { POSITIVE_NUMBER, Validate } from './validation';
 
 export class Padding extends BaseProperties {
     @Validate(POSITIVE_NUMBER)

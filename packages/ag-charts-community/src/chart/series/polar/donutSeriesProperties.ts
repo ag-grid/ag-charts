@@ -24,7 +24,7 @@ import {
     RATIO,
     STRING,
     Validate,
-} from '../../../util/validationDecorators';
+} from '../../../util/validation';
 import { Caption } from '../../caption';
 import { Label } from '../../label';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';

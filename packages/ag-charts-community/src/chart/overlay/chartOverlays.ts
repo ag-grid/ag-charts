@@ -1,5 +1,5 @@
 import { BaseProperties } from '../../util/properties';
-import { BOOLEAN, OBJECT, Validate } from '../../util/validationDecorators';
+import { BOOLEAN, OBJECT, Validate } from '../../util/validation';
 import type { LocaleManager } from '../locale/localeManager';
 import { Overlay } from './overlay';
 

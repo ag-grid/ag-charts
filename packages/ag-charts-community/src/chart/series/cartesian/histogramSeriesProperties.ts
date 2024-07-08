@@ -19,7 +19,7 @@ import {
     STRING,
     UNION,
     Validate,
-} from '../../../util/validationDecorators';
+} from '../../../util/validation';
 import { Label } from '../../label';
 import { SeriesTooltip } from '../seriesTooltip';
 import { type CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';

@@ -1,4 +1,4 @@
-import { COLOR_STRING_ARRAY, STRING, Validate } from '../../../util/validationDecorators';
+import { COLOR_STRING_ARRAY, STRING, Validate } from '../../../util/validation';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
 import { SeriesProperties } from '../seriesProperties';
 

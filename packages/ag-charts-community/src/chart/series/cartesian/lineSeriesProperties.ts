@@ -16,7 +16,7 @@ import {
     RATIO,
     STRING,
     Validate,
-} from '../../../util/validationDecorators';
+} from '../../../util/validation';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
