@@ -21,7 +21,7 @@ export interface Validator extends Function {
 }
 
 export interface ValidationError {
-    key: string;
+    key?: string;
     path: string;
     message: string;
     unknown?: boolean;
@@ -35,7 +35,7 @@ export interface ValidationError {
  * @param path (Optional) The current path in the options object, for nested properties.
  * @returns A boolean indicating whether the options are valid.
  */
-export function isValid<T>(options: object, optionsDefs: OptionsDefs<T>, path?: string) {
+export function isValid<T extends object>(options: unknown, optionsDefs: OptionsDefs<T>, path?: string): options is T {
     const { errors } = validate(options, optionsDefs, path);
     for (const { message } of errors) {
         Logger.warn(message);
@@ -43,7 +43,20 @@ export function isValid<T>(options: object, optionsDefs: OptionsDefs<T>, path?: 
     return errors.length === 0;
 }
 
-export function validate<T>(options: object, optionsDefs: OptionsDefs<T>, path = '') {
+function validateMessage(path: string, value: unknown, validatorOrDefs: Validator | OptionsDefs<any> | string): string {
+    const description = isString(validatorOrDefs) ? validatorOrDefs : validatorOrDefs[descriptionSymbol];
+    const expecting = description ? `; expecting ${description}` : '';
+    return `${path ? `Option \`${path}\`` : 'Value'} cannot be set to \`${stringifyValue(value)}\`${expecting}, ignoring.`;
+}
+
+export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path = '') {
+    if (!isObject(options)) {
+        return {
+            valid: null,
+            errors: [{ path, value: options, message: validateMessage(path, options, 'an object') }],
+        };
+    }
+
     const optionsKeys = new Set(Object.keys(options));
     const errors: ValidationError[] = [];
     const valid: Partial<T> = {};
@@ -62,18 +75,9 @@ export function validate<T>(options: object, optionsDefs: OptionsDefs<T>, path =
         if (isFunction(validatorOrDefs)) {
             if (validatorOrDefs(value)) {
                 valid[key as keyof T] = value;
-                continue;
+            } else {
+                errors.push({ key, path, value, message: validateMessage(extendPath(key), value, validatorOrDefs) });
             }
-
-            let description = validatorOrDefs[descriptionSymbol];
-            description = description ? `; expecting ${description}` : '';
-
-            errors.push({
-                key,
-                path,
-                value,
-                message: `Option \`${extendPath(key)}\` cannot be set to \`${stringifyValue(value)}\`${description}, ignoring.`,
-            });
         } else {
             const nestedResult = validate(value, validatorOrDefs, extendPath(key));
             valid[key as keyof T] = nestedResult.valid as any;
@@ -130,9 +134,10 @@ export const optionsDefs = <T>(defs: OptionsDefs<T>, description = 'an object'):
     attachDescription(
         (value: unknown) =>
             isObject(value) &&
-            Object.entries<Validator | ObjectLikeDef<any>>(defs).every(([key, validatorOrDefs]) =>
-                isFunction(validatorOrDefs) ? validatorOrDefs(value[key]) : optionsDefs(validatorOrDefs)
-            ),
+            Object.entries<Validator | ObjectLikeDef<any>>(defs).every(([key, validatorOrDefs]) => {
+                const validator = isFunction(validatorOrDefs) ? validatorOrDefs : optionsDefs(validatorOrDefs);
+                return validator(value[key]);
+            }),
         description
     );
 
