@@ -46,7 +46,7 @@ export function isValid<T>(options: object, optionsDefs: OptionsDefs<T>, path?: 
 export function validate<T>(options: object, optionsDefs: OptionsDefs<T>, path = '') {
     const optionsKeys = new Set(Object.keys(options));
     const errors: ValidationError[] = [];
-    const validated: Partial<T> = {};
+    const valid: Partial<T> = {};
 
     function extendPath(key: string) {
         if (isArray(optionsDefs)) {
@@ -61,7 +61,7 @@ export function validate<T>(options: object, optionsDefs: OptionsDefs<T>, path =
         if (!validatorOrDefs[requiredSymbol] && typeof value === 'undefined') continue;
         if (isFunction(validatorOrDefs)) {
             if (validatorOrDefs(value)) {
-                validated[key as keyof T] = value;
+                valid[key as keyof T] = value;
                 continue;
             }
 
@@ -76,7 +76,7 @@ export function validate<T>(options: object, optionsDefs: OptionsDefs<T>, path =
             });
         } else {
             const nestedResult = validate(value, validatorOrDefs, extendPath(key));
-            validated[key as keyof T] = nestedResult.validated as any;
+            valid[key as keyof T] = nestedResult.valid as any;
             errors.push(...nestedResult.errors);
         }
     }
@@ -90,7 +90,7 @@ export function validate<T>(options: object, optionsDefs: OptionsDefs<T>, path =
         });
     }
 
-    return { validated, errors };
+    return { valid, errors };
 }
 
 /**

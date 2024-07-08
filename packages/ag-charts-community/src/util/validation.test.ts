@@ -236,8 +236,8 @@ describe('Validation', () => {
                 extraField: 'should be ignored', // Unknown option
             };
 
-            const { validated: validatedValidUser, errors: errorsValidUser } = validate(validUser, userSchema);
-            const { validated: validatedInvalidUser, errors: errorsInvalidUser } = validate(invalidUser, userSchema);
+            const { valid: validatedValidUser, errors: errorsValidUser } = validate(validUser, userSchema);
+            const { valid: validatedInvalidUser, errors: errorsInvalidUser } = validate(invalidUser, userSchema);
 
             expect(validatedValidUser).toEqual(validUser);
             expect(errorsValidUser).toEqual([]);
