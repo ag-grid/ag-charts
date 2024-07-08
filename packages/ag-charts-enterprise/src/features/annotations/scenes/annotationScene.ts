@@ -21,7 +21,7 @@ export abstract class Annotation extends _Scene.Group {
     public abstract toggleHandles(show: boolean | Record<string, boolean>): void;
     public abstract toggleActive(active: boolean): void;
     public abstract stopDragging(): void;
-    public abstract getAnchor(): { x: number; y: number; position?: string };
+    public abstract getAnchor(): { x: number; y: number; position?: 'right' | 'above' };
     public abstract getCursor(): string;
 
     protected getCachedBBoxWithoutHandles() {

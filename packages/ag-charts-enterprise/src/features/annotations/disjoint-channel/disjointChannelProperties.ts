@@ -13,11 +13,10 @@ import { validateDatumLine } from '../annotationUtils';
 
 const { NUMBER, STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
 
-export class DisjointChannelAnnotation extends Annotation(
-    AnnotationType.DisjointChannel,
+export class DisjointChannelProperties extends Annotation(
     ChannelAnnotation(AnnotationLine(AnnotationHandle(Stroke(LineDash(BaseProperties)))))
 ) {
-    static is(value: unknown): value is DisjointChannelAnnotation {
+    static is(value: unknown): value is DisjointChannelProperties {
         return isObject(value) && value.type === AnnotationType.DisjointChannel;
     }
 

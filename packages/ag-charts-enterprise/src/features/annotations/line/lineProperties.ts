@@ -14,11 +14,10 @@ import { validateDatumLine } from '../annotationUtils';
 
 const { STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
 
-export class LineAnnotation extends Annotation(
-    AnnotationType.Line,
+export class LineProperties extends Annotation(
     AnnotationLine(AnnotationHandle(Cappable(Extendable(Stroke(LineDash(BaseProperties))))))
 ) {
-    static is(value: unknown): value is LineAnnotation {
+    static is(value: unknown): value is LineProperties {
         return isObject(value) && value.type === AnnotationType.Line;
     }
 

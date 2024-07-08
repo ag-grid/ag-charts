@@ -13,7 +13,7 @@ type UpdateOpts = {
     context: AnnotationAxisContext;
 };
 
-export class AxisLabel extends _Scene.Group {
+export class AxisLabelScene extends _Scene.Group {
     static override readonly className = 'AxisLabel';
 
     private readonly label = new _Scene.Text({ zIndex: 1 });

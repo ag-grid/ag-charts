@@ -17,6 +17,7 @@ export interface AgAnnotationsThemeableOptions {
     'vertical-line'?: AgLineAnnotationStyles;
     'disjoint-channel'?: AgChannelAnnotationStyles;
     'parallel-channel'?: AgChannelAnnotationStyles;
+    text?: AgTextAnnotationStyles;
 }
 
 export interface AgAnnotationAxesButtons extends Toggleable {
@@ -34,6 +35,7 @@ export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible
     /* The fill colour for the middle of the channel. */
     background?: AgChannelAnnotationBackground;
 }
+export interface AgTextAnnotationStyles extends Lockable, Visible {}
 
 // --- Options ---
 export interface AgAnnotationsOptions extends Toggleable {
