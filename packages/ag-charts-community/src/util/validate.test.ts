@@ -7,7 +7,6 @@ import {
     boolean,
     callback,
     constant,
-    descriptionSymbol,
     instanceOf,
     isValid,
     number,
@@ -104,8 +103,18 @@ describe('Validation', () => {
 
         // should check the description in the logger
         test('attachDescription adds a description to a validator', () => {
-            const describedValidator = attachDescription(string, 'a string');
-            expect(describedValidator[descriptionSymbol]).toBe('a string');
+            const describedValidator = attachDescription(
+                (value: unknown) => string(value) && value !== '',
+                'a non-empty string'
+            );
+            expect(validate({ str: '' }, { str: describedValidator }).errors).toEqual([
+                {
+                    key: 'str',
+                    path: '',
+                    value: '',
+                    message: 'Option `str` cannot be set to `""`; expecting a non-empty string, ignoring.',
+                },
+            ]);
         });
     });
 

@@ -2,8 +2,8 @@ import { Logger } from './logger';
 import { joinFormatted, stringifyValue } from './string.util';
 import { isArray, isBoolean, isFiniteNumber, isFunction, isObject, isString } from './type-guards';
 
-export const descriptionSymbol = Symbol('description');
-export const requiredSymbol = Symbol('required');
+const descriptionSymbol = Symbol('description');
+const requiredSymbol = Symbol('required');
 
 type ObjectLikeDef<T> = T extends object ? (keyof T extends never ? never : OptionsDefs<T>) : never;
 
