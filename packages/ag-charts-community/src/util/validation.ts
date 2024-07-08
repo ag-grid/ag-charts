@@ -1,276 +1,239 @@
-import { Color } from './color';
-import { BREAK_TRANSFORM_CHAIN, addTransformToInstanceProperty } from './decorator';
 import { Logger } from './logger';
-import { isProperties } from './properties';
-import {
-    isArray,
-    isBoolean,
-    isFiniteNumber,
-    isFunction,
-    isNumber,
-    isObject,
-    isString,
-    isValidDate,
-} from './type-guards';
+import { joinFormatted, stringifyValue } from './string.util';
+import { isArray, isBoolean, isFiniteNumber, isFunction, isObject, isString } from './type-guards';
 
-interface ValidateOptions {
-    optional?: boolean;
-}
+export const descriptionSymbol = Symbol('description');
+export const requiredSymbol = Symbol('required');
 
-interface ValidationContext extends ValidateOptions {
-    target: any;
-    property: string | symbol;
-}
+type ObjectLikeDef<T> = T extends object ? (keyof T extends never ? never : OptionsDefs<T>) : never;
 
-export interface ValidatePredicate {
-    (value: unknown, ctx: ValidationContext): boolean;
-    message?: string | ((ctx: ValidationContext) => string);
-}
-
-export interface ValidateArrayPredicate extends ValidatePredicate {
-    restrict(options: { length?: number; minLength?: number }): ValidatePredicate;
-}
-
-export interface ValidateNumberPredicate extends ValidatePredicate {
-    restrict(options: { min?: number; max?: number }): ValidatePredicate;
-}
-
-export interface ValidateObjectPredicate extends ValidatePredicate {
-    restrict(objectType: Function): ValidatePredicate;
-}
-
-export function Validate(predicate: ValidatePredicate, options: ValidateOptions & { property?: string } = {}) {
-    const { optional = false, property: overrideProperty } = options;
-    return addTransformToInstanceProperty(
-        (target, property, value: any) => {
-            const context = { ...options, target, property };
-            if ((optional && typeof value === 'undefined') || predicate(value, context)) {
-                if (isProperties(target[property]) && !isProperties(value)) {
-                    target[property].set(value);
-                    return target[property];
-                }
-                return value;
-            }
-
-            const cleanKey = overrideProperty ?? String(property).replace(/^_*/, '');
-            const targetName = target.constructor.className ?? target.constructor.name.replace(/Properties$/, '');
-
-            let valueString = stringify(value);
-            const maxLength = 50;
-            if (valueString != null && valueString.length > maxLength) {
-                const excessCharacters = valueString.length - maxLength;
-                valueString = valueString.slice(0, maxLength) + `... (+${excessCharacters} characters)`;
-            }
-
-            Logger.warn(
-                `Property [${cleanKey}] of [${targetName}] cannot be set to [${valueString}]${
-                    predicate.message ? `; expecting ${getPredicateMessage(predicate, context)}` : ''
-                }, ignoring.`
-            );
-
-            return BREAK_TRANSFORM_CHAIN;
-        },
-        undefined,
-        { optional }
-    );
-}
-
-export const AND = (...predicates: ValidatePredicate[]) => {
-    const messages: (string | undefined)[] = [];
-    return predicateWithMessage(
-        (value, ctx) => {
-            messages.length = 0;
-            return predicates.every((predicate) => {
-                const isValid = predicate(value, ctx);
-                if (!isValid) {
-                    messages.push(getPredicateMessage(predicate, ctx));
-                }
-                return isValid;
-            });
-        },
-        () => messages.filter(Boolean).join(' AND ')
-    );
+// Definitions for options validation with support for nested structures.
+export type OptionsDefs<T> = { [K in keyof T]-?: Validator | ObjectLikeDef<T[K]> } & {
+    [descriptionSymbol]?: string;
+    [requiredSymbol]?: boolean;
 };
 
-export const OR = (...predicates: ValidatePredicate[]) =>
-    predicateWithMessage(
-        (value, ctx) => predicates.some((predicate) => predicate(value, ctx)),
-        (ctx) => predicates.map(getPredicateMessageMapper(ctx)).filter(Boolean).join(' OR ')
-    );
+// Validator interface with optional description and required flag for better error messages.
+export interface Validator extends Function {
+    (value: unknown): boolean;
+    [descriptionSymbol]?: string;
+    [requiredSymbol]?: boolean;
+}
 
-export const OBJECT = attachObjectRestrictions(
-    predicateWithMessage(
-        (value, ctx) => isProperties(value) || (isObject(value) && isProperties(ctx.target[ctx.property])),
-        'a properties object'
-    )
-);
-export const PLAIN_OBJECT = attachObjectRestrictions(predicateWithMessage((value) => isObject(value), 'an object'));
-export const BOOLEAN = predicateWithMessage(isBoolean, 'a boolean');
-export const FUNCTION = predicateWithMessage(isFunction, 'a function');
-export const STRING = predicateWithMessage(isString, 'a string');
-export const NUMBER = attachNumberRestrictions(predicateWithMessage(isFiniteNumber, 'a number'));
-export const NAN = predicateWithMessage((value) => isNumber(value) && isNaN(value), 'NaN');
-export const POSITIVE_NUMBER = NUMBER.restrict({ min: 0 });
-export const RATIO = NUMBER.restrict({ min: 0, max: 1 });
-export const DEGREE = NUMBER.restrict({ min: -360, max: 360 });
-export const NUMBER_OR_NAN = OR(NUMBER, NAN);
-export const ARRAY: ValidateArrayPredicate = attachArrayRestrictions(predicateWithMessage(isArray, 'an array'));
+export interface ValidationError {
+    key: string;
+    path: string;
+    message: string;
+    unknown?: boolean;
+    value?: any;
+}
 
-export const ARRAY_OF = (predicate: ValidatePredicate, message?: ValidatePredicate['message']) =>
-    predicateWithMessage(
-        (value, ctx) => isArray(value) && value.every((item) => predicate(item, ctx)),
-        (ctx) => {
-            const arrayMessage = getPredicateMessage(ARRAY, ctx) ?? '';
-            return message ? `${arrayMessage} of ${message}` : arrayMessage;
+/**
+ * Validates the provided options object against the specified options definitions. Logs warnings for any invalid options encountered.
+ * @param options The options object to validate.
+ * @param optionsDefs The definitions against which to validate the options.
+ * @param path (Optional) The current path in the options object, for nested properties.
+ * @returns A boolean indicating whether the options are valid.
+ */
+export function isValid<T>(options: object, optionsDefs: OptionsDefs<T>, path?: string) {
+    const { errors } = validate(options, optionsDefs, path);
+    for (const { message } of errors) {
+        Logger.warn(message);
+    }
+    return errors.length === 0;
+}
+
+export function validate<T>(options: object, optionsDefs: OptionsDefs<T>, path = '') {
+    const optionsKeys = new Set(Object.keys(options));
+    const errors: ValidationError[] = [];
+    const validated: Partial<T> = {};
+
+    function extendPath(key: string) {
+        if (isArray(optionsDefs)) {
+            return `${path}[${key}]`;
         }
-    );
-
-const isComparable = (value: unknown): value is number | Date => isFiniteNumber(value) || isValidDate(value);
-export const LESS_THAN = (otherField: string) =>
-    predicateWithMessage(
-        (v, ctx) => !isComparable(v) || !isComparable(ctx.target[otherField]) || v < ctx.target[otherField],
-        `to be less than ${otherField}`
-    );
-export const GREATER_THAN = (otherField: string) =>
-    predicateWithMessage(
-        (v, ctx) => !isComparable(v) || !isComparable(ctx.target[otherField]) || v > ctx.target[otherField],
-        `to be greater than ${otherField}`
-    );
-
-export const DATE = predicateWithMessage(isValidDate, 'Date object');
-export const DATE_OR_DATETIME_MS = OR(DATE, POSITIVE_NUMBER);
-
-const colorMessage = `A color string can be in one of the following formats to be valid: #rgb, #rrggbb, rgb(r, g, b), rgba(r, g, b, a) or a CSS color name such as 'white', 'orange', 'cyan', etc`;
-
-export const COLOR_STRING = predicateWithMessage(
-    (v: any) => isString(v) && Color.validColorString(v),
-    `color String. ${colorMessage}`
-);
-
-export const COLOR_STRING_ARRAY = predicateWithMessage(ARRAY_OF(COLOR_STRING), `color strings. ${colorMessage}`);
-
-export const BOOLEAN_ARRAY = ARRAY_OF(BOOLEAN, 'boolean values');
-export const NUMBER_ARRAY = ARRAY_OF(NUMBER, 'numbers');
-export const STRING_ARRAY = ARRAY_OF(STRING, 'strings');
-export const DATE_ARRAY = predicateWithMessage(ARRAY_OF(DATE), 'Date objects');
-export const OBJECT_ARRAY = predicateWithMessage(ARRAY_OF(OBJECT), 'objects');
-
-export const LINE_CAP = UNION(['butt', 'round', 'square'], 'a line cap');
-export const LINE_JOIN = UNION(['round', 'bevel', 'miter'], 'a line join');
-export const LINE_DASH = predicateWithMessage(
-    ARRAY_OF(POSITIVE_NUMBER),
-    'numbers specifying the length in pixels of alternating dashes and gaps, for example, [6, 3] means dashes with a length of 6 pixels with gaps between of 3 pixels.'
-);
-export const POSITION = UNION(['top', 'right', 'bottom', 'left'], 'a position');
-export const FONT_STYLE = UNION(['normal', 'italic', 'oblique'], 'a font style');
-export const FONT_WEIGHT = OR(
-    UNION(['normal', 'bold', 'bolder', 'lighter'], 'a font weight'),
-    NUMBER.restrict({ min: 1, max: 1000 })
-);
-export const TEXT_WRAP = UNION(['never', 'always', 'hyphenate', 'on-space'], 'a text wrap strategy');
-export const TEXT_ALIGN = UNION(['left', 'center', 'right'], 'a text align');
-export const VERTICAL_ALIGN = UNION(['top', 'middle', 'bottom'], 'a vertical align');
-export const OVERFLOW_STRATEGY = UNION(['ellipsis', 'hide'], 'an overflow strategy');
-export const DIRECTION = UNION(['horizontal', 'vertical'], 'a direction');
-export const PLACEMENT = UNION(['inside', 'outside'], 'a placement');
-export const INTERACTION_RANGE = OR(UNION(['exact', 'nearest'], 'interaction range'), NUMBER);
-export const LABEL_PLACEMENT = UNION(['top', 'bottom', 'left', 'right']);
-
-export function UNION(options: string[], message: string = 'a') {
-    return predicateWithMessage(
-        (v: any) => options.includes(v),
-        `${message} keyword such as ${joinUnionOptions(options)}`
-    );
-}
-
-export const MIN_SPACING = OR(AND(NUMBER.restrict({ min: 1 }), LESS_THAN('maxSpacing')), NAN);
-export const MAX_SPACING = OR(AND(NUMBER.restrict({ min: 1 }), GREATER_THAN('minSpacing')), NAN);
-
-export function predicateWithMessage(
-    predicate: ValidatePredicate,
-    message: Exclude<ValidatePredicate['message'], undefined>
-) {
-    predicate.message = message;
-    return predicate;
-}
-
-function joinUnionOptions(options: string[]) {
-    const values = options.map((option) => `'${option}'`);
-    if (values.length === 1) {
-        return values[0];
+        return path ? `${path}.${key}` : key;
     }
-    const lastValue = values.pop();
-    return `${values.join(', ')} or ${lastValue}`;
-}
 
-function getPredicateMessage(predicate: ValidatePredicate, ctx: ValidationContext) {
-    return isFunction(predicate.message) ? predicate.message(ctx) : predicate.message;
-}
-
-function getPredicateMessageMapper(ctx: ValidationContext) {
-    return (predicate: ValidatePredicate) => getPredicateMessage(predicate, ctx);
-}
-
-function attachArrayRestrictions(predicate: ValidatePredicate): ValidateArrayPredicate {
-    return Object.assign(predicate, {
-        restrict({ length, minLength }: { length?: number; minLength?: number } = {}) {
-            let message = 'an array';
-            if (isNumber(minLength) && minLength > 0) {
-                message = 'a non-empty array';
-            } else if (isNumber(length)) {
-                message = `an array of length ${length}`;
-            }
-            return predicateWithMessage(
-                (value) =>
-                    isArray(value) &&
-                    (isNumber(length) ? value.length === length : true) &&
-                    (isNumber(minLength) ? value.length >= minLength : true),
-                message
-            );
-        },
-    });
-}
-
-function attachNumberRestrictions(predicate: ValidatePredicate): ValidateNumberPredicate {
-    return Object.assign(predicate, {
-        restrict({ min, max }: { min?: number; max?: number } = {}) {
-            const message = ['a number'];
-            const hasMin = isNumber(min);
-            const hasMax = isNumber(max);
-
-            if (hasMin && hasMax) {
-                message.push(`between ${min} and ${max} inclusive`);
-            } else if (hasMin) {
-                message.push(`greater than or equal to ${min}`);
-            } else if (hasMax) {
-                message.push(`less than or equal to ${max}`);
+    for (const [key, validatorOrDefs] of Object.entries<Validator | ObjectLikeDef<any>>(optionsDefs)) {
+        optionsKeys.delete(key);
+        const value = options[key as keyof object];
+        if (!validatorOrDefs[requiredSymbol] && typeof value === 'undefined') continue;
+        if (isFunction(validatorOrDefs)) {
+            if (validatorOrDefs(value)) {
+                validated[key as keyof T] = value;
+                continue;
             }
 
-            return predicateWithMessage(
-                (value: unknown) =>
-                    isFiniteNumber(value) && (hasMin ? value >= min : true) && (hasMax ? value <= max : true),
-                message.join(' ')
-            );
-        },
-    });
-}
+            let description = validatorOrDefs[descriptionSymbol];
+            description = description ? `; expecting ${description}` : '';
 
-function attachObjectRestrictions(predicate: ValidatePredicate): ValidateObjectPredicate {
-    return Object.assign(predicate, {
-        restrict(objectType: Function) {
-            return predicateWithMessage(
-                (value) => value instanceof objectType,
-                (ctx) => getPredicateMessage(predicate, ctx) ?? `an instance of ${objectType.name}`
-            );
-        },
-    });
-}
-
-export function stringify(value: any): string {
-    if (typeof value === 'number') {
-        if (isNaN(value)) return 'NaN';
-        if (value === Infinity) return 'Infinity';
-        if (value === -Infinity) return '-Infinity';
+            errors.push({
+                key,
+                path,
+                value,
+                message: `Option \`${extendPath(key)}\` cannot be set to \`${stringifyValue(value)}\`${description}, ignoring.`,
+            });
+        } else {
+            const nestedResult = validate(value, validatorOrDefs, extendPath(key));
+            validated[key as keyof T] = nestedResult.validated as any;
+            errors.push(...nestedResult.errors);
+        }
     }
-    return JSON.stringify(value);
+
+    for (const key of optionsKeys) {
+        errors.push({
+            key,
+            path,
+            unknown: true,
+            message: `Unknown option \`${extendPath(key)}\`, ignoring.`,
+        });
+    }
+
+    return { validated, errors };
 }
+
+/**
+ * Attaches a descriptive message to a validator function.
+ * @param validator The validator function to which to attach a description.
+ * @param description The description to attach.
+ * @returns A new validator function with the attached description.
+ */
+export function attachDescription(validator: Validator, description: string): Validator {
+    return Object.assign((value: unknown) => validator(value), { [descriptionSymbol]: description });
+}
+
+/**
+ * Marks a validator or option definitions object as required.
+ * @param validatorOrDefs The validator or option definitions to mark as required.
+ * @returns The modified validator or option definitions, marked as required.
+ */
+export function required<T extends OptionsDefs<any>>(validatorOrDefs: T): T;
+export function required<T extends OptionsDefs<any>[]>(validatorOrDefs: T): T;
+export function required(validatorOrDefs: Validator): Validator;
+export function required<T>(validatorOrDefs: T): T {
+    return Object.assign(
+        isFunction(validatorOrDefs)
+            ? (value: any) => (validatorOrDefs as Function)(value)
+            : optionsDefs(validatorOrDefs as OptionsDefs<any>),
+        { [requiredSymbol]: true }
+    ) as T;
+}
+
+/**
+ * Creates a validator for ensuring an object matches the provided option definitions.
+ * @param defs The option definitions against which to validate an object.
+ * @param description (Optional) A description for the validator, defaulting to 'an object'.
+ * @returns A validator function for the given option definitions.
+ */
+export const optionsDefs = <T>(defs: OptionsDefs<T>, description = 'an object'): Validator =>
+    attachDescription(
+        (value: unknown) =>
+            isObject(value) &&
+            Object.entries<Validator | ObjectLikeDef<any>>(defs).every(([key, validatorOrDefs]) =>
+                isFunction(validatorOrDefs) ? validatorOrDefs(value[key]) : optionsDefs(validatorOrDefs)
+            ),
+        description
+    );
+
+/**
+ * Combines multiple validators, requiring all to pass.
+ * @param validators An array of validators to combine.
+ * @returns A validator that requires all specified validators to pass.
+ */
+export const and = (...validators: Validator[]) =>
+    attachDescription(
+        (value: unknown) => validators.every((validator) => validator(value)),
+        validators
+            .map((v) => v[descriptionSymbol])
+            .filter(Boolean)
+            .join(' and ')
+    );
+
+/**
+ * Combines multiple validators, passing if any one of them does.
+ * @param validators An array of validators to combine.
+ * @returns A validator that passes if any one of the specified validators does.
+ */
+export const or = (...validators: Validator[]) =>
+    attachDescription(
+        (value: unknown) => validators.some((validator) => validator(value)),
+        validators
+            .map((v) => v[descriptionSymbol])
+            .filter(Boolean)
+            .join(' or ')
+    );
+
+// Base type validators with descriptions.
+export const array = attachDescription(isArray, 'an array');
+export const boolean = attachDescription(isBoolean, 'a boolean');
+export const callback = attachDescription(isFunction, 'a function');
+export const number = attachDescription(isFiniteNumber, 'a number');
+export const object = attachDescription(isObject, 'an object');
+export const string = attachDescription(isString, 'a string');
+
+// Numeric type validators with specific conditions.
+export const numberMin = (min: number, inclusive = true) =>
+    attachDescription(
+        (value) => isFiniteNumber(value) && (value > min || (inclusive && value === min)),
+        `a number greater than ${inclusive ? 'or equal to ' : ''}${min}`
+    );
+export const numberMax = (max: number, inclusive = true) =>
+    attachDescription(
+        (value) => isFiniteNumber(value) && (value < max || (inclusive && value === max)),
+        `a number less than ${inclusive ? 'or equal to ' : ''}${max}`
+    );
+export const numberRange = (min: number, max: number) =>
+    attachDescription(
+        (value) => isFiniteNumber(value) && value >= min && value <= max,
+        `a number between ${min} and ${max} inclusive`
+    );
+
+export const positiveNumber = numberMin(0);
+export const minOneNumber = numberMin(1);
+export const ratio = numberRange(0, 1);
+export const degree = numberRange(0, 360);
+
+/**
+ * Creates a validator for a union of allowed values.
+ * @param allowed An array of allowed values.
+ * @returns A validator function that checks if a value is among the allowed ones.
+ */
+export function union(allowed: object): Validator;
+export function union(...allowed: any[]): Validator;
+export function union(...allowed: any[]) {
+    if (isObject(allowed[0])) {
+        allowed = Object.values(allowed[0]);
+    }
+    const keywords = joinFormatted(allowed, 'or', (value) => `'${value}'`, 6);
+    return attachDescription((value: any) => allowed.includes(value), `a keyword such as ${keywords}`);
+}
+
+/**
+ * Creates a validator for a single constant value.
+ * @param allowed The allowed constant value.
+ * @returns A validator function that checks for equality with the allowed value.
+ */
+export const constant = (allowed: boolean | number | string) =>
+    attachDescription((value: any) => allowed === value, `the value ${JSON.stringify(allowed)}`);
+
+/**
+ * Creates a validator for instances of a specific class.
+ * @param instanceType The constructor of the class to check instances against.
+ * @param description An optional description string.
+ * @returns A validator function that checks if a value is an instance of the specified class.
+ */
+export const instanceOf = (instanceType: Function, description?: string) =>
+    attachDescription((value) => value instanceof instanceType, description ?? `an instance of ${instanceType.name}`);
+
+/**
+ * Creates a validator for arrays where every element must pass a given validator.
+ * @param validator The validator to apply to each array element.
+ * @param description An optional description string.
+ * @returns A validator function for arrays with elements validated by the specified validator.
+ */
+export const arrayOf = (validator: Validator, description?: string) =>
+    attachDescription(
+        (value: unknown) => isArray(value) && value.every(validator),
+        description ?? `${validator[descriptionSymbol]} array`
+    );

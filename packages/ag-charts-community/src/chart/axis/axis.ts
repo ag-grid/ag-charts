@@ -39,7 +39,7 @@ import { ObserveChanges } from '../../util/proxy';
 import { StateMachine } from '../../util/stateMachine';
 import { type MeasureOptions, TextMeasurer } from '../../util/textMeasurer';
 import { TextWrapper } from '../../util/textWrapper';
-import { BOOLEAN, OBJECT, STRING_ARRAY, Validate } from '../../util/validation';
+import { BOOLEAN, OBJECT, STRING_ARRAY, Validate } from '../../util/validationDecorators';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { ChartAxis, ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';

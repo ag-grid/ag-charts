@@ -15,7 +15,7 @@ import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Debug } from '../../../util/debug';
 import { StateMachine } from '../../../util/stateMachine';
 import { isFunction } from '../../../util/type-guards';
-import { STRING, Validate } from '../../../util/validation';
+import { STRING, Validate } from '../../../util/validationDecorators';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import { ChartAxisDirection } from '../../chartAxisDirection';

@@ -40,7 +40,7 @@ import {
     STRING,
     UNION,
     Validate,
-} from '../util/validation';
+} from '../util/validationDecorators';
 import { ChartUpdateType } from './chartUpdateType';
 import type { Page } from './gridLayout';
 import { gridLayout } from './gridLayout';

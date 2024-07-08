@@ -1,7 +1,7 @@
 import type { AgAxisGridStyle } from 'ag-charts-types';
 
 import { isObject } from '../../util/type-guards';
-import { ARRAY_OF, BOOLEAN, POSITIVE_NUMBER, Validate } from '../../util/validation';
+import { ARRAY_OF, BOOLEAN, POSITIVE_NUMBER, Validate } from '../../util/validationDecorators';
 
 const GRID_STYLE_KEYS = ['stroke', 'lineDash'];
 export const GRID_STYLE = ARRAY_OF(

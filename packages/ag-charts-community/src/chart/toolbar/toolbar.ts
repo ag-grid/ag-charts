@@ -9,7 +9,7 @@ import { createElement } from '../../util/dom';
 import { initToolbarKeyNav, makeAccessibleClickListener } from '../../util/keynavUtil';
 import { clamp } from '../../util/number';
 import { ObserveChanges } from '../../util/proxy';
-import { BOOLEAN, Validate } from '../../util/validation';
+import { BOOLEAN, Validate } from '../../util/validationDecorators';
 import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
 import type {
     ToolbarButtonToggledEvent,

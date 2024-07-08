@@ -29,7 +29,7 @@ import { BaseProperties } from '../util/properties';
 import { ActionOnSet } from '../util/proxy';
 import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
 import { isDefined, isFiniteNumber, isFunction, isNumber } from '../util/type-guards';
-import { BOOLEAN, NUMBER, OBJECT, UNION, Validate } from '../util/validation';
+import { BOOLEAN, NUMBER, OBJECT, UNION, Validate } from '../util/validationDecorators';
 import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxis } from './chartAxis';

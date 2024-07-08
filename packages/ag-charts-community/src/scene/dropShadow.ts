@@ -1,4 +1,4 @@
-import { BOOLEAN, COLOR_STRING, NUMBER, POSITIVE_NUMBER, Validate } from '../util/validation';
+import { BOOLEAN, COLOR_STRING, NUMBER, POSITIVE_NUMBER, Validate } from '../util/validationDecorators';
 import { RedrawType } from './changeDetectable';
 import { SceneChangeDetection } from './node';
 import { ChangeDetectableProperties } from './util/changeDetectableProperties';

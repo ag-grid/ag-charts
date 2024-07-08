@@ -2,7 +2,7 @@ import type { AgSeriesTooltipRendererParams, AgTooltipRendererResult, Interactio
 
 import { BaseProperties } from '../../util/properties';
 import type { RequireOptional } from '../../util/types';
-import { BOOLEAN, FUNCTION, INTERACTION_RANGE, OBJECT, Validate } from '../../util/validation';
+import { BOOLEAN, FUNCTION, INTERACTION_RANGE, OBJECT, Validate } from '../../util/validationDecorators';
 import { TooltipPosition, toTooltipHtml } from '../tooltip/tooltip';
 
 type TooltipRenderer<P> = (params: P) => string | AgTooltipRendererResult;

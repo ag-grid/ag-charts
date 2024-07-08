@@ -1,7 +1,7 @@
 import { BBox } from '../../../scene/bbox';
 import { Path } from '../../../scene/shape/path';
 import type { ShapeLineCap } from '../../../scene/shape/shape';
-import { COLOR_STRING, LINE_CAP, POSITIVE_NUMBER, Validate } from '../../../util/validation';
+import { COLOR_STRING, LINE_CAP, POSITIVE_NUMBER, Validate } from '../../../util/validationDecorators';
 
 export class RangeHandle extends Path {
     static override readonly className = 'RangeHandle';

@@ -21,7 +21,7 @@ import {
     RATIO,
     STRING,
     Validate,
-} from '../../../util/validation';
+} from '../../../util/validationDecorators';
 import { Label } from '../../label';
 import { SeriesTooltip } from '../seriesTooltip';
 import { AbstractBarSeriesProperties } from './abstractBarSeries';

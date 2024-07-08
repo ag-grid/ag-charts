@@ -16,7 +16,7 @@ import {
     TEXT_WRAP,
     UNION,
     Validate,
-} from '../../util/validation';
+} from '../../util/validationDecorators';
 import type { DOMManager } from '../dom/domManager';
 import type { PointerOffsets } from '../interaction/interactionManager';
 

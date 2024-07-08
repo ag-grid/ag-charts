@@ -1,269 +1,280 @@
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-
 import {
-    AND,
-    COLOR_STRING,
-    DATE,
-    GREATER_THAN,
-    LESS_THAN,
-    NUMBER,
-    NUMBER_ARRAY,
-    POSITIVE_NUMBER,
-    STRING,
-    Validate,
+    type OptionsDefs,
+    and,
+    array,
+    arrayOf,
+    attachDescription,
+    boolean,
+    callback,
+    constant,
+    descriptionSymbol,
+    instanceOf,
+    isValid,
+    number,
+    object,
+    optionsDefs,
+    or,
+    positiveNumber,
+    ratio,
+    required,
+    string,
+    union,
+    validate,
 } from './validation';
 
-class TestValidate {
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    num?: number = undefined;
+// Mock the Logger to avoid actual logging during tests
+jest.mock('./logger', () => ({
+    Logger: { warn: jest.fn() },
+}));
 
-    @Validate(STRING, { optional: true })
-    str?: string = undefined;
-
-    @Validate(DATE, { optional: true })
-    date?: Date = undefined;
-
-    @Validate(NUMBER_ARRAY, { optional: true })
-    array?: number[] = undefined;
-
-    @Validate(COLOR_STRING)
-    colour: string = 'black';
-
-    @Validate(AND(POSITIVE_NUMBER, LESS_THAN('max')))
-    min: number = 0;
-
-    @Validate(AND(NUMBER.restrict({ max: 100 }), GREATER_THAN('min')))
-    max: number = 100;
-}
-
-describe('validation module', () => {
-    let test: TestValidate;
-
-    beforeEach(() => {
-        test = new TestValidate();
-        console.warn = jest.fn();
-    });
-
-    describe('basic validations', () => {
-        describe('Optional NUMBER', () => {
-            it('should set TestValidate.num to undefined without warning', () => {
-                test.num = undefined;
-
-                expect(console.warn).not.toHaveBeenCalled();
-            });
-
-            it('should not set TestValidate.num to null with warning', () => {
-                (test as any).num = null;
-
-                expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/cannot be set to \[null]/));
-                expect(test.num).toBe(undefined);
-            });
-
-            it('should not set TestValidate.num to Infinity with warning', () => {
-                (test as any).num = Infinity;
-
-                expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/cannot be set to \[Infinity]/));
-                expect(test.num).toBe(undefined);
-            });
-
-            it('should not set TestValidate.num to NaN with warning', () => {
-                (test as any).num = NaN;
-
-                expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/cannot be set to \[NaN]/));
-                expect(test.num).toBe(undefined);
-            });
-
-            it('should set TestValidate.num to a valid value without warning', () => {
-                test.num = 3;
-
-                expect(console.warn).not.toHaveBeenCalled();
-                expect(test.num).toBe(3);
+describe('Validation', () => {
+    describe('Base Validators', () => {
+        describe('Primitive type validators', () => {
+            test.each([
+                [string, 'hello', true],
+                [string, 42, false],
+                [number, 42, true],
+                [number, '42', false],
+                [boolean, true, true],
+                [boolean, 'false', false],
+                [object, {}, true],
+                [object, [], false], // assuming array should not be considered as object
+                [array, [], true],
+                [array, 'not an array', false],
+                [callback, () => {}, true],
+                [callback, 'not a function', false],
+            ])('%p validates %p as %p', (validator, input, expected) => {
+                expect(validator(input)).toBe(expected);
             });
         });
 
-        describe('Optional STRING', () => {
-            it('should set TestValidate.str to undefined without warning', () => {
-                test.str = undefined;
-
-                expect(console.warn).not.toHaveBeenCalled();
-            });
-
-            it('should not set TestValidate.str to null with warning', () => {
-                (test as any).str = null;
-
-                expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/cannot be set to/));
-                expect(test.str).toBe(undefined);
-            });
-
-            it('should set TestValidate.str to a valid value without warning', () => {
-                test.str = 'hello world!';
-
-                expect(console.warn).not.toHaveBeenCalled();
-                expect(test.str).toBe('hello world!');
-            });
-        });
-
-        describe('Optional DATE', () => {
-            it('should set TestValidate.date to undefined without warning', () => {
-                test.date = undefined;
-
-                expect(console.warn).not.toHaveBeenCalled();
-            });
-
-            it('should not set TestValidate.date to null with warning', () => {
-                (test as any).date = null;
-
-                expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/cannot be set to/));
-                expect(test.date).toBe(undefined);
-            });
-
-            it('should set TestValidate.date to a valid value without warning', () => {
-                const date = new Date();
-                test.date = date;
-
-                expect(console.warn).not.toHaveBeenCalled();
-                expect(test.date).toBe(date);
-            });
-        });
-
-        describe('Optional NUMBER_ARRAY', () => {
-            it('should set TestValidate.array to undefined without warning', () => {
-                test.array = undefined;
-
-                expect(console.warn).not.toHaveBeenCalled();
-            });
-
-            it('should not set TestValidate.array to null with warning', () => {
-                (test as any).array = null;
-
-                expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/cannot be set to/));
-                expect(test.array).toBe(undefined);
-            });
-
-            it('should set TestValidate.array to a valid value without warning', () => {
-                test.array = [];
-                test.array = [1, 2, 3];
-
-                expect(console.warn).not.toHaveBeenCalled();
-                expect(test.array).toStrictEqual([1, 2, 3]);
-            });
-
-            it('should not set TestValidate.array to a invalid value with warning', () => {
-                test.array = ['a', 'b', 3] as any;
-
-                expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/cannot be set to/));
-                expect(test.array).toBe(undefined);
-            });
-        });
-
-        describe('COLOUR_STRING', () => {
-            it('should not set TestValidate.colour to undefined with warning', () => {
-                (test as any).colour = undefined;
-
-                expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/cannot be set to/));
-                expect(test.colour).toBe('black');
-            });
-
-            it('should not set TestValidate.colour to null with warning', () => {
-                (test as any).colour = null;
-
-                expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/cannot be set to/));
-                expect(test.colour).toBe('black');
-            });
-
-            it('should not set TestValidate.colour to an invalid value with warning', () => {
-                test.colour = 'rainbow-unicorn';
-                test.colour = 'rgb(ha, ha, ha)';
-                test.colour = '#hahahaha';
-
-                expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/cannot be set to/));
-                expect(test.colour).toBe('black');
-            });
-
-            it('should set TestValidate.colour to a valid value without warning', () => {
-                test.colour = '#fff';
-                test.colour = '#ffffff';
-                test.colour = '#ffffffff';
-                test.colour = 'rgb(0, 0, 0)';
-                test.colour = 'rgba(0, 0, 0, 0)';
-
-                expect(console.warn).not.toHaveBeenCalled();
-                expect(test.colour).toBe('rgba(0, 0, 0, 0)');
+        describe('Specialized type validators', () => {
+            test.each([
+                [positiveNumber, 1, true],
+                [positiveNumber, -1, false],
+                [ratio, 0.5, true],
+                [ratio, -0.1, false],
+                [ratio, 1.1, false],
+            ])('%p validates %p as %p', (validator, input, expected) => {
+                expect(validator(input)).toBe(expected);
             });
         });
     });
 
-    describe('complex validations', () => {
-        describe('AND', () => {
-            it('should not set TestValidate.min to an invalid number', () => {
-                test.min = 'a' as any;
-                test.min = new Date() as any;
-                test.min = [] as any;
-                test.min = -1;
+    describe('Combination Validators', () => {
+        const isNonEmptyString = and(string, (value) => value !== '');
+        const isStringOrNumber = or(string, number);
 
-                expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/cannot be set to/));
-                expect(test.min).toBe(0);
+        test('and combines validators correctly', () => {
+            expect(isNonEmptyString('hello')).toBe(true);
+            expect(isNonEmptyString('')).toBe(false);
+            expect(isNonEmptyString(42)).toBe(false);
+        });
+
+        test('or combines validators correctly', () => {
+            expect(isStringOrNumber('hello')).toBe(true);
+            expect(isStringOrNumber(42)).toBe(true);
+            expect(isStringOrNumber(true)).toBe(false);
+        });
+    });
+
+    describe('Complex Validators and Validation Function', () => {
+        const isNonEmptyString = and(string, (value) => value !== '');
+        const userOptionsDef = {
+            name: isNonEmptyString,
+            age: positiveNumber,
+            hobbies: arrayOf(string),
+        };
+
+        test('validates complex objects correctly', () => {
+            const validUser = { name: 'John', age: 30, hobbies: ['coding', 'reading'] };
+            const invalidUser = { name: '', age: 30, hobbies: ['coding', 42] }; // Invalid name and one invalid hobby
+
+            expect(isValid(validUser, userOptionsDef)).toBe(true);
+            expect(isValid(invalidUser, userOptionsDef)).toBe(false);
+        });
+    });
+
+    describe('Utility Functions', () => {
+        test('required marks a validator as required', () => {
+            const requiredString = required(string);
+            expect(isValid({ value: '' }, { value: requiredString })).toBe(true); // Assuming empty string is valid for `string` validator
+            expect(isValid({ value: undefined }, { value: requiredString })).toBe(false); // Assuming `required` enforces presence
+        });
+
+        // should check the description in the logger
+        test('attachDescription adds a description to a validator', () => {
+            const describedValidator = attachDescription(string, 'a string');
+            expect(describedValidator[descriptionSymbol]).toBe('a string');
+        });
+    });
+
+    describe('Union Validator', () => {
+        const isRedOrBlue = union('red', 'blue');
+
+        test('validates correctly against multiple allowed values', () => {
+            expect(isRedOrBlue('red')).toBe(true);
+            expect(isRedOrBlue('blue')).toBe(true);
+            expect(isRedOrBlue('green')).toBe(false);
+        });
+    });
+
+    describe('Constant Validator', () => {
+        const isTrue = constant(true);
+
+        test('validates only the exact value', () => {
+            expect(isTrue(true)).toBe(true);
+            expect(isTrue(false)).toBe(false);
+            expect(isTrue('true')).toBe(false);
+        });
+    });
+
+    describe('InstanceOf Validator', () => {
+        class TestClass {}
+
+        const isInstanceOfTestClass = instanceOf(TestClass);
+
+        test('validates instances of the specified class', () => {
+            expect(isInstanceOfTestClass(new TestClass())).toBe(true);
+            expect(isInstanceOfTestClass({})).toBe(false);
+        });
+    });
+
+    describe('ArrayOf Validator', () => {
+        const isArrayOfStrings = arrayOf(string);
+
+        test('validates arrays where every element passes the given validator', () => {
+            expect(isArrayOfStrings(['a', 'b', 'c'])).toBe(true);
+            expect(isArrayOfStrings(['a', 1, 'c'])).toBe(false);
+            expect(isArrayOfStrings('not an array')).toBe(false);
+        });
+    });
+
+    // Extending the tests for combination validators: `and`, `or`
+    // ...
+
+    describe('OptionsDefs Validator', () => {
+        const optionDefsValidator = optionsDefs({
+            key1: string,
+            key2: number,
+        });
+
+        test('validates objects against provided definitions', () => {
+            expect(optionDefsValidator({ key1: 'value', key2: 42 })).toBe(true);
+            expect(optionDefsValidator({ key1: 'value', key2: 'not a number' })).toBe(false);
+        });
+    });
+
+    describe('Main Validation Function', () => {
+        const userSchema: OptionsDefs<any> = {
+            name: required(string),
+            age: and(number, positiveNumber),
+            hobbies: arrayOf(string),
+            // Adding nested object for comprehensive testing
+            address: {
+                street: string,
+                city: string,
+            },
+        };
+
+        test('validates a complex object with nested structures against a schema', () => {
+            const validUser = {
+                name: 'John Doe',
+                age: 30,
+                hobbies: ['reading', 'gaming'],
+                address: {
+                    street: '123 Elm St',
+                    city: 'Springfield',
+                },
+            };
+
+            const invalidUser = {
+                name: '', // Required failure
+                age: -5, // positiveNumber failure
+                hobbies: ['reading', 123], // arrayOf failure
+                address: {
+                    street: '123 Elm St',
+                    city: '', // Assuming empty string is invalid for `string` validator
+                },
+            };
+
+            expect(isValid(validUser, userSchema)).toBe(true);
+            expect(isValid(invalidUser, userSchema)).toBe(false);
+        });
+    });
+
+    describe('Validate Method', () => {
+        const userSchema: OptionsDefs<any> = {
+            name: required(string),
+            age: positiveNumber,
+            hobbies: arrayOf(string),
+            address: {
+                street: string,
+                city: string,
+            },
+        };
+
+        test('validate returns expected validated object and errors', () => {
+            const validUser = {
+                name: 'John Doe',
+                age: 30,
+                hobbies: ['reading', 'gaming'],
+                address: {
+                    street: '123 Elm St',
+                    city: 'Springfield',
+                },
+            };
+
+            const invalidUser = {
+                name: undefined, // Required failure
+                age: -5, // positiveNumber failure
+                hobbies: ['reading', 123], // arrayOf failure
+                address: {
+                    street: '123 Elm St',
+                    city: '',
+                },
+                extraField: 'should be ignored', // Unknown option
+            };
+
+            const { validated: validatedValidUser, errors: errorsValidUser } = validate(validUser, userSchema);
+            const { validated: validatedInvalidUser, errors: errorsInvalidUser } = validate(invalidUser, userSchema);
+
+            expect(validatedValidUser).toEqual(validUser);
+            expect(errorsValidUser).toEqual([]);
+
+            expect(validatedInvalidUser).toEqual({
+                address: {
+                    street: '123 Elm St',
+                    city: '',
+                },
             });
-
-            it('should not set TestValidate.max to an invalid number', () => {
-                test.max = 'a' as any;
-                test.max = new Date() as any;
-                test.max = [] as any;
-                test.max = 101;
-
-                expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/cannot be set to/));
-                expect(test.max).toBe(100);
-            });
-
-            describe('with LESS_THAN', () => {
-                it('should not set TestValidate.min to a value > max', () => {
-                    test.min = Infinity;
-                    test.min = 101;
-
-                    expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/cannot be set to/));
-                    expect(test.min).toBe(0);
-                });
-
-                it('should not set TestValidate.min to a value === max', () => {
-                    test.min = test.max;
-
-                    expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/cannot be set to/));
-                    expect(test.min).toBe(0);
-                });
-
-                it('should set TestValidate.min to a value < max', () => {
-                    test.min = 5;
-                    test.min = 99;
-
-                    expect(console.warn).not.toHaveBeenCalled();
-                    expect(test.min).toBe(99);
-                });
-            });
-
-            describe('with GREATER_THAN', () => {
-                it('should not set TestValidate.max to a value < min', () => {
-                    test.max = Infinity;
-                    test.max = -1;
-
-                    expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/cannot be set to/));
-                    expect(test.max).toBe(100);
-                });
-
-                it('should not set TestValidate.max to a value === min', () => {
-                    test.max = test.min;
-
-                    expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/cannot be set to/));
-                    expect(test.max).toBe(100);
-                });
-
-                it('should set TestValidate.max to a value > min', () => {
-                    test.max = 99;
-                    test.max = 1;
-
-                    expect(console.warn).not.toHaveBeenCalled();
-                    expect(test.max).toBe(1);
-                });
-            });
+            expect(errorsInvalidUser).toEqual([
+                {
+                    key: 'name',
+                    path: '',
+                    value: undefined,
+                    message: 'Option `name` cannot be set to `undefined`, ignoring.',
+                },
+                {
+                    key: 'age',
+                    path: '',
+                    value: -5,
+                    message:
+                        'Option `age` cannot be set to `-5`; expecting a number greater than or equal to 0, ignoring.',
+                },
+                {
+                    key: 'hobbies',
+                    path: '',
+                    value: ['reading', 123],
+                    message: 'Option `hobbies` cannot be set to `["reading",123]`; expecting a string array, ignoring.',
+                },
+                {
+                    key: 'extraField',
+                    path: '',
+                    unknown: true,
+                    message: 'Unknown option `extraField`, ignoring.',
+                },
+            ]);
         });
     });
 });

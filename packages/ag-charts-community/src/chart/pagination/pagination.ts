@@ -16,7 +16,7 @@ import {
     RATIO,
     STRING,
     Validate,
-} from '../../util/validation';
+} from '../../util/validationDecorators';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { CursorManager } from '../interaction/cursorManager';
 import type { PointerInteractionEvent } from '../interaction/interactionManager';

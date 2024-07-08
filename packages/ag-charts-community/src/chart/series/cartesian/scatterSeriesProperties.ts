@@ -11,7 +11,14 @@ import type {
 import type { SizedPoint } from '../../../scene/point';
 import type { LabelPlacement, MeasuredLabel } from '../../../scene/util/labelPlacement';
 import { ProxyProperty } from '../../../util/proxy';
-import { COLOR_STRING_ARRAY, LABEL_PLACEMENT, NUMBER_ARRAY, OBJECT, STRING, Validate } from '../../../util/validation';
+import {
+    COLOR_STRING_ARRAY,
+    LABEL_PLACEMENT,
+    NUMBER_ARRAY,
+    OBJECT,
+    STRING,
+    Validate,
+} from '../../../util/validationDecorators';
 import { Label } from '../../label';
 import type { MarkerConstructor, MarkerShape } from '../../marker/util';
 import { SeriesMarker } from '../seriesMarker';

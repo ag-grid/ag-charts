@@ -8,7 +8,16 @@ import { initToolbarKeyNav } from '../../util/keynavUtil';
 import { Logger } from '../../util/logger';
 import { clamp, formatPercentage } from '../../util/number';
 import { ActionOnSet, ObserveChanges } from '../../util/proxy';
-import { AND, BOOLEAN, GREATER_THAN, LESS_THAN, OBJECT, POSITIVE_NUMBER, RATIO, Validate } from '../../util/validation';
+import {
+    AND,
+    BOOLEAN,
+    GREATER_THAN,
+    LESS_THAN,
+    OBJECT,
+    POSITIVE_NUMBER,
+    RATIO,
+    Validate,
+} from '../../util/validationDecorators';
 import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
 import type { ZoomChangeEvent } from '../interaction/zoomManager';
 import { RangeHandle } from './shapes/rangeHandle';

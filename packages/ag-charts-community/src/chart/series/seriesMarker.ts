@@ -11,7 +11,7 @@ import {
     RATIO,
     Validate,
     predicateWithMessage,
-} from '../../util/validation';
+} from '../../util/validationDecorators';
 import { Circle } from '../marker/circle';
 import { Marker } from '../marker/marker';
 import type { MarkerShape } from '../marker/util';

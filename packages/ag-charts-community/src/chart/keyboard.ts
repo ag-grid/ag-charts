@@ -1,5 +1,5 @@
 import { BaseProperties } from '../util/properties';
-import { BOOLEAN, NUMBER, Validate } from '../util/validation';
+import { BOOLEAN, NUMBER, Validate } from '../util/validationDecorators';
 
 export class Keyboard extends BaseProperties {
     @Validate(BOOLEAN)

@@ -32,7 +32,7 @@ import {
     STRING,
     UNION,
     Validate,
-} from '../../util/validation';
+} from '../../util/validationDecorators';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { calculateLabelRotation } from '../label';
 import { Layers } from '../layers';

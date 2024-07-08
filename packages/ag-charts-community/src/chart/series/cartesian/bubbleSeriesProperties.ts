@@ -21,7 +21,7 @@ import {
     POSITIVE_NUMBER,
     STRING,
     Validate,
-} from '../../../util/validation';
+} from '../../../util/validationDecorators';
 import { Label } from '../../label';
 import type { MarkerConstructor, MarkerShape } from '../../marker/util';
 import { SeriesMarker } from '../seriesMarker';

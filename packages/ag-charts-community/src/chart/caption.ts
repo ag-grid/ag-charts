@@ -19,7 +19,7 @@ import {
     TEXT_ALIGN,
     TEXT_WRAP,
     Validate,
-} from '../util/validation';
+} from '../util/validationDecorators';
 import type { CaptionLike } from './captionLike';
 import type { PointerInteractionEvent } from './interaction/interactionManager';
 import { toTooltipHtml } from './tooltip/tooltip';

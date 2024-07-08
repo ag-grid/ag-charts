@@ -1,7 +1,7 @@
 import type { ModuleContext } from '../../module/moduleContext';
 import { BandScale } from '../../scale/bandScale';
 import type { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
-import { RATIO, Validate } from '../../util/validation';
+import { RATIO, Validate } from '../../util/validationDecorators';
 import { CartesianAxis } from './cartesianAxis';
 
 export class CategoryAxis<
