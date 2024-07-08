@@ -11,7 +11,6 @@ env:
     NX_BRANCH: ${{ github.ref }}
     # Set to --batch to enable batch execution.
     NX_BATCH_FLAG: '--batch'
-    BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
 
 jobs:
     update:
@@ -23,11 +22,17 @@ jobs:
             AG_FORCE_ALL_TESTS: ${{ (github.ref == 'refs/heads/latest') && '1' || '0' }}
             AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
         steps:
+            - id: 'get-branch'
+              run: echo ::set-output name=branch::$(gh pr view $PR_NO --repo $REPO --json headRefName --jq '.headRefName')
+              env:
+                  REPO: ${{ github.repository }}
+                  PR_NO: ${{ github.event.issue.number }}
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
             - name: Checkout
-              id: checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v2
               with:
-                  fetch-depth: 0
+                  ref: ${{ steps.get-branch.outputs.branch }}
 
             - name: Setup
               id: setup
@@ -52,6 +57,8 @@ jobs:
 
             - name: Commit Snapshot Changes
               id: commit_changes
+              env:
+                  BRANCH_NAME: ${{steps.get-branch.outputs.branch}}
               run: |
                   # Based on https://github.com/actions/checkout?tab=readme-ov-file#push-a-commit-using-the-built-in-token
                   git config user.name "github-actions[bot]"
