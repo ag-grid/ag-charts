@@ -1,18 +1,25 @@
 ---
 import { DOCS_FRAMEWORK_REDIRECT_PAGE } from '@features/docs/constants';
+import Layout from '@layouts/Layout.astro';
 
 const docsRedirectPage = DOCS_FRAMEWORK_REDIRECT_PAGE;
 ---
 
-<div id="docsRedirectPage" data-docs-redirect-page={docsRedirectPage}></div>
-<script>
-    import { $internalFramework } from '@stores/frameworkStore';
-    import { getFrameworkFromInternalFramework } from '@utils/framework';
-    import { urlWithPrefix } from '@utils/urlWithPrefix';
+<Layout
+    title="AG Charts Documentation"
+    description="AG Charts Documentation - This page will redirect to your chosen framework"
+    hideFooter={true}
+>
+    <div id="docsRedirectPage" data-docs-redirect-page={docsRedirectPage}></div>
+    <script>
+        import { $internalFramework } from '@stores/frameworkStore';
+        import { getFrameworkFromInternalFramework } from '@utils/framework';
+        import { urlWithPrefix } from '@utils/urlWithPrefix';
 
-    const framework = getFrameworkFromInternalFramework($internalFramework.get());
-    const docsRedirectPage = document.getElementById('docsRedirectPage')?.dataset.docsRedirectPage;
-    const redirectUrl = urlWithPrefix({ framework, url: docsRedirectPage! });
+        const framework = getFrameworkFromInternalFramework($internalFramework.get());
+        const docsRedirectPage = document.getElementById('docsRedirectPage')?.dataset.docsRedirectPage;
+        const redirectUrl = urlWithPrefix({ framework, url: docsRedirectPage! });
 
-    window.location.replace(redirectUrl);
-</script>
+        window.location.replace(redirectUrl);
+    </script>
+</Layout>

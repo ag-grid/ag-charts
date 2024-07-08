@@ -179,8 +179,7 @@ export const Pipeline = ({ location, currentFramework }) => {
     return (
         <>
             {!IS_SSR && (
-                <div className={styles.container}>
-                    <h1>AG Charts Pipeline</h1>
+                <div>
                     <section className={styles.header}>
                         <Alert type="idea">
                             <p>
