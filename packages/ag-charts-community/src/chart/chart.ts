@@ -1,4 +1,10 @@
-import type { AgBaseAxisOptions, AgChartClickEvent, AgChartDoubleClickEvent, AgChartOptions } from 'ag-charts-types';
+import type {
+    AgBaseAxisOptions,
+    AgChartClickEvent,
+    AgChartDoubleClickEvent,
+    AgChartInstance,
+    AgChartOptions,
+} from 'ag-charts-types';
 
 import type { ModuleInstance } from '../module/baseModule';
 import type { LegendModule, RootModule } from '../module/coreModules';
@@ -274,6 +280,12 @@ export abstract class Chart extends Observable {
 
     queuedUserOptions: AgChartOptions[] = [];
     chartOptions: ChartOptions;
+
+    /**
+     * Public API for this Chart instance. NOTE: This is initialized after construction by the
+     * wrapping class that implements AgChartInstance.
+     */
+    publicApi?: AgChartInstance;
 
     getOptions() {
         return this.queuedUserOptions.at(-1) ?? this.chartOptions.userOptions;
