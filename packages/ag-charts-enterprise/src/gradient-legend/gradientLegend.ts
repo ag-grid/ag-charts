@@ -26,7 +26,6 @@ class GradientLegendAxis extends _ModuleSupport.FakeAxis<_Scale.LinearScale, num
     constructor(ctx: _ModuleSupport.ModuleContext) {
         super(ctx, new _Scale.LinearScale(), { respondsToZoom: false });
         this.nice = false;
-        this.line.enabled = false;
     }
 
     override calculateDomain() {

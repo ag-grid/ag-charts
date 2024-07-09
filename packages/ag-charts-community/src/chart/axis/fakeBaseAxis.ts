@@ -2,8 +2,6 @@ import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight } from 'ag-c
 
 import type { AxisContext } from '../../module/axisContext';
 import type { ModuleContext } from '../../module/moduleContext';
-import type { FromToDiff } from '../../motion/fromToMotion';
-import { fromToMotion } from '../../motion/fromToMotion';
 import { resetMotion } from '../../motion/resetMotion';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { LogScale } from '../../scale/logScale';
@@ -22,17 +20,14 @@ import { axisLabelsOverlap } from '../../scene/util/labelPlacement';
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { areArrayNumbersEqual } from '../../util/equal';
 import { createId } from '../../util/id';
-import { jsonDiff } from '../../util/json';
 import { Logger } from '../../util/logger';
 import { clamp, countFractionDigits, findMinMax, findRangeExtent, round } from '../../util/number';
-import { StateMachine } from '../../util/stateMachine';
 import { type MeasureOptions, TextMeasurer } from '../../util/textMeasurer';
 import { TextWrapper } from '../../util/textWrapper';
 import { BOOLEAN, OBJECT, Validate } from '../../util/validation';
 import { Caption } from '../caption';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
-import type { AnimationManager } from '../interaction/animationManager';
 import { type PointerInteractionEvent } from '../interaction/interactionManager';
 import { REGIONS } from '../interaction/regions';
 import { calculateLabelBBox, calculateLabelRotation, getLabelSpacing, getTextAlign, getTextBaseline } from '../label';
@@ -41,17 +36,10 @@ import type { AxisLayout } from '../layout/layoutService';
 import type { ISeries } from '../series/seriesTypes';
 import { AxisInterval } from './axisInterval';
 import { AxisLabel } from './axisLabel';
-import { AxisLine } from './axisLine';
-import { AxisTick, type TickInterval } from './axisTick';
+import { type TickInterval } from './axisTick';
 import { AxisTitle } from './axisTitle';
 import type { AxisLineDatum } from './axisUtil';
-import {
-    prepareAxisAnimationContext,
-    prepareAxisAnimationFunctions,
-    resetAxisGroupFn,
-    resetAxisLabelSelectionFn,
-    resetAxisLineSelectionFn,
-} from './axisUtil';
+import { resetAxisGroupFn, resetAxisLabelSelectionFn, resetAxisLineSelectionFn } from './axisUtil';
 
 type TickStrategyParams = {
     index: number;
@@ -122,9 +110,6 @@ interface TickGenerationResult {
     textAlign: CanvasTextAlign;
 }
 
-type AxisAnimationState = 'empty' | 'ready';
-type AxisAnimationEvent = 'update' | 'resize' | 'reset';
-
 /**
  * A general purpose linear axis with no notion of orientation.
  * The axis is always rendered vertically, with horizontal labels positioned to the left
@@ -165,19 +150,13 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
     readonly axisGroup = new Group({ name: `${this.id}-axis`, zIndex: Layers.AXIS_ZINDEX });
 
     protected lineNode = this.axisGroup.appendChild(new Line());
-    protected readonly tickLineGroup = this.axisGroup.appendChild(
-        new Group({ name: `${this.id}-Axis-tick-lines`, zIndex: Layers.AXIS_ZINDEX })
-    );
     protected readonly tickLabelGroup = this.axisGroup.appendChild(
         new Group({ name: `${this.id}-Axis-tick-labels`, zIndex: Layers.AXIS_ZINDEX })
     );
     protected readonly labelGroup = new Group({ name: `${this.id}-Labels`, zIndex: Layers.SERIES_ANNOTATION_ZINDEX });
 
-    protected tickLineGroupSelection = Selection.select(this.tickLineGroup, Line, false);
     protected tickLabelGroupSelection = Selection.select<Text, LabelNodeDatum>(this.tickLabelGroup, Text, false);
 
-    readonly line = new AxisLine();
-    readonly tick = new AxisTick();
     readonly label = this.createLabel();
 
     protected defaultTickMinSpacing: number = FakeBaseAxis.defaultTickMinSpacing;
@@ -194,9 +173,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
     };
 
     protected axisContext?: AxisContext;
-
-    protected animationManager: AnimationManager;
-    private readonly animationState: StateMachine<AxisAnimationState, AxisAnimationEvent>;
 
     private readonly destroyFns: Function[] = [];
 
@@ -220,33 +196,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
                 .getRegion(REGIONS.HORIZONTAL_AXES)
                 .addListener('hover', (e) => this.checkAxisHover(e)),
             moduleCtx.regionManager.getRegion(REGIONS.VERTICAL_AXES).addListener('hover', (e) => this.checkAxisHover(e))
-        );
-
-        this.animationManager = moduleCtx.animationManager;
-        this.animationState = new StateMachine<AxisAnimationState, AxisAnimationEvent>('empty', {
-            empty: {
-                update: {
-                    target: 'ready',
-                    action: () => this.resetSelectionNodes(),
-                },
-                reset: 'empty',
-            },
-            ready: {
-                update: (data: FromToDiff) => this.animateReadyUpdate(data),
-                resize: () => this.resetSelectionNodes(),
-                reset: 'empty',
-            },
-        });
-
-        let previousSize: { width: number; height: number } | undefined = undefined;
-        this.destroyFns.push(
-            moduleCtx.layoutService.addListener('layout-complete', (e) => {
-                // Fire resize animation action if chart canvas size changes.
-                if (previousSize != null && jsonDiff(e.chart, previousSize) != null) {
-                    this.animationState.transition('resize');
-                }
-                previousSize = { ...e.chart };
-            })
         );
 
         if (options?.respondsToZoom !== false) {
@@ -369,10 +318,8 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
 
         this.resetSelectionNodes();
 
-        this.updateAxisLine();
         this.updateLabels();
         this.updateVisibility();
-        this.updateTickLines();
         this.updateLayoutState(tickData.fractionDigits);
 
         return primaryTickCount;
@@ -381,15 +328,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
     private getAxisLineCoordinates(): AxisLineDatum {
         const [min, max] = findMinMax(this.range);
         return { x: 0, y1: min, y2: max };
-    }
-
-    private getTickLineCoordinates(datum: TickDatum) {
-        const sideFlag = this.label.getSideFlag();
-        const x = sideFlag * this.getTickSize();
-        const x1 = Math.min(0, x);
-        const x2 = x1 + Math.abs(x);
-        const y = datum.translationY;
-        return { x1, x2, y };
     }
 
     private getTickLabelProps(
@@ -428,7 +366,7 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
     }
 
     protected getTickSize() {
-        return this.tick.enabled ? this.tick.size : 6;
+        return 0;
     }
 
     private tickGenerationResult: TickGenerationResult | undefined = undefined;
@@ -462,14 +400,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
             y2 - y1
         );
         boxes.push(lineBox);
-
-        if (this.tick.enabled) {
-            tickData.ticks.forEach((datum) => {
-                const { x1, x2, y } = this.getTickLineCoordinates(datum);
-                const tickLineBox = new BBox(x1, y, x2 - x1, 0);
-                boxes.push(tickLineBox);
-            });
-        }
 
         if (this.label.enabled) {
             const tempText = new Text();
@@ -967,19 +897,7 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
             this.resetSelectionNodes();
         }
 
-        this.tickLineGroup.visible = this.tick.enabled;
         this.tickLabelGroup.visible = this.label.enabled;
-    }
-
-    protected updateTickLines() {
-        const { tick, label } = this;
-        const sideFlag = label.getSideFlag();
-        this.tickLineGroupSelection.each((line) => {
-            line.strokeWidth = tick.width;
-            line.stroke = tick.stroke;
-            line.x1 = sideFlag * this.getTickSize();
-            line.x2 = 0;
-        });
     }
 
     protected calculateAvailableRange(): number {
@@ -1026,26 +944,11 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         }
     ) {
         this.lineNode.datum = lineData;
-        this.tickLineGroupSelection.update(
-            data,
-            (group) => group.appendChild(new Line()),
-            (datum: TickDatum) => datum.tickId
-        );
         this.tickLabelGroupSelection.update(
             data.map((d) => this.getTickLabelProps(d, params)),
             (group) => group.appendChild(new Text()),
             (datum) => datum.tickId
         );
-    }
-
-    protected updateAxisLine() {
-        const { line } = this;
-        // Without this the layout isn't consistent when enabling/disabling the line, padding configurations are not respected.
-        const strokeWidth = line.enabled ? line.width : 0;
-        this.lineNode.setProperties({
-            stroke: line.stroke,
-            strokeWidth,
-        });
     }
 
     protected updateLabels() {
@@ -1169,24 +1072,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         }
 
         return this.getFormatter();
-    }
-
-    animateReadyUpdate(diff: FromToDiff) {
-        const { animationManager } = this.moduleCtx;
-        const selectionCtx = prepareAxisAnimationContext(this);
-        const fns = prepareAxisAnimationFunctions(selectionCtx);
-
-        fromToMotion(this.id, 'axis-group', animationManager, [this.axisGroup], fns.group);
-        fromToMotion(this.id, 'line', animationManager, [this.lineNode], fns.line);
-        fromToMotion(
-            this.id,
-            'tick-labels',
-            animationManager,
-            [this.tickLabelGroupSelection],
-            fns.label,
-            (_, d) => d.tickId,
-            diff
-        );
     }
 
     protected resetSelectionNodes() {
