@@ -271,8 +271,7 @@ export class Group extends Node {
         // A group can have `scaling`, `rotation`, `translation` properties
         // that are applied to the canvas context before children are rendered,
         // so all children can be transformed at once.
-        this.computeTransformMatrix();
-        this.matrix.toContext(ctx);
+        const matrix = this.transformRenderContext(renderCtx, ctx);
 
         if (clipRect) {
             // clipRect is in the group's coordinate space
@@ -286,7 +285,7 @@ export class Group extends Node {
             ctx.clip();
 
             // clipBBox is in the canvas coordinate space, when we hit a layer we apply the new clipping at which point there are no transforms in play
-            clipBBox = this.matrix.transformBBox(clipRect);
+            clipBBox = matrix.transformBBox(clipRect);
         }
 
         const hasVirtualChildren = this.hasVirtualChildren();
@@ -366,14 +365,15 @@ export class Group extends Node {
         );
     }
 
-    static computeBBox(nodes: Node[]) {
+    static computeBBox(nodes: Iterable<Node>, opts?: { skipInvisible: boolean }) {
         let left = Infinity;
         let right = -Infinity;
         let top = Infinity;
         let bottom = -Infinity;
+        const { skipInvisible = true } = opts ?? {};
 
         for (const n of nodes) {
-            if (!n.visible) continue;
+            if (skipInvisible && !n.visible) continue;
 
             const bbox = n.computeTransformedBBox();
 
