@@ -139,6 +139,9 @@ export class ChartTheme {
                     color: DEFAULT_LABEL_COLOUR,
                 },
             },
+            crosshair: {
+                enabled: true,
+            },
         });
     }
 
@@ -230,22 +233,13 @@ export class ChartTheme {
             groupPaddingInner: 0.1,
             label: { autoRotate: true },
             gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
+            crosshair: { enabled: false },
         }),
         [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults({ gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED } }),
         [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: ChartTheme.getAxisDefaults({
             groupPaddingInner: 0,
             label: { autoRotate: false },
             gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-            crosshair: {
-                enabled: true,
-                snap: true,
-                stroke: DEFAULT_MUTED_LABEL_COLOUR,
-                strokeWidth: 1,
-                strokeOpacity: 1,
-                lineDash: [5, 6],
-                lineDashOffset: 0,
-                label: { enabled: true },
-            },
         }),
         [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: ChartTheme.getAxisDefaults({
             gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },

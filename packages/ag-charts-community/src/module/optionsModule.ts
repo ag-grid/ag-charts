@@ -46,7 +46,7 @@ export interface AxisOptionModule<M extends ModuleInstance = ModuleInstance> ext
     type: 'axis-option';
     axisTypes: AxisType[];
     instanceConstructor: new (ctx: ModuleContextWithParent<AxisContext>) => M;
-    themeTemplate: { [K in AxisType]?: object };
+    themeTemplate: {};
 }
 
 interface ChartSpecialOverrides {
@@ -92,8 +92,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     constructor(userOptions: T, specialOverrides?: Partial<ChartSpecialOverrides>) {
         const cloneOptions = { shallow: ['data'] };
-        this.userOptions = deepClone(userOptions, cloneOptions);
-        const chartType = this.optionsType(this.userOptions);
+        userOptions = deepClone(userOptions, cloneOptions);
+        const chartType = this.optionsType(userOptions);
+
+        if (!enterpriseModule.isEnterprise) {
+            removeUsedEnterpriseOptions(userOptions);
+        }
 
         let options = deepClone(userOptions, cloneOptions);
 
@@ -120,6 +124,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             ...themeDefaults
         } = this.getSeriesThemeConfig(chartType);
 
+        this.userOptions = userOptions;
         this.processedOptions = deepClone(
             mergeDefaults(
                 options,
@@ -149,7 +154,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.enableConfiguredOptions(this.processedOptions);
 
         if (!enterpriseModule.isEnterprise) {
-            removeUsedEnterpriseOptions(this.processedOptions);
+            removeUsedEnterpriseOptions(this.processedOptions, true);
         }
     }
 
