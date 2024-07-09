@@ -32,8 +32,6 @@ import { type PointerInteractionEvent } from '../interaction/interactionManager'
 import { REGIONS } from '../interaction/regions';
 import { calculateLabelBBox, calculateLabelRotation, getLabelSpacing, getTextAlign, getTextBaseline } from '../label';
 import { Layers } from '../layers';
-import type { AxisLayout } from '../layout/layoutService';
-import type { ISeries } from '../series/seriesTypes';
 import { AxisInterval } from './axisInterval';
 import { AxisLabel } from './axisLabel';
 import { type TickInterval } from './axisTick';
@@ -136,14 +134,7 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
 
     dataDomain: { domain: D[]; clipped: boolean } = { domain: [], clipped: false };
 
-    get type(): string {
-        return (this.constructor as any).type ?? '';
-    }
-
     abstract get direction(): ChartAxisDirection;
-
-    boundSeries: ISeries<unknown, unknown>[] = [];
-    includeInvisibleDomains: boolean = false;
 
     interactionEnabled = true;
 
@@ -163,14 +154,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
 
     readonly translation = { x: 0, y: 0 };
     rotation: number = 0; // axis rotation angle in degrees
-
-    protected readonly layout: Pick<AxisLayout, 'label'> = {
-        label: {
-            fractionDigits: 0,
-            padding: this.label.padding,
-            format: this.label.format,
-        },
-    };
 
     protected axisContext?: AxisContext;
 
@@ -320,7 +303,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
 
         this.updateLabels();
         this.updateVisibility();
-        this.updateLayoutState(tickData.fractionDigits);
 
         return primaryTickCount;
     }
@@ -384,8 +366,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
 
         const { tickData, combinedRotation, textBaseline, textAlign, ...ticksResult } = this.tickGenerationResult;
 
-        this.updateLayoutState(tickData.fractionDigits);
-
         const boxes: BBox[] = [];
 
         const { x, y1, y2 } = this.getAxisLineCoordinates();
@@ -428,14 +408,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         return {
             primaryTickCount: ticksResult.primaryTickCount,
             bbox: transformedBBox,
-        };
-    }
-
-    private updateLayoutState(fractionDigits: number) {
-        this.layout.label = {
-            fractionDigits: fractionDigits,
-            padding: this.label.padding,
-            format: this.label.format,
         };
     }
 
@@ -1024,19 +996,8 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
             axisId: this.id,
             direction: this.direction,
             continuous: ContinuousScale.is(scale) || OrdinalTimeScale.is(scale),
-            keys: () => this.boundSeries.flatMap((s) => s.getKeys(this.direction)),
-            seriesKeyProperties: () =>
-                this.boundSeries.reduce((keys, series) => {
-                    const seriesKeys = series.getKeyProperties(this.direction);
-
-                    seriesKeys.forEach((key) => {
-                        if (keys.indexOf(key) < 0) {
-                            keys.push(key);
-                        }
-                    });
-
-                    return keys;
-                }, [] as string[]),
+            keys: () => [],
+            seriesKeyProperties: () => [],
             scaleValueFormatter: (specifier?: string) => this.getScaleValueFormatter(specifier),
             scaleBandwidth: () => scale.bandwidth ?? 0,
             scaleDomain: () => scale.getDomain?.(),
