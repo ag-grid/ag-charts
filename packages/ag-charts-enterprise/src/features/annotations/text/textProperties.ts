@@ -13,11 +13,17 @@ export class TextProperties extends Annotation(Handle(Label(Font(PointProperties
     @Validate(STRING)
     type = AnnotationType.Text as const;
 
+    @Validate(STRING)
+    text!: string;
+
+    position: 'top' | 'center' | 'bottom' = 'bottom';
+    alignment: 'left' | 'center' | 'right' = 'center';
+
     override isValidWithContext(_context: AnnotationContext, warningPrefix?: string) {
         return super.isValid(warningPrefix);
     }
 
     override getDefaultColor() {
-        return 'black';
+        return this.color;
     }
 }
