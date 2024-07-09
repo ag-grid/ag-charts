@@ -7,11 +7,12 @@ import {
     _Util,
 } from 'ag-charts-community';
 
-const { BOOLEAN, OBJECT, POSITION, POSITIVE_NUMBER, AxisLabel, Layers, ProxyProperty, Validate } = _ModuleSupport;
+const { BOOLEAN, OBJECT, POSITION, POSITIVE_NUMBER, AxisLabel, BaseProperties, Layers, ProxyProperty, Validate } =
+    _ModuleSupport;
 const { BBox, Group, Rect, LinearGradientFill, Triangle } = _Scene;
 const { createId } = _Util;
 
-class GradientBar {
+class GradientBar extends BaseProperties {
     @Validate(POSITIVE_NUMBER)
     thickness = 16;
 
@@ -19,7 +20,7 @@ class GradientBar {
     preferredLength = 100;
 }
 
-class GradientLegendAxis extends _ModuleSupport.CartesianAxis<_Scale.LinearScale, number> {
+class GradientLegendAxis extends _ModuleSupport.FakeAxis<_Scale.LinearScale, number> {
     colorDomain: number[] = [];
 
     constructor(ctx: _ModuleSupport.ModuleContext) {
@@ -224,7 +225,6 @@ export class GradientLegend {
         axis.calculateDomain();
 
         axis.range = vertical ? [0, gradientBox.height] : [0, gradientBox.width];
-        axis.gridLength = 0;
         axis.translation.x = gradientBox.x + (vertical ? gradientBox.width : 0);
         axis.translation.y = gradientBox.y + (vertical ? 0 : gradientBox.height);
         const axisBox = axis.calculateLayout().bbox;
