@@ -343,7 +343,7 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         const { combinedRotation, textBaseline, textAlign, range } = params;
         const text = datum.tickLabel;
         const sideFlag = label.getSideFlag();
-        const labelX = sideFlag * (this.getTickSize() + label.padding + this.seriesAreaPadding);
+        const labelX = sideFlag * (label.padding + this.seriesAreaPadding);
         const visible = text !== '' && text != null;
         return {
             tickId: datum.tickId,
@@ -365,16 +365,12 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         };
     }
 
-    protected getTickSize() {
-        return 0;
-    }
-
     private tickGenerationResult: TickGenerationResult | undefined = undefined;
 
     calculateLayout(primaryTickCount?: number): { primaryTickCount: number | undefined; bbox: BBox } {
         const { parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
         const sideFlag = this.label.getSideFlag();
-        const labelX = sideFlag * (this.getTickSize() + this.label.padding + this.seriesAreaPadding);
+        const labelX = sideFlag * (this.label.padding + this.seriesAreaPadding);
 
         this.updateScale();
 
@@ -471,7 +467,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
 
     updateScale() {
         this.updateRange();
-        this.calculateDomain();
         this.setTickInterval(this.interval.step);
 
         const { scale, nice } = this;
@@ -911,12 +906,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
     protected calculateRangeWithBleed() {
         const visibleScale = 1 / findRangeExtent(this.visibleRange);
         return round(this.calculateAvailableRange() * visibleScale, 2);
-    }
-
-    protected calculateDomain() {
-        const visibleSeries = this.boundSeries.filter((s) => this.includeInvisibleDomains || s.isEnabled());
-        const domains = visibleSeries.flatMap((series) => series.getDomain(this.direction));
-        this.setDomain(domains);
     }
 
     protected getAxisTransform() {

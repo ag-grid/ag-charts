@@ -21,19 +21,9 @@ class GradientBar extends BaseProperties {
 }
 
 class GradientLegendAxis extends _ModuleSupport.FakeAxis<_Scale.LinearScale, number> {
-    colorDomain: number[] = [];
-
     constructor(ctx: _ModuleSupport.ModuleContext) {
         super(ctx, new _Scale.LinearScale(), { respondsToZoom: false });
         this.nice = false;
-    }
-
-    override calculateDomain() {
-        this.setDomain(this.colorDomain);
-    }
-
-    protected override getTickSize() {
-        return 0;
     }
 }
 
@@ -217,8 +207,7 @@ export class GradientLegend {
         const positiveAxis = reverseOrder !== vertical;
 
         axis.position = vertical ? 'right' : 'bottom';
-        axis.colorDomain = positiveAxis ? data.colorDomain.slice().reverse() : data.colorDomain;
-        axis.calculateDomain();
+        axis.setDomain(positiveAxis ? data.colorDomain.slice().reverse() : data.colorDomain);
 
         axis.range = vertical ? [0, gradientBox.height] : [0, gradientBox.width];
         axis.translation.x = gradientBox.x + (vertical ? gradientBox.width : 0);
