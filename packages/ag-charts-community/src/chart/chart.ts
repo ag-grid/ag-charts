@@ -1690,7 +1690,7 @@ export abstract class Chart extends Observable {
 
         let forceNodeDataRefresh = false;
         let seriesStatus: SeriesChangeType = 'no-op';
-        if (deltaOptions.series?.length) {
+        if (deltaOptions.series != null) {
             seriesStatus = this.applySeries(this, deltaOptions.series, oldOpts?.series);
             forceNodeDataRefresh = true;
         }
