@@ -79,6 +79,11 @@ export interface StateClickEvent<Annotation, Scene> {
     region?: _ModuleSupport.RegionName;
 }
 
+export interface StateInputEvent<Annotation> {
+    datum: Annotation;
+    value?: string;
+}
+
 export interface StateDragEvent<Annotation, Scene> extends StateClickEvent<Annotation, Scene> {}
 
 export interface AnnotationAxisContext

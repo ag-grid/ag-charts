@@ -17,31 +17,37 @@ const annotations: AgToolbarOptions['annotations'] = {
             icon: 'trend-line',
             tooltip: 'toolbarAnnotationsTrendLine',
             value: 'line',
-            section: 'create',
-        },
-        {
-            icon: 'parallel-channel',
-            tooltip: 'toolbarAnnotationsParallelChannel',
-            value: 'parallel-channel',
-            section: 'create',
-        },
-        {
-            icon: 'disjoint-channel',
-            tooltip: 'toolbarAnnotationsDisjointChannel',
-            value: 'disjoint-channel',
-            section: 'create',
+            section: 'lines',
         },
         {
             icon: 'horizontal-line',
             tooltip: 'toolbarAnnotationsHorizontalLine',
             value: 'horizontal-line',
-            section: 'create',
+            section: 'lines',
         },
         {
             icon: 'vertical-line',
             tooltip: 'toolbarAnnotationsVerticalLine',
             value: 'vertical-line',
-            section: 'create',
+            section: 'lines',
+        },
+        {
+            icon: 'parallel-channel',
+            tooltip: 'toolbarAnnotationsParallelChannel',
+            value: 'parallel-channel',
+            section: 'channels',
+        },
+        {
+            icon: 'disjoint-channel',
+            tooltip: 'toolbarAnnotationsDisjointChannel',
+            value: 'disjoint-channel',
+            section: 'channels',
+        },
+        {
+            icon: 'zoom-in', // TODO: icon
+            tooltip: 'text',
+            value: 'text',
+            section: 'annotations',
         },
         {
             icon: 'delete',

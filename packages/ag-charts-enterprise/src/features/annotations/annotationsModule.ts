@@ -11,6 +11,7 @@ export const AnnotationsModule: _ModuleSupport.Module = {
     instanceConstructor: Annotations,
     themeTemplate: {
         annotations: {
+            // Lines
             line: {
                 stroke: _Theme.DEFAULT_ANNOTATION_STROKE,
                 strokeWidth: 2,
@@ -49,6 +50,8 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                     fontFamily: _Theme.DEFAULT_FONT_FAMILY,
                 },
             },
+
+            // Channels
             'disjoint-channel': {
                 stroke: _Theme.DEFAULT_ANNOTATION_STROKE,
                 strokeWidth: 2,
@@ -75,6 +78,20 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                 },
                 handle: {
                     fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
+                },
+            },
+
+            // Texts
+            text: {
+                color: 'black',
+                fontSize: 14,
+                fontFamily: _Theme.DEFAULT_FONT_FAMILY,
+                textAlign: 'center',
+                handle: {
+                    fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
+                    stroke: _Theme.DEFAULT_ANNOTATION_STROKE,
+                    strokeWidth: 2,
+                    strokeOpacity: 1,
                 },
             },
         },

@@ -2,6 +2,7 @@ import { type Direction, _ModuleSupport, _Scene, _Util } from 'ag-charts-communi
 
 import { buildBounds } from '../../utils/position';
 import { ColorPicker } from '../color-picker/colorPicker';
+import { TextInput } from '../text-input/textInput';
 import type {
     AnnotationContext,
     Coords,
@@ -9,6 +10,7 @@ import type {
     StateClickEvent,
     StateDragEvent,
     StateHoverEvent,
+    StateInputEvent,
 } from './annotationTypes';
 import { ANNOTATION_BUTTONS, AnnotationType, stringToAnnotationType } from './annotationTypes';
 import { calculateAxisLabelPadding, invertCoords, validateDatumPoint } from './annotationUtils';
@@ -28,6 +30,7 @@ import { ParallelChannelStateMachine } from './parallel-channel/parallelChannelS
 import type { Annotation } from './scenes/annotationScene';
 import { TextProperties } from './text/textProperties';
 import { TextScene } from './text/textScene';
+import { TextStateMachine } from './text/textState';
 
 const {
     BOOLEAN,
@@ -90,29 +93,37 @@ const annotationScenes: Record<AnnotationType, Constructor<Annotation>> = {
     [AnnotationType.Text]: TextScene,
 };
 
-class AnnotationsStateMachine extends StateMachine<'idle', AnnotationType | 'click' | 'hover' | 'drag' | 'cancel'> {
+type AnnotationEvent = 'click' | 'hover' | 'drag' | 'input' | 'cancel';
+
+class AnnotationsStateMachine extends StateMachine<'idle', AnnotationType | AnnotationEvent> {
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(
         onEnterIdle: () => void,
         appendDatum: (type: AnnotationType, datum: AnnotationProperties) => void,
-        onExitCrossLine: () => void,
-        validateChildStateDatumPoint: (point: Point) => boolean
+        onExitSingleClick: () => void,
+        validateChildStateDatumPoint: (point: Point) => boolean,
+        showTextInput: () => void,
+        hideTextInput: () => void
     ) {
         super('idle', {
             idle: {
                 onEnter: () => onEnterIdle(),
+
+                // Lines
                 [AnnotationType.Line]: new LineStateMachine((datum) => appendDatum(AnnotationType.Line, datum)),
                 [AnnotationType.HorizontalLine]: new CrossLineStateMachine(
                     'horizontal',
                     (datum) => appendDatum(AnnotationType.HorizontalLine, datum),
-                    onExitCrossLine
+                    onExitSingleClick
                 ),
                 [AnnotationType.VerticalLine]: new CrossLineStateMachine(
                     'vertical',
                     (datum) => appendDatum(AnnotationType.VerticalLine, datum),
-                    onExitCrossLine
+                    onExitSingleClick
                 ),
+
+                // Channels
                 [AnnotationType.DisjointChannel]: new DisjointChannelStateMachine(
                     (datum) => appendDatum(AnnotationType.DisjointChannel, datum),
                     validateChildStateDatumPoint
@@ -120,6 +131,14 @@ class AnnotationsStateMachine extends StateMachine<'idle', AnnotationType | 'cli
                 [AnnotationType.ParallelChannel]: new ParallelChannelStateMachine(
                     (datum) => appendDatum(AnnotationType.ParallelChannel, datum),
                     validateChildStateDatumPoint
+                ),
+
+                // Texts
+                [AnnotationType.Text]: new TextStateMachine(
+                    (datum) => appendDatum(AnnotationType.Text, datum),
+                    onExitSingleClick,
+                    showTextInput,
+                    hideTextInput
                 ),
             },
         });
@@ -183,30 +202,63 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private readonly colorPicker = new ColorPicker(this.ctx);
     private defaultColor?: string;
 
+    private readonly textInput = new TextInput(this.ctx);
+
     private xAxis?: AnnotationAxis;
     private yAxis?: AnnotationAxis;
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         super();
+        this.state = this.setupStateMachine();
+        this.setupListeners();
+    }
 
-        this.state = new AnnotationsStateMachine(
-            () => {
-                ctx.cursorManager.updateCursor('annotations');
-                ctx.interactionManager.popState(InteractionState.Annotations);
-                ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', this.active != null);
-                ctx.tooltipManager.unsuppressTooltip('annotations');
-                for (const annotationType of ANNOTATION_BUTTONS) {
-                    ctx.toolbarManager.toggleButton('annotations', annotationType, { active: false });
-                }
-                this.toggleAnnotationOptionsButtons();
-            },
+    private setupStateMachine() {
+        const { ctx } = this;
+
+        const onEnterIdle = () => {
+            ctx.cursorManager.updateCursor('annotations');
+            ctx.interactionManager.popState(InteractionState.Annotations);
+            ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', this.active != null);
+            ctx.tooltipManager.unsuppressTooltip('annotations');
+            for (const annotationType of ANNOTATION_BUTTONS) {
+                ctx.toolbarManager.toggleButton('annotations', annotationType, { active: false });
+            }
+            this.toggleAnnotationOptionsButtons();
+        };
+
+        const onExitSingleClick = () => {
+            this.active = this.annotationData.length - 1;
+        };
+
+        return new AnnotationsStateMachine(
+            onEnterIdle,
             this.appendDatum.bind(this),
+            onExitSingleClick,
+            this.validateChildStateDatumPoint.bind(this),
             () => {
-                this.active = this.annotationData.length - 1;
-            },
-            this.validateChildStateDatumPoint.bind(this)
-        );
+                if (this.active == null) return;
 
+                const datum = this.getTypedDatum(this.annotationData[this.active]);
+                if (!TextProperties.is(datum)) return;
+
+                const styles = {
+                    color: datum.color,
+                    fontFamily: datum.fontFamily,
+                    fontSize: datum.fontSize,
+                    fontStyle: datum.fontStyle,
+                    fontWeight: datum.fontWeight,
+                };
+                this.textInput.show({ styles });
+            },
+            () => {
+                this.textInput.hide();
+            }
+        );
+    }
+
+    private setupListeners() {
+        const { ctx } = this;
         const { All, Default, Annotations: AnnotationsState, ZoomDrag } = InteractionState;
 
         const seriesRegion = ctx.regionManager.getRegion(REGIONS.SERIES);
@@ -226,8 +278,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             .map((region) => ctx.regionManager.getRegion(region));
 
         this.destroyFns.push(
-            ctx.annotationManager.attachNode(this.container),
-            () => this.colorPicker.destroy(),
+            // Interactions
             seriesRegion.addListener('hover', (event) => this.onHover(event), All),
             seriesRegion.addListener('click', (event) => this.onClick(event), All),
             seriesRegion.addListener('drag-start', this.onDragStart.bind(this), Default | ZoomDrag | AnnotationsState),
@@ -235,12 +286,19 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
             seriesRegion.addListener('cancel', this.onCancel.bind(this), All),
             seriesRegion.addListener('delete', this.onDelete.bind(this), All),
+            ctx.interactionManager.addListener('keydown', this.onKeyDown.bind(this), AnnotationsState),
             ...otherRegions.map((region) => region.addListener('click', this.onCancel.bind(this), All)),
+
+            // Services
             ctx.annotationManager.addListener('restore-annotations', this.onRestoreAnnotations.bind(this)),
             ctx.toolbarManager.addListener('button-pressed', this.onToolbarButtonPress.bind(this)),
             ctx.toolbarManager.addListener('button-moved', this.onToolbarButtonMoved.bind(this)),
             ctx.toolbarManager.addListener('cancelled', this.onToolbarCancelled.bind(this)),
             ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this)),
+
+            // DOM
+            ctx.annotationManager.attachNode(this.container),
+            () => this.colorPicker.destroy(),
             () => ctx.domManager.removeStyles(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS)
         );
     }
@@ -440,9 +498,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private updateAnnotations() {
         const {
             active,
-            seriesRect,
             annotationData,
             annotations,
+            seriesRect,
+            textInput,
             ctx: { annotationManager, toolbarManager },
         } = this;
 
@@ -478,6 +537,18 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
                 if (ParallelChannelProperties.is(datum) && ParallelChannelScene.is(node)) {
                     node.update(datum, context);
+                }
+
+                if (TextProperties.is(datum) && TextScene.is(node)) {
+                    node.update(datum, context);
+
+                    if (active === index) {
+                        textInput.setLayout({
+                            bbox: node.getTextRect(),
+                            position: datum.position,
+                            alignment: datum.alignment,
+                        });
+                    }
                 }
 
                 if (active === index) {
@@ -787,6 +858,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             node.drag(datum, offset, context, onDragInvalid);
         }
 
+        if (TextProperties.is(datum) && TextScene.is(node)) {
+            node.drag(datum, offset, context, onDragInvalid);
+        }
+
         this.update();
     }
 
@@ -859,6 +934,24 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.reset();
         this.update();
+    }
+
+    private onKeyDown(event: _ModuleSupport.KeyInteractionEvent<'keydown'>) {
+        const { annotationData, state } = this;
+
+        const context = this.getAnnotationContext();
+        if (!context) return;
+
+        const datum = annotationData.at(-1);
+        const { key } = event.sourceEvent;
+
+        if (key === 'Tab') {
+            const value = this.textInput.getValue();
+            const data: StateInputEvent<AnnotationProperties> = { datum, value };
+            state.transition('input', data);
+
+            this.update();
+        }
     }
 
     private toggleAnnotationOptionsButtons() {

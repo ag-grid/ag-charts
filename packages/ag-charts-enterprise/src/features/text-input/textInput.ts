@@ -99,21 +99,24 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
                 break;
         }
 
+        // TODO: shush sonarqube
+        const textAlign = 'text-align';
+
         switch (alignment) {
             case 'left':
                 element.style.setProperty('left', `${bbox.x}px`);
                 element.style.setProperty('right', 'unset');
-                textArea?.style.setProperty('text-align', 'left');
+                textArea?.style.setProperty(textAlign, 'left');
                 break;
             case 'center':
                 element.style.setProperty('left', `${bbox.x - width / 2}px`);
                 element.style.setProperty('right', 'unset');
-                textArea?.style.setProperty('text-align', 'center');
+                textArea?.style.setProperty(textAlign, 'center');
                 break;
             case 'right':
                 element.style.setProperty('left', 'unset');
                 element.style.setProperty('right', `${bbox.x}px`);
-                textArea?.style.setProperty('text-align', 'right');
+                textArea?.style.setProperty(textAlign, 'right');
                 break;
         }
     }
