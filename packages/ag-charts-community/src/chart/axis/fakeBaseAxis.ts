@@ -25,17 +25,13 @@ import { clamp, countFractionDigits, findMinMax, findRangeExtent, round } from '
 import { type MeasureOptions, TextMeasurer } from '../../util/textMeasurer';
 import { TextWrapper } from '../../util/textWrapper';
 import { BOOLEAN, OBJECT, Validate } from '../../util/validation';
-import { Caption } from '../caption';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
-import { type PointerInteractionEvent } from '../interaction/interactionManager';
-import { REGIONS } from '../interaction/regions';
 import { calculateLabelBBox, calculateLabelRotation, getLabelSpacing, getTextAlign, getTextBaseline } from '../label';
 import { Layers } from '../layers';
 import { AxisInterval } from './axisInterval';
 import { AxisLabel } from './axisLabel';
 import { type TickInterval } from './axisTick';
-import { AxisTitle } from './axisTitle';
 import type { AxisLineDatum } from './axisUtil';
 import { resetAxisGroupFn, resetAxisLabelSelectionFn, resetAxisLineSelectionFn } from './axisUtil';
 
@@ -135,8 +131,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
 
     abstract get direction(): ChartAxisDirection;
 
-    interactionEnabled = true;
-
     readonly axisGroup = new Group({ name: `${this.id}-axis`, zIndex: Layers.AXIS_ZINDEX });
 
     protected lineNode = this.axisGroup.appendChild(new Line());
@@ -158,7 +152,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
 
     private readonly destroyFns: Function[] = [];
 
-    // eslint-disable-next-line @typescript-eslint/prefer-readonly
     private minRect?: BBox = undefined;
 
     constructor(
@@ -167,18 +160,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         options?: { respondsToZoom: boolean }
     ) {
         this.range = this.scale.range.slice() as [number, number];
-
-        this.destroyFns.push(this._titleCaption.registerInteraction(this.moduleCtx));
-        this._titleCaption.node.rotation = -Math.PI / 2;
-        this.axisGroup.appendChild(this._titleCaption.node);
-
-        this.destroyFns.push(
-            moduleCtx.regionManager.getRegion(REGIONS.SERIES).addListener('hover', (e) => this.checkAxisHover(e)),
-            moduleCtx.regionManager
-                .getRegion(REGIONS.HORIZONTAL_AXES)
-                .addListener('hover', (e) => this.checkAxisHover(e)),
-            moduleCtx.regionManager.getRegion(REGIONS.VERTICAL_AXES).addListener('hover', (e) => this.checkAxisHover(e))
-        );
 
         if (options?.respondsToZoom !== false) {
             this.destroyFns.push(
@@ -204,8 +185,7 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
     }
 
     attachAxis(axisNode: Node) {
-        axisNode.appendChild(this.axisGroup);
-        axisNode.appendChild(this.labelGroup);
+        axisNode.append([this.axisGroup, this.labelGroup]);
     }
 
     range: [number, number] = [0, 1];
@@ -248,10 +228,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         }
     }
 
-    @Validate(OBJECT, { optional: true })
-    title = new AxisTitle();
-    protected _titleCaption = new Caption();
-
     private setTickInterval(interval?: TickInterval<S>) {
         this.scale.interval = this.interval?.step ?? interval;
     }
@@ -263,17 +239,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
 
     protected createLabel(): ChartAxisLabel {
         return new AxisLabel();
-    }
-
-    private checkAxisHover(event: PointerInteractionEvent<'hover'>) {
-        if (!this.interactionEnabled) return;
-
-        const bbox = this.computeBBox();
-        const isInAxis = bbox.containsPoint(event.offsetX, event.offsetY);
-
-        if (!isInAxis) return;
-
-        this.moduleCtx.chartEventManager.axisHover(this.id, this.direction);
     }
 
     /**
@@ -293,8 +258,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
             textBaseline,
             range: this.scale.range,
         });
-
-        this.resetSelectionNodes();
 
         this.updateLabels();
         this.updateVisibility();
@@ -831,10 +794,7 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
     }
 
     private updateVisibility() {
-        if (this.moduleCtx.animationManager.isSkipped()) {
-            this.resetSelectionNodes();
-        }
-
+        this.resetSelectionNodes();
         this.tickLabelGroup.visible = this.label.enabled;
     }
 
@@ -945,10 +905,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         }
         // The axis is using a logScale or the`datum` is an integer, a string or an object
         return String;
-    }
-
-    computeBBox(): BBox {
-        return this.axisGroup.computeBBox();
     }
 
     normaliseDataDomain(d: D[]): { domain: D[]; clipped: boolean } {

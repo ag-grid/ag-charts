@@ -47,16 +47,14 @@ export class GradientLegend {
     readonly id = createId(this);
 
     private readonly axis: GradientLegendAxis;
+    private readonly highlightManager: _ModuleSupport.HighlightManager;
 
     private readonly group: _Scene.Group = new Group({ name: 'legend', layer: true, zIndex: Layers.LEGEND_ZINDEX });
     private readonly gradientRect: _Scene.Rect;
     private readonly gradientFill: _Scene.LinearGradientFill;
     private readonly axisGroup: _Scene.Group;
     private readonly arrow: _Scene.Triangle;
-
     private readonly destroyFns: Function[] = [];
-
-    private readonly highlightManager: _ModuleSupport.HighlightManager;
 
     @Validate(BOOLEAN)
     enabled = false;
@@ -206,7 +204,7 @@ export class GradientLegend {
         const { reverseOrder, axis } = this;
         const positiveAxis = reverseOrder !== vertical;
 
-        axis.position = vertical ? 'right' : 'bottom';
+        axis.position = this.position;
         axis.setDomain(positiveAxis ? data.colorDomain.slice().reverse() : data.colorDomain);
 
         axis.range = vertical ? [0, gradientBox.height] : [0, gradientBox.width];
