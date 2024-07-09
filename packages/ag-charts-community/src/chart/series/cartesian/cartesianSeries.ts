@@ -13,6 +13,7 @@ import { Text } from '../../../scene/shape/text';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Debug } from '../../../util/debug';
+import { iterate } from '../../../util/function';
 import { StateMachine } from '../../../util/stateMachine';
 import { isFunction } from '../../../util/type-guards';
 import { STRING, Validate } from '../../../util/validation';
@@ -568,7 +569,7 @@ export abstract class CartesianSeries<
     }
 
     protected *datumNodesIter(): Iterable<TNode> {
-        for (const { node } of this.datumSelection) {
+        for (const { node } of iterate(this.datumSelection, this.phantomSelection)) {
             if (node.datum.missing === true) continue;
 
             yield node;
@@ -602,11 +603,11 @@ export abstract class CartesianSeries<
         } = this;
 
         let match: Node | undefined;
-        const { dataNodeGroup, markerGroup } = this;
-        match = dataNodeGroup.pickNode(x, y);
+        const { dataNodeGroup, phantomNodeGroup, markerGroup } = this;
+        match = dataNodeGroup.pickNode(x, y) ?? phantomNodeGroup.pickNode(x, y);
 
-        if (!match && hasMarkers) {
-            match = markerGroup?.pickNode(x, y);
+        if (hasMarkers) {
+            match ??= markerGroup?.pickNode(x, y);
         }
 
         if (match && match.datum.missing !== true) {
@@ -635,7 +636,7 @@ export abstract class CartesianSeries<
         let minDistance = Infinity;
         let closestDatum: SeriesNodeDatum | undefined;
 
-        for (const datum of contextNodeData.nodeData) {
+        for (const datum of iterate(contextNodeData.nodeData, contextNodeData.phantomNodeData ?? [])) {
             const { point: { x: datumX = NaN, y: datumY = NaN } = {} } = datum;
             if (isNaN(datumX) || isNaN(datumY)) {
                 continue;
@@ -698,7 +699,7 @@ export abstract class CartesianSeries<
         const minDistance = [Infinity, Infinity];
         let closestDatum: SeriesNodeDatum | undefined;
 
-        for (const datum of contextNodeData.nodeData) {
+        for (const datum of iterate(contextNodeData.nodeData, contextNodeData.phantomNodeData ?? [])) {
             const { x: datumX = NaN, y: datumY = NaN } = datum.point ?? datum.midPoint ?? {};
             if (isNaN(datumX) || isNaN(datumY) || datum.missing === true) {
                 continue;
