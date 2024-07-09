@@ -19,11 +19,8 @@ export const GradientLegendModule: _ModuleSupport.LegendModule = {
             padding: 8,
             label: {
                 color: _Theme.DEFAULT_LABEL_COLOUR,
-                fontStyle: undefined,
-                fontWeight: undefined,
-                fontSize: 12,
+                fontSize: _Theme.FONT_SIZE.SMALL,
                 fontFamily: _Theme.DEFAULT_FONT_FAMILY,
-                formatter: undefined,
             },
             interval: {
                 minSpacing: 1,

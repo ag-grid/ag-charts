@@ -82,7 +82,7 @@ export interface AgChartLegendContextMenuEvent extends AgChartLegendEvent<'conte
 export interface AgChartLegendListeners {
     /** The listener to call when a legend item is clicked. */
     legendItemClick?: (event: AgChartLegendClickEvent) => void;
-    /** The listener to call when a legend item is double clicked. */
+    /** The listener to call when a legend item is double-clicked. */
     legendItemDoubleClick?: (event: AgChartLegendDoubleClickEvent) => void;
 }
 

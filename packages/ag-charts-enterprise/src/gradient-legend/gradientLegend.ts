@@ -39,7 +39,7 @@ class GradientLegendAxis extends _ModuleSupport.CartesianAxis<_Scale.LinearScale
 }
 
 class GradientLegendScale implements AgGradientLegendScaleOptions {
-    constructor(public axis: GradientLegendAxis) {}
+    constructor(protected axis: GradientLegendAxis) {}
 
     @Validate(OBJECT)
     @ProxyProperty('axis.label')
@@ -71,7 +71,6 @@ export class GradientLegend {
 
     private readonly destroyFns: Function[] = [];
 
-    private readonly layoutService: _ModuleSupport.ModuleContext['layoutService'];
     private readonly highlightManager: _ModuleSupport.HighlightManager;
 
     @Validate(BOOLEAN)
@@ -82,9 +81,6 @@ export class GradientLegend {
 
     @Validate(BOOLEAN, { optional: true })
     reverseOrder?: boolean = undefined;
-
-    // Placeholder
-    pagination?: any = undefined;
 
     private getOrientation(): AgChartLegendOrientation {
         switch (this.position) {
@@ -107,11 +103,8 @@ export class GradientLegend {
 
     data: _ModuleSupport.GradientLegendDatum[] = [];
 
-    listeners: any = {};
-
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
-        this.layoutService = ctx.layoutService;
-        this.destroyFns.push(this.layoutService.addListener('start-layout', (e) => this.update(e)));
+        this.destroyFns.push(ctx.layoutService.addListener('start-layout', (e) => this.update(e)));
 
         this.highlightManager = ctx.highlightManager;
         this.destroyFns.push(this.highlightManager.addListener('highlight-change', () => this.onChartHoverChange()));
@@ -151,16 +144,15 @@ export class GradientLegend {
     private latestGradientBox?: _Scene.BBox = undefined;
 
     private update(ctx: _ModuleSupport.LayoutContext) {
-        const { shrinkRect } = ctx;
-        const data = this.data[0];
+        const [data] = this.data;
 
-        if (!this.enabled || !data || !data.enabled) {
+        if (!this.enabled || !data?.enabled) {
             this.group.visible = false;
-            return { ...ctx, shrinkRect: shrinkRect.clone() };
+            return ctx;
         }
 
+        const { shrinkRect } = ctx;
         const { colorRange } = this.normalizeColorArrays(data);
-
         const gradientBox = this.updateGradientRect(shrinkRect, colorRange);
         const axisBox = this.updateAxis(data, gradientBox);
         const { newShrinkRect, translateX, translateY } = this.getMeasurements(shrinkRect, gradientBox, axisBox);
@@ -169,7 +161,6 @@ export class GradientLegend {
         this.group.visible = true;
         this.group.translationX = translateX;
         this.group.translationY = translateY;
-
         this.latestGradientBox = gradientBox;
 
         return { ...ctx, shrinkRect: newShrinkRect };
@@ -187,9 +178,9 @@ export class GradientLegend {
             colorRange.splice(colorDomain.length);
         }
 
+        const [d0, d1] = colorDomain;
         const count = colorRange.length;
         colorDomain = colorRange.map((_, i) => {
-            const [d0, d1] = colorDomain;
             if (i === 0) return d0;
             if (i === count - 1) return d1;
             return d0 + ((d1 - d0) * i) / (count - 1);
@@ -332,10 +323,6 @@ export class GradientLegend {
             gradientBox,
             newShrinkRect,
         };
-    }
-
-    computeBBox(): _Scene.BBox {
-        return this.group.computeBBox();
     }
 
     private onChartHoverChange() {
