@@ -53,6 +53,7 @@ export class StateMachine<State extends string, Event extends string> {
             return;
         }
 
+        const currentState = this.state;
         const currentStateConfig = this.states[this.state];
         const destinationTransition = currentStateConfig?.[event];
 
@@ -66,11 +67,6 @@ export class StateMachine<State extends string, Event extends string> {
 
         this.debug(`%c${this.constructor.name} | ${this.state} -> ${event} -> ${destinationState}`, debugColor);
 
-        this.enterEach?.(this.state, destinationState);
-        if (destinationState !== '__child' && destinationState !== '__parent') {
-            this.states[destinationState].onEnter?.();
-        }
-
         // Change the state before calling the transition action to allow the action to trigger a subsequent transition
         this.state = destinationState;
 
@@ -81,6 +77,11 @@ export class StateMachine<State extends string, Event extends string> {
         }
 
         exitFn?.();
+
+        this.enterEach?.(currentState, destinationState);
+        if (destinationState !== StateMachine.child && destinationState !== StateMachine.parent) {
+            this.states[destinationState].onEnter?.();
+        }
     }
 
     protected resetHierarchy() {
