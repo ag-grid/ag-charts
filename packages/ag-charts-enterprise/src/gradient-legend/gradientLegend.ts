@@ -1,5 +1,4 @@
 import {
-    type AgChartLegendOrientation,
     type AgChartLegendPosition,
     type AgGradientLegendScaleOptions,
     _ModuleSupport,
@@ -8,7 +7,7 @@ import {
     _Util,
 } from 'ag-charts-community';
 
-const { BOOLEAN, OBJECT, Layers, POSITION, Validate, POSITIVE_NUMBER, ProxyProperty } = _ModuleSupport;
+const { BOOLEAN, OBJECT, POSITION, POSITIVE_NUMBER, AxisLabel, Layers, ProxyProperty, Validate } = _ModuleSupport;
 const { BBox, Group, Rect, LinearGradientFill, Triangle } = _Scene;
 const { createId } = _Util;
 
@@ -42,8 +41,7 @@ class GradientLegendScale implements AgGradientLegendScaleOptions {
     constructor(protected axis: GradientLegendAxis) {}
 
     @Validate(OBJECT)
-    @ProxyProperty('axis.label')
-    label!: _ModuleSupport.AxisLabel;
+    label = new AxisLabel();
 
     @Validate(OBJECT)
     @ProxyProperty('axis.interval')
@@ -80,17 +78,10 @@ export class GradientLegend {
     position: AgChartLegendPosition = 'bottom';
 
     @Validate(BOOLEAN, { optional: true })
-    reverseOrder?: boolean = undefined;
+    reverseOrder?: boolean;
 
-    private getOrientation(): AgChartLegendOrientation {
-        switch (this.position) {
-            case 'right':
-            case 'left':
-                return 'vertical';
-            case 'bottom':
-            case 'top':
-                return 'horizontal';
-        }
+    private isVertical(): boolean {
+        return this.position === 'right' || this.position === 'left';
     }
 
     /**
@@ -194,7 +185,7 @@ export class GradientLegend {
         const { preferredLength: gradientLength, thickness } = this.gradient;
 
         const gradientBox = new BBox(0, 0, 0, 0);
-        const vertical = this.getOrientation() === 'vertical';
+        const vertical = this.isVertical();
         if (vertical) {
             const maxHeight = shrinkRect.height;
             const preferredHeight = gradientLength;
@@ -228,7 +219,7 @@ export class GradientLegend {
 
     private updateAxis(data: _ModuleSupport.GradientLegendDatum, gradientBox: _Scene.BBox) {
         const { reverseOrder, axis } = this;
-        const vertical = this.getOrientation() === 'vertical';
+        const vertical = this.isVertical();
         const positiveAxis = reverseOrder !== vertical;
 
         axis.position = vertical ? 'right' : 'bottom';
@@ -258,7 +249,7 @@ export class GradientLegend {
             return;
         }
 
-        const vertical = this.getOrientation() === 'vertical';
+        const vertical = this.isVertical();
         const size = label.fontSize ?? 0;
         const t = scale.convert(colorValue);
         let x: number;
@@ -285,7 +276,7 @@ export class GradientLegend {
     private getMeasurements(shrinkRect: _Scene.BBox, gradientBox: _Scene.BBox, axisBox: _Scene.BBox) {
         let width: number;
         let height: number;
-        const vertical = this.getOrientation() === 'vertical';
+        const vertical = this.isVertical();
         if (vertical) {
             width = gradientBox.width + axisBox.width;
             height = gradientBox.height;
