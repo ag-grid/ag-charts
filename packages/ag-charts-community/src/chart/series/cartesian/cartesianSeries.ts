@@ -529,10 +529,10 @@ export abstract class CartesianSeries<
         return labelItems.length === 0 ? undefined : labelItems;
     }
 
-    protected getHighlightData(nodeData: TDatum[], highlightedItem: TDatum): TDatum[] | undefined {
+    private getHighlightData(nodeData: TDatum[], highlightedItem: TDatum): TDatum[] | undefined {
         const highlightedDatum = highlightedItem.datum;
-        let index = nodeData.findIndex((node) => node.datum === highlightedDatum);
-        return index != null ? [nodeData[index]] : undefined;
+        const highlightItems = nodeData.filter((nodeDatum) => nodeDatum.datum === highlightedDatum);
+        return highlightItems.length > 0 ? highlightItems : undefined;
     }
 
     protected async updateHighlightSelection(seriesHighlighted: boolean) {

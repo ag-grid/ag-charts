@@ -488,14 +488,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return labelItems.length > 0 ? labelItems : undefined;
     }
 
-    protected override getHighlightData(
-        nodeData: RangeAreaMarkerDatum[],
-        highlightedItem: RangeAreaMarkerDatum
-    ): RangeAreaMarkerDatum[] | undefined {
-        const highlightItems = nodeData.filter((nodeDatum) => nodeDatum.datum === highlightedItem.datum);
-        return highlightItems.length > 0 ? highlightItems : undefined;
-    }
-
     getTooltipHtml(nodeDatum: RangeAreaMarkerDatum): _ModuleSupport.TooltipContent {
         const xAxis = this.axes[ChartAxisDirection.X];
         const yAxis = this.axes[ChartAxisDirection.Y];
