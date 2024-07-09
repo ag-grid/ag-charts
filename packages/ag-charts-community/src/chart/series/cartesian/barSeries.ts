@@ -116,13 +116,19 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         });
     }
 
+    private crossFilteringEnabled() {
+        return (
+            this.properties.yFilterKey != null && (this.seriesGrouping == null || this.seriesGrouping.stackIndex === 0)
+        );
+    }
+
     override async processData(dataController: DataController) {
         if (!this.properties.isValid() || !this.data) {
             return;
         }
 
         const { seriesGrouping: { groupIndex = this.id } = {}, data = [] } = this;
-        const { xKey, yKey, normalizedTo } = this.properties;
+        const { xKey, yKey, yFilterKey, normalizedTo } = this.properties;
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
@@ -152,6 +158,15 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             props: [
                 keyProperty(xKey, xScaleType, { id: 'xValue' }),
                 valueProperty(yKey, yScaleType, { id: `yValue-raw`, invalidValue: null, ...visibleProps }),
+                ...(this.crossFilteringEnabled()
+                    ? [
+                          valueProperty(yFilterKey!, yScaleType, {
+                              id: `yFilterValue`,
+                              invalidValue: null,
+                              ...visibleProps,
+                          }),
+                      ]
+                    : []),
                 ...groupAccumulativeValueProperty(
                     yKey,
                     'normal',
@@ -203,7 +218,14 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
         const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const keys = dataModel.getDomain(this, `xValue`, 'key', processedData);
-        const yExtent = dataModel.getDomain(this, `yValue-end`, 'value', processedData);
+
+        let yExtent = dataModel.getDomain(this, `yValue-end`, 'value', processedData);
+        const yFilterExtent = this.crossFilteringEnabled()
+            ? dataModel.getDomain(this, `yFilterValue`, 'value', processedData)
+            : undefined;
+        if (yFilterExtent != null) {
+            yExtent = [Math.min(yExtent[0], yFilterExtent[0]), Math.max(yExtent[1], yFilterExtent[1])];
+        }
 
         if (direction === this.getCategoryDirection()) {
             if (keyDef?.def.type === 'key' && keyDef.def.valueType === 'category') {
@@ -243,6 +265,9 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
         const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`);
         const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-raw`);
+        const yFilterIndex = this.crossFilteringEnabled()
+            ? dataModel.resolveProcessedDataIndexById(this, `yFilterValue`)
+            : undefined;
         const yStartIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-start`);
         const yEndIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-end`);
         const yRangeIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-range`);
@@ -252,59 +277,139 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             itemId: yKey,
             nodeData: [] as BarNodeDatum[],
             labelData: [] as BarNodeDatum[],
+            phantomNodeData: [] as BarNodeDatum[],
             scales: this.calculateScaling(),
             visible: this.visible || animationEnabled,
+        };
+
+        const nodeDatum = ({
+            datum,
+            valueIndex,
+            xValue,
+            yValue,
+            cumulativeValue,
+            currY,
+            prevY,
+            isPositive,
+            yRange,
+            labelText,
+            crossScale = 1,
+        }: {
+            datum: any;
+            valueIndex: number;
+            xValue: number;
+            yValue: number;
+            cumulativeValue: number;
+            currY: number;
+            prevY: number;
+            isPositive: boolean;
+            yRange: number;
+            labelText: string | undefined;
+            crossScale: number | undefined;
+        }): BarNodeDatum => {
+            const x = xScale.convert(xValue);
+
+            const isUpward = isPositive !== yReversed;
+            const barX = x + groupScale.convert(String(groupIndex)) + barOffset;
+
+            const y = yScale.convert(currY);
+            const bottomY = yScale.convert(prevY);
+
+            const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
+
+            const bboxHeight = yScale.convert(yRange);
+            const bboxBottom = yScale.convert(0);
+
+            const xOffset = barWidth * 0.5 * (1 - crossScale);
+            const rect = {
+                x: barAlongX ? Math.min(y, bottomY) : barX + xOffset,
+                y: barAlongX ? barX + xOffset : Math.min(y, bottomY),
+                width: barAlongX ? Math.abs(bottomY - y) : barWidth * crossScale,
+                height: barAlongX ? barWidth * crossScale : Math.abs(bottomY - y),
+            };
+
+            const clipBBox = new BBox(rect.x, rect.y, rect.width, rect.height);
+
+            const barRect = {
+                x: barAlongX ? Math.min(bboxBottom, bboxHeight) : barX + xOffset,
+                y: barAlongX ? barX + xOffset : Math.min(bboxBottom, bboxHeight),
+                width: barAlongX ? Math.abs(bboxBottom - bboxHeight) : barWidth * crossScale,
+                height: barAlongX ? barWidth * crossScale : Math.abs(bboxBottom - bboxHeight),
+            };
+
+            const {
+                fontStyle: labelFontStyle,
+                fontWeight: labelFontWeight,
+                fontSize: labelFontSize,
+                fontFamily: labelFontFamily,
+                color: labelColor,
+                placement,
+            } = label;
+            const lengthRatioMultiplier = this.shouldFlipXY() ? rect.height : rect.width;
+
+            return {
+                series: this,
+                itemId: yKey,
+                datum,
+                valueIndex,
+                cumulativeValue,
+                xValue,
+                yValue,
+                yKey,
+                xKey,
+                capDefaults: {
+                    lengthRatioMultiplier: lengthRatioMultiplier,
+                    lengthMax: lengthRatioMultiplier,
+                },
+                x: barRect.x,
+                y: barRect.y,
+                width: barRect.width,
+                height: barRect.height,
+                midPoint: { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 },
+                fill,
+                stroke,
+                opacity: 1,
+                strokeWidth,
+                cornerRadius,
+                topLeftCornerRadius: barAlongX !== isUpward,
+                topRightCornerRadius: isUpward,
+                bottomRightCornerRadius: barAlongX === isUpward,
+                bottomLeftCornerRadius: !isUpward,
+                clipBBox,
+                label:
+                    labelText != null
+                        ? {
+                              text: labelText,
+                              fill: labelColor,
+                              fontStyle: labelFontStyle,
+                              fontWeight: labelFontWeight,
+                              fontSize: labelFontSize,
+                              fontFamily: labelFontFamily,
+                              ...adjustLabelPlacement({
+                                  isPositive,
+                                  isVertical: !barAlongX,
+                                  placement,
+                                  rect,
+                              }),
+                          }
+                        : undefined,
+                missing: yValue == null,
+            };
         };
 
         const { groupScale, processedData } = this;
         processedData?.data.forEach(({ keys, datum: seriesDatum, values, aggValues }) => {
             values.forEach((value, valueIndex) => {
                 const xValue = keys[xIndex];
-                const x = xScale.convert(xValue);
-
-                const currY = +value[yEndIndex];
-                const prevY = +value[yStartIndex];
                 const yRawValue = value[yRawIndex];
+                const yStart = +value[yStartIndex];
+                const yFilterValue = yFilterIndex != null ? +value[yFilterIndex] : undefined;
+                const yEnd = +value[yEndIndex];
                 const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
-                const isUpward = isPositive !== yReversed;
                 const yRange = aggValues?.[yRangeIndex][isPositive ? 1 : 0] ?? 0;
-                const barX = x + groupScale.convert(String(groupIndex)) + barOffset;
 
-                if (isNaN(currY)) return;
-
-                const y = yScale.convert(currY);
-                const bottomY = yScale.convert(prevY);
-
-                const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
-
-                const bboxHeight = yScale.convert(yRange);
-                const bboxBottom = yScale.convert(0);
-
-                const rect = {
-                    x: barAlongX ? Math.min(y, bottomY) : barX,
-                    y: barAlongX ? barX : Math.min(y, bottomY),
-                    width: barAlongX ? Math.abs(bottomY - y) : barWidth,
-                    height: barAlongX ? barWidth : Math.abs(bottomY - y),
-                };
-
-                const clipBBox = new BBox(rect.x, rect.y, rect.width, rect.height);
-
-                const barRect = {
-                    x: barAlongX ? Math.min(bboxBottom, bboxHeight) : barX,
-                    y: barAlongX ? barX : Math.min(bboxBottom, bboxHeight),
-                    width: barAlongX ? Math.abs(bboxBottom - bboxHeight) : barWidth,
-                    height: barAlongX ? barWidth : Math.abs(bboxBottom - bboxHeight),
-                    clipBBox,
-                };
-
-                const {
-                    fontStyle: labelFontStyle,
-                    fontWeight: labelFontWeight,
-                    fontSize: labelFontSize,
-                    fontFamily: labelFontFamily,
-                    color: labelColor,
-                    placement,
-                } = label;
+                if (!Number.isFinite(yEnd)) return;
+                if (yFilterValue != null && !Number.isFinite(yFilterValue)) return;
 
                 const labelText =
                     yRawValue != null
@@ -312,7 +417,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                               this.properties.label,
                               {
                                   datum: seriesDatum[valueIndex],
-                                  value: yRawValue,
+                                  value: yFilterValue ?? yRawValue,
                                   xKey,
                                   yKey,
                                   xName,
@@ -322,58 +427,41 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                               (v) => (isFiniteNumber(v) ? v.toFixed(2) : String(v))
                           )
                         : undefined;
-                const labelDatum = labelText
-                    ? {
-                          text: labelText,
-                          fill: labelColor,
-                          fontStyle: labelFontStyle,
-                          fontWeight: labelFontWeight,
-                          fontSize: labelFontSize,
-                          fontFamily: labelFontFamily,
-                          ...adjustLabelPlacement({
-                              isPositive,
-                              isVertical: !barAlongX,
-                              placement,
-                              rect,
-                          }),
-                      }
-                    : undefined;
 
-                const lengthRatioMultiplier = this.shouldFlipXY() ? rect.height : rect.width;
-                const nodeData: BarNodeDatum = {
-                    series: this,
-                    itemId: yKey,
+                const inset = yFilterValue != null && yFilterValue > yRawValue;
+
+                const nodeData = nodeDatum({
                     datum: seriesDatum[valueIndex],
                     valueIndex,
-                    cumulativeValue: currY,
                     xValue,
-                    yValue: yRawValue,
-                    yKey,
-                    xKey,
-                    capDefaults: {
-                        lengthRatioMultiplier: lengthRatioMultiplier,
-                        lengthMax: lengthRatioMultiplier,
-                    },
-                    x: barRect.x,
-                    y: barRect.y,
-                    width: barRect.width,
-                    height: barRect.height,
-                    midPoint: { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 },
-                    fill,
-                    stroke,
-                    opacity: 1,
-                    strokeWidth,
-                    cornerRadius,
-                    topLeftCornerRadius: barAlongX !== isUpward,
-                    topRightCornerRadius: isUpward,
-                    bottomRightCornerRadius: barAlongX === isUpward,
-                    bottomLeftCornerRadius: !isUpward,
-                    clipBBox,
-                    label: labelDatum,
-                    missing: yRawValue == null,
-                };
+                    yValue: yFilterValue ?? yRawValue,
+                    cumulativeValue: yFilterValue ?? yEnd,
+                    currY: yFilterValue != null ? yStart + yFilterValue : yEnd,
+                    prevY: yStart,
+                    isPositive,
+                    yRange: Math.max(yStart + (yFilterValue ?? -Infinity), yRange),
+                    labelText,
+                    crossScale: inset ? 0.6 : undefined,
+                });
                 context.nodeData.push(nodeData);
                 context.labelData.push(nodeData);
+
+                if (yFilterValue != null) {
+                    const phantomNodeData = nodeDatum({
+                        datum: seriesDatum[valueIndex],
+                        valueIndex,
+                        xValue,
+                        yValue: yFilterValue,
+                        cumulativeValue: yFilterValue,
+                        currY: yEnd,
+                        prevY: yStart,
+                        isPositive,
+                        yRange,
+                        labelText: undefined,
+                        crossScale: undefined,
+                    });
+                    context.phantomNodeData.push(phantomNodeData);
+                }
             });
         });
 
@@ -568,10 +656,16 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         ];
     }
 
-    override animateEmptyUpdateReady({ datumSelection, labelSelection, annotationSelections }: BarAnimationData) {
+    override animateEmptyUpdateReady({
+        datumSelection,
+        phantomSelection,
+        labelSelection,
+        annotationSelections,
+    }: BarAnimationData) {
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'));
 
         fromToMotion(this.id, 'nodes', this.ctx.animationManager, [datumSelection], fns);
+        fromToMotion(this.id, 'phantom', this.ctx.animationManager, [phantomSelection], fns);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
         seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
     }
