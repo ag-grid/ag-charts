@@ -22,6 +22,9 @@ const debugColor = 'color: green';
  * provided between the two states.
  */
 export class StateMachine<State extends string, Event extends string> {
+    static readonly child = '__child' as const;
+    static readonly parent = '__parent' as const;
+
     protected readonly debug = Debug.create(true, 'animation');
     private state: State | HierarchyState;
     private childState?: StateMachine<any, any>;
@@ -37,7 +40,7 @@ export class StateMachine<State extends string, Event extends string> {
     }
 
     is(value: any): boolean {
-        if (this.state === '__child' && this.childState) {
+        if (this.state === StateMachine.child && this.childState) {
             return this.childState.is(value);
         }
         return this.state === value;
@@ -46,7 +49,7 @@ export class StateMachine<State extends string, Event extends string> {
     transition(event: Event, data?: any) {
         const shouldTransitionSelf = this.transitionChild(event, data);
 
-        if (!shouldTransitionSelf || this.state === '__child' || this.state === '__parent') {
+        if (!shouldTransitionSelf || this.state === StateMachine.child || this.state === StateMachine.parent) {
             return;
         }
 
@@ -89,11 +92,11 @@ export class StateMachine<State extends string, Event extends string> {
     }
 
     private transitionChild(event: Event, data?: any) {
-        if (this.state !== '__child' || !this.childState) return true;
+        if (this.state !== StateMachine.child || !this.childState) return true;
 
         this.childState.transition(event, data);
 
-        if (!this.childState.is('__parent')) return true;
+        if (!this.childState.is(StateMachine.parent)) return true;
 
         this.debug(`%c${this.constructor.name} | ${this.state} -> ${event} -> ${this.defaultState}`, debugColor);
         this.state = this.defaultState;
@@ -112,11 +115,11 @@ export class StateMachine<State extends string, Event extends string> {
             state = transition as State;
         } else if (transition instanceof StateMachine) {
             this.childState = transition;
-            state = '__child';
+            state = StateMachine.child;
         } else if (typeof transition === 'object') {
             if (transition.target instanceof StateMachine) {
                 this.childState = transition.target;
-                state = '__child';
+                state = StateMachine.child;
             } else {
                 state = transition.target;
             }

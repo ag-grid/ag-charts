@@ -8,7 +8,9 @@ export function isHorizontalAxis(region: any) {
     return region === 'horizontal-axes';
 }
 
-export class CrossLineStateMachine extends _ModuleSupport.StateMachine<'start', 'click' | 'cancel'> {
+const { StateMachine } = _ModuleSupport;
+
+export class CrossLineStateMachine extends StateMachine<'start', 'click' | 'cancel'> {
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(
@@ -27,10 +29,10 @@ export class CrossLineStateMachine extends _ModuleSupport.StateMachine<'start', 
         super('start', {
             start: {
                 click: {
-                    target: '__parent',
+                    target: StateMachine.parent,
                     action: onClick,
                 },
-                cancel: '__parent',
+                cancel: StateMachine.parent,
                 onExit,
             },
         });

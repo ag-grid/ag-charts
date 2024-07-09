@@ -8,7 +8,9 @@ type Click = StateClickEvent<DisjointChannelProperties, DisjointChannelScene>;
 type Drag = StateDragEvent<DisjointChannelProperties, DisjointChannelScene>;
 type Hover = StateHoverEvent<DisjointChannelProperties, DisjointChannelScene>;
 
-export class DisjointChannelStateMachine extends _ModuleSupport.StateMachine<
+const { StateMachine } = _ModuleSupport;
+
+export class DisjointChannelStateMachine extends StateMachine<
     'start' | 'end' | 'height',
     'click' | 'hover' | 'drag' | 'cancel'
 > {
@@ -77,7 +79,7 @@ export class DisjointChannelStateMachine extends _ModuleSupport.StateMachine<
                     target: 'end',
                     action: onStartClick,
                 },
-                cancel: '__parent',
+                cancel: StateMachine.parent,
             },
             end: {
                 hover: onEndHover,
@@ -86,15 +88,15 @@ export class DisjointChannelStateMachine extends _ModuleSupport.StateMachine<
                     action: onEndClick,
                 },
                 drag: onEndHover,
-                cancel: '__parent',
+                cancel: StateMachine.parent,
             },
             height: {
                 hover: onHeightHover,
                 click: {
-                    target: '__parent',
+                    target: StateMachine.parent,
                     action: onHeightClick,
                 },
-                cancel: '__parent',
+                cancel: StateMachine.parent,
             },
         });
     }
