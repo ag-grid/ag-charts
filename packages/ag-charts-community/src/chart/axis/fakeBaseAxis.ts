@@ -1,11 +1,4 @@
-import type {
-    AgAxisCaptionFormatterParams,
-    CssColor,
-    FontFamily,
-    FontSize,
-    FontStyle,
-    FontWeight,
-} from 'ag-charts-types';
+import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-types';
 
 import type { AxisContext } from '../../module/axisContext';
 import type { ModuleInstance } from '../../module/baseModule';
@@ -35,7 +28,6 @@ import { createId } from '../../util/id';
 import { jsonDiff } from '../../util/json';
 import { Logger } from '../../util/logger';
 import { clamp, countFractionDigits, findMinMax, findRangeExtent, round } from '../../util/number';
-import { ObserveChanges } from '../../util/proxy';
 import { StateMachine } from '../../util/stateMachine';
 import { type MeasureOptions, TextMeasurer } from '../../util/textMeasurer';
 import { TextWrapper } from '../../util/textWrapper';
@@ -51,7 +43,6 @@ import { calculateLabelBBox, calculateLabelRotation, getLabelSpacing, getTextAli
 import { Layers } from '../layers';
 import type { AxisLayout } from '../layout/layoutService';
 import type { ISeries } from '../series/seriesTypes';
-import { AxisGridLine } from './axisGridLine';
 import { AxisInterval } from './axisInterval';
 import { AxisLabel } from './axisLabel';
 import { AxisLine } from './axisLine';
@@ -64,7 +55,6 @@ import {
     resetAxisGroupFn,
     resetAxisLabelSelectionFn,
     resetAxisLineSelectionFn,
-    resetAxisSelectionFn,
 } from './axisUtil';
 
 type TickStrategyParams = {
@@ -150,9 +140,7 @@ export type AxisModuleMap = ModuleMap<AxisOptionModule, ModuleInstance, ModuleCo
  * The generic `D` parameter is the type of the domain of the axis' scale.
  * The output range of the axis' scale is always numeric (screen coordinates).
  */
-export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> = Scale<any, number, any>, D = any>
-    implements ChartAxis
-{
+export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> = Scale<any, number, any>, D = any> {
     static readonly defaultTickMinSpacing = 50;
 
     readonly id = createId(this);
@@ -199,24 +187,13 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
     protected readonly tickLabelGroup = this.axisGroup.appendChild(
         new Group({ name: `${this.id}-Axis-tick-labels`, zIndex: Layers.AXIS_ZINDEX })
     );
-    protected readonly crossLineGroup = new Group({ name: `${this.id}-CrossLines` });
     protected readonly labelGroup = new Group({ name: `${this.id}-Labels`, zIndex: Layers.SERIES_ANNOTATION_ZINDEX });
-
-    readonly gridGroup = new Group({ name: `${this.id}-Axis-grid` });
-    protected readonly gridLineGroup = this.gridGroup.appendChild(
-        new Group({
-            name: `${this.id}-gridLines`,
-            zIndex: Layers.AXIS_GRID_ZINDEX,
-        })
-    );
 
     protected tickLineGroupSelection = Selection.select(this.tickLineGroup, Line, false);
     protected tickLabelGroupSelection = Selection.select<Text, LabelNodeDatum>(this.tickLabelGroup, Text, false);
-    protected gridLineGroupSelection = Selection.select(this.gridLineGroup, Line, false);
 
     readonly line = new AxisLine();
     readonly tick = new AxisTick();
-    readonly gridLine = new AxisGridLine();
     readonly label = this.createLabel();
 
     protected defaultTickMinSpacing: number = FakeBaseAxis.defaultTickMinSpacing;
@@ -318,14 +295,8 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         scale.range = [start, start + span];
     }
 
-    setCrossLinesVisible(visible: boolean) {
-        this.crossLineGroup.visible = visible;
-    }
-
-    attachAxis(axisNode: Node, gridNode: Node) {
-        gridNode.appendChild(this.gridGroup);
+    attachAxis(axisNode: Node) {
         axisNode.appendChild(this.axisGroup);
-        axisNode.appendChild(this.crossLineGroup);
         axisNode.appendChild(this.labelGroup);
     }
 
@@ -333,10 +304,8 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         this.labelGroup.append(axisLabelNode);
     }
 
-    detachAxis(axisNode: Node, gridNode: Node) {
-        gridNode.removeChild(this.gridGroup);
+    detachAxis(axisNode: Node) {
         axisNode.removeChild(this.axisGroup);
-        axisNode.removeChild(this.crossLineGroup);
         axisNode.removeChild(this.labelGroup);
     }
 
@@ -393,31 +362,9 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
     }
 
     /**
-     * The length of the grid. The grid is only visible in case of a non-zero value.
-     */
-    @ObserveChanges<FakeBaseAxis>((target, value, oldValue) => target.onGridLengthChange(value, oldValue))
-    gridLength: number = 0;
-
-    /**
-     * The distance between the grid ticks and the axis ticks.
-     */
-    gridPadding = 0;
-
-    /**
      * Is used to avoid collisions between axis labels and series.
      */
     seriesAreaPadding = 0;
-
-    protected onGridLengthChange(value: number, prevValue: number) {
-        // Was visible and now invisible, or was invisible and now visible.
-        if ((prevValue && !value) || (!prevValue && value)) {
-            this.onGridVisibilityChange();
-        }
-    }
-
-    protected onGridVisibilityChange() {
-        this.gridLineGroupSelection.clear();
-    }
 
     protected createLabel(): ChartAxisLabel {
         return new AxisLabel();
@@ -441,7 +388,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         if (!this.tickGenerationResult) {
             return;
         }
-        const sideFlag = this.label.getSideFlag();
         this.updatePosition();
 
         const lineData = this.getAxisLineCoordinates();
@@ -464,9 +410,7 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         this.updateAxisLine();
         this.updateLabels();
         this.updateVisibility();
-        this.updateGridLines(sideFlag);
         this.updateTickLines();
-        this.updateTitle({ anyTickVisible: tickData.ticks.length > 0 });
         this.updateLayoutState(tickData.fractionDigits);
 
         return primaryTickCount;
@@ -523,51 +467,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
 
     protected getTickSize() {
         return this.tick.enabled ? this.tick.size : 6;
-    }
-
-    private setTitleProps(caption: Caption, params: { spacing: number }) {
-        const { title } = this;
-
-        if (!title.enabled) {
-            caption.enabled = false;
-            caption.node.visible = false;
-            return;
-        }
-
-        caption.color = title.color;
-        caption.fontFamily = title.fontFamily;
-        caption.fontSize = title.fontSize;
-        caption.fontStyle = title.fontStyle;
-        caption.fontWeight = title.fontWeight;
-        caption.enabled = title.enabled;
-        caption.wrapping = title.wrapping;
-
-        const titleNode = caption.node;
-        const padding = (title.spacing ?? 0) + params.spacing;
-        const sideFlag = this.label.getSideFlag();
-
-        const parallelFlipRotation = normalizeAngle360(this.rotation);
-        const titleRotationFlag =
-            sideFlag === -1 && parallelFlipRotation > Math.PI && parallelFlipRotation < Math.PI * 2 ? -1 : 1;
-        const rotation = (titleRotationFlag * sideFlag * Math.PI) / 2;
-        const textBaseline = titleRotationFlag === 1 ? 'bottom' : 'top';
-
-        const { range } = this;
-        const x = Math.floor((titleRotationFlag * sideFlag * (range[0] + range[1])) / 2);
-        const y = sideFlag === -1 ? Math.floor(titleRotationFlag * -padding) : Math.floor(-padding);
-
-        const { callbackCache } = this.moduleCtx;
-        const { formatter = (p) => p.defaultValue } = title;
-        const text = callbackCache.call(formatter, this.getTitleFormatterParams());
-
-        titleNode.setProperties({
-            rotation,
-            text,
-            textBaseline,
-            visible: true,
-            x,
-            y,
-        });
     }
 
     private tickGenerationResult: TickGenerationResult | undefined = undefined;
@@ -633,17 +532,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
                     boxes.push(box);
                 }
             });
-        }
-
-        if (this.title?.enabled) {
-            const caption = new Caption();
-            const spacing = BBox.merge(boxes).width;
-            this.setTitleProps(caption, { spacing });
-            const titleNode = caption.node;
-            const titleBox = titleNode.computeTransformedBBox();
-            if (titleBox) {
-                boxes.push(titleBox);
-            }
         }
 
         const bbox = BBox.merge(boxes);
@@ -1138,7 +1026,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         }
 
         this.tickLineGroup.visible = this.tick.enabled;
-        this.gridLineGroup.visible = this.gridLine.enabled;
         this.tickLabelGroup.visible = this.label.enabled;
     }
 
@@ -1183,21 +1070,7 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
     }
 
     updatePosition() {
-        const { crossLineGroup, axisGroup, gridGroup, translation, gridLineGroupSelection, gridPadding, gridLength } =
-            this;
-        const { rotation } = this.calculateRotations();
-        const sideFlag = this.label.getSideFlag();
-        const translationX = Math.floor(translation.x);
-        const translationY = Math.floor(translation.y);
-
-        crossLineGroup.setProperties({ rotation, translationX, translationY });
-        gridGroup.setProperties({ rotation, translationX, translationY });
-        axisGroup.datum = this.getAxisTransform();
-
-        gridLineGroupSelection.each((line) => {
-            line.x1 = gridPadding;
-            line.x2 = -sideFlag * gridLength + gridPadding;
-        });
+        this.axisGroup.datum = this.getAxisTransform();
     }
 
     updateSecondaryAxisTicks(_primaryTickCount: number | undefined): any[] {
@@ -1215,11 +1088,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         }
     ) {
         this.lineNode.datum = lineData;
-        this.gridLineGroupSelection.update(
-            this.gridLength ? data : [],
-            (group) => group.append(new Line()),
-            (datum: TickDatum) => datum.tickId
-        );
         this.tickLineGroupSelection.update(
             data,
             (group) => group.appendChild(new Line()),
@@ -1239,29 +1107,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         this.lineNode.setProperties({
             stroke: line.stroke,
             strokeWidth,
-        });
-    }
-
-    protected updateGridLines(sideFlag: ChartAxisLabelFlipFlag) {
-        const {
-            gridLine: { style, width },
-            gridPadding,
-            gridLength,
-        } = this;
-
-        if (gridLength === 0 || style.length === 0) {
-            return;
-        }
-        this.gridLineGroupSelection.each((line, _, index) => {
-            const { stroke, lineDash } = style[index % style.length];
-            line.setProperties({
-                x1: gridPadding,
-                x2: -sideFlag * gridLength + gridPadding,
-                fill: undefined,
-                stroke,
-                strokeWidth: width,
-                lineDash,
-            });
         });
     }
 
@@ -1308,18 +1153,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         return { tickData, index, autoRotation: 0, terminate: true };
     }
 
-    protected updateTitle(params: { anyTickVisible: boolean }): void {
-        const { rotation, title, _titleCaption, lineNode, tickLineGroup, tickLabelGroup } = this;
-
-        let spacing = 0;
-        if (title.enabled && params.anyTickVisible) {
-            const tickBBox = Group.computeBBox([tickLineGroup, tickLabelGroup, lineNode]);
-            const tickWidth = rotation === 0 ? tickBBox.width : tickBBox.height;
-            spacing += tickWidth + (this.tickLabelGroup.visible ? 0 : this.seriesAreaPadding);
-        }
-        this.setTitleProps(_titleCaption, { spacing });
-    }
-
     // For formatting (nice rounded) tick values.
     formatTick(datum: any, fractionDigits: number, index: number): string {
         return String(this.getFormatter(index, true)(datum, fractionDigits));
@@ -1360,29 +1193,9 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         this.tickLineGroup.setClipRectInGroupCoordinateSpace(new BBox(x, y, width, height));
     }
 
-    clipGrid(x: number, y: number, width: number, height: number) {
-        this.gridGroup.setClipRectInGroupCoordinateSpace(new BBox(x, y, width, height));
-    }
-
     calculatePadding(min: number, max: number): [number, number] {
         const padding = Math.abs(this.reverse ? max : min) * 0.01;
         return [padding, padding];
-    }
-
-    protected getTitleFormatterParams() {
-        const boundSeries = this.boundSeries.reduce<AgAxisCaptionFormatterParams['boundSeries']>((acc, next) => {
-            const keys = next.getKeys(this.direction);
-            const names = next.getNames(this.direction);
-            for (let idx = 0; idx < keys.length; idx++) {
-                acc.push({ key: keys[idx], name: names[idx] });
-            }
-            return acc;
-        }, []);
-        return {
-            direction: this.direction,
-            boundSeries,
-            defaultValue: this.title?.text,
-        };
     }
 
     normaliseDataDomain(d: D[]): { domain: D[]; clipped: boolean } {
@@ -1392,7 +1205,7 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
     getLayoutState(): AxisLayout {
         return {
             rect: this.computeBBox(),
-            gridPadding: this.gridPadding,
+            gridPadding: 0,
             seriesAreaPadding: this.seriesAreaPadding,
             tickSize: this.getTickSize(),
             direction: this.direction,
@@ -1467,15 +1280,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         fromToMotion(this.id, 'line', animationManager, [this.lineNode], fns.line);
         fromToMotion(
             this.id,
-            'line-paths',
-            animationManager,
-            [this.gridLineGroupSelection, this.tickLineGroupSelection],
-            fns.tick,
-            (_, d) => d.tickId,
-            diff
-        );
-        fromToMotion(
-            this.id,
             'tick-labels',
             animationManager,
             [this.tickLabelGroupSelection],
@@ -1486,11 +1290,9 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
     }
 
     protected resetSelectionNodes() {
-        const { gridLineGroupSelection, tickLineGroupSelection, tickLabelGroupSelection, lineNode } = this;
+        const { tickLabelGroupSelection, lineNode } = this;
 
-        const selectionCtx = prepareAxisAnimationContext(this);
         resetMotion([this.axisGroup], resetAxisGroupFn());
-        resetMotion([gridLineGroupSelection, tickLineGroupSelection], resetAxisSelectionFn(selectionCtx));
         resetMotion([tickLabelGroupSelection], resetAxisLabelSelectionFn() as any);
         resetMotion([lineNode], resetAxisLineSelectionFn());
     }

@@ -62,7 +62,6 @@ export class GradientLegend {
     private readonly group: _Scene.Group = new Group({ name: 'legend', layer: true, zIndex: Layers.LEGEND_ZINDEX });
     private readonly gradientRect: _Scene.Rect;
     private readonly gradientFill: _Scene.LinearGradientFill;
-    private readonly axisGridGroup: _Scene.Group;
     private readonly axisGroup: _Scene.Group;
     private readonly arrow: _Scene.Triangle;
 
@@ -106,13 +105,11 @@ export class GradientLegend {
         this.arrow = new Triangle();
         this.group.append(this.arrow);
 
-        this.axisGridGroup = new Group({ name: 'legend-axis-grid-group' });
-        this.group.append(this.axisGridGroup);
         this.axisGroup = new Group({ name: 'legend-axis-group' });
         this.group.append(this.axisGroup);
 
         this.axis = new GradientLegendAxis(ctx);
-        this.axis.attachAxis(this.axisGroup, this.axisGridGroup);
+        this.axis.attachAxis(this.axisGroup);
 
         this.scale = new GradientLegendScale(this.axis);
 
