@@ -59,7 +59,6 @@ type TickStrategy = (params: TickStrategyParams) => TickStrategyResult;
 
 enum TickGenerationType {
     CREATE,
-    CREATE_SECONDARY,
     FILTER,
     VALUES,
 }
@@ -475,8 +474,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
             label: { parallel, rotation, fontFamily, fontSize, fontStyle, fontWeight },
         } = this;
 
-        const secondaryAxis = primaryTickCount !== undefined;
-
         const { defaultRotation, configuredRotation, parallelFlipFlag, regularFlipFlag } = calculateLabelRotation({
             rotation,
             parallel,
@@ -523,7 +520,7 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
             autoRotation = 0;
             textAlign = getTextAlign(parallel, configuredRotation, 0, sideFlag, regularFlipFlag);
 
-            const tickStrategies = this.getTickStrategies({ secondaryAxis, index });
+            const tickStrategies = this.getTickStrategies(index);
 
             for (const strategy of tickStrategies) {
                 ({ tickData, index, autoRotation, terminate } = strategy({
@@ -546,33 +543,24 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
 
         const combinedRotation = defaultRotation + configuredRotation + autoRotation;
 
-        if (!secondaryAxis && tickData.rawTicks.length > 0) {
+        if (tickData.rawTicks.length) {
             primaryTickCount = tickData.rawTicks.length;
         }
 
         return { tickData, primaryTickCount, combinedRotation, textBaseline, textAlign };
     }
 
-    private getTickStrategies({
-        index: iteration,
-        secondaryAxis,
-    }: {
-        index: number;
-        secondaryAxis: boolean;
-    }): TickStrategy[] {
+    private getTickStrategies(iteration: number): TickStrategy[] {
         const { scale, label } = this;
         const { minSpacing } = this.interval;
         const continuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
         const avoidLabelCollisions = label.enabled && label.avoidCollisions;
         const filterTicks = !continuous && iteration !== 0 && avoidLabelCollisions;
-        const autoRotate = label.autoRotate === true && label.rotation === undefined;
 
         const strategies: TickStrategy[] = [];
         let tickGenerationType: TickGenerationType;
         if (this.interval.values) {
             tickGenerationType = TickGenerationType.VALUES;
-        } else if (secondaryAxis) {
-            tickGenerationType = TickGenerationType.CREATE_SECONDARY;
         } else if (filterTicks) {
             tickGenerationType = TickGenerationType.FILTER;
         } else {
@@ -599,15 +587,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
                 this.wrapLabels(tickData, index, textProps);
 
             strategies.push(autoWrapStrategy);
-        } else if (autoRotate) {
-            const autoRotateStrategy = ({ index, tickData, labelOverlap, terminate }: TickStrategyParams) => ({
-                index,
-                tickData,
-                autoRotation: this.getAutoRotation(labelOverlap),
-                terminate,
-            });
-
-            strategies.push(autoRotateStrategy);
         }
 
         return strategies;
@@ -697,10 +676,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         }
 
         return labelData;
-    }
-
-    private getAutoRotation(labelOverlap: boolean): number {
-        return labelOverlap ? normalizeAngle360(toRadians(this.label.autoRotateAngle ?? 0)) : 0;
     }
 
     private getTicks({
@@ -926,23 +901,23 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
     }
 
     private wrapLabels(tickData: TickData, index: number, labelProps: TextSizeProperties): TickStrategyResult {
-        const { parallel, maxWidth, maxHeight } = this.label;
-
-        let defaultMaxWidth = this.maxThickness;
+        let defaultMaxWidth = Infinity;
         let defaultMaxHeight = Math.round(findRangeExtent(this.range) / tickData.labelCount);
 
-        if (parallel) {
+        if (this.label.parallel) {
             [defaultMaxWidth, defaultMaxHeight] = [defaultMaxHeight, defaultMaxWidth];
         }
 
-        tickData.ticks.forEach((tickDatum) => {
+        const { maxWidth = defaultMaxWidth, maxHeight = defaultMaxHeight } = this.label;
+
+        for (const tickDatum of tickData.ticks) {
             tickDatum.tickLabel = TextWrapper.wrapText(tickDatum.tickLabel, {
-                maxWidth: maxWidth ?? defaultMaxWidth,
-                maxHeight: maxHeight ?? defaultMaxHeight,
+                maxWidth,
+                maxHeight,
                 font: labelProps,
                 textWrap: 'hyphenate',
             });
-        });
+        }
 
         return { tickData, index, autoRotation: 0, terminate: true };
     }
@@ -964,15 +939,13 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
             return (datum, fractionDigits) =>
                 callbackCache.call(label.formatter!, { value: datum, index, fractionDigits }) ?? datum;
         } else if (!isTickLabel && datumFormatter) {
-            return (datum) => callbackCache.call(datumFormatter, datum) ?? String(datum);
+            return (datum) => datumFormatter(datum) ?? String(datum);
         } else if (labelFormatter) {
-            return (datum) => callbackCache.call(labelFormatter, datum) ?? String(datum);
+            return (datum) => labelFormatter(datum) ?? String(datum);
         }
         // The axis is using a logScale or the`datum` is an integer, a string or an object
-        return (datum) => String(datum);
+        return String;
     }
-
-    maxThickness: number = Infinity;
 
     computeBBox(): BBox {
         return this.axisGroup.computeBBox();
