@@ -548,7 +548,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         cursorManager.updateCursor(
             'annotations',
-            this.hovered == null ? undefined : annotations.nodes()[this.hovered].getCursor()
+            this.hovered == null ? undefined : annotations.at(this.hovered)?.getCursor()
         );
     }
 
@@ -574,7 +574,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         const datum = annotationData.at(-1);
         this.active = annotationData.length - 1;
-        const node = annotations.nodes()[this.active];
+        const node = annotations.at(this.active);
 
         if (!datum || !node) return;
 
@@ -648,7 +648,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         colorPicker.hide();
 
         if (this.active != null) {
-            annotations.nodes()[this.active].toggleActive(false);
+            annotations.at(this.active)?.toggleActive(false);
         }
 
         this.active = hovered;
@@ -657,8 +657,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (this.active == null) {
             tooltipManager.unsuppressTooltip('annotations');
         } else {
-            const node = annotations.nodes()[this.active];
-            node.toggleActive(true);
+            annotations.at(this.active)?.toggleActive(true);
             tooltipManager.suppressTooltip('annotations');
             this.toggleAnnotationOptionsButtons();
         }
@@ -685,7 +684,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const offset = Vec2.sub(Vec2.fromOffset(event), Vec2.required(seriesRect));
         const point = invertCoords(offset, context);
 
-        const node = active != null ? annotations.nodes()[active] : undefined;
+        const node = active != null ? annotations.at(active) : undefined;
 
         if (!validateDatumPoint(context, point)) {
             return;
@@ -709,7 +708,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (hovered == null || annotationData == null || !this.state.is('idle') || context == null) return;
 
         const datum = annotationData[hovered];
-        const node = annotations.nodes()[hovered];
+        const node = annotations.at(hovered);
         const offset = Vec2.sub(Vec2.fromOffset(event), Vec2.required(seriesRect));
 
         if (LineScene.is(node)) {
@@ -765,7 +764,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         interactionManager.pushState(InteractionState.Annotations);
 
         const datum = annotationData[hovered];
-        const node = annotations.nodes()[hovered];
+        const node = annotations.at(hovered);
         const offset = Vec2.sub(Vec2.fromOffset(event), Vec2.required(seriesRect));
 
         cursorManager.updateCursor('annotations');
@@ -805,7 +804,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (annotationData == null || context == null) return;
 
         const datum = active != null ? annotationData[active] : undefined;
-        const node = active != null ? annotations.nodes()[active] : undefined;
+        const node = active != null ? annotations.at(active) : undefined;
         const offset = Vec2.sub(Vec2.fromOffset(event), Vec2.required(seriesRect));
 
         interactionManager.pushState(InteractionState.Annotations);
@@ -835,7 +834,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (active == null) return;
 
-        annotations.nodes()[active].stopDragging();
+        annotations.at(active)?.stopDragging();
         this.update();
     }
 
@@ -920,7 +919,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private reset() {
         if (this.active != null) {
-            this.annotations.nodes().at(this.active)?.toggleActive(false);
+            this.annotations.at(this.active)?.toggleActive(false);
         }
         this.hovered = undefined;
         this.active = undefined;
