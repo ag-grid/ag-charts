@@ -1,22 +1,12 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-import {
-    Annotation,
-    AnnotationHandle,
-    AnnotationLine,
-    Cappable,
-    Extendable,
-    LineDash,
-    Stroke,
-} from '../annotationProperties';
+import { Annotation, Cappable, Extendable, Handle, Line, LineDash, Stroke } from '../annotationProperties';
 import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { validateDatumLine } from '../annotationUtils';
 
 const { STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
 
-export class LineProperties extends Annotation(
-    AnnotationLine(AnnotationHandle(Cappable(Extendable(Stroke(LineDash(BaseProperties))))))
-) {
+export class LineProperties extends Annotation(Line(Handle(Cappable(Extendable(Stroke(LineDash(BaseProperties))))))) {
     static is(value: unknown): value is LineProperties {
         return isObject(value) && value.type === AnnotationType.Line;
     }

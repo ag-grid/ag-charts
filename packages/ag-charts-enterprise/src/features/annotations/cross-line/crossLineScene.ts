@@ -6,7 +6,7 @@ import { Annotation } from '../scenes/annotationScene';
 import { AxisLabelScene } from '../scenes/axisLabelScene';
 import { UnivariantHandle } from '../scenes/handle';
 import { CollidableLine } from '../scenes/shapes';
-import { type CrossLineAnnotation, HorizontalLineProperties } from './crossLineProperties';
+import { type CrossLineProperties, HorizontalLineProperties } from './crossLineProperties';
 
 const { Vec2 } = _Util;
 const { ChartAxisDirection } = _ModuleSupport;
@@ -36,7 +36,7 @@ export class CrossLineScene extends Annotation {
         this.append([this.line, this.middle]);
     }
 
-    public update(datum: CrossLineAnnotation, context: AnnotationContext) {
+    public update(datum: CrossLineProperties, context: AnnotationContext) {
         const { line, middle } = this;
         const { locked, visible, lineDash, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
         const { seriesRect } = context;
@@ -97,7 +97,7 @@ export class CrossLineScene extends Annotation {
     }
 
     private updateAxisLabel(
-        datum: CrossLineAnnotation,
+        datum: CrossLineProperties,
         axisContext: AnnotationAxisContext,
         { x1, y1, x2, y2 }: LineCoords
     ) {
@@ -145,7 +145,7 @@ export class CrossLineScene extends Annotation {
         this.middle.toggleActive(active);
     }
 
-    public dragStart(datum: CrossLineAnnotation, target: Coords, context: AnnotationContext) {
+    public dragStart(datum: CrossLineProperties, target: Coords, context: AnnotationContext) {
         const middle = HorizontalLineProperties.is(datum)
             ? { x: target.x, y: convert(datum.value, context.yAxis) }
             : { x: convert(datum.value, context.xAxis), y: target.y };
@@ -156,7 +156,7 @@ export class CrossLineScene extends Annotation {
         };
     }
 
-    public drag(datum: CrossLineAnnotation, target: Coords, context: AnnotationContext, onInvalid: () => void) {
+    public drag(datum: CrossLineProperties, target: Coords, context: AnnotationContext, onInvalid: () => void) {
         const { activeHandle, dragState, locked } = this;
 
         if (locked) return;
@@ -224,7 +224,7 @@ export class CrossLineScene extends Annotation {
         return { x: bbox.x + bbox.width, y: bbox.y + bbox.height / 2, position: 'above' as const };
     }
 
-    private convertCrossLine(datum: CrossLineAnnotation, context: AnnotationAxisContext) {
+    private convertCrossLine(datum: CrossLineProperties, context: AnnotationAxisContext) {
         if (datum.value == null) return;
 
         let x1 = 0;
