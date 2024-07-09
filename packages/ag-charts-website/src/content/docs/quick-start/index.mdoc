@@ -172,7 +172,7 @@ Load the AG Charts library and create a blank container div:
 </html>
 ```
 
-**2. Instantiating the JavaScript Chart**
+**2. Instantiate the JavaScript Chart**
 
 Create the Chart inside of your container div using `create`.
 
@@ -217,6 +217,7 @@ const options = {
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
 
+// React Chart Component
 import { AgCharts } from 'ag-charts-react';
 ```
 
@@ -271,7 +272,9 @@ root.render(<ChartExample />);
 ```js
 import { Component } from '@angular/core';
 
+// Angular Chart Component
 import { AgCharts } from 'ag-charts-angular';
+// Chart Options Type Interface
 import { AgChartOptions } from 'ag-charts-community';
 ```
 
@@ -308,7 +311,7 @@ export class AppComponent {
 
 **4. Angular Charts Component**
 
-Chart options is set as an `ag-charts` component attribute.
+Chart options are set as an `ag-charts` component attribute.
 
 ```js
 
@@ -338,9 +341,9 @@ template:
 <script>
     import { ref } from 'vue';
 
+    // Vue Chart Component
     import { AgCharts } from 'ag-charts-vue3';
 
-    // Vue Chart Component
     export default {
         name: 'App',
         components: {
