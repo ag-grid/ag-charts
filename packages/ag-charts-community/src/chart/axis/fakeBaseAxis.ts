@@ -7,7 +7,6 @@ import { ContinuousScale } from '../../scale/continuousScale';
 import { LogScale } from '../../scale/logScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
-import { TimeScale } from '../../scale/timeScale';
 import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import { Matrix } from '../../scene/matrix';
@@ -103,15 +102,6 @@ interface TickGenerationResult {
     textAlign: CanvasTextAlign;
 }
 
-/**
- * A general purpose linear axis with no notion of orientation.
- * The axis is always rendered vertically, with horizontal labels positioned to the left
- * of the axis line by default. The axis can be {@link rotation | rotated} by an arbitrary angle,
- * so that it can be used as a top, right, bottom, left, radial or any other kind
- * of linear axis.
- * The generic `D` parameter is the type of the domain of the axis' scale.
- * The output range of the axis' scale is always numeric (screen coordinates).
- */
 export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> = Scale<any, number, any>, D = any> {
     static readonly defaultTickMinSpacing = 50;
 
@@ -185,7 +175,7 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
     }
 
     attachAxis(axisNode: Node) {
-        axisNode.append([this.axisGroup, this.labelGroup]);
+        axisNode.appendChild(this.axisGroup);
     }
 
     range: [number, number] = [0, 1];
@@ -628,6 +618,7 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         labelMatrix: Matrix
     ): PlacedLabelDatum[] {
         const labelData: PlacedLabelDatum[] = [];
+
         for (const { tickLabel, translationY } of tickData) {
             if (!tickLabel) continue;
 
@@ -656,16 +647,10 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
     }) {
         const { range, scale, visibleRange } = this;
 
-        let rawTicks: any[];
-
-        switch (tickGenerationType) {
-            case TickGenerationType.FILTER:
-                rawTicks = this.filterTicks(previousTicks, tickCount);
-                break;
-            default:
-                rawTicks = this.createTicks(tickCount, minTickCount, maxTickCount);
-                break;
-        }
+        const rawTicks =
+            tickGenerationType === TickGenerationType.FILTER
+                ? this.filterTicks(previousTicks, tickCount)
+                : this.createTicks(tickCount, minTickCount, maxTickCount);
 
         const fractionDigits = rawTicks.reduce((max, tick) => Math.max(max, countFractionDigits(tick)), 0);
         const halfBandwidth = (scale.bandwidth ?? 0) / 2;
@@ -704,10 +689,9 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
 
             ticks.push({ tick, tickId, tickLabel, translationY: Math.floor(translationY) });
 
-            if (tickLabel === '' || tickLabel == null) {
-                continue;
+            if (tickLabel != null && tickLabel !== '') {
+                labelCount++;
             }
-            labelCount++;
         }
 
         return { rawTicks, fractionDigits, ticks, labelCount };
@@ -728,8 +712,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
                 scale.tickCount = tickCount;
                 scale.minTickCount = minTickCount ?? 0;
                 scale.maxTickCount = maxTickCount ?? Infinity;
-            } else if (scale instanceof TimeScale) {
-                this.setTickInterval(tickCount as TickInterval<S>);
             }
         }
 
