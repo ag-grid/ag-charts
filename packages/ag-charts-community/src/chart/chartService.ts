@@ -9,5 +9,5 @@ export interface ChartService {
     readonly mode: ChartMode;
     readonly title?: CaptionLike;
     readonly series: ISeries<any, any>[];
-    readonly publicApi: AgChartInstance;
+    readonly publicApi?: AgChartInstance;
 }

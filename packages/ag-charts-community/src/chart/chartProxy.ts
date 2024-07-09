@@ -15,7 +15,6 @@ import type { DeepPartial } from '../util/types';
 import type { Chart, ChartExtendedOptions } from './chart';
 import { ChartUpdateType } from './chartUpdateType';
 import { isAgCartesianChartOptions } from './mapping/types';
-import { NoopAgChartInstance } from './noopAgChartInstance';
 
 export interface AgChartProxy extends AgChartInstance {
     chart: Chart;
@@ -134,7 +133,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
     }
 
     destroy() {
-        this.chart.publicApi = new NoopAgChartInstance();
+        this.chart.publicApi = undefined;
         this.chart.destroy();
     }
 
