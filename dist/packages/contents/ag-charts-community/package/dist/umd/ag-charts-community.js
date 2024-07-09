@@ -4649,6 +4649,13 @@ var _Group = class _Group2 extends Node {
   computeTransformedBBox() {
     return this.computeBBox();
   }
+  computeTransformedRegionBBox() {
+    if (this.clipRect) {
+      this.computeTransformMatrix();
+      return this.matrix.transformBBox(this.clipRect);
+    }
+    return this.computeTransformedBBox();
+  }
   preRender() {
     var _a, _b;
     const counts = super.preRender();
@@ -10885,7 +10892,7 @@ function buildScheduler(scheduleFn, cb) {
     }
   };
 }
-var VERSION = "10.0.0";
+var VERSION = "10.0.1";
 var MementoCaretaker = class {
   constructor(version) {
     this.version = version.split("-")[0];
@@ -13878,11 +13885,12 @@ var RegionManager = class {
     this.currentRegion = newRegion;
   }
   pickRegion(x, y) {
+    var _a, _b;
     let currentArea = Infinity;
     let currentRegion;
     for (const region of this.regions.values()) {
       for (const provider of region.properties.bboxproviders) {
-        const bbox = provider.computeTransformedBBox();
+        const bbox = (_b = (_a = provider.computeTransformedRegionBBox) == null ? void 0 : _a.call(provider)) != null ? _b : provider.computeTransformedBBox();
         const area2 = bbox.width * bbox.height;
         if (area2 < currentArea && bbox.containsPoint(x, y)) {
           currentArea = area2;
@@ -29954,6 +29962,8 @@ var Sector = class extends Path {
     const sweepAngle = endAngle - startAngle;
     const fullPie = sweepAngle >= 2 * Math.PI - delta3;
     path.clear();
+    if (this.innerRadius === 0 && this.outerRadius === 0)
+      return;
     if (((_a = clipSector == null ? void 0 : clipSector.startAngle) != null ? _a : startAngle) === ((_b = clipSector == null ? void 0 : clipSector.endAngle) != null ? _b : endAngle)) {
       return;
     } else if (fullPie && this.clipSector == null && startOuterCornerRadius === 0 && endOuterCornerRadius === 0 && startInnerCornerRadius === 0 && endInnerCornerRadius === 0) {

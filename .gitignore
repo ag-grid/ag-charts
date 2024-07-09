@@ -10,7 +10,6 @@ plugins/ag-charts-generate-chart-thumbnail/dist/
 plugins/ag-charts-generate-code-reference-files/dist/
 plugins/ag-charts-generate-example-files/dist/
 plugins/ag-charts-task-autogen/dist/
-dist/
 tmp
 
 # dependencies
