@@ -1,10 +1,7 @@
 import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-types';
 
 import type { AxisContext } from '../../module/axisContext';
-import type { ModuleInstance } from '../../module/baseModule';
-import type { ModuleContext, ModuleContextWithParent } from '../../module/moduleContext';
-import { ModuleMap } from '../../module/moduleMap';
-import type { AxisOptionModule } from '../../module/optionsModule';
+import type { ModuleContext } from '../../module/moduleContext';
 import type { FromToDiff } from '../../motion/fromToMotion';
 import { fromToMotion } from '../../motion/fromToMotion';
 import { resetMotion } from '../../motion/resetMotion';
@@ -31,10 +28,9 @@ import { clamp, countFractionDigits, findMinMax, findRangeExtent, round } from '
 import { StateMachine } from '../../util/stateMachine';
 import { type MeasureOptions, TextMeasurer } from '../../util/textMeasurer';
 import { TextWrapper } from '../../util/textWrapper';
-import { BOOLEAN, OBJECT, STRING_ARRAY, Validate } from '../../util/validation';
+import { BOOLEAN, OBJECT, Validate } from '../../util/validation';
 import { Caption } from '../caption';
-import type { ChartAnimationPhase } from '../chartAnimationPhase';
-import type { ChartAxis, ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
+import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { AnimationManager } from '../interaction/animationManager';
 import { type PointerInteractionEvent } from '../interaction/interactionManager';
@@ -129,8 +125,6 @@ interface TickGenerationResult {
 type AxisAnimationState = 'empty' | 'ready';
 type AxisAnimationEvent = 'update' | 'resize' | 'reset';
 
-export type AxisModuleMap = ModuleMap<AxisOptionModule, ModuleInstance, ModuleContextWithParent<AxisContext>>;
-
 /**
  * A general purpose linear axis with no notion of orientation.
  * The axis is always rendered vertically, with horizontal labels positioned to the left
@@ -152,9 +146,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
     @Validate(BOOLEAN)
     reverse: boolean = false;
 
-    @Validate(STRING_ARRAY)
-    keys: string[] = [];
-
     @Validate(OBJECT)
     readonly interval = new AxisInterval();
 
@@ -165,13 +156,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
     }
 
     abstract get direction(): ChartAxisDirection;
-
-    layoutConstraints: ChartAxis['layoutConstraints'] = {
-        stacked: true,
-        align: 'start',
-        width: 100,
-        unit: 'percent',
-    };
 
     boundSeries: ISeries<unknown, unknown>[] = [];
     includeInvisibleDomains: boolean = false;
@@ -274,14 +258,7 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         }
     }
 
-    resetAnimation(phase: ChartAnimationPhase) {
-        if (phase === 'initial') {
-            this.animationState.transition('reset');
-        }
-    }
-
     destroy() {
-        this.moduleMap.destroy();
         this.destroyFns.forEach((f) => f());
     }
 
@@ -302,15 +279,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
 
     attachLabel(axisLabelNode: Node) {
         this.labelGroup.append(axisLabelNode);
-    }
-
-    detachAxis(axisNode: Node) {
-        axisNode.removeChild(this.axisGroup);
-        axisNode.removeChild(this.labelGroup);
-    }
-
-    getAxisGroup(): Group {
-        return this.axisGroup;
     }
 
     range: [number, number] = [0, 1];
@@ -384,7 +352,7 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
     /**
      * Creates/removes/updates the scene graph nodes that constitute the axis.
      */
-    update(_primaryTickCount: number = 0, animated = true): number | undefined {
+    update(_primaryTickCount: number = 0): number | undefined {
         if (!this.tickGenerationResult) {
             return;
         }
@@ -392,7 +360,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
 
         const lineData = this.getAxisLineCoordinates();
         const { tickData, combinedRotation, textBaseline, textAlign, primaryTickCount } = this.tickGenerationResult;
-        const previousTicks = this.tickLabelGroupSelection.nodes().map((node) => node.datum.tickId);
         this.updateSelections(lineData, tickData.ticks, {
             combinedRotation,
             textAlign,
@@ -400,12 +367,7 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
             range: this.scale.range,
         });
 
-        if (!animated || this.animationManager.isSkipped()) {
-            this.resetSelectionNodes();
-        } else {
-            const diff = this.calculateUpdateDiff(previousTicks, tickData);
-            this.animationState.transition('update', diff);
-        }
+        this.resetSelectionNodes();
 
         this.updateAxisLine();
         this.updateLabels();
@@ -724,14 +686,14 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
             tickGenerationType = TickGenerationType.CREATE;
         }
 
-        const tickGenerationStrategy = ({ index, tickData, primaryTickCount, terminate }: TickStrategyParams) =>
-            this.createTickData(tickGenerationType, index, tickData, terminate, primaryTickCount);
+        const tickGenerationStrategy = ({ index, tickData, terminate }: TickStrategyParams) =>
+            this.createTickData(tickGenerationType, index, tickData, terminate);
 
         strategies.push(tickGenerationStrategy);
 
         if (!continuous && !isNaN(minSpacing)) {
-            const tickFilterStrategy = ({ index, tickData, primaryTickCount, terminate }: TickStrategyParams) =>
-                this.createTickData(TickGenerationType.FILTER, index, tickData, terminate, primaryTickCount);
+            const tickFilterStrategy = ({ index, tickData, terminate }: TickStrategyParams) =>
+                this.createTickData(TickGenerationType.FILTER, index, tickData, terminate);
             strategies.push(tickFilterStrategy);
         }
 
@@ -762,8 +724,7 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         tickGenerationType: TickGenerationType,
         index: number,
         tickData: TickData,
-        terminate: boolean,
-        primaryTickCount?: number
+        terminate: boolean
     ): TickStrategyResult {
         const { scale } = this;
         const { step, values, minSpacing, maxSpacing } = this.interval;
@@ -791,7 +752,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
                 tickCount,
                 minTickCount,
                 maxTickCount,
-                primaryTickCount,
             });
 
             tickData.rawTicks = rawTicks;
@@ -856,36 +816,18 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         tickCount,
         minTickCount,
         maxTickCount,
-        primaryTickCount,
     }: {
         tickGenerationType: TickGenerationType;
         previousTicks: TickDatum[];
         tickCount: number;
         minTickCount: number;
         maxTickCount: number;
-        primaryTickCount?: number;
     }) {
         const { range, scale, visibleRange } = this;
 
         let rawTicks: any[];
 
         switch (tickGenerationType) {
-            case TickGenerationType.VALUES:
-                rawTicks = this.interval.values!;
-                if (ContinuousScale.is(scale)) {
-                    const [d0, d1] = findMinMax(scale.getDomain().map(Number));
-                    rawTicks = rawTicks.filter((value) => value >= d0 && value <= d1).sort((a, b) => a - b);
-                }
-                break;
-            case TickGenerationType.CREATE_SECONDARY:
-                if (ContinuousScale.is(scale)) {
-                    // `updateSecondaryAxisTicks` mutates `scale.domain` based on `primaryTickCount`
-                    rawTicks = this.updateSecondaryAxisTicks(primaryTickCount);
-                } else {
-                    // AG-10654 Just use normal ticks for categorical axes.
-                    rawTicks = this.createTicks(tickCount, minTickCount, maxTickCount);
-                }
-                break;
             case TickGenerationType.FILTER:
                 rawTicks = this.filterTicks(previousTicks, tickCount);
                 break;
@@ -1073,10 +1015,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         this.axisGroup.datum = this.getAxisTransform();
     }
 
-    updateSecondaryAxisTicks(_primaryTickCount: number | undefined): any[] {
-        throw new Error('AG Charts - unexpected call to updateSecondaryAxisTicks() - check axes configuration.');
-    }
-
     protected updateSelections(
         lineData: AxisLineDatum,
         data: TickDatum[],
@@ -1158,11 +1096,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         return String(this.getFormatter(index, true)(datum, fractionDigits));
     }
 
-    // For formatting arbitrary values between the ticks.
-    formatDatum(datum: any): string {
-        return String(this.getFormatter()(datum));
-    }
-
     getFormatter(index: number = 0, isTickLabel?: boolean): (datum: any, fractionDigits?: number) => string {
         const {
             label,
@@ -1189,41 +1122,8 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         return this.axisGroup.computeBBox();
     }
 
-    clipTickLines(x: number, y: number, width: number, height: number) {
-        this.tickLineGroup.setClipRectInGroupCoordinateSpace(new BBox(x, y, width, height));
-    }
-
-    calculatePadding(min: number, max: number): [number, number] {
-        const padding = Math.abs(this.reverse ? max : min) * 0.01;
-        return [padding, padding];
-    }
-
     normaliseDataDomain(d: D[]): { domain: D[]; clipped: boolean } {
         return { domain: [...d], clipped: false };
-    }
-
-    getLayoutState(): AxisLayout {
-        return {
-            rect: this.computeBBox(),
-            gridPadding: 0,
-            seriesAreaPadding: this.seriesAreaPadding,
-            tickSize: this.getTickSize(),
-            direction: this.direction,
-            domain: this.dataDomain.domain,
-            scale: this.scale,
-            ...this.layout,
-        };
-    }
-
-    private readonly moduleMap: AxisModuleMap = new ModuleMap();
-
-    getModuleMap(): AxisModuleMap {
-        return this.moduleMap;
-    }
-
-    public createModuleContext(): ModuleContextWithParent<AxisContext> {
-        this.axisContext ??= this.createAxisContext();
-        return { ...this.moduleCtx, parent: this.axisContext };
     }
 
     public createAxisContext(): AxisContext {
@@ -1295,42 +1195,5 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         resetMotion([this.axisGroup], resetAxisGroupFn());
         resetMotion([tickLabelGroupSelection], resetAxisLabelSelectionFn() as any);
         resetMotion([lineNode], resetAxisLineSelectionFn());
-    }
-
-    private calculateUpdateDiff(previous: string[], tickData: TickData) {
-        const added = new Set<string>();
-        const removed = new Set<string>();
-        const tickMap: Record<string, TickData['ticks'][number]> = {};
-        const tickCount = Math.max(previous.length, tickData.ticks.length);
-
-        for (let i = 0; i < tickCount; i++) {
-            const tickDatum = tickData.ticks[i];
-            const prev = previous[i];
-            const tick = tickDatum?.tickId;
-
-            tickMap[tick ?? prev] = tickDatum;
-
-            if (prev === tick) {
-                continue;
-            }
-
-            if (removed.has(tick)) {
-                removed.delete(tick);
-            } else if (tick) {
-                added.add(tick);
-            }
-
-            if (added.has(prev)) {
-                added.delete(prev);
-            } else if (prev) {
-                removed.add(prev);
-            }
-        }
-
-        return { changed: added.size > 0 || removed.size > 0, added, removed };
-    }
-
-    isReversed() {
-        return this.reverse;
     }
 }

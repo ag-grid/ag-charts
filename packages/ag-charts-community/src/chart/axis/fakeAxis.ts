@@ -50,9 +50,9 @@ export abstract class FakeAxis<S extends Scale<D, number, any> = Scale<any, numb
         }
     }
 
-    override update(primaryTickCount?: number, animated?: boolean) {
+    override update(primaryTickCount?: number) {
         this.updateDirection();
-        return super.update(primaryTickCount, animated);
+        return super.update(primaryTickCount);
     }
 
     override calculateLayout(primaryTickCount?: number) {
