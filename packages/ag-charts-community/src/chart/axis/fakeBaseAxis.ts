@@ -209,10 +209,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         axisNode.appendChild(this.labelGroup);
     }
 
-    attachLabel(axisLabelNode: Node) {
-        this.labelGroup.append(axisLabelNode);
-    }
-
     range: [number, number] = [0, 1];
     visibleRange: [number, number] = [0, 1];
 
@@ -867,17 +863,13 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         this.tickLabelGroup.visible = this.label.enabled;
     }
 
-    protected calculateAvailableRange(): number {
-        return findRangeExtent(this.range);
-    }
-
     /**
      * Calculates the available range with an additional "bleed" beyond the canvas that encompasses the full axis when
      * the visible range is only a portion of the axis.
      */
     protected calculateRangeWithBleed() {
         const visibleScale = 1 / findRangeExtent(this.visibleRange);
-        return round(this.calculateAvailableRange() * visibleScale, 2);
+        return round(findRangeExtent(this.range) * visibleScale, 2);
     }
 
     protected getAxisTransform() {
@@ -937,7 +929,7 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
         const { parallel, maxWidth, maxHeight } = this.label;
 
         let defaultMaxWidth = this.maxThickness;
-        let defaultMaxHeight = Math.round(this.calculateAvailableRange() / tickData.labelCount);
+        let defaultMaxHeight = Math.round(findRangeExtent(this.range) / tickData.labelCount);
 
         if (parallel) {
             [defaultMaxWidth, defaultMaxHeight] = [defaultMaxHeight, defaultMaxWidth];
@@ -988,40 +980,6 @@ export abstract class FakeBaseAxis<S extends Scale<D, number, TickInterval<S>> =
 
     normaliseDataDomain(d: D[]): { domain: D[]; clipped: boolean } {
         return { domain: [...d], clipped: false };
-    }
-
-    public createAxisContext(): AxisContext {
-        const { scale } = this;
-        return {
-            axisId: this.id,
-            direction: this.direction,
-            continuous: ContinuousScale.is(scale) || OrdinalTimeScale.is(scale),
-            keys: () => [],
-            seriesKeyProperties: () => [],
-            scaleValueFormatter: (specifier?: string) => this.getScaleValueFormatter(specifier),
-            scaleBandwidth: () => scale.bandwidth ?? 0,
-            scaleDomain: () => scale.getDomain?.(),
-            scaleConvert: (val) => scale.convert(val),
-            scaleInvert: OrdinalTimeScale.is(scale)
-                ? (val) => scale.invertNearest?.(val)
-                : (val) => scale.invert?.(val),
-            scaleInvertNearest: (val) => scale.invertNearest?.(val),
-            attachLabel: (node: Node) => this.attachLabel(node),
-            inRange: (x, tolerance) => this.inRange(x, tolerance),
-        };
-    }
-
-    private getScaleValueFormatter(format?: string) {
-        const { scale } = this;
-        if (format && scale && scale.tickFormat) {
-            try {
-                return scale.tickFormat({ specifier: format });
-            } catch (e) {
-                Logger.warnOnce(`the format string ${format} is invalid, ignoring.`);
-            }
-        }
-
-        return this.getFormatter();
     }
 
     protected resetSelectionNodes() {

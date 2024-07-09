@@ -1,6 +1,5 @@
 import type { AgCartesianAxisPosition } from 'ag-charts-types';
 
-import type { AxisContext } from '../../module/axisContext';
 import type { Scale } from '../../scale/scale';
 import { POSITION, POSITIVE_NUMBER, Validate } from '../../util/validation';
 import { ChartAxisDirection } from '../chartAxisDirection';
@@ -58,12 +57,5 @@ export abstract class FakeAxis<S extends Scale<D, number, any> = Scale<any, numb
     override calculateLayout(primaryTickCount?: number) {
         this.updateDirection();
         return super.calculateLayout(primaryTickCount);
-    }
-
-    override createAxisContext(): AxisContext {
-        return {
-            ...super.createAxisContext(),
-            position: this.position,
-        };
     }
 }
