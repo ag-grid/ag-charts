@@ -1,3 +1,5 @@
+import { beforeEach, describe, expect, jest } from '@jest/globals';
+
 import {
     type OptionsDefs,
     and,
@@ -27,6 +29,10 @@ jest.mock('./logger', () => ({
 }));
 
 describe('Validation', () => {
+    beforeEach(() => {
+        console.warn = jest.fn();
+    });
+
     describe('Base Validators', () => {
         describe('Primitive type validators', () => {
             test.each([
