@@ -671,7 +671,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
     }
 
     override animateWaitingUpdateReady(data: BarAnimationData) {
-        const { datumSelection, labelSelection, annotationSelections, previousContextData } = data;
+        const { datumSelection, phantomSelection, labelSelection, annotationSelections, previousContextData } = data;
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
@@ -684,6 +684,15 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             'nodes',
             this.ctx.animationManager,
             [datumSelection],
+            fns,
+            (_, datum) => createDatumId(datum.xValue, datum.valueIndex),
+            dataDiff
+        );
+        fromToMotion(
+            this.id,
+            'phantom',
+            this.ctx.animationManager,
+            [phantomSelection],
             fns,
             (_, datum) => createDatumId(datum.xValue, datum.valueIndex),
             dataDiff
