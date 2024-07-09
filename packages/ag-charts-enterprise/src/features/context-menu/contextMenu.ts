@@ -18,6 +18,8 @@ type ContextMenuCallback<T extends ContextType> = _ModuleSupport.ContextMenuCall
 const { BOOLEAN, Validate, createElement, initMenuKeyNav, makeAccessibleClickListener, ContextMenuRegistry } =
     _ModuleSupport;
 
+const { Logger } = _Util;
+
 const moduleId = 'context-menu';
 
 function getChildrenOfType<TElem extends Element>(parent: Element, ctor: new () => TElem): TElem[] {
@@ -112,13 +114,15 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             id: 'download',
             type: 'all',
             label: 'contextMenuDownload',
-            action: async () => {
+            action: () => {
                 const title = ctx.chartService.title;
                 let fileName = 'image';
                 if (title?.enabled && title?.text !== undefined) {
                     fileName = title.text;
                 }
-                await this.ctx.chartService.publicApi.download({ fileName });
+                this.ctx.chartService.publicApi?.download({ fileName }).catch((e) => {
+                    Logger.error('Unable to download chart', e);
+                });
             },
         });
 
