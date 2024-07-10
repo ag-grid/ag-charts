@@ -7,8 +7,7 @@ import {
     _Util,
 } from 'ag-charts-community';
 
-const { BOOLEAN, OBJECT, POSITION, POSITIVE_NUMBER, AxisLabel, BaseProperties, Layers, ProxyProperty, Validate } =
-    _ModuleSupport;
+const { BOOLEAN, OBJECT, POSITION, POSITIVE_NUMBER, BaseProperties, Layers, ProxyProperty, Validate } = _ModuleSupport;
 const { BBox, Group, Rect, LinearGradientFill, Triangle } = _Scene;
 const { createId } = _Util;
 
@@ -25,10 +24,9 @@ class GradientLegendAxis extends _ModuleSupport.FakeAxis<_Scale.LinearScale, num
 class GradientLegendScale implements AgGradientLegendScaleOptions {
     constructor(protected axis: GradientLegendAxis) {}
 
-    @Validate(OBJECT)
-    label = new AxisLabel();
+    @ProxyProperty('axis.label')
+    label!: _ModuleSupport.AxisLabel;
 
-    @Validate(OBJECT)
     @ProxyProperty('axis.interval')
     interval!: _ModuleSupport.AxisInterval<number>;
 
@@ -205,10 +203,10 @@ export class GradientLegend {
         axis.range = vertical ? [0, gradientBox.height] : [0, gradientBox.width];
         axis.translation.x = gradientBox.x + (vertical ? gradientBox.width : 0);
         axis.translation.y = gradientBox.y + (vertical ? 0 : gradientBox.height);
-        const axisBox = axis.calculateLayout().bbox;
+        const axisBBox = axis.calculateLayout();
         axis.update();
 
-        return axisBox;
+        return axisBBox;
     }
 
     private updateArrow(gradientBox: _Scene.BBox) {

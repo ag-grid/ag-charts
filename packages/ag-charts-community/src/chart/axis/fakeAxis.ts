@@ -216,9 +216,7 @@ export abstract class FakeAxis<
      */
     update(_primaryTickCount: number = 0): number | undefined {
         this.updateDirection();
-        if (!this.tickGenerationResult) {
-            return;
-        }
+        if (!this.tickGenerationResult) return;
         this.updatePosition();
 
         const lineData = this.getAxisLineCoordinates();
@@ -278,7 +276,7 @@ export abstract class FakeAxis<
 
     private tickGenerationResult: TickGenerationResult | undefined = undefined;
 
-    calculateLayout(primaryTickCount?: number): { primaryTickCount: number | undefined; bbox: BBox } {
+    calculateLayout(primaryTickCount?: number): BBox {
         this.updateDirection();
 
         const { parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
@@ -295,7 +293,7 @@ export abstract class FakeAxis<
             sideFlag,
         });
 
-        const { tickData, combinedRotation, textBaseline, textAlign, ...ticksResult } = this.tickGenerationResult;
+        const { tickData, combinedRotation, textBaseline, textAlign } = this.tickGenerationResult;
 
         const boxes: BBox[] = [];
 
@@ -334,12 +332,7 @@ export abstract class FakeAxis<
         }
 
         const bbox = BBox.merge(boxes);
-        const transformedBBox = this.getTransformBox(bbox);
-
-        return {
-            primaryTickCount: ticksResult.primaryTickCount,
-            bbox: transformedBBox,
-        };
+        return this.getTransformBox(bbox);
     }
 
     private getTransformBox(bbox: BBox) {
