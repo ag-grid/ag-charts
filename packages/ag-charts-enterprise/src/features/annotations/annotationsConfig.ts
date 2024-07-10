@@ -10,7 +10,7 @@ import { LineProperties } from './line/lineProperties';
 import { LineScene } from './line/lineScene';
 import { ParallelChannelProperties } from './parallel-channel/parallelChannelProperties';
 import { ParallelChannelScene } from './parallel-channel/parallelChannelScene';
-import type { Annotation } from './scenes/annotationScene';
+import type { AnnotationScene } from './scenes/annotationScene';
 import { TextProperties } from './text/textProperties';
 import { TextScene } from './text/textScene';
 
@@ -38,7 +38,7 @@ export const annotationDatums: Record<AnnotationType, Constructor<AnnotationProp
     [AnnotationType.Text]: TextProperties,
 };
 
-export const annotationScenes: Record<AnnotationType, Constructor<Annotation>> = {
+export const annotationScenes: Record<AnnotationType, Constructor<AnnotationScene>> = {
     // Lines
     [AnnotationType.Line]: LineScene,
     [AnnotationType.HorizontalLine]: CrossLineScene,
@@ -53,7 +53,7 @@ export const annotationScenes: Record<AnnotationType, Constructor<Annotation>> =
 };
 
 export function updateAnnotation(
-    node: Annotation,
+    node: AnnotationScene,
     datum: AnnotationProperties,
     context: AnnotationContext,
     isActive: boolean,
@@ -93,7 +93,7 @@ export function updateAnnotation(
 }
 
 export function dragStartAnnotation(
-    node: Annotation,
+    node: AnnotationScene,
     datum: AnnotationProperties,
     context: AnnotationContext,
     offset: _Util.Vec2
@@ -121,7 +121,7 @@ export function dragStartAnnotation(
 }
 
 export function dragAnnotation(
-    node: Annotation,
+    node: AnnotationScene,
     datum: AnnotationProperties,
     context: AnnotationContext,
     offset: _Util.Vec2,

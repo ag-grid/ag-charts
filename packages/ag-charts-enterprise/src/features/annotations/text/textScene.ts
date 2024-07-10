@@ -2,13 +2,13 @@ import { _Scene } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords } from '../annotationTypes';
 import { convertPoint, invertCoords, validateDatumPoint } from '../annotationUtils';
-import { Annotation } from '../scenes/annotationScene';
+import { AnnotationScene } from '../scenes/annotationScene';
 import { DivariantHandle } from '../scenes/handle';
 import type { TextProperties } from './textProperties';
 
-export class TextScene extends Annotation {
+export class TextScene extends AnnotationScene {
     static override is(value: unknown): value is TextScene {
-        return Annotation.isCheck(value, 'text');
+        return AnnotationScene.isCheck(value, 'text');
     }
 
     override type = 'text';

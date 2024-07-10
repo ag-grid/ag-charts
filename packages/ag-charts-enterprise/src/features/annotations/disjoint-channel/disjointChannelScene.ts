@@ -2,7 +2,7 @@ import { _Util } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
 import { convertPoint, invertCoords } from '../annotationUtils';
-import { Annotation } from '../scenes/annotationScene';
+import { AnnotationScene } from '../scenes/annotationScene';
 import { ChannelScene } from '../scenes/channelScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
 import type { DisjointChannelProperties } from './disjointChannelProperties';
@@ -13,7 +13,7 @@ type ChannelHandle = keyof DisjointChannelScene['handles'];
 
 export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties> {
     static override is(value: unknown): value is DisjointChannelScene {
-        return Annotation.isCheck(value, 'disjoint-channel');
+        return AnnotationScene.isCheck(value, 'disjoint-channel');
     }
 
     type = 'disjoint-channel';

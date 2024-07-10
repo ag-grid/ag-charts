@@ -2,7 +2,7 @@ import { _Scene } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords } from '../annotationTypes';
 import { convertLine, invertCoords, validateDatumPoint } from '../annotationUtils';
-import { Annotation } from '../scenes/annotationScene';
+import { AnnotationScene } from '../scenes/annotationScene';
 import { DivariantHandle } from '../scenes/handle';
 import { LinearScene } from '../scenes/linearScene';
 import { CollidableLine } from '../scenes/shapes';
@@ -10,7 +10,7 @@ import type { LineProperties } from './lineProperties';
 
 export class LineScene extends LinearScene<LineProperties> {
     static override is(value: unknown): value is LineScene {
-        return Annotation.isCheck(value, 'line');
+        return AnnotationScene.isCheck(value, 'line');
     }
 
     type = 'line';

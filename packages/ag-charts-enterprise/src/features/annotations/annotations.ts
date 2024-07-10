@@ -25,7 +25,7 @@ import {
 } from './annotationsConfig';
 import { AnnotationsStateMachine } from './annotationsStateMachine';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
-import type { Annotation } from './scenes/annotationScene';
+import type { AnnotationScene } from './scenes/annotationScene';
 import { TextProperties } from './text/textProperties';
 
 const {
@@ -100,7 +100,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     // Elements
     private seriesRect?: _Scene.BBox;
     private readonly container = new _Scene.Group({ name: 'static-annotations' });
-    private readonly annotations = new _Scene.Selection<Annotation, AnnotationProperties>(
+    private readonly annotations = new _Scene.Selection<AnnotationScene, AnnotationProperties>(
         this.container,
         this.createAnnotationScene.bind(this)
     );
@@ -527,7 +527,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         node.toggleActive(true);
 
-        const data: StateHoverEvent<AnnotationProperties, Annotation> = { datum, node, point };
+        const data: StateHoverEvent<AnnotationProperties, AnnotationScene> = { datum, node, point };
         this.state.transition('hover', data);
 
         this.update();
@@ -578,7 +578,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             return;
         }
 
-        const data: StateClickEvent<AnnotationProperties, Annotation> = { point };
+        const data: StateClickEvent<AnnotationProperties, AnnotationScene> = { point };
         state.transition('click', data);
 
         this.update();
@@ -637,7 +637,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             return;
         }
 
-        const data: StateClickEvent<AnnotationProperties, Annotation> = { datum, node, point };
+        const data: StateClickEvent<AnnotationProperties, AnnotationScene> = { datum, node, point };
         state.transition('click', data);
 
         this.update();
@@ -732,7 +732,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         interactionManager.pushState(InteractionState.Annotations);
 
         const point = invertCoords(offset, context);
-        const data: StateDragEvent<AnnotationProperties, Annotation> = { datum, node, point };
+        const data: StateDragEvent<AnnotationProperties, AnnotationScene> = { datum, node, point };
 
         state.transition('drag', data);
 
