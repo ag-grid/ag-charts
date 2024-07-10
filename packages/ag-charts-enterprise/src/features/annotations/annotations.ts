@@ -14,23 +14,19 @@ import type {
 } from './annotationTypes';
 import { ANNOTATION_BUTTONS, AnnotationType, stringToAnnotationType } from './annotationTypes';
 import { calculateAxisLabelPadding, invertCoords, validateDatumPoint } from './annotationUtils';
+import {
+    type AnnotationProperties,
+    annotationDatums,
+    annotationScenes,
+    dragAnnotation,
+    dragStartAnnotation,
+    getTypedDatum,
+    updateAnnotation,
+} from './annotationsConfig';
+import { AnnotationsStateMachine } from './annotationsStateMachine';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
-import { HorizontalLineProperties, VerticalLineProperties } from './cross-line/crossLineProperties';
-import { CrossLineScene } from './cross-line/crossLineScene';
-import { CrossLineStateMachine } from './cross-line/crossLineState';
-import { DisjointChannelProperties } from './disjoint-channel/disjointChannelProperties';
-import { DisjointChannelScene } from './disjoint-channel/disjointChannelScene';
-import { DisjointChannelStateMachine } from './disjoint-channel/disjointChannelState';
-import { LineProperties } from './line/lineProperties';
-import { LineScene } from './line/lineScene';
-import { LineStateMachine } from './line/lineState';
-import { ParallelChannelProperties } from './parallel-channel/parallelChannelProperties';
-import { ParallelChannelScene } from './parallel-channel/parallelChannelScene';
-import { ParallelChannelStateMachine } from './parallel-channel/parallelChannelState';
 import type { Annotation } from './scenes/annotationScene';
 import { TextProperties } from './text/textProperties';
-import { TextScene } from './text/textScene';
-import { TextStateMachine } from './text/textState';
 
 const {
     BOOLEAN,
@@ -38,7 +34,6 @@ const {
     Cursor,
     InteractionState,
     PropertiesArray,
-    StateMachine,
     ToolbarManager,
     Validate,
     REGIONS,
@@ -47,15 +42,6 @@ const {
 } = _ModuleSupport;
 const { Vec2 } = _Util;
 
-type Constructor<T = {}> = new (...args: any[]) => T;
-
-type AnnotationProperties =
-    | LineProperties
-    | HorizontalLineProperties
-    | VerticalLineProperties
-    | ParallelChannelProperties
-    | DisjointChannelProperties
-    | TextProperties;
 type AnnotationPropertiesArray = _ModuleSupport.PropertiesArray<AnnotationProperties>;
 
 type AnnotationAxis = {
@@ -64,86 +50,6 @@ type AnnotationAxis = {
     bounds: _Scene.BBox;
     button?: AxisButton;
 };
-
-const annotationDatums: Record<AnnotationType, Constructor<AnnotationProperties>> = {
-    // Lines
-    [AnnotationType.Line]: LineProperties,
-    [AnnotationType.HorizontalLine]: HorizontalLineProperties,
-    [AnnotationType.VerticalLine]: VerticalLineProperties,
-
-    // Channels
-    [AnnotationType.ParallelChannel]: ParallelChannelProperties,
-    [AnnotationType.DisjointChannel]: DisjointChannelProperties,
-
-    // Texts
-    [AnnotationType.Text]: TextProperties,
-};
-
-const annotationScenes: Record<AnnotationType, Constructor<Annotation>> = {
-    // Lines
-    [AnnotationType.Line]: LineScene,
-    [AnnotationType.HorizontalLine]: CrossLineScene,
-    [AnnotationType.VerticalLine]: CrossLineScene,
-
-    // Channels
-    [AnnotationType.DisjointChannel]: DisjointChannelScene,
-    [AnnotationType.ParallelChannel]: ParallelChannelScene,
-
-    // Texts
-    [AnnotationType.Text]: TextScene,
-};
-
-type AnnotationEvent = 'click' | 'hover' | 'drag' | 'input' | 'cancel';
-
-class AnnotationsStateMachine extends StateMachine<'idle', AnnotationType | AnnotationEvent> {
-    override debug = _Util.Debug.create(true, 'annotations');
-
-    constructor(
-        onEnterIdle: () => void,
-        appendDatum: (type: AnnotationType, datum: AnnotationProperties) => void,
-        onExitSingleClick: () => void,
-        validateChildStateDatumPoint: (point: Point) => boolean,
-        showTextInput: () => void,
-        hideTextInput: () => void
-    ) {
-        super('idle', {
-            idle: {
-                onEnter: () => onEnterIdle(),
-
-                // Lines
-                [AnnotationType.Line]: new LineStateMachine((datum) => appendDatum(AnnotationType.Line, datum)),
-                [AnnotationType.HorizontalLine]: new CrossLineStateMachine(
-                    'horizontal',
-                    (datum) => appendDatum(AnnotationType.HorizontalLine, datum),
-                    onExitSingleClick
-                ),
-                [AnnotationType.VerticalLine]: new CrossLineStateMachine(
-                    'vertical',
-                    (datum) => appendDatum(AnnotationType.VerticalLine, datum),
-                    onExitSingleClick
-                ),
-
-                // Channels
-                [AnnotationType.DisjointChannel]: new DisjointChannelStateMachine(
-                    (datum) => appendDatum(AnnotationType.DisjointChannel, datum),
-                    validateChildStateDatumPoint
-                ),
-                [AnnotationType.ParallelChannel]: new ParallelChannelStateMachine(
-                    (datum) => appendDatum(AnnotationType.ParallelChannel, datum),
-                    validateChildStateDatumPoint
-                ),
-
-                // Texts
-                [AnnotationType.Text]: new TextStateMachine(
-                    (datum) => appendDatum(AnnotationType.Text, datum),
-                    onExitSingleClick,
-                    showTextInput,
-                    hideTextInput
-                ),
-            },
-        });
-    }
-}
 
 const AXIS_TYPE = UNION(['x', 'y', 'xy'], 'an axis type');
 
@@ -239,7 +145,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             () => {
                 if (this.active == null) return;
 
-                const datum = this.getTypedDatum(this.annotationData[this.active]);
+                const datum = getTypedDatum(this.annotationData[this.active]);
                 if (!TextProperties.is(datum)) return;
 
                 const styles = {
@@ -390,7 +296,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         switch (event.value) {
             case 'line-color':
                 this.colorPicker.show({
-                    color: this.getTypedDatum(annotationData[active])?.getDefaultColor(),
+                    color: getTypedDatum(annotationData[active])?.getDefaultColor(),
                     onChange: this.onColorPickerChange.bind(this),
                     onClose: this.onColorPickerClose.bind(this),
                 });
@@ -501,7 +407,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             annotationData,
             annotations,
             seriesRect,
-            textInput,
             ctx: { annotationManager, toolbarManager },
         } = this;
 
@@ -520,36 +425,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     return;
                 }
 
-                if (LineProperties.is(datum) && LineScene.is(node)) {
-                    node.update(datum, context);
-                }
-
-                if (DisjointChannelProperties.is(datum) && DisjointChannelScene.is(node)) {
-                    node.update(datum, context);
-                }
-
-                if (
-                    (HorizontalLineProperties.is(datum) || VerticalLineProperties.is(datum)) &&
-                    CrossLineScene.is(node)
-                ) {
-                    node.update(datum, context);
-                }
-
-                if (ParallelChannelProperties.is(datum) && ParallelChannelScene.is(node)) {
-                    node.update(datum, context);
-                }
-
-                if (TextProperties.is(datum) && TextScene.is(node)) {
-                    node.update(datum, context);
-
-                    if (active === index) {
-                        textInput.setLayout({
-                            bbox: node.getTextRect(),
-                            position: datum.position,
-                            alignment: datum.alignment,
-                        });
-                    }
-                }
+                updateAnnotation(node, datum, context, active === index, this.textInput);
 
                 if (active === index) {
                     toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
@@ -780,23 +656,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         const datum = annotationData[hovered];
         const node = annotations.at(hovered);
+        if (!node) return;
+
         const offset = Vec2.sub(Vec2.fromOffset(event), Vec2.required(seriesRect));
 
-        if (LineScene.is(node)) {
-            node.dragStart(datum, offset, context);
-        }
-
-        if (CrossLineScene.is(node)) {
-            node.dragStart(datum, offset, context);
-        }
-
-        if (DisjointChannelScene.is(node)) {
-            node.dragStart(datum, offset, context);
-        }
-
-        if (ParallelChannelScene.is(node)) {
-            node.dragStart(datum, offset, context);
-        }
+        dragStartAnnotation(node, datum, context, offset);
     }
 
     private onDrag(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
@@ -836,31 +700,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         const datum = annotationData[hovered];
         const node = annotations.at(hovered);
+        if (!node) return;
+
         const offset = Vec2.sub(Vec2.fromOffset(event), Vec2.required(seriesRect));
 
         cursorManager.updateCursor('annotations');
-
         const onDragInvalid = () => cursorManager.updateCursor('annotations', Cursor.NotAllowed);
 
-        if (LineProperties.is(datum) && LineScene.is(node)) {
-            node.drag(datum, offset, context, onDragInvalid);
-        }
-
-        if ((HorizontalLineProperties.is(datum) || VerticalLineProperties.is(datum)) && CrossLineScene.is(node)) {
-            node.drag(datum, offset, context, onDragInvalid);
-        }
-
-        if (DisjointChannelProperties.is(datum) && DisjointChannelScene.is(node)) {
-            node.drag(datum, offset, context, onDragInvalid);
-        }
-
-        if (ParallelChannelProperties.is(datum) && ParallelChannelScene.is(node)) {
-            node.drag(datum, offset, context, onDragInvalid);
-        }
-
-        if (TextProperties.is(datum) && TextScene.is(node)) {
-            node.drag(datum, offset, context, onDragInvalid);
-        }
+        dragAnnotation(node, datum, context, offset, onDragInvalid);
 
         this.update();
     }
@@ -968,19 +815,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         toolbarManager.toggleButton('annotationOptions', 'delete', { enabled: !locked });
         toolbarManager.toggleButton('annotationOptions', 'lock', { visible: !locked });
         toolbarManager.toggleButton('annotationOptions', 'unlock', { visible: locked });
-    }
-
-    private getTypedDatum(datum: unknown) {
-        if (
-            LineProperties.is(datum) ||
-            HorizontalLineProperties.is(datum) ||
-            VerticalLineProperties.is(datum) ||
-            DisjointChannelProperties.is(datum) ||
-            ParallelChannelProperties.is(datum) ||
-            TextProperties.is(datum)
-        ) {
-            return datum;
-        }
     }
 
     private colorDatum(datum: AnnotationProperties, color: string) {
