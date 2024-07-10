@@ -9,12 +9,12 @@ import { Layers } from '../layers';
 import type { LayoutCompleteEvent } from '../layout/layoutService';
 
 export class Background<TImage = never> extends BaseModuleInstance implements ModuleInstance {
-    protected readonly node = new Group({ name: 'background', zIndex: Layers.SERIES_BACKGROUND_ZINDEX });
+    protected readonly node;
     protected readonly rectNode = new Rect();
 
     @Validate(BOOLEAN)
     @ProxyPropertyOnWrite('node', 'visible')
-    visible: boolean = true;
+    visible: boolean;
 
     @Validate(COLOR_STRING, { optional: true })
     @ProxyPropertyOnWrite('rectNode', 'fill')
@@ -24,10 +24,18 @@ export class Background<TImage = never> extends BaseModuleInstance implements Mo
     @Validate(OBJECT, { optional: true })
     image?: TImage;
 
-    constructor(ctx: ModuleContext) {
+    constructor(
+        ctx: ModuleContext,
+        private readonly zIndex: number = Layers.SERIES_BACKGROUND_ZINDEX,
+        private readonly layer: boolean = false
+    ) {
         super();
 
+        this.node = new Group({ name: 'background', zIndex: this.zIndex, layer: this.layer });
+
         this.node.appendChild(this.rectNode);
+
+        this.visible = true;
 
         this.destroyFns.push(
             ctx.scene.attachNode(this.node),
