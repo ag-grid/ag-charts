@@ -261,9 +261,10 @@ export class DataController {
 
     private static mergeIdsMap(fromMap: Map<string, Set<string>>, toMap: Map<string, Set<string>>) {
         for (const [scope, ids] of fromMap) {
-            if (toMap.has(scope)) {
+            const toMapValue = toMap.get(scope);
+            if (toMapValue != null) {
                 for (const id of ids) {
-                    toMap.get(scope)!.add(id);
+                    toMapValue.add(id);
                 }
             } else {
                 toMap.set(scope, new Set(ids));

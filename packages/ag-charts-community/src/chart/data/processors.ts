@@ -9,7 +9,6 @@ import type {
     GroupValueProcessorDefinition,
     ProcessedData,
     ProcessorOutputPropertyDefinition,
-    PropertyId,
     PropertyValueProcessorDefinition,
     ReducerOutputPropertyDefinition,
 } from './dataModel';
@@ -153,7 +152,7 @@ function normalisePropertyFnBuilder({
 }
 
 export function normalisePropertyTo(
-    property: PropertyId<any>,
+    property: string,
     normaliseTo: [number, number],
     zeroDomain: number,
     rangeMin?: number,
