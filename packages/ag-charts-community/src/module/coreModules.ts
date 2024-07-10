@@ -67,7 +67,6 @@ export interface SeriesModule<
     tooltipDefaults: SeriesTooltipDefaults;
     defaultAxes?: SeriesDefaultAxes<SeriesType>;
     themeTemplate: ExtensibleTheme<SeriesType>;
-    enterpriseThemeTemplate?: ExtensibleTheme<SeriesType>;
     paletteFactory?: SeriesPaletteFactory<SeriesType>;
     solo?: boolean;
     stackable?: boolean;

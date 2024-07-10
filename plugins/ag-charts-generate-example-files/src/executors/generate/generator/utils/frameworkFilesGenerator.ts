@@ -47,43 +47,6 @@ type ConfigGenerator = ({
     isDev: boolean;
 }) => Promise<FrameworkFiles>;
 
-const createVueFilesGenerator =
-    ({
-        sourceGenerator,
-        internalFramework,
-    }: {
-        sourceGenerator: (bindings: any, componentFilenames: string[]) => Promise<string>;
-        internalFramework: InternalFramework;
-    }): ConfigGenerator =>
-    async ({ bindings, indexHtml, otherScriptFiles, isDev, ignoreDarkMode }) => {
-        const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
-
-        let mainJs = await sourceGenerator(deepCloneObject(bindings), []);
-
-        // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
-        if (!ignoreDarkMode) {
-            mainJs = mainJs + '\n' + getDarkModeSnippet();
-        }
-
-        mainJs = await prettier.format(mainJs, { parser: 'babel' });
-
-        const entryFileName = getEntryFileName(internalFramework)!;
-        const mainFileName = getMainFileName(internalFramework)!;
-
-        return {
-            files: {
-                ...otherScriptFiles,
-                [entryFileName]: mainJs,
-                'index.html': indexHtml,
-            },
-            boilerPlateFiles,
-            // Other files, not including entry file
-            scriptFiles: Object.keys(otherScriptFiles),
-            entryFileName,
-            mainFileName,
-        };
-    };
-
 export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator> = {
     vanilla: async ({ entryFile, indexHtml, typedBindings, otherScriptFiles, ignoreDarkMode }) => {
         const internalFramework: InternalFramework = 'vanilla';
@@ -128,7 +91,10 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainJs = mainJs + '\n\n' + getDarkModeSnippet({ chartAPI: 'AgCharts' });
         }
 
-        mainJs = await prettier.format(mainJs, { parser: 'babel' });
+        mainJs = await prettier.format(mainJs, {
+            parser: 'babel',
+            embeddedLanguageFormatting: 'off',
+        });
 
         return {
             files: {
@@ -174,7 +140,10 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainTs = mainTs + '\n' + getDarkModeSnippet({ chartAPI });
         }
 
-        mainTs = await prettier.format(mainTs, { parser: 'typescript' });
+        mainTs = await prettier.format(mainTs, {
+            parser: 'typescript',
+            embeddedLanguageFormatting: 'off',
+        });
 
         return {
             files: {
@@ -201,7 +170,10 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             indexJsx = indexJsx + '\n' + getDarkModeSnippet();
         }
 
-        indexJsx = await prettier.format(indexJsx, { parser: 'babel' });
+        indexJsx = await prettier.format(indexJsx, {
+            parser: 'babel',
+            embeddedLanguageFormatting: 'off',
+        });
 
         return {
             files: {
@@ -229,7 +201,10 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             indexTsx = indexTsx + '\n' + getDarkModeSnippet();
         }
 
-        indexTsx = await prettier.format(indexTsx, { parser: 'typescript' });
+        indexTsx = await prettier.format(indexTsx, {
+            parser: 'typescript',
+            embeddedLanguageFormatting: 'off',
+        });
 
         return {
             files: {
@@ -256,7 +231,10 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             appComponent = appComponent + '\n' + getDarkModeSnippet();
         }
 
-        appComponent = await prettier.format(appComponent, { parser: 'typescript' });
+        appComponent = await prettier.format(appComponent, {
+            parser: 'typescript',
+            embeddedLanguageFormatting: 'off',
+        });
 
         return {
             files: {
@@ -273,8 +251,36 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    vue3: createVueFilesGenerator({
-        sourceGenerator: vanillaToVue3,
-        internalFramework: 'vue3',
-    }),
+    vue3: async ({ bindings, indexHtml, otherScriptFiles, isDev, ignoreDarkMode }) => {
+        const internalFramework: InternalFramework = 'vue3';
+        const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
+
+        let mainJs = await vanillaToVue3(deepCloneObject(bindings), []);
+
+        // add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
+        if (!ignoreDarkMode) {
+            mainJs = mainJs + '\n' + getDarkModeSnippet();
+        }
+
+        mainJs = await prettier.format(mainJs, {
+            parser: 'babel',
+            embeddedLanguageFormatting: 'off',
+        });
+
+        const entryFileName = getEntryFileName(internalFramework)!;
+        const mainFileName = getMainFileName(internalFramework)!;
+
+        return {
+            files: {
+                ...otherScriptFiles,
+                [entryFileName]: mainJs,
+                'index.html': indexHtml,
+            },
+            boilerPlateFiles,
+            // Other files, not including entry file
+            scriptFiles: Object.keys(otherScriptFiles),
+            entryFileName,
+            mainFileName,
+        };
+    },
 };

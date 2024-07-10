@@ -9,7 +9,6 @@ import type {
 
 import type { SeriesConstructor, SeriesModule, SeriesTooltipDefaults } from '../../module/coreModules';
 import type { SeriesPaletteFactory } from '../../module/coreModulesTypes';
-import { enterpriseModule } from '../../module/enterpriseModule';
 import type { ModuleContext } from '../../module/moduleContext';
 import { deepClone } from '../../util/json';
 import { mergeDefaults } from '../../util/object';
@@ -38,7 +37,7 @@ interface SeriesRegistryRecord {
 
 export class SeriesRegistry {
     private readonly seriesMap = new Map<SeriesType, SeriesRegistryRecord>();
-    private readonly themeTemplates = new Map<string, { community: object; enterprise: object }>();
+    private readonly themeTemplates = new Map<string, object>();
 
     register(
         seriesType: NonNullable<SeriesType>,
@@ -48,7 +47,6 @@ export class SeriesRegistry {
             tooltipDefaults,
             defaultAxes,
             themeTemplate,
-            enterpriseThemeTemplate,
             paletteFactory,
             solo,
             stackable,
@@ -58,7 +56,7 @@ export class SeriesRegistry {
             hidden,
         }: SeriesModule<any, any>
     ) {
-        this.setThemeTemplate(seriesType, themeTemplate, enterpriseThemeTemplate);
+        this.setThemeTemplate(seriesType, themeTemplate);
         this.seriesMap.set(seriesType, {
             instanceConstructor,
             tooltipDefaults,
@@ -89,17 +87,13 @@ export class SeriesRegistry {
         return defaultAxes ? { axes: deepClone(defaultAxes) } : null;
     }
 
-    setThemeTemplate(seriesType: NonNullable<SeriesType>, themeTemplate: {}, enterpriseThemeTemplate = {}) {
+    setThemeTemplate(seriesType: NonNullable<SeriesType>, themeTemplate: {}) {
         const currentTemplate = this.themeTemplates.get(seriesType);
-        this.themeTemplates.set(seriesType, {
-            community: mergeDefaults(themeTemplate, currentTemplate?.community),
-            enterprise: mergeDefaults(enterpriseThemeTemplate, themeTemplate, currentTemplate?.community),
-        });
+        this.themeTemplates.set(seriesType, mergeDefaults(themeTemplate, currentTemplate));
     }
 
     getThemeTemplate(seriesType: string) {
-        const themeTemplate = this.themeTemplates.get(seriesType);
-        return enterpriseModule.isEnterprise ? themeTemplate?.enterprise : themeTemplate?.community;
+        return this.themeTemplates.get(seriesType);
     }
 
     getPaletteFactory(seriesType: SeriesType) {

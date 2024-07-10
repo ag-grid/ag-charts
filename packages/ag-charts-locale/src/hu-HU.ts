@@ -1,5 +1,5 @@
 export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
-    ariaAnnounceChart: 'diagram, ${seriesCount}[number] sorozat, ${caption}',
+    ariaAnnounceChart: 'diagram, ${seriesCount}[number] sorozat',
     ariaAnnounceFlowProportionLink:
         'hivatkozás ${index} a(z) ${count} közül, ${from}-tól ${to}-ig, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: '${count} közül ${index} csomópont, ${description}',
@@ -9,6 +9,7 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     ariaAnnounceVisible: 'látható',
     ariaLabelAnnotationOptionsToolbar: 'Jelölési lehetőségek',
     ariaLabelAnnotationsToolbar: 'Jelölések',
+    ariaLabelColorPicker: 'Színválasztó',
     ariaLabelLegend: 'Jelmagyarázat',
     ariaLabelLegendItem: '${label}, Jelmagyarázat elem ${index}[number] a(z) ${count}[number] közül, ',
     ariaLabelLegendItemUnknown: 'Ismeretlen jelmagyarázati elem',

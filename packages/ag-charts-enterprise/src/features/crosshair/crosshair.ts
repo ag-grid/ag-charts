@@ -218,8 +218,9 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.activeHighlight = hasCrosshair ? event.currentHighlight : undefined;
 
         if (this.snap) {
+            this.hideCrosshairs();
+
             if (!this.visible || !this.activeHighlight) {
-                this.hideCrosshairs();
                 return;
             }
 
@@ -229,6 +230,10 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
             crosshairGroup.visible = true;
         }
+    }
+
+    private isInRange(value: number) {
+        return this.axisCtx.inRange(value);
     }
 
     private updatePositions(data: { [key: string]: { value: any; position: number } }) {
@@ -294,26 +299,29 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         const isYKey = seriesKeyProperties.indexOf('yKey') > -1 && matchingAxisId;
         const isXKey = seriesKeyProperties.indexOf('xKey') > -1 && matchingAxisId;
 
-        if (isYKey && aggregatedValue !== undefined) {
-            return {
-                yKey: { value: aggregatedValue!, position: axisCtx.scaleConvert(aggregatedValue) + halfBandwidth },
-            };
-        }
-
-        if (isYKey && cumulativeValue !== undefined) {
-            return {
-                yKey: { value: cumulativeValue, position: axisCtx.scaleConvert(cumulativeValue) + halfBandwidth },
-            };
+        const datumValue = aggregatedValue ?? cumulativeValue;
+        if (isYKey && datumValue !== undefined) {
+            const position = axisCtx.scaleConvert(datumValue) + halfBandwidth;
+            const isInRange = this.isInRange(position);
+            return isInRange
+                ? {
+                      yKey: { value: datumValue, position },
+                  }
+                : {};
         }
 
         if (isXKey) {
             const position = (this.isVertical() ? midPoint?.x : midPoint?.y) ?? 0;
-            return {
-                xKey: {
-                    value: axisCtx.continuous ? axisCtx.scaleInvert(position) : datum[xKey],
-                    position,
-                },
-            };
+            const value = axisCtx.continuous ? axisCtx.scaleInvert(position) : datum[xKey];
+            const isInRange = this.isInRange(position);
+            return isInRange
+                ? {
+                      xKey: {
+                          value,
+                          position,
+                      },
+                  }
+                : {};
         }
 
         const activeHighlightData: Record<string, { position: number; value: any }> = {};
@@ -322,7 +330,11 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             const keyValue = series.properties[key];
             const value = datum[keyValue];
             const position = axisCtx.scaleConvert(value) + halfBandwidth;
-            activeHighlightData[key] = { value, position };
+            const isInRange = this.isInRange(position);
+
+            if (isInRange) {
+                activeHighlightData[key] = { value, position };
+            }
         });
 
         return activeHighlightData;

@@ -270,6 +270,8 @@ export class Sector extends Path {
 
         path.clear();
 
+        if (this.innerRadius === 0 && this.outerRadius === 0) return;
+
         if ((clipSector?.startAngle ?? startAngle) === (clipSector?.endAngle ?? endAngle)) {
             return;
         } else if (

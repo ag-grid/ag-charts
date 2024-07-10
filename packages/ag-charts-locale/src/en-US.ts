@@ -6,7 +6,7 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     // Screen reader announcement when focusing an item in the chart
     ariaAnnounceHoverDatum: '${datum}',
     // Screen reader announcement when focusing a chart
-    ariaAnnounceChart: 'chart, ${seriesCount}[number] series, ${caption}',
+    ariaAnnounceChart: 'chart, ${seriesCount}[number] series',
     // Screen reader announcement when focusing an item in a treemap or sunburst chart
     ariaAnnounceHierarchyDatum: 'level ${level}[number], ${count}[number] children, ${description}',
     // Screen reader announcement when focusing a link in a Sankey or chord chart
@@ -17,6 +17,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaLabelAnnotationsToolbar: 'Annotations',
     // Screen reader text for annotation-options toolbar
     ariaLabelAnnotationOptionsToolbar: 'Annotation Options',
+    // Screen reader text for the color picker dialog
+    ariaLabelColorPicker: 'Color picker',
     // Screen reader text for the legend toolbar
     ariaLabelLegend: 'Legend',
     // Screen reader text for the legend pagination button

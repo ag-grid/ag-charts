@@ -80,11 +80,12 @@ export interface AgToolbarAnnotationsButton extends AgToolbarButton {
 }
 
 export type AgToolbarAnnotationsButtonValue =
+    | 'line'
     | 'horizontal-line'
     | 'vertical-line'
-    | 'line'
     | 'parallel-channel'
     | 'disjoint-channel'
+    | 'text'
     | 'clear';
 
 /* Annotation Options */

@@ -1,5 +1,5 @@
 export const AG_CHARTS_LOCALE_HR_HR: Record<string, string> = {
-    ariaAnnounceChart: 'grafikon, ${seriesCount}[number] serije, ${caption}',
+    ariaAnnounceChart: 'grafikon, ${seriesCount}[number] serije',
     ariaAnnounceFlowProportionLink: 'veza ${index} od ${count}, od ${from} do ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'čvor ${index} od ${count}, ${description}',
     ariaAnnounceHidden: 'skriveno',
@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_HR_HR: Record<string, string> = {
     ariaAnnounceVisible: 'vidljivo',
     ariaLabelAnnotationOptionsToolbar: 'Opcije komentara',
     ariaLabelAnnotationsToolbar: 'Bilješke',
+    ariaLabelColorPicker: 'Birač boja',
     ariaLabelLegend: 'Legenda',
     ariaLabelLegendItem: '${label}, Stavka legende ${index}[number] od ${count}[number], ',
     ariaLabelLegendItemUnknown: 'Nepoznata stavka legende',

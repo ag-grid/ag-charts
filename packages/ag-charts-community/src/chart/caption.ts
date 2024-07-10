@@ -21,6 +21,8 @@ import {
     Validate,
 } from '../util/validation';
 import type { CaptionLike } from './captionLike';
+import type { BoundedText } from './dom/boundedText';
+import type { ProxyInteractionService } from './dom/proxyInteractionService';
 import type { PointerInteractionEvent } from './interaction/interactionManager';
 import { toTooltipHtml } from './tooltip/tooltip';
 
@@ -85,9 +87,13 @@ export class Caption extends BaseProperties implements CaptionLike {
     @Validate(STRING)
     layoutStyle: 'block' | 'overlay' = 'block';
 
+    private proxyText?: BoundedText;
+
     registerInteraction(moduleCtx: ModuleContext) {
-        const region = moduleCtx.regionManager.getRegion('root');
+        const { regionManager, proxyInteractionService, layoutService } = moduleCtx;
+        const region = regionManager.getRegion('root');
         const destroyFns = [
+            layoutService.addListener('layout-complete', () => this.updateA11yText(proxyInteractionService)),
             region.addListener('hover', (event) => this.handleMouseMove(moduleCtx, event)),
             region.addListener('leave', (event) => this.handleMouseLeave(moduleCtx, event)),
         ];
@@ -106,6 +112,21 @@ export class Caption extends BaseProperties implements CaptionLike {
         const wrappedText = TextWrapper.wrapText(text ?? '', { maxWidth, maxHeight, font: this, textWrap: wrapping });
         this.node.text = wrappedText;
         this.truncated = wrappedText.includes(TextMeasurer.EllipsisChar);
+    }
+
+    updateA11yText(proxyService: ProxyInteractionService) {
+        if (this.enabled && this.text) {
+            const bbox = this.node.computeTransformedBBox();
+            if (bbox) {
+                const { id } = this;
+                this.proxyText ??= proxyService.createProxyElement({ type: 'text', id, parent: 'canvas-proxy' });
+                this.proxyText.textContent = this.text;
+                this.proxyText.updateBounds(bbox);
+            }
+        } else {
+            this.proxyText?.remove();
+            this.proxyText = undefined;
+        }
     }
 
     handleMouseMove(moduleCtx: ModuleContext, event: PointerInteractionEvent<'hover'>) {

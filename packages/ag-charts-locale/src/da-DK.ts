@@ -1,5 +1,5 @@
 export const AG_CHARTS_LOCALE_DA_DK: Record<string, string> = {
-    ariaAnnounceChart: 'diagram, ${seriesCount}[number] serier, ${caption}',
+    ariaAnnounceChart: 'diagram, ${seriesCount}[number] serier',
     ariaAnnounceFlowProportionLink: 'link ${index} af ${count}, fra ${from} til ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'node ${index} af ${count}, ${description}',
     ariaAnnounceHidden: 'skjult',
@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_DA_DK: Record<string, string> = {
     ariaAnnounceVisible: 'synlig',
     ariaLabelAnnotationOptionsToolbar: 'Annotationmuligheder',
     ariaLabelAnnotationsToolbar: 'Annotationer',
+    ariaLabelColorPicker: 'Farvevælger',
     ariaLabelLegend: 'Forklaring',
     ariaLabelLegendItem: '${label}, Forklaringspost ${index}[number] af ${count}[number], ',
     ariaLabelLegendItemUnknown: 'Ukendt element i legenden',

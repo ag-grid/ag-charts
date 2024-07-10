@@ -1,5 +1,5 @@
 export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
-    ariaAnnounceChart: 'biểu đồ, ${seriesCount}[number] dãy, ${caption}',
+    ariaAnnounceChart: 'biểu đồ, ${seriesCount}[number] dãy',
     ariaAnnounceFlowProportionLink: 'liên kết ${index} của ${count}, từ ${from} đến ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'nút ${index} của ${count}, ${description}',
     ariaAnnounceHidden: 'ẩn',
@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     ariaAnnounceVisible: 'hiển thị',
     ariaLabelAnnotationOptionsToolbar: 'Tùy chọn Chú thích',
     ariaLabelAnnotationsToolbar: 'Chú thích',
+    ariaLabelColorPicker: 'Trình chọn màu',
     ariaLabelLegend: 'Chú giải',
     ariaLabelLegendItem: '${label}, Mục chú giải ${index}[number] trong số ${count}[number], ',
     ariaLabelLegendItemUnknown: 'Mục chú giải không xác định',

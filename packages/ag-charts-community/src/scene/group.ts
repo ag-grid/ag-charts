@@ -141,6 +141,15 @@ export class Group extends Node {
         return this.computeBBox();
     }
 
+    computeTransformedRegionBBox(): BBox {
+        if (this.clipRect) {
+            this.computeTransformMatrix();
+            return this.matrix.transformBBox(this.clipRect);
+        }
+
+        return this.computeTransformedBBox();
+    }
+
     private lastBBox?: BBox = undefined;
 
     override preRender(): ChildNodeCounts {

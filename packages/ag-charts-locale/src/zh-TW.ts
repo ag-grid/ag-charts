@@ -1,5 +1,5 @@
 export const AG_CHARTS_LOCALE_ZH_TW: Record<string, string> = {
-    ariaAnnounceChart: '圖表，${seriesCount}[number] 系列，${caption}',
+    ariaAnnounceChart: '圖表，${seriesCount}[number] 系列',
     ariaAnnounceFlowProportionLink: '連結 ${index} / ${count}，從 ${from} 到 ${to}，${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: '節點 ${index} 之 ${count}, ${description}',
     ariaAnnounceHidden: '隱藏',
@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_ZH_TW: Record<string, string> = {
     ariaAnnounceVisible: '可見',
     ariaLabelAnnotationOptionsToolbar: '註解選項',
     ariaLabelAnnotationsToolbar: '註釋',
+    ariaLabelColorPicker: '顏色選擇器',
     ariaLabelLegend: '圖例',
     ariaLabelLegendItem: '${label}，圖例項目 ${index}[number] 共 ${count}[number]，',
     ariaLabelLegendItemUnknown: '未知的圖例項目',

@@ -18,6 +18,8 @@ type ContextMenuCallback<T extends ContextType> = _ModuleSupport.ContextMenuCall
 const { BOOLEAN, Validate, createElement, initMenuKeyNav, makeAccessibleClickListener, ContextMenuRegistry } =
     _ModuleSupport;
 
+const { Logger } = _Util;
+
 const moduleId = 'context-menu';
 
 function getChildrenOfType<TElem extends Element>(parent: Element, ctor: new () => TElem): TElem[] {
@@ -57,7 +59,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     public extraLegendItemActions: NonNullable<AgContextMenuOptions['extraLegendItemActions']> = [];
 
     // Module context
-    private readonly scene: _Scene.Scene;
     private readonly interactionManager: _ModuleSupport.InteractionManager;
     private readonly registry: _ModuleSupport.ContextMenuRegistry;
 
@@ -82,7 +83,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         // Module context
         this.interactionManager = ctx.interactionManager;
         this.registry = ctx.contextMenuRegistry;
-        this.scene = ctx.scene;
 
         const { All } = _ModuleSupport.InteractionState;
         this.destroyFns.push(ctx.regionManager.listenAll('click', (_region) => this.onClick(), All));
@@ -120,7 +120,9 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                 if (title?.enabled && title?.text !== undefined) {
                     fileName = title.text;
                 }
-                this.scene.download(fileName);
+                this.ctx.chartService.publicApi?.download({ fileName }).catch((e) => {
+                    Logger.error('Unable to download chart', e);
+                });
             },
         });
 

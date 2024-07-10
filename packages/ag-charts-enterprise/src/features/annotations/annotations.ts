@@ -13,19 +13,21 @@ import type {
 import { ANNOTATION_BUTTONS, AnnotationType, stringToAnnotationType } from './annotationTypes';
 import { calculateAxisLabelPadding, invertCoords, validateDatumPoint } from './annotationUtils';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
-import { HorizontalLineAnnotation, VerticalLineAnnotation } from './cross-line/crossLineProperties';
-import { CrossLine } from './cross-line/crossLineScene';
+import { HorizontalLineProperties, VerticalLineProperties } from './cross-line/crossLineProperties';
+import { CrossLineScene } from './cross-line/crossLineScene';
 import { CrossLineStateMachine } from './cross-line/crossLineState';
-import { DisjointChannelAnnotation } from './disjoint-channel/disjointChannelProperties';
-import { DisjointChannel } from './disjoint-channel/disjointChannelScene';
+import { DisjointChannelProperties } from './disjoint-channel/disjointChannelProperties';
+import { DisjointChannelScene } from './disjoint-channel/disjointChannelScene';
 import { DisjointChannelStateMachine } from './disjoint-channel/disjointChannelState';
-import { LineAnnotation } from './line/lineProperties';
-import { Line } from './line/lineScene';
+import { LineProperties } from './line/lineProperties';
+import { LineScene } from './line/lineScene';
 import { LineStateMachine } from './line/lineState';
-import { ParallelChannelAnnotation } from './parallel-channel/parallelChannelProperties';
-import { ParallelChannel } from './parallel-channel/parallelChannelScene';
+import { ParallelChannelProperties } from './parallel-channel/parallelChannelProperties';
+import { ParallelChannelScene } from './parallel-channel/parallelChannelScene';
 import { ParallelChannelStateMachine } from './parallel-channel/parallelChannelState';
-import type { Annotation } from './scenes/annotation';
+import type { Annotation } from './scenes/annotationScene';
+import { TextProperties } from './text/textProperties';
+import { TextScene } from './text/textScene';
 
 const {
     BOOLEAN,
@@ -44,13 +46,13 @@ const { Vec2 } = _Util;
 
 type Constructor<T = {}> = new (...args: any[]) => T;
 
-type AnnotationScene = Line | CrossLine | DisjointChannel | ParallelChannel;
 type AnnotationProperties =
-    | LineAnnotation
-    | HorizontalLineAnnotation
-    | VerticalLineAnnotation
-    | ParallelChannelAnnotation
-    | DisjointChannelAnnotation;
+    | LineProperties
+    | HorizontalLineProperties
+    | VerticalLineProperties
+    | ParallelChannelProperties
+    | DisjointChannelProperties
+    | TextProperties;
 type AnnotationPropertiesArray = _ModuleSupport.PropertiesArray<AnnotationProperties>;
 
 type AnnotationAxis = {
@@ -61,19 +63,31 @@ type AnnotationAxis = {
 };
 
 const annotationDatums: Record<AnnotationType, Constructor<AnnotationProperties>> = {
-    [AnnotationType.Line]: LineAnnotation,
-    [AnnotationType.HorizontalLine]: HorizontalLineAnnotation,
-    [AnnotationType.VerticalLine]: VerticalLineAnnotation,
-    [AnnotationType.ParallelChannel]: ParallelChannelAnnotation,
-    [AnnotationType.DisjointChannel]: DisjointChannelAnnotation,
+    // Lines
+    [AnnotationType.Line]: LineProperties,
+    [AnnotationType.HorizontalLine]: HorizontalLineProperties,
+    [AnnotationType.VerticalLine]: VerticalLineProperties,
+
+    // Channels
+    [AnnotationType.ParallelChannel]: ParallelChannelProperties,
+    [AnnotationType.DisjointChannel]: DisjointChannelProperties,
+
+    // Texts
+    [AnnotationType.Text]: TextProperties,
 };
 
-const annotationScenes: Record<AnnotationType, Constructor<AnnotationScene>> = {
-    [AnnotationType.Line]: Line,
-    [AnnotationType.HorizontalLine]: CrossLine,
-    [AnnotationType.VerticalLine]: CrossLine,
-    [AnnotationType.DisjointChannel]: DisjointChannel,
-    [AnnotationType.ParallelChannel]: ParallelChannel,
+const annotationScenes: Record<AnnotationType, Constructor<Annotation>> = {
+    // Lines
+    [AnnotationType.Line]: LineScene,
+    [AnnotationType.HorizontalLine]: CrossLineScene,
+    [AnnotationType.VerticalLine]: CrossLineScene,
+
+    // Channels
+    [AnnotationType.DisjointChannel]: DisjointChannelScene,
+    [AnnotationType.ParallelChannel]: ParallelChannelScene,
+
+    // Texts
+    [AnnotationType.Text]: TextScene,
 };
 
 class AnnotationsStateMachine extends StateMachine<'idle', AnnotationType | 'click' | 'hover' | 'drag' | 'cancel'> {
@@ -161,7 +175,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     // Elements
     private seriesRect?: _Scene.BBox;
     private readonly container = new _Scene.Group({ name: 'static-annotations' });
-    private readonly annotations = new _Scene.Selection<AnnotationScene, AnnotationProperties>(
+    private readonly annotations = new _Scene.Selection<Annotation, AnnotationProperties>(
         this.container,
         this.createAnnotationScene.bind(this)
     );
@@ -318,7 +332,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         switch (event.value) {
             case 'line-color':
                 this.colorPicker.show({
-                    color: this.getTypedDatum(annotationData[active])?.stroke,
+                    color: this.getTypedDatum(annotationData[active])?.getDefaultColor(),
                     onChange: this.onColorPickerChange.bind(this),
                     onClose: this.onColorPickerClose.bind(this),
                 });
@@ -447,19 +461,22 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     return;
                 }
 
-                if (LineAnnotation.is(datum) && Line.is(node)) {
+                if (LineProperties.is(datum) && LineScene.is(node)) {
                     node.update(datum, context);
                 }
 
-                if (DisjointChannelAnnotation.is(datum) && DisjointChannel.is(node)) {
+                if (DisjointChannelProperties.is(datum) && DisjointChannelScene.is(node)) {
                     node.update(datum, context);
                 }
 
-                if ((HorizontalLineAnnotation.is(datum) || VerticalLineAnnotation.is(datum)) && CrossLine.is(node)) {
+                if (
+                    (HorizontalLineProperties.is(datum) || VerticalLineProperties.is(datum)) &&
+                    CrossLineScene.is(node)
+                ) {
                     node.update(datum, context);
                 }
 
-                if (ParallelChannelAnnotation.is(datum) && ParallelChannel.is(node)) {
+                if (ParallelChannelProperties.is(datum) && ParallelChannelScene.is(node)) {
                     node.update(datum, context);
                 }
 
@@ -695,19 +712,19 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const node = annotations.nodes()[hovered];
         const offset = Vec2.sub(Vec2.fromOffset(event), Vec2.required(seriesRect));
 
-        if (Line.is(node)) {
+        if (LineScene.is(node)) {
             node.dragStart(datum, offset, context);
         }
 
-        if (CrossLine.is(node)) {
+        if (CrossLineScene.is(node)) {
             node.dragStart(datum, offset, context);
         }
 
-        if (DisjointChannel.is(node)) {
+        if (DisjointChannelScene.is(node)) {
             node.dragStart(datum, offset, context);
         }
 
-        if (ParallelChannel.is(node)) {
+        if (ParallelChannelScene.is(node)) {
             node.dragStart(datum, offset, context);
         }
     }
@@ -755,19 +772,19 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         const onDragInvalid = () => cursorManager.updateCursor('annotations', Cursor.NotAllowed);
 
-        if (LineAnnotation.is(datum) && Line.is(node)) {
+        if (LineProperties.is(datum) && LineScene.is(node)) {
             node.drag(datum, offset, context, onDragInvalid);
         }
 
-        if ((HorizontalLineAnnotation.is(datum) || VerticalLineAnnotation.is(datum)) && CrossLine.is(node)) {
+        if ((HorizontalLineProperties.is(datum) || VerticalLineProperties.is(datum)) && CrossLineScene.is(node)) {
             node.drag(datum, offset, context, onDragInvalid);
         }
 
-        if (DisjointChannelAnnotation.is(datum) && DisjointChannel.is(node)) {
+        if (DisjointChannelProperties.is(datum) && DisjointChannelScene.is(node)) {
             node.drag(datum, offset, context, onDragInvalid);
         }
 
-        if (ParallelChannelAnnotation.is(datum) && ParallelChannel.is(node)) {
+        if (ParallelChannelProperties.is(datum) && ParallelChannelScene.is(node)) {
             node.drag(datum, offset, context, onDragInvalid);
         }
 
@@ -863,18 +880,19 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private getTypedDatum(datum: unknown) {
         if (
-            LineAnnotation.is(datum) ||
-            HorizontalLineAnnotation.is(datum) ||
-            VerticalLineAnnotation.is(datum) ||
-            DisjointChannelAnnotation.is(datum) ||
-            ParallelChannelAnnotation.is(datum)
+            LineProperties.is(datum) ||
+            HorizontalLineProperties.is(datum) ||
+            VerticalLineProperties.is(datum) ||
+            DisjointChannelProperties.is(datum) ||
+            ParallelChannelProperties.is(datum) ||
+            TextProperties.is(datum)
         ) {
             return datum;
         }
     }
 
     private colorDatum(datum: AnnotationProperties, color: string) {
-        datum.stroke = color;
+        if ('stroke' in datum) datum.stroke = color;
 
         if ('axisLabel' in datum) {
             datum.axisLabel.fill = color;

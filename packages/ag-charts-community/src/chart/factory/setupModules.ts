@@ -1,5 +1,6 @@
 import { moduleRegistry } from '../../module/module';
 import { Logger } from '../../util/logger';
+import { mergeDefaults } from '../../util/object';
 import { axisRegistry } from './axisRegistry';
 import { chartDefaults } from './chartTypes';
 import { getUnusedExpectedModules, verifyIfModuleExpected } from './expectedEnterpriseModules';
@@ -33,11 +34,8 @@ export function setupModules() {
 
         if (m.type === 'axis-option' && m.themeTemplate) {
             for (const axisType of m.axisTypes) {
-                const axisTypeTheme = m.themeTemplate[axisType];
-                const theme = { ...m.themeTemplate, ...axisTypeTheme };
-                for (const innerAxisType of m.axisTypes) {
-                    delete theme[innerAxisType];
-                }
+                const axisTypeTheme = axisRegistry.getThemeTemplate(axisType);
+                const theme = mergeDefaults(m.themeTemplate, axisTypeTheme);
                 axisRegistry.setThemeTemplate(axisType, theme);
             }
         }

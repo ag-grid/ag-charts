@@ -147,6 +147,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
         if (this.rangeSelector == null || enabled === this.rangeSelector.visible) return;
         this.rangeSelector.visible = enabled;
+        this.proxyNavigatorToolbar.ariaHidden = (!enabled).toString();
 
         if (enabled) {
             this.updateZoom();

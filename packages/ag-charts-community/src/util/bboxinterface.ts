@@ -10,5 +10,6 @@ export interface BBoxContainsTester {
 }
 
 export interface BBoxProvider<T = BBoxValues> {
+    computeTransformedRegionBBox?(): T;
     computeTransformedBBox(): T;
 }
