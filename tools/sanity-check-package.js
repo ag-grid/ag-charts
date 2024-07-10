@@ -4,10 +4,14 @@ const fs = require('fs');
 const path = require('path');
 const tsNode = require('ts-node');
 const glob = require('glob');
+const yargs = require('yargs/yargs');
+const { hideBin } = require('yargs/helpers');
+
+const args = yargs(hideBin(process.argv)).option('allowed-ext', { array: true, type: 'string' }).parse();
 
 tsNode.register();
 
-const dir = process.argv[2];
+const dir = args._[0];
 if (!fs.readdirSync(dir)) {
     console.error("Can't find direction: " + dir);
     process.exit(1);
@@ -94,11 +98,14 @@ async function check(type, field, filename) {
     }
 }
 
+const checkedFiles = [];
 function checkOneExists(...filenames) {
     if (!filenames.some((f) => fs.existsSync(path.join(dir, f)))) {
         console.log(`[${packageJson.name}]: Didn't find any files with name(s): ${filenames.join(' / ')}`);
         exitStatus = 1;
     }
+
+    checkedFiles.push(...filenames);
 }
 
 const exportMap = {
@@ -127,7 +134,13 @@ async function checkExports(exports) {
 }
 
 const allowedExtensions = ['.md', '.js', '.mjs', '.d.ts', '.txt', '.json'];
+if (args.allowedExt) {
+    console.log(`Adding extensions to whitelist: ` + args.allowedExt.join(' '));
+    allowedExtensions.push(...args.allowedExt.map((e) => `.${e}`));
+}
 function checkAllowedExtension(filename) {
+    if (checkedFiles.includes(filename)) return;
+
     if (!allowedExtensions.some((ext) => filename.endsWith(ext))) {
         console.log(`[${packageJson.name}]: Unexpected file extension: ${filename}`);
         exitStatus = 1;

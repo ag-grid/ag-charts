@@ -100,7 +100,9 @@
       "dependsOn": ["pack:extract"],
       "inputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-vue3/"],
       "options": {
-        "commands": ["node tools/sanity-check-package.js dist/packages/contents/ag-charts-vue3/package"]
+        "commands": [
+          "node tools/sanity-check-package.js --allowed-ext map -- dist/packages/contents/ag-charts-vue3/package"
+        ]
       }
     }
   },
