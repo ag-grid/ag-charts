@@ -13,6 +13,7 @@ project.json
 .env*
 benchmarks/
 __image-snapshots__/
+coverage/
 
 dist/*.d.ts
 dist/**/*.test.*
