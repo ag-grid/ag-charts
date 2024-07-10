@@ -173,7 +173,7 @@ async function run() {
 
 run()
     .then(() => {
-        process.exitStatus = exitStatus;
+        process.exit(exitStatus);
     })
     .catch((e) => {
         console.error(e);
