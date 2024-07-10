@@ -369,8 +369,8 @@ export function diff(
     };
 }
 
-type KeyType = string | number | object;
-export function createDatumId(keys: KeyType | KeyType[], ...extraKeys: (string | number)[]) {
+type KeyType = string | number | boolean | object;
+export function createDatumId(keys: KeyType | KeyType[], ...extraKeys: (string | number | boolean)[]) {
     let result;
     if (isArray(keys)) {
         result = keys.map((key) => transformIntegratedCategoryValue(key)).join('___');
@@ -378,7 +378,11 @@ export function createDatumId(keys: KeyType | KeyType[], ...extraKeys: (string |
         result = transformIntegratedCategoryValue(keys);
     }
 
-    const primitiveType = typeof result === 'string' || typeof result === 'number' || result instanceof Date;
+    const primitiveType =
+        typeof result === 'string' ||
+        typeof result === 'number' ||
+        typeof result === 'boolean' ||
+        result instanceof Date;
     if (primitiveType && extraKeys.length > 0) {
         result += `___${extraKeys.join('___')}`;
     }

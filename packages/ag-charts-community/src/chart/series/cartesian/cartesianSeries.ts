@@ -13,7 +13,6 @@ import { Text } from '../../../scene/shape/text';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Debug } from '../../../util/debug';
-import { iterate } from '../../../util/function';
 import { StateMachine } from '../../../util/stateMachine';
 import { isFunction } from '../../../util/type-guards';
 import { STRING, Validate } from '../../../util/validation';
@@ -115,7 +114,6 @@ export interface CartesianAnimationData<
     TContext extends CartesianSeriesNodeDataContext<TDatum, TLabel> = CartesianSeriesNodeDataContext<TDatum, TLabel>,
 > {
     datumSelection: Selection<TNode, TDatum>;
-    phantomSelection: Selection<TNode, TDatum>;
     markerSelection: Selection<Marker, TDatum>;
     labelSelection: Selection<Text, TLabel>;
     annotationSelections: Selection<NodeWithOpacity, TDatum>[];
@@ -135,7 +133,6 @@ export interface CartesianSeriesNodeDataContext<
     TDatum extends CartesianSeriesNodeDatum = CartesianSeriesNodeDatum,
     TLabel extends SeriesNodeDatum = TDatum,
 > extends SeriesNodeDataContext<TDatum, TLabel> {
-    phantomNodeData?: TDatum[];
     scales: { [key in ChartAxisDirection]?: Scaling };
     animationValid?: boolean;
     visible: boolean;
@@ -160,13 +157,6 @@ export abstract class CartesianSeries<
     protected override readonly NodeEvent = CartesianSeriesNodeEvent;
 
     private readonly paths: Path[];
-    private readonly phantomNodeGroup = this.contentGroup.appendChild(
-        new Group({
-            name: `${this.id}-series-phantomNodes`,
-            zIndex: Layers.SERIES_LAYER_ZINDEX,
-            zIndexSubOrder: this.getGroupZIndexSubOrder('data'),
-        })
-    );
     private readonly dataNodeGroup = this.contentGroup.appendChild(
         new Group({
             name: `${this.id}-series-dataNodes`,
@@ -189,7 +179,6 @@ export abstract class CartesianSeries<
         })
     );
     private datumSelection: Selection<TNode, TDatum>;
-    private phantomSelection: Selection<TNode, TDatum>;
     private markerSelection: Selection<Marker, TDatum>;
     private labelSelection: Selection<Text, TLabel> = Selection.select(this.labelGroup, Text);
 
@@ -263,11 +252,6 @@ export abstract class CartesianSeries<
 
         this.datumSelection = Selection.select(
             this.dataNodeGroup,
-            () => this.nodeFactory(),
-            datumSelectionGarbageCollection
-        );
-        this.phantomSelection = Selection.select(
-            this.phantomNodeGroup,
             () => this.nodeFactory(),
             datumSelectionGarbageCollection
         );
@@ -401,18 +385,14 @@ export abstract class CartesianSeries<
     }
 
     private async updateSeriesSelections(seriesHighlighted?: boolean) {
-        const { datumSelection, phantomSelection, labelSelection, markerSelection, paths } = this;
+        const { datumSelection, labelSelection, markerSelection, paths } = this;
         const contextData = this._contextNodeData;
         if (!contextData) return;
 
-        const { nodeData, labelData, phantomNodeData = [], itemId } = contextData;
+        const { nodeData, labelData, itemId } = contextData;
 
         await this.updatePaths({ seriesHighlighted, itemId, contextData, paths });
         this.datumSelection = await this.updateDatumSelection({ nodeData, datumSelection });
-        this.phantomSelection = await this.updateDatumSelection({
-            nodeData: phantomNodeData,
-            datumSelection: phantomSelection,
-        });
         this.labelSelection = await this.updateLabelSelection({ labelData, labelSelection });
         if (this.opts.hasMarkers) {
             this.markerSelection = await this.updateMarkerSelection({ nodeData, markerSelection });
@@ -472,23 +452,11 @@ export abstract class CartesianSeries<
             await this.updateLabelNodes({ labelSelection: highlightLabelSelection });
         }
 
-        const {
-            dataNodeGroup,
-            phantomNodeGroup,
-            markerGroup,
-            datumSelection,
-            phantomSelection,
-            labelSelection,
-            markerSelection,
-            paths,
-            labelGroup,
-        } = this;
+        const { dataNodeGroup, markerGroup, datumSelection, labelSelection, markerSelection, paths, labelGroup } = this;
         const { itemId } = this.contextNodeData ?? {};
 
         dataNodeGroup.opacity = opacity;
         dataNodeGroup.visible = animationEnabled || visible;
-        phantomNodeGroup.opacity = opacity * 0.2;
-        phantomNodeGroup.visible = dataNodeGroup.visible;
         labelGroup.visible = visible;
 
         if (hasMarkers) {
@@ -516,7 +484,6 @@ export abstract class CartesianSeries<
         }
 
         await this.updateDatumNodes({ datumSelection, highlightedItems, isHighlight: false });
-        await this.updateDatumNodes({ datumSelection: phantomSelection, highlightedItems: [], isHighlight: false });
         await this.updateLabelNodes({ labelSelection });
         if (hasMarkers) {
             await this.updateMarkerNodes({ markerSelection, isHighlight: false });
@@ -530,10 +497,8 @@ export abstract class CartesianSeries<
         return labelItems.length === 0 ? undefined : labelItems;
     }
 
-    private getHighlightData(nodeData: TDatum[], highlightedItem: TDatum): TDatum[] | undefined {
-        const highlightedDatum = highlightedItem.datum;
-        const highlightItems = nodeData.filter((nodeDatum) => nodeDatum.datum === highlightedDatum);
-        return highlightItems.length > 0 ? highlightItems : undefined;
+    protected getHighlightData(_nodeData: TDatum[], highlightedItem: TDatum): TDatum[] | undefined {
+        return highlightedItem ? [highlightedItem] : undefined;
     }
 
     protected async updateHighlightSelection(seriesHighlighted: boolean) {
@@ -569,7 +534,7 @@ export abstract class CartesianSeries<
     }
 
     protected *datumNodesIter(): Iterable<TNode> {
-        for (const { node } of iterate(this.datumSelection, this.phantomSelection)) {
+        for (const { node } of this.datumSelection) {
             if (node.datum.missing === true) continue;
 
             yield node;
@@ -603,11 +568,11 @@ export abstract class CartesianSeries<
         } = this;
 
         let match: Node | undefined;
-        const { dataNodeGroup, phantomNodeGroup, markerGroup } = this;
-        match = dataNodeGroup.pickNode(x, y) ?? phantomNodeGroup.pickNode(x, y);
+        const { dataNodeGroup, markerGroup } = this;
+        match = dataNodeGroup.pickNode(x, y);
 
-        if (hasMarkers) {
-            match ??= markerGroup?.pickNode(x, y);
+        if (!match && hasMarkers) {
+            match = markerGroup?.pickNode(x, y);
         }
 
         if (match && match.datum.missing !== true) {
@@ -636,7 +601,7 @@ export abstract class CartesianSeries<
         let minDistance = Infinity;
         let closestDatum: SeriesNodeDatum | undefined;
 
-        for (const datum of iterate(contextNodeData.nodeData, contextNodeData.phantomNodeData ?? [])) {
+        for (const datum of contextNodeData.nodeData) {
             const { point: { x: datumX = NaN, y: datumY = NaN } = {} } = datum;
             if (isNaN(datumX) || isNaN(datumY)) {
                 continue;
@@ -699,7 +664,7 @@ export abstract class CartesianSeries<
         const minDistance = [Infinity, Infinity];
         let closestDatum: SeriesNodeDatum | undefined;
 
-        for (const datum of iterate(contextNodeData.nodeData, contextNodeData.phantomNodeData ?? [])) {
+        for (const datum of contextNodeData.nodeData) {
             const { x: datumX = NaN, y: datumY = NaN } = datum.point ?? datum.midPoint ?? {};
             if (isNaN(datumX) || isNaN(datumY) || datum.missing === true) {
                 continue;
@@ -986,7 +951,6 @@ export abstract class CartesianSeries<
         }
         if (datum) {
             resetMotion([data.datumSelection], datum);
-            resetMotion([data.phantomSelection], datum);
         }
         if (label) {
             resetMotion([data.labelSelection], label);
@@ -1046,7 +1010,6 @@ export abstract class CartesianSeries<
 
         const animationData: CartesianAnimationData<TNode, TDatum, TLabel, TContext> = {
             datumSelection: this.datumSelection,
-            phantomSelection: this.phantomSelection,
             markerSelection: this.markerSelection,
             labelSelection: this.labelSelection,
             annotationSelections: [...this.annotationSelections],

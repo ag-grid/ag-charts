@@ -6,7 +6,7 @@ import { ContinuousScale } from '../../../scale/continuousScale';
 import { BBox } from '../../../scene/bbox';
 import { PointerEvents } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
-import type { Selection } from '../../../scene/selection';
+import { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
@@ -71,6 +71,7 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
     readonly yValue: string | number;
     readonly valueIndex: number;
     readonly cumulativeValue: number;
+    readonly phantom: boolean;
     readonly width: number;
     readonly height: number;
     readonly fill: string | undefined;
@@ -87,11 +88,6 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
 }
 
 type BarAnimationData = CartesianAnimationData<Rect, BarNodeDatum>;
-
-enum BarSeriesNodeTag {
-    Bar,
-    Label,
-}
 
 export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarNodeDatum> {
     static readonly className = 'BarSeries';
@@ -273,21 +269,13 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const yRangeIndex = dataModel.resolveProcessedDataIndexById(this, `yValue-range`);
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
-        const context = {
-            itemId: yKey,
-            nodeData: [] as BarNodeDatum[],
-            labelData: [] as BarNodeDatum[],
-            phantomNodeData: [] as BarNodeDatum[],
-            scales: this.calculateScaling(),
-            visible: this.visible || animationEnabled,
-        };
-
         const nodeDatum = ({
             datum,
             valueIndex,
             xValue,
             yValue,
             cumulativeValue,
+            phantom,
             currY,
             prevY,
             isPositive,
@@ -300,6 +288,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             xValue: number;
             yValue: number;
             cumulativeValue: number;
+            phantom: boolean;
             currY: number;
             prevY: number;
             isPositive: boolean;
@@ -349,10 +338,11 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
             return {
                 series: this,
-                itemId: yKey,
+                itemId: phantom ? createDatumId(yKey, phantom) : yKey,
                 datum,
                 valueIndex,
                 cumulativeValue,
+                phantom,
                 xValue,
                 yValue,
                 yKey,
@@ -398,12 +388,15 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         };
 
         const { groupScale, processedData } = this;
+        const phantomNodes: BarNodeDatum[] = [];
+        const nodes: BarNodeDatum[] = [];
+        const labels: BarNodeDatum[] = [];
         processedData?.data.forEach(({ keys, datum: seriesDatum, values, aggValues }) => {
             values.forEach((value, valueIndex) => {
                 const xValue = keys[xIndex];
                 const yRawValue = value[yRawIndex];
                 const yStart = Number(value[yStartIndex]);
-                const yFilterValue = yFilterIndex != null ? +value[yFilterIndex] : undefined;
+                const yFilterValue = yFilterIndex != null ? Number(value[yFilterIndex]) : undefined;
                 const yEnd = Number(value[yEndIndex]);
                 const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
                 const yRange = aggValues?.[yRangeIndex][isPositive ? 1 : 0] ?? 0;
@@ -436,6 +429,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                     xValue,
                     yValue: yFilterValue ?? yRawValue,
                     cumulativeValue: yFilterValue ?? yEnd,
+                    phantom: false,
                     currY: yFilterValue != null ? yStart + yFilterValue : yEnd,
                     prevY: yStart,
                     isPositive,
@@ -443,8 +437,8 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                     labelText,
                     crossScale: inset ? 0.6 : undefined,
                 });
-                context.nodeData.push(nodeData);
-                context.labelData.push(nodeData);
+                nodes.push(nodeData);
+                labels.push(nodeData);
 
                 if (yFilterValue != null) {
                     const phantomNodeData = nodeDatum({
@@ -453,6 +447,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                         xValue,
                         yValue: yFilterValue,
                         cumulativeValue: yFilterValue,
+                        phantom: true,
                         currY: yEnd,
                         prevY: yStart,
                         isPositive,
@@ -460,10 +455,18 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                         labelText: undefined,
                         crossScale: undefined,
                     });
-                    context.phantomNodeData.push(phantomNodeData);
+                    phantomNodes.push(phantomNodeData);
                 }
             });
         });
+
+        const context = {
+            itemId: yKey,
+            nodeData: phantomNodes.length > 0 ? [...phantomNodes, ...nodes] : nodes,
+            labelData: labels,
+            scales: this.calculateScaling(),
+            visible: this.visible || animationEnabled,
+        };
 
         return context;
     }
@@ -472,16 +475,22 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         return new Rect();
     }
 
+    protected override getHighlightData(
+        nodeData: BarNodeDatum[],
+        highlightedItem: BarNodeDatum
+    ): BarNodeDatum[] | undefined {
+        const highlightItem = nodeData.find(
+            (nodeDatum) => nodeDatum.datum === highlightedItem.datum && !nodeDatum.phantom
+        );
+        return highlightItem != null ? [highlightItem] : undefined;
+    }
+
     protected override async updateDatumSelection(opts: {
         nodeData: BarNodeDatum[];
         datumSelection: Selection<Rect, BarNodeDatum>;
     }) {
-        return opts.datumSelection.update(
-            opts.nodeData,
-            (rect) => {
-                rect.tag = BarSeriesNodeTag.Bar;
-            },
-            (datum) => createDatumId(datum.xValue, datum.valueIndex)
+        return opts.datumSelection.update(opts.nodeData, undefined, (datum) =>
+            createDatumId(datum.xValue, datum.valueIndex, datum.phantom)
         );
     }
 
@@ -518,8 +527,8 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             const style: RectConfig = {
                 fill,
                 stroke,
-                fillOpacity,
-                strokeOpacity,
+                fillOpacity: fillOpacity * (datum.phantom ? 0.2 : 1),
+                strokeOpacity: strokeOpacity * (datum.phantom ? 0.2 : 1),
                 lineDash,
                 lineDashOffset,
                 fillShadow: shadow,
@@ -557,7 +566,6 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
     }) {
         const data = this.isLabelEnabled() ? opts.labelData : [];
         return opts.labelSelection.update(data, (text) => {
-            text.tag = BarSeriesNodeTag.Label;
             text.pointerEvents = PointerEvents.None;
         });
     }
@@ -656,22 +664,16 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         ];
     }
 
-    override animateEmptyUpdateReady({
-        datumSelection,
-        phantomSelection,
-        labelSelection,
-        annotationSelections,
-    }: BarAnimationData) {
+    override animateEmptyUpdateReady({ datumSelection, labelSelection, annotationSelections }: BarAnimationData) {
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'));
 
         fromToMotion(this.id, 'nodes', this.ctx.animationManager, [datumSelection], fns);
-        fromToMotion(this.id, 'phantom', this.ctx.animationManager, [phantomSelection], fns);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
         seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
     }
 
     override animateWaitingUpdateReady(data: BarAnimationData) {
-        const { datumSelection, phantomSelection, labelSelection, annotationSelections, previousContextData } = data;
+        const { datumSelection, labelSelection, annotationSelections, previousContextData } = data;
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
@@ -685,16 +687,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             this.ctx.animationManager,
             [datumSelection],
             fns,
-            (_, datum) => createDatumId(datum.xValue, datum.valueIndex),
-            dataDiff
-        );
-        fromToMotion(
-            this.id,
-            'phantom',
-            this.ctx.animationManager,
-            [phantomSelection],
-            fns,
-            (_, datum) => createDatumId(datum.xValue, datum.valueIndex),
+            (_, datum) => createDatumId(datum.xValue, datum.valueIndex, datum.phantom),
             dataDiff
         );
 
