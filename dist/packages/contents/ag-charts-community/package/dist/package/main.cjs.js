@@ -4628,13 +4628,6 @@ var _Group = class _Group extends Node {
   computeTransformedBBox() {
     return this.computeBBox();
   }
-  computeTransformedRegionBBox() {
-    if (this.clipRect) {
-      this.computeTransformMatrix();
-      return this.matrix.transformBBox(this.clipRect);
-    }
-    return this.computeTransformedBBox();
-  }
   preRender() {
     const counts = super.preRender();
     counts.groups += 1;
@@ -10803,7 +10796,7 @@ function buildScheduler(scheduleFn, cb) {
 }
 
 // packages/ag-charts-community/src/version.ts
-var VERSION = "10.0.1";
+var VERSION = "10.0.0";
 
 // packages/ag-charts-community/src/api/state/memento.ts
 var MementoCaretaker = class {
@@ -13751,7 +13744,7 @@ var RegionManager = class {
     let currentRegion;
     for (const region of this.regions.values()) {
       for (const provider of region.properties.bboxproviders) {
-        const bbox = provider.computeTransformedRegionBBox?.() ?? provider.computeTransformedBBox();
+        const bbox = provider.computeTransformedBBox();
         const area2 = bbox.width * bbox.height;
         if (area2 < currentArea && bbox.containsPoint(x, y)) {
           currentArea = area2;
@@ -29380,8 +29373,6 @@ var Sector = class extends Path {
     const sweepAngle = endAngle - startAngle;
     const fullPie = sweepAngle >= 2 * Math.PI - delta3;
     path.clear();
-    if (this.innerRadius === 0 && this.outerRadius === 0)
-      return;
     if ((clipSector?.startAngle ?? startAngle) === (clipSector?.endAngle ?? endAngle)) {
       return;
     } else if (fullPie && this.clipSector == null && startOuterCornerRadius === 0 && endOuterCornerRadius === 0 && startInnerCornerRadius === 0 && endInnerCornerRadius === 0) {

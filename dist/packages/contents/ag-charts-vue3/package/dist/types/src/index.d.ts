@@ -20,9 +20,9 @@ export declare const AgFinancialCharts: import("vue").DefineComponent<{
         type: PropType<AgFinancialChartOptions>;
         default: () => AgFinancialChartOptions;
     };
-}, {
+}, unknown, {
     chart: AgChartInstance<AgFinancialChartOptions> | undefined;
-}, unknown, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").PublicProps, Readonly<import("vue").ExtractPropTypes<{
+}, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {}, string, import("vue").PublicProps, Readonly<import("vue").ExtractPropTypes<{
     options: {
         type: PropType<AgFinancialChartOptions>;
         default: () => AgFinancialChartOptions;

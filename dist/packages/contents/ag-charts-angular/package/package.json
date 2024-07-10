@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-angular",
-  "version": "10.0.1",
+  "version": "10.0.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/ag-grid/ag-charts.git"
@@ -20,11 +20,11 @@
   "peerDependencies": {
     "@angular/common": ">= 16.0.0",
     "@angular/core": ">= 16.0.0",
-    "ag-charts-community": "10.0.1"
+    "ag-charts-community": "10.0.0"
   },
   "dependencies": {
     "tslib": "^2.3.0",
-    "ag-charts-community": "10.0.1"
+    "ag-charts-community": "10.0.0"
   },
   "module": "fesm2022/ag-charts-angular.mjs",
   "typings": "index.d.ts",

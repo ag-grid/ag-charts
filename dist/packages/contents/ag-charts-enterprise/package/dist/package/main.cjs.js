@@ -9301,7 +9301,7 @@ var _LicenseManager = class _LicenseManager {
     this.watermarkMessage = "License Expired";
   }
 };
-_LicenseManager.RELEASE_INFORMATION = "MTcyMDAyMjAyNTIyOQ==";
+_LicenseManager.RELEASE_INFORMATION = "MTcxMzg5MTcwNTkzNw==";
 var LicenseManager = _LicenseManager;
 
 // packages/ag-charts-enterprise/src/license/watermark.ts

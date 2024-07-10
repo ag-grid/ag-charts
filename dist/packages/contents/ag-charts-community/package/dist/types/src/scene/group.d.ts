@@ -37,7 +37,6 @@ export declare class Group extends Node {
     containsPoint(_x: number, _y: number): boolean;
     computeBBox(): BBox;
     computeTransformedBBox(): BBox;
-    computeTransformedRegionBBox(): BBox;
     private lastBBox?;
     preRender(): ChildNodeCounts;
     deriveZIndexFromChildren(): void;

@@ -62,7 +62,7 @@ var AgFinancialCharts = /* @__PURE__ */ (0, import_vue.defineComponent)({
       default: () => ({})
     }
   },
-  setup() {
+  data() {
     return {
       chart: void 0
     };
@@ -72,7 +72,7 @@ var AgFinancialCharts = /* @__PURE__ */ (0, import_vue.defineComponent)({
   },
   watch: {
     options(options) {
-      this.chart?.update({ ...options, container: this.$el });
+      (0, import_vue.toRaw)(this.chart)?.update({ ...options, container: this.$el });
     }
   },
   mounted() {

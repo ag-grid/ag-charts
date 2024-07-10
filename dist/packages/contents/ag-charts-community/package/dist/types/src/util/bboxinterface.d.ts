@@ -8,6 +8,5 @@ export interface BBoxContainsTester {
     containsPoint(x: number, y: number): boolean;
 }
 export interface BBoxProvider<T = BBoxValues> {
-    computeTransformedRegionBBox?(): T;
     computeTransformedBBox(): T;
 }
