@@ -384,6 +384,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                           }
                         : undefined,
                 missing: yValue == null,
+                focusable: !phantom,
             };
         };
 
