@@ -8,7 +8,7 @@ import {
 } from 'ag-charts-community';
 
 const { BOOLEAN, OBJECT, POSITION, POSITIVE_NUMBER, BaseProperties, Layers, ProxyProperty, Validate } = _ModuleSupport;
-const { BBox, Group, Rect, LinearGradientFill, Triangle } = _Scene;
+const { Group, Rect, LinearGradientFill, Triangle } = _Scene;
 const { createId } = _Util;
 
 class GradientBar extends BaseProperties {
@@ -43,10 +43,11 @@ export class GradientLegend {
     private readonly highlightManager: _ModuleSupport.HighlightManager;
 
     private readonly group: _Scene.Group = new Group({ name: 'legend', layer: true, zIndex: Layers.LEGEND_ZINDEX });
-    private readonly gradientRect: _Scene.Rect;
-    private readonly gradientFill: _Scene.LinearGradientFill;
-    private readonly axisGroup: _Scene.Group;
-    private readonly arrow: _Scene.Triangle;
+    private readonly gradientRect = new Rect();
+    private readonly gradientFill = new LinearGradientFill();
+    private readonly arrow = new Triangle();
+
+    private readonly axisGroup = new Group({ name: 'legend-axis-group' });
     private readonly destroyFns: Function[] = [];
 
     @Validate(BOOLEAN)
@@ -78,20 +79,14 @@ export class GradientLegend {
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         this.highlightManager = ctx.highlightManager;
 
-        this.gradientRect = new Rect();
-        this.gradientFill = new LinearGradientFill();
         this.gradientFill.mask = this.gradientRect;
-        this.group.append(this.gradientFill);
-        this.arrow = new Triangle();
-        this.group.append(this.arrow);
-
-        this.axisGroup = new Group({ name: 'legend-axis-group' });
-        this.group.append(this.axisGroup);
 
         this.axis = new GradientLegendAxis(ctx);
         this.axis.attachAxis(this.axisGroup);
 
         this.scale = new GradientLegendScale(this.axis);
+
+        this.group.append([this.gradientFill, this.arrow, this.axisGroup]);
 
         this.destroyFns.push(
             ctx.highlightManager.addListener('highlight-change', () => this.onChartHoverChange()),
@@ -108,8 +103,6 @@ export class GradientLegend {
         scene.appendChild(this.group);
     }
 
-    private latestGradientBox?: _Scene.BBox = undefined;
-
     private onStartLayout(ctx: _ModuleSupport.LayoutContext) {
         const [data] = this.data;
 
@@ -119,17 +112,19 @@ export class GradientLegend {
         }
 
         const { colorRange } = this.normalizeColorArrays(data);
-        const gradientBox = this.updateGradientRect(ctx.shrinkRect, colorRange);
-        const axisBox = this.updateAxis(data, gradientBox);
-        const { shrinkRect, left, top } = this.getMeasurements(ctx.shrinkRect.clone(), gradientBox, axisBox);
-        this.updateArrow(gradientBox);
+
+        this.updateGradientRect(ctx.shrinkRect, colorRange);
+
+        const axisBBox = this.updateAxis(data);
+        const { left, top } = this.getMeasurements(ctx.shrinkRect, axisBBox);
+
+        this.updateArrow();
 
         this.group.visible = true;
         this.group.translationX = left;
         this.group.translationY = top;
-        this.latestGradientBox = gradientBox;
 
-        return { ...ctx, shrinkRect };
+        return ctx;
     }
 
     private normalizeColorArrays(data: _ModuleSupport.GradientLegendDatum) {
@@ -157,59 +152,46 @@ export class GradientLegend {
 
     private updateGradientRect(shrinkRect: _Scene.BBox, colorRange: string[]) {
         const { reverseOrder, gradientFill, gradientRect } = this;
-        const { preferredLength: gradientLength, thickness } = this.gradient;
+        const { preferredLength, thickness } = this.gradient;
 
-        const gradientBox = new BBox(0, 0, 0, 0);
-        const vertical = this.isVertical();
-        if (vertical) {
-            const maxHeight = shrinkRect.height;
-            const preferredHeight = gradientLength;
-            gradientBox.x = 0;
-            gradientBox.y = 0;
-            gradientBox.width = thickness;
-            gradientBox.height = Math.min(maxHeight, preferredHeight);
-        } else {
-            const maxWidth = shrinkRect.width;
-            const preferredWidth = gradientLength;
-            gradientBox.x = 0;
-            gradientBox.y = 0;
-            gradientBox.width = Math.min(maxWidth, preferredWidth);
-            gradientBox.height = thickness;
-        }
+        gradientRect.x = 0;
+        gradientRect.y = 0;
 
         gradientFill.stops = colorRange;
-        if (vertical) {
+
+        if (this.isVertical()) {
+            gradientRect.width = thickness;
+            gradientRect.height = Math.min(shrinkRect.height, preferredLength);
+
             gradientFill.direction = reverseOrder ? 'to-bottom' : 'to-top';
         } else {
+            gradientRect.width = Math.min(shrinkRect.width, preferredLength);
+            gradientRect.height = thickness;
+
             gradientFill.direction = reverseOrder ? 'to-left' : 'to-right';
         }
-
-        gradientRect.x = gradientBox.x;
-        gradientRect.y = gradientBox.y;
-        gradientRect.width = gradientBox.width;
-        gradientRect.height = gradientBox.height;
-
-        return gradientBox;
     }
 
-    private updateAxis(data: _ModuleSupport.GradientLegendDatum, gradientBox: _Scene.BBox) {
+    private updateAxis(data: _ModuleSupport.GradientLegendDatum) {
+        const { axis } = this;
         const vertical = this.isVertical();
-        const { reverseOrder, axis } = this;
-        const positiveAxis = reverseOrder !== vertical;
+        const positiveAxis = this.reverseOrder !== vertical;
+        const { x, y, width, height } = this.gradientRect;
 
         axis.position = this.position;
+        axis.range = vertical ? [0, height] : [0, width];
+        axis.translation.x = x + (vertical ? width : 0);
+        axis.translation.y = y + (vertical ? 0 : height);
         axis.setDomain(positiveAxis ? data.colorDomain.slice().reverse() : data.colorDomain);
 
-        axis.range = vertical ? [0, gradientBox.height] : [0, gradientBox.width];
-        axis.translation.x = gradientBox.x + (vertical ? gradientBox.width : 0);
-        axis.translation.y = gradientBox.y + (vertical ? 0 : gradientBox.height);
         const axisBBox = axis.calculateLayout();
+
         axis.update();
 
         return axisBBox;
     }
 
-    private updateArrow(gradientBox: _Scene.BBox) {
+    private updateArrow() {
         const highlighted = this.highlightManager.getActiveHighlight();
         const { arrow } = this;
 
@@ -218,21 +200,19 @@ export class GradientLegend {
             return;
         }
 
-        const { scale } = this.axis;
-        const { label } = this.scale;
-        const vertical = this.isVertical();
+        const { scale, label } = this.axis;
         const size = label.fontSize ?? 0;
         const t = scale.convert(highlighted.colorValue);
-        let x: number, y: number, rotation: number;
+        let { x, y } = this.gradientRect;
+        let rotation = Math.PI;
 
-        if (vertical) {
-            x = gradientBox.x - size / 2;
-            y = gradientBox.y + t;
-            rotation = Math.PI / 2;
+        if (this.isVertical()) {
+            x -= size / 2;
+            y += t;
+            rotation /= 2;
         } else {
-            x = gradientBox.x + t;
-            y = gradientBox.y - size / 2;
-            rotation = Math.PI;
+            x += t;
+            y -= size / 2;
         }
 
         arrow.fill = label.color;
@@ -243,45 +223,45 @@ export class GradientLegend {
         arrow.visible = true;
     }
 
-    private getMeasurements(shrinkRect: _Scene.BBox, gradientBox: _Scene.BBox, axisBox: _Scene.BBox) {
-        let width: number;
-        let height: number;
-        const vertical = this.isVertical();
-        if (vertical) {
-            width = gradientBox.width + axisBox.width;
-            height = gradientBox.height;
+    private getMeasurements(shrinkRect: _Scene.BBox, axisBox: _Scene.BBox) {
+        let { x: left, y: top } = shrinkRect;
+        let { width, height } = this.gradientRect;
+
+        if (this.isVertical()) {
+            width += axisBox.width;
         } else {
-            width = gradientBox.width;
-            height = gradientBox.height + axisBox.height;
+            height += axisBox.height;
         }
 
-        const { spacing } = this;
-        let left: number, top: number;
+        switch (this.position) {
+            case 'left':
+                top += shrinkRect.height / 2 - height / 2;
+                shrinkRect.shrink(width + this.spacing, 'left');
+                break;
 
-        if (this.position === 'left') {
-            left = shrinkRect.x;
-            top = shrinkRect.y + shrinkRect.height / 2 - height / 2;
-            shrinkRect.shrink(width + spacing, 'left');
-        } else if (this.position === 'right') {
-            left = shrinkRect.x + shrinkRect.width - width;
-            top = shrinkRect.y + shrinkRect.height / 2 - height / 2;
-            shrinkRect.shrink(width + spacing, 'right');
-        } else if (this.position === 'top') {
-            left = shrinkRect.x + shrinkRect.width / 2 - width / 2;
-            top = shrinkRect.y;
-            shrinkRect.shrink(height + spacing, 'top');
-        } else {
-            left = shrinkRect.x + shrinkRect.width / 2 - width / 2;
-            top = shrinkRect.y + shrinkRect.height - height;
-            shrinkRect.shrink(height + spacing, 'bottom');
+            case 'right':
+                left += shrinkRect.width - width;
+                top += shrinkRect.height / 2 - height / 2;
+                shrinkRect.shrink(width + this.spacing, 'right');
+                break;
+
+            case 'top':
+                left += shrinkRect.width / 2 - width / 2;
+                shrinkRect.shrink(height + this.spacing, 'top');
+                break;
+
+            case 'bottom':
+                left += shrinkRect.width / 2 - width / 2;
+                top += shrinkRect.height - height;
+                shrinkRect.shrink(height + this.spacing, 'bottom');
         }
 
-        return { top, left, shrinkRect };
+        return { top, left };
     }
 
     private onChartHoverChange() {
-        if (this.enabled && this.latestGradientBox != null) {
-            this.updateArrow(this.latestGradientBox);
+        if (this.enabled) {
+            this.updateArrow();
         }
     }
 }

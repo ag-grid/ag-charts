@@ -131,12 +131,8 @@ export abstract class FakeAxis<
 
     readonly label = new AxisLabel();
 
-    protected defaultTickMinSpacing: number = FakeAxis.defaultTickMinSpacing;
-
     readonly translation = { x: 0, y: 0 };
     rotation: number = 0; // axis rotation angle in degrees
-
-    private minRect?: BBox = undefined;
 
     readonly scale = new LinearScale();
 
@@ -220,7 +216,7 @@ export abstract class FakeAxis<
         this.updatePosition();
 
         const lineData = this.getAxisLineCoordinates();
-        const { tickData, combinedRotation, textBaseline, textAlign, primaryTickCount } = this.tickGenerationResult;
+        const { tickData, combinedRotation, textBaseline, textAlign } = this.tickGenerationResult;
         this.updateSelections(lineData, tickData.ticks, {
             combinedRotation,
             textAlign,
@@ -230,8 +226,6 @@ export abstract class FakeAxis<
 
         this.updateLabels();
         this.updateVisibility();
-
-        return primaryTickCount;
     }
 
     private getAxisLineCoordinates(): AxisLineDatum {
@@ -672,7 +666,7 @@ export abstract class FakeAxis<
             scale.maxTickCount = maxTickCount;
         }
 
-        return scale.ticks?.() ?? [];
+        return scale.ticks();
     }
 
     private estimateTickCount({ minSpacing, maxSpacing }: { minSpacing: number; maxSpacing: number }): {
@@ -680,10 +674,9 @@ export abstract class FakeAxis<
         maxTickCount: number;
         defaultTickCount: number;
     } {
-        const { minRect } = this;
         const rangeWithBleed = this.calculateRangeWithBleed();
         const defaultMinSpacing = Math.max(
-            this.defaultTickMinSpacing,
+            FakeAxis.defaultTickMinSpacing,
             rangeWithBleed / ContinuousScale.defaultMaxTickCount
         );
         let clampMaxTickCount = !isNaN(maxSpacing);
@@ -705,10 +698,7 @@ export abstract class FakeAxis<
         }
 
         // Clamps the min spacing between ticks to be no more than the min distance between datums
-        let minRectDistance = 1;
-        if (minRect) {
-            minRectDistance = this.direction === ChartAxisDirection.X ? minRect.width : minRect.height;
-        }
+        const minRectDistance = 1;
         clampMaxTickCount &&= minRectDistance < defaultMinSpacing;
 
         // TODO: Remove clamping to hardcoded 100 max tick count, this is a temp fix for zooming
