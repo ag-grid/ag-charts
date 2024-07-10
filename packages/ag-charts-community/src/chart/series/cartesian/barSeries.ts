@@ -460,15 +460,13 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             });
         });
 
-        const context = {
+        return {
             itemId: yKey,
             nodeData: phantomNodes.length > 0 ? [...phantomNodes, ...nodes] : nodes,
             labelData: labels,
             scales: this.calculateScaling(),
             visible: this.visible || animationEnabled,
         };
-
-        return context;
     }
 
     protected nodeFactory() {
