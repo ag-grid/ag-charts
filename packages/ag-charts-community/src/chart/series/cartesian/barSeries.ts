@@ -402,9 +402,9 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             values.forEach((value, valueIndex) => {
                 const xValue = keys[xIndex];
                 const yRawValue = value[yRawIndex];
-                const yStart = +value[yStartIndex];
+                const yStart = Number(value[yStartIndex]);
                 const yFilterValue = yFilterIndex != null ? +value[yFilterIndex] : undefined;
-                const yEnd = +value[yEndIndex];
+                const yEnd = Number(value[yEndIndex]);
                 const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
                 const yRange = aggValues?.[yRangeIndex][isPositive ? 1 : 0] ?? 0;
 
