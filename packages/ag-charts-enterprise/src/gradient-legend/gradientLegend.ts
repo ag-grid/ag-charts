@@ -20,12 +20,7 @@ class GradientBar extends BaseProperties {
     preferredLength = 100;
 }
 
-class GradientLegendAxis extends _ModuleSupport.FakeAxis<_Scale.LinearScale, number> {
-    constructor(ctx: _ModuleSupport.ModuleContext) {
-        super(ctx, new _Scale.LinearScale(), { respondsToZoom: false });
-        this.nice = false;
-    }
-}
+class GradientLegendAxis extends _ModuleSupport.FakeAxis<_Scale.LinearScale, number> {}
 
 class GradientLegendScale implements AgGradientLegendScaleOptions {
     constructor(protected axis: GradientLegendAxis) {}
@@ -225,7 +220,8 @@ export class GradientLegend {
             return;
         }
 
-        const { label, scale } = this.axis;
+        const { scale } = this.axis;
+        const { label } = this.scale;
         const vertical = this.isVertical();
         const size = label.fontSize ?? 0;
         const t = scale.convert(highlighted.colorValue);
