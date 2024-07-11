@@ -8,32 +8,29 @@ import { Matrix } from '../../scene/matrix';
 import type { Node } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { Text } from '../../scene/shape/text';
-import type { PlacedLabelDatum } from '../../scene/util/labelPlacement';
-import { axisLabelsOverlap } from '../../scene/util/labelPlacement';
 import { toRadians } from '../../util/angle';
 import { areArrayNumbersEqual } from '../../util/equal';
 import { createId } from '../../util/id';
 import { clamp, countFractionDigits, findMinMax, findRangeExtent, round } from '../../util/number';
 import { createIdsGenerator } from '../../util/tempUtils';
-import { type MeasureOptions, TextMeasurer } from '../../util/textMeasurer';
 import { isNumber } from '../../util/type-guards';
 import { OBJECT, POSITION, Validate } from '../../util/validation';
 import type { ChartAxisLabelFlipFlag } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
-import { calculateLabelBBox, calculateLabelRotation, getLabelSpacing, getTextAlign, getTextBaseline } from '../label';
+import { calculateLabelRotation, getTextAlign, getTextBaseline } from '../label';
 import { Layers } from '../layers';
 import { AxisInterval } from './axisInterval';
 import { AxisLabel } from './axisLabel';
 import { resetAxisGroupFn, resetAxisLabelSelectionFn } from './axisUtil';
 
-type TickDatum = {
+interface TickDatum {
     tickLabel: string;
     tick: any;
     tickId: string;
     translationY: number;
-};
+}
 
-type LabelNodeDatum = {
+interface LabelNodeDatum {
     tickId: string;
     fill?: CssColor;
     fontFamily?: FontFamily;
@@ -50,13 +47,12 @@ type LabelNodeDatum = {
     y: number;
     translationY: number;
     range: number[];
-};
+}
 
-type TickData = { rawTicks: any[]; fractionDigits: number; ticks: TickDatum[] };
-
-interface TickGenerationParams {
-    labelX: number;
-    sideFlag: ChartAxisLabelFlipFlag;
+interface TickData {
+    rawTicks: any[];
+    fractionDigits: number;
+    ticks: TickDatum[];
 }
 
 interface TickGenerationResult {
@@ -181,13 +177,12 @@ export class AxisTicks {
         this.updateDirection();
 
         const sideFlag = this.label.getSideFlag();
-        const labelX = sideFlag * (this.label.padding + this.padding);
 
         this.scale.interval = this.interval.step;
         this.scale.range = this.range;
         this.scale.update();
 
-        const { tickData, combinedRotation, textBaseline, textAlign } = this.generateTicks({ labelX, sideFlag });
+        const { tickData, combinedRotation, textBaseline, textAlign } = this.generateTicks(sideFlag);
         const params = { range: this.range, combinedRotation, textAlign, textBaseline };
         const [r0, r1] = findMinMax(this.range);
         const padding = this.padding;
@@ -274,7 +269,7 @@ export class AxisTicks {
         return { parallelFlipRotation, regularFlipRotation };
     }
 
-    private generateTicks({ labelX, sideFlag }: TickGenerationParams): TickGenerationResult {
+    private generateTicks(sideFlag: ChartAxisLabelFlipFlag): TickGenerationResult {
         const { parallel, rotation } = this.label;
         const { step, values, minSpacing, maxSpacing } = this.interval;
         const { defaultRotation, configuredRotation, parallelFlipFlag, regularFlipFlag } = calculateLabelRotation({
@@ -283,91 +278,43 @@ export class AxisTicks {
             parallel,
         });
 
-        const labelMatrix = new Matrix();
-        const initialRotation = configuredRotation + defaultRotation;
         const { maxTickCount, minTickCount, defaultTickCount } = this.estimateTickCount({ minSpacing, maxSpacing });
         const maxIterations = isNaN(maxTickCount) ? 10 : maxTickCount;
-        const font = TextMeasurer.toFontString(this.label);
 
         let index = 0;
-        let terminate = false;
-        let labelOverlap = true;
+        // let terminate = false;
         let tickData: TickData = { rawTicks: [], fractionDigits: 0, ticks: [] };
 
-        while (labelOverlap && index <= maxIterations && !terminate) {
-            let tickCount = Math.max(defaultTickCount - index, minTickCount);
+        // while (index <= maxIterations && !terminate) {
+        let tickCount = Math.max(defaultTickCount - index, minTickCount);
 
-            const regenerateTicks = step == null && values == null && tickCount > minTickCount;
+        const regenerateTicks = step == null && values == null && tickCount > minTickCount;
 
-            for (let unchanged = true; unchanged && index <= maxIterations; index++) {
-                const prevTicks = tickData.rawTicks;
+        for (let unchanged = true; unchanged && index <= maxIterations; index++) {
+            const prevTicks = tickData.rawTicks;
 
-                tickCount = Math.max(defaultTickCount - index, minTickCount);
+            tickCount = Math.max(defaultTickCount - index, minTickCount);
 
-                if (tickCount) {
-                    this.scale.tickCount = tickCount;
-                    this.scale.minTickCount = minTickCount ?? 0;
-                    this.scale.maxTickCount = maxTickCount ?? Infinity;
-                }
-
-                tickData = this.getTicksData();
-                unchanged = regenerateTicks ? areArrayNumbersEqual(tickData.rawTicks, prevTicks) : false;
+            if (tickCount) {
+                this.scale.tickCount = tickCount;
+                this.scale.minTickCount = minTickCount ?? 0;
+                this.scale.maxTickCount = maxTickCount ?? Infinity;
             }
 
-            terminate ||= step != null || values != null;
-
-            labelOverlap = this.checkLabelOverlap(
-                initialRotation,
-                configuredRotation !== 0,
-                labelMatrix,
-                tickData.ticks,
-                labelX,
-                { font }
-            );
+            tickData = this.getTicksData();
+            unchanged = regenerateTicks ? areArrayNumbersEqual(tickData.rawTicks, prevTicks) : false;
         }
+
+        // terminate ||= step != null || values != null;
+
+        // TODO check label overlap
+        // }
 
         const combinedRotation = defaultRotation + configuredRotation;
         const textAlign = getTextAlign(parallel, configuredRotation, 0, sideFlag, regularFlipFlag);
         const textBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);
 
         return { tickData, combinedRotation, textBaseline, textAlign };
-    }
-
-    private checkLabelOverlap(
-        rotation: number,
-        rotated: boolean,
-        labelMatrix: Matrix,
-        tickData: TickDatum[],
-        labelX: number,
-        textProps: MeasureOptions
-    ): boolean {
-        Matrix.updateTransformMatrix(labelMatrix, 1, 1, rotation, 0, 0);
-
-        const labelData: PlacedLabelDatum[] = this.createLabelData(tickData, labelX, textProps, labelMatrix);
-        const labelSpacing = getLabelSpacing(this.label.minSpacing, rotated);
-
-        return axisLabelsOverlap(labelData, labelSpacing);
-    }
-
-    private createLabelData(
-        tickData: TickDatum[],
-        labelX: number,
-        textProps: MeasureOptions,
-        labelMatrix: Matrix
-    ): PlacedLabelDatum[] {
-        const labelData: PlacedLabelDatum[] = [];
-
-        for (const { tickLabel, translationY } of tickData) {
-            if (!tickLabel) continue;
-
-            const { width, height } = TextMeasurer.measureLines(tickLabel, textProps);
-            const bbox = new BBox(labelX, translationY, width, height);
-            const labelDatum = calculateLabelBBox(tickLabel, bbox, labelMatrix);
-
-            labelData.push(labelDatum);
-        }
-
-        return labelData;
     }
 
     private getTicksData() {
