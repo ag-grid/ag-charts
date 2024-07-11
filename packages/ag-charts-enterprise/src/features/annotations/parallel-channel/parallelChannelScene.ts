@@ -60,12 +60,7 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         }
     }
 
-    override dragHandle(
-        datum: ParallelChannelProperties,
-        target: Coords,
-        context: AnnotationContext,
-        onInvalid: () => void
-    ) {
+    override dragHandle(datum: ParallelChannelProperties, target: Coords, context: AnnotationContext) {
         const { activeHandle, handles } = this;
         if (activeHandle == null) return;
 
@@ -98,7 +93,6 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
 
         // Do not move any handles if some of them are trying to move to invalid points
         if (invertedMoves.some((invertedMove) => !validateDatumPoint(context, invertedMove))) {
-            onInvalid();
             return;
         }
 
@@ -132,7 +126,6 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
 
         if (!datum.isValidWithContext(context)) {
             datum.set(prev);
-            onInvalid();
         }
     }
 

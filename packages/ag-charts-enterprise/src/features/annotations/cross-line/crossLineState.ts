@@ -1,6 +1,7 @@
 import { type Direction, _ModuleSupport, _Util } from 'ag-charts-community';
 
-import type { StateClickEvent } from '../annotationTypes';
+import type { Point } from '../annotationTypes';
+import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import { type CrossLineProperties, HorizontalLineProperties, VerticalLineProperties } from './crossLineProperties';
 import type { CrossLineScene } from './crossLineScene';
 
@@ -10,20 +11,22 @@ export function isHorizontalAxis(region: any) {
 
 const { StateMachine } = _ModuleSupport;
 
+interface CrossLineStateMachineContext extends Omit<AnnotationsStateMachineContext, 'create'> {
+    create: (datum: CrossLineProperties) => void;
+    datum: () => CrossLineProperties | undefined;
+    node: () => CrossLineScene | undefined;
+}
+
 export class CrossLineStateMachine extends StateMachine<'start', 'click' | 'cancel'> {
     override debug = _Util.Debug.create(true, 'annotations');
 
-    constructor(
-        direction: Direction,
-        appendDatum: (datum: CrossLineProperties, direction?: any) => void,
-        onExit: () => void
-    ) {
-        const onClick = ({ point }: StateClickEvent<CrossLineProperties, CrossLineScene>) => {
+    constructor(direction: Direction, ctx: CrossLineStateMachineContext) {
+        const onClick = ({ point }: { point: Point }) => {
             const isHorizontal = direction === 'horizontal';
             const datum = isHorizontal ? new HorizontalLineProperties() : new VerticalLineProperties();
 
             datum.set({ value: isHorizontal ? point.y : point.x });
-            appendDatum(datum);
+            ctx.create(datum);
         };
 
         super('start', {
@@ -33,7 +36,9 @@ export class CrossLineStateMachine extends StateMachine<'start', 'click' | 'canc
                     action: onClick,
                 },
                 cancel: StateMachine.parent,
-                onExit,
+                onExit: () => {
+                    ctx.selectLast();
+                },
             },
         });
     }

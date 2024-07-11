@@ -55,12 +55,7 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
         }
     }
 
-    override dragHandle(
-        datum: DisjointChannelProperties,
-        target: Coords,
-        context: AnnotationContext,
-        onInvalid: () => void
-    ) {
+    override dragHandle(datum: DisjointChannelProperties, target: Coords, context: AnnotationContext) {
         const { activeHandle, handles } = this;
         if (activeHandle == null) return;
 
@@ -133,7 +128,6 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
 
         if (!datum.isValidWithContext(context)) {
             datum.set(prev);
-            onInvalid();
         }
     }
 

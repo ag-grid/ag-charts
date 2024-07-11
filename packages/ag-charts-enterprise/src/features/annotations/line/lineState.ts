@@ -1,33 +1,38 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import type { StateClickEvent, StateDragEvent, StateHoverEvent } from '../annotationTypes';
+import type { Point } from '../annotationTypes';
+import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import { LineProperties } from './lineProperties';
 import type { LineScene } from './lineScene';
 
-type Click = StateClickEvent<LineProperties, LineScene>;
-type Hover = StateHoverEvent<LineProperties, LineScene>;
-type Drag = StateDragEvent<LineProperties, LineScene>;
-
 const { StateMachine } = _ModuleSupport;
+
+interface LineStateMachineContext extends Omit<AnnotationsStateMachineContext, 'create'> {
+    create: (datum: LineProperties) => void;
+    datum: () => LineProperties | undefined;
+    node: () => LineScene | undefined;
+}
 
 export class LineStateMachine extends StateMachine<'start' | 'end', 'click' | 'hover' | 'drag' | 'cancel'> {
     override debug = _Util.Debug.create(true, 'annotations');
 
-    constructor(appendDatum: (datum: LineProperties) => void) {
-        const onStartClick = ({ point }: Click | Hover) => {
+    constructor(ctx: LineStateMachineContext) {
+        const onStartClick = ({ point }: { point: Point }) => {
             const datum = new LineProperties();
             datum.set({ start: point, end: point });
-            appendDatum(datum);
+            ctx.create(datum);
         };
 
-        const onEndHover = ({ datum, node, point }: Hover | Drag) => {
-            datum?.set({ end: point });
-            node?.toggleHandles({ end: false });
+        const onEndHover = ({ point }: { point: Point }) => {
+            ctx.datum()?.set({ end: point });
+            ctx.node()?.toggleActive(true); // TODO: move to onEnter, but node doesn't exist until next render
+            ctx.node()?.toggleHandles({ end: false });
+            ctx.update();
         };
 
-        const onEndClick = ({ datum, node, point }: Click) => {
-            datum?.set({ end: point });
-            node?.toggleHandles(true);
+        const onEndClick = ({ point }: { point: Point }) => {
+            ctx.datum()?.set({ end: point });
+            ctx.node()?.toggleHandles({ end: true });
         };
 
         super('start', {
@@ -36,6 +41,7 @@ export class LineStateMachine extends StateMachine<'start' | 'end', 'click' | 'h
                     target: 'end',
                     action: onStartClick,
                 },
+                // TODO: this or the one in the parent?
                 drag: {
                     target: 'end',
                     action: onStartClick,

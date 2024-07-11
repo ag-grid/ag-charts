@@ -2,6 +2,7 @@ import type { _Util } from 'ag-charts-community';
 
 import type { TextInput } from '../text-input/textInput';
 import { type AnnotationContext, AnnotationType } from './annotationTypes';
+import type { AnnotationProperties } from './annotationsSuperTypes';
 import { HorizontalLineProperties, VerticalLineProperties } from './cross-line/crossLineProperties';
 import { CrossLineScene } from './cross-line/crossLineScene';
 import { DisjointChannelProperties } from './disjoint-channel/disjointChannelProperties';
@@ -15,14 +16,6 @@ import { TextProperties } from './text/textProperties';
 import { TextScene } from './text/textScene';
 
 type Constructor<T = {}> = new (...args: any[]) => T;
-
-export type AnnotationProperties =
-    | LineProperties
-    | HorizontalLineProperties
-    | VerticalLineProperties
-    | ParallelChannelProperties
-    | DisjointChannelProperties
-    | TextProperties;
 
 export const annotationDatums: Record<AnnotationType, Constructor<AnnotationProperties>> = {
     // Lines
@@ -92,65 +85,6 @@ export function updateAnnotation(
     }
 }
 
-export function dragStartAnnotation(
-    node: AnnotationScene,
-    datum: AnnotationProperties,
-    context: AnnotationContext,
-    offset: _Util.Vec2
-) {
-    // Lines
-    if (LineProperties.is(datum) && LineScene.is(node)) {
-        node.dragStart(datum, offset, context);
-    }
-
-    if ((HorizontalLineProperties.is(datum) || VerticalLineProperties.is(datum)) && CrossLineScene.is(node)) {
-        node.dragStart(datum, offset, context);
-    }
-
-    // Channels
-    if (DisjointChannelProperties.is(datum) && DisjointChannelScene.is(node)) {
-        node.dragStart(datum, offset, context);
-    }
-
-    if (ParallelChannelProperties.is(datum) && ParallelChannelScene.is(node)) {
-        node.dragStart(datum, offset, context);
-    }
-
-    // Texts
-    // ...
-}
-
-export function dragAnnotation(
-    node: AnnotationScene,
-    datum: AnnotationProperties,
-    context: AnnotationContext,
-    offset: _Util.Vec2,
-    onDragInvalid: () => void
-) {
-    // Lines
-    if (LineProperties.is(datum) && LineScene.is(node)) {
-        node.drag(datum, offset, context, onDragInvalid);
-    }
-
-    if ((HorizontalLineProperties.is(datum) || VerticalLineProperties.is(datum)) && CrossLineScene.is(node)) {
-        node.drag(datum, offset, context, onDragInvalid);
-    }
-
-    // Channels
-    if (DisjointChannelProperties.is(datum) && DisjointChannelScene.is(node)) {
-        node.drag(datum, offset, context, onDragInvalid);
-    }
-
-    if (ParallelChannelProperties.is(datum) && ParallelChannelScene.is(node)) {
-        node.drag(datum, offset, context, onDragInvalid);
-    }
-
-    // Texts
-    if (TextProperties.is(datum) && TextScene.is(node)) {
-        node.drag(datum, offset, context, onDragInvalid);
-    }
-}
-
 export function getTypedDatum(datum: unknown) {
     if (
         // Lines
@@ -165,4 +99,15 @@ export function getTypedDatum(datum: unknown) {
     ) {
         return datum;
     }
+}
+
+export function colorDatum(datum: AnnotationProperties, color: string) {
+    if ('stroke' in datum) datum.stroke = color;
+
+    if ('axisLabel' in datum) {
+        datum.axisLabel.fill = color;
+        datum.axisLabel.stroke = color;
+    }
+
+    if ('background' in datum) datum.background.fill = color;
 }

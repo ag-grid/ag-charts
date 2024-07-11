@@ -1,14 +1,17 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import type { Point, StateClickEvent, StateDragEvent, StateHoverEvent } from '../annotationTypes';
+import type { Point } from '../annotationTypes';
+import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import { ParallelChannelProperties } from './parallelChannelProperties';
 import type { ParallelChannelScene } from './parallelChannelScene';
 
-type Click = StateClickEvent<ParallelChannelProperties, ParallelChannelScene>;
-type Drag = StateDragEvent<ParallelChannelProperties, ParallelChannelScene>;
-type Hover = StateHoverEvent<ParallelChannelProperties, ParallelChannelScene>;
-
 const { StateMachine } = _ModuleSupport;
+
+interface ParallelChannelStateMachineContext extends Omit<AnnotationsStateMachineContext, 'create'> {
+    create: (datum: ParallelChannelProperties) => void;
+    datum: () => ParallelChannelProperties | undefined;
+    node: () => ParallelChannelScene | undefined;
+}
 
 export class ParallelChannelStateMachine extends StateMachine<
     'start' | 'end' | 'height',
@@ -16,61 +19,65 @@ export class ParallelChannelStateMachine extends StateMachine<
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
-    constructor(
-        appendDatum: (datum: ParallelChannelProperties) => void,
-        validateDatumPoint: (point: Point) => boolean
-    ) {
-        const onStartClick = ({ point }: Click | Drag) => {
+    constructor(ctx: ParallelChannelStateMachineContext) {
+        const onStartClick = ({ point }: { point: Point }) => {
             const datum = new ParallelChannelProperties();
             datum.set({ start: point, end: point, height: 0 });
-            appendDatum(datum);
+            ctx.create(datum);
         };
 
-        const onEndHover = ({ datum, node, point }: Hover | Drag) => {
-            datum?.set({ end: point, height: 0 });
-            node?.toggleHandles({
+        const onEndHover = ({ point }: { point: Point }) => {
+            ctx.datum()?.set({ end: point, height: 0 });
+            ctx.node()?.toggleHandles({
                 topMiddle: false,
                 topRight: false,
                 bottomLeft: false,
                 bottomMiddle: false,
                 bottomRight: false,
             });
+            ctx.update();
         };
 
-        const onEndClick = ({ datum, node, point }: Click) => {
-            datum?.set({ end: point });
-            node?.toggleHandles({ topMiddle: false, bottomMiddle: false });
+        const onEndClick = ({ point }: { point: Point }) => {
+            ctx.datum()?.set({ end: point });
+            ctx.node()?.toggleHandles({ topMiddle: false, bottomMiddle: false });
+            ctx.update();
         };
 
-        const onHeightHover = ({ datum, node, point }: Hover) => {
-            if (datum.start.y == null || datum.end.y == null) return;
+        const onHeightHover = ({ point }: { point: Point }) => {
+            const datum = ctx.datum();
 
-            const height = datum.end.y - point.y;
+            if (datum?.start.y == null || datum?.end.y == null) return;
+
+            const height = datum.end.y - (point.y ?? 0);
             const bottomStartY = datum.start.y - height;
 
-            node.toggleHandles({ topMiddle: false, bottomMiddle: false });
+            ctx.node()?.toggleHandles({ topMiddle: false, bottomMiddle: false });
 
             if (
-                !validateDatumPoint({ x: datum.start.x, y: bottomStartY }) ||
-                !validateDatumPoint({ x: datum.end.x, y: point.y })
+                !ctx.validatePoint({ x: datum.start.x, y: bottomStartY }) ||
+                !ctx.validatePoint({ x: datum.end.x, y: point.y })
             ) {
                 return;
             }
 
             datum.set({ height });
+            ctx.update();
         };
 
-        const onHeightClick = ({ datum, node, point }: Click) => {
-            if (!datum || !node || datum.start.y == null || datum.end.y == null) return;
+        const onHeightClick = ({ point }: { point: Point }) => {
+            const datum = ctx.datum();
 
-            const height = datum.end.y - point.y;
+            if (datum?.start.y == null || datum?.end.y == null) return;
+
+            const height = datum.end.y - (point.y ?? 0);
             const bottomStartY = datum.start.y - height;
 
-            node.toggleHandles(true);
+            ctx.node()?.toggleHandles(true);
 
             if (
-                validateDatumPoint({ x: datum.start.x, y: bottomStartY }) &&
-                validateDatumPoint({ x: datum.end.x, y: point.y })
+                ctx.validatePoint({ x: datum.start.x, y: bottomStartY }) &&
+                ctx.validatePoint({ x: datum.end.x, y: point.y })
             ) {
                 datum.set({ height });
             }

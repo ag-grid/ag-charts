@@ -1,7 +1,7 @@
 import { _Scene } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords } from '../annotationTypes';
-import { convertPoint, invertCoords, validateDatumPoint } from '../annotationUtils';
+import { convertPoint, invertCoords } from '../annotationUtils';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { DivariantHandle } from '../scenes/handle';
 import type { TextProperties } from './textProperties';
@@ -51,7 +51,7 @@ export class TextScene extends AnnotationScene {
         });
     }
 
-    public drag(datum: TextProperties, target: Coords, context: AnnotationContext, onInvalid: () => void) {
+    public drag(datum: TextProperties, target: Coords, context: AnnotationContext) {
         if (datum.locked || this.activeHandle == null) return;
 
         this.handle.toggleDragging(true);
@@ -60,11 +60,6 @@ export class TextScene extends AnnotationScene {
             y: target.y - DivariantHandle.HANDLE_SIZE,
         };
         const point = invertCoords(this.handle.drag(offsetTarget).point, context);
-
-        if (!validateDatumPoint(context, point)) {
-            onInvalid();
-            return;
-        }
 
         datum.x = point.x;
         datum.y = point.y;

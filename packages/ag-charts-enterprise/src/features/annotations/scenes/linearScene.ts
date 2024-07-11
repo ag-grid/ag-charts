@@ -24,22 +24,17 @@ export abstract class LinearScene<
         };
     }
 
-    public drag(datum: Datum, target: Coords, context: AnnotationContext, onInvalid: () => void) {
+    public drag(datum: Datum, target: Coords, context: AnnotationContext) {
         if (datum.locked) return;
 
         if (this.activeHandle) {
-            this.dragHandle(datum, target, context, onInvalid);
+            this.dragHandle(datum, target, context);
         } else {
             this.dragAll(datum, target, context);
         }
     }
 
-    protected abstract dragHandle(
-        datum: Datum,
-        target: Coords,
-        context: AnnotationContext,
-        onInvalid: () => void
-    ): void;
+    protected abstract dragHandle(datum: Datum, target: Coords, context: AnnotationContext): void;
 
     protected dragAll(datum: Datum, target: Coords, context: AnnotationContext) {
         const { dragState } = this;

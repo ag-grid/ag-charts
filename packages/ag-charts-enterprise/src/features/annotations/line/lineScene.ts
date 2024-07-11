@@ -92,7 +92,7 @@ export class LineScene extends LinearScene<LineProperties> {
         this.end.toggleActive(active);
     }
 
-    override dragHandle(datum: LineProperties, target: Coords, context: AnnotationContext, onInvalid: () => void) {
+    override dragHandle(datum: LineProperties, target: Coords, context: AnnotationContext) {
         const { activeHandle } = this;
 
         if (!activeHandle) return;
@@ -100,10 +100,7 @@ export class LineScene extends LinearScene<LineProperties> {
         this[activeHandle].toggleDragging(true);
         const point = invertCoords(this[activeHandle].drag(target).point, context);
 
-        if (!validateDatumPoint(context, point)) {
-            onInvalid();
-            return;
-        }
+        if (!validateDatumPoint(context, point)) return;
 
         datum[activeHandle].x = point.x;
         datum[activeHandle].y = point.y;
