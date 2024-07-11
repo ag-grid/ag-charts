@@ -98,5 +98,3 @@ export const AgFinancialCharts = /*#__PURE__*/ ChartWithConstructor<AgFinancialC
     (options) => AgChartsAPI.createFinancialChart(options),
     'AgFinancialCharts'
 );
-
-export const setLicenseKey = AgChartsAPI.setLicenseKey.bind(AgChartsAPI);

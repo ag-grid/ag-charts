@@ -61,5 +61,3 @@ export const AgFinancialCharts = /*#__PURE__*/ defineComponent({
         this.chart = undefined;
     },
 });
-
-export const setLicenseKey = AgChartsAPI.setLicenseKey.bind(AgChartsAPI);
