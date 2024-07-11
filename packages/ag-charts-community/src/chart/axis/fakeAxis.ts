@@ -3,7 +3,6 @@ import type { AgCartesianAxisPosition, CssColor, FontFamily, FontSize, FontStyle
 import { resetMotion } from '../../motion/resetMotion';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { LinearScale } from '../../scale/linearScale';
-import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
@@ -11,7 +10,7 @@ import { Matrix } from '../../scene/matrix';
 import type { Node } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
-import { Text, type TextSizeProperties } from '../../scene/shape/text';
+import { Text } from '../../scene/shape/text';
 import type { PlacedLabelDatum } from '../../scene/util/labelPlacement';
 import { axisLabelsOverlap } from '../../scene/util/labelPlacement';
 import { normalizeAngle360, toRadians } from '../../util/angle';
@@ -30,29 +29,11 @@ import { type TickInterval } from './axisTick';
 import type { AxisLineDatum } from './axisUtil';
 import { resetAxisGroupFn, resetAxisLabelSelectionFn, resetAxisLineSelectionFn } from './axisUtil';
 
-type TickStrategyParams = {
-    index: number;
-    tickData: TickData;
-    textProps: TextSizeProperties;
-    labelOverlap: boolean;
-    terminate: boolean;
-    primaryTickCount?: number;
-};
-
 type TickStrategyResult = {
     index: number;
     tickData: TickData;
-    autoRotation: number;
     terminate: boolean;
 };
-
-type TickStrategy = (params: TickStrategyParams) => TickStrategyResult;
-
-enum TickGenerationType {
-    CREATE,
-    FILTER,
-    VALUES,
-}
 
 type TickDatum = {
     tickLabel: string;
@@ -370,15 +351,6 @@ export abstract class FakeAxis<
         const textBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);
         const font = TextMeasurer.toFontString({ fontFamily, fontSize, fontStyle, fontWeight });
 
-        const textProps: TextSizeProperties = {
-            fontFamily,
-            fontSize,
-            fontStyle,
-            fontWeight,
-            textBaseline,
-            textAlign,
-        };
-
         let tickData: TickData = {
             rawTicks: [],
             fractionDigits: 0,
@@ -387,38 +359,22 @@ export abstract class FakeAxis<
         };
 
         let index = 0;
-        let autoRotation = 0;
         let labelOverlap = true;
         let terminate = false;
         while (labelOverlap && index <= maxIterations) {
-            if (terminate) {
-                break;
-            }
-            autoRotation = 0;
+            if (terminate) break;
+
+            ({ tickData, index, terminate } = this.createTickData(index, tickData, terminate));
+
+            const rotated = configuredRotation !== 0;
+
             textAlign = getTextAlign(parallel, configuredRotation, 0, sideFlag, regularFlipFlag);
-
-            const tickStrategies = this.getTickStrategies(index);
-
-            for (const strategy of tickStrategies) {
-                ({ tickData, index, autoRotation, terminate } = strategy({
-                    index,
-                    tickData,
-                    textProps,
-                    labelOverlap,
-                    terminate,
-                    primaryTickCount,
-                }));
-
-                const rotated = configuredRotation !== 0 || autoRotation !== 0;
-                const labelRotation = initialRotation + autoRotation;
-                textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
-                labelOverlap = this.label.avoidCollisions
-                    ? this.checkLabelOverlap(labelRotation, rotated, labelMatrix, tickData.ticks, labelX, { font })
-                    : false;
-            }
+            labelOverlap = this.label.avoidCollisions
+                ? this.checkLabelOverlap(initialRotation, rotated, labelMatrix, tickData.ticks, labelX, { font })
+                : false;
         }
 
-        const combinedRotation = defaultRotation + configuredRotation + autoRotation;
+        const combinedRotation = defaultRotation + configuredRotation;
 
         if (tickData.rawTicks.length) {
             primaryTickCount = tickData.rawTicks.length;
@@ -427,70 +383,21 @@ export abstract class FakeAxis<
         return { tickData, primaryTickCount, combinedRotation, textBaseline, textAlign };
     }
 
-    private getTickStrategies(iteration: number): TickStrategy[] {
-        const { scale, label } = this;
-        const { minSpacing } = this.interval;
-        const continuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
-        const avoidLabelCollisions = label.enabled && label.avoidCollisions;
-        const filterTicks = !continuous && iteration !== 0 && avoidLabelCollisions;
-
-        const strategies: TickStrategy[] = [];
-        let tickGenerationType: TickGenerationType;
-        if (this.interval.values) {
-            tickGenerationType = TickGenerationType.VALUES;
-        } else if (filterTicks) {
-            tickGenerationType = TickGenerationType.FILTER;
-        } else {
-            tickGenerationType = TickGenerationType.CREATE;
-        }
-
-        const tickGenerationStrategy = ({ index, tickData, terminate }: TickStrategyParams) =>
-            this.createTickData(tickGenerationType, index, tickData, terminate);
-
-        strategies.push(tickGenerationStrategy);
-
-        if (!continuous && !isNaN(minSpacing)) {
-            const tickFilterStrategy = ({ index, tickData, terminate }: TickStrategyParams) =>
-                this.createTickData(TickGenerationType.FILTER, index, tickData, terminate);
-            strategies.push(tickFilterStrategy);
-        }
-
-        if (!avoidLabelCollisions) {
-            return strategies;
-        }
-
-        return strategies;
-    }
-
-    private createTickData(
-        tickGenerationType: TickGenerationType,
-        index: number,
-        tickData: TickData,
-        terminate: boolean
-    ): TickStrategyResult {
-        const { scale } = this;
+    private createTickData(index: number, tickData: TickData, terminate: boolean): TickStrategyResult {
         const { step, values, minSpacing, maxSpacing } = this.interval;
         const { maxTickCount, minTickCount, defaultTickCount } = this.estimateTickCount({ minSpacing, maxSpacing });
+        const maxIterations = isNaN(maxTickCount) ? 10 : maxTickCount;
 
-        const continuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
-        const maxIterations = !continuous || isNaN(maxTickCount) ? 10 : maxTickCount;
+        let tickCount = Math.max(defaultTickCount - index, minTickCount);
 
-        let tickCount = continuous ? Math.max(defaultTickCount - index, minTickCount) : maxTickCount;
-
-        const regenerateTicks =
-            step === undefined &&
-            values === undefined &&
-            tickCount > minTickCount &&
-            (continuous || tickGenerationType === TickGenerationType.FILTER);
+        const regenerateTicks = step == null && values == null && tickCount > minTickCount;
 
         let unchanged = true;
         while (unchanged && index <= maxIterations) {
             const prevTicks = tickData.rawTicks;
-            tickCount = continuous ? Math.max(defaultTickCount - index, minTickCount) : maxTickCount;
+            tickCount = Math.max(defaultTickCount - index, minTickCount);
 
             const { rawTicks, fractionDigits, ticks, labelCount } = this.getTicks({
-                tickGenerationType,
-                previousTicks: prevTicks,
                 tickCount,
                 minTickCount,
                 maxTickCount,
@@ -509,7 +416,7 @@ export abstract class FakeAxis<
 
         terminate ||= shouldTerminate;
 
-        return { tickData, index, autoRotation: 0, terminate };
+        return { tickData, index, terminate };
     }
 
     private checkLabelOverlap(
@@ -550,24 +457,17 @@ export abstract class FakeAxis<
     }
 
     private getTicks({
-        tickGenerationType,
-        previousTicks,
         tickCount,
         minTickCount,
         maxTickCount,
     }: {
-        tickGenerationType: TickGenerationType;
-        previousTicks: TickDatum[];
         tickCount: number;
         minTickCount: number;
         maxTickCount: number;
     }) {
         const { range, scale } = this;
 
-        const rawTicks =
-            tickGenerationType === TickGenerationType.FILTER
-                ? this.filterTicks(previousTicks, tickCount)
-                : this.createTicks(tickCount, minTickCount, maxTickCount);
+        const rawTicks = this.createTicks(tickCount, minTickCount, maxTickCount);
 
         const fractionDigits = rawTicks.reduce((max, tick) => Math.max(max, countFractionDigits(tick)), 0);
         const ticks: TickDatum[] = [];
@@ -589,7 +489,10 @@ export abstract class FakeAxis<
             // instead hide ticks based on their translation.
             if (range.length > 0 && !this.inRange(translationY, 0.001)) continue;
 
-            const tickLabel = this.formatTick(tick, fractionDigits, i);
+            const tickLabel =
+                this.label.formatter?.({ value: tick, index: i, fractionDigits }) ??
+                this.labelFormatter?.(tick) ??
+                String(tick);
 
             // Create a tick id from the label, or as an increment of the last label if this tick label is blank
             let tickId = tickLabel;
@@ -611,13 +514,6 @@ export abstract class FakeAxis<
         return { rawTicks, fractionDigits, ticks, labelCount };
     }
 
-    private filterTicks(ticks: any, tickCount: number): any[] {
-        const { minSpacing, maxSpacing } = this.interval;
-        const tickSpacing = !isNaN(minSpacing) || !isNaN(maxSpacing);
-        const keepEvery = tickSpacing ? Math.ceil(ticks.length / tickCount) : 2;
-        return ticks.filter((_: any, i: number) => i % keepEvery === 0);
-    }
-
     private createTicks(tickCount: number, minTickCount: number = 0, maxTickCount: number = Infinity) {
         const { scale } = this;
 
@@ -635,7 +531,7 @@ export abstract class FakeAxis<
         maxTickCount: number;
         defaultTickCount: number;
     } {
-        const rangeWithBleed = this.calculateRangeWithBleed();
+        const rangeWithBleed = round(findRangeExtent(this.range), 2);
         const defaultMinSpacing = Math.max(
             FakeAxis.defaultTickMinSpacing,
             rangeWithBleed / ContinuousScale.defaultMaxTickCount
@@ -678,18 +574,10 @@ export abstract class FakeAxis<
         const { tickLabelGroupSelection, lineNode } = this;
 
         resetMotion([this.axisGroup], resetAxisGroupFn());
-        resetMotion([tickLabelGroupSelection], resetAxisLabelSelectionFn() as any);
+        resetMotion([tickLabelGroupSelection], resetAxisLabelSelectionFn());
         resetMotion([lineNode], resetAxisLineSelectionFn());
 
         this.tickLabelGroup.visible = this.label.enabled;
-    }
-
-    /**
-     * Calculates the available range with an additional "bleed" beyond the canvas that encompasses the full axis when
-     * the visible range is only a portion of the axis.
-     */
-    private calculateRangeWithBleed() {
-        return round(findRangeExtent(this.range), 2);
     }
 
     private getAxisTransform() {
@@ -734,13 +622,5 @@ export abstract class FakeAxis<
                 ]);
             });
         }
-    }
-
-    private formatTick(datum: unknown, fractionDigits: number, index: number): string {
-        return (
-            this.label.formatter?.({ value: datum, index, fractionDigits }) ??
-            this.labelFormatter?.(datum) ??
-            String(datum)
-        );
     }
 }
