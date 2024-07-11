@@ -1,7 +1,6 @@
 import type { AgCartesianAxisPosition, CssColor, FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-types';
 
 import { resetMotion } from '../../motion/resetMotion';
-import { ContinuousScale } from '../../scale/continuousScale';
 import { LinearScale } from '../../scale/linearScale';
 import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
@@ -17,6 +16,7 @@ import { createId } from '../../util/id';
 import { clamp, countFractionDigits, findMinMax, findRangeExtent, round } from '../../util/number';
 import { createIdsGenerator } from '../../util/tempUtils';
 import { type MeasureOptions, TextMeasurer } from '../../util/textMeasurer';
+import { isNumber } from '../../util/type-guards';
 import { OBJECT, POSITION, Validate } from '../../util/validation';
 import type { ChartAxisLabelFlipFlag } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
@@ -55,7 +55,6 @@ type LabelNodeDatum = {
 type TickData = { rawTicks: any[]; fractionDigits: number; ticks: TickDatum[] };
 
 interface TickGenerationParams {
-    primaryTickCount?: number;
     parallelFlipRotation: number;
     regularFlipRotation: number;
     labelX: number;
@@ -70,6 +69,10 @@ interface TickGenerationResult {
 }
 
 export class AxisTicks {
+    static readonly defaultTickCount = 5;
+    static readonly defaultMaxTickCount = 6;
+    static readonly defaultTickMinSpacing = 50;
+
     readonly id = createId(this);
 
     @Validate(OBJECT)
@@ -139,8 +142,6 @@ export class AxisTicks {
         const [min, max] = findMinMax(this.range);
         return x >= min - tolerance && x <= max + tolerance;
     }
-
-    private labelFormatter?: (datum: any) => string;
 
     public padding: number = 0;
 
@@ -395,10 +396,9 @@ export class AxisTicks {
         const fractionDigits = rawTicks.reduce((max, tick) => Math.max(max, countFractionDigits(tick)), 0);
         const idGenerator = createIdsGenerator();
 
-        // When the scale domain or the ticks change, the label format may change
-        this.labelFormatter = this.label.format
+        const labelFormatter = this.label.format
             ? this.scale.tickFormat({ ticks: rawTicks, specifier: this.label.format })
-            : (x: unknown) => (typeof x === 'number' ? x.toFixed(fractionDigits) : String(x));
+            : (x: unknown) => (isNumber(x) ? x.toFixed(fractionDigits) : String(x));
 
         for (let i = 0; i < rawTicks.length; i++) {
             const tick = rawTicks[i];
@@ -410,7 +410,7 @@ export class AxisTicks {
 
             const tickLabel =
                 this.label.formatter?.({ value: tick, index: i, fractionDigits }) ??
-                this.labelFormatter?.(tick) ??
+                labelFormatter(tick) ??
                 String(tick);
 
             ticks.push({
@@ -429,17 +429,17 @@ export class AxisTicks {
         maxTickCount: number;
         defaultTickCount: number;
     } {
-        const rangeWithBleed = round(findRangeExtent(this.range), 2);
+        const extentWithBleed = round(findRangeExtent(this.range), 2);
         const defaultMinSpacing = Math.max(
-            50, // defaultTickMinSpacing
-            rangeWithBleed / 6 // defaultMaxTickCount
+            AxisTicks.defaultTickMinSpacing,
+            extentWithBleed / AxisTicks.defaultMaxTickCount
         );
 
         if (isNaN(minSpacing)) {
             minSpacing = defaultMinSpacing;
         }
         if (isNaN(maxSpacing)) {
-            maxSpacing = rangeWithBleed;
+            maxSpacing = extentWithBleed;
         }
         if (minSpacing > maxSpacing) {
             if (minSpacing === defaultMinSpacing) {
@@ -450,17 +450,16 @@ export class AxisTicks {
         }
 
         // Clamps the min spacing between ticks to be no more than the min distance between datums
-        const minRectDistance = 1;
-        const clampMaxTickCount = !isNaN(maxSpacing) && minRectDistance < defaultMinSpacing;
+        const clampMaxTickCount = !isNaN(maxSpacing) && 1 < defaultMinSpacing;
 
         // TODO: Remove clamping to hardcoded 100 max tick count, this is a temp fix for zooming
         const maxTickCount = clamp(
             1,
-            Math.floor(rangeWithBleed / minSpacing),
-            clampMaxTickCount ? Math.min(Math.floor(rangeWithBleed / minRectDistance), 100) : 100
+            Math.floor(extentWithBleed / minSpacing),
+            clampMaxTickCount ? Math.min(Math.floor(extentWithBleed), 100) : 100
         );
-        const minTickCount = Math.min(maxTickCount, Math.ceil(rangeWithBleed / maxSpacing));
-        const defaultTickCount = clamp(minTickCount, ContinuousScale.defaultTickCount, maxTickCount);
+        const minTickCount = Math.min(maxTickCount, Math.ceil(extentWithBleed / maxSpacing));
+        const defaultTickCount = clamp(minTickCount, AxisTicks.defaultTickCount, maxTickCount);
 
         return { minTickCount, maxTickCount, defaultTickCount };
     }
