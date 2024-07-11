@@ -26,12 +26,6 @@ import { AxisInterval } from './axisInterval';
 import { AxisLabel } from './axisLabel';
 import { resetAxisGroupFn, resetAxisLabelSelectionFn } from './axisUtil';
 
-type TickStrategyResult = {
-    index: number;
-    tickData: TickData;
-    terminate: boolean;
-};
-
 type TickDatum = {
     tickLabel: string;
     tick: any;
@@ -184,8 +178,6 @@ export class FakeAxis {
         };
     }
 
-    private tickGenerationResult: TickGenerationResult | undefined = undefined;
-
     calculateLayout(): BBox {
         this.updateDirection();
 
@@ -197,20 +189,18 @@ export class FakeAxis {
         this.scale.range = this.range;
         this.scale.update();
 
-        this.tickGenerationResult = this.generateTicks({
+        const { tickData, combinedRotation, textBaseline, textAlign } = this.generateTicks({
             parallelFlipRotation,
             regularFlipRotation,
             labelX,
             sideFlag,
         });
 
-        const { tickData, combinedRotation, textBaseline, textAlign } = this.tickGenerationResult;
         const [r0, r1] = findMinMax(this.range);
         const padding = this.padding;
         const boxes: BBox[] = [];
 
-        const lineBox = new BBox(Math.min(sideFlag * padding, 0), r0, padding, r1 - r0);
-        boxes.push(lineBox);
+        boxes.push(new BBox(Math.min(sideFlag * padding, 0), r0, padding, r1 - r0)); // lineBox
 
         if (this.label.enabled) {
             const tempText = new Text();
@@ -287,11 +277,8 @@ export class FakeAxis {
         labelX,
         sideFlag,
     }: TickGenerationParams): TickGenerationResult {
-        const {
-            interval: { minSpacing, maxSpacing },
-            label: { parallel, rotation, fontFamily, fontSize, fontStyle, fontWeight },
-        } = this;
-
+        const { parallel, rotation } = this.label;
+        const { step, values, minSpacing, maxSpacing } = this.interval;
         const { defaultRotation, configuredRotation, parallelFlipFlag, regularFlipFlag } = calculateLabelRotation({
             rotation,
             parallel,
@@ -299,16 +286,11 @@ export class FakeAxis {
             parallelFlipRotation,
         });
 
-        const initialRotation = configuredRotation + defaultRotation;
         const labelMatrix = new Matrix();
-
+        const initialRotation = configuredRotation + defaultRotation;
         const { maxTickCount } = this.estimateTickCount({ minSpacing, maxSpacing });
-
         const maxIterations = isNaN(maxTickCount) ? 10 : maxTickCount;
-
-        let textAlign = getTextAlign(parallel, configuredRotation, 0, sideFlag, regularFlipFlag);
-        const textBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);
-        const font = TextMeasurer.toFontString({ fontFamily, fontSize, fontStyle, fontWeight });
+        const font = TextMeasurer.toFontString(this.label);
 
         let tickData: TickData = {
             rawTicks: [],
@@ -317,55 +299,47 @@ export class FakeAxis {
         };
 
         let index = 0;
-        let labelOverlap = true;
         let terminate = false;
-        while (labelOverlap && index <= maxIterations) {
-            if (terminate) break;
+        let labelOverlap = true;
 
-            ({ tickData, index, terminate } = this.createTickData(index, tickData, terminate));
+        while (labelOverlap && index <= maxIterations && !terminate) {
+            const { maxTickCount, minTickCount, defaultTickCount } = this.estimateTickCount({ minSpacing, maxSpacing });
+            const maxIterations = isNaN(maxTickCount) ? 10 : maxTickCount;
 
-            const rotated = configuredRotation !== 0;
+            let tickCount = Math.max(defaultTickCount - index, minTickCount);
 
-            textAlign = getTextAlign(parallel, configuredRotation, 0, sideFlag, regularFlipFlag);
-            labelOverlap = this.checkLabelOverlap(initialRotation, rotated, labelMatrix, tickData.ticks, labelX, {
-                font,
-            });
+            const regenerateTicks = step == null && values == null && tickCount > minTickCount;
+
+            for (let unchanged = true; unchanged && index <= maxIterations; index++) {
+                const prevTicks = tickData.rawTicks;
+                tickCount = Math.max(defaultTickCount - index, minTickCount);
+
+                tickData = this.getTicks({
+                    tickCount,
+                    minTickCount,
+                    maxTickCount,
+                });
+
+                unchanged = regenerateTicks ? areArrayNumbersEqual(tickData.rawTicks, prevTicks) : false;
+            }
+
+            terminate ||= step != null || values != null;
+
+            labelOverlap = this.checkLabelOverlap(
+                initialRotation,
+                configuredRotation !== 0,
+                labelMatrix,
+                tickData.ticks,
+                labelX,
+                { font }
+            );
         }
 
         const combinedRotation = defaultRotation + configuredRotation;
+        const textAlign = getTextAlign(parallel, configuredRotation, 0, sideFlag, regularFlipFlag);
+        const textBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);
 
         return { tickData, combinedRotation, textBaseline, textAlign };
-    }
-
-    private createTickData(index: number, tickData: TickData, terminate: boolean): TickStrategyResult {
-        const { step, values, minSpacing, maxSpacing } = this.interval;
-        const { maxTickCount, minTickCount, defaultTickCount } = this.estimateTickCount({ minSpacing, maxSpacing });
-        const maxIterations = isNaN(maxTickCount) ? 10 : maxTickCount;
-
-        let tickCount = Math.max(defaultTickCount - index, minTickCount);
-
-        const regenerateTicks = step == null && values == null && tickCount > minTickCount;
-
-        for (let unchanged = true; unchanged && index <= maxIterations; index++) {
-            const prevTicks = tickData.rawTicks;
-            tickCount = Math.max(defaultTickCount - index, minTickCount);
-
-            const { rawTicks, fractionDigits, ticks } = this.getTicks({
-                tickCount,
-                minTickCount,
-                maxTickCount,
-            });
-
-            tickData.rawTicks = rawTicks;
-            tickData.fractionDigits = fractionDigits;
-            tickData.ticks = ticks;
-
-            unchanged = regenerateTicks ? areArrayNumbersEqual(rawTicks, prevTicks) : false;
-        }
-
-        terminate ||= step != null || values != null;
-
-        return { tickData, index, terminate };
     }
 
     private checkLabelOverlap(
