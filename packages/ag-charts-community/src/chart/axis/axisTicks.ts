@@ -11,7 +11,7 @@ import { Selection } from '../../scene/selection';
 import { Text } from '../../scene/shape/text';
 import type { PlacedLabelDatum } from '../../scene/util/labelPlacement';
 import { axisLabelsOverlap } from '../../scene/util/labelPlacement';
-import { normalizeAngle360, toRadians } from '../../util/angle';
+import { toRadians } from '../../util/angle';
 import { areArrayNumbersEqual } from '../../util/equal';
 import { createId } from '../../util/id';
 import { clamp, countFractionDigits, findMinMax, findRangeExtent, round } from '../../util/number';
@@ -69,7 +69,7 @@ interface TickGenerationResult {
     textAlign: CanvasTextAlign;
 }
 
-export class FakeAxis {
+export class AxisTicks {
     readonly id = createId(this);
 
     @Validate(OBJECT)
@@ -264,8 +264,8 @@ export class FakeAxis {
         // and then rotated, zero rotation means 12 (not 3) o-clock.
         // -1 = flip
         //  1 = don't flip (default)
-        const parallelFlipRotation = normalizeAngle360(rotation);
-        const regularFlipRotation = normalizeAngle360(rotation - Math.PI / 2);
+        const parallelFlipRotation = rotation;
+        const regularFlipRotation = rotation - Math.PI / 2;
         return { rotation, parallelFlipRotation, regularFlipRotation };
     }
 

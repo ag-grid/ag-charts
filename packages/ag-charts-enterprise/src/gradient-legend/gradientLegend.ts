@@ -6,7 +6,7 @@ import {
     _Util,
 } from 'ag-charts-community';
 
-const { BOOLEAN, OBJECT, POSITION, POSITIVE_NUMBER, BaseProperties, FakeAxis, Layers, ProxyProperty, Validate } =
+const { BOOLEAN, OBJECT, POSITION, POSITIVE_NUMBER, BaseProperties, AxisTicks, Layers, ProxyProperty, Validate } =
     _ModuleSupport;
 const { Group, Rect, LinearGradientFill, Triangle } = _Scene;
 const { createId } = _Util;
@@ -20,16 +20,16 @@ class GradientBar extends BaseProperties {
 }
 
 class GradientLegendScale implements AgGradientLegendScaleOptions {
-    constructor(protected axis: _ModuleSupport.FakeAxis) {}
+    constructor(protected axisTicks: _ModuleSupport.AxisTicks) {}
 
-    @ProxyProperty('axis.label')
+    @ProxyProperty('axisTicks.label')
     label!: _ModuleSupport.AxisLabel;
 
-    @ProxyProperty('axis.interval')
+    @ProxyProperty('axisTicks.interval')
     interval!: _ModuleSupport.AxisInterval<number>;
 
-    @ProxyProperty('axis.padding')
-    padding?: _ModuleSupport.FakeAxis['padding'];
+    @ProxyProperty('axisTicks.padding')
+    padding?: _ModuleSupport.AxisTicks['padding'];
 }
 
 export class GradientLegend {
@@ -37,15 +37,19 @@ export class GradientLegend {
 
     readonly id = createId(this);
 
-    private readonly axis: _ModuleSupport.FakeAxis;
+    private readonly axisTicks: _ModuleSupport.AxisTicks;
     private readonly highlightManager: _ModuleSupport.HighlightManager;
 
-    private readonly group: _Scene.Group = new Group({ name: 'legend', layer: true, zIndex: Layers.LEGEND_ZINDEX });
+    private readonly legendGroup = new Group({
+        name: 'legend',
+        layer: true,
+        zIndex: Layers.LEGEND_ZINDEX,
+    });
     private readonly gradientRect = new Rect();
     private readonly gradientFill = new LinearGradientFill();
     private readonly arrow = new Triangle();
 
-    private readonly axisGroup = new Group({ name: 'legend-axis-group' });
+    private readonly ticksGroup = new Group({ name: 'legend-axis-group' });
     private readonly destroyFns: Function[] = [];
 
     @Validate(BOOLEAN)
@@ -79,17 +83,17 @@ export class GradientLegend {
 
         this.gradientFill.mask = this.gradientRect;
 
-        this.axis = new FakeAxis();
-        this.axis.attachAxis(this.axisGroup);
+        this.axisTicks = new AxisTicks();
+        this.axisTicks.attachAxis(this.ticksGroup);
 
-        this.scale = new GradientLegendScale(this.axis);
+        this.scale = new GradientLegendScale(this.axisTicks);
 
-        this.group.append([this.gradientFill, this.arrow, this.axisGroup]);
+        this.legendGroup.append([this.gradientFill, this.arrow, this.ticksGroup]);
 
         this.destroyFns.push(
             ctx.highlightManager.addListener('highlight-change', () => this.onChartHoverChange()),
             ctx.layoutService.addListener('start-layout', (e) => this.onStartLayout(e)),
-            () => this.group.parent?.removeChild(this.group)
+            () => this.legendGroup.parent?.removeChild(this.legendGroup)
         );
     }
 
@@ -98,14 +102,14 @@ export class GradientLegend {
     }
 
     attachLegend(scene: _Scene.Scene) {
-        scene.appendChild(this.group);
+        scene.appendChild(this.legendGroup);
     }
 
     private onStartLayout(ctx: _ModuleSupport.LayoutContext) {
         const [data] = this.data;
 
         if (!this.enabled || !data?.enabled) {
-            this.group.visible = false;
+            this.legendGroup.visible = false;
             return ctx;
         }
 
@@ -118,9 +122,9 @@ export class GradientLegend {
 
         this.updateArrow();
 
-        this.group.visible = true;
-        this.group.translationX = left;
-        this.group.translationY = top;
+        this.legendGroup.visible = true;
+        this.legendGroup.translationX = left;
+        this.legendGroup.translationY = top;
 
         return ctx;
     }
@@ -174,18 +178,18 @@ export class GradientLegend {
     }
 
     private updateAxis(data: _ModuleSupport.GradientLegendDatum) {
-        const { axis } = this;
+        const { axisTicks } = this;
         const vertical = this.isVertical();
         const positiveAxis = this.reverseOrder !== vertical;
         const { x, y, width, height } = this.gradientRect;
 
-        axis.position = this.position;
-        axis.range = vertical ? [0, height] : [0, width];
-        axis.translation.x = x + (vertical ? width : 0);
-        axis.translation.y = y + (vertical ? 0 : height);
-        axis.setDomain(positiveAxis ? data.colorDomain.slice().reverse() : data.colorDomain);
+        axisTicks.position = this.position;
+        axisTicks.range = vertical ? [0, height] : [0, width];
+        axisTicks.translation.x = x + (vertical ? width : 0);
+        axisTicks.translation.y = y + (vertical ? 0 : height);
+        axisTicks.setDomain(positiveAxis ? data.colorDomain.slice().reverse() : data.colorDomain);
 
-        return axis.calculateLayout();
+        return axisTicks.calculateLayout();
     }
 
     private updateArrow() {
@@ -197,7 +201,7 @@ export class GradientLegend {
             return;
         }
 
-        const { scale, label } = this.axis;
+        const { scale, label } = this.axisTicks;
         const size = label.fontSize ?? 0;
         const t = scale.convert(highlighted.colorValue);
         let { x, y } = this.gradientRect;
