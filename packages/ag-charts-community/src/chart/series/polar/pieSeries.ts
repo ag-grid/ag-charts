@@ -354,7 +354,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             const { datum, values } = group;
             const currentValue = useFilterAngles ? values[angleFilterIdx!] : values[angleIdx];
             const crossFilterScale =
-                angleFilterRawIdx != null && !useFilterAngles ? values[angleFilterRawIdx] / values[angleRawIdx] : 1;
+                angleFilterRawIdx != null && !useFilterAngles
+                    ? Math.sqrt(values[angleFilterRawIdx] / values[angleRawIdx])
+                    : 1;
 
             const startAngle = angleScale.convert(currentStart) + toRadians(rotation);
             currentStart = currentValue;
