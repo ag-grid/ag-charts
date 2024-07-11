@@ -286,7 +286,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
     async maybeRefreshNodeData() {
         if (!this.nodeDataRefresh) return;
-        const { nodeData = [], phantomNodeData = [] } = (await this.createNodeData()) ?? {};
+        const { nodeData = [], phantomNodeData } = (await this.createNodeData()) ?? {};
         this.nodeData = nodeData;
         this.phantomNodeData = phantomNodeData;
         this.nodeDataRefresh = false;
@@ -416,7 +416,6 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 legendItemValue,
                 enabled: this.seriesItemEnabled[index],
                 focusable: true,
-                phantom: false,
                 ...nodeLabels,
             };
             nodes.push(node);
@@ -428,7 +427,6 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                     innerRadius: Math.max(this.radiusScale.convert(0), 0),
                     outerRadius: Math.max(this.radiusScale.convert(1), 0),
                     focusable: false,
-                    phantom: true,
                 });
             }
         });
@@ -734,9 +732,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             if (highlight) {
                 // Allow mutable sectorFormat, so formatted sector styles can be updated and varied
                 // between normal and highlighted cases.
-                nodeData = nodeData
-                    .filter((datum) => !datum.phantom)
-                    .map((datum) => ({ ...datum, sectorFormat: { ...datum.sectorFormat } }));
+                nodeData = nodeData.map((datum) => ({ ...datum, sectorFormat: { ...datum.sectorFormat } }));
             }
             selection.update(nodeData, undefined, (datum) => this.getDatumId(datum));
             if (this.ctx.animationManager.isSkipped()) {

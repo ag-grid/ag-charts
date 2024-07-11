@@ -276,7 +276,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
     async maybeRefreshNodeData() {
         if (!this.nodeDataRefresh) return;
-        const { nodeData = [], phantomNodeData = [] } = (await this.createNodeData()) ?? {};
+        const { nodeData = [], phantomNodeData } = (await this.createNodeData()) ?? {};
         this.nodeData = nodeData;
         this.phantomNodeData = phantomNodeData;
         this.nodeDataRefresh = false;
