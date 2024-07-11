@@ -55,8 +55,6 @@ type LabelNodeDatum = {
 type TickData = { rawTicks: any[]; fractionDigits: number; ticks: TickDatum[] };
 
 interface TickGenerationParams {
-    parallelFlipRotation: number;
-    regularFlipRotation: number;
     labelX: number;
     sideFlag: ChartAxisLabelFlipFlag;
 }
@@ -182,7 +180,6 @@ export class AxisTicks {
     calculateLayout(): BBox {
         this.updateDirection();
 
-        const { parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
         const sideFlag = this.label.getSideFlag();
         const labelX = sideFlag * (this.label.padding + this.padding);
 
@@ -190,13 +187,7 @@ export class AxisTicks {
         this.scale.range = this.range;
         this.scale.update();
 
-        const { tickData, combinedRotation, textBaseline, textAlign } = this.generateTicks({
-            parallelFlipRotation,
-            regularFlipRotation,
-            labelX,
-            sideFlag,
-        });
-
+        const { tickData, combinedRotation, textBaseline, textAlign } = this.generateTicks({ labelX, sideFlag });
         const params = { range: this.range, combinedRotation, textAlign, textBaseline };
         const [r0, r1] = findMinMax(this.range);
         const padding = this.padding;
@@ -280,22 +271,16 @@ export class AxisTicks {
         //  1 = don't flip (default)
         const parallelFlipRotation = rotation;
         const regularFlipRotation = rotation - Math.PI / 2;
-        return { rotation, parallelFlipRotation, regularFlipRotation };
+        return { parallelFlipRotation, regularFlipRotation };
     }
 
-    private generateTicks({
-        parallelFlipRotation,
-        regularFlipRotation,
-        labelX,
-        sideFlag,
-    }: TickGenerationParams): TickGenerationResult {
+    private generateTicks({ labelX, sideFlag }: TickGenerationParams): TickGenerationResult {
         const { parallel, rotation } = this.label;
         const { step, values, minSpacing, maxSpacing } = this.interval;
         const { defaultRotation, configuredRotation, parallelFlipFlag, regularFlipFlag } = calculateLabelRotation({
+            ...this.calculateRotations(),
             rotation,
             parallel,
-            regularFlipRotation,
-            parallelFlipRotation,
         });
 
         const labelMatrix = new Matrix();
@@ -304,15 +289,10 @@ export class AxisTicks {
         const maxIterations = isNaN(maxTickCount) ? 10 : maxTickCount;
         const font = TextMeasurer.toFontString(this.label);
 
-        let tickData: TickData = {
-            rawTicks: [],
-            fractionDigits: 0,
-            ticks: [],
-        };
-
         let index = 0;
         let terminate = false;
         let labelOverlap = true;
+        let tickData: TickData = { rawTicks: [], fractionDigits: 0, ticks: [] };
 
         while (labelOverlap && index <= maxIterations && !terminate) {
             let tickCount = Math.max(defaultTickCount - index, minTickCount);
