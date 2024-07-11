@@ -9,7 +9,7 @@ import type { Node } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { Text } from '../../scene/shape/text';
 import { toRadians } from '../../util/angle';
-import { areArrayNumbersEqual } from '../../util/equal';
+import { arraysEqual } from '../../util/array';
 import { createId } from '../../util/id';
 import { clamp, countFractionDigits, findMinMax, findRangeExtent, round } from '../../util/number';
 import { createIdsGenerator } from '../../util/tempUtils';
@@ -244,8 +244,8 @@ export class AxisTicks {
 
     private getTransformBox(bbox: BBox) {
         const matrix = new Matrix();
-        const { rotation: axisRotation, translationX, translationY } = this.getAxisTransform();
-        Matrix.updateTransformMatrix(matrix, 1, 1, axisRotation, translationX, translationY);
+        const { rotation, translationX, translationY } = this.getAxisTransform();
+        Matrix.updateTransformMatrix(matrix, 1, 1, rotation, translationX, translationY);
         return matrix.transformBBox(bbox);
     }
 
@@ -278,19 +278,17 @@ export class AxisTicks {
             parallel,
         });
 
-        const { maxTickCount, minTickCount, defaultTickCount } = this.estimateTickCount({ minSpacing, maxSpacing });
+        const { maxTickCount, minTickCount, defaultTickCount } = this.estimateTickCount(minSpacing, maxSpacing);
         const maxIterations = isNaN(maxTickCount) ? 10 : maxTickCount;
 
         let index = 0;
-        // let terminate = false;
         let tickData: TickData = { rawTicks: [], fractionDigits: 0, ticks: [] };
 
-        // while (index <= maxIterations && !terminate) {
         let tickCount = Math.max(defaultTickCount - index, minTickCount);
 
-        const regenerateTicks = step == null && values == null && tickCount > minTickCount;
+        const allowMultipleAttempts = step == null && values == null && tickCount > minTickCount;
 
-        for (let unchanged = true; unchanged && index <= maxIterations; index++) {
+        for (let hasChanged = false; !hasChanged && index <= maxIterations; index++) {
             const prevTicks = tickData.rawTicks;
 
             tickCount = Math.max(defaultTickCount - index, minTickCount);
@@ -302,13 +300,13 @@ export class AxisTicks {
             }
 
             tickData = this.getTicksData();
-            unchanged = regenerateTicks ? areArrayNumbersEqual(tickData.rawTicks, prevTicks) : false;
+
+            if (!allowMultipleAttempts) break;
+
+            hasChanged = !arraysEqual(tickData.rawTicks, prevTicks);
         }
 
-        // terminate ||= step != null || values != null;
-
         // TODO check label overlap
-        // }
 
         const combinedRotation = defaultRotation + configuredRotation;
         const textAlign = getTextAlign(parallel, configuredRotation, 0, sideFlag, regularFlipFlag);
@@ -351,7 +349,10 @@ export class AxisTicks {
         return { rawTicks, fractionDigits, ticks };
     }
 
-    private estimateTickCount({ minSpacing, maxSpacing }: { minSpacing: number; maxSpacing: number }): {
+    private estimateTickCount(
+        minSpacing: number,
+        maxSpacing: number
+    ): {
         minTickCount: number;
         maxTickCount: number;
         defaultTickCount: number;
