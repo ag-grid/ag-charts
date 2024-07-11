@@ -55,6 +55,7 @@ export interface SeriesNodeDatum {
     readonly point?: Readonly<SizedPoint>;
     readonly missing?: boolean;
     readonly enabled?: boolean;
+    readonly focusable?: boolean;
     midPoint?: Readonly<Point>;
 }
 

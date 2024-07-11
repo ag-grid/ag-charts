@@ -1507,7 +1507,10 @@ export abstract class Chart extends Observable {
                 event.pointerHistory === undefined ||
                 event.pointerHistory?.every((pastEvent) => {
                     const historyPoint = { x: pastEvent.offsetX, y: pastEvent.offsetY };
-                    const historyNode = this.pickSeriesNode(historyPoint, intent, false, pixelRange);
+                    const historyNode =
+                        nodeClickRange === 'exact'
+                            ? this.pickSeriesNode(historyPoint, intent, true)
+                            : this.pickSeriesNode(historyPoint, intent, false, pixelRange);
                     return historyNode?.datum === pickedNode?.datum;
                 });
             if (allMatch) {

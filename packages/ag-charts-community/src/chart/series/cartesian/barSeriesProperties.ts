@@ -45,6 +45,9 @@ export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeries
     yName?: string;
 
     @Validate(STRING, { optional: true })
+    yFilterKey?: string;
+
+    @Validate(STRING, { optional: true })
     stackGroup?: string;
 
     @Validate(NUMBER, { optional: true })

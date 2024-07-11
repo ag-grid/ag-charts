@@ -1,11 +1,9 @@
 import type { FromToMotionPropFn, FromToMotionPropFnContext, NodeUpdateState } from '../../../motion/fromToMotion';
-import { BBox } from '../../../scene/bbox';
 import type { Point } from '../../../scene/point';
 import type { Sector } from '../../../scene/shape/sector';
-import { sectorBox } from '../../../scene/util/sector';
 import { isBetweenAngles, toRadians } from '../../../util/angle';
 import type { Circle } from '../../marker/circle';
-import type { PickFocusInputs, SeriesNodePickMatch } from '../series';
+import type { SeriesNodePickMatch } from '../series';
 
 type AnimatableSectorDatum = {
     radius: number;
@@ -130,12 +128,10 @@ type SectorVariables = {
     readonly endAngle: number;
 };
 type SectorSceneNode = SectorVariables & { readonly datum: any };
-type SectorNodeDatum = SectorVariables;
 type SectorSeries = {
     centerX: number;
     centerY: number;
     getItemNodes(): SectorSceneNode[];
-    getNodeData(): SectorNodeDatum[] | undefined;
 };
 
 export function pickByMatchingAngle(series: SectorSeries, point: Point): SeriesNodePickMatch | undefined {
@@ -158,14 +154,4 @@ export function pickByMatchingAngle(series: SectorSeries, point: Point): SeriesN
         }
     }
     return undefined;
-}
-
-export function computeSectorSeriesFocusBounds(series: SectorSeries, opts: PickFocusInputs): BBox | undefined {
-    const nodeData = series.getNodeData();
-    if (nodeData === undefined) return undefined;
-    return computeSectorFocusBounds(nodeData[opts.datumIndex], series.centerX, series.centerY);
-}
-
-export function computeSectorFocusBounds(datum: SectorVariables, centerX: number, centerY: number): BBox | undefined {
-    return sectorBox(datum).translate(centerX, centerY);
 }

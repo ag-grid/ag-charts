@@ -116,10 +116,13 @@ export class Sector extends Path {
 
     private normalizedRadii() {
         const { concentricEdgeInset } = this;
-        return {
-            innerRadius: Math.max(Math.min(this.innerRadius, this.outerRadius) + concentricEdgeInset, 0),
-            outerRadius: Math.max(Math.max(this.innerRadius, this.outerRadius) - concentricEdgeInset, 0),
-        };
+        let { innerRadius, outerRadius } = this;
+        if (innerRadius > outerRadius) {
+            [outerRadius, innerRadius] = [innerRadius, outerRadius];
+        }
+        innerRadius = innerRadius > 0 ? innerRadius + concentricEdgeInset : 0;
+        outerRadius = Math.max(outerRadius - concentricEdgeInset, innerRadius);
+        return { innerRadius, outerRadius };
     }
 
     private normalizedClipSector() {
@@ -288,6 +291,11 @@ export class Sector extends Path {
                 path.moveTo(centerX + innerRadius * Math.cos(endAngle), centerY + innerRadius * Math.sin(endAngle));
                 path.arc(centerX, centerY, innerRadius, endAngle, startAngle, true);
             }
+            path.closePath();
+            return;
+        } else if (this.clipSector == null && Math.abs(innerRadius - outerRadius) < 1e-6) {
+            path.arc(centerX, centerY, outerRadius, startAngle, endAngle, false);
+            path.arc(centerX, centerY, outerRadius, endAngle, startAngle, true);
             path.closePath();
             return;
         }
@@ -462,8 +470,9 @@ export class Sector extends Path {
                 r = Math.max(Math.hypot(radialEdgeInset, x), innerRadius);
             } else {
                 // Formula limits exceeded - just use the inner radius
-                r = innerRadius;
+                r = radialEdgeInset;
             }
+            r = Math.max(r, innerRadius);
             const midAngle = startAngle + sweepAngle * 0.5;
             path.moveTo(centerX + r * Math.cos(midAngle), centerY + r * Math.sin(midAngle));
         } else if (startInnerArc?.isValid() === true || innerArc?.isValid() === true) {
