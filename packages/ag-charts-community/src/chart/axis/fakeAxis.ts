@@ -161,7 +161,6 @@ export class FakeAxis {
         return {
             visible: Boolean(text),
             tickId: datum.tickId,
-            translationY: datum.translationY,
             fill: label.color,
             fontFamily: label.fontFamily,
             fontSize: label.fontSize,
@@ -169,6 +168,7 @@ export class FakeAxis {
             fontWeight: label.fontWeight,
             rotation: combinedRotation,
             rotationCenterX: labelX,
+            translationY: Math.round(datum.translationY),
             text,
             textAlign,
             textBaseline,
@@ -205,22 +205,20 @@ export class FakeAxis {
         if (this.label.enabled) {
             const tempText = new Text();
             tickData.ticks.forEach((datum) => {
-                const labelProps = this.getTickLabelProps(datum, {
-                    range: this.range,
-                    combinedRotation,
-                    textAlign,
-                    textBaseline,
-                });
-                if (!labelProps.visible) return;
+                if (!datum.tickLabel) return;
 
-                tempText.setProperties({
-                    ...labelProps,
-                    translationY: Math.round(datum.translationY),
-                });
+                tempText.setProperties(
+                    this.getTickLabelProps(datum, {
+                        range: this.range,
+                        combinedRotation,
+                        textAlign,
+                        textBaseline,
+                    })
+                );
 
-                const box = tempText.computeTransformedBBox();
-                if (box) {
-                    boxes.push(box);
+                const bbox = tempText.computeTransformedBBox();
+                if (bbox) {
+                    boxes.push(bbox);
                 }
             });
         }
