@@ -253,20 +253,14 @@
       "dependsOn": ["pack"],
       "inputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-community/"],
-      "options": {
-        "parallel": false,
-        "commands": [
-          "mkdir -p dist/packages/contents/ag-charts-community",
-          "tar -xzf dist/packages/ag-charts-community.tgz -C dist/packages/contents/ag-charts-community/"
-        ]
-      }
+      "options": { "command": "tools/package/extract-contents.sh {projectRoot}" }
     },
     "pack:verify": {
       "executor": "nx:run-commands",
       "dependsOn": ["pack:extract"],
       "inputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-community/"],
       "options": {
-        "commands": ["node tools/sanity-check-package.js dist/packages/contents/ag-charts-community/package"]
+        "commands": ["node tools/package/sanity-check-package.js dist/packages/contents/ag-charts-community/package"]
       }
     }
   },

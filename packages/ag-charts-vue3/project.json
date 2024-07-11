@@ -87,13 +87,7 @@
       "dependsOn": ["pack"],
       "inputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-vue3/"],
-      "options": {
-        "parallel": false,
-        "commands": [
-          "mkdir -p dist/packages/contents/ag-charts-vue3",
-          "tar -xzf dist/packages/ag-charts-vue3.tgz -C dist/packages/contents/ag-charts-vue3/"
-        ]
-      }
+      "options": { "command": "tools/package/extract-contents.sh {projectRoot}" }
     },
     "pack:verify": {
       "executor": "nx:run-commands",
@@ -101,7 +95,7 @@
       "inputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-vue3/"],
       "options": {
         "commands": [
-          "node tools/sanity-check-package.js --allowed-ext map -- dist/packages/contents/ag-charts-vue3/package"
+          "node tools/package/sanity-check-package.js --allowed-ext map -- dist/packages/contents/ag-charts-vue3/package"
         ]
       }
     }
