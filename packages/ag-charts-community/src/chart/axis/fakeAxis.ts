@@ -3,7 +3,6 @@ import type { AgCartesianAxisPosition, CssColor, FontFamily, FontSize, FontStyle
 import { resetMotion } from '../../motion/resetMotion';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { LinearScale } from '../../scale/linearScale';
-import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import { Matrix } from '../../scene/matrix';
@@ -25,7 +24,6 @@ import { calculateLabelBBox, calculateLabelRotation, getLabelSpacing, getTextAli
 import { Layers } from '../layers';
 import { AxisInterval } from './axisInterval';
 import { AxisLabel } from './axisLabel';
-import { type TickInterval } from './axisTick';
 import { resetAxisGroupFn, resetAxisLabelSelectionFn } from './axisUtil';
 
 type TickStrategyResult = {
@@ -77,18 +75,11 @@ interface TickGenerationResult {
     textAlign: CanvasTextAlign;
 }
 
-export abstract class FakeAxis<
-    S extends Scale<D, number, TickInterval<S>> = Scale<any, number, any>,
-    D extends number = number,
-> {
-    static readonly defaultTickMinSpacing = 50;
-
+export class FakeAxis {
     readonly id = createId(this);
 
     @Validate(OBJECT)
     readonly interval = new AxisInterval();
-
-    dataDomain: { domain: D[]; clipped: boolean } = { domain: [], clipped: false };
 
     @Validate(POSITION)
     position!: AgCartesianAxisPosition;
@@ -159,28 +150,6 @@ export abstract class FakeAxis<
 
     public padding: number = 0;
 
-    /**
-     * Creates/removes/updates the scene graph nodes that constitute the axis.
-     */
-    update(_primaryTickCount: number = 0): number | undefined {
-        if (!this.tickGenerationResult) return;
-
-        this.updateDirection();
-
-        this.axisGroup.datum = this.getAxisTransform();
-
-        const { tickData, combinedRotation, textBaseline, textAlign } = this.tickGenerationResult;
-        this.updateSelections(tickData.ticks, {
-            combinedRotation,
-            textAlign,
-            textBaseline,
-            range: this.scale.range,
-        });
-
-        this.updateLabels();
-        this.updateVisibility();
-    }
-
     private getTickLabelProps(
         datum: TickDatum,
         params: {
@@ -195,8 +164,8 @@ export abstract class FakeAxis<
         const text = datum.tickLabel;
         const sideFlag = label.getSideFlag();
         const labelX = sideFlag * (label.padding + this.padding);
-        const visible = text !== '' && text != null;
         return {
+            visible: Boolean(text),
             tickId: datum.tickId,
             translationY: datum.translationY,
             fill: label.color,
@@ -209,7 +178,6 @@ export abstract class FakeAxis<
             text,
             textAlign,
             textBaseline,
-            visible,
             x: labelX,
             y: 0,
             range,
@@ -248,14 +216,12 @@ export abstract class FakeAxis<
             const tempText = new Text();
             tickData.ticks.forEach((datum) => {
                 const labelProps = this.getTickLabelProps(datum, {
+                    range: this.range,
                     combinedRotation,
                     textAlign,
                     textBaseline,
-                    range: this.scale.range,
                 });
-                if (!labelProps.visible) {
-                    return;
-                }
+                if (!labelProps.visible) return;
 
                 tempText.setProperties({
                     ...labelProps,
@@ -269,6 +235,21 @@ export abstract class FakeAxis<
             });
         }
 
+        this.updateDirection();
+        this.axisGroup.datum = this.getAxisTransform();
+        this.updateSelections(tickData.ticks, {
+            combinedRotation,
+            textAlign,
+            textBaseline,
+            range: this.scale.range,
+        });
+        this.updateLabels();
+
+        resetMotion([this.axisGroup], resetAxisGroupFn());
+        resetMotion([this.tickLabelGroupSelection], resetAxisLabelSelectionFn());
+
+        this.tickLabelGroup.visible = this.label.enabled;
+
         const bbox = BBox.merge(boxes);
         return this.getTransformBox(bbox);
     }
@@ -280,9 +261,8 @@ export abstract class FakeAxis<
         return matrix.transformBBox(bbox);
     }
 
-    setDomain(domain: D[]) {
-        this.dataDomain = { domain: [...domain], clipped: false };
-        this.scale.domain = this.dataDomain.domain;
+    setDomain(domain: number[]) {
+        this.scale.domain = [...domain];
     }
 
     private calculateRotations() {
@@ -479,19 +459,16 @@ export abstract class FakeAxis<
     } {
         const rangeWithBleed = round(findRangeExtent(this.range), 2);
         const defaultMinSpacing = Math.max(
-            FakeAxis.defaultTickMinSpacing,
-            rangeWithBleed / ContinuousScale.defaultMaxTickCount
+            50, // defaultTickMinSpacing
+            rangeWithBleed / 6 // defaultMaxTickCount
         );
-        let clampMaxTickCount = !isNaN(maxSpacing);
 
         if (isNaN(minSpacing)) {
             minSpacing = defaultMinSpacing;
         }
-
         if (isNaN(maxSpacing)) {
             maxSpacing = rangeWithBleed;
         }
-
         if (minSpacing > maxSpacing) {
             if (minSpacing === defaultMinSpacing) {
                 minSpacing = maxSpacing;
@@ -502,7 +479,7 @@ export abstract class FakeAxis<
 
         // Clamps the min spacing between ticks to be no more than the min distance between datums
         const minRectDistance = 1;
-        clampMaxTickCount &&= minRectDistance < defaultMinSpacing;
+        const clampMaxTickCount = !isNaN(maxSpacing) && minRectDistance < defaultMinSpacing;
 
         // TODO: Remove clamping to hardcoded 100 max tick count, this is a temp fix for zooming
         const maxTickCount = clamp(
@@ -514,16 +491,6 @@ export abstract class FakeAxis<
         const defaultTickCount = clamp(minTickCount, ContinuousScale.defaultTickCount, maxTickCount);
 
         return { minTickCount, maxTickCount, defaultTickCount };
-    }
-
-    private updateVisibility() {
-        const { tickLabelGroupSelection } = this;
-
-        resetMotion([this.axisGroup], resetAxisGroupFn());
-        resetMotion([tickLabelGroupSelection], resetAxisLabelSelectionFn());
-        // resetMotion([lineNode], resetAxisLineSelectionFn());
-
-        this.tickLabelGroup.visible = this.label.enabled;
     }
 
     private getAxisTransform() {

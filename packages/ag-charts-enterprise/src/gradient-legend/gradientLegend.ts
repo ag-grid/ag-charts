@@ -2,12 +2,12 @@ import {
     type AgChartLegendPosition,
     type AgGradientLegendScaleOptions,
     _ModuleSupport,
-    _Scale,
     _Scene,
     _Util,
 } from 'ag-charts-community';
 
-const { BOOLEAN, OBJECT, POSITION, POSITIVE_NUMBER, BaseProperties, Layers, ProxyProperty, Validate } = _ModuleSupport;
+const { BOOLEAN, OBJECT, POSITION, POSITIVE_NUMBER, BaseProperties, FakeAxis, Layers, ProxyProperty, Validate } =
+    _ModuleSupport;
 const { Group, Rect, LinearGradientFill, Triangle } = _Scene;
 const { createId } = _Util;
 
@@ -19,10 +19,8 @@ class GradientBar extends BaseProperties {
     preferredLength = 100;
 }
 
-class GradientLegendAxis extends _ModuleSupport.FakeAxis<_Scale.LinearScale, number> {}
-
 class GradientLegendScale implements AgGradientLegendScaleOptions {
-    constructor(protected axis: GradientLegendAxis) {}
+    constructor(protected axis: _ModuleSupport.FakeAxis) {}
 
     @ProxyProperty('axis.label')
     label!: _ModuleSupport.AxisLabel;
@@ -31,7 +29,7 @@ class GradientLegendScale implements AgGradientLegendScaleOptions {
     interval!: _ModuleSupport.AxisInterval<number>;
 
     @ProxyProperty('axis.padding')
-    padding?: GradientLegendAxis['padding'];
+    padding?: _ModuleSupport.FakeAxis['padding'];
 }
 
 export class GradientLegend {
@@ -39,7 +37,7 @@ export class GradientLegend {
 
     readonly id = createId(this);
 
-    private readonly axis: GradientLegendAxis;
+    private readonly axis: _ModuleSupport.FakeAxis;
     private readonly highlightManager: _ModuleSupport.HighlightManager;
 
     private readonly group: _Scene.Group = new Group({ name: 'legend', layer: true, zIndex: Layers.LEGEND_ZINDEX });
@@ -81,7 +79,7 @@ export class GradientLegend {
 
         this.gradientFill.mask = this.gradientRect;
 
-        this.axis = new GradientLegendAxis();
+        this.axis = new FakeAxis();
         this.axis.attachAxis(this.axisGroup);
 
         this.scale = new GradientLegendScale(this.axis);
@@ -187,11 +185,7 @@ export class GradientLegend {
         axis.translation.y = y + (vertical ? 0 : height);
         axis.setDomain(positiveAxis ? data.colorDomain.slice().reverse() : data.colorDomain);
 
-        const axisBBox = axis.calculateLayout();
-
-        axis.update();
-
-        return axisBBox;
+        return axis.calculateLayout();
     }
 
     private updateArrow() {
