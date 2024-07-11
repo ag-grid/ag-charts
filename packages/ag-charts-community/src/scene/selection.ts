@@ -183,4 +183,8 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
     nodes() {
         return this._nodes;
     }
+
+    at(index: number) {
+        return this._nodes.at(index);
+    }
 }

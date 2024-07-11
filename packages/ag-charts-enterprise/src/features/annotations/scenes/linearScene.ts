@@ -1,6 +1,6 @@
 import { _Util } from 'ag-charts-community';
 
-import type { AnnotationPoint } from '../annotationProperties';
+import type { PointProperties } from '../annotationProperties';
 import type { AnnotationContext, Coords } from '../annotationTypes';
 import { convertPoint, invertCoords } from '../annotationUtils';
 import { Annotation } from './annotationScene';
@@ -8,7 +8,7 @@ import { Annotation } from './annotationScene';
 const { Vec2 } = _Util;
 
 export abstract class LinearScene<
-    Datum extends { start: Pick<AnnotationPoint, 'x' | 'y'>; end: Pick<AnnotationPoint, 'x' | 'y'>; locked?: boolean },
+    Datum extends { start: Pick<PointProperties, 'x' | 'y'>; end: Pick<PointProperties, 'x' | 'y'>; locked?: boolean },
 > extends Annotation {
     protected dragState?: {
         offset: Coords;

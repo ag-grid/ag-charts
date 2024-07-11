@@ -1,22 +1,24 @@
 import { type Direction, _ModuleSupport, _Util } from 'ag-charts-community';
 
 import type { StateClickEvent } from '../annotationTypes';
-import { type CrossLineAnnotation, HorizontalLineProperties, VerticalLineProperties } from './crossLineProperties';
+import { type CrossLineProperties, HorizontalLineProperties, VerticalLineProperties } from './crossLineProperties';
 import type { CrossLineScene } from './crossLineScene';
 
 export function isHorizontalAxis(region: any) {
     return region === 'horizontal-axes';
 }
 
-export class CrossLineStateMachine extends _ModuleSupport.StateMachine<'start', 'click' | 'cancel'> {
+const { StateMachine } = _ModuleSupport;
+
+export class CrossLineStateMachine extends StateMachine<'start', 'click' | 'cancel'> {
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(
         direction: Direction,
-        appendDatum: (datum: CrossLineAnnotation, direction?: any) => void,
+        appendDatum: (datum: CrossLineProperties, direction?: any) => void,
         onExit: () => void
     ) {
-        const onClick = ({ point }: StateClickEvent<CrossLineAnnotation, CrossLineScene>) => {
+        const onClick = ({ point }: StateClickEvent<CrossLineProperties, CrossLineScene>) => {
             const isHorizontal = direction === 'horizontal';
             const datum = isHorizontal ? new HorizontalLineProperties() : new VerticalLineProperties();
 
@@ -27,10 +29,10 @@ export class CrossLineStateMachine extends _ModuleSupport.StateMachine<'start', 
         super('start', {
             start: {
                 click: {
-                    target: '__parent',
+                    target: StateMachine.parent,
                     action: onClick,
                 },
-                cancel: '__parent',
+                cancel: StateMachine.parent,
                 onExit,
             },
         });

@@ -8,10 +8,9 @@ type Click = StateClickEvent<LineProperties, LineScene>;
 type Hover = StateHoverEvent<LineProperties, LineScene>;
 type Drag = StateDragEvent<LineProperties, LineScene>;
 
-export class LineStateMachine extends _ModuleSupport.StateMachine<
-    'start' | 'end',
-    'click' | 'hover' | 'drag' | 'cancel'
-> {
+const { StateMachine } = _ModuleSupport;
+
+export class LineStateMachine extends StateMachine<'start' | 'end', 'click' | 'hover' | 'drag' | 'cancel'> {
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(appendDatum: (datum: LineProperties) => void) {
@@ -41,16 +40,16 @@ export class LineStateMachine extends _ModuleSupport.StateMachine<
                     target: 'end',
                     action: onStartClick,
                 },
-                cancel: '__parent',
+                cancel: StateMachine.parent,
             },
             end: {
                 hover: onEndHover,
                 click: {
-                    target: '__parent',
+                    target: StateMachine.parent,
                     action: onEndClick,
                 },
                 drag: onEndHover,
-                cancel: '__parent',
+                cancel: StateMachine.parent,
             },
         });
     }
