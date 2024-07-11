@@ -1594,7 +1594,9 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         const { index } = datum;
 
         const datumId = this.getDatumIdFromData(datum.datum);
-        return createDatumId(datumId != null ? String(datumId) : `${index}`, String(datum.phantom));
+        const baseId = datumId != null ? String(datumId) : `${index}`;
+        const suffix = datum.phantom ? 'phantom' : undefined;
+        return suffix != null ? createDatumId(baseId, suffix) : baseId;
     }
 
     protected override onDataChange() {

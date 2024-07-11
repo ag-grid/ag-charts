@@ -1196,7 +1196,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 text.textBaseline = 'middle';
 
                 const bbox = text.computeBBox();
-                // console.log(bbox);
                 const corners = [
                     [bbox.x, bbox.y],
                     [bbox.x + bbox.width, bbox.y],
@@ -1208,7 +1207,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                     isTextVisible = true;
                 }
             }
-            // console.log(text.id, isTextVisible);
             text.visible = isTextVisible;
         };
 
@@ -1399,7 +1397,14 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             this.radiusScale,
             this.previousRadiusScale
         );
-        fromToMotion(this.id, 'nodes', animationManager, [this.itemSelection, this.highlightSelection], fns.nodes);
+        fromToMotion(
+            this.id,
+            'nodes',
+            animationManager,
+            [this.itemSelection, this.highlightSelection],
+            fns.nodes,
+            (_, datum) => this.getDatumId(datum)
+        );
 
         seriesLabelFadeInAnimation(this, 'callout', animationManager, this.calloutLabelSelection);
         seriesLabelFadeInAnimation(this, 'sector', animationManager, this.labelSelection);
@@ -1455,7 +1460,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             radiusScale,
             previousRadiusScale
         );
-        fromToMotion(this.id, 'nodes', animationManager, [itemSelection, highlightSelection], fns.nodes);
+        fromToMotion(this.id, 'nodes', animationManager, [itemSelection, highlightSelection], fns.nodes, (_, datum) =>
+            this.getDatumId(datum)
+        );
 
         seriesLabelFadeOutAnimation(this, 'callout', this.ctx.animationManager, this.calloutLabelSelection);
         seriesLabelFadeOutAnimation(this, 'sector', this.ctx.animationManager, this.labelSelection);
@@ -1484,7 +1491,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         const { index } = datum;
 
         const datumId = this.getDatumIdFromData(datum.datum);
-        return createDatumId(datumId != null ? String(datumId) : `${index}`, String(datum.phantom));
+        const baseId = datumId != null ? String(datumId) : `${index}`;
+        const suffix = datum.phantom ? 'phantom' : undefined;
+        return suffix != null ? createDatumId(baseId, suffix) : baseId;
     }
 
     protected override onDataChange() {
