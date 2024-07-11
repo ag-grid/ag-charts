@@ -1,6 +1,5 @@
 import type { AgCartesianAxisPosition, CssColor, FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-types';
 
-import type { ModuleContext } from '../../module/moduleContext';
 import { resetMotion } from '../../motion/resetMotion';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { LinearScale } from '../../scale/linearScale';
@@ -136,7 +135,7 @@ export abstract class FakeAxis<
 
     readonly scale = new LinearScale();
 
-    constructor(private readonly moduleCtx: ModuleContext) {
+    constructor() {
         this.range = this.scale.range.slice() as [number, number];
     }
 
@@ -165,21 +164,11 @@ export abstract class FakeAxis<
         }
     }
 
-    private updateRange() {
-        const { range: rr, visibleRange: vr, scale } = this;
-        const span = (rr[1] - rr[0]) / (vr[1] - vr[0]);
-        const shift = span * vr[0];
-        const start = rr[0] - shift;
-
-        scale.range = [start, start + span];
-    }
-
     attachAxis(axisNode: Node) {
         axisNode.appendChild(this.axisGroup);
     }
 
     range: [number, number] = [0, 1];
-    visibleRange: [number, number] = [0, 1];
 
     /**
      * Checks if a point or an object is in range.
@@ -191,16 +180,7 @@ export abstract class FakeAxis<
         return x >= min - tolerance && x <= max + tolerance;
     }
 
-    private datumFormatter?: (datum: any) => string;
     private labelFormatter?: (datum: any) => string;
-    private setFormatters(ticks: any[], fractionDigits: number, _domain: any[], format?: string) {
-        const formatter = format ? this.scale.tickFormat({ ticks, specifier: format }) : null;
-        const defaultFormatter = (formatOffset: number) => (x: any) =>
-            typeof x === 'number' ? x.toFixed(fractionDigits + formatOffset) : String(x);
-
-        this.labelFormatter = formatter ?? defaultFormatter(0);
-        this.datumFormatter = formatter ?? defaultFormatter(1);
-    }
 
     /**
      * Is used to avoid collisions between axis labels and series.
@@ -211,9 +191,11 @@ export abstract class FakeAxis<
      * Creates/removes/updates the scene graph nodes that constitute the axis.
      */
     update(_primaryTickCount: number = 0): number | undefined {
-        this.updateDirection();
         if (!this.tickGenerationResult) return;
-        this.updatePosition();
+
+        this.updateDirection();
+
+        this.axisGroup.datum = this.getAxisTransform();
 
         const lineData = this.getAxisLineCoordinates();
         const { tickData, combinedRotation, textBaseline, textAlign } = this.tickGenerationResult;
@@ -277,8 +259,9 @@ export abstract class FakeAxis<
         const sideFlag = this.label.getSideFlag();
         const labelX = sideFlag * (this.label.padding + this.seriesAreaPadding);
 
-        this.updateScale();
-
+        this.scale.interval = this.interval.step;
+        this.scale.range = this.range;
+        this.scale.update();
         this.tickGenerationResult = this.generateTicks({
             primaryTickCount,
             parallelFlipRotation,
@@ -331,34 +314,14 @@ export abstract class FakeAxis<
 
     private getTransformBox(bbox: BBox) {
         const matrix = new Matrix();
-        const {
-            rotation: axisRotation,
-            translationX,
-            translationY,
-            rotationCenterX,
-            rotationCenterY,
-        } = this.getAxisTransform();
-        Matrix.updateTransformMatrix(matrix, 1, 1, axisRotation, translationX, translationY, {
-            scalingCenterX: 0,
-            scalingCenterY: 0,
-            rotationCenterX,
-            rotationCenterY,
-        });
+        const { rotation: axisRotation, translationX, translationY } = this.getAxisTransform();
+        Matrix.updateTransformMatrix(matrix, 1, 1, axisRotation, translationX, translationY);
         return matrix.transformBBox(bbox);
     }
 
     setDomain(domain: D[]) {
         this.dataDomain = { domain: [...domain], clipped: false };
         this.scale.domain = this.dataDomain.domain;
-    }
-
-    private updateScale() {
-        const { scale } = this;
-        this.updateRange();
-        scale.interval = this.interval.step;
-        if (!ContinuousScale.is(scale)) return;
-        scale.nice = false;
-        scale.update();
     }
 
     private calculateRotations() {
@@ -599,7 +562,7 @@ export abstract class FakeAxis<
         minTickCount: number;
         maxTickCount: number;
     }) {
-        const { range, scale, visibleRange } = this;
+        const { range, scale } = this;
 
         const rawTicks =
             tickGenerationType === TickGenerationType.FILTER
@@ -611,14 +574,12 @@ export abstract class FakeAxis<
 
         let labelCount = 0;
         const tickIdCounts = new Map<string, number>();
+        const filteredTicks = rawTicks.slice(0, rawTicks.length);
 
-        // Only get the ticks within a sliding window of the visible range to improve performance
-        const start = Math.max(0, Math.floor(visibleRange[0] * rawTicks.length));
-        const end = Math.min(rawTicks.length, Math.ceil(visibleRange[1] * rawTicks.length));
-
-        const filteredTicks = rawTicks.slice(start, end);
         // When the scale domain or the ticks change, the label format may change
-        this.setFormatters(filteredTicks, fractionDigits, rawTicks, this.label.format);
+        this.labelFormatter = this.label.format
+            ? this.scale.tickFormat({ ticks: filteredTicks, specifier: this.label.format })
+            : (x: unknown) => (typeof x === 'number' ? x.toFixed(fractionDigits) : String(x));
 
         for (let i = 0; i < filteredTicks.length; i++) {
             const tick = filteredTicks[i];
@@ -628,7 +589,7 @@ export abstract class FakeAxis<
             // instead hide ticks based on their translation.
             if (range.length > 0 && !this.inRange(translationY, 0.001)) continue;
 
-            const tickLabel = this.formatTick(tick, fractionDigits, start + i);
+            const tickLabel = this.formatTick(tick, fractionDigits, i);
 
             // Create a tick id from the label, or as an increment of the last label if this tick label is blank
             let tickId = tickLabel;
@@ -728,22 +689,15 @@ export abstract class FakeAxis<
      * the visible range is only a portion of the axis.
      */
     private calculateRangeWithBleed() {
-        const visibleScale = 1 / findRangeExtent(this.visibleRange);
-        return round(findRangeExtent(this.range) * visibleScale, 2);
+        return round(findRangeExtent(this.range), 2);
     }
 
     private getAxisTransform() {
         return {
             rotation: toRadians(this.rotation),
-            rotationCenterX: 0,
-            rotationCenterY: 0,
             translationX: Math.floor(this.translation.x),
             translationY: Math.floor(this.translation.y),
         };
-    }
-
-    private updatePosition() {
-        this.axisGroup.datum = this.getAxisTransform();
     }
 
     private updateSelections(
@@ -765,48 +719,28 @@ export abstract class FakeAxis<
     }
 
     private updateLabels() {
-        const { label } = this;
-        if (!label.enabled) {
-            return;
+        if (this.label.enabled) {
+            // Apply label option values
+            this.tickLabelGroupSelection.each((node, datum) => {
+                node.setProperties(datum, [
+                    'fill',
+                    'fontFamily',
+                    'fontSize',
+                    'fontStyle',
+                    'fontWeight',
+                    'text',
+                    'textAlign',
+                    'textBaseline',
+                ]);
+            });
         }
-
-        // Apply label option values
-        this.tickLabelGroupSelection.each((node, datum) => {
-            node.setProperties(datum, [
-                'fill',
-                'fontFamily',
-                'fontSize',
-                'fontStyle',
-                'fontWeight',
-                'text',
-                'textAlign',
-                'textBaseline',
-            ]);
-        });
     }
 
-    // For formatting (nice rounded) tick values.
-    private formatTick(datum: any, fractionDigits: number, index: number): string {
-        return String(this.getFormatter(index, true)(datum, fractionDigits));
-    }
-
-    private getFormatter(index: number = 0, isTickLabel?: boolean): (datum: any, fractionDigits?: number) => string {
-        const {
-            label,
-            labelFormatter,
-            datumFormatter,
-            moduleCtx: { callbackCache },
-        } = this;
-
-        if (label.formatter) {
-            return (datum, fractionDigits) =>
-                callbackCache.call(label.formatter!, { value: datum, index, fractionDigits }) ?? datum;
-        } else if (!isTickLabel && datumFormatter) {
-            return (datum) => datumFormatter(datum) ?? String(datum);
-        } else if (labelFormatter) {
-            return (datum) => labelFormatter(datum) ?? String(datum);
-        }
-        // The axis is using a logScale or the`datum` is an integer, a string or an object
-        return String;
+    private formatTick(datum: unknown, fractionDigits: number, index: number): string {
+        return (
+            this.label.formatter?.({ value: datum, index, fractionDigits }) ??
+            this.labelFormatter?.(datum) ??
+            String(datum)
+        );
     }
 }

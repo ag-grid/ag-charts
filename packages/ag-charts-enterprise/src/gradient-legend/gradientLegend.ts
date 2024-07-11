@@ -81,7 +81,7 @@ export class GradientLegend {
 
         this.gradientFill.mask = this.gradientRect;
 
-        this.axis = new GradientLegendAxis(ctx);
+        this.axis = new GradientLegendAxis();
         this.axis.attachAxis(this.axisGroup);
 
         this.scale = new GradientLegendScale(this.axis);
