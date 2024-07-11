@@ -286,7 +286,7 @@ export class AxisTicks {
 
         const labelMatrix = new Matrix();
         const initialRotation = configuredRotation + defaultRotation;
-        const { maxTickCount } = this.estimateTickCount({ minSpacing, maxSpacing });
+        const { maxTickCount, minTickCount, defaultTickCount } = this.estimateTickCount({ minSpacing, maxSpacing });
         const maxIterations = isNaN(maxTickCount) ? 10 : maxTickCount;
         const font = TextMeasurer.toFontString(this.label);
 
@@ -301,9 +301,6 @@ export class AxisTicks {
         let labelOverlap = true;
 
         while (labelOverlap && index <= maxIterations && !terminate) {
-            const { maxTickCount, minTickCount, defaultTickCount } = this.estimateTickCount({ minSpacing, maxSpacing });
-            const maxIterations = isNaN(maxTickCount) ? 10 : maxTickCount;
-
             let tickCount = Math.max(defaultTickCount - index, minTickCount);
 
             const regenerateTicks = step == null && values == null && tickCount > minTickCount;
