@@ -196,13 +196,36 @@ export class AxisTicks {
             sideFlag,
         });
 
+        const params = { range: this.range, combinedRotation, textAlign, textBaseline };
         const [r0, r1] = findMinMax(this.range);
         const padding = this.padding;
         const boxes: BBox[] = [];
 
         boxes.push(new BBox(Math.min(sideFlag * padding, 0), r0, padding, r1 - r0)); // lineBox
 
+        this.axisGroup.datum = this.getAxisTransform();
+
+        this.tickLabelGroupSelection.update(
+            tickData.ticks.map((d) => this.getTickLabelProps(d, params)),
+            (group) => group.appendChild(new Text()),
+            (datum) => datum.tickId
+        );
+
         if (this.label.enabled) {
+            // Apply label option values
+            this.tickLabelGroupSelection.each((node, datum) => {
+                node.setProperties(datum, [
+                    'fill',
+                    'fontFamily',
+                    'fontSize',
+                    'fontStyle',
+                    'fontWeight',
+                    'text',
+                    'textAlign',
+                    'textBaseline',
+                ]);
+            });
+
             const tempText = new Text();
             tickData.ticks.forEach((datum) => {
                 if (!datum.tickLabel) return;
@@ -222,16 +245,6 @@ export class AxisTicks {
                 }
             });
         }
-
-        this.updateDirection();
-        this.axisGroup.datum = this.getAxisTransform();
-        this.updateSelections(tickData.ticks, {
-            combinedRotation,
-            textAlign,
-            textBaseline,
-            range: this.scale.range,
-        });
-        this.updateLabels();
 
         resetMotion([this.axisGroup], resetAxisGroupFn());
         resetMotion([this.tickLabelGroupSelection], resetAxisLabelSelectionFn());
@@ -307,14 +320,16 @@ export class AxisTicks {
 
             for (let unchanged = true; unchanged && index <= maxIterations; index++) {
                 const prevTicks = tickData.rawTicks;
+
                 tickCount = Math.max(defaultTickCount - index, minTickCount);
 
-                tickData = this.getTicks({
-                    tickCount,
-                    minTickCount,
-                    maxTickCount,
-                });
+                if (tickCount) {
+                    this.scale.tickCount = tickCount;
+                    this.scale.minTickCount = minTickCount ?? 0;
+                    this.scale.maxTickCount = maxTickCount ?? Infinity;
+                }
 
+                tickData = this.getTicksData();
                 unchanged = regenerateTicks ? areArrayNumbersEqual(tickData.rawTicks, prevTicks) : false;
             }
 
@@ -374,17 +389,9 @@ export class AxisTicks {
         return labelData;
     }
 
-    private getTicks({
-        tickCount,
-        minTickCount,
-        maxTickCount,
-    }: {
-        tickCount: number;
-        minTickCount: number;
-        maxTickCount: number;
-    }) {
+    private getTicksData() {
         const ticks: TickDatum[] = [];
-        const rawTicks = this.createTicks(tickCount, minTickCount, maxTickCount);
+        const rawTicks = this.scale.ticks();
         const fractionDigits = rawTicks.reduce((max, tick) => Math.max(max, countFractionDigits(tick)), 0);
         const idGenerator = createIdsGenerator();
 
@@ -406,19 +413,15 @@ export class AxisTicks {
                 this.labelFormatter?.(tick) ??
                 String(tick);
 
-            ticks.push({ tick, tickId: idGenerator(tickLabel), tickLabel, translationY: Math.floor(translationY) });
+            ticks.push({
+                tick,
+                tickLabel,
+                tickId: idGenerator(tickLabel),
+                translationY: Math.floor(translationY),
+            });
         }
 
         return { rawTicks, fractionDigits, ticks };
-    }
-
-    private createTicks(tickCount: number, minTickCount: number = 0, maxTickCount: number = Infinity) {
-        if (tickCount) {
-            this.scale.tickCount = tickCount;
-            this.scale.minTickCount = minTickCount;
-            this.scale.maxTickCount = maxTickCount;
-        }
-        return this.scale.ticks();
     }
 
     private estimateTickCount({ minSpacing, maxSpacing }: { minSpacing: number; maxSpacing: number }): {
@@ -468,39 +471,5 @@ export class AxisTicks {
             translationX: Math.floor(this.translation.x),
             translationY: Math.floor(this.translation.y),
         };
-    }
-
-    private updateSelections(
-        data: TickDatum[],
-        params: {
-            combinedRotation: number;
-            textBaseline: CanvasTextBaseline;
-            textAlign: CanvasTextAlign;
-            range: number[];
-        }
-    ) {
-        this.tickLabelGroupSelection.update(
-            data.map((d) => this.getTickLabelProps(d, params)),
-            (group) => group.appendChild(new Text()),
-            (datum) => datum.tickId
-        );
-    }
-
-    private updateLabels() {
-        if (this.label.enabled) {
-            // Apply label option values
-            this.tickLabelGroupSelection.each((node, datum) => {
-                node.setProperties(datum, [
-                    'fill',
-                    'fontFamily',
-                    'fontSize',
-                    'fontStyle',
-                    'fontWeight',
-                    'text',
-                    'textAlign',
-                    'textBaseline',
-                ]);
-            });
-        }
     }
 }
