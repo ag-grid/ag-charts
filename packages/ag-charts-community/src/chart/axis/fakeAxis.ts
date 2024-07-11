@@ -16,6 +16,7 @@ import { normalizeAngle360, toRadians } from '../../util/angle';
 import { areArrayNumbersEqual } from '../../util/equal';
 import { createId } from '../../util/id';
 import { clamp, countFractionDigits, findMinMax, findRangeExtent, round } from '../../util/number';
+import { createIdsGenerator } from '../../util/tempUtils';
 import { type MeasureOptions, TextMeasurer } from '../../util/textMeasurer';
 import { OBJECT, POSITION, Validate } from '../../util/validation';
 import type { ChartAxisLabelFlipFlag } from '../chartAxis';
@@ -59,7 +60,7 @@ type LabelNodeDatum = {
     range: number[];
 };
 
-type TickData = { rawTicks: any[]; fractionDigits: number; ticks: TickDatum[]; labelCount: number };
+type TickData = { rawTicks: any[]; fractionDigits: number; ticks: TickDatum[] };
 
 interface TickGenerationParams {
     primaryTickCount?: number;
@@ -333,7 +334,6 @@ export abstract class FakeAxis<
             rawTicks: [],
             fractionDigits: 0,
             ticks: [],
-            labelCount: 0,
         };
 
         let index = 0;
@@ -370,7 +370,7 @@ export abstract class FakeAxis<
             const prevTicks = tickData.rawTicks;
             tickCount = Math.max(defaultTickCount - index, minTickCount);
 
-            const { rawTicks, fractionDigits, ticks, labelCount } = this.getTicks({
+            const { rawTicks, fractionDigits, ticks } = this.getTicks({
                 tickCount,
                 minTickCount,
                 maxTickCount,
@@ -379,7 +379,6 @@ export abstract class FakeAxis<
             tickData.rawTicks = rawTicks;
             tickData.fractionDigits = fractionDigits;
             tickData.ticks = ticks;
-            tickData.labelCount = labelCount;
 
             unchanged = regenerateTicks ? areArrayNumbersEqual(rawTicks, prevTicks) : false;
         }
@@ -435,65 +434,42 @@ export abstract class FakeAxis<
         minTickCount: number;
         maxTickCount: number;
     }) {
-        const { range, scale } = this;
-
-        const rawTicks = this.createTicks(tickCount, minTickCount, maxTickCount);
-
-        const fractionDigits = rawTicks.reduce((max, tick) => Math.max(max, countFractionDigits(tick)), 0);
         const ticks: TickDatum[] = [];
-
-        let labelCount = 0;
-        const tickIdCounts = new Map<string, number>();
-        const filteredTicks = rawTicks.slice(0, rawTicks.length);
+        const rawTicks = this.createTicks(tickCount, minTickCount, maxTickCount);
+        const fractionDigits = rawTicks.reduce((max, tick) => Math.max(max, countFractionDigits(tick)), 0);
+        const idGenerator = createIdsGenerator();
 
         // When the scale domain or the ticks change, the label format may change
         this.labelFormatter = this.label.format
-            ? this.scale.tickFormat({ ticks: filteredTicks, specifier: this.label.format })
+            ? this.scale.tickFormat({ ticks: rawTicks, specifier: this.label.format })
             : (x: unknown) => (typeof x === 'number' ? x.toFixed(fractionDigits) : String(x));
 
-        for (let i = 0; i < filteredTicks.length; i++) {
-            const tick = filteredTicks[i];
-            const translationY = scale.convert(tick);
+        for (let i = 0; i < rawTicks.length; i++) {
+            const tick = rawTicks[i];
+            const translationY = this.scale.convert(tick);
 
             // Do not render ticks outside the range with a small tolerance. A clip rect would trim long labels, so
             // instead hide ticks based on their translation.
-            if (range.length > 0 && !this.inRange(translationY, 0.001)) continue;
+            if (!this.inRange(translationY, 0.001)) continue;
 
             const tickLabel =
                 this.label.formatter?.({ value: tick, index: i, fractionDigits }) ??
                 this.labelFormatter?.(tick) ??
                 String(tick);
 
-            // Create a tick id from the label, or as an increment of the last label if this tick label is blank
-            let tickId = tickLabel;
-            if (tickIdCounts.has(tickId)) {
-                const count = tickIdCounts.get(tickId)!;
-                tickIdCounts.set(tickId, count + 1);
-                tickId = `${tickId}_${count}`;
-            } else {
-                tickIdCounts.set(tickId, 1);
-            }
-
-            ticks.push({ tick, tickId, tickLabel, translationY: Math.floor(translationY) });
-
-            if (tickLabel != null && tickLabel !== '') {
-                labelCount++;
-            }
+            ticks.push({ tick, tickId: idGenerator(tickLabel), tickLabel, translationY: Math.floor(translationY) });
         }
 
-        return { rawTicks, fractionDigits, ticks, labelCount };
+        return { rawTicks, fractionDigits, ticks };
     }
 
     private createTicks(tickCount: number, minTickCount: number = 0, maxTickCount: number = Infinity) {
-        const { scale } = this;
-
         if (tickCount) {
-            scale.tickCount = tickCount;
-            scale.minTickCount = minTickCount;
-            scale.maxTickCount = maxTickCount;
+            this.scale.tickCount = tickCount;
+            this.scale.minTickCount = minTickCount;
+            this.scale.maxTickCount = maxTickCount;
         }
-
-        return scale.ticks();
+        return this.scale.ticks();
     }
 
     private estimateTickCount({ minSpacing, maxSpacing }: { minSpacing: number; maxSpacing: number }): {
