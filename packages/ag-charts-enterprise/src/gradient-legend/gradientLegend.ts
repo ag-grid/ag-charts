@@ -30,8 +30,8 @@ class GradientLegendScale implements AgGradientLegendScaleOptions {
     @ProxyProperty('axis.interval')
     interval!: _ModuleSupport.AxisInterval<number>;
 
-    @ProxyProperty('axis.seriesAreaPadding')
-    padding?: GradientLegendAxis['seriesAreaPadding'];
+    @ProxyProperty('axis.padding')
+    padding?: GradientLegendAxis['padding'];
 }
 
 export class GradientLegend {
@@ -142,8 +142,11 @@ export class GradientLegend {
         const [d0, d1] = colorDomain;
         const count = colorRange.length;
         colorDomain = colorRange.map((_, i) => {
-            if (i === 0) return d0;
-            if (i === count - 1) return d1;
+            if (i === 0) {
+                return d0;
+            } else if (i === count - 1) {
+                return d1;
+            }
             return d0 + ((d1 - d0) * i) / (count - 1);
         });
 

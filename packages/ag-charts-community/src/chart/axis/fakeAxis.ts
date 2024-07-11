@@ -9,7 +9,6 @@ import { Group } from '../../scene/group';
 import { Matrix } from '../../scene/matrix';
 import type { Node } from '../../scene/node';
 import { Selection } from '../../scene/selection';
-import { Line } from '../../scene/shape/line';
 import { Text } from '../../scene/shape/text';
 import type { PlacedLabelDatum } from '../../scene/util/labelPlacement';
 import { axisLabelsOverlap } from '../../scene/util/labelPlacement';
@@ -26,8 +25,7 @@ import { Layers } from '../layers';
 import { AxisInterval } from './axisInterval';
 import { AxisLabel } from './axisLabel';
 import { type TickInterval } from './axisTick';
-import type { AxisLineDatum } from './axisUtil';
-import { resetAxisGroupFn, resetAxisLabelSelectionFn, resetAxisLineSelectionFn } from './axisUtil';
+import { resetAxisGroupFn, resetAxisLabelSelectionFn } from './axisUtil';
 
 type TickStrategyResult = {
     index: number;
@@ -73,7 +71,6 @@ interface TickGenerationParams {
 
 interface TickGenerationResult {
     tickData: TickData;
-    primaryTickCount?: number;
     combinedRotation: number;
     textBaseline: CanvasTextBaseline;
     textAlign: CanvasTextAlign;
@@ -101,10 +98,10 @@ export abstract class FakeAxis<
 
     readonly axisGroup = new Group({ name: `${this.id}-axis`, zIndex: Layers.AXIS_ZINDEX });
 
-    protected lineNode = this.axisGroup.appendChild(new Line());
     protected readonly tickLabelGroup = this.axisGroup.appendChild(
         new Group({ name: `${this.id}-Axis-tick-labels`, zIndex: Layers.AXIS_ZINDEX })
     );
+
     protected readonly labelGroup = new Group({ name: `${this.id}-Labels`, zIndex: Layers.SERIES_ANNOTATION_ZINDEX });
 
     protected tickLabelGroupSelection = Selection.select<Text, LabelNodeDatum>(this.tickLabelGroup, Text, false);
@@ -115,10 +112,6 @@ export abstract class FakeAxis<
     rotation: number = 0; // axis rotation angle in degrees
 
     readonly scale = new LinearScale();
-
-    constructor() {
-        this.range = this.scale.range.slice() as [number, number];
-    }
 
     private updateDirection() {
         switch (this.position) {
@@ -163,10 +156,7 @@ export abstract class FakeAxis<
 
     private labelFormatter?: (datum: any) => string;
 
-    /**
-     * Is used to avoid collisions between axis labels and series.
-     */
-    seriesAreaPadding = 0;
+    public padding: number = 0;
 
     /**
      * Creates/removes/updates the scene graph nodes that constitute the axis.
@@ -178,9 +168,8 @@ export abstract class FakeAxis<
 
         this.axisGroup.datum = this.getAxisTransform();
 
-        const lineData = this.getAxisLineCoordinates();
         const { tickData, combinedRotation, textBaseline, textAlign } = this.tickGenerationResult;
-        this.updateSelections(lineData, tickData.ticks, {
+        this.updateSelections(tickData.ticks, {
             combinedRotation,
             textAlign,
             textBaseline,
@@ -189,11 +178,6 @@ export abstract class FakeAxis<
 
         this.updateLabels();
         this.updateVisibility();
-    }
-
-    private getAxisLineCoordinates(): AxisLineDatum {
-        const [min, max] = findMinMax(this.range);
-        return { x: 0, y1: min, y2: max };
     }
 
     private getTickLabelProps(
@@ -209,7 +193,7 @@ export abstract class FakeAxis<
         const { combinedRotation, textBaseline, textAlign, range } = params;
         const text = datum.tickLabel;
         const sideFlag = label.getSideFlag();
-        const labelX = sideFlag * (label.padding + this.seriesAreaPadding);
+        const labelX = sideFlag * (label.padding + this.padding);
         const visible = text !== '' && text != null;
         return {
             tickId: datum.tickId,
@@ -233,18 +217,18 @@ export abstract class FakeAxis<
 
     private tickGenerationResult: TickGenerationResult | undefined = undefined;
 
-    calculateLayout(primaryTickCount?: number): BBox {
+    calculateLayout(): BBox {
         this.updateDirection();
 
         const { parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
         const sideFlag = this.label.getSideFlag();
-        const labelX = sideFlag * (this.label.padding + this.seriesAreaPadding);
+        const labelX = sideFlag * (this.label.padding + this.padding);
 
         this.scale.interval = this.interval.step;
         this.scale.range = this.range;
         this.scale.update();
+
         this.tickGenerationResult = this.generateTicks({
-            primaryTickCount,
             parallelFlipRotation,
             regularFlipRotation,
             labelX,
@@ -252,16 +236,11 @@ export abstract class FakeAxis<
         });
 
         const { tickData, combinedRotation, textBaseline, textAlign } = this.tickGenerationResult;
-
+        const [r0, r1] = findMinMax(this.range);
+        const padding = this.padding;
         const boxes: BBox[] = [];
 
-        const { x, y1, y2 } = this.getAxisLineCoordinates();
-        const lineBox = new BBox(
-            x + Math.min(sideFlag * this.seriesAreaPadding, 0),
-            y1,
-            this.seriesAreaPadding,
-            y2 - y1
-        );
+        const lineBox = new BBox(Math.min(sideFlag * padding, 0), r0, padding, r1 - r0);
         boxes.push(lineBox);
 
         if (this.label.enabled) {
@@ -322,7 +301,6 @@ export abstract class FakeAxis<
     }
 
     private generateTicks({
-        primaryTickCount,
         parallelFlipRotation,
         regularFlipRotation,
         labelX,
@@ -369,18 +347,14 @@ export abstract class FakeAxis<
             const rotated = configuredRotation !== 0;
 
             textAlign = getTextAlign(parallel, configuredRotation, 0, sideFlag, regularFlipFlag);
-            labelOverlap = this.label.avoidCollisions
-                ? this.checkLabelOverlap(initialRotation, rotated, labelMatrix, tickData.ticks, labelX, { font })
-                : false;
+            labelOverlap = this.checkLabelOverlap(initialRotation, rotated, labelMatrix, tickData.ticks, labelX, {
+                font,
+            });
         }
 
         const combinedRotation = defaultRotation + configuredRotation;
 
-        if (tickData.rawTicks.length) {
-            primaryTickCount = tickData.rawTicks.length;
-        }
-
-        return { tickData, primaryTickCount, combinedRotation, textBaseline, textAlign };
+        return { tickData, combinedRotation, textBaseline, textAlign };
     }
 
     private createTickData(index: number, tickData: TickData, terminate: boolean): TickStrategyResult {
@@ -392,8 +366,7 @@ export abstract class FakeAxis<
 
         const regenerateTicks = step == null && values == null && tickCount > minTickCount;
 
-        let unchanged = true;
-        while (unchanged && index <= maxIterations) {
+        for (let unchanged = true; unchanged && index <= maxIterations; index++) {
             const prevTicks = tickData.rawTicks;
             tickCount = Math.max(defaultTickCount - index, minTickCount);
 
@@ -409,12 +382,9 @@ export abstract class FakeAxis<
             tickData.labelCount = labelCount;
 
             unchanged = regenerateTicks ? areArrayNumbersEqual(rawTicks, prevTicks) : false;
-            index++;
         }
 
-        const shouldTerminate = step !== undefined || values !== undefined;
-
-        terminate ||= shouldTerminate;
+        terminate ||= step != null || values != null;
 
         return { tickData, index, terminate };
     }
@@ -571,11 +541,11 @@ export abstract class FakeAxis<
     }
 
     private updateVisibility() {
-        const { tickLabelGroupSelection, lineNode } = this;
+        const { tickLabelGroupSelection } = this;
 
         resetMotion([this.axisGroup], resetAxisGroupFn());
         resetMotion([tickLabelGroupSelection], resetAxisLabelSelectionFn());
-        resetMotion([lineNode], resetAxisLineSelectionFn());
+        // resetMotion([lineNode], resetAxisLineSelectionFn());
 
         this.tickLabelGroup.visible = this.label.enabled;
     }
@@ -589,7 +559,6 @@ export abstract class FakeAxis<
     }
 
     private updateSelections(
-        lineData: AxisLineDatum,
         data: TickDatum[],
         params: {
             combinedRotation: number;
@@ -598,7 +567,6 @@ export abstract class FakeAxis<
             range: number[];
         }
     ) {
-        this.lineNode.datum = lineData;
         this.tickLabelGroupSelection.update(
             data.map((d) => this.getTickLabelProps(d, params)),
             (group) => group.appendChild(new Text()),
