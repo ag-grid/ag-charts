@@ -66,6 +66,11 @@ export interface AgPriceVolumePreset {
      * Default: `true`
      */
     zoom?: boolean;
+    /** Whether ChartTypes is enabled.
+     *
+     * Default: `true`
+     */
+    seriesTypes?: boolean;
 }
 
 export type AgFinancialChartPresets = AgPriceVolumePreset;

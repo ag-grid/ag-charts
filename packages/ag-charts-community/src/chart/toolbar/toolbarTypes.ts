@@ -1,7 +1,14 @@
 export const TOOLBAR_ALIGNMENTS = ['start', 'center', 'end'] as const;
 export type ToolbarAlignment = (typeof TOOLBAR_ALIGNMENTS)[number];
 
-export const TOOLBAR_GROUPS = ['annotations', 'annotationOptions', 'ranges', 'zoom'] as const;
+export const TOOLBAR_GROUPS = [
+    'annotations',
+    'annotationOptions',
+    'ranges',
+    'zoom',
+    'chartTypes',
+    'chartOptionsTools',
+] as const;
 export type ToolbarGroup = (typeof TOOLBAR_GROUPS)[number];
 
 export enum ToolbarPosition {

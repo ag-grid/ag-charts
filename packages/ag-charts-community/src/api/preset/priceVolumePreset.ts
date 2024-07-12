@@ -47,6 +47,7 @@ export function priceVolume(
         statusBar = true,
         annotations = true,
         zoom = true,
+        seriesTypes = true,
         theme,
         data,
         ...unusedOpts
@@ -111,6 +112,9 @@ export function priceVolume(
                       },
                       ranges: {
                           enabled: rangeToolbar,
+                      },
+                      chartTypes: {
+                          enabled: seriesTypes,
                       },
                   } satisfies AgToolbarOptions,
               }

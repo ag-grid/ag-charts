@@ -17,6 +17,7 @@ import type {
     ToolbarGroupToggledEvent,
     ToolbarProxyGroupOptionsEvent,
 } from '../interaction/toolbarManager';
+import { ChartTypesToolbar } from './chartTypesToolbar';
 import { ToolbarGroupProperties } from './toolbarProperties';
 import * as styles from './toolbarStyles';
 import {
@@ -38,6 +39,17 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     @Validate(BOOLEAN)
     public enabled = true;
 
+    @ObserveChanges<Toolbar>((target, newValue) => {
+        target.processPendingEvents();
+        target.toggleChartOptionsToolsToolbar(newValue);
+    })
+    @Validate(BOOLEAN)
+    public seriesTypes = true;
+
+    public chartOptionsTools = new ToolbarGroupProperties(
+        this.onGroupChanged.bind(this, 'chartOptionsTools'),
+        this.onGroupButtonsChanged.bind(this, 'chartOptionsTools')
+    );
     public annotations = new ToolbarGroupProperties(
         this.onGroupChanged.bind(this, 'annotations'),
         this.onGroupButtonsChanged.bind(this, 'annotations')
@@ -53,6 +65,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     public zoom = new ToolbarGroupProperties(
         this.onGroupChanged.bind(this, 'zoom'),
         this.onGroupButtonsChanged.bind(this, 'zoom')
+    );
+    public chartTypes = new ToolbarGroupProperties(
+        this.onGroupChanged.bind(this, 'chartTypes'),
+        this.onGroupButtonsChanged.bind(this, 'chartTypes')
     );
 
     private readonly horizontalSpacing = 10;
@@ -82,30 +98,38 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     };
 
     private readonly groupCallers: Record<ToolbarGroup, Set<string>> = {
+        chartOptionsTools: new Set(),
         annotations: new Set(),
         annotationOptions: new Set(),
         ranges: new Set(),
         zoom: new Set(),
+        chartTypes: new Set(),
     };
 
     private groupButtons: Record<ToolbarGroup, Array<HTMLButtonElement>> = {
+        chartOptionsTools: [],
         annotations: [],
         annotationOptions: [],
         ranges: [],
         zoom: [],
+        chartTypes: [],
     };
 
     private groupDestroyFns: Record<ToolbarGroup, Array<() => void>> = {
+        chartOptionsTools: [],
         annotations: [],
         annotationOptions: [],
         ranges: [],
         zoom: [],
+        chartTypes: [],
     };
 
     private pendingButtonToggledEvents: Array<ToolbarButtonToggledEvent> = [];
 
     private readonly groupProxied = new Map<ToolbarGroup, ToolbarProxyGroupOptionsEvent['options']>();
     private hasNewLocale = true;
+
+    private readonly chartTypesToolbar: ChartTypesToolbar;
 
     constructor(private readonly ctx: ModuleContext) {
         super();
@@ -117,6 +141,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             this.renderToolbar(position);
         }
         this.toggleVisibilities();
+        this.chartTypesToolbar = new ChartTypesToolbar(ctx);
 
         this.destroyFns.push(
             ctx.interactionManager.addListener('hover', this.onHover.bind(this), InteractionState.All),
@@ -129,6 +154,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             ctx.localeManager.addListener('locale-changed', () => {
                 this.hasNewLocale = true;
             }),
+            ctx.toolbarManager.addListener('button-pressed', (event) => this.chartTypesToolbar.onButtonPress(event)),
             () => this.destroyElements()
         );
     }
@@ -503,6 +529,15 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.updateButtonText(element, button);
     }
 
+    private toggleChartOptionsToolsToolbar(enabled: boolean) {
+        if (this.elements == null) return;
+        this.chartOptionsTools.enabled = enabled;
+
+        this.ctx.toolbarManager?.toggleGroup('chartOptionsTools', 'chartOptionsTools', Boolean(enabled));
+
+        this.toggleVisibilities();
+    }
+
     private toggleVisibilities() {
         if (this.elements == null) return;
 
@@ -590,6 +625,8 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             annotationOptions: 'ariaLabelAnnotationOptionsToolbar',
             ranges: 'ariaLabelRangesToolbar',
             zoom: 'ariaLabelZoomToolbar',
+            chartTypes: 'ariaLabelChartTypesToolbar',
+            chartOptionsTools: 'ariaLabelChartOptionsToolsToolbar',
         } as const;
         alignElement.ariaLabel = this.ctx.localeManager.t(map[group]);
     }

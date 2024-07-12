@@ -5,6 +5,8 @@ export interface AgToolbarOptions extends Toggleable {
     annotationOptions?: AgToolbarAnnotationOptionsGroup;
     ranges?: AgToolbarRangesGroup;
     zoom?: AgToolbarZoomGroup;
+    chartTypes?: AgToolbarChartTypesGroup;
+    chartOptionsTools?: AgToolbarChartOptionsToolsGroup;
 }
 
 export interface AgToolbarGroup extends Toggleable {
@@ -45,7 +47,7 @@ export interface AgToolbarButton {
     value: any;
 }
 
-export type AgIconName = IconNameAnnotation | IconNameZoom;
+export type AgIconName = IconNameAnnotation | IconNameZoom | IconNameChartType;
 type IconNameAnnotation =
     | 'horizontal-line'
     | 'vertical-line'
@@ -67,6 +69,7 @@ type IconNameZoom =
     | 'zoom-in-alt'
     | 'zoom-out'
     | 'zoom-out-alt';
+type IconNameChartType = 'candlestick' | 'ohlc' | 'hollow-candlestick' | 'line' | 'step-line' | 'range-area';
 
 /* Annotations */
 export interface AgToolbarAnnotationsGroup extends AgToolbarGroup {
@@ -132,3 +135,31 @@ export type AgToolbarZoomButtonValue =
     | 'pan-right'
     | 'pan-start'
     | 'pan-end';
+
+/* ChartTypes */
+export interface AgToolbarChartTypesGroup extends AgToolbarGroup {
+    buttons?: AgToolbarChartTypeButton[];
+}
+
+export interface AgToolbarChartTypeButton extends AgToolbarButton {
+    value: AgToolbarChartTypeButtonValue;
+}
+
+export type AgToolbarChartTypeButtonValue =
+    | 'ohlc'
+    | 'candlestick'
+    | 'hollow-candlestick'
+    | 'line'
+    | 'step-line'
+    | 'range-area';
+
+/* Chart Options Tools */
+export interface AgToolbarChartOptionsToolsGroup extends AgToolbarGroup {
+    buttons?: AgToolbarChartOptionsToolsButton[];
+}
+
+export interface AgToolbarChartOptionsToolsButton extends AgToolbarButton {
+    value: AgToolbarChartOptionsToolsButtonValue;
+}
+
+export type AgToolbarChartOptionsToolsButtonValue = 'series-types';

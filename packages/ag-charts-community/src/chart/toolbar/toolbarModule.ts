@@ -8,6 +8,20 @@ const DAY = 1000 * 60 * 60 * 24;
 const MONTH = DAY * 30;
 const YEAR = DAY * 365;
 
+const chartOptionsTools: AgToolbarOptions['chartOptionsTools'] = {
+    enabled: true,
+    position: 'left',
+    align: 'start',
+    buttons: [
+        {
+            icon: 'candlestick',
+            tooltip: 'toolbarAnnotationsTrendLine',
+            value: 'series-types',
+            section: 'tools',
+        },
+    ],
+};
+
 const annotations: AgToolbarOptions['annotations'] = {
     enabled: true,
     position: 'left',
@@ -167,6 +181,50 @@ const zoom: AgToolbarOptions['zoom'] = {
     ],
 };
 
+const chartTypes: AgToolbarOptions['chartTypes'] = {
+    enabled: true,
+    position: 'left',
+    align: 'start',
+    buttons: [
+        {
+            icon: 'candlestick',
+            tooltip: 'toolbarCandlestickChartType',
+            value: 'candlestick',
+            label: 'Candlestick',
+        },
+        {
+            icon: 'ohlc',
+            tooltip: 'toolbarOhlcChartType',
+            value: 'ohlc',
+            label: 'Ohlc',
+        },
+        {
+            icon: 'hollow-candlestick',
+            tooltip: 'toolbarHollowCandlestickChartType',
+            value: 'hollow-candlestick',
+            label: 'Hollow Candlestick',
+        },
+        {
+            icon: 'line',
+            tooltip: 'toolbarCandlestickChartType',
+            value: 'line',
+            label: 'Line',
+        },
+        {
+            icon: 'step-line',
+            tooltip: 'toolbarStepLineChartType',
+            value: 'step-line',
+            label: 'Step Line',
+        },
+        {
+            icon: 'range-area',
+            tooltip: 'toolbarRangeAreaChartType',
+            value: 'range-area',
+            label: 'Range Area',
+        },
+    ],
+};
+
 export const ToolbarModule: Module = {
     type: 'root',
     optionsKey: 'toolbar',
@@ -176,10 +234,13 @@ export const ToolbarModule: Module = {
     themeTemplate: {
         toolbar: {
             enabled: true,
+            seriesTypes: true,
             annotations,
             annotationOptions,
             ranges,
             zoom,
+            chartTypes,
+            chartOptionsTools,
         },
     },
 };
