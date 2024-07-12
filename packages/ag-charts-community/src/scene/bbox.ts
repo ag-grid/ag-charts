@@ -41,6 +41,22 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
         return new BBox(x, y, width, height);
     }
 
+    toDOMRect(): DOMRect {
+        return {
+            x: this.x,
+            y: this.y,
+            width: this.width,
+            height: this.height,
+            top: this.y,
+            left: this.x,
+            right: this.x + this.width,
+            bottom: this.y + this.height,
+            toJSON() {
+                return {};
+            },
+        };
+    }
+
     clone() {
         const { x, y, width, height } = this;
         return new BBox(x, y, width, height);
@@ -52,6 +68,17 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
 
     containsPoint(x: number, y: number): boolean {
         return x >= this.x && x <= this.x + this.width && y >= this.y && y <= this.y + this.height;
+    }
+
+    intersection(other: BBox) {
+        if (!this.collidesBBox(other)) return;
+
+        const newX1 = clamp(other.x, this.x, other.x + other.width);
+        const newY1 = clamp(other.y, this.y, other.y + other.height);
+        const newX2 = clamp(other.x, this.x + this.width, other.x + other.width);
+        const newY2 = clamp(other.y, this.y + this.height, other.y + other.height);
+
+        return new BBox(newX1, newY1, newX2 - newX1, newY2 - newY1);
     }
 
     collidesBBox(other: BBox): boolean {

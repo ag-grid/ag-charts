@@ -1,6 +1,6 @@
 import { BBox } from '../../scene/bbox';
 import STYLES from '../../styles.css';
-import { createElement, getDocument } from '../../util/dom';
+import { createElement, getDocument, getWindow } from '../../util/dom';
 import { GuardedElement } from '../../util/guardedElement';
 import { type Size, SizeMonitor } from '../../util/sizeMonitor';
 import { BaseManager } from '../baseManager';
@@ -47,6 +47,20 @@ type LiveDOMElement = {
     element: HTMLElement;
     children: Map<string, HTMLElement>;
     listeners: [string, Function, boolean | AddEventListenerOptions | undefined][];
+};
+
+const NULL_DOMRECT: DOMRect = {
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    toJSON() {
+        return NULL_DOMRECT;
+    },
 };
 
 export class DOMManager extends BaseManager<Events['type'], Events> {
@@ -251,24 +265,37 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
      * main chart area.
      */
     getOverlayClientRect() {
+        const window = getWindow();
+        const windowBBox = new BBox(0, 0, window.innerWidth, window.innerHeight);
+        const container = this.getRawOverlayClientRect();
+
+        if (container == null) return windowBBox.toDOMRect();
+
+        const containerBBox = BBox.fromDOMRect(container);
+        return windowBBox.intersection(containerBBox)?.toDOMRect() ?? NULL_DOMRECT;
+    }
+
+    private getRawOverlayClientRect() {
         let element: HTMLElement | null = this.element;
 
         // Try and find a parent which will clip rendering of children - if found we should restrict
         // to that elements bounding box.
         while (element != null) {
-            const overflow = element.computedStyleMap?.().get('overflow');
+            const overflow = element.computedStyleMap?.().get('overflow')?.toString();
 
-            if (overflow === 'clip' || overflow === 'hidden') {
+            if (overflow === 'clip' || overflow === 'hidden' || overflow === 'scroll' || overflow === 'auto') {
                 return element.getBoundingClientRect();
             }
 
             element = element.parentElement;
         }
 
-        // Fallback to either the main documents bounding box (pre-10.0.0 behavior), or if we can't
-        // determine the root document element, use the canvas bounding box which was the 10.0.0
-        // behavior.
-        return this.getDocumentRoot()?.getBoundingClientRect() ?? this.getBoundingClientRect();
+        // If in a shadow-DOM case, use the shadow-DOMs bounding-box, intersected with the window
+        // viewport.
+        const docRoot = this.getDocumentRoot();
+        if (docRoot) {
+            return docRoot.getBoundingClientRect();
+        }
     }
 
     getDocumentRoot(current = this.container) {
