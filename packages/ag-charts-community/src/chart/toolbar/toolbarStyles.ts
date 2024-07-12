@@ -16,6 +16,7 @@ export const modifiers = {
     [ToolbarPosition.Floating]: 'ag-charts-toolbar--floating',
     [ToolbarPosition.FloatingTop]: 'ag-charts-toolbar--floating-top',
     [ToolbarPosition.FloatingBottom]: 'ag-charts-toolbar--floating-bottom',
+    [ToolbarPosition.PopOutLeft]: '.ag-charts-toolbar--pop-out-left',
     small: 'ag-charts-toolbar--small',
     normal: 'ag-charts-toolbar--normal',
     hidden: 'ag-charts-toolbar--hidden',

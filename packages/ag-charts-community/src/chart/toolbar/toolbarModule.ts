@@ -9,7 +9,6 @@ const MONTH = DAY * 30;
 const YEAR = DAY * 365;
 
 const chartOptionsTools: AgToolbarOptions['chartOptionsTools'] = {
-    enabled: true,
     position: 'left',
     align: 'start',
     buttons: [
@@ -183,7 +182,7 @@ const zoom: AgToolbarOptions['zoom'] = {
 
 const chartTypes: AgToolbarOptions['chartTypes'] = {
     enabled: true,
-    position: 'left',
+    position: 'pop-out-left',
     align: 'start',
     buttons: [
         {
@@ -191,36 +190,42 @@ const chartTypes: AgToolbarOptions['chartTypes'] = {
             tooltip: 'toolbarCandlestickChartType',
             value: 'candlestick',
             label: 'Candlestick',
+            section: 'tools',
         },
         {
             icon: 'ohlc',
             tooltip: 'toolbarOhlcChartType',
             value: 'ohlc',
             label: 'Ohlc',
+            section: 'tools',
         },
         {
             icon: 'hollow-candlestick',
             tooltip: 'toolbarHollowCandlestickChartType',
             value: 'hollow-candlestick',
             label: 'Hollow Candlestick',
+            section: 'tools',
         },
         {
             icon: 'line',
             tooltip: 'toolbarCandlestickChartType',
             value: 'line',
             label: 'Line',
+            section: 'tools',
         },
         {
             icon: 'step-line',
             tooltip: 'toolbarStepLineChartType',
             value: 'step-line',
             label: 'Step Line',
+            section: 'tools',
         },
         {
             icon: 'range-area',
             tooltip: 'toolbarRangeAreaChartType',
             value: 'range-area',
             label: 'Range Area',
+            section: 'tools',
         },
     ],
 };

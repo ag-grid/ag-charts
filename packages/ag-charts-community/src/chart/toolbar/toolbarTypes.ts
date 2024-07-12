@@ -19,6 +19,7 @@ export enum ToolbarPosition {
     Floating = 'floating',
     FloatingTop = 'floating-top',
     FloatingBottom = 'floating-bottom',
+    PopOutLeft = 'pop-out-left',
 }
 export const TOOLBAR_POSITIONS = Object.values(ToolbarPosition);
 

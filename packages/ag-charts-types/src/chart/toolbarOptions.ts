@@ -27,7 +27,8 @@ export type AgToolbarGroupPosition =
     | 'bottom'
     | 'floating'
     | 'floating-top'
-    | 'floating-bottom';
+    | 'floating-bottom'
+    | 'pop-out-left';
 export type AgToolbarGroupSize = 'small' | 'normal';
 
 export interface AgToolbarButton {

@@ -85,6 +85,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         [ToolbarPosition.Floating]: new Set(),
         [ToolbarPosition.FloatingTop]: new Set(),
         [ToolbarPosition.FloatingBottom]: new Set(),
+        [ToolbarPosition.PopOutLeft]: new Set(),
     };
 
     private readonly positionAlignments: Record<ToolbarPosition, Partial<Record<ToolbarAlignment, HTMLElement>>> = {
@@ -95,6 +96,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         [ToolbarPosition.Floating]: {},
         [ToolbarPosition.FloatingTop]: {},
         [ToolbarPosition.FloatingBottom]: {},
+        [ToolbarPosition.PopOutLeft]: {},
     };
 
     private readonly groupCallers: Record<ToolbarGroup, Set<string>> = {
@@ -411,6 +413,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
                 floating: 'horizontal',
                 'floating-top': 'horizontal',
                 'floating-bottom': 'horizontal',
+                'pop-out-left': 'vertical',
             } as const
         )[position];
     }

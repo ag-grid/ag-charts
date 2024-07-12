@@ -35,7 +35,8 @@
 }
 
 .ag-charts-toolbar--left,
-.ag-charts-toolbar--right {
+.ag-charts-toolbar--right,
+.ag-charts-toolbar--pop-out-left {
     flex-direction: column;
 }
 
@@ -90,6 +91,13 @@
 .ag-charts-toolbar__align--center,
 .ag-charts-toolbar__align--end {
     margin-left: auto;
+}
+
+.ag-charts-toolbar--pop-out-left .ag-charts-toolbar__align--center,
+.ag-charts-toolbar--pop-out-left .ag-charts-toolbar__align--end {
+    margin-left: 100px;
+    margin-top: auto;
+    flex-direction: column;
 }
 
 .ag-charts-toolbar--left .ag-charts-toolbar__align--center,
@@ -147,6 +155,7 @@
     border-top-right-radius: var(--ag-charts-button-radius);
 }
 
+.ag-charts-toolbar--pop-out-left .ag-charts-toolbar__button,
 .ag-charts-toolbar--left .ag-charts-toolbar__button,
 .ag-charts-toolbar--right .ag-charts-toolbar__button {
     border-left: var(--ag-charts-toolbar-border);
@@ -157,6 +166,7 @@
     overflow: hidden;
 }
 
+.ag-charts-toolbar--pop-out-left .ag-charts-toolbar__button:first-child,
 .ag-charts-toolbar--left .ag-charts-toolbar__button:first-child,
 .ag-charts-toolbar--right .ag-charts-toolbar__button:first-child {
     border-top-left-radius: var(--ag-charts-button-radius);
@@ -164,6 +174,7 @@
     margin: 0;
 }
 
+.ag-charts-toolbar--pop-out-left .ag-charts-toolbar__button:last-child,
 .ag-charts-toolbar--left .ag-charts-toolbar__button:last-child,
 .ag-charts-toolbar--right .ag-charts-toolbar__button:last-child {
     border-bottom: var(--ag-charts-toolbar-border);
