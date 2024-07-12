@@ -117,11 +117,8 @@ export class Sector extends Path {
     private normalizedRadii() {
         const { concentricEdgeInset } = this;
         let { innerRadius, outerRadius } = this;
-        if (innerRadius > outerRadius) {
-            [outerRadius, innerRadius] = [innerRadius, outerRadius];
-        }
         innerRadius = innerRadius > 0 ? innerRadius + concentricEdgeInset : 0;
-        outerRadius = Math.max(outerRadius - concentricEdgeInset, innerRadius);
+        outerRadius = Math.max(outerRadius - concentricEdgeInset, 0);
         return { innerRadius, outerRadius };
     }
 
@@ -273,9 +270,9 @@ export class Sector extends Path {
 
         path.clear();
 
-        if (this.innerRadius === 0 && this.outerRadius === 0) return;
-
-        if ((clipSector?.startAngle ?? startAngle) === (clipSector?.endAngle ?? endAngle)) {
+        if ((innerRadius === 0 && outerRadius === 0) || innerRadius > outerRadius) {
+            return;
+        } else if ((clipSector?.startAngle ?? startAngle) === (clipSector?.endAngle ?? endAngle)) {
             return;
         } else if (
             fullPie &&
