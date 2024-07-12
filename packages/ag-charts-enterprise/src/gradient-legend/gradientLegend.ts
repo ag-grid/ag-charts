@@ -58,8 +58,8 @@ export class GradientLegend {
     @Validate(POSITION)
     position: AgChartLegendPosition = 'bottom';
 
-    @Validate(BOOLEAN, { optional: true })
-    reverseOrder?: boolean;
+    @Validate(BOOLEAN)
+    reverseOrder: boolean = false;
 
     @Validate(OBJECT)
     readonly gradient = new GradientBar();
@@ -159,20 +159,15 @@ export class GradientLegend {
         const { reverseOrder, gradientFill, gradientRect } = this;
         const { preferredLength, thickness } = this.gradient;
 
-        gradientRect.x = 0;
-        gradientRect.y = 0;
-
         gradientFill.stops = colorRange;
 
         if (this.isVertical()) {
             gradientRect.width = thickness;
             gradientRect.height = Math.min(shrinkRect.height, preferredLength);
-
             gradientFill.direction = reverseOrder ? 'to-bottom' : 'to-top';
         } else {
             gradientRect.width = Math.min(shrinkRect.width, preferredLength);
             gradientRect.height = thickness;
-
             gradientFill.direction = reverseOrder ? 'to-left' : 'to-right';
         }
     }
@@ -181,13 +176,14 @@ export class GradientLegend {
         const { axisTicks } = this;
         const vertical = this.isVertical();
         const positiveAxis = this.reverseOrder !== vertical;
-        const { x, y, width, height } = this.gradientRect;
+        const { width, height } = this.gradientRect;
+        const { thickness } = this.gradient;
 
         axisTicks.position = this.position;
-        axisTicks.range = vertical ? [0, height] : [0, width];
-        axisTicks.translation.x = x + (vertical ? width : 0);
-        axisTicks.translation.y = y + (vertical ? 0 : height);
-        axisTicks.setDomain(positiveAxis ? data.colorDomain.slice().reverse() : data.colorDomain);
+        axisTicks.translation.x = vertical ? thickness : 0;
+        axisTicks.translation.y = vertical ? 0 : thickness;
+        axisTicks.scale.domain = positiveAxis ? data.colorDomain.slice().reverse() : data.colorDomain;
+        axisTicks.scale.range = vertical ? [0, height] : [0, width];
 
         return axisTicks.calculateLayout();
     }
@@ -216,12 +212,12 @@ export class GradientLegend {
             y -= size / 2;
         }
 
+        arrow.visible = true;
         arrow.fill = label.color;
+        arrow.rotation = rotation;
         arrow.size = size;
         arrow.translationX = x;
         arrow.translationY = y;
-        arrow.rotation = rotation;
-        arrow.visible = true;
     }
 
     private getMeasurements(shrinkRect: _Scene.BBox, axisBox: _Scene.BBox) {
@@ -261,8 +257,7 @@ export class GradientLegend {
     }
 
     private onChartHoverChange() {
-        if (this.enabled) {
-            this.updateArrow();
-        }
+        if (!this.enabled) return;
+        this.updateArrow();
     }
 }
