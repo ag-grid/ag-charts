@@ -222,10 +222,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.update();
             },
 
-            showTextInput: (active?: number) => {
-                if (active == null) return;
+            showTextInput: (active: number) => {
+                const datum = getTypedDatum(this.annotationData.at(active));
+                if (!datum || !('getTextBBox' in datum)) return;
 
-                const datum = this.annotationData[active];
                 const styles = {
                     color: datum.color,
                     fontFamily: datum.fontFamily,
@@ -234,7 +234,18 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     fontWeight: datum.fontWeight,
                 };
 
-                this.textInput.show({ styles });
+                this.textInput.show({ styles, text: datum.text });
+
+                const bbox = datum.getTextBBox(this.getAnnotationContext()!);
+                const coords = Vec2.add(bbox, Vec2.required(this.seriesRect));
+                bbox.x = coords.x;
+                bbox.y = coords.y;
+
+                this.textInput.setLayout({
+                    bbox,
+                    position: datum.position,
+                    alignment: datum.alignment,
+                });
             },
 
             hideTextInput: () => {
@@ -492,7 +503,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     return;
                 }
 
-                updateAnnotation(node, datum, context, state.isActive(index), this.textInput);
+                updateAnnotation(node, datum, context);
 
                 if (state.isActive(index)) {
                     toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());

@@ -1,6 +1,5 @@
 import type { _Util } from 'ag-charts-community';
 
-import type { TextInput } from '../text-input/textInput';
 import { type AnnotationContext, AnnotationType } from './annotationTypes';
 import type { AnnotationProperties } from './annotationsSuperTypes';
 import { HorizontalLineProperties, VerticalLineProperties } from './cross-line/crossLineProperties';
@@ -45,13 +44,7 @@ export const annotationScenes: Record<AnnotationType, Constructor<AnnotationScen
     [AnnotationType.Text]: TextScene,
 };
 
-export function updateAnnotation(
-    node: AnnotationScene,
-    datum: AnnotationProperties,
-    context: AnnotationContext,
-    isActive: boolean,
-    textInput: TextInput
-) {
+export function updateAnnotation(node: AnnotationScene, datum: AnnotationProperties, context: AnnotationContext) {
     // Lines
     if (LineProperties.is(datum) && LineScene.is(node)) {
         node.update(datum, context);
@@ -73,15 +66,6 @@ export function updateAnnotation(
     // Texts
     if (TextProperties.is(datum) && TextScene.is(node)) {
         node.update(datum, context);
-
-        if (isActive) {
-            // TODO: remove this from here
-            textInput.setLayout({
-                bbox: node.getTextRect(),
-                position: datum.position,
-                alignment: datum.alignment,
-            });
-        }
     }
 }
 

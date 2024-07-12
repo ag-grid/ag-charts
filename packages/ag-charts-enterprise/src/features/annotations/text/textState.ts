@@ -36,9 +36,6 @@ export class TextStateMachine extends StateMachine<'start' | 'edit', 'click' | '
                     action: onClick,
                 },
                 cancel: StateMachine.parent,
-                onExit: () => {
-                    ctx.selectLast();
-                },
             },
             edit: {
                 onEnter: () => {

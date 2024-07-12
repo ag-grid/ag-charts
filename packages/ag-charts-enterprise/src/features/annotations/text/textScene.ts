@@ -35,7 +35,8 @@ export class TextScene extends AnnotationScene {
         this.label.fontSize = datum.fontSize;
         this.label.fontStyle = datum.fontStyle;
         this.label.fontWeight = datum.fontWeight;
-        this.label.textAlign = datum.textAlign;
+        this.label.textAlign = datum.alignment;
+        this.label.textBaseline = datum.position == 'center' ? 'middle' : datum.position;
 
         const handleStyles = {
             fill: datum.handle.fill,
@@ -44,10 +45,14 @@ export class TextScene extends AnnotationScene {
             strokeWidth: datum.handle.strokeWidth,
         };
 
+        let bbox = this.getCachedBBoxWithoutHandles();
+        if (bbox.width === 0 && bbox.height === 0) {
+            bbox = this.computeBBoxWithoutHandles();
+        }
         this.handle.update({
             ...handleStyles,
-            x: coords.x,
-            y: coords.y + DivariantHandle.HANDLE_SIZE,
+            x: coords.x + bbox.width / 2,
+            y: coords.y + bbox.height + DivariantHandle.HANDLE_SIZE,
         });
     }
 
@@ -55,9 +60,10 @@ export class TextScene extends AnnotationScene {
         if (datum.locked || this.activeHandle == null) return;
 
         this.handle.toggleDragging(true);
+        const bbox = this.getCachedBBoxWithoutHandles();
         const offsetTarget = {
-            x: target.x,
-            y: target.y - DivariantHandle.HANDLE_SIZE,
+            x: target.x - bbox.width / 2,
+            y: target.y - (bbox.height + DivariantHandle.HANDLE_SIZE),
         };
         const point = invertCoords(this.handle.drag(offsetTarget).point, context);
 
@@ -82,10 +88,6 @@ export class TextScene extends AnnotationScene {
     override getAnchor() {
         const bbox = this.getCachedBBoxWithoutHandles();
         return { x: bbox.x + bbox.width / 2, y: bbox.y };
-    }
-
-    public getTextRect() {
-        return this.getCachedBBoxWithoutHandles();
     }
 
     override getCursor() {

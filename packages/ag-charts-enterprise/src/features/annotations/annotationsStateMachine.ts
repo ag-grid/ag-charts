@@ -1,7 +1,7 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { type AnnotationContext, AnnotationType } from './annotationTypes';
-import { colorDatum } from './annotationsConfig';
+import { colorDatum, getTypedDatum } from './annotationsConfig';
 import type { AnnotationProperties, AnnotationsStateMachineContext } from './annotationsSuperTypes';
 import {
     type CrossLineProperties,
@@ -28,6 +28,7 @@ const { StateMachine } = _ModuleSupport;
 enum States {
     Idle = 'idle',
     Dragging = 'dragging',
+    TextInput = 'text-input',
 }
 type AnnotationEvent =
     | 'click'
@@ -52,6 +53,12 @@ export class AnnotationsStateMachine extends StateMachine<
 
     // eslint-disable-next-line @typescript-eslint/prefer-readonly
     private active?: number;
+
+    // A `click` is preceeded by the `dragStart` and `dragEnd` events, since `dragStart` also selects the annotation we
+    // need to differentiate when the second time the annotation is clicked was not the first `click` event after
+    // the `dragStart.
+    // eslint-disable-next-line @typescript-eslint/prefer-readonly
+    private selectedWithDrag = false;
 
     constructor(ctx: AnnotationsStateMachineContext) {
         const getDatum =
@@ -88,9 +95,23 @@ export class AnnotationsStateMachine extends StateMachine<
                     this.hovered = ctx.hoverAtCoords(offset, this.active);
                 },
 
-                click: () => {
-                    this.active = ctx.select(this.hovered, this.active);
-                },
+                click: [
+                    {
+                        guard: () =>
+                            this.active != null &&
+                            this.hovered != null &&
+                            !this.selectedWithDrag &&
+                            ctx.getAnnotationType(this.hovered) === AnnotationType.Text,
+                        target: States.TextInput,
+                    },
+                    {
+                        target: States.Idle,
+                        action: () => {
+                            this.active = ctx.select(this.hovered, this.active);
+                            this.selectedWithDrag = false;
+                        },
+                    },
+                ],
 
                 drag: {
                     guard: () => this.hovered != null,
@@ -104,6 +125,7 @@ export class AnnotationsStateMachine extends StateMachine<
                     guard: () => this.hovered != null,
                     target: States.Dragging,
                     action: () => {
+                        this.selectedWithDrag = this.active == null;
                         this.active = ctx.select(this.hovered, this.active);
                         ctx.startInteracting();
                     },
@@ -172,7 +194,10 @@ export class AnnotationsStateMachine extends StateMachine<
                     create: createDatum<TextProperties>(AnnotationType.Text),
                     datum: getDatum<TextProperties>(TextProperties.is),
                     node: getNode<TextScene>(TextScene.is),
-                    showTextInput: () => ctx.showTextInput(this.active),
+                    showTextInput: () => {
+                        if (this.active == null) return;
+                        ctx.showTextInput(this.active);
+                    },
                 }),
             },
 
@@ -225,6 +250,43 @@ export class AnnotationsStateMachine extends StateMachine<
                     datum: getDatum<TextProperties>(TextProperties.is),
                     node: getNode<TextScene>(TextScene.is),
                 }),
+            },
+
+            [States.TextInput]: {
+                onEnter: () => {
+                    if (this.active == null) return;
+
+                    const datum = getTypedDatum(ctx.datum(this.active));
+                    if (!datum || !('getTextBBox' in datum)) return;
+
+                    ctx.startInteracting();
+                    ctx.showTextInput(this.active);
+                    datum.visible = false;
+
+                    ctx.update();
+                },
+
+                keyDown: {
+                    guard: ({ key }: { key: string }) => key === 'Tab',
+                    target: States.Idle,
+                    action: ({ value }: { value?: string }) => {
+                        ctx.datum(this.active!)?.set({ text: value ?? '' });
+                        ctx.update();
+                    },
+                },
+
+                onExit: () => {
+                    if (this.active == null) return;
+
+                    const datum = ctx.datum(this.active);
+                    if (!datum) return;
+
+                    ctx.stopInteracting();
+                    ctx.hideTextInput();
+                    datum.visible = true;
+
+                    ctx.update();
+                },
             },
 
             [AnnotationType.Line]: {},

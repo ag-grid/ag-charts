@@ -36,9 +36,6 @@ export class CrossLineStateMachine extends StateMachine<'start', 'click' | 'canc
                     action: onClick,
                 },
                 cancel: StateMachine.parent,
-                onExit: () => {
-                    ctx.selectLast();
-                },
             },
         });
     }

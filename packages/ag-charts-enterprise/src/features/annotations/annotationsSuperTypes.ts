@@ -34,7 +34,7 @@ export interface AnnotationsStateMachineContext {
     datum: (index: number) => AnnotationProperties | undefined;
     node: (index: number) => AnnotationScene | undefined;
 
-    showTextInput: (index?: number) => void;
+    showTextInput: (index: number) => void;
     hideTextInput: () => void;
 
     update: () => void;
