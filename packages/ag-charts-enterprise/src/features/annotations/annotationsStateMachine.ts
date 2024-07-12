@@ -42,10 +42,7 @@ type AnnotationEvent =
     | 'color'
     | 'keyDown';
 
-export class AnnotationsStateMachine extends StateMachine<
-    States | AnnotationType.Line,
-    AnnotationType | AnnotationEvent
-> {
+export class AnnotationsStateMachine extends StateMachine<States, AnnotationType | AnnotationEvent> {
     override debug = _Util.Debug.create(true, 'annotations');
 
     // eslint-disable-next-line @typescript-eslint/prefer-readonly
@@ -54,13 +51,12 @@ export class AnnotationsStateMachine extends StateMachine<
     // eslint-disable-next-line @typescript-eslint/prefer-readonly
     private active?: number;
 
-    // A `click` is preceeded by the `dragStart` and `dragEnd` events, since `dragStart` also selects the annotation we
-    // need to differentiate when the second time the annotation is clicked was not the first `click` event after
-    // the `dragStart.
-    // eslint-disable-next-line @typescript-eslint/prefer-readonly
-    private selectedWithDrag = false;
-
     constructor(ctx: AnnotationsStateMachineContext) {
+        // A `click` is preceeded by the `dragStart` and `dragEnd` events, since `dragStart` also selects the annotation we
+        // need to differentiate when the second time the annotation is clicked was not the first `click` event after
+        // the `dragStart.
+        let selectedWithDrag = false;
+
         const getDatum =
             <T>(is: (value: unknown) => value is T) =>
             () => {
@@ -84,6 +80,53 @@ export class AnnotationsStateMachine extends StateMachine<
                 this.active = ctx.selectLast();
             };
 
+        const dragStateMachine = <
+            D extends AnnotationProperties,
+            N extends {
+                dragStart?: (datum: D, offset: _Util.Vec2, context: AnnotationContext) => void;
+                drag: (datum: D, offset: _Util.Vec2, context: AnnotationContext) => void;
+                stopDragging: () => void;
+            },
+        >(
+            isDatum: (value: unknown) => value is D,
+            isNode: (value: unknown) => value is N
+        ) => {
+            const node = getNode(isNode);
+            const datum = getDatum(isDatum);
+
+            return new (class extends StateMachine<'idle' | 'dragging', 'drag' | 'dragStart' | 'dragEnd'> {
+                override debug = _Util.Debug.create(true, 'annotations');
+                constructor() {
+                    super('idle', {
+                        idle: {
+                            dragStart: {
+                                target: 'dragging',
+                                action: ({ offset, context }) => {
+                                    node()?.dragStart?.(datum()!, offset, context);
+                                },
+                            },
+                        },
+
+                        dragging: {
+                            drag: ({ offset, context }) => {
+                                selectedWithDrag = true;
+                                node()?.drag(datum()!, offset, context);
+                                ctx.update();
+                            },
+
+                            dragEnd: {
+                                target: StateMachine.parent,
+                                action: () => {
+                                    node()?.stopDragging();
+                                    ctx.stopInteracting();
+                                },
+                            },
+                        },
+                    });
+                }
+            })();
+        };
+
         super(States.Idle, {
             [States.Idle]: {
                 onEnter: () => {
@@ -100,7 +143,7 @@ export class AnnotationsStateMachine extends StateMachine<
                         guard: () =>
                             this.active != null &&
                             this.hovered != null &&
-                            !this.selectedWithDrag &&
+                            !selectedWithDrag &&
                             ctx.getAnnotationType(this.hovered) === AnnotationType.Text,
                         target: States.TextInput,
                     },
@@ -108,7 +151,7 @@ export class AnnotationsStateMachine extends StateMachine<
                         target: States.Idle,
                         action: () => {
                             this.active = ctx.select(this.hovered, this.active);
-                            this.selectedWithDrag = false;
+                            selectedWithDrag = false;
                         },
                     },
                 ],
@@ -125,7 +168,7 @@ export class AnnotationsStateMachine extends StateMachine<
                     guard: () => this.hovered != null,
                     target: States.Dragging,
                     action: () => {
-                        this.selectedWithDrag = this.active == null;
+                        selectedWithDrag = this.active == null;
                         this.active = ctx.select(this.hovered, this.active);
                         ctx.startInteracting();
                     },
@@ -213,43 +256,28 @@ export class AnnotationsStateMachine extends StateMachine<
                 },
 
                 // Lines
-                [AnnotationType.Line]: new DragStateMachine({
-                    ...ctx,
-                    datum: getDatum<LineProperties>(LineProperties.is),
-                    node: getNode<LineScene>(LineScene.is),
-                }),
-
-                [AnnotationType.HorizontalLine]: new DragStateMachine({
-                    ...ctx,
-                    datum: getDatum<HorizontalLineProperties>(HorizontalLineProperties.is),
-                    node: getNode<CrossLineScene>(CrossLineScene.is),
-                }),
-
-                [AnnotationType.VerticalLine]: new DragStateMachine({
-                    ...ctx,
-                    datum: getDatum<VerticalLineProperties>(VerticalLineProperties.is),
-                    node: getNode<CrossLineScene>(CrossLineScene.is),
-                }),
+                [AnnotationType.Line]: dragStateMachine<LineProperties, LineScene>(LineProperties.is, LineScene.is),
+                [AnnotationType.HorizontalLine]: dragStateMachine<HorizontalLineProperties, CrossLineScene>(
+                    HorizontalLineProperties.is,
+                    CrossLineScene.is
+                ),
+                [AnnotationType.VerticalLine]: dragStateMachine<VerticalLineProperties, CrossLineScene>(
+                    VerticalLineProperties.is,
+                    CrossLineScene.is
+                ),
 
                 // Channels
-                [AnnotationType.ParallelChannel]: new DragStateMachine({
-                    ...ctx,
-                    datum: getDatum<ParallelChannelProperties>(ParallelChannelProperties.is),
-                    node: getNode<ParallelChannelScene>(ParallelChannelScene.is),
-                }),
-
-                [AnnotationType.DisjointChannel]: new DragStateMachine({
-                    ...ctx,
-                    datum: getDatum<DisjointChannelProperties>(DisjointChannelProperties.is),
-                    node: getNode<DisjointChannelScene>(DisjointChannelScene.is),
-                }),
+                [AnnotationType.ParallelChannel]: dragStateMachine<ParallelChannelProperties, ParallelChannelScene>(
+                    ParallelChannelProperties.is,
+                    ParallelChannelScene.is
+                ),
+                [AnnotationType.DisjointChannel]: dragStateMachine<DisjointChannelProperties, DisjointChannelScene>(
+                    DisjointChannelProperties.is,
+                    DisjointChannelScene.is
+                ),
 
                 // Texts
-                [AnnotationType.Text]: new DragStateMachine({
-                    ...ctx,
-                    datum: getDatum<TextProperties>(TextProperties.is),
-                    node: getNode<TextScene>(TextScene.is),
-                }),
+                [AnnotationType.Text]: dragStateMachine<TextProperties, TextScene>(TextProperties.is, TextScene.is),
             },
 
             [States.TextInput]: {
@@ -288,8 +316,6 @@ export class AnnotationsStateMachine extends StateMachine<
                     ctx.update();
                 },
             },
-
-            [AnnotationType.Line]: {},
         });
     }
 
@@ -301,48 +327,5 @@ export class AnnotationsStateMachine extends StateMachine<
     // TODO: remove this leak
     public isActive(index: Number) {
         return index === this.active;
-    }
-}
-
-class DragStateMachine<
-    D extends AnnotationProperties,
-    N extends {
-        dragStart?: (datum: D, offset: _Util.Vec2, context: AnnotationContext) => void;
-        drag: (datum: D, offset: _Util.Vec2, context: AnnotationContext) => void;
-        stopDragging: () => void;
-    },
-> extends StateMachine<'idle' | 'dragging', 'drag' | 'dragStart' | 'dragEnd'> {
-    override debug = _Util.Debug.create(true, 'annotations');
-    constructor(
-        ctx: {
-            datum: () => D | undefined;
-            node: () => N | undefined;
-        } & AnnotationsStateMachineContext
-    ) {
-        super('idle', {
-            idle: {
-                dragStart: {
-                    target: 'dragging',
-                    action: ({ offset, context }) => {
-                        ctx.node()?.dragStart?.(ctx.datum()!, offset, context);
-                    },
-                },
-            },
-
-            dragging: {
-                drag: ({ offset, context }) => {
-                    ctx.node()?.drag(ctx.datum()!, offset, context);
-                    ctx.update();
-                },
-
-                dragEnd: {
-                    target: StateMachine.parent,
-                    action: () => {
-                        ctx.node()?.stopDragging();
-                        ctx.stopInteracting();
-                    },
-                },
-            },
-        });
     }
 }
