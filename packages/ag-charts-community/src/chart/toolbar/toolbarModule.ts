@@ -10,13 +10,11 @@ const YEAR = DAY * 365;
 
 const chartOptionsTools: AgToolbarOptions['chartOptionsTools'] = {
     position: 'left',
-    align: 'start',
+    align: 'end',
     buttons: [
         {
             icon: 'candlestick',
-            tooltip: 'toolbarAnnotationsTrendLine',
             value: 'series-types',
-            section: 'tools',
         },
     ],
 };

@@ -66,7 +66,7 @@ export interface AgPriceVolumePreset {
      * Default: `true`
      */
     zoom?: boolean;
-    /** Whether ChartTypes is enabled.
+    /** Whether changing series type toolbar button is enabled.
      *
      * Default: `true`
      */

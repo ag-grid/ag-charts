@@ -7,9 +7,13 @@ export class ChartTypesToolbar {
 
     private visible: boolean = false;
     private enabled: boolean = true;
-    public toggle(enabled: boolean) {
+    public toggle(enabled: boolean, visible: boolean) {
         this.enabled = enabled;
-        this.ctx.toolbarManager?.toggleGroup('chartTypes', 'chartTypes', Boolean(enabled));
+        const active = Boolean(enabled && visible);
+        this.ctx.toolbarManager?.toggleGroup('chartTypes', 'chartTypes', active);
+        this.ctx.toolbarManager?.toggleButton('chartOptionsTools', 'series-types', {
+            active,
+        });
         this.toggleButtons(enabled);
     }
 
@@ -39,7 +43,7 @@ export class ChartTypesToolbar {
     public onButtonPress(event: ToolbarButtonPressedEvent) {
         if (ToolbarManager.isGroup('chartOptionsTools', event)) {
             this.visible = !this.visible;
-            this.toggle(this.visible);
+            this.toggle(this.enabled, this.visible);
             return;
         }
 
@@ -52,6 +56,7 @@ export class ChartTypesToolbar {
             return;
         }
 
-        this.toggle(false);
+        this.visible = false;
+        this.toggle(this.enabled, this.visible);
     }
 }

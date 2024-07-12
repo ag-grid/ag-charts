@@ -101,9 +101,10 @@ export function priceVolume(
     };
 
     const toolbarOpts =
-        annotations || rangeToolbar
+        annotations || rangeToolbar || seriesTypes
             ? {
                   toolbar: {
+                      seriesTypes,
                       annotationOptions: {
                           enabled: annotations,
                       },
@@ -112,9 +113,6 @@ export function priceVolume(
                       },
                       ranges: {
                           enabled: rangeToolbar,
-                      },
-                      chartTypes: {
-                          enabled: seriesTypes,
                       },
                   } satisfies AgToolbarOptions,
               }

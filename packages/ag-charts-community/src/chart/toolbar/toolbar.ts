@@ -536,7 +536,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         if (this.elements == null) return;
         this.chartOptionsTools.enabled = enabled;
 
-        this.ctx.toolbarManager?.toggleGroup('chartOptionsTools', 'chartOptionsTools', Boolean(enabled));
+        this.ctx.toolbarManager?.toggleGroup('toolbar', 'chartOptionsTools', Boolean(enabled));
 
         this.toggleVisibilities();
     }

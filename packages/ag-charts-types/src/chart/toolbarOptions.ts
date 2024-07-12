@@ -1,6 +1,7 @@
 import type { Toggleable } from '../series/cartesian/commonOptions';
 
 export interface AgToolbarOptions extends Toggleable {
+    seriesTypes?: boolean;
     annotations?: AgToolbarAnnotationsGroup;
     annotationOptions?: AgToolbarAnnotationOptionsGroup;
     ranges?: AgToolbarRangesGroup;
