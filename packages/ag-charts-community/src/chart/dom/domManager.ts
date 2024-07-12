@@ -241,8 +241,34 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         });
     }
 
+    /** Get the main chart area client bound rect. */
     getBoundingClientRect() {
         return this.rootElements['canvas'].element.getBoundingClientRect();
+    }
+
+    /**
+     * Get the client bounding rect for overlay elements that might float outside the bounds of the
+     * main chart area.
+     */
+    getOverlayClientRect() {
+        let element: HTMLElement | null = this.element;
+
+        // Try and find a parent which will clip rendering of children - if found we should restrict
+        // to that elements bounding box.
+        while (element != null) {
+            const overflow = element.computedStyleMap?.().get('overflow');
+
+            if (overflow == 'clip' || overflow == 'hidden') {
+                return element.getBoundingClientRect();
+            }
+
+            element = element.parentElement;
+        }
+
+        // Fallback to either the main documents bounding box (pre-10.0.0 behavior), or if we can't
+        // determine the root document element, use the canvas bounding box which was the 10.0.0
+        // behavior.
+        return this.getDocumentRoot()?.getBoundingClientRect() ?? this.getBoundingClientRect();
     }
 
     getDocumentRoot(current = this.container) {

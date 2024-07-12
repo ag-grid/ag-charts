@@ -67,12 +67,13 @@ export class TooltipManager {
         }
 
         const canvasRect = this.domManager.getBoundingClientRect();
+        const boundingRect = this.domManager.getOverlayClientRect();
 
         if (this.appliedState?.content === state?.content) {
             const renderInstantly = this.tooltip.isVisible();
-            this.tooltip.show(canvasRect, state?.meta, null, renderInstantly);
+            this.tooltip.show(boundingRect, canvasRect, state?.meta, null, renderInstantly);
         } else {
-            this.tooltip.show(canvasRect, state?.meta, state?.content);
+            this.tooltip.show(boundingRect, canvasRect, state?.meta, state?.content);
         }
 
         this.appliedState = state;

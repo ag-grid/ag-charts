@@ -62,18 +62,13 @@ export class Image extends BaseProperties {
     performLayout(containerWidth: number, containerHeight: number) {
         this.containerWidth = containerWidth;
         this.containerHeight = containerHeight;
+        const container = { x: 0, y: 0, width: containerWidth, height: containerHeight };
         this.node.setProperties(
             this.complete
                 ? {
                       visible: true,
                       opacity: this.opacity,
-                      ...calculatePlacement(
-                          this.imageElement.width,
-                          this.imageElement.height,
-                          this.containerWidth,
-                          this.containerHeight,
-                          this
-                      ),
+                      ...calculatePlacement(this.imageElement.width, this.imageElement.height, container, this),
                   }
                 : { visible: false }
         );
