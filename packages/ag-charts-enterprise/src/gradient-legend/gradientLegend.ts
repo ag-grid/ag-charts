@@ -176,14 +176,12 @@ export class GradientLegend {
         const { axisTicks } = this;
         const vertical = this.isVertical();
         const positiveAxis = this.reverseOrder !== vertical;
-        const { width, height } = this.gradientRect;
-        const { thickness } = this.gradient;
 
         axisTicks.position = this.position;
-        axisTicks.translation.x = vertical ? thickness : 0;
-        axisTicks.translation.y = vertical ? 0 : thickness;
+        axisTicks.translation.x = vertical ? this.gradient.thickness : 0;
+        axisTicks.translation.y = vertical ? 0 : this.gradient.thickness;
         axisTicks.scale.domain = positiveAxis ? data.colorDomain.slice().reverse() : data.colorDomain;
-        axisTicks.scale.range = vertical ? [0, height] : [0, width];
+        axisTicks.scale.range = vertical ? [0, this.gradientRect.height] : [0, this.gradientRect.width];
 
         return axisTicks.calculateLayout();
     }

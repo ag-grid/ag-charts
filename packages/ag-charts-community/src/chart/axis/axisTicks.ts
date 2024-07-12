@@ -1,4 +1,4 @@
-import type { AgCartesianAxisPosition, CssColor, FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-types';
+import type { AgChartLegendPosition, CssColor, FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-types';
 
 import { LinearScale } from '../../scale/linearScale';
 import { BBox } from '../../scene/bbox';
@@ -6,11 +6,11 @@ import { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { Text } from '../../scene/shape/text';
-import { toRadians } from '../../util/angle';
 import { arraysEqual } from '../../util/array';
 import { createId } from '../../util/id';
-import { clamp, countFractionDigits, findMinMax, findRangeExtent, round } from '../../util/number';
+import { countFractionDigits, findMinMax, findRangeExtent, round } from '../../util/number';
 import { createIdsGenerator } from '../../util/tempUtils';
+import { estimateTickCount } from '../../util/ticks';
 import { isNumber } from '../../util/type-guards';
 import { Layers } from '../layers';
 import { AxisInterval } from './axisInterval';
@@ -56,7 +56,7 @@ interface TickData {
 export class AxisTicks {
     static readonly DefaultTickCount = 5;
     static readonly DefaultMaxTickCount = 6;
-    static readonly DefaultTickMinSpacing = 50;
+    static readonly DefaultMinSpacing = 50;
 
     readonly id = createId(this);
 
@@ -68,9 +68,8 @@ export class AxisTicks {
     protected readonly labelSelection = Selection.select<Text, LabelNodeDatum>(this.axisGroup, Text, false);
 
     readonly translation = { x: 0, y: 0 };
-    private rotation: number = 0; // axis rotation angle in degrees
 
-    position: AgCartesianAxisPosition = 'bottom';
+    position: AgChartLegendPosition = 'bottom';
 
     private getLabelParams(datum: TickDatum): LabelParams {
         const { padding } = this;
@@ -135,8 +134,16 @@ export class AxisTicks {
     calculateLayout(): BBox {
         this.scale.interval = this.interval.step;
 
+        const vertical = this.position === 'left' || this.position === 'right';
         const tickData = this.generateTicks();
-        const boxes: BBox[] = [];
+        const boxes = [
+            new BBox(
+                vertical ? -this.padding : 0,
+                vertical ? 0 : -this.padding,
+                vertical ? 0 : this.translation.y,
+                vertical ? this.translation.x : 0
+            ),
+        ];
 
         this.labelSelection.update(
             tickData.ticks.map((d) => this.createLabelDatum(d)),
@@ -144,9 +151,6 @@ export class AxisTicks {
             (datum) => datum.tickId
         );
 
-        boxes.push(new BBox(0, 0, this.translation.x, this.translation.y));
-
-        // Apply label option values
         this.labelSelection.each((node, datum) => {
             node.setProperties(datum);
 
@@ -156,9 +160,8 @@ export class AxisTicks {
         });
 
         this.axisGroup.setProperties({
-            rotation: toRadians(this.rotation),
-            translationX: Math.floor(this.translation.x),
-            translationY: Math.floor(this.translation.y),
+            translationX: this.translation.x,
+            translationY: this.translation.y,
         });
 
         return BBox.merge(boxes);
@@ -166,25 +169,35 @@ export class AxisTicks {
 
     private generateTicks(): TickData {
         const { step, values, minSpacing, maxSpacing } = this.interval;
-        const { maxTickCount, minTickCount, defaultTickCount } = this.estimateTickCount(minSpacing, maxSpacing);
+        const extentWithBleed = round(findRangeExtent(this.scale.range), 2);
+        const {
+            maxTickCount,
+            minTickCount,
+            tickCount: estimatedTickCount,
+        } = estimateTickCount(
+            extentWithBleed,
+            minSpacing,
+            maxSpacing,
+            AxisTicks.DefaultTickCount,
+            AxisTicks.DefaultMinSpacing
+        );
 
         const maxIterations = isNaN(maxTickCount) ? 10 : maxTickCount;
 
-        let index = 0;
+        let tickCount = estimatedTickCount;
         let tickData: TickData = { rawTicks: [], fractionDigits: 0, ticks: [] };
-        let tickCount = Math.max(defaultTickCount - index, minTickCount);
 
         const allowMultipleAttempts = step == null && values == null && tickCount > minTickCount;
 
-        for (let hasChanged = false; !hasChanged && index <= maxIterations; index++) {
+        for (let index = 0, hasChanged = false; !hasChanged && index <= maxIterations; index++) {
             const prevTicks = tickData.rawTicks;
 
-            tickCount = Math.max(defaultTickCount - index, minTickCount);
+            tickCount = Math.max(tickCount - index, minTickCount);
 
             if (tickCount) {
                 this.scale.tickCount = tickCount;
-                this.scale.minTickCount = minTickCount ?? 0;
-                this.scale.maxTickCount = maxTickCount ?? Infinity;
+                this.scale.minTickCount = minTickCount;
+                this.scale.maxTickCount = maxTickCount;
             }
 
             tickData = this.getTicksData();
@@ -227,41 +240,5 @@ export class AxisTicks {
         }
 
         return { rawTicks, fractionDigits, ticks };
-    }
-
-    private estimateTickCount(minSpacing: number, maxSpacing: number) {
-        const extentWithBleed = round(findRangeExtent(this.scale.range), 2);
-        const defaultMinSpacing = Math.max(
-            AxisTicks.DefaultTickMinSpacing,
-            extentWithBleed / AxisTicks.DefaultMaxTickCount
-        );
-
-        if (isNaN(minSpacing)) {
-            minSpacing = defaultMinSpacing;
-        }
-        if (isNaN(maxSpacing)) {
-            maxSpacing = extentWithBleed;
-        }
-        if (minSpacing > maxSpacing) {
-            if (minSpacing === defaultMinSpacing) {
-                minSpacing = maxSpacing;
-            } else {
-                maxSpacing = minSpacing;
-            }
-        }
-
-        // Clamps the min spacing between ticks to be no more than the min distance between datums
-        const clampMaxTickCount = !isNaN(maxSpacing) && 1 < defaultMinSpacing;
-
-        // TODO: Remove clamping to hardcoded 100 max tick count, this is a temp fix for zooming
-        const maxTickCount = clamp(
-            1,
-            Math.floor(extentWithBleed / minSpacing),
-            clampMaxTickCount ? Math.min(Math.floor(extentWithBleed), 100) : 100
-        );
-        const minTickCount = Math.min(maxTickCount, Math.ceil(extentWithBleed / maxSpacing));
-        const defaultTickCount = clamp(minTickCount, AxisTicks.DefaultTickCount, maxTickCount);
-
-        return { minTickCount, maxTickCount, defaultTickCount };
     }
 }
