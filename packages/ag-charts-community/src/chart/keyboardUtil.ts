@@ -10,16 +10,22 @@ function computeCenter(bboxOrPath: Path | BBox | undefined) {
     return bboxOrPath?.computeTransformedBBox()?.computeCenter();
 }
 
-export function makeKeyboardPointerEvent(
-    focusIndicator: FocusIndicator | undefined,
-    pick: { bounds: Path | BBox | undefined; showFocusBox: boolean }
-): TooltipPointerEvent<'keyboard'> | undefined {
+type PickProperties = { bounds: Path | BBox | undefined; showFocusBox: boolean };
+
+export function drawPickedFocus(focusIndicator: FocusIndicator | undefined, pick: PickProperties) {
     const { bounds, showFocusBox } = pick;
     if (showFocusBox) {
         focusIndicator?.updateBounds(bounds);
     }
+}
 
-    const { x: offsetX, y: offsetY } = computeCenter(bounds) ?? {};
+export function makeKeyboardPointerEvent(
+    focusIndicator: FocusIndicator | undefined,
+    pick: PickProperties
+): TooltipPointerEvent<'keyboard'> | undefined {
+    drawPickedFocus(focusIndicator, pick);
+
+    const { x: offsetX, y: offsetY } = computeCenter(pick.bounds) ?? {};
     if (offsetX !== undefined && offsetY !== undefined) {
         return { type: 'keyboard', offsetX, offsetY };
     }
