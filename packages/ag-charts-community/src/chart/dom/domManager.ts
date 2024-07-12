@@ -258,7 +258,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         while (element != null) {
             const overflow = element.computedStyleMap?.().get('overflow');
 
-            if (overflow == 'clip' || overflow == 'hidden') {
+            if (overflow === 'clip' || overflow === 'hidden') {
                 return element.getBoundingClientRect();
             }
 
