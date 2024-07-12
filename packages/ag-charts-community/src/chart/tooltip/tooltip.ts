@@ -166,9 +166,6 @@ export class Tooltip extends BaseProperties {
     @Validate(BOOLEAN)
     darkTheme = false;
 
-    @Validate(BOOLEAN)
-    nestedDOM = true;
-
     private enableInteraction: boolean = false;
     private lastVisibilityChange: number = Date.now();
     private readonly wrapTypes = ['always', 'hyphenate', 'on-space', 'never'];
