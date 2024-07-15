@@ -28,8 +28,7 @@ describe('Image', () => {
             return _ModuleSupport.calculatePlacement(
                 naturalWidth,
                 naturalHeight,
-                containerWidth,
-                containerHeight,
+                { x: 0, y: 0, width: containerWidth, height: containerHeight },
                 params
             );
         };

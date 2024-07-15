@@ -1,6 +1,6 @@
 import { BBox } from '../../scene/bbox';
 import STYLES from '../../styles.css';
-import { createElement, getDocument } from '../../util/dom';
+import { createElement, getDocument, getWindow } from '../../util/dom';
 import { GuardedElement } from '../../util/guardedElement';
 import { type Size, SizeMonitor } from '../../util/sizeMonitor';
 import { BaseManager } from '../baseManager';
@@ -47,6 +47,20 @@ type LiveDOMElement = {
     element: HTMLElement;
     children: Map<string, HTMLElement>;
     listeners: [string, Function, boolean | AddEventListenerOptions | undefined][];
+};
+
+const NULL_DOMRECT: DOMRect = {
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    toJSON() {
+        return NULL_DOMRECT;
+    },
 };
 
 export class DOMManager extends BaseManager<Events['type'], Events> {
@@ -241,8 +255,47 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         });
     }
 
+    /** Get the main chart area client bound rect. */
     getBoundingClientRect() {
         return this.rootElements['canvas'].element.getBoundingClientRect();
+    }
+
+    /**
+     * Get the client bounding rect for overlay elements that might float outside the bounds of the
+     * main chart area.
+     */
+    getOverlayClientRect() {
+        const window = getWindow();
+        const windowBBox = new BBox(0, 0, window.innerWidth, window.innerHeight);
+        const container = this.getRawOverlayClientRect();
+
+        const containerBBox = BBox.fromDOMRect(container ?? this.getBoundingClientRect());
+        return windowBBox.intersection(containerBBox)?.toDOMRect() ?? NULL_DOMRECT;
+    }
+
+    private getRawOverlayClientRect() {
+        let element: HTMLElement | null = this.element;
+
+        // Try and find a parent which will clip rendering of children - if found we should restrict
+        // to that elements bounding box.
+        while (element != null) {
+            const styleMap = element.computedStyleMap?.();
+            const overflowX = styleMap?.get('overflow-x')?.toString();
+            const overflowY = styleMap?.get('overflow-y')?.toString();
+
+            if ((overflowX != null && overflowX !== 'visible') || (overflowY && overflowY !== 'visible')) {
+                return element.getBoundingClientRect();
+            }
+
+            element = element.parentElement;
+        }
+
+        // If in a shadow-DOM case, use the shadow-DOMs bounding-box, intersected with the window
+        // viewport.
+        const docRoot = this.getDocumentRoot();
+        if (docRoot) {
+            return docRoot.getBoundingClientRect();
+        }
     }
 
     getDocumentRoot(current = this.container) {
