@@ -213,7 +213,6 @@ export class ChartTheme {
             tooltip: {
                 enabled: true,
                 darkTheme: IS_DARK_THEME,
-                range: undefined,
                 delay: 0,
             },
             overlays: { darkTheme: IS_DARK_THEME },

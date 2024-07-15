@@ -1,6 +1,6 @@
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
-const { AND, DATE, NUMBER, OR, ActionOnSet, isFiniteNumber, isValidDate, Validate } = _ModuleSupport;
+const { AND, DATE, NUMBER, OR, ActionOnSet, isFiniteNumber, isValidDate, Validate, arraysEqual } = _ModuleSupport;
 
 export class ZoomRange {
     @ActionOnSet<ZoomRange>({
@@ -110,7 +110,7 @@ export class ZoomRange {
             }
         }
 
-        const changed = this.domain == null || !_Util.areArrayItemsStrictlyEqual(this.domain, validAxisDomain);
+        const changed = this.domain == null || !arraysEqual(this.domain, validAxisDomain);
 
         if (changed) {
             this.domain = validAxisDomain;

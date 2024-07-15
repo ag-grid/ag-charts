@@ -1005,7 +1005,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
             const { width, height } = TextMeasurer.measureLines(tickLabel, textProps);
             const bbox = new BBox(labelX, translationY, width, height);
-            const labelDatum = calculateLabelBBox(tickLabel, bbox, labelX, translationY, labelMatrix);
+            const labelDatum = calculateLabelBBox(tickLabel, bbox, labelMatrix);
 
             labelData.push(labelDatum);
         }
