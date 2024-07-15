@@ -9,6 +9,7 @@ import { Text } from '../../scene/shape/text';
 import { createId } from '../../util/id';
 import { countFractionDigits, findMinMax, findRangeExtent, round } from '../../util/number';
 import { createIdsGenerator } from '../../util/tempUtils';
+import { TextMeasurer } from '../../util/textMeasurer';
 import { estimateTickCount } from '../../util/ticks';
 import { isNumber } from '../../util/type-guards';
 import { Layers } from '../layers';
@@ -161,9 +162,21 @@ export class AxisTicks {
             this.scale.maxTickCount = maxTickCount;
         }
 
-        // TODO check label overlap
+        const tickData = this.getTicksData();
 
-        return this.getTicksData();
+        if (this.position === 'bottom' || this.position === 'top') {
+            const measurer = TextMeasurer.getFontMeasurer({ font: this.label });
+
+            let lastTickPosition = 0;
+            tickData.ticks = tickData.ticks.filter((data) => {
+                if (lastTickPosition < data.translate) {
+                    lastTickPosition = data.translate + measurer.textWidth(data.tickLabel, true);
+                    return true;
+                }
+            });
+        }
+
+        return tickData;
     }
 
     private getTicksData() {
