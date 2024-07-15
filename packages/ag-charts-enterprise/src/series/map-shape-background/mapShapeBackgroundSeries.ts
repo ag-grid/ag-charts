@@ -195,7 +195,7 @@ export class MapShapeBackgroundSeries
         return [NaN, NaN];
     }
 
-    override getLegendData<T extends _ModuleSupport.ChartLegendType>(): _ModuleSupport.ChartLegendDatum<T>[] {
+    override getLegendData() {
         return [];
     }
 

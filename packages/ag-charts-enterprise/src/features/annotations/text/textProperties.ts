@@ -1,7 +1,8 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { Annotation, Font, Handle, Label, PointProperties } from '../annotationProperties';
 import { type AnnotationContext, AnnotationType } from '../annotationTypes';
+import { convertPoint } from '../annotationUtils';
 
 const { STRING, Validate, isObject } = _ModuleSupport;
 
@@ -16,8 +17,8 @@ export class TextProperties extends Annotation(Handle(Label(Font(PointProperties
     @Validate(STRING)
     text!: string;
 
-    position: 'top' | 'center' | 'bottom' = 'bottom';
-    alignment: 'left' | 'center' | 'right' = 'center';
+    position: 'top' | 'center' | 'bottom' = 'top';
+    alignment: 'left' | 'center' | 'right' = 'left';
 
     override isValidWithContext(_context: AnnotationContext, warningPrefix?: string) {
         return super.isValid(warningPrefix);
@@ -25,5 +26,10 @@ export class TextProperties extends Annotation(Handle(Label(Font(PointProperties
 
     override getDefaultColor() {
         return this.color;
+    }
+
+    public getTextBBox(context: AnnotationContext) {
+        const coords = convertPoint(this, context);
+        return new _Scene.BBox(coords.x, coords.y, 0, 0);
     }
 }

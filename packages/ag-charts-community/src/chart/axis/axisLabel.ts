@@ -63,7 +63,7 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
      * Use `undefined` rather than `rgba(0, 0, 0, 0)` to make labels invisible.
      */
     @Validate(COLOR_STRING, { optional: true })
-    color?: string = 'rgba(87, 87, 87, 1)';
+    color?: string = '#575757';
 
     /**
      * Custom label rotation in degrees.

@@ -59,19 +59,22 @@ export class Image extends BaseProperties {
     private containerHeight: number = 0;
     onLoad?: () => void = undefined;
 
-    performLayout(containerWidth: number, containerHeight: number) {
+    performLayout(containerWidth: number, containerHeight: number): _ModuleSupport.Placement {
         this.containerWidth = containerWidth;
         this.containerHeight = containerHeight;
         const container = { x: 0, y: 0, width: containerWidth, height: containerHeight };
+        const placement = calculatePlacement(this.imageElement.width, this.imageElement.height, container, this);
         this.node.setProperties(
             this.complete
                 ? {
                       visible: true,
                       opacity: this.opacity,
-                      ...calculatePlacement(this.imageElement.width, this.imageElement.height, container, this),
+                      ...placement,
                   }
                 : { visible: false }
         );
+
+        return placement;
     }
 
     private readonly onImageLoad = () => {

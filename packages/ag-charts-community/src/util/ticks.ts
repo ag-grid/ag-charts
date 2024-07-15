@@ -1,6 +1,6 @@
 import { times } from './array';
 import { Logger } from './logger';
-import { countFractionDigits } from './number';
+import { clamp, countFractionDigits } from './number';
 import { numberFormat, parseFormat } from './numberFormat';
 import timeDay from './time/day';
 import {
@@ -206,4 +206,34 @@ export function niceTicksDomain(start: number, end: number) {
         }
     }
     return ticks;
+}
+
+export function estimateTickCount(
+    rangeExtent: number,
+    minSpacing: number,
+    maxSpacing: number,
+    defaultTickCount: number,
+    defaultMinSpacing: number
+) {
+    defaultMinSpacing = Math.max(defaultMinSpacing, rangeExtent / (defaultTickCount + 1));
+
+    if (isNaN(minSpacing)) {
+        minSpacing = defaultMinSpacing;
+    }
+    if (isNaN(maxSpacing)) {
+        maxSpacing = rangeExtent;
+    }
+    if (minSpacing > maxSpacing) {
+        if (minSpacing === defaultMinSpacing) {
+            minSpacing = maxSpacing;
+        } else {
+            maxSpacing = minSpacing;
+        }
+    }
+
+    const maxTickCount = clamp(1, Math.floor(rangeExtent / minSpacing), Math.min(Math.floor(rangeExtent), 100));
+    const minTickCount = Math.min(maxTickCount, Math.ceil(rangeExtent / maxSpacing));
+    const tickCount = clamp(minTickCount, defaultTickCount, maxTickCount);
+
+    return { minTickCount, maxTickCount, tickCount };
 }

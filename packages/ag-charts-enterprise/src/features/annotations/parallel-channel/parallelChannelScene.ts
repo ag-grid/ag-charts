@@ -2,7 +2,7 @@ import { _Scene, _Util } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
 import { convertPoint, invertCoords, validateDatumPoint } from '../annotationUtils';
-import { Annotation } from '../scenes/annotationScene';
+import { AnnotationScene } from '../scenes/annotationScene';
 import { ChannelScene } from '../scenes/channelScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
 import type { ParallelChannelProperties } from './parallelChannelProperties';
@@ -13,7 +13,7 @@ type ChannelHandle = keyof ParallelChannelScene['handles'];
 
 export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties> {
     static override is(value: unknown): value is ParallelChannelScene {
-        return Annotation.isCheck(value, 'parallel-channel');
+        return AnnotationScene.isCheck(value, 'parallel-channel');
     }
 
     type = 'parallel-channel';
@@ -60,12 +60,7 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         }
     }
 
-    override dragHandle(
-        datum: ParallelChannelProperties,
-        target: Coords,
-        context: AnnotationContext,
-        onInvalid: () => void
-    ) {
+    override dragHandle(datum: ParallelChannelProperties, target: Coords, context: AnnotationContext) {
         const { activeHandle, handles } = this;
         if (activeHandle == null) return;
 
@@ -98,7 +93,6 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
 
         // Do not move any handles if some of them are trying to move to invalid points
         if (invertedMoves.some((invertedMove) => !validateDatumPoint(context, invertedMove))) {
-            onInvalid();
             return;
         }
 
@@ -132,7 +126,6 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
 
         if (!datum.isValidWithContext(context)) {
             datum.set(prev);
-            onInvalid();
         }
     }
 

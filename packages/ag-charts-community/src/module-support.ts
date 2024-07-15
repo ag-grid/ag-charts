@@ -93,6 +93,7 @@ export * from './chart/axis/polarAxis';
 export * from './chart/axis/categoryAxis';
 export * from './chart/axis/groupedCategoryAxis';
 export * from './chart/axis/cartesianAxis';
+export { AxisTicks } from './chart/axis/axisTicks';
 export * from './chart/chartAxis';
 export * from './chart/crossline/crossLine';
 export * from './chart/crossline/crossLineLabelPosition';

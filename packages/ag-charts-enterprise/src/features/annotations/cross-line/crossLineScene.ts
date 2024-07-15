@@ -1,8 +1,8 @@
 import { _ModuleSupport, type _Scene, _Util } from 'ag-charts-community';
 
 import type { AnnotationAxisContext, AnnotationContext, Coords, LineCoords } from '../annotationTypes';
-import { convert, invertCoords, validateDatumPoint } from '../annotationUtils';
-import { Annotation } from '../scenes/annotationScene';
+import { convert, invertCoords } from '../annotationUtils';
+import { AnnotationScene } from '../scenes/annotationScene';
 import { AxisLabelScene } from '../scenes/axisLabelScene';
 import { UnivariantHandle } from '../scenes/handle';
 import { CollidableLine } from '../scenes/shapes';
@@ -11,9 +11,9 @@ import { type CrossLineProperties, HorizontalLineProperties } from './crossLineP
 const { Vec2 } = _Util;
 const { ChartAxisDirection } = _ModuleSupport;
 
-export class CrossLineScene extends Annotation {
+export class CrossLineScene extends AnnotationScene {
     static override is(value: unknown): value is CrossLineScene {
-        return Annotation.isCheck(value, 'cross-line');
+        return AnnotationScene.isCheck(value, 'cross-line');
     }
 
     type = 'cross-line';
@@ -156,7 +156,7 @@ export class CrossLineScene extends Annotation {
         };
     }
 
-    public drag(datum: CrossLineProperties, target: Coords, context: AnnotationContext, onInvalid: () => void) {
+    public drag(datum: CrossLineProperties, target: Coords, context: AnnotationContext) {
         const { activeHandle, dragState, locked } = this;
 
         if (locked) return;
@@ -173,11 +173,6 @@ export class CrossLineScene extends Annotation {
         }
 
         const point = invertCoords(coords, context);
-
-        if (!validateDatumPoint(context, point)) {
-            onInvalid();
-            return;
-        }
 
         const isHorizontal = HorizontalLineProperties.is(datum);
         datum.set({ value: isHorizontal ? point.y : point.x });

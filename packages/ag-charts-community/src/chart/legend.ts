@@ -272,8 +272,8 @@ export class Legend extends BaseProperties {
             region.addListener('leave', (e) => this.handleLegendMouseExit(e), animationState),
             region.addListener('enter', (e) => this.handleLegendMouseEnter(e), animationState),
             ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e)),
-            () => this.detachLegend(),
-            ctx.localeManager.addListener('locale-changed', () => this.onLocaleChanged())
+            ctx.localeManager.addListener('locale-changed', () => this.onLocaleChanged()),
+            () => this.group.parent?.removeChild(this.group)
         );
 
         this.proxyLegendToolbar = this.ctx.proxyInteractionService.createProxyContainer({
@@ -376,10 +376,6 @@ export class Legend extends BaseProperties {
 
     attachLegend(scene: Scene) {
         scene.appendChild(this.group);
-    }
-
-    detachLegend() {
-        this.group.parent?.removeChild(this.group);
     }
 
     private getItemLabel(datum: CategoryLegendDatum) {
