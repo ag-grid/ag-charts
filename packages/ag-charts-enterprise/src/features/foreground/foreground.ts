@@ -32,13 +32,43 @@ export class Foreground extends _ModuleSupport.Background<Image> {
 
     protected override onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
         super.onLayoutComplete(event);
+        const { width, height } = event.chart;
+
+        let placement = {
+            x: 0,
+            y: 0,
+            width,
+            height,
+        };
+
         if (this.image) {
-            const { width, height } = event.chart;
-            this.image.performLayout(width, height);
+            placement = this.image.performLayout(width, height);
+        }
+
+        if (this.text) {
+            this.updateTextNode(placement);
         }
     }
 
     protected onImageLoad() {
         this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.SCENE_RENDER);
+    }
+
+    private updateTextNode(placement: _ModuleSupport.Placement) {
+        const { textNode } = this;
+
+        // match watermark message styles
+        textNode.fontWeight = 'bold';
+        textNode.fontFamily = 'Impact, sans-serif';
+        textNode.fontSize = 19;
+        textNode.opacity = 0.7;
+        textNode.fill = '#9b9b9b';
+        textNode.textBaseline = 'top';
+
+        const textBBox = this.textNode.computeBBox();
+        const textPadding = 10;
+
+        textNode.x = placement.x + placement.width / 2 - textBBox.width / 2;
+        textNode.y = placement.y + placement.height + textPadding;
     }
 }

@@ -3,14 +3,16 @@ import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { Group } from '../../scene/group';
 import { Rect } from '../../scene/shape/rect';
+import { Text } from '../../scene/shape/text';
 import { ProxyPropertyOnWrite } from '../../util/proxy';
-import { BOOLEAN, COLOR_STRING, OBJECT, Validate } from '../../util/validation';
+import { BOOLEAN, COLOR_STRING, OBJECT, STRING, Validate } from '../../util/validation';
 import { Layers } from '../layers';
 import type { LayoutCompleteEvent } from '../layout/layoutService';
 
 export class Background<TImage = never> extends BaseModuleInstance implements ModuleInstance {
     protected readonly node;
     protected readonly rectNode = new Rect();
+    protected readonly textNode = new Text();
 
     @Validate(BOOLEAN)
     @ProxyPropertyOnWrite('node', 'visible')
@@ -24,6 +26,11 @@ export class Background<TImage = never> extends BaseModuleInstance implements Mo
     @Validate(OBJECT, { optional: true })
     image?: TImage;
 
+    // placeholder for enterprise module
+    @Validate(STRING, { optional: true })
+    @ProxyPropertyOnWrite('textNode')
+    text?: string;
+
     constructor(
         ctx: ModuleContext,
         private readonly zIndex: number = Layers.SERIES_BACKGROUND_ZINDEX,
@@ -33,7 +40,7 @@ export class Background<TImage = never> extends BaseModuleInstance implements Mo
 
         this.node = new Group({ name: 'background', zIndex: this.zIndex, layer: this.layer });
 
-        this.node.appendChild(this.rectNode);
+        this.node.append([this.rectNode, this.textNode]);
 
         this.visible = true;
 

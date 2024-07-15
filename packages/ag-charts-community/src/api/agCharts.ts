@@ -91,13 +91,12 @@ export abstract class AgCharts {
      */
     public static create<O extends AgChartOptions>(options: O): AgChartInstance<O> {
         this.licenseCheck(options);
-        const displayWatermark = this.licenseManager?.isDisplayWatermark();
-        const chart = AgChartsInternal.createOrUpdate(options, undefined, displayWatermark);
+        const chart = AgChartsInternal.createOrUpdate(options, undefined, this.licenseManager);
 
         if (enterpriseModule.styles != null) {
             chart.chart.ctx.domManager.addStyles('ag-charts-enterprise', enterpriseModule.styles);
         }
-        if (displayWatermark && this.licenseManager) {
+        if (this.licenseManager?.isDisplayWatermark() && this.licenseManager) {
             enterpriseModule.injectWatermark?.(chart.chart.ctx.domManager, this.licenseManager.getWatermarkMessage());
         }
         return chart as unknown as AgChartInstance<O>;
@@ -142,7 +141,7 @@ class AgChartsInternal {
     static createOrUpdate(
         options: ChartExtendedOptions,
         proxy?: AgChartInstanceProxy,
-        displayWatermark: boolean = false
+        licenseManager?: LicenseManager
     ) {
         AgChartsInternal.initialiseModules();
 
@@ -171,7 +170,7 @@ class AgChartsInternal {
         }
 
         if (proxy == null) {
-            proxy = new AgChartInstanceProxy(chart, AgChartsInternal.callbackApi, displayWatermark);
+            proxy = new AgChartInstanceProxy(chart, AgChartsInternal.callbackApi, licenseManager);
         } else {
             proxy.chart = chart;
         }
