@@ -1,8 +1,6 @@
 import { expect, test } from '@playwright/test';
-import { execSync } from 'child_process';
-import * as glob from 'glob';
 
-import { gotoExample, setupIntrinsicAssertions, toExamplePageUrls, toGalleryPageUrls } from './util';
+import { getExamples, gotoExample, setupIntrinsicAssertions, toExamplePageUrls, toGalleryPageUrls } from './util';
 
 type Status = 'ok' | '404';
 type ClickOrder = 'normal' | 'reverse';
@@ -56,6 +54,9 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
         '100--stacked-bar': { status: '404' },
     },
 
+    annotations: {
+        'annotation-save-restore': { skipCanvasUpdateCheck: true },
+    },
     'axes-labels': {
         // Too complex to test with a naive button-click sweep
         'axis-label-rotation': { skipCanvasUpdateCheck: true },
@@ -139,29 +140,7 @@ function convertPageUrls(path: string) {
 test.describe('examples', () => {
     const config = setupIntrinsicAssertions();
 
-    const examples = glob.glob.sync('./src/content/**/_examples/*/main.ts').map((e) => ({ path: e, affected: true }));
-    if (process.env.NX_BASE) {
-        const exampleGenChanged = execSync(
-            `git diff --name-only ${process.env.NX_BASE} -- ../../plugins/ag-charts-generate-example-files/`
-        )
-            .toString()
-            .split('\n')
-            .some((t) => t.trim().length > 0);
-        const changedFiles = new Set(
-            execSync(`git diff --name-only ${process.env.NX_BASE} -- ./src/content/`)
-                .toString()
-                .split('\n')
-                .map((v) => v.replace(/^packages\/ag-charts-website\//, './'))
-        );
-        let affectedCount = 0;
-        for (const example of examples) {
-            example.affected = exampleGenChanged || changedFiles.has(example.path);
-            affectedCount += example.affected ? 1 : 0;
-        }
-
-        // eslint-disable-next-line no-console
-        console.warn(`NX_BASE set - applied changed example processing, ${affectedCount} changed examples found.`);
-    }
+    const examples = getExamples();
 
     for (const { path, affected } of examples) {
         for (const opts of convertPageUrls(path)) {
@@ -176,10 +155,12 @@ test.describe('examples', () => {
                 ignoreConsoleWarnings,
             } = opts;
 
+            const testFn = affected ? test : test.skip;
+
             test.describe(`Framework: ${framework}`, () => {
-                test.describe(`Example ${pagePath}: ${example}`, () => {
+                test.describe(`Example ${pagePath}: ${example}${affected ? '' : ' (!!!SKIPPED!!!)'}`, () => {
                     if (status === 'ok') {
-                        test(`should load ${url}`, async ({ page }) => {
+                        testFn(`should load ${url}`, async ({ page }) => {
                             config.ignoreConsoleWarnings = ignoreConsoleWarnings;
 
                             test.skip(!affected, 'unaffected example');
@@ -193,7 +174,7 @@ test.describe('examples', () => {
                             const canvas = canvases[0];
 
                             // Try pressing the buttons to see if any errors are thrown.
-                            const buttons = await page.locator('.toolPanel > button').all();
+                            const buttons = await page.locator('.toolbar > button').all();
                             if (clickOrder === 'reverse') buttons.reverse();
 
                             for (const button of buttons) {
@@ -216,9 +197,7 @@ test.describe('examples', () => {
                     }
 
                     if (status === '404') {
-                        test(`should 404 on ${url}`, async ({ page }) => {
-                            test.skip(!affected, 'unaffected example');
-
+                        testFn(`should 404 on ${url}`, async ({ page }) => {
                             config.ignore404s = true;
                             await page.goto(url);
                             expect(await page.title()).toMatch(/Page Not Found/);

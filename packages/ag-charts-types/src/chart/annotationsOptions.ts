@@ -17,6 +17,7 @@ export interface AgAnnotationsThemeableOptions {
     'vertical-line'?: AgLineAnnotationStyles;
     'disjoint-channel'?: AgChannelAnnotationStyles;
     'parallel-channel'?: AgChannelAnnotationStyles;
+    text?: AgTextAnnotationStyles;
 }
 
 export interface AgAnnotationAxesButtons extends Toggleable {
@@ -31,11 +32,14 @@ export interface AgLineAnnotationStyles extends Extendable, Lockable, Visible, S
 export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineDashOptions {
     handle?: AgAnnotationHandleStyles;
     middle?: AgChannelAnnotationMiddle;
-    /* The fill colour for the middle of the channel. */
+    /** The fill colour for the middle of the channel. */
     background?: AgChannelAnnotationBackground;
 }
+export interface AgTextAnnotationStyles extends Lockable, Visible {}
 
-// --- Options ---
+/***********
+ * Options *
+ ***********/
 export interface AgAnnotationsOptions extends Toggleable {
     /** The options for the axes buttons */
     axesButtons?: AgAnnotationAxesButtons;
@@ -46,8 +50,12 @@ export type AgAnnotation =
     | AgHorizontalLineAnnotation
     | AgVerticalLineAnnotation
     | AgDisjointChannelAnnotation
-    | AgParallelChannelAnnotation;
+    | AgParallelChannelAnnotation
+    | AgTextAnnotation;
 
+/********************
+ * Line Annotations *
+ ********************/
 export interface AgLineAnnotation
     extends AnnotationLinePoints,
         Cappable,
@@ -56,42 +64,30 @@ export interface AgLineAnnotation
         Visible,
         StrokeOptions,
         LineDashOptions {
-    /*Configuration for the trend line annotation.*/
+    /** Configuration for the trend line annotation.*/
     type: 'line';
 }
 
 export interface AgHorizontalLineAnnotation extends AgCrossLineAnnotation {
-    /*Configuration for the horizontal-line annotation.*/
+    /** Configuration for the horizontal-line annotation.*/
     type: 'horizontal-line';
 }
 
 export interface AgVerticalLineAnnotation extends AgCrossLineAnnotation {
-    /*Configuration for the vertical-line annotation.*/
+    /** Configuration for the vertical-line annotation.*/
     type: 'vertical-line';
 }
 
 export interface AgCrossLineAnnotation extends Lockable, Visible, StrokeOptions, LineDashOptions {
-    /* Position of the annotation specified in terms of the axis values. */
+    /** Position of the annotation specified in terms of the axis values. */
     value: AgAnnotationValue;
-    /* Configuration for the annotation axis label. */
+    /** Configuration for the annotation axis label. */
     axisLabel?: AgAnnotationAxisLabel;
 }
 
-export interface AgAnnotationAxisLabel extends FillOptions, StrokeOptions, LineDashOptions, AgAnnotationLabelOptions {
-    /** Apply rounded corners to the axis label container. */
-    cornerRadius?: PixelSize;
-}
-
-export interface AgAnnotationLabelOptions extends Toggleable, FontOptions {
-    /** A custom formatting function used to convert values into text for display by labels. */
-    formatter?: Formatter<AgAnnotationLabelFormatterParams>;
-}
-
-export interface AgAnnotationLabelFormatterParams {
-    /** The default label value that would have been used without a formatter. */
-    value: any;
-}
-
+/***********************
+ * Channel Annotations *
+ ***********************/
 export interface AgParallelChannelAnnotation
     extends AnnotationLinePoints,
         Extendable,
@@ -99,13 +95,13 @@ export interface AgParallelChannelAnnotation
         Visible,
         StrokeOptions,
         LineDashOptions {
-    /*Configuration for the parallel-channel annotation.*/
+    /** Configuration for the parallel-channel annotation.*/
     type: 'parallel-channel';
-    /* The height of the annotation along the y-axis. */
+    /** The height of the annotation along the y-axis. */
     height: number;
-    /* Configuration for the line in the middle of the channel. */
+    /** Configuration for the line in the middle of the channel. */
     middle?: AgChannelAnnotationMiddle;
-    /* The fill colour for the middle of the channel. */
+    /** The fill colour for the middle of the channel. */
     background?: AgChannelAnnotationBackground;
 }
 
@@ -116,19 +112,46 @@ export interface AgDisjointChannelAnnotation
         Visible,
         StrokeOptions,
         LineDashOptions {
-    /*Configuration for the disjoint-channel annotation.*/
+    /** Configuration for the disjoint-channel annotation.*/
     type: 'disjoint-channel';
     /** The height of the annotation along the y-axis at the start. */
     startHeight: number;
     /** The height of the annotation along the y-axis at the end. */
     endHeight: number;
-    /* The fill colour for the middle of the channel. */
+    /** The fill colour for the middle of the channel. */
     background?: AgChannelAnnotationBackground;
 }
 
-// --- Components ---
+/********************
+ * Text Annotations *
+ ********************/
+export interface AgTextAnnotation extends AgAnnotationPoint, Lockable, Visible, FontOptions {
+    /** Configuration for the text annotation. */
+    type: 'text';
+
+    /** */
+    text: string;
+}
+
+/**************
+ * Components *
+ **************/
 export interface AgChannelAnnotationMiddle extends Visible, StrokeOptions, LineDashOptions {}
 export interface AgChannelAnnotationBackground extends FillOptions {}
+export interface AgAnnotationAxisLabel
+    extends Toggleable,
+        FillOptions,
+        StrokeOptions,
+        LineDashOptions,
+        LabelOptions<AgAnnotationLabelFormatterParams> {
+    /** Apply rounded corners to the axis label container. */
+    cornerRadius?: PixelSize;
+}
+
+export interface AgAnnotationLabelFormatterParams {
+    /** The default label value that would have been used without a formatter. */
+    value: any;
+}
 
 interface AnnotationLinePoints {
     /** The starting point of a linear annotation. */
@@ -142,6 +165,11 @@ export interface AgAnnotationPoint {
     x: AgAnnotationValue;
     /** The y-value of the point. */
     y: number;
+}
+
+interface LabelOptions<T> extends FontOptions {
+    /** A custom formatting function used to convert values into text for display by labels. */
+    formatter?: Formatter<T>;
 }
 
 interface Lockable {

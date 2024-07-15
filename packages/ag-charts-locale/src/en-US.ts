@@ -6,7 +6,7 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     // Screen reader announcement when focusing an item in the chart
     ariaAnnounceHoverDatum: '${datum}',
     // Screen reader announcement when focusing a chart
-    ariaAnnounceChart: 'chart, ${seriesCount}[number] series, ${caption}',
+    ariaAnnounceChart: 'chart, ${seriesCount}[number] series',
     // Screen reader announcement when focusing an item in a treemap or sunburst chart
     ariaAnnounceHierarchyDatum: 'level ${level}[number], ${count}[number] children, ${description}',
     // Screen reader announcement when focusing a link in a Sankey or chord chart
@@ -17,6 +17,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaLabelAnnotationsToolbar: 'Annotations',
     // Screen reader text for annotation-options toolbar
     ariaLabelAnnotationOptionsToolbar: 'Annotation Options',
+    // Screen reader text for the color picker dialog
+    ariaLabelColorPicker: 'Color picker',
     // Screen reader text for the legend toolbar
     ariaLabelLegend: 'Legend',
     // Screen reader text for the legend pagination button
@@ -70,15 +72,15 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     // Text for the annotation toolbar's delete annotation button
     toolbarAnnotationsDelete: 'Delete annotation',
     // Text for the range toolbar's 1 month button
-    toolbarRange1Month: '1m',
+    toolbarRange1Month: '1M',
     // Aria label for the range toolbar's 1 month button
     toolbarRange1MonthAria: '1 month',
     // Text for the range toolbar's 3 month button
-    toolbarRange3Months: '3m',
+    toolbarRange3Months: '3M',
     // Aria label for the range toolbar's 3 month button
     toolbarRange3MonthsAria: '3 months',
     // Text for the range toolbar's 6 month button
-    toolbarRange6Months: '6m',
+    toolbarRange6Months: '6M',
     // Aria label for the range toolbar's 6 month button
     toolbarRange6MonthsAria: '6 months',
     // Text for the range toolbar's year to date button
@@ -86,7 +88,7 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     // Aria label for the range toolbar's year to date month button
     toolbarRangeYearToDateAria: 'Year to date',
     // Text for the range toolbar's 1 year button
-    toolbarRange1Year: '1y',
+    toolbarRange1Year: '1Y',
     // Aria label for the range toolbar's 1 year button
     toolbarRange1YearAria: '1 year',
     // Text for the range toolbar's full range button

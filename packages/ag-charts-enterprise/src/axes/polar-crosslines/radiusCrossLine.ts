@@ -133,8 +133,10 @@ export class RadiusCrossLine extends PolarCrossLine {
         sector.endAngle = 2 * Math.PI;
 
         const padding = this.getPadding();
-        sector.innerRadius = _Util.clamp(axisInnerRadius, innerRadius + padding, axisOuterRadius);
-        sector.outerRadius = _Util.clamp(axisInnerRadius, outerRadius - padding, axisOuterRadius);
+        const r0 = _Util.clamp(axisInnerRadius, innerRadius + padding, axisOuterRadius);
+        const r1 = _Util.clamp(axisInnerRadius, outerRadius - padding, axisOuterRadius);
+        sector.innerRadius = Math.min(r0, r1);
+        sector.outerRadius = Math.max(r0, r1);
 
         this.setSectorNodeProps(sector);
     }

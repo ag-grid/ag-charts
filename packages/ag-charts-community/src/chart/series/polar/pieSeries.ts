@@ -98,8 +98,19 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
     override properties = new PieSeriesProperties();
 
+    private phantomNodeData: PieNodeDatum[] | undefined = undefined;
+    private get calloutNodeData() {
+        return this.phantomNodeData ?? this.nodeData;
+    }
+
     private readonly previousRadiusScale: LinearScale = new LinearScale();
     private readonly radiusScale: LinearScale = new LinearScale();
+    protected phantomGroup = this.contentGroup.appendChild(new Group());
+    private readonly phantomSelection: Selection<Sector, PieNodeDatum> = Selection.select(
+        this.phantomGroup,
+        () => this.nodeFactory(),
+        false
+    );
     private readonly calloutLabelGroup = this.contentGroup.appendChild(new Group({ name: 'pieCalloutLabels' }));
     private readonly calloutLabelSelection: Selection<Group, PieNodeDatum> = new Selection(
         this.calloutLabelGroup,
@@ -141,6 +152,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         this.angleScale.domain = [0, 1];
         // Add 90 deg to start the first pie at 12 o'clock.
         this.angleScale.range = [-Math.PI, Math.PI].map((angle) => angle + Math.PI / 2);
+
+        this.phantomGroup.opacity = 0.2;
+        this.phantomGroup.zIndexSubOrder = [() => this._declarationOrder, 0];
     }
 
     override addChartEventListeners(): void {
@@ -176,7 +190,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
         let { data } = this;
         const { visible, seriesItemEnabled } = this;
-        const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey } = this.properties;
+        const { angleKey, angleFilterKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey } = this.properties;
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const extraKeyProps = [];
@@ -202,13 +216,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                     max: this.properties.radiusMax,
                 }),
                 valueProperty(radiusKey, radiusScaleType, { id: `radiusRaw` }), // Raw value pass-through.
-                normalisePropertyTo(
-                    { id: 'radiusValue' },
-                    [0, 1],
-                    1,
-                    this.properties.radiusMin ?? 0,
-                    this.properties.radiusMax
-                )
+                normalisePropertyTo('radiusValue', [0, 1], 1, this.properties.radiusMin ?? 0, this.properties.radiusMax)
             );
         }
         if (calloutLabelKey) {
@@ -219,6 +227,16 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         }
         if (legendItemKey) {
             extraProps.push(valueProperty(legendItemKey, 'band', { id: `legendItemValue` }));
+        }
+        if (angleFilterKey) {
+            extraProps.push(
+                accumulativeValueProperty(angleFilterKey, angleScaleType, {
+                    id: `angleFilterValue`,
+                    onlyPositive: true,
+                }),
+                valueProperty(angleFilterKey, angleScaleType, { id: `angleFilterRaw` }),
+                normalisePropertyTo('angleFilterValue', [0, 1], 0, 0)
+            );
         }
         if (animationEnabled && this.processedData && extraKeyProps.length > 0) {
             extraProps.push(diff(this.processedData));
@@ -232,7 +250,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 ...extraKeyProps,
                 accumulativeValueProperty(angleKey, angleScaleType, { id: `angleValue`, onlyPositive: true }),
                 valueProperty(angleKey, angleScaleType, { id: `angleRaw` }), // Raw value pass-through.
-                normalisePropertyTo({ id: 'angleValue' }, [0, 1], 0, 0),
+                normalisePropertyTo('angleValue', [0, 1], 0, 0),
                 ...extraProps,
             ],
         });
@@ -258,25 +276,50 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
     async maybeRefreshNodeData() {
         if (!this.nodeDataRefresh) return;
-        const { nodeData = [] } = (await this.createNodeData()) ?? {};
+        const { nodeData = [], phantomNodeData } = (await this.createNodeData()) ?? {};
         this.nodeData = nodeData;
+        this.phantomNodeData = phantomNodeData;
         this.nodeDataRefresh = false;
     }
 
     private getProcessedDataIndexes(dataModel: DataModel<any>) {
         const angleIdx = dataModel.resolveProcessedDataIndexById(this, `angleValue`);
-        const radiusIdx = this.properties.radiusKey ? dataModel.resolveProcessedDataIndexById(this, `radiusValue`) : -1;
+        const angleRawIdx = dataModel.resolveProcessedDataIndexById(this, `angleRaw`);
+        const angleFilterIdx =
+            this.properties.angleFilterKey != null
+                ? dataModel.resolveProcessedDataIndexById(this, `angleFilterValue`)
+                : undefined;
+        const angleFilterRawIdx =
+            this.properties.angleFilterKey != null
+                ? dataModel.resolveProcessedDataIndexById(this, `angleFilterRaw`)
+                : undefined;
+        const radiusIdx = this.properties.radiusKey
+            ? dataModel.resolveProcessedDataIndexById(this, `radiusValue`)
+            : undefined;
+        const radiusRawIdx = this.properties.radiusKey
+            ? dataModel.resolveProcessedDataIndexById(this, `radiusRaw`)
+            : undefined;
         const calloutLabelIdx = this.properties.calloutLabelKey
             ? dataModel.resolveProcessedDataIndexById(this, `calloutLabelValue`)
-            : -1;
+            : undefined;
         const sectorLabelIdx = this.properties.sectorLabelKey
             ? dataModel.resolveProcessedDataIndexById(this, `sectorLabelValue`)
-            : -1;
+            : undefined;
         const legendItemIdx = this.properties.legendItemKey
             ? dataModel.resolveProcessedDataIndexById(this, `legendItemValue`)
-            : -1;
+            : undefined;
 
-        return { angleIdx, radiusIdx, calloutLabelIdx, sectorLabelIdx, legendItemIdx };
+        return {
+            angleIdx,
+            angleRawIdx,
+            angleFilterIdx,
+            angleFilterRawIdx,
+            radiusIdx,
+            radiusRawIdx,
+            calloutLabelIdx,
+            sectorLabelIdx,
+            legendItemIdx,
+        };
     }
 
     async createNodeData() {
@@ -285,14 +328,35 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
         if (!processedData || !dataModel || processedData.type !== 'ungrouped') return;
 
-        const { angleIdx, radiusIdx, calloutLabelIdx, sectorLabelIdx, legendItemIdx } =
-            this.getProcessedDataIndexes(dataModel);
+        const {
+            angleIdx,
+            angleRawIdx,
+            angleFilterIdx,
+            angleFilterRawIdx,
+            radiusIdx,
+            radiusRawIdx,
+            calloutLabelIdx,
+            sectorLabelIdx,
+            legendItemIdx,
+        } = this.getProcessedDataIndexes(dataModel);
+
+        const useFilterAngles =
+            angleFilterRawIdx != null &&
+            processedData.data.some(({ values }) => {
+                return values[angleFilterRawIdx] > values[angleRawIdx];
+            });
 
         let currentStart = 0;
         let sum = 0;
-        const nodeData = processedData.data.map((group, index): PieNodeDatum => {
+        const nodes: PieNodeDatum[] = [];
+        const phantomNodes: PieNodeDatum[] | undefined = angleFilterRawIdx != null ? [] : undefined;
+        processedData.data.forEach((group, index) => {
             const { datum, values } = group;
-            const currentValue = values[angleIdx];
+            const currentValue = useFilterAngles ? values[angleFilterIdx!] : values[angleIdx];
+            const crossFilterScale =
+                angleFilterRawIdx != null && !useFilterAngles
+                    ? Math.sqrt(values[angleFilterRawIdx] / values[angleRawIdx])
+                    : 1;
 
             const startAngle = angleScale.convert(currentStart) + toRadians(rotation);
             currentStart = currentValue;
@@ -301,23 +365,24 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             const span = Math.abs(endAngle - startAngle);
             const midAngle = startAngle + span / 2;
 
-            const angleValue = values[angleIdx + 1];
-            const radius = radiusIdx >= 0 ? values[radiusIdx] ?? 1 : 1;
-            const radiusValue = radiusIdx >= 0 ? values[radiusIdx + 1] : undefined;
-            const legendItemValue = legendItemIdx >= 0 ? values[legendItemIdx] : undefined;
+            const angleValue = values[angleRawIdx];
+            const radiusRaw = radiusIdx != null ? values[radiusIdx] ?? 1 : 1;
+            const radius = radiusRaw * crossFilterScale;
+            const radiusValue = radiusRawIdx != null ? values[radiusRawIdx] : undefined;
+            const legendItemValue = legendItemIdx != null ? values[legendItemIdx] : undefined;
 
-            const labels = this.getLabels(
+            const nodeLabels = this.getLabels(
                 datum,
                 midAngle,
                 span,
                 true,
-                values[calloutLabelIdx],
-                values[sectorLabelIdx],
+                calloutLabelIdx != null ? values[calloutLabelIdx] : undefined,
+                sectorLabelIdx != null ? values[sectorLabelIdx] : undefined,
                 legendItemValue
             );
             const sectorFormat = this.getSectorFormat(datum, index, false);
 
-            return {
+            const node = {
                 itemId: index,
                 series: this,
                 datum,
@@ -328,20 +393,35 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 midSin: Math.sin(midAngle),
                 startAngle,
                 endAngle,
-                sectorFormat,
-                radiusValue,
                 radius,
                 innerRadius: Math.max(this.radiusScale.convert(0), 0),
                 outerRadius: Math.max(this.radiusScale.convert(radius), 0),
+                sectorFormat,
+                radiusValue,
                 legendItemValue,
                 enabled: this.seriesItemEnabled[index],
-                ...labels,
+                ...nodeLabels,
             };
+            nodes.push(node);
+
+            if (phantomNodes != null) {
+                phantomNodes.push({
+                    ...node,
+                    radius: 1,
+                    innerRadius: Math.max(this.radiusScale.convert(0), 0),
+                    outerRadius: Math.max(this.radiusScale.convert(1), 0),
+                });
+            }
         });
 
         this.zerosumOuterRing.visible = sum === 0;
 
-        return { itemId: seriesId, nodeData, labelData: nodeData };
+        return {
+            itemId: seriesId,
+            nodeData: nodes,
+            labelData: nodes,
+            phantomNodeData: phantomNodes,
+        };
     }
 
     private getLabels(
@@ -498,14 +578,14 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             this.previousRadiusScale.range = newRange;
         }
 
-        this.nodeData = this.nodeData.map(({ radius, ...d }) => {
-            return {
-                ...d,
-                radius,
-                innerRadius: Math.max(this.radiusScale.convert(0), 0),
-                outerRadius: Math.max(this.radiusScale.convert(radius), 0),
-            };
+        const setRadii = (d: PieNodeDatum): PieNodeDatum => ({
+            ...d,
+            innerRadius: Math.max(this.radiusScale.convert(0), 0),
+            outerRadius: Math.max(this.radiusScale.convert(d.radius), 0),
         });
+
+        this.nodeData = this.nodeData.map(setRadii);
+        this.phantomNodeData = this.phantomNodeData?.map(setRadii);
     }
 
     private getTitleTranslationY() {
@@ -584,13 +664,15 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     }
 
     private updateNodeMidPoint() {
-        this.nodeData.forEach((d) => {
+        const setMidPoint = (d: PieNodeDatum) => {
             const radius = d.innerRadius + (d.outerRadius - d.innerRadius) / 2;
             d.midPoint = {
                 x: d.midCos * Math.max(0, radius),
                 y: d.midSin * Math.max(0, radius),
             };
-        });
+        };
+        this.nodeData.forEach(setMidPoint);
+        this.phantomNodeData?.forEach(setMidPoint);
     }
 
     private async updateSelections() {
@@ -598,31 +680,36 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     }
 
     private async updateGroupSelection() {
-        const { itemSelection, highlightSelection, highlightLabelSelection, calloutLabelSelection, labelSelection } =
-            this;
+        const {
+            itemSelection,
+            highlightSelection,
+            phantomSelection,
+            highlightLabelSelection,
+            calloutLabelSelection,
+            labelSelection,
+        } = this;
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         const highlightedNodeData =
             highlightedDatum?.series === this
-                ? this.nodeData.filter((node) => node.itemId === highlightedDatum?.itemId)
+                ? this.nodeData
+                      .filter((label) => label.itemId === highlightedDatum?.itemId)
+                      // Allow mutable sectorFormat, so formatted sector styles can be updated and varied
+                      // between normal and highlighted cases.
+                      .map((datum) => ({ ...datum, sectorFormat: { ...datum.sectorFormat } }))
                 : [];
 
-        const update = (selection: typeof this.itemSelection, clone: boolean) => {
-            let nodeData = this.nodeData;
-            if (clone) {
-                // Allow mutable sectorFormat, so formatted sector styles can be updated and varied
-                // between normal and highlighted cases.
-                nodeData = nodeData.map((datum) => ({ ...datum, sectorFormat: { ...datum.sectorFormat } }));
-            }
+        const update = (selection: typeof this.itemSelection, nodeData: PieNodeDatum[]) => {
             selection.update(nodeData, undefined, (datum) => this.getDatumId(datum));
             if (this.ctx.animationManager.isSkipped()) {
                 selection.cleanup();
             }
         };
 
-        update(itemSelection, false);
-        update(highlightSelection, true);
+        update(itemSelection, this.nodeData);
+        update(highlightSelection, highlightedNodeData);
+        update(phantomSelection, this.phantomNodeData ?? []);
 
-        calloutLabelSelection.update(this.nodeData, (group) => {
+        calloutLabelSelection.update(this.calloutNodeData, (group) => {
             const line = new Line();
             line.tag = PieNodeTag.Callout;
             line.pointerEvents = PointerEvents.None;
@@ -687,6 +774,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
         this.itemSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false));
         this.highlightSelection.each((node, datum, index) => updateSectorFn(node, datum, index, true));
+        this.phantomSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false));
 
         this.updateCalloutLineNodes();
         this.updateCalloutLabelNodes(seriesRect);
@@ -800,8 +888,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             return !label || datum.outerRadius === 0;
         };
 
-        const fullData = this.nodeData;
-        const data = this.nodeData.filter((t): t is Has<'calloutLabel', PieNodeDatum> => !shouldSkip(t));
+        const fullData = this.calloutNodeData;
+        const data = fullData.filter((t): t is Has<'calloutLabel', PieNodeDatum> => !shouldSkip(t));
         data.forEach((datum) => {
             const label = datum.calloutLabel;
             if (label == null) return;
@@ -1016,7 +1104,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             }
         }
 
-        this.nodeData.forEach((datum) => {
+        this.calloutNodeData.forEach((datum) => {
             const label = datum.calloutLabel;
             if (!label || datum.outerRadius === 0) {
                 return null;
@@ -1090,7 +1178,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         const singleVisibleSector = this.seriesItemEnabled.filter(Boolean).length === 1;
 
         const updateSectorLabel = (text: Text, datum: PieNodeDatum) => {
-            const { sectorLabel, outerRadius } = datum;
+            const { sectorLabel, outerRadius, startAngle, endAngle } = datum;
 
             let isTextVisible = false;
             if (sectorLabel && outerRadius !== 0) {
@@ -1120,7 +1208,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                     [bbox.x + bbox.width, bbox.y + bbox.height],
                     [bbox.x, bbox.y + bbox.height],
                 ];
-                const { startAngle, endAngle } = datum;
                 const sectorBounds = { startAngle, endAngle, innerRadius, outerRadius };
                 if (corners.every(([x, y]) => isPointInSector(x, y, sectorBounds))) {
                     isTextVisible = true;
@@ -1232,9 +1319,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 2 * Math.PI,
                 2 * Math.PI,
                 false,
-                values[calloutLabelIdx],
-                values[sectorLabelIdx],
-                values[legendItemIdx]
+                calloutLabelIdx != null ? values[calloutLabelIdx] : undefined,
+                sectorLabelIdx != null ? values[sectorLabelIdx] : undefined,
+                legendItemIdx != null ? values[legendItemIdx] : undefined
             );
 
             if (legendItemKey && labels.legendItem !== undefined) {
@@ -1316,7 +1403,14 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             this.radiusScale,
             this.previousRadiusScale
         );
-        fromToMotion(this.id, 'nodes', animationManager, [this.itemSelection, this.highlightSelection], fns.nodes);
+        fromToMotion(
+            this.id,
+            'nodes',
+            animationManager,
+            [this.itemSelection, this.highlightSelection, this.phantomSelection],
+            fns.nodes,
+            (_, datum) => this.getDatumId(datum)
+        );
 
         seriesLabelFadeInAnimation(this, 'callout', animationManager, this.calloutLabelSelection);
         seriesLabelFadeInAnimation(this, 'sector', animationManager, this.labelSelection);
@@ -1326,7 +1420,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     }
 
     override animateWaitingUpdateReady() {
-        const { itemSelection, highlightSelection, processedData, radiusScale, previousRadiusScale } = this;
+        const { itemSelection, highlightSelection, phantomSelection, processedData, radiusScale, previousRadiusScale } =
+            this;
         const { animationManager } = this.ctx;
         const dataDiff = processedData?.reduced?.diff;
 
@@ -1349,7 +1444,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             this.id,
             'nodes',
             animationManager,
-            [itemSelection, highlightSelection],
+            [itemSelection, highlightSelection, phantomSelection],
             fns.nodes,
             (_, datum) => this.getDatumId(datum),
             dataDiff
@@ -1363,7 +1458,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     }
 
     override animateClearingUpdateEmpty() {
-        const { itemSelection, highlightSelection, radiusScale, previousRadiusScale } = this;
+        const { itemSelection, highlightSelection, phantomSelection, radiusScale, previousRadiusScale } = this;
         const { animationManager } = this.ctx;
 
         const fns = preparePieSeriesAnimationFunctions(
@@ -1372,7 +1467,14 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             radiusScale,
             previousRadiusScale
         );
-        fromToMotion(this.id, 'nodes', animationManager, [itemSelection, highlightSelection], fns.nodes);
+        fromToMotion(
+            this.id,
+            'nodes',
+            animationManager,
+            [itemSelection, highlightSelection, phantomSelection],
+            fns.nodes,
+            (_, datum) => this.getDatumId(datum)
+        );
 
         seriesLabelFadeOutAnimation(this, 'callout', this.ctx.animationManager, this.calloutLabelSelection);
         seriesLabelFadeOutAnimation(this, 'sector', this.ctx.animationManager, this.labelSelection);

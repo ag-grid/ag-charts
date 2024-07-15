@@ -6,7 +6,6 @@ import type { LayoutCompleteEvent, LayoutService } from '../layout/layoutService
 import type { LocaleManager } from '../locale/localeManager';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import { DEFAULT_OVERLAY_CLASS, DEFAULT_OVERLAY_DARK_CLASS, type Overlay } from '../overlay/overlay';
-import defaultOverlayCss from './overlaysProcessor.css';
 import type { ChartLike, UpdateProcessor } from './processor';
 
 export class OverlaysProcessor<D extends object> implements UpdateProcessor {
@@ -27,7 +26,6 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         this.overlayElem.ariaAtomic = 'false';
         this.overlayElem.ariaLive = 'polite';
         this.overlayElem.classList.toggle(DEFAULT_OVERLAY_CLASS);
-        this.domManager.addStyles('overlays', defaultOverlayCss);
         this.destroyFns.push(this.layoutService.addListener('layout-complete', (e) => this.onLayoutComplete(e)));
     }
 
@@ -58,6 +56,7 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
     }
 
     private toggleOverlay(overlay: Overlay, seriesRect: BBox, visible: boolean) {
+        this.overlayElem.ariaHidden = (!visible).toString();
         if (visible) {
             const element = overlay.getElement(this.animationManager, this.localeManager, seriesRect);
             this.overlayElem.appendChild(element);

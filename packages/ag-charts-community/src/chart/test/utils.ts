@@ -6,6 +6,7 @@ import type {
     AgChartInstance,
     AgChartOptions,
     AgChartTheme,
+    AgFinancialChartOptions,
     AgPolarChartOptions,
 } from 'ag-charts-types';
 
@@ -30,7 +31,10 @@ export type { Chart } from '../chart';
 export type { AgChartProxy } from '../chartProxy';
 export * from '../../util/test/mockConsole';
 
-export type ChartOrProxy = AgChartInstance | AgChartProxy | Chart;
+export type ChartOrProxy<O extends AgChartOptions | AgFinancialChartOptions = AgChartOptions> =
+    | AgChartInstance<O>
+    | AgChartProxy
+    | Chart;
 
 export interface TestCase {
     options: AgChartOptions;
@@ -59,6 +63,14 @@ export const IMAGE_SNAPSHOT_DEFAULTS: MatchImageSnapshotOptions = {
 
 export async function delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export function prepareFinancialTestOptions(options: AgFinancialChartOptions, container = getDocument('body')) {
+    options.width = CANVAS_WIDTH;
+    options.height = CANVAS_HEIGHT;
+    options.container = container;
+
+    return options;
 }
 
 export function prepareTestOptions<T extends AgChartOptions>(options: T, container = getDocument('body')) {
@@ -97,7 +109,7 @@ function isChartInstance(chartOrProxy: ChartOrProxy): chartOrProxy is Chart {
     return chartOrProxy.constructor.name !== 'AgChartInstanceProxy' || (chartOrProxy as Chart).className != null;
 }
 
-export function deproxy(chartOrProxy: ChartOrProxy): Chart {
+export function deproxy(chartOrProxy: ChartOrProxy<any>): Chart {
     return isChartInstance(chartOrProxy) ? chartOrProxy : ((chartOrProxy as any).chart as Chart);
 }
 
@@ -130,7 +142,10 @@ export function dateRange(start: Date, end: Date, step = 24 * 60 * 60 * 1000): D
     return result;
 }
 
-export async function waitForChartStability(chartOrProxy: ChartOrProxy, animationAdvanceMs = 0): Promise<void> {
+export async function waitForChartStability<O extends AgChartOptions | AgFinancialChartOptions>(
+    chartOrProxy: ChartOrProxy<O>,
+    animationAdvanceMs = 0
+): Promise<void> {
     const timeoutMs = 5000;
     const chart = deproxy(chartOrProxy);
     const chartAny = chart as any; // to access private properties

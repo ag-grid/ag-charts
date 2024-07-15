@@ -7,13 +7,20 @@ export type Bounds = {
     height?: number;
 };
 
+export type Placement = {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+};
+
 export function calculatePlacement(
     naturalWidth: number,
     naturalHeight: number,
     containerWidth: number,
     containerHeight: number,
     bounds: Bounds
-) {
+): Placement {
     let { top, right, bottom, left, width, height } = bounds;
 
     if (left != null) {

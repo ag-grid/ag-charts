@@ -147,6 +147,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
         if (this.rangeSelector == null || enabled === this.rangeSelector.visible) return;
         this.rangeSelector.visible = enabled;
+        this.proxyNavigatorToolbar.ariaHidden = (!enabled).toString();
 
         if (enabled) {
             this.updateZoom();
@@ -267,6 +268,9 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         this._min = x.min;
         this._max = x.max;
         this.updateNodes(x.min, x.max);
+        this.setPanSliderValue(x.min, x.max);
+        this.setSliderRatio(this.proxyNavigatorElements[0], x.min);
+        this.setSliderRatio(this.proxyNavigatorElements[2], x.max);
     }
 
     private onPanSliderChange(_event: Event) {
@@ -344,7 +348,6 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         if (!this.enabled) return;
 
         const { _min: min, _max: max } = this;
-        const zoom = this.ctx.zoomManager.getZoom();
         if (min == null || max == null) return;
 
         const warnOnConflict = (stateId: string) => {
@@ -354,9 +357,6 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             );
         };
 
-        this.setPanSliderValue(min, max);
-        this.setSliderRatio(this.proxyNavigatorElements[0], min);
-        this.setSliderRatio(this.proxyNavigatorElements[2], max);
-        return this.ctx.zoomManager.updateZoom('navigator', { x: { min, max }, y: zoom?.y }, false, warnOnConflict);
+        return this.ctx.zoomManager.updateZoom('navigator', { x: { min, max } }, false, warnOnConflict);
     }
 }

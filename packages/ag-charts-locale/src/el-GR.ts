@@ -1,5 +1,5 @@
 export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
-    ariaAnnounceChart: 'γράφημα, ${seriesCount}[number] σειρές, ${caption}',
+    ariaAnnounceChart: 'γράφημα, ${seriesCount}[number] σειρές',
     ariaAnnounceFlowProportionLink: 'σύνδεσμος ${index} από ${count}, από ${from} προς ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'κόμβος ${index} από ${count}, ${description}',
     ariaAnnounceHidden: 'κρυφό',
@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
     ariaAnnounceVisible: 'ορατό',
     ariaLabelAnnotationOptionsToolbar: 'Επιλογές σχολιασμού',
     ariaLabelAnnotationsToolbar: 'Σχολιασμοί',
+    ariaLabelColorPicker: 'Επιλογή χρώματος',
     ariaLabelLegend: 'Υπόμνημα',
     ariaLabelLegendItem: '${label}, Στοιχείο θρύλου ${index}[number] από ${count}[number], ',
     ariaLabelLegendItemUnknown: 'Άγνωστο στοιχείο υπόμνημα',

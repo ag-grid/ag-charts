@@ -1,7 +1,6 @@
 import type { TextAlign } from 'ag-charts-types';
 
 import type { LayoutContext } from '../../module/baseModule';
-import type { BBox } from '../../scene/bbox';
 import { Text } from '../../scene/shape/text';
 import { Logger } from '../../util/logger';
 import { Caption } from '../caption';
@@ -123,21 +122,18 @@ export class BaseLayoutProcessor implements UpdateProcessor {
     }
 
     alignCaptions(ctx: LayoutCompleteEvent): void {
+        const { rect } = ctx.series;
         const { title, subtitle, footnote, titlePadding } = this.chartLike;
 
-        const align = (caption: Caption, seriesRect: BBox) => {
-            if (caption.layoutStyle !== 'overlay') return;
+        for (const caption of [title, subtitle, footnote]) {
+            if (caption.layoutStyle !== 'overlay') continue;
 
             if (caption.textAlign === 'left') {
-                caption.node.x = seriesRect.x + titlePadding;
+                caption.node.x = rect.x + titlePadding;
             } else if (caption.textAlign === 'right') {
                 const bbox = caption.node.computeBBox();
-                caption.node.x = seriesRect.x + seriesRect.width - bbox.width - titlePadding;
+                caption.node.x = rect.x + rect.width - bbox.width - titlePadding;
             }
-        };
-
-        align(title, ctx.series.rect);
-        align(subtitle, ctx.series.rect);
-        align(footnote, ctx.series.rect);
+        }
     }
 }

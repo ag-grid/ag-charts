@@ -1,11 +1,7 @@
 import type { AgContextMenuOptions, _Scene } from 'ag-charts-community';
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import {
-    DEFAULT_CONTEXT_MENU_CLASS,
-    DEFAULT_CONTEXT_MENU_DARK_CLASS,
-    defaultContextMenuCss,
-} from './contextMenuStyles';
+import { DEFAULT_CONTEXT_MENU_CLASS, DEFAULT_CONTEXT_MENU_DARK_CLASS } from './contextMenuStyles';
 
 type ContextMenuGroups = {
     default: Array<ContextMenuAction>;
@@ -21,6 +17,8 @@ type ContextMenuCallback<T extends ContextType> = _ModuleSupport.ContextMenuCall
 
 const { BOOLEAN, Validate, createElement, initMenuKeyNav, makeAccessibleClickListener, ContextMenuRegistry } =
     _ModuleSupport;
+
+const { Logger } = _Util;
 
 const moduleId = 'context-menu';
 
@@ -61,7 +59,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     public extraLegendItemActions: NonNullable<AgContextMenuOptions['extraLegendItemActions']> = [];
 
     // Module context
-    private readonly scene: _Scene.Scene;
     private readonly interactionManager: _ModuleSupport.InteractionManager;
     private readonly registry: _ModuleSupport.ContextMenuRegistry;
 
@@ -86,7 +83,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         // Module context
         this.interactionManager = ctx.interactionManager;
         this.registry = ctx.contextMenuRegistry;
-        this.scene = ctx.scene;
 
         const { All } = _ModuleSupport.InteractionState;
         this.destroyFns.push(ctx.regionManager.listenAll('click', (_region) => this.onClick(), All));
@@ -114,8 +110,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             this.destroyFns.push(() => observer.disconnect());
         }
 
-        ctx.domManager.addStyles(moduleId, defaultContextMenuCss);
-
         this.registry.registerDefaultAction({
             id: 'download',
             type: 'all',
@@ -126,7 +120,9 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                 if (title?.enabled && title?.text !== undefined) {
                     fileName = title.text;
                 }
-                this.scene.download(fileName);
+                this.ctx.chartService.publicApi?.download({ fileName }).catch((e) => {
+                    Logger.error('Unable to download chart', e);
+                });
             },
         });
 

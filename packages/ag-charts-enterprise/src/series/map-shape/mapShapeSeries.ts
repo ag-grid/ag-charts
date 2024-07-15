@@ -1,11 +1,5 @@
-import {
-    type AgMapShapeSeriesLabelFormatterParams,
-    type AgMapShapeSeriesStyle,
-    _ModuleSupport,
-    _Scale,
-    _Scene,
-    _Util,
-} from 'ag-charts-community';
+import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import type { AgMapShapeSeriesStyle } from 'ag-charts-types';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestPolygon, projectGeometry } from '../map-util/geometryUtil';
@@ -13,14 +7,15 @@ import { findFocusedGeoGeometry } from '../map-util/mapUtil';
 import { polygonMarkerCenter } from '../map-util/markerUtil';
 import { maxWidthInPolygonForRectOfHeight, preferredLabelCenter } from '../map-util/polygonLabelUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
-import { AutoSizedLabel, formatSingleLabel } from '../util/labelFormatter';
+import { formatSingleLabel } from '../util/labelFormatter';
 import {
     type MapShapeNodeDatum,
     type MapShapeNodeLabelDatum,
     MapShapeSeriesProperties,
 } from './mapShapeSeriesProperties';
 
-const { getMissCount, createDatumId, DataModelSeries, SeriesNodePickMode, valueProperty, Validate } = _ModuleSupport;
+const { getMissCount, createDatumId, DataModelSeries, SeriesNodePickMode, valueProperty, TextMeasurer, Validate } =
+    _ModuleSupport;
 const { ColorScale } = _Scale;
 const { Group, Selection, Text, PointerEvents } = _Scene;
 const { sanitizeHtml, Logger } = _Util;
@@ -226,10 +221,10 @@ export class MapShapeSeries
         });
         if (labelText == null) return;
 
-        const baseSize = Text.getTextSize(String(labelText), font);
+        const baseSize = TextMeasurer.measureText(String(labelText), { font });
         const numLines = labelText.split('\n').length;
         const aspectRatio =
-            (baseSize.width + 2 * padding) / (numLines * AutoSizedLabel.lineHeight(label.fontSize) + 2 * padding);
+            (baseSize.width + 2 * padding) / (numLines * TextMeasurer.getLineHeight(label.fontSize) + 2 * padding);
 
         if (
             previousLabelLayout?.geometry === geometry &&
@@ -266,26 +261,21 @@ export class MapShapeSeries
             height: Math.ceil((maxWidth * scaling) / aspectRatio),
             meta: untruncatedX,
         };
-        const labelFormatting = formatSingleLabel<number, AgMapShapeSeriesLabelFormatterParams>(
-            labelText,
-            label,
-            { padding },
-            (height, allowTruncation) => {
-                if (!allowTruncation) return maxSizeWithoutTruncation;
+        const labelFormatting = formatSingleLabel<number>(labelText, label, { padding }, (height, allowTruncation) => {
+            if (!allowTruncation) return maxSizeWithoutTruncation;
 
-                const result = maxWidthInPolygonForRectOfHeight(fixedPolygon, untruncatedX, y, height / scaling);
-                return {
-                    width: result.width * scaling,
-                    height,
-                    meta: result.x,
-                };
-            }
-        );
+            const result = maxWidthInPolygonForRectOfHeight(fixedPolygon, untruncatedX, y, height / scaling);
+            return {
+                width: result.width * scaling,
+                height,
+                meta: result.x,
+            };
+        });
         if (labelFormatting == null) return;
 
         const [{ text, fontSize, lineHeight, width }, formattingX] = labelFormatting;
         // FIXME - formatSingleLabel should never return an ellipsis
-        if (text === Text.ellipsis) return;
+        if (text === TextMeasurer.EllipsisChar) return;
 
         // Only shift horizontally if necessary
         const x = width < maxSizeWithoutTruncation.width ? untruncatedX : formattingX;

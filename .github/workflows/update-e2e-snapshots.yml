@@ -1,0 +1,84 @@
+name: Update E2E Snapshots
+
+on:
+    issue_comment:
+        types: [created]
+
+env:
+    NX_REJECT_UNKNOWN_LOCAL_CACHE: 0
+    NX_NO_CLOUD: true
+    NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
+    NX_BRANCH: ${{ github.ref }}
+    # Set to --batch to enable batch execution.
+    NX_BATCH_FLAG: '--batch'
+
+jobs:
+    update:
+        name: Update
+        if: ${{ github.event.issue.pull_request }} && github.event.comment.body == '/snapshots'
+        runs-on: ubuntu-latest
+        env:
+            NX_PARALLEL: 1
+            AG_FORCE_ALL_TESTS: ${{ (github.ref == 'refs/heads/latest') && '1' || '0' }}
+            AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
+        steps:
+            - id: 'get-branch'
+              run: |
+                  echo "branch=$(gh pr view $PR_NO --repo $REPO --json headRefName --jq '.headRefName')" >> $GITHUB_OUTPUT
+              env:
+                  REPO: ${{ github.repository }}
+                  PR_NO: ${{ github.event.issue.number }}
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Checkout
+              uses: actions/checkout@v2
+              with:
+                  ref: ${{ steps.get-branch.outputs.branch }}
+
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  yarn_opts: --ignore-scripts
+                  cache_mode: ro
+                  playwright_install: true
+
+            - name: build examples
+              run: |
+                  # Non-batched builds - some TS/JS targets will fail if run with --batch, so build them unbatched first.
+                  yarn nx run-many -p tag:no-batching -t build --parallel=3
+                  # Batched builds.
+                  yarn nx run-many -t generate-example --parallel=3 --batch
+
+            - name: nx test:e2e -c update
+              run: |
+                  cd packages/ag-charts-website/
+                  npx playwright test -u $(grep -lR 'toHaveScreenshot' e2e)
+              timeout-minutes: 10
+
+            - name: Commit Snapshot Changes
+              id: commit_changes
+              env:
+                  BRANCH_NAME: ${{steps.get-branch.outputs.branch}}
+              run: |
+                  # Based on https://github.com/actions/checkout?tab=readme-ov-file#push-a-commit-using-the-built-in-token
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  ls -lR packages/ag-charts-website/e2e/
+                  git status
+                  git add .
+                  if [[ $(git diff --cached --name-only | wc -l) -gt 0 ]] ; then
+                    echo "Committing changes to ${BRANCH_NAME}."
+                    git commit -m "Update snapshots."
+                    git push origin ${BRANCH_NAME}
+                  else
+                    echo "No changes to commit."
+                  fi
+
+            - name: Perist test results
+              if: failure()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: test-results
+                  path: |
+                      reports/

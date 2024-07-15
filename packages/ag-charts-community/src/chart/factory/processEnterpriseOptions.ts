@@ -5,7 +5,7 @@ import { optionsType } from '../mapping/types';
 import { chartTypes } from './chartTypes';
 import { EXPECTED_ENTERPRISE_MODULES } from './expectedEnterpriseModules';
 
-export function removeUsedEnterpriseOptions<T extends AgChartOptions>(options: T) {
+export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(options: T, silent?: boolean) {
     const usedOptions: string[] = [];
     const optionsChartType = chartTypes.get(optionsType(options));
     for (const {
@@ -58,7 +58,7 @@ export function removeUsedEnterpriseOptions<T extends AgChartOptions>(options: T
             });
         }
     }
-    if (usedOptions.length) {
+    if (usedOptions.length && !silent) {
         let enterprisePackageName = 'ag-charts-enterprise';
         let enterpriseReferenceUrl = 'https://charts.ag-grid.com/javascript/installation/';
 

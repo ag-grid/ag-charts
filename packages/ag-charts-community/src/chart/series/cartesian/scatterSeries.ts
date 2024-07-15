@@ -11,6 +11,7 @@ import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
+import { TextMeasurer } from '../../../util/textMeasurer';
 import type { RequireOptional } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
@@ -147,7 +148,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 labelName,
             });
 
-            const size = Text.getTextSize(labelText, font);
+            const size = TextMeasurer.measureText(labelText, { font });
             const fill = colorKey ? colorScale.convert(values[colorDataIdx]) : undefined;
 
             nodeData.push({

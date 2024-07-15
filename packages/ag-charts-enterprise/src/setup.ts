@@ -12,6 +12,7 @@ import { ContextMenuModule } from './features/context-menu/main';
 import { CrosshairModule } from './features/crosshair/main';
 import { DataSourceModule } from './features/data-source/main';
 import { ErrorBarsModule } from './features/error-bar/errorBarModule';
+import { ForegroundModule } from './features/foreground/main';
 import { NavigatorModule } from './features/navigator/navigatorModule';
 import { StatusBarModule } from './features/status-bar/main';
 import { SyncModule } from './features/sync/syncModule';
@@ -41,6 +42,7 @@ import { SankeyModule } from './series/sankey/main';
 import { SunburstModule } from './series/sunburst/main';
 import { TreemapModule } from './series/treemap/main';
 import { WaterfallModule } from './series/waterfall/main';
+import styles from './styles.css';
 
 export function setupEnterpriseModules() {
     _ModuleSupport.moduleRegistry.register(
@@ -49,6 +51,7 @@ export function setupEnterpriseModules() {
         AnimationModule,
         AnnotationsModule,
         BackgroundModule,
+        ForegroundModule,
         BoxPlotModule,
         CandlestickModule,
         ChordModule,
@@ -86,6 +89,7 @@ export function setupEnterpriseModules() {
     );
 
     _ModuleSupport.enterpriseModule.isEnterprise = true;
+    _ModuleSupport.enterpriseModule.styles = styles;
     _ModuleSupport.enterpriseModule.licenseManager = (options: AgChartOptions) =>
         new LicenseManager(
             options.container?.ownerDocument ?? (typeof document === 'undefined' ? undefined : document)

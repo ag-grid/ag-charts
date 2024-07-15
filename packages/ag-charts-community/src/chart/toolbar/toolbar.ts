@@ -19,7 +19,6 @@ import type {
 } from '../interaction/toolbarManager';
 import { ToolbarGroupProperties } from './toolbarProperties';
 import * as styles from './toolbarStyles';
-import toolbarCss from './toolbarStyles.css';
 import {
     TOOLBAR_ALIGNMENTS,
     TOOLBAR_GROUPS,
@@ -111,11 +110,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     constructor(private readonly ctx: ModuleContext) {
         super();
 
-        ctx.domManager.addStyles(styles.block, toolbarCss);
-
         this.elements = {} as Record<ToolbarPosition, HTMLElement>;
         for (const position of TOOLBAR_POSITIONS) {
             this.elements[position] = ctx.domManager.addChild('canvas-overlay', `toolbar-${position}`);
+            this.elements[position].role = 'presentation';
             this.renderToolbar(position);
         }
         this.toggleVisibilities();

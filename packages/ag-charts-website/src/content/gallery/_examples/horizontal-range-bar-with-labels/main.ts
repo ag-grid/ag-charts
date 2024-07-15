@@ -9,7 +9,7 @@ const numberFormatOptions: Intl.NumberFormatOptions = {
     currency: 'GBP',
 };
 
-const tooltip: AgSeriesTooltip<AgRangeBarSeriesTooltipRendererParams> = {
+const tooltip: AgSeriesTooltip<AgRangeBarSeriesTooltipRendererParams<any>> = {
     renderer: ({ datum, xName, xKey, yLowKey, yHighKey, yLowName, yHighName }) => {
         return {
             content: `<b>${xName}:</b> ${datum[xKey]}<br/><b>${yLowName}: </b>${datum[yLowKey].toLocaleString(

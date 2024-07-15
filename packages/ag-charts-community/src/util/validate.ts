@@ -1,0 +1,245 @@
+import { Logger } from './logger';
+import { joinFormatted, stringifyValue } from './string.util';
+import { isArray, isBoolean, isFiniteNumber, isFunction, isObject, isString } from './type-guards';
+
+const descriptionSymbol = Symbol('description');
+const requiredSymbol = Symbol('required');
+
+type ObjectLikeDef<T> = T extends object ? (keyof T extends never ? never : OptionsDefs<T>) : never;
+
+// Definitions for options validation with support for nested structures.
+export type OptionsDefs<T> = { [K in keyof T]-?: Validator | ObjectLikeDef<T[K]> } & {
+    [descriptionSymbol]?: string;
+    [requiredSymbol]?: boolean;
+};
+
+// Validator interface with optional description and required flag for better error messages.
+export interface Validator extends Function {
+    (value: unknown): boolean;
+    [descriptionSymbol]?: string;
+    [requiredSymbol]?: boolean;
+}
+
+export interface ValidationError {
+    key?: string;
+    path: string;
+    message: string;
+    unknown?: boolean;
+    value?: any;
+}
+
+/**
+ * Validates the provided options object against the specified options definitions. Logs warnings for any invalid options encountered.
+ * @param options The options object to validate.
+ * @param optionsDefs The definitions against which to validate the options.
+ * @param path (Optional) The current path in the options object, for nested properties.
+ * @returns A boolean indicating whether the options are valid.
+ */
+export function isValid<T extends object>(options: unknown, optionsDefs: OptionsDefs<T>, path?: string): options is T {
+    const { errors } = validate(options, optionsDefs, path);
+    for (const { message } of errors) {
+        Logger.warn(message);
+    }
+    return errors.length === 0;
+}
+
+function validateMessage(path: string, value: unknown, validatorOrDefs: Validator | OptionsDefs<any> | string): string {
+    const description = isString(validatorOrDefs) ? validatorOrDefs : validatorOrDefs[descriptionSymbol];
+    const expecting = description ? `; expecting ${description}` : '';
+    const prefix = path ? `Option \`${path}\`` : 'Value';
+    return `${prefix} cannot be set to \`${stringifyValue(value)}\`${expecting}, ignoring.`;
+}
+
+export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path = '') {
+    if (!isObject(options)) {
+        return {
+            valid: null,
+            errors: [{ path, value: options, message: validateMessage(path, options, 'an object') }],
+        };
+    }
+
+    const optionsKeys = new Set(Object.keys(options));
+    const errors: ValidationError[] = [];
+    const valid: Partial<T> = {};
+
+    function extendPath(key: string) {
+        if (isArray(optionsDefs)) {
+            return `${path}[${key}]`;
+        }
+        return path ? `${path}.${key}` : key;
+    }
+
+    for (const [key, validatorOrDefs] of Object.entries<Validator | ObjectLikeDef<any>>(optionsDefs)) {
+        optionsKeys.delete(key);
+        const value = options[key as keyof object];
+        if (!validatorOrDefs[requiredSymbol] && typeof value === 'undefined') continue;
+        if (isFunction(validatorOrDefs)) {
+            if (validatorOrDefs(value)) {
+                valid[key as keyof T] = value;
+            } else {
+                errors.push({ key, path, value, message: validateMessage(extendPath(key), value, validatorOrDefs) });
+            }
+        } else {
+            const nestedResult = validate(value, validatorOrDefs, extendPath(key));
+            valid[key as keyof T] = nestedResult.valid as any;
+            errors.push(...nestedResult.errors);
+        }
+    }
+
+    for (const key of optionsKeys) {
+        errors.push({
+            key,
+            path,
+            unknown: true,
+            message: `Unknown option \`${extendPath(key)}\`, ignoring.`,
+        });
+    }
+
+    return { valid, errors };
+}
+
+/**
+ * Attaches a descriptive message to a validator function.
+ * @param validator The validator function to which to attach a description.
+ * @param description The description to attach.
+ * @returns A new validator function with the attached description.
+ */
+export function attachDescription(validator: Validator, description: string): Validator {
+    return Object.assign((value: unknown) => validator(value), { [descriptionSymbol]: description });
+}
+
+/**
+ * Marks a validator or option definitions object as required.
+ * @param validatorOrDefs The validator or option definitions to mark as required.
+ * @returns The modified validator or option definitions, marked as required.
+ */
+export function required<T extends OptionsDefs<any>>(validatorOrDefs: T): T;
+export function required<T extends OptionsDefs<any>[]>(validatorOrDefs: T): T;
+export function required(validatorOrDefs: Validator): Validator;
+export function required<T>(validatorOrDefs: T): T {
+    return Object.assign(
+        isFunction(validatorOrDefs)
+            ? (value: any) => (validatorOrDefs as Function)(value)
+            : optionsDefs(validatorOrDefs as OptionsDefs<any>),
+        { [requiredSymbol]: true }
+    ) as T;
+}
+
+/**
+ * Creates a validator for ensuring an object matches the provided option definitions.
+ * @param defs The option definitions against which to validate an object.
+ * @param description (Optional) A description for the validator, defaulting to 'an object'.
+ * @returns A validator function for the given option definitions.
+ */
+export const optionsDefs = <T>(defs: OptionsDefs<T>, description = 'an object'): Validator =>
+    attachDescription(
+        (value: unknown) =>
+            isObject(value) &&
+            Object.entries<Validator | ObjectLikeDef<any>>(defs).every(([key, validatorOrDefs]) => {
+                const validator = isFunction(validatorOrDefs) ? validatorOrDefs : optionsDefs(validatorOrDefs);
+                return validator(value[key]);
+            }),
+        description
+    );
+
+/**
+ * Combines multiple validators, requiring all to pass.
+ * @param validators An array of validators to combine.
+ * @returns A validator that requires all specified validators to pass.
+ */
+export const and = (...validators: Validator[]) =>
+    attachDescription(
+        (value: unknown) => validators.every((validator) => validator(value)),
+        validators
+            .map((v) => v[descriptionSymbol])
+            .filter(Boolean)
+            .join(' and ')
+    );
+
+/**
+ * Combines multiple validators, passing if any one of them does.
+ * @param validators An array of validators to combine.
+ * @returns A validator that passes if any one of the specified validators does.
+ */
+export const or = (...validators: Validator[]) =>
+    attachDescription(
+        (value: unknown) => validators.some((validator) => validator(value)),
+        validators
+            .map((v) => v[descriptionSymbol])
+            .filter(Boolean)
+            .join(' or ')
+    );
+
+// Base type validators with descriptions.
+export const array = attachDescription(isArray, 'an array');
+export const boolean = attachDescription(isBoolean, 'a boolean');
+export const callback = attachDescription(isFunction, 'a function');
+export const number = attachDescription(isFiniteNumber, 'a number');
+export const object = attachDescription(isObject, 'an object');
+export const string = attachDescription(isString, 'a string');
+
+// Numeric type validators with specific conditions.
+export const numberMin = (min: number, inclusive = true) =>
+    attachDescription(
+        (value) => isFiniteNumber(value) && (value > min || (inclusive && value === min)),
+        `a number greater than ${inclusive ? 'or equal to ' : ''}${min}`
+    );
+export const numberMax = (max: number, inclusive = true) =>
+    attachDescription(
+        (value) => isFiniteNumber(value) && (value < max || (inclusive && value === max)),
+        `a number less than ${inclusive ? 'or equal to ' : ''}${max}`
+    );
+export const numberRange = (min: number, max: number) =>
+    attachDescription(
+        (value) => isFiniteNumber(value) && value >= min && value <= max,
+        `a number between ${min} and ${max} inclusive`
+    );
+
+export const positiveNumber = numberMin(0);
+export const minOneNumber = numberMin(1);
+export const ratio = numberRange(0, 1);
+export const degree = numberRange(0, 360);
+
+/**
+ * Creates a validator for a union of allowed values.
+ * @param allowed An array of allowed values.
+ * @returns A validator function that checks if a value is among the allowed ones.
+ */
+export function union(allowed: object): Validator;
+export function union(...allowed: any[]): Validator;
+export function union(...allowed: any[]) {
+    if (isObject(allowed[0])) {
+        allowed = Object.values(allowed[0]);
+    }
+    const keywords = joinFormatted(allowed, 'or', (value) => `'${value}'`, 6);
+    return attachDescription((value: any) => allowed.includes(value), `a keyword such as ${keywords}`);
+}
+
+/**
+ * Creates a validator for a single constant value.
+ * @param allowed The allowed constant value.
+ * @returns A validator function that checks for equality with the allowed value.
+ */
+export const constant = (allowed: boolean | number | string) =>
+    attachDescription((value: any) => allowed === value, `the value ${JSON.stringify(allowed)}`);
+
+/**
+ * Creates a validator for instances of a specific class.
+ * @param instanceType The constructor of the class to check instances against.
+ * @param description An optional description string.
+ * @returns A validator function that checks if a value is an instance of the specified class.
+ */
+export const instanceOf = (instanceType: Function, description?: string) =>
+    attachDescription((value) => value instanceof instanceType, description ?? `an instance of ${instanceType.name}`);
+
+/**
+ * Creates a validator for arrays where every element must pass a given validator.
+ * @param validator The validator to apply to each array element.
+ * @param description An optional description string.
+ * @returns A validator function for arrays with elements validated by the specified validator.
+ */
+export const arrayOf = (validator: Validator, description?: string) =>
+    attachDescription(
+        (value: unknown) => isArray(value) && value.every(validator),
+        description ?? `${validator[descriptionSymbol]} array`
+    );

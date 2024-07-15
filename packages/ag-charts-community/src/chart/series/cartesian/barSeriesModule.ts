@@ -27,11 +27,6 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
     ],
     swapDefaultAxesCondition: (series) => series?.direction === 'horizontal',
     themeTemplate: {
-        axes: {
-            [CARTESIAN_AXIS_TYPE.TIME]: {
-                nice: false,
-            },
-        },
         series: {
             direction: 'vertical',
             fillOpacity: 1,
@@ -53,10 +48,6 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
                 yOffset: 3,
                 blur: 5,
             },
-        },
-    },
-    enterpriseThemeTemplate: {
-        series: {
             errorBar: {
                 cap: {
                     lengthRatio: 0.3,

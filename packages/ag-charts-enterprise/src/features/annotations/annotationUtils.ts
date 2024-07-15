@@ -1,6 +1,6 @@
 import { type Direction, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import type { AnnotationPoint } from './annotationProperties';
+import type { PointProperties } from './annotationProperties';
 import type { AnnotationAxisContext, AnnotationContext, Coords, Point } from './annotationTypes';
 
 const { Logger } = _Util;
@@ -66,7 +66,7 @@ export function validateDatumPointDirection(value: any, context: AnnotationAxisC
 }
 
 export function convertLine(
-    datum: { start: Pick<AnnotationPoint, 'x' | 'y'>; end: Pick<AnnotationPoint, 'x' | 'y'> },
+    datum: { start: Pick<PointProperties, 'x' | 'y'>; end: Pick<PointProperties, 'x' | 'y'> },
     context: AnnotationContext
 ) {
     if (datum.start == null || datum.end == null) return;

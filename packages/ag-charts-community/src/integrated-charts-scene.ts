@@ -1,5 +1,6 @@
 import * as fromToMotion from './motion/fromToMotion';
 import * as resetMotion from './motion/resetMotion';
+import { TextMeasurer } from './util/textMeasurer';
 
 export { Caption } from './chart/caption';
 export { DropShadow } from './scene/dropShadow';
@@ -20,7 +21,7 @@ export { sectorBox } from './scene/util/sector';
 export { RadialColumnShape, getRadialColumnWidth } from './scene/shape/radialColumnShape';
 export { Shape } from './scene/shape/shape';
 export type { ShapeLineCap } from './scene/shape/shape';
-export { Text, getFont } from './scene/shape/text';
+export { Text } from './scene/shape/text';
 export type { Scale } from './scale/scale';
 export { ContinuousScale } from './scale/continuousScale';
 export { BandScale } from './scale/bandScale';
@@ -47,3 +48,4 @@ export * as easing from './motion/easing';
 const motion = { ...fromToMotion, ...resetMotion };
 export { motion };
 export type { NodeUpdateState, FromToMotionPropFn } from './motion/fromToMotion';
+export const getFont = TextMeasurer.toFontString;

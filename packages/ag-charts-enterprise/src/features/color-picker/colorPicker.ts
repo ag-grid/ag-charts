@@ -1,6 +1,5 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import colorPickerStyles from './colorPickerStyles.css';
 import colorPickerTemplate from './colorPickerTemplate.html';
 
 const { clamp, createElement } = _ModuleSupport;
@@ -25,12 +24,11 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
     private anchor?: { x: number; y: number };
     private fallbackAnchor?: { x?: number; y?: number };
 
-    constructor(readonly ctx: _ModuleSupport.ModuleContext) {
+    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
-        ctx.domManager.addStyles(moduleId, colorPickerStyles);
-
         this.element = ctx.domManager.addChild(canvasOverlay, moduleId);
+        this.element.role = 'presentation';
 
         this.destroyFns.push(() => ctx.domManager.removeChild(canvasOverlay, moduleId));
     }
@@ -39,10 +37,12 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
         let [h, s, v, a] = getHsva(opts.color ?? '#f00') ?? [0, 1, 0.5, 1];
 
         const colorPickerContainer = createElement('div');
+        colorPickerContainer.role = 'presentation';
         colorPickerContainer.innerHTML = colorPickerTemplate;
         this.element.replaceChildren(colorPickerContainer);
 
         const colorPicker = colorPickerContainer.firstElementChild! as HTMLDivElement;
+        colorPicker.ariaLabel = this.ctx.localeManager.t('ariaLabelColorPicker');
 
         const paletteInput = colorPicker.querySelector<HTMLDivElement>('.ag-charts-color-picker__palette')!;
         const hueInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__hue-input')!;

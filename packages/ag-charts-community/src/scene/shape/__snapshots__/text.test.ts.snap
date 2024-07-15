@@ -1,23 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Text text measurements should measure multiline text size currently 1`] = `
-{
-  "height": 42.66666666666667,
-  "left": 0,
-  "top": 48,
-  "width": 64,
-}
-`;
-
-exports[`Text text measurements should measure multiline text size currently 2`] = `
-{
-  "height": 85.33333333333334,
-  "left": 90.66666666666666,
-  "top": 48,
-  "width": 181.33333333333331,
-}
-`;
-
 exports[`Text text measurements should measure text currently 1`] = `
 {
   "height": 18.666666666666668,

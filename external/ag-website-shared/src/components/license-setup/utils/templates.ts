@@ -1,16 +1,20 @@
 import type { Framework, ImportType } from '@ag-grid-types';
 
 type TemplateFunction = (data: { license?: string; isIntegratedCharts?: boolean }) => string;
-type LicenseTemplate = Record<Framework, Record<ImportType, TemplateFunction>>;
+type GridLicenseTemplate = Record<Framework, Record<ImportType, TemplateFunction>>;
+type ChartsLicenseTemplate = Record<Framework, TemplateFunction>;
 
-export const GRID_LICENSE_TEMPLATES: LicenseTemplate = {
+export const GRID_LICENSE_TEMPLATES: GridLicenseTemplate = {
     react: {
-        packages: ({ license }) =>
-            `import React from "react";
+        packages: ({ license, isIntegratedCharts }) => {
+            const gridLibrary = isIntegratedCharts ? 'ag-grid-charts-enterprise' : 'ag-grid-enterprise';
+            return `import React from "react";
 import { render } from "react-dom";
 
 import App from "./App";
-import { LicenseManager } from "ag-grid-enterprise";
+
+import "${gridLibrary}";
+import { LicenseManager } from "${gridLibrary}";
 
 LicenseManager.setLicenseKey("${license}");
 
@@ -20,7 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelector('#app')
     );
 });
-`,
+`;
+        },
         modules: ({ license, isIntegratedCharts }) =>
             `import React from "react";
 import { render } from "react-dom";
@@ -48,8 +53,10 @@ document.addEventListener('DOMContentLoaded', () => {
 `,
     },
     angular: {
-        packages: ({ license }) =>
-            `import { LicenseManager } from "ag-grid-enterprise";
+        packages: ({ license, isIntegratedCharts }) => {
+            const gridLibrary = isIntegratedCharts ? 'ag-grid-charts-enterprise' : 'ag-grid-enterprise';
+            return `import "${gridLibrary}";
+import { LicenseManager } from "${gridLibrary}";
 
 LicenseManager.setLicenseKey("${license}");
 
@@ -58,7 +65,8 @@ LicenseManager.setLicenseKey("${license}");
    [rowData]="rowData"
    [columnDefs]="columnDefs"
    [modules]="modules" />
-`,
+`;
+        },
 
         modules: ({ license, isIntegratedCharts }) =>
             `import { ModuleRegistry } from "@ag-grid-community/core";
@@ -82,12 +90,16 @@ LicenseManager.setLicenseKey("${license}");
 `,
     },
     javascript: {
-        packages: ({ license }) => `import { LicenseManager } from "ag-grid-enterprise";
+        packages: ({ license, isIntegratedCharts }) => {
+            const gridLibrary = isIntegratedCharts ? 'ag-grid-charts-enterprise' : 'ag-grid-enterprise';
+            return `import "${gridLibrary}";
+import { LicenseManager } from "${gridLibrary}";
 
 LicenseManager.setLicenseKey("${license}");
 
 createGrid(<dom element>, gridOptions);
-`,
+`;
+        },
         modules: ({ license, isIntegratedCharts }) => `import { ModuleRegistry } from "@ag-grid-community/core";
 
 import { LicenseManager } from "@ag-grid-enterprise/core";
@@ -105,11 +117,13 @@ createGrid(<dom element>, gridOptions);
 `,
     },
     vue: {
-        packages: ({ license }) =>
-            `<script>
+        packages: ({ license, isIntegratedCharts }) => {
+            const gridLibrary = isIntegratedCharts ? 'ag-grid-charts-enterprise' : 'ag-grid-enterprise';
+            return `<script>
 import { AgGridVue } from "ag-grid-vue3";
 
-import { LicenseManager } from "ag-grid-enterprise";
+import "${gridLibrary}";
+import { LicenseManager } from "${gridLibrary}";
 
 LicenseManager.setLicenseKey("${license}");
 
@@ -121,7 +135,8 @@ export default {
     setup() {},
 };
 </script>
-`,
+`;
+        },
         modules: ({ license, isIntegratedCharts }) =>
             `<script>
 import { AgGridVue } from "ag-grid-vue3";
@@ -150,8 +165,21 @@ export default {
     },
 };
 
-export const getChartsTemplate = ({ license }: { license?: string }) => {
-    return `import { AgCharts } from "ag-charts-enterprise";
+export const CHARTS_LICENSE_TEMPLATES: ChartsLicenseTemplate = {
+    react: ({ license }) => `import { AgCharts } from "ag-charts-react";
+import { AgCharts as AgChartsEnterprise } from "ag-charts-enterprise";
 
-AgCharts.setLicenseKey("${license}");`;
+AgChartsEnterprise.setLicenseKey("${license}");`,
+    angular: ({ license }) => `import { AgCharts } from "ag-charts-angular";
+import { AgCharts as AgChartsEnterprise } from "ag-charts-enterprise";
+
+AgChartsEnterprise.setLicenseKey("${license}");`,
+    javascript: ({ license }) => `import { AgCharts } from "ag-charts-community";
+import { AgCharts as AgChartsEnterprise } from "ag-charts-enterprise";
+
+AgChartsEnterprise.setLicenseKey("${license}");`,
+    vue: ({ license }) => `import { AgCharts } from "ag-charts-vue3";
+import { AgCharts as AgChartsEnterprise } from "ag-charts-enterprise";
+
+AgChartsEnterprise.setLicenseKey("${license}");`,
 };

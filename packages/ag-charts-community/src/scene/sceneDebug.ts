@@ -1,10 +1,10 @@
 import { Debug } from '../util/debug';
 import { Logger } from '../util/logger';
+import { TextMeasurer } from '../util/textMeasurer';
 import { isString } from '../util/type-guards';
 import { Group } from './group';
 import type { LayersManager } from './layersManager';
 import { type Node, RedrawType, type RenderContext } from './node';
-import { Text } from './shape/text';
 
 export enum DebugSelectors {
     SCENE = 'scene',
@@ -46,7 +46,7 @@ export function debugStats(
         `Layers: ${detailedStats ? pct(layersRendered, layersSkipped) : layersManager.size}`,
         detailedStats ? `Nodes: ${pct(nodesRendered, nodesSkipped)}` : null,
     ].filter(isString);
-    const statsSize = new Map(stats.map((t) => [t, Text.getTextSize(t, ctx.font)]));
+    const statsSize = new Map(stats.map((t) => [t, TextMeasurer.measureText(t, ctx)]));
     const width = Math.max(...Array.from(statsSize.values(), (s) => s.width));
     const height = accumulate(statsSize.values(), (s) => s.height);
 

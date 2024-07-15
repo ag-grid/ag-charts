@@ -139,6 +139,9 @@ export class ChartTheme {
                     color: DEFAULT_LABEL_COLOUR,
                 },
             },
+            crosshair: {
+                enabled: true,
+            },
         });
     }
 
@@ -210,7 +213,6 @@ export class ChartTheme {
             tooltip: {
                 enabled: true,
                 darkTheme: IS_DARK_THEME,
-                range: undefined,
                 delay: 0,
             },
             overlays: { darkTheme: IS_DARK_THEME },
@@ -230,22 +232,13 @@ export class ChartTheme {
             groupPaddingInner: 0.1,
             label: { autoRotate: true },
             gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
+            crosshair: { enabled: false },
         }),
         [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults({ gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED } }),
         [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: ChartTheme.getAxisDefaults({
             groupPaddingInner: 0,
             label: { autoRotate: false },
             gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-            crosshair: {
-                enabled: true,
-                snap: true,
-                stroke: DEFAULT_MUTED_LABEL_COLOUR,
-                strokeWidth: 1,
-                strokeOpacity: 1,
-                lineDash: [5, 6],
-                lineDashOffset: 0,
-                label: { enabled: true },
-            },
         }),
         [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: ChartTheme.getAxisDefaults({
             gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
@@ -253,13 +246,13 @@ export class ChartTheme {
         [POLAR_AXIS_TYPE.ANGLE_NUMBER]: ChartTheme.getAxisDefaults({ gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED } }),
         [POLAR_AXIS_TYPE.RADIUS_CATEGORY]: ChartTheme.getAxisDefaults({
             line: { enabled: false },
-            tick: { enabled: false },
         }),
         [POLAR_AXIS_TYPE.RADIUS_NUMBER]: ChartTheme.getAxisDefaults({
             line: { enabled: false },
-            tick: { enabled: false },
         }),
-        'grouped-category': ChartTheme.getAxisDefaults(),
+        'grouped-category': ChartTheme.getAxisDefaults({
+            tick: { enabled: true },
+        }),
     };
 
     constructor(options: AgChartTheme = {}) {

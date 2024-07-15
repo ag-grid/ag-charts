@@ -1,5 +1,5 @@
 export const AG_CHARTS_LOCALE_SK_SK: Record<string, string> = {
-    ariaAnnounceChart: 'graf, ${seriesCount}[number] sérií, ${caption}',
+    ariaAnnounceChart: 'graf, ${seriesCount}[number] sérií',
     ariaAnnounceFlowProportionLink: 'odkaz ${index} z ${count}, od ${from} do ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'uzol ${index} z ${count}, ${description}',
     ariaAnnounceHidden: 'skryté',
@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_SK_SK: Record<string, string> = {
     ariaAnnounceVisible: 'viditeľné',
     ariaLabelAnnotationOptionsToolbar: 'Možnosti anotácie',
     ariaLabelAnnotationsToolbar: 'Anotácie',
+    ariaLabelColorPicker: 'Výber farby',
     ariaLabelLegend: 'Legenda',
     ariaLabelLegendItem: '${label}, Položka legendy ${index}[number] z ${count}[number], ',
     ariaLabelLegendItemUnknown: 'Neznáma položka legendy',

@@ -26,7 +26,7 @@ import { Matrix } from '../../scene/matrix';
 import type { Node } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
-import { Text, type TextSizeProperties, getFont } from '../../scene/shape/text';
+import { Text, type TextSizeProperties } from '../../scene/shape/text';
 import type { PlacedLabelDatum } from '../../scene/util/labelPlacement';
 import { axisLabelsOverlap } from '../../scene/util/labelPlacement';
 import { normalizeAngle360, toRadians } from '../../util/angle';
@@ -38,6 +38,7 @@ import { clamp, countFractionDigits, findMinMax, findRangeExtent, round } from '
 import { ObserveChanges } from '../../util/proxy';
 import { StateMachine } from '../../util/stateMachine';
 import { type MeasureOptions, TextMeasurer } from '../../util/textMeasurer';
+import { TextWrapper } from '../../util/textWrapper';
 import { BOOLEAN, OBJECT, STRING_ARRAY, Validate } from '../../util/validation';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
@@ -677,39 +678,21 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             });
         }
 
-        const getTransformBox = (bbox: BBox) => {
-            const matrix = new Matrix();
-            const {
-                rotation: axisRotation,
-                translationX,
-                translationY,
-                rotationCenterX,
-                rotationCenterY,
-            } = this.getAxisTransform();
-            Matrix.updateTransformMatrix(matrix, 1, 1, axisRotation, translationX, translationY, {
-                scalingCenterX: 0,
-                scalingCenterY: 0,
-                rotationCenterX,
-                rotationCenterY,
-            });
-            return matrix.transformBBox(bbox);
-        };
-
         if (this.title?.enabled) {
             const caption = new Caption();
             const spacing = BBox.merge(boxes).width;
             this.setTitleProps(caption, { spacing });
             const titleNode = caption.node;
-            const titleBox = titleNode.computeTransformedBBox()!;
+            const titleBox = titleNode.computeTransformedBBox();
             if (titleBox) {
                 boxes.push(titleBox);
             }
         }
 
         const bbox = BBox.merge(boxes);
-        const transformedBBox = getTransformBox(bbox);
-
+        const transformedBBox = this.getTransformBox(bbox);
         const anySeriesActive = this.isAnySeriesActive();
+
         this.crossLines?.forEach((crossLine) => {
             crossLine.sideFlag = -sideFlag as ChartAxisLabelFlipFlag;
             crossLine.direction = rotation === -Math.PI / 2 ? ChartAxisDirection.X : ChartAxisDirection.Y;
@@ -718,11 +701,13 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             }
             crossLine.parallelFlipRotation = parallelFlipRotation;
             crossLine.regularFlipRotation = regularFlipRotation;
-            crossLine.calculateLayout(anySeriesActive, this.reverse);
+            crossLine.calculateLayout?.(anySeriesActive, this.reverse);
         });
 
-        primaryTickCount = ticksResult.primaryTickCount;
-        return { primaryTickCount, bbox: transformedBBox };
+        return {
+            primaryTickCount: ticksResult.primaryTickCount,
+            bbox: transformedBBox,
+        };
     }
 
     private updateLayoutState(fractionDigits: number) {
@@ -731,6 +716,24 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             padding: this.label.padding,
             format: this.label.format,
         };
+    }
+
+    protected getTransformBox(bbox: BBox) {
+        const matrix = new Matrix();
+        const {
+            rotation: axisRotation,
+            translationX,
+            translationY,
+            rotationCenterX,
+            rotationCenterY,
+        } = this.getAxisTransform();
+        Matrix.updateTransformMatrix(matrix, 1, 1, axisRotation, translationX, translationY, {
+            scalingCenterX: 0,
+            scalingCenterY: 0,
+            rotationCenterX,
+            rotationCenterY,
+        });
+        return matrix.transformBBox(bbox);
     }
 
     setDomain(domain: D[]) {
@@ -803,7 +806,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         let textAlign = getTextAlign(parallel, configuredRotation, 0, sideFlag, regularFlipFlag);
         const textBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);
-        const font = getFont({ fontFamily, fontSize, fontStyle, fontWeight });
+        const font = TextMeasurer.toFontString({ fontFamily, fontSize, fontStyle, fontWeight });
 
         const textProps: TextSizeProperties = {
             fontFamily,
@@ -1002,7 +1005,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
             const { width, height } = TextMeasurer.measureLines(tickLabel, textProps);
             const bbox = new BBox(labelX, translationY, width, height);
-            const labelDatum = calculateLabelBBox(tickLabel, bbox, labelX, translationY, labelMatrix);
+            const labelDatum = calculateLabelBBox(tickLabel, bbox, labelMatrix);
 
             labelData.push(labelDatum);
         }
@@ -1132,12 +1135,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         maxTickCount: number;
         defaultTickCount: number;
     } {
-        const {
-            minRect,
-            label: { avoidCollisions },
-        } = this;
+        const { minRect } = this;
 
-        if (!avoidCollisions) {
+        if (!this.label.avoidCollisions) {
             return {
                 minTickCount: ContinuousScale.defaultMaxTickCount,
                 maxTickCount: ContinuousScale.defaultMaxTickCount,
@@ -1375,13 +1375,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
 
         tickData.ticks.forEach((tickDatum) => {
-            tickDatum.tickLabel = Text.wrap(
-                tickDatum.tickLabel,
-                maxWidth ?? defaultMaxWidth,
-                maxHeight ?? defaultMaxHeight,
-                labelProps,
-                'hyphenate'
-            );
+            tickDatum.tickLabel = TextWrapper.wrapText(tickDatum.tickLabel, {
+                maxWidth: maxWidth ?? defaultMaxWidth,
+                maxHeight: maxHeight ?? defaultMaxHeight,
+                font: labelProps,
+                textWrap: 'hyphenate',
+            });
         });
 
         return { tickData, index, autoRotation: 0, terminate: true };
@@ -1520,8 +1519,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
                     return keys;
                 }, [] as string[]),
-            scaleValueFormatter: (specifier?: string) =>
-                specifier ? scale.tickFormat?.({ specifier }) : this.getFormatter(),
+            scaleValueFormatter: (specifier?: string) => this.getScaleValueFormatter(specifier),
             scaleBandwidth: () => scale.bandwidth ?? 0,
             scaleDomain: () => scale.getDomain?.(),
             scaleConvert: (val) => scale.convert(val),
@@ -1532,6 +1530,19 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             attachLabel: (node: Node) => this.attachLabel(node),
             inRange: (x, tolerance) => this.inRange(x, tolerance),
         };
+    }
+
+    private getScaleValueFormatter(format?: string) {
+        const { scale } = this;
+        if (format && scale && scale.tickFormat) {
+            try {
+                return scale.tickFormat({ specifier: format });
+            } catch (e) {
+                Logger.warnOnce(`the format string ${format} is invalid, ignoring.`);
+            }
+        }
+
+        return this.getFormatter();
     }
 
     animateReadyUpdate(diff: FromToDiff) {

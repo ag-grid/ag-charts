@@ -3,7 +3,7 @@ import type {
     AgRangeBarSeriesLabelFormatterParams,
     AgRangeBarSeriesLabelPlacement,
     AgRangeBarSeriesOptions,
-    AgRangeBarSeriesStyles,
+    AgRangeBarSeriesStyle,
     AgRangeBarSeriesTooltipRendererParams,
     Styler,
 } from 'ag-charts-community';
@@ -79,7 +79,7 @@ export class RangeBarProperties extends AbstractBarSeriesProperties<AgRangeBarSe
     cornerRadius: number = 0;
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgRangeBarSeriesItemStylerParams<unknown>, AgRangeBarSeriesStyles>;
+    itemStyler?: Styler<AgRangeBarSeriesItemStylerParams<unknown>, AgRangeBarSeriesStyle>;
 
     @Validate(OBJECT)
     readonly shadow = new DropShadow().set({ enabled: false });
@@ -88,5 +88,5 @@ export class RangeBarProperties extends AbstractBarSeriesProperties<AgRangeBarSe
     readonly label = new RangeBarSeriesLabel();
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgRangeBarSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgRangeBarSeriesTooltipRendererParams<unknown>>();
 }

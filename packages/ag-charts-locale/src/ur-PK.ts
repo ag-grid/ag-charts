@@ -1,5 +1,5 @@
 export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
-    ariaAnnounceChart: 'چارٹ، ${seriesCount}[number] سیریز، ${caption}',
+    ariaAnnounceChart: 'چارٹ، ${seriesCount}[number] سیریز،',
     ariaAnnounceFlowProportionLink: 'لنک ${index} کا ${count} میں سے، ${from} سے ${to} تک، ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'نوڈ ${index} کا ${count}، ${description}',
     ariaAnnounceHidden: 'چھپایا گیا',
@@ -8,6 +8,7 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
     ariaAnnounceVisible: 'نظر آرہا ہے',
     ariaLabelAnnotationOptionsToolbar: 'تشریح کے اختیارات',
     ariaLabelAnnotationsToolbar: 'تشریحات',
+    ariaLabelColorPicker: 'رنگ چننے والا',
     ariaLabelLegend: 'علامات',
     ariaLabelLegendItem: '${label}, لیجنڈ آئٹم ${index}[number] کا ${count}[number], ',
     ariaLabelLegendItemUnknown: 'نامعلوم علامات کی شے',

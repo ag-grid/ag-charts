@@ -74,17 +74,17 @@ export interface AgToolbarAnnotationsGroup extends AgToolbarGroup {
 }
 
 export interface AgToolbarAnnotationsButton extends AgToolbarButton {
-    section?: 'create' | 'tools';
     /** An annotation type or action. */
     value: AgToolbarAnnotationsButtonValue;
 }
 
 export type AgToolbarAnnotationsButtonValue =
+    | 'line'
     | 'horizontal-line'
     | 'vertical-line'
-    | 'line'
     | 'parallel-channel'
     | 'disjoint-channel'
+    | 'text'
     | 'clear';
 
 /* Annotation Options */
