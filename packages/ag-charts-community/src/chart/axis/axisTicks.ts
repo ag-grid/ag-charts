@@ -167,7 +167,7 @@ export class AxisTicks {
         if (this.position === 'bottom' || this.position === 'top') {
             const measurer = TextMeasurer.getFontMeasurer({ font: this.label });
 
-            let lastTickPosition = 0;
+            let lastTickPosition = -Infinity;
             tickData.ticks = tickData.ticks.filter((data) => {
                 if (lastTickPosition < data.translate) {
                     lastTickPosition = data.translate + measurer.textWidth(data.tickLabel, true);
