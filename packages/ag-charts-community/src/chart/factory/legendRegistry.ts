@@ -1,10 +1,10 @@
-import type { LegendConstructor } from '../../module/coreModules';
+import type { LegendFactory } from '../../module/coreModules';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { ChartLegendType } from '../legendDatum';
 
 interface LegendRegistryRecord {
     optionsKey: string;
-    instanceConstructor: LegendConstructor;
+    moduleFactory: LegendFactory;
 }
 
 type LegendRegistryOptions = LegendRegistryRecord & { themeTemplate?: object };
@@ -13,15 +13,15 @@ export class LegendRegistry {
     private readonly legendMap = new Map<ChartLegendType, LegendRegistryRecord>();
     private readonly themeTemplates = new Map<string, object | undefined>();
 
-    register(legendType: ChartLegendType, { optionsKey, instanceConstructor, themeTemplate }: LegendRegistryOptions) {
-        this.legendMap.set(legendType, { optionsKey, instanceConstructor });
+    register(legendType: ChartLegendType, { optionsKey, moduleFactory, themeTemplate }: LegendRegistryOptions) {
+        this.legendMap.set(legendType, { optionsKey, moduleFactory });
         this.themeTemplates.set(optionsKey, themeTemplate);
     }
 
     create(legendType: ChartLegendType, moduleContext: ModuleContext) {
-        const LegendConstructor = this.legendMap.get(legendType)?.instanceConstructor;
-        if (LegendConstructor) {
-            return new LegendConstructor(moduleContext);
+        const legendFactory = this.legendMap.get(legendType)?.moduleFactory;
+        if (legendFactory) {
+            return legendFactory(moduleContext);
         }
         throw new Error(`AG Charts - unknown legend type: ${legendType}`);
     }

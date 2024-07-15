@@ -15,7 +15,7 @@ describe('Module', () => {
             optionsKey: 'one',
             packageType: 'community',
             chartTypes: ['cartesian'],
-            instanceConstructor: class extends BaseModuleInstance {},
+            moduleFactory: () => new (class extends BaseModuleInstance {})(),
         };
 
         const two: Module = {
@@ -25,7 +25,7 @@ describe('Module', () => {
             chartTypes: ['cartesian'],
             axisTypes: ['category'],
             themeTemplate: {},
-            instanceConstructor: class extends BaseModuleInstance {},
+            moduleFactory: () => new (class extends BaseModuleInstance {})(),
         };
 
         const three: Module = {
@@ -33,7 +33,7 @@ describe('Module', () => {
             optionsKey: 'three',
             packageType: 'community',
             chartTypes: ['cartesian'],
-            instanceConstructor: class extends BaseModuleInstance {},
+            moduleFactory: () => new (class extends BaseModuleInstance {})(),
         };
 
         it('should load the root modules', () => {
@@ -66,7 +66,7 @@ describe('Module', () => {
             dependencies: ['two'],
             packageType: 'community',
             chartTypes: ['cartesian'],
-            instanceConstructor: class extends BaseModuleInstance {},
+            moduleFactory: () => new (class extends BaseModuleInstance {})(),
         };
 
         const two: Module = {
@@ -75,7 +75,7 @@ describe('Module', () => {
             dependencies: ['three'],
             packageType: 'community',
             chartTypes: ['cartesian'],
-            instanceConstructor: class extends BaseModuleInstance {},
+            moduleFactory: () => new (class extends BaseModuleInstance {})(),
         };
 
         it('should load the modules in dependency order', () => {
@@ -84,7 +84,7 @@ describe('Module', () => {
                 optionsKey: 'three',
                 packageType: 'community',
                 chartTypes: ['cartesian'],
-                instanceConstructor: class extends BaseModuleInstance {},
+                moduleFactory: () => new (class extends BaseModuleInstance {})(),
             };
 
             moduleRegistry.register(one, two, three);
@@ -104,7 +104,7 @@ describe('Module', () => {
                 dependencies: ['one'],
                 packageType: 'community',
                 chartTypes: ['cartesian'],
-                instanceConstructor: class extends BaseModuleInstance {},
+                moduleFactory: () => new (class extends BaseModuleInstance {})(),
             };
 
             moduleRegistry.register(one, two, three);

@@ -8,7 +8,7 @@ export const AnnotationsModule: _ModuleSupport.Module = {
     packageType: 'enterprise',
     chartTypes: ['cartesian'],
     dependencies: ['toolbar'],
-    instanceConstructor: Annotations,
+    moduleFactory: (ctx) => new Annotations(ctx),
     themeTemplate: {
         annotations: {
             // Lines

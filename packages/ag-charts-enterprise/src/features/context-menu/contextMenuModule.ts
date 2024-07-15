@@ -8,7 +8,7 @@ export const ContextMenuModule: _ModuleSupport.Module = {
     packageType: 'enterprise',
     chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion'],
     optionsKey: 'contextMenu',
-    instanceConstructor: ContextMenu,
+    moduleFactory: (ctx) => new ContextMenu(ctx),
     themeTemplate: {
         contextMenu: {
             enabled: true,

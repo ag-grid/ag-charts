@@ -9,7 +9,7 @@ export const GradientLegendModule: _ModuleSupport.LegendModule = {
     chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion'],
 
     identifier: 'gradient',
-    instanceConstructor: GradientLegend,
+    moduleFactory: (ctx) => new GradientLegend(ctx),
 
     themeTemplate: {
         enabled: false,

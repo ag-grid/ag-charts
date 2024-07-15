@@ -11,7 +11,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
     chartTypes: ['cartesian'],
 
     identifier: 'area',
-    instanceConstructor: AreaSeries,
+    moduleFactory: (ctx) => new AreaSeries(ctx),
     stackable: true,
     tooltipDefaults: { range: 'nearest' },
     defaultAxes: [

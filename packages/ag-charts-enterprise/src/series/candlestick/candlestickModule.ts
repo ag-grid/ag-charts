@@ -10,7 +10,7 @@ export const CandlestickModule: _ModuleSupport.SeriesModule<'candlestick'> = {
     chartTypes: ['cartesian'],
 
     identifier: 'candlestick',
-    instanceConstructor: CandlestickSeries,
+    moduleFactory: (ctx) => new CandlestickSeries(ctx),
     tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
         {

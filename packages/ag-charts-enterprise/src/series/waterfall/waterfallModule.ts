@@ -12,7 +12,7 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
 
     identifier: 'waterfall',
     solo: true,
-    instanceConstructor: WaterfallSeries,
+    moduleFactory: (ctx) => new WaterfallSeries(ctx),
     tooltipDefaults: { range: 'exact' },
     defaultAxes: [
         {

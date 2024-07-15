@@ -1866,7 +1866,7 @@ export abstract class Chart extends Observable {
             if (shouldBeEnabled === this.modulesManager.isEnabled(module)) continue;
 
             if (shouldBeEnabled) {
-                this.modulesManager.addModule(module, (m) => new m.instanceConstructor(this.getModuleContext()));
+                this.modulesManager.addModule(module, (m) => m.moduleFactory(this.getModuleContext()));
 
                 if (module.type === 'legend') {
                     this.modulesManager.getModule<ChartLegend>(module)?.attachLegend(this.ctx.scene);
@@ -2019,7 +2019,7 @@ export abstract class Chart extends Observable {
 
         for (const module of moduleRegistry.byType<SeriesOptionModule>('series-option')) {
             if (module.optionsKey in options && module.seriesTypes.includes(series.type)) {
-                moduleMap.addModule(module, (m) => new m.instanceConstructor(moduleContext));
+                moduleMap.addModule(module, (m) => m.moduleFactory(moduleContext));
             }
         }
     }
@@ -2087,7 +2087,7 @@ export abstract class Chart extends Observable {
             if (shouldBeEnabled === moduleMap.isEnabled(module)) continue;
 
             if (shouldBeEnabled) {
-                moduleMap.addModule(module, (m) => new m.instanceConstructor(moduleContext));
+                moduleMap.addModule(module, (m) => m.moduleFactory(moduleContext));
                 (axis as any)[module.optionsKey] = moduleMap.getModule(module); // TODO remove
             } else {
                 moduleMap.removeModule(module);

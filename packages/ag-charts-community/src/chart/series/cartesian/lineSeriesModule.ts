@@ -11,7 +11,7 @@ export const LineSeriesModule: SeriesModule<'line'> = {
     chartTypes: ['cartesian'],
 
     identifier: 'line',
-    instanceConstructor: LineSeries,
+    moduleFactory: (ctx) => new LineSeries(ctx),
     stackable: true,
     tooltipDefaults: { range: 'nearest' },
     defaultAxes: [

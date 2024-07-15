@@ -2,7 +2,7 @@ import { isString } from '../util/type-guards';
 import type { BaseModule, ModuleInstance } from './baseModule';
 
 interface Module<I extends ModuleInstance = ModuleInstance, C = {}> extends BaseModule {
-    instanceConstructor: new (ctx: C) => I;
+    moduleFactory: (ctx: C) => I;
 }
 
 export class ModuleMap<M extends Module<I, C>, I extends ModuleInstance, C = {}> {

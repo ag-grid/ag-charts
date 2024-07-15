@@ -10,7 +10,7 @@ export const RangeBarModule: _ModuleSupport.SeriesModule<'range-bar'> = {
     chartTypes: ['cartesian'],
 
     identifier: 'range-bar',
-    instanceConstructor: RangeBarSeries,
+    moduleFactory: (ctx) => new RangeBarSeries(ctx),
     tooltipDefaults: { range: 'exact' },
     defaultAxes: [
         {

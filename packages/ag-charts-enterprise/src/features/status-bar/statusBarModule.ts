@@ -8,7 +8,7 @@ export const StatusBarModule: _ModuleSupport.RootModule = {
     optionsKey: 'statusBar',
     packageType: 'enterprise',
     chartTypes: ['cartesian'],
-    instanceConstructor: StatusBar,
+    moduleFactory: (ctx) => new StatusBar(ctx),
     themeTemplate: {
         statusBar: {
             enabled: false,

@@ -7,7 +7,7 @@ export const AnimationModule: _ModuleSupport.Module = {
     optionsKey: 'animation',
     packageType: 'enterprise',
     chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion'],
-    instanceConstructor: Animation,
+    moduleFactory: (ctx) => new Animation(ctx),
     themeTemplate: {
         animation: {
             enabled: true,

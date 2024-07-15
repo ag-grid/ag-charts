@@ -11,7 +11,7 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
     chartTypes: ['cartesian'],
 
     identifier: 'scatter',
-    instanceConstructor: ScatterSeries,
+    moduleFactory: (ctx) => new ScatterSeries(ctx),
     tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
         {
