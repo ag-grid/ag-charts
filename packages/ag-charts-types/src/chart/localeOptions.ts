@@ -1,8 +1,10 @@
+import type { Formatter } from './callbackOptions';
+
 export interface AgLocaleThemeableOptions {
     /** A record of locale texts keyed by id. */
     localeText?: Record<string, string>;
     /** Formatter that generates the text displayed to the user. */
-    getLocaleText?: (params: MessageFormatterParams) => string | undefined;
+    getLocaleText?: MessageFormatter;
 }
 
 export interface MessageFormatterParams {
@@ -11,9 +13,9 @@ export interface MessageFormatterParams {
     /** The default, unformatted translation, if it exists in `localeText`. */
     defaultValue: string | undefined;
     /** Variables used for the translation. Keyed by the name of the variables. Values can be string, numbers, or dates. */
-    variables: Record<string, any>;
+    variables: Record<string, unknown>;
 }
 
-export type MessageFormatter = (params: MessageFormatterParams) => string | undefined;
+export type MessageFormatter = Formatter<MessageFormatterParams>;
 
 export interface AgLocaleOptions extends AgLocaleThemeableOptions {}
