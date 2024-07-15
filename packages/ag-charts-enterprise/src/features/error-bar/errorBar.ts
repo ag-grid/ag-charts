@@ -370,7 +370,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         // data points with error bars).
         for (let i = 0; i < nodeData.length; i++) {
             if (highlightChange === nodeData[i]) {
-                this.selection.nodes()[i].update(style, this.properties, highlighted);
+                this.selection.at(i)?.update(style, this.properties, highlighted);
                 break;
             }
         }

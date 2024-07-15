@@ -1,4 +1,10 @@
-import type { AgBaseAxisOptions, AgChartClickEvent, AgChartDoubleClickEvent, AgChartOptions } from 'ag-charts-types';
+import type {
+    AgBaseAxisOptions,
+    AgChartClickEvent,
+    AgChartDoubleClickEvent,
+    AgChartInstance,
+    AgChartOptions,
+} from 'ag-charts-types';
 
 import type { ModuleInstance } from '../module/baseModule';
 import type { LegendModule, RootModule } from '../module/coreModules';
@@ -274,6 +280,12 @@ export abstract class Chart extends Observable {
 
     queuedUserOptions: AgChartOptions[] = [];
     chartOptions: ChartOptions;
+
+    /**
+     * Public API for this Chart instance. NOTE: This is initialized after construction by the
+     * wrapping class that implements AgChartInstance.
+     */
+    publicApi?: AgChartInstance;
 
     getOptions() {
         return this.queuedUserOptions.at(-1) ?? this.chartOptions.userOptions;
@@ -1495,7 +1507,10 @@ export abstract class Chart extends Observable {
                 event.pointerHistory === undefined ||
                 event.pointerHistory?.every((pastEvent) => {
                     const historyPoint = { x: pastEvent.offsetX, y: pastEvent.offsetY };
-                    const historyNode = this.pickSeriesNode(historyPoint, intent, false, pixelRange);
+                    const historyNode =
+                        nodeClickRange === 'exact'
+                            ? this.pickSeriesNode(historyPoint, intent, true)
+                            : this.pickSeriesNode(historyPoint, intent, false, pixelRange);
                     return historyNode?.datum === pickedNode?.datum;
                 });
             if (allMatch) {
@@ -1690,7 +1705,7 @@ export abstract class Chart extends Observable {
 
         let forceNodeDataRefresh = false;
         let seriesStatus: SeriesChangeType = 'no-op';
-        if (deltaOptions.series?.length) {
+        if (deltaOptions.series != null) {
             seriesStatus = this.applySeries(this, deltaOptions.series, oldOpts?.series);
             forceNodeDataRefresh = true;
         }

@@ -24,6 +24,14 @@ This release includes the following breaking changes:
 -   `AgNodeDoubleClickEvent `, `AgSeriesNodeClickEvent` and `AgSeriesNodeDoubleClickEvent` are all replaced by `AgNodeClickEvent`.
 -   Support for Vue 2 has been dropped as it has reached EOL. See the {% link href="https://v2.vuejs.org/lts/" isExternal=true %}Vue project page{% /link %} for more details.
 
+{% if isFramework("angular") %}
+**Compatibility**
+{% /if %}
+
+{% if isFramework("angular") %}
+The minimum version of Angular you can use with AG Charts is now Angular 16.
+{% /if %}
+
 **Series Changes**
 
 -   `innerRadiusOffset`, `innerRadiusRatio`, `innerCircle`, `innerLabels` are removed from `pie` series. Use `donut` series instead.

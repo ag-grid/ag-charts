@@ -30,20 +30,16 @@
       "dependsOn": ["pack"],
       "inputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-angular/"],
-      "options": {
-        "parallel": false,
-        "commands": [
-          "mkdir -p dist/packages/contents/ag-charts-angular",
-          "tar -xzf dist/{projectRoot}.tgz -C dist/packages/contents/ag-charts-angular/"
-        ]
-      }
+      "options": { "command": "tools/package/extract-contents.sh {projectRoot}" }
     },
     "pack:verify": {
       "executor": "nx:run-commands",
       "dependsOn": ["pack:extract"],
       "inputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-angular/"],
       "options": {
-        "commands": ["node tools/sanity-check-package.js dist/packages/contents/ag-charts-angular/package"]
+        "commands": [
+          "node tools/package/sanity-check-package.js --allowed-ext map -- dist/packages/contents/ag-charts-angular/package"
+        ]
       }
     }
   },

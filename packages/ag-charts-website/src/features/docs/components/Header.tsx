@@ -23,7 +23,6 @@ export const Header: FunctionComponent<Props> = ({
     suppressFrameworkHeader,
     path,
     menuItems,
-    version,
 }) => {
     // Update framework store so it is in sync with the page
     // Done here, because it's run on all docs pages
@@ -36,12 +35,7 @@ export const Header: FunctionComponent<Props> = ({
                     <h1 id="top" className={styles.docsPageTitle}>
                         {!suppressFrameworkHeader && (
                             <span className={styles.headerFramework}>
-                                {`${getFrameworkDisplayText(framework)} Charts`}{' '}
-                                {version && (
-                                    <a className={styles.headerVersion} href="/documentation-archive">
-                                        v{version}
-                                    </a>
-                                )}
+                                {`${getFrameworkDisplayText(framework)} Charts`}
                             </span>
                         )}
                         <span>{title}</span>

@@ -1,6 +1,5 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-const { Image } = _Scene;
 const {
     BaseProperties,
     ObserveChanges,
@@ -13,7 +12,7 @@ const {
     calculatePlacement,
 } = _ModuleSupport;
 
-export class BackgroundImage extends BaseProperties {
+export class Image extends BaseProperties {
     @Validate(NUMBER, { optional: true })
     top?: number;
 
@@ -36,7 +35,7 @@ export class BackgroundImage extends BaseProperties {
     opacity: number = 1;
 
     @ProxyProperty('imageElement.src')
-    @ObserveChanges<BackgroundImage>((target) => (target.loadedSynchronously = target.complete))
+    @ObserveChanges<Image>((target) => (target.loadedSynchronously = target.complete))
     url?: string;
 
     private readonly imageElement: HTMLImageElement;
@@ -48,7 +47,7 @@ export class BackgroundImage extends BaseProperties {
 
         this.imageElement = createElement('img');
         this.imageElement.onload = this.onImageLoad;
-        this.node = new Image(this.imageElement);
+        this.node = new _Scene.Image(this.imageElement);
     }
 
     get complete() {

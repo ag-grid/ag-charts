@@ -74,7 +74,6 @@ export interface AgToolbarAnnotationsGroup extends AgToolbarGroup {
 }
 
 export interface AgToolbarAnnotationsButton extends AgToolbarButton {
-    section?: 'create' | 'tools';
     /** An annotation type or action. */
     value: AgToolbarAnnotationsButtonValue;
 }

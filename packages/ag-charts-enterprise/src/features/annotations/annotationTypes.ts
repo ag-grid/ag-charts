@@ -65,22 +65,6 @@ export interface Point {
     y?: number;
 }
 
-export interface StateHoverEvent<Annotation, Scene> {
-    datum: Annotation;
-    node: Scene;
-    point: Coords;
-    region?: _ModuleSupport.RegionName;
-}
-
-export interface StateClickEvent<Annotation, Scene> {
-    datum?: Annotation;
-    node?: Scene;
-    point: Coords;
-    region?: _ModuleSupport.RegionName;
-}
-
-export interface StateDragEvent<Annotation, Scene> extends StateClickEvent<Annotation, Scene> {}
-
 export interface AnnotationAxisContext
     extends Pick<
         _ModuleSupport.AxisContext,

@@ -100,8 +100,8 @@ export abstract class DataModelSeries<
 
     private computeFocusDatumIndex(opts: PickFocusInputs, nodeData: TDatum[]): number | undefined {
         const isDatumEnabled = (datumIndex: number): boolean => {
-            const { missing = false, enabled = true } = nodeData[datumIndex];
-            return !missing && enabled;
+            const { missing = false, enabled = true, focusable = true } = nodeData[datumIndex];
+            return !missing && enabled && focusable;
         };
         const searchBackward = (datumIndex: number): number | undefined => {
             while (datumIndex >= 0 && !isDatumEnabled(datumIndex)) {

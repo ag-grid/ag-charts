@@ -79,11 +79,17 @@ export const getOtherScriptFiles = async ({
 
     const contents: Record<string, string> = {};
     for (const [filename, content] of Object.entries(otherTsGeneratedFileContents)) {
-        contents[filename] = await prettier.format(content, { parser: 'typescript' });
+        contents[filename] = await prettier.format(content, {
+            parser: 'typescript',
+            embeddedLanguageFormatting: 'off',
+        });
     }
 
     for (const [filename, content] of Object.entries(otherJsFileContents)) {
-        contents[filename] = await prettier.format(content, { parser: 'typescript' });
+        contents[filename] = await prettier.format(content, {
+            parser: 'typescript',
+            embeddedLanguageFormatting: 'off',
+        });
     }
 
     return contents;

@@ -1,6 +1,6 @@
 import { type Formatter, _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import type { AnnotationAxisLabelProperties } from '../annotationProperties';
+import type { AxisLabelProperties } from '../annotationProperties';
 import type { AnnotationAxisContext } from '../annotationTypes';
 
 const { calculateLabelTranslation, ChartAxisDirection } = _ModuleSupport;
@@ -9,7 +9,7 @@ type UpdateOpts = {
     x: number;
     y: number;
     value: any;
-    styles: Partial<AnnotationAxisLabelProperties>;
+    styles: Partial<AxisLabelProperties>;
     context: AnnotationAxisContext;
 };
 

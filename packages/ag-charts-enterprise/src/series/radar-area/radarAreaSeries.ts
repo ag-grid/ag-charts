@@ -31,7 +31,7 @@ export class RadarAreaSeries extends RadarSeries {
     }
 
     protected getAreaNode() {
-        return this.areaSelection.nodes()[0];
+        return this.areaSelection.at(0)!;
     }
 
     protected override getMarkerFill(highlightedStyle?: _ModuleSupport.SeriesItemHighlightStyle) {

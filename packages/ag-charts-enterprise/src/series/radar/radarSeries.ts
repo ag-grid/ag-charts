@@ -535,7 +535,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     }
 
     protected getLineNode() {
-        return this.lineSelection.nodes()[0];
+        return this.lineSelection?.at(0)!;
     }
 
     protected beforePathAnimation() {

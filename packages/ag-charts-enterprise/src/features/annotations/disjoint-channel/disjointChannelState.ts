@@ -1,70 +1,81 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import type { Point, StateClickEvent, StateDragEvent, StateHoverEvent } from '../annotationTypes';
+import type { Point } from '../annotationTypes';
+import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import { DisjointChannelProperties } from './disjointChannelProperties';
 import type { DisjointChannelScene } from './disjointChannelScene';
 
-type Click = StateClickEvent<DisjointChannelProperties, DisjointChannelScene>;
-type Drag = StateDragEvent<DisjointChannelProperties, DisjointChannelScene>;
-type Hover = StateHoverEvent<DisjointChannelProperties, DisjointChannelScene>;
+const { StateMachine } = _ModuleSupport;
 
-export class DisjointChannelStateMachine extends _ModuleSupport.StateMachine<
+interface DisjointChannelStateMachineContext extends Omit<AnnotationsStateMachineContext, 'create'> {
+    create: (datum: DisjointChannelProperties) => void;
+    datum: () => DisjointChannelProperties | undefined;
+    node: () => DisjointChannelScene | undefined;
+}
+
+export class DisjointChannelStateMachine extends StateMachine<
     'start' | 'end' | 'height',
     'click' | 'hover' | 'drag' | 'cancel'
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
-    constructor(
-        appendDatum: (datum: DisjointChannelProperties) => void,
-        validateDatumPoint: (point: Point) => boolean
-    ) {
-        const onStartClick = ({ point }: Click | Drag) => {
+    constructor(ctx: DisjointChannelStateMachineContext) {
+        const onStartClick = ({ point }: { point: Point }) => {
             const datum = new DisjointChannelProperties();
             datum.set({ start: point, end: point, startHeight: 0, endHeight: 0 });
-            appendDatum(datum);
+            ctx.create(datum);
         };
 
-        const onEndHover = ({ datum, node, point }: Hover | Drag) => {
-            datum?.set({ end: point });
-            node?.toggleHandles({ topRight: false, bottomLeft: false, bottomRight: false });
+        const onEndHover = ({ point }: { point: Point }) => {
+            ctx.datum()?.set({ end: point });
+            ctx.node()?.toggleHandles({ topRight: false, bottomLeft: false, bottomRight: false });
+            ctx.update();
         };
 
-        const onEndClick = ({ datum, point }: Click) => {
-            datum?.set({ end: point });
+        const onEndClick = ({ point }: { point: Point }) => {
+            ctx.datum()?.set({ end: point });
         };
 
-        const onHeightHover = ({ datum, node, point }: Hover) => {
-            if (datum.start.y == null || datum.end.y == null) return;
+        const onHeightHover = ({ point }: { point: Point }) => {
+            const datum = ctx.datum();
 
-            const endHeight = datum.end.y - point.y;
+            if (datum?.start.y == null || datum?.end.y == null) return;
+
+            const endHeight = datum.end.y - (point.y ?? 0);
             const startHeight = (datum.start.y - datum.end.y) * 2 + endHeight;
 
             const bottomStart = { x: datum.start.x, y: datum.start.y - startHeight };
             const bottomEnd = { x: datum.end.x, y: point.y };
 
-            node.toggleHandles({ bottomLeft: false });
+            ctx.node()?.toggleHandles({ bottomLeft: false });
 
-            if (!validateDatumPoint(bottomStart) || !validateDatumPoint(bottomEnd)) {
+            if (!ctx.validatePoint(bottomStart) || !ctx.validatePoint(bottomEnd)) {
                 return;
             }
 
             datum.set({ startHeight, endHeight });
+            ctx.update();
         };
 
-        const onHeightClick = ({ datum, node, point }: Click) => {
-            if (!datum || !node || datum.start.y == null || datum.end.y == null) return;
+        const onHeightClick = ({ point }: { point: Point }) => {
+            const datum = ctx.datum();
 
-            const endHeight = datum.end.y - point.y;
+            if (datum?.start.y == null || datum?.end.y == null) return;
+
+            const endHeight = datum.end.y - (point.y ?? 0);
             const startHeight = (datum.start.y - datum.end.y) * 2 + endHeight;
 
             const bottomStart = { x: datum.start.x, y: datum.start.y - endHeight };
             const bottomEnd = { x: datum.end.x, y: point.y };
 
-            node.toggleHandles(true);
+            ctx.node()?.toggleHandles(true);
 
-            if (validateDatumPoint(bottomStart) && validateDatumPoint(bottomEnd)) {
-                datum.set({ startHeight, endHeight });
+            if (!ctx.validatePoint(bottomStart) || !ctx.validatePoint(bottomEnd)) {
+                return;
             }
+
+            datum.set({ startHeight, endHeight });
+            ctx.update();
         };
 
         super('start', {
@@ -77,7 +88,7 @@ export class DisjointChannelStateMachine extends _ModuleSupport.StateMachine<
                     target: 'end',
                     action: onStartClick,
                 },
-                cancel: '__parent',
+                cancel: StateMachine.parent,
             },
             end: {
                 hover: onEndHover,
@@ -86,15 +97,15 @@ export class DisjointChannelStateMachine extends _ModuleSupport.StateMachine<
                     action: onEndClick,
                 },
                 drag: onEndHover,
-                cancel: '__parent',
+                cancel: StateMachine.parent,
             },
             height: {
                 hover: onHeightHover,
                 click: {
-                    target: '__parent',
+                    target: StateMachine.parent,
                     action: onHeightClick,
                 },
-                cancel: '__parent',
+                cancel: StateMachine.parent,
             },
         });
     }

@@ -1,15 +1,15 @@
 import { _Util } from 'ag-charts-community';
 
-import type { AnnotationPoint } from '../annotationProperties';
+import type { PointProperties } from '../annotationProperties';
 import type { AnnotationContext, Coords } from '../annotationTypes';
 import { convertPoint, invertCoords } from '../annotationUtils';
-import { Annotation } from './annotationScene';
+import { AnnotationScene } from './annotationScene';
 
 const { Vec2 } = _Util;
 
 export abstract class LinearScene<
-    Datum extends { start: Pick<AnnotationPoint, 'x' | 'y'>; end: Pick<AnnotationPoint, 'x' | 'y'>; locked?: boolean },
-> extends Annotation {
+    Datum extends { start: Pick<PointProperties, 'x' | 'y'>; end: Pick<PointProperties, 'x' | 'y'>; locked?: boolean },
+> extends AnnotationScene {
     protected dragState?: {
         offset: Coords;
         start: Coords;
@@ -24,22 +24,17 @@ export abstract class LinearScene<
         };
     }
 
-    public drag(datum: Datum, target: Coords, context: AnnotationContext, onInvalid: () => void) {
+    public drag(datum: Datum, target: Coords, context: AnnotationContext) {
         if (datum.locked) return;
 
         if (this.activeHandle) {
-            this.dragHandle(datum, target, context, onInvalid);
+            this.dragHandle(datum, target, context);
         } else {
             this.dragAll(datum, target, context);
         }
     }
 
-    protected abstract dragHandle(
-        datum: Datum,
-        target: Coords,
-        context: AnnotationContext,
-        onInvalid: () => void
-    ): void;
+    protected abstract dragHandle(datum: Datum, target: Coords, context: AnnotationContext): void;
 
     protected dragAll(datum: Datum, target: Coords, context: AnnotationContext) {
         const { dragState } = this;
