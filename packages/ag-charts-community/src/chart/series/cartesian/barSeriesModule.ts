@@ -11,7 +11,7 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
     chartTypes: ['cartesian'],
 
     identifier: 'bar',
-    instanceConstructor: BarSeries,
+    moduleFactory: (ctx) => new BarSeries(ctx),
     stackable: true,
     groupable: true,
     tooltipDefaults: { range: 'exact' },

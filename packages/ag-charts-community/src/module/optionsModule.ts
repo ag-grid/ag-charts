@@ -45,7 +45,7 @@ type AxisType = 'category' | 'number' | 'log' | 'time' | 'ordinal-time';
 export interface AxisOptionModule<M extends ModuleInstance = ModuleInstance> extends BaseModule {
     type: 'axis-option';
     axisTypes: AxisType[];
-    instanceConstructor: new (ctx: ModuleContextWithParent<AxisContext>) => M;
+    moduleFactory: (ctx: ModuleContextWithParent<AxisContext>) => M;
     themeTemplate: {};
 }
 
@@ -492,7 +492,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 // If any of the axes type is invalid remove all user provided options in favour of our defaults.
                 if (!isAxisOptionType(type)) {
                     delete options.axes;
-                    const expectedTypes = Array.from(axisRegistry.publicKeys()).join(', ');
+                    const expectedTypes = axisRegistry.publicKeys().join(', ');
                     Logger.warnOnce(`unknown axis type: ${type}; expected one of: ${expectedTypes}`);
                 }
             }

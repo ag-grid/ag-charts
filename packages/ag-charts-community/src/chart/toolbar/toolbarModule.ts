@@ -172,7 +172,7 @@ export const ToolbarModule: Module = {
     optionsKey: 'toolbar',
     packageType: 'community',
     chartTypes: ['cartesian'],
-    instanceConstructor: Toolbar,
+    moduleFactory: (ctx) => new Toolbar(ctx),
     themeTemplate: {
         toolbar: {
             enabled: true,

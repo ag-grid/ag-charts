@@ -9,7 +9,7 @@ export const PieSeriesModule: SeriesModule<'pie'> = {
     chartTypes: ['polar'],
 
     identifier: 'pie',
-    instanceConstructor: PieSeries,
+    moduleFactory: (ctx) => new PieSeries(ctx),
     tooltipDefaults: { range: 'exact' },
     themeTemplate: pieTheme,
     paletteFactory: piePaletteFactory,

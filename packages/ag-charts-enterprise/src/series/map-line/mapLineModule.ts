@@ -13,7 +13,7 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
     chartTypes: ['topology'],
 
     identifier: 'map-line',
-    instanceConstructor: MapLineSeries,
+    moduleFactory: (ctx) => new MapLineSeries(ctx),
     tooltipDefaults: { range: 'exact' },
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,

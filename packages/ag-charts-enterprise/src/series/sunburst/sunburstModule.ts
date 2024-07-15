@@ -11,7 +11,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
     chartTypes: ['hierarchy'],
 
     identifier: 'sunburst',
-    instanceConstructor: SunburstSeries,
+    moduleFactory: (ctx) => new SunburstSeries(ctx),
     tooltipDefaults: { range: 'exact' },
     solo: true,
     themeTemplate: {

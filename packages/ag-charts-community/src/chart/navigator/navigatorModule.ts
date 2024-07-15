@@ -6,7 +6,7 @@ export const NavigatorModule: Module = {
     optionsKey: 'navigator',
     packageType: 'community',
     chartTypes: ['cartesian'],
-    instanceConstructor: Navigator,
+    moduleFactory: (ctx) => new Navigator(ctx),
     themeTemplate: {
         navigator: {
             enabled: false,

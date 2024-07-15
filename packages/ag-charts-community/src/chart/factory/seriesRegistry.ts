@@ -7,7 +7,7 @@ import type {
     AgTopologySeriesOptions,
 } from 'ag-charts-types';
 
-import type { SeriesConstructor, SeriesModule, SeriesTooltipDefaults } from '../../module/coreModules';
+import type { SeriesFactory, SeriesModule, SeriesTooltipDefaults } from '../../module/coreModules';
 import type { SeriesPaletteFactory } from '../../module/coreModulesTypes';
 import type { ModuleContext } from '../../module/moduleContext';
 import { deepClone } from '../../util/json';
@@ -24,7 +24,7 @@ export type SeriesOptions =
     | AgFlowProportionSeriesOptions;
 
 interface SeriesRegistryRecord {
-    instanceConstructor?: SeriesConstructor;
+    moduleFactory?: SeriesFactory;
     defaultAxes?: object[];
     tooltipDefaults?: SeriesTooltipDefaults;
     paletteFactory?: SeriesPaletteFactory;
@@ -43,7 +43,7 @@ export class SeriesRegistry {
         seriesType: NonNullable<SeriesType>,
         {
             chartTypes: [chartType],
-            instanceConstructor,
+            moduleFactory,
             tooltipDefaults,
             defaultAxes,
             themeTemplate,
@@ -58,7 +58,7 @@ export class SeriesRegistry {
     ) {
         this.setThemeTemplate(seriesType, themeTemplate);
         this.seriesMap.set(seriesType, {
-            instanceConstructor,
+            moduleFactory,
             tooltipDefaults,
             defaultAxes,
             paletteFactory,
@@ -75,9 +75,9 @@ export class SeriesRegistry {
     }
 
     create(seriesType: SeriesType, moduleContext: ModuleContext): ISeries<any, any> {
-        const SeriesConstructor = this.seriesMap.get(seriesType)?.instanceConstructor;
-        if (SeriesConstructor) {
-            return new SeriesConstructor(moduleContext);
+        const seriesFactory = this.seriesMap.get(seriesType)?.moduleFactory;
+        if (seriesFactory) {
+            return seriesFactory(moduleContext);
         }
         throw new Error(`AG Charts - unknown series type: ${seriesType}`);
     }

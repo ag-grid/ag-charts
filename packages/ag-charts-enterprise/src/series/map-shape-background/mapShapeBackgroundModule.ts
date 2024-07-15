@@ -12,7 +12,7 @@ export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-ba
     chartTypes: ['topology'],
 
     identifier: 'map-shape-background',
-    instanceConstructor: MapShapeBackgroundSeries,
+    moduleFactory: (ctx) => new MapShapeBackgroundSeries(ctx),
     tooltipDefaults: { range: 'exact' },
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
