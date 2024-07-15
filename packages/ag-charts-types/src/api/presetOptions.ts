@@ -3,7 +3,7 @@ export interface AgPriceVolumePreset {
      *
      *  Default: `'candlestick'`
      */
-    chartType?: 'candlestick' | 'hollow-candlestick' | 'ohlc' | 'line' | 'step-line' | 'range-area';
+    chartType?: 'candlestick' | 'hollow-candlestick' | 'ohlc' | 'line' | 'step-line' | 'range-area' | 'high-low';
     /** The key used to retrieve x-values from the data.
      *
      * Default: `'date'`

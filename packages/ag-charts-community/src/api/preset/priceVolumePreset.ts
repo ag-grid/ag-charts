@@ -12,12 +12,20 @@ import type {
     AgOhlcSeriesOptions,
     AgPriceVolumePreset,
     AgRangeAreaSeriesOptions,
+    AgRangeBarSeriesOptions,
     AgToolbarOptions,
     AgZoomOptions,
 } from 'ag-charts-types';
 
 import type { ChartTheme } from '../../chart/themes/chartTheme';
-import { PALETTE_DOWN_STROKE, PALETTE_NEUTRAL_STROKE, PALETTE_UP_STROKE } from '../../chart/themes/symbols';
+import {
+    PALETTE_DOWN_FILL,
+    PALETTE_DOWN_STROKE,
+    PALETTE_NEUTRAL_FILL,
+    PALETTE_NEUTRAL_STROKE,
+    PALETTE_UP_FILL,
+    PALETTE_UP_STROKE,
+} from '../../chart/themes/symbols';
 import { isObject } from '../../util/type-guards';
 
 function fromTheme<T>(
@@ -293,8 +301,7 @@ function createPriceSeries(
             ];
 
         case RANGE_AREA_TYPE:
-            const fill = fromTheme(theme, (t) => t.overrides?.['range-area']?.series?.fill);
-            const stoke = fromTheme(theme, (t) => t.overrides?.['range-area']?.series?.stroke);
+            const rangeAreaColors = getThemeColors(RANGE_AREA_TYPE, theme);
 
             return [
                 {
@@ -302,19 +309,31 @@ function createPriceSeries(
                     xKey,
                     yHighKey: highKey,
                     yLowKey: closeKey,
-                    fill: fill ?? PALETTE_UP_STROKE,
-                    stroke: stoke ?? PALETTE_UP_STROKE,
+                    fill: rangeAreaColors.fill ?? PALETTE_UP_FILL,
+                    stroke: rangeAreaColors.stroke ?? PALETTE_UP_STROKE,
                 } satisfies AgRangeAreaSeriesOptions,
                 {
                     type: RANGE_AREA_TYPE,
                     xKey,
                     yHighKey: closeKey,
                     yLowKey: lowKey,
-                    fill: fill ?? PALETTE_DOWN_STROKE,
-                    stroke: stoke ?? PALETTE_DOWN_STROKE,
+                    fill: rangeAreaColors.fill ?? PALETTE_DOWN_FILL,
+                    stroke: rangeAreaColors.stroke ?? PALETTE_DOWN_STROKE,
                 } satisfies AgRangeAreaSeriesOptions,
             ];
+        case 'high-low':
+            const rangeBarColors = getThemeColors('range-bar', theme);
 
+            return [
+                {
+                    type: 'range-bar',
+                    xKey,
+                    yHighKey: highKey,
+                    yLowKey: lowKey,
+                    fill: rangeBarColors.fill ?? PALETTE_NEUTRAL_FILL,
+                    stroke: rangeBarColors.stroke ?? PALETTE_NEUTRAL_STROKE,
+                } satisfies AgRangeBarSeriesOptions,
+            ];
         default:
         case 'candlestick':
             return [
@@ -338,4 +357,10 @@ function createPriceSeries(
                 } satisfies AgCandlestickSeriesOptions,
             ];
     }
+}
+
+function getThemeColors(seriesType: 'range-area' | 'range-bar', theme: AgChartThemeName | AgChartTheme | undefined) {
+    const fill = fromTheme(theme, (t) => t.overrides?.[seriesType]?.series?.fill);
+    const stroke = fromTheme(theme, (t) => t.overrides?.[seriesType]?.series?.stroke);
+    return { fill, stroke };
 }
