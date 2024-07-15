@@ -1,10 +1,12 @@
-import { _Scene } from 'ag-charts-community';
+import { _Scene, _Util } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords } from '../annotationTypes';
 import { convertPoint, invertCoords } from '../annotationUtils';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { DivariantHandle } from '../scenes/handle';
 import type { TextProperties } from './textProperties';
+
+const { Vec2 } = _Util;
 
 export class TextScene extends AnnotationScene {
     static override is(value: unknown): value is TextScene {
@@ -16,6 +18,11 @@ export class TextScene extends AnnotationScene {
 
     private readonly label = new _Scene.Text();
     private readonly handle = new DivariantHandle();
+
+    private dragState?: {
+        offset: Coords;
+        handle: Coords;
+    };
 
     constructor() {
         super();
@@ -56,16 +63,35 @@ export class TextScene extends AnnotationScene {
         });
     }
 
-    public drag(datum: TextProperties, target: Coords, context: AnnotationContext) {
-        if (datum.locked || this.activeHandle == null) return;
-
-        this.handle.toggleDragging(true);
-        const bbox = this.getCachedBBoxWithoutHandles();
-        const offsetTarget = {
-            x: target.x - bbox.width / 2,
-            y: target.y - (bbox.height + DivariantHandle.HANDLE_SIZE),
+    public dragStart(datum: TextProperties, target: Coords, context: AnnotationContext) {
+        this.dragState = {
+            offset: target,
+            handle: convertPoint(datum, context),
         };
-        const point = invertCoords(this.handle.drag(offsetTarget).point, context);
+    }
+
+    public drag(datum: TextProperties, target: Coords, context: AnnotationContext) {
+        const { activeHandle, dragState, handle } = this;
+
+        if (datum.locked) return;
+
+        let coords;
+
+        if (activeHandle) {
+            handle.toggleDragging(true);
+            const bbox = this.getCachedBBoxWithoutHandles();
+            const offsetTarget = {
+                x: target.x - bbox.width / 2,
+                y: target.y - (bbox.height + DivariantHandle.HANDLE_SIZE),
+            };
+            coords = handle.drag(offsetTarget).point;
+        } else if (dragState) {
+            coords = Vec2.add(dragState.handle, Vec2.sub(target, dragState.offset));
+        } else {
+            return;
+        }
+
+        const point = invertCoords(coords, context);
 
         datum.x = point.x;
         datum.y = point.y;

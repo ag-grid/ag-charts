@@ -83,7 +83,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
         const dragStateMachine = <
             D extends AnnotationProperties,
             N extends {
-                dragStart?: (datum: D, offset: _Util.Vec2, context: AnnotationContext) => void;
+                dragStart: (datum: D, offset: _Util.Vec2, context: AnnotationContext) => void;
                 drag: (datum: D, offset: _Util.Vec2, context: AnnotationContext) => void;
                 stopDragging: () => void;
             },
@@ -102,7 +102,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                             dragStart: {
                                 target: 'dragging',
                                 action: ({ offset, context }) => {
-                                    node()?.dragStart?.(datum()!, offset, context);
+                                    node()?.dragStart(datum()!, offset, context);
                                 },
                             },
                         },
@@ -207,14 +207,10 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 [AnnotationType.HorizontalLine]: new CrossLineStateMachine('horizontal', {
                     ...ctx,
                     create: createDatum<CrossLineProperties>(AnnotationType.HorizontalLine),
-                    datum: getDatum<HorizontalLineProperties>(HorizontalLineProperties.is),
-                    node: getNode<CrossLineScene>(CrossLineScene.is),
                 }),
                 [AnnotationType.VerticalLine]: new CrossLineStateMachine('vertical', {
                     ...ctx,
                     create: createDatum<CrossLineProperties>(AnnotationType.VerticalLine),
-                    datum: getDatum<VerticalLineProperties>(VerticalLineProperties.is),
-                    node: getNode<CrossLineScene>(CrossLineScene.is),
                 }),
 
                 // Channels
@@ -235,11 +231,14 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 [AnnotationType.Text]: new TextStateMachine({
                     ...ctx,
                     create: createDatum<TextProperties>(AnnotationType.Text),
+                    delete: () => {
+                        if (this.active) ctx.delete(this.active);
+                        this.active = ctx.select();
+                    },
                     datum: getDatum<TextProperties>(TextProperties.is),
                     node: getNode<TextScene>(TextScene.is),
                     showTextInput: () => {
-                        if (this.active == null) return;
-                        ctx.showTextInput(this.active);
+                        if (this.active) ctx.showTextInput(this.active);
                     },
                 }),
             },
@@ -294,13 +293,20 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     ctx.update();
                 },
 
-                keyDown: {
-                    guard: ({ key }: { key: string }) => key === 'Tab',
+                click: {
                     target: States.Idle,
-                    action: ({ value }: { value?: string }) => {
-                        ctx.datum(this.active!)?.set({ text: value ?? '' });
-                        ctx.update();
+                    action: ({ textInputValue }: { textInputValue?: string }) => {
+                        if (textInputValue) {
+                            ctx.datum(this.active!)?.set({ text: textInputValue });
+                        } else {
+                            ctx.delete(this.active!);
+                        }
                     },
+                },
+
+                keyDown: {
+                    guard: ({ key }: { key: string }) => key === 'Escape',
+                    target: States.Idle,
                 },
 
                 onExit: () => {
@@ -313,7 +319,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     ctx.hideTextInput();
                     datum.visible = true;
 
-                    ctx.update();
+                    this.active = this.hovered = ctx.select(undefined, this.active);
                 },
             },
         });
@@ -325,7 +331,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
     }
 
     // TODO: remove this leak
-    public isActive(index: Number) {
+    public isActive(index: number) {
         return index === this.active;
     }
 }

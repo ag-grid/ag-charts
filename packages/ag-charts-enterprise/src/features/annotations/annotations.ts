@@ -568,8 +568,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         const offset = Vec2.sub(Vec2.fromOffset(event), Vec2.required(seriesRect));
         const point = invertCoords(offset, context);
+        const textInputValue = this.textInput.getValue();
 
-        state.transition('click', { offset, point });
+        state.transition('click', { offset, point, textInputValue });
     }
 
     private onAxisButtonClick(coords?: Coords, direction?: Direction) {
@@ -667,9 +668,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (!context) return;
 
         const { key } = event.sourceEvent;
-        const value = this.textInput.getValue();
+        const textInputValue = this.textInput.getValue();
 
-        state.transition('keyDown', { key, value });
+        state.transition('keyDown', { key, textInputValue });
     }
 
     private toggleAnnotationOptionsButtons() {
