@@ -2,7 +2,7 @@ import { _Scene } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords } from '../annotationTypes';
 import { convertLine, invertCoords, validateDatumPoint } from '../annotationUtils';
-import { Annotation } from '../scenes/annotationScene';
+import { AnnotationScene } from '../scenes/annotationScene';
 import { DivariantHandle } from '../scenes/handle';
 import { LinearScene } from '../scenes/linearScene';
 import { CollidableLine } from '../scenes/shapes';
@@ -10,7 +10,7 @@ import type { LineProperties } from './lineProperties';
 
 export class LineScene extends LinearScene<LineProperties> {
     static override is(value: unknown): value is LineScene {
-        return Annotation.isCheck(value, 'line');
+        return AnnotationScene.isCheck(value, 'line');
     }
 
     type = 'line';
@@ -92,7 +92,7 @@ export class LineScene extends LinearScene<LineProperties> {
         this.end.toggleActive(active);
     }
 
-    override dragHandle(datum: LineProperties, target: Coords, context: AnnotationContext, onInvalid: () => void) {
+    override dragHandle(datum: LineProperties, target: Coords, context: AnnotationContext) {
         const { activeHandle } = this;
 
         if (!activeHandle) return;
@@ -100,10 +100,7 @@ export class LineScene extends LinearScene<LineProperties> {
         this[activeHandle].toggleDragging(true);
         const point = invertCoords(this[activeHandle].drag(target).point, context);
 
-        if (!validateDatumPoint(context, point)) {
-            onInvalid();
-            return;
-        }
+        if (!validateDatumPoint(context, point)) return;
 
         datum[activeHandle].x = point.x;
         datum[activeHandle].y = point.y;

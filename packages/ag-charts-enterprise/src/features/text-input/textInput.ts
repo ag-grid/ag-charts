@@ -38,7 +38,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
     }) {
         this.element.innerHTML = textInputTemplate;
 
-        const textArea = this.element.firstElementChild! as HTMLTextAreaElement;
+        const textArea = this.element.firstElementChild! as HTMLDivElement;
 
         textArea.innerText = opts.text ?? '';
 
@@ -52,6 +52,17 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
                 : opts.styles?.fontWeight ?? 'inherit';
 
         textArea.focus();
+
+        // Set the cursor to the end of the text
+        if (textArea.lastChild?.textContent != null) {
+            const range = document.createRange();
+            range.setStart(textArea.lastChild, textArea.lastChild.textContent.length);
+            range.setEnd(textArea.lastChild, textArea.lastChild.textContent.length);
+
+            const selection = window.getSelection();
+            selection?.removeAllRanges();
+            selection?.addRange(range);
+        }
 
         textArea.oninput = () => {
             this.updatePosition();
@@ -75,14 +86,14 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     public getValue() {
         if (!this.element.firstElementChild) return;
-        return (this.element.firstElementChild as HTMLTextAreaElement).innerText;
+        return (this.element.firstElementChild as HTMLDivElement).innerText;
     }
 
     private updatePosition() {
         const { element, layout } = this;
         const { bbox, position, alignment } = layout;
 
-        const textArea = element.firstElementChild as HTMLTextAreaElement | undefined;
+        const textArea = element.firstElementChild as HTMLDivElement | undefined;
 
         const height = textArea?.offsetHeight ?? bbox.height;
         const width = textArea?.offsetWidth ?? bbox.width;
@@ -105,17 +116,14 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         switch (alignment) {
             case 'left':
                 element.style.setProperty('left', `${bbox.x}px`);
-                element.style.setProperty('right', 'unset');
                 textArea?.style.setProperty(textAlign, 'left');
                 break;
             case 'center':
                 element.style.setProperty('left', `${bbox.x - width / 2}px`);
-                element.style.setProperty('right', 'unset');
                 textArea?.style.setProperty(textAlign, 'center');
                 break;
             case 'right':
-                element.style.setProperty('left', 'unset');
-                element.style.setProperty('right', `${bbox.x}px`);
+                element.style.setProperty('left', `${bbox.x - width}px`);
                 textArea?.style.setProperty(textAlign, 'right');
                 break;
         }

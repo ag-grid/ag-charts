@@ -1,14 +1,14 @@
 import { _Scene } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords } from '../annotationTypes';
-import { convertPoint, invertCoords, validateDatumPoint } from '../annotationUtils';
-import { Annotation } from '../scenes/annotationScene';
+import { convertPoint, invertCoords } from '../annotationUtils';
+import { AnnotationScene } from '../scenes/annotationScene';
 import { DivariantHandle } from '../scenes/handle';
 import type { TextProperties } from './textProperties';
 
-export class TextScene extends Annotation {
+export class TextScene extends AnnotationScene {
     static override is(value: unknown): value is TextScene {
-        return Annotation.isCheck(value, 'text');
+        return AnnotationScene.isCheck(value, 'text');
     }
 
     override type = 'text';
@@ -35,7 +35,8 @@ export class TextScene extends Annotation {
         this.label.fontSize = datum.fontSize;
         this.label.fontStyle = datum.fontStyle;
         this.label.fontWeight = datum.fontWeight;
-        this.label.textAlign = datum.textAlign;
+        this.label.textAlign = datum.alignment;
+        this.label.textBaseline = datum.position == 'center' ? 'middle' : datum.position;
 
         const handleStyles = {
             fill: datum.handle.fill,
@@ -44,27 +45,27 @@ export class TextScene extends Annotation {
             strokeWidth: datum.handle.strokeWidth,
         };
 
+        let bbox = this.getCachedBBoxWithoutHandles();
+        if (bbox.width === 0 && bbox.height === 0) {
+            bbox = this.computeBBoxWithoutHandles();
+        }
         this.handle.update({
             ...handleStyles,
-            x: coords.x,
-            y: coords.y + DivariantHandle.HANDLE_SIZE,
+            x: coords.x + bbox.width / 2,
+            y: coords.y + bbox.height + DivariantHandle.HANDLE_SIZE,
         });
     }
 
-    public drag(datum: TextProperties, target: Coords, context: AnnotationContext, onInvalid: () => void) {
+    public drag(datum: TextProperties, target: Coords, context: AnnotationContext) {
         if (datum.locked || this.activeHandle == null) return;
 
         this.handle.toggleDragging(true);
+        const bbox = this.getCachedBBoxWithoutHandles();
         const offsetTarget = {
-            x: target.x,
-            y: target.y - DivariantHandle.HANDLE_SIZE,
+            x: target.x - bbox.width / 2,
+            y: target.y - (bbox.height + DivariantHandle.HANDLE_SIZE),
         };
         const point = invertCoords(this.handle.drag(offsetTarget).point, context);
-
-        if (!validateDatumPoint(context, point)) {
-            onInvalid();
-            return;
-        }
 
         datum.x = point.x;
         datum.y = point.y;
@@ -87,10 +88,6 @@ export class TextScene extends Annotation {
     override getAnchor() {
         const bbox = this.getCachedBBoxWithoutHandles();
         return { x: bbox.x + bbox.width / 2, y: bbox.y };
-    }
-
-    public getTextRect() {
-        return this.getCachedBBoxWithoutHandles();
     }
 
     override getCursor() {

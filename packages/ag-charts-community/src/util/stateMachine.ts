@@ -1,13 +1,25 @@
 import { Debug } from './debug';
 
 type StateDefinition<State extends string, Event extends string> = {
-    [key in Event]?: StateTransition<State> | StateTransitionAction | State | HierarchyState | StateMachine<any, any>;
+    [key in Event]?: Destination<State>;
 };
-type StateUtils = {
-    onEnter?: () => void;
+type Destination<State extends string> =
+    | Array<StateTransition<State>>
+    | StateTransition<State>
+    | StateTransitionAction
+    | State
+    | HierarchyState
+    | StateMachine<any, any>;
+type StateUtils<State extends string> = {
+    onEnter?: (from?: State, data?: any) => void;
     onExit?: () => void;
 };
 type StateTransition<State> = {
+    /**
+     * Return `false` to prevent the action and transition. The FSM will pick the first transition that passes its
+     * guard or does not have one.
+     */
+    guard?: (data?: any) => boolean;
     target: State | HierarchyState | StateMachine<any, any>;
     action?: StateTransitionAction;
 };
@@ -15,6 +27,7 @@ type StateTransitionAction = (data?: any) => void;
 type HierarchyState = '__parent' | '__child';
 
 const debugColor = 'color: green';
+const debugQuietColor = 'color: grey';
 
 /**
  * A Hierarchical Finite State Machine is a system that must be in exactly one of a list of states, where those states
@@ -31,7 +44,7 @@ export class StateMachine<State extends string, Event extends string> {
 
     constructor(
         private readonly defaultState: State,
-        private readonly states: Record<State, StateDefinition<State, Event> & StateUtils>,
+        private readonly states: Record<State, StateDefinition<State, Event> & StateUtils<State>>,
         private readonly enterEach?: (from: State | HierarchyState, to: State | HierarchyState) => void
     ) {
         this.state = defaultState;
@@ -39,6 +52,7 @@ export class StateMachine<State extends string, Event extends string> {
         this.debug(`%c${this.constructor.name} | init -> ${defaultState}`, debugColor);
     }
 
+    // TODO: make this `protected` to prevent leaky design
     is(value: any): boolean {
         if (this.state === StateMachine.child && this.childState) {
             return this.childState.is(value);
@@ -55,32 +69,57 @@ export class StateMachine<State extends string, Event extends string> {
 
         const currentState = this.state;
         const currentStateConfig = this.states[this.state];
-        const destinationTransition = currentStateConfig?.[event];
+        let destination: Destination<State> | undefined = currentStateConfig[event];
 
-        if (!destinationTransition) {
-            this.debug(`%c${this.constructor.name} | ${this.state} -> ${event} -> ${this.state}`, 'color: grey');
+        const debugPrefix = `%c${this.constructor.name} | ${this.state} -> ${event} ->`;
+
+        if (Array.isArray(destination)) {
+            destination = destination.find((transition) => {
+                if (!transition.guard) return true;
+                const valid = transition.guard(data);
+                if (!valid) {
+                    this.debug(`${debugPrefix} ${transition.target} (guarded)`, debugQuietColor);
+                }
+                return valid;
+            });
+        } else if (
+            typeof destination === 'object' &&
+            !(destination instanceof StateMachine) &&
+            destination.guard &&
+            !destination.guard(data)
+        ) {
+            this.debug(`${debugPrefix} ${destination.target} (guarded)`, debugQuietColor);
             return;
         }
 
-        const destinationState = this.getDestinationState(destinationTransition);
+        if (!destination) {
+            this.debug(`${debugPrefix} ${this.state}`, debugQuietColor);
+            return;
+        }
+
+        const destinationState = this.getDestinationState(destination);
         const exitFn = destinationState === this.state ? undefined : currentStateConfig.onExit;
 
-        this.debug(`%c${this.constructor.name} | ${this.state} -> ${event} -> ${destinationState}`, debugColor);
+        this.debug(`${debugPrefix} ${destinationState}`, debugColor);
 
         // Change the state before calling the transition action to allow the action to trigger a subsequent transition
         this.state = destinationState;
 
-        if (typeof destinationTransition === 'function') {
-            destinationTransition(data);
-        } else if (typeof destinationTransition === 'object' && !(destinationTransition instanceof StateMachine)) {
-            destinationTransition.action?.(data);
+        if (typeof destination === 'function') {
+            destination(data);
+        } else if (typeof destination === 'object' && !(destination instanceof StateMachine)) {
+            destination.action?.(data);
         }
 
         exitFn?.();
 
         this.enterEach?.(currentState, destinationState);
-        if (destinationState !== StateMachine.child && destinationState !== StateMachine.parent) {
-            this.states[destinationState].onEnter?.();
+        if (
+            destinationState !== currentState &&
+            destinationState !== StateMachine.child &&
+            destinationState !== StateMachine.parent
+        ) {
+            this.states[destinationState].onEnter?.(currentState, data);
         }
     }
 
@@ -108,21 +147,21 @@ export class StateMachine<State extends string, Event extends string> {
     }
 
     private getDestinationState(
-        transition: StateTransition<State> | StateTransitionAction | State | HierarchyState | StateMachine<any, any>
+        destination: StateTransition<State> | StateTransitionAction | State | HierarchyState | StateMachine<any, any>
     ) {
         let state: State | HierarchyState = this.state;
 
-        if (typeof transition === 'string') {
-            state = transition as State;
-        } else if (transition instanceof StateMachine) {
-            this.childState = transition;
+        if (typeof destination === 'string') {
+            state = destination as State;
+        } else if (destination instanceof StateMachine) {
+            this.childState = destination;
             state = StateMachine.child;
-        } else if (typeof transition === 'object') {
-            if (transition.target instanceof StateMachine) {
-                this.childState = transition.target;
+        } else if (typeof destination === 'object') {
+            if (destination.target instanceof StateMachine) {
+                this.childState = destination.target;
                 state = StateMachine.child;
             } else {
-                state = transition.target;
+                state = destination.target;
             }
         }
 

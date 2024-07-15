@@ -4,7 +4,7 @@ import { Handle } from './handle';
 
 const { isObject } = _ModuleSupport;
 
-export abstract class Annotation extends _Scene.Group {
+export abstract class AnnotationScene extends _Scene.Group {
     static isCheck(value: unknown, type: string) {
         return isObject(value) && Object.hasOwn(value, 'type') && value.type === type;
     }
