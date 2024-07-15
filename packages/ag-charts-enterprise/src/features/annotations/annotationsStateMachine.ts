@@ -207,14 +207,10 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 [AnnotationType.HorizontalLine]: new CrossLineStateMachine('horizontal', {
                     ...ctx,
                     create: createDatum<CrossLineProperties>(AnnotationType.HorizontalLine),
-                    datum: getDatum<HorizontalLineProperties>(HorizontalLineProperties.is),
-                    node: getNode<CrossLineScene>(CrossLineScene.is),
                 }),
                 [AnnotationType.VerticalLine]: new CrossLineStateMachine('vertical', {
                     ...ctx,
                     create: createDatum<CrossLineProperties>(AnnotationType.VerticalLine),
-                    datum: getDatum<VerticalLineProperties>(VerticalLineProperties.is),
-                    node: getNode<CrossLineScene>(CrossLineScene.is),
                 }),
 
                 // Channels
@@ -325,7 +321,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
     }
 
     // TODO: remove this leak
-    public isActive(index: Number) {
+    public isActive(index: number) {
         return index === this.active;
     }
 }
