@@ -231,11 +231,14 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 [AnnotationType.Text]: new TextStateMachine({
                     ...ctx,
                     create: createDatum<TextProperties>(AnnotationType.Text),
+                    delete: () => {
+                        if (this.active) ctx.delete(this.active);
+                        this.active = ctx.select();
+                    },
                     datum: getDatum<TextProperties>(TextProperties.is),
                     node: getNode<TextScene>(TextScene.is),
                     showTextInput: () => {
-                        if (this.active == null) return;
-                        ctx.showTextInput(this.active);
+                        if (this.active) ctx.showTextInput(this.active);
                     },
                 }),
             },
@@ -290,13 +293,20 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     ctx.update();
                 },
 
-                keyDown: {
-                    guard: ({ key }: { key: string }) => key === 'Tab',
+                click: {
                     target: States.Idle,
-                    action: ({ value }: { value?: string }) => {
-                        ctx.datum(this.active!)?.set({ text: value ?? '' });
-                        ctx.update();
+                    action: ({ textInputValue }: { textInputValue?: string }) => {
+                        if (textInputValue) {
+                            ctx.datum(this.active!)?.set({ text: textInputValue });
+                        } else {
+                            ctx.delete(this.active!);
+                        }
                     },
+                },
+
+                keyDown: {
+                    guard: ({ key }: { key: string }) => key === 'Escape',
+                    target: States.Idle,
                 },
 
                 onExit: () => {
@@ -309,7 +319,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     ctx.hideTextInput();
                     datum.visible = true;
 
-                    ctx.update();
+                    this.active = this.hovered = ctx.select(undefined, this.active);
                 },
             },
         });

@@ -9,6 +9,7 @@ const { StateMachine } = _ModuleSupport;
 
 interface TextStateMachineContext extends Omit<AnnotationsStateMachineContext, 'create'> {
     create: (datum: TextProperties) => void;
+    delete: () => void;
     datum: () => TextProperties | undefined;
     node: () => TextScene | undefined;
     showTextInput: () => void;
@@ -24,9 +25,13 @@ export class TextStateMachine extends StateMachine<'start' | 'edit', 'click' | '
             ctx.create(datum);
         };
 
-        const onInput = ({ value }: { value?: string }) => {
-            ctx.datum()?.set({ text: value ?? '' });
-            ctx.update();
+        const onSave = ({ textInputValue }: { textInputValue?: string }) => {
+            if (textInputValue) {
+                ctx.datum()?.set({ text: textInputValue });
+                ctx.update();
+            } else {
+                ctx.delete();
+            }
         };
 
         super('start', {
@@ -42,9 +47,15 @@ export class TextStateMachine extends StateMachine<'start' | 'edit', 'click' | '
                     ctx.showTextInput();
                 },
                 keyDown: {
-                    guard: ({ key }: { key: string }) => key === 'Tab',
+                    guard: ({ key }: { key: string }) => key === 'Escape',
                     target: StateMachine.parent,
-                    action: onInput,
+                    action: () => {
+                        ctx.delete();
+                    },
+                },
+                click: {
+                    target: StateMachine.parent,
+                    action: onSave,
                 },
                 cancel: StateMachine.parent,
                 onExit: () => {
