@@ -55,7 +55,6 @@ interface TickData {
 
 export class AxisTicks {
     static readonly DefaultTickCount = 5;
-    static readonly DefaultMaxTickCount = 6;
     static readonly DefaultMinSpacing = 50;
 
     readonly id = createId(this);
