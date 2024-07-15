@@ -8,7 +8,7 @@ import {
 
 const { BOOLEAN, OBJECT, POSITION, POSITIVE_NUMBER, BaseProperties, AxisTicks, Layers, ProxyProperty, Validate } =
     _ModuleSupport;
-const { Group, Rect, LinearGradientFill, Triangle } = _Scene;
+const { Group, Rect, LinearGradientFill, Triangle, BBox } = _Scene;
 const { createId } = _Util;
 
 class GradientBar extends BaseProperties {
@@ -178,12 +178,12 @@ export class GradientLegend {
         const positiveAxis = this.reverseOrder !== vertical;
 
         axisTicks.position = this.position;
-        axisTicks.translation.x = vertical ? this.gradient.thickness : 0;
-        axisTicks.translation.y = vertical ? 0 : this.gradient.thickness;
+        axisTicks.translationX = vertical ? this.gradient.thickness : 0;
+        axisTicks.translationY = vertical ? 0 : this.gradient.thickness;
         axisTicks.scale.domain = positiveAxis ? data.colorDomain.slice().reverse() : data.colorDomain;
         axisTicks.scale.range = vertical ? [0, this.gradientRect.height] : [0, this.gradientRect.width];
 
-        return axisTicks.calculateLayout();
+        return BBox.merge([axisTicks.calculateLayout(), this.gradientRect.computeBBox()]);
     }
 
     private updateArrow() {

@@ -59,16 +59,16 @@ export class AxisTicks {
 
     readonly id = createId(this);
 
+    protected readonly axisGroup = new Group({ name: `${this.id}-AxisTicks`, zIndex: Layers.AXIS_ZINDEX });
+    protected readonly labelSelection = Selection.select<Text, LabelNodeDatum>(this.axisGroup, Text, false);
+
     readonly interval = new AxisInterval();
     readonly label = new AxisLabel();
     readonly scale = new LinearScale();
 
-    protected readonly axisGroup = new Group({ name: `${this.id}-AxisTicks`, zIndex: Layers.AXIS_ZINDEX });
-    protected readonly labelSelection = Selection.select<Text, LabelNodeDatum>(this.axisGroup, Text, false);
-
-    readonly translation = { x: 0, y: 0 };
-
     position: AgChartLegendPosition = 'bottom';
+    translationX: number = 0;
+    translationY: number = 0;
 
     private getLabelParams(datum: TickDatum): LabelParams {
         const { padding } = this;
@@ -103,7 +103,7 @@ export class AxisTicks {
      * @param x A point (or object's starting point).
      * @param tolerance Expands the range on both ends by this amount.
      */
-    private inRange(x: number, tolerance = 0): boolean {
+    private inRange(x: number, tolerance = 0.001): boolean {
         const [min, max] = findMinMax(this.scale.range);
         return x >= min - tolerance && x <= max + tolerance;
     }
@@ -133,16 +133,9 @@ export class AxisTicks {
     calculateLayout(): BBox {
         this.scale.interval = this.interval.step;
 
-        const vertical = this.position === 'left' || this.position === 'right';
+        const boxes: BBox[] = [];
         const tickData = this.generateTicks();
-        const boxes = [
-            new BBox(
-                vertical ? -this.padding : 0,
-                vertical ? 0 : -this.padding,
-                vertical ? 0 : this.translation.y,
-                vertical ? this.translation.x : 0
-            ),
-        ];
+        const { translationX, translationY } = this;
 
         this.labelSelection.update(
             tickData.ticks.map((d) => this.createLabelDatum(d)),
@@ -158,10 +151,7 @@ export class AxisTicks {
             }
         });
 
-        this.axisGroup.setProperties({
-            translationX: this.translation.x,
-            translationY: this.translation.y,
-        });
+        this.axisGroup.setProperties({ translationX, translationY });
 
         return BBox.merge(boxes);
     }
@@ -227,7 +217,7 @@ export class AxisTicks {
 
             // Do not render ticks outside the range with a small tolerance. A clip rect would trim long labels, so
             // instead hide ticks based on their translation.
-            if (!this.inRange(translate, 0.001)) continue;
+            if (!this.inRange(translate)) continue;
 
             const tickLabel =
                 this.label.formatter?.({ value: tick, index: i, fractionDigits }) ??
