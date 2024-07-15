@@ -40,6 +40,14 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         const textArea = this.element.firstElementChild! as HTMLDivElement;
 
+        // FireFox does not yet support `contenteditable="plaintext-only", so it defaults to false and has to be
+        // added back on to the element as the normal richtext version. The plaintext version is preferred as
+        // it handles newlines better without requiring any custom text processing.
+        // @see https://bugzilla.mozilla.org/show_bug.cgi?id=1291467
+        if (!textArea.isContentEditable) {
+            textArea.contentEditable = 'true';
+        }
+
         textArea.innerText = opts.text ?? '';
 
         textArea.style.color = opts.styles?.color ?? 'inherit';
@@ -66,7 +74,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         textArea.oninput = () => {
             this.updatePosition();
-            opts.onChange?.(textArea.innerText);
+            opts.onChange?.(this.getValue()!);
         };
     }
 
@@ -86,7 +94,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     public getValue() {
         if (!this.element.firstElementChild) return;
-        return (this.element.firstElementChild as HTMLDivElement).innerText;
+        return (this.element.firstElementChild as HTMLDivElement).innerText.trim();
     }
 
     private updatePosition() {
