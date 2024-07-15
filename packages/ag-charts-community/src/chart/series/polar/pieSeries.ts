@@ -689,26 +689,25 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             labelSelection,
         } = this;
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
-        const highlightedLabelData =
+        const highlightedNodeData =
             highlightedDatum?.series === this
-                ? this.nodeData.filter((label) => label.itemId === highlightedDatum?.itemId)
+                ? this.nodeData
+                      .filter((label) => label.itemId === highlightedDatum?.itemId)
+                      // Allow mutable sectorFormat, so formatted sector styles can be updated and varied
+                      // between normal and highlighted cases.
+                      .map((datum) => ({ ...datum, sectorFormat: { ...datum.sectorFormat } }))
                 : [];
 
-        const update = (selection: typeof this.itemSelection, nodeData: PieNodeDatum[], highlight: boolean) => {
-            if (highlight) {
-                // Allow mutable sectorFormat, so formatted sector styles can be updated and varied
-                // between normal and highlighted cases.
-                nodeData = nodeData.map((datum) => ({ ...datum, sectorFormat: { ...datum.sectorFormat } }));
-            }
+        const update = (selection: typeof this.itemSelection, nodeData: PieNodeDatum[]) => {
             selection.update(nodeData, undefined, (datum) => this.getDatumId(datum));
             if (this.ctx.animationManager.isSkipped()) {
                 selection.cleanup();
             }
         };
 
-        update(itemSelection, this.nodeData, false);
-        update(highlightSelection, this.nodeData, true);
-        update(phantomSelection, this.phantomNodeData ?? [], false);
+        update(itemSelection, this.nodeData);
+        update(highlightSelection, highlightedNodeData);
+        update(phantomSelection, this.phantomNodeData ?? []);
 
         calloutLabelSelection.update(this.calloutNodeData, (group) => {
             const line = new Line();
@@ -723,7 +722,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         });
 
         labelSelection.update(this.nodeData);
-        highlightLabelSelection.update(highlightedLabelData);
+        highlightLabelSelection.update(highlightedNodeData);
     }
 
     private async updateNodes(seriesRect: BBox) {
