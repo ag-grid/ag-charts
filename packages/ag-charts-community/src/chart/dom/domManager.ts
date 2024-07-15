@@ -269,9 +269,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         const windowBBox = new BBox(0, 0, window.innerWidth, window.innerHeight);
         const container = this.getRawOverlayClientRect();
 
-        if (container == null) return windowBBox.toDOMRect();
-
-        const containerBBox = BBox.fromDOMRect(container);
+        const containerBBox = BBox.fromDOMRect(container ?? this.getBoundingClientRect());
         return windowBBox.intersection(containerBBox)?.toDOMRect() ?? NULL_DOMRECT;
     }
 
@@ -285,7 +283,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             const overflowX = styleMap?.get('overflow-x')?.toString();
             const overflowY = styleMap?.get('overflow-y')?.toString();
 
-            if (overflowX !== 'visible' || overflowY !== 'visible') {
+            if ((overflowX != null && overflowX !== 'visible') || (overflowY && overflowY !== 'visible')) {
                 return element.getBoundingClientRect();
             }
 
