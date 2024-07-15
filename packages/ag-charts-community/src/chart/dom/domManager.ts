@@ -281,9 +281,11 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         // Try and find a parent which will clip rendering of children - if found we should restrict
         // to that elements bounding box.
         while (element != null) {
-            const overflow = element.computedStyleMap?.().get('overflow')?.toString();
+            const styleMap = element.computedStyleMap?.();
+            const overflowX = styleMap?.get('overflow-x')?.toString();
+            const overflowY = styleMap?.get('overflow-y')?.toString();
 
-            if (overflow === 'clip' || overflow === 'hidden' || overflow === 'scroll' || overflow === 'auto') {
+            if (overflowX !== 'visible' || overflowY !== 'visible') {
                 return element.getBoundingClientRect();
             }
 

@@ -166,6 +166,10 @@ export class Tooltip extends BaseProperties {
     @Validate(BOOLEAN)
     darkTheme = false;
 
+    /** Escape-hatch for changes in AG-11645. */
+    @Validate(UNION(['extended', 'canvas']))
+    bounds: 'extended' | 'canvas' = 'extended';
+
     private enableInteraction: boolean = false;
     private lastVisibilityChange: number = Date.now();
     private readonly wrapTypes = ['always', 'hyphenate', 'on-space', 'never'];
