@@ -83,7 +83,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
         const dragStateMachine = <
             D extends AnnotationProperties,
             N extends {
-                dragStart?: (datum: D, offset: _Util.Vec2, context: AnnotationContext) => void;
+                dragStart: (datum: D, offset: _Util.Vec2, context: AnnotationContext) => void;
                 drag: (datum: D, offset: _Util.Vec2, context: AnnotationContext) => void;
                 stopDragging: () => void;
             },
@@ -102,7 +102,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                             dragStart: {
                                 target: 'dragging',
                                 action: ({ offset, context }) => {
-                                    node()?.dragStart?.(datum()!, offset, context);
+                                    node()?.dragStart(datum()!, offset, context);
                                 },
                             },
                         },
