@@ -268,7 +268,9 @@ See the [LICENSE file](./LICENSE.txt) for more info.
 
 <div><h2><img vertical-align="middle" width="32" height="32" src="https://github.com/ag-grid/ag-grid/blob/latest/documentation/ag-grid-docs/public/images/ag-logos/svg-logos/AG-BrandMark_Light-Theme.svg?raw=true" alt="AG ChartsLogo">AG Grid</h2></div>
 
-TODO:
+AG Grid is our flagship product, a fully-featured and highly customizable JavaScript Data Grid. It delivers outstanding performance, has no third-party dependencies and comes with support for React Logo React, Angular Logo Angular and Vue Logo Vue.
+
+AG Charts is used within AG Grid to power the [Integrated Charting](https://www.ag-grid.com/javascript-data-grid/integrated-charts/) feature.
 
 Learn more at [ag-grid.com](https://ag-grid.com/)
 
