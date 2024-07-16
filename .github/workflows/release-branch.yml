@@ -50,12 +50,6 @@ jobs:
               run: |
                   yarn install --ignore-scripts
 
-            - name: Merge Latest
-              id: merge_branch
-              if: ${{ github.event.inputs.type == 'update' }}
-              run: |
-                  git merge origin/latest
-
             - name: Reset Package Version
               id: reset_version
               if: ${{ github.event.inputs.type == 'create' }}
