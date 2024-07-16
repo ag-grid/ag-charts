@@ -2,7 +2,7 @@
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://github.com/ag-grid/ag-grid/blob/latest/documentation/ag-grid-docs/public/images/ag-logos/svg-logos/AG-Charts-Logo_Dark-Theme.svg?raw=true"/>
       <source media="(prefers-color-scheme: light)" srcset="https://github.com/ag-grid/ag-grid/blob/latest/documentation/ag-grid-docs/public/images/ag-logos/svg-logos/AG-Charts-Logo_Light-Theme.svg?raw=true"/>
-      <img width="100%" alt="AG Grid Logo" src="https://github.com/ag-grid/ag-grid/blob/latest/documentation/ag-grid-docs/public/images/ag-logos/svg-logos/AG-Charts-Logo_Dark-Theme.svg?raw=true"/>
+      <img width="100%" alt="AG Charts Logo" src="https://github.com/ag-grid/ag-grid/blob/latest/documentation/ag-grid-docs/public/images/ag-logos/svg-logos/AG-Charts-Logo_Dark-Theme.svg?raw=true"/>
     </picture>
     <div align="center">
         <h4><a href="https://charts.ag-grid.com">🌐 Website</a> • <a href="https://www.ag-grid.com/javascript-data-grid/getting-started/">📖 Documentation</a> • <a href="https://charts.ag-grid.com/gallery/">📊 Gallery</a></h4>
@@ -38,7 +38,7 @@
     <br>
 </div>
 
-<img src="./packages/ag-charts-website/public/images/readme-assets/gallery-shadows.gif">
+<img src="./packages/ag-charts-website/public/images/readme-assets/gallery-shadows.gif" alt="Preview of AG Charts JavaScript Charting Examples">
 
 ## 📖 Overview
 
