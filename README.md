@@ -81,7 +81,7 @@ AG Charts is available in two versions: Community & Enterprise.
 
 ### Features & Chart Types
 
-AG Charts offers over 20+ chart types, each of which are fully customisable:
+AG Charts offers 20+ chart types, each of which are fully customisable:
 
 | Chart Type                                                            | AG Charts Community | AG Charts Enterprise |
 | --------------------------------------------------------------------- | ------------------- | -------------------- |
