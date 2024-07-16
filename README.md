@@ -83,31 +83,34 @@ AG Charts is available in two versions: Community & Enterprise.
 
 AG Charts offers 20+ chart types, each of which are fully customisable:
 
-| Chart Type                                                            | AG Charts Community | AG Charts Enterprise |
-| --------------------------------------------------------------------- | ------------------- | -------------------- |
-| [Bar](https://charts.ag-grid.com/gallery/simple-bar/)                 | ✅                  | ✅                   |
-| [Line](https://charts.ag-grid.com/gallery/multiple-line-series/)      | ✅                  | ✅                   |
-| [Area](https://charts.ag-grid.com/gallery/stacked-area/)              | ✅                  | ✅                   |
-| [Scatter](https://charts.ag-grid.com/gallery/simple-scatter/)         | ✅                  | ✅                   |
-| [Bubble](https://charts.ag-grid.com/gallery/simple-bubble/)           | ✅                  | ✅                   |
-| [Pie](https://charts.ag-grid.com/gallery/simple-pie/)                 | ✅                  | ✅                   |
-| [Donut](https://charts.ag-grid.com/gallery/multiple-donuts/)          | ✅                  | ✅                   |
-| [Combination](https://charts.ag-grid.com/gallery/combination-chart/)  | ✅                  | ✅                   |
-| [Box Plot](https://charts.ag-grid.com/gallery/simple-box-plot/)       | ❌                  | ✅                   |
-| [Bullet](https://charts.ag-grid.com/gallery/simple-bullet/)           | ❌                  | ✅                   |
-| [Candlestick](https://charts.ag-grid.com/gallery/candlestick-chart/)  | ❌                  | ✅                   |
-| [OHLC](https://charts.ag-grid.com/gallery/ohlc-chart/)                | ❌                  | ✅                   |
-| [Heatmap](https://charts.ag-grid.com/gallery/heatmap-with-labels/)    | ❌                  | ✅                   |
-| [Histogram](https://charts.ag-grid.com/gallery/simple-histogram/)     | ❌                  | ✅                   |
-| [Nightingale](https://charts.ag-grid.com/gallery/simple-nightingale/) | ❌                  | ✅                   |
-| [Radar](https://charts.ag-grid.com/gallery/radar-area-with-labels/)   | ❌                  | ✅                   |
-| [Radial](https://charts.ag-grid.com/gallery/simple-radial-column/)    | ❌                  | ✅                   |
-| [Range](https://charts.ag-grid.com/gallery/simple-range-area/)        | ❌                  | ✅                   |
-| [Sunburst](https://charts.ag-grid.com/gallery/simple-sunburst/)       | ❌                  | ✅                   |
-| [Treemap](https://charts.ag-grid.com/gallery/treemap/)                | ❌                  | ✅                   |
-| [Waterfall](https://charts.ag-grid.com/gallery/customised-waterfall/) | ❌                  | ✅                   |
-| [Sankey](https://charts.ag-grid.com/gallery/sankey/)                  | ❌                  | ✅                   |
-| [Chord](https://charts.ag-grid.com/gallery/chord-diagram/)            | ❌                  | ✅                   |
+| Chart Type                                                                | AG Charts Community | AG Charts Enterprise |
+| ------------------------------------------------------------------------- | ------------------- | -------------------- |
+| [Bar](https://charts.ag-grid.com/gallery/simple-bar/)                     | ✅                  | ✅                   |
+| [Line](https://charts.ag-grid.com/gallery/multiple-line-series/)          | ✅                  | ✅                   |
+| [Area](https://charts.ag-grid.com/gallery/stacked-area/)                  | ✅                  | ✅                   |
+| [Scatter](https://charts.ag-grid.com/gallery/simple-scatter/)             | ✅                  | ✅                   |
+| [Bubble](https://charts.ag-grid.com/gallery/simple-bubble/)               | ✅                  | ✅                   |
+| [Pie](https://charts.ag-grid.com/gallery/simple-pie/)                     | ✅                  | ✅                   |
+| [Donut](https://charts.ag-grid.com/gallery/multiple-donuts/)              | ✅                  | ✅                   |
+| [Combination](https://charts.ag-grid.com/gallery/combination-chart/)      | ✅                  | ✅                   |
+| [Box Plot](https://charts.ag-grid.com/gallery/simple-box-plot/)           | ❌                  | ✅                   |
+| [Bullet](https://charts.ag-grid.com/gallery/simple-bullet/)               | ❌                  | ✅                   |
+| [Candlestick](https://charts.ag-grid.com/gallery/candlestick-chart/)      | ❌                  | ✅                   |
+| [OHLC](https://charts.ag-grid.com/gallery/ohlc-chart/)                    | ❌                  | ✅                   |
+| [Heatmap](https://charts.ag-grid.com/gallery/heatmap-with-labels/)        | ❌                  | ✅                   |
+| [Histogram](https://charts.ag-grid.com/gallery/simple-histogram/)         | ❌                  | ✅                   |
+| [Nightingale](https://charts.ag-grid.com/gallery/simple-nightingale/)     | ❌                  | ✅                   |
+| [Radar Line](https://charts.ag-grid.com/gallery/simple-radar-line/)       | ❌                  | ✅                   |
+| [Radar Area](https://charts.ag-grid.com/gallery/radar-area-with-labels/)  | ❌                  | ✅                   |
+| [Radial Column](https://charts.ag-grid.com/gallery/simple-radial-column/) | ❌                  | ✅                   |
+| [Radial Bar](https://charts.ag-grid.com/gallery/simple-radial-bar/)       | ❌                  | ✅                   |
+| [Range Area](https://charts.ag-grid.com/gallery/simple-range-area/)       | ❌                  | ✅                   |
+| [Range Bar](https://charts.ag-grid.com/gallery/simple-range-bar/)         | ❌                  | ✅                   |
+| [Sunburst](https://charts.ag-grid.com/gallery/simple-sunburst/)           | ❌                  | ✅                   |
+| [Treemap](https://charts.ag-grid.com/gallery/treemap/)                    | ❌                  | ✅                   |
+| [Waterfall](https://charts.ag-grid.com/gallery/customised-waterfall/)     | ❌                  | ✅                   |
+| [Sankey](https://charts.ag-grid.com/gallery/sankey/)                      | ❌                  | ✅                   |
+| [Chord](https://charts.ag-grid.com/gallery/chord-diagram/)                | ❌                  | ✅                   |
 
 AG Charts comes with every feature you'd expect from a charting library:
 
