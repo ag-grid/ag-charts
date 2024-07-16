@@ -27,6 +27,7 @@ import {
     PALETTE_UP_FILL,
     PALETTE_UP_STROKE,
 } from '../../chart/themes/symbols';
+import { Logger } from '../../util/logger';
 import { isObject } from '../../util/type-guards';
 
 function fromTheme<T>(
@@ -259,6 +260,11 @@ function createPriceSeries(
     openKey: string,
     closeKey: string
 ) {
+    if ((chartType as string) === RANGE_AREA_TYPE) {
+        Logger.warnOnce(`type '${chartType}' is deprecated, use 'hlc' chart type instead`);
+        chartType = 'hlc';
+    }
+
     const keys = {
         xKey,
         openKey,
@@ -301,7 +307,7 @@ function createPriceSeries(
                 } satisfies AgLineSeriesOptions,
             ];
 
-        case RANGE_AREA_TYPE:
+        case 'hlc':
             const rangeAreaColors = getThemeColors(RANGE_AREA_TYPE, theme);
 
             return [
