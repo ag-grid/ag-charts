@@ -510,19 +510,15 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         return quadrantTextOpts[quadrantIndex];
     }
 
-    private getSectorFormat(datum: any, formatIndex: number, highlight: boolean) {
-        const { callbackCache, highlightManager } = this.ctx;
+    private getSectorFormat(datum: any, formatIndex: number, highlighted: boolean) {
+        const { callbackCache } = this.ctx;
         const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey, fills, strokes, itemStyler } =
             this.properties;
-
-        const highlightedDatum = highlightManager.getActiveHighlight();
-        const isDatumHighlighted =
-            highlight && highlightedDatum?.series === this && formatIndex === highlightedDatum.itemId;
 
         const defaultStroke: string | undefined = strokes[formatIndex % strokes.length];
         const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cornerRadius } =
             mergeDefaults(
-                isDatumHighlighted && this.properties.highlightStyle.item,
+                highlighted && this.properties.highlightStyle.item,
                 {
                     fill: fills.length > 0 ? fills[formatIndex % fills.length] : undefined,
                     stroke: defaultStroke,
@@ -549,7 +545,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 lineDash,
                 lineDashOffset,
                 cornerRadius,
-                highlighted: isDatumHighlighted,
+                highlighted,
                 seriesId: this.id,
             });
         }
@@ -688,15 +684,12 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             calloutLabelSelection,
             labelSelection,
         } = this;
-        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
-        const highlightedNodeData =
-            highlightedDatum?.series === this
-                ? this.nodeData
-                      .filter((label) => label.itemId === highlightedDatum?.itemId)
-                      // Allow mutable sectorFormat, so formatted sector styles can be updated and varied
-                      // between normal and highlighted cases.
-                      .map((datum) => ({ ...datum, sectorFormat: { ...datum.sectorFormat } }))
-                : [];
+        const highlightedNodeData = this.nodeData.map((datum) => ({
+            ...datum,
+            // Allow mutable sectorFormat, so formatted sector styles can be updated and varied
+            // between normal and highlighted cases.
+            sectorFormat: { ...datum.sectorFormat },
+        }));
 
         const update = (selection: typeof this.itemSelection, nodeData: PieNodeDatum[]) => {
             selection.update(nodeData, undefined, (datum) => this.getDatumId(datum));
@@ -739,13 +732,13 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
         this.contentGroup.opacity = this.getOpacity();
 
+        const animationDisabled = this.ctx.animationManager.isSkipped();
         const updateSectorFn = (sector: Sector, datum: PieNodeDatum, _index: number, isDatumHighlighted: boolean) => {
             const format = this.getSectorFormat(datum.datum, datum.itemId, isDatumHighlighted);
 
             datum.sectorFormat.fill = format.fill;
             datum.sectorFormat.stroke = format.stroke;
 
-            const animationDisabled = this.ctx.animationManager.isSkipped();
             if (animationDisabled) {
                 sector.startAngle = datum.startAngle;
                 sector.endAngle = datum.endAngle;
@@ -773,7 +766,15 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         };
 
         this.itemSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false));
-        this.highlightSelection.each((node, datum, index) => updateSectorFn(node, datum, index, true));
+        this.highlightSelection.each((node, datum, index) => {
+            updateSectorFn(node, datum, index, true);
+            if (datum.itemId === highlightedDatum?.itemId) {
+                node.visible = true;
+                updateSectorFn(node, datum, index, true);
+            } else {
+                node.visible = false;
+            }
+        });
         this.phantomSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false));
 
         this.updateCalloutLineNodes();
