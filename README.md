@@ -38,27 +38,27 @@
     <br>
 </div>
 
-<img src="./packages/ag-charts-website/public/images/readme-assets/gallery.gif">
+<img src="./packages/ag-charts-website/public/images/readme-assets/gallery-shadows.gif">
 
 ## 📖 Overview
 
 <details>
   <summary><strong>Table of Contents</strong></summary>
 
-- [📖 Overview](#-overview)
-  - [Chart Types](#chart-types)
-  - [Features](#features)
-  - [Financial Charts](#financial-charts)
-  - [Map Charts](#map-charts)
-- [⚡️ Quick Start](#️-quick-start)
-  - [Installation](#installation)
-  - [Setup](#setup)
-- [🤝 Support](#-support)
-  - [Enterprise Support](#enterprise-support)
-  - [Bug Reports](#bug-reports)
-  - [Questions](#questions)
-  - [Contributing](#contributing)
-- [⚠️ License](#️-license)
+-   [📖 Overview](#-overview)
+    -   [Chart Types](#chart-types)
+    -   [Features](#features)
+    -   [Financial Charts](#financial-charts)
+    -   [Map Charts](#map-charts)
+-   [⚡️ Quick Start](#️-quick-start)
+    -   [Installation](#installation)
+    -   [Setup](#setup)
+-   [🤝 Support](#-support)
+    -   [Enterprise Support](#enterprise-support)
+    -   [Bug Reports](#bug-reports)
+    -   [Questions](#questions)
+    -   [Contributing](#contributing)
+-   [⚠️ License](#️-license)
 
 </details>
 
