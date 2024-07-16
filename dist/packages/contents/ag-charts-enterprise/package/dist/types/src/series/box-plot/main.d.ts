@@ -1,0 +1,1 @@
+export { BoxPlotModule } from './boxPlotModule';

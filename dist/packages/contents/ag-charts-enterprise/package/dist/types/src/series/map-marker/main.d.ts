@@ -1,0 +1,1 @@
+export { MapMarkerModule } from './mapMarkerModule';

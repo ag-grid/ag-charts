@@ -1,0 +1,11 @@
+import type { GroupValueProcessorDefinition, ProcessedData, ProcessorOutputPropertyDefinition, PropertyId, PropertyValueProcessorDefinition, ReducerOutputPropertyDefinition } from './dataModel';
+export declare const SMALLEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'smallestKeyInterval'>;
+export declare const SORT_DOMAIN_GROUPS: ProcessorOutputPropertyDefinition<'sortedGroupDomain'>;
+export declare function normaliseGroupTo(matchGroupIds: string[], normaliseTo: number, mode?: 'sum' | 'range'): GroupValueProcessorDefinition<any, any>;
+export declare function normalisePropertyTo(property: PropertyId<any>, normaliseTo: [number, number], zeroDomain: number, rangeMin?: number, rangeMax?: number): PropertyValueProcessorDefinition<any>;
+export declare function animationValidation(valueKeyIds?: string[]): ProcessorOutputPropertyDefinition;
+export declare function accumulateGroup(matchGroupId: string, mode: 'normal' | 'trailing' | 'window' | 'window-trailing', sum: 'current' | 'last', separateNegative?: boolean): GroupValueProcessorDefinition<any, any>;
+export declare function diff(previousData: ProcessedData<any>, updateMovedData?: boolean): ProcessorOutputPropertyDefinition<'diff'>;
+type KeyType = string | number | object;
+export declare function createDatumId(keys: KeyType | KeyType[], ...extraKeys: (string | number)[]): any;
+export {};

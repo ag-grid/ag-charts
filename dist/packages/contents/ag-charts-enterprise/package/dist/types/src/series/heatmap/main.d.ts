@@ -1,0 +1,1 @@
+export { HeatmapModule } from './heatmapModule';
