@@ -1,9 +1,21 @@
+/** @deprecated v10.1.0 use 'hlc' instead. */
+export type DeprecatedAgPriceVolumeChartType = 'range-area';
+export type AgPriceVolumeChartType =
+    | 'candlestick'
+    | 'hollow-candlestick'
+    | 'ohlc'
+    | 'line'
+    | 'step-line'
+    | 'hlc'
+    | 'high-low'
+    | DeprecatedAgPriceVolumeChartType;
+
 export interface AgPriceVolumePreset {
     /** Series type used for the OHLC data.
      *
      *  Default: `'candlestick'`
      */
-    chartType?: 'candlestick' | 'hollow-candlestick' | 'ohlc' | 'line' | 'step-line' | 'hlc' | 'high-low';
+    chartType?: AgPriceVolumeChartType;
     /** The key used to retrieve x-values from the data.
      *
      * Default: `'date'`
