@@ -138,6 +138,8 @@ AG Charts JavaScript Charting Library comes with every feature you'd expect:
 
 Build interactive financial charts featuring advanced annotations with minimal configuration, all you need to do is provide your data:
 
+<!-- START FINANCIAL CHARTS CODE SNIPPET -->
+
 ```js
 const options = {
     data: getData(),
@@ -145,6 +147,8 @@ const options = {
 
 AgCharts.createFinancialChart(options);
 ```
+
+<!-- END FINANCIAL CHARTS CODE SNIPPET -->
 
 Once created, users will have a Financial Chart that they can interact with and add annotations to.
 

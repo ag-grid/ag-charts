@@ -23,7 +23,6 @@ const updateContent = (readme) => {
 
     // Update Content
     let newReadme = rootReadme
-        .replaceAll('# JavaScript Charting Library', `# ${packageTitle} Charting Library`)
         .replaceAll('https://charts.ag-grid.com/javascript/', `https://charts.ag-grid.com/${framework}/`)
         .replaceAll('/ag-charts-community', `/${packageName}`)
         .replaceAll('JavaScript', `${packageTitle}`)
@@ -31,6 +30,9 @@ const updateContent = (readme) => {
 
     // Update Main Description
     newReadme = updateMainDescription(newReadme, packageTitle);
+
+    // Update Finance Charts Snippet
+    newReadme = updateFinancialChartsCodeSnippet(newReadme, packageTitle);
 
     return newReadme;
 };
@@ -41,6 +43,72 @@ const updateMainDescription = (content, packageTitle) => {
     // Define the start and end markers
     const startMarker = '<!-- START MAIN DESCRIPTION -->';
     const endMarker = '<!-- END MAIN DESCRIPTION -->';
+
+    // Construct the new content to be inserted
+    const newSection = `${startMarker}\n${newContent}\n${endMarker}`;
+
+    // Use regular expressions to find and replace the content between the markers
+    const regex = new RegExp(`${startMarker}[\\s\\S]*?${endMarker}`, 'g');
+    return content.replace(regex, newSection);
+};
+
+const updateFinancialChartsCodeSnippet = (content, packageTitle) => {
+    let newContent = '';
+    const normalizedTitle = packageTitle.trim().toLowerCase();
+    switch (normalizedTitle) {
+        case 'react':
+            newContent = 
+`\`\`\`js
+const [options, setOptions] = useState({
+    data: getData(),
+});
+return (
+    <AgFinancialCharts options={options} />
+);
+\`\`\``;
+            break;
+        case 'angular':
+            newContent = 
+`\`\`\`js
+@Component({
+    selector: 'app-root',
+    standalone: true,
+    imports: [AgFinancialCharts],
+    template: \`<ag-financial-charts [options]="options"></ag-financial-charts>\`,
+})
+export class AppComponent {
+    public options: AgFinancialChartOptions;
+    constructor() {
+        this.options = {
+            data: getData(),
+        };
+    }
+\`\`\``;
+            break;
+        case 'vue3':
+            newContent = 
+`\`\`\`js
+template: \`<ag-financial-charts :options="options"/>\`,
+components: {
+    'ag-financial-charts': AgFinancialCharts,
+},
+data() {
+    return {
+        options: {
+            data: getData(),
+        },
+    };
+}
+\`\`\``;
+            break;
+        default:
+            newContent = 'default code snippet'; // Optional default case
+            break;
+    }
+
+    // Define the start and end markers
+    const startMarker = '<!-- START FINANCIAL CHARTS CODE SNIPPET -->';
+    const endMarker = '<!-- END FINANCIAL CHARTS CODE SNIPPET -->';
 
     // Construct the new content to be inserted
     const newSection = `${startMarker}\n${newContent}\n${endMarker}`;
