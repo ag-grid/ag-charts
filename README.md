@@ -36,7 +36,9 @@
         <img src="https://img.shields.io/librariesio/dependents/npm/ag-charts-community" alt="Dependents (via libraries.io?style=for-the-badge)">
     </a>
     <br><br>
+    <!-- START MAIN DESCRIPTION -->
     <p>AG Charts is a <strong>fully-featured</strong> and <strong>highly customizable</strong> canvas-based JavaScript Charting library. It delivers <strong>outstanding performance</strong>, has <strong>no third-party dependencies</strong> and comes with support for <strong><a href="https://github.com/ag-grid/ag-charts/tree/latest/packages/ag-charts-react"><img src="https://github.com/ag-grid/ag-grid/blob/latest/documentation/ag-grid-docs/public/images/fw-logos/react.svg?raw=true" height="16" width="16" alt="React Logo"> React</a></strong>, <strong><a href="https://github.com/ag-grid/ag-charts/tree/latest/packages/ag-charts-angular"><img src="https://github.com/ag-grid/ag-grid/blob/latest/documentation/ag-grid-docs/public/images/fw-logos/angular.svg?raw=true" height="16" width="16" alt="Angular Logo"> Angular</a></strong> and <strong><a href="https://github.com/ag-grid/ag-charts/tree/latest/packages/ag-charts-vue3"><img src="https://github.com/ag-grid/ag-grid/blob/latest/documentation/ag-grid-docs/public/images/fw-logos/vue.svg?raw=true" height="16" width="16" alt="Vue Logo"> Vue</a></strong>.</p>
+    <!-- END MAIN DESCRIPTION -->
     <br>
 </div>
 
