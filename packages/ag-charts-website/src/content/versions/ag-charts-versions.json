@@ -1,5 +1,13 @@
 [
     {
+        "version": "10.0.2",
+        "date": "July 14th 2024"
+    },
+    {
+        "version": "10.0.1",
+        "date": "July 9th 2024"
+    },
+    {
         "version": "10.0.0",
         "date": "July 1st 2024",
         "highlights": [
@@ -29,6 +37,10 @@
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-10"
+    },
+    {
+        "version": "9.3.2",
+        "date": "July 16th 2024"
     },
     {
         "version": "9.3.1",
