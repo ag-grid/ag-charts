@@ -62,7 +62,7 @@ export class SeriesAreaManager extends BaseManager {
             fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
         },
         private readonly ctx: ChartContext,
-        private chartType: 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion',
+        private readonly chartType: 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion',
         private readonly tooltip: Tooltip,
         private readonly highlight: ChartHighlight,
         private readonly overlays: ChartOverlays
@@ -505,7 +505,7 @@ export class SeriesAreaManager extends BaseManager {
         event.preventDefault();
     }
 
-    private focus: ChartFocusData = {
+    private readonly focus: ChartFocusData = {
         hasFocus: false,
         series: undefined,
         seriesIndex: 0,
@@ -543,7 +543,7 @@ export class SeriesAreaManager extends BaseManager {
         this.updatePickedFocus(pick);
     }
 
-    handleHierarchySeriesFocus(otherIndexDelta: number, datumIndexDelta: number) {
+    private handleHierarchySeriesFocus(otherIndexDelta: number, datumIndexDelta: number) {
         // Hierarchial charts (treemap, sunburst) can only have 1 series. So we'll repurpose the focus.seriesIndex
         // value to control the focused depth. This allows the hierarchial charts to piggy-back on the base keyboard
         // handling implementation.
