@@ -52,30 +52,29 @@ const updateMainDescription = (content, packageTitle) => {
     return content.replace(regex, newSection);
 };
 
+// Replaces code snippet for financial charts w/ Framework specific (React / Angular / Vue) code snippet, if applicable
 const updateFinancialChartsCodeSnippet = (content, packageTitle) => {
-    let newContent = '';
+    let newContent;
     const normalizedTitle = packageTitle.trim().toLowerCase();
     switch (normalizedTitle) {
         case 'react':
-            newContent = 
-`\`\`\`js
+            newContent = `\`\`\`js
 const [options, setOptions] = useState({
     data: getData(),
-});
+});\n
 return (
     <AgFinancialCharts options={options} />
 );
 \`\`\``;
             break;
         case 'angular':
-            newContent = 
-`\`\`\`js
+            newContent = `\`\`\`js
 @Component({
     selector: 'app-root',
     standalone: true,
     imports: [AgFinancialCharts],
     template: \`<ag-financial-charts [options]="options"></ag-financial-charts>\`,
-})
+})\n
 export class AppComponent {
     public options: AgFinancialChartOptions;
     constructor() {
@@ -86,8 +85,7 @@ export class AppComponent {
 \`\`\``;
             break;
         case 'vue3':
-            newContent = 
-`\`\`\`js
+            newContent = `\`\`\`js
 template: \`<ag-financial-charts :options="options"/>\`,
 components: {
     'ag-financial-charts': AgFinancialCharts,
@@ -101,10 +99,10 @@ data() {
 }
 \`\`\``;
             break;
-        default:
-            newContent = 'default code snippet'; // Optional default case
-            break;
     }
+
+    // Not a framework, don't update the snippet
+    if (!newContent) return content;
 
     // Define the start and end markers
     const startMarker = '<!-- START FINANCIAL CHARTS CODE SNIPPET -->';
