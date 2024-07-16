@@ -414,7 +414,7 @@ export class AreaSeries extends CartesianSeries<
                 const yDatum = yValueStack[index];
 
                 if (connectMissingData && !Number.isFinite(yDatum)) continue;
-                const isFinite = Number.isFinite(yDatum);
+                const yDatumIsFinite = Number.isFinite(yDatum);
 
                 const lastYValueStack: number[] | undefined = dataValues[i - 1]?.values[yValueStackIndex];
                 const nextYValueStack: number[] | undefined = dataValues[i + 1]?.values[yValueStackIndex];
@@ -438,8 +438,8 @@ export class AreaSeries extends CartesianSeries<
                 }
 
                 const currentPoints: AreaSpanPointDatum[] | { skip: number } | undefined = points[points.length - 1];
-                if (!connectMissingData && (yValueEndBackwards !== yValueEndForwards || !isFinite)) {
-                    if (!isFinite && Array.isArray(currentPoints) && currentPoints.length === 1) {
+                if (!connectMissingData && (yValueEndBackwards !== yValueEndForwards || !yDatumIsFinite)) {
+                    if (!yDatumIsFinite && Array.isArray(currentPoints) && currentPoints.length === 1) {
                         points[points.length - 1] = { skip: 1 };
                     } else {
                         const pointBackwards = createPoint(xDatum, yValueEndBackwards);
@@ -450,7 +450,7 @@ export class AreaSeries extends CartesianSeries<
                         } else if (currentPoints != null) {
                             currentPoints.skip += 1;
                         }
-                        points.push(isFinite ? [pointForwards] : { skip: 0 });
+                        points.push(yDatumIsFinite ? [pointForwards] : { skip: 0 });
                     }
                 } else {
                     const yValueEnd = Math.max(yValueEndBackwards, yValueEndForwards);

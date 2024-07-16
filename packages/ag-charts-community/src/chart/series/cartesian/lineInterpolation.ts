@@ -213,7 +213,7 @@ export function splitSpanAtX(span: Span, x: number): [Span, Span] {
                     { type: 'step', moveTo: false, x0: x, y0: y1, x1, y1, stepX: x },
                 ];
             }
-        case 'cubic':
+        case 'cubic': {
             const t = solveBezier(span.cp0x, span.cp1x, span.cp2x, span.cp3x, x);
             const [a, b] = splitBezier(
                 span.cp0x,
@@ -252,6 +252,7 @@ export function splitSpanAtX(span: Span, x: number): [Span, Span] {
                     cp3y: b[3].y,
                 },
             ];
+        }
     }
 }
 
@@ -298,7 +299,7 @@ export function clipSpanX(span: Span, x0: number, x1: number): Span {
                 const { y0, y1, stepX } = span;
                 return { type: 'step', moveTo, x0, y0, x1, y1, stepX };
             }
-        case 'cubic':
+        case 'cubic': {
             const t0 = solveBezier(span.cp0x, span.cp1x, span.cp2x, span.cp3x, x0);
             let [_unused, bezier] = splitBezier(
                 span.cp0x,
@@ -335,6 +336,7 @@ export function clipSpanX(span: Span, x0: number, x1: number): Span {
                 cp3x: bezier[3].x,
                 cp3y: bezier[3].y,
             };
+        }
     }
 }
 
