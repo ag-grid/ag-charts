@@ -76,6 +76,8 @@ export class SeriesAreaManager extends BaseManager {
         this.destroyFns.push(
             this.ctx.domManager.addListener('resize', () => this.resetPointer()),
             this.ctx.layoutService.addListener('layout-complete', (event) => this.layoutComplete(event)),
+            this.ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
+            this.ctx.regionManager.listenAll('dblclick', (event) => this.onDoubleClick(event)),
             seriesRegion.addListener(
                 'hover',
                 (event) => this.onMouseMove(event),
