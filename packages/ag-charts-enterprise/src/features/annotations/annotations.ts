@@ -46,6 +46,14 @@ type AnnotationAxis = {
 
 const AXIS_TYPE = UNION(['x', 'y', 'xy'], 'an axis type');
 
+enum AnnotationOptions {
+    Delete = 'delete',
+    LineColor = 'line-color',
+    Lock = 'lock',
+    TextColor = 'text-color',
+    Unlock = 'unlock',
+}
+
 class AxesButtons {
     @Validate(BOOLEAN)
     public enabled: boolean = true;
@@ -386,8 +394,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (active == null) return;
 
         switch (event.value) {
-            case 'line-color':
-            case 'text-color':
+            case AnnotationOptions.LineColor:
+            case AnnotationOptions.TextColor:
                 this.colorPicker.show({
                     color: getTypedDatum(annotationData[active])?.getDefaultColor(),
                     onChange: this.onColorPickerChange.bind(this),
@@ -395,18 +403,18 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 });
                 break;
 
-            case 'delete':
+            case AnnotationOptions.Delete:
                 annotationData.splice(active, 1);
                 this.reset();
                 break;
 
-            case 'lock':
+            case AnnotationOptions.Lock:
                 annotationData[active].locked = true;
                 this.toggleAnnotationOptionsButtons();
                 this.colorPicker.hide();
                 break;
 
-            case 'unlock':
+            case AnnotationOptions.Unlock:
                 annotationData[active].locked = false;
                 this.toggleAnnotationOptionsButtons();
                 break;
@@ -418,7 +426,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private onToolbarButtonMoved(event: _ModuleSupport.ToolbarButtonMovedEvent) {
         const { group, rect, value } = event;
 
-        if (group !== 'annotationOptions' || (value !== 'line-color' && value !== 'text-color')) return;
+        if (
+            group !== 'annotationOptions' ||
+            (value !== AnnotationOptions.LineColor && value !== AnnotationOptions.TextColor)
+        ) {
+            return;
+        }
 
         const anchor = Vec2.add(rect, Vec2.from(0, rect.height + 4));
         const fallback = { y: rect.y - 4 };
@@ -699,18 +712,18 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const datum = getTypedDatum(annotationData.at(active));
         const locked = datum?.locked ?? false;
 
-        toolbarManager.toggleButton('annotationOptions', 'line-color', {
+        toolbarManager.toggleButton('annotationOptions', AnnotationOptions.LineColor, {
             enabled: !locked,
             visible: isLineType(datum) || isChannelType(datum),
         });
-        toolbarManager.toggleButton('annotationOptions', 'text-color', {
+        toolbarManager.toggleButton('annotationOptions', AnnotationOptions.TextColor, {
             enabled: !locked,
             visible: isTextType(datum),
         });
 
-        toolbarManager.toggleButton('annotationOptions', 'delete', { enabled: !locked });
-        toolbarManager.toggleButton('annotationOptions', 'lock', { visible: !locked });
-        toolbarManager.toggleButton('annotationOptions', 'unlock', { visible: locked });
+        toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Delete, { enabled: !locked });
+        toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Lock, { visible: !locked });
+        toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Unlock, { visible: locked });
     }
 
     private isOtherElement({ targetElement }: { targetElement?: HTMLElement }) {
