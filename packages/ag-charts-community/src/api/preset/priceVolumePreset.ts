@@ -18,6 +18,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { ChartTheme } from '../../chart/themes/chartTheme';
+import { DEFAULT_STROKES } from '../../chart/themes/defaultColors';
 import {
     PALETTE_DOWN_FILL,
     PALETTE_DOWN_STROKE,
@@ -320,6 +321,12 @@ function createPriceSeries(
                     fill: rangeAreaColors.fill ?? PALETTE_DOWN_FILL,
                     stroke: rangeAreaColors.stroke ?? PALETTE_DOWN_STROKE,
                 } satisfies AgRangeAreaSeriesOptions,
+                {
+                    type: 'line',
+                    ...singleKeys,
+                    stroke: fromTheme(theme, (t) => t.overrides?.line?.series?.stroke) ?? DEFAULT_STROKES.GRAY,
+                    marker: fromTheme(theme, (t) => t.overrides?.line?.series?.marker) ?? { enabled: false },
+                } satisfies AgLineSeriesOptions,
             ];
         case 'high-low':
             const rangeBarColors = getThemeColors('range-bar', theme);
