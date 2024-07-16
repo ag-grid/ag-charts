@@ -142,7 +142,7 @@ const options = {
 AgCharts.createFinancialChart(options);
 ```
 
-Once created, users will have a Financial Chart that can interact with and add annotations to.
+Once created, users will have a Financial Chart that they can interact with and add annotations to.
 
 <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./packages/ag-charts-website/public/images/readme-assets/financial-charts-annotations.gif"/>
