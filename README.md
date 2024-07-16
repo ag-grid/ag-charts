@@ -149,7 +149,11 @@ The default chart type is [Candlestick](https://charts.ag-grid.com/javascript/ca
 
 Map Charts let you visualise geographic data in different ways.
 
-![](./packages/ag-charts-website/public/images/readme-assets/map.png)
+<picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./packages/ag-charts-website/public/images/readme-assets/map-dark.gif"/>
+    <source media="(prefers-color-scheme: light)" srcset="./packages/ag-charts-website/public/images/readme-assets/map.gif"/>
+    <img width="100%" alt="Preview of Map Charts from AG Charts" src="./packages/ag-charts-website/public/images/readme-assets/map-dark.gif"/>
+</picture>
 
 To create a Map Shape Series, use the map-shape series type and provide data and [topology](https://charts.ag-grid.com/javascript/map-topology/). These can be provided in either the chart or series objects.
 
