@@ -178,7 +178,6 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
         const propertyPath = `${path ? path + '.' : ''}${property}`;
         const targetClass = targetAny.constructor;
         const currentValue = targetAny[property];
-        let ctr: (new () => any) | undefined;
         try {
             const currentValueType = classify(currentValue);
             const newValueType = classify(newValue);
@@ -202,29 +201,15 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
 
             if (isProperties(currentValue)) {
                 targetAny[property].set(newValue);
-            } else if (newValueType === 'array' || newValueType === CLASS_INSTANCE_TYPE) {
-                targetAny[property] = newValue;
             } else if (newValueType === 'object') {
-                if (currentValue != null) {
-                    jsonApply(currentValue, newValue as any, {
-                        ...params,
-                        path: propertyPath,
-                        matcherPath: propertyMatcherPath,
-                    });
-                } else if (ctr == null) {
+                if (currentValue == null) {
                     targetAny[property] = {};
-                    jsonApply(targetAny[property], newValue as any, {
-                        ...params,
-                        path: propertyPath,
-                        matcherPath: propertyMatcherPath,
-                    });
-                } else {
-                    targetAny[property] = jsonApply(new ctr(), newValue, {
-                        ...params,
-                        path: propertyPath,
-                        matcherPath: propertyMatcherPath,
-                    });
                 }
+                jsonApply(currentValue ?? targetAny[property], newValue as any, {
+                    ...params,
+                    path: propertyPath,
+                    matcherPath: propertyMatcherPath,
+                });
             } else {
                 targetAny[property] = newValue;
             }
