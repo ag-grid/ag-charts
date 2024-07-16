@@ -69,6 +69,11 @@ const annotationOptions: AgToolbarOptions['annotationOptions'] = {
             value: 'line-color',
         },
         {
+            label: 'Color',
+            tooltip: 'Text color',
+            value: 'text-color',
+        },
+        {
             icon: 'lock',
             tooltip: 'toolbarAnnotationsLock',
             value: 'lock',

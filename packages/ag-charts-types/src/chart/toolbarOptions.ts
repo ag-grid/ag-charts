@@ -96,7 +96,7 @@ export interface AgToolbarAnnotationOptionsButton extends AgToolbarButton {
     value: AgToolbarAnnotationOptionsButtonValue;
 }
 
-export type AgToolbarAnnotationOptionsButtonValue = 'line-color' | 'delete' | 'lock' | 'unlock';
+export type AgToolbarAnnotationOptionsButtonValue = 'line-color' | 'text-color' | 'delete' | 'lock' | 'unlock';
 
 /* Ranges */
 export interface AgToolbarRangesGroup extends AgToolbarGroup {

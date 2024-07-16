@@ -264,17 +264,17 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         element.style.left = `${left}px`;
 
         for (const button of groupButtons[group]) {
-            if (button.classList.contains(styles.modifiers.button.hiddenToggled)) return;
+            if (button.classList.contains(styles.modifiers.button.hiddenToggled)) continue;
 
             const parent = button.offsetParent as HTMLElement | null;
             toolbarManager.buttonMoved(
                 group,
                 button.dataset.toolbarValue,
                 new BBox(
-                    button.offsetLeft - button.offsetWidth + (parent?.offsetLeft ?? 0),
+                    button.offsetLeft + (parent?.offsetLeft ?? 0),
                     button.offsetTop + (parent?.offsetTop ?? 0),
                     button.offsetWidth,
-                    button.offsetWidth
+                    button.offsetHeight
                 )
             );
         }

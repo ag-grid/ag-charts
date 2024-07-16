@@ -85,13 +85,24 @@ export function getTypedDatum(datum: unknown) {
     }
 }
 
-export function colorDatum(datum: AnnotationProperties, color: string) {
-    if ('stroke' in datum) datum.stroke = color;
+export function isLineType(datum: unknown) {
+    return LineProperties.is(datum) || HorizontalLineProperties.is(datum) || VerticalLineProperties.is(datum);
+}
 
+export function isChannelType(datum: unknown) {
+    return DisjointChannelProperties.is(datum) || ParallelChannelProperties.is(datum);
+}
+
+export function isTextType(datum: unknown) {
+    return TextProperties.is(datum);
+}
+
+export function colorDatum(datum: AnnotationProperties, color: string) {
     if ('axisLabel' in datum) {
         datum.axisLabel.fill = color;
         datum.axisLabel.stroke = color;
     }
-
     if ('background' in datum) datum.background.fill = color;
+    if ('color' in datum) datum.color = color;
+    if ('stroke' in datum) datum.stroke = color;
 }
