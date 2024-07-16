@@ -43,6 +43,9 @@
     <source media="(prefers-color-scheme: light)" srcset="./packages/ag-charts-website/public/images/readme-assets/gallery.gif"/>
     <img width="100%" alt="Preview of AG Charts JavaScript Charting Examples" src="./packages/ag-charts-website/public/images/readme-assets/gallery-dark.gif"/>
 </picture>
+<div align="right">
+    <a href="https://charts.ag-grid.com/examples/">View Gallery</a>
+</div>
 
 ## 📖 Overview
 
