@@ -38,9 +38,7 @@
     <br>
 </div>
 
-<img src="./packages/ag-charts-website/public/images/readme-assets/gallery-shadows.gif" alt="Preview of AG Charts JavaScript Charting Examples">
-
-<img src="./packages/ag-charts-website/public/images/readme-assets/gallery-2.gif" alt="Preview of AG Charts JavaScript Charting Examples">
+<img src="./packages/ag-charts-website/public/images/readme-assets/gallery.gif" alt="Preview of AG Charts JavaScript Charting Examples">
 
 ## 📖 Overview
 
