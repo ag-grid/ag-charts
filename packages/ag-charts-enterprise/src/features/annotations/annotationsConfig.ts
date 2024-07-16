@@ -2,12 +2,18 @@ import type { _Util } from 'ag-charts-community';
 
 import { type AnnotationContext, AnnotationType } from './annotationTypes';
 import type { AnnotationProperties } from './annotationsSuperTypes';
+import { CalloutProperties } from './callout/calloutProperties';
+import { CalloutScene } from './callout/calloutScene';
+import { CommentProperties } from './comment/commentProperties';
+import { CommentScene } from './comment/commentScene';
 import { HorizontalLineProperties, VerticalLineProperties } from './cross-line/crossLineProperties';
 import { CrossLineScene } from './cross-line/crossLineScene';
 import { DisjointChannelProperties } from './disjoint-channel/disjointChannelProperties';
 import { DisjointChannelScene } from './disjoint-channel/disjointChannelScene';
 import { LineProperties } from './line/lineProperties';
 import { LineScene } from './line/lineScene';
+import { NoteProperties } from './note/noteProperties';
+import { NoteScene } from './note/noteScene';
 import { ParallelChannelProperties } from './parallel-channel/parallelChannelProperties';
 import { ParallelChannelScene } from './parallel-channel/parallelChannelScene';
 import type { AnnotationScene } from './scenes/annotationScene';
@@ -27,6 +33,9 @@ export const annotationDatums: Record<AnnotationType, Constructor<AnnotationProp
     [AnnotationType.DisjointChannel]: DisjointChannelProperties,
 
     // Texts
+    [AnnotationType.Callout]: CalloutProperties,
+    [AnnotationType.Comment]: CommentProperties,
+    [AnnotationType.Note]: NoteProperties,
     [AnnotationType.Text]: TextProperties,
 };
 
@@ -41,6 +50,9 @@ export const annotationScenes: Record<AnnotationType, Constructor<AnnotationScen
     [AnnotationType.ParallelChannel]: ParallelChannelScene,
 
     // Texts
+    [AnnotationType.Callout]: CalloutScene,
+    [AnnotationType.Comment]: CommentScene,
+    [AnnotationType.Note]: NoteScene,
     [AnnotationType.Text]: TextScene,
 };
 
@@ -64,6 +76,18 @@ export function updateAnnotation(node: AnnotationScene, datum: AnnotationPropert
     }
 
     // Texts
+    if (CalloutProperties.is(datum) && CalloutScene.is(node)) {
+        node.update(datum, context);
+    }
+
+    if (CommentProperties.is(datum) && CommentScene.is(node)) {
+        node.update(datum, context);
+    }
+
+    if (NoteProperties.is(datum) && NoteScene.is(node)) {
+        node.update(datum, context);
+    }
+
     if (TextProperties.is(datum) && TextScene.is(node)) {
         node.update(datum, context);
     }
@@ -79,6 +103,9 @@ export function getTypedDatum(datum: unknown) {
         DisjointChannelProperties.is(datum) ||
         ParallelChannelProperties.is(datum) ||
         // Texts
+        CalloutProperties.is(datum) ||
+        CommentProperties.is(datum) ||
+        NoteProperties.is(datum) ||
         TextProperties.is(datum)
     ) {
         return datum;
@@ -94,7 +121,12 @@ export function isChannelType(datum: unknown) {
 }
 
 export function isTextType(datum: unknown) {
-    return TextProperties.is(datum);
+    return (
+        CalloutProperties.is(datum) ||
+        CommentProperties.is(datum) ||
+        NoteProperties.is(datum) ||
+        TextProperties.is(datum)
+    );
 }
 
 export function colorDatum(datum: AnnotationProperties, color: string) {

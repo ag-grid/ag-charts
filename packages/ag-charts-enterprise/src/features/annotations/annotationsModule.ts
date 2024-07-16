@@ -82,11 +82,47 @@ export const AnnotationsModule: _ModuleSupport.Module = {
             },
 
             // Texts
-            text: {
+            callout: {
                 color: 'black',
                 fontSize: 14,
                 fontFamily: _Theme.DEFAULT_FONT_FAMILY,
                 textAlign: 'center',
+                handle: {
+                    fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
+                    stroke: _Theme.DEFAULT_ANNOTATION_STROKE,
+                    strokeWidth: 2,
+                    strokeOpacity: 1,
+                },
+            },
+            comment: {
+                color: 'black',
+                fontSize: 14,
+                fontFamily: _Theme.DEFAULT_FONT_FAMILY,
+                textAlign: 'left',
+                handle: {
+                    fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
+                    stroke: _Theme.DEFAULT_ANNOTATION_STROKE,
+                    strokeWidth: 2,
+                    strokeOpacity: 1,
+                },
+            },
+            note: {
+                color: 'black',
+                fontSize: 14,
+                fontFamily: _Theme.DEFAULT_FONT_FAMILY,
+                textAlign: 'left',
+                handle: {
+                    fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
+                    stroke: _Theme.DEFAULT_ANNOTATION_STROKE,
+                    strokeWidth: 2,
+                    strokeOpacity: 1,
+                },
+            },
+            text: {
+                color: 'black',
+                fontSize: 14,
+                fontFamily: _Theme.DEFAULT_FONT_FAMILY,
+                textAlign: 'left',
                 handle: {
                     fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
                     stroke: _Theme.DEFAULT_ANNOTATION_STROKE,
