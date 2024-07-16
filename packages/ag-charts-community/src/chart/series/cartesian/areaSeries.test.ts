@@ -45,6 +45,19 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase & { skip?: boolean }> = 
                 seriesTypes: repeat('area', 4),
             }),
         },
+        STACKED_AREA_MISSING_Y_DATA_WITH_INTERPOLATION_EXAMPLE: {
+            options: {
+                ...examples.STACKED_AREA_MISSING_Y_DATA_EXAMPLE,
+                series: (examples.STACKED_AREA_MISSING_Y_DATA_EXAMPLE.series ?? []).map((series) => ({
+                    ...series,
+                    interpolation: { type: 'smooth' },
+                })),
+            },
+            assertions: cartesianChartAssertions({
+                axisTypes: ['category', 'number'],
+                seriesTypes: repeat('area', 4),
+            }),
+        },
         STACKED_AREA_MISSING_Y_DATA_PER_SERIES_EXAMPLE: {
             options: examples.STACKED_AREA_MISSING_Y_DATA_PER_SERIES_EXAMPLE,
             assertions: cartesianChartAssertions({
@@ -286,6 +299,56 @@ describe('AreaSeries', () => {
 
                     animate(1200, ratio);
                     await chart.update({ ...EXAMPLE });
+
+                    await compare();
+                });
+            }
+        });
+    });
+
+    describe('undefined data animation', () => {
+        const animate = spyOnAnimationManager();
+
+        const EXAMPLE = deepClone(examples.STACKED_AREA_GRAPH_EXAMPLE);
+        EXAMPLE.series?.forEach((series: any) => {
+            series.interpolation = { type: 'smooth' };
+        });
+
+        const updatedData = deepClone(EXAMPLE.data)!;
+        updatedData[4]['Science Museum'] = undefined;
+
+        describe('set to undefined', () => {
+            for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+                it(`for STACKED_AREA_GRAPH_EXAMPLE should animate at ${ratio * 100}%`, async () => {
+                    animate(1200, 1);
+
+                    const options: AgChartOptions = { ...EXAMPLE };
+                    prepareTestOptions(options);
+
+                    chart = AgCharts.create(options);
+                    await waitForChartStability(chart);
+
+                    animate(1200, ratio);
+                    await chart.update({ ...options, data: updatedData });
+
+                    await compare();
+                });
+            }
+        });
+
+        describe('unset from undefined', () => {
+            for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+                it(`for STACKED_AREA_GRAPH_EXAMPLE should animate at ${ratio * 100}%`, async () => {
+                    animate(1200, 1);
+
+                    const options: AgChartOptions = { ...EXAMPLE, data: updatedData };
+                    prepareTestOptions(options);
+
+                    chart = AgCharts.create(options);
+                    await waitForChartStability(chart);
+
+                    animate(1200, ratio);
+                    await chart.update({ ...options, data: EXAMPLE.data });
 
                     await compare();
                 });
