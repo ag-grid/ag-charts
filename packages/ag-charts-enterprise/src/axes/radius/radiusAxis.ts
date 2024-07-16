@@ -3,8 +3,7 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { RadiusCrossLine } from '../polar-crosslines/radiusCrossLine';
 
-const { assignJsonApplyConstructedArray, ChartAxisDirection, Default, Layers, DEGREE, BOOLEAN, Validate } =
-    _ModuleSupport;
+const { ChartAxisDirection, Default, Layers, DEGREE, BOOLEAN, Validate } = _ModuleSupport;
 const { Caption, Group, Path, Selection } = _Scene;
 const { isNumberEqual, normalizeAngle360, toRadians } = _Util;
 
@@ -17,6 +16,8 @@ class RadiusAxisLabel extends _ModuleSupport.AxisLabel {
 }
 
 export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
+    protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = RadiusCrossLine;
+
     @Validate(DEGREE)
     @Default(0)
     positionAngle: number = 0;
@@ -36,10 +37,6 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
 
     get direction() {
         return ChartAxisDirection.Y;
-    }
-
-    protected assignCrossLineArrayConstructor(crossLines: _ModuleSupport.CrossLine[]) {
-        assignJsonApplyConstructedArray(crossLines, RadiusCrossLine);
     }
 
     protected override getAxisTransform() {

@@ -157,6 +157,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 {
     static readonly defaultTickMinSpacing = 50;
 
+    protected static CrossLineConstructor: new () => CrossLine<any> = CartesianCrossLine;
+
     readonly id = createId(this);
 
     @Validate(BOOLEAN)
@@ -216,24 +218,21 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     protected tickLabelGroupSelection = Selection.select<Text, LabelNodeDatum>(this.tickLabelGroup, Text, false);
     protected gridLineGroupSelection = Selection.select(this.gridLineGroup, Line, false);
 
-    protected abstract assignCrossLineArrayConstructor(crossLines: CrossLine[]): void;
-
-    private _crossLines?: CrossLine[];
-    set crossLines(value: CrossLine[] | undefined) {
-        this._crossLines?.forEach((crossLine) => this.detachCrossLine(crossLine));
-
-        if (value) {
-            this.assignCrossLineArrayConstructor(value);
-        }
-
-        this._crossLines = value;
-
-        this._crossLines?.forEach((crossLine) => {
+    private _crossLines: CrossLine[] = [];
+    set crossLines(value: CrossLine[]) {
+        const { CrossLineConstructor } = this.constructor as typeof Axis;
+        this._crossLines.forEach((crossLine) => this.detachCrossLine(crossLine));
+        this._crossLines = value.map((crossLine) => {
+            const instance = new CrossLineConstructor();
+            instance.set(crossLine);
+            return instance;
+        });
+        this._crossLines.forEach((crossLine) => {
             this.attachCrossLine(crossLine);
             this.initCrossLine(crossLine);
         });
     }
-    get crossLines(): CrossLine[] | undefined {
+    get crossLines() {
         return this._crossLines;
     }
 
@@ -271,7 +270,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         options?: { respondsToZoom: boolean }
     ) {
         this.range = this.scale.range.slice() as [number, number];
-        this.crossLines?.forEach((crossLine) => this.initCrossLine(crossLine));
+        this.crossLines.forEach((crossLine) => this.initCrossLine(crossLine));
 
         this.destroyFns.push(this._titleCaption.registerInteraction(this.moduleCtx));
         this._titleCaption.node.rotation = -Math.PI / 2;
@@ -302,7 +301,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         });
 
         this._crossLines = [];
-        this.assignCrossLineArrayConstructor(this._crossLines);
 
         let previousSize: { width: number; height: number } | undefined = undefined;
         this.destroyFns.push(
@@ -353,7 +351,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         scale.setVisibleRange?.(vr);
         scale.range = [start, start + span];
-        this.crossLines?.forEach((crossLine) => {
+        this.crossLines.forEach((crossLine) => {
             crossLine.clippedRange = [rr[0], rr[1]];
         });
     }
@@ -453,7 +451,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         if ((prevValue && !value) || (!prevValue && value)) {
             this.onGridVisibilityChange();
         }
-        this.crossLines?.forEach((crossLine) => this.initCrossLine(crossLine));
+        this.crossLines.forEach((crossLine) => this.initCrossLine(crossLine));
     }
 
     protected onGridVisibilityChange() {
@@ -693,7 +691,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const transformedBBox = this.getTransformBox(bbox);
         const anySeriesActive = this.isAnySeriesActive();
 
-        this.crossLines?.forEach((crossLine) => {
+        this.crossLines.forEach((crossLine) => {
             crossLine.sideFlag = -sideFlag as ChartAxisLabelFlipFlag;
             crossLine.direction = rotation === -Math.PI / 2 ? ChartAxisDirection.X : ChartAxisDirection.Y;
             if (crossLine instanceof CartesianCrossLine) {
@@ -1208,7 +1206,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }) {
         const sideFlag = this.label.getSideFlag();
         const anySeriesActive = this.isAnySeriesActive();
-        this.crossLines?.forEach((crossLine) => {
+        this.crossLines.forEach((crossLine) => {
             crossLine.sideFlag = -sideFlag as ChartAxisLabelFlipFlag;
             crossLine.direction = rotation === -Math.PI / 2 ? ChartAxisDirection.X : ChartAxisDirection.Y;
             if (crossLine instanceof CartesianCrossLine) {

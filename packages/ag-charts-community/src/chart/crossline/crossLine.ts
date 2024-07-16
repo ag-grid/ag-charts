@@ -97,4 +97,5 @@ export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     type?: CrossLineType;
     update(visible: boolean): void;
     value?: any;
+    set(properties: object): void;
 }

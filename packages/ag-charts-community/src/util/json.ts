@@ -132,10 +132,6 @@ export function jsonWalk<T>(json: T, visit: (...nodes: T[]) => void, opts?: { sk
     }
 }
 
-export type JsonApplyParams = {
-    constructedArrays?: WeakMap<Array<any>, new () => any>;
-};
-
 /**
  * Recursively apply a JSON object into a class-hierarchy, optionally instantiating certain classes
  * by property name.
@@ -155,9 +151,9 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
         path?: string;
         matcherPath?: string;
         skip?: string[];
-    } & JsonApplyParams = {}
+    } = {}
 ): Target {
-    const { path, constructedArrays, matcherPath = path?.replace(/(\[[0-9+]+])/i, '[]'), skip = [] } = params;
+    const { path, matcherPath = path?.replace(/(\[[0-9+]+])/i, '[]'), skip = [] } = params;
 
     if (target == null) {
         throw new Error(`AG Charts - target is uninitialised: ${path ?? '<root>'}`);
@@ -206,21 +202,7 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
 
             if (isProperties(currentValue)) {
                 targetAny[property].set(newValue);
-            } else if (newValueType === 'array') {
-                ctr ??= constructedArrays?.get(currentValue);
-                if (ctr == null) {
-                    targetAny[property] = newValue;
-                } else {
-                    const newValueArray: any[] = newValue as any;
-                    targetAny[property] = newValueArray.map((v) =>
-                        jsonApply(new ctr!(), v, {
-                            ...params,
-                            path: propertyPath,
-                            matcherPath: propertyMatcherPath + '[]',
-                        })
-                    );
-                }
-            } else if (newValueType === CLASS_INSTANCE_TYPE) {
+            } else if (newValueType === 'array' || newValueType === CLASS_INSTANCE_TYPE) {
                 targetAny[property] = newValue;
             } else if (newValueType === 'object') {
                 if (currentValue != null) {

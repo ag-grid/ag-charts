@@ -43,7 +43,6 @@ import { ChartAxisDirection } from './chartAxisDirection';
 import { ChartContext } from './chartContext';
 import { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
-import { JSON_APPLY_PLUGINS } from './chartOptions';
 import { ChartUpdateType } from './chartUpdateType';
 import { DataController } from './data/dataController';
 import { axisRegistry } from './factory/axisRegistry';
@@ -1983,7 +1982,7 @@ export abstract class Chart extends Observable {
                 debug(`Chart.applyAxes() - applying axis diff idx ${index}`, axisDiff);
 
                 const path = `axes[${index}]`;
-                jsonApply(axis, axisDiff, { ...JSON_APPLY_PLUGINS, path, skip });
+                jsonApply(axis, axisDiff, { path, skip });
             });
             return true;
         }
@@ -2067,7 +2066,7 @@ export abstract class Chart extends Observable {
             const axisOptions = options[index];
             const axis = axisRegistry.create(axisOptions.type, moduleContext);
             this.applyAxisModules(axis, axisOptions);
-            jsonApply(axis, axisOptions, { ...JSON_APPLY_PLUGINS, path: `axes[${index}]`, skip });
+            jsonApply(axis, axisOptions, { path: `axes[${index}]`, skip });
 
             newAxes.push(axis);
         }
