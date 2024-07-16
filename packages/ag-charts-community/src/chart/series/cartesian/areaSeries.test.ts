@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
+import type { AgAreaSeriesOptions, AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import { deepClone } from '../../../util/json';
@@ -40,6 +40,21 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase & { skip?: boolean }> = 
         },
         STACKED_AREA_MISSING_Y_DATA_EXAMPLE: {
             options: examples.STACKED_AREA_MISSING_Y_DATA_EXAMPLE,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['category', 'number'],
+                seriesTypes: repeat('area', 4),
+            }),
+        },
+        STACKED_AREA_MISSING_Y_DATA_WITH_INTERPOLATION_EXAMPLE: {
+            options: {
+                ...examples.STACKED_AREA_MISSING_Y_DATA_EXAMPLE,
+                series: (examples.STACKED_AREA_MISSING_Y_DATA_EXAMPLE.series as AgAreaSeriesOptions[]).map(
+                    (series) => ({
+                        ...series,
+                        interpolation: { type: 'smooth' },
+                    })
+                ),
+            },
             assertions: cartesianChartAssertions({
                 axisTypes: ['category', 'number'],
                 seriesTypes: repeat('area', 4),
