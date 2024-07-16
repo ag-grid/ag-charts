@@ -120,6 +120,8 @@ AG Charts is available in two versions: Community & Enterprise.
 | [Synchronization](https://charts.ag-grid.com/javascript/sync/)                    | ❌                  | ✅                   |
 | [Zoom](https://charts.ag-grid.com/javascript/zoom/)                               | ❌                  | ✅                   |
 
+<hr/>
+
 ### Financial Charts
 
 Build interactive financial charts featuring advanced annotations with minimal configuration, all you need to do is provide your data:
@@ -144,6 +146,8 @@ Once created, users will have a Financial Chart that can interact with and add a
 The default chart type is [Candlestick](https://charts.ag-grid.com/javascript/candlestick-series/), with additional types like [OHLC](https://charts.ag-grid.com/javascript/ohlc-series/) and [Line](https://charts.ag-grid.com/javascript/line-series/) for versatile data visualisation.
 
 <a href="https://charts.ag-grid.com/javascript/maps/"><br><img alt="Static Badge" src="https://img.shields.io/badge/Financial Charts Docs-blue?style=for-the-badge&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAxLjEvL0VOIiAiaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkIj4KDTwhLS0gVXBsb2FkZWQgdG86IFNWRyBSZXBvLCB3d3cuc3ZncmVwby5jb20sIFRyYW5zZm9ybWVkIGJ5OiBTVkcgUmVwbyBNaXhlciBUb29scyAtLT4KPHN2ZyB3aWR0aD0iODAwcHgiIGhlaWdodD0iODAwcHgiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KDTxnIGlkPSJTVkdSZXBvX2JnQ2FycmllciIgc3Ryb2tlLXdpZHRoPSIwIi8%2BCg08ZyBpZD0iU1ZHUmVwb190cmFjZXJDYXJyaWVyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KDTxnIGlkPSJTVkdSZXBvX2ljb25DYXJyaWVyIj4gPHBhdGggZD0iTTE4IDIwLjc1SDZDNS4yNzA2NSAyMC43NSA0LjU3MTE4IDIwLjQ2MDMgNC4wNTU0NiAxOS45NDQ1QzMuNTM5NzMgMTkuNDI4OCAzLjI1IDE4LjcyOTMgMy4yNSAxOFY2QzMuMjUgNS4yNzA2NSAzLjUzOTczIDQuNTcxMTggNC4wNTU0NiA0LjA1NTQ2QzQuNTcxMTggMy41Mzk3MyA1LjI3MDY1IDMuMjUgNiAzLjI1SDEyQzEyLjE5ODkgMy4yNSAxMi4zODk3IDMuMzI5MDIgMTIuNTMwMyAzLjQ2OTY3QzEyLjY3MSAzLjYxMDMyIDEyLjc1IDMuODAxMDkgMTIuNzUgNEMxMi43NSA0LjE5ODkxIDEyLjY3MSA0LjM4OTY4IDEyLjUzMDMgNC41MzAzM0MxMi4zODk3IDQuNjcwOTggMTIuMTk4OSA0Ljc1IDEyIDQuNzVINkM1LjY2ODQ4IDQuNzUgNS4zNTA1NCA0Ljg4MTcgNS4xMTYxMiA1LjExNjEyQzQuODgxNyA1LjM1MDU0IDQuNzUgNS42Njg0OCA0Ljc1IDZWMThDNC43NSAxOC4zMzE1IDQuODgxNyAxOC42NDk1IDUuMTE2MTIgMTguODgzOUM1LjM1MDU0IDE5LjExODMgNS42Njg0OCAxOS4yNSA2IDE5LjI1SDE4QzE4LjMzMTUgMTkuMjUgMTguNjQ5NSAxOS4xMTgzIDE4Ljg4MzkgMTguODgzOUMxOS4xMTgzIDE4LjY0OTUgMTkuMjUgMTguMzMxNSAxOS4yNSAxOFYxMkMxOS4yNSAxMS44MDExIDE5LjMyOSAxMS42MTAzIDE5LjQ2OTcgMTEuNDY5N0MxOS42MTAzIDExLjMyOSAxOS44MDExIDExLjI1IDIwIDExLjI1QzIwLjE5ODkgMTEuMjUgMjAuMzg5NyAxMS4zMjkgMjAuNTMwMyAxMS40Njk3QzIwLjY3MSAxMS42MTAzIDIwLjc1IDExLjgwMTEgMjAuNzUgMTJWMThDMjAuNzUgMTguNzI5MyAyMC40NjAzIDE5LjQyODggMTkuOTQ0NSAxOS45NDQ1QzE5LjQyODggMjAuNDYwMyAxOC43MjkzIDIwLjc1IDE4IDIwLjc1WiIgZmlsbD0iI2ZmZmZmZiIvPiA8cGF0aCBkPSJNMjAgOC43NUMxOS44MDE5IDguNzQ3NDEgMTkuNjEyNiA4LjY2NzU2IDE5LjQ3MjUgOC41Mjc0N0MxOS4zMzI0IDguMzg3MzcgMTkuMjUyNiA4LjE5ODExIDE5LjI1IDhWNC43NUgxNkMxNS44MDExIDQuNzUgMTUuNjEwMyA0LjY3MDk4IDE1LjQ2OTcgNC41MzAzM0MxNS4zMjkgNC4zODk2OCAxNS4yNSA0LjE5ODkxIDE1LjI1IDRDMTUuMjUgMy44MDEwOSAxNS4zMjkgMy42MTAzMiAxNS40Njk3IDMuNDY5NjdDMTUuNjEwMyAzLjMyOTAyIDE1LjgwMTEgMy4yNSAxNiAzLjI1SDIwQzIwLjE5ODEgMy4yNTI1OSAyMC4zODc0IDMuMzMyNDQgMjAuNTI3NSAzLjQ3MjUzQzIwLjY2NzYgMy42MTI2MyAyMC43NDc0IDMuODAxODkgMjAuNzUgNFY4QzIwLjc0NzQgOC4xOTgxMSAyMC42Njc2IDguMzg3MzcgMjAuNTI3NSA4LjUyNzQ3QzIwLjM4NzQgOC42Njc1NiAyMC4xOTgxIDguNzQ3NDEgMjAgOC43NVoiIGZpbGw9IiNmZmZmZmYiLz4gPHBhdGggZD0iTTEzLjUgMTEuMjVDMTMuMzA3MSAxMS4yMzUyIDEzLjEyNzYgMTEuMTQ1NSAxMyAxMUMxMi44NzcgMTAuODYyNSAxMi44MDkgMTAuNjg0NSAxMi44MDkgMTAuNUMxMi44MDkgMTAuMzE1NSAxMi44NzcgMTAuMTM3NSAxMyAxMEwxOS41IDMuNUMxOS41Njg3IDMuNDI2MzEgMTkuNjUxNSAzLjM2NzIxIDE5Ljc0MzUgMy4zMjYyMkMxOS44MzU1IDMuMjg1MjMgMTkuOTM0OCAzLjI2MzE5IDIwLjAzNTUgMy4yNjE0MUMyMC4xMzYyIDMuMjU5NjMgMjAuMjM2MiAzLjI3ODE2IDIwLjMyOTYgMy4zMTU4OEMyMC40MjMgMy4zNTM2IDIwLjUwNzggMy40MDk3NCAyMC41NzkgMy40ODA5NkMyMC42NTAzIDMuNTUyMTggMjAuNzA2NCAzLjYzNzAxIDIwLjc0NDEgMy43MzA0QzIwLjc4MTggMy44MjM3OSAyMC44MDA0IDMuOTIzODIgMjAuNzk4NiA0LjAyNDUyQzIwLjc5NjggNC4xMjUyMyAyMC43NzQ4IDQuMjI0NTQgMjAuNzMzOCA0LjMxNjU0QzIwLjY5MjggNC40MDg1NCAyMC42MzM3IDQuNDkxMzQgMjAuNTYgNC41NkwxNCAxMUMxMy44NzI0IDExLjE0NTUgMTMuNjkyOSAxMS4yMzUyIDEzLjUgMTEuMjVaIiBmaWxsPSIjZmZmZmZmIi8%2BIDwvZz4KDTwvc3ZnPg%3D%3D"></a>
+
+<hr/>
 
 ### Map Charts
 
@@ -272,11 +276,11 @@ See the [LICENSE file](./LICENSE.txt) for more info.
 
 <div><h2><img vertical-align="middle" width="32" height="32" src="https://github.com/ag-grid/ag-grid/blob/latest/documentation/ag-grid-docs/public/images/ag-logos/svg-logos/AG-BrandMark_Light-Theme.svg?raw=true" alt="AG ChartsLogo">AG Grid</h2></div>
 
-AG Grid is our flagship product, a fully-featured and highly customizable JavaScript Data Grid. It delivers outstanding performance, has no third-party dependencies and comes with support for React Logo React, Angular Logo Angular and Vue Logo Vue.
+<p>AG Grid is our flagship product, a <strong>fully-featured</strong> and <strong>highly customizable</strong> JavaScript Data Grid. It delivers <strong>outstanding performance</strong>, has <strong>no third-party dependencies</strong> and comes with support for <strong><a href="https://github.com/ag-grid/ag-grid/tree/latest/packages/ag-grid-react"><img src="https://github.com/ag-grid/ag-grid/blob/latest/documentation/ag-grid-docs/public/images/fw-logos/react.svg?raw=true" height="16" width="16" alt="React Logo"> React</a></strong>, <strong><a href="https://github.com/ag-grid/ag-grid/tree/latest/packages/ag-grid-angular"><img src="https://github.com/ag-grid/ag-grid/blob/latest/documentation/ag-grid-docs/public/images/fw-logos/angular.svg?raw=true" height="16" width="16" alt="Angular Logo"> Angular</a></strong> and <strong><a href="https://github.com/ag-grid/ag-grid/tree/latest/packages/ag-grid-vue"><img src="https://github.com/ag-grid/ag-grid/blob/latest/documentation/ag-grid-docs/public/images/fw-logos/vue.svg?raw=true" height="16" width="16" alt="Vue Logo"> Vue</a></strong>.</p>
 
 AG Charts is used within AG Grid to power the [Integrated Charting](https://www.ag-grid.com/javascript-data-grid/integrated-charts/) feature.
 
-Learn more at [ag-grid.com](https://ag-grid.com/)
+Learn more at [ag-grid.com](https://www.ag-grid.com/)
 
 <div align="center">
     
