@@ -12,6 +12,10 @@ export class FlowProportionChart extends Chart {
     static readonly className = 'FlowProportionChart';
     static readonly type = 'flow-proportion' as const;
 
+    override getChartType() {
+        return 'flow-proportion' as const;
+    }
+
     override async updateData() {
         await super.updateData();
 
@@ -42,7 +46,6 @@ export class FlowProportionChart extends Chart {
 
         this.seriesRect = shrinkRect;
         this.animationRect = shrinkRect;
-        this.hoverRect = shrinkRect;
 
         const seriesVisible = this.series.some((s) => s.visible);
         seriesRoot.visible = seriesVisible;
