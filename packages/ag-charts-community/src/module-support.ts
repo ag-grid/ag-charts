@@ -35,7 +35,6 @@ export * from './chart/navigator/navigator';
 export * from './chart/navigator/navigatorModule';
 export * from './chart/chartAnimationPhase';
 export * from './chart/chartAxisDirection';
-export { assignJsonApplyConstructedArray } from './chart/chartOptions';
 export * from './chart/axis/axisUtil';
 export * from './chart/data/dataModel';
 export * from './chart/data/dataController';

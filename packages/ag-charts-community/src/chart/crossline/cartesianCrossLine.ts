@@ -17,6 +17,7 @@ import { Range } from '../../scene/shape/range';
 import { Text } from '../../scene/shape/text';
 import { createId } from '../../util/id';
 import { clampArray } from '../../util/number';
+import { BaseProperties } from '../../util/properties';
 import {
     AND,
     ARRAY,
@@ -27,6 +28,7 @@ import {
     FONT_WEIGHT,
     LINE_DASH,
     NUMBER,
+    OBJECT,
     POSITIVE_NUMBER,
     RATIO,
     STRING,
@@ -68,18 +70,18 @@ const CROSSLINE_LABEL_POSITION = UNION(
     'crossLine label position'
 );
 
-class CartesianCrossLineLabel implements AgCartesianCrossLineLabelOptions {
+class CartesianCrossLineLabel extends BaseProperties implements AgCartesianCrossLineLabelOptions {
     @Validate(BOOLEAN, { optional: true })
-    enabled?: boolean = undefined;
+    enabled?: boolean;
 
     @Validate(STRING, { optional: true })
-    text?: string = undefined;
+    text?: string;
 
     @Validate(FONT_STYLE, { optional: true })
-    fontStyle?: FontStyle = undefined;
+    fontStyle?: FontStyle;
 
     @Validate(FONT_WEIGHT, { optional: true })
-    fontWeight?: FontWeight = undefined;
+    fontWeight?: FontWeight;
 
     @Validate(POSITIVE_NUMBER)
     fontSize: number = 14;
@@ -100,18 +102,18 @@ class CartesianCrossLineLabel implements AgCartesianCrossLineLabelOptions {
     color?: string = 'rgba(87, 87, 87, 1)';
 
     @Validate(CROSSLINE_LABEL_POSITION, { optional: true })
-    position?: CrossLineLabelPosition = undefined;
+    position?: CrossLineLabelPosition;
 
     @Validate(DEGREE, { optional: true })
-    rotation?: number = undefined;
+    rotation?: number;
 
     @Validate(BOOLEAN, { optional: true })
-    parallel?: boolean = undefined;
+    parallel?: boolean;
 }
 
 type NodeData = number[];
 
-export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
+export class CartesianCrossLine extends BaseProperties implements CrossLine<CartesianCrossLineLabel> {
     protected static readonly LINE_LAYER_ZINDEX = Layers.SERIES_CROSSLINE_LINE_ZINDEX;
     protected static readonly RANGE_LAYER_ZINDEX = Layers.SERIES_CROSSLINE_RANGE_ZINDEX;
     protected static readonly LABEL_LAYER_ZINDEX = Layers.SERIES_LABEL_ZINDEX;
@@ -120,37 +122,38 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
     readonly id = createId(this);
 
     @Validate(BOOLEAN, { optional: true })
-    enabled?: boolean = undefined;
+    enabled?: boolean;
 
     @Validate(UNION(['range', 'line'], 'a crossLine type'), { optional: true })
-    type?: CrossLineType = undefined;
+    type?: CrossLineType;
 
     @Validate(AND(MATCHING_CROSSLINE_TYPE('range'), ARRAY.restrict({ length: 2 })), {
         optional: true,
     })
-    range?: [any, any] = undefined;
+    range?: [any, any];
 
     @Validate(MATCHING_CROSSLINE_TYPE('value'), { optional: true })
-    value?: any = undefined;
+    value?: any;
 
     @Validate(COLOR_STRING, { optional: true })
-    fill?: string = undefined;
+    fill?: string;
 
     @Validate(RATIO, { optional: true })
-    fillOpacity?: number = undefined;
+    fillOpacity?: number;
 
     @Validate(COLOR_STRING, { optional: true })
-    stroke?: string = undefined;
+    stroke?: string;
 
     @Validate(NUMBER, { optional: true })
-    strokeWidth?: number = undefined;
+    strokeWidth?: number;
 
     @Validate(RATIO, { optional: true })
-    strokeOpacity?: number = undefined;
+    strokeOpacity?: number;
 
     @Validate(LINE_DASH, { optional: true })
-    lineDash?: [] = undefined;
+    lineDash?: [];
 
+    @Validate(OBJECT)
     label: CartesianCrossLineLabel = new CartesianCrossLineLabel();
 
     scale?: Scale<any, number> = undefined;
@@ -163,7 +166,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
 
     readonly group = new Group({ name: `${this.id}`, layer: true, zIndex: CartesianCrossLine.LINE_LAYER_ZINDEX });
     readonly labelGroup = new Group({ name: `${this.id}`, layer: true, zIndex: CartesianCrossLine.LABEL_LAYER_ZINDEX });
-    private readonly crossLineRange: Range = new Range();
+    private readonly crossLineRange = new Range();
     private readonly crossLineLabel = new Text();
     private labelPoint?: Point = undefined;
 
@@ -173,12 +176,12 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
     private isRange: boolean = false;
 
     constructor() {
-        const { group, labelGroup, crossLineRange, crossLineLabel } = this;
+        super();
 
-        group.append(crossLineRange);
-        labelGroup.append(crossLineLabel);
+        this.group.append(this.crossLineRange);
+        this.labelGroup.append(this.crossLineLabel);
 
-        crossLineRange.pointerEvents = PointerEvents.None;
+        this.crossLineRange.pointerEvents = PointerEvents.None;
     }
 
     update(visible: boolean) {
