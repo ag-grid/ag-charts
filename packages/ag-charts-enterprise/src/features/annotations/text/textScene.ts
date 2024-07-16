@@ -1,3 +1,5 @@
+import type { BBox } from 'packages/ag-charts-community/src/integrated-charts-scene';
+
 import { _Scene, _Util } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords } from '../annotationTypes';
@@ -18,6 +20,7 @@ export class TextScene extends AnnotationScene {
 
     private readonly label = new _Scene.Text();
     private readonly handle = new DivariantHandle();
+    private readonly shape = new _Scene.Path();
 
     private dragState?: {
         offset: Coords;
@@ -26,7 +29,7 @@ export class TextScene extends AnnotationScene {
 
     constructor() {
         super();
-        this.append([this.label, this.handle]);
+        this.append([this.shape, this.label, this.handle]);
     }
 
     public update(datum: TextProperties, context: AnnotationContext) {
@@ -57,11 +60,15 @@ export class TextScene extends AnnotationScene {
         if (bbox.width === 0 && bbox.height === 0) {
             bbox = this.computeBBoxWithoutHandles();
         }
+
+        const padding = 20;
         this.handle.update({
             ...handleStyles,
-            x: coords.x + bbox.width / 2,
+            x: coords.x - DivariantHandle.HANDLE_SIZE / 2 - padding / 2,
             y: coords.y + bbox.height + DivariantHandle.HANDLE_SIZE,
         });
+
+        this.updateShape({ bbox, anchorPoint: coords, padding });
     }
 
     public dragStart(datum: TextProperties, target: Coords, context: AnnotationContext) {
@@ -133,5 +140,42 @@ export class TextScene extends AnnotationScene {
         }
 
         return label.containsPoint(x, y);
+    }
+
+    private updateShape({ bbox, anchorPoint, padding }: { bbox: BBox; anchorPoint: Coords; padding: number }) {
+        const { shape } = this;
+
+        let { width, height } = bbox;
+        const { path } = shape;
+
+        width = width + padding;
+        height = height + padding;
+        anchorPoint.y = anchorPoint.y + height - padding / 2;
+        anchorPoint.x = anchorPoint.x - padding / 2;
+
+        const top = anchorPoint.y - height;
+        const right = anchorPoint.x + width;
+
+        shape.fill = 'purple';
+        shape.fillOpacity = 0.5;
+        shape.stroke = 'blue';
+        shape.strokeWidth = 1;
+        path.clear();
+
+        // why don't we have `quadraticCurveTo()`?
+
+        path.moveTo(anchorPoint.x, anchorPoint.y);
+        path.cubicCurveTo(anchorPoint.x, top, anchorPoint.x, top, anchorPoint.x + width / 5, top);
+
+        path.lineTo(right - width / 5, top);
+        path.cubicCurveTo(right, top, right, top, right, top + height / 5);
+
+        path.lineTo(right, anchorPoint.y - height / 5);
+
+        path.cubicCurveTo(right, anchorPoint.y, right, anchorPoint.y, right - width / 5, anchorPoint.y);
+
+        path.lineTo(anchorPoint.x, anchorPoint.y);
+
+        path.closePath();
     }
 }

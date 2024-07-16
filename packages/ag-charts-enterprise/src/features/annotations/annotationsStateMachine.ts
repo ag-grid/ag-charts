@@ -284,11 +284,14 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     if (this.active == null) return;
 
                     const datum = getTypedDatum(ctx.datum(this.active));
-                    if (!datum || !('getTextBBox' in datum)) return;
+                    // if (!datum || !('getTextBBox' in datum)) return;
 
                     ctx.startInteracting();
                     ctx.showTextInput(this.active);
-                    datum.visible = false;
+
+                    if (datum) {
+                        datum.visible = false;
+                    }
 
                     ctx.update();
                 },

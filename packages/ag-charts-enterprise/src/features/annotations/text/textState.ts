@@ -26,7 +26,7 @@ export class TextStateMachine extends StateMachine<'start' | 'edit', 'click' | '
         };
 
         const onSave = ({ textInputValue }: { textInputValue?: string }) => {
-            if (textInputValue) {
+            if (typeof textInputValue === 'string') {
                 ctx.datum()?.set({ text: textInputValue });
                 ctx.update();
             } else {
@@ -46,13 +46,19 @@ export class TextStateMachine extends StateMachine<'start' | 'edit', 'click' | '
                 onEnter: () => {
                     ctx.showTextInput();
                 },
-                keyDown: {
-                    guard: ({ key }: { key: string }) => key === 'Escape',
-                    target: StateMachine.parent,
-                    action: () => {
-                        ctx.delete();
+                keyDown: [
+                    {
+                        guard: ({ key }: { key: string }) => key === 'Escape',
+                        target: StateMachine.parent,
+                        action: () => {
+                            ctx.delete();
+                        },
                     },
-                },
+                    {
+                        target: 'edit',
+                        action: onSave,
+                    },
+                ],
                 click: {
                     target: StateMachine.parent,
                     action: onSave,
