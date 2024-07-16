@@ -7,7 +7,7 @@
       <img width="100%" alt="AG Charts Logo" src="https://github.com/ag-grid/ag-grid/blob/latest/documentation/ag-grid-docs/public/images/ag-logos/svg-logos/AG-Charts-Logo_Dark-Theme.svg?raw=true"/>
     </picture>
     <div align="center">
-        <h4><a href="https://charts.ag-grid.com">🌐 Website</a> • <a href="https://charts.ag-grid.com/javascript/getting-started/">📖 Documentation</a> • <a href="https://charts.ag-grid.com/gallery/">📊 Gallery</a></h4>
+        <h4><a href="https://charts.ag-grid.com">🌐 Website</a> • <a href="https://charts.ag-grid.com/javascript/quick-start/">📖 Documentation</a> • <a href="https://charts.ag-grid.com/gallery/">📊 Gallery</a></h4>
     </div>
     <br>
     <a href="https://github.com/ag-grid/ag-charts/releases">
