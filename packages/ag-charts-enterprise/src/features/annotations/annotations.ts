@@ -6,7 +6,16 @@ import { TextInput } from '../text-input/textInput';
 import type { AnnotationContext, Coords, Point } from './annotationTypes';
 import { ANNOTATION_BUTTONS, AnnotationType, stringToAnnotationType } from './annotationTypes';
 import { calculateAxisLabelPadding, invertCoords, validateDatumPoint } from './annotationUtils';
-import { annotationDatums, annotationScenes, colorDatum, getTypedDatum, updateAnnotation } from './annotationsConfig';
+import {
+    annotationDatums,
+    annotationScenes,
+    colorDatum,
+    getTypedDatum,
+    isChannelType,
+    isLineType,
+    isTextType,
+    updateAnnotation,
+} from './annotationsConfig';
 import { AnnotationsStateMachine } from './annotationsStateMachine';
 import type { AnnotationProperties } from './annotationsSuperTypes';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
@@ -36,6 +45,14 @@ type AnnotationAxis = {
 };
 
 const AXIS_TYPE = UNION(['x', 'y', 'xy'], 'an axis type');
+
+enum AnnotationOptions {
+    Delete = 'delete',
+    LineColor = 'line-color',
+    Lock = 'lock',
+    TextColor = 'text-color',
+    Unlock = 'unlock',
+}
 
 class AxesButtons {
     @Validate(BOOLEAN)
@@ -377,7 +394,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (active == null) return;
 
         switch (event.value) {
-            case 'line-color':
+            case AnnotationOptions.LineColor:
+            case AnnotationOptions.TextColor:
                 this.colorPicker.show({
                     color: getTypedDatum(annotationData[active])?.getDefaultColor(),
                     onChange: this.onColorPickerChange.bind(this),
@@ -385,18 +403,18 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 });
                 break;
 
-            case 'delete':
+            case AnnotationOptions.Delete:
                 annotationData.splice(active, 1);
                 this.reset();
                 break;
 
-            case 'lock':
+            case AnnotationOptions.Lock:
                 annotationData[active].locked = true;
                 this.toggleAnnotationOptionsButtons();
                 this.colorPicker.hide();
                 break;
 
-            case 'unlock':
+            case AnnotationOptions.Unlock:
                 annotationData[active].locked = false;
                 this.toggleAnnotationOptionsButtons();
                 break;
@@ -406,7 +424,15 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onToolbarButtonMoved(event: _ModuleSupport.ToolbarButtonMovedEvent) {
-        const { rect } = event;
+        const { group, rect, value } = event;
+
+        if (
+            group !== 'annotationOptions' ||
+            (value !== AnnotationOptions.LineColor && value !== AnnotationOptions.TextColor)
+        ) {
+            return;
+        }
+
         const anchor = Vec2.add(rect, Vec2.from(0, rect.height + 4));
         const fallback = { y: rect.y - 4 };
         this.colorPicker.setAnchor(anchor, fallback);
@@ -683,11 +709,21 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (active == null) return;
 
-        const locked = annotationData.at(active)?.locked ?? false;
-        toolbarManager.toggleButton('annotationOptions', 'line-color', { enabled: !locked });
-        toolbarManager.toggleButton('annotationOptions', 'delete', { enabled: !locked });
-        toolbarManager.toggleButton('annotationOptions', 'lock', { visible: !locked });
-        toolbarManager.toggleButton('annotationOptions', 'unlock', { visible: locked });
+        const datum = getTypedDatum(annotationData.at(active));
+        const locked = datum?.locked ?? false;
+
+        toolbarManager.toggleButton('annotationOptions', AnnotationOptions.LineColor, {
+            enabled: !locked,
+            visible: isLineType(datum) || isChannelType(datum),
+        });
+        toolbarManager.toggleButton('annotationOptions', AnnotationOptions.TextColor, {
+            enabled: !locked,
+            visible: isTextType(datum),
+        });
+
+        toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Delete, { enabled: !locked });
+        toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Lock, { visible: !locked });
+        toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Unlock, { visible: locked });
     }
 
     private isOtherElement({ targetElement }: { targetElement?: HTMLElement }) {
