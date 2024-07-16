@@ -91,7 +91,7 @@ AG Charts offers 20+ chart types, each of which are fully customisable:
 | [Scatter](https://charts.ag-grid.com/gallery/simple-scatter/)         | ✅                  | ✅                   |
 | [Bubble](https://charts.ag-grid.com/gallery/simple-bubble/)           | ✅                  | ✅                   |
 | [Pie](https://charts.ag-grid.com/gallery/simple-pie/)                 | ✅                  | ✅                   |
-| [Doughnut](https://charts.ag-grid.com/gallery/multiple-donuts/)       | ✅                  | ✅                   |
+| [Donut](https://charts.ag-grid.com/gallery/multiple-donuts/)          | ✅                  | ✅                   |
 | [Combination](https://charts.ag-grid.com/gallery/combination-chart/)  | ✅                  | ✅                   |
 | [Box Plot](https://charts.ag-grid.com/gallery/simple-box-plot/)       | ❌                  | ✅                   |
 | [Bullet](https://charts.ag-grid.com/gallery/simple-bullet/)           | ❌                  | ✅                   |
