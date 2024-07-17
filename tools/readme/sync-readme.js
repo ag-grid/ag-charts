@@ -169,7 +169,7 @@ const updateSetup = (content, packageTitle) => {
 
 for (const readme of packageReadmeList) {
     prettier
-        .format(updateContent(readme), { filepath: './README.md', tabWidth: 4 })
+        .format(updateContent(readme), { filepath: './README.md', tabWidth: 4, singleQuote: true })
         .then((result) => fs.writeFileSync(readme, result))
         .catch((error) => {
             console.error(error);
