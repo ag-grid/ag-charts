@@ -251,6 +251,8 @@ export class Tooltip extends BaseProperties {
 
         element.style.transform = `translate(${Math.round(left)}px, ${Math.round(top)}px)`;
 
+        element.setAttribute('data-pointer-mode', meta.enableInteraction ? 'exclusive' : 'passthrough');
+
         this.enableInteraction = meta.enableInteraction ?? false;
 
         if (this.delay > 0 && !instantly) {
