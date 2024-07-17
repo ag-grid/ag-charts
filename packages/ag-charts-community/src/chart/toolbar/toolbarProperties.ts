@@ -1,3 +1,4 @@
+import { Logger } from '../../util/logger';
 import { BaseProperties } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
 import { ARRAY, BOOLEAN, UNION, Validate } from '../../util/validation';
@@ -35,6 +36,11 @@ export class ToolbarGroupProperties extends BaseProperties {
     size: 'small' | 'normal' = 'normal';
 
     @ObserveChanges<ToolbarGroupProperties>((target) => {
+        for (const button of target.buttons ?? []) {
+            if (button.icon === 'zoom-in-alt' || button.icon === 'zoom-out-alt') {
+                Logger.warnOnce(`Icon '${button.icon}' is deprecated, use another icon instead.`);
+            }
+        }
         target.onButtonsChange(target.buttons);
     })
     @Validate(ARRAY, { optional: true })
