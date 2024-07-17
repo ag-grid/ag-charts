@@ -36,14 +36,14 @@ type PickedNode = {
 
 // x/y are local canvas coordinates in CSS pixels, not actual pixels
 export function pickNode(
-    series: Series<any, any>[],
+    inputSeries: Series<any, any>[],
     point: Point,
     intent: SeriesNodePickIntent,
     exactMatchOnly?: boolean
 ): PickedNode | undefined {
     // Iterate through series in reverse, as later declared series appears on top of earlier
     // declared series.
-    const reverseSeries = [...series].reverse();
+    const reverseSeries = [...inputSeries].reverse();
 
     let result: { series: Series<any, any>; datum: SeriesNodeDatum; distance: number } | undefined;
     for (const series of reverseSeries) {

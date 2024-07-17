@@ -10,14 +10,12 @@ import { TooltipManager } from '../interaction/tooltipManager';
 import type { LayoutCompleteEvent } from '../layout/layoutService';
 import { DEFAULT_TOOLTIP_CLASS, Tooltip, type TooltipPointerEvent } from '../tooltip/tooltip';
 import { type Series } from './series';
-import type { SeriesNodeDatum } from './seriesTypes';
 import { pickNode } from './util';
 
 /** Manager that handles all top-down series-area tooltip related concerns and state. */
 export class SeriesAreaTooltipManager extends BaseManager {
     private series: Series<any, any>[] = [];
     private hoverRect?: BBox;
-    private lastPick?: SeriesNodeDatum;
     private lastHover?: TooltipPointerEvent<'hover'>;
 
     public constructor(
@@ -114,7 +112,6 @@ export class SeriesAreaTooltipManager extends BaseManager {
             return;
         }
 
-        const { lastPick } = this;
         if (
             targetElement &&
             this.tooltip.interactive &&
@@ -130,14 +127,9 @@ export class SeriesAreaTooltipManager extends BaseManager {
             return;
         }
 
-        const isNewDatum = !lastPick || lastPick !== pick.datum;
-        let html;
-        if (isNewDatum) {
-            html = pick.series.getTooltipHtml(pick.datum);
-        }
-
+        const html = pick.series.getTooltipHtml(pick.datum);
         const tooltipEnabled = this.tooltip.enabled && pick.series.tooltipEnabled;
-        const shouldUpdateTooltip = tooltipEnabled && (!isNewDatum || html !== undefined);
+        const shouldUpdateTooltip = tooltipEnabled && html != null;
         if (shouldUpdateTooltip) {
             const meta = TooltipManager.makeTooltipMeta(event, pick.datum);
             this.ctx.tooltipManager.updateTooltip(this.id, meta, html);

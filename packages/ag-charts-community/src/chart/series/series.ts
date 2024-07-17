@@ -655,13 +655,13 @@ export abstract class Series<
 
         let maxDistance = Infinity;
         if (intent === 'tooltip') {
-            const { range } = this.properties.tooltip;
-            maxDistance = typeof range === 'number' ? range : Infinity;
-            exactMatchOnly ||= range === 'exact';
+            const { tooltip } = this.properties;
+            maxDistance = typeof tooltip.range === 'number' ? tooltip.range : Infinity;
+            exactMatchOnly ||= tooltip.range === 'exact';
         } else if (intent === 'event') {
-            const range = this.properties.nodeClickRange;
-            maxDistance = typeof range === 'number' ? range : Infinity;
-            exactMatchOnly ||= range === 'exact';
+            const { nodeClickRange } = this.properties;
+            maxDistance = typeof nodeClickRange === 'number' ? nodeClickRange : Infinity;
+            exactMatchOnly ||= nodeClickRange === 'exact';
         }
         for (const pickMode of pickModes) {
             if (exactMatchOnly && pickMode !== SeriesNodePickMode.EXACT_SHAPE_MATCH) continue;

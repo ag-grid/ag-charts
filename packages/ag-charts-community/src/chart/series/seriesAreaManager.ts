@@ -30,7 +30,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private series: Series<any, any>[] = [];
 
-    private subManagers: SeriesAreaSubManager[];
+    private readonly subManagers: SeriesAreaSubManager[];
 
     public constructor(
         chart: {
