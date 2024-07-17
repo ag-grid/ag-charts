@@ -336,7 +336,7 @@ export class SeriesAreaManager extends BaseManager {
             }
 
             if (range === 'tooltip' && found.series.properties.tooltip.enabled) return;
-            this.ctx.highlightManager.updateHighlight(this.id, found.datum);
+            this.ctx.highlightManager.updateHighlight(this.id, found);
         }
 
         this.ctx.cursorManager.updateCursor('chart');
