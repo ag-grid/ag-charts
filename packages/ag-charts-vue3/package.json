@@ -23,10 +23,15 @@
   },
   "homepage": "https://charts.ag-grid.com/",
   "keywords": [
-    "chart",
-    "data",
     "charts",
+    "graphs",
+    "chart",
     "graph",
+    "data",
+    "vue charts",
+    "vue graphs",
+    "data visualization",
+    "vue-component",
     "vue",
     "vuejs"
   ],

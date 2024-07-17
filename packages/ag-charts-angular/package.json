@@ -12,11 +12,16 @@
     "url": "https://github.com/ag-grid/ag-charts.git"
   },
   "keywords": [
-    "angular-component",
+    "angular",
     "charts",
-    "data",
+    "graphs",
     "chart",
-    "angular"
+    "graph",
+    "data",
+    "angular charts",
+    "angular graphs",
+    "data visualization",
+    "angular-component"
   ],
   "author": "AG Grid <info@ag-grid.com>",
   "license": "MIT",

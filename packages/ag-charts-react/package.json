@@ -17,11 +17,16 @@
     "url": "https://github.com/ag-grid/ag-charts.git"
   },
   "keywords": [
-    "react-component",
+    "react",
     "charts",
-    "data",
+    "graphs",
     "chart",
-    "react"
+    "graph",
+    "data",
+    "react charts",
+    "react graphs",
+    "data visualization",
+    "react-component"
   ],
   "author": "AG Grid <info@ag-grid.com>",
   "license": "MIT",
