@@ -48,6 +48,7 @@ const updateContent = (readme) => {
         .replaceAll('https://charts.ag-grid.com/javascript/', `https://charts.ag-grid.com/${framework}/`)
         .replaceAll('/ag-charts-community', `/${packageName}`)
         .replaceAll('JavaScript', `${packageTitle}`)
+        .replaceAll('/javascript-data-grid/', `/${framework}-data-grid/`)
         .replaceAll('$ npm install ag-charts-community', `$ npm install ${packageName}`)
         .replaceAll('./packages/ag-charts-website/public/images/', '../../packages/ag-charts-website/public/images/');
 
