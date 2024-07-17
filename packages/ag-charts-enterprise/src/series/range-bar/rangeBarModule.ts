@@ -1,6 +1,6 @@
 import { type _ModuleSupport, _Theme } from 'ag-charts-community';
 
-import { RangeBarSeries } from './rangeBar';
+import { RangeBarSeries } from './rangeBarSeries';
 import { RANGE_BAR_SERIES_THEME } from './rangeBarThemes';
 
 export const RangeBarModule: _ModuleSupport.SeriesModule<'range-bar'> = {
@@ -10,7 +10,7 @@ export const RangeBarModule: _ModuleSupport.SeriesModule<'range-bar'> = {
     chartTypes: ['cartesian'],
 
     identifier: 'range-bar',
-    instanceConstructor: RangeBarSeries,
+    moduleFactory: (ctx) => new RangeBarSeries(ctx),
     tooltipDefaults: { range: 'exact' },
     defaultAxes: [
         {

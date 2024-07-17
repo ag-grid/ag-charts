@@ -1,25 +1,18 @@
-import {
-    type AgCandlestickSeriesBaseItemStylerParams,
-    type AgOhlcSeriesFormatterParams,
-    type AgOhlcSeriesItemOptions,
-    _ModuleSupport,
-    _Scene,
-} from 'ag-charts-community';
+import { type AgOhlcSeriesItemOptions, _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import { CandlestickSeriesBase } from '../candlestick/candlestickSeriesBase';
 import { computeCandleFocusBounds, resetCandlestickSelectionsFn } from '../candlestick/candlestickUtil';
 import { OhlcGroup } from './ohlcGroup';
+import { OhlcSeriesBase } from './ohlcSeriesBase';
 import { OhlcSeriesProperties } from './ohlcSeriesProperties';
 import type { OhlcNodeDatum } from './ohlcTypes';
 
 const { mergeDefaults } = _ModuleSupport;
 
-export class OhlcSeries extends CandlestickSeriesBase<
+export class OhlcSeries extends OhlcSeriesBase<
     OhlcGroup,
     AgOhlcSeriesItemOptions,
     OhlcSeriesProperties,
-    OhlcNodeDatum,
-    AgOhlcSeriesFormatterParams<OhlcNodeDatum>
+    OhlcNodeDatum
 > {
     static readonly className = 'ohlc';
     static readonly type = 'ohlc' as const;
@@ -52,14 +45,40 @@ export class OhlcSeries extends CandlestickSeriesBase<
         return { ...baseNodeData, nodeData };
     }
 
-    protected override nodeFactory() {
-        return new OhlcGroup();
+    getFormattedStyles(nodeDatum: OhlcNodeDatum, highlighted = false) {
+        const {
+            id: seriesId,
+            ctx: { callbackCache },
+        } = this;
+        const { xKey, openKey, closeKey, highKey, lowKey, itemStyler } = this.properties;
+        const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this.getItemConfig(nodeDatum.itemId);
+
+        if (itemStyler) {
+            const formatStyles = callbackCache.call(itemStyler, {
+                datum: nodeDatum.datum,
+                itemId: nodeDatum.itemId,
+                seriesId,
+                highlighted,
+                xKey,
+                openKey,
+                closeKey,
+                highKey,
+                lowKey,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+            });
+            if (formatStyles) {
+                return mergeDefaults(formatStyles, this.getSeriesStyles(nodeDatum));
+            }
+        }
+        return this.getSeriesStyles(nodeDatum);
     }
 
-    protected override getFormatterParams(
-        params: AgCandlestickSeriesBaseItemStylerParams<OhlcNodeDatum>
-    ): AgOhlcSeriesFormatterParams<OhlcNodeDatum> {
-        return params;
+    protected override nodeFactory() {
+        return new OhlcGroup();
     }
 
     protected override getSeriesStyles(nodeDatum: OhlcNodeDatum): AgOhlcSeriesItemOptions {

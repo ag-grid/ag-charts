@@ -31,7 +31,7 @@ const options: AgCartesianChartOptions = {
             crosshair: {
                 label: {
                     className: 'custom-crosshair-label',
-                    xOffset: 60,
+                    xOffset: 50,
                 },
             },
         },

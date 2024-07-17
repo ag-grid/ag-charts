@@ -1,3 +1,4 @@
+import type { LayoutContext } from '../../module/baseModule';
 import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import { Debug } from '../../util/debug';
@@ -30,10 +31,6 @@ export interface LayoutCompleteEvent {
     series: { rect: BBox; paddedRect: BBox; visible: boolean; shouldFlipXY?: boolean };
     clipSeries: boolean;
     axes?: Array<AxisLayout & { id: string }>;
-}
-
-export interface LayoutContext {
-    shrinkRect: BBox;
 }
 
 type EventTypes = LayoutStage | LayoutComplete;

@@ -22,7 +22,7 @@ export const WATERFALL_SERIES_THEME = {
             total: itemTheme,
         },
         line: {
-            stroke: _Theme.DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
+            stroke: _Theme.PALETTE_NEUTRAL_STROKE,
             strokeOpacity: 1,
             lineDash: [0],
             lineDashOffset: 0,

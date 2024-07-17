@@ -1,12 +1,10 @@
 import type {
     AgBaseRadarSeriesOptions,
     AgRadarSeriesLabelFormatterParams,
-    AgRadarSeriesStylerParams,
     AgRadarSeriesTooltipRendererParams,
     AgRadialSeriesOptionsKeys,
     FillOptions,
     StrokeOptions,
-    Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
@@ -32,7 +30,6 @@ const {
     BOOLEAN,
     COLOR_STRING,
     DEGREE,
-    FUNCTION,
     LINE_DASH,
     OBJECT,
     POSITIVE_NUMBER,
@@ -70,20 +67,17 @@ export class RadarSeriesProperties<T extends AgBaseRadarSeriesOptions> extends S
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgRadarSeriesStylerParams<any>, AgRadarSeriesFormat>;
-
     @Validate(DEGREE)
     rotation: number = 0;
 
     @Validate(OBJECT)
-    readonly marker = new SeriesMarker<AgRadialSeriesOptionsKeys, RadarNodeDatum>();
+    readonly marker = new SeriesMarker<AgRadialSeriesOptionsKeys>();
 
     @Validate(OBJECT)
     readonly label = new Label<AgRadarSeriesLabelFormatterParams>();
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgRadarSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgRadarSeriesTooltipRendererParams<any>>();
 
     @Validate(BOOLEAN)
     connectMissingData: boolean = false;

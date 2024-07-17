@@ -1,4 +1,4 @@
-import type { AgChartCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { AgChartCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type {
     AgChartAutoSizedLabelOptions,
     AgChartAutoSizedSecondaryLabelOptions,
@@ -17,7 +17,8 @@ export type AgSunburstSeriesLabelHighlightOptions<TDatum> = Pick<
 
 export interface AgSunburstSeriesTooltipRendererParams<TDatum>
     extends AgChartCallbackParams<TDatum>,
-        AgSunburstSeriesOptionsKeys {
+        AgSunburstSeriesOptionsKeys,
+        AgSunburstSeriesOptionsNames {
     /** The depth of the datum in the hierarchy. */
     depth: number;
     /** The title of the Sunburst segment. */
@@ -26,7 +27,7 @@ export interface AgSunburstSeriesTooltipRendererParams<TDatum>
     color?: CssColor;
 }
 
-export interface AgSunburstSeriesHighlightStyle<TDatum> extends AgSeriesHighlightStyle, FillOptions, StrokeOptions {
+export interface AgSunburstSeriesHighlightStyle<TDatum> extends AgSeriesHighlightStyle, AgSunburstSeriesStyle {
     /** Options for the label in a sector. */
     label?: AgSunburstSeriesLabelHighlightOptions<TDatum>;
     /** Options for a secondary, smaller label in a sector - displayed under the primary label. */
@@ -60,7 +61,7 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = any>
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgSunburstSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular Sunburst sector based on the input parameters. */
-    itemStyler?: Styler<AgSunburstSeriesFormatterParams<TDatum>, AgSunburstSeriesStyle>;
+    itemStyler?: Styler<AgSunburstSeriesItemStylerParams<TDatum>, AgSunburstSeriesStyle>;
     /** Style overrides when a node is hovered. */
     highlightStyle?: AgSunburstSeriesHighlightStyle<TDatum>;
 }
@@ -68,6 +69,7 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = any>
 export interface AgSunburstSeriesOptions<TDatum = any>
     extends Omit<AgBaseSeriesOptions<TDatum>, 'highlightStyle'>,
         AgSunburstSeriesOptionsKeys,
+        AgSunburstSeriesOptionsNames,
         AgSunburstSeriesThemeableOptions<TDatum> {
     /** Configuration for the Sunburst Series. */
     type: 'sunburst';
@@ -84,6 +86,9 @@ export interface AgSunburstSeriesOptionsKeys {
     sizeKey?: string;
     /** The name of the node key containing the colour value. This value (along with `colorRange` config) will be used to determine the segment colour. */
     colorKey?: string;
+}
+
+export interface AgSunburstSeriesOptionsNames {
     /** A human-readable description of the size values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     sizeName?: string;
     /** A human-readable description of the colour values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
@@ -91,20 +96,20 @@ export interface AgSunburstSeriesOptionsKeys {
 }
 
 /** The parameters of the Sunburst series formatter function */
-export interface AgSunburstSeriesFormatterParams<TDatum = any>
-    extends AgChartCallbackParams<TDatum>,
+export interface AgSunburstSeriesItemStylerParams<TDatum>
+    extends DatumCallbackParams<TDatum>,
         AgSunburstSeriesOptionsKeys,
-        AgSunburstSeriesStyle {
+        Required<AgSunburstSeriesStyle> {
     /** The depth of the datum in the hierarchy. */
     depth: number;
-    /** `true` if the sector is highlighted by hovering. */
-    readonly highlighted: boolean;
 }
 
-export interface AgSunburstSeriesLabelFormatterParams<_TDatum = any> extends AgSunburstSeriesOptionsKeys {
+export interface AgSunburstSeriesLabelFormatterParams<_TDatum = any>
+    extends AgSunburstSeriesOptionsKeys,
+        AgSunburstSeriesOptionsNames {
     /** The depth of the datum in the hierarchy. */
     depth: number;
 }
 
 /** The formatted style of a Sunburst sector. */
-export interface AgSunburstSeriesStyle extends FillOptions, StrokeOptions {}
+export type AgSunburstSeriesStyle = FillOptions & StrokeOptions;

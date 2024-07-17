@@ -1,6 +1,6 @@
 import { _Scene } from 'ag-charts-community';
 
-import type { AnnotationPoint } from '../annotationProperties';
+import type { PointProperties } from '../annotationProperties';
 import type { AnnotationContext, LineCoords } from '../annotationTypes';
 import { convertLine } from '../annotationUtils';
 import type { Handle } from './handle';
@@ -12,9 +12,9 @@ export abstract class ChannelScene<
         background: { fill?: string; fillOpacity?: number };
         locked?: boolean;
         visible?: boolean;
-        start: Pick<AnnotationPoint, 'x' | 'y'>;
-        end: Pick<AnnotationPoint, 'x' | 'y'>;
-        bottom: { start: Pick<AnnotationPoint, 'x' | 'y'>; end: Pick<AnnotationPoint, 'x' | 'y'> };
+        start: Pick<PointProperties, 'x' | 'y'>;
+        end: Pick<PointProperties, 'x' | 'y'>;
+        bottom: { start: Pick<PointProperties, 'x' | 'y'>; end: Pick<PointProperties, 'x' | 'y'> };
     },
 > extends LinearScene<Datum> {
     protected handles: { [key: string]: Handle } = {};
@@ -64,7 +64,7 @@ export abstract class ChannelScene<
     }
 
     override getAnchor() {
-        const bbox = this.getCachedBBox();
+        const bbox = this.getCachedBBoxWithoutHandles();
         return { x: bbox.x + bbox.width / 2, y: bbox.y };
     }
 

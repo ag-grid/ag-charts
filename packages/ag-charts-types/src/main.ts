@@ -28,7 +28,7 @@ export * from './series/cartesian/cartesianSeriesTypes';
 export * from './series/cartesian/areaOptions';
 export * from './series/cartesian/barOptions';
 export * from './series/cartesian/boxPlotOptions';
-export * from './series/cartesian/candlestickBaseOptions';
+export * from './series/cartesian/ohlcBaseOptions';
 export * from './series/cartesian/candlestickOptions';
 export * from './series/cartesian/ohlcOptions';
 export * from './series/cartesian/bubbleOptions';
@@ -65,8 +65,3 @@ export * from './series/flow-proportion/chordOptions';
 export * from './series/flow-proportion/sankeyOptions';
 export * from './series/interpolationOptions';
 export * from './series/markerOptions';
-
-/**
- * Internal Use Only: Used to ensure this file is treated as a module until we can use moduleDetection flag in Ts v4.7
- */
-export const __FORCE_MODULE_DETECTION = 0;

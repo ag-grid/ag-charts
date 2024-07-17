@@ -1,6 +1,6 @@
 import {
-    type AgSankeySeriesFormatterParams,
     type AgSankeySeriesLinkStyle,
+    type AgSankeySeriesNodeStyle,
     _ModuleSupport,
     _Scene,
     _Util,
@@ -18,7 +18,7 @@ import {
     SankeySeriesProperties,
 } from './sankeySeriesProperties';
 
-const { SeriesNodePickMode, createDatumId, EMPTY_TOOLTIP_CONTENT } = _ModuleSupport;
+const { SeriesNodePickMode, TextMeasurer, TextWrapper, createDatumId, EMPTY_TOOLTIP_CONTENT } = _ModuleSupport;
 const { sanitizeHtml } = _Util;
 const { Rect, Text, BBox } = _Scene;
 
@@ -282,15 +282,30 @@ export class SankeySeries extends FlowProportionSeries<
                         }
                     });
                     const maxWidth = maxX - node.x - 2 * labelSpacing;
-                    text = Text.wrap(node.label, maxWidth, node.height, this.properties.label, 'never', 'hide');
+                    text = TextWrapper.wrapText(node.label, {
+                        maxWidth,
+                        maxHeight: node.height,
+                        font: this.properties.label,
+                        textWrap: 'never',
+                        overflow: 'hide',
+                    });
                 }
                 if (text == null || text === '') {
                     const labelInset = leading || trailing ? labelSpacing : labelSpacing * 2;
-                    text = Text.wrap(node.label, columnWidth - labelInset, node.height, this.properties.label, 'never');
+                    text = TextWrapper.wrapText(node.label, {
+                        maxWidth: columnWidth - labelInset,
+                        maxHeight: node.height,
+                        font: this.properties.label,
+                        textWrap: 'never',
+                    });
                 }
                 if (text === '') return;
 
-                const { height } = Text.measureText(text, canvasFont, 'middle', 'left');
+                const { height } = TextMeasurer.measureText(text, {
+                    font: canvasFont,
+                    textAlign: 'left',
+                    textBaseline: 'middle',
+                });
                 const y0 = y - height / 2;
                 const y1 = y + height / 2;
 
@@ -359,23 +374,61 @@ export class SankeySeries extends FlowProportionSeries<
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
-        const { properties } = this;
-        const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = this.properties.node;
+        const {
+            id: seriesId,
+            properties,
+            ctx: { callbackCache },
+        } = this;
+        const { fromKey, toKey, sizeKey } = this.properties;
+        const {
+            fill: baseFill,
+            fillOpacity,
+            stroke: baseStroke,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            itemStyler,
+        } = this.properties.node;
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(properties.node.strokeWidth);
 
         datumSelection.each((rect, datum) => {
+            const fill = baseFill ?? datum.fill;
+            const stroke = baseStroke ?? datum.stroke;
+
+            let format: AgSankeySeriesNodeStyle | undefined;
+            if (itemStyler != null) {
+                const { label, size } = datum;
+                format = callbackCache.call(itemStyler, {
+                    seriesId,
+                    datum: datum.datum,
+                    label,
+                    size,
+                    fromKey,
+                    toKey,
+                    sizeKey,
+                    fill,
+                    fillOpacity,
+                    strokeOpacity,
+                    stroke,
+                    strokeWidth,
+                    lineDash,
+                    lineDashOffset,
+                    highlighted: isHighlight,
+                });
+            }
+
             rect.x = datum.x;
             rect.y = datum.y;
             rect.width = datum.width;
             rect.height = datum.height;
-            rect.fill = highlightStyle?.fill ?? fill ?? datum.fill;
-            rect.fillOpacity = highlightStyle?.fillOpacity ?? fillOpacity;
-            rect.stroke = highlightStyle?.stroke ?? stroke ?? datum.stroke;
-            rect.strokeOpacity = highlightStyle?.strokeOpacity ?? strokeOpacity;
-            rect.strokeWidth = highlightStyle?.strokeWidth ?? strokeWidth;
-            rect.lineDash = highlightStyle?.lineDash ?? lineDash;
-            rect.lineDashOffset = highlightStyle?.lineDashOffset ?? lineDashOffset;
+            rect.fill = highlightStyle?.fill ?? format?.fill ?? fill;
+            rect.fillOpacity = highlightStyle?.fillOpacity ?? format?.fillOpacity ?? fillOpacity;
+            rect.stroke = highlightStyle?.stroke ?? format?.stroke ?? stroke;
+            rect.strokeOpacity = highlightStyle?.strokeOpacity ?? format?.strokeOpacity ?? strokeOpacity;
+            rect.strokeWidth = highlightStyle?.strokeWidth ?? format?.strokeWidth ?? strokeWidth;
+            rect.lineDash = highlightStyle?.lineDash ?? format?.lineDash ?? lineDash;
+            rect.lineDashOffset = highlightStyle?.lineDashOffset ?? format?.lineDashOffset ?? lineDashOffset;
         });
     }
 
@@ -398,18 +451,28 @@ export class SankeySeries extends FlowProportionSeries<
             properties,
             ctx: { callbackCache },
         } = this;
-        const { fromKey, toKey, sizeKey, itemStyler } = properties;
-        const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.link;
+        const { fromKey, toKey, sizeKey } = properties;
+        const {
+            fill: baseFill,
+            fillOpacity,
+            stroke: baseStroke,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            itemStyler,
+        } = properties.link;
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(properties.link.strokeWidth);
 
         datumSelection.each((link, datum) => {
+            const fill = baseFill ?? datum.fromNode.fill;
+            const stroke = baseStroke ?? datum.fromNode.stroke;
+
             let format: AgSankeySeriesLinkStyle | undefined;
             if (itemStyler != null) {
-                const params: _Util.RequireOptional<AgSankeySeriesFormatterParams> = {
+                format = callbackCache.call(itemStyler, {
                     seriesId,
                     datum: datum.datum,
-                    itemId: datum.itemId,
                     fromKey,
                     toKey,
                     sizeKey,
@@ -421,8 +484,7 @@ export class SankeySeries extends FlowProportionSeries<
                     lineDash,
                     lineDashOffset,
                     highlighted: isHighlight,
-                };
-                format = callbackCache.call(itemStyler, params as AgSankeySeriesFormatterParams);
+                });
             }
 
             link.x1 = datum.x1;
@@ -430,9 +492,9 @@ export class SankeySeries extends FlowProportionSeries<
             link.x2 = datum.x2;
             link.y2 = datum.y2;
             link.height = datum.height;
-            link.fill = highlightStyle?.fill ?? format?.fill ?? fill ?? datum.fromNode.fill;
+            link.fill = highlightStyle?.fill ?? format?.fill ?? fill;
             link.fillOpacity = highlightStyle?.fillOpacity ?? format?.fillOpacity ?? fillOpacity;
-            link.stroke = highlightStyle?.stroke ?? format?.stroke ?? stroke ?? datum.fromNode.stroke;
+            link.stroke = highlightStyle?.stroke ?? format?.stroke ?? stroke;
             link.strokeOpacity = highlightStyle?.strokeOpacity ?? format?.strokeOpacity ?? strokeOpacity;
             link.strokeWidth = Math.min(
                 highlightStyle?.strokeWidth ?? format?.strokeWidth ?? strokeWidth,
@@ -456,52 +518,80 @@ export class SankeySeries extends FlowProportionSeries<
             return EMPTY_TOOLTIP_CONTENT;
         }
 
-        const { fromKey, toKey, sizeKey, sizeName, itemStyler, tooltip } = properties;
-        const { fillOpacity, strokeOpacity, stroke, strokeWidth, lineDash, lineDashOffset } = properties.link;
+        const { fromKey, toKey, sizeKey, sizeName, tooltip } = properties;
         const { datum, itemId } = nodeDatum;
 
         let title: string;
         const contentLines: string[] = [];
         let fill: string;
         if (nodeDatum.type === FlowProportionDatumType.Link) {
+            const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, itemStyler } = properties.link;
             const { fromNode, toNode, size } = nodeDatum;
             title = `${fromNode.label ?? fromNode.id} - ${toNode.label ?? toNode.id}`;
             if (sizeKey != null) {
                 contentLines.push(sanitizeHtml(`${sizeName ?? sizeKey}: ` + size));
             }
+
             fill = properties.link.fill ?? fromNode.fill;
+            const stroke = properties.link.stroke ?? fromNode.stroke;
+
+            let format: AgSankeySeriesLinkStyle | undefined;
+            if (itemStyler != null) {
+                format = callbackCache.call(itemStyler, {
+                    seriesId,
+                    datum: datum.datum,
+                    fromKey,
+                    toKey,
+                    sizeKey,
+                    fill,
+                    fillOpacity,
+                    strokeOpacity,
+                    stroke,
+                    strokeWidth,
+                    lineDash,
+                    lineDashOffset,
+                    highlighted: true,
+                });
+            }
+
+            fill = format?.fill ?? fill;
         } else {
+            const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, itemStyler } = properties.node;
             const { id, label, size } = nodeDatum;
             title = label ?? id;
             if (sizeKey != null) {
                 contentLines.push(sanitizeHtml(`${sizeName ?? sizeKey}: ` + size));
             }
-            fill = properties.node.fill ?? nodeDatum.fill;
+
+            fill = properties.link.fill ?? datum.fill;
+            const stroke = properties.link.stroke ?? datum.stroke;
+
+            let format: AgSankeySeriesNodeStyle | undefined;
+            if (itemStyler != null) {
+                format = callbackCache.call(itemStyler, {
+                    seriesId,
+                    datum: datum.datum,
+                    label,
+                    size,
+                    fromKey,
+                    toKey,
+                    sizeKey,
+                    fill,
+                    fillOpacity,
+                    strokeOpacity,
+                    stroke,
+                    strokeWidth,
+                    lineDash,
+                    lineDashOffset,
+                    highlighted: true,
+                });
+            }
+
+            fill = format?.fill ?? fill;
         }
         const content = contentLines.join('<br>');
 
-        let format: AgSankeySeriesLinkStyle | undefined;
-
-        if (itemStyler) {
-            format = callbackCache.call(itemStyler, {
-                seriesId,
-                datum: datum.datum,
-                itemId: datum.itemId,
-                fromKey,
-                toKey,
-                sizeKey,
-                fill,
-                fillOpacity,
-                strokeOpacity,
-                stroke,
-                strokeWidth,
-                lineDash,
-                lineDashOffset,
-                highlighted: false,
-            });
-        }
-
-        const color = format?.fill ?? fill;
+        const color = fill;
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: color },
@@ -527,21 +617,20 @@ export class SankeySeries extends FlowProportionSeries<
     protected override computeFocusBounds({
         datumIndex,
         seriesRect,
-    }: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+    }: _ModuleSupport.PickFocusInputs): _Scene.BBox | _Scene.Path | undefined {
         const datum = this.contextNodeData?.nodeData[datumIndex];
-        if (datum == null) return;
 
-        let bbox: _Scene.BBox;
-        if (datum.type === FlowProportionDatumType.Node) {
+        if (datum?.type === FlowProportionDatumType.Node) {
             const { x, y, width, height } = datum;
-            bbox = new BBox(x, y, width, height);
-        } else if (datum.type === FlowProportionDatumType.Link) {
-            const { x1, x2, y1, y2, height } = datum;
-            bbox = new BBox(x1, Math.min(y1, y2), x2 - x1, Math.abs(y2 - y1) + height);
-        } else {
-            return;
+            const bbox = new BBox(x, y, width, height);
+            return this.contentGroup.inverseTransformBBox(bbox).clip(seriesRect);
+        } else if (datum?.type === FlowProportionDatumType.Link) {
+            for (const link of this.linkSelection) {
+                if (link.datum === datum) {
+                    return link.node;
+                }
+            }
+            return undefined;
         }
-
-        return this.contentGroup.inverseTransformBBox(bbox).clip(seriesRect);
     }
 }

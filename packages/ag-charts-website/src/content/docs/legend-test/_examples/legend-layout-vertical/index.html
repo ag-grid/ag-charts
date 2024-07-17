@@ -1,18 +1,16 @@
-<div class="wrapper">
-    <div class="toolPanel">
-        <div class="sliders">
-            <label for="sliderInput">Height</label>
-            <input
-                type="range"
-                id="sliderInput"
-                min="150"
-                max="450"
-                value="300"
-                oninput="updateHeight(event)"
-                onchange="updateHeight(event)"
-            />
-            <span id="sliderValue">300</span>
-        </div>
+<div class="toolbar">
+    <div class="sliders">
+        <label for="sliderInput">Height</label>
+        <input
+            type="range"
+            id="sliderInput"
+            min="150"
+            max="450"
+            value="300"
+            oninput="updateHeight(event)"
+            onchange="updateHeight(event)"
+        />
+        <span id="sliderValue">300</span>
     </div>
-    <div id="myChart" class="chart"></div>
 </div>
+<div id="myChart"></div>

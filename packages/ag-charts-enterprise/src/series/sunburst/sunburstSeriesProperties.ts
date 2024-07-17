@@ -1,5 +1,5 @@
 import type {
-    AgSunburstSeriesFormatterParams,
+    AgSunburstSeriesItemStylerParams,
     AgSunburstSeriesLabelFormatterParams,
     AgSunburstSeriesOptions,
     AgSunburstSeriesStyle,
@@ -8,7 +8,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
-import { AutoSizeableSecondaryLabel, AutoSizedLabel } from '../util/labelFormatter';
+import { AutoSizeableSecondaryLabel, AutoSizedLabel } from '../util/autoSizedLabel';
 
 const {
     HierarchySeriesProperties,
@@ -76,7 +76,7 @@ export class SunburstSeriesProperties extends HierarchySeriesProperties<AgSunbur
     padding?: number;
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgSunburstSeriesFormatterParams, AgSunburstSeriesStyle>;
+    itemStyler?: Styler<AgSunburstSeriesItemStylerParams<unknown>, AgSunburstSeriesStyle>;
 
     @Validate(OBJECT)
     override highlightStyle = new SunburstSeriesTileHighlightStyle();

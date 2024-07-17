@@ -92,6 +92,7 @@ export class MarkerLabel extends Group {
     get lines(): Line[] {
         return this._lines;
     }
+
     update(dimensionProps: { length: number; spacing: number }[]) {
         const { markers, lines } = this;
 

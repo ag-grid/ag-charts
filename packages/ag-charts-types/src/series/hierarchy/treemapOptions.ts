@@ -1,4 +1,4 @@
-import type { AgChartCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { AgChartCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type {
     AgChartAutoSizedLabelOptions,
     AgChartAutoSizedSecondaryLabelOptions,
@@ -17,7 +17,8 @@ export type AgTreemapSeriesLabelHighlightOptions<TDatum> = Pick<
 
 export interface AgTreemapSeriesTooltipRendererParams<TDatum>
     extends AgChartCallbackParams<TDatum>,
-        AgTreemapSeriesOptionsKeys {
+        AgTreemapSeriesOptionsKeys,
+        AgTreemapSeriesOptionsNames {
     /** The depth of the datum in the hierarchy. */
     depth: number;
     /** The title of the Treemap tile. */
@@ -112,7 +113,7 @@ export interface AgTreemapSeriesThemeableOptions<TDatum = any>
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgTreemapSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular tile based on the input parameters. */
-    itemStyler?: Styler<AgTreemapSeriesFormatterParams<TDatum>, AgTreemapSeriesStyle>;
+    itemStyler?: Styler<AgTreemapSeriesItemStylerParams<TDatum>, AgTreemapSeriesStyle>;
     /** Style overrides when a node is hovered. */
     highlightStyle?: AgTreemapSeriesHighlightStyle<TDatum>;
 }
@@ -120,6 +121,7 @@ export interface AgTreemapSeriesThemeableOptions<TDatum = any>
 export interface AgTreemapSeriesOptions<TDatum = any>
     extends Omit<AgBaseSeriesOptions<TDatum>, 'highlightStyle'>,
         AgTreemapSeriesOptionsKeys,
+        AgTreemapSeriesOptionsNames,
         AgTreemapSeriesThemeableOptions<TDatum> {
     /** Configuration for the Treemap Series. */
     type: 'treemap';
@@ -136,6 +138,9 @@ export interface AgTreemapSeriesOptionsKeys {
     sizeKey?: string;
     /** The name of the node key containing the colour value. This value (along with `colorRange` config) will be used to determine the tile colour. */
     colorKey?: string;
+}
+
+export interface AgTreemapSeriesOptionsNames {
     /** A human-readable description of the size values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     sizeName?: string;
     /** A human-readable description of the colour values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
@@ -143,17 +148,17 @@ export interface AgTreemapSeriesOptionsKeys {
 }
 
 /** The parameters of the Treemap series formatter function. */
-export interface AgTreemapSeriesFormatterParams<TDatum = any>
-    extends AgChartCallbackParams<TDatum>,
+export interface AgTreemapSeriesItemStylerParams<TDatum>
+    extends DatumCallbackParams<TDatum>,
         AgTreemapSeriesOptionsKeys,
         AgTreemapSeriesStyle {
     /** The depth of the datum in the hierarchy. */
     depth: number;
-    /** `true` if the tile is highlighted by hovering. */
-    readonly highlighted: boolean;
 }
 
-export interface AgTreemapSeriesLabelFormatterParams<_TDatum = any> extends AgTreemapSeriesOptionsKeys {
+export interface AgTreemapSeriesLabelFormatterParams<_TDatum = any>
+    extends AgTreemapSeriesOptionsKeys,
+        AgTreemapSeriesOptionsNames {
     /** The depth of the datum in the hierarchy. */
     depth: number;
 }

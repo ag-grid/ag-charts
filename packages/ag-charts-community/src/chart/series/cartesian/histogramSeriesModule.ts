@@ -10,7 +10,7 @@ export const HistogramSeriesModule: SeriesModule<'histogram'> = {
     chartTypes: ['cartesian'],
 
     identifier: 'histogram',
-    instanceConstructor: HistogramSeries,
+    moduleFactory: (ctx) => new HistogramSeries(ctx),
     tooltipDefaults: { range: 'exact' },
     defaultAxes: [
         {

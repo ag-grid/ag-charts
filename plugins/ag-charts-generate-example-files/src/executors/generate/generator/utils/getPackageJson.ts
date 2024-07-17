@@ -22,10 +22,13 @@ function getFrameworkDependencies(internalFramework: InternalFramework) {
 
     if (internalFramework === 'angular') {
         frameworkDependencies['ag-charts-angular'] = getPackageJsonVersion('ag-charts-angular');
+        frameworkDependencies['deepclone'] = '^1.0.2';
     } else if (internalFramework === 'reactFunctional' || internalFramework === 'reactFunctionalTs') {
         frameworkDependencies['ag-charts-react'] = getPackageJsonVersion('ag-charts-react');
+        frameworkDependencies['deepclone'] = '^1.0.2';
     } else if (internalFramework === 'vue3') {
         frameworkDependencies['ag-charts-vue3'] = getPackageJsonVersion('ag-charts-vue3');
+        frameworkDependencies['deepclone'] = '^1.0.2';
     }
 
     return frameworkDependencies;
@@ -34,7 +37,7 @@ function getFrameworkDependencies(internalFramework: InternalFramework) {
 export function getPackageJson({ isEnterprise, internalFramework }: Params) {
     const agChartsCommunityVersion = getPackageJsonVersion('ag-charts-community');
     const agChartsEnterpriseVersion = getPackageJsonVersion('ag-charts-enterprise');
-    const chartsLibary = isEnterprise
+    const chartsLibrary = isEnterprise
         ? {
               'ag-charts-enterprise': agChartsEnterpriseVersion,
           }
@@ -45,7 +48,7 @@ export function getPackageJson({ isEnterprise, internalFramework }: Params) {
     const frameworkDependencies = getFrameworkDependencies(internalFramework);
     const dependencies = {
         ...frameworkDependencies,
-        ...chartsLibary,
+        ...chartsLibrary,
     };
 
     const packageJson = {

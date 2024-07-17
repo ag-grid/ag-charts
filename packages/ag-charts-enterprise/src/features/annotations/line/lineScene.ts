@@ -1,16 +1,16 @@
-import type { _Scene } from 'ag-charts-community';
+import { _Scene } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords } from '../annotationTypes';
 import { convertLine, invertCoords, validateDatumPoint } from '../annotationUtils';
-import { Annotation } from '../scenes/annotation';
+import { AnnotationScene } from '../scenes/annotationScene';
 import { DivariantHandle } from '../scenes/handle';
 import { LinearScene } from '../scenes/linearScene';
 import { CollidableLine } from '../scenes/shapes';
-import type { LineAnnotation } from './lineProperties';
+import type { LineProperties } from './lineProperties';
 
-export class Line extends LinearScene<LineAnnotation> {
-    static override is(value: unknown): value is Line {
-        return Annotation.isCheck(value, 'line');
+export class LineScene extends LinearScene<LineProperties> {
+    static override is(value: unknown): value is LineScene {
+        return AnnotationScene.isCheck(value, 'line');
     }
 
     type = 'line';
@@ -28,7 +28,7 @@ export class Line extends LinearScene<LineAnnotation> {
         this.append([this.line, this.start, this.end]);
     }
 
-    public update(datum: LineAnnotation, context: AnnotationContext) {
+    public update(datum: LineProperties, context: AnnotationContext) {
         const { line, start, end } = this;
         const { locked, visible, lineDash, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
 
@@ -64,6 +64,7 @@ export class Line extends LinearScene<LineAnnotation> {
             fill: datum.handle.fill,
             stroke: datum.handle.stroke ?? stroke,
             strokeOpacity: datum.handle.strokeOpacity ?? strokeOpacity,
+            strokeWidth: datum.handle.strokeWidth ?? strokeWidth,
         };
 
         start.update({ ...handleStyles, x: x1, y: y1 });
@@ -73,7 +74,7 @@ export class Line extends LinearScene<LineAnnotation> {
         end.toggleLocked(this.locked);
     }
 
-    public toggleHandles(show: boolean | Partial<Record<'start' | 'end', boolean>>) {
+    override toggleHandles(show: boolean | Partial<Record<'start' | 'end', boolean>>) {
         if (typeof show === 'boolean') {
             show = { start: show, end: show };
         }
@@ -85,13 +86,13 @@ export class Line extends LinearScene<LineAnnotation> {
         this.end.toggleHovered(this.activeHandle === 'end');
     }
 
-    public toggleActive(active: boolean) {
+    override toggleActive(active: boolean) {
         this.toggleHandles(active);
         this.start.toggleActive(active);
         this.end.toggleActive(active);
     }
 
-    override dragHandle(datum: LineAnnotation, target: Coords, context: AnnotationContext, onInvalid: () => void) {
+    override dragHandle(datum: LineProperties, target: Coords, context: AnnotationContext) {
         const { activeHandle } = this;
 
         if (!activeHandle) return;
@@ -99,10 +100,7 @@ export class Line extends LinearScene<LineAnnotation> {
         this[activeHandle].toggleDragging(true);
         const point = invertCoords(this[activeHandle].drag(target).point, context);
 
-        if (!validateDatumPoint(context, point)) {
-            onInvalid();
-            return;
-        }
+        if (!validateDatumPoint(context, point)) return;
 
         datum[activeHandle].x = point.x;
         datum[activeHandle].y = point.y;
@@ -114,7 +112,7 @@ export class Line extends LinearScene<LineAnnotation> {
     }
 
     override getAnchor() {
-        const bbox = this.getCachedBBox();
+        const bbox = this.getCachedBBoxWithoutHandles();
         return { x: bbox.x + bbox.width / 2, y: bbox.y };
     }
 

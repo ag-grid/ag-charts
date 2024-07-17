@@ -50,12 +50,12 @@ pre.code,
     --property-color: #2ea248;
 
     position: relative;
-    margin: 0 0 $spacing-size-4;
+    margin-top: $spacing-size-5;
+    margin-bottom: $spacing-size-5;
     padding: 0;
     border: 1px solid color-mix(in srgb, var(--color-border-secondary), var(--color-border-primary));
     background-color: var(--color-code-background);
-    overflow: visible;
-    overflow-y: auto;
+    overflow: hidden;
 
     #{$selector-darkmode} & {
         color-scheme: dark;
@@ -78,18 +78,12 @@ pre.code,
 
 pre.code > code,
 #{$blog-code-selector} > code {
-    position: relative;
-    display: inline-block;
-    min-width: 100%;
-    margin-bottom: -6px;
+    display: block;
+    width: 100%;
     padding: $vertical-padding + 2px $spacing-size-4 $vertical-padding;
-    font-size: 15px;
-    background-color: var(--color-code-background);
-    background-size: 3em 3em;
-    background-origin: content-box;
-    background-attachment: local;
     border: none;
-    border-radius: 0;
+    font-size: 15px;
+    overflow: hidden;
     overflow-x: auto;
 }
 
@@ -136,7 +130,8 @@ pre.code.line-numbers > code,
 #{$blog-code-selector}.line-numbers > code {
     position: relative;
     white-space: inherit;
-    min-height: calc(100% - 1px);
+    height: 100%;
+    overflow: auto;
 }
 
 .line-numbers .line-numbers-rows {

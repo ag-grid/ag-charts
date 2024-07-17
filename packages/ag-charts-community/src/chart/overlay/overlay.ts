@@ -1,7 +1,7 @@
 import type { BBox } from '../../scene/bbox';
 import { createElement } from '../../util/dom';
 import { BaseProperties } from '../../util/properties';
-import { BOOLEAN, FUNCTION, STRING, Validate } from '../../util/validation';
+import { FUNCTION, STRING, Validate } from '../../util/validation';
 import type { AnimationManager } from '../interaction/animationManager';
 import type { LocaleManager } from '../locale/localeManager';
 
@@ -15,10 +15,7 @@ export class Overlay extends BaseProperties {
     @Validate(FUNCTION, { optional: true })
     renderer?: () => string | HTMLElement;
 
-    @Validate(BOOLEAN)
-    darkTheme = false;
-
-    private element?: HTMLElement;
+    private content?: HTMLElement;
     public focusBox?: { x: number; y: number; width: number; height: number };
 
     constructor(
@@ -33,23 +30,16 @@ export class Overlay extends BaseProperties {
     }
 
     getElement(animationManager: AnimationManager | undefined, localeManager: LocaleManager, rect: BBox) {
-        this.element ??= createElement('div', DEFAULT_OVERLAY_CLASS, { position: 'absolute' });
-        this.element.classList.toggle(DEFAULT_OVERLAY_DARK_CLASS, this.darkTheme);
+        this.content?.remove();
         this.focusBox = rect;
-
-        const element = this.element;
-
-        element.style.left = `${rect.x}px`;
-        element.style.top = `${rect.y}px`;
-        element.style.width = `${rect.width}px`;
-        element.style.height = `${rect.height}px`;
 
         if (this.renderer) {
             const htmlContent = this.renderer();
+            this.content = createElement('div');
             if (htmlContent instanceof HTMLElement) {
-                element.replaceChildren(htmlContent);
+                this.content.replaceChildren(htmlContent);
             } else {
-                element.innerHTML = htmlContent;
+                this.content.innerHTML = htmlContent;
             }
         } else {
             const content = createElement('div', {
@@ -62,8 +52,7 @@ export class Overlay extends BaseProperties {
                 font: '12px Verdana, sans-serif',
             });
             content.innerText = this.getText(localeManager);
-
-            element.replaceChildren(content);
+            this.content = content;
 
             animationManager?.animate({
                 from: 0,
@@ -72,22 +61,22 @@ export class Overlay extends BaseProperties {
                 phase: 'add',
                 groupId: 'opacity',
                 onUpdate(value) {
-                    element.style.opacity = String(value);
+                    content.style.opacity = String(value);
                 },
                 onStop() {
-                    element.style.opacity = '1';
+                    content.style.opacity = '1';
                 },
             });
         }
 
-        return this.element;
+        return this.content;
     }
 
-    removeElement(cleanup = () => this.element?.remove(), animationManager?: AnimationManager) {
-        if (!this.element) return;
+    removeElement(cleanup = () => this.content?.remove(), animationManager?: AnimationManager) {
+        if (!this.content) return;
 
         if (animationManager) {
-            const { element } = this;
+            const { content } = this;
             animationManager.animate({
                 from: 1,
                 to: 0,
@@ -95,7 +84,7 @@ export class Overlay extends BaseProperties {
                 id: 'overlay',
                 groupId: 'opacity',
                 onUpdate(value) {
-                    element.style.opacity = String(value);
+                    content.style.opacity = String(value);
                 },
                 onStop() {
                     cleanup?.();
@@ -105,7 +94,7 @@ export class Overlay extends BaseProperties {
             cleanup?.();
         }
 
-        this.element = undefined;
+        this.content = undefined;
         this.focusBox = undefined;
     }
 }

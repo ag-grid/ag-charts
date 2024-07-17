@@ -3,16 +3,7 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { AngleCrossLine } from '../polar-crosslines/angleCrossLine';
 
-const {
-    AND,
-    assignJsonApplyConstructedArray,
-    ChartAxisDirection,
-    GREATER_THAN,
-    NUMBER,
-    UNION,
-    ProxyOnWrite,
-    Validate,
-} = _ModuleSupport;
+const { AND, ChartAxisDirection, GREATER_THAN, NUMBER, UNION, ProxyOnWrite, TextWrapper, Validate } = _ModuleSupport;
 const { Path, Text } = _Scene;
 const { angleBetween, isNumberEqual, toRadians, normalizeAngle360 } = _Util;
 
@@ -41,6 +32,8 @@ export abstract class AngleAxis<
     TDomain,
     TScale extends _Scale.Scale<TDomain, any>,
 > extends _ModuleSupport.PolarAxis<TScale> {
+    protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = AngleCrossLine;
+
     @ProxyOnWrite('rotation')
     @Validate(NUMBER.restrict({ min: 0, max: 360 }))
     startAngle: number = 0;
@@ -59,10 +52,6 @@ export abstract class AngleAxis<
 
     get direction() {
         return ChartAxisDirection.X;
-    }
-
-    protected assignCrossLineArrayConstructor(crossLines: _ModuleSupport.CrossLine[]) {
-        assignJsonApplyConstructedArray(crossLines, AngleCrossLine);
     }
 
     protected override createLabel() {
@@ -325,8 +314,8 @@ export abstract class AngleAxis<
                 const pixelError = 1;
                 if (overflowLeft > pixelError || overflowRight > pixelError) {
                     const availWidth = box.width - Math.max(overflowLeft, overflowRight);
-                    text = Text.wrap(text, availWidth, Infinity, label, 'never');
-                    if (text === '\u2026') {
+                    text = TextWrapper.wrapText(text, { maxWidth: availWidth, font: label, textWrap: 'never' });
+                    if (text === TextWrapper.EllipsisChar) {
                         text = '';
                     }
                     tempText.text = text;

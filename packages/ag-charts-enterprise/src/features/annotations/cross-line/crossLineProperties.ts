@@ -1,26 +1,17 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-import {
-    Annotation,
-    AnnotationAxisLabel,
-    AnnotationCrossLine,
-    AnnotationHandle,
-    Cappable,
-    LineDash,
-    Stroke,
-} from '../annotationProperties';
+import { Annotation, AxisLabel, Cappable, Handle, LineDash, Stroke, Value } from '../annotationProperties';
 import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { validateDatumValue } from '../annotationUtils';
 
 const { STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
 
-export class HorizontalLineAnnotation extends Annotation(
-    AnnotationType.HorizontalLine,
-    AnnotationCrossLine(AnnotationHandle(AnnotationAxisLabel(Cappable(Stroke(LineDash(BaseProperties))))))
+export class HorizontalLineProperties extends Annotation(
+    Value(Handle(AxisLabel(Cappable(Stroke(LineDash(BaseProperties))))))
 ) {
     readonly direction = 'horizontal';
 
-    static is(value: unknown): value is HorizontalLineAnnotation {
+    static is(value: unknown): value is HorizontalLineProperties {
         return isObject(value) && value.type === AnnotationType.HorizontalLine;
     }
 
@@ -32,13 +23,12 @@ export class HorizontalLineAnnotation extends Annotation(
     }
 }
 
-export class VerticalLineAnnotation extends Annotation(
-    AnnotationType.VerticalLine,
-    AnnotationCrossLine(AnnotationHandle(AnnotationAxisLabel(Cappable(Stroke(LineDash(BaseProperties))))))
+export class VerticalLineProperties extends Annotation(
+    Value(Handle(AxisLabel(Cappable(Stroke(LineDash(BaseProperties))))))
 ) {
     readonly direction = 'vertical';
 
-    static is(value: unknown): value is VerticalLineAnnotation {
+    static is(value: unknown): value is VerticalLineProperties {
         return isObject(value) && value.type === AnnotationType.VerticalLine;
     }
 
@@ -50,4 +40,4 @@ export class VerticalLineAnnotation extends Annotation(
     }
 }
 
-export type CrossLineAnnotation = HorizontalLineAnnotation | VerticalLineAnnotation;
+export type CrossLineProperties = HorizontalLineProperties | VerticalLineProperties;

@@ -1,17 +1,17 @@
 import { BBox } from '../../scene/bbox';
-import { createElement, getDocument } from '../../util/dom';
+import STYLES from '../../styles.css';
+import { createElement, getDocument, getWindow } from '../../util/dom';
 import { GuardedElement } from '../../util/guardedElement';
 import { type Size, SizeMonitor } from '../../util/sizeMonitor';
 import { BaseManager } from '../baseManager';
 import BASE_DOM from './domLayout.html';
-import STYLES from './domStyles.css';
 
 const CANVAS_CENTER_CLASS = 'canvas-center';
-const DOM_ELEMENT_CLASSES = ['styles', CANVAS_CENTER_CLASS, 'canvas', 'canvas-overlay'] as const;
+const DOM_ELEMENT_CLASSES = ['styles', CANVAS_CENTER_CLASS, 'canvas', 'canvas-proxy', 'canvas-overlay'] as const;
 export type DOMElementClass = (typeof DOM_ELEMENT_CLASSES)[number];
 
 type DOMElementConfig = {
-    childElementType: 'style' | 'canvas' | 'div';
+    childElementType: 'style' | 'canvas' | 'div' | 'p';
     style?: Partial<CSSStyleDeclaration>;
     eventTypes?: string[];
 };
@@ -19,6 +19,7 @@ type DOMElementConfig = {
 const domElementConfig: Map<DOMElementClass, DOMElementConfig> = new Map([
     ['styles', { childElementType: 'style' }],
     ['canvas', { childElementType: 'canvas', eventTypes: ['focus', 'blur'] }],
+    ['canvas-proxy', { childElementType: 'div' }],
     ['canvas-overlay', { childElementType: 'div' }],
     [CANVAS_CENTER_CLASS, { childElementType: 'div' }],
 ]);
@@ -41,18 +42,33 @@ function setupObserver(element: HTMLElement, cb: (intersectionRatio: number) => 
     return observer;
 }
 
-type Events = { type: 'hidden' } | { type: 'resize'; size: Size } | { type: 'container-changed' };
+type Events = { type: 'hidden' } | { type: 'resize' } | { type: 'container-changed' };
 type LiveDOMElement = {
     element: HTMLElement;
     children: Map<string, HTMLElement>;
     listeners: [string, Function, boolean | AddEventListenerOptions | undefined][];
 };
 
+const NULL_DOMRECT: DOMRect = {
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    toJSON() {
+        return NULL_DOMRECT;
+    },
+};
+
 export class DOMManager extends BaseManager<Events['type'], Events> {
     private readonly rootElements: Record<DOMElementClass, LiveDOMElement>;
+    private styles: Record<string, string> = {};
     private readonly element: HTMLElement;
-    private container?: HTMLElement;
-    private containerSize?: Size;
+    private container?: HTMLElement = undefined;
+    containerSize?: Size = undefined;
 
     public guardedElement?: GuardedElement;
 
@@ -91,7 +107,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
         this.setSizeOptions();
 
-        this.addStyles('dom-manager', STYLES);
+        this.addStyles('ag-charts-community', STYLES);
 
         if (container) {
             this.setContainer(container);
@@ -136,14 +152,39 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             this.container.removeChild(this.element);
             this.sizeMonitor.unobserve(this.container);
         }
+
+        const isShadowDom = this.getDocumentRoot(newContainer) != null;
+
+        // If the container was inside a shadow DOM, the styles are added to the container rather than the head
+        //
+        // If we change the container from inside a shadow DOM to outside, we need to remove these styles, because they
+        // can cause conflicts
+        //
+        // Conversely, if we go from outside to inside a shadow DOM, it's probably not safe to remove the styles from
+        // the head, because other charts may be depending on them
+        //
+        // Note we do this before relocating the new container to avoid temporarily adding new styles to the page,
+        // which may cause a style recalculation
+        if (!isShadowDom) {
+            for (const id of this.rootElements['styles'].children.keys()) {
+                this.removeChild('styles', id);
+            }
+        }
+
         newContainer.appendChild(this.element);
         this.sizeMonitor.observe(newContainer, (size) => {
             this.containerSize = size;
             this.updateContainerSize();
-            this.listeners.dispatch('resize', { type: 'resize', size });
+            this.listeners.dispatch('resize', { type: 'resize' });
         });
 
         this.container = newContainer;
+
+        // If we moved from a shadow DOM to outside, we need to ensure the page styles are present
+        // This is a no-op if styles already exist
+        for (const [id, styles] of Object.entries(this.styles)) {
+            this.addStyles(id, styles);
+        }
 
         this.listeners.dispatch('container-changed', { type: 'container-changed' });
     }
@@ -227,26 +268,64 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         });
     }
 
+    /** Get the main chart area client bound rect. */
     getBoundingClientRect() {
         return this.rootElements['canvas'].element.getBoundingClientRect();
     }
 
-    getDocumentRoot() {
-        const docRoot = this.container?.ownerDocument?.body ?? getDocument('body');
-        let parent = this.container;
+    /**
+     * Get the client bounding rect for overlay elements that might float outside the bounds of the
+     * main chart area.
+     */
+    getOverlayClientRect() {
+        const window = getWindow();
+        const windowBBox = new BBox(0, 0, window.innerWidth, window.innerHeight);
+        const container = this.getRawOverlayClientRect();
+
+        const containerBBox = BBox.fromDOMRect(container ?? this.getBoundingClientRect());
+        return windowBBox.intersection(containerBBox)?.toDOMRect() ?? NULL_DOMRECT;
+    }
+
+    private getRawOverlayClientRect() {
+        let element: HTMLElement | null = this.element;
+
+        // Try and find a parent which will clip rendering of children - if found we should restrict
+        // to that elements bounding box.
+        while (element != null) {
+            const styleMap = element.computedStyleMap?.();
+            const overflowX = styleMap?.get('overflow-x')?.toString();
+            const overflowY = styleMap?.get('overflow-y')?.toString();
+
+            if ((overflowX != null && overflowX !== 'visible') || (overflowY && overflowY !== 'visible')) {
+                return element.getBoundingClientRect();
+            }
+
+            element = element.parentElement;
+        }
+
+        // If in a shadow-DOM case, use the shadow-DOMs bounding-box, intersected with the window
+        // viewport.
+        const docRoot = this.getDocumentRoot();
+        if (docRoot) {
+            return docRoot.getBoundingClientRect();
+        }
+    }
+
+    getDocumentRoot(current = this.container) {
+        const docRoot = current?.ownerDocument?.body ?? getDocument('body');
 
         // For shadow-DOM cases, the root node of the shadow-DOM has no parent - we need
         // to attach listeners etc.. to that node, not the document body.
-        while (parent != null) {
-            if (parent === docRoot) {
+        while (current != null) {
+            if (current === docRoot) {
                 return undefined;
             }
-            if (parent.parentNode instanceof DocumentFragment) {
+            if (current.parentNode instanceof DocumentFragment) {
                 // parentNode is a Shadow DOM.
-                return parent;
+                return current;
             }
 
-            parent = parent.parentNode as HTMLElement;
+            current = current.parentNode as HTMLElement;
         }
 
         return undefined;
@@ -288,7 +367,32 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     }
 
     addStyles(id: string, styles: string) {
-        const styleElement = this.addChild('styles', id);
+        this.styles[id] = styles;
+
+        if (this.container == null) return;
+
+        const dataAttribute = 'data-ag-charts';
+        const documentRoot = this.getDocumentRoot();
+        let styleElement: HTMLElement;
+        if (documentRoot != null) {
+            styleElement = this.addChild('styles', id);
+        } else {
+            const head = getDocument('head');
+
+            for (const child of head.children as any as Iterable<Element>) {
+                if (child.getAttribute(dataAttribute) === id) return;
+            }
+
+            styleElement = createElement('style');
+            head.appendChild(styleElement);
+        }
+
+        if (styleElement.getAttribute(dataAttribute) === id) {
+            // Avoid setting innerHTML on elements we've already configured to avoid style recalculations
+            return;
+        }
+
+        styleElement.setAttribute(dataAttribute, id);
         styleElement.innerHTML = styles;
     }
 
@@ -310,7 +414,8 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             throw new Error('AG Charts - unable to create DOM elements after destroy()');
         }
 
-        if (children.has(id)) return children.get(id)!;
+        const existing = children.get(id);
+        if (existing != null) return existing;
 
         const { childElementType = 'div' } = domElementConfig.get(domElementClass) ?? {};
         if (child && child.tagName.toLowerCase() !== childElementType.toLowerCase()) {
@@ -329,8 +434,6 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     removeChild(domElementClass: DOMElementClass, id: string) {
         const { children } = this.rootElements[domElementClass];
         if (!children) return;
-
-        if (!children.has(id)) return;
 
         children.get(id)?.remove();
         children.delete(id);

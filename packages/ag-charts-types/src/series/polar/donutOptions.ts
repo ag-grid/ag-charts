@@ -26,7 +26,10 @@ export type AgDonutSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> 
     AgDonutSeriesOptionsKeys &
     Required<AgDonutSeriesStyle>;
 
-export type AgDonutSeriesStyle = FillOptions & StrokeOptions;
+export interface AgDonutSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
+    /** Apply rounded corners to each sector. */
+    cornerRadius?: PixelSize;
+}
 
 export interface AgDonutTitleOptions extends Toggleable, FontOptions {
     /** The text to display. */
@@ -104,7 +107,7 @@ export interface AgDonutSeriesThemeableOptions<TDatum = any>
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgDonutSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgDonutSeriesTooltipRendererParams<TDatum>>;
     /** Configuration for the text lines to display inside the series. */
     innerLabels?: AgDonutInnerLabelThemeOptions;
     /** Configuration for the area inside the series. */
@@ -113,7 +116,7 @@ export interface AgDonutSeriesThemeableOptions<TDatum = any>
     cornerRadius?: PixelSize;
     /** The spacing between Donut sectors. */
     sectorSpacing?: PixelSize;
-    /** A formatter function for adjusting the styling of the Donut sectors. */
+    /** A styler function for adjusting the styling of the Donut sectors. */
     itemStyler?: Styler<AgDonutSeriesItemStylerParams<TDatum>, AgDonutSeriesStyle>;
 }
 
@@ -152,8 +155,8 @@ export interface AgDonutSeriesOptionsNames {
     sectorLabelName?: string;
 }
 
-export interface AgDonutSeriesTooltipRendererParams
-    extends AgSeriesTooltipRendererParams,
+export interface AgDonutSeriesTooltipRendererParams<TDatum>
+    extends AgSeriesTooltipRendererParams<TDatum>,
         AgDonutSeriesOptionsKeys,
         AgDonutSeriesOptionsNames {}
 

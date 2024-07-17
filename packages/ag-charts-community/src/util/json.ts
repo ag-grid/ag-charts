@@ -1,5 +1,5 @@
 import { Logger } from './logger';
-import { mapValues } from './object';
+import { SKIP_JS_BUILTINS, mapValues } from './object';
 import { isProperties } from './properties';
 import { isArray, isDate, isFunction, isHtmlElement, isObject, isPlainObject, isRegExp } from './type-guards';
 import type { DeepPartial } from './types';
@@ -132,10 +132,6 @@ export function jsonWalk<T>(json: T, visit: (...nodes: T[]) => void, opts?: { sk
     }
 }
 
-export type JsonApplyParams = {
-    constructedArrays?: WeakMap<Array<any>, new () => any>;
-};
-
 /**
  * Recursively apply a JSON object into a class-hierarchy, optionally instantiating certain classes
  * by property name.
@@ -155,9 +151,9 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
         path?: string;
         matcherPath?: string;
         skip?: string[];
-    } & JsonApplyParams = {}
+    } = {}
 ): Target {
-    const { path, constructedArrays, matcherPath = path?.replace(/(\[[0-9+]+])/i, '[]'), skip = [] } = params;
+    const { path, matcherPath = path?.replace(/(\[[0-9+]+])/i, '[]'), skip = [] } = params;
 
     if (target == null) {
         throw new Error(`AG Charts - target is uninitialised: ${path ?? '<root>'}`);
@@ -173,6 +169,8 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
     const targetAny = target as any;
     const targetType = classify(target);
     for (const property in source) {
+        if (SKIP_JS_BUILTINS.has(property)) continue;
+
         const propertyMatcherPath = `${matcherPath ? matcherPath + '.' : ''}${property}`;
         if (skip.includes(propertyMatcherPath)) continue;
 
@@ -180,7 +178,6 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
         const propertyPath = `${path ? path + '.' : ''}${property}`;
         const targetClass = targetAny.constructor;
         const currentValue = targetAny[property];
-        let ctr: (new () => any) | undefined;
         try {
             const currentValueType = classify(currentValue);
             const newValueType = classify(newValue);
@@ -204,43 +201,15 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
 
             if (isProperties(currentValue)) {
                 targetAny[property].set(newValue);
-            } else if (newValueType === 'array') {
-                ctr ??= constructedArrays?.get(currentValue);
-                if (ctr == null) {
-                    targetAny[property] = newValue;
-                } else {
-                    const newValueArray: any[] = newValue as any;
-                    targetAny[property] = newValueArray.map((v) =>
-                        jsonApply(new ctr!(), v, {
-                            ...params,
-                            path: propertyPath,
-                            matcherPath: propertyMatcherPath + '[]',
-                        })
-                    );
-                }
-            } else if (newValueType === CLASS_INSTANCE_TYPE) {
-                targetAny[property] = newValue;
             } else if (newValueType === 'object') {
-                if (currentValue != null) {
-                    jsonApply(currentValue, newValue as any, {
-                        ...params,
-                        path: propertyPath,
-                        matcherPath: propertyMatcherPath,
-                    });
-                } else if (ctr == null) {
+                if (currentValue == null) {
                     targetAny[property] = {};
-                    jsonApply(targetAny[property], newValue as any, {
-                        ...params,
-                        path: propertyPath,
-                        matcherPath: propertyMatcherPath,
-                    });
-                } else {
-                    targetAny[property] = jsonApply(new ctr(), newValue, {
-                        ...params,
-                        path: propertyPath,
-                        matcherPath: propertyMatcherPath,
-                    });
                 }
+                jsonApply(currentValue ?? targetAny[property], newValue as any, {
+                    ...params,
+                    path: propertyPath,
+                    matcherPath: propertyMatcherPath,
+                });
             } else {
                 targetAny[property] = newValue;
             }

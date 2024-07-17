@@ -48,7 +48,7 @@
     z-index: -2;
 
     > li:last-child {
-        min-height: $spacing-size-48;
+        min-height: $spacing-size-16;
     }
 
     #{$selector-darkmode} & {

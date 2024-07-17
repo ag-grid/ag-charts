@@ -114,6 +114,9 @@ export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions
     angleName?: string;
 
     @Validate(STRING, { optional: true })
+    angleFilterKey?: string;
+
+    @Validate(STRING, { optional: true })
     radiusKey?: string;
 
     @Validate(STRING, { optional: true })
@@ -207,5 +210,5 @@ export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions
     readonly calloutLine = new DonutSeriesCalloutLine();
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgDonutSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgDonutSeriesTooltipRendererParams<any>>();
 }

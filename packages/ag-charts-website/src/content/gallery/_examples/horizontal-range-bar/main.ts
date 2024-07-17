@@ -41,8 +41,8 @@ const options: AgChartOptions = {
             line: {
                 enabled: false,
             },
-            groupPaddingInner: 0.7,
-            paddingInner: 0,
+            paddingInner: 0.7,
+            paddingOuter: 0.3,
             label: {
                 enabled: false,
             },

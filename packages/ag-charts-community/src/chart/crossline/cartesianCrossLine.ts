@@ -17,6 +17,7 @@ import { Range } from '../../scene/shape/range';
 import { Text } from '../../scene/shape/text';
 import { createId } from '../../util/id';
 import { clampArray } from '../../util/number';
+import { BaseProperties } from '../../util/properties';
 import {
     AND,
     ARRAY,
@@ -27,6 +28,7 @@ import {
     FONT_WEIGHT,
     LINE_DASH,
     NUMBER,
+    OBJECT,
     POSITIVE_NUMBER,
     RATIO,
     STRING,
@@ -68,18 +70,18 @@ const CROSSLINE_LABEL_POSITION = UNION(
     'crossLine label position'
 );
 
-class CartesianCrossLineLabel implements AgCartesianCrossLineLabelOptions {
+class CartesianCrossLineLabel extends BaseProperties implements AgCartesianCrossLineLabelOptions {
     @Validate(BOOLEAN, { optional: true })
-    enabled?: boolean = undefined;
+    enabled?: boolean;
 
     @Validate(STRING, { optional: true })
-    text?: string = undefined;
+    text?: string;
 
     @Validate(FONT_STYLE, { optional: true })
-    fontStyle?: FontStyle = undefined;
+    fontStyle?: FontStyle;
 
     @Validate(FONT_WEIGHT, { optional: true })
-    fontWeight?: FontWeight = undefined;
+    fontWeight?: FontWeight;
 
     @Validate(POSITIVE_NUMBER)
     fontSize: number = 14;
@@ -100,18 +102,18 @@ class CartesianCrossLineLabel implements AgCartesianCrossLineLabelOptions {
     color?: string = 'rgba(87, 87, 87, 1)';
 
     @Validate(CROSSLINE_LABEL_POSITION, { optional: true })
-    position?: CrossLineLabelPosition = undefined;
+    position?: CrossLineLabelPosition;
 
     @Validate(DEGREE, { optional: true })
-    rotation?: number = undefined;
+    rotation?: number;
 
     @Validate(BOOLEAN, { optional: true })
-    parallel?: boolean = undefined;
+    parallel?: boolean;
 }
 
 type NodeData = number[];
 
-export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
+export class CartesianCrossLine extends BaseProperties implements CrossLine<CartesianCrossLineLabel> {
     protected static readonly LINE_LAYER_ZINDEX = Layers.SERIES_CROSSLINE_LINE_ZINDEX;
     protected static readonly RANGE_LAYER_ZINDEX = Layers.SERIES_CROSSLINE_RANGE_ZINDEX;
     protected static readonly LABEL_LAYER_ZINDEX = Layers.SERIES_LABEL_ZINDEX;
@@ -120,37 +122,38 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
     readonly id = createId(this);
 
     @Validate(BOOLEAN, { optional: true })
-    enabled?: boolean = undefined;
+    enabled?: boolean;
 
     @Validate(UNION(['range', 'line'], 'a crossLine type'), { optional: true })
-    type?: CrossLineType = undefined;
+    type?: CrossLineType;
 
     @Validate(AND(MATCHING_CROSSLINE_TYPE('range'), ARRAY.restrict({ length: 2 })), {
         optional: true,
     })
-    range?: [any, any] = undefined;
+    range?: [any, any];
 
     @Validate(MATCHING_CROSSLINE_TYPE('value'), { optional: true })
-    value?: any = undefined;
+    value?: any;
 
     @Validate(COLOR_STRING, { optional: true })
-    fill?: string = undefined;
+    fill?: string;
 
     @Validate(RATIO, { optional: true })
-    fillOpacity?: number = undefined;
+    fillOpacity?: number;
 
     @Validate(COLOR_STRING, { optional: true })
-    stroke?: string = undefined;
+    stroke?: string;
 
     @Validate(NUMBER, { optional: true })
-    strokeWidth?: number = undefined;
+    strokeWidth?: number;
 
     @Validate(RATIO, { optional: true })
-    strokeOpacity?: number = undefined;
+    strokeOpacity?: number;
 
     @Validate(LINE_DASH, { optional: true })
-    lineDash?: [] = undefined;
+    lineDash?: [];
 
+    @Validate(OBJECT)
     label: CartesianCrossLineLabel = new CartesianCrossLineLabel();
 
     scale?: Scale<any, number> = undefined;
@@ -163,7 +166,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
 
     readonly group = new Group({ name: `${this.id}`, layer: true, zIndex: CartesianCrossLine.LINE_LAYER_ZINDEX });
     readonly labelGroup = new Group({ name: `${this.id}`, layer: true, zIndex: CartesianCrossLine.LABEL_LAYER_ZINDEX });
-    private readonly crossLineRange: Range = new Range();
+    private readonly crossLineRange = new Range();
     private readonly crossLineLabel = new Text();
     private labelPoint?: Point = undefined;
 
@@ -173,12 +176,12 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
     private isRange: boolean = false;
 
     constructor() {
-        const { group, labelGroup, crossLineRange, crossLineLabel } = this;
+        super();
 
-        group.append(crossLineRange);
-        labelGroup.append(crossLineLabel);
+        this.group.append(this.crossLineRange);
+        this.labelGroup.append(this.crossLineLabel);
 
-        crossLineRange.pointerEvents = PointerEvents.None;
+        this.crossLineRange.pointerEvents = PointerEvents.None;
     }
 
     update(visible: boolean) {
@@ -202,45 +205,9 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
         this.updateNodes();
     }
 
-    calculateLayout(visible: boolean, reversedAxis?: boolean): BBox | undefined {
-        if (!visible) {
-            return;
-        }
+    calculateLayout(visible: boolean, reversedAxis?: boolean) {
+        if (!visible) return;
 
-        const dataCreated = this.createNodeData(reversedAxis);
-        if (!dataCreated) {
-            return;
-        }
-
-        const { sideFlag, gridLength, data } = this;
-
-        const boxes: BBox[] = [];
-
-        const x1 = 0;
-        const x2 = sideFlag * gridLength;
-        const y1 = data[0];
-        const y2 = data[1];
-        const crossLineBox = new BBox(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x1 - x2), Math.abs(y1 - y2));
-        boxes.push(crossLineBox);
-
-        const labelBox = this.computeLabelBBox();
-        if (labelBox) {
-            boxes.push(labelBox);
-        }
-
-        return BBox.merge(boxes);
-    }
-
-    private updateNodes() {
-        this.updateRangeNode();
-
-        if (this.label.enabled) {
-            this.updateLabel();
-            this.positionLabel();
-        }
-    }
-
-    private createNodeData(reversedAxis?: boolean): boolean {
         const {
             scale,
             gridLength,
@@ -253,9 +220,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
 
         this.data = [];
 
-        if (!scale) {
-            return false;
-        }
+        if (!scale) return;
 
         const bandwidth = scale.bandwidth ?? 0;
         const step = scale.step ?? 0;
@@ -290,9 +255,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
         this.startLine = strokeWidth > 0 && yStart >= clampedYStart && yStart <= clampedYStart + padding;
         this.endLine = strokeWidth > 0 && yEnd >= clampedYEnd - bandwidth - padding && yEnd <= clampedYEnd;
 
-        if (!validRange && !this.startLine && !this.endLine) {
-            return false;
-        }
+        if (!validRange && !this.startLine && !this.endLine) return;
 
         this.data = [clampedYStart, clampedYEnd];
 
@@ -313,8 +276,15 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
                 y: labelY,
             };
         }
+    }
 
-        return true;
+    private updateNodes() {
+        this.updateRangeNode();
+
+        if (this.label.enabled) {
+            this.updateLabel();
+            this.positionLabel();
+        }
     }
 
     private updateRangeNode() {
@@ -353,9 +323,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
     private updateLabel() {
         const { crossLineLabel, label } = this;
 
-        if (!label.text) {
-            return;
-        }
+        if (!label.text) return;
 
         crossLineLabel.fontStyle = label.fontStyle;
         crossLineLabel.fontWeight = label.fontWeight;
@@ -375,9 +343,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
             regularFlipRotation,
         } = this;
 
-        if (x === undefined || y === undefined) {
-            return;
-        }
+        if (x === undefined || y === undefined) return;
 
         const { defaultRotation, configuredRotation } = calculateLabelRotation({
             rotation,
@@ -393,9 +359,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
 
         const bbox = crossLineLabel.computeTransformedBBox();
 
-        if (!bbox) {
-            return;
-        }
+        if (!bbox) return;
 
         const yDirection = direction === ChartAxisDirection.Y;
         const { xTranslation, yTranslation } = calculateLabelTranslation({
@@ -410,11 +374,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
     }
 
     protected getZIndex(isRange: boolean = false): number {
-        if (isRange) {
-            return CartesianCrossLine.RANGE_LAYER_ZINDEX;
-        }
-
-        return CartesianCrossLine.LINE_LAYER_ZINDEX;
+        return isRange ? CartesianCrossLine.RANGE_LAYER_ZINDEX : CartesianCrossLine.LINE_LAYER_ZINDEX;
     }
 
     private getRange(): [any, any] {
@@ -437,9 +397,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
 
     private computeLabelBBox(): BBox | undefined {
         const { label } = this;
-        if (!label.enabled) {
-            return;
-        }
+        if (!label.enabled) return;
         const tempText = new Text();
         tempText.fontFamily = label.fontFamily;
         tempText.fontSize = label.fontSize;
@@ -455,9 +413,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
             regularFlipRotation,
         } = this;
 
-        if (x === undefined || y === undefined) {
-            return;
-        }
+        if (x === undefined || y === undefined) return;
 
         const { configuredRotation } = calculateLabelRotation({
             rotation,
@@ -467,15 +423,12 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
         });
 
         tempText.rotation = configuredRotation;
-
         tempText.textBaseline = 'middle';
         tempText.textAlign = 'center';
 
         const bbox = tempText.computeTransformedBBox();
 
-        if (!bbox) {
-            return;
-        }
+        if (!bbox) return;
 
         const yDirection = direction === ChartAxisDirection.Y;
         const { xTranslation, yTranslation } = calculateLabelTranslation({
@@ -499,14 +452,10 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabel> {
             direction,
             label: { padding: labelPadding = 0, position = 'top' },
         } = this;
-        if (!isRange && !startLine && !endLine) {
-            return;
-        }
+        if (!isRange && !startLine && !endLine) return;
 
         const crossLineLabelBBox = this.computeLabelBBox();
-        if (crossLineLabelBBox?.x == null || crossLineLabelBBox?.y == null) {
-            return;
-        }
+        if (crossLineLabelBBox?.x == null || crossLineLabelBBox?.y == null) return;
 
         const chartPadding = calculateLabelChartPadding({
             yDirection: direction === ChartAxisDirection.Y,

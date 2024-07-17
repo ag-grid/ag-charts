@@ -228,7 +228,7 @@ export type GroupValueProcessorDefinition<D, K extends keyof D & string> = Prope
 
 export type PropertyValueProcessorDefinition<D> = PropertyIdentifiers & {
     type: 'property-value-processor';
-    property: PropertyId<string>;
+    property: string;
     adjust: () => (processedData: ProcessedData<D>, valueIndex: number) => void;
 };
 

@@ -1,9 +1,12 @@
 import { BaseProperties } from '../../util/properties';
-import { OBJECT, Validate } from '../../util/validation';
+import { BOOLEAN, OBJECT, Validate } from '../../util/validation';
 import type { LocaleManager } from '../locale/localeManager';
 import { Overlay } from './overlay';
 
 export class ChartOverlays extends BaseProperties {
+    @Validate(BOOLEAN)
+    darkTheme = false;
+
     @Validate(OBJECT)
     readonly loading = new Overlay('ag-chart-loading-overlay', 'overlayLoadingData');
 

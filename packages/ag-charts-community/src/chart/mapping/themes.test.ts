@@ -31,7 +31,7 @@ describe('themes module', () => {
 
     const getActualPalette = (chart: AgChartInstance) => {
         let result = undefined;
-        for (const series of deproxy(chart).processedOptions.series ?? []) {
+        for (const series of deproxy(chart).chartOptions.processedOptions.series ?? []) {
             result ??= { fills: [] as string[], strokes: [] as string[] };
 
             expect(series.type).toEqual('bar');
@@ -79,7 +79,7 @@ describe('themes module', () => {
         expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - invalid theme value type boolean, expected object or string.",
+    "AG Charts - Option \`theme\` cannot be set to \`true\`; expecting an object, ignoring.",
   ],
 ]
 `);
@@ -129,13 +129,13 @@ describe('themes module', () => {
         expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - invalid theme.baseTheme type number, expected (string | object).",
+    "AG Charts - Option \`theme.baseTheme\` cannot be set to \`NaN\`; expecting a string or an object, ignoring.",
   ],
   [
-    "AG Charts - invalid theme.overrides type boolean, expected object.",
+    "AG Charts - Option \`theme.overrides\` cannot be set to \`true\`; expecting an object, ignoring.",
   ],
   [
-    "AG Charts - invalid theme.palette type string, expected object.",
+    "AG Charts - Option \`theme.palette\` cannot be set to \`"foobar"\`; expecting an object, ignoring.",
   ],
 ]
 `);
@@ -157,10 +157,10 @@ describe('themes module', () => {
         expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - theme.overrides.fills must be undefined or an array",
+    "AG Charts - Option \`theme.palette.fills\` cannot be set to \`"red"\`; expecting a string array, ignoring.",
   ],
   [
-    "AG Charts - theme.overrides.strokes must be undefined or an array",
+    "AG Charts - Option \`theme.palette.strokes\` cannot be set to \`"black"\`; expecting a string array, ignoring.",
   ],
 ]
 `);

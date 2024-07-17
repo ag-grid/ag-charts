@@ -118,8 +118,10 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 10,
     "fontStyle": "italic",
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Northern Ireland Statistics and Research Agency",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -199,15 +201,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
     },
   },
   "overlays": {
-    "loading": {
-      "darkTheme": false,
-    },
-    "noData": {
-      "darkTheme": false,
-    },
-    "noVisibleSeries": {
-      "darkTheme": false,
-    },
+    "darkTheme": false,
   },
   "padding": {
     "bottom": 30,
@@ -339,8 +333,10 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -373,8 +369,10 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
     "fontFamily": "Georgia, Times New Roman, Times, Serif",
     "fontSize": 22,
     "fontWeight": "normal",
+    "layoutStyle": "block",
     "spacing": 25,
     "text": "Marriage Statistics (Northern Ireland)",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -385,6 +383,11 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsColor",
           "value": "line-color",
+        },
+        {
+          "label": "Color",
+          "tooltip": "Text color",
+          "value": "text-color",
         },
         {
           "icon": "lock",
@@ -402,7 +405,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           "value": "delete",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "floating",
     },
     "annotations": {
@@ -410,21 +413,39 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "buttons": [
         {
           "icon": "trend-line",
-          "section": "create",
+          "section": "lines",
           "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
+          "icon": "horizontal-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsHorizontalLine",
+          "value": "horizontal-line",
+        },
+        {
+          "icon": "vertical-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsVerticalLine",
+          "value": "vertical-line",
+        },
+        {
           "icon": "parallel-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
+        },
+        {
+          "icon": "zoom-in",
+          "section": "annotations",
+          "tooltip": "text",
+          "value": "text",
         },
         {
           "icon": "delete",
@@ -433,7 +454,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           "value": "clear",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "left",
     },
     "enabled": true,
@@ -513,7 +534,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           "value": "reset",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "top",
     },
   },
@@ -521,7 +542,6 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
     "darkTheme": false,
     "delay": 0,
     "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -669,8 +689,10 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Department for Environment, Food & Rural Affairs; Agriculture and Horticulture Development Board",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -749,15 +771,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
     },
   },
   "overlays": {
-    "loading": {
-      "darkTheme": false,
-    },
-    "noData": {
-      "darkTheme": false,
-    },
-    "noVisibleSeries": {
-      "darkTheme": false,
-    },
+    "darkTheme": false,
   },
   "padding": {
     "bottom": 20,
@@ -891,8 +905,10 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -930,8 +946,10 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontWeight": "normal",
+    "layoutStyle": "block",
     "spacing": 25,
     "text": "Cattle Holdings and Beef Exports (UK)",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -942,6 +960,11 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsColor",
           "value": "line-color",
+        },
+        {
+          "label": "Color",
+          "tooltip": "Text color",
+          "value": "text-color",
         },
         {
           "icon": "lock",
@@ -959,7 +982,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
           "value": "delete",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "floating",
     },
     "annotations": {
@@ -967,21 +990,39 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "buttons": [
         {
           "icon": "trend-line",
-          "section": "create",
+          "section": "lines",
           "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
+          "icon": "horizontal-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsHorizontalLine",
+          "value": "horizontal-line",
+        },
+        {
+          "icon": "vertical-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsVerticalLine",
+          "value": "vertical-line",
+        },
+        {
           "icon": "parallel-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
+        },
+        {
+          "icon": "zoom-in",
+          "section": "annotations",
+          "tooltip": "text",
+          "value": "text",
         },
         {
           "icon": "delete",
@@ -990,7 +1031,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
           "value": "clear",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "left",
     },
     "enabled": true,
@@ -1070,7 +1111,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
           "value": "reset",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "top",
     },
   },
@@ -1078,7 +1119,6 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
     "darkTheme": false,
     "delay": 0,
     "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -1180,8 +1220,10 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: HM Revenue & Customs",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -1258,15 +1300,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
     },
   },
   "overlays": {
-    "loading": {
-      "darkTheme": false,
-    },
-    "noData": {
-      "darkTheme": false,
-    },
-    "noVisibleSeries": {
-      "darkTheme": false,
-    },
+    "darkTheme": false,
   },
   "padding": {
     "bottom": 20,
@@ -1589,8 +1623,10 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -1635,8 +1671,10 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontWeight": "normal",
+    "layoutStyle": "block",
     "spacing": 25,
     "text": "Taxed Alcohol Consumption (UK)",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -1647,6 +1685,11 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsColor",
           "value": "line-color",
+        },
+        {
+          "label": "Color",
+          "tooltip": "Text color",
+          "value": "text-color",
         },
         {
           "icon": "lock",
@@ -1664,7 +1707,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "value": "delete",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "floating",
     },
     "annotations": {
@@ -1672,21 +1715,39 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "buttons": [
         {
           "icon": "trend-line",
-          "section": "create",
+          "section": "lines",
           "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
+          "icon": "horizontal-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsHorizontalLine",
+          "value": "horizontal-line",
+        },
+        {
+          "icon": "vertical-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsVerticalLine",
+          "value": "vertical-line",
+        },
+        {
           "icon": "parallel-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
+        },
+        {
+          "icon": "zoom-in",
+          "section": "annotations",
+          "tooltip": "text",
+          "value": "text",
         },
         {
           "icon": "delete",
@@ -1695,7 +1756,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "value": "clear",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "left",
     },
     "enabled": true,
@@ -1775,7 +1836,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "value": "reset",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "top",
     },
   },
@@ -1783,7 +1844,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
     "darkTheme": false,
     "delay": 0,
     "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -1884,8 +1944,10 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Environmental Agency",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -1962,15 +2024,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     },
   },
   "overlays": {
-    "loading": {
-      "darkTheme": false,
-    },
-    "noData": {
-      "darkTheme": false,
-    },
-    "noVisibleSeries": {
-      "darkTheme": false,
-    },
+    "darkTheme": false,
   },
   "padding": {
     "bottom": 20,
@@ -2313,8 +2367,10 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -2335,8 +2391,10 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontWeight": "normal",
+    "layoutStyle": "block",
     "spacing": 25,
     "text": "WEEE Collected in UK",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -2347,6 +2405,11 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsColor",
           "value": "line-color",
+        },
+        {
+          "label": "Color",
+          "tooltip": "Text color",
+          "value": "text-color",
         },
         {
           "icon": "lock",
@@ -2364,7 +2427,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
           "value": "delete",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "floating",
     },
     "annotations": {
@@ -2372,21 +2435,39 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "buttons": [
         {
           "icon": "trend-line",
-          "section": "create",
+          "section": "lines",
           "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
+          "icon": "horizontal-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsHorizontalLine",
+          "value": "horizontal-line",
+        },
+        {
+          "icon": "vertical-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsVerticalLine",
+          "value": "vertical-line",
+        },
+        {
           "icon": "parallel-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
+        },
+        {
+          "icon": "zoom-in",
+          "section": "annotations",
+          "tooltip": "text",
+          "value": "text",
         },
         {
           "icon": "delete",
@@ -2395,7 +2476,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
           "value": "clear",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "left",
     },
     "enabled": true,
@@ -2475,7 +2556,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
           "value": "reset",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "top",
     },
   },
@@ -2484,7 +2565,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     "darkTheme": false,
     "delay": 0,
     "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -2582,8 +2662,10 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: US Geological Survey",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -2660,15 +2742,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
     },
   },
   "overlays": {
-    "loading": {
-      "darkTheme": false,
-    },
-    "noData": {
-      "darkTheme": false,
-    },
-    "noVisibleSeries": {
-      "darkTheme": false,
-    },
+    "darkTheme": false,
   },
   "padding": {
     "bottom": 20,
@@ -2720,8 +2794,10 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "title": {
@@ -2730,8 +2806,10 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontWeight": "normal",
+    "layoutStyle": "block",
     "spacing": 25,
     "text": "Worldwide Earthquakes",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -2742,6 +2820,11 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsColor",
           "value": "line-color",
+        },
+        {
+          "label": "Color",
+          "tooltip": "Text color",
+          "value": "text-color",
         },
         {
           "icon": "lock",
@@ -2759,7 +2842,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
           "value": "delete",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "floating",
     },
     "annotations": {
@@ -2767,21 +2850,39 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       "buttons": [
         {
           "icon": "trend-line",
-          "section": "create",
+          "section": "lines",
           "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
+          "icon": "horizontal-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsHorizontalLine",
+          "value": "horizontal-line",
+        },
+        {
+          "icon": "vertical-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsVerticalLine",
+          "value": "vertical-line",
+        },
+        {
           "icon": "parallel-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
+        },
+        {
+          "icon": "zoom-in",
+          "section": "annotations",
+          "tooltip": "text",
+          "value": "text",
         },
         {
           "icon": "delete",
@@ -2790,7 +2891,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
           "value": "clear",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "left",
     },
     "enabled": true,
@@ -2870,7 +2971,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
           "value": "reset",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "top",
     },
   },
@@ -2878,7 +2979,6 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
     "darkTheme": false,
     "delay": 0,
     "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -2976,8 +3076,10 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: US Geological Survey",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -3055,15 +3157,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
     },
   },
   "overlays": {
-    "loading": {
-      "darkTheme": false,
-    },
-    "noData": {
-      "darkTheme": false,
-    },
-    "noVisibleSeries": {
-      "darkTheme": false,
-    },
+    "darkTheme": false,
   },
   "padding": {
     "bottom": 20,
@@ -3234,8 +3328,10 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -3274,8 +3370,10 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontWeight": "normal",
+    "layoutStyle": "block",
     "spacing": 25,
     "text": "Earthquake Magnitudes by Source",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -3286,6 +3384,11 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsColor",
           "value": "line-color",
+        },
+        {
+          "label": "Color",
+          "tooltip": "Text color",
+          "value": "text-color",
         },
         {
           "icon": "lock",
@@ -3303,7 +3406,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           "value": "delete",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "floating",
     },
     "annotations": {
@@ -3311,21 +3414,39 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "buttons": [
         {
           "icon": "trend-line",
-          "section": "create",
+          "section": "lines",
           "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
+          "icon": "horizontal-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsHorizontalLine",
+          "value": "horizontal-line",
+        },
+        {
+          "icon": "vertical-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsVerticalLine",
+          "value": "vertical-line",
+        },
+        {
           "icon": "parallel-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
+        },
+        {
+          "icon": "zoom-in",
+          "section": "annotations",
+          "tooltip": "text",
+          "value": "text",
         },
         {
           "icon": "delete",
@@ -3334,7 +3455,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           "value": "clear",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "left",
     },
     "enabled": true,
@@ -3414,7 +3535,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           "value": "reset",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "top",
     },
   },
@@ -3422,7 +3543,6 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
     "darkTheme": false,
     "delay": 0,
     "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -3522,8 +3642,10 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Department for Business, Energy & Industrial Strategy",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -3600,15 +3722,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
     },
   },
   "overlays": {
-    "loading": {
-      "darkTheme": false,
-    },
-    "noData": {
-      "darkTheme": false,
-    },
-    "noVisibleSeries": {
-      "darkTheme": false,
-    },
+    "darkTheme": false,
   },
   "padding": {
     "bottom": 20,
@@ -3898,8 +4012,10 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -3939,8 +4055,10 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontWeight": "normal",
+    "layoutStyle": "block",
     "spacing": 25,
     "text": "Changes in UK Energy Stock",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -3951,6 +4069,11 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsColor",
           "value": "line-color",
+        },
+        {
+          "label": "Color",
+          "tooltip": "Text color",
+          "value": "text-color",
         },
         {
           "icon": "lock",
@@ -3968,7 +4091,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
           "value": "delete",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "floating",
     },
     "annotations": {
@@ -3976,21 +4099,39 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "buttons": [
         {
           "icon": "trend-line",
-          "section": "create",
+          "section": "lines",
           "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
+          "icon": "horizontal-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsHorizontalLine",
+          "value": "horizontal-line",
+        },
+        {
+          "icon": "vertical-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsVerticalLine",
+          "value": "vertical-line",
+        },
+        {
           "icon": "parallel-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
+        },
+        {
+          "icon": "zoom-in",
+          "section": "annotations",
+          "tooltip": "text",
+          "value": "text",
         },
         {
           "icon": "delete",
@@ -3999,7 +4140,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
           "value": "clear",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "left",
     },
     "enabled": true,
@@ -4079,7 +4220,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
           "value": "reset",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "top",
     },
   },
@@ -4087,7 +4228,6 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
     "darkTheme": false,
     "delay": 0,
     "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -4187,8 +4327,10 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Office for National Statistics",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -4265,15 +4407,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
     },
   },
   "overlays": {
-    "loading": {
-      "darkTheme": false,
-    },
-    "noData": {
-      "darkTheme": false,
-    },
-    "noVisibleSeries": {
-      "darkTheme": false,
-    },
+    "darkTheme": false,
   },
   "padding": {
     "bottom": 20,
@@ -4327,8 +4461,10 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -4346,9 +4482,11 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontWeight": "normal",
+    "layoutStyle": "block",
     "spacing": 25,
     "text": "Gross Weekly Earnings
 by Occupation",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -4359,6 +4497,11 @@ by Occupation",
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsColor",
           "value": "line-color",
+        },
+        {
+          "label": "Color",
+          "tooltip": "Text color",
+          "value": "text-color",
         },
         {
           "icon": "lock",
@@ -4376,7 +4519,7 @@ by Occupation",
           "value": "delete",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "floating",
     },
     "annotations": {
@@ -4384,21 +4527,39 @@ by Occupation",
       "buttons": [
         {
           "icon": "trend-line",
-          "section": "create",
+          "section": "lines",
           "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
+          "icon": "horizontal-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsHorizontalLine",
+          "value": "horizontal-line",
+        },
+        {
+          "icon": "vertical-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsVerticalLine",
+          "value": "vertical-line",
+        },
+        {
           "icon": "parallel-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
+        },
+        {
+          "icon": "zoom-in",
+          "section": "annotations",
+          "tooltip": "text",
+          "value": "text",
         },
         {
           "icon": "delete",
@@ -4407,7 +4568,7 @@ by Occupation",
           "value": "clear",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "left",
     },
     "enabled": true,
@@ -4487,7 +4648,7 @@ by Occupation",
           "value": "reset",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "top",
     },
   },
@@ -4495,7 +4656,6 @@ by Occupation",
     "darkTheme": false,
     "delay": 0,
     "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -4595,8 +4755,10 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Office for National Statistics",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -4673,15 +4835,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
     },
   },
   "overlays": {
-    "loading": {
-      "darkTheme": false,
-    },
-    "noData": {
-      "darkTheme": false,
-    },
-    "noVisibleSeries": {
-      "darkTheme": false,
-    },
+    "darkTheme": false,
   },
   "padding": {
     "bottom": 20,
@@ -4741,8 +4895,10 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "title": {
@@ -4751,9 +4907,11 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontWeight": "normal",
+    "layoutStyle": "block",
     "spacing": 25,
     "text": "Change in Number of Jobs in UK
 (June to September)",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -4764,6 +4922,11 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsColor",
           "value": "line-color",
+        },
+        {
+          "label": "Color",
+          "tooltip": "Text color",
+          "value": "text-color",
         },
         {
           "icon": "lock",
@@ -4781,7 +4944,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
           "value": "delete",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "floating",
     },
     "annotations": {
@@ -4789,21 +4952,39 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
       "buttons": [
         {
           "icon": "trend-line",
-          "section": "create",
+          "section": "lines",
           "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
+          "icon": "horizontal-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsHorizontalLine",
+          "value": "horizontal-line",
+        },
+        {
+          "icon": "vertical-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsVerticalLine",
+          "value": "vertical-line",
+        },
+        {
           "icon": "parallel-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
+        },
+        {
+          "icon": "zoom-in",
+          "section": "annotations",
+          "tooltip": "text",
+          "value": "text",
         },
         {
           "icon": "delete",
@@ -4812,7 +4993,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
           "value": "clear",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "left",
     },
     "enabled": true,
@@ -4892,7 +5073,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
           "value": "reset",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "top",
     },
   },
@@ -4900,7 +5081,6 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
     "darkTheme": false,
     "delay": 0,
     "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -5005,8 +5185,10 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Footnote",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -5083,15 +5265,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
     },
   },
   "overlays": {
-    "loading": {
-      "darkTheme": false,
-    },
-    "noData": {
-      "darkTheme": false,
-    },
-    "noVisibleSeries": {
-      "darkTheme": false,
-    },
+    "darkTheme": false,
   },
   "padding": {
     "bottom": 20,
@@ -5136,8 +5310,10 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "time distribution of commits",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "title": {
@@ -5146,7 +5322,9 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontWeight": "normal",
+    "layoutStyle": "block",
     "text": "Punch Card of Github",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -5157,6 +5335,11 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsColor",
           "value": "line-color",
+        },
+        {
+          "label": "Color",
+          "tooltip": "Text color",
+          "value": "text-color",
         },
         {
           "icon": "lock",
@@ -5174,7 +5357,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
           "value": "delete",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "floating",
     },
     "annotations": {
@@ -5182,21 +5365,39 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
       "buttons": [
         {
           "icon": "trend-line",
-          "section": "create",
+          "section": "lines",
           "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
+          "icon": "horizontal-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsHorizontalLine",
+          "value": "horizontal-line",
+        },
+        {
+          "icon": "vertical-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsVerticalLine",
+          "value": "vertical-line",
+        },
+        {
           "icon": "parallel-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
+        },
+        {
+          "icon": "zoom-in",
+          "section": "annotations",
+          "tooltip": "text",
+          "value": "text",
         },
         {
           "icon": "delete",
@@ -5205,7 +5406,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
           "value": "clear",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "left",
     },
     "enabled": true,
@@ -5285,7 +5486,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
           "value": "reset",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "top",
     },
   },
@@ -5293,7 +5494,6 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
     "darkTheme": false,
     "delay": 0,
     "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -5397,8 +5597,10 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Simple Maps",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -5475,15 +5677,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
     },
   },
   "overlays": {
-    "loading": {
-      "darkTheme": false,
-    },
-    "noData": {
-      "darkTheme": false,
-    },
-    "noVisibleSeries": {
-      "darkTheme": false,
-    },
+    "darkTheme": false,
   },
   "padding": {
     "bottom": 20,
@@ -5530,8 +5724,10 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "title": {
@@ -5540,8 +5736,10 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontWeight": "normal",
+    "layoutStyle": "block",
     "spacing": 25,
     "text": "Most Populous Cities",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -5552,6 +5750,11 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsColor",
           "value": "line-color",
+        },
+        {
+          "label": "Color",
+          "tooltip": "Text color",
+          "value": "text-color",
         },
         {
           "icon": "lock",
@@ -5569,7 +5772,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
           "value": "delete",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "floating",
     },
     "annotations": {
@@ -5577,21 +5780,39 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       "buttons": [
         {
           "icon": "trend-line",
-          "section": "create",
+          "section": "lines",
           "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
+          "icon": "horizontal-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsHorizontalLine",
+          "value": "horizontal-line",
+        },
+        {
+          "icon": "vertical-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsVerticalLine",
+          "value": "vertical-line",
+        },
+        {
           "icon": "parallel-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
+        },
+        {
+          "icon": "zoom-in",
+          "section": "annotations",
+          "tooltip": "text",
+          "value": "text",
         },
         {
           "icon": "delete",
@@ -5600,7 +5821,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
           "value": "clear",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "left",
     },
     "enabled": true,
@@ -5680,7 +5901,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
           "value": "reset",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "top",
     },
   },
@@ -5688,7 +5909,6 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
     "darkTheme": false,
     "delay": 0,
     "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -5788,8 +6008,10 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Ministry of Justice, HM Prison Service, and Her Majesty’s Prison and Probation Service",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -5866,15 +6088,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
     },
   },
   "overlays": {
-    "loading": {
-      "darkTheme": false,
-    },
-    "noData": {
-      "darkTheme": false,
-    },
-    "noVisibleSeries": {
-      "darkTheme": false,
-    },
+    "darkTheme": false,
   },
   "padding": {
     "bottom": 20,
@@ -5979,8 +6193,10 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -6012,8 +6228,10 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontWeight": "normal",
+    "layoutStyle": "block",
     "spacing": 25,
     "text": "Changes in Prison Population",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -6024,6 +6242,11 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsColor",
           "value": "line-color",
+        },
+        {
+          "label": "Color",
+          "tooltip": "Text color",
+          "value": "text-color",
         },
         {
           "icon": "lock",
@@ -6041,7 +6264,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
           "value": "delete",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "floating",
     },
     "annotations": {
@@ -6049,21 +6272,39 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       "buttons": [
         {
           "icon": "trend-line",
-          "section": "create",
+          "section": "lines",
           "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
+          "icon": "horizontal-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsHorizontalLine",
+          "value": "horizontal-line",
+        },
+        {
+          "icon": "vertical-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsVerticalLine",
+          "value": "vertical-line",
+        },
+        {
           "icon": "parallel-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
+        },
+        {
+          "icon": "zoom-in",
+          "section": "annotations",
+          "tooltip": "text",
+          "value": "text",
         },
         {
           "icon": "delete",
@@ -6072,7 +6313,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
           "value": "clear",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "left",
     },
     "enabled": true,
@@ -6152,7 +6393,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
           "value": "reset",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "top",
     },
   },
@@ -6160,7 +6401,6 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
     "darkTheme": false,
     "delay": 0,
     "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -6260,8 +6500,10 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Office for National Statistics",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -6338,15 +6580,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
     },
   },
   "overlays": {
-    "loading": {
-      "darkTheme": false,
-    },
-    "noData": {
-      "darkTheme": false,
-    },
-    "noVisibleSeries": {
-      "darkTheme": false,
-    },
+    "darkTheme": false,
   },
   "padding": {
     "bottom": 20,
@@ -6453,8 +6687,10 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -6488,8 +6724,10 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontWeight": "normal",
+    "layoutStyle": "block",
     "spacing": 25,
     "text": "Annual Growth in Pay",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -6500,6 +6738,11 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsColor",
           "value": "line-color",
+        },
+        {
+          "label": "Color",
+          "tooltip": "Text color",
+          "value": "text-color",
         },
         {
           "icon": "lock",
@@ -6517,7 +6760,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
           "value": "delete",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "floating",
     },
     "annotations": {
@@ -6525,21 +6768,39 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       "buttons": [
         {
           "icon": "trend-line",
-          "section": "create",
+          "section": "lines",
           "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
+          "icon": "horizontal-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsHorizontalLine",
+          "value": "horizontal-line",
+        },
+        {
+          "icon": "vertical-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsVerticalLine",
+          "value": "vertical-line",
+        },
+        {
           "icon": "parallel-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
+        },
+        {
+          "icon": "zoom-in",
+          "section": "annotations",
+          "tooltip": "text",
+          "value": "text",
         },
         {
           "icon": "delete",
@@ -6548,7 +6809,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
           "value": "clear",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "left",
     },
     "enabled": true,
@@ -6628,7 +6889,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
           "value": "reset",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "top",
     },
   },
@@ -6636,7 +6897,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
     "darkTheme": false,
     "delay": 0,
     "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -6737,8 +6997,10 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Office for National Statistics",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -6815,15 +7077,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
     },
   },
   "overlays": {
-    "loading": {
-      "darkTheme": false,
-    },
-    "noData": {
-      "darkTheme": false,
-    },
-    "noVisibleSeries": {
-      "darkTheme": false,
-    },
+    "darkTheme": false,
   },
   "padding": {
     "bottom": 20,
@@ -7174,8 +7428,10 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -7202,8 +7458,10 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontWeight": "normal",
+    "layoutStyle": "block",
     "spacing": 25,
     "text": "Regular Internet Users",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -7214,6 +7472,11 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsColor",
           "value": "line-color",
+        },
+        {
+          "label": "Color",
+          "tooltip": "Text color",
+          "value": "text-color",
         },
         {
           "icon": "lock",
@@ -7231,7 +7494,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
           "value": "delete",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "floating",
     },
     "annotations": {
@@ -7239,21 +7502,39 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "buttons": [
         {
           "icon": "trend-line",
-          "section": "create",
+          "section": "lines",
           "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
+          "icon": "horizontal-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsHorizontalLine",
+          "value": "horizontal-line",
+        },
+        {
+          "icon": "vertical-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsVerticalLine",
+          "value": "vertical-line",
+        },
+        {
           "icon": "parallel-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
+        },
+        {
+          "icon": "zoom-in",
+          "section": "annotations",
+          "tooltip": "text",
+          "value": "text",
         },
         {
           "icon": "delete",
@@ -7262,7 +7543,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
           "value": "clear",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "left",
     },
     "enabled": true,
@@ -7342,7 +7623,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
           "value": "reset",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "top",
     },
   },
@@ -7350,7 +7631,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
     "darkTheme": false,
     "delay": 0,
     "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -7454,8 +7734,10 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Department for Environment, Food and Rural Affairs",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -7532,15 +7814,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
     },
   },
   "overlays": {
-    "loading": {
-      "darkTheme": false,
-    },
-    "noData": {
-      "darkTheme": false,
-    },
-    "noVisibleSeries": {
-      "darkTheme": false,
-    },
+    "darkTheme": false,
   },
   "padding": {
     "bottom": 20,
@@ -8275,8 +8549,10 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -8340,8 +8616,10 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontWeight": "normal",
+    "layoutStyle": "block",
     "spacing": 25,
     "text": "Imported Banana Prices",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -8352,6 +8630,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsColor",
           "value": "line-color",
+        },
+        {
+          "label": "Color",
+          "tooltip": "Text color",
+          "value": "text-color",
         },
         {
           "icon": "lock",
@@ -8369,7 +8652,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "value": "delete",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "floating",
     },
     "annotations": {
@@ -8377,21 +8660,39 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "buttons": [
         {
           "icon": "trend-line",
-          "section": "create",
+          "section": "lines",
           "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
+          "icon": "horizontal-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsHorizontalLine",
+          "value": "horizontal-line",
+        },
+        {
+          "icon": "vertical-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsVerticalLine",
+          "value": "vertical-line",
+        },
+        {
           "icon": "parallel-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
+        },
+        {
+          "icon": "zoom-in",
+          "section": "annotations",
+          "tooltip": "text",
+          "value": "text",
         },
         {
           "icon": "delete",
@@ -8400,7 +8701,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "value": "clear",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "left",
     },
     "enabled": true,
@@ -8480,7 +8781,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "value": "reset",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "top",
     },
   },
@@ -8488,7 +8789,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
     "darkTheme": false,
     "delay": 0,
     "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -8588,8 +8888,10 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Footnote",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -8666,15 +8968,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
     },
   },
   "overlays": {
-    "loading": {
-      "darkTheme": false,
-    },
-    "noData": {
-      "darkTheme": false,
-    },
-    "noVisibleSeries": {
-      "darkTheme": false,
-    },
+    "darkTheme": false,
   },
   "padding": {
     "bottom": 20,
@@ -8727,8 +9021,10 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "log scale",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "title": {
@@ -8737,7 +9033,9 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 17,
     "fontWeight": "normal",
+    "layoutStyle": "block",
     "text": "World Population Over Time",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -8748,6 +9046,11 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsColor",
           "value": "line-color",
+        },
+        {
+          "label": "Color",
+          "tooltip": "Text color",
+          "value": "text-color",
         },
         {
           "icon": "lock",
@@ -8765,7 +9068,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
           "value": "delete",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "floating",
     },
     "annotations": {
@@ -8773,21 +9076,39 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
       "buttons": [
         {
           "icon": "trend-line",
-          "section": "create",
+          "section": "lines",
           "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
+          "icon": "horizontal-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsHorizontalLine",
+          "value": "horizontal-line",
+        },
+        {
+          "icon": "vertical-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsVerticalLine",
+          "value": "vertical-line",
+        },
+        {
           "icon": "parallel-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
+        },
+        {
+          "icon": "zoom-in",
+          "section": "annotations",
+          "tooltip": "text",
+          "value": "text",
         },
         {
           "icon": "delete",
@@ -8796,7 +9117,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
           "value": "clear",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "left",
     },
     "enabled": true,
@@ -8876,7 +9197,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
           "value": "reset",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "top",
     },
   },
@@ -8884,7 +9205,6 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
     "darkTheme": false,
     "delay": 0,
     "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -8985,8 +9305,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Department for Business, Energy & Industrial Strategy",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -9063,15 +9385,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
     },
   },
   "overlays": {
-    "loading": {
-      "darkTheme": false,
-    },
-    "noData": {
-      "darkTheme": false,
-    },
-    "noVisibleSeries": {
-      "darkTheme": false,
-    },
+    "darkTheme": false,
   },
   "padding": {
     "bottom": 20,
@@ -9520,8 +9834,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -9544,8 +9860,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontWeight": "normal",
+    "layoutStyle": "block",
     "spacing": 25,
     "text": "UK Energy Sources",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -9556,6 +9874,11 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsColor",
           "value": "line-color",
+        },
+        {
+          "label": "Color",
+          "tooltip": "Text color",
+          "value": "text-color",
         },
         {
           "icon": "lock",
@@ -9573,7 +9896,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
           "value": "delete",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "floating",
     },
     "annotations": {
@@ -9581,21 +9904,39 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "buttons": [
         {
           "icon": "trend-line",
-          "section": "create",
+          "section": "lines",
           "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
+          "icon": "horizontal-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsHorizontalLine",
+          "value": "horizontal-line",
+        },
+        {
+          "icon": "vertical-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsVerticalLine",
+          "value": "vertical-line",
+        },
+        {
           "icon": "parallel-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
+        },
+        {
+          "icon": "zoom-in",
+          "section": "annotations",
+          "tooltip": "text",
+          "value": "text",
         },
         {
           "icon": "delete",
@@ -9604,7 +9945,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
           "value": "clear",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "left",
     },
     "enabled": true,
@@ -9684,7 +10025,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
           "value": "reset",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "top",
     },
   },
@@ -9692,7 +10033,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
     "darkTheme": false,
     "delay": 0,
     "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -9794,8 +10134,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Office for National Statistics",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -9872,15 +10214,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
     },
   },
   "overlays": {
-    "loading": {
-      "darkTheme": false,
-    },
-    "noData": {
-      "darkTheme": false,
-    },
-    "noVisibleSeries": {
-      "darkTheme": false,
-    },
+    "darkTheme": false,
   },
   "padding": {
     "bottom": 20,
@@ -10036,8 +10370,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -10073,8 +10409,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontWeight": "normal",
+    "layoutStyle": "block",
     "spacing": 25,
     "text": "Internet Users by Geographical Location",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -10085,6 +10423,11 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsColor",
           "value": "line-color",
+        },
+        {
+          "label": "Color",
+          "tooltip": "Text color",
+          "value": "text-color",
         },
         {
           "icon": "lock",
@@ -10102,7 +10445,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
           "value": "delete",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "floating",
     },
     "annotations": {
@@ -10110,21 +10453,39 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       "buttons": [
         {
           "icon": "trend-line",
-          "section": "create",
+          "section": "lines",
           "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
+          "icon": "horizontal-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsHorizontalLine",
+          "value": "horizontal-line",
+        },
+        {
+          "icon": "vertical-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsVerticalLine",
+          "value": "vertical-line",
+        },
+        {
           "icon": "parallel-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
+        },
+        {
+          "icon": "zoom-in",
+          "section": "annotations",
+          "tooltip": "text",
+          "value": "text",
         },
         {
           "icon": "delete",
@@ -10133,7 +10494,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
           "value": "clear",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "left",
     },
     "enabled": true,
@@ -10213,7 +10574,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
           "value": "reset",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "top",
     },
   },
@@ -10221,7 +10582,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
     "darkTheme": false,
     "delay": 0,
     "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -10322,8 +10682,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Department for Education",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -10400,15 +10762,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
     },
   },
   "overlays": {
-    "loading": {
-      "darkTheme": false,
-    },
-    "noData": {
-      "darkTheme": false,
-    },
-    "noVisibleSeries": {
-      "darkTheme": false,
-    },
+    "darkTheme": false,
   },
   "padding": {
     "bottom": 20,
@@ -10699,8 +11053,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -10741,8 +11097,10 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontWeight": "normal",
+    "layoutStyle": "block",
     "spacing": 25,
     "text": "Ethnic Diversity of School Pupils",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -10753,6 +11111,11 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsColor",
           "value": "line-color",
+        },
+        {
+          "label": "Color",
+          "tooltip": "Text color",
+          "value": "text-color",
         },
         {
           "icon": "lock",
@@ -10770,7 +11133,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
           "value": "delete",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "floating",
     },
     "annotations": {
@@ -10778,21 +11141,39 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "buttons": [
         {
           "icon": "trend-line",
-          "section": "create",
+          "section": "lines",
           "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
+          "icon": "horizontal-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsHorizontalLine",
+          "value": "horizontal-line",
+        },
+        {
+          "icon": "vertical-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsVerticalLine",
+          "value": "vertical-line",
+        },
+        {
           "icon": "parallel-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
+        },
+        {
+          "icon": "zoom-in",
+          "section": "annotations",
+          "tooltip": "text",
+          "value": "text",
         },
         {
           "icon": "delete",
@@ -10801,7 +11182,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
           "value": "clear",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "left",
     },
     "enabled": true,
@@ -10881,7 +11262,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
           "value": "reset",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "top",
     },
   },
@@ -10889,7 +11270,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
     "darkTheme": false,
     "delay": 0,
     "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -10995,8 +11375,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Department for Digital, Culture, Media & Sport",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -11073,15 +11455,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
     },
   },
   "overlays": {
-    "loading": {
-      "darkTheme": false,
-    },
-    "noData": {
-      "darkTheme": false,
-    },
-    "noVisibleSeries": {
-      "darkTheme": false,
-    },
+    "darkTheme": false,
   },
   "padding": {
     "bottom": 20,
@@ -11296,8 +11670,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -11318,8 +11694,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontWeight": "normal",
+    "layoutStyle": "block",
     "spacing": 25,
     "text": "Total Visitors to Tate Galleries",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -11330,6 +11708,11 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsColor",
           "value": "line-color",
+        },
+        {
+          "label": "Color",
+          "tooltip": "Text color",
+          "value": "text-color",
         },
         {
           "icon": "lock",
@@ -11347,7 +11730,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
           "value": "delete",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "floating",
     },
     "annotations": {
@@ -11355,21 +11738,39 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "buttons": [
         {
           "icon": "trend-line",
-          "section": "create",
+          "section": "lines",
           "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
+          "icon": "horizontal-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsHorizontalLine",
+          "value": "horizontal-line",
+        },
+        {
+          "icon": "vertical-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsVerticalLine",
+          "value": "vertical-line",
+        },
+        {
           "icon": "parallel-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
+        },
+        {
+          "icon": "zoom-in",
+          "section": "annotations",
+          "tooltip": "text",
+          "value": "text",
         },
         {
           "icon": "delete",
@@ -11378,7 +11779,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
           "value": "clear",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "left",
     },
     "enabled": true,
@@ -11458,7 +11859,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
           "value": "reset",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "top",
     },
   },
@@ -11466,7 +11867,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
     "darkTheme": false,
     "delay": 0,
     "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -11567,8 +11967,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Department for Digital, Culture, Media & Sport",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -11645,15 +12047,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
     },
   },
   "overlays": {
-    "loading": {
-      "darkTheme": false,
-    },
-    "noData": {
-      "darkTheme": false,
-    },
-    "noVisibleSeries": {
-      "darkTheme": false,
-    },
+    "darkTheme": false,
   },
   "padding": {
     "bottom": 20,
@@ -11709,8 +12103,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "title": {
@@ -11719,8 +12115,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontWeight": "normal",
+    "layoutStyle": "block",
     "spacing": 25,
     "text": "Total Visitors to Museums and Galleries",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -11731,6 +12129,11 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsColor",
           "value": "line-color",
+        },
+        {
+          "label": "Color",
+          "tooltip": "Text color",
+          "value": "text-color",
         },
         {
           "icon": "lock",
@@ -11748,7 +12151,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
           "value": "delete",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "floating",
     },
     "annotations": {
@@ -11756,21 +12159,39 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       "buttons": [
         {
           "icon": "trend-line",
-          "section": "create",
+          "section": "lines",
           "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
+          "icon": "horizontal-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsHorizontalLine",
+          "value": "horizontal-line",
+        },
+        {
+          "icon": "vertical-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsVerticalLine",
+          "value": "vertical-line",
+        },
+        {
           "icon": "parallel-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
+        },
+        {
+          "icon": "zoom-in",
+          "section": "annotations",
+          "tooltip": "text",
+          "value": "text",
         },
         {
           "icon": "delete",
@@ -11779,7 +12200,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
           "value": "clear",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "left",
     },
     "enabled": true,
@@ -11859,7 +12280,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
           "value": "reset",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "top",
     },
   },
@@ -11867,7 +12288,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
     "darkTheme": false,
     "delay": 0,
     "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -11885,8 +12305,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Home Office",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -11934,15 +12356,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
   "minHeight": 300,
   "minWidth": 300,
   "overlays": {
-    "loading": {
-      "darkTheme": false,
-    },
-    "noData": {
-      "darkTheme": false,
-    },
-    "noVisibleSeries": {
-      "darkTheme": false,
-    },
+    "darkTheme": false,
   },
   "padding": {
     "bottom": 20,
@@ -12074,8 +12488,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "title": {
@@ -12084,15 +12500,16 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontWeight": "normal",
+    "layoutStyle": "block",
     "spacing": 25,
     "text": "Dwelling Fires (UK)",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
     "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -12199,8 +12616,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Department for Business, Energy & Industrial Strategy",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -12277,15 +12696,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
     },
   },
   "overlays": {
-    "loading": {
-      "darkTheme": false,
-    },
-    "noData": {
-      "darkTheme": false,
-    },
-    "noVisibleSeries": {
-      "darkTheme": false,
-    },
+    "darkTheme": false,
   },
   "padding": {
     "bottom": 20,
@@ -12388,8 +12799,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -12412,8 +12825,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontWeight": "normal",
+    "layoutStyle": "block",
     "spacing": 25,
     "text": "Road fuel prices",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -12424,6 +12839,11 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsColor",
           "value": "line-color",
+        },
+        {
+          "label": "Color",
+          "tooltip": "Text color",
+          "value": "text-color",
         },
         {
           "icon": "lock",
@@ -12441,7 +12861,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
           "value": "delete",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "floating",
     },
     "annotations": {
@@ -12449,21 +12869,39 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       "buttons": [
         {
           "icon": "trend-line",
-          "section": "create",
+          "section": "lines",
           "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
+          "icon": "horizontal-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsHorizontalLine",
+          "value": "horizontal-line",
+        },
+        {
+          "icon": "vertical-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsVerticalLine",
+          "value": "vertical-line",
+        },
+        {
           "icon": "parallel-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
+        },
+        {
+          "icon": "zoom-in",
+          "section": "annotations",
+          "tooltip": "text",
+          "value": "text",
         },
         {
           "icon": "delete",
@@ -12472,7 +12910,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
           "value": "clear",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "left",
     },
     "enabled": true,
@@ -12552,7 +12990,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
           "value": "reset",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "top",
     },
   },
@@ -12560,7 +12998,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
     "darkTheme": false,
     "delay": 0,
     "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -12577,8 +13014,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Office for National Statistics",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -12627,15 +13066,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
   "minHeight": 300,
   "minWidth": 300,
   "overlays": {
-    "loading": {
-      "darkTheme": false,
-    },
-    "noData": {
-      "darkTheme": false,
-    },
-    "noVisibleSeries": {
-      "darkTheme": false,
-    },
+    "darkTheme": false,
   },
   "padding": {
     "bottom": 20,
@@ -12748,8 +13179,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "title": {
@@ -12758,15 +13191,16 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontWeight": "normal",
+    "layoutStyle": "block",
     "spacing": 25,
     "text": "Religions of London Population",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
     "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -12864,8 +13298,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Statistics Online Computational Resource",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -12942,15 +13378,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
     },
   },
   "overlays": {
-    "loading": {
-      "darkTheme": false,
-    },
-    "noData": {
-      "darkTheme": false,
-    },
-    "noVisibleSeries": {
-      "darkTheme": false,
-    },
+    "darkTheme": false,
   },
   "padding": {
     "bottom": 20,
@@ -12989,8 +13417,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "title": {
@@ -12999,8 +13429,10 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontWeight": "normal",
+    "layoutStyle": "block",
     "spacing": 25,
     "text": "Height vs Weight for Major League Baseball Players",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -13011,6 +13443,11 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsColor",
           "value": "line-color",
+        },
+        {
+          "label": "Color",
+          "tooltip": "Text color",
+          "value": "text-color",
         },
         {
           "icon": "lock",
@@ -13028,7 +13465,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
           "value": "delete",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "floating",
     },
     "annotations": {
@@ -13036,21 +13473,39 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
       "buttons": [
         {
           "icon": "trend-line",
-          "section": "create",
+          "section": "lines",
           "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
+          "icon": "horizontal-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsHorizontalLine",
+          "value": "horizontal-line",
+        },
+        {
+          "icon": "vertical-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsVerticalLine",
+          "value": "vertical-line",
+        },
+        {
           "icon": "parallel-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
+        },
+        {
+          "icon": "zoom-in",
+          "section": "annotations",
+          "tooltip": "text",
+          "value": "text",
         },
         {
           "icon": "delete",
@@ -13059,7 +13514,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
           "value": "clear",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "left",
     },
     "enabled": true,
@@ -13139,7 +13594,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
           "value": "reset",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "top",
     },
   },
@@ -13147,7 +13602,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
     "darkTheme": false,
     "delay": 0,
     "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -13255,8 +13709,10 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Department for Digital, Culture, Media & Sport",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -13333,15 +13789,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
     },
   },
   "overlays": {
-    "loading": {
-      "darkTheme": false,
-    },
-    "noData": {
-      "darkTheme": false,
-    },
-    "noVisibleSeries": {
-      "darkTheme": false,
-    },
+    "darkTheme": false,
   },
   "padding": {
     "bottom": 20,
@@ -13722,8 +14170,10 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -13769,8 +14219,10 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontWeight": "normal",
+    "layoutStyle": "block",
     "spacing": 25,
     "text": "Total Visitors to Science Museums",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -13781,6 +14233,11 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsColor",
           "value": "line-color",
+        },
+        {
+          "label": "Color",
+          "tooltip": "Text color",
+          "value": "text-color",
         },
         {
           "icon": "lock",
@@ -13798,7 +14255,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "value": "delete",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "floating",
     },
     "annotations": {
@@ -13806,21 +14263,39 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "buttons": [
         {
           "icon": "trend-line",
-          "section": "create",
+          "section": "lines",
           "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
+          "icon": "horizontal-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsHorizontalLine",
+          "value": "horizontal-line",
+        },
+        {
+          "icon": "vertical-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsVerticalLine",
+          "value": "vertical-line",
+        },
+        {
           "icon": "parallel-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
+        },
+        {
+          "icon": "zoom-in",
+          "section": "annotations",
+          "tooltip": "text",
+          "value": "text",
         },
         {
           "icon": "delete",
@@ -13829,7 +14304,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "value": "clear",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "left",
     },
     "enabled": true,
@@ -13909,7 +14384,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "value": "reset",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "top",
     },
   },
@@ -13917,7 +14392,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
     "darkTheme": false,
     "delay": 0,
     "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -14018,8 +14492,10 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Ministry of Housing, Communities & Local Government",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -14096,15 +14572,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
     },
   },
   "overlays": {
-    "loading": {
-      "darkTheme": false,
-    },
-    "noData": {
-      "darkTheme": false,
-    },
-    "noVisibleSeries": {
-      "darkTheme": false,
-    },
+    "darkTheme": false,
   },
   "padding": {
     "bottom": 20,
@@ -14303,8 +14771,10 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Subtitle",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -14327,7 +14797,9 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 17,
     "fontWeight": "normal",
+    "layoutStyle": "block",
     "text": "UK Housing Stock",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -14338,6 +14810,11 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsColor",
           "value": "line-color",
+        },
+        {
+          "label": "Color",
+          "tooltip": "Text color",
+          "value": "text-color",
         },
         {
           "icon": "lock",
@@ -14355,7 +14832,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
           "value": "delete",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "floating",
     },
     "annotations": {
@@ -14363,21 +14840,39 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       "buttons": [
         {
           "icon": "trend-line",
-          "section": "create",
+          "section": "lines",
           "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
+          "icon": "horizontal-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsHorizontalLine",
+          "value": "horizontal-line",
+        },
+        {
+          "icon": "vertical-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsVerticalLine",
+          "value": "vertical-line",
+        },
+        {
           "icon": "parallel-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
+        },
+        {
+          "icon": "zoom-in",
+          "section": "annotations",
+          "tooltip": "text",
+          "value": "text",
         },
         {
           "icon": "delete",
@@ -14386,7 +14881,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
           "value": "clear",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "left",
     },
     "enabled": true,
@@ -14466,7 +14961,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
           "value": "reset",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "top",
     },
   },
@@ -14474,7 +14969,6 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
     "darkTheme": false,
     "delay": 0,
     "enabled": true,
-    "range": undefined,
   },
 }
 `;
@@ -14576,8 +15070,10 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Source: Transport for London",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "keyboard": {
@@ -14654,15 +15150,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
     },
   },
   "overlays": {
-    "loading": {
-      "darkTheme": false,
-    },
-    "noData": {
-      "darkTheme": false,
-    },
-    "noVisibleSeries": {
-      "darkTheme": false,
-    },
+    "darkTheme": false,
   },
   "padding": {
     "bottom": 40,
@@ -14912,8 +15400,10 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
+    "layoutStyle": "block",
     "spacing": 20,
     "text": "Victoria Line (2010)",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "theme": {
@@ -14953,7 +15443,9 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
     "fontWeight": "normal",
+    "layoutStyle": "block",
     "text": "Average Station Entries",
+    "textAlign": "center",
     "wrapping": "hyphenate",
   },
   "toolbar": {
@@ -14964,6 +15456,11 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsColor",
           "value": "line-color",
+        },
+        {
+          "label": "Color",
+          "tooltip": "Text color",
+          "value": "text-color",
         },
         {
           "icon": "lock",
@@ -14981,7 +15478,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
           "value": "delete",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "floating",
     },
     "annotations": {
@@ -14989,21 +15486,39 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "buttons": [
         {
           "icon": "trend-line",
-          "section": "create",
+          "section": "lines",
           "tooltip": "toolbarAnnotationsTrendLine",
           "value": "line",
         },
         {
+          "icon": "horizontal-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsHorizontalLine",
+          "value": "horizontal-line",
+        },
+        {
+          "icon": "vertical-line",
+          "section": "lines",
+          "tooltip": "toolbarAnnotationsVerticalLine",
+          "value": "vertical-line",
+        },
+        {
           "icon": "parallel-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsParallelChannel",
           "value": "parallel-channel",
         },
         {
           "icon": "disjoint-channel",
-          "section": "create",
+          "section": "channels",
           "tooltip": "toolbarAnnotationsDisjointChannel",
           "value": "disjoint-channel",
+        },
+        {
+          "icon": "zoom-in",
+          "section": "annotations",
+          "tooltip": "text",
+          "value": "text",
         },
         {
           "icon": "delete",
@@ -15012,7 +15527,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
           "value": "clear",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "left",
     },
     "enabled": true,
@@ -15092,7 +15607,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
           "value": "reset",
         },
       ],
-      "enabled": false,
+      "enabled": true,
       "position": "top",
     },
   },
@@ -15100,7 +15615,6 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
     "darkTheme": false,
     "delay": 0,
     "enabled": true,
-    "range": undefined,
   },
 }
 `;

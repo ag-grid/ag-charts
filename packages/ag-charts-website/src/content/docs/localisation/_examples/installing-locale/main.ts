@@ -17,11 +17,21 @@ const options: AgChartOptions = {
         { month: 'Sep', avgTemp: 14.5, iceCreamSales: 950000 },
         { month: 'Nov', avgTemp: 8.9, iceCreamSales: 200000 },
     ],
-    series: [{ type: 'line', xKey: 'month', yKey: 'iceCreamSales' }],
+    series: [
+        {
+            type: 'line',
+            xKey: 'month',
+            yKey: 'iceCreamSales',
+            yName: 'Ice Cream Sales',
+        },
+    ],
     contextMenu: {
         enabled: true,
     },
     zoom: {
+        enabled: true,
+    },
+    legend: {
         enabled: true,
     },
     locale: {

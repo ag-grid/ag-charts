@@ -7,7 +7,7 @@ export interface ChartLegend {
     attachLegend(scene: Scene): void;
     destroy(): void;
     data: any;
-    listeners: AgChartLegendListeners;
+    listeners?: AgChartLegendListeners;
 }
 
 export type ChartLegendType = 'category' | 'gradient';

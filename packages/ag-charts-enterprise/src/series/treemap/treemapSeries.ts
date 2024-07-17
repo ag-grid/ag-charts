@@ -9,9 +9,10 @@ import {
     _Util,
 } from 'ag-charts-community';
 
-import { AutoSizedLabel, formatLabels } from '../util/labelFormatter';
+import { formatLabels } from '../util/labelFormatter';
 import { TreemapSeriesProperties } from './treemapSeriesProperties';
 
+const { TextMeasurer, TextWrapper } = _ModuleSupport;
 const { Rect, Group, BBox, Selection, Text } = _Scene;
 const { Color, Logger, clamp, isEqual, sanitizeHtml } = _Util;
 
@@ -400,9 +401,10 @@ export class TreemapSeries<
         this.highlightSelection.update(descendants, updateGroup, (node) => this.getDatumId(node));
     }
 
-    private getTileFormat(node: _ModuleSupport.HierarchyNode, isHighlighted: boolean): AgTreemapSeriesStyle {
+    private getTileFormat(node: _ModuleSupport.HierarchyNode, highlighted: boolean): AgTreemapSeriesStyle | undefined {
         const { datum, depth, children } = node;
-        const { colorKey, labelKey, secondaryLabelKey, sizeKey, tile, group, itemStyler } = this.properties;
+        const { colorKey, childrenKey, labelKey, secondaryLabelKey, sizeKey, tile, group, itemStyler } =
+            this.properties;
 
         if (!itemStyler || datum == null || depth == null) {
             return {};
@@ -413,21 +415,22 @@ export class TreemapSeries<
         const stroke = this.getNodeStroke(node);
         const strokeWidth = isLeaf ? tile.strokeWidth : group.strokeWidth;
 
-        const result = this.ctx.callbackCache.call(itemStyler, {
+        return this.ctx.callbackCache.call(itemStyler, {
             seriesId: this.id,
-            depth,
+            highlighted,
             datum,
+            depth,
             colorKey,
+            childrenKey,
             labelKey,
             secondaryLabelKey,
             sizeKey,
             fill,
+            fillOpacity: 1,
             stroke,
             strokeWidth,
-            highlighted: isHighlighted,
+            strokeOpacity: 1,
         });
-
-        return result ?? {};
     }
 
     private getNodeFill(node: _ModuleSupport.HierarchyNode) {
@@ -620,14 +623,18 @@ export class TreemapSeries<
                 }
 
                 const innerWidth = bbox.width - 2 * padding;
-                const text = Text.wrap(labelDatum.label, bbox.width - 2 * padding, Infinity, group.label, 'never');
+                const text = TextWrapper.wrapText(labelDatum.label, {
+                    maxWidth: bbox.width - 2 * padding,
+                    font: group.label,
+                    textWrap: 'never',
+                });
                 const textAlignFactor = textAlignFactors[textAlign] ?? 0.5;
 
                 return {
                     label: {
                         text,
                         fontSize: group.label.fontSize,
-                        lineHeight: AutoSizedLabel.lineHeight(group.label.fontSize),
+                        lineHeight: TextMeasurer.getLineHeight(group.label.fontSize),
                         style: this.properties.group.label,
                         x: bbox.x + padding + innerWidth * textAlignFactor,
                         y: bbox.y + padding + groupTitleHeight * 0.5,

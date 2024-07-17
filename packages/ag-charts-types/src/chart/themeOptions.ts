@@ -39,10 +39,6 @@ import type { AgBaseChartOptions, AgBaseThemeableChartOptions } from './chartOpt
 import type { AgLocaleThemeableOptions } from './localeOptions';
 import type { CssColor } from './types';
 
-// import type { AgChartThemeName } from 'ag-shared';
-
-// export type { AgChartThemeName } from 'ag-shared';
-
 export type AgChartThemeName =
     | 'ag-default'
     | 'ag-default-dark'
@@ -53,17 +49,26 @@ export type AgChartThemeName =
     | 'ag-vivid'
     | 'ag-vivid-dark'
     | 'ag-material'
-    | 'ag-material-dark';
+    | 'ag-material-dark'
+    | 'ag-financial'
+    | 'ag-financial-dark';
+
+interface AgPaletteColors {
+    fill?: CssColor;
+    stroke?: CssColor;
+}
 
 /**
- * Temporary alias type of Partial<AgChartThemePalette>, until we can fix AgChartThemePalette in the
- * next major release.
+ * Palette used by the chart instance.
  */
 export interface AgChartThemePalette {
     /** The array of fills to be used. */
     fills?: CssColor[];
     /** The array of strokes to be used. */
     strokes?: CssColor[];
+    up?: AgPaletteColors;
+    down?: AgPaletteColors;
+    neutral?: AgPaletteColors;
 }
 
 export interface AgBaseChartThemeOptions {

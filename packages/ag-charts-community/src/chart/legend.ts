@@ -11,6 +11,7 @@ import type {
     Formatter,
 } from 'ag-charts-types';
 
+import type { LayoutContext } from '../module/baseModule';
 import type { ModuleContext } from '../module/moduleContext';
 import { BBox } from '../scene/bbox';
 import { Group } from '../scene/group';
@@ -18,7 +19,6 @@ import { RedrawType } from '../scene/node';
 import type { Scene } from '../scene/scene';
 import { Selection } from '../scene/selection';
 import { Line } from '../scene/shape/line';
-import { Text, getFont } from '../scene/shape/text';
 import { setElementBBox } from '../util/dom';
 import { createId } from '../util/id';
 import { initToolbarKeyNav } from '../util/keynavUtil';
@@ -26,6 +26,8 @@ import { Logger } from '../util/logger';
 import { clamp } from '../util/number';
 import { BaseProperties } from '../util/properties';
 import { ObserveChanges } from '../util/proxy';
+import { TextMeasurer } from '../util/textMeasurer';
+import { TextWrapper } from '../util/textWrapper';
 import {
     BOOLEAN,
     COLOR_STRING,
@@ -226,8 +228,6 @@ export class Legend extends BaseProperties {
     @Validate(POSITIVE_NUMBER)
     spacing = 20;
 
-    private readonly characterWidths = new Map();
-
     private readonly destroyFns: Function[] = [];
 
     private readonly proxyLegendToolbar: HTMLDivElement;
@@ -271,8 +271,9 @@ export class Legend extends BaseProperties {
             region.addListener('hover', (e) => this.handleLegendMouseMove(e)),
             region.addListener('leave', (e) => this.handleLegendMouseExit(e), animationState),
             region.addListener('enter', (e) => this.handleLegendMouseEnter(e), animationState),
-            ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e.shrinkRect)),
-            () => this.detachLegend()
+            ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e)),
+            ctx.localeManager.addListener('locale-changed', () => this.onLocaleChanged()),
+            () => this.group.parent?.removeChild(this.group)
         );
 
         this.proxyLegendToolbar = this.ctx.proxyInteractionService.createProxyContainer({
@@ -281,6 +282,7 @@ export class Legend extends BaseProperties {
             classList: ['ag-charts-proxy-legend-toolbar'],
             ariaLabel: { id: 'ariaLabelLegend' },
             ariaOrientation: 'horizontal',
+            ariaHidden: true,
         });
         this.proxyLegendPagination = this.ctx.proxyInteractionService.createProxyContainer({
             type: 'group',
@@ -288,6 +290,7 @@ export class Legend extends BaseProperties {
             classList: ['ag-charts-proxy-legend-pagination'],
             ariaLabel: { id: 'ariaLabelLegendPagination' },
             ariaOrientation: 'horizontal',
+            ariaHidden: true,
         });
     }
 
@@ -312,7 +315,10 @@ export class Legend extends BaseProperties {
                 // Retrieve the datum from the node rather than from the method parameter.
                 // The method parameter `datum` gets destroyed when the data is refreshed
                 // using Series.getLegendData(). But the scene node will stay the same.
-                onclick: () => this.doClick(markerLabel.datum),
+                onclick: () => {
+                    this.doClick(markerLabel.datum);
+                    markerLabel.proxyButton!.textContent = this.getItemAriaText(i, !markerLabel.datum.enabled);
+                },
                 onblur: () => this.doMouseExit(),
                 onfocus: () => {
                     const bounds = markerLabel?.computeTransformedBBox();
@@ -353,20 +359,6 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private getCharacterWidths(font: string) {
-        const { characterWidths } = this;
-
-        if (characterWidths.has(font)) {
-            return characterWidths.get(font);
-        }
-
-        const cw: { [key: string]: number } = {
-            '...': Text.getTextSize('...', font).width,
-        };
-        characterWidths.set(font, cw);
-        return cw;
-    }
-
     readonly size: [number, number] = [0, 0];
 
     private _visible: boolean = true;
@@ -384,10 +376,6 @@ export class Legend extends BaseProperties {
 
     attachLegend(scene: Scene) {
         scene.appendChild(this.group);
-    }
-
-    detachLegend() {
-        this.group.parent?.removeChild(this.group);
     }
 
     private getItemLabel(datum: CategoryLegendDatum) {
@@ -439,7 +427,7 @@ export class Legend extends BaseProperties {
         // Update properties that affect the size of the legend items and measure them.
         const bboxes: BBox[] = [];
 
-        const font = getFont(label);
+        const font = TextMeasurer.toFontString(label);
 
         const itemMaxWidthPercentage = 0.8;
         const maxItemWidth = maxWidth ?? width * itemMaxWidthPercentage;
@@ -450,7 +438,7 @@ export class Legend extends BaseProperties {
             markerLabel.fontSize = fontSize;
             markerLabel.fontFamily = fontFamily;
 
-            const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum);
+            const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, this.calcMarkerWidth());
             const id = datum.itemId ?? datum.id;
             const labelText = this.getItemLabel(datum);
             const text = (labelText ?? '<unknown>').replace(/\r?\n/g, ' ');
@@ -500,8 +488,29 @@ export class Legend extends BaseProperties {
         return { oldPages };
     }
 
-    private updateMarkerLabel(markerLabel: MarkerLabel, datum: CategoryLegendDatum): number {
-        const { showSeriesStroke, marker: itemMarker, line: itemLine, paddingX } = this.item;
+    private calcSymbolsLengths(symbol: LegendSymbolOptions) {
+        const { showSeriesStroke, marker, line } = this.item;
+        const markerEnabled = marker.enabled ?? (showSeriesStroke && (symbol.marker.enabled ?? true));
+        const markerLength = markerEnabled ? marker.size : 0;
+        const lineEnabled = !!(symbol.line && showSeriesStroke);
+        const lineLength = lineEnabled ? line.length ?? 25 : 0;
+        return { markerEnabled, markerLength, lineEnabled, lineLength };
+    }
+
+    private calcMarkerWidth(): number {
+        // AG-11950 Calculate the length of the longest legend symbol to ensure that the text / symbols stay aligned.
+        let result: number = 0;
+        this.itemSelection.each((_, datum) => {
+            datum.symbols.forEach((symbol) => {
+                const { lineLength, markerLength } = this.calcSymbolsLengths(symbol);
+                result = Math.max(result, lineLength, markerLength);
+            });
+        });
+        return result;
+    }
+
+    private updateMarkerLabel(markerLabel: MarkerLabel, datum: CategoryLegendDatum, markerWidth: number): number {
+        const { marker: itemMarker, paddingX } = this.item;
         const dimensionProps: { length: number; spacing: number }[] = [];
         let paddedSymbolWidth = paddingX;
 
@@ -523,17 +532,14 @@ export class Legend extends BaseProperties {
         }
 
         datum.symbols.forEach((symbol, i) => {
-            const markerEnabled = this.item.marker.enabled ?? (showSeriesStroke && (symbol.marker.enabled ?? true));
-            const lineEnabled = symbol.line && showSeriesStroke;
             const spacing = symbol.marker.padding ?? itemMarker.padding;
-            const lineLength = lineEnabled ? itemLine.length ?? 25 : 0;
-            const markerLength = markerEnabled ? itemMarker.size : 0;
+            const { markerEnabled, lineEnabled } = this.calcSymbolsLengths(symbol);
 
             markerLabel.markers[i].size = markerEnabled || !lineEnabled ? itemMarker.size : 0;
-            dimensionProps.push({ length: lineLength, spacing });
+            dimensionProps.push({ length: markerWidth, spacing });
 
             if (markerEnabled || lineEnabled) {
-                paddedSymbolWidth += spacing + Math.max(lineLength, markerLength);
+                paddedSymbolWidth += spacing + markerWidth;
             }
         });
 
@@ -549,48 +555,22 @@ export class Legend extends BaseProperties {
         font: string,
         id: string
     ): string {
-        const ellipsis = `...`;
-
-        const textChars = text.split('');
         let addEllipsis = false;
-
         if (text.length > maxCharLength) {
-            text = `${text.substring(0, maxCharLength)}`;
+            text = text.substring(0, maxCharLength);
             addEllipsis = true;
         }
 
-        const labelWidth = Math.floor(paddedMarkerWidth + Text.getTextSize(text, font).width);
-        if (labelWidth > maxItemWidth) {
-            let truncatedText = '';
-            const characterWidths = this.getCharacterWidths(font);
-            let cumulativeWidth = paddedMarkerWidth + characterWidths[ellipsis];
+        const measurer = TextMeasurer.getFontMeasurer({ font });
+        const result = TextWrapper.truncateLine(text, measurer, maxItemWidth - paddedMarkerWidth, addEllipsis);
 
-            for (const char of textChars) {
-                if (!characterWidths[char]) {
-                    characterWidths[char] = Text.getTextSize(char, font).width;
-                }
-
-                cumulativeWidth += characterWidths[char];
-
-                if (cumulativeWidth > maxItemWidth) {
-                    break;
-                }
-
-                truncatedText += char;
-            }
-
-            text = truncatedText;
-            addEllipsis = true;
-        }
-
-        if (addEllipsis) {
-            text += ellipsis;
+        if (result.endsWith(TextWrapper.EllipsisChar)) {
             this.truncatedItems.add(id);
         } else {
             this.truncatedItems.delete(id);
         }
 
-        return text;
+        return result;
     }
 
     private updatePagination(
@@ -780,8 +760,8 @@ export class Legend extends BaseProperties {
             }
 
             const pageIndex = i - visibleStart;
-            let columnIndex = 0;
-            let rowIndex = 0;
+            let columnIndex: number;
+            let rowIndex: number;
             if (horizontal) {
                 columnIndex = pageIndex % columnCount;
                 rowIndex = Math.floor(pageIndex / columnCount);
@@ -824,7 +804,7 @@ export class Legend extends BaseProperties {
             // Stay on last page on pagination update.
             this.paginationTrackingIndex = endIndex;
         } else {
-            // Track the middle item on the page).
+            // Track the middle item on the page.
             this.paginationTrackingIndex = Math.floor((startIndex + endIndex) / 2);
         }
 
@@ -1160,28 +1140,35 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private getItemAriaText(nodeIndex: number): { id: string; params?: Record<string, any> } {
-        const datum = this.data[nodeIndex];
-        const label = datum && this.getItemLabel(datum);
-        if (nodeIndex >= 0 && label && datum) {
-            return {
-                id: 'ariaLabelLegendItem',
-                params: {
-                    label,
-                    visibility: datum.enabled ? 'visible' : 'hidden',
-                    index: nodeIndex + 1,
-                    count: this.data.length,
-                },
-            };
-        }
-        return { id: 'ariaLabelLegendItemUnknown' };
+    private onLocaleChanged() {
+        this.itemSelection.each(({ proxyButton }, _, i) => {
+            if (proxyButton != null) {
+                proxyButton.textContent = this.getItemAriaText(i);
+            }
+        });
     }
 
-    private positionLegend(shrinkRect: BBox) {
+    private getItemAriaText(nodeIndex: number, enabled?: boolean): string {
+        const datum = this.data[nodeIndex];
+        const label = datum && this.getItemLabel(datum);
+        enabled ??= datum.enabled;
+        const lm = this.ctx.localeManager;
+        if (nodeIndex >= 0 && label) {
+            const index = nodeIndex + 1;
+            const count = this.data.length;
+            const part1 = lm.t('ariaLabelLegendItem', { label, index, count });
+            const part2 = lm.t(enabled ? 'ariaAnnounceVisible' : 'ariaAnnounceHidden');
+            return [part1, part2].join('');
+        }
+        return lm.t('ariaLabelLegendItemUnknown');
+    }
+
+    private positionLegend(ctx: LayoutContext) {
+        const { shrinkRect } = ctx;
         const newShrinkRect = shrinkRect.clone();
 
         if (!this.enabled || !this.data.length) {
-            return { shrinkRect: newShrinkRect };
+            return { ...ctx, shrinkRect: newShrinkRect };
         }
 
         const [legendWidth, legendHeight] = this.calculateLegendDimensions(shrinkRect);
@@ -1204,6 +1191,8 @@ export class Legend extends BaseProperties {
             }
         };
         if (this.visible) {
+            const legendPadding = this.spacing;
+
             let translationX;
             let translationY;
 
@@ -1212,7 +1201,7 @@ export class Legend extends BaseProperties {
                 case 'bottom':
                     translationX = (shrinkRect.width - legendBBox.width) / 2;
                     translationY = calculateTranslationPerpendicularDimension();
-                    newShrinkRect.shrink(legendBBox.height, this.position);
+                    newShrinkRect.shrink(legendBBox.height + legendPadding, this.position);
                     break;
 
                 case 'left':
@@ -1220,7 +1209,7 @@ export class Legend extends BaseProperties {
                 default:
                     translationX = calculateTranslationPerpendicularDimension();
                     translationY = (shrinkRect.height - legendBBox.height) / 2;
-                    newShrinkRect.shrink(legendBBox.width, this.position);
+                    newShrinkRect.shrink(legendBBox.width + legendPadding, this.position);
             }
 
             // Round off for pixel grid alignment to work properly.
@@ -1239,16 +1228,7 @@ export class Legend extends BaseProperties {
 
         this.updatePaginationProxyButtons(oldPages);
 
-        if (this.visible && this.enabled && this.data.length) {
-            const legendPadding = this.spacing;
-            newShrinkRect.shrink(legendPadding, this.position);
-
-            const legendPositionedBBox = legendBBox.clone();
-            legendPositionedBBox.x += this.group.translationX;
-            legendPositionedBBox.y += this.group.translationY;
-        }
-
-        return { shrinkRect: newShrinkRect };
+        return { ...ctx, shrinkRect: newShrinkRect };
     }
 
     private calculateLegendDimensions(shrinkRect: BBox): [number, number] {
@@ -1264,7 +1244,7 @@ export class Legend extends BaseProperties {
         switch (this.position) {
             case 'top':
             case 'bottom':
-                // A horizontal legend should take maximum between 20 to 50 percent of the chart height if height is larger than width
+                // A horizontal legend should take maximum between 20 and 50 percent of the chart height if height is larger than width
                 // and maximum 20 percent of the chart height if height is smaller than width.
                 const heightCoefficient =
                     aspectRatio < 1
@@ -1279,7 +1259,7 @@ export class Legend extends BaseProperties {
             case 'left':
             case 'right':
             default:
-                // A vertical legend should take maximum between 25 to 50 percent of the chart width if width is larger than height
+                // A vertical legend should take maximum between 25 and 50 percent of the chart width if width is larger than height
                 // and maximum 25 percent of the chart width if width is smaller than height.
                 const widthCoefficient =
                     aspectRatio > 1 ? Math.min(maxCoefficient, minWidthCoefficient * aspectRatio) : minWidthCoefficient;

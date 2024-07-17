@@ -12,7 +12,7 @@ class SeriesTooltipInteraction extends BaseProperties {
     enabled: boolean = false;
 }
 
-export class SeriesTooltip<P extends AgSeriesTooltipRendererParams> extends BaseProperties {
+export class SeriesTooltip<P extends AgSeriesTooltipRendererParams<any>> extends BaseProperties {
     @Validate(BOOLEAN)
     enabled: boolean = true;
 

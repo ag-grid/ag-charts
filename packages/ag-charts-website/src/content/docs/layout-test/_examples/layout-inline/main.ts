@@ -1,5 +1,9 @@
 // @ag-skip-fws
+// AgCharts import needed for dark-mode skippet
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+
+const css = String.raw;
+const html = String.raw;
 
 // Chart Options
 const options: AgCartesianChartOptions = {
@@ -26,77 +30,108 @@ const docWindow = element.contentWindow;
 (docWindow as any).options = options;
 const doc = docWindow?.document;
 doc?.open();
-doc?.write(`
-  <html>
-    <head>
-        <style>
-            html {
-                color-scheme: only light;
-            }
-        </style>
-    </head>
-    <body>
-        <h1>Article Example</h1>
-        <p>If the chart was placed in some news website with paragraphs above...</p>
-        <div class="chart"></div>
-        <p>And paragraphs below...</p>
-        <h1>Explicit Size Example</h1>
-        <div class="chart" data-width="200" data-height="200"></div>
-        <h1>WebApp Example (Grid)</h1>
-        <div style="display: grid; grid: 'a b' 1fr / auto 1fr; aspect-ratio: 2 / 1; border: 1px solid black">
-            <textarea style="width: 200px; resize: both">Resize me</textarea>
+doc?.write(html`
+    <html>
+        <head>
+            <style>
+                ${css`
+                    html {
+                        color-scheme: only light;
+                    }
+                `}
+            </style>
+        </head>
+        <body>
+            <h1>Article Example</h1>
+            <p>If the chart was placed in some news website with paragraphs above...</p>
             <div class="chart"></div>
-        </div>
-        <h1>WebApp Example (Flexbox)</h1>
-        <div style="display: flex; aspect-ratio: 2 / 1; border: 1px solid black">
-            <textarea style="width: 200px; resize: both">Resize me</textarea>
-            <div class="chart" style="flex: 1"></div>
-        </div> 
-        <h1>WebApp Example (Simple Flexbox)</h1>
-        <div style="display: flex">
-            <div class="chart"></div>
-        </div>
-        <h1>Small Grid Example</h1>
-        <div style="display: grid; grid: 'a' 1fr / 1fr; width: 100px; height: 100px; border: 1px solid black">
-            <div class="chart" data-min-height="0" data-min-width="0"></div>
-        </div>
-        <h1>Small Grid Example Via Min/Max Height</h1>
-        <div
-            style="
-                display: grid;
-                grid: 'a' 1fr / 1fr;
-                min-width: 100px;
-                min-height: 100px;
-                max-width: 100px;
-                max-height: 100px;
-                border: 1px solid black;
-            "
-        >
-            <div class="chart" data-min-height="0" data-min-width="0"></div>
-        </div>
-        <h1>Grid with Small Chart Example</h1>
-        <div style="display: grid; grid: 'a b' auto 'c d' 1fr / auto 1fr; aspect-ratio: 2 / 1; border: 1px solid black">
+            <p>And paragraphs below...</p>
+            <h1>Explicit Size Example</h1>
             <div class="chart" data-width="200" data-height="200"></div>
-            <h1>Some content 1</h1>
-            <h1>Some content 2</h1>
-            <h1>Some content 3</h1>
-        </div>
-        <script src="${script}"></script>
-        <script>
-            for (const container of document.getElementsByClassName('chart')) {
-                const width = Number(container.getAttribute('data-width'));
-                const height = Number(container.getAttribute('data-height'));
-                const minHeight = Number(container.getAttribute('data-min-height') ?? -1);
-                const minWidth = Number(container.getAttribute('data-min-width') ?? -1);
-                const chartOptions = { ...options, container };
-                if (width > 0) chartOptions.width = width;
-                if (height > 0) chartOptions.height = height;
-                if (minHeight >= 0) chartOptions.minHeight = minHeight;
-                if (minWidth >= 0) chartOptions.minWidth = minWidth;
-                AgCharts.create(chartOptions);
-            }
-        </script>
-    </body>
-  </html>
-  `);
+            <h1>WebApp Example (Grid)</h1>
+            <div
+                style="${css`
+                    display: grid;
+                    grid: 'a b' 1fr / auto 1fr;
+                    aspect-ratio: 2 / 1;
+                    border: 1px solid black;
+                `}"
+            >
+                <textarea style="width: 200px; resize: both">Resize me</textarea>
+                <div class="chart"></div>
+            </div>
+            <h1>WebApp Example (Flexbox)</h1>
+            <div
+                style="${css`
+                    display: flex;
+                    aspect-ratio: 2 / 1;
+                    border: 1px solid black;
+                `}"
+            >
+                <textarea style="width: 200px; resize: both">Resize me</textarea>
+                <div class="chart" style="flex: 1"></div>
+            </div>
+            <h1>WebApp Example (Simple Flexbox)</h1>
+            <div style="display: flex">
+                <div class="chart"></div>
+            </div>
+            <h1>Small Grid Example</h1>
+            <div
+                style="${css`
+                    display: grid;
+                    grid: 'a' 1fr / 1fr;
+                    width: 100px;
+                    height: 100px;
+                    border: 1px solid black;
+                `}"
+            >
+                <div class="chart" data-min-height="0" data-min-width="0"></div>
+            </div>
+            <h1>Small Grid Example Via Min/Max Height</h1>
+            <div
+                style="${css`
+                    display: grid;
+                    grid: 'a' 1fr / 1fr;
+                    min-width: 100px;
+                    min-height: 100px;
+                    max-width: 100px;
+                    max-height: 100px;
+                    border: 1px solid black;
+                `}"
+            >
+                <div class="chart" data-min-height="0" data-min-width="0"></div>
+            </div>
+            <h1>Grid with Small Chart Example</h1>
+            <div
+                style="${css`
+                    display: grid;
+                    grid: 'a b' auto 'c d' 1fr / auto 1fr;
+                    aspect-ratio: 2 / 1;
+                    border: 1px solid black;
+                `}"
+            >
+                <div class="chart" data-width="200" data-height="200"></div>
+                <h1>Some content 1</h1>
+                <h1>Some content 2</h1>
+                <h1>Some content 3</h1>
+            </div>
+            <script src="${script}"></script>
+            <script>
+                const { AgCharts } = agCharts;
+                for (const container of document.getElementsByClassName('chart')) {
+                    const width = Number(container.getAttribute('data-width'));
+                    const height = Number(container.getAttribute('data-height'));
+                    const minHeight = Number(container.getAttribute('data-min-height') ?? -1);
+                    const minWidth = Number(container.getAttribute('data-min-width') ?? -1);
+                    const chartOptions = { ...options, container };
+                    if (width > 0) chartOptions.width = width;
+                    if (height > 0) chartOptions.height = height;
+                    if (minHeight >= 0) chartOptions.minHeight = minHeight;
+                    if (minWidth >= 0) chartOptions.minWidth = minWidth;
+                    AgCharts.create(chartOptions);
+                }
+            </script>
+        </body>
+    </html>
+`);
 doc?.close();

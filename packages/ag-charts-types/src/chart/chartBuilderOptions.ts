@@ -39,11 +39,10 @@ export type AgChartOptions =
 
 export type AgBasePresetOptions = Pick<
     AgCartesianChartOptions,
-    'data' | 'container' | 'width' | 'height' | 'minWidth' | 'minHeight' | 'theme' | 'title' | 'subtitle' | 'footnote'
+    'data' | 'container' | 'width' | 'height' | 'minWidth' | 'minHeight' | 'theme' | 'title'
 >;
 
-export type AgBaseFinancialPresetOptions = AgBasePresetOptions &
-    Pick<AgCartesianChartOptions, 'annotations' | 'initialState'>;
+export type AgBaseFinancialPresetOptions = AgBasePresetOptions & Pick<AgCartesianChartOptions, 'initialState'>;
 
 export type AgFinancialChartOptions = AgFinancialChartPresets & AgBaseFinancialPresetOptions;
 

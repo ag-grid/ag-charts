@@ -12,7 +12,7 @@ export const RadarAreaModule: _ModuleSupport.SeriesModule<'radar-area'> = {
     chartTypes: ['polar'],
 
     identifier: 'radar-area',
-    instanceConstructor: RadarAreaSeries,
+    moduleFactory: (ctx) => new RadarAreaSeries(ctx),
     tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
         {

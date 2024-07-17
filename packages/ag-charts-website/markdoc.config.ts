@@ -2,13 +2,16 @@ import { isFramework } from '@ag-website-shared/markdoc/functions/isFramework';
 import { isNotJavascriptFramework } from '@ag-website-shared/markdoc/functions/isNotJavascriptFramework';
 import { heading } from '@ag-website-shared/markdoc/nodes/heading';
 import { br } from '@ag-website-shared/markdoc/tags/br';
+import { embedSnippet } from '@ag-website-shared/markdoc/tags/embedSnippet';
 import { enterpriseIcon } from '@ag-website-shared/markdoc/tags/enterpriseIcon';
 import { idea } from '@ag-website-shared/markdoc/tags/idea';
 import { image } from '@ag-website-shared/markdoc/tags/image';
+import { imageCaption } from '@ag-website-shared/markdoc/tags/imageCaption';
 import { kbd } from '@ag-website-shared/markdoc/tags/kbd';
 import { note } from '@ag-website-shared/markdoc/tags/note';
 import { oneTrustCookies } from '@ag-website-shared/markdoc/tags/oneTrustCookies';
 import { tabItem, tabs } from '@ag-website-shared/markdoc/tags/tabs';
+import { video } from '@ag-website-shared/markdoc/tags/video';
 import { videoSection } from '@ag-website-shared/markdoc/tags/videoSection';
 import { warning } from '@ag-website-shared/markdoc/tags/warning';
 import { component, defineMarkdocConfig } from '@astrojs/markdoc/config';
@@ -38,6 +41,11 @@ export default defineMarkdocConfig({
         warning,
         idea,
         enterpriseIcon,
+        embedSnippet,
+        video,
+        licenseSetup: {
+            render: component('./src/components/license-setup/LicenseSetup.astro'),
+        },
         chartExampleRunner: {
             render: component('./src/features/docs/components/DocsExampleRunner.astro'),
             attributes: {
@@ -72,22 +80,7 @@ export default defineMarkdocConfig({
             },
         },
         image,
-        imageCaption: {
-            render: component('./src/components/image/ImageCaption'),
-            attributes: {
-                pageName: { type: String, required: true },
-                imageName: { type: String, required: true },
-                alt: { type: String, required: true },
-                centered: { type: Boolean },
-                constrained: { type: Boolean },
-                descriptionTop: { type: Boolean },
-                width: { type: String },
-                height: { type: String },
-                minWidth: { type: String },
-                maxWidth: { type: String },
-                filterDarkmode: { type: Boolean },
-            },
-        },
+        imageCaption,
         apiReference: {
             render: component('./src/features/api-documentation/ApiReference.astro'),
             attributes: {
@@ -98,21 +91,6 @@ export default defineMarkdocConfig({
                 hideHeader: { type: 'Boolean' },
                 hideRequired: { type: 'Boolean' },
                 specialTypes: { type: 'Object' },
-            },
-        },
-        embedSnippet: {
-            render: component('./src/components/snippet/EmbedSnippet.astro'),
-            attributes: {
-                /**
-                 * Source file relative to example folder
-                 */
-                src: { type: String },
-                /**
-                 * Source file url
-                 */
-                url: { type: String },
-                language: { type: String },
-                lineNumbers: { type: Boolean },
             },
         },
     },

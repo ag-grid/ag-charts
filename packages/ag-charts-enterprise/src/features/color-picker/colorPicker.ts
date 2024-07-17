@@ -1,9 +1,8 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import colorPickerStyles from './colorPickerStyles.css';
 import colorPickerTemplate from './colorPickerTemplate.html';
 
-const { createElement } = _ModuleSupport;
+const { clamp, createElement } = _ModuleSupport;
 
 const { Color } = _Util;
 
@@ -22,34 +21,37 @@ const getHsva = (input: string) => {
 
 export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     private readonly element: HTMLElement;
+    private anchor?: { x: number; y: number };
+    private fallbackAnchor?: { x?: number; y?: number };
 
-    constructor(readonly ctx: _ModuleSupport.ModuleContext) {
+    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
-        ctx.domManager.addStyles(moduleId, colorPickerStyles);
-
         this.element = ctx.domManager.addChild(canvasOverlay, moduleId);
+        this.element.role = 'presentation';
 
         this.destroyFns.push(() => ctx.domManager.removeChild(canvasOverlay, moduleId));
     }
 
-    show(opts: { anchor?: { x: number; y: number }; color?: string; onChange?: (colorString: string) => void }) {
+    show(opts: { color?: string; onChange?: (colorString: string) => void; onClose: () => void }) {
         let [h, s, v, a] = getHsva(opts.color ?? '#f00') ?? [0, 1, 0.5, 1];
 
         const colorPickerContainer = createElement('div');
+        colorPickerContainer.role = 'presentation';
         colorPickerContainer.innerHTML = colorPickerTemplate;
         this.element.replaceChildren(colorPickerContainer);
 
         const colorPicker = colorPickerContainer.firstElementChild! as HTMLDivElement;
+        colorPicker.ariaLabel = this.ctx.localeManager.t('ariaLabelColorPicker');
 
         const paletteInput = colorPicker.querySelector<HTMLDivElement>('.ag-charts-color-picker__palette')!;
         const hueInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__hue-input')!;
         const alphaInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__alpha-input')!;
         const colorInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__color-input')!;
 
-        if (opts.anchor) {
-            colorPicker.style.setProperty('left', `${opts.anchor.x}px`);
-            colorPicker.style.setProperty('top', `${opts.anchor.y}px`);
+        // If an anchor has already been provided, apply it to prevent a flash of the picker in the wrong location
+        if (this.anchor) {
+            this.setAnchor(this.anchor, this.fallbackAnchor);
         }
 
         const update = () => {
@@ -65,6 +67,9 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
 
             hueInput.value = `${h}`;
             alphaInput.value = `${a}`;
+
+            alphaInput.classList.toggle('ag-charts-color-picker__alpha-input--opaque', a === 1);
+
             if (document.activeElement !== colorInput) {
                 colorInput.value = colorString.toUpperCase();
             }
@@ -94,10 +99,20 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
             });
         };
 
-        (['mousedown', 'keydown'] as const).forEach((eventName) => {
-            colorPicker.addEventListener(eventName, (e) => {
-                e.stopPropagation();
-            });
+        colorPicker.addEventListener('mousedown', (e) => {
+            e.stopPropagation();
+        });
+        colorPicker.addEventListener('keydown', (e) => {
+            e.stopPropagation();
+            switch (e.key) {
+                case 'Enter':
+                case 'Escape':
+                    opts.onClose?.();
+                    break;
+                default:
+                    return;
+            }
+            e.preventDefault();
         });
         paletteInput.addEventListener('mousedown', beginPaletteInteraction);
         paletteInput.addEventListener('keydown', (e) => {
@@ -138,12 +153,15 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
         });
     }
 
-    setAnchor(anchor: { x: number; y: number }) {
-        const colorPicker = this.element.firstElementChild?.firstElementChild as HTMLDivElement | undefined;
-        if (colorPicker) {
-            colorPicker.style.setProperty('left', `${anchor.x}px`);
-            colorPicker.style.setProperty('top', `${anchor.y}px`);
-        }
+    setAnchor(anchor: { x: number; y: number }, fallbackAnchor?: { x?: number; y?: number }) {
+        this.anchor = anchor;
+        this.fallbackAnchor = fallbackAnchor;
+
+        const colorPicker = this.element.firstElementChild?.firstElementChild as HTMLElement | undefined;
+        if (!colorPicker) return;
+
+        this.updatePosition(colorPicker, anchor.x, anchor.y);
+        this.repositionWithinBounds(colorPicker, anchor, fallbackAnchor);
     }
 
     hide() {
@@ -152,5 +170,34 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
 
     isChildElement(element: HTMLElement) {
         return this.ctx.domManager.isManagedChildDOMElement(element, canvasOverlay, moduleId);
+    }
+
+    private updatePosition(colorPicker: HTMLElement, x: number, y: number) {
+        colorPicker.style.setProperty('top', 'unset');
+        colorPicker.style.setProperty('bottom', 'unset');
+        colorPicker.style.setProperty('left', `${x}px`);
+        colorPicker.style.setProperty('top', `${y}px`);
+    }
+
+    private repositionWithinBounds(
+        colorPicker: HTMLElement,
+        anchor: { x: number; y: number },
+        fallbackAnchor?: { x?: number; y?: number }
+    ) {
+        const canvasRect = this.ctx.domManager.getBoundingClientRect();
+        const { offsetWidth: width, offsetHeight: height } = colorPicker;
+
+        let x = clamp(0, anchor.x, canvasRect.width - width);
+        let y = clamp(0, anchor.y, canvasRect.height - height);
+
+        if (x !== anchor.x && fallbackAnchor?.x != null) {
+            x = clamp(0, fallbackAnchor.x - width, canvasRect.width - width);
+        }
+
+        if (y !== anchor.y && fallbackAnchor?.y != null) {
+            y = clamp(0, fallbackAnchor.y - height, canvasRect.height - height);
+        }
+
+        this.updatePosition(colorPicker, x, y);
     }
 }

@@ -1,48 +1,46 @@
-import type { ImportType } from '@ag-grid-types';
+import type { ImportType, Library } from '@ag-grid-types';
 import { useEffect } from 'react';
 
-import { DEFAULT_USER_PRODUCTS } from '../constants';
-import type { Products } from '../types';
 import { updateSearchParams } from './updateSearchParams';
 
 export const useUpdateDataFromUrl = ({
-    setUserProducts,
+    library,
+    setIsIntegratedCharts,
     setImportType,
 }: {
-    setUserProducts: React.Dispatch<Products>;
+    library: Library;
+    setIsIntegratedCharts: React.Dispatch<boolean>;
     setImportType: React.Dispatch<ImportType>;
 }) => {
     useEffect(() => {
-        const searchParams = new URLSearchParams(window.location.search);
-        const productsParam = searchParams.get('products');
-        const importTypeParam = searchParams.get('importType');
-        const newSearchParams = {} as { products: Products; importType: ImportType };
+        const newSearchParams = {} as { integratedCharts: boolean; importType: ImportType };
 
-        if (productsParam) {
-            const validProductKeys = Object.keys(DEFAULT_USER_PRODUCTS);
-            const productsList = productsParam
-                .split(',')
-                .map((p) => p.trim())
-                .filter((p) => validProductKeys.includes(p));
+        if (library === 'grid') {
+            const searchParams = new URLSearchParams(window.location.search);
+            const integratedChartsParam = searchParams.get('integratedCharts');
+            const importTypeParam = searchParams.get('importType');
 
-            if (productsList.length) {
-                const productsObj = {} as Products;
-                validProductKeys.forEach((key) => {
-                    productsObj[key as keyof Products] = productsList.includes(key);
-                });
-                setUserProducts(productsObj);
-                newSearchParams.products = productsObj;
+            if (integratedChartsParam) {
+                if (integratedChartsParam === 'true') {
+                    setIsIntegratedCharts(true);
+                    newSearchParams.integratedCharts = true;
+                } else {
+                    setIsIntegratedCharts(false);
+                }
             }
-        }
 
-        const importType = importTypeParam?.trim();
-        if (['modules', 'packages'].includes(importType as ImportType)) {
-            setImportType(importType);
-            newSearchParams.importType = importType;
+            const importType = importTypeParam?.trim();
+            if (['modules', 'packages'].includes(importType as ImportType)) {
+                setImportType(importType);
+                newSearchParams.importType = importType;
+            }
+        } else {
+            newSearchParams.integratedCharts = false;
+            newSearchParams.importType = undefined;
         }
 
         if (Object.keys(newSearchParams).length) {
             updateSearchParams(newSearchParams);
         }
-    }, []);
+    }, [library]);
 };

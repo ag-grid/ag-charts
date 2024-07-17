@@ -20,6 +20,9 @@ describe('Annotations', () => {
         annotations: {
             enabled: true,
         },
+        toolbar: {
+            enabled: false,
+        },
     };
 
     async function prepareChart(

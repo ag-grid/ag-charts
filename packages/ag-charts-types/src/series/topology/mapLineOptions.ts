@@ -1,33 +1,47 @@
-import type { AgChartCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
-import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { CssColor, GeoJSON, Opacity, PixelSize } from '../../chart/types';
+import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
+import type { GeoJSON, PixelSize } from '../../chart/types';
 import type { LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
-export interface AgMapLineSeriesTooltipRendererParams<TDatum>
-    extends AgChartCallbackParams<TDatum>,
-        AgMapLineSeriesOptionsKeys,
-        AgMapLineSeriesOptionsNames {
-    /** The title of the Feature. */
-    title: string;
-    /** The computed fill colour of the Feature. */
-    color: CssColor | undefined;
+export type AgMapLineSeriesTooltipRendererParams<TDatum> = AgSeriesTooltipRendererParams<TDatum> &
+    AgMapLineSeriesOptionsKeys &
+    AgMapLineSeriesOptionsNames;
+
+export type AgMapLineSeriesHighlightStyle<_TDatum> = AgSeriesHighlightStyle & StrokeOptions;
+
+export type AgMapLineSeriesStyle = StrokeOptions & LineDashOptions;
+
+export type AgMapLineSeriesLabel<TDatum> = AgChartLabelOptions<TDatum, AgMapLineSeriesLabelFormatterParams>;
+
+export type AgMapLineSeriesLabelFormatterParams = AgMapLineSeriesOptionsKeys & AgMapLineSeriesOptionsNames;
+
+export type AgMapLineSeriesItemStylerParams<TDatum = any> = DatumCallbackParams<TDatum> &
+    AgMapLineSeriesOptionsKeys &
+    Required<AgMapLineSeriesStyle>;
+
+export interface AgMapLineSeriesOptionsKeys {
+    /** The name of the node key containing the id value. */
+    idKey?: string;
+    /** The key to use to retrieve size values from the data, used to control the width of the stroke. */
+    sizeKey?: string;
+    /** The name of the node key containing the colour value. This value (along with `colorRange` config) will be used to determine the colour of the stroke. */
+    colorKey?: string;
+    /** The key to use to retrieve values from the data to use as labels on top of lines. */
+    labelKey?: string;
 }
 
-export interface AgMapLineSeriesHighlightStyle<_TDatum> extends AgSeriesHighlightStyle, StrokeOptions {}
-
-export interface AgMapLineSeriesStyle extends LineDashOptions {
-    /** The colour for the stroke of the line. */
-    stroke?: CssColor;
-    /** The width of the stroke in pixels. */
-    strokeWidth?: PixelSize;
-    /** The opacity of the stroke colour. */
-    strokeOpacity?: Opacity;
+export interface AgMapLineSeriesOptionsNames {
+    /** A human-readable description of the id-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    idName?: string;
+    /** A human-readable description of the size values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    sizeName?: string;
+    /** A human-readable description of the colour values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    colorName?: string;
+    /** A human-readable description of the label values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    labelName?: string;
 }
-
-export interface AgMapLineSeriesLabel<TDatum>
-    extends AgChartLabelOptions<TDatum, AgMapLineSeriesLabelFormatterParams> {}
 
 export interface AgMapLineSeriesThemeableOptions<TDatum = any>
     extends AgMapLineSeriesStyle,
@@ -41,7 +55,7 @@ export interface AgMapLineSeriesThemeableOptions<TDatum = any>
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgMapLineSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular Map line based on the input parameters. */
-    itemStyler?: Styler<AgMapLineSeriesFormatterParams, AgMapLineSeriesStyle>;
+    itemStyler?: Styler<AgMapLineSeriesItemStylerParams, AgMapLineSeriesStyle>;
     /** Style overrides when a node is hovered. */
     highlightStyle?: AgMapLineSeriesHighlightStyle<TDatum>;
 }
@@ -68,37 +82,4 @@ export interface AgMapLineSeriesOptions<TDatum = any>
      * If multiple series share this value, they will be merged for the legend toggle behaviour.
      */
     legendItemName?: string;
-}
-
-export interface AgMapLineSeriesOptionsKeys {
-    /** The name of the node key containing the id value. */
-    idKey?: string;
-    /** The key to use to retrieve size values from the data, used to control the width of the stroke. */
-    sizeKey?: string;
-    /** The name of the node key containing the colour value. This value (along with `colorRange` config) will be used to determine the colour of the stroke. */
-    colorKey?: string;
-    /** The key to use to retrieve values from the data to use as labels on top of lines. */
-    labelKey?: string;
-}
-
-export interface AgMapLineSeriesOptionsNames {
-    /** A human-readable description of the id-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
-    idName?: string;
-    /** A human-readable description of the size values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
-    sizeName?: string;
-    /** A human-readable description of the colour values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
-    colorName?: string;
-    /** A human-readable description of the label values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
-    labelName?: string;
-}
-
-export type AgMapLineSeriesLabelFormatterParams = AgMapLineSeriesOptionsKeys & AgMapLineSeriesOptionsNames;
-
-/** The parameters of the Map series formatter function */
-export interface AgMapLineSeriesFormatterParams<TDatum = any>
-    extends AgChartCallbackParams<TDatum>,
-        AgMapLineSeriesOptionsKeys,
-        AgMapLineSeriesStyle {
-    /** `true` if the sector is highlighted by hovering. */
-    readonly highlighted: boolean;
 }

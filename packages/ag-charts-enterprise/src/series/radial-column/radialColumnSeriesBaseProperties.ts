@@ -1,8 +1,8 @@
 import type {
     AgBaseRadialColumnSeriesOptions,
-    AgRadialSeriesFormat,
-    AgRadialSeriesFormatterParams,
+    AgRadialSeriesItemStylerParams,
     AgRadialSeriesLabelFormatterParams,
+    AgRadialSeriesStyle,
     AgRadialSeriesTooltipRendererParams,
     Styler,
 } from 'ag-charts-community';
@@ -58,11 +58,14 @@ export class RadialColumnSeriesBaseProperties<T extends AgBaseRadialColumnSeries
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
+    @Validate(POSITIVE_NUMBER)
+    cornerRadius: number = 0;
+
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgRadialSeriesFormatterParams<any>, AgRadialSeriesFormat>;
+    itemStyler?: Styler<AgRadialSeriesItemStylerParams<unknown>, AgRadialSeriesStyle>;
 
     @Validate(DEGREE)
-    rotation = 0;
+    rotation: number = 0;
 
     @Validate(STRING, { optional: true })
     stackGroup?: string;
@@ -74,5 +77,5 @@ export class RadialColumnSeriesBaseProperties<T extends AgBaseRadialColumnSeries
     readonly label = new Label<AgRadialSeriesLabelFormatterParams>();
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgRadialSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgRadialSeriesTooltipRendererParams<any>>();
 }

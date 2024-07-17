@@ -47,6 +47,8 @@ export interface AgToolbarButton {
 
 export type AgIconName = IconNameAnnotation | IconNameZoom;
 type IconNameAnnotation =
+    | 'horizontal-line'
+    | 'vertical-line'
     | 'trend-line'
     | 'parallel-channel'
     | 'disjoint-channel'
@@ -72,12 +74,18 @@ export interface AgToolbarAnnotationsGroup extends AgToolbarGroup {
 }
 
 export interface AgToolbarAnnotationsButton extends AgToolbarButton {
-    section?: 'create' | 'tools';
     /** An annotation type or action. */
     value: AgToolbarAnnotationsButtonValue;
 }
 
-export type AgToolbarAnnotationsButtonValue = 'line' | 'parallel-channel' | 'disjoint-channel' | 'clear';
+export type AgToolbarAnnotationsButtonValue =
+    | 'line'
+    | 'horizontal-line'
+    | 'vertical-line'
+    | 'parallel-channel'
+    | 'disjoint-channel'
+    | 'text'
+    | 'clear';
 
 /* Annotation Options */
 export interface AgToolbarAnnotationOptionsGroup extends AgToolbarGroup {
@@ -88,7 +96,7 @@ export interface AgToolbarAnnotationOptionsButton extends AgToolbarButton {
     value: AgToolbarAnnotationOptionsButtonValue;
 }
 
-export type AgToolbarAnnotationOptionsButtonValue = 'line-color' | 'delete' | 'lock' | 'unlock';
+export type AgToolbarAnnotationOptionsButtonValue = 'line-color' | 'text-color' | 'delete' | 'lock' | 'unlock';
 
 /* Ranges */
 export interface AgToolbarRangesGroup extends AgToolbarGroup {
@@ -100,10 +108,12 @@ export interface AgToolbarRangesButton extends AgToolbarButton {
     value: AgToolbarRangesButtonValue;
 }
 
-export type AgToolbarRangesButtonValue =
-    | number
-    | [Date | number, Date | number]
-    | ((start: Date | number, end: Date | number) => [Date | number, Date | number]);
+export type AgToolbarRangesButtonValue = number | AgToolbarRangesButtonValuePair | AgToolbarRangesButtonValueFunction;
+export type AgToolbarRangesButtonValuePair = [Date | number, Date | number];
+export type AgToolbarRangesButtonValueFunction = (
+    start: Date | number,
+    end: Date | number
+) => [Date | number, Date | number];
 
 /* Zoom */
 export interface AgToolbarZoomGroup extends AgToolbarGroup {

@@ -8,5 +8,5 @@ export const AngleCategoryAxisModule: _ModuleSupport.AxisModule = {
     packageType: 'enterprise',
     chartTypes: ['polar'],
     identifier: 'angle-category',
-    instanceConstructor: AngleCategoryAxis,
+    moduleFactory: (ctx) => new AngleCategoryAxis(ctx),
 };

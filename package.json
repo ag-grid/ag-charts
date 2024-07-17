@@ -1,6 +1,6 @@
 {
   "name": "ag-charts",
-  "version": "9.3.1-beta.20240620.1329",
+  "version": "10.0.2-beta.20240714",
   "license": "MIT",
   "scripts": {
     "init": "yarn install",
@@ -150,8 +150,7 @@
       "**/tinypool",
       "**/@vue/**",
       "**/vue",
-      "**/vue-template-compiler",
-      "**/vue-class-component"
+      "**/vue-template-compiler"
     ]
   }
 }

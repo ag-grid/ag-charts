@@ -2,11 +2,13 @@ import {
     type AgBaseAxisOptions,
     type AgCartesianAxisOptions,
     type AgChartOptions,
+    type AgChartThemePalette,
     type AgPolarAxisOptions,
     type AgTooltipPositionOptions,
     AgTooltipPositionType,
 } from 'ag-charts-types';
 
+import { PRESETS } from '../api/preset/presets';
 import { axisRegistry } from '../chart/factory/axisRegistry';
 import { publicChartTypes } from '../chart/factory/chartTypes';
 import { isEnterpriseSeriesType } from '../chart/factory/expectedEnterpriseModules';
@@ -23,7 +25,7 @@ import {
     isAxisOptionType,
     isSeriesOptionType,
 } from '../chart/mapping/types';
-import type { ChartTheme } from '../chart/themes/chartTheme';
+import { type ChartTheme } from '../chart/themes/chartTheme';
 import { circularSliceArray, groupBy, unique } from '../util/array';
 import { Debug } from '../util/debug';
 import { setDocument, setWindow } from '../util/dom';
@@ -33,6 +35,7 @@ import { mergeArrayDefaults, mergeDefaults } from '../util/object';
 import { isEnumValue, isFiniteNumber, isObject, isPlainObject, isString, isSymbol } from '../util/type-guards';
 import type { AxisContext } from './axisContext';
 import type { BaseModule, ModuleInstance } from './baseModule';
+import { type PaletteType, paletteType } from './coreModulesTypes';
 import { enterpriseModule } from './enterpriseModule';
 import type { ModuleContextWithParent } from './moduleContext';
 import type { SeriesType } from './optionsModuleTypes';
@@ -42,8 +45,8 @@ type AxisType = 'category' | 'number' | 'log' | 'time' | 'ordinal-time';
 export interface AxisOptionModule<M extends ModuleInstance = ModuleInstance> extends BaseModule {
     type: 'axis-option';
     axisTypes: AxisType[];
-    instanceConstructor: new (ctx: ModuleContextWithParent<AxisContext>) => M;
-    themeTemplate: { [K in AxisType]?: object };
+    moduleFactory: (ctx: ModuleContextWithParent<AxisContext>) => M;
+    themeTemplate: {};
 }
 
 interface ChartSpecialOverrides {
@@ -51,6 +54,7 @@ interface ChartSpecialOverrides {
     window: Window;
     overrideDevicePixelRatio?: number;
     sceneMode?: 'simple';
+    type?: string;
 }
 
 type GroupingOptions = {
@@ -82,27 +86,54 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     userOptions: Partial<T>;
     specialOverrides: ChartSpecialOverrides;
     annotationThemes: any;
+    type?: string;
+
+    private readonly debug = Debug.create(true, 'opts');
 
     constructor(userOptions: T, specialOverrides?: Partial<ChartSpecialOverrides>) {
         const cloneOptions = { shallow: ['data'] };
-        this.userOptions = deepClone(userOptions, cloneOptions);
-        const chartType = this.optionsType(this.userOptions);
+        userOptions = deepClone(userOptions, cloneOptions);
+        const chartType = this.optionsType(userOptions);
 
-        const options = deepClone(userOptions, cloneOptions);
-        this.sanityCheckAndCleanup(options);
+        if (!enterpriseModule.isEnterprise) {
+            removeUsedEnterpriseOptions(userOptions);
+        }
+
+        let options = deepClone(userOptions, cloneOptions);
+
+        this.type = specialOverrides?.type;
+        if (this.type != null) {
+            const presetOptions = (PRESETS as any)[this.type]?.(options, () => this.activeTheme) ?? options;
+            this.debug('>>> AgCharts.createOrUpdate() - applying preset', options, presetOptions);
+            options = presetOptions;
+        }
 
         this.activeTheme = getChartTheme(options.theme);
+        if (this.type) {
+            options = this.activeTheme.templateTheme(options);
+        }
+
+        this.sanityCheckAndCleanup(options);
         this.defaultAxes = this.getDefaultAxes(options);
         this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
 
         const {
             axes: axesThemes = {},
-            annotations: annotationsThemes = {},
+            annotations: { axesButtons = null, ...annotationsThemes } = {},
             series: _,
             ...themeDefaults
         } = this.getSeriesThemeConfig(chartType);
 
-        this.processedOptions = deepClone(mergeDefaults(options, themeDefaults, this.defaultAxes), cloneOptions) as T;
+        this.userOptions = userOptions;
+        this.processedOptions = deepClone(
+            mergeDefaults(
+                options,
+                axesButtons != null ? { annotations: { axesButtons } } : {},
+                themeDefaults,
+                this.defaultAxes
+            ),
+            cloneOptions
+        ) as T;
 
         this.processAxesOptions(this.processedOptions, axesThemes);
         this.processSeriesOptions(this.processedOptions);
@@ -123,7 +154,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.enableConfiguredOptions(this.processedOptions);
 
         if (!enterpriseModule.isEnterprise) {
-            removeUsedEnterpriseOptions(this.processedOptions);
+            removeUsedEnterpriseOptions(this.processedOptions, true);
         }
     }
 
@@ -211,7 +242,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     protected processSeriesOptions(options: T) {
         const defaultSeriesType = this.getDefaultSeriesType(options);
         const defaultTooltipPosition = this.getTooltipPositionDefaults(options);
-        const userPalette = Boolean(isObject(options.theme) && options.theme.palette);
+        const userPalette = isObject(options.theme) ? paletteType(options.theme?.palette) : 'inbuilt';
         const paletteOptions = {
             colourIndex: 0,
             userPalette,
@@ -253,7 +284,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         const paletteOptions = {
             colourIndex: 0,
-            userPalette: Boolean(isObject(options.theme) && options.theme.palette),
+            userPalette: isObject(options.theme) ? paletteType(options.theme.palette) : 'inbuilt',
         };
 
         miniChartSeries = miniChartSeries.map((series) => {
@@ -270,7 +301,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         options.navigator!.miniChart!.series = this.setSeriesGroupingOptions(miniChartSeries) as any;
     }
 
-    protected getSeriesPalette(seriesType: SeriesType, options: { colourIndex: number; userPalette: boolean }) {
+    protected getSeriesPalette(seriesType: SeriesType, options: { colourIndex: number; userPalette: PaletteType }) {
         const paletteFactory = seriesRegistry.getPaletteFactory(seriesType);
         const { colourIndex: colourOffset, userPalette } = options;
         const { fills = [], strokes = [] } = this.activeTheme.palette;
@@ -279,6 +310,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             userPalette,
             colorsCount: Math.max(fills.length, strokes.length),
             themeTemplateParameters: this.activeTheme.getTemplateParameters(),
+            palette: this.activeTheme.palette as Required<AgChartThemePalette>,
             takeColors(count) {
                 options.colourIndex += count;
                 return {
@@ -315,7 +347,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     protected setSeriesGroupingOptions(allSeries: GroupingSeriesOptions[]) {
         const seriesGroups = this.getSeriesGrouping(allSeries);
 
-        Debug.create(true, 'opts')('setSeriesGroupingOptions() - series grouping: ', seriesGroups);
+        this.debug('setSeriesGroupingOptions() - series grouping: ', seriesGroups);
 
         const groupIdx: Record<string, number> = {};
         const groupCount = seriesGroups.reduce<Record<string, number>>((countMap, seriesGroup) => {
@@ -460,7 +492,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 // If any of the axes type is invalid remove all user provided options in favour of our defaults.
                 if (!isAxisOptionType(type)) {
                     delete options.axes;
-                    const expectedTypes = Array.from(axisRegistry.publicKeys()).join(', ');
+                    const expectedTypes = axisRegistry.publicKeys().join(', ');
                     Logger.warnOnce(`unknown axis type: ${type}; expected one of: ${expectedTypes}`);
                 }
             }

@@ -1,6 +1,7 @@
-import type { AgToolbarOptions } from 'ag-charts-types';
+import type { AgToolbarGroupPosition, AgToolbarOptions } from 'ag-charts-types';
 
 import type { Module } from '../../module/module';
+import { DEFAULT_TOOLBAR_POSITION } from '../themes/symbols';
 import { Toolbar } from './toolbar';
 
 const DAY = 1000 * 60 * 60 * 24;
@@ -8,7 +9,7 @@ const MONTH = DAY * 30;
 const YEAR = DAY * 365;
 
 const annotations: AgToolbarOptions['annotations'] = {
-    enabled: false,
+    enabled: true,
     position: 'left',
     align: 'start',
     buttons: [
@@ -16,19 +17,37 @@ const annotations: AgToolbarOptions['annotations'] = {
             icon: 'trend-line',
             tooltip: 'toolbarAnnotationsTrendLine',
             value: 'line',
-            section: 'create',
+            section: 'lines',
+        },
+        {
+            icon: 'horizontal-line',
+            tooltip: 'toolbarAnnotationsHorizontalLine',
+            value: 'horizontal-line',
+            section: 'lines',
+        },
+        {
+            icon: 'vertical-line',
+            tooltip: 'toolbarAnnotationsVerticalLine',
+            value: 'vertical-line',
+            section: 'lines',
         },
         {
             icon: 'parallel-channel',
             tooltip: 'toolbarAnnotationsParallelChannel',
             value: 'parallel-channel',
-            section: 'create',
+            section: 'channels',
         },
         {
             icon: 'disjoint-channel',
             tooltip: 'toolbarAnnotationsDisjointChannel',
             value: 'disjoint-channel',
-            section: 'create',
+            section: 'channels',
+        },
+        {
+            icon: 'zoom-in', // TODO: icon
+            tooltip: 'text',
+            value: 'text',
+            section: 'annotations',
         },
         {
             icon: 'delete',
@@ -40,7 +59,7 @@ const annotations: AgToolbarOptions['annotations'] = {
 };
 
 const annotationOptions: AgToolbarOptions['annotationOptions'] = {
-    enabled: false,
+    enabled: true,
     position: 'floating',
     align: 'start',
     buttons: [
@@ -48,6 +67,11 @@ const annotationOptions: AgToolbarOptions['annotationOptions'] = {
             icon: 'line-color',
             tooltip: 'toolbarAnnotationsColor',
             value: 'line-color',
+        },
+        {
+            label: 'Color',
+            tooltip: 'Text color',
+            value: 'text-color',
         },
         {
             icon: 'lock',
@@ -69,7 +93,7 @@ const annotationOptions: AgToolbarOptions['annotationOptions'] = {
 
 const ranges: AgToolbarOptions['ranges'] = {
     enabled: false,
-    position: 'top',
+    position: DEFAULT_TOOLBAR_POSITION as AgToolbarGroupPosition,
     align: 'start',
     buttons: [
         {
@@ -106,7 +130,7 @@ const ranges: AgToolbarOptions['ranges'] = {
 };
 
 const zoom: AgToolbarOptions['zoom'] = {
-    enabled: false,
+    enabled: true,
     position: 'top',
     align: 'end',
     buttons: [
@@ -153,7 +177,7 @@ export const ToolbarModule: Module = {
     optionsKey: 'toolbar',
     packageType: 'community',
     chartTypes: ['cartesian'],
-    instanceConstructor: Toolbar,
+    moduleFactory: (ctx) => new Toolbar(ctx),
     themeTemplate: {
         toolbar: {
             enabled: true,

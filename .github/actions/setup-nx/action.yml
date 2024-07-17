@@ -1,0 +1,136 @@
+name: setup-nx
+
+inputs:
+    yarn_opts:
+        description: 'Additional yarn install opts.'
+        required: false
+        default: ''
+    yarn_postinstall:
+        description: 'Always ensure yarn postinstall is run.'
+        required: false
+        default: 'true'
+    nx_restore:
+        description: 'Restore Nx Cache.'
+        required: false
+        default: 'true'
+    playwright_install:
+        description: 'Setup Playwright for execution.'
+        required: false
+        default: 'false'
+    cache_mode:
+        description: 'Read/write mode for caches'
+        require: false
+        default: 'rw'
+        options:
+            - 'rw'
+            - 'ro'
+            - 'off'
+outputs:
+    base:
+        description: 'Base branch/SHA for diff detection'
+        value: ${{ steps.nx_config.outputs.base }}
+    type:
+        description: 'Type of job execution detected'
+        value: ${{ steps.nx_config.type }}
+
+runs:
+    using: 'composite'
+    steps:
+        - name: Nx Affected SHA Setup
+          id: nx_config
+          shell: bash
+          run: |
+              branch=$(git branch --show-current)
+              if [[ ${branch} == 'latest' ]] ; then
+                # Latest
+                echo "base=latest-success" >> $GITHUB_OUTPUT
+                echo "NX_BASE=latest-success" >> $GITHUB_ENV
+                echo "type=latest" >> $GITHUB_OUTPUT
+                git fetch origin latest-success
+              elif [[ ${branch} =~ 'b[0-9][0-9]\..+' ]] ; then
+                # Release
+                echo "base=${branch}" >> $GITHUB_OUTPUT
+                echo "NX_BASE=${branch}" >> $GITHUB_ENV
+                echo "type=release" >> $GITHUB_OUTPUT
+              else
+                # PR
+                echo "base=origin/latest" >> $GITHUB_OUTPUT
+                echo "NX_BASE=origin/latest" >> $GITHUB_ENV
+                echo "type=pr" >> $GITHUB_OUTPUT
+                git fetch origin latest
+              fi
+
+        - name: Restore node_modules
+          if: inputs.cache_mode == 'ro'
+          id: cache_ro
+          uses: actions/cache/restore@v4
+          with:
+              path: |
+                  node_modules/
+                  packages/*/node_modules/
+                  plugins/*/node_modules/
+                  libraries/*/node_modules/
+              key: node_modules-${{ runner.os }}-${{hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json')}}
+              restore-keys: node_modules-${{ runner.os }}- # Take any latest cache if failed to find it for current yarn.lock
+
+        - name: Cache node_modules
+          if: inputs.cache_mode == 'rw'
+          id: cache_rw
+          uses: actions/cache@v4
+          with:
+              path: |
+                  node_modules/
+                  packages/*/node_modules/
+                  plugins/*/node_modules/
+                  libraries/*/node_modules/
+              key: node_modules-${{ runner.os }}-${{hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json')}}
+              restore-keys: node_modules-${{ runner.os }}- # Take any latest cache if failed to find it for current yarn.lock
+
+        - name: Cache Nx
+          if: inputs.cache_mode == 'rw' && inputs.nx_restore != 'false'
+          uses: actions/cache@v4
+          with:
+              path: .nx/cache
+              key: cache-nx-v18-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-${{ github.sha }}
+              restore-keys: cache-nx-v18-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-
+
+        - name: Restore Nx
+          if: inputs.cache_mode == 'ro' && inputs.nx_restore != 'false'
+          uses: actions/cache/restore@v4
+          with:
+              path: .nx/cache
+              key: cache-nx-v18-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-${{ github.sha }}
+              restore-keys: cache-nx-v18-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-
+
+        - name: Tidy Nx Cache (Post Job)
+          uses: ./.github/actions/tidy-nx-cache
+
+        - name: MacOS Setup
+          if: inputs.os == 'macos'
+          shell: bash
+          run: |
+              brew install pkg-config cairo pango libpng jpeg giflib librsvg python-setuptools
+
+        - name: Setup Node.js
+          id: setup_node
+          uses: actions/setup-node@v4
+          with:
+              node-version: '20'
+              cache: ${{ inputs.cache_mode != 'none' && !(steps.cache_rw.outputs.cache-hit == 'true' || steps.cache_ro.outputs.cache-hit == 'true') && 'yarn' || '' }}
+
+        - name: yarn install
+          if: steps.cache_rw.outputs.cache-hit == 'false' || steps.cache_ro.outputs.cache-hit == 'false'
+          id: yarn_install
+          shell: bash
+          run: |
+              (yarn check --integrity && yarn postinstall) || yarn install --ci ${{ inputs.yarn_opts }}
+
+        - name: yarn postinstall
+          if: (steps.cache_rw.outputs.cache-hit == 'true' || steps.cache_ro.outputs.cache-hit == 'true') && inputs.yarn_postinstall == 'true'
+          shell: bash
+          run: yarn postinstall
+
+        - name: playwright install
+          if: inputs.playwright_install == 'true'
+          shell: bash
+          run: npx playwright install chromium --with-deps

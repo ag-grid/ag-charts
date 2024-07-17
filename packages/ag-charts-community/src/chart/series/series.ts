@@ -35,7 +35,7 @@ import type { ChartMode } from '../chartMode';
 import { accumulatedValue, range, trailingAccumulatedValue } from '../data/aggregateFunctions';
 import type { DataController } from '../data/dataController';
 import type { DatumPropertyDefinition } from '../data/dataModel';
-import { accumulateContinuity, accumulateGroup } from '../data/processors';
+import { accumulateGroup, accumulateStack } from '../data/processors';
 import { Layers } from '../layers';
 import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
 import type { Marker } from '../marker/marker';
@@ -57,6 +57,8 @@ export enum SeriesNodePickMode {
     /** Pick matches based upon distance to ideal position */
     NEAREST_NODE,
 }
+
+export type SeriesNodePickIntent = 'tooltip' | 'highlight' | 'context-menu' | 'event';
 
 export type SeriesNodePickMatch = {
     datum: SeriesNodeDatum;
@@ -189,12 +191,12 @@ export function groupAccumulativeValueProperty<K>(
     ];
 }
 
-export function groupAccumulativeContinuityProperty<K>(
+export function groupStackValueProperty<K>(
     propName: K,
     opts: Partial<DatumPropertyDefinition<K>> & { rangeId?: string; groupId: string },
     scaleType?: ScaleType
 ) {
-    return [valueProperty(propName, scaleType, opts), accumulateContinuity(opts.groupId, opts.separateNegative)];
+    return [valueProperty(propName, scaleType, opts), accumulateStack(opts.groupId)];
 }
 
 export type SeriesNodeEventTypes = 'nodeClick' | 'nodeDoubleClick' | 'nodeContextMenuAction' | 'groupingChanged';
@@ -356,7 +358,7 @@ export abstract class Series<
 
     set visible(value: boolean) {
         this.properties.visible = value;
-        this.visibleChanged();
+        this.visibleMaybeChanged();
     }
 
     get visible() {
@@ -571,9 +573,10 @@ export abstract class Series<
     // Indicate that something external changed and we should recalculate nodeData.
     markNodeDataDirty() {
         this.nodeDataRefresh = true;
+        this.visibleMaybeChanged();
     }
 
-    visibleChanged() {
+    private visibleMaybeChanged() {
         this.ctx.seriesStateManager.registerSeries(this);
     }
 
@@ -641,13 +644,14 @@ export abstract class Series<
 
     pickNode(
         point: Point,
+        intent: SeriesNodePickIntent,
         limitPickModes?: SeriesNodePickMode[]
     ): { pickMode: SeriesNodePickMode; match: SeriesNodeDatum; distance: number } | undefined {
         const { pickModes, visible, rootGroup } = this;
 
-        if (!visible || !rootGroup.visible) {
-            return;
-        }
+        if (!visible || !rootGroup.visible) return;
+        if (intent === 'highlight' && !this.properties.highlight.enabled) return;
+        if (intent === 'tooltip' && !this.properties.tooltip.enabled) return;
 
         for (const pickMode of pickModes) {
             if (limitPickModes && !limitPickModes.includes(pickMode)) {
@@ -759,7 +763,7 @@ export abstract class Series<
     }
 
     public getMarkerStyle<TParams>(
-        marker: ISeriesMarker<TDatum, TParams>,
+        marker: ISeriesMarker<TParams>,
         params: TParams & Omit<AgSeriesMarkerStylerParams<TDatum>, 'seriesId'>,
         defaultStyle: AgSeriesMarkerStyle = marker.getStyle()
     ) {
@@ -779,7 +783,7 @@ export abstract class Series<
 
     protected updateMarkerStyle<TParams>(
         markerNode: Marker,
-        marker: ISeriesMarker<TDatum, TParams>,
+        marker: ISeriesMarker<TParams>,
         params: TParams & Omit<AgSeriesMarkerStylerParams<TDatum>, 'seriesId'>,
         defaultStyle: AgSeriesMarkerStyle = marker.getStyle(),
         { applyTranslation = true } = {}

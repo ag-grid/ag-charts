@@ -1,11 +1,5 @@
-import {
-    type AgSunburstSeriesLabelFormatterParams,
-    type AgSunburstSeriesStyle,
-    type AgTooltipRendererResult,
-    _ModuleSupport,
-    _Scene,
-    _Util,
-} from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import type { AgSunburstSeriesStyle, AgTooltipRendererResult } from 'ag-charts-types';
 
 import { formatLabels } from '../util/labelFormatter';
 import { SunburstSeriesProperties } from './sunburstSeriesProperties';
@@ -325,7 +319,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                     : { width: perpendicularWidth, height: perpendicularHeight, meta: LabelPlacement.Perpendicular };
             };
 
-            const formatting = formatLabels<LabelPlacement, AgSunburstSeriesLabelFormatterParams>(
+            const formatting = formatLabels<LabelPlacement>(
                 labelDatum?.label,
                 this.properties.label,
                 labelDatum?.secondaryLabel,
@@ -468,7 +462,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         });
     }
 
-    private getSectorFormat(node: _ModuleSupport.HierarchyNode, isHighlighted: boolean): AgSunburstSeriesStyle {
+    private getSectorFormat(
+        node: _ModuleSupport.HierarchyNode,
+        isHighlighted: boolean
+    ): AgSunburstSeriesStyle | undefined {
         const { datum, fill, stroke, depth } = node;
         const {
             ctx: { callbackCache },
@@ -479,22 +476,25 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             return {};
         }
 
-        const { colorKey, labelKey, sizeKey, strokeWidth } = this.properties;
+        const { colorKey, childrenKey, labelKey, secondaryLabelKey, sizeKey, strokeWidth, fillOpacity, strokeOpacity } =
+            this.properties;
 
-        const result = callbackCache.call(itemStyler, {
+        return callbackCache.call(itemStyler, {
             seriesId: this.id,
-            depth,
-            datum,
-            colorKey,
-            labelKey,
-            sizeKey,
-            fill,
-            stroke,
-            strokeWidth,
             highlighted: isHighlighted,
+            datum,
+            depth,
+            colorKey,
+            childrenKey,
+            labelKey,
+            secondaryLabelKey,
+            sizeKey,
+            fill: fill!,
+            fillOpacity,
+            stroke: stroke!,
+            strokeWidth,
+            strokeOpacity,
         });
-
-        return result ?? {};
     }
 
     override getTooltipHtml(node: _ModuleSupport.HierarchyNode): _ModuleSupport.TooltipContent {

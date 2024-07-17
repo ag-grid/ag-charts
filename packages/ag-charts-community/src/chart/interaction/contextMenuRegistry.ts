@@ -11,6 +11,7 @@ type ContextTypeMap = {
     all: {};
     legend: { legendItem: CategoryLegendDatum | undefined };
     series: { pickedNode: SeriesNodeDatum | undefined };
+    node: { pickedNode: SeriesNodeDatum | undefined };
 };
 
 type ContextEventProperties<K extends ContextType = ContextType> = {
@@ -25,7 +26,8 @@ type ContextEventProperties<K extends ContextType = ContextType> = {
 type ContextMenuActionEventMap = {
     all: Parameters<NonNullable<AgContextMenuOptions['extraActions']>[number]['action']>[0];
     legend: Parameters<NonNullable<AgContextMenuOptions['extraLegendItemActions']>[number]['action']>[0];
-    series: Parameters<NonNullable<AgContextMenuOptions['extraNodeActions']>[number]['action']>[0];
+    series: Parameters<NonNullable<AgContextMenuOptions['extraSeriesActions']>[number]['action']>[0];
+    node: Parameters<NonNullable<AgContextMenuOptions['extraNodeActions']>[number]['action']>[0];
 };
 
 export type ContextType = keyof ContextTypeMap;
@@ -33,8 +35,9 @@ export type ContextMenuEvent<K extends ContextType = ContextType> = ContextEvent
 
 export type ContextMenuCallback<K extends ContextType> = {
     all: (params: ContextMenuActionEventMap['all']) => void;
-    series: (params: ContextMenuActionEventMap['series']) => void;
     legend: (params: ContextMenuActionEventMap['legend']) => void;
+    series: (params: ContextMenuActionEventMap['series']) => void;
+    node: (params: ContextMenuActionEventMap['node']) => void;
 }[K];
 
 export type ContextMenuAction<K extends ContextType> = {

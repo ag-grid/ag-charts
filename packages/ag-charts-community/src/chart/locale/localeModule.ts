@@ -6,5 +6,5 @@ export const LocaleModule: Module = {
     optionsKey: 'locale',
     packageType: 'community',
     chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion'],
-    instanceConstructor: Locale,
+    moduleFactory: (ctx) => new Locale(ctx),
 };

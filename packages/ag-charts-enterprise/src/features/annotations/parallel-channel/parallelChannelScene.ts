@@ -2,18 +2,18 @@ import { _Scene, _Util } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
 import { convertPoint, invertCoords, validateDatumPoint } from '../annotationUtils';
-import { Annotation } from '../scenes/annotation';
+import { AnnotationScene } from '../scenes/annotationScene';
 import { ChannelScene } from '../scenes/channelScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
-import type { ParallelChannelAnnotation } from './parallelChannelProperties';
+import type { ParallelChannelProperties } from './parallelChannelProperties';
 
 const { Vec2 } = _Util;
 
-type ChannelHandle = keyof ParallelChannel['handles'];
+type ChannelHandle = keyof ParallelChannelScene['handles'];
 
-export class ParallelChannel extends ChannelScene<ParallelChannelAnnotation> {
-    static override is(value: unknown): value is ParallelChannel {
-        return Annotation.isCheck(value, 'parallel-channel');
+export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties> {
+    static override is(value: unknown): value is ParallelChannelScene {
+        return AnnotationScene.isCheck(value, 'parallel-channel');
     }
 
     type = 'parallel-channel';
@@ -60,12 +60,7 @@ export class ParallelChannel extends ChannelScene<ParallelChannelAnnotation> {
         }
     }
 
-    override dragHandle(
-        datum: ParallelChannelAnnotation,
-        target: Coords,
-        context: AnnotationContext,
-        onInvalid: () => void
-    ) {
+    override dragHandle(datum: ParallelChannelProperties, target: Coords, context: AnnotationContext) {
         const { activeHandle, handles } = this;
         if (activeHandle == null) return;
 
@@ -98,7 +93,6 @@ export class ParallelChannel extends ChannelScene<ParallelChannelAnnotation> {
 
         // Do not move any handles if some of them are trying to move to invalid points
         if (invertedMoves.some((invertedMove) => !validateDatumPoint(context, invertedMove))) {
-            onInvalid();
             return;
         }
 
@@ -132,12 +126,11 @@ export class ParallelChannel extends ChannelScene<ParallelChannelAnnotation> {
 
         if (!datum.isValidWithContext(context)) {
             datum.set(prev);
-            onInvalid();
         }
     }
 
     protected override getOtherCoords(
-        datum: ParallelChannelAnnotation,
+        datum: ParallelChannelProperties,
         topLeft: Coords,
         topRight: Coords,
         context: AnnotationContext
@@ -154,7 +147,7 @@ export class ParallelChannel extends ChannelScene<ParallelChannelAnnotation> {
         return [bottomLeft, bottomRight];
     }
 
-    override updateLines(datum: ParallelChannelAnnotation, top: LineCoords, bottom: LineCoords) {
+    override updateLines(datum: ParallelChannelProperties, top: LineCoords, bottom: LineCoords) {
         const { topLine, middleLine, bottomLine } = this;
         const { lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } = datum;
 
@@ -191,7 +184,7 @@ export class ParallelChannel extends ChannelScene<ParallelChannelAnnotation> {
         });
     }
 
-    override updateHandles(datum: ParallelChannelAnnotation, top: LineCoords, bottom: LineCoords) {
+    override updateHandles(datum: ParallelChannelProperties, top: LineCoords, bottom: LineCoords) {
         const {
             handles: { topLeft, topMiddle, topRight, bottomLeft, bottomMiddle, bottomRight },
         } = this;
@@ -200,6 +193,7 @@ export class ParallelChannel extends ChannelScene<ParallelChannelAnnotation> {
             fill: datum.handle.fill,
             stroke: datum.handle.stroke ?? datum.stroke,
             strokeOpacity: datum.handle.strokeOpacity ?? datum.strokeOpacity,
+            strokeWidth: datum.handle.strokeWidth ?? datum.strokeWidth,
         };
 
         topLeft.update({ ...handleStyles, x: top.x1, y: top.y1 });

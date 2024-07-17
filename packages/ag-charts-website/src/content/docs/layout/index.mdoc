@@ -30,7 +30,7 @@ with the other components moving around or adjusting alignment.
 
 ## Chart Layout Calculation
 
-{% imageCaption pageName="charts-layout" imageName="cartesian-chart-layout.png" alt="Chart Layout" maxWidth="80%" constrained=true centered=true filterDarkmode=true /%}
+{% imageCaption imagePath="resources/cartesian-chart-layout.png" alt="Chart Layout" maxWidth="80%" constrained=true centered=true enableDarkModeFilter=true /%}
 
 Each chart is composed of a single or multiple series, and optionally a [Legend](./legend/), [Axes](./axes-types/), and captions, such as title, subtitle and footnote. All of these components are managed by the chart's layout engine. They are sized and positioned appropriately based on the chart's dimensions, the nature of the data and the configuration.
 
@@ -42,6 +42,7 @@ of later elements:
 -   Subtitle plus its configured spacing.
 -   Footnote plus its configured spacing.
 -   [Legend](./legend/) plus its configured spacing.
+-   [Toolbar](./toolbar/).
 -   [Navigator](./navigator/) plus its configured spacing.
 -   Series area padding.
 -   [Axes](./axes-types/).
@@ -74,6 +75,10 @@ height of the subtitle and its additional `subtitle.spacing`.
 [Legend](./legend/) is configured.
 
 `legend.spacing` can be used to adjust the space between the Legend and later components.
+
+### Toolbar
+
+The Toolbar is then placed next, taking up a fixed amount of space.
 
 ### Navigator
 

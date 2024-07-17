@@ -1,12 +1,13 @@
 import type { AgToolbarGroupPosition } from 'ag-charts-types';
 
-import type { ModuleInstance } from '../../module/baseModule';
+import type { LayoutContext, ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import { setAttribute } from '../../util/attributeUtil';
 import { createElement } from '../../util/dom';
 import { initToolbarKeyNav, makeAccessibleClickListener } from '../../util/keynavUtil';
+import { clamp } from '../../util/number';
 import { ObserveChanges } from '../../util/proxy';
 import { BOOLEAN, Validate } from '../../util/validation';
 import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
@@ -18,7 +19,6 @@ import type {
 } from '../interaction/toolbarManager';
 import { ToolbarGroupProperties } from './toolbarProperties';
 import * as styles from './toolbarStyles';
-import toolbarCss from './toolbarStyles.css';
 import {
     TOOLBAR_ALIGNMENTS,
     TOOLBAR_GROUPS,
@@ -55,7 +55,8 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.onGroupButtonsChanged.bind(this, 'zoom')
     );
 
-    private readonly margin = 10;
+    private readonly horizontalSpacing = 10;
+    private readonly verticalSpacing = 10;
     private readonly floatingDetectionRange = 38;
 
     private readonly elements: Record<ToolbarPosition, HTMLElement>;
@@ -109,11 +110,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     constructor(private readonly ctx: ModuleContext) {
         super();
 
-        ctx.domManager.addStyles(styles.block, toolbarCss);
-
         this.elements = {} as Record<ToolbarPosition, HTMLElement>;
         for (const position of TOOLBAR_POSITIONS) {
             this.elements[position] = ctx.domManager.addChild('canvas-overlay', `toolbar-${position}`);
+            this.elements[position].role = 'presentation';
             this.renderToolbar(position);
         }
         this.toggleVisibilities();
@@ -232,43 +232,68 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     private onFloatingAnchorChanged(event: ToolbarFloatingAnchorChangedEvent) {
+        const {
+            elements,
+            groupButtons,
+            positions,
+            horizontalSpacing,
+            verticalSpacing,
+            ctx: { domManager, toolbarManager },
+        } = this;
+
         const { group, anchor } = event;
 
-        if (!this.positions[ToolbarPosition.Floating].has(group)) return;
+        if (!positions[ToolbarPosition.Floating].has(group)) return;
 
-        const element = this.elements[ToolbarPosition.Floating];
+        const element = elements[ToolbarPosition.Floating];
         if (element.classList.contains(styles.modifiers.hidden)) return;
 
-        element.style.top = `${anchor.y - element.offsetHeight - this.margin}px`;
-        element.style.left = `${anchor.x - element.offsetWidth / 2}px`;
+        let top = anchor.y - element.offsetHeight - verticalSpacing;
+        let left = anchor.x - element.offsetWidth / 2;
 
-        for (const button of this.groupButtons[group]) {
-            if (button.classList.contains(styles.modifiers.button.hiddenToggled)) return;
+        if (anchor.position === 'above') {
+            top = anchor.y - element.offsetHeight / 2;
+            left = anchor.x + horizontalSpacing;
+        }
+
+        const canvasRect = domManager.getBoundingClientRect();
+        top = clamp(0, top, canvasRect.height - element.offsetHeight);
+        left = clamp(0, left, canvasRect.width - element.offsetWidth);
+
+        element.style.top = `${top}px`;
+        element.style.left = `${left}px`;
+
+        for (const button of groupButtons[group]) {
+            if (button.classList.contains(styles.modifiers.button.hiddenToggled)) continue;
 
             const parent = button.offsetParent as HTMLElement | null;
-            this.ctx.toolbarManager.buttonMoved(
+            toolbarManager.buttonMoved(
                 group,
                 button.dataset.toolbarValue,
                 new BBox(
-                    button.offsetLeft - button.offsetWidth + (parent?.offsetLeft ?? 0),
+                    button.offsetLeft + (parent?.offsetLeft ?? 0),
                     button.offsetTop + (parent?.offsetTop ?? 0),
                     button.offsetWidth,
-                    button.offsetWidth
+                    button.offsetHeight
                 )
             );
         }
     }
 
     private onProxyGroupOptions(event: ToolbarProxyGroupOptionsEvent) {
+        if (!this.enabled) return;
+
         const { caller, group, options } = event;
 
         this.groupProxied.set(group, options);
-
-        this.createGroup(group, options.enabled, options.position);
-        this.createGroupButtons(group, options.buttons);
-        this.toggleGroup(caller, group, options.enabled);
-
         this[group].set(options);
+
+        this.toggleGroup(caller, group, options.enabled);
+        this.createGroup(group, options.enabled, options.position);
+
+        if (options.enabled) {
+            this.createGroupButtons(group, options.buttons);
+        }
     }
 
     private createGroup(group: ToolbarGroup, enabled?: boolean, position?: AgToolbarGroupPosition) {
@@ -288,22 +313,28 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         for (const button of this.groupButtons[group]) {
             button.remove();
         }
+
         this.groupButtons[group] = [];
         this.groupDestroyFns[group].forEach((d) => d());
         this.groupDestroyFns[group] = [];
 
         if (buttons.length === 0) return;
 
-        const align = this[group].align ?? 'start';
-        const position = this[group].position ?? 'top';
+        const { align, position } = this[group];
         const alignElement = this.positionAlignments[position][align];
 
         if (!alignElement) return;
 
+        let index = 0;
         const nextSection = () => {
-            const newSection = createElement('div');
+            let newSection = alignElement.children.item(index);
+            if (!newSection) {
+                newSection = createElement('div');
+                alignElement.appendChild(newSection);
+                this.destroyFns.push(() => newSection!.remove());
+            }
             newSection.classList.add(styles.elements.section, styles.modifiers[this[group].size]);
-            alignElement.appendChild(newSection);
+            index++;
             return newSection;
         };
 
@@ -332,14 +363,30 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             onBlur = () => this.translateFloatingElements(position, false);
         }
 
+        const orientation = this.computeAriaOrientation(this[group].position);
         this.groupDestroyFns[group] = initToolbarKeyNav({
-            orientation: 'horizontal',
+            orientation,
             toolbar: alignElement,
             buttons: this.groupButtons[group],
             onEscape,
             onFocus,
             onBlur,
         });
+        this.updateToolbarAriaLabel(group, alignElement);
+    }
+
+    private computeAriaOrientation(position: ToolbarPosition): 'horizontal' | 'vertical' {
+        return (
+            {
+                top: 'horizontal',
+                right: 'vertical',
+                bottom: 'horizontal',
+                left: 'vertical',
+                floating: 'horizontal',
+                'floating-top': 'horizontal',
+                'floating-bottom': 'horizontal',
+            } as const
+        )[position];
     }
 
     private toggleGroup(caller: string, group: ToolbarGroup, enabled?: boolean) {
@@ -360,59 +407,41 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.pendingButtonToggledEvents = [];
     }
 
-    async performLayout({ shrinkRect }: { shrinkRect: BBox }): Promise<{ shrinkRect: BBox }> {
-        const { elements, margin } = this;
+    async performLayout(ctx: LayoutContext): Promise<LayoutContext> {
+        if (!this.enabled) return ctx;
 
-        this.refreshOuterLayout(shrinkRect);
+        this.refreshOuterLayout(ctx.shrinkRect);
         this.refreshLocale();
 
-        elements.top.style.top = `${shrinkRect.y - elements.top.offsetHeight - margin * 2}px`;
-        elements.top.style.left = `${shrinkRect.x}px`;
-        elements.top.style.width = `calc(100% - ${margin * 2}px)`;
-
-        return { shrinkRect };
+        return ctx;
     }
 
     async performCartesianLayout(opts: { seriesRect: BBox }): Promise<void> {
-        const { elements, margin } = this;
-        const { seriesRect } = opts;
-        const { FloatingBottom, FloatingTop } = ToolbarPosition;
+        if (!this.enabled) return;
 
-        elements.right.style.top = `${seriesRect.y + margin}px`;
-        elements.right.style.right = `${margin}px`;
-        elements.right.style.height = `calc(100% - ${seriesRect.y + margin * 2}px)`;
-
-        elements.bottom.style.bottom = `${margin}px`;
-        elements.bottom.style.left = `${margin}px`;
-        elements.bottom.style.width = `calc(100% - ${margin * 2}px)`;
-
-        elements.left.style.top = `${seriesRect.y}px`;
-        elements.left.style.left = `${margin}px`;
-        elements.left.style.height = `calc(100% - ${seriesRect.y + margin * 2}px)`;
-
-        elements[FloatingTop].style.top = `${seriesRect.y}px`;
-
-        elements[FloatingBottom].style.top =
-            `${seriesRect.y + seriesRect.height - elements[FloatingBottom].offsetHeight}px`;
+        this.refreshInnerLayout(opts.seriesRect);
     }
 
     private refreshOuterLayout(shrinkRect: BBox) {
-        const { elements, margin } = this;
+        const { elements, horizontalSpacing, verticalSpacing } = this;
 
         if (!elements.top.classList.contains(styles.modifiers.hidden)) {
-            shrinkRect.shrink(elements.top.offsetHeight + margin * 2, 'top');
+            shrinkRect.shrink(elements.top.offsetHeight + verticalSpacing, 'top');
         }
 
         if (!elements.right.classList.contains(styles.modifiers.hidden)) {
-            shrinkRect.shrink(elements.right.offsetWidth + margin, 'right');
+            shrinkRect.shrink(elements.right.offsetWidth + horizontalSpacing, 'right');
         }
 
         if (!elements.bottom.classList.contains(styles.modifiers.hidden)) {
-            shrinkRect.shrink(elements.bottom.offsetHeight + margin * 2, 'bottom');
+            shrinkRect.shrink(elements.bottom.offsetHeight + verticalSpacing, 'bottom');
+
+            // See: https://ag-grid.atlassian.net/browse/AG-11852
+            elements.bottom.style.top = `${shrinkRect.y + shrinkRect.height + verticalSpacing}px`;
         }
 
         if (!elements.left.classList.contains(styles.modifiers.hidden)) {
-            shrinkRect.shrink(elements.left.offsetWidth + margin, 'left');
+            shrinkRect.shrink(elements.left.offsetWidth + horizontalSpacing, 'left');
         }
     }
 
@@ -424,9 +453,36 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         for (const group of TOOLBAR_GROUPS) {
             const groupProxyOptions = groupProxied.get(group);
             groupButtons[group].forEach((element) => this.refreshButtonLocale(element, this[group], groupProxyOptions));
+            this.updateToolbarAriaLabel(group);
         }
 
         this.hasNewLocale = false;
+    }
+
+    private refreshInnerLayout(rect: BBox) {
+        const { elements, verticalSpacing } = this;
+        const { FloatingBottom, FloatingTop } = ToolbarPosition;
+
+        elements.top.style.top = `${rect.y - elements.top.offsetHeight - verticalSpacing}px`;
+        elements.top.style.left = `${rect.x}px`;
+        elements.top.style.width = `${rect.width}px`;
+
+        // See: https://ag-grid.atlassian.net/browse/AG-11852
+        // elements.bottom.style.top = `${rect.y + rect.height}px`;
+        elements.bottom.style.left = `${rect.x}px`;
+        elements.bottom.style.width = `${rect.width}px`;
+
+        elements.right.style.top = `${rect.y}px`;
+        elements.right.style.right = `0px`;
+        elements.right.style.height = `${rect.height}px`;
+
+        elements.left.style.top = `${rect.y}px`;
+        elements.left.style.left = `0px`;
+        elements.left.style.height = `${rect.height}px`;
+
+        elements[FloatingTop].style.top = `${rect.y}px`;
+
+        elements[FloatingBottom].style.top = `${rect.y + rect.height - elements[FloatingBottom].offsetHeight}px`;
     }
 
     private refreshButtonLocale(
@@ -462,7 +518,6 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         for (const group of TOOLBAR_GROUPS) {
             if (this[group] == null) continue;
-
             const groupVisible = isGroupVisible(group);
             for (const button of this.groupButtons[group]) {
                 const buttonVisible = groupVisible && this[group].buttons?.some(isButtonVisible(button));
@@ -475,7 +530,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         position: ToolbarPosition.FloatingBottom | ToolbarPosition.FloatingTop,
         visible: boolean
     ) {
-        const { elements, margin, positionAlignments } = this;
+        const { elements, verticalSpacing: verticalMargin, positionAlignments } = this;
 
         const element = elements[position];
         const alignments = Object.values(positionAlignments[position]);
@@ -487,7 +542,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             align.style.transform =
                 visible && align.style.transform !== ''
                     ? 'translateY(0)'
-                    : `translateY(${(element.offsetHeight + margin) * dir}px)`;
+                    : `translateY(${(element.offsetHeight + verticalMargin) * dir}px)`;
         }
     }
 
@@ -522,6 +577,21 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.destroyFns.push(() => button.remove());
 
         return button;
+    }
+
+    private updateToolbarAriaLabel(group: ToolbarGroup, alignElement?: HTMLElement) {
+        if (!alignElement) {
+            const { align, position } = this[group];
+            alignElement = this.positionAlignments[position][align];
+            if (!alignElement) return;
+        }
+        const map = {
+            annotations: 'ariaLabelAnnotationsToolbar',
+            annotationOptions: 'ariaLabelAnnotationOptionsToolbar',
+            ranges: 'ariaLabelRangesToolbar',
+            zoom: 'ariaLabelZoomToolbar',
+        } as const;
+        alignElement.ariaLabel = this.ctx.localeManager.t(map[group]);
     }
 
     private updateButtonText(button: HTMLButtonElement, options: ToolbarButton) {

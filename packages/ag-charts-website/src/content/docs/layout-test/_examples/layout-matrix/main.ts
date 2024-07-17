@@ -1,7 +1,11 @@
 // @ag-skip-fws
-import { AgCartesianChartOptions } from 'ag-charts-community';
+// AgCharts import needed for dark-mode skippet
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
+
+const css = String.raw;
+const html = String.raw;
 
 const options: AgCartesianChartOptions = {
     title: {
@@ -45,41 +49,42 @@ const options: AgCartesianChartOptions = {
     ],
 };
 
-const fullSizes = `
-  body {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-  }
-  `;
+const fullSizes = css`
+    body {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+    }
+`;
 
-const fixedSizes = `
-  ${fullSizes}
-  
-  #myChart {
-    width: 300px;
-    height: 300px;
-  }
-  `;
+const fixedSizes = css`
+    ${fullSizes}
 
-const bodyGrid = `
-  :root, body {
-    height: 100%;
-    width: 100%;
-    margin: 0;
-    box-sizing: border-box;
-  }
-  
-  body {
-    display: grid;
-    grid-auto-rows: minmax(0, 1fr);
-    grid-auto-columns: minmax(0, 1fr);
-  }
-  `;
+    #myChart {
+        width: 300px;
+        height: 300px;
+    }
+`;
+
+const bodyGrid = css`
+    :root,
+    body {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        display: grid;
+        grid-auto-rows: minmax(0, 1fr);
+        grid-auto-columns: minmax(0, 1fr);
+    }
+`;
 
 const script = [...document.querySelectorAll('script').values()]
     .map((e) => e.src)
-    .filter((s) => s.includes('ag-charts-community'))[0];
+    .find((s) => s.includes('ag-charts-community'));
 
 const cases = [
     { styles: '', options: {} },
@@ -90,22 +95,23 @@ const cases = [
     { styles: fixedSizes, options: { width: 250, height: 250 } },
 ];
 const domCases = [
-    ['<div id="myChart"></div>'],
+    [html`<div id="myChart"></div>`],
     [
-        `
-    <div style="
-        display: grid;
-        grid: 'a b' auto / 1fr auto;
-      ">
-        <div id="myChart"></div>
-        <textarea></textarea>
-      </div>
-  `,
+        html`
+            <div
+                style="${css`
+                    display: grid;
+                    grid: 'a b' auto / 1fr auto;
+                `}"
+            >
+                <div id="myChart"></div>
+                <textarea></textarea>
+            </div>
+        `,
         bodyGrid,
     ],
 ];
 
-let index = 1;
 for (const { styles, options: caseOptions } of cases) {
     for (const [dom, extraStyles] of domCases) {
         const element = document.createElement('iframe');
@@ -114,28 +120,33 @@ for (const { styles, options: caseOptions } of cases) {
         // docWindow.agCharts = agCharts;
         const doc = docWindow?.document;
         doc?.open();
-        doc?.write(`
-      <html>
-        <head>
-          <style>
-          
-            body { overflow: hidden; padding: 0; margin: 0 } 
-            ${styles}
-            ${extraStyles ?? ''}
-          </style>
-        </head>
-        <body>
-            ${dom}
-            <script src="${script}"></script>
-            <script src="data.js"></script>
-            <script>
-              const options = ${JSON.stringify({ ...options, ...caseOptions })};
-              options.container = document.getElementById("myChart");
-              agCharts.AgCharts.create(options);
-            </script>
-        </body>
-      </html>
-      `);
+        doc?.write(html`
+            <html>
+                <head>
+                    <style>
+                        ${css`
+                            body {
+                                overflow: hidden;
+                                padding: 0;
+                                margin: 0;
+                            }
+
+                            ${styles}
+                            ${extraStyles ?? ''}
+                        `}
+                    </style>
+                </head>
+                <body>
+                    ${dom}
+                    <script src="${script!}"></script>
+                    <script>
+                        const options = ${JSON.stringify({ ...options, ...caseOptions })};
+                        options.container = document.getElementById('myChart');
+                        agCharts.AgCharts.create(options);
+                    </script>
+                </body>
+            </html>
+        `);
         doc?.close();
     }
 }

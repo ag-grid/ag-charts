@@ -4,13 +4,7 @@ import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_ANNOTATION_STROKE,
-    DEFAULT_COLOURS,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
-    DEFAULT_LABEL_COLOUR,
-    DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
-    DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
-    DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
-    DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS,
 } from './symbols';
 
 const POLYCHROMA_LIGHT_FILLS = {
@@ -48,62 +42,20 @@ const palette: AgChartThemePalette = {
 };
 
 export class PolychromaLight extends ChartTheme {
-    protected static override getDefaultColors() {
+    override getDefaultColors() {
         return {
             fills: POLYCHROMA_LIGHT_FILLS,
             strokes: POLYCHROMA_LIGHT_STROKES,
-        };
-    }
-    protected static override getWaterfallSeriesDefaultPositiveColors() {
-        return {
-            fill: POLYCHROMA_LIGHT_FILLS.BLUE,
-            stroke: POLYCHROMA_LIGHT_STROKES.BLUE,
-            label: {
-                color: DEFAULT_LABEL_COLOUR,
-            },
-        };
-    }
-
-    protected static override getWaterfallSeriesDefaultNegativeColors() {
-        return {
-            fill: POLYCHROMA_LIGHT_FILLS.RED,
-            stroke: POLYCHROMA_LIGHT_STROKES.RED,
-            label: {
-                color: DEFAULT_LABEL_COLOUR,
-            },
-        };
-    }
-
-    protected static override getWaterfallSeriesDefaultTotalColors() {
-        return {
-            fill: POLYCHROMA_LIGHT_FILL_GRAY,
-            stroke: POLYCHROMA_LIGHT_STROKE_GRAY,
-            label: {
-                color: DEFAULT_LABEL_COLOUR,
-            },
+            up: { fill: POLYCHROMA_LIGHT_FILLS.BLUE, stroke: POLYCHROMA_LIGHT_STROKES.BLUE },
+            down: { fill: POLYCHROMA_LIGHT_FILLS.RED, stroke: POLYCHROMA_LIGHT_STROKES.RED },
+            neutral: { fill: POLYCHROMA_LIGHT_FILL_GRAY, stroke: POLYCHROMA_LIGHT_STROKE_GRAY },
         };
     }
 
     override getTemplateParameters() {
         const params = super.getTemplateParameters();
 
-        params.set(DEFAULT_COLOURS, PolychromaLight.getDefaultColors());
-        params.set(
-            DEFAULT_WATERFALL_SERIES_POSITIVE_COLOURS,
-            PolychromaLight.getWaterfallSeriesDefaultPositiveColors()
-        );
-        params.set(
-            DEFAULT_WATERFALL_SERIES_NEGATIVE_COLOURS,
-            PolychromaLight.getWaterfallSeriesDefaultNegativeColors()
-        );
-        params.set(DEFAULT_WATERFALL_SERIES_TOTAL_COLOURS, PolychromaLight.getWaterfallSeriesDefaultTotalColors());
-
         params.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [POLYCHROMA_LIGHT_FILLS.BLUE, POLYCHROMA_LIGHT_FILLS.RED]);
-
-        params.set(
-            DEFAULT_WATERFALL_SERIES_CONNECTOR_LINE_STROKE,
-            PolychromaLight.getWaterfallSeriesDefaultTotalColors().stroke
-        );
 
         params.set(DEFAULT_ANNOTATION_STROKE, POLYCHROMA_LIGHT_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, POLYCHROMA_LIGHT_FILLS.BLUE);

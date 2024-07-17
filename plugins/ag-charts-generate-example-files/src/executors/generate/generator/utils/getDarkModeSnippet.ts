@@ -16,20 +16,20 @@ const isAgThemeOrUndefined = (theme) => {
     return theme == null || (typeof theme === 'string' && theme.startsWith('ag-'));
 };
 
-const getDarkmodeTheme = (theme = 'ag-default') => {
-    const baseTheme = theme.replace(/-dark$/, '');
+const getDarkmodeTheme = (theme = 'ag-default', preset) => {
+    const baseTheme = preset ? 'ag-financial' : theme.replace(/-dark$/, '');
     return darkmode ? baseTheme + '-dark' : baseTheme;
 };
 
-__chartAPI.optionsMutationFn = function update(options) {
+__chartAPI.optionsMutationFn = function update(options, preset) {
     const nextOptions = { ...options };
     const theme = options.theme;
     if (isAgThemeOrUndefined(theme)) {
-        nextOptions.theme = getDarkmodeTheme(theme);
+        nextOptions.theme = getDarkmodeTheme(theme, preset);
     } else if (typeof theme === 'object' && isAgThemeOrUndefined(theme.baseTheme)) {
         nextOptions.theme = {
             ...options.theme,
-            baseTheme: getDarkmodeTheme(theme.baseTheme),
+            baseTheme: getDarkmodeTheme(theme.baseTheme, preset),
         };
     }
     return nextOptions;

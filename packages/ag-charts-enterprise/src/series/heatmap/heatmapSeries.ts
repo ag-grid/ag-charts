@@ -1,4 +1,4 @@
-import type { AgHeatmapSeriesFormat, FontStyle, FontWeight, TextAlign, VerticalAlign } from 'ag-charts-community';
+import type { AgHeatmapSeriesStyle, FontStyle, FontWeight, TextAlign, VerticalAlign } from 'ag-charts-community';
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { formatLabels } from '../util/labelFormatter';
@@ -325,16 +325,17 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         const isZoomed = visibleMin !== 0 || visibleMax !== 1;
         const crisp = !isZoomed;
 
-        opts.datumSelection.each((rect, datum) => {
-            const { point, width, height } = datum;
+        opts.datumSelection.each((rect, nodeDatum) => {
+            const { datum, point, width, height } = nodeDatum;
 
-            const fill = highlightStyle?.fill ?? datum.fill;
+            const fill = highlightStyle?.fill ?? nodeDatum.fill;
 
-            let format: AgHeatmapSeriesFormat | undefined;
+            let format: AgHeatmapSeriesStyle | undefined;
             if (itemStyler) {
                 format = callbackCache.call(itemStyler, {
-                    datum: datum.datum,
+                    datum,
                     fill,
+                    fillOpacity,
                     stroke,
                     strokeOpacity,
                     strokeWidth,
@@ -399,8 +400,20 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
-        const { xKey, yKey, colorKey, xName, yName, colorName, stroke, strokeWidth, colorRange, itemStyler, tooltip } =
-            this.properties;
+        const {
+            xKey,
+            yKey,
+            colorKey,
+            xName,
+            yName,
+            colorName,
+            stroke,
+            strokeWidth,
+            strokeOpacity = 1,
+            colorRange,
+            itemStyler,
+            tooltip,
+        } = this.properties;
         const {
             colorScale,
             id: seriesId,
@@ -410,17 +423,19 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         const { datum, xValue, yValue, colorValue, itemId } = nodeDatum;
         const fill = this.isColorScaleValid() ? colorScale.convert(colorValue) : colorRange[0];
 
-        let format: AgHeatmapSeriesFormat | undefined;
+        let format: AgHeatmapSeriesStyle | undefined;
 
         if (itemStyler) {
             format = callbackCache.call(itemStyler, {
-                datum: nodeDatum,
+                datum,
                 xKey,
                 yKey,
                 colorKey,
                 fill,
+                fillOpacity: 1,
                 stroke,
                 strokeWidth,
+                strokeOpacity,
                 highlighted: false,
                 seriesId,
             });

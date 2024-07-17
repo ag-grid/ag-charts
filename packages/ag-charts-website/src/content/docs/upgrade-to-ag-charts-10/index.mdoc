@@ -14,15 +14,23 @@ Users of integrated charting on AG Grid, should refer to this migration guide wh
 This release includes the following breaking changes:
 
 -   The `AgChart` entrypoint is renamed to `AgCharts`.
--   AgCharts.update() moved to AgChartInstance.update().
--   AgCharts.updateDelta() moved to AgChartInstance.updateDelta().
--   AgCharts.download() moved to AgChartInstance.download().
--   AgCharts.getImageDataURL() moved to AgChartInstance.getImageDataURL().
--   Support for Vue 2 has been dropped as it has reached EOL. See the {% link href="https://v2.vuejs.org/lts/" isExternal=true %}Vue project page{% /link %} for more details.
+-   `AgCharts.update()` moved to `AgChartInstance.update()`.
+-   `AgCharts.updateDelta()` moved to `AgChartInstance.updateDelta()`.
+-   `AgCharts.download()` moved to `AgChartInstance.download()`.
+-   `AgCharts.getImageDataURL()` moved to `AgChartInstance.getImageDataURL()`.
 -   `autosize` is removed. Charts will autosize automatically by default. Use `height`, `width`, `minHeight`, `minWidth` to change this.
 -   Charts smaller than the provided container, now display in the centre of the container instead of top-left.
 -   Series `key` properties no longer support general expressions. The only acceptable property paths are `.dot` and `['square-bracket']` expressions.
 -   `AgNodeDoubleClickEvent `, `AgSeriesNodeClickEvent` and `AgSeriesNodeDoubleClickEvent` are all replaced by `AgNodeClickEvent`.
+-   Support for Vue 2 has been dropped as it has reached EOL. See the {% link href="https://v2.vuejs.org/lts/" isExternal=true %}Vue project page{% /link %} for more details.
+
+{% if isFramework("angular") %}
+**Compatibility**
+{% /if %}
+
+{% if isFramework("angular") %}
+The minimum version of Angular you can use with AG Charts is now Angular 16.
+{% /if %}
 
 **Series Changes**
 
@@ -30,6 +38,49 @@ This release includes the following breaking changes:
 -   `pie` and `donut` series strokes are now rendered on the inside of each sector. Instead of using `strokeWidth` to add spacing between the sectors, use `sectorSpacing`.
 -   `innerLabels.margin` on `donut` series is renamed to `innerLabels.spacing`.
 -   `scatter` and `bubble` series options contained within `marker` object are moved to the top level. `marker.enabled` is removed.
+-   `formatter` function on all series, marker and error-bars is renamed to `itemStyler`.
+
+-   All `SeriesFormatterParams` are renamed to `SeriesItemStylerParams`.
+    -   `AgBarSeriesFormatterParams` is renamed to `AgBarSeriesItemStylerParams``.
+    -   `AgPieSeriesFormatterParams` is renamed to `AgPieSeriesItemStylerParams`.
+    -   `AgDonutSeriesFormatterParams` is renamed to `AgDonutSeriesItemStylerParams`.
+    -   `AgBoxPlotSeriesFormatterParams` is renamed to `AgBoxPlotSeriesItemStylerParams`.
+    -   `AgCandlestickSeriesFormatterParams` is renamed to `AgCandlestickSeriesItemStylerParams`.
+    -   `AgHeatmapSeriesFormatterParams` is renamed to `AgHeatmapSeriesItemStylerParams`.
+    -   `AgOhlcSeriesFormatterParams` is renamed to `AgOhlcSeriesItemStylerParams`.
+    -   `AgWaterfallSeriesFormatterParams` is renamed to `AgWaterfallSeriesItemStylerParams`.
+    -   `AgSunburstSeriesFormatterParams` is renamed to `AgSunburstSeriesItemStylerParams`.
+    -   `AgTreemapSeriesFormatterParams` is renamed to `AgTreemapSeriesItemStylerParams`.
+    -   `AgRadialSeriesFormatterParams` is renamed to `AgRadialSeriesItemStylerParams`.
+    -   `AgMapLineSeriesFormatterParams` is renamed to `AgMapLineSeriesItemStylerParams`.
+    -   `AgMapMarkerSeriesFormatterParams` is renamed to `AgMapMarkerSeriesItemStylerParams`.
+    -   `AgMapShapeSeriesFormatterParams` is renamed to `AgMapShapeSeriesItemStylerParams`.
+-   `AgSeriesMarkerFormatterParams` is renamed `AgSeriesMarkerStylerParams
+-   `AgErrorBarFormatterParams` is renamed to `AgErrorBarItemStylerParams`.
+
+-   `fills[]` and `strokes[]` are removed from `AgPieSeriesItemStylerParams` and `AgDonutSeriesItemStylerParams`.
+-   `value` is removed from waterfall `AgWaterfallSeriesItemStylerParams`.
+
+-   `AgPieSeriesFormat` is renamed to `AgPieSeriesStyle`.
+-   `AgDonutSeriesFormat` is renamed to `AgDonutSeriesStyle`.
+-   `AgRadialSeriesFormat` is renamed to `AgRadialSeriesStyle`.
+-   `AgWaterfallSeriesFormat` is renamed to `AgWaterfallSeriesStyle`.
+-   `AgRangeBarSeriesFormat` is renamed to `AgRangeBarSeriesStyle`.
+-   `AgHeatmapSeriesFormat` is renamed to `AgHeatmapSeriesStyle`.
+-   `AgBoxPlotSeriesStyles` is renamed to `AgBoxPlotSeriesStyle`.
+
+-   `AgRadarSeriesItemStylerParams` added a `<TDatum>` generic.
+-   `AgSunburstSeriesItemStylerParams` generic no longer has a default value.
+-   `AgTreemapSeriesItemStylerParams` generic no longer has a default value.
+
+-   `AgErrorBarOptions` added a `<TDatum>` generic.
+-   `AgPieSeriesTooltipRendererParams` added a `<TDatum>` generic.
+-   `AgDonutSeriesTooltipRendererParams` added a `<TDatum>` generic.
+-   `AgCandlestickSeriesTooltipRendererParams` added a `<TDatum>` generic.
+-   `AgHeatmapSeriesTooltipRendererParams` added a `<TDatum>` generic.
+-   `AgOhlcSeriesTooltipRendererParams` added a `<TDatum>` generic.
+-   `AgRangeBarSeriesTooltipRendererParams` added a `<TDatum>` generic.
+-   `AgRadialSeriesTooltipRendererParams` added a `<TDatum>` generic.
 
 **Axes Changes**
 
@@ -50,6 +101,7 @@ This release includes the following breaking changes:
 -   `AgNodeContextMenuActionEvent.itemId` is removed, use `xKey`, `yKey`, `angleKey` etc instead.
 -   `fontWeight` no longer supports Strings for numeric values. Use numbers instead.
 -   `AgChartThemeOptionalPalette` has been renamed and replaces `AgChartThemePalette`.
+-   `errorBar.cap.formatter` is removed. Cap options can be return in the top level `errorBar.itemStyler`.
 -   `type` property removed without replacement from
     -   `AgAngleCategoryAxisThemeOptions`
     -   `AgAngleNumberAxisThemeOptions`
@@ -70,6 +122,8 @@ This release includes the following breaking changes:
 **ag-charts-vue3**
 
 -   The `AgChartsVue` export is renamed to `AgCharts`.
+-   The height of the chart container is no longer automatically set to 100%.
+-   vue-class-component is no longer required.
 
 ## Behaviour Changes
 
@@ -81,6 +135,7 @@ This release includes the following behaviour changes:
 -   `pie` and `donut` series strokes now default to palette colours.
 -   `pie` and `donut` series `strokeWidth` now defaults to `0`.
 -   Crosshairs now `snap` by default for number axis of `range-bar` and `range-area` series. Use `snap: false` to change.
+-   Crosshair labels for dark modes now have a different background colour.
 -   `legend.item.showSeriesStroke` defaults to `true`.
 
 **Other Changes**
@@ -95,12 +150,6 @@ This release includes the following behaviour changes:
     -   Wrapping strategy is improved to give more balanced lines.
     -   Manual line breaks are respected even if `wrapping: 'never'`.
     -   When manual line breaks are provided, wrapping and truncation is applied to each line separately.
-
-## Deprecations
-
-This release includes the following deprecations:
-
--
 
 ## Changes List
 

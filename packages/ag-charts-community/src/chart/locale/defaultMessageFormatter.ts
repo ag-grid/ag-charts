@@ -2,7 +2,7 @@ import type { MessageFormatter } from 'ag-charts-types';
 
 import { Logger } from '../../util/logger';
 
-const messageRegExp = /\$\{(\w+)\}(?:\[(\w+)\])?/gi;
+const messageRegExp = /\$\{(\w+)}(?:\[(\w+)])?/gi;
 
 interface Formatter {
     format(value: any): string;
@@ -32,6 +32,6 @@ export const defaultMessageFormatter: MessageFormatter = ({ defaultValue, variab
         } else if (value instanceof Date) {
             return formatters.datetime.format(value);
         }
-        return value;
+        return String(value);
     });
 };

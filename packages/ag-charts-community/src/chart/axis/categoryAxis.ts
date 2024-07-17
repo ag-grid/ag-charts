@@ -53,11 +53,16 @@ export class CategoryAxis<
 
     protected override calculateDomain() {
         if (!this._paddingOverrideEnabled) {
-            const paddings = this.boundSeries.map((s) => s.getBandScalePadding?.()).filter((p) => p != null);
-            if (paddings.length > 0) {
-                this.scale.paddingInner = Math.min(...paddings.map((p) => p!.inner));
-                this.scale.paddingOuter = Math.max(...paddings.map((p) => p!.outer));
+            let paddingInner = Infinity;
+            let paddingOuter = -Infinity;
+            for (const s of this.boundSeries) {
+                const padding = s.getBandScalePadding?.();
+                if (padding == null) continue;
+                paddingInner = Math.min(paddingInner, padding.inner);
+                paddingOuter = Math.max(paddingOuter, padding.outer);
             }
+            this.scale.paddingInner = Number.isFinite(paddingInner) ? paddingInner : 0;
+            this.scale.paddingOuter = Number.isFinite(paddingOuter) ? paddingOuter : 0;
         }
 
         return super.calculateDomain();

@@ -313,7 +313,16 @@ export class ExtendedPath2D {
                     buffer.push('L', ox + params[pi++], oy + params[pi++]);
                     break;
                 case Command.Curve:
-                    throw new Error('Not implemented');
+                    buffer.push(
+                        'C',
+                        ox + params[pi++],
+                        oy + params[pi++],
+                        ox + params[pi++],
+                        oy + params[pi++],
+                        ox + params[pi++],
+                        oy + params[pi++]
+                    );
+                    break;
                 case Command.Arc:
                     const [cx, cy, r, a0, a1, ccw] = [
                         params[pi++],

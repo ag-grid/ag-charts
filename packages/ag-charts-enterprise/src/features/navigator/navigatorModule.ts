@@ -7,7 +7,7 @@ export const NavigatorModule: _ModuleSupport.RootModule = {
     optionsKey: 'navigator',
     packageType: 'enterprise',
     chartTypes: ['cartesian'],
-    instanceConstructor: Navigator,
+    moduleFactory: (ctx) => new Navigator(ctx),
     themeTemplate: {
         ..._ModuleSupport.NavigatorModule.themeTemplate,
         navigator: {

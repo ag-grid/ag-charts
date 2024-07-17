@@ -24,7 +24,6 @@ import { deepClone, jsonWalk } from '../util/json';
 import { mergeDefaults } from '../util/object';
 import type { DeepPartial } from '../util/types';
 import { VERSION } from '../version';
-import { PRESETS, isAgFinancialChartOptions } from './preset/presets';
 import { MementoCaretaker } from './state/memento';
 
 const debug = Debug.create(true, 'opts');
@@ -66,7 +65,7 @@ export abstract class AgCharts {
     }
 
     /** @private - for use by Charts website dark-mode support. */
-    static optionsMutationFn?: (opts: AgChartOptions) => AgChartOptions;
+    static optionsMutationFn?: (opts: AgChartOptions, preset?: string) => AgChartOptions;
 
     public static setLicenseKey(licenseKey: string) {
         this.licenseKey = licenseKey;
@@ -92,21 +91,22 @@ export abstract class AgCharts {
      */
     public static create<O extends AgChartOptions>(options: O): AgChartInstance<O> {
         this.licenseCheck(options);
-        const chart = AgChartsInternal.createOrUpdate(options);
+        const chart = AgChartsInternal.createOrUpdate(options, undefined, this.licenseManager);
 
-        if (this.licenseManager?.isDisplayWatermark()) {
+        if (enterpriseModule.styles != null) {
+            chart.chart.ctx.domManager.addStyles('ag-charts-enterprise', enterpriseModule.styles);
+        }
+        if (this.licenseManager?.isDisplayWatermark() && this.licenseManager) {
             enterpriseModule.injectWatermark?.(chart.chart.ctx.domManager, this.licenseManager.getWatermarkMessage());
         }
         return chart as unknown as AgChartInstance<O>;
     }
 
     public static createFinancialChart(options: AgFinancialChartOptions) {
-        if (!isAgFinancialChartOptions(options)) throw new Error('AG Charts - unrecognized financial options type');
-
-        const presetOptions = PRESETS[options.type](options);
-        debug('>>> AgCharts.createFinancialChart() - applying preset', options, presetOptions);
-
-        return this.create(presetOptions) as unknown as AgChartInstance<AgFinancialChartOptions>;
+        return this.create({
+            _type: 'price-volume',
+            ...options,
+        } as AgChartOptions) as unknown as AgChartInstance<AgFinancialChartOptions>;
     }
 }
 
@@ -138,25 +138,39 @@ class AgChartsInternal {
         },
     };
 
-    static createOrUpdate(options: ChartExtendedOptions, proxy?: AgChartInstanceProxy) {
+    static createOrUpdate(
+        options: ChartExtendedOptions,
+        proxy?: AgChartInstanceProxy,
+        licenseManager?: LicenseManager
+    ) {
         AgChartsInternal.initialiseModules();
 
         debug('>>> AgCharts.createOrUpdate() user options', options);
+
+        const defaultType = proxy?.chart.chartOptions.type;
+        const { _type = defaultType, ...otherOptions } = options;
+
+        let mutableOptions = otherOptions;
         if (AgCharts.optionsMutationFn) {
-            options = AgCharts.optionsMutationFn(options);
+            mutableOptions = AgCharts.optionsMutationFn(mutableOptions, _type);
             debug('>>> AgCharts.createOrUpdate() MUTATED user options', options);
         }
 
-        const { overrideDevicePixelRatio, document, window: userWindow, ...userOptions } = options;
-        const chartOptions = new ChartOptions(userOptions, { overrideDevicePixelRatio, document, window: userWindow });
+        const { overrideDevicePixelRatio, document, window: userWindow, ...userOptions } = mutableOptions;
+        const chartOptions = new ChartOptions(userOptions, {
+            overrideDevicePixelRatio,
+            document,
+            window: userWindow,
+            type: _type,
+        });
 
         let chart = proxy?.chart;
-        if (chart == null || chartType(userOptions) !== chartType(chart.processedOptions)) {
+        if (chart == null || chartType(userOptions) !== chartType(chart?.chartOptions.processedOptions)) {
             chart = AgChartsInternal.createChartInstance(chartOptions, chart);
         }
 
         if (proxy == null) {
-            proxy = new AgChartInstanceProxy(chart, AgChartsInternal.callbackApi);
+            proxy = new AgChartInstanceProxy(chart, AgChartsInternal.callbackApi, licenseManager);
         } else {
             proxy.chart = chart;
         }

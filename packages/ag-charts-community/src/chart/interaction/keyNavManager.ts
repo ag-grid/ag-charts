@@ -64,8 +64,8 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
     }
 
     private onClickStop(event: PointerInteractionEvent<'drag-end' | 'click'>) {
-        this.isClicking = false;
         this.mouseBlur(event);
+        this.isClicking = false;
     }
 
     private mouseBlur(event: PointerInteractionEvent) {
@@ -84,28 +84,37 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
     }
 
     private onFocus(event: FocusInteractionEvent<'focus'>) {
+        const delta = this.domManager.getBrowserFocusDelta();
+
+        this.dispatch('browserfocus', delta, event);
         this.hasBrowserFocus = true;
+
         if (this.isClicking) {
             this.isMouseBlurred = true;
-        } else {
-            const delta = this.domManager.getBrowserFocusDelta();
-            this.dispatch('browserfocus', delta, event);
-            this.dispatch('tab', delta, event);
+            return;
         }
+
+        this.dispatch('tab', delta, event);
     }
 
     private onKeyDown(event: KeyInteractionEvent<'keydown'>) {
-        if (!this.hasBrowserFocus || this.isClicking) return;
+        if (!this.hasBrowserFocus) return;
 
         this.isMouseBlurred = false;
 
-        switch (event.sourceEvent.code) {
-            case 'Tab':
-                if (event.sourceEvent.shiftKey) {
-                    return this.dispatch('tab', -1, event);
-                } else {
-                    return this.dispatch('tab', 1, event);
-                }
+        const { code, altKey, shiftKey, metaKey, ctrlKey } = event.sourceEvent;
+
+        if (code === 'Tab') {
+            if (shiftKey) {
+                return this.dispatch('tab', -1, event);
+            } else {
+                return this.dispatch('tab', 1, event);
+            }
+        }
+
+        if (altKey || shiftKey || metaKey || ctrlKey) return;
+
+        switch (code) {
             case 'ArrowDown':
                 return this.dispatch('nav-vert', 1, event);
             case 'ArrowUp':

@@ -24,7 +24,7 @@ export class Navigator extends _ModuleSupport.Navigator {
         await this.miniChart.processData(opts);
     }
 
-    override async performLayout(opts: { shrinkRect: _Scene.BBox }): Promise<{ shrinkRect: _Scene.BBox }> {
+    override async performLayout(opts: _ModuleSupport.LayoutContext): Promise<_ModuleSupport.LayoutContext> {
         const { shrinkRect } = await super.performLayout(opts);
 
         if (this.enabled) {
@@ -33,7 +33,7 @@ export class Navigator extends _ModuleSupport.Navigator {
             this.y -= bottom;
         }
 
-        return { shrinkRect };
+        return { ...opts, shrinkRect };
     }
 
     override async performCartesianLayout(opts: { seriesRect: _Scene.BBox }): Promise<void> {

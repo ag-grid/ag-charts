@@ -9,16 +9,16 @@
         sans-serif;
     overflow: hidden;
     white-space: nowrap;
-    z-index: 99998; /* Needs to be below tooltips! */
+    z-index: var(--ag-charts-layer-crosshair);
     box-sizing: border-box;
 }
 
 .ag-crosshair-label-content {
-    padding: 0 7px;
+    padding: 0 8px;
     border-radius: 2px;
-    line-height: 1.7em;
-    background-color: rgb(71, 71, 71);
-    color: rgb(255, 255, 255);
+    line-height: 20px;
+    background-color: var(--ag-charts-axis-label-background-color);
+    color: var(--ag-charts-axis-label-color);
 }
 
 .ag-crosshair-label-hidden {

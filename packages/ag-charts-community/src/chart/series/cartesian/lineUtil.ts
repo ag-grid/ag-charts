@@ -56,7 +56,7 @@ export function* pathRangePointsReverse<T extends { point: PartialPathPoint }>(
     }
 }
 
-function scale(val: number | string | Date, scaling?: Scaling) {
+export function scale(val: number | string | Date, scaling?: Scaling) {
     if (!scaling) return NaN;
 
     if (val instanceof Date) {
@@ -115,18 +115,6 @@ export function pairContinuousData(
     } = {}
 ) {
     const { backfillSplitMode = 'intersect' } = opts;
-    const toNewScale = (oldDatum: { xValue?: number; yValue?: number }) => {
-        return {
-            x: scale(oldDatum.xValue ?? NaN, newData.scales.x),
-            y: scale(oldDatum.yValue ?? NaN, newData.scales.y),
-        };
-    };
-    const toOldScale = (newDatum: { xValue?: number; yValue?: number }) => {
-        return {
-            x: scale(newDatum.xValue ?? NaN, oldData.scales.x),
-            y: scale(newDatum.yValue ?? NaN, oldData.scales.y),
-        };
-    };
 
     const result: PathPoint[] = [];
     const resultMap: {
@@ -176,23 +164,23 @@ export function pairContinuousData(
         const from = oldData.nodeData[oldIdx];
         const to = newData.nodeData[newIdx];
 
-        const fromShifted = from ? toNewScale(from) : undefined;
-        const toUnshifted = to ? toOldScale(to) : undefined;
+        const fromShifted = from ? scale(from.xValue ?? NaN, newData.scales.x) : undefined;
+        const toUnshifted = to ? scale(to.xValue ?? NaN, oldData.scales.x) : undefined;
 
         const NA = undefined;
-        if (fromShifted && closeMatch(fromShifted.x, to?.point.x)) {
+        if (fromShifted && closeMatch(fromShifted, to?.point.x)) {
             pairUp(from, to, to.xValue, 'move');
-        } else if (fromShifted && fromShifted.x < (minToNode?.point.x ?? -Infinity)) {
+        } else if (fromShifted && fromShifted < (minToNode?.point.x ?? -Infinity)) {
             pairUp(from, NA, from.xValue, 'out');
-        } else if (fromShifted && fromShifted.x > (maxToNode?.point.x ?? Infinity)) {
+        } else if (fromShifted && fromShifted > (maxToNode?.point.x ?? Infinity)) {
             pairUp(from, NA, from.xValue, 'out');
-        } else if (toUnshifted && toUnshifted.x < (minFromNode?.point.x ?? -Infinity)) {
+        } else if (toUnshifted && toUnshifted < (minFromNode?.point.x ?? -Infinity)) {
             pairUp(NA, to, to.xValue, 'in');
-        } else if (toUnshifted && toUnshifted.x > (maxFromNode?.point.x ?? Infinity)) {
+        } else if (toUnshifted && toUnshifted > (maxFromNode?.point.x ?? Infinity)) {
             pairUp(NA, to, to.xValue, 'in');
-        } else if (fromShifted && fromShifted.x < to?.point.x) {
+        } else if (fromShifted && fromShifted < to?.point.x) {
             pairUp(from, NA, from.xValue, 'out');
-        } else if (toUnshifted && toUnshifted.x < from?.point.x) {
+        } else if (toUnshifted && toUnshifted < from?.point.x) {
             pairUp(NA, to, to.xValue, 'in');
         } else if (from) {
             pairUp(from, NA, from.xValue, 'out');

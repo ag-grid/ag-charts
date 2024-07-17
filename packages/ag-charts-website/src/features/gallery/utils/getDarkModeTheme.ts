@@ -1,12 +1,11 @@
-import { type ThemeName } from '@stores/themeStore';
+import type { ThemeName } from '@stores/themeStore';
 
-export const getDarkModeTheme = (currentTheme: ThemeName, isDarkMode: boolean): ThemeName => {
+export const getDarkModeTheme = (currentTheme: ThemeName, preset?: string): ThemeName => {
     const darkThemeSuffix = '-dark';
-    const hasDarkSuffix = currentTheme.endsWith(darkThemeSuffix);
 
-    if (isDarkMode === hasDarkSuffix) return currentTheme;
+    if (preset != null) {
+        return 'ag-financial-dark' as ThemeName;
+    }
 
-    return isDarkMode
-        ? (`${currentTheme}${darkThemeSuffix}` as ThemeName)
-        : (currentTheme.substring(0, currentTheme.length - darkThemeSuffix.length) as ThemeName);
+    return currentTheme.substring(0, currentTheme.length - darkThemeSuffix.length) as ThemeName;
 };

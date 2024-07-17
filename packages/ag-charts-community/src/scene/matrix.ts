@@ -188,11 +188,11 @@ export class Matrix {
     }
 
     transformBBox(bbox: BBox, target?: BBox): BBox {
-        const elements = this.elements;
-        const xx = elements[0];
-        const xy = elements[1];
-        const yx = elements[2];
-        const yy = elements[3];
+        const el = this.elements;
+        const xx = el[0];
+        const xy = el[1];
+        const yx = el[2];
+        const yy = el[3];
 
         const h_w = bbox.width * 0.5;
         const h_h = bbox.height * 0.5;
@@ -202,12 +202,10 @@ export class Matrix {
         const w = Math.abs(h_w * xx) + Math.abs(h_h * yx);
         const h = Math.abs(h_w * xy) + Math.abs(h_h * yy);
 
-        if (!target) {
-            target = new BBox(0, 0, 0, 0);
-        }
+        target ??= new BBox(0, 0, 0, 0);
 
-        target.x = cx * xx + cy * yx + elements[4] - w;
-        target.y = cx * xy + cy * yy + elements[5] - h;
+        target.x = cx * xx + cy * yx + el[4] - w;
+        target.y = cx * xy + cy * yy + el[5] - h;
         target.width = w + w;
         target.height = h + h;
 
@@ -262,9 +260,6 @@ export class Matrix {
             rotationCenterY?: number | null;
         }
     ) {
-        // Assume that centers of scaling and rotation are at the origin.
-        const [bbcx, bbcy] = [0, 0];
-
         const sx = scalingX;
         const sy = scalingY;
         let scx: number;
@@ -274,8 +269,8 @@ export class Matrix {
             scx = 0;
             scy = 0;
         } else {
-            scx = opts?.scalingCenterX == null ? bbcx : opts?.scalingCenterX;
-            scy = opts?.scalingCenterY == null ? bbcy : opts?.scalingCenterY;
+            scx = opts?.scalingCenterX ?? 0;
+            scy = opts?.scalingCenterY ?? 0;
         }
 
         const r = rotation;
@@ -288,8 +283,8 @@ export class Matrix {
             rcx = 0;
             rcy = 0;
         } else {
-            rcx = opts?.rotationCenterX == null ? bbcx : opts?.rotationCenterX;
-            rcy = opts?.rotationCenterY == null ? bbcy : opts?.rotationCenterY;
+            rcx = opts?.rotationCenterX ?? 0;
+            rcy = opts?.rotationCenterY ?? 0;
         }
 
         const tx = translationX;

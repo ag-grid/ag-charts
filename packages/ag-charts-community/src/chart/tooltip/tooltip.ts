@@ -1,7 +1,6 @@
 import type { AgTooltipRendererResult, InteractionRange, TextWrap } from 'ag-charts-types';
 
 import { setAttribute } from '../../util/attributeUtil';
-import { getWindow } from '../../util/dom';
 import { clamp } from '../../util/number';
 import { type Bounds, calculatePlacement } from '../../util/placement';
 import { BaseProperties } from '../../util/properties';
@@ -167,8 +166,9 @@ export class Tooltip extends BaseProperties {
     @Validate(BOOLEAN)
     darkTheme = false;
 
-    @Validate(BOOLEAN)
-    nestedDOM = true;
+    /** Escape-hatch for changes in AG-11645. */
+    @Validate(UNION(['extended', 'canvas']))
+    bounds: 'extended' | 'canvas' = 'extended';
 
     private enableInteraction: boolean = false;
     private lastVisibilityChange: number = Date.now();
@@ -205,7 +205,13 @@ export class Tooltip extends BaseProperties {
      * Shows tooltip at the given event's coordinates.
      * If the `html` parameter is missing, moves the existing tooltip to the new position.
      */
-    show(canvasRect: DOMRect, meta: TooltipMeta, content?: TooltipContent | null, instantly = false) {
+    show(
+        boundingRect: DOMRect,
+        canvasRect: DOMRect,
+        meta: TooltipMeta,
+        content?: TooltipContent | null,
+        instantly = false
+    ) {
         const { element } = this;
 
         if (content != null && element != null) {
@@ -221,20 +227,18 @@ export class Tooltip extends BaseProperties {
 
         const tooltipBounds = this.getTooltipBounds({ positionType, meta, yOffset, xOffset, canvasRect });
 
-        const position = calculatePlacement(
-            element.clientWidth,
-            element.clientHeight,
-            canvasRect.width,
-            canvasRect.height,
-            tooltipBounds
-        );
+        const relativeRect = {
+            x: boundingRect.x - canvasRect.x,
+            y: boundingRect.y - canvasRect.y,
+            width: boundingRect.width,
+            height: boundingRect.height,
+        };
+        const position = calculatePlacement(element.clientWidth, element.clientHeight, relativeRect, tooltipBounds);
 
-        const windowBounds = this.nestedDOM ? canvasRect : this.getWindowSize();
-        const minX = this.nestedDOM ? 0 : -canvasRect.left;
-        const minY = this.nestedDOM ? 0 : -canvasRect.top;
-
-        const maxX = windowBounds.width - element.clientWidth - 1 + minX;
-        const maxY = windowBounds.height - element.clientHeight + minY;
+        const minX = relativeRect.x;
+        const minY = relativeRect.y;
+        const maxX = relativeRect.width - element.clientWidth - 1 + minX;
+        const maxY = relativeRect.height - element.clientHeight + minY;
 
         const left = clamp(minX, position.x, maxX);
         const top = clamp(minY, position.y, maxY);
@@ -257,11 +261,6 @@ export class Tooltip extends BaseProperties {
         } else {
             this.toggle(true);
         }
-    }
-
-    private getWindowSize() {
-        const { innerWidth, innerHeight } = getWindow();
-        return { width: innerWidth, height: innerHeight };
     }
 
     toggle(visible: boolean) {

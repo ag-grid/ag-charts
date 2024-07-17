@@ -74,6 +74,10 @@
                     {
                         "title": "Upgrading to Enterprise",
                         "path": "licensing"
+                    },
+                    {
+                        "title": "Installing Your Licence Key",
+                        "path": "license-install"
                     }
                 ]
             },
@@ -115,8 +119,8 @@
                         "path": "axes-cross-lines"
                     },
                     {
-                        "title": "Formatters",
-                        "path": "formatters"
+                        "title": "Stylers",
+                        "path": "stylers"
                     },
                     {
                         "title": "Legend",
@@ -212,6 +216,35 @@
             }
         ]
     },
+    "financialCharts": {
+        "items": [
+            {
+                "title": "Financial Charts",
+                "items": [
+                    {
+                        "title": "Overview",
+                        "path": "financial-charts",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Configuration",
+                        "path": "financial-charts-configuration",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Annotations",
+                        "path": "annotations",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Range Toolbar",
+                        "path": "toolbar",
+                        "isEnterprise": true
+                    }
+                ]
+            }
+        ]
+    },
     "maps": {
         "items": [
             {
@@ -240,30 +273,6 @@
                     {
                         "title": "Map Topology",
                         "path": "map-topology",
-                        "isEnterprise": true
-                    }
-                ]
-            }
-        ]
-    },
-    "financialCharts": {
-        "items": [
-            {
-                "title": "Financial Charts",
-                "items": [
-                    {
-                        "title": "Overview",
-                        "path": "financial-charts",
-                        "isEnterprise": true
-                    },
-                    {
-                        "title": "Annotations",
-                        "path": "annotations",
-                        "isEnterprise": true
-                    },
-                    {
-                        "title": "Toolbar",
-                        "path": "toolbar",
                         "isEnterprise": true
                     }
                 ]

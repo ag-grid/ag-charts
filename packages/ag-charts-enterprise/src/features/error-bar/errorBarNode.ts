@@ -1,4 +1,4 @@
-import type { AgErrorBarItemStylerParams, AgErrorBarOptions, AgErrorBarThemeableOptions } from 'ag-charts-community';
+import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from 'ag-charts-community';
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 const { nearestSquaredInContainer, partialAssign, mergeDefaults } = _ModuleSupport;
@@ -79,11 +79,7 @@ export class ErrorBarNode extends _Scene.Group {
         return Math.min(desiredLength, lengthMax);
     }
 
-    private getItemStylerParams(
-        options: FormatOptions,
-        style: AgErrorBarThemeableOptions,
-        highlighted: boolean
-    ): AgErrorBarItemStylerParams<any> | undefined {
+    private getItemStylerParams(options: FormatOptions, style: AgErrorBarThemeableOptions, highlighted: boolean) {
         const { datum } = this;
         if (datum == null || options.itemStyler == null) return;
         const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = options;

@@ -18,7 +18,10 @@ export function processFunction(code: string): string {
 }
 
 function needsWrappingInFragment(bindings: any) {
-    return Object.keys(bindings.placeholders).length > 1 && !bindings.template.includes('</');
+    return (
+        bindings.template.includes('toolbar') ||
+        (Object.keys(bindings.placeholders).length > 1 && !bindings.template.includes('</'))
+    );
 }
 
 function getImports(componentFilenames: string[], bindings): string[] {
@@ -80,6 +83,8 @@ function getTemplate(bindings: any, componentAttributes: string[]): string {
         template = template.replace(placeholder, agChartTag);
     });
 
+    template = template.replace(/<hr>/g, '<hr />');
+
     return convertFunctionalTemplate(template);
 }
 
@@ -120,7 +125,12 @@ export async function vanillaToReactFunctional(bindings: any, componentFilenames
             properties.find((p) => p.name === 'options')
         );
 
-        const template = getTemplate(bindings, componentAttributes);
+        let template = getTemplate(bindings, componentAttributes);
+        if (needsWrappingInFragment(bindings)) {
+            template = `<Fragment>
+                ${template}
+            </Fragment>`;
+        }
 
         const externalEventHandlers = bindings.externalEventHandlers.map((handler) =>
             processFunction(convertFunctionToConstProperty(handler.body))
@@ -196,6 +206,12 @@ export async function vanillaToReactFunctional(bindings: any, componentFilenames
             ${wrapper}
         );
         `;
+    }
+
+    if (bindings.usesChartApi) {
+        indexFile = indexFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(chartRef.current$3');
+        indexFile = indexFile.replace(/chart.(\w*)\(/g, 'chartRef.current.$1(');
+        indexFile = indexFile.replace(/this.chartRef.current/g, 'chartRef.current');
     }
 
     return indexFile;

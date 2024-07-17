@@ -1,4 +1,4 @@
-import { PropType, defineComponent, h } from 'vue';
+import { PropType, defineComponent, h, toRaw } from 'vue';
 
 import { AgChartInstance, AgChartOptions, AgCharts as AgChartsAPI, AgFinancialChartOptions } from 'ag-charts-community';
 
@@ -9,7 +9,7 @@ export const AgCharts = /*#__PURE__*/ defineComponent({
             default: (): AgChartOptions => ({}),
         },
     },
-    data(): { chart: AgChartInstance | undefined } {
+    setup(): { chart: AgChartInstance | undefined } {
         return {
             chart: undefined,
         };
@@ -36,10 +36,10 @@ export const AgFinancialCharts = /*#__PURE__*/ defineComponent({
     props: {
         options: {
             type: Object as PropType<AgFinancialChartOptions>,
-            default: (): AgFinancialChartOptions => ({ type: 'candlestick-volume' }),
+            default: (): AgFinancialChartOptions => ({}),
         },
     },
-    data(): { chart: AgChartInstance | undefined } {
+    setup(): { chart: AgChartInstance<AgFinancialChartOptions> | undefined } {
         return {
             chart: undefined,
         };

@@ -77,6 +77,9 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
     angleName?: string;
 
     @Validate(STRING, { optional: true })
+    angleFilterKey?: string;
+
+    @Validate(STRING, { optional: true })
     radiusKey?: string;
 
     @Validate(STRING, { optional: true })
@@ -158,5 +161,5 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
     readonly calloutLine = new PieSeriesCalloutLine();
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgPieSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgPieSeriesTooltipRendererParams<any>>();
 }

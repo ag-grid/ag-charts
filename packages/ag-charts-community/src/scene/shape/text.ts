@@ -1,7 +1,6 @@
-import type { FontFamily, FontSize, FontStyle, FontWeight, OverflowStrategy, TextWrap } from 'ag-charts-types';
+import type { FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-types';
 
-import { memoizeFunction } from '../../util/memo';
-import { type LineMetrics, TextMeasurer } from '../../util/textMeasurer';
+import { TextMeasurer } from '../../util/textMeasurer';
 import { BBox } from '../bbox';
 import type { RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
@@ -17,11 +16,8 @@ export interface TextSizeProperties {
     textAlign?: CanvasTextAlign;
 }
 
-const ellipsis = '\u2026';
-
 function SceneFontChangeDetection(opts?: { redraw?: RedrawType; changeCb?: (t: any) => any }) {
     const { redraw = RedrawType.MAJOR, changeCb } = opts ?? {};
-
     return SceneChangeDetection({ redraw, type: 'font', changeCb });
 }
 
@@ -40,8 +36,6 @@ export class Text extends Shape {
         textBaseline: 'alphabetic' as CanvasTextBaseline,
     });
 
-    static ellipsis = ellipsis;
-
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     x: number = 0;
 
@@ -55,17 +49,6 @@ export class Text extends Shape {
 
     @SceneChangeDetection({ redraw: RedrawType.MAJOR, changeCb: (o: Text) => o.onTextChange() })
     text?: string = undefined;
-
-    private _dirtyFont: boolean = true;
-    private _font?: string;
-    get font(): string {
-        if (this._font == null || this._dirtyFont) {
-            this._dirtyFont = false;
-            this._font = getFont(this);
-        }
-
-        return this._font;
-    }
 
     @SceneFontChangeDetection()
     fontStyle?: FontStyle;
@@ -92,15 +75,11 @@ export class Text extends Shape {
     override computeBBox(): BBox {
         const { x, y, lines, textBaseline, textAlign } = this;
         const { offsetTop, offsetLeft, width, height } = TextMeasurer.measureLines(lines, {
-            font: getFont(this),
+            font: this,
             textBaseline,
             textAlign,
         });
         return new BBox(x - offsetLeft, y - offsetTop, width, height);
-    }
-
-    private getLineHeight(line: string): number {
-        return this.lineHeight ?? (TextMeasurer.measureText(line, this) as LineMetrics).lineHeight;
     }
 
     isPointInPath(x: number, y: number): boolean {
@@ -129,7 +108,7 @@ export class Text extends Shape {
         const { fill, stroke, strokeWidth } = this;
         const { pixelRatio } = this.layerManager.canvas;
 
-        ctx.font = this.font;
+        ctx.font = TextMeasurer.toFontString(this);
         ctx.textAlign = this.textAlign;
         ctx.textBaseline = this.textBaseline;
 
@@ -180,48 +159,13 @@ export class Text extends Shape {
 
     private renderLines(renderCallback: (line: string, x: number, y: number) => void): void {
         const { lines, x, y } = this;
-        const lineHeights = lines.map((line) => this.getLineHeight(line));
-        const totalHeight = lineHeights.reduce((a, b) => a + b, 0);
-        let offsetY: number = (lineHeights[0] - totalHeight) * Text.getVerticalModifier(this.textBaseline);
+        const lineHeight = this.lineHeight ?? TextMeasurer.getLineHeight(this.fontSize!);
+        let offsetY = (lineHeight - lineHeight * lines.length) * TextMeasurer.getVerticalModifier(this.textBaseline);
 
-        for (let i = 0; i < lines.length; i++) {
-            renderCallback(lines[i], x, y + offsetY);
-            offsetY += lineHeights[i];
+        for (const line of lines) {
+            renderCallback(line, x, y + offsetY);
+            offsetY += lineHeight;
         }
-    }
-
-    static wrapLines(
-        text: string,
-        maxWidth: number,
-        maxHeight: number,
-        textProps: TextSizeProperties,
-        wrapping: TextWrap,
-        overflow: OverflowStrategy
-    ): string[] | undefined {
-        const result = TextMeasurer.wrapLines(text, {
-            maxWidth,
-            maxHeight,
-            font: getFont(textProps),
-            textAlign: textProps.textAlign,
-            textBaseline: textProps.textBaseline,
-            textWrap: wrapping,
-        });
-        if (overflow === 'hide' && result.some((l) => l.endsWith(TextMeasurer.EllipsisChar))) {
-            return;
-        }
-        return result;
-    }
-
-    static wrap(
-        text: string,
-        maxWidth: number,
-        maxHeight: number,
-        textProps: TextSizeProperties,
-        wrapping: TextWrap,
-        overflow: OverflowStrategy = 'ellipsis'
-    ): string {
-        const lines = Text.wrapLines(text, maxWidth, maxHeight, textProps, wrapping, overflow);
-        return lines?.join('\n').trim() ?? '';
     }
 
     setFont(props: TextSizeProperties) {
@@ -235,64 +179,4 @@ export class Text extends Shape {
         this.textAlign = props.textAlign;
         this.textBaseline = props.textBaseline;
     }
-
-    protected static getVerticalModifier(textBaseline: CanvasTextBaseline): number {
-        switch (textBaseline) {
-            case 'top':
-            case 'hanging':
-                return 0;
-            case 'bottom':
-            case 'alphabetic':
-            case 'ideographic':
-                return 1;
-            case 'middle':
-                return 0.5;
-        }
-    }
-
-    private static readonly _measureText = memoizeFunction(
-        ({
-            text,
-            font,
-            textBaseline,
-            textAlign,
-        }: {
-            text: string;
-            font: string;
-            textBaseline: CanvasTextBaseline;
-            textAlign: CanvasTextAlign;
-        }) => TextMeasurer.measureText(text, { font, textBaseline, textAlign })
-    );
-
-    private static readonly _getTextSize = memoizeFunction(({ text, font }: { text: string; font: string }) =>
-        TextMeasurer.measureText(text, { font })
-    );
-
-    static measureText(text: string, font: string, textBaseline: CanvasTextBaseline, textAlign: CanvasTextAlign) {
-        return this._measureText({ text, font, textBaseline, textAlign });
-    }
-
-    /**
-     * Returns the width and height of the measured text.
-     * @param text The single-line text to measure.
-     * @param font The font shorthand string.
-     */
-    static getTextSize(text: string, font: string) {
-        return this._getTextSize({ text, font });
-    }
-
-    static getTextSizeMultiline(
-        lines: string[],
-        font: string,
-        textBaseline: CanvasTextBaseline = Text.defaultStyles.textBaseline,
-        textAlign: CanvasTextAlign = Text.defaultStyles.textAlign
-    ): { top: number; left: number; width: number; height: number } {
-        const r = TextMeasurer.measureLines(lines, { font, textBaseline, textAlign });
-        return { top: r.offsetTop, left: r.offsetLeft, width: r.width, height: r.height };
-    }
-}
-
-export function getFont(fontProps: TextSizeProperties): string {
-    const { fontFamily, fontSize, fontStyle, fontWeight } = fontProps;
-    return [fontStyle ?? '', fontWeight ?? '', fontSize + 'px', fontFamily].join(' ').trim();
 }

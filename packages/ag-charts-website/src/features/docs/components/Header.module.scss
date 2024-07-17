@@ -2,6 +2,12 @@
 
 .docsPageHeader {
     position: relative;
+
+    :global(.largeExamples) & {
+        @media screen and (min-width: $breakpoint-docs-nav-large) {
+            width: calc(139% - 40px);
+        }
+    }
 }
 
 .docsPageTitle {
@@ -25,6 +31,10 @@
 
     @media screen and (min-width: $breakpoint-docs-search-medium) {
         flex-direction: row;
+    }
+
+    @media screen and (max-width: $breakpoint-docs-search-medium) {
+        gap: $spacing-size-4;
     }
 }
 

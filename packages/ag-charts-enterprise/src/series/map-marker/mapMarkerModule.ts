@@ -12,11 +12,12 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
     chartTypes: ['topology'],
 
     identifier: 'map-marker',
-    instanceConstructor: MapMarkerSeries,
+    moduleFactory: (ctx) => new MapMarkerSeries(ctx),
     tooltipDefaults: { range: 'exact' },
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
+            shape: 'circle',
             maxSize: 30,
             fillOpacity: 0.5,
             label: {
@@ -32,7 +33,7 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
         return {
             fill,
             stroke,
-            colorRange: userPalette ? [fills[0], fills[1]] : defaultColorRange,
+            colorRange: userPalette === 'inbuilt' ? defaultColorRange : [fills[0], fills[1]],
         };
     },
 };

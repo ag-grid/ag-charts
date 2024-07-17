@@ -1,4 +1,4 @@
-import { type AgBoxPlotSeriesStyles, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { type AgBoxPlotSeriesStyle, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
 import { BoxPlotGroup } from './boxPlotGroup';
@@ -391,7 +391,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }) {
         const isVertical = this.isVertical();
         const isReversedValueAxis = this.getValueAxis()?.isReversed();
-        const { cornerRadius } = this.properties;
         datumSelection.each((boxPlotGroup, nodeDatum) => {
             let activeStyles = this.getFormattedStyles(nodeDatum, highlighted);
 
@@ -411,10 +410,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
             boxPlotGroup.updateDatumStyles(
                 nodeDatum,
-                activeStyles as _ModuleSupport.DeepRequired<AgBoxPlotSeriesStyles>,
+                activeStyles as _ModuleSupport.DeepRequired<AgBoxPlotSeriesStyle>,
                 isVertical,
-                isReversedValueAxis,
-                cornerRadius
+                isReversedValueAxis
             );
         });
     }
@@ -439,13 +437,13 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         return new BoxPlotGroup();
     }
 
-    getFormattedStyles(nodeDatum: BoxPlotNodeDatum, highlighted = false): AgBoxPlotSeriesStyles {
+    getFormattedStyles(nodeDatum: BoxPlotNodeDatum, highlighted = false): AgBoxPlotSeriesStyle {
         const {
             id: seriesId,
             ctx: { callbackCache },
             properties,
         } = this;
-        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, itemStyler, backgroundFill } = properties;
+        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, itemStyler, backgroundFill, cornerRadius } = properties;
         const { datum, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cap, whisker } = nodeDatum;
         let fill: string;
         let fillOpacity: number | undefined;
@@ -469,7 +467,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             fillOpacity = undefined;
         }
 
-        const activeStyles: Required<AgBoxPlotSeriesStyles> = {
+        const activeStyles: Required<AgBoxPlotSeriesStyle> = {
             fill,
             fillOpacity: fillOpacity!,
             stroke,
@@ -477,6 +475,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             strokeOpacity,
             lineDash,
             lineDashOffset,
+            cornerRadius,
             cap: extractDecoratedProperties(cap),
             whisker: extractDecoratedProperties(whisker),
         };

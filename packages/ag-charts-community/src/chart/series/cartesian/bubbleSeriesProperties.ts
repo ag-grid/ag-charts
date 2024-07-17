@@ -2,7 +2,7 @@ import type {
     AgBubbleSeriesLabelFormatterParams,
     AgBubbleSeriesOptions,
     AgBubbleSeriesOptionsKeys,
-    AgBubbleSeriesStyles,
+    AgBubbleSeriesStyle,
     AgBubbleSeriesTooltipRendererParams,
     BubbleSeriesItemStylerParams,
     LabelPlacement,
@@ -37,7 +37,7 @@ export interface BubbleNodeDatum extends CartesianSeriesNodeDatum {
     readonly fill: string | undefined;
 }
 
-class BubbleSeriesMarker extends SeriesMarker<AgBubbleSeriesOptionsKeys, BubbleNodeDatum> {
+class BubbleSeriesMarker extends SeriesMarker<AgBubbleSeriesOptionsKeys> {
     /**
      * The series `sizeKey` values along with the `size` and `maxSize` configs will be used to
      * determine the size of the marker. All values will be mapped to a marker size within the
@@ -126,7 +126,7 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     strokeOpacity!: number;
 
     @ProxyProperty('marker.itemStyler', { optional: true })
-    itemStyler?: Styler<BubbleSeriesItemStylerParams<unknown>, AgBubbleSeriesStyles>;
+    itemStyler?: Styler<BubbleSeriesItemStylerParams<unknown>, AgBubbleSeriesStyle>;
 
     @Validate(OBJECT)
     readonly label = new BubbleSeriesLabel();

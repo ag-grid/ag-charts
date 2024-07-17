@@ -1,0 +1,11 @@
+.ag-charts-text-input {
+    position: absolute;
+}
+
+.ag-charts-text-input__textarea {
+    display: block;
+    height: 100%;
+    width: 100%;
+    border: 0;
+    background: none;
+}

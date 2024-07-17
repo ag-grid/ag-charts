@@ -67,6 +67,9 @@ const options: AgCartesianChartOptions = {
             line: {
                 enabled: false,
             },
+            crosshair: {
+                enabled: false,
+            },
         },
     ],
     tooltip: {

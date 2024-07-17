@@ -1,8 +1,8 @@
 import type {
-    AgCandlestickSeriesBaseItemStylerParams,
-    AgCandlestickSeriesBaseOptions,
     AgCandlestickSeriesItemOptions,
+    AgCandlestickSeriesItemStylerParams,
     AgCandlestickSeriesTooltipRendererParams,
+    AgOhlcSeriesBaseOptions,
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
@@ -80,10 +80,7 @@ export interface CandlestickSeriesBaseItems<T> {
     readonly down: T;
 }
 
-export class CandlestickSeriesProperties<
-    T extends AgCandlestickSeriesBaseOptions,
-    StylerParams extends AgCandlestickSeriesBaseItemStylerParams<unknown>,
-> extends AbstractBarSeriesProperties<T> {
+export class CandlestickSeriesProperties<T extends AgOhlcSeriesBaseOptions> extends AbstractBarSeriesProperties<T> {
     @Validate(STRING)
     xKey!: string;
 
@@ -124,5 +121,5 @@ export class CandlestickSeriesProperties<
     readonly item: CandlestickSeriesBaseItems<any> = new CandlestickSeriesItems();
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<StylerParams, AgCandlestickSeriesItemOptions>;
+    itemStyler?: Styler<AgCandlestickSeriesItemStylerParams<unknown>, AgCandlestickSeriesItemOptions>;
 }

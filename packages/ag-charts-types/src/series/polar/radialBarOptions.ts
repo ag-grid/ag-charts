@@ -1,4 +1,3 @@
-import type { PixelSize } from '../../chart/types';
 import type { AgBaseSeriesOptions } from '../seriesOptions';
 import type {
     AgBaseRadialSeriesThemeableOptions,
@@ -15,8 +14,6 @@ export interface AgRadialBarSeriesOptions<TDatum = any>
         AgBaseRadialSeriesThemeableOptions<TDatum> {
     /** Configuration for Radial Bar Series. */
     type: 'radial-bar';
-    /** Apply rounded corners to each bar. */
-    cornerRadius?: PixelSize;
     /** The number to normalise the bar stacks to. Has no effect unless series are stacked. */
     normalizedTo?: number;
     /** Whether to group together (adjacently) separate sectors. */
@@ -26,8 +23,3 @@ export interface AgRadialBarSeriesOptions<TDatum = any>
     /** An ID to be used to group stacked items. */
     stackGroup?: string;
 }
-
-/**
- * Internal Use Only: Used to ensure this file is treated as a module until we can use moduleDetection flag in Ts v4.7
- */
-export const __FORCE_MODULE_DETECTION = 0;

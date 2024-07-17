@@ -44,7 +44,7 @@ export const ZoomModule: _ModuleSupport.Module = {
     packageType: 'enterprise',
     chartTypes: ['cartesian', 'topology'],
     dependencies: ['toolbar'],
-    instanceConstructor: Zoom,
+    moduleFactory: (ctx) => new Zoom(ctx),
     themeTemplate: {
         zoom: {
             anchorPointX: 'end',

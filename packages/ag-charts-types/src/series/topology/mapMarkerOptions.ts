@@ -1,81 +1,21 @@
-import type { AgChartCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
-import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
+import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, GeoJSON, LabelPlacement, MarkerShape, PixelSize } from '../../chart/types';
 import type { FillOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
-export interface AgMapMarkerSeriesTooltipRendererParams<TDatum>
-    extends AgChartCallbackParams<TDatum>,
-        AgMapMarkerSeriesOptionsKeys,
-        AgMapMarkerSeriesOptionsNames {
-    /** The title of the Feature. */
-    title: string;
-    /** The computed fill colour of the Feature. */
-    color: CssColor | undefined;
-}
+export type AgMapMarkerSeriesTooltipRendererParams<TDatum> = AgSeriesTooltipRendererParams<TDatum> &
+    AgMapMarkerSeriesOptionsKeys &
+    AgMapMarkerSeriesOptionsNames;
 
-export interface AgMapMarkerSeriesHighlightStyle<_TDatum> extends AgSeriesHighlightStyle, FillOptions, StrokeOptions {}
+export type AgMapMarkerSeriesHighlightStyle<_TDatum> = AgSeriesHighlightStyle & FillOptions & StrokeOptions;
 
-export interface AgMapMarkerSeriesStyle extends FillOptions, StrokeOptions {
-    /** The shape to use for the markers. You can also supply a custom marker by providing a `Marker` subclass. */
-    shape?: MarkerShape;
-    /** The size in pixels of the markers. */
-    size?: PixelSize;
-    /** Determines the largest size a marker can be in pixels. */
-    maxSize?: PixelSize;
-    /** Explicitly specifies the extent of the domain for series `sizeKey`. */
-    sizeDomain?: [number, number];
-}
+export type AgMapMarkerSeriesLabelFormatterParams = AgMapMarkerSeriesOptionsKeys & AgMapMarkerSeriesOptionsNames;
 
-export interface AgMapMarkerSeriesLabel<TDatum>
-    extends AgChartLabelOptions<TDatum, AgMapMarkerSeriesLabelFormatterParams> {
-    /**
-     * Placement of label in relation to the marker.
-     *
-     * Default: `bottom`
-     */
-    placement?: LabelPlacement;
-}
-
-export interface AgMapMarkerSeriesThemeableOptions<TDatum = any>
-    extends AgMapMarkerSeriesStyle,
-        Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
-    /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
-    colorRange?: CssColor[];
-    /** Configuration for the labels shown on top of data points. */
-    label?: AgMapMarkerSeriesLabel<TDatum>;
-    /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgMapMarkerSeriesTooltipRendererParams<TDatum>>;
-    /** A callback function for adjusting the styles of a particular Map marker based on the input parameters. */
-    itemStyler?: Styler<AgMapMarkerSeriesFormatterParams, AgMapMarkerSeriesStyle>;
-    /** Style overrides when a node is hovered. */
-    highlightStyle?: AgMapMarkerSeriesHighlightStyle<TDatum>;
-}
-
-export interface AgMapMarkerSeriesOptions<TDatum = any>
-    extends Omit<AgBaseSeriesOptions<TDatum>, 'highlightStyle'>,
-        AgMapMarkerSeriesOptionsKeys,
-        AgMapMarkerSeriesOptionsNames,
-        AgMapMarkerSeriesThemeableOptions<TDatum> {
-    /** Configuration for the Map Marker Series. */
-    type: 'map-marker';
-    /** GeoJSON data. */
-    topology?: GeoJSON;
-    /**
-     * The property to reference in the topology to match up with data.
-     *
-     * Default: `name`
-     */
-    topologyIdKey?: string;
-    /** The title to use for the series. */
-    title?: string;
-    /**
-     * The text to display in the legend for this series.
-     * If multiple series share this value, they will be merged for the legend toggle behaviour.
-     */
-    legendItemName?: string;
-}
+export type AgMapMarkerSeriesItemStylerParams<TDatum = any> = DatumCallbackParams<TDatum> &
+    AgMapMarkerSeriesOptionsKeys &
+    Required<AgMapMarkerSeriesStyle>;
 
 export interface AgMapMarkerSeriesOptionsKeys {
     /** The name of the node key containing the id value. */
@@ -107,13 +47,62 @@ export interface AgMapMarkerSeriesOptionsNames {
     labelName?: string;
 }
 
-export type AgMapMarkerSeriesLabelFormatterParams = AgMapMarkerSeriesOptionsKeys & AgMapMarkerSeriesOptionsNames;
+export interface AgMapMarkerSeriesStyle extends FillOptions, StrokeOptions {
+    /** The shape to use for the markers. You can also supply a custom marker by providing a `Marker` subclass. */
+    shape?: MarkerShape;
+    /** The size in pixels of the markers. */
+    size?: PixelSize;
+}
 
-/** The parameters of the Map series formatter function */
-export interface AgMapMarkerSeriesFormatterParams<TDatum = any>
-    extends AgChartCallbackParams<TDatum>,
+export interface AgMapMarkerSeriesLabel<TDatum>
+    extends AgChartLabelOptions<TDatum, AgMapMarkerSeriesLabelFormatterParams> {
+    /**
+     * Placement of label in relation to the marker.
+     *
+     * Default: `bottom`
+     */
+    placement?: LabelPlacement;
+}
+
+export interface AgMapMarkerSeriesThemeableOptions<TDatum = any>
+    extends AgMapMarkerSeriesStyle,
+        Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
+    /** Determines the largest size a marker can be in pixels. */
+    maxSize?: PixelSize;
+    /** Explicitly specifies the extent of the domain for series `sizeKey`. */
+    sizeDomain?: [number, number];
+    /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
+    colorRange?: CssColor[];
+    /** Configuration for the labels shown on top of data points. */
+    label?: AgMapMarkerSeriesLabel<TDatum>;
+    /** Series-specific tooltip configuration. */
+    tooltip?: AgSeriesTooltip<AgMapMarkerSeriesTooltipRendererParams<TDatum>>;
+    /** A callback function for adjusting the styles of a particular Map marker based on the input parameters. */
+    itemStyler?: Styler<AgMapMarkerSeriesItemStylerParams, AgMapMarkerSeriesStyle>;
+    /** Style overrides when a node is hovered. */
+    highlightStyle?: AgMapMarkerSeriesHighlightStyle<TDatum>;
+}
+
+export interface AgMapMarkerSeriesOptions<TDatum = any>
+    extends Omit<AgBaseSeriesOptions<TDatum>, 'highlightStyle'>,
         AgMapMarkerSeriesOptionsKeys,
-        AgMapMarkerSeriesStyle {
-    /** `true` if the sector is highlighted by hovering. */
-    readonly highlighted: boolean;
+        AgMapMarkerSeriesOptionsNames,
+        AgMapMarkerSeriesThemeableOptions<TDatum> {
+    /** Configuration for the Map Marker Series. */
+    type: 'map-marker';
+    /** GeoJSON data. */
+    topology?: GeoJSON;
+    /**
+     * The property to reference in the topology to match up with data.
+     *
+     * Default: `name`
+     */
+    topologyIdKey?: string;
+    /** The title to use for the series. */
+    title?: string;
+    /**
+     * The text to display in the legend for this series.
+     * If multiple series share this value, they will be merged for the legend toggle behaviour.
+     */
+    legendItemName?: string;
 }

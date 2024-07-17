@@ -2,16 +2,17 @@ import type { BindingImport } from './parser-utils';
 
 export function wrapOptionsUpdateCode(
     code: string,
-    before = 'const options = {...this.options};',
+    before = 'const options = deepClone(this.options);',
     after = 'this.options = options;',
     localVar = 'options'
 ): string {
-    if (code.indexOf('options.') < 0) {
+    if (!code.includes('options.') && !code.includes('options[')) {
         return code;
     }
 
     return code
         .replace(/(?<!\w)options\./g, localVar + '.')
+        .replace(/(?<!\w)options\[/g, localVar + '[')
         .replace(/(.*?)\{(.*)\}/s, `$1{\n${before}\n$2\n${after}\n}`);
 }
 

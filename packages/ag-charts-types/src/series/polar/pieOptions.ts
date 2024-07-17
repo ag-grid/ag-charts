@@ -26,7 +26,10 @@ export type AgPieSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
     AgPieSeriesOptionsKeys &
     Required<AgPieSeriesStyle>;
 
-export type AgPieSeriesStyle = FillOptions & StrokeOptions;
+export interface AgPieSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
+    /** Apply rounded corners to each sector. */
+    cornerRadius?: PixelSize;
+}
 
 export interface AgPieTitleOptions extends Toggleable, FontOptions {
     /** The text to display. */
@@ -80,12 +83,12 @@ export interface AgPieSeriesThemeableOptions<TDatum = any>
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgPieSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgPieSeriesTooltipRendererParams<TDatum>>;
     /** Apply rounded corners to each sector. */
     cornerRadius?: PixelSize;
     /** The spacing between Pie sectors. */
     sectorSpacing?: PixelSize;
-    /** A formatter function for adjusting the styling of the pie sectors. */
+    /** A styler function for adjusting the styling of the pie sectors. */
     itemStyler?: Styler<AgPieSeriesItemStylerParams<TDatum>, AgPieSeriesStyle>;
 }
 
@@ -122,8 +125,8 @@ export interface AgPieSeriesOptionsNames {
     sectorLabelName?: string;
 }
 
-export interface AgPieSeriesTooltipRendererParams
-    extends AgSeriesTooltipRendererParams,
+export interface AgPieSeriesTooltipRendererParams<TDatum>
+    extends AgSeriesTooltipRendererParams<TDatum>,
         AgPieSeriesOptionsKeys,
         AgPieSeriesOptionsNames {}
 

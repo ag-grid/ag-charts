@@ -42,6 +42,14 @@
     display: block;
 }
 
+.ag-charts-canvas-proxy {
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+
 .ag-charts-tab-guard {
     opacity: 0;
     width: 0px;
@@ -82,9 +90,17 @@
     --ag-charts-border-critical: var(--ag-borders-critical, solid 1px);
 
     /* Layout */
-    --ag-charts-layer-tooltip: 1;
+    --ag-charts-layer-context-menu: 5;
+    --ag-charts-layer-tooltip: 4;
+    --ag-charts-layer-toolbar: 3;
+    --ag-charts-layer-crosshair: 2;
+    --ag-charts-layer-annotations: 1;
     --ag-charts-align: center;
     --ag-charts-justify: center;
+
+    /* Axis Labels */
+    --ag-charts-axis-label-background-color: #474747;
+    --ag-charts-axis-label-color: #ffffff;
 
     /* Toolbar */
     --ag-charts-toolbar-foreground-color: var(--ag-header-foreground-color, var(--ag-charts-foreground-color));
@@ -101,11 +117,12 @@
         var(--ag-charts-active-color) 12%
     );
     --ag-charts-toolbar-focus-color: var(--ag-charts-active-color);
-    --ag-charts-toolbar-active-color: color-mix(
+    --ag-charts-toolbar-active-background-color: color-mix(
         in srgb,
         var(--ag-charts-background-color),
         var(--ag-charts-active-color) 24%
     );
+    --ag-charts-toolbar-active-color: var(--ag-active-color, #5090dc);
     --ag-charts-toolbar-disabled-foreground-color: var(
         --ag-disabled-foreground-color,
         color-mix(in srgb, transparent, var(--ag-charts-toolbar-foreground-color) 50%)
@@ -118,7 +135,7 @@
     --ag-charts-toolbar-gap: var(--ag-charts-size);
     --ag-charts-toolbar-font-size: 14px;
     --ag-charts-toolbar-font-size-small: 12px;
-    --ag-charts-toolbar-button-padding: 8px;
+    --ag-charts-toolbar-button-padding: 7px;
     --ag-charts-toolbar-button-padding-small: 3px;
 
     /* Buttons */
@@ -150,6 +167,10 @@
         --ag-row-hover-color,
         color-mix(in srgb, transparent, var(--ag-charts-active-color) 20%)
     );
+
+    /* Axis Labels */
+    --ag-charts-axis-label-background-color: #9caebb;
+    --ag-charts-axis-label-color: #000000;
 
     /* Toolbar */
     --ag-charts-toolbar-background-color: var(--ag-header-background-color, color-mix(in srgb, #fff, #182230 93%));
@@ -248,4 +269,8 @@ To create an icon uri:
 
 .ag-charts-icon-plus {
     mask-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXBsdXMiPjxwYXRoIGQ9Ik01IDEyaDE0Ii8+PHBhdGggZD0iTTEyIDV2MTQiLz48L3N2Zz4=);
+}
+
+.ag-charts-icon-crossline-add-line {
+    mask-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgZmlsbD0ibm9uZSI+PHBhdGggZmlsbD0iIzAwMCIgZmlsbC1ydWxlPSJldmVub2RkIiBkPSJNOC43NSA0LjVhLjc1Ljc1IDAgMCAwLTEuNSAwdjIuNzVINC41YS43NS43NSAwIDAgMCAwIDEuNWgyLjc1djIuNzVhLjc1Ljc1IDAgMCAwIDEuNSAwVjguNzVoMi43NWEuNzUuNzUgMCAwIDAgMC0xLjVIOC43NXoiIGNsaXAtcnVsZT0iZXZlbm9kZCIvPjwvc3ZnPg==);
 }
