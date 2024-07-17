@@ -16,16 +16,21 @@ import { SeriesAreaTooltipManager } from './seriesAreaTooltipManager';
 import type { SeriesNodeDatum } from './seriesTypes';
 import { pickNode } from './util';
 
+interface SeriesAreaSubManager {
+    seriesChanged(series: Series<any, any>[]): void;
+    dataChanged?: () => void;
+    seriesUpdated?: () => void;
+
+    destroy(): void;
+}
+
 /** Manager that handles all top-down series-area related concerns and state. */
 export class SeriesAreaManager extends BaseManager {
     readonly id = createId(this);
 
     private series: Series<any, any>[] = [];
 
-    private readonly focusManager: SeriesAreaFocusManager;
-    private readonly highlightManager: SeriesAreaHighlightManager;
-    private readonly tooltipManager: SeriesAreaTooltipManager;
-    private readonly clickManager: SeriesAreaClickManager;
+    private subManagers: SeriesAreaSubManager[];
 
     public constructor(
         chart: {
@@ -40,38 +45,37 @@ export class SeriesAreaManager extends BaseManager {
     ) {
         super();
 
-        this.focusManager = new SeriesAreaFocusManager(this.id, chart, ctx, chartType, overlays);
-        this.highlightManager = new SeriesAreaHighlightManager(this.id, chart, ctx, highlight);
-        this.tooltipManager = new SeriesAreaTooltipManager(this.id, chart, ctx, tooltip);
-        this.clickManager = new SeriesAreaClickManager(this.id, chart, ctx);
+        this.subManagers = [
+            new SeriesAreaFocusManager(this.id, chart, ctx, chartType, overlays),
+            new SeriesAreaHighlightManager(this.id, chart, ctx, highlight),
+            new SeriesAreaTooltipManager(this.id, chart, ctx, tooltip),
+            new SeriesAreaClickManager(this.id, chart, ctx),
+        ];
 
         const seriesRegion = this.ctx.regionManager.getRegion(REGIONS.SERIES);
-
         this.destroyFns.push(
-            () => this.focusManager.destroy(),
-            () => this.highlightManager.destroy(),
-            () => this.tooltipManager.destroy(),
-            () => this.clickManager.destroy(),
+            () => this.subManagers.forEach((s) => s.destroy()),
             seriesRegion.addListener('contextmenu', (event) => this.onContextMenu(event), InteractionState.All)
         );
     }
 
     public dataChanged() {
-        this.highlightManager.dataChanged();
-        this.clickManager.dataChanged();
+        for (const manager of this.subManagers) {
+            manager.dataChanged?.();
+        }
     }
 
     public seriesUpdated() {
-        this.highlightManager.seriesUpdated();
-        this.clickManager.seriesUpdated();
+        for (const manager of this.subManagers) {
+            manager.seriesUpdated?.();
+        }
     }
 
     public seriesChanged(series: Series<any, any>[]) {
         this.series = series;
-        this.focusManager.series = series;
-        this.highlightManager.series = series;
-        this.tooltipManager.series = series;
-        this.clickManager.series = series;
+        for (const manager of this.subManagers) {
+            manager.seriesChanged(series);
+        }
     }
 
     private onContextMenu(event: PointerInteractionEvent<'contextmenu'>): void {

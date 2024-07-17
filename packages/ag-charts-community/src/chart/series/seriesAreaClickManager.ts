@@ -3,15 +3,16 @@ import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types
 import type { TypedEvent } from '../../util/observable';
 import { BaseManager } from '../baseManager';
 import type { ChartContext } from '../chartContext';
+import { ChartUpdateType } from '../chartUpdateType';
 import { type PointerInteractionEvent, type PointerOffsets } from '../interaction/interactionManager';
 import { REGIONS } from '../interaction/regions';
+import type { UpdateOpts } from '../updateService';
 import { type Series } from './series';
 import { pickNode } from './util';
 
 /** Manager that handles all top-down series-area node-click related concerns and state. */
 export class SeriesAreaClickManager extends BaseManager {
-    public series: Series<any, any>[] = [];
-
+    private series: Series<any, any>[] = [];
     private lastHover?: PointerOffsets;
 
     public constructor(
@@ -37,6 +38,10 @@ export class SeriesAreaClickManager extends BaseManager {
         );
     }
 
+    public seriesChanged(series: Series<any, any>[]) {
+        this.series = series;
+    }
+
     public dataChanged() {
         this.lastHover = undefined;
     }
@@ -45,6 +50,10 @@ export class SeriesAreaClickManager extends BaseManager {
         if (this.lastHover) {
             this.onHover(this.lastHover);
         }
+    }
+
+    private update(type?: ChartUpdateType, opts?: UpdateOpts) {
+        this.ctx.updateService.update(type, opts);
     }
 
     private onLeave(): void {
@@ -63,6 +72,7 @@ export class SeriesAreaClickManager extends BaseManager {
 
     private onClick(event: PointerInteractionEvent<'click' | 'dblclick'>) {
         if (this.checkSeriesNodeClick(event)) {
+            this.update(ChartUpdateType.SERIES_UPDATE);
             event.preventDefault();
             return;
         }
@@ -79,7 +89,7 @@ export class SeriesAreaClickManager extends BaseManager {
     ) {
         const result = pickNode(this.series, { x: event.offsetX, y: event.offsetY }, 'event');
         if (result && event.type === 'click') {
-            result.series.fireNodeClickEvent(event.sourceEvent, result);
+            result.series.fireNodeClickEvent(event.sourceEvent, result.datum);
             return true;
         }
 
@@ -95,7 +105,7 @@ export class SeriesAreaClickManager extends BaseManager {
             event.preventZoomDblClick = result == null || result.distance > 0;
 
             if (result != null) {
-                result.series.fireNodeDoubleClickEvent(event.sourceEvent, result);
+                result.series.fireNodeDoubleClickEvent(event.sourceEvent, result.datum);
                 return true;
             }
         }

@@ -16,8 +16,7 @@ import { pickNode } from './util';
 
 /** Manager that handles all top-down series-area highlight concerns and state. */
 export class SeriesAreaHighlightManager extends BaseManager {
-    public series: Series<any, any>[] = [];
-
+    private series: Series<any, any>[] = [];
     private lastHoverEvent?: PointerInteractionEvent<'hover'>;
     private hoverRect?: BBox;
 
@@ -50,6 +49,10 @@ export class SeriesAreaHighlightManager extends BaseManager {
             this.ctx.zoomManager.addListener('zoom-pan-start', () => this.clearHighlight()),
             this.ctx.zoomManager.addListener('zoom-change', () => this.clearHighlight())
         );
+    }
+
+    public seriesChanged(series: Series<any, any>[]) {
+        this.series = series;
     }
 
     public dataChanged() {

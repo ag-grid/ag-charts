@@ -17,8 +17,7 @@ import type { SeriesNodeDatum } from './seriesTypes';
 
 /** Manages focus and keyboard navigation concerns around the series area and sub-components. */
 export class SeriesAreaFocusManager extends BaseManager {
-    public series: Series<any, any>[] = [];
-
+    private series: Series<any, any>[] = [];
     private seriesRect?: BBox;
 
     private readonly focus = {
@@ -56,8 +55,8 @@ export class SeriesAreaFocusManager extends BaseManager {
         );
     }
 
-    hasFocus() {
-        return this.focus.hasFocus;
+    public seriesChanged(series: Series<any, any>[]) {
+        this.series = series;
     }
 
     private layoutComplete(event: LayoutCompleteEvent): void {

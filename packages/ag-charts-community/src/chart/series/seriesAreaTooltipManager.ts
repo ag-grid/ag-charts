@@ -15,8 +15,7 @@ import { pickNode } from './util';
 
 /** Manager that handles all top-down series-area tooltip related concerns and state. */
 export class SeriesAreaTooltipManager extends BaseManager {
-    public series: Series<any, any>[] = [];
-
+    private series: Series<any, any>[] = [];
     private hoverRect?: BBox;
     private lastPick?: SeriesNodeDatum;
     private lastHover?: TooltipPointerEvent<'hover'>;
@@ -57,6 +56,10 @@ export class SeriesAreaTooltipManager extends BaseManager {
             this.ctx.zoomManager.addListener('zoom-pan-start', () => this.clearTooltip()),
             this.ctx.zoomManager.addListener('zoom-change', () => this.clearTooltip())
         );
+    }
+
+    public seriesChanged(series: Series<any, any>[]) {
+        this.series = series;
     }
 
     public dataChanged() {
