@@ -49,7 +49,10 @@ export class SeriesAreaFocusManager extends BaseManager {
             seriesRegion.addListener('nav-vert', (event) => this.onNavVert(event)),
             seriesRegion.addListener('nav-hori', (event) => this.onNavHori(event)),
             seriesRegion.addListener('submit', (event) => this.onSubmit(event)),
-            this.ctx.keyNavManager.addListener('browserfocus', (event) => this.onBrowserFocus(event))
+            this.ctx.keyNavManager.addListener('browserfocus', (event) => this.onBrowserFocus(event)),
+            this.ctx.zoomManager.addListener('zoom-change', () => {
+                this.ctx.focusIndicator.updateBounds(undefined);
+            })
         );
     }
 
