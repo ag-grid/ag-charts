@@ -5,7 +5,6 @@ import type { Point } from '../../scene/point';
 import { createId } from '../../util/id';
 import type { TypedEvent } from '../../util/observable';
 import { debouncedAnimationFrame } from '../../util/render';
-import { isFiniteNumber } from '../../util/type-guards';
 import { BaseManager } from '../baseManager';
 import type { ChartContext } from '../chartContext';
 import type { ChartHighlight } from '../chartHighlight';
@@ -18,9 +17,8 @@ import type { LayoutCompleteEvent } from '../layout/layoutService';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import { DEFAULT_TOOLTIP_CLASS, Tooltip, type TooltipPointerEvent } from '../tooltip/tooltip';
 import type { UpdateOpts } from '../updateService';
-import { type Series, type SeriesNodePickIntent, SeriesNodePickMode } from './series';
+import { type Series, type SeriesNodePickIntent } from './series';
 import { SeriesAreaFocusManager } from './seriesAreaFocusManager';
-import type { SeriesProperties } from './seriesProperties';
 import type { ISeries, SeriesNodeDatum } from './seriesTypes';
 
 type PickedNode = {
@@ -120,29 +118,21 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     // x/y are local canvas coordinates in CSS pixels, not actual pixels
-    private pickNode(
-        point: Point,
-        intent: SeriesNodePickIntent,
-        collection: {
-            series: Series<SeriesNodeDatum, SeriesProperties<object[]>>;
-            pickModes?: SeriesNodePickMode[];
-            maxDistance?: number;
-        }[]
-    ): PickedNode | undefined {
+    private pickNode(point: Point, intent: SeriesNodePickIntent, exactMatchOnly?: boolean): PickedNode | undefined {
         // Iterate through series in reverse, as later declared series appears on top of earlier
         // declared series.
-        const reverseSeries = [...collection].reverse();
+        const reverseSeries = [...this.series].reverse();
 
         let result: { series: Series<any, any>; datum: SeriesNodeDatum; distance: number } | undefined;
-        for (const { series, pickModes, maxDistance } of reverseSeries) {
+        for (const series of reverseSeries) {
             if (!series.visible || !series.rootGroup.visible) {
                 continue;
             }
-            const { match, distance } = series.pickNode(point, intent, pickModes) ?? {};
+            const { match, distance } = series.pickNode(point, intent, exactMatchOnly) ?? {};
             if (!match || distance == null) {
                 continue;
             }
-            if ((!result || result.distance > distance) && distance <= (maxDistance ?? Infinity)) {
+            if (!result || result.distance > distance) {
                 result = { series, distance, datum: match };
             }
             if (distance === 0) {
@@ -151,34 +141,6 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         return result;
-    }
-
-    private pickSeriesNode(
-        point: Point,
-        intent: SeriesNodePickIntent,
-        exactMatchOnly: boolean,
-        maxDistance?: number
-    ): PickedNode | undefined {
-        // Disable 'nearest match' options if looking for exact matches only
-        const pickModes = exactMatchOnly ? [SeriesNodePickMode.EXACT_SHAPE_MATCH] : undefined;
-        return this.pickNode(
-            point,
-            intent,
-            this.series.map((series) => ({ series, pickModes, maxDistance }))
-        );
-    }
-
-    private pickTooltip(point: Point): PickedNode | undefined {
-        return this.pickNode(
-            point,
-            'tooltip',
-            this.series.map((series) => {
-                const tooltipRange = series.properties.tooltip.range;
-                const pickModes = tooltipRange === 'exact' ? [SeriesNodePickMode.EXACT_SHAPE_MATCH] : undefined;
-                const maxDistance = typeof tooltipRange === 'number' ? tooltipRange : undefined;
-                return { series, pickModes, maxDistance };
-            })
-        );
     }
 
     private lastPick?: SeriesNodeDatum;
@@ -296,7 +258,7 @@ export class SeriesAreaManager extends BaseManager {
             return;
         }
 
-        const pick = this.pickTooltip({ x: offsetX, y: offsetY });
+        const pick = this.pickNode({ x: offsetX, y: offsetY }, 'tooltip');
         if (!pick) {
             this.ctx.tooltipManager.removeTooltip(this.id);
             if (this.highlight.range === 'tooltip') {
@@ -372,19 +334,10 @@ export class SeriesAreaManager extends BaseManager {
         intent: SeriesNodePickIntent,
         event: PointerOffsetsAndHistory & { preventZoomDblClick?: boolean }
     ) {
-        const nearestNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, intent, false);
-
-        const datum = nearestNode?.datum;
-        const nodeClickRange = datum?.series.properties.nodeClickRange;
-
-        let pixelRange: number | undefined;
-        if (isFiniteNumber(nodeClickRange)) {
-            pixelRange = nodeClickRange;
-        }
+        const match = this.pickNode({ x: event.offsetX, y: event.offsetY }, intent);
 
         // Find the node if exactly matched and update the highlight picked node
-        let pickedNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, intent, true);
-        if (pickedNode) {
+        if (match == null || match.distance > 0) {
             // See: AG-11737#TC3, AG-11676
             //
             // The Zoom module's double-click handler resets the zoom, but only if there isn't an
@@ -397,35 +350,7 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         // First check if we should trigger the callback based on nearest node
-        if (datum && nodeClickRange === 'nearest') {
-            return datum;
-        }
-
-        if (nodeClickRange !== 'exact') {
-            pickedNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, intent, false, pixelRange);
-        }
-
-        if (!pickedNode) return false;
-
-        // Then if we've picked a node within the pixel range, or exactly, trigger the callback
-        const isPixelRange = pixelRange != null;
-        const exactlyMatched = nodeClickRange === 'exact' && pickedNode.distance === 0;
-
-        if (isPixelRange || exactlyMatched) {
-            const allMatch: boolean =
-                event.pointerHistory === undefined ||
-                event.pointerHistory?.every((pastEvent) => {
-                    const historyPoint = { x: pastEvent.offsetX, y: pastEvent.offsetY };
-                    const historyNode =
-                        nodeClickRange === 'exact'
-                            ? this.pickSeriesNode(historyPoint, intent, true)
-                            : this.pickSeriesNode(historyPoint, intent, false, pixelRange);
-                    return historyNode?.datum === pickedNode?.datum;
-                });
-            if (allMatch) {
-                return pickedNode.datum;
-            }
-        }
+        return match?.datum;
     }
 
     private changeHighlightDatum(event: HighlightChangeEvent) {

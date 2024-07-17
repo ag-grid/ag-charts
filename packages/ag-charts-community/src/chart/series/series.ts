@@ -645,7 +645,7 @@ export abstract class Series<
     pickNode(
         point: Point,
         intent: SeriesNodePickIntent,
-        limitPickModes?: SeriesNodePickMode[]
+        exactMatchOnly = false
     ): { pickMode: SeriesNodePickMode; match: SeriesNodeDatum; distance: number } | undefined {
         const { pickModes, visible, rootGroup } = this;
 
@@ -653,10 +653,18 @@ export abstract class Series<
         if (intent === 'highlight' && !this.properties.highlight.enabled) return;
         if (intent === 'tooltip' && !this.properties.tooltip.enabled) return;
 
+        let maxDistance = Infinity;
+        if (intent === 'tooltip') {
+            const { range } = this.properties.tooltip;
+            maxDistance = typeof range === 'number' ? range : Infinity;
+            exactMatchOnly ||= range === 'exact';
+        } else if (intent === 'event') {
+            const range = this.properties.nodeClickRange;
+            maxDistance = typeof range === 'number' ? range : Infinity;
+            exactMatchOnly ||= range === 'exact';
+        }
         for (const pickMode of pickModes) {
-            if (limitPickModes && !limitPickModes.includes(pickMode)) {
-                continue;
-            }
+            if (exactMatchOnly && pickMode !== SeriesNodePickMode.EXACT_SHAPE_MATCH) continue;
 
             let match: SeriesNodePickMatch | undefined;
 
@@ -678,7 +686,7 @@ export abstract class Series<
                     break;
             }
 
-            if (match) {
+            if (match && match.distance <= maxDistance) {
                 return { pickMode, match: match.datum, distance: match.distance };
             }
         }
