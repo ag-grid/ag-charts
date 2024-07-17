@@ -747,9 +747,7 @@ export abstract class Chart extends Observable {
             series.addChartEventListeners();
         }
 
-        if (this.seriesAreaManager) {
-            this.seriesAreaManager.series = newValue;
-        }
+        this.seriesAreaManager?.seriesChanged(newValue);
     }
 
     protected destroySeries(allSeries: Series<any, any>[]): void {
