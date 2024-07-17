@@ -133,12 +133,15 @@ export enum InteractionState {
     All = Default | ZoomDrag | Annotations | ContextMenu | Animation,
 }
 
-enum PointerMode {
-    Passthrough = 'passthrough',
+// Setting data-pointer-capture on an element will stop the interaction manager
+// sending mouse events to the canvas while the mouse is over one of these elements
+enum PointerCapture {
+    // Keep the mouse cursor in the last position on the canvas
+    Retain = 'retain',
+    // Treat the mouse cursor as exiting the canvas
     Exclusive = 'exclusive',
-    Remove = 'remove',
 }
-const pointerModes = new Set(Object.values(PointerMode));
+const pointerCaptures = new Set(Object.values(PointerCapture));
 
 function isPointerEvent(type: InteractionTypes): type is PointerInteractionTypes {
     return POINTER_INTERACTION_TYPES.includes(type as any);
@@ -270,18 +273,18 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         if (coords == null) return;
 
         let target = event.target as HTMLElement | null;
-        let pointerMode: PointerMode | null = null;
+        let pointerCapture: PointerCapture | null = null;
         while (target != null) {
-            pointerMode = target.getAttribute('data-pointer-mode') as PointerMode | null;
+            pointerCapture = target.getAttribute('data-pointer-capture') as PointerCapture | null;
 
-            if (pointerMode == null) {
+            if (pointerCapture == null) {
                 target = target.parentElement;
             } else {
                 break;
             }
         }
 
-        if (target == null || pointerMode == null || !pointerModes.has(pointerMode)) return;
+        if (target == null || pointerCapture == null || !pointerCaptures.has(pointerCapture)) return;
 
         const isOverCanvasOverlay = target.matches(':hover');
 
@@ -289,7 +292,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
         this.inCanvasOverlayElement = isOverCanvasOverlay;
 
-        if (pointerMode === PointerMode.Remove) {
+        if (pointerCapture === PointerCapture.Exclusive) {
             dispatchTypedEvent(
                 this.listeners,
                 this.buildPointerEvent({ type: isOverCanvasOverlay ? 'leave' : 'enter', event, ...coords })
