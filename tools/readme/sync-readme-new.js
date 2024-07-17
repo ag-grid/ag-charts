@@ -1,3 +1,13 @@
+// Framework Code Snippets
+const {
+    financialChartsAngular,
+    financialChartsReact,
+    financialChartsVue3,
+    quickStartReact,
+    quickStartAngular,
+    quickStartVue3,
+} = require('./readme-framework-content');
+
 const fs = require('fs');
 const path = require('path');
 const glob = require('glob');
@@ -26,13 +36,23 @@ const updateContent = (readme) => {
         .replaceAll('https://charts.ag-grid.com/javascript/', `https://charts.ag-grid.com/${framework}/`)
         .replaceAll('/ag-charts-community', `/${packageName}`)
         .replaceAll('JavaScript', `${packageTitle}`)
-        .replaceAll('$ npm install ag-charts-community', `$ npm install ${packageName}`);
+        .replaceAll('$ npm install ag-charts-community', `$ npm install ${packageName}`)
+        .replaceAll(
+            'Read on for vanilla JavaScript installation instructions, or refer to our framework-specific guides for <strong><a href="https://github.com/ag-grid/ag-charts/tree/latest/packages/ag-charts-react"><img src="https://github.com/ag-grid/ag-grid/blob/latest/documentation/ag-grid-docs/public/images/fw-logos/react.svg?raw=true" height="16" width="16" alt="React Logo"> React</a></strong>, <strong><a href="https://github.com/ag-grid/ag-charts/tree/latest/packages/ag-charts-angular"><img src="https://github.com/ag-grid/ag-grid/blob/latest/documentation/ag-grid-docs/public/images/fw-logos/angular.svg?raw=true" height="16" width="16" alt="Angular Logo"> Angular</a></strong> and <strong><a href="https://github.com/ag-grid/ag-charts/tree/latest/packages/ag-charts-vue3"><img src="https://github.com/ag-grid/ag-grid/blob/latest/documentation/ag-grid-docs/public/images/fw-logos/vue.svg?raw=true" height="16" width="16" alt="Vue Logo"> Vue</a></strong>.',
+            ''
+        );
 
     // Update Main Description
     newReadme = updateMainDescription(newReadme, packageTitle);
 
     // Update Finance Charts Snippet
     newReadme = updateFinancialChartsCodeSnippet(newReadme, packageTitle);
+
+    // Update Quick Start Desc
+    newReadme = updateQuickStartDescription(newReadme, packageTitle);
+
+    // Update Setup for Frameworks
+    newReadme = updateSetup(newReadme, packageTitle);
 
     return newReadme;
 };
@@ -58,55 +78,76 @@ const updateFinancialChartsCodeSnippet = (content, packageTitle) => {
     const normalizedTitle = packageTitle.trim().toLowerCase();
     switch (normalizedTitle) {
         case 'react':
-            newContent = `\`\`\`js
-const [options, setOptions] = useState({
-    data: getData(),
-});\n
-return (
-    <AgFinancialCharts options={options} />
-);
-\`\`\``;
+            newContent = financialChartsReact;
             break;
         case 'angular':
-            newContent = `\`\`\`js
-@Component({
-    selector: 'app-root',
-    standalone: true,
-    imports: [AgFinancialCharts],
-    template: \`<ag-financial-charts [options]="options"></ag-financial-charts>\`,
-})\n
-export class AppComponent {
-    public options: AgFinancialChartOptions;
-    constructor() {
-        this.options = {
-            data: getData(),
-        };
-    }
-\`\`\``;
+            newContent = financialChartsAngular;
             break;
         case 'vue3':
-            newContent = `\`\`\`js
-template: \`<ag-financial-charts :options="options"/>\`,
-components: {
-    'ag-financial-charts': AgFinancialCharts,
-},
-data() {
-    return {
-        options: {
-            data: getData(),
-        },
-    };
-}
-\`\`\``;
+            newContent = financialChartsVue3;
             break;
+        default:
+            return content;
     }
-
-    // Not a framework, don't update the snippet
-    if (!newContent) return content;
 
     // Define the start and end markers
     const startMarker = '<!-- START FINANCIAL CHARTS CODE SNIPPET -->';
     const endMarker = '<!-- END FINANCIAL CHARTS CODE SNIPPET -->';
+
+    // Construct the new content to be inserted
+    const newSection = `${startMarker}\n${newContent}\n${endMarker}`;
+
+    // Use regular expressions to find and replace the content between the markers
+    const regex = new RegExp(`${startMarker}[\\s\\S]*?${endMarker}`, 'g');
+    return content.replace(regex, newSection);
+};
+
+const updateQuickStartDescription = (content, packageTitle) => {
+    let newContent;
+    const normalizedTitle = packageTitle.trim().toLowerCase();
+    switch (normalizedTitle) {
+        case 'react':
+        case 'angular':
+        case 'vue3':
+            newContent =
+                'AG Charts are easy to set up - all you need to do is provide your data and series type along with any other chart options.';
+            break;
+        default:
+            return content;
+    }
+
+    // Define the start and end markers
+    const startMarker = '<!-- START QUICK START DESCRIPTION -->';
+    const endMarker = '<!-- END QUICK START DESCRIPTION -->';
+
+    // Construct the new content to be inserted
+    const newSection = `${startMarker}\n${newContent}\n${endMarker}`;
+
+    // Use regular expressions to find and replace the content between the markers
+    const regex = new RegExp(`${startMarker}[\\s\\S]*?${endMarker}`, 'g');
+    return content.replace(regex, newSection);
+};
+
+const updateSetup = (content, packageTitle) => {
+    let newContent;
+    const normalizedTitle = packageTitle.trim().toLowerCase();
+    switch (normalizedTitle) {
+        case 'react':
+            newContent = quickStartReact;
+            break;
+        case 'angular':
+            newContent = quickStartAngular;
+            break;
+        case 'vue3':
+            newContent = quickStartVue3;
+            break;
+        default:
+            return content;
+    }
+
+    // Define the start and end markers
+    const startMarker = '<!-- START SETUP -->';
+    const endMarker = '<!-- END SETUP -->';
 
     // Construct the new content to be inserted
     const newSection = `${startMarker}\n${newContent}\n${endMarker}`;
