@@ -193,10 +193,10 @@ const options = {
     topology: topology,
     series: [
         {
-            type: "map-shape",
+            type: 'map-shape',
             data: pacific,
-            idKey: "name",
-            title: "Pacific",
+            idKey: 'name',
+            title: 'Pacific',
         },
         // ...
     ],
@@ -232,12 +232,12 @@ $ npm install ag-charts-angular
 1. Import the Angular Chart
 
 ```js
-import { Component } from "@angular/core";
+import { Component } from '@angular/core';
 
 // Angular Chart Component
-import { AgCharts } from "ag-charts-angular";
+import { AgCharts } from 'ag-charts-angular';
 // Chart Options Type Interface
-import { AgChartOptions } from "ag-charts-community";
+import { AgChartOptions } from 'ag-charts-community';
 ```
 
 2. Define Chart Data and Series

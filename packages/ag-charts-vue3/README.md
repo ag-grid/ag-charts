@@ -190,10 +190,10 @@ const options = {
     topology: topology,
     series: [
         {
-            type: "map-shape",
+            type: 'map-shape',
             data: pacific,
-            idKey: "name",
-            title: "Pacific",
+            idKey: 'name',
+            title: 'Pacific',
         },
         // ...
     ],
@@ -235,15 +235,15 @@ $ npm install ag-charts-vue3
 </template>
 
 <script>
-    import { ref } from "vue";
+    import { ref } from 'vue';
 
     // Vue Chart Component
-    import { AgCharts } from "ag-charts-vue3";
+    import { AgCharts } from 'ag-charts-vue3';
 
     export default {
-        name: "App",
+        name: 'App',
         components: {
-            "ag-charts": AgCharts,
+            'ag-charts': AgCharts,
         },
         setup() {},
     };
