@@ -88,7 +88,9 @@ export class SeriesAreaClickManager extends BaseManager {
         event: PointerInteractionEvent<'click' | 'dblclick'> & { preventZoomDblClick?: boolean }
     ) {
         const result = pickNode(this.series, { x: event.offsetX, y: event.offsetY }, 'event');
-        if (result && event.type === 'click') {
+        if (result == null) return false;
+
+        if (event.type === 'click') {
             result.series.fireNodeClickEvent(event.sourceEvent, result.datum);
             return true;
         }
@@ -102,12 +104,10 @@ export class SeriesAreaClickManager extends BaseManager {
             // series-rect double-clicks. As a workaround, we'll set this boolean to tell the Zoom
             // double-click handler to ignore the event whenever we are double-clicking exactly on
             // a node.
-            event.preventZoomDblClick = result == null || result.distance > 0;
+            event.preventZoomDblClick = result.distance === 0;
 
-            if (result != null) {
-                result.series.fireNodeDoubleClickEvent(event.sourceEvent, result.datum);
-                return true;
-            }
+            result.series.fireNodeDoubleClickEvent(event.sourceEvent, result.datum);
+            return true;
         }
 
         return false;
