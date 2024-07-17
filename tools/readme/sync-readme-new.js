@@ -21,7 +21,9 @@ function titleCase(name) {
 }
 
 const updateContent = (readme) => {
+    let newReadme = '';
     const packageName = path.dirname(readme).split('/').at(-1);
+
     const isLibrary = libraries.includes(packageName);
     const framework = isLibrary ? 'javascript' : packageName.split('-').at(-1).replace('vue3', 'vue');
     const packageTitle = packageName
@@ -31,17 +33,23 @@ const updateContent = (readme) => {
         .map((s) => titleCase(s))
         .join(' ');
 
+    // Don't alter ag-charts-community README
+    if (packageName === 'ag-charts-community') {
+        return rootReadme;
+    }
+
+    // Update Framework Specific content
+    if (!isLibrary) {
+        newReadme = rootReadme.replaceAll('# JavaScript Charting Library', `# ${framework} Charting Library`);
+    }
+
     // Update Content
-    let newReadme = rootReadme
+    newReadme = rootReadme
         .replaceAll('https://charts.ag-grid.com/javascript/', `https://charts.ag-grid.com/${framework}/`)
         .replaceAll('/ag-charts-community', `/${packageName}`)
         .replaceAll('JavaScript', `${packageTitle}`)
         .replaceAll('$ npm install ag-charts-community', `$ npm install ${packageName}`)
-        .replaceAll('./packages/ag-charts-website/public/images/', '../../packages/ag-charts-website/public/images/')
-        .replaceAll(
-            'Read on for vanilla JavaScript installation instructions, or refer to our framework-specific guides for <strong><a href="https://github.com/ag-grid/ag-charts/tree/latest/packages/ag-charts-react"><img src="https://github.com/ag-grid/ag-grid/blob/latest/documentation/ag-grid-docs/public/images/fw-logos/react.svg?raw=true" height="16" width="16" alt="React Logo"> React</a></strong>, <strong><a href="https://github.com/ag-grid/ag-charts/tree/latest/packages/ag-charts-angular"><img src="https://github.com/ag-grid/ag-grid/blob/latest/documentation/ag-grid-docs/public/images/fw-logos/angular.svg?raw=true" height="16" width="16" alt="Angular Logo"> Angular</a></strong> and <strong><a href="https://github.com/ag-grid/ag-charts/tree/latest/packages/ag-charts-vue3"><img src="https://github.com/ag-grid/ag-grid/blob/latest/documentation/ag-grid-docs/public/images/fw-logos/vue.svg?raw=true" height="16" width="16" alt="Vue Logo"> Vue</a></strong>.',
-            ''
-        );
+        .replaceAll('./packages/ag-charts-website/public/images/', '../../packages/ag-charts-website/public/images/');
 
     // Update Main Description
     newReadme = updateMainDescription(newReadme, packageTitle);
