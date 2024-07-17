@@ -90,7 +90,6 @@ export class SeriesAreaManager extends BaseManager {
             verticalAxesRegion.addListener('hover', (event) => this.onMouseMove(event)),
             horizontalAxesRegion.addListener('leave', () => this.onLeave()),
             verticalAxesRegion.addListener('leave', () => this.onLeave()),
-            this.ctx.keyNavManager.addListener('browserfocus', (event) => this.onBrowserFocus(event)),
             this.ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
             this.ctx.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
             this.ctx.zoomManager.addListener('zoom-pan-start', () => this.resetPointer()),
