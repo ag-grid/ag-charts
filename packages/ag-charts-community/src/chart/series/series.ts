@@ -193,8 +193,8 @@ export function groupAccumulativeValueProperty<K>(
 
 export function groupStackValueProperty<K>(
     propName: K,
-    opts: Partial<DatumPropertyDefinition<K>> & { rangeId?: string; groupId: string },
-    scaleType?: ScaleType
+    scaleType: ScaleType | undefined,
+    opts: Partial<DatumPropertyDefinition<K>> & { rangeId?: string; groupId: string }
 ) {
     return [valueProperty(propName, scaleType, opts), accumulateStack(opts.groupId)];
 }
