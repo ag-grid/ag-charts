@@ -87,7 +87,8 @@ export class SeriesAreaManager extends BaseManager {
             verticalAxesRegion.addListener('leave', () => this.onLeave()),
             this.ctx.animationManager.addListener('animation-start', () => this.clearTooltip()),
             this.ctx.domManager.addListener('resize', () => this.clearTooltip()),
-            this.ctx.zoomManager.addListener('zoom-pan-start', () => this.clearTooltip())
+            this.ctx.zoomManager.addListener('zoom-pan-start', () => this.clearTooltip()),
+            this.ctx.zoomManager.addListener('zoom-change', () => this.clearTooltip())
         );
     }
 
