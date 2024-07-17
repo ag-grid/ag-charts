@@ -211,6 +211,13 @@ export class RegionManager {
         }
 
         const { currentRegion } = this;
+
+        if (event.type === 'leave') {
+            this.dispatch(currentRegion, { ...event, type: 'leave' });
+            this.currentRegion = undefined;
+            return;
+        }
+
         const newRegion = this.pickRegion(event.offsetX, event.offsetY);
         if (currentRegion !== undefined && newRegion?.properties.name !== currentRegion.properties.name) {
             this.dispatch(currentRegion, { ...event, type: 'leave' });

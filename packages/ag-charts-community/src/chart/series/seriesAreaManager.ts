@@ -83,13 +83,14 @@ export class SeriesAreaManager extends BaseManager {
                 (event) => this.onMouseMove(event),
                 InteractionState.Default | InteractionState.Annotations
             ),
-            seriesRegion.addListener('leave', (event) => this.onLeave(event)),
+            seriesRegion.addListener('leave', () => this.onLeave()),
             seriesRegion.addListener('blur', () => this.onBlur()),
             seriesRegion.addListener('contextmenu', (event) => this.onContextMenu(event), InteractionState.All),
             horizontalAxesRegion.addListener('hover', (event) => this.onMouseMove(event)),
             verticalAxesRegion.addListener('hover', (event) => this.onMouseMove(event)),
-            horizontalAxesRegion.addListener('leave', (event) => this.onLeave(event)),
-            verticalAxesRegion.addListener('leave', (event) => this.onLeave(event)),
+            horizontalAxesRegion.addListener('leave', () => this.onLeave()),
+            verticalAxesRegion.addListener('leave', () => this.onLeave()),
+            this.ctx.keyNavManager.addListener('browserfocus', (event) => this.onBrowserFocus(event)),
             this.ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
             this.ctx.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
             this.ctx.zoomManager.addListener('zoom-pan-start', () => this.resetPointer()),
@@ -190,10 +191,7 @@ export class SeriesAreaManager extends BaseManager {
         this.update(ChartUpdateType.SCENE_RENDER);
     }
 
-    private onLeave(event: PointerInteractionEvent<'leave'>): void {
-        const el = event.relatedElement;
-        if (el && this.ctx.domManager.isManagedDOMElement(el)) return;
-
+    private onLeave(): void {
         this.resetPointer();
         this.update(ChartUpdateType.SCENE_RENDER);
         this.ctx.cursorManager.updateCursor('chart');
