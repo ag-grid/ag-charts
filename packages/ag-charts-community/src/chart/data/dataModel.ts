@@ -916,7 +916,7 @@ export class DataModel<
                 initDataDomain();
             }
 
-            if (valueInDatum && !(def.validation?.(value, datum) ?? true)) {
+            if (valueInDatum && def.validation?.(value, datum) === false) {
                 if ('invalidValue' in def) {
                     value = def.invalidValue;
                 } else {

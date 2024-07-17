@@ -153,7 +153,7 @@ export class AreaSeries extends CartesianSeries<
             props: [
                 keyProperty(xKey, xScaleType, { id: 'xValue' }),
                 valueProperty(yKey, yScaleType, { id: `yValueRaw`, ...common }),
-                ...groupStackValueProperty(yKey, {
+                ...groupStackValueProperty(yKey, yScaleType, {
                     id: `yValueStack`,
                     ...common,
                     groupId: currentIds.stack,
@@ -413,8 +413,9 @@ export class AreaSeries extends CartesianSeries<
                 const yValueStack: number[] = values[yValueStackIndex];
                 const yDatum = yValueStack[index];
 
-                if (connectMissingData && !Number.isFinite(yDatum)) continue;
                 const yDatumIsFinite = Number.isFinite(yDatum);
+
+                if (connectMissingData && !yDatumIsFinite) continue;
 
                 const lastYValueStack: number[] | undefined = dataValues[i - 1]?.values[yValueStackIndex];
                 const nextYValueStack: number[] | undefined = dataValues[i + 1]?.values[yValueStackIndex];

@@ -49,7 +49,7 @@ export function isNumber(value: unknown): value is number {
 }
 
 export function isFiniteNumber(value: unknown): value is number {
-    return isNumber(value) && Number.isFinite(value);
+    return Number.isFinite(value);
 }
 
 export function isHtmlElement(value: unknown): value is HTMLElement {
