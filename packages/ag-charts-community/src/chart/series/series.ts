@@ -20,6 +20,7 @@ import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlaceme
 import { createId } from '../../util/id';
 import { jsonDiff } from '../../util/json';
 import { Listeners } from '../../util/listeners';
+import { MRUCache } from '../../util/mruCache';
 import { type DistantObject, nearestSquared } from '../../util/nearest';
 import { clamp } from '../../util/number';
 import { mergeDefaults } from '../../util/object';
@@ -82,6 +83,8 @@ export type PickFocusOutputs = {
     bounds: BBox | Path;
     showFocusBox: boolean;
 };
+
+type PickResult = { pickMode: SeriesNodePickMode; match: SeriesNodeDatum; distance: number };
 
 export function basicContinuousCheckDatumValidation(value: any) {
     return value != null && isContinuous(value);
@@ -375,6 +378,7 @@ export abstract class Series<
 
     protected onDataChange() {
         this.nodeDataRefresh = true;
+        this._pickNodeCache.clear();
     }
 
     setOptionsData(input: unknown[]) {
@@ -573,6 +577,7 @@ export abstract class Series<
     // Indicate that something external changed and we should recalculate nodeData.
     markNodeDataDirty() {
         this.nodeDataRefresh = true;
+        this._pickNodeCache.clear();
         this.visibleMaybeChanged();
     }
 
@@ -642,11 +647,8 @@ export abstract class Series<
 
     abstract getTooltipHtml(seriesDatum: any): TooltipContent;
 
-    pickNode(
-        point: Point,
-        intent: SeriesNodePickIntent,
-        exactMatchOnly = false
-    ): { pickMode: SeriesNodePickMode; match: SeriesNodeDatum; distance: number } | undefined {
+    protected _pickNodeCache = new MRUCache<string, PickResult | undefined>();
+    pickNode(point: Point, intent: SeriesNodePickIntent, exactMatchOnly = false): PickResult | undefined {
         const { pickModes, visible, rootGroup } = this;
 
         if (!visible || !rootGroup.visible) return;
@@ -663,9 +665,18 @@ export abstract class Series<
             maxDistance = typeof nodeClickRange === 'number' ? nodeClickRange : Infinity;
             exactMatchOnly ||= nodeClickRange === 'exact';
         }
-        for (const pickMode of pickModes) {
-            if (exactMatchOnly && pickMode !== SeriesNodePickMode.EXACT_SHAPE_MATCH) continue;
 
+        const selectedPickModes = pickModes.filter(
+            (m) => !exactMatchOnly || m === SeriesNodePickMode.EXACT_SHAPE_MATCH
+        );
+
+        const { x, y } = point;
+        const key = JSON.stringify({ x, y, maxDistance, selectedPickModes });
+        if (this._pickNodeCache.has(key)) {
+            return this._pickNodeCache.get(key);
+        }
+
+        for (const pickMode of selectedPickModes) {
             let match: SeriesNodePickMatch | undefined;
 
             switch (pickMode) {
@@ -687,9 +698,13 @@ export abstract class Series<
             }
 
             if (match && match.distance <= maxDistance) {
+                const result = { pickMode, match: match.datum, distance: match.distance };
+                this._pickNodeCache.set(key, result);
                 return { pickMode, match: match.datum, distance: match.distance };
             }
         }
+
+        this._pickNodeCache.set(key, undefined);
     }
 
     protected pickNodeExactShape(point: Point): SeriesNodePickMatch | undefined {
@@ -741,6 +756,7 @@ export abstract class Series<
     protected toggleSeriesItem(itemId: any, enabled: boolean): void {
         this.visible = enabled;
         this.nodeDataRefresh = true;
+        this._pickNodeCache.clear();
         this.dispatch('visibility-changed', { itemId, enabled });
     }
 
