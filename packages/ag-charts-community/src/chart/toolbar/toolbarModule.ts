@@ -44,7 +44,7 @@ const annotations: AgToolbarOptions['annotations'] = {
             section: 'channels',
         },
         {
-            icon: 'zoom-in', // TODO: icon
+            icon: 'text',
             tooltip: 'text',
             value: 'text',
             section: 'annotations',

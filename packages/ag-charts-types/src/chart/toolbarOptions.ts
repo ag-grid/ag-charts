@@ -45,28 +45,39 @@ export interface AgToolbarButton {
     value: any;
 }
 
-export type AgIconName = IconNameAnnotation | IconNameZoom;
-type IconNameAnnotation =
-    | 'horizontal-line'
-    | 'vertical-line'
-    | 'trend-line'
-    | 'parallel-channel'
-    | 'disjoint-channel'
+export type AgIconName =
+    | 'area'
+    | 'callout'
+    | 'candles'
+    | 'comment'
     | 'delete'
+    | 'disjoint-channel'
+    | 'fill'
+    | 'hollow-candles'
+    | 'horizontal-line'
     | 'line-color'
+    | 'line-markers'
+    | 'line'
     | 'lock'
-    | 'reset'
-    | 'unlock';
-type IconNameZoom =
+    | 'note'
+    | 'ohlc'
     | 'pan-end'
     | 'pan-left'
     | 'pan-right'
     | 'pan-start'
+    | 'parallel-channel'
+    | 'price-label'
     | 'reset'
+    | 'step-line'
+    | 'text'
+    | 'trend-line'
+    | 'unlock'
+    | 'vertical-line'
     | 'zoom-in'
-    | 'zoom-in-alt'
     | 'zoom-out'
-    | 'zoom-out-alt';
+    | AgIconLegacyName;
+
+export type AgIconLegacyName = 'zoom-in-alt' | 'zoom-out-alt';
 
 /* Annotations */
 export interface AgToolbarAnnotationsGroup extends AgToolbarGroup {
