@@ -102,7 +102,9 @@ export type AgIconLegacyName =
     | 'vertical-line-legacy'
     | 'zoom-in-legacy'
     | 'zoom-out-legacy'
+    | 'zoom-in-alt'
     | 'zoom-in-alt-legacy'
+    | 'zoom-out-alt'
     | 'zoom-out-alt-legacy';
 
 /* Annotations */
