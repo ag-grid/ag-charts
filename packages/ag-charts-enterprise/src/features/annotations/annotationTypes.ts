@@ -11,40 +11,32 @@ export enum AnnotationType {
     ParallelChannel = 'parallel-channel',
 
     // Texts
+    Callout = 'callout',
+    Comment = 'comment',
+    Note = 'note',
     Text = 'text',
 }
 export const ANNOTATION_TYPES = Object.values(AnnotationType);
 export const ANNOTATION_BUTTONS = [
-    // Drawings
+    // Lines
     AnnotationType.Line,
-    AnnotationType.DisjointChannel,
-    AnnotationType.ParallelChannel,
     AnnotationType.HorizontalLine,
     AnnotationType.VerticalLine,
 
-    // Annotations (Texts)
+    // Channels
+    AnnotationType.DisjointChannel,
+    AnnotationType.ParallelChannel,
+
+    // Texts
+    // AnnotationType.Callout,
+    // AnnotationType.Comment,
+    // AnnotationType.Note,
     AnnotationType.Text,
 ] as const;
 
 export function stringToAnnotationType(value: string) {
-    switch (value) {
-        // Trend lines
-        case 'line':
-            return AnnotationType.Line;
-        case 'horizontal-line':
-            return AnnotationType.HorizontalLine;
-        case 'vertical-line':
-            return AnnotationType.VerticalLine;
-
-        // Channels
-        case 'disjoint-channel':
-            return AnnotationType.DisjointChannel;
-        case 'parallel-channel':
-            return AnnotationType.ParallelChannel;
-
-        // Texts
-        case 'text':
-            return AnnotationType.Text;
+    for (const t of ANNOTATION_TYPES) {
+        if (t === value) return t;
     }
 }
 

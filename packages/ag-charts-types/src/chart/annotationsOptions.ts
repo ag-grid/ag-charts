@@ -11,13 +11,23 @@ import type { PixelSize } from './types';
 
 // --- Theme ---
 export interface AgAnnotationsThemeableOptions {
-    axesButtons?: AgAnnotationAxesButtons;
+    // Lines
     line?: AgLineAnnotationStyles;
     'horizontal-line'?: AgLineAnnotationStyles;
     'vertical-line'?: AgLineAnnotationStyles;
+
+    // Channels
     'disjoint-channel'?: AgChannelAnnotationStyles;
     'parallel-channel'?: AgChannelAnnotationStyles;
+
+    // Texts
+    callout?: AgTextAnnotationStyles;
+    comment?: AgTextAnnotationStyles;
+    note?: AgTextAnnotationStyles;
     text?: AgTextAnnotationStyles;
+
+    // Other
+    axesButtons?: AgAnnotationAxesButtons;
 }
 
 export interface AgAnnotationAxesButtons extends Toggleable {
@@ -51,6 +61,9 @@ export type AgAnnotation =
     | AgVerticalLineAnnotation
     | AgDisjointChannelAnnotation
     | AgParallelChannelAnnotation
+    | AgCalloutAnnotation
+    | AgCommentAnnotation
+    | AgNoteAnnotation
     | AgTextAnnotation;
 
 /********************
@@ -125,11 +138,27 @@ export interface AgDisjointChannelAnnotation
 /********************
  * Text Annotations *
  ********************/
-export interface AgTextAnnotation extends AgAnnotationPoint, Lockable, Visible, FontOptions {
+export interface AgCalloutAnnotation extends TextualAnnotation {
+    /** Configuration for the callout annotation. */
+    type: 'callout';
+}
+
+export interface AgCommentAnnotation extends TextualAnnotation {
+    /** Configuration for the comment annotation. */
+    type: 'comment';
+}
+
+export interface AgNoteAnnotation extends TextualAnnotation {
+    /** Configuration for the note annotation. */
+    type: 'note';
+}
+
+export interface AgTextAnnotation extends TextualAnnotation {
     /** Configuration for the text annotation. */
     type: 'text';
+}
 
-    /** */
+interface TextualAnnotation extends AgAnnotationPoint, Lockable, Visible, FontOptions {
     text: string;
 }
 
