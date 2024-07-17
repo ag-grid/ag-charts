@@ -37,6 +37,7 @@ const updateContent = (readme) => {
         .replaceAll('/ag-charts-community', `/${packageName}`)
         .replaceAll('JavaScript', `${packageTitle}`)
         .replaceAll('$ npm install ag-charts-community', `$ npm install ${packageName}`)
+        .replaceAll('./packages/ag-charts-website/public/images/', '../../packages/ag-charts-website/public/images/')
         .replaceAll(
             'Read on for vanilla JavaScript installation instructions, or refer to our framework-specific guides for <strong><a href="https://github.com/ag-grid/ag-charts/tree/latest/packages/ag-charts-react"><img src="https://github.com/ag-grid/ag-grid/blob/latest/documentation/ag-grid-docs/public/images/fw-logos/react.svg?raw=true" height="16" width="16" alt="React Logo"> React</a></strong>, <strong><a href="https://github.com/ag-grid/ag-charts/tree/latest/packages/ag-charts-angular"><img src="https://github.com/ag-grid/ag-grid/blob/latest/documentation/ag-grid-docs/public/images/fw-logos/angular.svg?raw=true" height="16" width="16" alt="Angular Logo"> Angular</a></strong> and <strong><a href="https://github.com/ag-grid/ag-charts/tree/latest/packages/ag-charts-vue3"><img src="https://github.com/ag-grid/ag-grid/blob/latest/documentation/ag-grid-docs/public/images/fw-logos/vue.svg?raw=true" height="16" width="16" alt="Vue Logo"> Vue</a></strong>.',
             ''
