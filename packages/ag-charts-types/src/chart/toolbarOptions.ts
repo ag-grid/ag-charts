@@ -77,7 +77,33 @@ export type AgIconName =
     | 'zoom-out'
     | AgIconLegacyName;
 
-export type AgIconLegacyName = 'zoom-in-alt' | 'zoom-out-alt';
+export type AgIconLegacyName =
+    | 'crossline-add-line-legacy'
+    | 'delete-legacy'
+    | 'disjoint-channel-legacy'
+    | 'horizontal-line-legacy'
+    | 'line-color-legacy'
+    | 'line-markers-legacy'
+    | 'line-legacy'
+    | 'lock-legacy'
+    | 'note-legacy'
+    | 'ohlc-legacy'
+    | 'pan-end-legacy'
+    | 'pan-left-legacy'
+    | 'pan-right-legacy'
+    | 'pan-start-legacy'
+    | 'parallel-channel-legacy'
+    | 'price-label-legacy'
+    | 'reset-legacy'
+    | 'step-line-legacy'
+    | 'text-legacy'
+    | 'trend-line-legacy'
+    | 'unlock-legacy'
+    | 'vertical-line-legacy'
+    | 'zoom-in-legacy'
+    | 'zoom-out-legacy'
+    | 'zoom-in-alt-legacy'
+    | 'zoom-out-alt-legacy';
 
 /* Annotations */
 export interface AgToolbarAnnotationsGroup extends AgToolbarGroup {

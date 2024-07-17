@@ -1,3 +1,5 @@
+import type { AgIconName } from 'ag-charts-types';
+
 export const TOOLBAR_ALIGNMENTS = ['start', 'center', 'end'] as const;
 export type ToolbarAlignment = (typeof TOOLBAR_ALIGNMENTS)[number];
 
@@ -23,7 +25,7 @@ export function isAnimatingFloatingPosition(
 
 export interface ToolbarButton {
     section?: string;
-    icon?: string;
+    icon?: AgIconName;
     label?: string;
     ariaLabel?: string;
     tooltip?: string;

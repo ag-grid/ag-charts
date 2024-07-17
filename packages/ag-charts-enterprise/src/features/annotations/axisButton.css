@@ -26,11 +26,6 @@
     color: var(--ag-charts-axis-label-color);
 }
 
-.ag-charts-annotations__axis-button-icon {
-    height: 1.2em;
-    width: 1.2em;
-}
-
 .ag-charts-annotations__axis-button:hover {
     opacity: 0.8;
     color: var(--ag-charts-axis-label-color);
