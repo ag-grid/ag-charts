@@ -133,6 +133,16 @@ export enum InteractionState {
     All = Default | ZoomDrag | Annotations | ContextMenu | Animation,
 }
 
+// Setting data-pointer-capture on an element will stop the interaction manager
+// sending mouse events to the canvas while the mouse is over one of these elements
+enum PointerCapture {
+    // Keep the mouse cursor in the last position on the canvas
+    Retain = 'retain',
+    // Treat the mouse cursor as exiting the canvas
+    Exclusive = 'exclusive',
+}
+const pointerCaptures = new Set(Object.values(PointerCapture));
+
 function isPointerEvent(type: InteractionTypes): type is PointerInteractionTypes {
     return POINTER_INTERACTION_TYPES.includes(type as any);
 }
@@ -259,33 +269,35 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     }
 
     private processCanvasOverlayEvent(event: SupportedEvent) {
-        const target = event.target as HTMLElement;
-        if (target?.matches('[data-pointer-exclusive], [data-pointer-exclusive] *') === false) return;
-
-        let isOverCanvasOverlay: boolean;
-        switch (event.type) {
-            case 'mouseover':
-                isOverCanvasOverlay = true;
-                break;
-
-            case 'mouseout':
-                isOverCanvasOverlay = false;
-                break;
-
-            default:
-                return;
-        }
-
-        if (this.inCanvasOverlayElement === isOverCanvasOverlay) return;
-
         const coords = this.calculateCoordinates(event);
         if (coords == null) return;
 
+        let target = event.target as HTMLElement | null;
+        let pointerCapture: PointerCapture | null = null;
+        while (target != null) {
+            pointerCapture = target.getAttribute('data-pointer-capture') as PointerCapture | null;
+
+            if (pointerCapture == null) {
+                target = target.parentElement;
+            } else {
+                break;
+            }
+        }
+
+        if (target == null || pointerCapture == null || !pointerCaptures.has(pointerCapture)) return;
+
+        const isOverCanvasOverlay = target.matches(':hover');
+
+        if (this.inCanvasOverlayElement === isOverCanvasOverlay) return;
+
         this.inCanvasOverlayElement = isOverCanvasOverlay;
-        dispatchTypedEvent(
-            this.listeners,
-            this.buildPointerEvent({ type: isOverCanvasOverlay ? 'leave' : 'enter', event, ...coords })
-        );
+
+        if (pointerCapture === PointerCapture.Exclusive) {
+            dispatchTypedEvent(
+                this.listeners,
+                this.buildPointerEvent({ type: isOverCanvasOverlay ? 'leave' : 'enter', event, ...coords })
+            );
+        }
     }
 
     private processEvent(event: SupportedEvent) {
@@ -368,6 +380,11 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     private decideInteractionEventTypes(event: SupportedEvent): InteractionTypes | undefined {
         const dragStart = 'drag-start';
 
+        if (this.inCanvasOverlayElement) {
+            // Ignore events while inside overlays
+            return;
+        }
+
         switch (event.type) {
             case 'blur':
             case 'focus':
@@ -401,10 +418,6 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
                 if (!this.mouseDown && !this.touchDown && !this.isEventOverElement(event)) {
                     // We only care about these events if the target is the canvas, unless
                     // we're in the middle of a drag/slide.
-                    return;
-                }
-                if (this.inCanvasOverlayElement) {
-                    // Ignore events while inside overlays
                     return;
                 }
                 return this.mouseDown || this.touchDown ? 'drag' : 'hover';

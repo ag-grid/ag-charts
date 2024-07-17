@@ -5,7 +5,8 @@ NodeList [
   <div
     aria-hidden="true"
     class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-wrap-hyphenate"
-    style="transform: translate(-1px, 0px);"
+    data-pointer-capture="retain"
+    style="transform: translate(-1px, 0px); pointer-events: none;"
   >
     <div
       class="ag-chart-tooltip-content"
@@ -21,7 +22,8 @@ NodeList [
   <div
     aria-hidden="true"
     class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-wrap-hyphenate"
-    style="transform: translate(-1px, 0px);"
+    data-pointer-capture="retain"
+    style="transform: translate(-1px, 0px); pointer-events: none;"
   >
     <div
       class="ag-chart-tooltip-content"
