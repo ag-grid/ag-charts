@@ -135,13 +135,13 @@
     white-space: nowrap;
 }
 
-.ag-charts-toolbar__button:first-child {
+.ag-charts-toolbar__button:nth-child(1 of :not(.ag-charts-toolbar__button--hidden-toggled)) {
     border-bottom-left-radius: var(--ag-charts-button-radius);
     border-top-left-radius: var(--ag-charts-button-radius);
     margin: 0;
 }
 
-.ag-charts-toolbar__button:last-child {
+.ag-charts-toolbar__button:nth-last-child(1 of :not(.ag-charts-toolbar__button--hidden-toggled)) {
     border-bottom-right-radius: var(--ag-charts-button-radius);
     border-right: var(--ag-charts-toolbar-border);
     border-top-right-radius: var(--ag-charts-button-radius);

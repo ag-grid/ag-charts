@@ -38,6 +38,7 @@ export class TextScene extends AnnotationScene {
         this.label.y = coords.y;
         this.label.text = datum.text;
 
+        this.label.fill = datum.color;
         this.label.fontFamily = datum.fontFamily;
         this.label.fontSize = datum.fontSize;
         this.label.fontStyle = datum.fontStyle;

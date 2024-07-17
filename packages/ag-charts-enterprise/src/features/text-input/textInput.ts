@@ -3,7 +3,7 @@ import type { FontOptions } from 'ag-charts-types';
 
 import textInputTemplate from './textInputTemplate.html';
 
-const moduleId = 'color-picker';
+const moduleId = 'text-input';
 const canvasOverlay = 'canvas-overlay';
 
 interface LayoutBBox {

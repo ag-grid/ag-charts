@@ -35,7 +35,7 @@ import type { ChartMode } from '../chartMode';
 import { accumulatedValue, range, trailingAccumulatedValue } from '../data/aggregateFunctions';
 import type { DataController } from '../data/dataController';
 import type { DatumPropertyDefinition } from '../data/dataModel';
-import { accumulateContinuity, accumulateGroup } from '../data/processors';
+import { accumulateGroup, accumulateStack } from '../data/processors';
 import { Layers } from '../layers';
 import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
 import type { Marker } from '../marker/marker';
@@ -191,12 +191,12 @@ export function groupAccumulativeValueProperty<K>(
     ];
 }
 
-export function groupAccumulativeContinuityProperty<K>(
+export function groupStackValueProperty<K>(
     propName: K,
     opts: Partial<DatumPropertyDefinition<K>> & { rangeId?: string; groupId: string },
     scaleType?: ScaleType
 ) {
-    return [valueProperty(propName, scaleType, opts), accumulateContinuity(opts.groupId, opts.separateNegative)];
+    return [valueProperty(propName, scaleType, opts), accumulateStack(opts.groupId)];
 }
 
 export type SeriesNodeEventTypes = 'nodeClick' | 'nodeDoubleClick' | 'nodeContextMenuAction' | 'groupingChanged';

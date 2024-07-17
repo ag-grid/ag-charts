@@ -18,6 +18,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { ChartTheme } from '../../chart/themes/chartTheme';
+import { DEFAULT_STROKES } from '../../chart/themes/defaultColors';
 import {
     PALETTE_DOWN_FILL,
     PALETTE_DOWN_STROKE,
@@ -26,6 +27,7 @@ import {
     PALETTE_UP_FILL,
     PALETTE_UP_STROKE,
 } from '../../chart/themes/symbols';
+import { Logger } from '../../util/logger';
 import { isObject } from '../../util/type-guards';
 
 function fromTheme<T>(
@@ -258,6 +260,11 @@ function createPriceSeries(
     openKey: string,
     closeKey: string
 ) {
+    if ((chartType as string) === RANGE_AREA_TYPE) {
+        Logger.warnOnce(`type '${chartType}' is deprecated, use 'hlc' chart type instead`);
+        chartType = 'hlc';
+    }
+
     const keys = {
         xKey,
         openKey,
@@ -300,7 +307,7 @@ function createPriceSeries(
                 } satisfies AgLineSeriesOptions,
             ];
 
-        case RANGE_AREA_TYPE:
+        case 'hlc':
             const rangeAreaColors = getThemeColors(RANGE_AREA_TYPE, theme);
 
             return [
@@ -320,6 +327,12 @@ function createPriceSeries(
                     fill: rangeAreaColors.fill ?? PALETTE_DOWN_FILL,
                     stroke: rangeAreaColors.stroke ?? PALETTE_DOWN_STROKE,
                 } satisfies AgRangeAreaSeriesOptions,
+                {
+                    type: 'line',
+                    ...singleKeys,
+                    stroke: fromTheme(theme, (t) => t.overrides?.line?.series?.stroke) ?? DEFAULT_STROKES.GRAY,
+                    marker: fromTheme(theme, (t) => t.overrides?.line?.series?.marker) ?? { enabled: false },
+                } satisfies AgLineSeriesOptions,
             ];
         case 'high-low':
             const rangeBarColors = getThemeColors('range-bar', theme);

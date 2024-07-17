@@ -43,6 +43,7 @@ export { SectorBox } from './scene/sectorBox';
 export { HdpiCanvas } from './scene/canvas/hdpiCanvas';
 export { Image } from './scene/image';
 export { ExtendedPath2D } from './scene/extendedPath2D';
+export * from './scene/util/bezier';
 export * as easing from './motion/easing';
 
 const motion = { ...fromToMotion, ...resetMotion };

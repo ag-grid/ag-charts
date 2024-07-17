@@ -41,6 +41,10 @@ export class CartesianChart extends Chart {
         this.firstSeriesTranslation = true;
     }
 
+    override getChartType() {
+        return 'cartesian' as const;
+    }
+
     override async performLayout() {
         const shrinkRect = await super.performLayout();
         const { firstSeriesTranslation, seriesRoot, annotationRoot, highlightRoot } = this;
@@ -74,8 +78,6 @@ export class CartesianChart extends Chart {
 
         // Recreate padding object to prevent issues with getters in `BBox.shrink()`
         const seriesPaddedRect = seriesRect.clone().grow(this.seriesArea.padding);
-
-        this.hoverRect = seriesPaddedRect;
 
         const clipRect = this.seriesArea.clip || clipSeries ? seriesPaddedRect : undefined;
         seriesRoot.setClipRectInGroupCoordinateSpace(clipRect);
