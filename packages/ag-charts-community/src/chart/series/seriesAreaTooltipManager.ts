@@ -61,7 +61,7 @@ export class SeriesAreaTooltipManager extends BaseManager {
     }
 
     public dataChanged() {
-        this.clearState();
+        this.ctx.tooltipManager.removeTooltip(this.id);
     }
 
     public seriesUpdated() {
@@ -84,10 +84,6 @@ export class SeriesAreaTooltipManager extends BaseManager {
         this.lastHover = undefined;
     }
 
-    private clearState() {
-        this.lastHover = undefined;
-    }
-
     private readonly hoverScheduler = debouncedAnimationFrame(() => {
         if (!this.lastHover) return;
 
@@ -99,7 +95,6 @@ export class SeriesAreaTooltipManager extends BaseManager {
         }
 
         this.handleHover(this.lastHover, false);
-        this.lastHover = undefined;
     });
 
     private handleHover(event: TooltipPointerEvent<'hover'>, redisplay: boolean) {
