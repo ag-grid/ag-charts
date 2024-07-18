@@ -31,6 +31,8 @@ export class SeriesAreaHighlightManager extends BaseManager {
         super();
 
         const seriesRegion = this.ctx.regionManager.getRegion(REGIONS.SERIES);
+        const horizontalAxesRegion = this.ctx.regionManager.getRegion(REGIONS.HORIZONTAL_AXES);
+        const verticalAxesRegion = this.ctx.regionManager.getRegion(REGIONS.VERTICAL_AXES);
 
         this.destroyFns.push(
             this.ctx.layoutService.addListener('layout-complete', (event) => this.layoutComplete(event)),
@@ -40,6 +42,8 @@ export class SeriesAreaHighlightManager extends BaseManager {
                 (event) => this.onHover(event),
                 InteractionState.Default | InteractionState.Annotations
             ),
+            horizontalAxesRegion.addListener('hover', (event) => this.onHover(event)),
+            verticalAxesRegion.addListener('hover', (event) => this.onHover(event)),
 
             // Cases where highlight should be cleared.
             this.ctx.domManager.addListener('resize', () => this.clearHighlight()),

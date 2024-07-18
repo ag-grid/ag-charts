@@ -30,18 +30,18 @@ export class SeriesAreaTooltipManager extends BaseManager {
         super();
 
         const seriesRegion = this.ctx.regionManager.getRegion(REGIONS.SERIES);
-        const horizontalAxesRegion = this.ctx.regionManager.addRegion(REGIONS.HORIZONTAL_AXES);
-        const verticalAxesRegion = this.ctx.regionManager.addRegion(REGIONS.VERTICAL_AXES);
+        const horizontalAxesRegion = this.ctx.regionManager.getRegion(REGIONS.HORIZONTAL_AXES);
+        const verticalAxesRegion = this.ctx.regionManager.getRegion(REGIONS.VERTICAL_AXES);
 
         this.destroyFns.push(
             this.ctx.layoutService.addListener('layout-complete', (event) => this.layoutComplete(event)),
             seriesRegion.addListener(
                 'hover',
-                (event) => this.onMouseMove(event),
+                (event) => this.onHover(event),
                 InteractionState.Default | InteractionState.Annotations
             ),
-            horizontalAxesRegion.addListener('hover', (event) => this.onMouseMove(event)),
-            verticalAxesRegion.addListener('hover', (event) => this.onMouseMove(event)),
+            horizontalAxesRegion.addListener('hover', (event) => this.onHover(event)),
+            verticalAxesRegion.addListener('hover', (event) => this.onHover(event)),
 
             // Events that clear tooltip.
             seriesRegion.addListener('leave', () => this.clearTooltip()),
@@ -74,7 +74,7 @@ export class SeriesAreaTooltipManager extends BaseManager {
         this.hoverRect = event.series.paddedRect;
     }
 
-    private onMouseMove(event: TooltipPointerEvent<'hover'>): void {
+    private onHover(event: TooltipPointerEvent<'hover'>): void {
         this.lastHover = event;
         this.hoverScheduler.schedule();
     }
