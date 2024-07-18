@@ -103,6 +103,6 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
 
     private setChartType(chartType: AgPriceVolumeChartType) {
         const options: AgFinancialChartOptions = { chartType };
-        this.ctx.chartService.publicApi?.updateDelta(options as any);
+        void this.ctx.chartService.publicApi?.updateDelta(options as any);
     }
 }

@@ -358,21 +358,23 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         const nextSection = (section: string | undefined) => {
             const alignElementChildren = Array.from(alignElement.children);
+            const dataGroup = 'data-group';
+            const dataSection = 'data-section';
             let sectionElement = alignElementChildren.find((prevSection) => {
                 return (
-                    prevSection.getAttribute('data-group') === group &&
-                    prevSection.getAttribute('data-section') === (section ?? '')
+                    prevSection.getAttribute(dataGroup) === group &&
+                    prevSection.getAttribute(dataSection) === (section ?? '')
                 );
             });
 
             if (!sectionElement) {
                 sectionElement = createElement('div');
-                sectionElement.setAttribute('data-group', group);
-                sectionElement.setAttribute('data-section', section ?? '');
+                sectionElement.setAttribute(dataGroup, group);
+                sectionElement.setAttribute(dataSection, section ?? '');
 
                 const groupIndex = TOOLBAR_GROUP_ORDERING[group];
                 const insertBeforeElement = alignElementChildren.find((prevSection) => {
-                    const prevGroup = prevSection.getAttribute('data-group') as ToolbarGroup;
+                    const prevGroup = prevSection.getAttribute(dataGroup) as ToolbarGroup;
                     const prevGroupIndex = TOOLBAR_GROUP_ORDERING[prevGroup];
                     return prevGroupIndex > groupIndex;
                 });
@@ -541,9 +543,9 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
     private refreshButtonContent(group: ToolbarGroup, buttonOptions: ToolbarButton) {
         const { value } = buttonOptions;
-        const button = this.groupProxied.get(group)?.buttons?.find((button) => button.value === value) ?? buttonOptions;
+        const button = this.groupProxied.get(group)?.buttons?.find((b) => b.value === value) ?? buttonOptions;
 
-        const element = this.groupButtons[group].find((button) => button.getAttribute('data-toolbar-value') === value);
+        const element = this.groupButtons[group].find((b) => b.getAttribute('data-toolbar-value') === value);
         if (element == null) return;
 
         this.updateButtonText(element, button);
