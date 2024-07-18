@@ -3,7 +3,7 @@
  * interface to Map.
  */
 export class MRUCache<K, V> {
-    private store = new Map<K, V>();
+    private readonly store = new Map<K, V>();
 
     constructor(private readonly maxCacheSize = 5) {}
 
