@@ -200,6 +200,8 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         } else {
             this.hideCrosshairs();
         }
+
+        this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.SCENE_RENDER);
     }
 
     private onMouseOut() {

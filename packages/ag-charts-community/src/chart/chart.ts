@@ -312,6 +312,9 @@ export abstract class Chart extends Observable {
 
         const moduleContext = this.getModuleContext();
         ctx.regionManager.addRegion(REGIONS.SERIES, this.seriesRoot, this.ctx.axisManager.axisGridGroup);
+        ctx.regionManager.addRegion(REGIONS.HORIZONTAL_AXES);
+        ctx.regionManager.addRegion(REGIONS.VERTICAL_AXES);
+
         const thisChart = this;
         this.seriesAreaManager = new SeriesAreaManager(
             {
@@ -747,9 +750,7 @@ export abstract class Chart extends Observable {
             series.addChartEventListeners();
         }
 
-        if (this.seriesAreaManager) {
-            this.seriesAreaManager.series = newValue;
-        }
+        this.seriesAreaManager?.seriesChanged(newValue);
     }
 
     protected destroySeries(allSeries: Series<any, any>[]): void {
