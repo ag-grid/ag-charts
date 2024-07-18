@@ -20,6 +20,8 @@ export class ParallelChannelStateMachine extends StateMachine<
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(ctx: ParallelChannelStateMachineContext) {
+        let hoverEventsSinceStart = 0;
+
         const onStartClick = ({ point }: { point: Point }) => {
             const datum = new ParallelChannelProperties();
             datum.set({ start: point, end: point, height: 0 });
@@ -27,6 +29,7 @@ export class ParallelChannelStateMachine extends StateMachine<
         };
 
         const onEndHover = ({ point }: { point: Point }) => {
+            hoverEventsSinceStart++;
             ctx.datum()?.set({ end: point, height: 0 });
             ctx.node()?.toggleHandles({
                 topMiddle: false,
@@ -98,11 +101,17 @@ export class ParallelChannelStateMachine extends StateMachine<
             end: {
                 hover: onEndHover,
                 click: {
+                    // Ensure that a double event of drag before a single click does not trigger an immediate
+                    // transition causing the start and end to be at the same point.
+                    guard: () => hoverEventsSinceStart > 1,
                     target: 'height',
                     action: onEndClick,
                 },
                 drag: onEndHover,
                 cancel: StateMachine.parent,
+                onExit: () => {
+                    hoverEventsSinceStart = 0;
+                },
             },
             height: {
                 hover: onHeightHover,

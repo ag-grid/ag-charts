@@ -20,6 +20,8 @@ export class DisjointChannelStateMachine extends StateMachine<
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(ctx: DisjointChannelStateMachineContext) {
+        let hoverEventsSinceStart = 0;
+
         const onStartClick = ({ point }: { point: Point }) => {
             const datum = new DisjointChannelProperties();
             datum.set({ start: point, end: point, startHeight: 0, endHeight: 0 });
@@ -27,6 +29,7 @@ export class DisjointChannelStateMachine extends StateMachine<
         };
 
         const onEndHover = ({ point }: { point: Point }) => {
+            hoverEventsSinceStart++;
             ctx.datum()?.set({ end: point });
             ctx.node()?.toggleHandles({ topRight: false, bottomLeft: false, bottomRight: false });
             ctx.update();
@@ -93,11 +96,17 @@ export class DisjointChannelStateMachine extends StateMachine<
             end: {
                 hover: onEndHover,
                 click: {
+                    // Ensure that a double event of drag before a single click does not trigger an immediate
+                    // transition causing the start and end to be at the same point.
+                    guard: () => hoverEventsSinceStart > 1,
                     target: 'height',
                     action: onEndClick,
                 },
                 drag: onEndHover,
                 cancel: StateMachine.parent,
+                onExit: () => {
+                    hoverEventsSinceStart = 0;
+                },
             },
             height: {
                 hover: onHeightHover,
