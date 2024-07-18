@@ -19,7 +19,7 @@ describe('large-dataset benchmark', () => {
         beforeEach(async () => {
             await ctx.create();
             addSeriesNodePoints(ctx, 0, 4);
-        });
+        }, 10_000);
 
         benchmark('1x legend toggle', ctx, EXPECTATIONS, async () => {
             ctx.options.series![0].visible = false;
