@@ -109,22 +109,22 @@ export function priceVolume(
         } satisfies AgZoomOptions,
     };
 
-    const toolbarOpts =
-        annotations || rangeToolbar
-            ? {
-                  toolbar: {
-                      annotationOptions: {
-                          enabled: annotations,
-                      },
-                      annotations: {
-                          enabled: annotations,
-                      },
-                      ranges: {
-                          enabled: rangeToolbar,
-                      },
-                  } satisfies AgToolbarOptions,
-              }
-            : null;
+    const toolbarOpts = {
+        toolbar: {
+            seriesType: {
+                enabled: true,
+            },
+            annotationOptions: {
+                enabled: annotations,
+            },
+            annotations: {
+                enabled: annotations,
+            },
+            ranges: {
+                enabled: rangeToolbar,
+            },
+        } satisfies AgToolbarOptions,
+    };
 
     const volumeAxis = volume
         ? [

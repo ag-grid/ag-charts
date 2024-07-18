@@ -1,6 +1,7 @@
 import type { Toggleable } from '../series/cartesian/commonOptions';
 
 export interface AgToolbarOptions extends Toggleable {
+    seriesType?: AgToolbarSeriesTypeGroup;
     annotations?: AgToolbarAnnotationsGroup;
     annotationOptions?: AgToolbarAnnotationOptionsGroup;
     ranges?: AgToolbarRangesGroup;
@@ -104,6 +105,8 @@ export interface AgToolbarAnnotationsGroup extends AgToolbarGroup {
     buttons?: AgToolbarAnnotationsButton[];
 }
 
+export interface AgToolbarChartGroup extends AgToolbarGroup {}
+
 export interface AgToolbarAnnotationsButton extends AgToolbarButton {
     /** An annotation type or action. */
     value: AgToolbarAnnotationsButtonValue;
@@ -117,6 +120,9 @@ export type AgToolbarAnnotationsButtonValue =
     | 'disjoint-channel'
     | 'text'
     | 'clear';
+
+/* Series Type Options */
+export interface AgToolbarSeriesTypeGroup extends AgToolbarGroup {}
 
 /* Annotation Options */
 export interface AgToolbarAnnotationOptionsGroup extends AgToolbarGroup {

@@ -1,4 +1,4 @@
-import type { AgToolbarOptions } from 'ag-charts-types';
+import type { AgIconName, AgToolbarOptions } from 'ag-charts-types';
 
 import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../baseManager';
@@ -8,6 +8,7 @@ import { TOOLBAR_POSITIONS, type ToolbarGroup } from '../toolbar/toolbarTypes';
 type EventTypes =
     | 'button-pressed'
     | 'button-toggled'
+    | 'button-updated'
     | 'button-moved'
     | 'cancelled'
     | 'floating-anchor-changed'
@@ -16,6 +17,7 @@ type EventTypes =
 type ToolbarEvent =
     | ToolbarButtonPressedEvent
     | ToolbarButtonToggledEvent
+    | ToolbarButtonUpdatedEvent
     | ToolbarButtonMovedEvent
     | ToolbarCancelledEvent
     | ToolbarFloatingAnchorChangedEvent
@@ -43,6 +45,7 @@ export interface ToolbarFloatingAnchorChangedEvent extends Event<'floating-ancho
 
 export interface ToolbarButtonPressedEvent<T = any> extends Event<'button-pressed'> {
     value: T;
+    rect: BBox;
 }
 
 export interface ToolbarButtonToggledEvent<T = any> extends Event<'button-toggled'> {
@@ -50,6 +53,11 @@ export interface ToolbarButtonToggledEvent<T = any> extends Event<'button-toggle
     active: boolean;
     enabled: boolean;
     visible: boolean;
+}
+
+export interface ToolbarButtonUpdatedEvent<T = any> extends Event<'button-updated'> {
+    value: T;
+    icon: AgIconName | undefined;
 }
 
 export interface ToolbarButtonMovedEvent<T = any> extends Event<'button-moved'> {
@@ -79,8 +87,8 @@ export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
         return false;
     }
 
-    pressButton(group: ToolbarGroup, value: any) {
-        this.listeners.dispatch('button-pressed', { type: 'button-pressed', group, value });
+    pressButton(group: ToolbarGroup, value: any, rect: BBox) {
+        this.listeners.dispatch('button-pressed', { type: 'button-pressed', group, value, rect });
     }
 
     cancel(group: ToolbarGroup) {
@@ -94,6 +102,15 @@ export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
     ) {
         const { active = false, enabled = true, visible = true } = options;
         this.listeners.dispatch('button-toggled', { type: 'button-toggled', group, value, active, enabled, visible });
+    }
+
+    updateButton<T extends ToolbarGroup>(
+        group: T,
+        value: ToolbarEventButtonValue<T>,
+        options: { icon: AgIconName | undefined }
+    ) {
+        const { icon } = options;
+        this.listeners.dispatch('button-updated', { type: 'button-updated', group, value, icon });
     }
 
     toggleGroup(caller: string, group: ToolbarGroup, visible: boolean) {
