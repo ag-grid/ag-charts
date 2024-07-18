@@ -9,7 +9,7 @@ const MONTH = DAY * 30;
 const YEAR = DAY * 365;
 
 const seriesType: AgToolbarOptions['seriesType'] = {
-    enabled: true,
+    enabled: false,
     position: 'left',
     align: 'start',
     buttons: [

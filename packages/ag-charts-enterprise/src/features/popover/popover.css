@@ -9,13 +9,12 @@
     border-radius: 4px;
     padding: 6px 0;
     overflow: hidden;
-    /* Needs to beat .ag-crosshair-label */
-    z-index: 99999;
 }
 
 .ag-charts-popover:has(.ag-charts-popover__icon) {
     grid: auto-flow auto / auto 1fr;
 }
+
 .ag-charts-popover__row {
     display: grid;
     grid-column: 1 / -1;
