@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import { type AnnotationContext, AnnotationType } from './annotationTypes';
+import { type AnnotationContext, AnnotationType, type GuardDragClickDoubleEvent } from './annotationTypes';
 import { colorDatum, getTypedDatum } from './annotationsConfig';
 import type { AnnotationProperties, AnnotationsStateMachineContext } from './annotationsSuperTypes';
 import {
@@ -56,6 +56,22 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
         // need to differentiate when the second time the annotation is clicked was not the first `click` event after
         // the `dragStart.
         let selectedWithDrag = false;
+
+        // Ensure that a double event of drag before a single click does not trigger an immediate transition causing
+        // the start and end to be at the same point.
+        let hoverEventsCount = 0;
+        const guardDragClickDoubleEvent: GuardDragClickDoubleEvent = {
+            guard: () => {
+                if (hoverEventsCount === 0) console.log('guarded!');
+                return hoverEventsCount > 0;
+            },
+            hover: () => {
+                hoverEventsCount++;
+            },
+            reset: () => {
+                hoverEventsCount = 0;
+            },
+        };
 
         const getDatum =
             <T>(is: (value: unknown) => value is T) =>
@@ -203,6 +219,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     create: createDatum<LineProperties>(AnnotationType.Line),
                     datum: getDatum<LineProperties>(LineProperties.is),
                     node: getNode<LineScene>(LineScene.is),
+                    guardDragClickDoubleEvent,
                 }),
                 [AnnotationType.HorizontalLine]: new CrossLineStateMachine('horizontal', {
                     ...ctx,
@@ -219,12 +236,14 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     create: createDatum<DisjointChannelProperties>(AnnotationType.DisjointChannel),
                     datum: getDatum<DisjointChannelProperties>(DisjointChannelProperties.is),
                     node: getNode<DisjointChannelScene>(DisjointChannelScene.is),
+                    guardDragClickDoubleEvent,
                 }),
                 [AnnotationType.ParallelChannel]: new ParallelChannelStateMachine({
                     ...ctx,
                     create: createDatum<ParallelChannelProperties>(AnnotationType.ParallelChannel),
                     datum: getDatum<ParallelChannelProperties>(ParallelChannelProperties.is),
                     node: getNode<ParallelChannelScene>(ParallelChannelScene.is),
+                    guardDragClickDoubleEvent,
                 }),
 
                 // Texts

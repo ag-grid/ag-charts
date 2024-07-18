@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import type { Point } from '../annotationTypes';
+import type { GuardDragClickDoubleEvent, Point } from '../annotationTypes';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import { ParallelChannelProperties } from './parallelChannelProperties';
 import type { ParallelChannelScene } from './parallelChannelScene';
@@ -11,6 +11,7 @@ interface ParallelChannelStateMachineContext extends Omit<AnnotationsStateMachin
     create: (datum: ParallelChannelProperties) => void;
     datum: () => ParallelChannelProperties | undefined;
     node: () => ParallelChannelScene | undefined;
+    guardDragClickDoubleEvent: GuardDragClickDoubleEvent;
 }
 
 export class ParallelChannelStateMachine extends StateMachine<
@@ -20,8 +21,6 @@ export class ParallelChannelStateMachine extends StateMachine<
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(ctx: ParallelChannelStateMachineContext) {
-        let hoverEventsSinceStart = 0;
-
         const onStartClick = ({ point }: { point: Point }) => {
             const datum = new ParallelChannelProperties();
             datum.set({ start: point, end: point, height: 0 });
@@ -29,7 +28,7 @@ export class ParallelChannelStateMachine extends StateMachine<
         };
 
         const onEndHover = ({ point }: { point: Point }) => {
-            hoverEventsSinceStart++;
+            ctx.guardDragClickDoubleEvent.hover();
             ctx.datum()?.set({ end: point, height: 0 });
             ctx.node()?.toggleHandles({
                 topMiddle: false,
@@ -103,15 +102,13 @@ export class ParallelChannelStateMachine extends StateMachine<
                 click: {
                     // Ensure that a double event of drag before a single click does not trigger an immediate
                     // transition causing the start and end to be at the same point.
-                    guard: () => hoverEventsSinceStart > 1,
+                    guard: ctx.guardDragClickDoubleEvent.guard,
                     target: 'height',
                     action: onEndClick,
                 },
                 drag: onEndHover,
                 cancel: StateMachine.parent,
-                onExit: () => {
-                    hoverEventsSinceStart = 0;
-                },
+                onExit: ctx.guardDragClickDoubleEvent.reset,
             },
             height: {
                 hover: onHeightHover,
