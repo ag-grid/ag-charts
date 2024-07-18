@@ -251,13 +251,13 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     ...ctx,
                     create: createDatum<TextProperties>(AnnotationType.Text),
                     delete: () => {
-                        if (this.active) ctx.delete(this.active);
+                        if (this.active != null) ctx.delete(this.active);
                         this.active = ctx.select();
                     },
                     datum: getDatum<TextProperties>(TextProperties.is),
                     node: getNode<TextScene>(TextScene.is),
                     showTextInput: () => {
-                        if (this.active) ctx.showTextInput(this.active);
+                        if (this.active != null) ctx.showTextInput(this.active);
                     },
                 }),
             },
