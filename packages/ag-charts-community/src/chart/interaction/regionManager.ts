@@ -108,6 +108,8 @@ export class RegionManager {
         const region = this.regions.get(name);
         if (region) {
             region.properties.bboxproviders = [...bboxprovider];
+        } else {
+            throw new Error('AG Charts - unknown region: ' + name);
         }
     }
 

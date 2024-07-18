@@ -312,6 +312,9 @@ export abstract class Chart extends Observable {
 
         const moduleContext = this.getModuleContext();
         ctx.regionManager.addRegion(REGIONS.SERIES, this.seriesRoot, this.ctx.axisManager.axisGridGroup);
+        ctx.regionManager.addRegion(REGIONS.HORIZONTAL_AXES);
+        ctx.regionManager.addRegion(REGIONS.VERTICAL_AXES);
+
         const thisChart = this;
         this.seriesAreaManager = new SeriesAreaManager(
             {
