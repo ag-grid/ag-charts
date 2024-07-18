@@ -110,7 +110,7 @@ export class SeriesAreaHighlightManager extends BaseManager {
 
         const { range } = this.highlight;
 
-        const intent = range === 'tooltip' ? 'tooltip' : 'highlight';
+        const intent = range === 'tooltip' ? 'highlight-tooltip' : 'highlight';
         const found = pickNode(this.series, { x: event.offsetX, y: event.offsetY }, intent);
         if (found) {
             this.ctx.highlightManager.updateHighlight(this.id, found.datum);

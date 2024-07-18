@@ -59,7 +59,7 @@ export enum SeriesNodePickMode {
     NEAREST_NODE,
 }
 
-export type SeriesNodePickIntent = 'tooltip' | 'highlight' | 'context-menu' | 'event';
+export type SeriesNodePickIntent = 'tooltip' | 'highlight' | 'highlight-tooltip' | 'context-menu' | 'event';
 
 export type SeriesNodePickMatch = {
     datum: SeriesNodeDatum;
@@ -653,10 +653,11 @@ export abstract class Series<
 
         if (!visible || !rootGroup.visible) return;
         if (intent === 'highlight' && !this.properties.highlight.enabled) return;
-        if (intent === 'tooltip' && !this.properties.tooltip.enabled) return;
+        if (intent === 'highlight-tooltip' && !this.properties.highlight.enabled) return;
+        if (intent === 'highlight' && !this.properties.highlight.enabled) return;
 
         let maxDistance = Infinity;
-        if (intent === 'tooltip') {
+        if (intent === 'tooltip' || intent === 'highlight-tooltip') {
             const { tooltip } = this.properties;
             maxDistance = typeof tooltip.range === 'number' ? tooltip.range : Infinity;
             exactMatchOnly ||= tooltip.range === 'exact';
