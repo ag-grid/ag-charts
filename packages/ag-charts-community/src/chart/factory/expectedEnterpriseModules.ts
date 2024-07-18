@@ -32,7 +32,7 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     {
         type: 'root',
         optionsKey: 'chartToolbar',
-        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion'],
+        chartTypes: ['cartesian'],
     },
     {
         type: 'root',

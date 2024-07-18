@@ -219,14 +219,8 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     private onButtonUpdated(event: ToolbarButtonUpdatedEvent) {
-        const { group, value } = event;
-
-        const buttonOptions = this[group].buttons?.find((button) => button.value === value);
-        if (buttonOptions == null) return;
-
-        buttonOptions.icon = event.icon;
-
-        this.refreshButtonContent(group, buttonOptions);
+        const { group, value, icon } = event;
+        this[group].overrideButtonConfiguration(value, { icon });
     }
 
     private onButtonToggled(event: ToolbarButtonToggledEvent) {
@@ -505,7 +499,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         if (!hasNewLocale) return;
 
         for (const group of TOOLBAR_GROUPS) {
-            const { buttons = [] } = this[group];
+            const buttons = this[group].buttonConfigurations();
             for (const buttonOptions of buttons) {
                 this.refreshButtonContent(group, buttonOptions);
             }
@@ -568,7 +562,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             if (this[group] == null) continue;
             const groupVisible = isGroupVisible(group);
             for (const button of this.groupButtons[group]) {
-                const buttonVisible = groupVisible && this[group].buttons?.some(isButtonVisible(button));
+                const buttonVisible = groupVisible && this[group].buttonConfigurations().some(isButtonVisible(button));
                 button.classList.toggle(styles.modifiers.button.hiddenValue, !buttonVisible);
             }
         }

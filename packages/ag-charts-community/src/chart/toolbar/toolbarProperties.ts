@@ -41,15 +41,44 @@ export class ToolbarGroupProperties extends BaseProperties {
                 Logger.warnOnce(`Icon '${button.icon}' is deprecated, use another icon instead.`);
             }
         }
-        target.onButtonsChange(target.buttons);
+        target.buttonsChanged();
     })
     @Validate(ARRAY, { optional: true })
-    buttons?: Array<ToolbarButton>;
+    protected buttons?: Array<ToolbarButton>;
+
+    private buttonOverrides: Record<string, Omit<ToolbarButton, 'value'>> = {};
 
     constructor(
         private readonly onChange: (enabled?: boolean) => void,
         private readonly onButtonsChange: (buttons?: Array<ToolbarButton>) => void
     ) {
         super();
+    }
+
+    buttonConfigurations() {
+        return (
+            this.buttons?.map((button) => {
+                const overrides = this.buttonOverrides[button.value];
+                return overrides != null ? { ...button, ...overrides } : button;
+            }) ?? []
+        );
+    }
+
+    private buttonsChanged() {
+        this.onButtonsChange(this.buttonConfigurations());
+    }
+
+    buttonOptions(value: string): ToolbarButton | undefined {
+        const button = this.buttons?.find((b) => b.value === value);
+        if (button == null) return;
+
+        const overrides = this.buttonOverrides[value];
+
+        return overrides != null ? { ...button, ...overrides } : button;
+    }
+
+    overrideButtonConfiguration(value: string, options: Omit<ToolbarButton, 'value'>) {
+        this.buttonOverrides[value] = options;
+        this.buttonsChanged();
     }
 }
