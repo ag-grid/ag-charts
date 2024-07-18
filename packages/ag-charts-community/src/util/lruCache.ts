@@ -2,7 +2,7 @@
  * Implements a most-recently-used caching strategy with a similar
  * interface to Map.
  */
-export class MRUCache<K, V> {
+export class LRUCache<K, V> {
     private readonly store = new Map<K, V>();
 
     constructor(private readonly maxCacheSize = 5) {}
@@ -37,6 +37,8 @@ export class MRUCache<K, V> {
                 evictCount--;
             }
         }
+
+        return value;
     }
 
     public clear() {

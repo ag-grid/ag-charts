@@ -20,7 +20,7 @@ import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlaceme
 import { createId } from '../../util/id';
 import { jsonDiff } from '../../util/json';
 import { Listeners } from '../../util/listeners';
-import { MRUCache } from '../../util/mruCache';
+import { LRUCache } from '../../util/lruCache';
 import { type DistantObject, nearestSquared } from '../../util/nearest';
 import { clamp } from '../../util/number';
 import { mergeDefaults } from '../../util/object';
@@ -647,7 +647,7 @@ export abstract class Series<
 
     abstract getTooltipHtml(seriesDatum: any): TooltipContent;
 
-    protected _pickNodeCache = new MRUCache<string, PickResult | undefined>();
+    protected _pickNodeCache = new LRUCache<string, PickResult | undefined>();
     pickNode(point: Point, intent: SeriesNodePickIntent, exactMatchOnly = false): PickResult | undefined {
         const { pickModes, visible, rootGroup } = this;
 
@@ -698,13 +698,11 @@ export abstract class Series<
             }
 
             if (match && match.distance <= maxDistance) {
-                const result = { pickMode, match: match.datum, distance: match.distance };
-                this._pickNodeCache.set(key, result);
-                return { pickMode, match: match.datum, distance: match.distance };
+                return this._pickNodeCache.set(key, { pickMode, match: match.datum, distance: match.distance });
             }
         }
 
-        this._pickNodeCache.set(key, undefined);
+        return this._pickNodeCache.set(key, undefined);
     }
 
     protected pickNodeExactShape(point: Point): SeriesNodePickMatch | undefined {
