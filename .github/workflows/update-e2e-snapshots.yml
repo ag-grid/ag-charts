@@ -21,7 +21,19 @@ jobs:
             NX_PARALLEL: 1
             AG_FORCE_ALL_TESTS: ${{ (github.ref == 'refs/heads/latest') && '1' || '0' }}
             AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
+            JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         steps:
+            - uses: actions/github-script@v6
+              continue-on-error: true
+              with:
+                  script: |
+                      github.rest.issues.createComment({
+                        issue_number: context.issue.number,
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        body: `⏱️ Snapshot update job running: ${process.env.JOB_URL}`
+                      })
+
             - id: 'get-branch'
               run: |
                   echo "branch=$(gh pr view $PR_NO --repo $REPO --json headRefName --jq '.headRefName')" >> $GITHUB_OUTPUT
@@ -74,6 +86,18 @@ jobs:
                   else
                     echo "No changes to commit."
                   fi
+
+            - uses: actions/github-script@v6
+              if: failure()
+              continue-on-error: true
+              with:
+                  script: |
+                      github.rest.issues.createComment({
+                        issue_number: context.issue.number,
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        body: `❌ Snapshot update job failed: ${process.env.JOB_URL}`
+                      })
 
             - name: Perist test results
               if: failure()
