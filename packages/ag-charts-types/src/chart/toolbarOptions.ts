@@ -45,28 +45,59 @@ export interface AgToolbarButton {
     value: any;
 }
 
-export type AgIconName = IconNameAnnotation | IconNameZoom;
-type IconNameAnnotation =
-    | 'horizontal-line'
-    | 'vertical-line'
-    | 'trend-line'
-    | 'parallel-channel'
-    | 'disjoint-channel'
+export type AgIconName =
+    | 'area'
+    | 'callout'
+    | 'candles'
+    | 'comment'
     | 'delete'
+    | 'disjoint-channel'
+    | 'fill'
+    | 'hollow-candles'
+    | 'horizontal-line'
     | 'line-color'
+    | 'line-markers'
+    | 'line'
     | 'lock'
-    | 'reset'
-    | 'unlock';
-type IconNameZoom =
+    | 'note'
+    | 'ohlc'
     | 'pan-end'
     | 'pan-left'
     | 'pan-right'
     | 'pan-start'
+    | 'parallel-channel'
+    | 'price-label'
     | 'reset'
+    | 'step-line'
+    | 'text'
+    | 'trend-line'
+    | 'unlock'
+    | 'vertical-line'
     | 'zoom-in'
-    | 'zoom-in-alt'
     | 'zoom-out'
-    | 'zoom-out-alt';
+    | AgIconLegacyName;
+
+export type AgIconLegacyName =
+    | 'delete-legacy'
+    | 'disjoint-channel-legacy'
+    | 'horizontal-line-legacy'
+    | 'line-color-legacy'
+    | 'lock-legacy'
+    | 'pan-end-legacy'
+    | 'pan-left-legacy'
+    | 'pan-right-legacy'
+    | 'pan-start-legacy'
+    | 'parallel-channel-legacy'
+    | 'reset-legacy'
+    | 'trend-line-legacy'
+    | 'unlock-legacy'
+    | 'vertical-line-legacy'
+    | 'zoom-in-legacy'
+    | 'zoom-in-alt'
+    | 'zoom-in-alt-legacy'
+    | 'zoom-out-legacy'
+    | 'zoom-out-alt'
+    | 'zoom-out-alt-legacy';
 
 /* Annotations */
 export interface AgToolbarAnnotationsGroup extends AgToolbarGroup {

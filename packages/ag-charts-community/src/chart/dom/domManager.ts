@@ -1,3 +1,5 @@
+import type { AgIconName } from 'ag-charts-types';
+
 import { BBox } from '../../scene/bbox';
 import STYLES from '../../styles.css';
 import { createElement, getDocument, getWindow } from '../../util/dom';
@@ -443,5 +445,9 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         const { dataset } = this.element;
         dataset[name] ??= '0';
         dataset[name] = String(Number(dataset[name]) + 1);
+    }
+
+    getIconClass(icon: AgIconName) {
+        return `ag-charts-icon-${icon}`;
     }
 }

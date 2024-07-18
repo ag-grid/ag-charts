@@ -595,19 +595,23 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     private updateButtonText(button: HTMLButtonElement, options: ToolbarButton) {
+        const {
+            ctx: { domManager, localeManager },
+        } = this;
+
         if (options.tooltip) {
-            const tooltip = this.ctx.localeManager.t(options.tooltip);
+            const tooltip = localeManager.t(options.tooltip);
             button.title = tooltip;
         }
 
         let inner = '';
 
         if (options.icon != null) {
-            inner = `<span class="ag-charts-icon-${options.icon} ${styles.elements.icon}"></span>`;
+            inner = `<span class="${domManager.getIconClass(options.icon)} ${styles.elements.icon}"></span>`;
         }
 
         if (options.label != null) {
-            const label = this.ctx.localeManager.t(options.label);
+            const label = localeManager.t(options.label);
             inner = `${inner}<span class="${styles.elements.label}">${label}</span>`;
         }
 

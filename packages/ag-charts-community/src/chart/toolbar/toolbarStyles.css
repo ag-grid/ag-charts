@@ -201,11 +201,6 @@
     cursor: pointer;
 }
 
-.ag-charts-toolbar__icon {
-    height: 1.2em;
-    width: 1.2em;
-}
-
 .ag-charts-toolbar__icon + .ag-charts-toolbar__label {
     margin-left: var(--ag-charts-toolbar-gap);
 }
