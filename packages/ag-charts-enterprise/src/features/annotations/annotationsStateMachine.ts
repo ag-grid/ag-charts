@@ -1,7 +1,7 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { type AnnotationContext, AnnotationType, type GuardDragClickDoubleEvent } from './annotationTypes';
-import { colorDatum, getTypedDatum } from './annotationsConfig';
+import { colorDatum, getTypedDatum, isTextType } from './annotationsConfig';
 import type { AnnotationProperties, AnnotationsStateMachineContext } from './annotationsSuperTypes';
 import {
     type CrossLineProperties,
@@ -156,11 +156,12 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 click: [
                     {
-                        guard: () =>
-                            this.active != null &&
-                            this.hovered != null &&
-                            !selectedWithDrag &&
-                            ctx.getAnnotationType(this.hovered) === AnnotationType.Text,
+                        guard: () => {
+                            if (this.active == null || this.hovered !== this.active || selectedWithDrag) return false;
+                            const datum = ctx.datum(this.active);
+                            if (!datum) return false;
+                            return isTextType(datum) && !datum.locked;
+                        },
                         target: States.TextInput,
                     },
                     {
