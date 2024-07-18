@@ -13,6 +13,7 @@ import { BOOLEAN, Validate } from '../../util/validation';
 import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
 import type {
     ToolbarButtonToggledEvent,
+    ToolbarButtonUpdatedEvent,
     ToolbarFloatingAnchorChangedEvent,
     ToolbarGroupToggledEvent,
     ToolbarProxyGroupOptionsEvent,
@@ -22,6 +23,7 @@ import * as styles from './toolbarStyles';
 import {
     TOOLBAR_ALIGNMENTS,
     TOOLBAR_GROUPS,
+    TOOLBAR_GROUP_ORDERING,
     TOOLBAR_POSITIONS,
     type ToolbarAlignment,
     type ToolbarButton,
@@ -38,6 +40,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     @Validate(BOOLEAN)
     public enabled = true;
 
+    public seriesType = new ToolbarGroupProperties(
+        this.onGroupChanged.bind(this, 'seriesType'),
+        this.onGroupButtonsChanged.bind(this, 'seriesType')
+    );
     public annotations = new ToolbarGroupProperties(
         this.onGroupChanged.bind(this, 'annotations'),
         this.onGroupButtonsChanged.bind(this, 'annotations')
@@ -82,6 +88,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     };
 
     private readonly groupCallers: Record<ToolbarGroup, Set<string>> = {
+        seriesType: new Set(),
         annotations: new Set(),
         annotationOptions: new Set(),
         ranges: new Set(),
@@ -89,6 +96,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     };
 
     private groupButtons: Record<ToolbarGroup, Array<HTMLButtonElement>> = {
+        seriesType: [],
         annotations: [],
         annotationOptions: [],
         ranges: [],
@@ -96,6 +104,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     };
 
     private groupDestroyFns: Record<ToolbarGroup, Array<() => void>> = {
+        seriesType: [],
         annotations: [],
         annotationOptions: [],
         ranges: [],
@@ -122,6 +131,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             ctx.interactionManager.addListener('hover', this.onHover.bind(this), InteractionState.All),
             ctx.interactionManager.addListener('leave', this.onLeave.bind(this), InteractionState.All),
             ctx.toolbarManager.addListener('button-toggled', this.onButtonToggled.bind(this)),
+            ctx.toolbarManager.addListener('button-updated', this.onButtonUpdated.bind(this)),
             ctx.toolbarManager.addListener('group-toggled', this.onGroupToggled.bind(this)),
             ctx.toolbarManager.addListener('floating-anchor-changed', this.onFloatingAnchorChanged.bind(this)),
             ctx.toolbarManager.addListener('proxy-group-options', this.onProxyGroupOptions.bind(this)),
@@ -208,6 +218,17 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
     }
 
+    private onButtonUpdated(event: ToolbarButtonUpdatedEvent) {
+        const { group, value } = event;
+
+        const buttonOptions = this[group].buttons?.find((button) => button.value === value);
+        if (buttonOptions == null) return;
+
+        buttonOptions.icon = event.icon;
+
+        this.refreshButtonContent(group, buttonOptions);
+    }
+
     private onButtonToggled(event: ToolbarButtonToggledEvent) {
         const { group, value, active, enabled, visible } = event;
 
@@ -280,6 +301,16 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
     }
 
+    private buttonRect(button: HTMLButtonElement, canvasRect: DOMRect = this.ctx.domManager.getBoundingClientRect()) {
+        const buttonRect = button.getBoundingClientRect();
+        return new BBox(
+            buttonRect.left - canvasRect.left,
+            buttonRect.top - canvasRect.top,
+            buttonRect.width,
+            buttonRect.height
+        );
+    }
+
     private onProxyGroupOptions(event: ToolbarProxyGroupOptionsEvent) {
         if (!this.enabled) return;
 
@@ -325,25 +356,46 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         if (!alignElement) return;
 
-        let index = 0;
-        const nextSection = () => {
-            let newSection = alignElement.children.item(index);
-            if (!newSection) {
-                newSection = createElement('div');
-                alignElement.appendChild(newSection);
-                this.destroyFns.push(() => newSection!.remove());
+        const nextSection = (section: string | undefined) => {
+            const alignElementChildren = Array.from(alignElement.children);
+            let sectionElement = alignElementChildren.find((prevSection) => {
+                return (
+                    prevSection.getAttribute('data-group') === group &&
+                    prevSection.getAttribute('data-section') === (section ?? '')
+                );
+            });
+
+            if (!sectionElement) {
+                sectionElement = createElement('div');
+                sectionElement.setAttribute('data-group', group);
+                sectionElement.setAttribute('data-section', section ?? '');
+
+                const groupIndex = TOOLBAR_GROUP_ORDERING[group];
+                const insertBeforeElement = alignElementChildren.find((prevSection) => {
+                    const prevGroup = prevSection.getAttribute('data-group') as ToolbarGroup;
+                    const prevGroupIndex = TOOLBAR_GROUP_ORDERING[prevGroup];
+                    return prevGroupIndex > groupIndex;
+                });
+                if (insertBeforeElement != null) {
+                    alignElement.insertBefore(sectionElement, insertBeforeElement);
+                } else {
+                    alignElement.appendChild(sectionElement);
+                }
+
+                this.destroyFns.push(() => sectionElement!.remove());
             }
-            newSection.classList.add(styles.elements.section, styles.modifiers[this[group].size]);
-            index++;
-            return newSection;
+
+            sectionElement.classList.add(styles.elements.section, styles.modifiers[this[group].size]);
+
+            return sectionElement;
         };
 
-        let section = nextSection();
         let prevSection = buttons.at(0)?.section;
+        let section = nextSection(prevSection);
 
         for (const options of buttons) {
             if (prevSection !== options.section) {
-                section = nextSection();
+                section = nextSection(options.section);
             }
             prevSection = options.section;
             const button = this.createButtonElement(group, options);
@@ -446,13 +498,15 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     private refreshLocale() {
-        const { groupButtons, groupProxied, hasNewLocale } = this;
+        const { hasNewLocale } = this;
 
         if (!hasNewLocale) return;
 
         for (const group of TOOLBAR_GROUPS) {
-            const groupProxyOptions = groupProxied.get(group);
-            groupButtons[group].forEach((element) => this.refreshButtonLocale(element, this[group], groupProxyOptions));
+            const { buttons = [] } = this[group];
+            for (const buttonOptions of buttons) {
+                this.refreshButtonContent(group, buttonOptions);
+            }
             this.updateToolbarAriaLabel(group);
         }
 
@@ -485,20 +539,12 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         elements[FloatingBottom].style.top = `${rect.y + rect.height - elements[FloatingBottom].offsetHeight}px`;
     }
 
-    private refreshButtonLocale(
-        element: HTMLButtonElement,
-        group: ToolbarGroupProperties,
-        groupProxyOptions?: ToolbarProxyGroupOptionsEvent['options']
-    ) {
-        const {
-            dataset: { toolbarValue },
-        } = element;
+    private refreshButtonContent(group: ToolbarGroup, buttonOptions: ToolbarButton) {
+        const { value } = buttonOptions;
+        const button = this.groupProxied.get(group)?.buttons?.find((button) => button.value === value) ?? buttonOptions;
 
-        const button =
-            groupProxyOptions?.buttons?.find(({ value }) => value === toolbarValue) ??
-            group.buttons?.find(({ value }) => value === toolbarValue);
-
-        if (!button) return;
+        const element = this.groupButtons[group].find((button) => button.getAttribute('data-toolbar-value') === value);
+        if (element == null) return;
 
         this.updateButtonText(element, button);
     }
@@ -571,7 +617,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         if (typeof options.value === 'string' || typeof options.value === 'number') {
             button.dataset.toolbarValue = `${options.value}`;
         }
-        button.onclick = makeAccessibleClickListener(button, this.onButtonPress.bind(this, group, options.value));
+        button.onclick = makeAccessibleClickListener(
+            button,
+            this.onButtonPress.bind(this, button, group, options.value)
+        );
         this.updateButtonText(button, options);
 
         this.destroyFns.push(() => button.remove());
@@ -586,6 +635,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             if (!alignElement) return;
         }
         const map = {
+            seriesType: 'ariaLabelChartToolbar',
             annotations: 'ariaLabelAnnotationsToolbar',
             annotationOptions: 'ariaLabelAnnotationOptionsToolbar',
             ranges: 'ariaLabelRangesToolbar',
@@ -607,7 +657,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         let inner = '';
 
         if (options.icon != null) {
-            inner = `<span class="${domManager.getIconClass(options.icon)} ${styles.elements.icon}"></span>`;
+            inner = `<span class="${domManager.getIconClassNames(options.icon)} ${styles.elements.icon}"></span>`;
         }
 
         if (options.label != null) {
@@ -620,7 +670,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         setAttribute(button, 'aria-label', ariaLabel);
     }
 
-    private onButtonPress(group: ToolbarGroup, value: any) {
-        this.ctx.toolbarManager.pressButton(group, value);
+    private onButtonPress(button: HTMLButtonElement, group: ToolbarGroup, value: any) {
+        this.ctx.toolbarManager.pressButton(group, value, this.buttonRect(button));
     }
 }

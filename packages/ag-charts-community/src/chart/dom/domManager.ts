@@ -447,7 +447,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         dataset[name] = String(Number(dataset[name]) + 1);
     }
 
-    getIconClass(icon: AgIconName) {
-        return `ag-charts-icon-${icon}`;
+    getIconClassNames(icon: AgIconName) {
+        return `ag-charts-icon ag-charts-icon-${icon}`;
     }
 }

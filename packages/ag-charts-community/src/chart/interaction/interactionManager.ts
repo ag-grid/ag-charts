@@ -169,7 +169,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
     private mouseDown = false;
     private touchDown = false;
-    private inCanvasOverlayElement = false;
+    private pointerCaptureCanvasElement?: HTMLElement = undefined;
     private dragStartElement?: HTMLElement;
     private readonly clickHistory: [PointerHistoryEvent] = [{ offsetX: NaN, offsetY: NaN, type: 'mousedown' }];
     private readonly dblclickHistory: [PointerHistoryEvent, PointerHistoryEvent, PointerHistoryEvent] = [
@@ -287,10 +287,11 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         if (target == null || pointerCapture == null || !pointerCaptures.has(pointerCapture)) return;
 
         const isOverCanvasOverlay = target.matches(':hover');
+        const pointerCaptureCanvasElement = isOverCanvasOverlay ? target : undefined;
 
-        if (this.inCanvasOverlayElement === isOverCanvasOverlay) return;
+        if (this.pointerCaptureCanvasElement === pointerCaptureCanvasElement) return;
 
-        this.inCanvasOverlayElement = isOverCanvasOverlay;
+        this.pointerCaptureCanvasElement = pointerCaptureCanvasElement;
 
         if (pointerCapture === PointerCapture.Exclusive) {
             dispatchTypedEvent(
@@ -380,7 +381,11 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     private decideInteractionEventTypes(event: SupportedEvent): InteractionTypes | undefined {
         const dragStart = 'drag-start';
 
-        if (this.inCanvasOverlayElement) {
+        if (this.pointerCaptureCanvasElement?.isConnected === false) {
+            this.pointerCaptureCanvasElement = undefined;
+        }
+
+        if (this.pointerCaptureCanvasElement != null) {
             // Ignore events while inside overlays
             return;
         }

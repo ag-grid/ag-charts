@@ -155,6 +155,6 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         const { button, ctx } = this;
         button.onclick = _ModuleSupport.makeAccessibleClickListener(button, () => this.onButtonClick(this.coords));
 
-        button.innerHTML = `<span class="${ctx.domManager.getIconClass('zoom-in')} ${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-icon"></span>`;
+        button.innerHTML = `<span class="${ctx.domManager.getIconClassNames('zoom-in')} ${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-icon"></span>`;
     }
 }

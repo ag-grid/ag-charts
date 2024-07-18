@@ -13,6 +13,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaAnnounceFlowProportionLink: 'link ${index} of ${count}, from ${from} to ${to}, ${sizeName} ${size}',
     // Screen reader announcement when focusing a node in a Sankey or chord chart
     ariaAnnounceFlowProportionNode: 'node ${index} of ${count}, ${description}',
+    // Screen reader text for chart toolbar
+    ariaLabelSeriesTypeToolbar: 'Chart',
     // Screen reader text for annotations toolbar
     ariaLabelAnnotationsToolbar: 'Annotations',
     // Screen reader text for annotation-options toolbar
@@ -51,6 +53,22 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     overlayNoData: 'No data to display',
     // Default text for the 'no visible series' overlay
     overlayNoVisibleSeries: 'No visible series',
+    // Text for the series type toolbar's chart type button
+    toolbarSeriesTypeDropdown: 'Chart type',
+    // Text for the series type toolbar's OHLC chart type button
+    toolbarSeriesTypeOHLC: 'OHLC',
+    // Text for the series type toolbar's candles chart type button
+    toolbarSeriesTypeCandles: 'Candles',
+    // Text for the series type toolbar's hollow candles chart type button
+    toolbarSeriesTypeHollowCandles: 'Hollow Candles',
+    // Text for the series type toolbar's line chart type button
+    toolbarSeriesTypeLine: 'Line',
+    // Text for the series type toolbar's line with markers chart type button
+    toolbarSeriesTypeLineWithMarkers: 'Line with Markers',
+    // Text for the series type toolbar's line with step line chart type button
+    toolbarSeriesTypeStepLine: 'Step Line',
+    // Text for the series type toolbar's line with area chart type button
+    toolbarSeriesTypeArea: 'Area',
     // Text for the annotation toolbar's trend line button
     toolbarAnnotationsTrendLine: 'Trend line',
     // Text for the annotation toolbar's horizontal line button
