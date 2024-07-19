@@ -50,7 +50,7 @@ export interface ToolbarButtonPressedEvent<T = any> extends Event<'button-presse
     rect: BBox;
 }
 
-export interface ToolbarButtonToggledEvent extends Event<'button-toggled'> {
+export interface ToolbarButtonToggledEvent<_T = any> extends Event<'button-toggled'> {
     id: string;
     active: boolean;
     enabled: boolean;

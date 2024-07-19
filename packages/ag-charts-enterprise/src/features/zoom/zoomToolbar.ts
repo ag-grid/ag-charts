@@ -11,6 +11,7 @@ import {
     dx,
     isZoomEqual,
     isZoomLess,
+    isZoomRangeEqual,
     scaleZoom,
     scaleZoomAxisWithAnchor,
     translateZoom,
@@ -20,7 +21,7 @@ import {
 const { ChartAxisDirection, ToolbarManager } = _ModuleSupport;
 
 export class ZoomToolbar {
-    private selectedZoom: { id: string; min: number; max: number } | undefined = undefined;
+    private selectedZoom: { id: string; range: { min: number; max: number } } | undefined = undefined;
     private readonly destroyFns: (() => void)[] = [];
 
     constructor(
@@ -79,6 +80,7 @@ export class ZoomToolbar {
     private onButtonPressRanges(event: _ModuleSupport.ToolbarButtonPressedEvent, props: ZoomProperties) {
         if (!ToolbarManager.isGroup('ranges', event)) return;
 
+        const { id } = event;
         const { rangeX } = props;
 
         const time = event.value;
@@ -91,7 +93,7 @@ export class ZoomToolbar {
         }
 
         const range = rangeX.getRange();
-        this.selectedZoom = range != null ? { id: event.id, min: range.min, max: range.max } : undefined;
+        this.selectedZoom = range != null ? { id, range } : undefined;
     }
 
     private onZoomChanged(e: _ModuleSupport.ZoomChangeEvent) {
@@ -102,12 +104,7 @@ export class ZoomToolbar {
 
             this.toolbarManager.toggleGroup('zoom-toolbar', 'ranges', { active: false });
 
-            if (
-                selectedZoom != null &&
-                x != null &&
-                Math.abs(selectedZoom.min - x.min) < 1e-9 &&
-                Math.abs(selectedZoom.max - x.max) < 1e-9
-            ) {
+            if (selectedZoom != null && x != null && isZoomRangeEqual(selectedZoom.range, x)) {
                 this.toolbarManager.toggleButton('ranges', selectedZoom.id, { active: true });
             } else {
                 this.selectedZoom = undefined;

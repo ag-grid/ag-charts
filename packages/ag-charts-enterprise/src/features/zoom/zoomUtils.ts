@@ -22,13 +22,16 @@ export function dy(zoom: DefinedZoomState) {
     return zoom.y.max - zoom.y.min;
 }
 
-export function isZoomEqual(left: DefinedZoomState, right: DefinedZoomState, epsilon: number = 1e-10) {
-    return (
-        isEqual(left.x.min, right.x.min, epsilon) &&
-        isEqual(left.x.max, right.x.max, epsilon) &&
-        isEqual(left.y.min, right.y.min, epsilon) &&
-        isEqual(left.y.max, right.y.max, epsilon)
-    );
+export function isZoomRangeEqual(
+    left: _ModuleSupport.ZoomState,
+    right: _ModuleSupport.ZoomState,
+    epsilon: number = 1e-10
+) {
+    return isEqual(left.min, right.min, epsilon) && isEqual(left.max, right.max, epsilon);
+}
+
+export function isZoomEqual(left: DefinedZoomState, right: DefinedZoomState, epsilon?: number) {
+    return isZoomRangeEqual(left.x, right.x, epsilon) && isZoomRangeEqual(left.y, right.y, epsilon);
 }
 
 export function isZoomLess(zoom: DefinedZoomState, minRatioX: number, minRatioY: number) {
