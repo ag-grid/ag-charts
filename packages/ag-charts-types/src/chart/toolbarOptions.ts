@@ -44,6 +44,8 @@ export interface AgToolbarButton {
     tooltip?: string;
     /** Value provided to caller when the button is pressed. */
     value: any;
+    /** ID of the button (must be set when value is not a primitive) */
+    id?: string;
 }
 
 export type AgIconName =

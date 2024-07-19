@@ -75,7 +75,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             ctx: { annotationManager, stateManager, toolbarManager },
         } = target;
 
-        toolbarManager.toggleGroup('annotations', 'annotations', Boolean(enabled));
+        toolbarManager.toggleGroup('annotations', 'annotations', { visible: Boolean(enabled) });
 
         // Restore the annotations only if this module was previously disabled
         if (target.__hackWasDisabled && enabled) {
@@ -124,7 +124,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             resetToIdle: () => {
                 ctx.cursorManager.updateCursor('annotations');
                 ctx.interactionManager.popState(InteractionState.Annotations);
-                ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', false);
+                ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: false });
                 ctx.tooltipManager.unsuppressTooltip('annotations');
                 this.colorPicker.hide();
 
@@ -168,7 +168,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 }
 
                 const node = index ? annotations.at(index) : undefined;
-                toolbarManager.toggleGroup('annotations', 'annotationOptions', index != null);
+                toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: index != null });
                 if (node) toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
 
                 if (index == null) {
@@ -611,7 +611,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const isHorizontal = direction === 'horizontal';
         state.transition(isHorizontal ? AnnotationType.HorizontalLine : AnnotationType.VerticalLine);
 
-        toolbarManager.toggleGroup('annotations', 'annotationOptions', false);
+        toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: false });
 
         if (!coords) {
             return;

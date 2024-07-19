@@ -38,4 +38,5 @@ export interface ToolbarButton {
     ariaLabel?: string;
     tooltip?: string;
     value: any;
+    id?: string;
 }

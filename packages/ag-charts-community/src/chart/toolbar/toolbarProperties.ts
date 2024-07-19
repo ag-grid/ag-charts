@@ -40,13 +40,16 @@ export class ToolbarGroupProperties extends BaseProperties {
             if (button.icon === 'zoom-in-alt' || button.icon === 'zoom-out-alt') {
                 Logger.warnOnce(`Icon '${button.icon}' is deprecated, use another icon instead.`);
             }
+            if (button.value != null && typeof button.value === 'object' && button.id == null) {
+                Logger.warnOnce(`Buttons with non-primitive values must specify an id.`);
+            }
         }
         target.buttonsChanged();
     })
     @Validate(ARRAY, { optional: true })
     protected buttons?: Array<ToolbarButton>;
 
-    private buttonOverrides: Record<string, Omit<ToolbarButton, 'value'>> = {};
+    private readonly buttonOverrides = new Map<any, Omit<ToolbarButton, 'value'>>();
 
     constructor(
         private readonly onChange: (enabled?: boolean) => void,
@@ -58,7 +61,8 @@ export class ToolbarGroupProperties extends BaseProperties {
     buttonConfigurations() {
         return (
             this.buttons?.map((button) => {
-                const overrides = this.buttonOverrides[button.value];
+                const id = button.id ?? button.value;
+                const overrides = this.buttonOverrides.get(id);
                 return overrides != null ? { ...button, ...overrides } : button;
             }) ?? []
         );
@@ -68,17 +72,13 @@ export class ToolbarGroupProperties extends BaseProperties {
         this.onButtonsChange(this.buttonConfigurations());
     }
 
-    buttonOptions(value: string): ToolbarButton | undefined {
-        const button = this.buttons?.find((b) => b.value === value);
-        if (button == null) return;
+    overrideButtonConfiguration(id: string, options: Omit<ToolbarButton, 'value'> | undefined) {
+        if (options == null) {
+            this.buttonOverrides.delete(id);
+        } else {
+            this.buttonOverrides.set(id, options);
+        }
 
-        const overrides = this.buttonOverrides[value];
-
-        return overrides != null ? { ...button, ...overrides } : button;
-    }
-
-    overrideButtonConfiguration(value: string, options: Omit<ToolbarButton, 'value'>) {
-        this.buttonOverrides[value] = options;
         this.buttonsChanged();
     }
 }

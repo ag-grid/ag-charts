@@ -8,19 +8,20 @@ import {
 
 import { Popover } from '../popover/popover';
 
-const chartIcons: Record<AgPriceVolumeChartType, AgIconName | undefined> = {
-    ohlc: 'ohlc',
-    candlestick: 'candles',
-    'hollow-candlestick': 'hollow-candles',
-    line: 'line',
-    'step-line': 'step-line',
-    'range-area': 'area',
-    hlc: undefined,
-    'high-low': undefined,
+const itemConfigurations: Record<AgPriceVolumeChartType, { label: string; icon: AgIconName | undefined }> = {
+    ohlc: { label: 'toolbarSeriesTypeOHLC', icon: 'ohlc' },
+    candlestick: { label: 'toolbarSeriesTypeCandles', icon: 'candles' },
+    'hollow-candlestick': { label: 'toolbarSeriesTypeHollowCandles', icon: 'hollow-candles' },
+    line: { label: 'toolbarSeriesTypeLine', icon: 'line' },
+    'step-line': { label: 'toolbarSeriesTypeStepLine', icon: 'step-line' },
+    'range-area': { label: 'toolbarSeriesTypeArea', icon: 'area' },
+    hlc: { label: '', icon: undefined },
+    'high-low': { label: '', icon: undefined },
 };
 
 const BUTTON_GROUP = 'seriesType';
-const BUTTON_CHART_TYPE = 'type';
+const BUTTON_VALUE = 'type';
+
 export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     private readonly popover = new Popover(this.ctx);
     private anchor?: _Scene.BBox = undefined;
@@ -32,7 +33,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
 
         const { toolbarManager } = ctx;
 
-        toolbarManager.toggleGroup('chart-toolbar', BUTTON_GROUP, true);
+        toolbarManager.toggleGroup('chart-toolbar', BUTTON_GROUP, { visible: true });
 
         this.destroyFns.push(
             toolbarManager.addListener('button-moved', this.toolbarButtonMoved.bind(this)),
@@ -45,7 +46,8 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
 
         const { chartService, toolbarManager } = this.ctx;
         const chartType = (chartService.publicApi?.getOptions() as AgFinancialChartOptions).chartType ?? 'ohlc';
-        toolbarManager.updateButton(BUTTON_GROUP, BUTTON_CHART_TYPE, { icon: chartIcons[chartType] });
+        const { icon } = itemConfigurations[chartType];
+        toolbarManager.updateButton(BUTTON_GROUP, BUTTON_VALUE, { icon });
         this.didSetInitialIcon = true;
     }
 
@@ -71,26 +73,26 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
 
         this.setAnchor(e.rect);
 
-        const item = (title: string, type: AgPriceVolumeChartType) => {
-            const icon = chartIcons[type];
+        const item = (type: AgPriceVolumeChartType) => {
+            const { label, icon } = itemConfigurations[type];
             const onPress = () => {
                 this.setChartType(type);
-                this.ctx.toolbarManager.updateButton(BUTTON_GROUP, BUTTON_CHART_TYPE, { icon });
+                this.ctx.toolbarManager.updateButton(BUTTON_GROUP, BUTTON_VALUE, { icon });
             };
-            return { title, icon, onPress };
+            return { label, icon, onPress };
         };
 
         this.popover.show({
             items: [
-                item('toolbarSeriesTypeOHLC', 'ohlc'),
-                item('toolbarSeriesTypeCandles', 'candlestick'),
-                item('toolbarSeriesTypeHollowCandles', 'hollow-candlestick'),
-                item('toolbarSeriesTypeLine', 'line'),
+                item('ohlc'),
+                item('candlestick'),
+                item('hollow-candlestick'),
+                item('line'),
                 // @todo(AG-XXX)
-                // item('toolbarSeriesTypeLineWithMarkers' 'line') },
-                item('toolbarSeriesTypeStepLine', 'step-line'),
+                // item('line') },
+                item('step-line'),
                 // @todo(AG-12182)
-                // item('toolbarSeriesTypeArea', 'range-area'),
+                // item('range-area'),
             ],
             onClose: () => {
                 this.popover.hide();
