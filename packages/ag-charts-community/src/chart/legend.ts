@@ -435,7 +435,7 @@ export class Legend extends BaseProperties {
         const itemMaxWidthPercentage = 0.8;
         const maxItemWidth = maxWidth ?? width * itemMaxWidthPercentage;
 
-        const { spriteAAPadding, spriteWidth, spriteHeight, markerWidth } = this.calcSpriteDims();
+        const { spriteAAPadding, spriteWidth, spriteHeight, markerWidth } = this.calculateSpriteDimensions();
         this.spriteRenderer.resize(spriteWidth, spriteHeight);
 
         this.itemSelection.each((markerLabel, datum) => {
@@ -512,9 +512,12 @@ export class Legend extends BaseProperties {
         return { markerLength, markerStrokeWidth, lineLength, lineStrokeWidth };
     }
 
-    private calcSpriteDims() {
+    private calculateSpriteDimensions() {
         // AG-11950 Calculate the length of the longest legend symbol to ensure that the text / symbols stay aligned.
-        let [spriteAAPadding, spriteWidth, spriteHeight, markerWidth] = [0, 0, 0, 0];
+        let spriteAAPadding = 0;
+        let spriteWidth = 0;
+        let spriteHeight = 0;
+        let markerWidth = 0;
         this.itemSelection.each((_, datum) => {
             datum.symbols.forEach((symbol) => {
                 const { markerLength, markerStrokeWidth, lineLength, lineStrokeWidth } =
