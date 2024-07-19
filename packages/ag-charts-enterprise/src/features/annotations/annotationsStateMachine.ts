@@ -107,7 +107,10 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             const node = getNode(isNode);
             const datum = getDatum(isDatum);
 
-            return new (class extends StateMachine<'idle' | 'dragging', 'drag' | 'dragStart' | 'dragEnd'> {
+            return new (class DragStateMachine extends StateMachine<
+                'idle' | 'dragging',
+                'drag' | 'dragStart' | 'dragEnd'
+            > {
                 override debug = _Util.Debug.create(true, 'annotations');
                 constructor() {
                     super('idle', {
@@ -182,7 +185,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     guard: () => this.hovered != null,
                     target: States.Dragging,
                     action: () => {
-                        selectedWithDrag = this.active == null;
+                        selectedWithDrag = this.active == null || this.hovered != this.active;
                         this.active = ctx.select(this.hovered, this.active);
                         ctx.startInteracting();
                     },
