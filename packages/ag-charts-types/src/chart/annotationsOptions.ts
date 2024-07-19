@@ -9,7 +9,10 @@ import type {
 import type { Formatter } from './callbackOptions';
 import type { PixelSize } from './types';
 
-// --- Theme ---
+/*********
+ * Theme *
+ *********/
+
 export interface AgAnnotationsThemeableOptions {
     // Lines
     line?: AgLineAnnotationStyles;
@@ -50,6 +53,7 @@ export interface AgTextAnnotationStyles extends Lockable, Visible {}
 /***********
  * Options *
  ***********/
+
 export interface AgAnnotationsOptions extends Toggleable {
     /** The options for the axes buttons */
     axesButtons?: AgAnnotationAxesButtons;
@@ -69,6 +73,7 @@ export type AgAnnotation =
 /********************
  * Line Annotations *
  ********************/
+
 export interface AgLineAnnotation
     extends AnnotationLinePoints,
         Cappable,
@@ -101,6 +106,7 @@ export interface AgCrossLineAnnotation extends Lockable, Visible, StrokeOptions,
 /***********************
  * Channel Annotations *
  ***********************/
+
 export interface AgParallelChannelAnnotation
     extends AnnotationLinePoints,
         Extendable,
@@ -138,6 +144,7 @@ export interface AgDisjointChannelAnnotation
 /********************
  * Text Annotations *
  ********************/
+
 export interface AgCalloutAnnotation extends TextualAnnotation {
     /** Configuration for the callout annotation. */
     type: 'callout';
@@ -165,6 +172,7 @@ interface TextualAnnotation extends AgAnnotationPoint, Lockable, Visible, FontOp
 /**************
  * Components *
  **************/
+
 export interface AgChannelAnnotationMiddle extends Visible, StrokeOptions, LineDashOptions {}
 export interface AgChannelAnnotationBackground extends FillOptions {}
 export interface AgAnnotationAxisLabel
