@@ -370,10 +370,9 @@ export class Group extends Node {
         let right = -Infinity;
         let top = Infinity;
         let bottom = -Infinity;
-        const { skipInvisible = true } = opts ?? {};
 
         for (const n of nodes) {
-            if (skipInvisible && !n.visible) continue;
+            if (!!opts?.skipInvisible && !n.visible) continue;
 
             const bbox = n.computeTransformedBBox();
 
