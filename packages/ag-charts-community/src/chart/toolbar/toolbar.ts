@@ -689,7 +689,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         if (id != null) return id;
         if (value != null && typeof value !== 'object') return String(value);
 
-        // @todo(AG-XXXX): buttons with non-primitive values need IDs
+        // @todo(AG-12343): buttons with non-primitive values need IDs
         return label ?? '';
     }
 }
