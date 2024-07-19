@@ -8,6 +8,7 @@ const canvasOverlay = 'canvas-overlay';
 export interface MenuItem {
     label: string;
     icon?: AgIconName;
+    active?: boolean;
     onPress: () => void;
 }
 
@@ -36,6 +37,7 @@ export class Popover extends _ModuleSupport.BaseModuleInstance implements _Modul
         const rows = opts.items.map((item) => {
             const row = createElement('div');
             row.className = `ag-charts-popover__row`;
+            row.classList.toggle(`ag-charts-popover__row--active`, item.active === true);
             row.setAttribute('tabindex', '0');
             popover.setAttribute('role', 'menuitem');
 
