@@ -12,7 +12,7 @@ interface AnchoredLayout {
     alignment: 'left' | 'center' | 'right';
     placement: 'inside' | 'outside';
     position: 'top' | 'center' | 'bottom';
-    spacing: number;
+    spacing: number | _Util.Vec2;
 }
 
 export abstract class TextualScene<Datum extends TextualProperties> extends AnnotationScene {
@@ -70,8 +70,11 @@ export abstract class TextualScene<Datum extends TextualProperties> extends Anno
     }
 
     override getAnchor() {
-        const bbox = this.getCachedBBoxWithoutHandles();
-        return { x: bbox.x + bbox.width / 2, y: bbox.y };
+        let bbox = this.getCachedBBoxWithoutHandles();
+        if (bbox.width === 0 && bbox.height === 0) {
+            bbox = this.computeBBoxWithoutHandles();
+        }
+        return { x: bbox.x, y: bbox.y };
     }
 
     override getCursor() {
@@ -122,10 +125,13 @@ export abstract class TextualScene<Datum extends TextualProperties> extends Anno
 
         const { x, y } = this.getCoordsFromAnchoredLayout(
             {
-                alignment: 'center',
+                alignment: 'left',
                 placement: 'outside',
                 position: 'bottom',
-                spacing: DivariantHandle.HANDLE_SIZE,
+                spacing: {
+                    x: -DivariantHandle.HANDLE_SIZE / 2,
+                    y: DivariantHandle.HANDLE_SIZE,
+                },
             },
             bbox
         );
@@ -151,29 +157,30 @@ export abstract class TextualScene<Datum extends TextualProperties> extends Anno
         let y = bbox.y;
 
         const placementModifier = placement === 'inside' ? 1 : -1;
-        const placedSpacing = spacing * placementModifier;
+        const spacingX = (typeof spacing === 'object' ? spacing.x : spacing) * placementModifier;
+        const spacingY = (typeof spacing === 'object' ? spacing.y : spacing) * placementModifier;
 
         switch (alignment) {
             case 'left':
-                x = bbox.x + placedSpacing;
+                x = bbox.x + spacingX;
                 break;
             case 'center':
                 x = bbox.x + bbox.width / 2;
                 break;
             case 'right':
-                x = bbox.x + bbox.width - placedSpacing;
+                x = bbox.x + bbox.width - spacingX;
                 break;
         }
 
         switch (position) {
             case 'top':
-                y = bbox.y + placedSpacing;
+                y = bbox.y + spacingY;
                 break;
             case 'center':
                 y = bbox.y + bbox.height / 2;
                 break;
             case 'bottom':
-                y = bbox.y + bbox.height - placedSpacing;
+                y = bbox.y + bbox.height - spacingY;
                 break;
         }
 
