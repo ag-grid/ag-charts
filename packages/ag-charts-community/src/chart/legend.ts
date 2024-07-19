@@ -49,9 +49,9 @@ import { InteractionState, type PointerInteractionEvent } from './interaction/in
 import { makeKeyboardPointerEvent } from './keyboardUtil';
 import { Layers } from './layers';
 import type { CategoryLegendDatum, LegendSymbolOptions } from './legendDatum';
+import { LegendMarkerLabel } from './legendMarkerLabel';
 import type { Marker } from './marker/marker';
 import { type MarkerConstructor, getMarker } from './marker/util';
-import { MarkerLabel } from './markerLabel';
 import { Pagination } from './pagination/pagination';
 import { type TooltipPointerEvent, toTooltipHtml } from './tooltip/tooltip';
 
@@ -162,9 +162,9 @@ export class Legend extends BaseProperties {
 
     private readonly group: Group = new Group({ name: 'legend', layer: true, zIndex: Layers.LEGEND_ZINDEX });
 
-    private readonly itemSelection: Selection<MarkerLabel, CategoryLegendDatum> = Selection.select(
+    private readonly itemSelection: Selection<LegendMarkerLabel, CategoryLegendDatum> = Selection.select(
         this.group,
-        MarkerLabel
+        LegendMarkerLabel
     );
 
     private readonly spriteRenderer = new SpriteRenderer();
@@ -532,7 +532,7 @@ export class Legend extends BaseProperties {
     }
 
     private updateMarkerLabel(
-        markerLabel: MarkerLabel,
+        markerLabel: LegendMarkerLabel,
         datum: CategoryLegendDatum,
         markerWidth: number,
         spriteAAPadding: number
@@ -910,7 +910,7 @@ export class Legend extends BaseProperties {
         const closestLeftTop = { dist: Infinity, datum: undefined as any };
         for (const child of this.group.children) {
             if (!child.visible) continue;
-            if (!(child instanceof MarkerLabel)) continue;
+            if (!(child instanceof LegendMarkerLabel)) continue;
 
             const childBBox = child.computeBBox();
             childBBox.grow(this.item.paddingX / 2, 'horizontal');

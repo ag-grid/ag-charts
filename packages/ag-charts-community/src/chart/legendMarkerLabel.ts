@@ -12,7 +12,7 @@ import { ProxyPropertyOnWrite } from '../util/proxy';
 import type { Marker } from './marker/marker';
 import type { MarkerConstructor } from './marker/util';
 
-export class MarkerLabel extends Group {
+export class LegendMarkerLabel extends Group {
     static override readonly className = 'MarkerLabel';
 
     private readonly label = new Text();
