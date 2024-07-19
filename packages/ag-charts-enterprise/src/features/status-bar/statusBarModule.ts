@@ -27,6 +27,9 @@ export const StatusBarModule: _ModuleSupport.RootModule = {
             negative: {
                 color: _Theme.PALETTE_DOWN_STROKE,
             },
+            neutral: {
+                color: _Theme.DEFAULT_LABEL_COLOUR,
+            },
         },
     },
 };

@@ -49,51 +49,57 @@ export interface AgToolbarButton {
 }
 
 export type AgIconName =
-    | 'area'
-    | 'callout'
-    | 'candles'
-    | 'comment'
+    | 'area-series'
+    | 'callout-series'
+    | 'candlestick-series'
+    | 'comment-annotation'
     | 'delete'
-    | 'disjoint-channel'
-    | 'fill'
-    | 'hollow-candles'
-    | 'horizontal-line'
+    | 'disjoint-channel-drawing'
+    | 'fill-color'
+    | 'hollow-candlestick-series'
+    | 'horizontal-line-drawing'
     | 'line-color'
-    | 'line-markers'
-    | 'line'
-    | 'lock'
-    | 'note'
-    | 'ohlc'
+    | 'line-with-markers-series'
+    | 'line-series'
+    | 'locked'
+    | 'note-annotation'
+    | 'ohlc-series'
     | 'pan-end'
     | 'pan-left'
     | 'pan-right'
     | 'pan-start'
-    | 'parallel-channel'
-    | 'price-label'
+    | 'parallel-channel-drawing'
+    | 'price-label-annotation'
     | 'reset'
-    | 'step-line'
-    | 'text'
-    | 'trend-line'
-    | 'unlock'
-    | 'vertical-line'
+    | 'step-line-series'
+    | 'text-annotation'
+    | 'trend-line-drawing'
+    | 'unlocked'
+    | 'vertical-line-drawing'
     | 'zoom-in'
     | 'zoom-out'
     | AgIconLegacyName;
 
 export type AgIconLegacyName =
     | 'delete-legacy'
+    | 'disjoint-channel'
     | 'disjoint-channel-legacy'
     | 'horizontal-line-legacy'
     | 'line-color-legacy'
+    | 'lock'
     | 'lock-legacy'
     | 'pan-end-legacy'
     | 'pan-left-legacy'
     | 'pan-right-legacy'
     | 'pan-start-legacy'
+    | 'parallel-channel'
     | 'parallel-channel-legacy'
     | 'reset-legacy'
+    | 'trend-line'
     | 'trend-line-legacy'
+    | 'unlock'
     | 'unlock-legacy'
+    | 'vertical-line'
     | 'vertical-line-legacy'
     | 'zoom-in-legacy'
     | 'zoom-in-alt'
@@ -101,6 +107,36 @@ export type AgIconLegacyName =
     | 'zoom-out-legacy'
     | 'zoom-out-alt'
     | 'zoom-out-alt-legacy';
+
+// Duplicated as docs can not handle `type AgIconLegacyName = typeof ICONS_LEGACY`, but need the array for validation.
+export const ICONS_LEGACY = [
+    'delete-legacy',
+    'disjoint-channel',
+    'disjoint-channel-legacy',
+    'horizontal-line-legacy',
+    'line-color-legacy',
+    'lock',
+    'lock-legacy',
+    'pan-end-legacy',
+    'pan-left-legacy',
+    'pan-right-legacy',
+    'pan-start-legacy',
+    'parallel-channel',
+    'parallel-channel-legacy',
+    'reset-legacy',
+    'trend-line',
+    'trend-line-legacy',
+    'unlock',
+    'unlock-legacy',
+    'vertical-line',
+    'vertical-line-legacy',
+    'zoom-in-legacy',
+    'zoom-in-alt',
+    'zoom-in-alt-legacy',
+    'zoom-out-legacy',
+    'zoom-out-alt',
+    'zoom-out-alt-legacy',
+] as Array<AgIconLegacyName>;
 
 /* Annotations */
 export interface AgToolbarAnnotationsGroup extends AgToolbarGroup {

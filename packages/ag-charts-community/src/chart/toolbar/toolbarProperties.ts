@@ -1,3 +1,5 @@
+import { ICONS_LEGACY } from 'ag-charts-types';
+
 import { Logger } from '../../util/logger';
 import { BaseProperties } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
@@ -37,7 +39,7 @@ export class ToolbarGroupProperties extends BaseProperties {
 
     @ObserveChanges<ToolbarGroupProperties>((target) => {
         for (const button of target.buttons ?? []) {
-            if (button.icon === 'zoom-in-alt' || button.icon === 'zoom-out-alt') {
+            if (button.icon != null && ICONS_LEGACY.includes(button.icon as any)) {
                 Logger.warnOnce(`Icon '${button.icon}' is deprecated, use another icon instead.`);
             }
             if (button.value != null && typeof button.value === 'object' && button.id == null) {

@@ -9,12 +9,12 @@ import {
 import { Popover } from '../popover/popover';
 
 const itemConfigurations: Record<AgPriceVolumeChartType, { label: string; icon: AgIconName | undefined }> = {
-    ohlc: { label: 'toolbarSeriesTypeOHLC', icon: 'ohlc' },
-    candlestick: { label: 'toolbarSeriesTypeCandles', icon: 'candles' },
-    'hollow-candlestick': { label: 'toolbarSeriesTypeHollowCandles', icon: 'hollow-candles' },
-    line: { label: 'toolbarSeriesTypeLine', icon: 'line' },
-    'step-line': { label: 'toolbarSeriesTypeStepLine', icon: 'step-line' },
-    'range-area': { label: 'toolbarSeriesTypeArea', icon: 'area' },
+    ohlc: { label: 'toolbarSeriesTypeOHLC', icon: 'ohlc-series' },
+    candlestick: { label: 'toolbarSeriesTypeCandles', icon: 'candlestick-series' },
+    'hollow-candlestick': { label: 'toolbarSeriesTypeHollowCandles', icon: 'hollow-candlestick-series' },
+    line: { label: 'toolbarSeriesTypeLine', icon: 'line-series' },
+    'step-line': { label: 'toolbarSeriesTypeStepLine', icon: 'step-line-series' },
+    'range-area': { label: 'toolbarSeriesTypeArea', icon: 'area-series' },
     hlc: { label: '', icon: undefined },
     'high-low': { label: '', icon: undefined },
 };

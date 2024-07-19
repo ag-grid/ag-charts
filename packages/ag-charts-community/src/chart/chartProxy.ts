@@ -138,9 +138,11 @@ export class AgChartInstanceProxy implements AgChartProxy {
         this.chart.destroy();
     }
 
-    private async prepareResizedChart({ chart }: AgChartInstanceProxy, opts: DownloadOptions = {}) {
+    private async prepareResizedChart(proxy: AgChartInstanceProxy, opts: DownloadOptions = {}) {
+        const { chart } = proxy;
         const width: number = opts.width ?? chart.width ?? chart.ctx.scene.canvas.width;
         const height: number = opts.height ?? chart.height ?? chart.ctx.scene.canvas.height;
+        const state = proxy.getState();
 
         const isEnterprise = moduleRegistry.hasEnterpriseModules();
         const overrideOptions: Partial<AgChartOptions> = {};
@@ -182,6 +184,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
         );
 
         const cloneProxy = await this.factoryApi.createOrUpdate(options);
+        await cloneProxy.setState(state);
         cloneProxy.chart.ctx.zoomManager.updateZoom('agChartV2', chart.ctx.zoomManager.getZoom()); // sync zoom
         chart.series.forEach((series, index) => {
             if (!series.visible) {

@@ -118,7 +118,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                 const title = ctx.chartService.title;
                 let fileName = 'image';
                 if (title?.enabled && title?.text !== undefined) {
-                    fileName = title.text;
+                    fileName = title.text.replace(/\.+/, '');
                 }
                 this.ctx.chartService.publicApi?.download({ fileName }).catch((e) => {
                     Logger.error('Unable to download chart', e);
