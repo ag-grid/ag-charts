@@ -62,7 +62,7 @@ const annotations: AgToolbarOptions['annotations'] = {
             section: 'annotations',
         },
         {
-            icon: 'comment',
+            icon: 'comment-annotation',
             tooltip: 'comment',
             value: 'comment',
             section: 'annotations',
