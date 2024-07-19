@@ -551,10 +551,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     private refreshButtonContent(group: ToolbarGroup, buttonOptions: ToolbarButton) {
-        const { value } = buttonOptions;
-        const button = this.groupProxied.get(group)?.buttons?.find((b) => b.value === value) ?? buttonOptions;
+        const id = buttonOptions.id ?? buttonOptions.value;
+        const button = this.groupProxied.get(group)?.buttons?.find((b) => (b.id ?? b.value) === id) ?? buttonOptions;
 
-        const element = this.groupButtons[group].find((b) => b.getAttribute('data-toolbar-value') === value);
+        const element = this.groupButtons[group].find((b) => b.getAttribute('data-toolbar-id') === id);
         if (element == null) return;
 
         this.updateButtonText(element, button);

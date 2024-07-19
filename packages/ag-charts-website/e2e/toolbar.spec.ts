@@ -12,7 +12,7 @@ test.describe('toolbar', () => {
             test('annotations', async ({ page }) => {
                 await gotoExample(page, url);
 
-                await page.locator('[data-toolbar-group="annotations"][data-toolbar-value="line"]').click();
+                await page.locator('[data-toolbar-group="annotations"][data-toolbar-id="line"]').click();
                 await expect(page).toHaveScreenshot('line-annotation-1-button-active.png', { animations: 'disabled' });
 
                 await page.hover('canvas', { position: { x: 100, y: 100 } });
