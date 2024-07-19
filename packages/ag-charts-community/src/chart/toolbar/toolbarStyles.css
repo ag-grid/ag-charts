@@ -120,7 +120,7 @@
     border: var(--ag-charts-toolbar-border);
     color: var(--ag-charts-toolbar-foreground-color);
     display: flex;
-    font-size: var(--ag-charts-toolbar-font-size) var(--ag-charts-toolbar-font-family);
+    font-size: var(--ag-charts-toolbar-font-size) var(--ag-charts-font-family);
     justify-content: center;
     margin: 0 0 0 -1px;
     min-height: var(--ag-charts-toolbar-size);

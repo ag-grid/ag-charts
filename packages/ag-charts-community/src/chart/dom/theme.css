@@ -61,7 +61,6 @@
         var(--ag-charts-toolbar-foreground-color) 6%
     );
     --ag-charts-toolbar-gap: var(--ag-charts-size);
-    --ag-charts-toolbar-font-family: var(--ag-charts-font-family);
     --ag-charts-toolbar-font-size: 14px;
     --ag-charts-toolbar-font-size-small: 12px;
     --ag-charts-toolbar-button-padding: 6px;
@@ -74,7 +73,6 @@
     --ag-charts-popover-focus-color: var(--ag-charts-toolbar-focus-color);
     --ag-charts-popover-hover-color: var(--ag-charts-toolbar-hover-color);
     --ag-charts-popover-active-background-color: var(--ag-charts-toolbar-active-background-color);
-    --ag-charts-popover-font-family: var(--ag-charts-toolbar-font-family);
     --ag-charts-popover-font-size-small: var(--ag-charts-toolbar-font-size-small);
 
     /* Buttons */

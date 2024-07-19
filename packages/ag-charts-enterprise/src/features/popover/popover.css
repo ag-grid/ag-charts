@@ -9,7 +9,7 @@
     padding: 6px 0;
     background: var(--ag-charts-popover-background-color);
     color: var(--ag-charts-popover-foreground-color);
-    font: var(--ag-charts-popover-font-size-small) var(--ag-charts-popover-font-family);
+    font: var(--ag-charts-popover-font-size-small) var(--ag-charts-font-family);
     overflow: hidden;
 }
 
