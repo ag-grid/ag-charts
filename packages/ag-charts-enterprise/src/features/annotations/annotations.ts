@@ -94,7 +94,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     // State
     private readonly state: AnnotationsStateMachine;
     private readonly annotationData: AnnotationPropertiesArray = new PropertiesArray(this.createAnnotationDatum);
-    private dragOffset?: Coords;
 
     // Elements
     private seriesRect?: _Scene.BBox;
@@ -254,7 +253,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.textInput.show({ styles, text: datum.text });
 
                 const bbox = datum.getTextBBox(this.getAnnotationContext()!);
-                const coords = Vec2.add(bbox, Vec2.required(this.seriesRect));
+                const coords = Vec2.sub(
+                    Vec2.add(bbox, Vec2.required(this.seriesRect)),
+                    // Adjust the y position to account for variance in html vs canvas text layout
+                    Vec2.from(0, (datum.fontSize / 48) * 11)
+                );
                 bbox.x = coords.x;
                 bbox.y = coords.y;
 
@@ -580,14 +583,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onClick(event: _ModuleSupport.PointerInteractionEvent<'click'>) {
-        const { dragOffset, seriesRect, state } = this;
-
-        // Prevent clicks triggered on the exact same event as the drag when placing the second point. This "double"
-        // event causes channels to be created with start and end at the same position and render incorrectly.
-        if (state.is('end') && dragOffset && dragOffset.x === event.offsetX && dragOffset.y === event.offsetY) {
-            this.dragOffset = undefined;
-            return;
-        }
+        const { seriesRect, state } = this;
 
         const context = this.getAnnotationContext();
         if (!context) return;
@@ -655,11 +651,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const offset = Vec2.sub(Vec2.fromOffset(event), Vec2.required(seriesRect));
         const point = invertCoords(offset, context);
         state.transition('drag', { context, offset, point });
-
-        // Only track pointer offset for drag + click prevention when we are placing the first point
-        if (state.is('start')) {
-            this.dragOffset = Vec2.fromOffset(event);
-        }
     }
 
     private onDragEnd(_event: _ModuleSupport.PointerInteractionEvent<'drag-end'>) {

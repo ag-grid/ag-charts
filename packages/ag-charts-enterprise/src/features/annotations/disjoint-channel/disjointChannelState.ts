@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import type { Point } from '../annotationTypes';
+import type { GuardDragClickDoubleEvent, Point } from '../annotationTypes';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import { DisjointChannelProperties } from './disjointChannelProperties';
 import type { DisjointChannelScene } from './disjointChannelScene';
@@ -11,6 +11,7 @@ interface DisjointChannelStateMachineContext extends Omit<AnnotationsStateMachin
     create: (datum: DisjointChannelProperties) => void;
     datum: () => DisjointChannelProperties | undefined;
     node: () => DisjointChannelScene | undefined;
+    guardDragClickDoubleEvent: GuardDragClickDoubleEvent;
 }
 
 export class DisjointChannelStateMachine extends StateMachine<
@@ -27,6 +28,7 @@ export class DisjointChannelStateMachine extends StateMachine<
         };
 
         const onEndHover = ({ point }: { point: Point }) => {
+            ctx.guardDragClickDoubleEvent.hover();
             ctx.datum()?.set({ end: point });
             ctx.node()?.toggleHandles({ topRight: false, bottomLeft: false, bottomRight: false });
             ctx.update();
@@ -93,11 +95,15 @@ export class DisjointChannelStateMachine extends StateMachine<
             end: {
                 hover: onEndHover,
                 click: {
+                    // Ensure that a double event of drag before a single click does not trigger an immediate
+                    // transition causing the start and end to be at the same point.
+                    guard: ctx.guardDragClickDoubleEvent.guard,
                     target: 'height',
                     action: onEndClick,
                 },
                 drag: onEndHover,
                 cancel: StateMachine.parent,
+                onExit: ctx.guardDragClickDoubleEvent.reset,
             },
             height: {
                 hover: onHeightHover,

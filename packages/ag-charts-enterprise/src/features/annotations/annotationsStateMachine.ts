@@ -1,7 +1,7 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import { type AnnotationContext, AnnotationType } from './annotationTypes';
-import { colorDatum, getTypedDatum } from './annotationsConfig';
+import { type AnnotationContext, AnnotationType, type GuardDragClickDoubleEvent } from './annotationTypes';
+import { colorDatum, getTypedDatum, isTextType } from './annotationsConfig';
 import type { AnnotationProperties, AnnotationsStateMachineContext } from './annotationsSuperTypes';
 import {
     type CrossLineProperties,
@@ -57,6 +57,19 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
         // the `dragStart.
         let selectedWithDrag = false;
 
+        // Ensure that a double event of drag before a single click does not trigger an immediate transition causing
+        // the start and end to be at the same point.
+        let hoverEventsCount = 0;
+        const guardDragClickDoubleEvent: GuardDragClickDoubleEvent = {
+            guard: () => hoverEventsCount > 0,
+            hover: () => {
+                hoverEventsCount++;
+            },
+            reset: () => {
+                hoverEventsCount = 0;
+            },
+        };
+
         const getDatum =
             <T>(is: (value: unknown) => value is T) =>
             () => {
@@ -94,7 +107,10 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             const node = getNode(isNode);
             const datum = getDatum(isDatum);
 
-            return new (class extends StateMachine<'idle' | 'dragging', 'drag' | 'dragStart' | 'dragEnd'> {
+            return new (class DragStateMachine extends StateMachine<
+                'idle' | 'dragging',
+                'drag' | 'dragStart' | 'dragEnd'
+            > {
                 override debug = _Util.Debug.create(true, 'annotations');
                 constructor() {
                     super('idle', {
@@ -140,11 +156,12 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 click: [
                     {
-                        guard: () =>
-                            this.active != null &&
-                            this.hovered != null &&
-                            !selectedWithDrag &&
-                            ctx.getAnnotationType(this.hovered) === AnnotationType.Text,
+                        guard: () => {
+                            if (this.active == null || this.hovered !== this.active || selectedWithDrag) return false;
+                            const datum = ctx.datum(this.active);
+                            if (!datum) return false;
+                            return isTextType(datum) && !datum.locked;
+                        },
                         target: States.TextInput,
                     },
                     {
@@ -168,7 +185,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     guard: () => this.hovered != null,
                     target: States.Dragging,
                     action: () => {
-                        selectedWithDrag = this.active == null;
+                        selectedWithDrag = this.active == null || this.hovered != this.active;
                         this.active = ctx.select(this.hovered, this.active);
                         ctx.startInteracting();
                     },
@@ -203,6 +220,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     create: createDatum<LineProperties>(AnnotationType.Line),
                     datum: getDatum<LineProperties>(LineProperties.is),
                     node: getNode<LineScene>(LineScene.is),
+                    guardDragClickDoubleEvent,
                 }),
                 [AnnotationType.HorizontalLine]: new CrossLineStateMachine('horizontal', {
                     ...ctx,
@@ -219,12 +237,14 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     create: createDatum<DisjointChannelProperties>(AnnotationType.DisjointChannel),
                     datum: getDatum<DisjointChannelProperties>(DisjointChannelProperties.is),
                     node: getNode<DisjointChannelScene>(DisjointChannelScene.is),
+                    guardDragClickDoubleEvent,
                 }),
                 [AnnotationType.ParallelChannel]: new ParallelChannelStateMachine({
                     ...ctx,
                     create: createDatum<ParallelChannelProperties>(AnnotationType.ParallelChannel),
                     datum: getDatum<ParallelChannelProperties>(ParallelChannelProperties.is),
                     node: getNode<ParallelChannelScene>(ParallelChannelScene.is),
+                    guardDragClickDoubleEvent,
                 }),
 
                 // Texts
@@ -232,13 +252,13 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     ...ctx,
                     create: createDatum<TextProperties>(AnnotationType.Text),
                     delete: () => {
-                        if (this.active) ctx.delete(this.active);
+                        if (this.active != null) ctx.delete(this.active);
                         this.active = ctx.select();
                     },
                     datum: getDatum<TextProperties>(TextProperties.is),
                     node: getNode<TextScene>(TextScene.is),
                     showTextInput: () => {
-                        if (this.active) ctx.showTextInput(this.active);
+                        if (this.active != null) ctx.showTextInput(this.active);
                     },
                 }),
             },
