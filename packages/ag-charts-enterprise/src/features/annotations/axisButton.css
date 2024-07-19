@@ -18,9 +18,9 @@
 
 .ag-charts-annotations__axis-button {
     cursor: pointer;
-    padding: 2px;
     border: none;
     border-radius: 2px;
+    padding: 0;
     line-height: 16px;
     background-color: var(--ag-charts-axis-label-background-color);
     color: var(--ag-charts-axis-label-color);

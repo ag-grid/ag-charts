@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import type { Point } from '../annotationTypes';
+import type { GuardDragClickDoubleEvent, Point } from '../annotationTypes';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import { LineProperties } from './lineProperties';
 import type { LineScene } from './lineScene';
@@ -11,6 +11,7 @@ interface LineStateMachineContext extends Omit<AnnotationsStateMachineContext, '
     create: (datum: LineProperties) => void;
     datum: () => LineProperties | undefined;
     node: () => LineScene | undefined;
+    guardDragClickDoubleEvent: GuardDragClickDoubleEvent;
 }
 
 export class LineStateMachine extends StateMachine<'start' | 'end', 'click' | 'hover' | 'drag' | 'cancel'> {
@@ -24,6 +25,7 @@ export class LineStateMachine extends StateMachine<'start' | 'end', 'click' | 'h
         };
 
         const onEndHover = ({ point }: { point: Point }) => {
+            ctx.guardDragClickDoubleEvent.hover();
             ctx.datum()?.set({ end: point });
             ctx.node()?.toggleActive(true); // TODO: move to onEnter, but node doesn't exist until next render
             ctx.node()?.toggleHandles({ end: false });
@@ -41,7 +43,6 @@ export class LineStateMachine extends StateMachine<'start' | 'end', 'click' | 'h
                     target: 'end',
                     action: onStartClick,
                 },
-                // TODO: this or the one in the parent?
                 drag: {
                     target: 'end',
                     action: onStartClick,
@@ -51,11 +52,13 @@ export class LineStateMachine extends StateMachine<'start' | 'end', 'click' | 'h
             end: {
                 hover: onEndHover,
                 click: {
+                    guard: ctx.guardDragClickDoubleEvent.guard,
                     target: StateMachine.parent,
                     action: onEndClick,
                 },
                 drag: onEndHover,
                 cancel: StateMachine.parent,
+                onExit: ctx.guardDragClickDoubleEvent.reset,
             },
         });
     }

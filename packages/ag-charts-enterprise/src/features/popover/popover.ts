@@ -6,7 +6,7 @@ const moduleId = 'popover';
 const canvasOverlay = 'canvas-overlay';
 
 export interface MenuItem {
-    title: string;
+    label: string;
     icon?: AgIconName;
     active?: boolean;
     onPress: () => void;
@@ -48,7 +48,7 @@ export class Popover extends _ModuleSupport.BaseModuleInstance implements _Modul
             }
 
             const title = createElement('span');
-            title.textContent = this.ctx.localeManager.t(item.title);
+            title.textContent = this.ctx.localeManager.t(item.label);
             title.className = `ag-charts-popover__label`;
             row.appendChild(title);
 

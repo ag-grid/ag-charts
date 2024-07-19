@@ -56,6 +56,8 @@ export class ZoomRange {
 
         // If neither start or end were changed, ensure we still call the `onChange` callback
         if (!changed) this.onChange?.(this.axisId, this.getRange());
+
+        return { start, end };
     }
 
     public updateWith(fn: (start: Date | number, end: Date | number) => [Date | number, Date | number]) {
@@ -71,6 +73,8 @@ export class ZoomRange {
 
         // If neither start or end were changed, ensure we still call the `onChange` callback
         if (!changed) this.onChange?.(this.axisId, this.getRange());
+
+        return { start, end };
     }
 
     public extendAll() {

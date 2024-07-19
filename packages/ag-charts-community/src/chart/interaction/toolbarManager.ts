@@ -34,7 +34,8 @@ interface Event<T extends EventTypes> {
 
 export interface ToolbarGroupToggledEvent extends Event<'group-toggled'> {
     caller: string;
-    visible: boolean;
+    active: boolean | undefined;
+    visible: boolean | undefined;
 }
 
 export interface ToolbarCancelledEvent extends Event<'cancelled'> {}
@@ -44,19 +45,20 @@ export interface ToolbarFloatingAnchorChangedEvent extends Event<'floating-ancho
 }
 
 export interface ToolbarButtonPressedEvent<T = any> extends Event<'button-pressed'> {
+    id: string;
     value: T;
     rect: BBox;
 }
 
-export interface ToolbarButtonToggledEvent<T = any> extends Event<'button-toggled'> {
-    value: T;
+export interface ToolbarButtonToggledEvent<_T = any> extends Event<'button-toggled'> {
+    id: string;
     active: boolean;
     enabled: boolean;
     visible: boolean;
 }
 
-export interface ToolbarButtonUpdatedEvent<T = any> extends Event<'button-updated'> {
-    value: T;
+export interface ToolbarButtonUpdatedEvent extends Event<'button-updated'> {
+    id: string;
     icon: AgIconName | undefined;
 }
 
@@ -87,8 +89,8 @@ export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
         return false;
     }
 
-    pressButton(group: ToolbarGroup, value: any, rect: BBox) {
-        this.listeners.dispatch('button-pressed', { type: 'button-pressed', group, value, rect });
+    pressButton(group: ToolbarGroup, id: string, value: any, rect: BBox) {
+        this.listeners.dispatch('button-pressed', { type: 'button-pressed', group, id, value, rect });
     }
 
     cancel(group: ToolbarGroup) {
@@ -97,24 +99,21 @@ export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
 
     toggleButton<T extends ToolbarGroup>(
         group: T,
-        value: ToolbarEventButtonValue<T>,
+        id: string,
         options: { active?: boolean; enabled?: boolean; visible?: boolean }
     ) {
         const { active = false, enabled = true, visible = true } = options;
-        this.listeners.dispatch('button-toggled', { type: 'button-toggled', group, value, active, enabled, visible });
+        this.listeners.dispatch('button-toggled', { type: 'button-toggled', group, id, active, enabled, visible });
     }
 
-    updateButton<T extends ToolbarGroup>(
-        group: T,
-        value: ToolbarEventButtonValue<T>,
-        options: { icon: AgIconName | undefined }
-    ) {
+    updateButton<T extends ToolbarGroup>(group: T, id: string, options: { icon: AgIconName | undefined }) {
         const { icon } = options;
-        this.listeners.dispatch('button-updated', { type: 'button-updated', group, value, icon });
+        this.listeners.dispatch('button-updated', { type: 'button-updated', group, id, icon });
     }
 
-    toggleGroup(caller: string, group: ToolbarGroup, visible: boolean) {
-        this.listeners.dispatch('group-toggled', { type: 'group-toggled', caller, group, visible });
+    toggleGroup(caller: string, group: ToolbarGroup, options: { active?: boolean; visible?: boolean }) {
+        const { active, visible } = options;
+        this.listeners.dispatch('group-toggled', { type: 'group-toggled', caller, group, active, visible });
     }
 
     changeFloatingAnchor(group: ToolbarGroup, anchor: { x: number; y: number; position?: 'right' | 'above' }) {

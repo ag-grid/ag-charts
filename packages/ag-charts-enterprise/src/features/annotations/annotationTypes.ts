@@ -81,3 +81,9 @@ export type AnnotationContext = {
     xAxis: AnnotationAxisContext;
     yAxis: AnnotationAxisContext;
 };
+
+export interface GuardDragClickDoubleEvent {
+    guard: () => boolean;
+    hover: () => void;
+    reset: () => void;
+}

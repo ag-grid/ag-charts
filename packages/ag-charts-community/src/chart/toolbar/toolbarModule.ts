@@ -127,6 +127,7 @@ const ranges: AgToolbarOptions['ranges'] = {
             label: 'toolbarRangeYearToDate',
             ariaLabel: 'toolbarRangeYearToDateAria',
             value: (_start, end) => [new Date(`${new Date(end).getFullYear()}-01-01`).getTime(), end],
+            id: 'year-to-date',
         },
         {
             label: 'toolbarRange1Year',
@@ -137,6 +138,7 @@ const ranges: AgToolbarOptions['ranges'] = {
             label: 'toolbarRangeAll',
             ariaLabel: 'toolbarRangeAllAria',
             value: (start, end) => [start, end],
+            id: 'all',
         },
     ],
 };
