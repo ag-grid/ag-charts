@@ -4,10 +4,12 @@
     grid: auto-flow auto / 1fr;
     column-gap: 12px;
     min-width: 200px;
-    background: var(--ag-charts-popover-background-color);
     border: var(--ag-charts-popover-border);
     border-radius: 4px;
     padding: 6px 0;
+    background: var(--ag-charts-popover-background-color);
+    color: var(--ag-charts-popover-foreground-color);
+    font-size: var(--ag-charts-toolbar-font-size-small);
     overflow: hidden;
 }
 
@@ -19,12 +21,17 @@
     display: grid;
     grid-column: 1 / -1;
     grid-template-columns: subgrid;
-    padding: 6px 12px;
+    align-items: center;
+    padding: 4px 12px;
 }
 
 .ag-charts-popover__row:focus {
+    background: var(--ag-charts-toolbar-hover-color);
+}
+
+.ag-charts-popover__row--active {
     background: var(--ag-charts-popover-active-background-color);
-    color: var(--ag-charts-popover-active-color);
+    color: var(--ag-charts-popover-focus-color);
 }
 
 .ag-charts-popover__label {

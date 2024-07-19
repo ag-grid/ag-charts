@@ -64,10 +64,16 @@
     --ag-charts-toolbar-button-padding-small: 1px;
 
     /* Popover */
-    --ag-charts-popover-background-color: #fafafb;
-    --ag-charts-popover-border: 1px solid var(--ag-charts-border-color);
-    --ag-charts-popover-active-color: var(--ag-active-color, #5090dc);
-    --ag-charts-popover-active-background-color: #e1f0fb;
+    --ag-charts-popover-background-color: var(--ag-charts-toolbar-background-color);
+    --ag-charts-popover-foreground-color: var(--ag-charts-toolbar-foreground-color);
+    --ag-charts-popover-border: var(--ag-charts-toolbar-border);
+    --ag-charts-popover-focus-color: var(--ag-charts-toolbar-focus-color);
+    --ag-charts-toolbar-hover-color: color-mix(
+        in srgb,
+        var(--ag-charts-background-color),
+        var(--ag-charts-active-color) 12%
+    );
+    --ag-charts-popover-active-background-color: var(--ag-charts-toolbar-active-background-color);
 
     /* Buttons */
     --ag-charts-button-radius: var(--ag-border-radius, 4px);

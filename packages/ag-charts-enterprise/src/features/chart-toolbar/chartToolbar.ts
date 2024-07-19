@@ -43,8 +43,8 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
     async processData() {
         if (this.didSetInitialIcon) return;
 
-        const { chartService, toolbarManager } = this.ctx;
-        const chartType = (chartService.publicApi?.getOptions() as AgFinancialChartOptions).chartType ?? 'ohlc';
+        const { toolbarManager } = this.ctx;
+        const chartType = this.getChartType();
         toolbarManager.updateButton(BUTTON_GROUP, BUTTON_CHART_TYPE, { icon: chartIcons[chartType] });
         this.didSetInitialIcon = true;
     }
@@ -64,20 +64,21 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
         if (e.group !== BUTTON_GROUP) return;
 
         if (this.isPopoverVisible) {
-            this.popover.hide();
-            this.isPopoverVisible = false;
+            this.hidePopover();
             return;
         }
 
         this.setAnchor(e.rect);
 
+        const chartType = this.getChartType();
         const item = (title: string, type: AgPriceVolumeChartType) => {
             const icon = chartIcons[type];
+            const active = type === chartType;
             const onPress = () => {
                 this.setChartType(type);
                 this.ctx.toolbarManager.updateButton(BUTTON_GROUP, BUTTON_CHART_TYPE, { icon });
             };
-            return { title, icon, onPress };
+            return { title, icon, active, onPress };
         };
 
         this.popover.show({
@@ -93,16 +94,26 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
                 // item('toolbarSeriesTypeArea', 'range-area'),
             ],
             onClose: () => {
-                this.popover.hide();
-                this.isPopoverVisible = false;
+                this.hidePopover();
             },
         });
 
         this.isPopoverVisible = true;
+        this.ctx.toolbarManager.toggleButton(BUTTON_GROUP, BUTTON_CHART_TYPE, { active: true });
+    }
+
+    private hidePopover() {
+        this.ctx.toolbarManager.toggleButton(BUTTON_GROUP, BUTTON_CHART_TYPE, { active: false });
+        this.popover.hide();
+        this.isPopoverVisible = false;
     }
 
     private setChartType(chartType: AgPriceVolumeChartType) {
         const options: AgFinancialChartOptions = { chartType };
         void this.ctx.chartService.publicApi?.updateDelta(options as any);
+    }
+
+    private getChartType() {
+        return (this.ctx.chartService.publicApi?.getOptions() as AgFinancialChartOptions).chartType ?? 'ohlc';
     }
 }
