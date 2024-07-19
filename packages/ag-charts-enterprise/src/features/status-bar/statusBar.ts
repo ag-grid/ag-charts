@@ -1,10 +1,51 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 const { TextMeasurer, Validate, OBJECT, BOOLEAN, STRING, valueProperty } = _ModuleSupport;
 const { Label, Text, Group } = _Scene;
 
-class StatusBarLabel extends Label {}
+enum LabelConfiguration {
+    Open = 1 << 1,
+    Close = 1 << 2,
+    Low = 1 << 3,
+    High = 1 << 4,
+    Volume = 1 << 5,
+}
 
+const chartConfigurations: Record<AgPriceVolumeChartType, LabelConfiguration> = {
+    ohlc:
+        LabelConfiguration.Open |
+        LabelConfiguration.Close |
+        LabelConfiguration.Low |
+        LabelConfiguration.High |
+        LabelConfiguration.Volume,
+    candlestick:
+        LabelConfiguration.Open |
+        LabelConfiguration.Close |
+        LabelConfiguration.Low |
+        LabelConfiguration.High |
+        LabelConfiguration.Volume,
+    'hollow-candlestick':
+        LabelConfiguration.Open |
+        LabelConfiguration.Close |
+        LabelConfiguration.Low |
+        LabelConfiguration.High |
+        LabelConfiguration.Volume,
+    line: LabelConfiguration.Volume,
+    'step-line': LabelConfiguration.Volume,
+    'range-area': LabelConfiguration.Open | LabelConfiguration.Close | LabelConfiguration.Low | LabelConfiguration.High,
+    hlc:
+        LabelConfiguration.Open |
+        LabelConfiguration.Close |
+        LabelConfiguration.Low |
+        LabelConfiguration.High |
+        LabelConfiguration.Volume,
+    'high-low':
+        LabelConfiguration.Open |
+        LabelConfiguration.Close |
+        LabelConfiguration.Low |
+        LabelConfiguration.High |
+        LabelConfiguration.Volume,
+};
 export class StatusBar
     extends _ModuleSupport.BaseModuleInstance
     implements _ModuleSupport.ModuleInstance, _ModuleSupport.ScopeProvider
@@ -28,13 +69,16 @@ export class StatusBar
     volumeKey?: string = undefined;
 
     @Validate(OBJECT)
-    readonly title = new StatusBarLabel();
+    readonly title = new Label();
 
     @Validate(OBJECT)
-    readonly positive = new StatusBarLabel();
+    readonly positive = new Label();
 
     @Validate(OBJECT)
-    readonly negative = new StatusBarLabel();
+    readonly negative = new Label();
+
+    @Validate(OBJECT)
+    readonly neutral = new Label();
 
     @Validate(STRING)
     layoutStyle: 'block' | 'overlay' = 'block';
@@ -47,6 +91,7 @@ export class StatusBar
     private readonly labels = [
         {
             label: 'O',
+            configuration: LabelConfiguration.Open,
             title: this.labelGroup.appendChild(new Text()),
             value: this.labelGroup.appendChild(new Text()),
             id: 'openValue' as const,
@@ -59,6 +104,7 @@ export class StatusBar
         },
         {
             label: 'H',
+            configuration: LabelConfiguration.Close,
             title: this.labelGroup.appendChild(new Text()),
             value: this.labelGroup.appendChild(new Text()),
             id: 'highValue' as const,
@@ -71,6 +117,7 @@ export class StatusBar
         },
         {
             label: 'L',
+            configuration: LabelConfiguration.Low,
             title: this.labelGroup.appendChild(new Text()),
             value: this.labelGroup.appendChild(new Text()),
             id: 'lowValue' as const,
@@ -83,6 +130,7 @@ export class StatusBar
         },
         {
             label: 'C',
+            configuration: LabelConfiguration.High,
             title: this.labelGroup.appendChild(new Text()),
             value: this.labelGroup.appendChild(new Text()),
             id: 'closeValue' as const,
@@ -95,6 +143,7 @@ export class StatusBar
         },
         {
             label: 'Vol',
+            configuration: LabelConfiguration.Volume,
             title: this.labelGroup.appendChild(new Text()),
             value: this.labelGroup.appendChild(new Text()),
             id: 'volumeValue' as const,
@@ -108,7 +157,7 @@ export class StatusBar
         },
     ];
 
-    public constructor(ctx: _ModuleSupport.ModuleContext) {
+    public constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
         this.highlightManager = ctx.highlightManager;
@@ -169,6 +218,8 @@ export class StatusBar
         const maxFontSize = Math.max(this.title.fontSize, this.positive.fontSize, this.negative.fontSize);
         const lineHeight = maxFontSize * Text.defaultLineHeightRatio;
 
+        const labelConfigurations = chartConfigurations[this.getChartType()];
+
         let left = 0;
         let offsetTop: number;
         let textVAlign: CanvasTextBaseline = 'alphabetic';
@@ -183,8 +234,8 @@ export class StatusBar
             offsetTop = spacingAbove + padding;
         }
 
-        for (const { label, title, value, domain, formatter } of this.labels) {
-            if (domain == null) {
+        for (const { label, configuration, title, value, domain, formatter } of this.labels) {
+            if (domain == null || (labelConfigurations & configuration) === 0) {
                 title.visible = false;
                 value.visible = false;
                 continue;
@@ -268,5 +319,9 @@ export class StatusBar
             value.fill = label.color;
             value.text = typeof datumValue === 'number' ? formatter.format(datumValue) : '';
         }
+    }
+
+    private getChartType() {
+        return (this.ctx.chartService.publicApi?.getOptions() as AgFinancialChartOptions).chartType ?? 'ohlc';
     }
 }
