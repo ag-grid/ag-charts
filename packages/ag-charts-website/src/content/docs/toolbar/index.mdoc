@@ -37,10 +37,12 @@ toolbar: {
         {
           label: 'February',
           value: [new Date(2023, 1, 1), new Date(2023, 2, 1)],
+          id: 'February'
         },
         {
           label: "All Data",
           value: (start, end) => [start, end],
+          id: 'All Data'
         },
       ],
     },
@@ -54,6 +56,7 @@ In this configuration:
     -   For "6 Months" and "12 Months", it sets the range to the past 6 or 12 months, respectively.
     -   For "February", it sets the range to February 2023, from February 1 to March 1.
     -   For "All Data", it dynamically sets the range to include all available data from the start to the end date.
+-   `id` is required for all buttons with non-primitive values (i.e. functions, objects).
 
 ## API Reference
 

@@ -27,10 +27,12 @@ const options: AgFinancialChartOptions = {
                             {
                                 label: 'February',
                                 value: [new Date(2023, 1, 1), new Date(2023, 2, 1)],
+                                id: 'February',
                             },
                             {
                                 label: 'All Data',
                                 value: (start, end) => [start, end],
+                                id: 'All',
                             },
                         ],
                     },

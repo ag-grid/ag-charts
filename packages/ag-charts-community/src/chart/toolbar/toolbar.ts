@@ -551,8 +551,8 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     private refreshButtonContent(group: ToolbarGroup, buttonOptions: ToolbarButton) {
-        const id = buttonOptions.id ?? buttonOptions.value;
-        const button = this.groupProxied.get(group)?.buttons?.find((b) => (b.id ?? b.value) === id) ?? buttonOptions;
+        const id = this.buttonId(buttonOptions);
+        const button = this.groupProxied.get(group)?.buttons?.find((b) => this.buttonId(b) === id) ?? buttonOptions;
 
         const element = this.groupButtons[group].find((b) => b.getAttribute('data-toolbar-id') === id);
         if (element == null) return;
@@ -564,9 +564,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         if (this.elements == null) return;
 
         const isGroupVisible = (group: ToolbarGroup) => this[group].enabled && this.groupCallers[group].size > 0;
-        const isButtonVisible = (element: HTMLButtonElement) => (button: ToolbarButton) =>
-            (typeof button.value !== 'string' && typeof button.value !== 'number') ||
-            `${button.id ?? button.value}` === element.dataset.toolbarId;
+        const isButtonVisible = (element: HTMLButtonElement) => (button: ToolbarButton) => {
+            const id = this.buttonId(button);
+            return id == null || id === element.dataset.toolbarId;
+        };
 
         for (const position of TOOLBAR_POSITIONS) {
             const visible = this.enabled && Array.from(this.positions[position].values()).some(isGroupVisible);
@@ -625,7 +626,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         button.dataset.toolbarGroup = group;
         button.tabIndex = -1;
 
-        button.dataset.toolbarId = `${options.id ?? options.value}`;
+        button.dataset.toolbarId = this.buttonId(options);
         button.onclick = makeAccessibleClickListener(
             button,
             this.onButtonPress.bind(this, button, group, options.id, options.value)
@@ -680,6 +681,15 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     private onButtonPress(button: HTMLButtonElement, group: ToolbarGroup, id: string | undefined, value: any) {
-        this.ctx.toolbarManager.pressButton(group, id ?? value, value, this.buttonRect(button));
+        this.ctx.toolbarManager.pressButton(group, this.buttonId({ id, value }), value, this.buttonRect(button));
+    }
+
+    private buttonId(button: ToolbarButton) {
+        const { id, value, label } = button;
+        if (id != null) return id;
+        if (value != null && typeof value !== 'object') return String(value);
+
+        // @todo(AG-12343): buttons with non-primitive values need IDs
+        return label ?? '';
     }
 }

@@ -94,22 +94,22 @@ export class ZoomToolbar {
 
         const range = rangeX.getRange();
         this.selectedZoom = range != null ? { id, range } : undefined;
+
+        this.toolbarManager.toggleGroup('zoom-toolbar', 'ranges', { active: false });
+        this.toolbarManager.toggleButton('ranges', id, { active: true });
     }
 
     private onZoomChanged(e: _ModuleSupport.ZoomChangeEvent) {
-        // SetTimeout required because we set selected zoom after the event is called
-        setTimeout(() => {
-            const { selectedZoom } = this;
-            const { x } = e;
+        const { selectedZoom } = this;
+        const { x } = e;
 
-            this.toolbarManager.toggleGroup('zoom-toolbar', 'ranges', { active: false });
+        this.toolbarManager.toggleGroup('zoom-toolbar', 'ranges', { active: false });
 
-            if (selectedZoom != null && x != null && isZoomRangeEqual(selectedZoom.range, x)) {
-                this.toolbarManager.toggleButton('ranges', selectedZoom.id, { active: true });
-            } else {
-                this.selectedZoom = undefined;
-            }
-        }, 0);
+        if (selectedZoom != null && x != null && isZoomRangeEqual(selectedZoom.range, x)) {
+            this.toolbarManager.toggleButton('ranges', selectedZoom.id, { active: true });
+        } else {
+            this.selectedZoom = undefined;
+        }
     }
 
     private onButtonPressZoom(event: _ModuleSupport.ToolbarButtonPressedEvent, props: ZoomProperties) {
