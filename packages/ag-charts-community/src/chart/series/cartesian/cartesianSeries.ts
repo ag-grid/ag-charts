@@ -15,7 +15,7 @@ import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Debug } from '../../../util/debug';
 import { StateMachine } from '../../../util/stateMachine';
 import { isFunction } from '../../../util/type-guards';
-import { STRING, Validate } from '../../../util/validation';
+import { BOOLEAN, STRING, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -127,6 +127,9 @@ export interface CartesianAnimationData<
 export abstract class CartesianSeriesProperties<T extends object> extends SeriesProperties<T> {
     @Validate(STRING, { optional: true })
     legendItemName?: string;
+
+    @Validate(BOOLEAN, { optional: true })
+    pickOutsideVisibleMinorAxis = false;
 }
 
 export interface CartesianSeriesNodeDataContext<
@@ -641,6 +644,7 @@ export abstract class CartesianSeries<
     ): SeriesNodePickMatch | undefined {
         const { x, y } = point;
         const { axes, rootGroup, _contextNodeData: contextNodeData } = this;
+        const { pickOutsideVisibleMinorAxis } = this.properties;
         if (!contextNodeData) return;
 
         const xAxis = axes[ChartAxisDirection.X];
@@ -655,11 +659,11 @@ export abstract class CartesianSeries<
         }
 
         // Default to X-axis unless we found a suitable category axis.
-        const [primaryDirection = ChartAxisDirection.X] = directions;
+        const [majorDirection = ChartAxisDirection.X] = directions;
 
         const hitPoint = rootGroup.transformPoint(x, y);
         const hitPointCoords = [hitPoint.x, hitPoint.y];
-        if (primaryDirection !== ChartAxisDirection.X) hitPointCoords.reverse();
+        if (majorDirection !== ChartAxisDirection.X) hitPointCoords.reverse();
 
         const minDistance = [Infinity, Infinity];
         let closestDatum: SeriesNodeDatum | undefined;
@@ -670,14 +674,14 @@ export abstract class CartesianSeries<
                 continue;
             }
 
-            const isInPrimaryRange =
-                primaryDirection === ChartAxisDirection.X ? xAxis?.inRange(datumX) : yAxis?.inRange(datumY);
-            if (!isInPrimaryRange) {
+            const visible = [xAxis?.inRange(datumX), yAxis?.inRange(datumY)];
+            if (majorDirection !== ChartAxisDirection.X) visible.reverse();
+            if (!visible[0] || (!pickOutsideVisibleMinorAxis && !visible[1])) {
                 continue;
             }
 
             const datumPoint = [datumX, datumY];
-            if (primaryDirection !== ChartAxisDirection.X) datumPoint.reverse();
+            if (majorDirection !== ChartAxisDirection.X) datumPoint.reverse();
 
             // Compare distances from most significant dimension to least.
             let newMinDistance = true;

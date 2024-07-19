@@ -276,12 +276,16 @@ function createPriceSeries(
         xKey,
         yKey: closeKey,
     };
+    const common = {
+        pickOutsideVisibleMinorAxis: true,
+    };
 
     switch (chartType) {
         case 'ohlc':
             return [
                 {
                     type: 'ohlc',
+                    ...common,
                     ...keys,
                 } satisfies AgOhlcSeriesOptions,
             ];
@@ -289,6 +293,7 @@ function createPriceSeries(
             return [
                 {
                     type: 'line',
+                    ...common,
                     ...singleKeys,
                     stroke: fromTheme(theme, (t) => t.overrides?.line?.series?.stroke) ?? PALETTE_NEUTRAL_STROKE,
                     marker: fromTheme(theme, (t) => t.overrides?.line?.series?.marker) ?? { enabled: false },
@@ -298,6 +303,7 @@ function createPriceSeries(
             return [
                 {
                     type: 'line',
+                    ...common,
                     ...singleKeys,
                     stroke: fromTheme(theme, (t) => t.overrides?.line?.series?.stroke) ?? PALETTE_NEUTRAL_STROKE,
                     interpolation: fromTheme(theme, (t) => t.overrides?.line?.series?.interpolation) ?? {
@@ -313,6 +319,7 @@ function createPriceSeries(
             return [
                 {
                     type: RANGE_AREA_TYPE,
+                    ...common,
                     xKey,
                     yHighKey: highKey,
                     yLowKey: closeKey,
@@ -321,6 +328,7 @@ function createPriceSeries(
                 } satisfies AgRangeAreaSeriesOptions,
                 {
                     type: RANGE_AREA_TYPE,
+                    ...common,
                     xKey,
                     yHighKey: closeKey,
                     yLowKey: lowKey,
@@ -329,6 +337,7 @@ function createPriceSeries(
                 } satisfies AgRangeAreaSeriesOptions,
                 {
                     type: 'line',
+                    ...common,
                     ...singleKeys,
                     stroke: fromTheme(theme, (t) => t.overrides?.line?.series?.stroke) ?? DEFAULT_STROKES.GRAY,
                     marker: fromTheme(theme, (t) => t.overrides?.line?.series?.marker) ?? { enabled: false },
@@ -340,6 +349,7 @@ function createPriceSeries(
             return [
                 {
                     type: 'range-bar',
+                    ...common,
                     xKey,
                     yHighKey: highKey,
                     yLowKey: lowKey,
@@ -352,6 +362,7 @@ function createPriceSeries(
             return [
                 {
                     type: 'candlestick',
+                    ...common,
                     ...keys,
                 } satisfies AgCandlestickSeriesOptions,
             ];
@@ -361,6 +372,7 @@ function createPriceSeries(
             return [
                 {
                     type: 'candlestick',
+                    ...common,
                     ...keys,
                     item: {
                         up: {
