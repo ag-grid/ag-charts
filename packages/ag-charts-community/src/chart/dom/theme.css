@@ -6,6 +6,9 @@
     --ag-charts-foreground-color: var(--ag-foreground-color, #181d1f);
     --ag-charts-border-color: var(--ag-border-color, #dddddd);
 
+    /* Fonts */
+    --ag-charts-font-family: 'Verdana', sans-serif;
+
     /* Sizing */
     --ag-charts-font-size: var(--ag-font-size, 14px);
     --ag-charts-size: var(--ag-grid-size, 8px);
