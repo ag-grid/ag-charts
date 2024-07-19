@@ -49,14 +49,24 @@ export abstract class TextualStateMachine<
             edit: {
                 onEnter: () => {
                     ctx.showTextInput();
+                    const datum = ctx.datum();
+                    if (datum) {
+                        datum.visible = false;
+                    }
                 },
-                keyDown: {
-                    guard: ({ key }: { key: string }) => key === 'Escape',
-                    target: StateMachine.parent,
-                    action: () => {
-                        ctx.delete();
+                keyDown: [
+                    {
+                        guard: ({ key }: { key: string }) => key === 'Escape',
+                        target: StateMachine.parent,
+                        action: () => {
+                            ctx.delete();
+                        },
                     },
-                },
+                    {
+                        target: 'edit',
+                        action: onSave,
+                    },
+                ],
                 click: {
                     target: StateMachine.parent,
                     action: onSave,
@@ -64,6 +74,10 @@ export abstract class TextualStateMachine<
                 cancel: StateMachine.parent,
                 onExit: () => {
                     ctx.hideTextInput();
+                    const datum = ctx.datum();
+                    if (datum) {
+                        datum.visible = true;
+                    }
                 },
             },
         });
