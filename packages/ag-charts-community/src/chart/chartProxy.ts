@@ -184,7 +184,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
         );
 
         const cloneProxy = await this.factoryApi.createOrUpdate(options);
-        cloneProxy.setState(state);
+        await cloneProxy.setState(state);
         cloneProxy.chart.ctx.zoomManager.updateZoom('agChartV2', chart.ctx.zoomManager.getZoom()); // sync zoom
         chart.series.forEach((series, index) => {
             if (!series.visible) {
