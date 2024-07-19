@@ -8,6 +8,7 @@ import {
 
 import { Popover } from '../popover/popover';
 
+// Partial as the user can pass in an invalid chart type, and it isn't checked
 const itemConfigurations: Record<AgPriceVolumeChartType, { label: string; icon: AgIconName | undefined }> = {
     ohlc: { label: 'toolbarSeriesTypeOHLC', icon: 'ohlc-series' },
     candlestick: { label: 'toolbarSeriesTypeCandles', icon: 'candlestick-series' },
@@ -46,8 +47,10 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
 
         const { toolbarManager } = this.ctx;
         const chartType = this.getChartType();
-        const { icon } = itemConfigurations[chartType];
-        toolbarManager.updateButton(BUTTON_GROUP, BUTTON_VALUE, { icon });
+        const icon = itemConfigurations[chartType]?.icon;
+        if (icon != null) {
+            toolbarManager.updateButton(BUTTON_GROUP, BUTTON_VALUE, { icon });
+        }
         this.didSetInitialIcon = true;
     }
 
@@ -74,7 +77,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
 
         const chartType = this.getChartType();
         const item = (type: AgPriceVolumeChartType) => {
-            const { label, icon } = itemConfigurations[type];
+            const { label, icon } = itemConfigurations[type]!;
             const active = type === chartType;
             const onPress = () => {
                 this.setChartType(type);
@@ -115,7 +118,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
         void this.ctx.chartService.publicApi?.updateDelta(options as any);
     }
 
-    private getChartType() {
-        return (this.ctx.chartService.publicApi?.getOptions() as AgFinancialChartOptions).chartType ?? 'ohlc';
+    private getChartType(): AgPriceVolumeChartType {
+        return (this.ctx.chartService.publicApi?.getOptions() as AgFinancialChartOptions).chartType ?? 'candlestick';
     }
 }
