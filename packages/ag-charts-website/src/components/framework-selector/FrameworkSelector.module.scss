@@ -61,13 +61,11 @@
 }
 
 .frameworkSelector.showSelected {
-    border: 2px solid var(--color-input-border);
+    border: 1px solid transparent;
 
     @media screen and (min-width: $breakpoint-docs-search-medium) {
         width: auto;
     }
-
-    border: 1px solid transparent;
 
     #{$selector-darkmode} & {
         border-color: 1px solid var(--color-border-primary);
@@ -133,6 +131,7 @@
     min-width: 220px;
     max-width: 420px;
     border-radius: var(--radius-md);
+    border: 1px solid transparent;
 
     @media screen and (min-width: 740px) {
         width: unset;
@@ -145,8 +144,6 @@
 
         font-size: var(--text-fs-xl);
     }
-
-    border: 1px solid transparent;
 
     #{$selector-darkmode} & {
         border-color: var(--color-border-primary);

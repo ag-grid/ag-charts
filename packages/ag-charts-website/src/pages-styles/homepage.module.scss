@@ -174,11 +174,11 @@
     padding-top: $spacing-size-4;
     padding-bottom: $spacing-size-12;
 
+    border-bottom: 1px solid transparent;
+
     @media screen and (min-width: 640px) {
         padding-top: $spacing-size-12;
     }
-
-    border-bottom: 1px solid transparent;
 
     #{$selector-darkmode} & {
         background-color: var(--color-bg-primary);

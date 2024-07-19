@@ -114,7 +114,6 @@
     "react-instantsearch-dom": "^6.40.1",
     "react-query": "^3.39.3",
     "rimraf": "3.0.2",
-    "sass": "^1.63.6",
     "sucrase": "^3.32.0",
     "timezone-mock": "^1.3.6",
     "ts-jest": "^29.1.0",

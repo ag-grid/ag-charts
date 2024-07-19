@@ -56,7 +56,8 @@
     "dotenv": "10.0.0",
     "commander": "2.20.3",
     "prettier": "^3.2.5",
-    "puppeteer-core": "7.1.0"
+    "puppeteer-core": "7.1.0",
+    "sass": "^1.77.8"
   },
   "devDependencies": {
     "@playwright/test": "^1.44.1",
