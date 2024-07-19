@@ -30,7 +30,7 @@ export abstract class TextualStateMachine<
         };
 
         const onSave = ({ textInputValue }: { textInputValue?: string }) => {
-            if (textInputValue) {
+            if (textInputValue !== null) {
                 ctx.datum()?.set({ text: textInputValue });
                 ctx.update();
             } else {

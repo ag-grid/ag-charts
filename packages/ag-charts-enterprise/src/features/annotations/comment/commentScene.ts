@@ -58,7 +58,11 @@ export class CommentScene extends TextualScene<CommentProperties> {
 
         const { padding = 20, fontSize } = datum;
         const halfPadding = padding / 2;
-        width = Math.max(width + padding, fontSize + padding);
+
+        const isEditState = !datum.visible;
+
+        // Add the extra character width to the shape as html text input is updated before canvas text is updated/ visible
+        width = Math.max(width + padding + (isEditState ? fontSize : 0), fontSize + padding);
         height = Math.max(height + padding, fontSize + padding);
 
         // anchor at bottom left
