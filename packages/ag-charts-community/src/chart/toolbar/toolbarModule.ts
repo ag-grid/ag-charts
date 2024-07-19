@@ -86,12 +86,12 @@ const annotationOptions: AgToolbarOptions['annotationOptions'] = {
             value: 'text-color',
         },
         {
-            icon: 'locked',
+            icon: 'unlocked',
             tooltip: 'toolbarAnnotationsLock',
             value: 'lock',
         },
         {
-            icon: 'unlocked',
+            icon: 'locked',
             tooltip: 'toolbarAnnotationsUnlock',
             value: 'unlock',
         },
