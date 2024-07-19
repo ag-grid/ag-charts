@@ -167,8 +167,6 @@ export abstract class Node extends ChangeDetectable {
      * @param nodes A node or nodes to append.
      */
     append(nodes: Iterable<Node> | Node) {
-        // Passing a single parameter to an open-ended version of `append`
-        // would be 30-35% slower than this.
         nodes = toIterable(nodes);
 
         for (const node of nodes) {
