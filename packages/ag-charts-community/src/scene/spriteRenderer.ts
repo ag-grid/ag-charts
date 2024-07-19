@@ -21,11 +21,8 @@ export class SpriteRenderer {
     }
 
     resize(width: number, height: number) {
-        if (!(width > 0 && height > 0)) {
-            throw new Error(`AG Charts - invalid dimensions: ${width}x${height}`);
-        }
-        this.offscreenCanvas.width = width;
-        this.offscreenCanvas.height = height;
+        this.offscreenCanvas.width = Math.max(width, 0);
+        this.offscreenCanvas.height = Math.max(height, 0);
     }
 
     renderSprite(nodes: Node | Iterable<Node>, opts?: RenderSpriteOptions) {
