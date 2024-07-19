@@ -61,10 +61,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
         // the start and end to be at the same point.
         let hoverEventsCount = 0;
         const guardDragClickDoubleEvent: GuardDragClickDoubleEvent = {
-            guard: () => {
-                if (hoverEventsCount === 0) console.log('guarded!');
-                return hoverEventsCount > 0;
-            },
+            guard: () => hoverEventsCount > 0,
             hover: () => {
                 hoverEventsCount++;
             },
