@@ -219,12 +219,16 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     private onButtonUpdated(event: ToolbarButtonUpdatedEvent) {
-        const { group, value, icon } = event;
-        this[group].overrideButtonConfiguration(value, { icon });
+        const { group, id, icon } = event;
+        this[group].overrideButtonConfiguration(id, { icon });
+    }
+
+    private setButtonActive(button: HTMLElement, active: boolean) {
+        button.classList.toggle(styles.modifiers.button.active, active);
     }
 
     private onButtonToggled(event: ToolbarButtonToggledEvent) {
-        const { group, value, active, enabled, visible } = event;
+        const { group, id, active, enabled, visible } = event;
 
         if (this.groupButtons[group].length === 0) {
             this.pendingButtonToggledEvents.push(event);
@@ -232,17 +236,17 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
 
         for (const button of this.groupButtons[group]) {
-            if (button.dataset.toolbarValue !== `${value}`) continue;
+            if (button.dataset.toolbarId !== `${id}`) continue;
             button.ariaDisabled = `${!enabled}`;
             button.classList.toggle(styles.modifiers.button.hiddenToggled, !visible);
-            button.classList.toggle(styles.modifiers.button.active, active);
+            this.setButtonActive(button, active);
         }
     }
 
     private onGroupToggled(event: ToolbarGroupToggledEvent) {
-        const { caller, group, visible } = event;
+        const { caller, group, active, visible } = event;
 
-        this.toggleGroup(caller, group, visible);
+        this.toggleGroup(caller, group, active, visible);
         this.toggleVisibilities();
     }
 
@@ -284,7 +288,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             const parent = button.offsetParent as HTMLElement | null;
             toolbarManager.buttonMoved(
                 group,
-                button.dataset.toolbarValue,
+                button.dataset.toolbarId,
                 new BBox(
                     button.offsetLeft + (parent?.offsetLeft ?? 0),
                     button.offsetTop + (parent?.offsetTop ?? 0),
@@ -313,7 +317,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.groupProxied.set(group, options);
         this[group].set(options);
 
-        this.toggleGroup(caller, group, options.enabled);
+        this.toggleGroup(caller, group, undefined, options.enabled);
         this.createGroup(group, options.enabled, options.position);
 
         if (options.enabled) {
@@ -437,11 +441,22 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         )[position];
     }
 
-    private toggleGroup(caller: string, group: ToolbarGroup, enabled?: boolean) {
-        if (enabled) {
+    private toggleGroup(
+        caller: string,
+        group: ToolbarGroup,
+        active: boolean | undefined,
+        enabled: boolean | undefined
+    ) {
+        if (enabled === true) {
             this.groupCallers[group].add(caller);
-        } else {
+        } else if (enabled === false) {
             this.groupCallers[group].delete(caller);
+        }
+
+        if (active != null) {
+            for (const button of this.groupButtons[group]) {
+                this.setButtonActive(button, active);
+            }
         }
     }
 
@@ -551,7 +566,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         const isGroupVisible = (group: ToolbarGroup) => this[group].enabled && this.groupCallers[group].size > 0;
         const isButtonVisible = (element: HTMLButtonElement) => (button: ToolbarButton) =>
             (typeof button.value !== 'string' && typeof button.value !== 'number') ||
-            `${button.value}` === element.dataset.toolbarValue;
+            `${button.id ?? button.value}` === element.dataset.toolbarId;
 
         for (const position of TOOLBAR_POSITIONS) {
             const visible = this.enabled && Array.from(this.positions[position].values()).some(isGroupVisible);
@@ -610,12 +625,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         button.dataset.toolbarGroup = group;
         button.tabIndex = -1;
 
-        if (typeof options.value === 'string' || typeof options.value === 'number') {
-            button.dataset.toolbarValue = `${options.value}`;
-        }
+        button.dataset.toolbarId = `${options.id ?? options.value}`;
         button.onclick = makeAccessibleClickListener(
             button,
-            this.onButtonPress.bind(this, button, group, options.value)
+            this.onButtonPress.bind(this, button, group, options.id, options.value)
         );
         this.updateButtonText(button, options);
 
@@ -666,7 +679,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         setAttribute(button, 'aria-label', ariaLabel);
     }
 
-    private onButtonPress(button: HTMLButtonElement, group: ToolbarGroup, value: any) {
-        this.ctx.toolbarManager.pressButton(group, value, this.buttonRect(button));
+    private onButtonPress(button: HTMLButtonElement, group: ToolbarGroup, id: string | undefined, value: any) {
+        this.ctx.toolbarManager.pressButton(group, id ?? value, value, this.buttonRect(button));
     }
 }
