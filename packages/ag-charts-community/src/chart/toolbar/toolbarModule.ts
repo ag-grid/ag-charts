@@ -26,37 +26,37 @@ const annotations: AgToolbarOptions['annotations'] = {
     align: 'start',
     buttons: [
         {
-            icon: 'trend-line',
+            icon: 'trend-line-drawing',
             tooltip: 'toolbarAnnotationsTrendLine',
             value: 'line',
             section: 'lines',
         },
         {
-            icon: 'horizontal-line',
+            icon: 'horizontal-line-drawing',
             tooltip: 'toolbarAnnotationsHorizontalLine',
             value: 'horizontal-line',
             section: 'lines',
         },
         {
-            icon: 'vertical-line',
+            icon: 'vertical-line-drawing',
             tooltip: 'toolbarAnnotationsVerticalLine',
             value: 'vertical-line',
             section: 'lines',
         },
         {
-            icon: 'parallel-channel',
+            icon: 'parallel-channel-drawing',
             tooltip: 'toolbarAnnotationsParallelChannel',
             value: 'parallel-channel',
             section: 'channels',
         },
         {
-            icon: 'disjoint-channel',
+            icon: 'disjoint-channel-drawing',
             tooltip: 'toolbarAnnotationsDisjointChannel',
             value: 'disjoint-channel',
             section: 'channels',
         },
         {
-            icon: 'text',
+            icon: 'text-annotation',
             tooltip: 'text',
             value: 'text',
             section: 'annotations',
@@ -86,12 +86,12 @@ const annotationOptions: AgToolbarOptions['annotationOptions'] = {
             value: 'text-color',
         },
         {
-            icon: 'lock',
+            icon: 'locked',
             tooltip: 'toolbarAnnotationsLock',
             value: 'lock',
         },
         {
-            icon: 'unlock',
+            icon: 'unlocked',
             tooltip: 'toolbarAnnotationsUnlock',
             value: 'unlock',
         },
