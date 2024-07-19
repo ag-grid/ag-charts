@@ -120,8 +120,7 @@
     border: var(--ag-charts-toolbar-border);
     color: var(--ag-charts-toolbar-foreground-color);
     display: flex;
-    font-size: var(--ag-charts-toolbar-font-size);
-    font-weight: 500;
+    font-size: var(--ag-charts-toolbar-font-size) var(--ag-charts-toolbar-font-family);
     justify-content: center;
     margin: 0 0 0 -1px;
     min-height: var(--ag-charts-toolbar-size);
@@ -134,36 +133,40 @@
     white-space: nowrap;
 }
 
-:is(.ag-charts-toolbar--top, .ag-charts-toolbar--bottom)
+.ag-charts-toolbar--top,
+.ag-charts-toolbar--bottom,
+.ag-charts-toolbar--floating-top,
+.ag-charts-toolbar--floating-bottom {
     .ag-charts-toolbar__button:nth-child(1 of :not(.ag-charts-toolbar__button--hidden-toggled)) {
-    border-bottom-left-radius: var(--ag-charts-button-radius);
-    border-top-left-radius: var(--ag-charts-button-radius);
-    margin: 0;
-}
+        border-bottom-left-radius: var(--ag-charts-button-radius);
+        border-top-left-radius: var(--ag-charts-button-radius);
+        margin: 0;
+    }
 
-:is(.ag-charts-toolbar--top, .ag-charts-toolbar--bottom)
     .ag-charts-toolbar__button:nth-last-child(1 of :not(.ag-charts-toolbar__button--hidden-toggled)) {
-    border-bottom-right-radius: var(--ag-charts-button-radius);
-    border-top-right-radius: var(--ag-charts-button-radius);
+        border-bottom-right-radius: var(--ag-charts-button-radius);
+        border-top-right-radius: var(--ag-charts-button-radius);
+    }
 }
 
-:is(.ag-charts-toolbar--left, .ag-charts-toolbar--right) .ag-charts-toolbar__button {
-    border-radius: 0;
-    margin: -1px 0 0 0;
-    max-width: 100%;
-}
+.ag-charts-toolbar--left,
+.ag-charts-toolbar--right {
+    .ag-charts-toolbar__button {
+        border-radius: 0;
+        margin: -1px 0 0 0;
+        max-width: 100%;
+    }
 
-:is(.ag-charts-toolbar--left, .ag-charts-toolbar--right)
     .ag-charts-toolbar__button:nth-child(1 of :not(.ag-charts-toolbar__button--hidden-toggled)) {
-    border-top-left-radius: var(--ag-charts-button-radius);
-    border-top-right-radius: var(--ag-charts-button-radius);
-    margin: 0;
-}
+        border-top-left-radius: var(--ag-charts-button-radius);
+        border-top-right-radius: var(--ag-charts-button-radius);
+        margin: 0;
+    }
 
-:is(.ag-charts-toolbar--left, .ag-charts-toolbar--right)
     .ag-charts-toolbar__button:nth-last-child(1 of :not(.ag-charts-toolbar__button--hidden-toggled)) {
-    border-bottom-left-radius: var(--ag-charts-button-radius);
-    border-bottom-right-radius: var(--ag-charts-button-radius);
+        border-bottom-left-radius: var(--ag-charts-button-radius);
+        border-bottom-right-radius: var(--ag-charts-button-radius);
+    }
 }
 
 .ag-charts-toolbar__button--hidden-value,

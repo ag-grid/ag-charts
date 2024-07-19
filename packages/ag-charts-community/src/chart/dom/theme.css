@@ -6,6 +6,9 @@
     --ag-charts-foreground-color: var(--ag-foreground-color, #181d1f);
     --ag-charts-border-color: var(--ag-border-color, #dddddd);
 
+    /* Fonts */
+    --ag-charts-font-family: 'Verdana', sans-serif;
+
     /* Sizing */
     --ag-charts-font-size: var(--ag-font-size, 14px);
     --ag-charts-size: var(--ag-grid-size, 8px);
@@ -58,6 +61,7 @@
         var(--ag-charts-toolbar-foreground-color) 6%
     );
     --ag-charts-toolbar-gap: var(--ag-charts-size);
+    --ag-charts-toolbar-font-family: var(--ag-charts-font-family);
     --ag-charts-toolbar-font-size: 14px;
     --ag-charts-toolbar-font-size-small: 12px;
     --ag-charts-toolbar-button-padding: 6px;
@@ -70,6 +74,7 @@
     --ag-charts-popover-focus-color: var(--ag-charts-toolbar-focus-color);
     --ag-charts-popover-hover-color: var(--ag-charts-toolbar-hover-color);
     --ag-charts-popover-active-background-color: var(--ag-charts-toolbar-active-background-color);
+    --ag-charts-popover-font-family: var(--ag-charts-toolbar-font-family);
     --ag-charts-popover-font-size-small: var(--ag-charts-toolbar-font-size-small);
 
     /* Buttons */
