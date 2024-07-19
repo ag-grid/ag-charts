@@ -42,9 +42,11 @@ export class ToolbarGroupProperties extends BaseProperties {
             if (button.icon != null && ICONS_LEGACY.includes(button.icon as any)) {
                 Logger.warnOnce(`Icon '${button.icon}' is deprecated, use another icon instead.`);
             }
-            if (button.value != null && typeof button.value === 'object' && button.id == null) {
-                Logger.warnOnce(`Buttons with non-primitive values must specify an id.`);
-            }
+
+            // @todo(AG-XXXX): buttons with non-primitive values need IDs
+            // if (button.value != null && typeof button.value === 'object' && button.id == null) {
+            //     Logger.warnOnce(`Buttons with non-primitive values must specify an id.`);
+            // }
         }
         target.buttonsChanged();
     })
