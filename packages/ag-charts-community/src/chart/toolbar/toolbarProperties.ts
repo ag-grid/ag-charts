@@ -49,7 +49,7 @@ export class ToolbarGroupProperties extends BaseProperties {
     @Validate(ARRAY, { optional: true })
     protected buttons?: Array<ToolbarButton>;
 
-    private buttonOverrides = new Map<any, Omit<ToolbarButton, 'value'>>();
+    private readonly buttonOverrides = new Map<any, Omit<ToolbarButton, 'value'>>();
 
     constructor(
         private readonly onChange: (enabled?: boolean) => void,

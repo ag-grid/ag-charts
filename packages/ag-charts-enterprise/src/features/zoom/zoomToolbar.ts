@@ -21,7 +21,7 @@ const { ChartAxisDirection, ToolbarManager } = _ModuleSupport;
 
 export class ZoomToolbar {
     private selectedZoom: { id: string; min: number; max: number } | undefined = undefined;
-    private destroyFns: (() => void)[] = [];
+    private readonly destroyFns: (() => void)[] = [];
 
     constructor(
         private readonly toolbarManager: _ModuleSupport.ToolbarManager,
