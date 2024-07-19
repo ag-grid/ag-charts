@@ -110,8 +110,7 @@ export class Path extends Shape implements DistantObject {
             return;
         }
 
-        this.computeTransformMatrix();
-        this.matrix.toContext(ctx);
+        this.transformRenderContext(renderCtx);
 
         if (this.dirtyPath || this.isDirtyPath()) {
             this.updatePath();

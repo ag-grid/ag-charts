@@ -10,6 +10,7 @@ export interface CanvasOptions {
     width?: number;
     height?: number;
     pixelRatio?: number;
+    willReadFrequently?: boolean;
     canvasConstructor?: () => HTMLCanvasElement;
 }
 
@@ -33,7 +34,7 @@ export class HdpiCanvas {
     pixelRatio: number;
 
     constructor(options: CanvasOptions) {
-        const { width, height, pixelRatio, canvasConstructor } = options;
+        const { width, height, pixelRatio, canvasConstructor, willReadFrequently = false } = options;
 
         this.pixelRatio = hasConstrainedCanvasMemory() ? 1 : pixelRatio ?? getWindow('devicePixelRatio');
 
@@ -47,7 +48,7 @@ export class HdpiCanvas {
         this.element.width = Math.round((width ?? this.width) * this.pixelRatio);
         this.element.height = Math.round((height ?? this.height) * this.pixelRatio);
 
-        this.context = this.element.getContext('2d')!;
+        this.context = this.element.getContext('2d', { willReadFrequently })!;
 
         this.onEnabledChange(); // Force `display: block` style
         this.resize(width ?? 0, height ?? 0);

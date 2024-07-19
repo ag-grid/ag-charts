@@ -102,8 +102,7 @@ export class Text extends Shape {
             return;
         }
 
-        this.computeTransformMatrix();
-        this.matrix.toContext(ctx);
+        this.transformRenderContext(renderCtx);
 
         const { fill, stroke, strokeWidth } = this;
         const { pixelRatio } = this.layerManager.canvas;

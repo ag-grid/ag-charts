@@ -53,8 +53,7 @@ export class Range extends Shape {
             return;
         }
 
-        this.computeTransformMatrix();
-        this.matrix.toContext(ctx);
+        this.transformRenderContext(renderCtx);
 
         let { x1, y1, x2, y2 } = this;
 

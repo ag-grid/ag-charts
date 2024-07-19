@@ -70,6 +70,12 @@ describe('Legend', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
+    const compareSnapshot = async (options: AgChartOptions) => {
+        chart = await createChart(options);
+        const imageData = extractImageData(ctx);
+        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
+    };
+
     describe('Large series count chart', () => {
         it.each([800, 600, 400, 200])('should render legend correctly at width [%s]', async (width) => {
             const options = {
@@ -186,12 +192,6 @@ describe('Legend', () => {
     });
 
     describe('showSeriesStroke', () => {
-        const compareSnapshot = async (options: AgChartOptions) => {
-            chart = await createChart(options);
-            const imageData = extractImageData(ctx);
-            expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
-        };
-
         const data = [
             { x: 'Q1', a: 20, b: 10 },
             { x: 'Q2', a: 30, b: 27 },
@@ -307,6 +307,22 @@ describe('Legend', () => {
                         line: { length: 35 },
                     },
                 },
+            });
+        });
+    });
+
+    describe('Large faded symbols', () => {
+        test('strokeWidth: 10', async () => {
+            await compareSnapshot({
+                data: [
+                    { x: 'x1', a: 1, b: 2 },
+                    { x: 'x2', a: 1, b: 2 },
+                ],
+                series: [
+                    { visible: false, xKey: 'x', yKey: 'a', marker: { shape: 'diamond' } },
+                    { visible: false, xKey: 'x', yKey: 'b', marker: { shape: 'triangle' } },
+                ],
+                legend: { item: { marker: { size: 30, strokeWidth: 10 }, line: { length: 70 } } },
             });
         });
     });

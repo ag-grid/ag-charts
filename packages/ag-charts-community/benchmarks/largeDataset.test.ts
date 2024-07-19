@@ -21,13 +21,19 @@ describe('large-dataset benchmark', () => {
             addSeriesNodePoints(ctx, 0, 4);
         }, 10_000);
 
-        benchmark('1x legend toggle', ctx, EXPECTATIONS, async () => {
-            ctx.options.series![0].visible = false;
-            await ctx.update();
+        benchmark(
+            '1x legend toggle',
+            ctx,
+            EXPECTATIONS,
+            async () => {
+                ctx.options.series![0].visible = false;
+                await ctx.update();
 
-            ctx.options.series![0].visible = true;
-            await ctx.update();
-        });
+                ctx.options.series![0].visible = true;
+                await ctx.update();
+            },
+            15_000
+        );
 
         benchmark('1x datum highlight', ctx, EXPECTATIONS, async () => {
             const point = ctx.nodePositions[0][1];

@@ -1,4 +1,5 @@
 import { createId } from '../util/id';
+import { arraysIterable, toIterable } from '../util/iterator';
 import { BBox } from './bbox';
 import { ChangeDetectable, RedrawType, SceneChangeDetection } from './changeDetectable';
 import type { LayersManager, ZIndexSubOrder } from './layersManager';
@@ -12,7 +13,7 @@ export enum PointerEvents {
 }
 
 export type RenderContext = {
-    ctx: CanvasRenderingContext2D;
+    ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
     devicePixelRatio: number;
     forceRender: boolean | 'dirtyTransform';
     resized: boolean;
@@ -165,12 +166,8 @@ export abstract class Node extends ChangeDetectable {
      * one should use the {@link insertBefore} method instead.
      * @param nodes A node or nodes to append.
      */
-    append(nodes: Node[] | Node) {
-        // Passing a single parameter to an open-ended version of `append`
-        // would be 30-35% slower than this.
-        if (!Array.isArray(nodes)) {
-            nodes = [nodes];
-        }
+    append(nodes: Iterable<Node> | Node) {
+        nodes = toIterable(nodes);
 
         for (const node of nodes) {
             if (node.parent) {
@@ -230,6 +227,16 @@ export abstract class Node extends ChangeDetectable {
         this.markDirty(node, RedrawType.MAJOR);
 
         return node;
+    }
+
+    clear() {
+        for (const child of arraysIterable(this._virtualChildren, this._children)) {
+            child._parent = undefined;
+            child._setLayerManager();
+        }
+        this._virtualChildren.length = 0;
+        this._children.length = 0;
+        this.childSet = {};
     }
 
     // These matrices may need to have package level visibility
@@ -422,6 +429,12 @@ export abstract class Node extends ChangeDetectable {
         });
 
         this.dirtyTransform = false;
+    }
+
+    protected transformRenderContext(renderCtx: RenderContext, layerCtx?: RenderContext['ctx']): Matrix {
+        this.computeTransformMatrix();
+        this.matrix.toContext(layerCtx ?? renderCtx.ctx);
+        return this.matrix;
     }
 
     readonly _childNodeCounts: ChildNodeCounts = {
