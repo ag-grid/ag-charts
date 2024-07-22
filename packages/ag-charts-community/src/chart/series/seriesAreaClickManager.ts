@@ -1,11 +1,13 @@
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types';
 
+import type { BBox } from '../../scene/bbox';
 import type { TypedEvent } from '../../util/observable';
 import { BaseManager } from '../baseManager';
 import type { ChartContext } from '../chartContext';
 import { ChartUpdateType } from '../chartUpdateType';
 import { type PointerInteractionEvent, type PointerOffsets } from '../interaction/interactionManager';
 import { REGIONS } from '../interaction/regions';
+import type { LayoutCompleteEvent } from '../layout/layoutService';
 import type { UpdateOpts } from '../updateService';
 import { type Series } from './series';
 import { pickNode } from './util';
@@ -14,6 +16,7 @@ import { pickNode } from './util';
 export class SeriesAreaClickManager extends BaseManager {
     private series: Series<any, any>[] = [];
     private lastHover?: PointerOffsets;
+    private seriesRect?: BBox;
 
     public constructor(
         private readonly id: string,
@@ -31,6 +34,7 @@ export class SeriesAreaClickManager extends BaseManager {
         this.destroyFns.push(
             this.ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
             this.ctx.regionManager.listenAll('dblclick', (event) => this.onClick(event)),
+            this.ctx.layoutService.addListener('layout-complete', (event) => this.layoutComplete(event)),
             seriesRegion.addListener('hover', (event) => this.onHover(event)),
             seriesRegion.addListener('leave', () => this.onLeave()),
             horizontalAxesRegion.addListener('leave', () => this.onLeave()),
@@ -56,6 +60,10 @@ export class SeriesAreaClickManager extends BaseManager {
         this.ctx.updateService.update(type, opts);
     }
 
+    private layoutComplete(event: LayoutCompleteEvent): void {
+        this.seriesRect = event.series.paddedRect;
+    }
+
     private onLeave(): void {
         this.lastHover = undefined;
         this.ctx.cursorManager.updateCursor(this.id);
@@ -71,7 +79,7 @@ export class SeriesAreaClickManager extends BaseManager {
     }
 
     private onClick(event: PointerInteractionEvent<'click' | 'dblclick'>) {
-        if (this.checkSeriesNodeClick(event)) {
+        if (this.seriesRect?.containsPoint(event.offsetX, event.offsetY) && this.checkSeriesNodeClick(event)) {
             this.update(ChartUpdateType.SERIES_UPDATE);
             event.preventDefault();
             return;

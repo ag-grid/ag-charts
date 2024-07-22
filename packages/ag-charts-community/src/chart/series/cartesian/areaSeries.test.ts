@@ -1,9 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
+import type { AgCartesianChartOptions, AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import { deepClone } from '../../../util/json';
+import { LegendMarkerLabel } from '../../legendMarkerLabel';
 import {
     DATA_FRACTIONAL_LOG_AXIS,
     DATA_INVALID_DOMAIN_LOG_AXIS,
@@ -16,6 +17,9 @@ import type { CartesianOrPolarTestCase, TestCase } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    clickAction,
+    deproxy,
+    doubleClickAction,
     extractImageData,
     mixinReversedAxesCases,
     prepareTestOptions,
@@ -24,6 +28,7 @@ import {
     spyOnAnimationManager,
     waitForChartStability,
 } from '../../test/utils';
+import { AreaSeries } from './areaSeries';
 
 const buildLogAxisTestCase = (data: any[]): CartesianOrPolarTestCase => {
     return {
@@ -472,6 +477,114 @@ describe('AreaSeries', () => {
 
             chart = AgCharts.create(options);
             await compare();
+        });
+    });
+
+    // AG-12350 - nodeClick triggered on legend item click.
+    describe('nodeClick', () => {
+        const clicks: string[] = [];
+        const doubleClicks: string[] = [];
+        const legendClicks: string[] = [];
+
+        const nodeClickOptions: AgCartesianChartOptions = {
+            data: [
+                { asset: 'Stocks', amount: 5 },
+                { asset: 'Cash', amount: 5 },
+                { asset: 'Bonds', amount: 0 },
+                { asset: 'Real Estate', amount: 5 },
+                { asset: 'Commodities', amount: 5 },
+            ],
+            series: [
+                {
+                    type: 'area',
+                    xKey: 'asset',
+                    yKey: 'amount',
+                    marker: { size: 5 },
+                    listeners: {
+                        nodeClick: (event) => {
+                            clicks.push(event.datum.asset);
+                        },
+                        nodeDoubleClick: (event) => {
+                            doubleClicks.push(event.datum.asset);
+                        },
+                    },
+                },
+            ],
+            legend: {
+                listeners: {
+                    legendItemClick: (event) => {
+                        legendClicks.push(event.itemId);
+                    },
+                },
+            },
+        };
+
+        beforeEach(() => {
+            clicks.splice(0, clicks.length);
+            doubleClicks.splice(0, doubleClicks.length);
+            legendClicks.splice(0, legendClicks.length);
+        });
+
+        it('should fire a nodeClick event for each node', async () => {
+            const options = { ...nodeClickOptions };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const areaSeries = deproxy(chart).series[0] as AreaSeries;
+            for (const nodeData of areaSeries.getNodeData() ?? []) {
+                const { x = 0, y = 0 } = nodeData.point ?? {};
+                const { x: clickX, y: clickY } = areaSeries.contentGroup.inverseTransformPoint(x, y);
+                await waitForChartStability(chart);
+                await clickAction(clickX, clickY)(chart);
+            }
+
+            expect(clicks).toEqual(['Stocks', 'Cash', 'Bonds', 'Real Estate', 'Commodities']);
+            expect(doubleClicks).toHaveLength(0);
+            expect(legendClicks).toHaveLength(0);
+        });
+
+        it('should fire a nodeDoubleClick event for each node', async () => {
+            const options = { ...nodeClickOptions };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const areaSeries = deproxy(chart).series[0] as AreaSeries;
+            for (const nodeData of areaSeries.getNodeData() ?? []) {
+                const { x = 0, y = 0 } = nodeData.point ?? {};
+                const { x: clickX, y: clickY } = areaSeries.contentGroup.inverseTransformPoint(x, y);
+                await waitForChartStability(chart);
+                await doubleClickAction(clickX, clickY)(chart);
+            }
+
+            expect(doubleClicks).toEqual(['Stocks', 'Cash', 'Bonds', 'Real Estate', 'Commodities']);
+            expect(clicks).toHaveLength(10);
+            expect(legendClicks).toHaveLength(0);
+        });
+
+        it('should not fire series events for legend clicks', async () => {
+            const options = { ...nodeClickOptions };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            for (const { legend } of deproxy(chart).modulesManager.legends()) {
+                const markerLabels = (legend as any).itemSelection?._nodes as LegendMarkerLabel[];
+                for (const label of markerLabels) {
+                    const { x, y } = label.computeBBox().computeCenter();
+
+                    await clickAction(x, y)(chart);
+                    await waitForChartStability(chart);
+
+                    await clickAction(x, y)(chart);
+                    await waitForChartStability(chart);
+                }
+            }
+
+            expect(legendClicks).toEqual(['amount', 'amount']);
+            expect(doubleClicks).toHaveLength(0);
+            expect(clicks).toHaveLength(0);
         });
     });
 });
