@@ -138,7 +138,7 @@ export abstract class TextualScene<Datum extends TextualProperties> extends Anno
 
         const styles = {
             fill: datum.handle.fill,
-            stroke: datum.handle.stroke,
+            stroke: datum.handle.stroke ?? datum.color,
             strokeOpacity: datum.handle.strokeOpacity,
             strokeWidth: datum.handle.strokeWidth,
         };
