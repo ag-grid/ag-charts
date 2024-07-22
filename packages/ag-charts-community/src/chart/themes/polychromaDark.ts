@@ -3,7 +3,7 @@ import type { AgChartThemePalette } from 'ag-charts-types';
 import { DarkTheme } from './darkTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
-    DEFAULT_ANNOTATION_STROKE,
+    DEFAULT_ANNOTATION_COLOR,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
 } from './symbols';
 
@@ -57,7 +57,7 @@ export class PolychromaDark extends DarkTheme {
 
         params.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [POLYCHROMA_DARK_FILLS.BLUE, POLYCHROMA_DARK_FILLS.RED]);
 
-        params.set(DEFAULT_ANNOTATION_STROKE, POLYCHROMA_DARK_FILLS.BLUE);
+        params.set(DEFAULT_ANNOTATION_COLOR, POLYCHROMA_DARK_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, POLYCHROMA_DARK_FILLS.BLUE);
 
         return params;

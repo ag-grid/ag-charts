@@ -3,7 +3,7 @@ import type { AgChartThemePalette } from 'ag-charts-types';
 import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
-    DEFAULT_ANNOTATION_STROKE,
+    DEFAULT_ANNOTATION_COLOR,
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_CAPTION_ALIGNMENT,
     DEFAULT_CAPTION_LAYOUT_STYLE,
@@ -50,7 +50,7 @@ export class FinancialLight extends ChartTheme {
             FINANCIAL_LIGHT_FILLS.RED,
         ]);
 
-        params.set(DEFAULT_ANNOTATION_STROKE, FINANCIAL_LIGHT_FILLS.BLUE);
+        params.set(DEFAULT_ANNOTATION_COLOR, FINANCIAL_LIGHT_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, FINANCIAL_LIGHT_FILLS.BLUE);
         params.set(DEFAULT_AXIS_GRID_COLOUR, '#F2F3F3');
 
