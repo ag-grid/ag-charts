@@ -215,7 +215,7 @@ export class CrossLineScene extends AnnotationScene {
             return { x: bbox.x + bbox.width / 2, y: bbox.y };
         }
 
-        return { x: bbox.x + bbox.width, y: bbox.y + bbox.height / 2, position: 'above' as const };
+        return { x: bbox.x + bbox.width, y: bbox.y + bbox.height / 2, position: 'right' as const };
     }
 
     private convertCrossLine(datum: CrossLineProperties, context: AnnotationAxisContext) {

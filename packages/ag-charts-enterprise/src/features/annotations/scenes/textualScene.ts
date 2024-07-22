@@ -74,7 +74,7 @@ export abstract class TextualScene<Datum extends TextualProperties> extends Anno
         if (bbox.width === 0 && bbox.height === 0) {
             bbox = this.computeBBoxWithoutHandles();
         }
-        return { x: bbox.x, y: bbox.y };
+        return { x: bbox.x, y: bbox.y, position: 'above-left' as const };
     }
 
     override getCursor() {

@@ -267,12 +267,16 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         const element = elements[ToolbarPosition.Floating];
         if (element.classList.contains(styles.modifiers.hidden)) return;
 
+        let position = anchor.position ?? 'above';
+
         let top = anchor.y - element.offsetHeight - verticalSpacing;
         let left = anchor.x - element.offsetWidth / 2;
 
-        if (anchor.position === 'above') {
+        if (position === 'right') {
             top = anchor.y - element.offsetHeight / 2;
             left = anchor.x + horizontalSpacing;
+        } else if (position === 'above-left') {
+            left = anchor.x;
         }
 
         const canvasRect = domManager.getBoundingClientRect();
