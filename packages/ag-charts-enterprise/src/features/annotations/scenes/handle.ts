@@ -9,7 +9,7 @@ type DivariantHandleStyles = { x: number; y: number } & { [K in keyof _Scene.Cir
 export abstract class Handle extends _Scene.Group {
     public static readonly HANDLE_SIZE: number;
     public static readonly GLOW_SIZE: number;
-    public static readonly INACTIVE_STROKE_WIDTH = 1;
+    public static readonly INACTIVE_STROKE_WIDTH = 2;
 
     protected abstract handle: _Scene.Rect | _Scene.Circle;
     protected abstract glow: _Scene.Rect | _Scene.Circle;
