@@ -79,7 +79,7 @@ describe('PieSeries', () => {
         const doubleClicks: string[] = [];
         const legendClicks: string[] = [];
 
-        const options: AgPolarChartOptions = {
+        const nodeClickOptions: AgPolarChartOptions = {
             data: [
                 { asset: 'Stocks', amount: 5 },
                 { asset: 'Cash', amount: 5 },
@@ -118,7 +118,7 @@ describe('PieSeries', () => {
         });
 
         it('should fire a nodeClick event for visible each sector', async () => {
-            chart = await createChart(options);
+            chart = await createChart(nodeClickOptions);
 
             const pieSeries = deproxy(chart).series[0] as PieSeries;
             for (const nodeData of pieSeries.getNodeData() ?? []) {
@@ -136,7 +136,7 @@ describe('PieSeries', () => {
         });
 
         it('should fire a nodeDoubleClick event for visible each sector', async () => {
-            chart = await createChart(options);
+            chart = await createChart(nodeClickOptions);
 
             const pieSeries = deproxy(chart).series[0] as PieSeries;
             for (const nodeData of pieSeries.getNodeData() ?? []) {
@@ -154,7 +154,7 @@ describe('PieSeries', () => {
         });
 
         it('should not fire series events for legend clicks', async () => {
-            chart = await createChart(options);
+            chart = await createChart(nodeClickOptions);
 
             for (const { legend } of deproxy(chart).modulesManager.legends()) {
                 const markerLabels = (legend as any).itemSelection?._nodes as LegendMarkerLabel[];
