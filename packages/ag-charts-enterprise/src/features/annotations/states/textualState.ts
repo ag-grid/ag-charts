@@ -27,6 +27,7 @@ export abstract class TextualStateMachine<
             const datum = this.createDatum();
             datum.set({ x: point.x, y: point.y, text: '' });
             ctx.create(datum);
+            ctx.resetToolbarButtonStates();
         };
 
         const onSave = ({ textInputValue }: { textInputValue?: string }) => {

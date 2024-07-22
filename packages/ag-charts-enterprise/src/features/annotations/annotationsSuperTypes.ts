@@ -48,5 +48,7 @@ export interface AnnotationsStateMachineContext {
     showTextInput: (index: number) => void;
     hideTextInput: () => void;
 
+    resetToolbarButtonStates: () => void;
+
     update: () => void;
 }
