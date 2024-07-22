@@ -157,6 +157,7 @@ export type AgToolbarAnnotationsButtonValue =
     | 'parallel-channel'
     | 'disjoint-channel'
     | 'text'
+    | 'comment'
     | 'clear';
 
 /* Series Type Options */

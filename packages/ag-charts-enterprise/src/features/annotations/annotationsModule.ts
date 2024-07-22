@@ -95,7 +95,7 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                 },
             },
             comment: {
-                color: 'black',
+                color: 'white',
                 fontSize: 14,
                 fontFamily: _Theme.DEFAULT_FONT_FAMILY,
                 textAlign: 'left',
@@ -105,6 +105,8 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                     strokeWidth: 2,
                     strokeOpacity: 1,
                 },
+                fill: _Theme.PALETTE_NEUTRAL_FILL,
+                stroke: _Theme.PALETTE_NEUTRAL_STROKE,
             },
             note: {
                 color: 'black',

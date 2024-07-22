@@ -17,6 +17,7 @@ export abstract class Handle extends _Scene.Group {
     protected locked = false;
 
     override visible = false;
+    override zIndex = 1;
 
     public abstract update(styles: {
         [K in keyof (_Scene.Rect | _Scene.Circle)]?: (_Scene.Rect | _Scene.Circle)[K];

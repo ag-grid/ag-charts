@@ -3,6 +3,9 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 import { type AnnotationContext, AnnotationType, type GuardDragClickDoubleEvent } from './annotationTypes';
 import { colorDatum, getTypedDatum, isTextType } from './annotationsConfig';
 import type { AnnotationProperties, AnnotationsStateMachineContext } from './annotationsSuperTypes';
+import { CommentProperties } from './comment/commentProperties';
+import { CommentScene } from './comment/commentScene';
+import { CommentStateMachine } from './comment/commentState';
 import {
     type CrossLineProperties,
     HorizontalLineProperties,
@@ -261,6 +264,19 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                         if (this.active != null) ctx.showTextInput(this.active);
                     },
                 }),
+                [AnnotationType.Comment]: new CommentStateMachine({
+                    ...ctx,
+                    create: createDatum<CommentProperties>(AnnotationType.Comment),
+                    delete: () => {
+                        if (this.active != null) ctx.delete(this.active);
+                        this.active = ctx.select();
+                    },
+                    datum: getDatum<CommentProperties>(CommentProperties.is),
+                    node: getNode<CommentScene>(CommentScene.is),
+                    showTextInput: () => {
+                        if (this.active != null) ctx.showTextInput(this.active);
+                    },
+                }),
             },
 
             [States.Dragging]: {
@@ -297,6 +313,10 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 // Texts
                 [AnnotationType.Text]: dragStateMachine<TextProperties, TextScene>(TextProperties.is, TextScene.is),
+                [AnnotationType.Comment]: dragStateMachine<CommentProperties, CommentScene>(
+                    CommentProperties.is,
+                    CommentScene.is
+                ),
             },
 
             [States.TextInput]: {
@@ -316,7 +336,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 click: {
                     target: States.Idle,
                     action: ({ textInputValue }: { textInputValue?: string }) => {
-                        if (textInputValue) {
+                        if (textInputValue !== null) {
                             ctx.datum(this.active!)?.set({ text: textInputValue });
                         } else {
                             ctx.delete(this.active!);
@@ -324,10 +344,19 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     },
                 },
 
-                keyDown: {
-                    guard: ({ key }: { key: string }) => key === 'Escape',
-                    target: States.Idle,
-                },
+                keyDown: [
+                    {
+                        guard: ({ key }: { key: string }) => key === 'Escape',
+                        target: States.Idle,
+                    },
+                    {
+                        target: States.TextInput,
+                        action: ({ textInputValue }: { textInputValue?: string }) => {
+                            ctx.datum(this.active!)?.set({ text: textInputValue });
+                            ctx.update();
+                        },
+                    },
+                ],
 
                 onExit: () => {
                     if (this.active == null) return;
