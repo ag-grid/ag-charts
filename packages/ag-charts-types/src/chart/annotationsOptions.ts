@@ -9,9 +9,9 @@ import type {
 import type { Formatter } from './callbackOptions';
 import type { PixelSize } from './types';
 
-/*********
- * Theme *
- *********/
+// *********
+// * Theme *
+// *********/
 
 export interface AgAnnotationsThemeableOptions {
     // Lines
@@ -51,9 +51,9 @@ export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible
 export interface AgTextAnnotationStyles extends FontOptions, Lockable, Visible {}
 export interface AgTextShapeAnnotationStyles extends AgTextAnnotationStyles, StrokeOptions, FillOptions {}
 
-/***********
- * Options *
- ***********/
+// ***********
+// * Options *
+// ***********
 
 export interface AgAnnotationsOptions extends Toggleable {
     /** The options for the axes buttons */
@@ -71,9 +71,9 @@ export type AgAnnotation =
     | AgNoteAnnotation
     | AgTextAnnotation;
 
-/********************
- * Line Annotations *
- ********************/
+// ********************
+// * Line Annotations *
+// ********************/
 
 export interface AgLineAnnotation
     extends AnnotationLinePoints,
@@ -104,9 +104,9 @@ export interface AgCrossLineAnnotation extends Lockable, Visible, StrokeOptions,
     axisLabel?: AgAnnotationAxisLabel;
 }
 
-/***********************
- * Channel Annotations *
- ***********************/
+// ***********************
+// * Channel Annotations *
+// ***********************/
 
 export interface AgParallelChannelAnnotation
     extends AnnotationLinePoints,
@@ -142,9 +142,9 @@ export interface AgDisjointChannelAnnotation
     background?: AgChannelAnnotationBackground;
 }
 
-/********************
- * Text Annotations *
- ********************/
+// ********************
+// * Text Annotations *
+// ********************/
 
 export interface AgCalloutAnnotation extends TextualAnnotation {
     /** Configuration for the callout annotation. */
@@ -170,9 +170,9 @@ interface TextualAnnotation extends AgAnnotationPoint, Lockable, Visible, FontOp
     text: string;
 }
 
-/**************
- * Components *
- **************/
+// **************
+// * Components *
+// **************/
 
 export interface AgChannelAnnotationMiddle extends Visible, StrokeOptions, LineDashOptions {}
 export interface AgChannelAnnotationBackground extends FillOptions {}
