@@ -162,7 +162,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     annotations.at(previous)?.toggleActive(false);
                 }
 
-                const node = index ? annotations.at(index) : undefined;
+                const node = index != null ? annotations.at(index) : undefined;
                 toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: index != null });
                 if (node) toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
 
