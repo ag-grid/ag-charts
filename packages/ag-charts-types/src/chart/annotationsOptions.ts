@@ -48,7 +48,7 @@ export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible
     /** The fill colour for the middle of the channel. */
     background?: AgChannelAnnotationBackground;
 }
-export interface AgTextAnnotationStyles extends Lockable, Visible {}
+export interface AgTextAnnotationStyles extends FontOptions, Lockable, Visible {}
 
 /***********
  * Options *
