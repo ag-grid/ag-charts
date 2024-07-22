@@ -126,29 +126,6 @@ For custom data keys, map your data properties to the appropriate [AgFinancialCh
 
 ## Customisation
 
-### Chart Types
-
-{% chartExampleRunner title="Chart Types" name="chart-types" type="generated" /%}
-
-The default chart type is `candlestick`. To use a different chart type, set the `chartType` property.
-
-```js
-const options: AgFinancialChartOptions = {
-  // ...
-  chartType: 'line', // Set to line
-};
-```
-
-The following chart types are supported:
-
--   `candlestick`
--   `hollow-candlestick`
--   `ohlc`
--   `line`
--   `step-line`
--   `hlc`
--   `high-low`
-
 ### Chart Features
 
 {% chartExampleRunner title="Chart Features" name="chart-features" type="generated" /%}
@@ -170,11 +147,37 @@ const options: AgFinancialChartOptions = {
 In this configuration:
 
 -   `navigator`: Enables the mini chart navigator for easy dataset navigation.
--   `annotations`: Allows users to add annotations on the chart using the annotations toolbar.
+-   `annotations`: Allows users to add annotations and drawings to the chart using the [Toolbar](./toolbar/).
 -   `rangeToolbar`: Provides range buttons for navigating different time periods.
 -   `volume`: Displays volume data on the chart.
 -   `statusBar`: Shows a status bar at the top of the chart when hovering over the chart series.
 -   `zoom`: Enables zoom functionality for detailed analysis of the data.
+
+### Chart Types
+
+End users can use the [Series Selection Tool](./financial-charts-toolbar/#series-selection) to choose which series type to use to visualise the data.
+However, this can also be done programmatically.
+
+{% chartExampleRunner title="Chart Types" name="chart-types" type="generated" /%}
+
+The default chart type is `candlestick`. To use a different chart type, set the `chartType` property.
+
+```js
+const options: AgFinancialChartOptions = {
+  // ...
+  chartType: 'line', // Set to line
+};
+```
+
+The following chart types are supported:
+
+-   `candlestick`
+-   `hollow-candlestick`
+-   `ohlc`
+-   `line`
+-   `step-line`
+-   `hlc`
+-   `high-low`
 
 ### Chart Styling
 

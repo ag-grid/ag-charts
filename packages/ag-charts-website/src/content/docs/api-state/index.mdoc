@@ -1,0 +1,72 @@
+---
+title: 'Chart State'
+---
+
+The dynamic chart state can be saved and restored using the API.
+
+## Save & Restore
+
+{% chartExampleRunner title="Saving & Restoring State" name="state-save-restore" type="generated" /%}
+
+```js
+function saveState() {
+    const newState = chart.getState();
+    //save to database...
+}
+
+function restoreState() {
+    // retrieve state from database...
+    chart.setState(state);
+}
+```
+
+In the above example:
+
+-   Create and edit some annotations, and then click 'Save' to store the chart state using `chart.getState()`.
+-   Click the 'Restore' button to restore a saved state to the chart using `chart.setState()`. This will override the current state.
+
+## Initial State
+
+The `initialState` chart option allows creating a chart with a saved state.
+
+Additionally, mutating this option at runtime will modify the chart state.
+
+The object provided to this property should be the same as the object returned from the `getState()` method.
+
+```js
+initialState: {
+    annotations: [
+        {
+            type: 'line',
+            start: {
+                x: { __type: 'date', value: '2024-03-21' },
+                y: 1234,
+            },
+            end: {
+                x: { __type: 'date', value: '2024-06-21' },
+                y: 2345,
+            }
+        },
+    ],
+}
+```
+
+## State Contents
+
+-   `annotations` - This object includes the position and style of any displayed drawings or text annotations.
+
+Note that all the state properties are optional, so a property can be excluded if you do not want to restore it.
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgChartInstance" label="AgChartInstance" %}
+{% apiReference id="_AgChartInstanceInterface" include=["getState", "setState"] hideHeader=true hideRequired=true /%}
+{% /tabItem %}
+
+{% tabItem id="InitialState" label="InitialState" %}
+{% apiReference id="AgInitialStateOptions"  /%}
+{% /tabItem %}
+
+{% /tabs %}
