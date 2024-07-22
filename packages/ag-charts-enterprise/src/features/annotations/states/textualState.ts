@@ -63,6 +63,11 @@ export abstract class TextualStateMachine<
                         },
                     },
                     {
+                        guard: ({ key, shiftKey }: { key: string; shiftKey: boolean }) => !shiftKey && key === 'Enter',
+                        target: StateMachine.parent,
+                        action: onSave,
+                    },
+                    {
                         target: 'edit',
                         action: onSave,
                     },

@@ -350,6 +350,14 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                         target: States.Idle,
                     },
                     {
+                        guard: ({ key, shiftKey }: { key: string; shiftKey: boolean }) => !shiftKey && key === 'Enter',
+                        target: States.Idle,
+                        action: ({ textInputValue }: { textInputValue?: string }) => {
+                            ctx.datum(this.active!)?.set({ text: textInputValue });
+                            ctx.update();
+                        },
+                    },
+                    {
                         target: States.TextInput,
                         action: ({ textInputValue }: { textInputValue?: string }) => {
                             ctx.datum(this.active!)?.set({ text: textInputValue });
