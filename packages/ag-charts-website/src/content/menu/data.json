@@ -50,6 +50,10 @@
             {
                 "title": "Download API",
                 "path": "/[framework]/api-download"
+            },
+            {
+                "title": "State API",
+                "path": "/[framework]/api-state"
             }
         ]
     },
@@ -232,13 +236,13 @@
                         "isEnterprise": true
                     },
                     {
-                        "title": "Annotations",
-                        "path": "annotations",
+                        "title": "Toolbar",
+                        "path": "financial-charts-toolbar",
                         "isEnterprise": true
                     },
                     {
-                        "title": "Range Toolbar",
-                        "path": "toolbar",
+                        "title": "Range Buttons",
+                        "path": "range-buttons",
                         "isEnterprise": true
                     }
                 ]
@@ -442,6 +446,10 @@
                 "title": "Migration",
                 "feature": false,
                 "items": [
+                    {
+                        "title": "Upgrade to AG Charts 10.1",
+                        "path": "upgrade-to-ag-charts-10-1"
+                    },
                     {
                         "title": "Upgrade to AG Charts 10",
                         "path": "upgrade-to-ag-charts-10"

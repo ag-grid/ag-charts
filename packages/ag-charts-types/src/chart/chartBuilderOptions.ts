@@ -97,7 +97,9 @@ export interface AgChartInstance<O extends AgChartInstanceOptions = AgChartOptio
     /** Returns a base64-encoded image data URL for the given `AgChartInstance`.*/
     getImageDataURL(options?: ImageDataUrlOptions): Promise<string>;
 
+    /** Returns a representation of the current state of the given `AgChartInstance`. */
     getState(): Required<AgChartState>;
+    /** Sets the state of the given `AgChartInstance` to the state provided.*/
     setState(state: AgChartState): Promise<void>;
 
     /** Destroy the chart instance and any allocated resources supporting its rendering. */

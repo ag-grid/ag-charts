@@ -13,6 +13,58 @@ Users of integrated charting on AG Grid, should refer to this migration guide wh
 
 This release includes the following breaking changes:
 
+{% if isFramework("react") %}
+
+-   The `AgChart` entrypoint is renamed to `AgCharts`.
+-   The `AgChartsReact` export is renamed to `AgCharts`.
+-   `AgCharts.update()` moved to `AgChartInstance.update()`.
+-   `AgCharts.updateDelta()` moved to `AgChartInstance.updateDelta()`.
+-   `AgCharts.download()` moved to `AgChartInstance.download()`.
+-   `AgCharts.getImageDataURL()` moved to `AgChartInstance.getImageDataURL()`.
+-   `autosize` is removed. Charts will autosize automatically by default. Use `height`, `width`, `minHeight`, `minWidth` to change this.
+-   Charts smaller than the provided container, now display in the centre of the container instead of top-left.
+-   The height of the chart container is no longer automatically set to 100%.
+-   `containerStyle` is renamed to `style`.
+-   Series `key` properties no longer support general expressions. The only acceptable property paths are `.dot` and `['square-bracket']` expressions.
+-   `AgNodeDoubleClickEvent `, `AgSeriesNodeClickEvent` and `AgSeriesNodeDoubleClickEvent` are all replaced by `AgNodeClickEvent`.
+
+{% /if %}
+
+{% if isFramework("angular") %}
+
+-   The `AgChart` entrypoint is renamed to `AgCharts`.
+-   The `AgChartsAngular` export is renamed to `AgCharts`.
+-   The `ag-charts-angular` template tag is renamed to `ag-charts`.
+-   `AgCharts.update()` moved to `AgChartInstance.update()`.
+-   `AgCharts.updateDelta()` moved to `AgChartInstance.updateDelta()`.
+-   `AgCharts.download()` moved to `AgChartInstance.download()`.
+-   `AgCharts.getImageDataURL()` moved to `AgChartInstance.getImageDataURL()`.
+-   `autosize` is removed. Charts will autosize automatically by default. Use `height`, `width`, `minHeight`, `minWidth` to change this.
+-   Charts smaller than the provided container, now display in the centre of the container instead of top-left.
+-   Series `key` properties no longer support general expressions. The only acceptable property paths are `.dot` and `['square-bracket']` expressions.
+-   `AgNodeDoubleClickEvent `, `AgSeriesNodeClickEvent` and `AgSeriesNodeDoubleClickEvent` are all replaced by `AgNodeClickEvent`.
+
+{% /if %}
+
+{% if isFramework("vue") %}
+
+-   The `AgChart` entrypoint is renamed to `AgCharts`.
+-   The `AgChartsVue` export is renamed to `AgCharts`.
+-   `vue-class-component` is no longer required.
+-   `AgCharts.update()` moved to `AgChartInstance.update()`.
+-   `AgCharts.updateDelta()` moved to `AgChartInstance.updateDelta()`.
+-   `AgCharts.download()` moved to `AgChartInstance.download()`.
+-   `AgCharts.getImageDataURL()` moved to `AgChartInstance.getImageDataURL()`.
+-   `autosize` is removed. Charts will autosize automatically by default. Use `height`, `width`, `minHeight`, `minWidth` to change this.
+-   Charts smaller than the provided container, now display in the centre of the container instead of top-left.
+-   The height of the chart container is no longer automatically set to 100%.
+-   Series `key` properties no longer support general expressions. The only acceptable property paths are `.dot` and `['square-bracket']` expressions.
+-   `AgNodeDoubleClickEvent `, `AgSeriesNodeClickEvent` and `AgSeriesNodeDoubleClickEvent` are all replaced by `AgNodeClickEvent`.
+
+{% /if %}
+
+{% if isFramework("javascript") %}
+
 -   The `AgChart` entrypoint is renamed to `AgCharts`.
 -   `AgCharts.update()` moved to `AgChartInstance.update()`.
 -   `AgCharts.updateDelta()` moved to `AgChartInstance.updateDelta()`.
@@ -22,24 +74,32 @@ This release includes the following breaking changes:
 -   Charts smaller than the provided container, now display in the centre of the container instead of top-left.
 -   Series `key` properties no longer support general expressions. The only acceptable property paths are `.dot` and `['square-bracket']` expressions.
 -   `AgNodeDoubleClickEvent `, `AgSeriesNodeClickEvent` and `AgSeriesNodeDoubleClickEvent` are all replaced by `AgNodeClickEvent`.
--   Support for Vue 2 has been dropped as it has reached EOL. See the {% link href="https://v2.vuejs.org/lts/" isExternal=true %}Vue project page{% /link %} for more details.
 
-{% if isFramework("angular") %}
-**Compatibility**
 {% /if %}
 
 {% if isFramework("angular") %}
+
+### Compatibility
+
 The minimum version of Angular you can use with AG Charts is now Angular 16.
 {% /if %}
 
-**Series Changes**
+{% if isFramework("vue") %}
+
+### Compatibility
+
+Support for Vue 2 has been dropped as it has reached EOL.
+See the {% link href="https://v2.vuejs.org/lts/" isExternal=true %}Vue project page{% /link %} for more details.
+
+{% /if %}
+
+### Series Changes
 
 -   `innerRadiusOffset`, `innerRadiusRatio`, `innerCircle`, `innerLabels` are removed from `pie` series. Use `donut` series instead.
 -   `pie` and `donut` series strokes are now rendered on the inside of each sector. Instead of using `strokeWidth` to add spacing between the sectors, use `sectorSpacing`.
 -   `innerLabels.margin` on `donut` series is renamed to `innerLabels.spacing`.
 -   `scatter` and `bubble` series options contained within `marker` object are moved to the top level. `marker.enabled` is removed.
 -   `formatter` function on all series, marker and error-bars is renamed to `itemStyler`.
-
 -   All `SeriesFormatterParams` are renamed to `SeriesItemStylerParams`.
     -   `AgBarSeriesFormatterParams` is renamed to `AgBarSeriesItemStylerParams``.
     -   `AgPieSeriesFormatterParams` is renamed to `AgPieSeriesItemStylerParams`.
@@ -57,10 +117,8 @@ The minimum version of Angular you can use with AG Charts is now Angular 16.
     -   `AgMapShapeSeriesFormatterParams` is renamed to `AgMapShapeSeriesItemStylerParams`.
 -   `AgSeriesMarkerFormatterParams` is renamed `AgSeriesMarkerStylerParams
 -   `AgErrorBarFormatterParams` is renamed to `AgErrorBarItemStylerParams`.
-
 -   `fills[]` and `strokes[]` are removed from `AgPieSeriesItemStylerParams` and `AgDonutSeriesItemStylerParams`.
 -   `value` is removed from waterfall `AgWaterfallSeriesItemStylerParams`.
-
 -   `AgPieSeriesFormat` is renamed to `AgPieSeriesStyle`.
 -   `AgDonutSeriesFormat` is renamed to `AgDonutSeriesStyle`.
 -   `AgRadialSeriesFormat` is renamed to `AgRadialSeriesStyle`.
@@ -68,11 +126,9 @@ The minimum version of Angular you can use with AG Charts is now Angular 16.
 -   `AgRangeBarSeriesFormat` is renamed to `AgRangeBarSeriesStyle`.
 -   `AgHeatmapSeriesFormat` is renamed to `AgHeatmapSeriesStyle`.
 -   `AgBoxPlotSeriesStyles` is renamed to `AgBoxPlotSeriesStyle`.
-
 -   `AgRadarSeriesItemStylerParams` added a `<TDatum>` generic.
 -   `AgSunburstSeriesItemStylerParams` generic no longer has a default value.
 -   `AgTreemapSeriesItemStylerParams` generic no longer has a default value.
-
 -   `AgErrorBarOptions` added a `<TDatum>` generic.
 -   `AgPieSeriesTooltipRendererParams` added a `<TDatum>` generic.
 -   `AgDonutSeriesTooltipRendererParams` added a `<TDatum>` generic.
@@ -82,7 +138,7 @@ The minimum version of Angular you can use with AG Charts is now Angular 16.
 -   `AgRangeBarSeriesTooltipRendererParams` added a `<TDatum>` generic.
 -   `AgRadialSeriesTooltipRendererParams` added a `<TDatum>` generic.
 
-**Axes Changes**
+### Axes Changes
 
 -   `groupPaddingInner` on category axis has no effect when series are not grouped. Use `paddingInner` instead.
 -   `axes.tick.color` is renamed to `axes.tick.stroke`.
@@ -91,7 +147,7 @@ The minimum version of Angular you can use with AG Charts is now Angular 16.
 -   `axes.tick.interval` is moved to `axes.interval.step`.
 -   `formatter` property removed from `AgAxisLabelFormatterParams`.
 
-**Miscellaneous**
+### Miscellaneous
 
 -   `legend.item.line.length` is now the length of the entire legend item line, regardless of whether or not a marker is present.
 -   `legend.item.toggleSeriesVisible` is replaced by `legend.toggleSeries`.
@@ -108,28 +164,11 @@ The minimum version of Angular you can use with AG Charts is now Angular 16.
     -   `AgRadiusCategoryAxisThemeOptions`
     -   `AgRadiusNumberAxisThemeOptions`.
 
-**ag-charts-react**
-
--   The `AgChartsReact` export is renamed to `AgCharts`.
--   The height of the chart container is no longer automatically set to 100%.
--   `containerStyle` is renamed to `style`.
-
-**ag-charts-angular**
-
--   The `AgChartsAngular` export is renamed to `AgCharts`.
--   The `ag-charts-angular` template tag is renamed to `ag-charts`.
-
-**ag-charts-vue3**
-
--   The `AgChartsVue` export is renamed to `AgCharts`.
--   The height of the chart container is no longer automatically set to 100%.
--   vue-class-component is no longer required.
-
 ## Behaviour Changes
 
 This release includes the following behaviour changes:
 
-**Theme Defaults**
+### Theme Defaults
 
 -   Gradient Legend values default to descending order when `position` is `'left'` or `'right'`. Use `reverseOrder` to change.
 -   `pie` and `donut` series strokes now default to palette colours.
@@ -138,7 +177,7 @@ This release includes the following behaviour changes:
 -   Crosshair labels for dark modes now have a different background colour.
 -   `legend.item.showSeriesStroke` defaults to `true`.
 
-**Other Changes**
+### Other Changes
 
 -   Pan left and Pan right zoom buttons move the chart by one step rather than the entire viewport width.
 -   Time format in tooltips and crosshair labels defaults to a prettier format.

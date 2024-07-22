@@ -1,5 +1,20 @@
 [
     {
+        "version": "10.1.0",
+        "date": "July 30th 2024",
+        "highlights": [
+            {
+                "text": "Text Annotations",
+                "path": "./financial-charts-toolbar#text-annotation"
+            },
+            {
+                "text": "Financial Charts Series Type Selection",
+                "path": "./financial-charts-toolbar#series-selection"
+            }
+        ],
+        "notesPath": "./upgrade-to-ag-charts-10-1"
+    },
+    {
         "version": "10.0.2",
         "date": "July 14th 2024"
     },

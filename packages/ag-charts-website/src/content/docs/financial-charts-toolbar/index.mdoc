@@ -1,0 +1,140 @@
+---
+title: 'Financial Charts - Toolbar'
+enterprise: true
+---
+
+The Toolbar contains tools that allow users to analyse and annotate the charts.
+
+## Series Selection
+
+Users can choose the series type used to display the price data.
+
+Available series types are:
+
+-   `candlestick`
+-   `hollow-candlestick`
+-   `ohlc`
+-   `line`
+-   `step-line`
+-   `hlc`
+-   `high-low`
+
+## Drawings and Annotations
+
+When annotations are enabled, users have the ability to create, edit and delete their own drawings and annotations via the intuitive toolbar buttons.
+
+{% chartExampleRunner title="Annotations Initial" name="annotation-initial" type="generated" /%}
+
+In the above example:
+
+-   Add annotations by clicking the toolbar and then clicking and dragging on the chart area, or by clicking the '+' button next to the axes.
+-   Click and drag a drawing or annotation to move it.
+-   Change the colour of the selected item by clicking the 'pencil' icon in the floating toolbar and using the colour picker. The new colour will be used for any subsequently created items.
+-   Remove a single annotation by pressing the 'delete' button in the floating toolbar or clear all annotations with the 'clear' button in the toolbar.
+
+### Trend Lines
+
+{% chartExampleRunner title="Trend Lines" name="annotation-initial" type="generated" /%}
+
+Trend line types available are:
+
+-   **Trend Line**: A single line between two points on the chart.
+-   **Parallel Channel**: Two parallel lines, with a fill between them and an optional centre line as well.
+-   **Disjoint Channel**: Two lines which do not need to be parallel, with a fill between them.
+-   **Horizontal Line**: A horizontal line across the entire chart. There is also an optional label over the axis.
+-   **Vertical Line**: A vertical line across the entire chart. There is also an optional label over the axis.
+
+### Text Annotations
+
+{% chartExampleRunner title="Text Annotations" name="annotation-initial" type="generated" /%}
+
+Text Annotation types available are:
+
+-   **Text**: Simple text string displayed on the chart.
+-   **Comment**: Text within a comment box.
+-   **Callout**: Text within a box, with a callout arrow attached to a specific position on the chart.
+-   **Note**: An icon on the chart, with text displayed on hover.
+
+Add a new line to a text annotations by pressing {% kbd "⇧ Shift"/%}+{% kbd "↵ Enter" /%}.
+
+### Save & Restore
+
+Drawings and Annotations can be saved, restored and programmatically initialised and modified, using the [Chart State API](./api-state/).
+
+### Customisation
+
+{% chartExampleRunner title="Annotation Customisation" name="annotation-customisation" type="generated" /%}
+
+To customise the look of Drawings and Annotations, use [Theme Override Options](/themes-api/#reference-AgChartTheme-overrides-common-annotations).
+
+```ts
+theme: {
+    overrides: {
+      common: {
+        annotations: {
+          line: {
+            stroke: "lime",
+            strokeWidth: 3,
+            lineDash: [3, 4],
+          },
+          "parallel-channel": {
+            stroke: "red",
+            strokeWidth: 4,
+            background: {
+              fill: "red",
+            },
+            middle: {
+              strokeOpacity: 0,
+            },
+          },
+        },
+      },
+    },
+  },
+```
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgAnnotationsOptions" label="Annotations" %}
+{% apiReference id="AgAnnotationsOptions" /%}
+{% /tabItem %}
+
+{% tabItem id="AgLineAnnotation" label="Line" %}
+{% apiReference id="AgLineAnnotation" /%}
+{% /tabItem %}
+
+{% tabItem id="AgParallelChannelAnnotation" label="Parallel Channel" %}
+{% apiReference id="AgParallelChannelAnnotation" /%}
+{% /tabItem %}
+
+{% tabItem id="AgDisjointChannelAnnotation" label="Disjoint Channel" %}
+{% apiReference id="AgDisjointChannelAnnotation" /%}
+{% /tabItem %}
+
+{% tabItem id="AgHorizontalLineAnnotation" label="Horizontal Line" %}
+{% apiReference id="AgHorizontalLineAnnotation" /%}
+{% /tabItem %}
+
+{% tabItem id="AgVerticalLineAnnotation" label="Vertical Line" %}
+{% apiReference id="AgVerticalLineAnnotation" /%}
+{% /tabItem %}
+
+{% tabItem id="AgTextAnnotation" label="Text" %}
+{% apiReference id="AgTextAnnotation" /%}
+{% /tabItem %}
+
+{% tabItem id="AgCommentAnnotation" label="Comment" %}
+{% apiReference id="AgCommentAnnotation" /%}
+{% /tabItem %}
+
+{% tabItem id="AgCalloutAnnotation" label="Callout" %}
+{% apiReference id="AgCalloutAnnotation" /%}
+{% /tabItem %}
+
+{% tabItem id="AgNoteAnnotation" label="Note" %}
+{% apiReference id="AgNoteAnnotation" /%}
+{% /tabItem %}
+
+{% /tabs %}
