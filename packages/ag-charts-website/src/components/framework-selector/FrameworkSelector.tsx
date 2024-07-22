@@ -1,4 +1,5 @@
 import fwLogos from '@ag-website-shared/images/fw-logos';
+import { FRAMEWORK_DISPLAY_TEXT } from '@constants';
 import classnames from 'classnames';
 
 import styles from './FrameworkSelector.module.scss';
@@ -16,8 +17,8 @@ export function FrameworkSelector({ data, currentFramework, isFullWidth, showSel
         >
             {data.map((framework) => {
                 const isSelected = showSelectedFramework && framework.name === currentFramework;
-                const frameworkCapitalised = framework.name.charAt(0).toUpperCase() + framework.name.slice(1);
-                const alt = `${frameworkCapitalised} Data Grid`;
+                const frameworkDisplay = FRAMEWORK_DISPLAY_TEXT[framework.name];
+                const alt = `${frameworkDisplay} Data Grid`;
 
                 return (
                     <a
@@ -28,7 +29,7 @@ export function FrameworkSelector({ data, currentFramework, isFullWidth, showSel
                         })}
                     >
                         <img src={fwLogos[framework.name]} alt={alt} />
-                        <span>{frameworkCapitalised}</span>
+                        <span>{frameworkDisplay}</span>
                     </a>
                 );
             })}
