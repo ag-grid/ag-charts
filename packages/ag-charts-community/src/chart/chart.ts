@@ -574,9 +574,7 @@ export abstract class Chart extends Observable {
             case ChartUpdateType.TOOLTIP_RECALCULATION:
                 if (this.checkUpdateShortcut(ChartUpdateType.TOOLTIP_RECALCULATION)) break;
 
-                if (performUpdateType <= ChartUpdateType.SERIES_UPDATE) {
-                    this.seriesAreaManager.seriesUpdated();
-                }
+                this.seriesAreaManager.seriesUpdated();
                 updateSplits('↖');
             // fallthrough
 

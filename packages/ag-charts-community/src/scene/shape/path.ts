@@ -83,6 +83,10 @@ export class Path extends Shape implements DistantObject {
 
     computeSVGDataPath(): string {
         const { x, y } = this.inverseTransformPoint(0, 0);
+        if (this.dirtyPath) {
+            this.updatePath();
+            this.dirtyPath = false;
+        }
         return this.path.computeSVGDataPath(x, y);
     }
 
