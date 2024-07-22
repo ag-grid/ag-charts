@@ -81,8 +81,12 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarAnnotationsDisjointChannel: 'Disjoint channel',
     // Text for the annotation toolbar's clear all button
     toolbarAnnotationsClearAll: 'Clear all annotations',
-    // Text for the annotation toolbar's color picker annotation button
+    // @deprecated Text for the annotation toolbar's color picker annotation button
     toolbarAnnotationsColor: 'Pick annotation color',
+    // Text for the annotation toolbar's line color picker annotation button
+    toolbarAnnotationsLineColor: 'Pick annotation line color',
+    // Text for the annotation toolbar's text color picker annotation button
+    toolbarAnnotationsTextColor: 'Pick annotation text color',
     // Text for the annotation toolbar's lock annotation button
     toolbarAnnotationsLock: 'Lock annotation',
     // Text for the annotation toolbar's unlock annotation button
