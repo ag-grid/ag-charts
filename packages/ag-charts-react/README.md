@@ -177,7 +177,7 @@ The Maps Series let you visualise geographic data in different ways.
     <img width="100%" alt="Preview of Map Charts from AG Charts" src="../../packages/ag-charts-website/public/images/readme-assets/map-dark.gif"/>
 </picture>
 
-Maps can display data using Shapes(link), Lines(link) and Marker(link) series:
+Maps can display data using [Shapes](https://charts.ag-grid.com/react/map-shapes/), [Lines](https://charts.ag-grid.com/react/map-lines/) and [Marker](https://charts.ag-grid.com/react/map-markers/) series:
 
 ```js
 const options = {
