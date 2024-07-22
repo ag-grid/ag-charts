@@ -41,7 +41,6 @@ export class CrossLineScene extends AnnotationScene {
         const { locked, visible, lineDash, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
         const { seriesRect } = context;
 
-        this.locked = locked ?? false;
         this.seriesRect = seriesRect;
 
         this.isHorizontal = HorizontalLineProperties.is(datum);
@@ -85,7 +84,7 @@ export class CrossLineScene extends AnnotationScene {
         middle.gradient = this.isHorizontal ? 'horizontal' : 'vertical';
         middle.update({ ...handleStyles, x: x - handleWidth / 2, y: y - handleHeight / 2 });
 
-        middle.toggleLocked(this.locked);
+        middle.toggleLocked(locked ?? false);
 
         this.updateAxisLabel(datum, axisContext, coords);
     }
@@ -157,9 +156,9 @@ export class CrossLineScene extends AnnotationScene {
     }
 
     public drag(datum: CrossLineProperties, target: Coords, context: AnnotationContext) {
-        const { activeHandle, dragState, locked } = this;
+        const { activeHandle, dragState } = this;
 
-        if (locked) return;
+        if (datum.locked) return;
 
         let coords;
 

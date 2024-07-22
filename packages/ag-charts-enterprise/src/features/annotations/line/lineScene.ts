@@ -30,9 +30,9 @@ export class LineScene extends LinearScene<LineProperties> {
 
     public update(datum: LineProperties, context: AnnotationContext) {
         const { line, start, end } = this;
-        const { locked, visible, lineDash, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
+        const { visible, lineDash, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
 
-        this.locked = locked ?? false;
+        const locked = datum.locked ?? false;
         this.seriesRect = context.seriesRect;
 
         const coords = convertLine(datum, context);
@@ -70,8 +70,8 @@ export class LineScene extends LinearScene<LineProperties> {
         start.update({ ...handleStyles, x: x1, y: y1 });
         end.update({ ...handleStyles, x: x2, y: y2 });
 
-        start.toggleLocked(this.locked);
-        end.toggleLocked(this.locked);
+        start.toggleLocked(locked);
+        end.toggleLocked(locked);
     }
 
     override toggleHandles(show: boolean | Partial<Record<'start' | 'end', boolean>>) {

@@ -9,8 +9,6 @@ export abstract class AnnotationScene extends _Scene.Group {
         return isObject(value) && Object.hasOwn(value, 'type') && value.type === type;
     }
 
-    public locked: boolean = false;
-
     public abstract type: string;
     public abstract activeHandle?: string;
 

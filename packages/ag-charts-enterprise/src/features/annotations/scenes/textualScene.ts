@@ -144,6 +144,7 @@ export abstract class TextualScene<Datum extends TextualProperties> extends Anno
         };
 
         this.handle.update({ ...styles, x, y });
+        this.handle.toggleLocked(datum.locked ?? false);
     }
 
     protected updateShape(_datum: Datum, _textBBox: _Scene.BBox) {
