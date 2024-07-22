@@ -57,10 +57,25 @@ export class SeriesAreaFocusManager extends BaseManager {
 
     public seriesChanged(series: Series<any, any>[]) {
         this.series = series;
+        this.onBlur();
+    }
+
+    public dataChanged() {
+        this.ctx.focusIndicator.updateBounds(undefined);
+    }
+
+    public seriesUpdated() {
+        this.refreshFocus();
     }
 
     private layoutComplete(event: LayoutCompleteEvent): void {
         this.seriesRect = event.series.rect;
+    }
+
+    private refreshFocus() {
+        if (this.focus.hasFocus) {
+            this.handleSeriesFocus(0, 0);
+        }
     }
 
     private onTab(event: KeyNavEvent<'tab'>): void {
