@@ -27,7 +27,7 @@ export abstract class TextualScene<Datum extends TextualProperties> extends Anno
     };
 
     public update(datum: Datum, context: AnnotationContext) {
-        this.label.visible = datum.visible ?? true;
+        this.label.opacity = datum.visible ? 1 : 0;
 
         const textBBox = datum.getTextBBox(context);
 
@@ -70,10 +70,7 @@ export abstract class TextualScene<Datum extends TextualProperties> extends Anno
     }
 
     override getAnchor() {
-        let bbox = this.getCachedBBoxWithoutHandles();
-        if (bbox.width === 0 && bbox.height === 0) {
-            bbox = this.computeBBoxWithoutHandles();
-        }
+        const bbox = this.getCachedBBoxWithoutHandles();
         return { x: bbox.x, y: bbox.y, position: 'above-left' as const };
     }
 

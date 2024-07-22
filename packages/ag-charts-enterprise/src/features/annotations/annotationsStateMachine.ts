@@ -43,7 +43,8 @@ type AnnotationEvent =
     | 'cancel'
     | 'reset'
     | 'color'
-    | 'keyDown';
+    | 'keyDown'
+    | 'render';
 
 export class AnnotationsStateMachine extends StateMachine<States, AnnotationType | AnnotationEvent> {
     override debug = _Util.Debug.create(true, 'annotations');

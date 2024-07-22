@@ -267,6 +267,18 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             hideTextInput: () => {
                 this.textInput.hide();
             },
+
+            showAnnotationOptions: () => {
+                const active = this.state.getActive();
+                if (active == null) return;
+
+                const node = this.annotations.at(active);
+                if (!node) return;
+
+                ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: true });
+                ctx.toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
+                this.toggleAnnotationOptionsButtons();
+            },
         });
     }
 
@@ -308,6 +320,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             ctx.toolbarManager.addListener('button-moved', this.onToolbarButtonMoved.bind(this)),
             ctx.toolbarManager.addListener('cancelled', this.onToolbarCancelled.bind(this)),
             ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this)),
+            ctx.updateService.addListener('update-complete', this.onUpdateComplete.bind(this)),
 
             // DOM
             ctx.annotationManager.attachNode(this.container),
@@ -468,6 +481,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         this.updateAnnotations();
+    }
+
+    private onUpdateComplete() {
+        this.state.transition('render');
     }
 
     private getAxis(
