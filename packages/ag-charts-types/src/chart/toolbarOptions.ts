@@ -50,7 +50,7 @@ export interface AgToolbarButton {
 
 export type AgIconName =
     | 'area-series'
-    | 'callout-series'
+    | 'callout-annotation'
     | 'candlestick-series'
     | 'comment-annotation'
     | 'delete'
