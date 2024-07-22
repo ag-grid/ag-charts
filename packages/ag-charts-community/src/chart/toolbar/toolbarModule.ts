@@ -62,6 +62,12 @@ const annotations: AgToolbarOptions['annotations'] = {
             section: 'annotations',
         },
         {
+            icon: 'comment-annotation',
+            tooltip: 'comment',
+            value: 'comment',
+            section: 'annotations',
+        },
+        {
             icon: 'delete',
             tooltip: 'toolbarAnnotationsClearAll',
             value: 'clear',

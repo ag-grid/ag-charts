@@ -16,7 +16,7 @@ interface AnchoredLayout {
 }
 
 export abstract class TextualScene<Datum extends TextualProperties> extends AnnotationScene {
-    protected readonly label = new _Scene.Text();
+    protected readonly label = new _Scene.Text({ zIndex: 1 });
     protected readonly handle = new DivariantHandle();
 
     override activeHandle?: string | undefined;
@@ -27,13 +27,13 @@ export abstract class TextualScene<Datum extends TextualProperties> extends Anno
     };
 
     public update(datum: Datum, context: AnnotationContext) {
-        this.visible = datum.visible ?? true;
+        this.label.visible = datum.visible ?? true;
 
         const textBBox = datum.getTextBBox(context);
 
         this.updateLabel(datum, textBBox);
-        this.updateHandle(datum);
-        this.updateShape(datum);
+        this.updateHandle(datum, textBBox);
+        this.updateShape(datum, textBBox);
     }
 
     public dragStart(datum: Datum, target: Coords, context: AnnotationContext) {
@@ -117,7 +117,7 @@ export abstract class TextualScene<Datum extends TextualProperties> extends Anno
         this.label.textAlign = alignment;
     }
 
-    protected updateHandle(datum: Datum) {
+    protected updateHandle(datum: Datum, _textBBox: _Scene.BBox) {
         let bbox = this.label.getCachedBBox();
         if (bbox.width === 0 && bbox.height === 0) {
             bbox = this.label.computeBBox();
@@ -146,7 +146,7 @@ export abstract class TextualScene<Datum extends TextualProperties> extends Anno
         this.handle.update({ ...styles, x, y });
     }
 
-    protected updateShape(_datum: Datum) {
+    protected updateShape(_datum: Datum, _textBBox: _Scene.BBox) {
         // Shapes should be implemented by the extending annotation type class
     }
 

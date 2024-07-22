@@ -1,14 +1,14 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import { Annotation, Font, Handle, Label, PointProperties } from '../annotationProperties';
+import { Annotation, Fill, Font, Handle, Label, PointProperties, Stroke } from '../annotationProperties';
 import { type AnnotationContext } from '../annotationTypes';
 import { convertPoint } from '../annotationUtils';
 
 const { STRING, Validate } = _ModuleSupport;
 
-export abstract class TextualProperties extends Annotation(Handle(Label(Font(PointProperties)))) {
+export class TextualProperties extends Annotation(Handle(Fill(Stroke(Label(Font(PointProperties)))))) {
     @Validate(STRING)
-    text!: string;
+    text: string = '';
 
     position: 'top' | 'center' | 'bottom' = 'top';
     alignment: 'left' | 'center' | 'right' = 'left';

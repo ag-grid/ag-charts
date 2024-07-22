@@ -253,11 +253,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.textInput.show({ styles, text: datum.text });
 
                 const bbox = datum.getTextBBox(this.getAnnotationContext()!);
-                const coords = Vec2.sub(
-                    Vec2.add(bbox, Vec2.required(this.seriesRect)),
-                    // Adjust the y position to account for variance in html vs canvas text layout
-                    Vec2.from(0, (datum.fontSize / 48) * 11)
-                );
+                const coords = Vec2.add(bbox, Vec2.required(this.seriesRect));
+
                 bbox.x = coords.x;
                 bbox.y = coords.y;
 
