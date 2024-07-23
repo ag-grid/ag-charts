@@ -37,22 +37,23 @@ jobs:
                       })
 
             - id: 'get-branch'
+              if: github.event.issue.pull_request
               run: |
-                  branch=$(git branch --show-current)
-                  if [[ ${branch} == 'latest' ]] ; then
-                    echo "branch=${branch}" >> $GITHUB_OUTPUT
-                  else
-                    echo "branch=$(gh pr view $PR_NO --repo $REPO --json headRefName --jq '.headRefName')" >> $GITHUB_OUTPUT
-                  fi
+                  echo "branch=$(gh pr view $PR_NO --repo $REPO --json headRefName --jq '.headRefName')" >> $GITHUB_OUTPUT
               env:
                   REPO: ${{ github.repository }}
                   PR_NO: ${{ github.event.issue.number }}
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Checkout
+            - name: Checkout PR
               uses: actions/checkout@v2
+              if: github.event.issue.pull_request
               with:
                   ref: ${{ steps.get-branch.outputs.branch }}
+
+            - name: Checkout
+              uses: actions/checkout@v2
+              if: github.event.workflow_dispatch.workflow
 
             - name: Setup
               id: setup
