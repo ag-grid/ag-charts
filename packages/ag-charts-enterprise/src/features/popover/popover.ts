@@ -60,6 +60,7 @@ export class Popover extends _ModuleSupport.BaseModuleInstance implements _Modul
             row.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     select();
+                    e.preventDefault();
                 }
             });
 
@@ -107,7 +108,11 @@ export class Popover extends _ModuleSupport.BaseModuleInstance implements _Modul
                 case 'Enter':
                     opts.onClose();
                     break;
+                default:
+                    return;
             }
+
+            e.preventDefault();
         });
 
         const windowMouseMoveEvent = (e: MouseEvent) => {
