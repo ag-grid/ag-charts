@@ -23,6 +23,7 @@
     grid-template-columns: subgrid;
     align-items: center;
     padding: 4px 12px;
+    cursor: pointer;
 }
 
 .ag-charts-popover__row:focus {
