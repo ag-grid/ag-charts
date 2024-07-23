@@ -24,8 +24,8 @@ export interface AgAnnotationsThemeableOptions {
     'parallel-channel'?: AgChannelAnnotationStyles;
 
     // Texts
-    callout?: AgTextAnnotationStyles;
-    comment?: AgTextAnnotationStyles;
+    callout?: AgTextShapeAnnotationStyles;
+    comment?: AgTextShapeAnnotationStyles;
     note?: AgTextAnnotationStyles;
     text?: AgTextAnnotationStyles;
 
@@ -49,6 +49,7 @@ export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible
     background?: AgChannelAnnotationBackground;
 }
 export interface AgTextAnnotationStyles extends FontOptions, Lockable, Visible {}
+export interface AgTextShapeAnnotationStyles extends AgTextAnnotationStyles, StrokeOptions, FillOptions {}
 
 /***********
  * Options *
