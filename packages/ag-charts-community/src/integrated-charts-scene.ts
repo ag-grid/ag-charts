@@ -19,6 +19,7 @@ export { Rect } from './scene/shape/rect';
 export { Sector } from './scene/shape/sector';
 export { sectorBox } from './scene/util/sector';
 export { drawCorner } from './scene/util/corner';
+export type { Corner } from './scene/util/corner';
 export { RadialColumnShape, getRadialColumnWidth } from './scene/shape/radialColumnShape';
 export { Shape } from './scene/shape/shape';
 export type { ShapeLineCap } from './scene/shape/shape';

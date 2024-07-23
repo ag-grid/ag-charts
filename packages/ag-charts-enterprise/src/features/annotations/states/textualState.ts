@@ -3,17 +3,19 @@ import { _ModuleSupport, _Util } from 'ag-charts-community';
 import type { Point } from '../annotationTypes';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import type { TextualProperties } from '../properties/textualProperties';
+import type { AnnotationScene } from '../scenes/annotationScene';
 import type { TextualScene } from '../scenes/textualScene';
 
 const { StateMachine } = _ModuleSupport;
 
-interface TextualStateMachineContext<Datum extends TextualProperties, Node extends TextualScene<Datum>>
+export interface TextualStateMachineContext<Datum extends TextualProperties, Node extends AnnotationScene>
     extends Omit<AnnotationsStateMachineContext, 'create' | 'delete' | 'datum' | 'node' | 'showTextInput'> {
     create: (datum: Datum) => void;
     delete: () => void;
     datum: () => Datum | undefined;
     node: () => Node | undefined;
     showTextInput: () => void;
+    layoutTextInput: () => void;
 }
 
 export abstract class TextualStateMachine<
