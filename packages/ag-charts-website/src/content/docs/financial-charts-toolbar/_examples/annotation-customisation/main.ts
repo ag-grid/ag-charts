@@ -39,51 +39,49 @@ const options: AgFinancialChartOptions = {
     initialState: {
         annotations: [
             {
+                type: 'parallel-channel',
+                height: 83.55795148247944,
+                start: {
+                    x: {
+                        __type: 'date',
+                        value: 'Tue Sep 19 2023 00:00:00 GMT+0100 (British Summer Time)',
+                    },
+                    y: 4401.88679245283,
+                },
+                end: {
+                    x: {
+                        __type: 'date',
+                        value: 'Thu Oct 05 2023 00:00:00 GMT+0100 (British Summer Time)',
+                    },
+                    y: 4279.245283018868,
+                },
+            },
+            {
                 type: 'line',
                 start: {
                     x: {
                         __type: 'date',
-                        value: 'Thu Mar 21 2024 18:30:00 GMT+0000 (Greenwich Mean Time)',
+                        value: 'Tue Sep 05 2023 00:00:00 GMT+0100 (British Summer Time)',
                     },
-                    y: 39862.89027982327,
+                    y: 4507.681940700809,
                 },
                 end: {
                     x: {
                         __type: 'date',
-                        value: 'Thu Mar 21 2024 18:38:00 GMT+0000 (Greenwich Mean Time)',
+                        value: 'Fri Oct 13 2023 00:00:00 GMT+0100 (British Summer Time)',
                     },
-                    y: 39844.70176730486,
-                },
-            },
-            {
-                type: 'parallel-channel',
-                height: 13.282400589101599,
-                start: {
-                    x: {
-                        __type: 'date',
-                        value: 'Thu Mar 21 2024 18:45:00 GMT+0000 (Greenwich Mean Time)',
-                    },
-                    y: 39831.539027982326,
-                },
-                end: {
-                    x: {
-                        __type: 'date',
-                        value: 'Thu Mar 21 2024 18:59:00 GMT+0000 (Greenwich Mean Time)',
-                    },
-                    y: 39842.30854197349,
+                    y: 4331.805929919137,
                 },
             },
             {
                 type: 'comment',
                 text: 'Comment',
                 visible: true,
-                fontSize: 14,
-                fontFamily: 'Verdana, sans-serif',
                 x: {
                     __type: 'date',
-                    value: 'Thu Mar 21 2024 19:06:00 GMT+0000 (Greenwich Mean Time)',
+                    value: 'Tue Aug 22 2023 00:00:00 GMT+0100 (British Summer Time)',
                 },
-                y: 39844.91891891892,
+                y: 4261.725067385445,
             },
         ],
     },
