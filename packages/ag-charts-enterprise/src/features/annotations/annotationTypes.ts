@@ -28,7 +28,7 @@ export const ANNOTATION_BUTTONS = [
     AnnotationType.ParallelChannel,
 
     // Texts
-    // AnnotationType.Callout,
+    AnnotationType.Callout,
     AnnotationType.Comment,
     // AnnotationType.Note,
     AnnotationType.Text,

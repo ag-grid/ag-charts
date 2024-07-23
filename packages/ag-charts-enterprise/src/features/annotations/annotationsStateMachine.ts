@@ -3,6 +3,9 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 import { type AnnotationContext, AnnotationType, type GuardDragClickDoubleEvent } from './annotationTypes';
 import { colorDatum, getTypedDatum, isTextType } from './annotationsConfig';
 import type { AnnotationProperties, AnnotationsStateMachineContext } from './annotationsSuperTypes';
+import { CalloutProperties } from './callout/calloutProperties';
+import { CalloutScene } from './callout/calloutScene';
+import { CalloutStateMachine } from './callout/calloutState';
 import { CommentProperties } from './comment/commentProperties';
 import { CommentScene } from './comment/commentScene';
 import { CommentStateMachine } from './comment/commentState';
@@ -284,6 +287,22 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                         if (this.active != null) ctx.layoutTextInput(this.active);
                     },
                 }),
+                [AnnotationType.Callout]: new CalloutStateMachine({
+                    ...ctx,
+                    create: createDatum<CalloutProperties>(AnnotationType.Callout),
+                    delete: () => {
+                        if (this.active != null) ctx.delete(this.active);
+                        this.active = ctx.select();
+                    },
+                    datum: getDatum<CalloutProperties>(CalloutProperties.is),
+                    node: getNode<CalloutScene>(CalloutScene.is),
+                    showTextInput: () => {
+                        if (this.active != null) ctx.showTextInput(this.active);
+                    },
+                    layoutTextInput: () => {
+                        if (this.active != null) ctx.layoutTextInput(this.active);
+                    },
+                }),
             },
 
             [States.Dragging]: {
@@ -323,6 +342,10 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 [AnnotationType.Comment]: dragStateMachine<CommentProperties, CommentScene>(
                     CommentProperties.is,
                     CommentScene.is
+                ),
+                [AnnotationType.Callout]: dragStateMachine<CalloutProperties, CalloutScene>(
+                    CalloutProperties.is,
+                    CalloutScene.is
                 ),
             },
 
