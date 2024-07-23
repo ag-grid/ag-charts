@@ -10,6 +10,9 @@ enum LabelConfiguration {
     High = 1 << 4,
     Volume = 1 << 5,
     Unlabelled_Close = 1 << 6,
+    Neutral_Close = 1 << 7,
+    Neutral_High = 1 << 8,
+    Neutral_Low = 1 << 9,
 }
 
 const chartConfigurations: Record<AgPriceVolumeChartType, LabelConfiguration> = {
@@ -34,13 +37,19 @@ const chartConfigurations: Record<AgPriceVolumeChartType, LabelConfiguration> = 
     line: LabelConfiguration.Unlabelled_Close | LabelConfiguration.Volume,
     'step-line': LabelConfiguration.Unlabelled_Close | LabelConfiguration.Volume,
     'range-area': LabelConfiguration.Open | LabelConfiguration.Close | LabelConfiguration.Low | LabelConfiguration.High,
-    hlc: LabelConfiguration.Close | LabelConfiguration.Low | LabelConfiguration.High | LabelConfiguration.Volume,
-    'high-low': LabelConfiguration.Low | LabelConfiguration.High | LabelConfiguration.Volume,
+    hlc:
+        LabelConfiguration.Neutral_Close | LabelConfiguration.Low | LabelConfiguration.High | LabelConfiguration.Volume,
+    'high-low': LabelConfiguration.Neutral_Low | LabelConfiguration.Neutral_High | LabelConfiguration.Volume,
 };
 
-const itemIdMap: Record<string, 'positive' | 'negative'> = {
+const itemIdMap: Record<string, 'positive' | 'negative' | 'neutral' | 'gray'> = {
     up: 'positive',
     down: 'negative',
+};
+
+const neutralColourMap: Partial<Record<AgPriceVolumeChartType, 'neutral' | 'gray'>> = {
+    hlc: 'gray',
+    'high-low': 'gray',
 };
 
 export class StatusBar
@@ -76,6 +85,9 @@ export class StatusBar
 
     @Validate(OBJECT)
     readonly neutral = new Label();
+
+    @Validate(OBJECT)
+    readonly gray = new Label();
 
     @Validate(STRING)
     layoutStyle: 'block' | 'overlay' = 'block';
@@ -113,10 +125,38 @@ export class StatusBar
             }),
         },
         {
+            label: 'H',
+            configuration: LabelConfiguration.Neutral_High,
+            title: this.labelGroup.appendChild(new Text()),
+            value: this.labelGroup.appendChild(new Text()),
+            style: 'neutral' as const,
+            id: 'highValue' as const,
+            key: 'highKey' as const,
+            domain: undefined as number[] | undefined,
+            formatter: new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            }),
+        },
+        {
             label: 'L',
             configuration: LabelConfiguration.Low,
             title: this.labelGroup.appendChild(new Text()),
             value: this.labelGroup.appendChild(new Text()),
+            id: 'lowValue' as const,
+            key: 'lowKey' as const,
+            domain: undefined as number[] | undefined,
+            formatter: new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            }),
+        },
+        {
+            label: 'L',
+            configuration: LabelConfiguration.Neutral_Low,
+            title: this.labelGroup.appendChild(new Text()),
+            value: this.labelGroup.appendChild(new Text()),
+            style: 'neutral' as const,
             id: 'lowValue' as const,
             key: 'lowKey' as const,
             domain: undefined as number[] | undefined,
@@ -132,6 +172,20 @@ export class StatusBar
             value: this.labelGroup.appendChild(new Text()),
             id: 'closeValue' as const,
             key: 'closeKey' as const,
+            domain: undefined as number[] | undefined,
+            formatter: new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            }),
+        },
+        {
+            label: 'C',
+            configuration: LabelConfiguration.Neutral_Close,
+            title: this.labelGroup.appendChild(new Text()),
+            value: this.labelGroup.appendChild(new Text()),
+            id: 'closeValue' as const,
+            key: 'closeKey' as const,
+            style: 'neutral' as const,
             domain: undefined as number[] | undefined,
             formatter: new Intl.NumberFormat('en-US', {
                 minimumFractionDigits: 2,
@@ -321,30 +375,29 @@ export class StatusBar
 
         const datum = activeHighlight.datum;
 
-        let label = this.neutral;
-        const labelType = itemIdMap[activeHighlight.itemId];
-        if (labelType === 'positive') {
-            label = this.positive;
-        } else if (labelType === 'negative') {
-            label = this.negative;
-        } else if (labelType == null && this.openKey != null && this.closeKey != null) {
+        let baseStyle = itemIdMap[activeHighlight.itemId];
+        if (baseStyle == null && this.openKey != null && this.closeKey != null) {
             // Fallback for series without distinct positive/negative items.
             if (datum[this.openKey] < datum[this.closeKey]) {
-                label = this.positive;
+                baseStyle = 'positive';
             } else {
-                label = this.negative;
+                baseStyle = 'negative';
             }
         }
 
         for (const { domain, value, key, formatter, style } of this.labels) {
             if (domain == null) continue;
-            const labelStyle = style === 'neutral' ? this.neutral : label;
+            let labelStyle = style ?? baseStyle;
+
+            if (labelStyle === 'neutral') {
+                labelStyle = neutralColourMap[this.getChartType()] ?? labelStyle;
+            }
 
             const datumKey = this[key];
             const datumValue = datumKey != null ? datum?.[datumKey] : undefined;
 
-            value.setFont(labelStyle);
-            value.fill = labelStyle.color;
+            value.setFont(this[labelStyle]);
+            value.fill = this[labelStyle].color;
             value.text = typeof datumValue === 'number' ? formatter.format(datumValue) : '';
         }
     }
