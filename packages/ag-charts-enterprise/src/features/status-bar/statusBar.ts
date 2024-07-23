@@ -12,7 +12,7 @@ enum LabelConfiguration {
     Unlabelled_Close = 1 << 6,
 }
 
-const chartConfigurations: Partial<Record<AgPriceVolumeChartType, LabelConfiguration>> = {
+const chartConfigurations: Record<AgPriceVolumeChartType, LabelConfiguration> = {
     ohlc:
         LabelConfiguration.Open |
         LabelConfiguration.Close |
@@ -350,6 +350,10 @@ export class StatusBar
     }
 
     private getChartType() {
-        return (this.ctx.chartService.publicApi?.getOptions() as AgFinancialChartOptions).chartType ?? 'candlestick';
+        let chartType = (this.ctx.chartService.publicApi?.getOptions() as AgFinancialChartOptions).chartType;
+        if (chartType == null || chartConfigurations[chartType] == null) {
+            chartType = 'candlestick';
+        }
+        return chartType;
     }
 }

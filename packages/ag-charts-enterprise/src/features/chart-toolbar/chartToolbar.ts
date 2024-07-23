@@ -118,6 +118,10 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
     }
 
     private getChartType(): AgPriceVolumeChartType {
-        return (this.ctx.chartService.publicApi?.getOptions() as AgFinancialChartOptions).chartType ?? 'candlestick';
+        let chartType = (this.ctx.chartService.publicApi?.getOptions() as AgFinancialChartOptions).chartType;
+        if (chartType == null || itemConfigurations[chartType] == null) {
+            chartType = 'candlestick';
+        }
+        return chartType;
     }
 }

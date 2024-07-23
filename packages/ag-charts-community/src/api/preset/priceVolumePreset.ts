@@ -383,7 +383,13 @@ function createPriceSeries(
             ];
         default:
             Logger.warnOnce(`unknown chart type: ${chartType}; expected one of: ${chartTypes.join(', ')}`);
-            return [];
+            return [
+                {
+                    type: 'candlestick',
+                    ...common,
+                    ...keys,
+                } satisfies AgCandlestickSeriesOptions,
+            ];
     }
 }
 
