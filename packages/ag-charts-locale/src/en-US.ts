@@ -81,7 +81,10 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarAnnotationsDisjointChannel: 'Disjoint channel',
     // Text for the annotation toolbar's clear all button
     toolbarAnnotationsClearAll: 'Clear all annotations',
-    // @deprecated Text for the annotation toolbar's color picker annotation button
+    /**
+     * Text for the annotation toolbar's color picker annotation button
+     * @deprecated v10.1.0 use `toolbarAnnotationsLineColor` instead.
+     */
     toolbarAnnotationsColor: 'Pick annotation color',
     // Text for the annotation toolbar's line color picker annotation button
     toolbarAnnotationsLineColor: 'Pick annotation line color',
