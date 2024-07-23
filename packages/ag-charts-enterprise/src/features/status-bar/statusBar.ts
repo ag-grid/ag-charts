@@ -9,6 +9,7 @@ enum LabelConfiguration {
     Low = 1 << 3,
     High = 1 << 4,
     Volume = 1 << 5,
+    Unlabelled_Close = 1 << 6,
 }
 
 const chartConfigurations: Partial<Record<AgPriceVolumeChartType, LabelConfiguration>> = {
@@ -30,22 +31,18 @@ const chartConfigurations: Partial<Record<AgPriceVolumeChartType, LabelConfigura
         LabelConfiguration.Low |
         LabelConfiguration.High |
         LabelConfiguration.Volume,
-    line: LabelConfiguration.Volume,
-    'step-line': LabelConfiguration.Volume,
+    line: LabelConfiguration.Unlabelled_Close | LabelConfiguration.Volume,
+    'step-line': LabelConfiguration.Unlabelled_Close | LabelConfiguration.Volume,
     'range-area': LabelConfiguration.Open | LabelConfiguration.Close | LabelConfiguration.Low | LabelConfiguration.High,
-    hlc:
-        LabelConfiguration.Open |
-        LabelConfiguration.Close |
-        LabelConfiguration.Low |
-        LabelConfiguration.High |
-        LabelConfiguration.Volume,
-    'high-low':
-        LabelConfiguration.Open |
-        LabelConfiguration.Close |
-        LabelConfiguration.Low |
-        LabelConfiguration.High |
-        LabelConfiguration.Volume,
+    hlc: LabelConfiguration.Close | LabelConfiguration.Low | LabelConfiguration.High | LabelConfiguration.Volume,
+    'high-low': LabelConfiguration.Low | LabelConfiguration.High | LabelConfiguration.Volume,
 };
+
+const itemIdMap: Record<string, 'positive' | 'negative'> = {
+    up: 'positive',
+    down: 'negative',
+};
+
 export class StatusBar
     extends _ModuleSupport.BaseModuleInstance
     implements _ModuleSupport.ModuleInstance, _ModuleSupport.ScopeProvider
@@ -104,7 +101,7 @@ export class StatusBar
         },
         {
             label: 'H',
-            configuration: LabelConfiguration.Close,
+            configuration: LabelConfiguration.High,
             title: this.labelGroup.appendChild(new Text()),
             value: this.labelGroup.appendChild(new Text()),
             id: 'highValue' as const,
@@ -130,13 +127,28 @@ export class StatusBar
         },
         {
             label: 'C',
-            configuration: LabelConfiguration.High,
+            configuration: LabelConfiguration.Close,
             title: this.labelGroup.appendChild(new Text()),
             value: this.labelGroup.appendChild(new Text()),
             id: 'closeValue' as const,
             key: 'closeKey' as const,
             domain: undefined as number[] | undefined,
             formatter: new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            }),
+        },
+        {
+            label: '',
+            configuration: LabelConfiguration.Unlabelled_Close,
+            title: this.labelGroup.appendChild(new Text()),
+            value: this.labelGroup.appendChild(new Text()),
+            style: 'neutral' as const,
+            id: 'closeValue' as const,
+            key: 'closeKey' as const,
+            domain: undefined as number[] | undefined,
+            formatter: new Intl.NumberFormat('en-US', {
+                notation: 'compact',
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
             }),
@@ -308,15 +320,24 @@ export class StatusBar
         this.labelGroup.visible = true;
 
         const datum = activeHighlight.datum;
-        const label = activeHighlight.itemId === 'up' ? this.positive : this.negative;
-        for (const { domain, value, key, formatter } of this.labels) {
+
+        let label = this.neutral;
+        const labelType = itemIdMap[activeHighlight.itemId];
+        if (labelType === 'positive') {
+            label = this.positive;
+        } else if (labelType === 'negative') {
+            label = this.negative;
+        }
+
+        for (const { domain, value, key, formatter, style } of this.labels) {
             if (domain == null) continue;
+            const labelStyle = style === 'neutral' ? this.neutral : label;
 
             const datumKey = this[key];
             const datumValue = datumKey != null ? datum?.[datumKey] : undefined;
 
-            value.setFont(label);
-            value.fill = label.color;
+            value.setFont(labelStyle);
+            value.fill = labelStyle.color;
             value.text = typeof datumValue === 'number' ? formatter.format(datumValue) : '';
         }
     }
