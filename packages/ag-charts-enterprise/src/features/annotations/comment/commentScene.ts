@@ -23,7 +23,7 @@ export class CommentScene extends TextualScene<CommentProperties> {
     }
 
     override update(datum: CommentProperties, context: AnnotationContext) {
-        this.padding = datum.padding ?? 0;
+        this.padding = datum.padding ?? 20;
         super.update(datum, context);
     }
 
