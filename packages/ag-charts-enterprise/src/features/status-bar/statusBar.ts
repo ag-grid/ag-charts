@@ -42,14 +42,14 @@ const chartConfigurations: Record<AgPriceVolumeChartType, LabelConfiguration> = 
     'high-low': LabelConfiguration.Neutral_Low | LabelConfiguration.Neutral_High | LabelConfiguration.Volume,
 };
 
-const itemIdMap: Record<string, 'positive' | 'negative' | 'neutral' | 'gray'> = {
+const itemIdMap: Record<string, 'positive' | 'negative' | 'neutral' | 'altNeutral'> = {
     up: 'positive',
     down: 'negative',
 };
 
-const neutralColourMap: Partial<Record<AgPriceVolumeChartType, 'neutral' | 'gray'>> = {
-    hlc: 'gray',
-    'high-low': 'gray',
+const neutralColourMap: Partial<Record<AgPriceVolumeChartType, 'neutral' | 'altNeutral'>> = {
+    hlc: 'altNeutral',
+    'high-low': 'altNeutral',
 };
 
 export class StatusBar
@@ -87,7 +87,7 @@ export class StatusBar
     readonly neutral = new Label();
 
     @Validate(OBJECT)
-    readonly gray = new Label();
+    readonly altNeutral = new Label();
 
     @Validate(STRING)
     layoutStyle: 'block' | 'overlay' = 'block';
