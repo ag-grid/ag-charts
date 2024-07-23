@@ -11,7 +11,7 @@ enum LabelConfiguration {
     Volume = 1 << 5,
 }
 
-const chartConfigurations: Record<AgPriceVolumeChartType, LabelConfiguration> = {
+const chartConfigurations: Partial<Record<AgPriceVolumeChartType, LabelConfiguration>> = {
     ohlc:
         LabelConfiguration.Open |
         LabelConfiguration.Close |
@@ -218,7 +218,7 @@ export class StatusBar
         const maxFontSize = Math.max(this.title.fontSize, this.positive.fontSize, this.negative.fontSize);
         const lineHeight = maxFontSize * Text.defaultLineHeightRatio;
 
-        const labelConfigurations = chartConfigurations[this.getChartType()];
+        const labelConfigurations = chartConfigurations[this.getChartType()] ?? 0;
 
         let left = 0;
         let offsetTop: number;
@@ -322,6 +322,6 @@ export class StatusBar
     }
 
     private getChartType() {
-        return (this.ctx.chartService.publicApi?.getOptions() as AgFinancialChartOptions).chartType ?? 'ohlc';
+        return (this.ctx.chartService.publicApi?.getOptions() as AgFinancialChartOptions).chartType ?? 'candlestick';
     }
 }

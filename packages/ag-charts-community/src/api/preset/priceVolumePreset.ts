@@ -39,6 +39,8 @@ function fromTheme<T>(
     }
 }
 
+const chartTypes = ['ohlc', 'line', 'step-line', 'hlc', 'high-low', 'candlestick', 'hollow-candlestick'];
+
 export function priceVolume(
     opts: AgPriceVolumePreset & AgBaseFinancialPresetOptions,
     getTheme: () => ChartTheme
@@ -280,7 +282,7 @@ function createPriceSeries(
         pickOutsideVisibleMinorAxis: true,
     };
 
-    switch (chartType) {
+    switch (chartType ?? 'candlestick') {
         case 'ohlc':
             return [
                 {
@@ -357,7 +359,6 @@ function createPriceSeries(
                     stroke: rangeBarColors.stroke ?? PALETTE_NEUTRAL_STROKE,
                 } satisfies AgRangeBarSeriesOptions,
             ];
-        default:
         case 'candlestick':
             return [
                 {
@@ -366,7 +367,6 @@ function createPriceSeries(
                     ...keys,
                 } satisfies AgCandlestickSeriesOptions,
             ];
-
         case 'hollow-candlestick':
             const item = fromTheme(theme, (t) => t.overrides?.candlestick?.series?.item);
             return [
@@ -381,6 +381,9 @@ function createPriceSeries(
                     },
                 } satisfies AgCandlestickSeriesOptions,
             ];
+        default:
+            Logger.warnOnce(`unknown chart type: ${chartType}; expected one of: ${chartTypes.join(', ')}`);
+            return [];
     }
 }
 
