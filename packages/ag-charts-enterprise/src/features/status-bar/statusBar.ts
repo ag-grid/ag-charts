@@ -327,6 +327,13 @@ export class StatusBar
             label = this.positive;
         } else if (labelType === 'negative') {
             label = this.negative;
+        } else if (labelType == null && this.openKey != null && this.closeKey != null) {
+            // Fallback for series without distinct positive/negative items.
+            if (datum[this.openKey] < datum[this.closeKey]) {
+                label = this.positive;
+            } else {
+                label = this.negative;
+            }
         }
 
         for (const { domain, value, key, formatter, style } of this.labels) {
