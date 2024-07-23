@@ -1,6 +1,6 @@
 import { _Scene, _Util } from 'ag-charts-community';
 
-import { AnnotationType } from '../annotationTypes';
+import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { TextualScene } from '../scenes/textualScene';
 import type { CommentProperties } from './commentProperties';
@@ -15,16 +15,22 @@ export class CommentScene extends TextualScene<CommentProperties> {
     override type = AnnotationType.Comment;
 
     private readonly shape = new _Scene.Path();
+    private padding = 0;
 
     constructor() {
         super();
         this.append([this.shape, this.label, this.handle]);
     }
 
+    override update(datum: CommentProperties, context: AnnotationContext) {
+        this.padding = datum.padding ?? 0;
+        super.update(datum, context);
+    }
+
     protected override updateHandle(datum: CommentProperties, textBBox: _Scene.BBox) {
         const styles = {
             fill: datum.handle.fill,
-            stroke: datum.handle.stroke,
+            stroke: datum.handle.stroke ?? datum.fill,
             strokeOpacity: datum.handle.strokeOpacity,
             strokeWidth: datum.handle.strokeWidth,
         };
@@ -35,6 +41,7 @@ export class CommentScene extends TextualScene<CommentProperties> {
             x: textBBox.x - halfPadding,
             y: textBBox.y + halfPadding,
         });
+        this.handle.toggleLocked(datum.locked ?? false);
     }
 
     protected override updateShape(datum: CommentProperties, bbox: _Scene.BBox) {
@@ -49,6 +56,11 @@ export class CommentScene extends TextualScene<CommentProperties> {
 
         // update shape path
         this.updatePath(bbox, datum);
+    }
+
+    override getAnchor() {
+        const bbox = this.getCachedBBoxWithoutHandles();
+        return { x: bbox.x - this.padding / 2, y: bbox.y - 10, position: 'above-left' as const };
     }
 
     private updatePath(bbox: _Scene.BBox, datum: CommentProperties) {
