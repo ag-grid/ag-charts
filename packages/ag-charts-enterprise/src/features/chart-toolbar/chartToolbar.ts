@@ -8,7 +8,6 @@ import {
 
 import { Popover } from '../popover/popover';
 
-// Partial as the user can pass in an invalid chart type, and it isn't checked
 const itemConfigurations: Record<AgPriceVolumeChartType, { label: string; icon: AgIconName | undefined }> = {
     ohlc: { label: 'toolbarSeriesTypeOHLC', icon: 'ohlc-series' },
     candlestick: { label: 'toolbarSeriesTypeCandles', icon: 'candlestick-series' },
