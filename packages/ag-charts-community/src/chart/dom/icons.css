@@ -116,7 +116,7 @@ To create an icon uri:
 }
 
 .ag-charts-icon-text-annotation {
-    --icon: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0ibm9uZSI+PHBhdGggZmlsbD0iIzAwMCIgZmlsbC1ydWxlPSJldmVub2RkIiBkPSJNNCA0aDExdjMuMzg1aC0uODQ2VjQuODQ2aC00LjIzdjkuMzA4aDMuMzg0VjE1SDUuNjkydi0uODQ2aDMuMzg1VjQuODQ2aC00LjIzdjIuNTM5SDR6IiBjbGlwLXJ1bGU9ImV2ZW5vZGQiLz48L3N2Zz4=);
+    --icon: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik00IDRIMTZWN0gxNVY1SDEwLjVWMTVIMTRWMTZINlYxNUg5LjVWNUg1VjdINFY0WiIgZmlsbD0iYmxhY2siLz4KPC9zdmc+Cg==);
 }
 
 .ag-charts-icon-trend-line-drawing {

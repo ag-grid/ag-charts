@@ -19,7 +19,7 @@ interface TextualStateMachineContext<Datum extends TextualProperties, Node exten
 export abstract class TextualStateMachine<
     Datum extends TextualProperties,
     Node extends TextualScene<Datum>,
-> extends StateMachine<'start' | 'edit', 'click' | 'cancel' | 'keyDown'> {
+> extends StateMachine<'start' | 'waiting-first-render' | 'edit', 'click' | 'cancel' | 'keyDown' | 'render'> {
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(ctx: TextualStateMachineContext<Datum, Node>) {
@@ -27,6 +27,7 @@ export abstract class TextualStateMachine<
             const datum = this.createDatum();
             datum.set({ x: point.x, y: point.y, text: '' });
             ctx.create(datum);
+            ctx.resetToolbarButtonStates();
         };
 
         const onSave = ({ textInputValue }: { textInputValue?: string }) => {
@@ -41,10 +42,19 @@ export abstract class TextualStateMachine<
         super('start', {
             start: {
                 click: {
-                    target: 'edit',
+                    target: 'waiting-first-render',
                     action: onClick,
                 },
                 cancel: StateMachine.parent,
+            },
+            'waiting-first-render': {
+                render: {
+                    target: 'edit',
+                    action: () => {
+                        ctx.node()?.toggleActive(true);
+                        ctx.showAnnotationOptions();
+                    },
+                },
             },
             edit: {
                 onEnter: () => {
@@ -61,6 +71,11 @@ export abstract class TextualStateMachine<
                         action: () => {
                             ctx.delete();
                         },
+                    },
+                    {
+                        guard: ({ key, shiftKey }: { key: string; shiftKey: boolean }) => !shiftKey && key === 'Enter',
+                        target: StateMachine.parent,
+                        action: onSave,
                     },
                     {
                         target: 'edit',

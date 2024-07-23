@@ -27,7 +27,7 @@ export abstract class TextualScene<Datum extends TextualProperties> extends Anno
     };
 
     public update(datum: Datum, context: AnnotationContext) {
-        this.label.visible = datum.visible ?? true;
+        this.label.opacity = datum.visible ? 1 : 0;
 
         const textBBox = datum.getTextBBox(context);
 
@@ -70,11 +70,8 @@ export abstract class TextualScene<Datum extends TextualProperties> extends Anno
     }
 
     override getAnchor() {
-        let bbox = this.getCachedBBoxWithoutHandles();
-        if (bbox.width === 0 && bbox.height === 0) {
-            bbox = this.computeBBoxWithoutHandles();
-        }
-        return { x: bbox.x, y: bbox.y };
+        const bbox = this.getCachedBBoxWithoutHandles();
+        return { x: bbox.x, y: bbox.y, position: 'above-left' as const };
     }
 
     override getCursor() {
@@ -138,12 +135,13 @@ export abstract class TextualScene<Datum extends TextualProperties> extends Anno
 
         const styles = {
             fill: datum.handle.fill,
-            stroke: datum.handle.stroke,
+            stroke: datum.handle.stroke ?? datum.color,
             strokeOpacity: datum.handle.strokeOpacity,
             strokeWidth: datum.handle.strokeWidth,
         };
 
         this.handle.update({ ...styles, x, y });
+        this.handle.toggleLocked(datum.locked ?? false);
     }
 
     protected updateShape(_datum: Datum, _textBBox: _Scene.BBox) {

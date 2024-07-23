@@ -3,7 +3,7 @@ import type { AgChartThemePalette } from 'ag-charts-types';
 import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
-    DEFAULT_ANNOTATION_STROKE,
+    DEFAULT_ANNOTATION_COLOR,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
 } from './symbols';
 
@@ -58,7 +58,7 @@ export class MaterialLight extends ChartTheme {
             MATERIAL_LIGHT_FILLS.GREEN,
         ]);
 
-        params.set(DEFAULT_ANNOTATION_STROKE, MATERIAL_LIGHT_FILLS.BLUE);
+        params.set(DEFAULT_ANNOTATION_COLOR, MATERIAL_LIGHT_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, MATERIAL_LIGHT_FILLS.BLUE);
 
         return params;

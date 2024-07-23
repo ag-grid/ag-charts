@@ -135,6 +135,7 @@
 
 .ag-charts-toolbar--top,
 .ag-charts-toolbar--bottom,
+.ag-charts-toolbar--floating,
 .ag-charts-toolbar--floating-top,
 .ag-charts-toolbar--floating-bottom {
     .ag-charts-toolbar__button:nth-child(1 of :not(.ag-charts-toolbar__button--hidden-toggled)) {

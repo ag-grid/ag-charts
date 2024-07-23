@@ -12,4 +12,6 @@ export class TextProperties extends TextualProperties {
 
     @Validate(STRING)
     type = AnnotationType.Text as const;
+
+    override position: 'top' | 'center' | 'bottom' = 'bottom';
 }

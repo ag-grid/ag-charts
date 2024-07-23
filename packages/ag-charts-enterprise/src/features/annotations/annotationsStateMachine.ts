@@ -43,7 +43,8 @@ type AnnotationEvent =
     | 'cancel'
     | 'reset'
     | 'color'
-    | 'keyDown';
+    | 'keyDown'
+    | 'render';
 
 export class AnnotationsStateMachine extends StateMachine<States, AnnotationType | AnnotationEvent> {
     override debug = _Util.Debug.create(true, 'annotations');
@@ -348,6 +349,14 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     {
                         guard: ({ key }: { key: string }) => key === 'Escape',
                         target: States.Idle,
+                    },
+                    {
+                        guard: ({ key, shiftKey }: { key: string; shiftKey: boolean }) => !shiftKey && key === 'Enter',
+                        target: States.Idle,
+                        action: ({ textInputValue }: { textInputValue?: string }) => {
+                            ctx.datum(this.active!)?.set({ text: textInputValue });
+                            ctx.update();
+                        },
                     },
                     {
                         target: States.TextInput,

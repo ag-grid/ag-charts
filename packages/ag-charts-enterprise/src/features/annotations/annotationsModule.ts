@@ -13,7 +13,7 @@ export const AnnotationsModule: _ModuleSupport.Module = {
         annotations: {
             // Lines
             line: {
-                stroke: _Theme.DEFAULT_ANNOTATION_STROKE,
+                stroke: _Theme.DEFAULT_ANNOTATION_COLOR,
                 strokeWidth: 2,
                 strokeOpacity: 1,
                 handle: {
@@ -21,7 +21,7 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                 },
             },
             'horizontal-line': {
-                stroke: _Theme.DEFAULT_ANNOTATION_STROKE,
+                stroke: _Theme.DEFAULT_ANNOTATION_COLOR,
                 strokeWidth: 2,
                 strokeOpacity: 1,
                 handle: {
@@ -30,13 +30,13 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                 axisLabel: {
                     enabled: true,
                     color: 'white',
-                    fill: _Theme.DEFAULT_ANNOTATION_STROKE,
+                    fill: _Theme.DEFAULT_ANNOTATION_COLOR,
                     fontSize: 12,
                     fontFamily: _Theme.DEFAULT_FONT_FAMILY,
                 },
             },
             'vertical-line': {
-                stroke: _Theme.DEFAULT_ANNOTATION_STROKE,
+                stroke: _Theme.DEFAULT_ANNOTATION_COLOR,
                 strokeWidth: 2,
                 strokeOpacity: 1,
                 handle: {
@@ -45,7 +45,7 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                 axisLabel: {
                     enabled: true,
                     color: 'white',
-                    fill: _Theme.DEFAULT_ANNOTATION_STROKE,
+                    fill: _Theme.DEFAULT_ANNOTATION_COLOR,
                     fontSize: 12,
                     fontFamily: _Theme.DEFAULT_FONT_FAMILY,
                 },
@@ -53,7 +53,7 @@ export const AnnotationsModule: _ModuleSupport.Module = {
 
             // Channels
             'disjoint-channel': {
-                stroke: _Theme.DEFAULT_ANNOTATION_STROKE,
+                stroke: _Theme.DEFAULT_ANNOTATION_COLOR,
                 strokeWidth: 2,
                 strokeOpacity: 1,
                 background: {
@@ -65,7 +65,7 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                 },
             },
             'parallel-channel': {
-                stroke: _Theme.DEFAULT_ANNOTATION_STROKE,
+                stroke: _Theme.DEFAULT_ANNOTATION_COLOR,
                 strokeWidth: 2,
                 strokeOpacity: 1,
                 middle: {
@@ -89,7 +89,6 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                 textAlign: 'center',
                 handle: {
                     fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
-                    stroke: _Theme.DEFAULT_ANNOTATION_STROKE,
                     strokeWidth: 2,
                     strokeOpacity: 1,
                 },
@@ -101,7 +100,6 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                 textAlign: 'left',
                 handle: {
                     fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
-                    stroke: _Theme.DEFAULT_ANNOTATION_STROKE,
                     strokeWidth: 2,
                     strokeOpacity: 1,
                 },
@@ -115,19 +113,17 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                 textAlign: 'left',
                 handle: {
                     fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
-                    stroke: _Theme.DEFAULT_ANNOTATION_STROKE,
                     strokeWidth: 2,
                     strokeOpacity: 1,
                 },
             },
             text: {
-                color: 'black',
+                color: _Theme.DEFAULT_ANNOTATION_COLOR,
                 fontSize: 14,
                 fontFamily: _Theme.DEFAULT_FONT_FAMILY,
                 textAlign: 'left',
                 handle: {
                     fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
-                    stroke: _Theme.DEFAULT_ANNOTATION_STROKE,
                     strokeWidth: 2,
                     strokeOpacity: 1,
                 },

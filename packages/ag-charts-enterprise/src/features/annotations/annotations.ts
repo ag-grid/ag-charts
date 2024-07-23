@@ -127,13 +127,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: false });
                 ctx.tooltipManager.unsuppressTooltip('annotations');
                 this.colorPicker.hide();
-
-                for (const annotationType of ANNOTATION_BUTTONS) {
-                    ctx.toolbarManager.toggleButton('annotations', annotationType, { active: false });
-                }
-
+                this.resetToolbarButtonStates();
                 this.toggleAnnotationOptionsButtons();
-
                 this.update();
             },
 
@@ -167,7 +162,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     annotations.at(previous)?.toggleActive(false);
                 }
 
-                const node = index ? annotations.at(index) : undefined;
+                const node = index != null ? annotations.at(index) : undefined;
                 toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: index != null });
                 if (node) toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
 
@@ -234,6 +229,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 return this.annotations.at(index);
             },
 
+            resetToolbarButtonStates: () => {
+                this.resetToolbarButtonStates();
+            },
+
             update: () => {
                 this.update();
             },
@@ -267,6 +266,18 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
             hideTextInput: () => {
                 this.textInput.hide();
+            },
+
+            showAnnotationOptions: () => {
+                const active = this.state.getActive();
+                if (active == null) return;
+
+                const node = this.annotations.at(active);
+                if (!node) return;
+
+                ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: true });
+                ctx.toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
+                this.toggleAnnotationOptionsButtons();
             },
         });
     }
@@ -309,6 +320,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             ctx.toolbarManager.addListener('button-moved', this.onToolbarButtonMoved.bind(this)),
             ctx.toolbarManager.addListener('cancelled', this.onToolbarCancelled.bind(this)),
             ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this)),
+            ctx.updateService.addListener('update-complete', this.onUpdateComplete.bind(this)),
 
             // DOM
             ctx.annotationManager.attachNode(this.container),
@@ -450,11 +462,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private onToolbarCancelled(event: _ModuleSupport.ToolbarCancelledEvent) {
         if (event.group !== 'annotations') return;
 
-        this.onCancel();
-
-        for (const annotationType of ANNOTATION_BUTTONS) {
-            this.ctx.toolbarManager.toggleButton('annotations', annotationType, { active: false });
-        }
+        this.cancel();
+        this.resetToolbarButtonStates();
+        this.reset();
+        this.update();
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
@@ -470,6 +481,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         this.updateAnnotations();
+    }
+
+    private onUpdateComplete() {
+        this.state.transition('render');
     }
 
     private getAxis(
@@ -593,7 +608,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onAxisButtonClick(coords?: Coords, direction?: Direction) {
-        this.onCancel();
+        this.cancel();
+        this.reset();
 
         const context = this.getAnnotationContext();
         if (!this.annotationData || !context) return;
@@ -655,9 +671,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onCancel() {
-        if (!this.state.is('idle')) {
-            this.cancel();
-        }
+        this.cancel();
         this.reset();
         this.update();
     }
@@ -684,7 +698,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const { key } = event.sourceEvent;
         const textInputValue = this.textInput.getValue();
 
-        state.transition('keyDown', { key, textInputValue });
+        // TODO: Use `event.sourceEvent.shiftKey`, @see AG-12164
+        state.transition('keyDown', { key, shiftKey: false, textInputValue });
     }
 
     private toggleAnnotationOptionsButtons() {
@@ -745,6 +760,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         // Delete active annotation if it is in the process of being created
         if (active != null && annotationData) {
             annotationData.splice(active, 1);
+        }
+    }
+
+    private resetToolbarButtonStates() {
+        for (const annotationType of ANNOTATION_BUTTONS) {
+            this.ctx.toolbarManager.toggleButton('annotations', annotationType, { active: false });
         }
     }
 

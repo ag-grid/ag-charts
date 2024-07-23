@@ -43,6 +43,12 @@ export class ToolbarGroupProperties extends BaseProperties {
                 Logger.warnOnce(`Icon '${button.icon}' is deprecated, use another icon instead.`);
             }
 
+            if (button.ariaLabel === 'toolbarAnnotationsColor') {
+                Logger.warnOnce(
+                    `Aria label '${button.ariaLabel}' is deprecated, use 'toolbarAnnotationsLineColor' instead.`
+                );
+            }
+
             // @todo(AG-12343): buttons with non-primitive values need IDs
             // if (button.value != null && typeof button.value === 'object' && button.id == null) {
             //     Logger.warnOnce(`Buttons with non-primitive values must specify an id.`);

@@ -98,13 +98,20 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     private updatePosition() {
-        const { element, layout } = this;
+        const {
+            element,
+            layout,
+            ctx: { domManager },
+        } = this;
         const { bbox, position, alignment } = layout;
 
         const textArea = element.firstElementChild as HTMLDivElement | undefined;
 
         const height = textArea?.offsetHeight ?? bbox.height;
         const width = textArea?.offsetWidth ?? bbox.width;
+
+        const boundingRect = domManager.getBoundingClientRect();
+        let maxWidth = boundingRect.width;
 
         switch (position) {
             case 'top':
@@ -125,15 +132,20 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
             case 'left':
                 element.style.setProperty('left', `${bbox.x}px`);
                 textArea?.style.setProperty(textAlign, 'left');
+                maxWidth = boundingRect.width - bbox.x;
                 break;
             case 'center':
                 element.style.setProperty('left', `${bbox.x - width / 2}px`);
                 textArea?.style.setProperty(textAlign, 'center');
+                maxWidth = boundingRect.width - (bbox.x - width / 2);
                 break;
             case 'right':
                 element.style.setProperty('left', `${bbox.x - width}px`);
                 textArea?.style.setProperty(textAlign, 'right');
+                maxWidth = boundingRect.width - (bbox.x - width);
                 break;
         }
+
+        element.style.setProperty('max-width', `${maxWidth}px`);
     }
 }

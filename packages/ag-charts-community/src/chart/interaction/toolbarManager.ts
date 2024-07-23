@@ -41,7 +41,7 @@ export interface ToolbarGroupToggledEvent extends Event<'group-toggled'> {
 export interface ToolbarCancelledEvent extends Event<'cancelled'> {}
 
 export interface ToolbarFloatingAnchorChangedEvent extends Event<'floating-anchor-changed'> {
-    anchor: { x: number; y: number; position?: 'right' | 'above' };
+    anchor: { x: number; y: number; position?: 'right' | 'above' | 'above-left' };
 }
 
 export interface ToolbarButtonPressedEvent<T = any> extends Event<'button-pressed'> {
@@ -116,7 +116,10 @@ export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
         this.listeners.dispatch('group-toggled', { type: 'group-toggled', caller, group, active, visible });
     }
 
-    changeFloatingAnchor(group: ToolbarGroup, anchor: { x: number; y: number; position?: 'right' | 'above' }) {
+    changeFloatingAnchor(
+        group: ToolbarGroup,
+        anchor: { x: number; y: number; position?: 'right' | 'above' | 'above-left' }
+    ) {
         this.listeners.dispatch('floating-anchor-changed', { type: 'floating-anchor-changed', group, anchor });
     }
 

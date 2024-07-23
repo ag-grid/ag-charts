@@ -27,7 +27,6 @@ export abstract class ChannelScene<
     public update(datum: Datum, context: AnnotationContext) {
         const { locked, visible } = datum;
 
-        this.locked = locked ?? false;
         this.seriesRect = context.seriesRect;
 
         const top = convertLine(datum, context);
@@ -45,7 +44,7 @@ export abstract class ChannelScene<
         this.updateBackground(datum, top, bottom);
 
         for (const handle of Object.values(this.handles)) {
-            handle.toggleLocked(this.locked);
+            handle.toggleLocked(locked ?? false);
         }
     }
 

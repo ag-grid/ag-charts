@@ -3,7 +3,7 @@ import type { AgChartThemePalette } from 'ag-charts-types';
 import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
-    DEFAULT_ANNOTATION_STROKE,
+    DEFAULT_ANNOTATION_COLOR,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
 } from './symbols';
 
@@ -54,7 +54,7 @@ export class VividLight extends ChartTheme {
 
         params.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [VIVID_FILLS.ORANGE, VIVID_FILLS.YELLOW, VIVID_FILLS.GREEN]);
 
-        params.set(DEFAULT_ANNOTATION_STROKE, VIVID_FILLS.BLUE);
+        params.set(DEFAULT_ANNOTATION_COLOR, VIVID_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, VIVID_FILLS.BLUE);
 
         return params;
