@@ -6,7 +6,7 @@ const options: AgFinancialChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'S&P 500 Index',
+        text: 'Customisation',
     },
     theme: {
         overrides: {
@@ -27,6 +27,11 @@ const options: AgFinancialChartOptions = {
                             strokeOpacity: 0,
                         },
                     },
+                    comment: {
+                        fill: 'orange',
+                        color: 'blue',
+                        strokeWidth: 4,
+                    },
                 },
             },
         },
@@ -34,20 +39,51 @@ const options: AgFinancialChartOptions = {
     initialState: {
         annotations: [
             {
+                type: 'line',
+                start: {
+                    x: {
+                        __type: 'date',
+                        value: 'Thu Mar 21 2024 18:30:00 GMT+0000 (Greenwich Mean Time)',
+                    },
+                    y: 39862.89027982327,
+                },
+                end: {
+                    x: {
+                        __type: 'date',
+                        value: 'Thu Mar 21 2024 18:38:00 GMT+0000 (Greenwich Mean Time)',
+                    },
+                    y: 39844.70176730486,
+                },
+            },
+            {
                 type: 'parallel-channel',
-                start: { x: { __type: 'date', value: 'Thursday, September 14, 2023' }, y: 4487.78 + 50 },
-                end: { x: { __type: 'date', value: 'Tuesday, October 03, 2023' }, y: 4229.45 + 50 },
-                height: 100,
+                height: 13.282400589101599,
+                start: {
+                    x: {
+                        __type: 'date',
+                        value: 'Thu Mar 21 2024 18:45:00 GMT+0000 (Greenwich Mean Time)',
+                    },
+                    y: 39831.539027982326,
+                },
+                end: {
+                    x: {
+                        __type: 'date',
+                        value: 'Thu Mar 21 2024 18:59:00 GMT+0000 (Greenwich Mean Time)',
+                    },
+                    y: 39842.30854197349,
+                },
             },
             {
-                type: 'line',
-                start: { x: { __type: 'date', value: 'Friday, August 18, 2023' }, y: 4344.88 },
-                end: { x: { __type: 'date', value: 'Tuesday, October 03, 2023' }, y: 4229.45 },
-            },
-            {
-                type: 'line',
-                start: { x: { __type: 'date', value: 'Friday, September 01, 2023' }, y: 4530.6 },
-                end: { x: { __type: 'date', value: 'Thursday, October 12, 2023' }, y: 4380.94 },
+                type: 'comment',
+                text: 'Comment',
+                visible: true,
+                fontSize: 14,
+                fontFamily: 'Verdana, sans-serif',
+                x: {
+                    __type: 'date',
+                    value: 'Thu Mar 21 2024 19:06:00 GMT+0000 (Greenwich Mean Time)',
+                },
+                y: 39844.91891891892,
             },
         ],
     },
