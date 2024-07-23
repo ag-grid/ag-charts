@@ -264,6 +264,9 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     showTextInput: () => {
                         if (this.active != null) ctx.showTextInput(this.active);
                     },
+                    layoutTextInput: () => {
+                        if (this.active != null) ctx.layoutTextInput(this.active);
+                    },
                 }),
                 [AnnotationType.Comment]: new CommentStateMachine({
                     ...ctx,
@@ -276,6 +279,9 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     node: getNode<CommentScene>(CommentScene.is),
                     showTextInput: () => {
                         if (this.active != null) ctx.showTextInput(this.active);
+                    },
+                    layoutTextInput: () => {
+                        if (this.active != null) ctx.layoutTextInput(this.active);
                     },
                 }),
             },
@@ -362,6 +368,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                         target: States.TextInput,
                         action: ({ textInputValue }: { textInputValue?: string }) => {
                             ctx.datum(this.active!)?.set({ text: textInputValue });
+                            ctx.layoutTextInput(this.active!);
                             ctx.update();
                         },
                     },

@@ -268,6 +268,23 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.textInput.hide();
             },
 
+            layoutTextInput: (active: number) => {
+                const datum = getTypedDatum(this.annotationData.at(active));
+                if (!datum || !('getTextBBox' in datum)) return;
+
+                const bbox = datum.getTextBBox(this.getAnnotationContext()!);
+                const coords = Vec2.add(bbox, Vec2.required(this.seriesRect));
+
+                bbox.x = coords.x;
+                bbox.y = coords.y;
+
+                this.textInput.setLayout({
+                    bbox,
+                    position: datum.position,
+                    alignment: datum.alignment,
+                });
+            },
+
             showAnnotationOptions: () => {
                 const active = this.state.getActive();
                 if (active == null) return;
