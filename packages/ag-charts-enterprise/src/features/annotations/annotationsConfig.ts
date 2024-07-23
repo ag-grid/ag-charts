@@ -135,6 +135,12 @@ export function colorDatum(datum: AnnotationProperties, color: string) {
         datum.axisLabel.stroke = color;
     }
     if ('background' in datum) datum.background.fill = color;
-    if ('color' in datum) datum.color = color;
+
+    if (CommentProperties.is(datum)) {
+        datum.fill = color;
+    } else if ('color' in datum) {
+        datum.color = color;
+    }
+
     if ('stroke' in datum) datum.stroke = color;
 }
