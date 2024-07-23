@@ -8,8 +8,8 @@
                 "path": "./financial-charts-toolbar#text-annotation"
             },
             {
-                "text": "Financial Charts Series Type Selection",
-                "path": "./financial-charts-toolbar#series-selection"
+                "text": "Financial Chart Type Selection",
+                "path": "./financial-charts-toolbar#chart-type-selection"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-10-1"

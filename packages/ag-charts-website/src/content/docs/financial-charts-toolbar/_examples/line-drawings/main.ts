@@ -6,7 +6,7 @@ const options: AgFinancialChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Dow Jones Industrial Average',
+        text: 'Line Drawings',
     },
     initialState: {
         annotations: [

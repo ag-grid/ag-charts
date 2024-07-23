@@ -6,7 +6,7 @@ const options: AgFinancialChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'S&P 500 Index',
+        text: 'Customisation',
     },
     theme: {
         overrides: {
@@ -27,6 +27,11 @@ const options: AgFinancialChartOptions = {
                             strokeOpacity: 0,
                         },
                     },
+                    comment: {
+                        fill: 'orange',
+                        color: 'blue',
+                        strokeWidth: 4,
+                    },
                 },
             },
         },
@@ -35,19 +40,48 @@ const options: AgFinancialChartOptions = {
         annotations: [
             {
                 type: 'parallel-channel',
-                start: { x: { __type: 'date', value: 'Thursday, September 14, 2023' }, y: 4487.78 + 50 },
-                end: { x: { __type: 'date', value: 'Tuesday, October 03, 2023' }, y: 4229.45 + 50 },
-                height: 100,
+                height: 83.55795148247944,
+                start: {
+                    x: {
+                        __type: 'date',
+                        value: 'Tue Sep 19 2023 00:00:00 GMT+0100 (British Summer Time)',
+                    },
+                    y: 4401.88679245283,
+                },
+                end: {
+                    x: {
+                        __type: 'date',
+                        value: 'Thu Oct 05 2023 00:00:00 GMT+0100 (British Summer Time)',
+                    },
+                    y: 4279.245283018868,
+                },
             },
             {
                 type: 'line',
-                start: { x: { __type: 'date', value: 'Friday, August 18, 2023' }, y: 4344.88 },
-                end: { x: { __type: 'date', value: 'Tuesday, October 03, 2023' }, y: 4229.45 },
+                start: {
+                    x: {
+                        __type: 'date',
+                        value: 'Tue Sep 05 2023 00:00:00 GMT+0100 (British Summer Time)',
+                    },
+                    y: 4507.681940700809,
+                },
+                end: {
+                    x: {
+                        __type: 'date',
+                        value: 'Fri Oct 13 2023 00:00:00 GMT+0100 (British Summer Time)',
+                    },
+                    y: 4331.805929919137,
+                },
             },
             {
-                type: 'line',
-                start: { x: { __type: 'date', value: 'Friday, September 01, 2023' }, y: 4530.6 },
-                end: { x: { __type: 'date', value: 'Thursday, October 12, 2023' }, y: 4380.94 },
+                type: 'comment',
+                text: 'Comment',
+                visible: true,
+                x: {
+                    __type: 'date',
+                    value: 'Tue Aug 22 2023 00:00:00 GMT+0100 (British Summer Time)',
+                },
+                y: 4261.725067385445,
             },
         ],
     },
