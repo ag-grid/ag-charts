@@ -37,7 +37,6 @@ jobs:
                       })
 
             - id: 'get-branch'
-              if: ${{github.event.issue.pull_request}}
               run: |
                   branch=$(git branch --show-current)
                   if [[ ${branch} == 'latest' ]] ; then
@@ -96,7 +95,7 @@ jobs:
                   fi
 
             - uses: actions/github-script@v6
-              if: failure() && ${{github.event.issue.pull_request}}
+              if: ${{github.event.issue.pull_request}} && failure()
               continue-on-error: true
               with:
                   script: |
