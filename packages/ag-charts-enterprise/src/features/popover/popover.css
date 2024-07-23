@@ -31,7 +31,7 @@
 
 .ag-charts-popover__row--active {
     background: var(--ag-charts-popover-active-background-color);
-    color: var(--ag-charts-popover-focus-color);
+    color: var(--ag-charts-popover-active-color);
 }
 
 .ag-charts-popover__label {

@@ -129,6 +129,7 @@
     pointer-events: all;
     transition:
         background-color 0.25s ease-in-out,
+        border-color 0.25s ease-in-out,
         color 0.25s ease-in-out;
     white-space: nowrap;
 }
@@ -186,7 +187,9 @@
 
 .ag-charts-toolbar__button.ag-charts-toolbar__button--active {
     background: var(--ag-charts-toolbar-active-background-color);
+    border: 1px solid var(--ag-charts-toolbar-active-color);
     color: var(--ag-charts-toolbar-active-color);
+    z-index: 1;
 }
 
 .ag-charts-toolbar__button[aria-disabled='true'] {

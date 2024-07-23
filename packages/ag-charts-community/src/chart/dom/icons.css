@@ -14,6 +14,7 @@ To create an icon uri:
     speak: never;
     mask: var(--icon) center / contain no-repeat;
     background-color: currentColor;
+    transition: background-color 0.25s ease-in-out;
 }
 
 .ag-charts-icon-area-series {
