@@ -294,9 +294,6 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     showTextInput: () => {
                         if (this.active != null) ctx.showTextInput(this.active);
                     },
-                    layoutTextInput: () => {
-                        if (this.active != null) ctx.layoutTextInput(this.active);
-                    },
                 }),
             },
 
