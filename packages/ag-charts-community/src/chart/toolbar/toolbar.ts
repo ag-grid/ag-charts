@@ -218,7 +218,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     private onButtonUpdated(event: ToolbarButtonUpdatedEvent) {
-        const { type, group, id, ...params } = event;
+        const { type: _type, group, id, ...params } = event;
         this[group].overrideButtonConfiguration(id, { ...params });
     }
 
