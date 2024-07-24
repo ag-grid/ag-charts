@@ -1,11 +1,12 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import { Annotation, Font, Handle, Label } from '../annotationProperties';
+import { Annotation, Font, Handle, Label, Point } from '../annotationProperties';
 import { type AnnotationContext } from '../annotationTypes';
+import { convertPoint } from '../annotationUtils';
 
 const { STRING, BaseProperties, Validate } = _ModuleSupport;
 
-export class TextualProperties extends Annotation(Handle(Label(Font(BaseProperties)))) {
+export class TextualPointProperties extends Annotation(Point(Handle(Label(Font(BaseProperties))))) {
     @Validate(STRING)
     text: string = '';
 
@@ -21,7 +22,7 @@ export class TextualProperties extends Annotation(Handle(Label(Font(BaseProperti
         return this.color;
     }
 
-    public getTextInputCoords(_context: AnnotationContext): { x: number; y: number } {
-        return { x: 0, y: 0 };
+    public getTextInputCoords(context: AnnotationContext) {
+        return convertPoint(this, context);
     }
 }

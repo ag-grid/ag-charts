@@ -2,10 +2,10 @@ import { _Scene, _Util } from 'ag-charts-community';
 
 import { AnnotationType } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
-import { TextualScene } from '../scenes/textualScene';
+import { TextualPointScene } from '../scenes/textualPointScene';
 import type { NoteProperties } from './noteProperties';
 
-export class NoteScene extends TextualScene<NoteProperties> {
+export class NoteScene extends TextualPointScene<NoteProperties> {
     static override is(value: unknown): value is NoteScene {
         return AnnotationScene.isCheck(value, AnnotationType.Note);
     }

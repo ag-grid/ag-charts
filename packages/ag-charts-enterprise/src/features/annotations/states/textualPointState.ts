@@ -2,12 +2,12 @@ import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import type { Point } from '../annotationTypes';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
-import type { TextualProperties } from '../properties/textualProperties';
-import type { TextualScene } from '../scenes/textualScene';
+import type { TextualPointProperties } from '../properties/textualPointProperties';
+import type { TextualPointScene } from '../scenes/textualPointScene';
 
 const { StateMachine } = _ModuleSupport;
 
-interface TextualStateMachineContext<Datum extends TextualProperties, Node extends TextualScene<Datum>>
+interface TextualPointStateMachineContext<Datum extends TextualPointProperties, Node extends TextualPointScene<Datum>>
     extends Omit<AnnotationsStateMachineContext, 'create' | 'delete' | 'datum' | 'node' | 'showTextInput'> {
     create: (datum: Datum) => void;
     delete: () => void;
@@ -16,16 +16,16 @@ interface TextualStateMachineContext<Datum extends TextualProperties, Node exten
     showTextInput: () => void;
 }
 
-export abstract class TextualStateMachine<
-    Datum extends TextualProperties,
-    Node extends TextualScene<Datum>,
+export abstract class TextualPointStateMachine<
+    Datum extends TextualPointProperties,
+    Node extends TextualPointScene<Datum>,
 > extends StateMachine<
     'start' | 'waiting-first-render' | 'edit',
     'click' | 'cancel' | 'keyDown' | 'textInput' | 'render'
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
-    constructor(ctx: TextualStateMachineContext<Datum, Node>) {
+    constructor(ctx: TextualPointStateMachineContext<Datum, Node>) {
         const onClick = ({ point }: { point: Point }) => {
             const datum = this.createDatum();
             datum.set({ x: point.x, y: point.y, text: '' });
@@ -69,7 +69,7 @@ export abstract class TextualStateMachine<
                 },
                 textInput: ({ bbox }) => {
                     const node = ctx.node();
-                    node?.setTextBBox(bbox);
+                    node?.setTextInputBBox(bbox);
                     ctx.update();
                 },
                 keyDown: [

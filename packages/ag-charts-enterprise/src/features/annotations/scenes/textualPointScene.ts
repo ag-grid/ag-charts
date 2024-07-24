@@ -2,8 +2,8 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords } from '../annotationTypes';
 import { convertPoint, invertCoords } from '../annotationUtils';
-import type { TextualProperties } from '../properties/textualProperties';
-import { AnnotationScene } from '../scenes/annotationScene';
+import type { TextualPointProperties } from '../properties/textualPointProperties';
+import { AnnotationScene } from './annotationScene';
 import { DivariantHandle } from './handle';
 
 const { Vec2 } = _Util;
@@ -15,7 +15,7 @@ interface AnchoredLayout {
     spacing: number | _Util.Vec2;
 }
 
-export abstract class TextualScene<Datum extends TextualProperties> extends AnnotationScene {
+export abstract class TextualPointScene<Datum extends TextualPointProperties> extends AnnotationScene {
     protected readonly label = new _Scene.Text({ zIndex: 1 });
     protected readonly handle = new DivariantHandle();
 
@@ -26,8 +26,9 @@ export abstract class TextualScene<Datum extends TextualProperties> extends Anno
         handle: Coords;
     };
 
-    private textInputBBox?: _Scene.BBox;
-    public setTextBBox(bbox: _Scene.BBox) {
+    protected textInputBBox?: _Scene.BBox;
+
+    public setTextInputBBox(bbox: _Scene.BBox) {
         this.textInputBBox = bbox;
     }
 

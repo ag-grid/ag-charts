@@ -1,14 +1,13 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import { Fill, Point, Stroke } from '../annotationProperties';
+import { Fill, Stroke } from '../annotationProperties';
 import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { convertPoint } from '../annotationUtils';
-import { TextualProperties } from '../properties/textualProperties';
+import { TextualPointProperties } from '../properties/textualPointProperties';
 
 const { STRING, Validate, isObject } = _ModuleSupport;
-const { Vec2 } = _Util;
 
-export class CommentProperties extends Point(Fill(Stroke(TextualProperties))) {
+export class CommentProperties extends Fill(Stroke(TextualPointProperties)) {
     static is(value: unknown): value is CommentProperties {
         return isObject(value) && value.type === AnnotationType.Comment;
     }

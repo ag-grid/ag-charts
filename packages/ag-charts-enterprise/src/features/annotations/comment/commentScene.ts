@@ -2,12 +2,12 @@ import { _Scene, _Util } from 'ag-charts-community';
 
 import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
-import { TextualScene } from '../scenes/textualScene';
+import { TextualPointScene } from '../scenes/textualPointScene';
 import type { CommentProperties } from './commentProperties';
 
 const { drawCorner } = _Scene;
 
-export class CommentScene extends TextualScene<CommentProperties> {
+export class CommentScene extends TextualPointScene<CommentProperties> {
     static override is(value: unknown): value is CommentScene {
         return AnnotationScene.isCheck(value, AnnotationType.Comment);
     }

@@ -2,17 +2,15 @@ import { _Scene, _Util } from 'ag-charts-community';
 
 import { AnnotationType } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
-import { TextualScene } from '../scenes/textualScene';
+import { TextualPointScene } from '../scenes/textualPointScene';
 import type { TextProperties } from './textProperties';
 
-export class TextScene extends TextualScene<TextProperties> {
+export class TextScene extends TextualPointScene<TextProperties> {
     static override is(value: unknown): value is TextScene {
         return AnnotationScene.isCheck(value, AnnotationType.Text);
     }
 
     override type = AnnotationType.Text;
-
-    labelLayout;
 
     constructor() {
         super();
