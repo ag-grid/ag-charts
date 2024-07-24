@@ -112,6 +112,7 @@ export function priceVolume(
     };
 
     const toolbarOpts = {
+        chartToolbar: { enabled: true },
         toolbar: {
             seriesType: {
                 enabled: true,
