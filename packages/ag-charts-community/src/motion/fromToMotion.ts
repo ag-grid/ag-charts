@@ -252,6 +252,7 @@ export function staticFromToMotion<N extends Node, T extends AnimationValue & Pa
                 for (const node of selection.nodes()) {
                     node.setProperties({ ...to, ...finish });
                 }
+                selection.cleanup();
             }
         },
     });
