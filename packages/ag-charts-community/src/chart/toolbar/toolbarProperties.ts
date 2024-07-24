@@ -12,6 +12,10 @@ import {
     ToolbarPosition,
 } from './toolbarTypes';
 
+export interface ButtonConfiguration extends ToolbarButton {
+    fill?: string;
+}
+
 export class ToolbarGroupProperties extends BaseProperties {
     @ObserveChanges<ToolbarGroupProperties>((target) => {
         target.onChange(target.enabled);
@@ -57,13 +61,13 @@ export class ToolbarGroupProperties extends BaseProperties {
         target.buttonsChanged();
     })
     @Validate(ARRAY, { optional: true })
-    protected buttons?: Array<ToolbarButton>;
+    protected buttons?: ButtonConfiguration[];
 
-    private readonly buttonOverrides = new Map<any, Omit<ToolbarButton, 'value'>>();
+    private readonly buttonOverrides = new Map<any, Omit<ButtonConfiguration, 'value'>>();
 
     constructor(
         private readonly onChange: (enabled?: boolean) => void,
-        private readonly onButtonsChange: (buttons?: Array<ToolbarButton>) => void
+        private readonly onButtonsChange: (buttons?: ButtonConfiguration[]) => void
     ) {
         super();
     }
@@ -82,11 +86,20 @@ export class ToolbarGroupProperties extends BaseProperties {
         this.onButtonsChange(this.buttonConfigurations());
     }
 
-    overrideButtonConfiguration(id: string, options: Omit<ToolbarButton, 'value'> | undefined) {
-        if (options == null) {
-            this.buttonOverrides.delete(id);
-        } else {
-            this.buttonOverrides.set(id, options);
+    overrideButtonConfiguration(id: string, options: Omit<ButtonConfiguration, 'value'>) {
+        let overrides: any = this.buttonOverrides.get(id);
+        if (overrides == null) {
+            overrides = Object.create(null);
+            this.buttonOverrides.set(id, overrides!);
+        }
+
+        for (const key in options) {
+            const value = (options as any)[key];
+            if (value == null) {
+                delete overrides[key];
+            } else {
+                overrides[key] = value;
+            }
         }
 
         this.buttonsChanged();

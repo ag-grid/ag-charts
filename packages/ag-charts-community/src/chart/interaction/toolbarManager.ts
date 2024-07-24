@@ -59,7 +59,8 @@ export interface ToolbarButtonToggledEvent<_T = any> extends Event<'button-toggl
 
 export interface ToolbarButtonUpdatedEvent extends Event<'button-updated'> {
     id: string;
-    icon: AgIconName | undefined;
+    icon?: AgIconName | undefined;
+    fill?: string | undefined;
 }
 
 export interface ToolbarButtonMovedEvent<T = any> extends Event<'button-moved'> {
@@ -106,9 +107,8 @@ export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
         this.listeners.dispatch('button-toggled', { type: 'button-toggled', group, id, active, enabled, visible });
     }
 
-    updateButton<T extends ToolbarGroup>(group: T, id: string, options: { icon: AgIconName | undefined }) {
-        const { icon } = options;
-        this.listeners.dispatch('button-updated', { type: 'button-updated', group, id, icon });
+    updateButton<T extends ToolbarGroup>(group: T, id: string, options: { icon?: AgIconName; fill?: string }) {
+        this.listeners.dispatch('button-updated', { type: 'button-updated', group, id, ...options });
     }
 
     toggleGroup(caller: string, group: ToolbarGroup, options: { active?: boolean; visible?: boolean }) {
