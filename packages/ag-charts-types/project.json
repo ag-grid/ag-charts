@@ -138,6 +138,7 @@
     "pack": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
+      "inputs": ["allTransitiveOutputs"],
       "outputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "options": {
         "cwd": "{projectRoot}",
@@ -148,14 +149,14 @@
     "pack:extract": {
       "executor": "nx:run-commands",
       "dependsOn": ["pack"],
-      "inputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
+      "inputs": ["allOutputs"],
       "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-types/"],
       "options": { "command": "tools/package/extract-contents.sh {projectRoot}" }
     },
     "pack:verify": {
       "executor": "nx:run-commands",
       "dependsOn": ["pack:extract"],
-      "inputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-types/ag-charts-types/package"],
+      "inputs": ["allOutputs"],
       "options": {
         "commands": ["node tools/package/sanity-check-package.js dist/packages/contents/ag-charts-types/package"]
       }
