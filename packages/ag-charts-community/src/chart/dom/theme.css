@@ -45,11 +45,7 @@
         var(--ag-charts-active-color) 12%
     );
     --ag-charts-toolbar-focus-color: var(--ag-charts-active-color);
-    --ag-charts-toolbar-active-background-color: color-mix(
-        in srgb,
-        var(--ag-charts-background-color),
-        var(--ag-charts-active-color) 12%
-    );
+    --ag-charts-toolbar-active-background-color: var(--ag-charts-toolbar-hover-color);
     --ag-charts-toolbar-active-color: var(--ag-charts-active-color);
     --ag-charts-toolbar-disabled-foreground-color: var(
         --ag-disabled-foreground-color,
@@ -109,4 +105,15 @@
 
     /* Toolbar */
     --ag-charts-toolbar-background-color: var(--ag-header-background-color, color-mix(in srgb, #fff, #182230 93%));
+    --ag-charts-toolbar-hover-color: color-mix(
+        in srgb,
+        var(--ag-charts-background-color),
+        var(--ag-charts-active-color) 18%
+    );
+
+    /* Focus Indicator */
+    --ag-charts-focus-border-shadow: var(
+        --ag-input-focus-box-shadow,
+        0 0 0 3px color-mix(in srgb, transparent, var(--ag-input-focus-border-color, var(--ag-charts-active-color)) 20%)
+    );
 }
