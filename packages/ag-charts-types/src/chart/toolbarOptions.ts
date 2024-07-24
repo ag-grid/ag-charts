@@ -49,18 +49,19 @@ export interface AgToolbarButton {
 }
 
 export type AgIconName =
-    | 'area-series'
     | 'callout-annotation'
     | 'candlestick-series'
     | 'comment-annotation'
     | 'delete'
     | 'disjoint-channel-drawing'
     | 'fill-color'
+    | 'high-low-series'
+    | 'hlc-series'
     | 'hollow-candlestick-series'
     | 'horizontal-line-drawing'
     | 'line-color'
-    | 'line-with-markers-series'
     | 'line-series'
+    | 'line-with-markers-series'
     | 'locked'
     | 'note-annotation'
     | 'ohlc-series'
