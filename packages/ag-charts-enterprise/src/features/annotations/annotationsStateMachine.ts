@@ -367,7 +367,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 },
 
                 textInput: ({ bbox }) => {
-                    if (!this.active) return;
+                    if (this.active == null) return;
                     const node = ctx.node(this.active);
                     if (!node || !('setTextInputBBox' in node)) return;
                     node.setTextInputBBox(bbox);
