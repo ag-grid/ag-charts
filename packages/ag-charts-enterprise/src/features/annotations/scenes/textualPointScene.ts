@@ -8,29 +8,8 @@ import { DivariantHandle } from './handle';
 
 const { Vec2 } = _Util;
 
-export interface AnchoredLayout {
-    alignment: 'left' | 'center' | 'right';
-    placement: 'inside' | 'outside';
-    position: 'top' | 'center' | 'bottom';
-    spacing: number | _Util.Vec2;
-}
-
 export abstract class TextualPointScene<Datum extends TextualPointProperties> extends AnnotationScene {
     override activeHandle?: string | undefined;
-
-    public readonly labelLayout: AnchoredLayout = {
-        position: 'bottom',
-        alignment: 'left',
-        placement: 'inside',
-        spacing: 0,
-    };
-
-    public readonly handleLayout: AnchoredLayout = {
-        position: 'bottom',
-        alignment: 'left',
-        placement: 'outside',
-        spacing: 0,
-    };
 
     protected readonly label = new _Scene.Text({ zIndex: 1 });
     protected readonly handle = new DivariantHandle();
@@ -116,12 +95,11 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
     }
 
     protected updateLabel(datum: Datum, bbox: _Scene.BBox) {
-        const { labelLayout } = this;
-        const { x, y } = this.getCoordsFromAnchoredLayout(labelLayout, bbox);
+        const { x, y } = this.getLabelCoords(datum, bbox);
 
         this.label.x = x;
         this.label.y = y;
-        this.label.textBaseline = labelLayout.position == 'center' ? 'middle' : labelLayout.position;
+        this.label.textBaseline = datum.position == 'center' ? 'middle' : datum.position;
 
         this.label.text = datum.text;
         this.label.fill = datum.color;
@@ -129,11 +107,11 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         this.label.fontSize = datum.fontSize;
         this.label.fontStyle = datum.fontStyle;
         this.label.fontWeight = datum.fontWeight;
-        this.label.textAlign = labelLayout.alignment;
+        this.label.textAlign = datum.alignment;
     }
 
     protected updateHandle(datum: Datum, bbox: _Scene.BBox) {
-        const { x, y } = this.getCoordsFromAnchoredLayout(this.handleLayout, bbox);
+        const { x, y } = this.getHandleCoords(datum, bbox);
 
         const styles = {
             fill: datum.handle.fill,
@@ -150,40 +128,11 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         // Shapes should be implemented by the extending annotation type class
     }
 
-    protected getCoordsFromAnchoredLayout(layout: AnchoredLayout, bbox: _Scene.BBox) {
-        const { alignment, placement, position, spacing } = layout;
+    protected getLabelCoords(_datum: Datum, point: _Util.Vec2) {
+        return point;
+    }
 
-        let x = bbox.x;
-        let y = bbox.y;
-
-        const placementModifier = placement === 'inside' ? 1 : -1;
-        const spacingX = (typeof spacing === 'object' ? spacing.x : spacing) * placementModifier;
-        const spacingY = (typeof spacing === 'object' ? spacing.y : spacing) * placementModifier;
-
-        switch (alignment) {
-            case 'left':
-                x = bbox.x + spacingX;
-                break;
-            case 'center':
-                x = bbox.x + bbox.width / 2;
-                break;
-            case 'right':
-                x = bbox.x + bbox.width - spacingX;
-                break;
-        }
-
-        switch (position) {
-            case 'top':
-                y = bbox.y + spacingY;
-                break;
-            case 'center':
-                y = bbox.y + bbox.height / 2;
-                break;
-            case 'bottom':
-                y = bbox.y + bbox.height - spacingY;
-                break;
-        }
-
-        return { x, y };
+    protected getHandleCoords(_datum: Datum, point: _Util.Vec2) {
+        return point;
     }
 }

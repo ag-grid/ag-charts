@@ -7,6 +7,8 @@ import type { CommentProperties } from './commentProperties';
 
 const { drawCorner } = _Scene;
 
+const DEFAULT_PADDING = 10;
+
 export class CommentScene extends TextualPointScene<CommentProperties> {
     static override is(value: unknown): value is CommentScene {
         return AnnotationScene.isCheck(value, AnnotationType.Comment);
@@ -15,7 +17,6 @@ export class CommentScene extends TextualPointScene<CommentProperties> {
     override type = AnnotationType.Comment;
 
     private readonly shape = new _Scene.Path();
-    private padding = 0;
 
     constructor() {
         super();
@@ -23,25 +24,7 @@ export class CommentScene extends TextualPointScene<CommentProperties> {
     }
 
     override update(datum: CommentProperties, context: AnnotationContext) {
-        this.padding = datum.padding ?? 20;
         super.update(datum, context);
-    }
-
-    protected override updateHandle(datum: CommentProperties, textBBox: _Scene.BBox) {
-        const styles = {
-            fill: datum.handle.fill,
-            stroke: datum.handle.stroke ?? datum.fill,
-            strokeOpacity: datum.handle.strokeOpacity,
-            strokeWidth: datum.handle.strokeWidth,
-        };
-
-        const halfPadding = (datum.padding ?? 20) / 2;
-        this.handle.update({
-            ...styles,
-            x: textBBox.x - halfPadding,
-            y: textBBox.y + halfPadding,
-        });
-        this.handle.toggleLocked(datum.locked ?? false);
     }
 
     protected override updateShape(datum: CommentProperties, bbox: _Scene.BBox) {
@@ -58,9 +41,23 @@ export class CommentScene extends TextualPointScene<CommentProperties> {
         this.updatePath(bbox, datum);
     }
 
+    protected override getLabelCoords(datum: CommentProperties, point: _Util.Vec2): _Util.Vec2 {
+        const padding = datum.padding ?? DEFAULT_PADDING;
+
+        return {
+            x: point.x + padding,
+            y: point.y - padding,
+        };
+    }
+
     override getAnchor() {
         const bbox = this.getCachedBBoxWithoutHandles();
-        return { x: bbox.x - this.padding / 2, y: bbox.y - 10, position: 'above-left' as const };
+
+        return {
+            x: bbox.x,
+            y: bbox.y + bbox.height,
+            position: 'above-left' as const,
+        };
     }
 
     private updatePath(bbox: _Scene.BBox, datum: CommentProperties) {
@@ -68,18 +65,18 @@ export class CommentScene extends TextualPointScene<CommentProperties> {
 
         let { width, height } = labelBBox;
 
-        const { padding = 20, fontSize } = datum;
-        const halfPadding = padding / 2;
+        const { padding = DEFAULT_PADDING, fontSize } = datum;
+        const doublePadding = padding * 2;
 
         const isEditState = !datum.visible;
 
         // Add the extra character width to the shape as html text input is updated before canvas text is updated/ visible
-        width = Math.max(width + padding + (isEditState ? fontSize : 0), fontSize + padding);
-        height = Math.max(height + padding, fontSize + padding);
+        width = Math.max(width + doublePadding + (isEditState ? fontSize : 0), fontSize + doublePadding);
+        height = Math.max(height + doublePadding, fontSize + doublePadding);
 
         // anchor at bottom left
-        const x = bbox.x - halfPadding;
-        const y = bbox.y + halfPadding;
+        const x = bbox.x;
+        const y = bbox.y;
 
         const top = y - height;
         const right = x + width;

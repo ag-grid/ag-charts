@@ -3,7 +3,7 @@ import { _Scene, _Util } from 'ag-charts-community';
 import { AnnotationType } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { DivariantHandle } from '../scenes/handle';
-import { type AnchoredLayout, TextualPointScene } from '../scenes/textualPointScene';
+import { TextualPointScene } from '../scenes/textualPointScene';
 import type { TextProperties } from './textProperties';
 
 export class TextScene extends TextualPointScene<TextProperties> {
@@ -13,18 +13,15 @@ export class TextScene extends TextualPointScene<TextProperties> {
 
     override type = AnnotationType.Text;
 
-    override handleLayout: AnchoredLayout = {
-        position: 'bottom',
-        alignment: 'left',
-        placement: 'outside',
-        spacing: {
-            x: -DivariantHandle.HANDLE_SIZE / 2,
-            y: 2 + DivariantHandle.HANDLE_SIZE / 2,
-        },
-    };
-
     constructor() {
         super();
         this.append([this.label, this.handle]);
+    }
+
+    protected override getHandleCoords(_datum: TextProperties, point: _Util.Vec2): _Util.Vec2 {
+        return {
+            x: point.x - DivariantHandle.HANDLE_SIZE / 2,
+            y: 2 + DivariantHandle.HANDLE_SIZE / 2,
+        };
     }
 }

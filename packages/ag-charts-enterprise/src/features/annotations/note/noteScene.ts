@@ -4,7 +4,7 @@ import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { convertPoint } from '../annotationUtils';
 import { AnnotationScene } from '../scenes/annotationScene';
 // import { DivariantHandle } from '../scenes/handle';
-import { type AnchoredLayout, TextualPointScene } from '../scenes/textualPointScene';
+import { TextualPointScene } from '../scenes/textualPointScene';
 import type { NoteProperties } from './noteProperties';
 
 export class NoteScene extends TextualPointScene<NoteProperties> {
@@ -22,20 +22,6 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
     // private readonly iconLines = new _Scene.SvgPath(
     //     'M17.1114 5.75C17.1114 6.16421 16.7756 6.5 16.3614 6.5H5.63916C5.22495 6.5 4.88916 6.16421 4.88916 5.75V5.75C4.88916 5.33579 5.22495 5 5.63916 5H16.3614C16.7756 5 17.1114 5.33579 17.1114 5.75V5.75ZM17.1114 9.25C17.1114 9.66421 16.7756 10 16.3614 10H5.63916C5.22495 10 4.88916 9.66421 4.88916 9.25V9.25C4.88916 8.83579 5.22495 8.5 5.63916 8.5H16.3614C16.7756 8.5 17.1114 8.83579 17.1114 9.25V9.25Z'
     // );
-
-    override labelLayout: AnchoredLayout = {
-        position: 'top',
-        alignment: 'left',
-        placement: 'inside',
-        spacing: 10,
-    };
-
-    override handleLayout: AnchoredLayout = {
-        position: 'bottom',
-        alignment: 'center',
-        placement: 'outside',
-        spacing: 30,
-    };
 
     constructor() {
         super();
