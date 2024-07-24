@@ -239,7 +239,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
             showTextInput: (active: number) => {
                 const datum = getTypedDatum(this.annotationData.at(active));
-                if (!datum || !('getTextBBox' in datum)) return;
+                if (!datum || !('getTextInputCoords' in datum)) return;
 
                 const styles = {
                     color: datum.color,
