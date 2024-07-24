@@ -25,7 +25,6 @@ const BUTTON_VALUE = 'type';
 export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     private readonly popover = new Popover(this.ctx);
     private anchor?: _Scene.BBox = undefined;
-    private didSetInitialIcon = false;
     private isPopoverVisible = false;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
@@ -42,15 +41,12 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
     }
 
     async processData() {
-        if (this.didSetInitialIcon) return;
-
         const { toolbarManager } = this.ctx;
         const chartType = this.getChartType();
         const icon = itemConfigurations[chartType]?.icon;
         if (icon != null) {
             toolbarManager.updateButton(BUTTON_GROUP, BUTTON_VALUE, { icon });
         }
-        this.didSetInitialIcon = true;
     }
 
     private setAnchor(anchor: _Scene.BBox) {
@@ -78,10 +74,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
         const item = (type: AgPriceVolumeChartType) => {
             const { label, icon } = itemConfigurations[type]!;
             const active = type === chartType;
-            const onPress = () => {
-                this.setChartType(type);
-                this.ctx.toolbarManager.updateButton(BUTTON_GROUP, BUTTON_VALUE, { icon });
-            };
+            const onPress = () => this.setChartType(type);
             return { label, icon, active, onPress };
         };
 
@@ -116,6 +109,10 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
     }
 
     private getChartType(): AgPriceVolumeChartType {
-        return (this.ctx.chartService.publicApi?.getOptions() as AgFinancialChartOptions).chartType ?? 'candlestick';
+        let chartType = (this.ctx.chartService.publicApi?.getOptions() as AgFinancialChartOptions).chartType;
+        if (chartType == null || itemConfigurations[chartType] == null) {
+            chartType = 'candlestick';
+        }
+        return chartType;
     }
 }
