@@ -57,6 +57,10 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarSeriesTypeDropdown: 'Chart type',
     // Text for the series type toolbar's OHLC chart type button
     toolbarSeriesTypeOHLC: 'OHLC',
+    // Text for the series type toolbar's HLC chart type button
+    toolbarSeriesTypeHLC: 'HLC',
+    // Text for the series type toolbar's high low chart type button
+    toolbarSeriesTypeHighLow: 'High Low',
     // Text for the series type toolbar's candles chart type button
     toolbarSeriesTypeCandles: 'Candles',
     // Text for the series type toolbar's hollow candles chart type button
@@ -67,8 +71,6 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarSeriesTypeLineWithMarkers: 'Line with Markers',
     // Text for the series type toolbar's line with step line chart type button
     toolbarSeriesTypeStepLine: 'Step Line',
-    // Text for the series type toolbar's line with area chart type button
-    toolbarSeriesTypeArea: 'Area',
     // Text for the annotation toolbar's trend line button
     toolbarAnnotationsTrendLine: 'Trend line',
     // Text for the annotation toolbar's horizontal line button
