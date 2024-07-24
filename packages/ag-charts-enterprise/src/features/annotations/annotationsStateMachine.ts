@@ -366,6 +366,14 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     },
                 },
 
+                textInput: ({ bbox }) => {
+                    if (!this.active) return;
+                    const node = ctx.node(this.active);
+                    if (!node || !('setTextInputBBox' in node)) return;
+                    node.setTextInputBBox(bbox);
+                    ctx.update();
+                },
+
                 keyDown: [
                     {
                         guard: ({ key }: { key: string }) => key === 'Escape',

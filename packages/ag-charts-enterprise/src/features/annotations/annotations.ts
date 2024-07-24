@@ -17,9 +17,8 @@ import {
     updateAnnotation,
 } from './annotationsConfig';
 import { AnnotationsStateMachine } from './annotationsStateMachine';
-import type { AnnotationProperties } from './annotationsSuperTypes';
+import type { AnnotationProperties, AnnotationScene } from './annotationsSuperTypes';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
-import type { AnnotationScene } from './scenes/annotationScene';
 
 const {
     BOOLEAN,
