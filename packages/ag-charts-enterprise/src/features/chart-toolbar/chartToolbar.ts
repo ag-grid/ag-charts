@@ -14,9 +14,9 @@ const itemConfigurations: Record<AgPriceVolumeChartType, { label: string; icon: 
     'hollow-candlestick': { label: 'toolbarSeriesTypeHollowCandles', icon: 'hollow-candlestick-series' },
     line: { label: 'toolbarSeriesTypeLine', icon: 'line-series' },
     'step-line': { label: 'toolbarSeriesTypeStepLine', icon: 'step-line-series' },
-    'range-area': { label: 'toolbarSeriesTypeArea', icon: 'area-series' },
-    hlc: { label: '', icon: undefined },
-    'high-low': { label: '', icon: undefined },
+    'range-area': { label: '', icon: undefined },
+    hlc: { label: 'toolbarSeriesTypeHLC', icon: 'hlc-series' },
+    'high-low': { label: 'toolbarSeriesTypeHighLow', icon: 'high-low-series' },
 };
 
 const BUTTON_GROUP = 'seriesType';
@@ -91,11 +91,9 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
                 item('candlestick'),
                 item('hollow-candlestick'),
                 item('line'),
-                // @todo(AG-XXX)
-                // item('line') },
                 item('step-line'),
-                // @todo(AG-12182)
-                // item('range-area'),
+                item('hlc'),
+                item('high-low'),
             ],
             onClose: () => {
                 this.hidePopover();
@@ -118,10 +116,6 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
     }
 
     private getChartType(): AgPriceVolumeChartType {
-        let chartType = (this.ctx.chartService.publicApi?.getOptions() as AgFinancialChartOptions).chartType;
-        if (chartType == null || itemConfigurations[chartType] == null) {
-            chartType = 'candlestick';
-        }
-        return chartType;
+        return (this.ctx.chartService.publicApi?.getOptions() as AgFinancialChartOptions).chartType ?? 'candlestick';
     }
 }
