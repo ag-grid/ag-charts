@@ -7,7 +7,7 @@ const moduleId = 'text-input';
 const canvasOverlay = 'canvas-overlay';
 
 interface LayoutBBox {
-    bbox: _Scene.BBox;
+    point: { x: number; y: number };
     position: 'top' | 'center' | 'bottom';
     alignment: 'left' | 'center' | 'right';
 }
@@ -15,7 +15,7 @@ interface LayoutBBox {
 export class TextInput extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     private readonly element: HTMLElement;
     private layout: LayoutBBox = {
-        bbox: _Scene.BBox.zero,
+        point: { x: 0, y: 0 },
         position: 'center',
         alignment: 'center',
     };
@@ -81,7 +81,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
     public hide() {
         this.element.innerHTML = '';
         this.layout = {
-            bbox: _Scene.BBox.zero,
+            point: { x: 0, y: 0 },
             position: 'center',
             alignment: 'center',
         };
@@ -103,25 +103,26 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
             layout,
             ctx: { domManager },
         } = this;
-        const { bbox, position, alignment } = layout;
+        const { point, position, alignment } = layout;
 
         const textArea = element.firstElementChild as HTMLDivElement | undefined;
+        if (!textArea) return;
 
-        const height = textArea?.offsetHeight ?? bbox.height;
-        const width = textArea?.offsetWidth ?? bbox.width;
+        const height = textArea?.offsetHeight;
+        const width = textArea?.offsetWidth;
 
         const boundingRect = domManager.getBoundingClientRect();
         let maxWidth = boundingRect.width;
 
         switch (position) {
             case 'top':
-                element.style.setProperty('top', `${bbox.y}px`);
+                element.style.setProperty('top', `${point.y}px`);
                 break;
             case 'center':
-                element.style.setProperty('top', `${bbox.y - height / 2}px`);
+                element.style.setProperty('top', `${point.y - height / 2}px`);
                 break;
             case 'bottom':
-                element.style.setProperty('top', `${bbox.y - height}px`);
+                element.style.setProperty('top', `${point.y - height}px`);
                 break;
         }
 
@@ -130,19 +131,19 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         switch (alignment) {
             case 'left':
-                element.style.setProperty('left', `${bbox.x}px`);
+                element.style.setProperty('left', `${point.x}px`);
                 textArea?.style.setProperty(textAlign, 'left');
-                maxWidth = boundingRect.width - bbox.x;
+                maxWidth = boundingRect.width - point.x;
                 break;
             case 'center':
-                element.style.setProperty('left', `${bbox.x - width / 2}px`);
+                element.style.setProperty('left', `${point.x - width / 2}px`);
                 textArea?.style.setProperty(textAlign, 'center');
-                maxWidth = boundingRect.width - (bbox.x - width / 2);
+                maxWidth = boundingRect.width - (point.x - width / 2);
                 break;
             case 'right':
-                element.style.setProperty('left', `${bbox.x - width}px`);
+                element.style.setProperty('left', `${point.x - width}px`);
                 textArea?.style.setProperty(textAlign, 'right');
-                maxWidth = boundingRect.width - (bbox.x - width);
+                maxWidth = boundingRect.width - (point.x - width);
                 break;
         }
 

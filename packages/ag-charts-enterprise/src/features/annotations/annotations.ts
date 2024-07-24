@@ -257,14 +257,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     },
                 });
 
-                const bbox = datum.getTextInputCoords(this.getAnnotationContext()!);
-                const coords = Vec2.add(bbox, Vec2.required(this.seriesRect));
-
-                bbox.x = coords.x;
-                bbox.y = coords.y;
+                const point = Vec2.add(
+                    datum.getTextInputCoords(this.getAnnotationContext()!),
+                    Vec2.required(this.seriesRect)
+                );
 
                 this.textInput.setLayout({
-                    bbox,
+                    point,
                     position: datum.position,
                     alignment: datum.alignment,
                 });
