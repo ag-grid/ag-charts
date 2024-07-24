@@ -32,10 +32,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
     }
 
     public update(datum: Datum, context: AnnotationContext) {
-        const { textInputBBox } = this;
-
-        const point = convertPoint(datum, context);
-        const bbox = new _Scene.BBox(point.x, point.y, textInputBBox?.width ?? 0, textInputBBox?.height ?? 0);
+        const bbox = this.getTextBBox(datum, context);
 
         this.label.visible = datum.visible ?? true;
 
@@ -99,6 +96,30 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         }
 
         return label.containsPoint(x, y);
+    }
+
+    protected getTextBBox(datum: Datum, context: AnnotationContext) {
+        const { textInputBBox } = this;
+
+        const point = convertPoint(datum, context);
+
+        if (textInputBBox) {
+            return new _Scene.BBox(point.x, point.y, textInputBBox.width, textInputBBox.height);
+        }
+
+        const { lineMetrics, width } = _ModuleSupport.TextMeasurer.measureLines(datum.text, {
+            font: {
+                fontFamily: datum.fontFamily,
+                fontSize: datum.fontSize,
+                fontStyle: datum.fontStyle,
+                fontWeight: datum.fontWeight,
+                lineHeight: 1,
+            },
+        });
+
+        const height = lineMetrics.reduce((sum, curr) => sum + curr.lineHeight, 0);
+
+        return new _Scene.BBox(point.x, point.y, width, height);
     }
 
     protected updateLabel(datum: Datum, bbox: _Scene.BBox) {
