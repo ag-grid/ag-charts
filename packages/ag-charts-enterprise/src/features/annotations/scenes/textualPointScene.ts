@@ -19,10 +19,16 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         handle: Coords;
     };
 
+    private anchor: { x: number; y: number; position: 'above' | 'above-left' | 'right' } = {
+        x: 0,
+        y: 0,
+        position: 'above-left',
+    };
     private textInputBBox?: _Scene.BBox;
 
     public setTextInputBBox(bbox: _Scene.BBox) {
         this.textInputBBox = bbox;
+        this.markDirty(this, _Scene.RedrawType.MINOR);
     }
 
     public update(datum: Datum, context: AnnotationContext) {
@@ -31,11 +37,13 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         const point = convertPoint(datum, context);
         const bbox = new _Scene.BBox(point.x, point.y, textInputBBox?.width ?? 0, textInputBBox?.height ?? 0);
 
-        this.label.opacity = datum.visible ? 1 : 0;
+        this.label.visible = datum.visible ?? true;
 
         this.updateLabel(datum, bbox);
         this.updateHandle(datum, bbox);
         this.updateShape(datum, bbox);
+
+        this.anchor = this.updateAnchor(datum, bbox, context);
     }
 
     public dragStart(datum: Datum, target: Coords, context: AnnotationContext) {
@@ -72,8 +80,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
     }
 
     override getAnchor(): { x: number; y: number; position?: 'right' | 'above' | 'above-left' } {
-        const bbox = this.getCachedBBoxWithoutHandles();
-        return { x: bbox.x, y: bbox.y, position: 'above-left' as const };
+        return this.anchor;
     }
 
     override getCursor() {
@@ -112,13 +119,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
 
     protected updateHandle(datum: Datum, bbox: _Scene.BBox) {
         const { x, y } = this.getHandleCoords(datum, bbox);
-
-        const styles = {
-            fill: datum.handle.fill,
-            stroke: datum.handle.stroke ?? datum.color,
-            strokeOpacity: datum.handle.strokeOpacity,
-            strokeWidth: datum.handle.strokeWidth,
-        };
+        const styles = this.getHandleStyles(datum);
 
         this.handle.update({ ...styles, x, y });
         this.handle.toggleLocked(datum.locked ?? false);
@@ -128,11 +129,28 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         // Shapes should be implemented by the extending annotation type class
     }
 
+    protected updateAnchor(_datum: Datum, bbox: _Scene.BBox, context: AnnotationContext) {
+        return {
+            x: bbox.x + context.seriesRect.x,
+            y: bbox.y - context.seriesRect.y,
+            position: this.anchor.position,
+        };
+    }
+
     protected getLabelCoords(_datum: Datum, point: _Util.Vec2) {
         return point;
     }
 
     protected getHandleCoords(_datum: Datum, point: _Util.Vec2) {
         return point;
+    }
+
+    protected getHandleStyles(datum: Datum) {
+        return {
+            fill: datum.handle.fill,
+            stroke: datum.handle.stroke ?? datum.color,
+            strokeOpacity: datum.handle.strokeOpacity,
+            strokeWidth: datum.handle.strokeWidth,
+        };
     }
 }

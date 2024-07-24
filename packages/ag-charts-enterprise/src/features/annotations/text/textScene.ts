@@ -19,9 +19,10 @@ export class TextScene extends TextualPointScene<TextProperties> {
     }
 
     protected override getHandleCoords(_datum: TextProperties, point: _Util.Vec2): _Util.Vec2 {
+        const halfSize = DivariantHandle.HANDLE_SIZE / 2;
         return {
-            x: point.x - DivariantHandle.HANDLE_SIZE / 2,
-            y: 2 + DivariantHandle.HANDLE_SIZE / 2,
+            x: point.x + halfSize,
+            y: point.y + 2 + halfSize,
         };
     }
 }

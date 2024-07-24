@@ -85,10 +85,6 @@ export abstract class TextualPointStateMachine<
                         target: StateMachine.parent,
                         action: onSave,
                     },
-                    {
-                        target: 'edit',
-                        action: onSave,
-                    },
                 ],
                 click: {
                     target: StateMachine.parent,

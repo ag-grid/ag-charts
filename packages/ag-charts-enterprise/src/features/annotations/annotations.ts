@@ -700,11 +700,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const context = this.getAnnotationContext();
         if (!context) return;
 
-        const { key } = event.sourceEvent;
+        const { key, shiftKey } = event.sourceEvent;
         const textInputValue = this.textInput.getValue();
 
         // TODO: Use `event.sourceEvent.shiftKey`, @see AG-12164
-        state.transition('keyDown', { key, shiftKey: false, textInputValue });
+        state.transition('keyDown', { key, shiftKey, textInputValue });
     }
 
     private toggleAnnotationOptionsButtons() {
