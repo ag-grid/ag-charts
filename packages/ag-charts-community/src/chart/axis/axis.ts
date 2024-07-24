@@ -261,13 +261,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     private readonly destroyFns: Function[] = [];
 
-    // eslint-disable-next-line @typescript-eslint/prefer-readonly
-    private minRect?: BBox = undefined;
-
     constructor(
         protected readonly moduleCtx: ModuleContext,
-        readonly scale: S,
-        options?: { respondsToZoom: boolean }
+        readonly scale: S
     ) {
         this.range = this.scale.range.slice() as [number, number];
         this.crossLines.forEach((crossLine) => this.initCrossLine(crossLine));
@@ -312,14 +308,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 previousSize = { ...e.chart };
             })
         );
-
-        if (options?.respondsToZoom !== false) {
-            this.destroyFns.push(
-                moduleCtx.updateService.addListener('update-complete', (e) => {
-                    this.minRect = e.minRect;
-                })
-            );
-        }
     }
 
     resetAnimation(phase: ChartAnimationPhase) {
@@ -1133,8 +1121,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         maxTickCount: number;
         defaultTickCount: number;
     } {
-        const { minRect } = this;
-
         if (!this.label.avoidCollisions) {
             return {
                 minTickCount: ContinuousScale.defaultMaxTickCount,
@@ -1166,11 +1152,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             }
         }
 
-        // Clamps the min spacing between ticks to be no more than the min distance between datums
-        let minRectDistance = 1;
-        if (minRect) {
-            minRectDistance = this.direction === ChartAxisDirection.X ? minRect.width : minRect.height;
-        }
+        // Clamps the min spacing between ticks to a sensible datum spacing.
+        const minRectDistance = 20;
         clampMaxTickCount &&= minRectDistance < defaultMinSpacing;
 
         // TODO: Remove clamping to hardcoded 100 max tick count, this is a temp fix for zooming
