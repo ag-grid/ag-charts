@@ -9,10 +9,10 @@ enum LabelConfiguration {
     Low = 1 << 3,
     High = 1 << 4,
     Volume = 1 << 5,
-    Unlabelled_Close = 1 << 6,
-    Neutral_Close = 1 << 7,
-    Neutral_High = 1 << 8,
-    Neutral_Low = 1 << 9,
+    UnlabelledClose = 1 << 6,
+    NeutralClose = 1 << 7,
+    NeutralHigh = 1 << 8,
+    NeutralLow = 1 << 9,
 }
 
 const chartConfigurations: Record<AgPriceVolumeChartType, LabelConfiguration> = {
@@ -34,12 +34,11 @@ const chartConfigurations: Record<AgPriceVolumeChartType, LabelConfiguration> = 
         LabelConfiguration.Low |
         LabelConfiguration.High |
         LabelConfiguration.Volume,
-    line: LabelConfiguration.Unlabelled_Close | LabelConfiguration.Volume,
-    'step-line': LabelConfiguration.Unlabelled_Close | LabelConfiguration.Volume,
+    line: LabelConfiguration.UnlabelledClose | LabelConfiguration.Volume,
+    'step-line': LabelConfiguration.UnlabelledClose | LabelConfiguration.Volume,
     'range-area': LabelConfiguration.Open | LabelConfiguration.Close | LabelConfiguration.Low | LabelConfiguration.High,
-    hlc:
-        LabelConfiguration.Neutral_Close | LabelConfiguration.Low | LabelConfiguration.High | LabelConfiguration.Volume,
-    'high-low': LabelConfiguration.Neutral_Low | LabelConfiguration.Neutral_High | LabelConfiguration.Volume,
+    hlc: LabelConfiguration.NeutralClose | LabelConfiguration.Low | LabelConfiguration.High | LabelConfiguration.Volume,
+    'high-low': LabelConfiguration.NeutralLow | LabelConfiguration.NeutralHigh | LabelConfiguration.Volume,
 };
 
 const itemIdMap: Record<string, 'positive' | 'negative' | 'neutral' | 'altNeutral'> = {
@@ -126,7 +125,7 @@ export class StatusBar
         },
         {
             label: 'H',
-            configuration: LabelConfiguration.Neutral_High,
+            configuration: LabelConfiguration.NeutralHigh,
             title: this.labelGroup.appendChild(new Text()),
             value: this.labelGroup.appendChild(new Text()),
             style: 'neutral' as const,
@@ -153,7 +152,7 @@ export class StatusBar
         },
         {
             label: 'L',
-            configuration: LabelConfiguration.Neutral_Low,
+            configuration: LabelConfiguration.NeutralLow,
             title: this.labelGroup.appendChild(new Text()),
             value: this.labelGroup.appendChild(new Text()),
             style: 'neutral' as const,
@@ -180,7 +179,7 @@ export class StatusBar
         },
         {
             label: 'C',
-            configuration: LabelConfiguration.Neutral_Close,
+            configuration: LabelConfiguration.NeutralClose,
             title: this.labelGroup.appendChild(new Text()),
             value: this.labelGroup.appendChild(new Text()),
             id: 'closeValue' as const,
@@ -194,7 +193,7 @@ export class StatusBar
         },
         {
             label: '',
-            configuration: LabelConfiguration.Unlabelled_Close,
+            configuration: LabelConfiguration.UnlabelledClose,
             title: this.labelGroup.appendChild(new Text()),
             value: this.labelGroup.appendChild(new Text()),
             style: 'neutral' as const,
