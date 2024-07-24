@@ -26,10 +26,15 @@ export abstract class TextualScene<Datum extends TextualProperties> extends Anno
         handle: Coords;
     };
 
+    private textInputBBox?: _Scene.BBox;
+    public setTextBBox(bbox: _Scene.BBox) {
+        this.textInputBBox = bbox;
+    }
+
     public update(datum: Datum, context: AnnotationContext) {
         this.label.opacity = datum.visible ? 1 : 0;
 
-        const textBBox = datum.getTextBBox(context);
+        // const textBBox = datum.getTextBBox(context);
 
         this.updateLabel(datum, textBBox);
         this.updateHandle(datum, textBBox);

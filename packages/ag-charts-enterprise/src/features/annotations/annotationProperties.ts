@@ -88,6 +88,17 @@ export function Line<T extends Constructor>(Parent: T) {
     return LineInternal;
 }
 
+export function Point<T extends Constructor>(Parent: T) {
+    class PointInternal extends Parent {
+        @Validate(OR(STRING, NUMBER, DATE))
+        x?: string | number | Date;
+
+        @Validate(NUMBER)
+        y?: number;
+    }
+    return PointInternal;
+}
+
 export function Value<T extends Constructor>(Parent: T) {
     class ValueInternal extends Parent {
         @Validate(OR(STRING, NUMBER, DATE))

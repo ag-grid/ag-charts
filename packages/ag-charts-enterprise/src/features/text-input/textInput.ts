@@ -33,7 +33,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         anchor?: { x: number; y: number };
         text?: string;
         styles?: FontOptions;
-        onChange?: (text: string) => void;
+        onChange?: (text: string, bbox: _Scene.BBox) => void;
         onClose?: (text: string) => void;
     }) {
         this.element.innerHTML = textInputTemplate;
@@ -74,7 +74,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         textArea.oninput = () => {
             this.updatePosition();
-            opts.onChange?.(this.getValue()!);
+            opts.onChange?.(this.getValue()!, this.getBBox());
         };
     }
 
@@ -147,5 +147,10 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         }
 
         element.style.setProperty('max-width', `${maxWidth}px`);
+    }
+
+    private getBBox() {
+        const { element } = this;
+        return new _Scene.BBox(element.offsetLeft, element.offsetTop, element.offsetWidth, element.offsetHeight);
     }
 }

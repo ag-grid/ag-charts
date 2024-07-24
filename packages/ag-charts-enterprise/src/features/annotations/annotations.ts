@@ -249,9 +249,15 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     fontWeight: datum.fontWeight,
                 };
 
-                this.textInput.show({ styles, text: datum.text });
+                this.textInput.show({
+                    styles,
+                    text: datum.text,
+                    onChange: (_text, bbox) => {
+                        this.state.transition('textInput', { bbox });
+                    },
+                });
 
-                const bbox = datum.getTextBBox(this.getAnnotationContext()!);
+                const bbox = datum.getTextInputCoords(this.getAnnotationContext()!);
                 const coords = Vec2.add(bbox, Vec2.required(this.seriesRect));
 
                 bbox.x = coords.x;

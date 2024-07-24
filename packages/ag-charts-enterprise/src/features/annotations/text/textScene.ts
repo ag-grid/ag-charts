@@ -12,6 +12,8 @@ export class TextScene extends TextualScene<TextProperties> {
 
     override type = AnnotationType.Text;
 
+    labelLayout;
+
     constructor() {
         super();
         this.append([this.label, this.handle]);

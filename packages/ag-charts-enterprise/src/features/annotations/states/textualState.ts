@@ -19,7 +19,10 @@ interface TextualStateMachineContext<Datum extends TextualProperties, Node exten
 export abstract class TextualStateMachine<
     Datum extends TextualProperties,
     Node extends TextualScene<Datum>,
-> extends StateMachine<'start' | 'waiting-first-render' | 'edit', 'click' | 'cancel' | 'keyDown' | 'render'> {
+> extends StateMachine<
+    'start' | 'waiting-first-render' | 'edit',
+    'click' | 'cancel' | 'keyDown' | 'textInput' | 'render'
+> {
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(ctx: TextualStateMachineContext<Datum, Node>) {
@@ -63,6 +66,11 @@ export abstract class TextualStateMachine<
                     if (datum) {
                         datum.visible = false;
                     }
+                },
+                textInput: ({ bbox }) => {
+                    const node = ctx.node();
+                    node?.setTextBBox(bbox);
+                    ctx.update();
                 },
                 keyDown: [
                     {

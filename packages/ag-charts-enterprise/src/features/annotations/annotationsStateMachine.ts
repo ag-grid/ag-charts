@@ -44,6 +44,7 @@ type AnnotationEvent =
     | 'reset'
     | 'color'
     | 'keyDown'
+    | 'textInput'
     | 'render';
 
 export class AnnotationsStateMachine extends StateMachine<States, AnnotationType | AnnotationEvent> {
