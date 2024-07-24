@@ -13,6 +13,6 @@ export class CalloutProperties extends TextualStartEndProperties {
     @Validate(STRING)
     type = AnnotationType.Callout as const;
 
-    override position = 'top' as const;
+    override position = 'center' as const;
     override alignment = 'center' as const;
 }
