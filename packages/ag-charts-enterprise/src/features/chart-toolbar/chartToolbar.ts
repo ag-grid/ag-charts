@@ -23,6 +23,14 @@ const BUTTON_GROUP = 'seriesType';
 const BUTTON_VALUE = 'type';
 
 export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+    @_ModuleSupport.Validate(_ModuleSupport.BOOLEAN)
+    @_ModuleSupport.ActionOnSet<ChartToolbar>({
+        changeValue: function (enabled) {
+            this.enableChanged(enabled);
+        },
+    })
+    enabled: boolean = false;
+
     private readonly popover = new Popover(this.ctx);
     private anchor?: _Scene.BBox = undefined;
     private didSetInitialIcon = false;
@@ -32,16 +40,18 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
         super();
 
         const { toolbarManager } = ctx;
-
-        toolbarManager.toggleGroup('chart-toolbar', BUTTON_GROUP, { visible: true });
-
         this.destroyFns.push(
             toolbarManager.addListener('button-moved', this.toolbarButtonMoved.bind(this)),
             toolbarManager.addListener('button-pressed', this.toolbarButtonPressed.bind(this))
         );
     }
 
+    private enableChanged(enabled: boolean) {
+        this.ctx.toolbarManager.toggleGroup('chart-toolbar', BUTTON_GROUP, { visible: enabled });
+    }
+
     async processData() {
+        if (!this.enabled) return;
         if (this.didSetInitialIcon) return;
 
         const { toolbarManager } = this.ctx;
@@ -118,7 +128,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
     }
 
     private getChartType(): AgPriceVolumeChartType {
-        let chartType = (this.ctx.chartService.publicApi?.getOptions() as AgFinancialChartOptions).chartType;
+        let chartType = (this.ctx.chartService.publicApi?.getOptions() as AgFinancialChartOptions)?.chartType;
         if (chartType == null || itemConfigurations[chartType] == null) {
             chartType = 'candlestick';
         }

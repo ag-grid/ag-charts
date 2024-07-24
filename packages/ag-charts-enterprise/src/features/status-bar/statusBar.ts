@@ -402,7 +402,7 @@ export class StatusBar
     }
 
     private getChartType() {
-        let chartType = (this.ctx.chartService.publicApi?.getOptions() as AgFinancialChartOptions).chartType;
+        let chartType = (this.ctx.chartService.publicApi?.getOptions() as AgFinancialChartOptions)?.chartType;
         if (chartType == null || chartConfigurations[chartType] == null) {
             chartType = 'candlestick';
         }
