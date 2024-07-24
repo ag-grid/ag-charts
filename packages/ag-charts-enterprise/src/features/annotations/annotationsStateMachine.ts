@@ -151,6 +151,24 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             })();
         };
 
+        const textStateMachineContext = <T, U>(
+            type: AnnotationType,
+            isDatum: (value: unknown) => value is T,
+            isNode: (value: unknown) => value is U
+        ) => ({
+            ...ctx,
+            create: createDatum(type),
+            delete: () => {
+                if (this.active != null) ctx.delete(this.active);
+                this.active = ctx.select();
+            },
+            datum: getDatum<T>(isDatum),
+            node: getNode<U>(isNode),
+            showTextInput: () => {
+                if (this.active != null) ctx.showTextInput(this.active);
+            },
+        });
+
         super(States.Idle, {
             [States.Idle]: {
                 onEnter: () => {
@@ -256,45 +274,27 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 }),
 
                 // Texts
-                [AnnotationType.Text]: new TextStateMachine({
-                    ...ctx,
-                    create: createDatum<TextProperties>(AnnotationType.Text),
-                    delete: () => {
-                        if (this.active != null) ctx.delete(this.active);
-                        this.active = ctx.select();
-                    },
-                    datum: getDatum<TextProperties>(TextProperties.is),
-                    node: getNode<TextScene>(TextScene.is),
-                    showTextInput: () => {
-                        if (this.active != null) ctx.showTextInput(this.active);
-                    },
-                }),
-                [AnnotationType.Comment]: new CommentStateMachine({
-                    ...ctx,
-                    create: createDatum<CommentProperties>(AnnotationType.Comment),
-                    delete: () => {
-                        if (this.active != null) ctx.delete(this.active);
-                        this.active = ctx.select();
-                    },
-                    datum: getDatum<CommentProperties>(CommentProperties.is),
-                    node: getNode<CommentScene>(CommentScene.is),
-                    showTextInput: () => {
-                        if (this.active != null) ctx.showTextInput(this.active);
-                    },
-                }),
-                [AnnotationType.Callout]: new CalloutStateMachine({
-                    ...ctx,
-                    create: createDatum<CalloutProperties>(AnnotationType.Callout),
-                    delete: () => {
-                        if (this.active != null) ctx.delete(this.active);
-                        this.active = ctx.select();
-                    },
-                    datum: getDatum<CalloutProperties>(CalloutProperties.is),
-                    node: getNode<CalloutScene>(CalloutScene.is),
-                    showTextInput: () => {
-                        if (this.active != null) ctx.showTextInput(this.active);
-                    },
-                }),
+                [AnnotationType.Text]: new TextStateMachine(
+                    textStateMachineContext<TextProperties, TextScene>(
+                        AnnotationType.Text,
+                        TextProperties.is,
+                        TextScene.is
+                    )
+                ),
+                [AnnotationType.Comment]: new CommentStateMachine(
+                    textStateMachineContext<CommentProperties, CommentScene>(
+                        AnnotationType.Comment,
+                        CommentProperties.is,
+                        CommentScene.is
+                    )
+                ),
+                [AnnotationType.Callout]: new CalloutStateMachine(
+                    textStateMachineContext<CalloutProperties, CalloutScene>(
+                        AnnotationType.Callout,
+                        CalloutProperties.is,
+                        CalloutScene.is
+                    )
+                ),
             },
 
             [States.Dragging]: {
