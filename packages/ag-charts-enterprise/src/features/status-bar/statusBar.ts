@@ -48,7 +48,6 @@ const itemIdMap: Record<string, 'positive' | 'negative' | 'neutral' | 'altNeutra
 
 const neutralColourMap: Partial<Record<AgPriceVolumeChartType, 'neutral' | 'altNeutral'>> = {
     hlc: 'altNeutral',
-    'high-low': 'altNeutral',
 };
 
 export class StatusBar
