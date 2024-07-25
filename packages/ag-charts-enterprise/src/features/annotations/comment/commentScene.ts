@@ -132,4 +132,8 @@ export class CommentScene extends TextualPointScene<CommentProperties> {
 
         path.closePath();
     }
+
+    override containsPoint(x: number, y: number) {
+        return super.containsPoint(x, y) || this.shape.containsPoint(x, y);
+    }
 }
