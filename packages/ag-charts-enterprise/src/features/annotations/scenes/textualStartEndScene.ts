@@ -1,6 +1,6 @@
-import { _Scene, _Util } from 'ag-charts-community';
+import { type AgAnnotationHandleStyles, _Scene, _Util } from 'ag-charts-community';
 
-import { type AnnotationContext, type Coords } from '../annotationTypes';
+import { type AnnotationContext, type Coords, type LineCoords } from '../annotationTypes';
 import { convertLine, invertCoords, validateDatumPoint } from '../annotationUtils';
 import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
 import { DivariantHandle } from '../scenes/handle';
@@ -17,7 +17,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
     override activeHandle?: 'start' | 'end';
 
     public readonly labelLayout: AnchoredLayout = {
-        position: 'bottom',
+        position: 'center',
         alignment: 'left',
         placement: 'inside',
         spacing: 0,
@@ -54,9 +54,9 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
 
         this.label.opacity = datum.visible ? 1 : 0;
 
-        this.updateLabel(datum, bbox);
-        this.updateHandles(datum, coords);
-        this.updateShape(datum, bbox);
+        this.updateLabel(datum, bbox, coords);
+        this.updateHandles(datum, bbox, coords);
+        this.updateShape(datum, bbox, coords);
     }
 
     override toggleHandles(show: boolean | Partial<Record<'start' | 'end', boolean>>) {
@@ -98,7 +98,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
 
     override getAnchor() {
         const bbox = this.getCachedBBoxWithoutHandles();
-        return { x: bbox.x, y: bbox.y, position: 'above-left' as const };
+        return { x: bbox.x, y: bbox.y - 35, position: 'above-left' as const }; // TODO fix this
     }
 
     override getCursor() {
@@ -124,9 +124,9 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         return label.containsPoint(x, y);
     }
 
-    protected updateLabel(datum: Datum, bbox: _Scene.BBox) {
+    protected updateLabel(datum: Datum, bbox: _Scene.BBox, coords: LineCoords) {
         const { labelLayout } = this;
-        const { x, y } = this.getCoordsFromAnchoredLayout(labelLayout, bbox);
+        const { x, y } = this.getLabelCoords(datum, bbox, coords);
 
         this.label.x = x;
         this.label.y = y;
@@ -141,25 +141,50 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         this.label.textAlign = labelLayout.alignment;
     }
 
-    protected updateHandles(datum: Datum, coords: { x1: number; y1: number; x2: number; y2: number }) {
-        const { x1, y1, x2, y2 } = coords;
-
-        const styles = {
-            fill: datum.handle.fill,
-            stroke: datum.handle.stroke ?? datum.color,
-            strokeOpacity: datum.handle.strokeOpacity,
-            strokeWidth: datum.handle.strokeWidth,
-        };
-
-        this.start.update({ ...styles, x: x1, y: y1 });
-        this.end.update({ ...styles, x: x2, y: y2 });
+    protected updateHandles(datum: Datum, bbox: _Scene.BBox, coords: LineCoords) {
+        this.start.update({
+            ...this.getHandleStyles(datum, 'start'),
+            ...this.getHandleCoords(datum, bbox, coords, 'start'),
+        });
+        this.end.update({
+            ...this.getHandleStyles(datum, 'end'),
+            ...this.getHandleCoords(datum, bbox, coords, 'end'),
+        });
 
         this.start.toggleLocked(datum.locked ?? false);
         this.end.toggleLocked(datum.locked ?? false);
     }
 
-    protected updateShape(_datum: Datum, _textBBox: _Scene.BBox) {
+    protected updateShape(_datum: Datum, _textBBox: _Scene.BBox, _coords: LineCoords) {
         // Shapes should be implemented by the extending annotation type class
+    }
+
+    protected getLabelCoords(_datum: Datum, _bbox: _Scene.BBox, coords: LineCoords): _Util.Vec2 {
+        return {
+            x: coords.x2,
+            y: coords.y2,
+        };
+    }
+
+    protected getHandleCoords(
+        _datum: Datum,
+        _bbox: _Scene.BBox,
+        coords: LineCoords,
+        handle: 'start' | 'end'
+    ): _Util.Vec2 {
+        return {
+            x: handle === 'start' ? coords.x1 : coords.x2,
+            y: handle === 'start' ? coords.y1 : coords.y2,
+        };
+    }
+
+    protected getHandleStyles(datum: Datum, _handle: 'start' | 'end'): AgAnnotationHandleStyles {
+        return {
+            fill: datum.handle.fill,
+            stroke: datum.handle.stroke ?? datum.color,
+            strokeOpacity: datum.handle.strokeOpacity,
+            strokeWidth: datum.handle.strokeWidth,
+        };
     }
 
     protected getCoordsFromAnchoredLayout(layout: AnchoredLayout, bbox: _Scene.BBox) {
