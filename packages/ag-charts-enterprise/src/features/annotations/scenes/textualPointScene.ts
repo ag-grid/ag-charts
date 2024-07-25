@@ -153,7 +153,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
     protected updateAnchor(_datum: Datum, bbox: _Scene.BBox, context: AnnotationContext) {
         return {
             x: bbox.x + context.seriesRect.x,
-            y: bbox.y - context.seriesRect.y,
+            y: bbox.y + context.seriesRect.y - bbox.height,
             position: this.anchor.position,
         };
     }
