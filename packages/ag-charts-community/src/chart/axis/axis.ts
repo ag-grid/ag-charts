@@ -1153,7 +1153,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
 
         // Clamps the min spacing between ticks to a sensible datum spacing.
-        const minRectDistance = 20;
+        const minRectDistance = 2;
         clampMaxTickCount &&= minRectDistance < defaultMinSpacing;
 
         // TODO: Remove clamping to hardcoded 100 max tick count, this is a temp fix for zooming
