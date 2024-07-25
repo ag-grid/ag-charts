@@ -64,14 +64,6 @@ export abstract class TextualStartEndStateMachine<
                 },
                 cancel: StateMachine.parent,
             },
-            end: {
-                hover: onEndHover,
-                click: {
-                    target: 'edit',
-                    action: onEndClick,
-                },
-                cancel: StateMachine.parent,
-            },
             'waiting-first-render': {
                 render: {
                     target: 'end',
@@ -80,6 +72,14 @@ export abstract class TextualStartEndStateMachine<
                         ctx.showAnnotationOptions();
                     },
                 },
+            },
+            end: {
+                hover: onEndHover,
+                click: {
+                    target: 'edit',
+                    action: onEndClick,
+                },
+                cancel: StateMachine.parent,
             },
             edit: {
                 onEnter: () => {
@@ -105,10 +105,6 @@ export abstract class TextualStartEndStateMachine<
                     {
                         guard: ({ key, shiftKey }: { key: string; shiftKey: boolean }) => !shiftKey && key === 'Enter',
                         target: StateMachine.parent,
-                        action: onSave,
-                    },
-                    {
-                        target: 'edit',
                         action: onSave,
                     },
                 ],
