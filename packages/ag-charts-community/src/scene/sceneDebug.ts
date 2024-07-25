@@ -1,6 +1,6 @@
 import { Debug } from '../util/debug';
 import { Logger } from '../util/logger';
-import { TextMeasurer } from '../util/textMeasurer';
+import { SimpleTextMeasurer } from '../util/textMeasurer';
 import { isString } from '../util/type-guards';
 import { Group } from './group';
 import type { LayersManager } from './layersManager';
@@ -46,7 +46,8 @@ export function debugStats(
         `Layers: ${detailedStats ? pct(layersRendered, layersSkipped) : layersManager.size}`,
         detailedStats ? `Nodes: ${pct(nodesRendered, nodesSkipped)}` : null,
     ].filter(isString);
-    const statsSize = new Map(stats.map((t) => [t, TextMeasurer.measureText(t, ctx)]));
+    const measurer = new SimpleTextMeasurer((t) => ctx.measureText(t));
+    const statsSize = new Map(stats.map((t) => [t, measurer.measureLines(t)]));
     const width = Math.max(...Array.from(statsSize.values(), (s) => s.width));
     const height = accumulate(statsSize.values(), (s) => s.height);
 

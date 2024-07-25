@@ -1,6 +1,6 @@
 import * as fromToMotion from './motion/fromToMotion';
 import * as resetMotion from './motion/resetMotion';
-import { TextMeasurer } from './util/textMeasurer';
+import { TextUtils } from './util/textMeasurer';
 
 export { Caption } from './chart/caption';
 export { DropShadow } from './scene/dropShadow';
@@ -50,4 +50,4 @@ export * as easing from './motion/easing';
 const motion = { ...fromToMotion, ...resetMotion };
 export { motion };
 export type { NodeUpdateState, FromToMotionPropFn } from './motion/fromToMotion';
-export const getFont = TextMeasurer.toFontString;
+export const getFont = TextUtils.toFontString;

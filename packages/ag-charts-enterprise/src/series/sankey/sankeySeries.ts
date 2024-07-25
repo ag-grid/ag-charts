@@ -18,7 +18,8 @@ import {
     SankeySeriesProperties,
 } from './sankeySeriesProperties';
 
-const { SeriesNodePickMode, TextMeasurer, TextWrapper, createDatumId, EMPTY_TOOLTIP_CONTENT } = _ModuleSupport;
+const { SeriesNodePickMode, CachedTextMeasurerPool, TextWrapper, createDatumId, EMPTY_TOOLTIP_CONTENT } =
+    _ModuleSupport;
 const { sanitizeHtml } = _Util;
 const { Rect, Text, BBox } = _Scene;
 
@@ -301,7 +302,7 @@ export class SankeySeries extends FlowProportionSeries<
                 }
                 if (text === '') return;
 
-                const { height } = TextMeasurer.measureText(text, {
+                const { height } = CachedTextMeasurerPool.measureText(text, {
                     font: canvasFont,
                     textAlign: 'left',
                     textBaseline: 'middle',

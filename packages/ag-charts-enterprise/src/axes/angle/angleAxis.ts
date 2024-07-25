@@ -3,7 +3,8 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { AngleCrossLine } from '../polar-crosslines/angleCrossLine';
 
-const { AND, ChartAxisDirection, GREATER_THAN, NUMBER, UNION, ProxyOnWrite, TextWrapper, Validate } = _ModuleSupport;
+const { AND, ChartAxisDirection, GREATER_THAN, NUMBER, UNION, ProxyOnWrite, TextWrapper, TextUtils, Validate } =
+    _ModuleSupport;
 const { Path, Text } = _Scene;
 const { angleBetween, isNumberEqual, toRadians, normalizeAngle360 } = _Util;
 
@@ -315,7 +316,7 @@ export abstract class AngleAxis<
                 if (overflowLeft > pixelError || overflowRight > pixelError) {
                     const availWidth = box.width - Math.max(overflowLeft, overflowRight);
                     text = TextWrapper.wrapText(text, { maxWidth: availWidth, font: label, textWrap: 'never' });
-                    if (text === TextWrapper.EllipsisChar) {
+                    if (text === TextUtils.EllipsisChar) {
                         text = '';
                     }
                     tempText.text = text;

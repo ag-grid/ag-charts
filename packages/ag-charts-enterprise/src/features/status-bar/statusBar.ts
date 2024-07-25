@@ -1,6 +1,6 @@
 import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport, _Scene } from 'ag-charts-community';
 
-const { TextMeasurer, Validate, OBJECT, BOOLEAN, STRING, valueProperty } = _ModuleSupport;
+const { CachedTextMeasurerPool, Validate, OBJECT, BOOLEAN, STRING, valueProperty } = _ModuleSupport;
 const { Label, Text, Group } = _Scene;
 
 enum LabelConfiguration {
@@ -306,22 +306,22 @@ export class StatusBar
             }
 
             const maxValueWidth = Math.max(
-                TextMeasurer.measureText(formatter.format(domain[0]), {
+                CachedTextMeasurerPool.measureText(formatter.format(domain[0]), {
                     font: this.positive.getFont(),
                     textBaseline: textVAlign,
                     textAlign: 'left',
                 }).width,
-                TextMeasurer.measureText(formatter.format(domain[1]), {
+                CachedTextMeasurerPool.measureText(formatter.format(domain[1]), {
                     font: this.positive.getFont(),
                     textBaseline: textVAlign,
                     textAlign: 'left',
                 }).width,
-                TextMeasurer.measureText(formatter.format(domain[0]), {
+                CachedTextMeasurerPool.measureText(formatter.format(domain[0]), {
                     font: this.negative.getFont(),
                     textBaseline: textVAlign,
                     textAlign: 'left',
                 }).width,
-                TextMeasurer.measureText(formatter.format(domain[1]), {
+                CachedTextMeasurerPool.measureText(formatter.format(domain[1]), {
                     font: this.negative.getFont(),
                     textBaseline: textVAlign,
                     textAlign: 'left',
@@ -331,7 +331,7 @@ export class StatusBar
             title.visible = true;
             value.visible = true;
 
-            const titleMetrics = TextMeasurer.measureText(label, {
+            const titleMetrics = CachedTextMeasurerPool.measureText(label, {
                 font: this.title.getFont(),
                 textBaseline: textVAlign,
                 textAlign: 'left',
