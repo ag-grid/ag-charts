@@ -204,10 +204,16 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.toggleVisibilities();
     }
 
-    private onGroupButtonsChanged(group: ToolbarGroup, buttons?: ButtonConfiguration[]) {
+    private onGroupButtonsChanged(group: ToolbarGroup, buttons: ButtonConfiguration[], configurationOnly: boolean) {
         if (!this.enabled || this.groupProxied.has(group)) return;
 
-        this.createGroupButtons(group, buttons);
+        if (configurationOnly) {
+            for (const buttonOptions of this[group].buttonConfigurations()) {
+                this.refreshButtonContent(group, buttonOptions);
+            }
+        } else {
+            this.createGroupButtons(group, buttons);
+        }
         this.toggleVisibilities();
     }
 

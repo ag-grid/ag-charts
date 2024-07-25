@@ -58,7 +58,7 @@ export class ToolbarGroupProperties extends BaseProperties {
             //     Logger.warnOnce(`Buttons with non-primitive values must specify an id.`);
             // }
         }
-        target.buttonsChanged();
+        target.buttonsChanged(false);
     })
     @Validate(ARRAY, { optional: true })
     protected buttons?: ButtonConfiguration[];
@@ -66,8 +66,8 @@ export class ToolbarGroupProperties extends BaseProperties {
     private readonly buttonOverrides = new Map<any, Omit<ButtonConfiguration, 'value'>>();
 
     constructor(
-        private readonly onChange: (enabled?: boolean) => void,
-        private readonly onButtonsChange: (buttons?: ButtonConfiguration[]) => void
+        private readonly onChange: (enabled: boolean | undefined) => void,
+        private readonly onButtonsChange: (buttons: ButtonConfiguration[], configurationOnly: boolean) => void
     ) {
         super();
     }
@@ -82,8 +82,8 @@ export class ToolbarGroupProperties extends BaseProperties {
         );
     }
 
-    private buttonsChanged() {
-        this.onButtonsChange(this.buttonConfigurations());
+    private buttonsChanged(configurationOnly: boolean) {
+        this.onButtonsChange(this.buttonConfigurations(), configurationOnly);
     }
 
     overrideButtonConfiguration(id: string, options: Omit<ButtonConfiguration, 'value'>) {
@@ -102,6 +102,6 @@ export class ToolbarGroupProperties extends BaseProperties {
             }
         }
 
-        this.buttonsChanged();
+        this.buttonsChanged(true);
     }
 }
