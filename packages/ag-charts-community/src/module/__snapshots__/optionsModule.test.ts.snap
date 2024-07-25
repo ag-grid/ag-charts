@@ -454,6 +454,12 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           "value": "comment",
         },
         {
+          "icon": "callout-annotation",
+          "section": "annotations",
+          "tooltip": "callout",
+          "value": "callout",
+        },
+        {
           "icon": "delete",
           "section": "tools",
           "tooltip": "toolbarAnnotationsClearAll",
@@ -1048,6 +1054,12 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
           "section": "annotations",
           "tooltip": "comment",
           "value": "comment",
+        },
+        {
+          "icon": "callout-annotation",
+          "section": "annotations",
+          "tooltip": "callout",
+          "value": "callout",
         },
         {
           "icon": "delete",
@@ -1794,6 +1806,12 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "value": "comment",
         },
         {
+          "icon": "callout-annotation",
+          "section": "annotations",
+          "tooltip": "callout",
+          "value": "callout",
+        },
+        {
           "icon": "delete",
           "section": "tools",
           "tooltip": "toolbarAnnotationsClearAll",
@@ -2533,6 +2551,12 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
           "value": "comment",
         },
         {
+          "icon": "callout-annotation",
+          "section": "annotations",
+          "tooltip": "callout",
+          "value": "callout",
+        },
+        {
           "icon": "delete",
           "section": "tools",
           "tooltip": "toolbarAnnotationsClearAll",
@@ -2965,6 +2989,12 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
           "section": "annotations",
           "tooltip": "comment",
           "value": "comment",
+        },
+        {
+          "icon": "callout-annotation",
+          "section": "annotations",
+          "tooltip": "callout",
+          "value": "callout",
         },
         {
           "icon": "delete",
@@ -3548,6 +3578,12 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           "section": "annotations",
           "tooltip": "comment",
           "value": "comment",
+        },
+        {
+          "icon": "callout-annotation",
+          "section": "annotations",
+          "tooltip": "callout",
+          "value": "callout",
         },
         {
           "icon": "delete",
@@ -4254,6 +4290,12 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
           "value": "comment",
         },
         {
+          "icon": "callout-annotation",
+          "section": "annotations",
+          "tooltip": "callout",
+          "value": "callout",
+        },
+        {
           "icon": "delete",
           "section": "tools",
           "tooltip": "toolbarAnnotationsClearAll",
@@ -4701,6 +4743,12 @@ by Occupation",
           "value": "comment",
         },
         {
+          "icon": "callout-annotation",
+          "section": "annotations",
+          "tooltip": "callout",
+          "value": "callout",
+        },
+        {
           "icon": "delete",
           "section": "tools",
           "tooltip": "toolbarAnnotationsClearAll",
@@ -5145,6 +5193,12 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
           "value": "comment",
         },
         {
+          "icon": "callout-annotation",
+          "section": "annotations",
+          "tooltip": "callout",
+          "value": "callout",
+        },
+        {
           "icon": "delete",
           "section": "tools",
           "tooltip": "toolbarAnnotationsClearAll",
@@ -5575,6 +5629,12 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
           "section": "annotations",
           "tooltip": "comment",
           "value": "comment",
+        },
+        {
+          "icon": "callout-annotation",
+          "section": "annotations",
+          "tooltip": "callout",
+          "value": "callout",
         },
         {
           "icon": "delete",
@@ -6009,6 +6069,12 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
           "section": "annotations",
           "tooltip": "comment",
           "value": "comment",
+        },
+        {
+          "icon": "callout-annotation",
+          "section": "annotations",
+          "tooltip": "callout",
+          "value": "callout",
         },
         {
           "icon": "delete",
@@ -6520,6 +6586,12 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
           "section": "annotations",
           "tooltip": "comment",
           "value": "comment",
+        },
+        {
+          "icon": "callout-annotation",
+          "section": "annotations",
+          "tooltip": "callout",
+          "value": "callout",
         },
         {
           "icon": "delete",
@@ -7035,6 +7107,12 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
           "section": "annotations",
           "tooltip": "comment",
           "value": "comment",
+        },
+        {
+          "icon": "callout-annotation",
+          "section": "annotations",
+          "tooltip": "callout",
+          "value": "callout",
         },
         {
           "icon": "delete",
@@ -7788,6 +7866,12 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
           "section": "annotations",
           "tooltip": "comment",
           "value": "comment",
+        },
+        {
+          "icon": "callout-annotation",
+          "section": "annotations",
+          "tooltip": "callout",
+          "value": "callout",
         },
         {
           "icon": "delete",
@@ -8967,6 +9051,12 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "value": "comment",
         },
         {
+          "icon": "callout-annotation",
+          "section": "annotations",
+          "tooltip": "callout",
+          "value": "callout",
+        },
+        {
           "icon": "delete",
           "section": "tools",
           "tooltip": "toolbarAnnotationsClearAll",
@@ -9400,6 +9490,12 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
           "section": "annotations",
           "tooltip": "comment",
           "value": "comment",
+        },
+        {
+          "icon": "callout-annotation",
+          "section": "annotations",
+          "tooltip": "callout",
+          "value": "callout",
         },
         {
           "icon": "delete",
@@ -10249,6 +10345,12 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
           "value": "comment",
         },
         {
+          "icon": "callout-annotation",
+          "section": "annotations",
+          "tooltip": "callout",
+          "value": "callout",
+        },
+        {
           "icon": "delete",
           "section": "tools",
           "tooltip": "toolbarAnnotationsClearAll",
@@ -10815,6 +10917,12 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
           "section": "annotations",
           "tooltip": "comment",
           "value": "comment",
+        },
+        {
+          "icon": "callout-annotation",
+          "section": "annotations",
+          "tooltip": "callout",
+          "value": "callout",
         },
         {
           "icon": "delete",
@@ -11524,6 +11632,12 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
           "value": "comment",
         },
         {
+          "icon": "callout-annotation",
+          "section": "annotations",
+          "tooltip": "callout",
+          "value": "callout",
+        },
+        {
           "icon": "delete",
           "section": "tools",
           "tooltip": "toolbarAnnotationsClearAll",
@@ -12140,6 +12254,12 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
           "value": "comment",
         },
         {
+          "icon": "callout-annotation",
+          "section": "annotations",
+          "tooltip": "callout",
+          "value": "callout",
+        },
+        {
           "icon": "delete",
           "section": "tools",
           "tooltip": "toolbarAnnotationsClearAll",
@@ -12578,6 +12698,12 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
           "section": "annotations",
           "tooltip": "comment",
           "value": "comment",
+        },
+        {
+          "icon": "callout-annotation",
+          "section": "annotations",
+          "tooltip": "callout",
+          "value": "callout",
         },
         {
           "icon": "delete",
@@ -13309,6 +13435,12 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
           "value": "comment",
         },
         {
+          "icon": "callout-annotation",
+          "section": "annotations",
+          "tooltip": "callout",
+          "value": "callout",
+        },
+        {
           "icon": "delete",
           "section": "tools",
           "tooltip": "toolbarAnnotationsClearAll",
@@ -13930,6 +14062,12 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
           "section": "annotations",
           "tooltip": "comment",
           "value": "comment",
+        },
+        {
+          "icon": "callout-annotation",
+          "section": "annotations",
+          "tooltip": "callout",
+          "value": "callout",
         },
         {
           "icon": "delete",
@@ -14741,6 +14879,12 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "value": "comment",
         },
         {
+          "icon": "callout-annotation",
+          "section": "annotations",
+          "tooltip": "callout",
+          "value": "callout",
+        },
+        {
           "icon": "delete",
           "section": "tools",
           "tooltip": "toolbarAnnotationsClearAll",
@@ -15335,6 +15479,12 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
           "section": "annotations",
           "tooltip": "comment",
           "value": "comment",
+        },
+        {
+          "icon": "callout-annotation",
+          "section": "annotations",
+          "tooltip": "callout",
+          "value": "callout",
         },
         {
           "icon": "delete",
@@ -16000,6 +16150,12 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
           "section": "annotations",
           "tooltip": "comment",
           "value": "comment",
+        },
+        {
+          "icon": "callout-annotation",
+          "section": "annotations",
+          "tooltip": "callout",
+          "value": "callout",
         },
         {
           "icon": "delete",
