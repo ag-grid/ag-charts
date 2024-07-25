@@ -6,6 +6,7 @@ import type { TextualPointProperties } from '../properties/textualPointPropertie
 import { AnnotationScene } from './annotationScene';
 import { DivariantHandle } from './handle';
 
+const { CachedTextMeasurerPool } = _ModuleSupport;
 const { Vec2 } = _Util;
 
 export abstract class TextualPointScene<Datum extends TextualPointProperties> extends AnnotationScene {
@@ -107,7 +108,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
             return new _Scene.BBox(point.x, point.y, textInputBBox.width, textInputBBox.height);
         }
 
-        const { lineMetrics, width } = _ModuleSupport.TextMeasurer.measureLines(datum.text, {
+        const { lineMetrics, width } = CachedTextMeasurerPool.measureLines(datum.text, {
             font: {
                 fontFamily: datum.fontFamily,
                 fontSize: datum.fontSize,

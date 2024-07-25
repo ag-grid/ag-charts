@@ -6,7 +6,7 @@ import type { TextualStartEndProperties } from '../properties/textualStartEndPro
 import { DivariantHandle } from '../scenes/handle';
 import { LinearScene } from '../scenes/linearScene';
 
-const { TextMeasurer } = _ModuleSupport;
+const { CachedTextMeasurerPool } = _ModuleSupport;
 const { BBox } = _Scene;
 
 export abstract class TextualStartEndScene<Datum extends TextualStartEndProperties> extends LinearScene<Datum> {
@@ -54,7 +54,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
             return new BBox(x2, y2, textInputBBox.width, textInputBBox.height);
         }
 
-        const { lineMetrics, width } = TextMeasurer.measureLines(datum.text, {
+        const { lineMetrics, width } = CachedTextMeasurerPool.measureLines(datum.text, {
             font: {
                 fontFamily: datum.fontFamily,
                 fontSize: datum.fontSize,
