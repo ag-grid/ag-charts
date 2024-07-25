@@ -26,10 +26,13 @@ export function setupMockConsole(debugShowOutput?: boolean) {
     });
 
     afterEach(() => {
-        expect(errorMock).not.toHaveBeenCalled();
-        expect(warnMock).not.toHaveBeenCalled();
-        errorMock.mockClear();
-        warnMock.mockClear();
+        try {
+            expect(errorMock).not.toHaveBeenCalled();
+            expect(warnMock).not.toHaveBeenCalled();
+        } finally {
+            errorMock.mockClear();
+            warnMock.mockClear();
+        }
     });
 
     afterAll(() => {
