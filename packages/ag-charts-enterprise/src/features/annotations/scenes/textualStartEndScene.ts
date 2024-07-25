@@ -9,29 +9,8 @@ import { LinearScene } from '../scenes/linearScene';
 const { TextMeasurer } = _ModuleSupport;
 const { BBox } = _Scene;
 
-interface AnchoredLayout {
-    alignment: 'left' | 'center' | 'right';
-    placement: 'inside' | 'outside';
-    position: 'top' | 'center' | 'bottom';
-    spacing: number | _Util.Vec2;
-}
-
 export abstract class TextualStartEndScene<Datum extends TextualStartEndProperties> extends LinearScene<Datum> {
     override activeHandle?: 'start' | 'end';
-
-    public readonly labelLayout: AnchoredLayout = {
-        position: 'center',
-        alignment: 'left',
-        placement: 'inside',
-        spacing: 0,
-    };
-
-    public readonly handleLayout: AnchoredLayout = {
-        position: 'bottom',
-        alignment: 'left',
-        placement: 'outside',
-        spacing: 0,
-    };
 
     protected readonly label = new _Scene.Text({ zIndex: 1 });
     protected readonly start = new DivariantHandle();
@@ -155,12 +134,11 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
     }
 
     protected updateLabel(datum: Datum, bbox: _Scene.BBox, coords: LineCoords) {
-        const { labelLayout } = this;
         const { x, y } = this.getLabelCoords(datum, bbox, coords);
 
         this.label.x = x;
         this.label.y = y;
-        this.label.textBaseline = labelLayout.position == 'center' ? 'middle' : labelLayout.position;
+        this.label.textBaseline = datum.position == 'center' ? 'middle' : datum.position;
 
         this.label.text = datum.text;
         this.label.fill = datum.color;
@@ -168,7 +146,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         this.label.fontSize = datum.fontSize;
         this.label.fontStyle = datum.fontStyle;
         this.label.fontWeight = datum.fontWeight;
-        this.label.textAlign = labelLayout.alignment;
+        this.label.textAlign = datum.alignment;
     }
 
     protected updateHandles(datum: Datum, bbox: _Scene.BBox, coords: LineCoords) {
@@ -223,42 +201,5 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
             strokeOpacity: datum.handle.strokeOpacity,
             strokeWidth: datum.handle.strokeWidth,
         };
-    }
-
-    protected getCoordsFromAnchoredLayout(layout: AnchoredLayout, bbox: _Scene.BBox) {
-        const { alignment, placement, position, spacing } = layout;
-
-        let x = bbox.x;
-        let y = bbox.y;
-
-        const placementModifier = placement === 'inside' ? 1 : -1;
-        const spacingX = (typeof spacing === 'object' ? spacing.x : spacing) * placementModifier;
-        const spacingY = (typeof spacing === 'object' ? spacing.y : spacing) * placementModifier;
-
-        switch (alignment) {
-            case 'left':
-                x = bbox.x + spacingX;
-                break;
-            case 'center':
-                x = bbox.x + bbox.width / 2;
-                break;
-            case 'right':
-                x = bbox.x + bbox.width - spacingX;
-                break;
-        }
-
-        switch (position) {
-            case 'top':
-                y = bbox.y + spacingY;
-                break;
-            case 'center':
-                y = bbox.y + bbox.height / 2;
-                break;
-            case 'bottom':
-                y = bbox.y + bbox.height - spacingY;
-                break;
-        }
-
-        return { x, y };
     }
 }
