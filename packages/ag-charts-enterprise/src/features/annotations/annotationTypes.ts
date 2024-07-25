@@ -28,7 +28,7 @@ export const ANNOTATION_BUTTONS = [
     AnnotationType.ParallelChannel,
 
     // Texts
-    // AnnotationType.Callout,
+    AnnotationType.Callout,
     AnnotationType.Comment,
     // AnnotationType.Note,
     AnnotationType.Text,
@@ -50,6 +50,13 @@ export interface LineCoords {
     y1: number;
     x2: number;
     y2: number;
+}
+
+export interface Bounds {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
 }
 
 export interface Point {

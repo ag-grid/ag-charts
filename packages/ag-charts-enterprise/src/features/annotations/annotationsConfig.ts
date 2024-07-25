@@ -1,7 +1,7 @@
 import type { _Util } from 'ag-charts-community';
 
 import { type AnnotationContext, AnnotationType } from './annotationTypes';
-import type { AnnotationProperties } from './annotationsSuperTypes';
+import type { AnnotationProperties, AnnotationScene } from './annotationsSuperTypes';
 import { CalloutProperties } from './callout/calloutProperties';
 import { CalloutScene } from './callout/calloutScene';
 import { CommentProperties } from './comment/commentProperties';
@@ -16,7 +16,6 @@ import { NoteProperties } from './note/noteProperties';
 import { NoteScene } from './note/noteScene';
 import { ParallelChannelProperties } from './parallel-channel/parallelChannelProperties';
 import { ParallelChannelScene } from './parallel-channel/parallelChannelScene';
-import type { AnnotationScene } from './scenes/annotationScene';
 import { TextProperties } from './text/textProperties';
 import { TextScene } from './text/textScene';
 

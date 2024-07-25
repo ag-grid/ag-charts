@@ -17,9 +17,8 @@ import {
     updateAnnotation,
 } from './annotationsConfig';
 import { AnnotationsStateMachine } from './annotationsStateMachine';
-import type { AnnotationProperties } from './annotationsSuperTypes';
+import type { AnnotationProperties, AnnotationScene } from './annotationsSuperTypes';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
-import type { AnnotationScene } from './scenes/annotationScene';
 
 const {
     BOOLEAN,
@@ -239,7 +238,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
             showTextInput: (active: number) => {
                 const datum = getTypedDatum(this.annotationData.at(active));
-                if (!datum || !('getTextBBox' in datum)) return;
+                if (!datum || !('getTextInputCoords' in datum)) return;
 
                 const styles = {
                     color: datum.color,
@@ -249,16 +248,21 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     fontWeight: datum.fontWeight,
                 };
 
-                this.textInput.show({ styles, text: datum.text });
+                this.textInput.show({
+                    styles,
+                    text: datum.text,
+                    onChange: (_text, bbox) => {
+                        this.state.transition('textInput', { bbox });
+                    },
+                });
 
-                const bbox = datum.getTextBBox(this.getAnnotationContext()!);
-                const coords = Vec2.add(bbox, Vec2.required(this.seriesRect));
-
-                bbox.x = coords.x;
-                bbox.y = coords.y;
+                const point = Vec2.add(
+                    datum.getTextInputCoords(this.getAnnotationContext()!),
+                    Vec2.required(this.seriesRect)
+                );
 
                 this.textInput.setLayout({
-                    bbox,
+                    point,
                     position: datum.position,
                     alignment: datum.alignment,
                 });
@@ -703,11 +707,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const context = this.getAnnotationContext();
         if (!context) return;
 
-        const { key } = event.sourceEvent;
+        const { key, shiftKey } = event.sourceEvent;
         const textInputValue = this.textInput.getValue();
 
         // TODO: Use `event.sourceEvent.shiftKey`, @see AG-12164
-        state.transition('keyDown', { key, shiftKey: false, textInputValue });
+        state.transition('keyDown', { key, shiftKey, textInputValue });
     }
 
     private toggleAnnotationOptionsButtons() {

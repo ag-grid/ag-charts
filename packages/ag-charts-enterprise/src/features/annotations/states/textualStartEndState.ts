@@ -2,13 +2,15 @@ import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import type { Point } from '../annotationTypes';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
-import type { TextualProperties } from '../properties/textualProperties';
-import type { TextualScene } from '../scenes/textualScene';
+import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
+import type { TextualStartEndScene } from '../scenes/textualStartEndScene';
 
 const { StateMachine } = _ModuleSupport;
 
-interface TextualStateMachineContext<Datum extends TextualProperties, Node extends TextualScene<Datum>>
-    extends Omit<AnnotationsStateMachineContext, 'create' | 'delete' | 'datum' | 'node' | 'showTextInput'> {
+interface TextualStartEndStateMachineContext<
+    Datum extends TextualStartEndProperties,
+    Node extends TextualStartEndScene<Datum>,
+> extends Omit<AnnotationsStateMachineContext, 'create' | 'delete' | 'datum' | 'node' | 'showTextInput'> {
     create: (datum: Datum) => void;
     delete: () => void;
     datum: () => Datum | undefined;
@@ -16,18 +18,33 @@ interface TextualStateMachineContext<Datum extends TextualProperties, Node exten
     showTextInput: () => void;
 }
 
-export abstract class TextualStateMachine<
-    Datum extends TextualProperties,
-    Node extends TextualScene<Datum>,
-> extends StateMachine<'start' | 'waiting-first-render' | 'edit', 'click' | 'cancel' | 'keyDown' | 'render'> {
+export abstract class TextualStartEndStateMachine<
+    Datum extends TextualStartEndProperties,
+    Node extends TextualStartEndScene<Datum>,
+> extends StateMachine<
+    'start' | 'waiting-first-render' | 'edit' | 'end',
+    'click' | 'cancel' | 'hover' | 'keyDown' | 'textInput' | 'render'
+> {
     override debug = _Util.Debug.create(true, 'annotations');
 
-    constructor(ctx: TextualStateMachineContext<Datum, Node>) {
-        const onClick = ({ point }: { point: Point }) => {
+    constructor(ctx: TextualStartEndStateMachineContext<Datum, Node>) {
+        const onStartClick = ({ point }: { point: Point }) => {
             const datum = this.createDatum();
-            datum.set({ x: point.x, y: point.y, text: '' });
+            datum.set({ start: point, end: point, text: '' });
             ctx.create(datum);
             ctx.resetToolbarButtonStates();
+        };
+
+        const onEndHover = ({ point }: { point: Point }) => {
+            ctx.datum()?.set({ end: point });
+            ctx.node()?.toggleActive(true);
+            ctx.node()?.toggleHandles({ end: false });
+            ctx.update();
+        };
+
+        const onEndClick = ({ point }: { point: Point }) => {
+            ctx.datum()?.set({ end: point });
+            ctx.node()?.toggleHandles({ end: true });
         };
 
         const onSave = ({ textInputValue }: { textInputValue?: string }) => {
@@ -43,18 +60,26 @@ export abstract class TextualStateMachine<
             start: {
                 click: {
                     target: 'waiting-first-render',
-                    action: onClick,
+                    action: onStartClick,
                 },
                 cancel: StateMachine.parent,
             },
             'waiting-first-render': {
                 render: {
-                    target: 'edit',
+                    target: 'end',
                     action: () => {
                         ctx.node()?.toggleActive(true);
                         ctx.showAnnotationOptions();
                     },
                 },
+            },
+            end: {
+                hover: onEndHover,
+                click: {
+                    target: 'edit',
+                    action: onEndClick,
+                },
+                cancel: StateMachine.parent,
             },
             edit: {
                 onEnter: () => {
@@ -63,6 +88,11 @@ export abstract class TextualStateMachine<
                     if (datum) {
                         datum.visible = false;
                     }
+                },
+                textInput: ({ bbox }) => {
+                    const node = ctx.node();
+                    node?.setTextInputBBox(bbox);
+                    ctx.update();
                 },
                 keyDown: [
                     {
@@ -75,10 +105,6 @@ export abstract class TextualStateMachine<
                     {
                         guard: ({ key, shiftKey }: { key: string; shiftKey: boolean }) => !shiftKey && key === 'Enter',
                         target: StateMachine.parent,
-                        action: onSave,
-                    },
-                    {
-                        target: 'edit',
                         action: onSave,
                     },
                 ],
