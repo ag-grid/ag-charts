@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { Annotation, Font, Handle, Label, Point } from '../annotationProperties';
 import { type AnnotationContext } from '../annotationTypes';

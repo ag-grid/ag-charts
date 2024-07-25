@@ -9,7 +9,7 @@ import { DivariantHandle } from './handle';
 const { Vec2 } = _Util;
 
 export abstract class TextualPointScene<Datum extends TextualPointProperties> extends AnnotationScene {
-    override activeHandle?: string | undefined;
+    override activeHandle?: string;
 
     protected readonly label = new _Scene.Text({ zIndex: 1 });
     protected readonly handle = new DivariantHandle();
