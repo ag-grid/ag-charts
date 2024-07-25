@@ -12,7 +12,7 @@ import type {
     TextWrap,
 } from 'ag-charts-types';
 
-const { TextMeasurer, TextWrapper, findMaxValue } = _ModuleSupport;
+const { CachedTextMeasurerPool, TextUtils, TextWrapper, findMaxValue } = _ModuleSupport;
 const { Logger } = _Util;
 
 interface AutoSizedBaseLabelOptions extends AgChartAutoSizedBaseLabelOptions<unknown, any> {
@@ -164,8 +164,8 @@ export function formatStackedLabels<Meta>(
     return findMaxValue<StackedLabelFormatting<Meta>>(0, fontSizeCandidates.length - 1, (index) => {
         const { labelFontSize, secondaryLabelFontSize } = fontSizeCandidates[index];
         const allowTruncation = index === 0;
-        const labelLineHeight = TextMeasurer.getLineHeight(labelFontSize);
-        const secondaryLabelLineHeight = TextMeasurer.getLineHeight(secondaryLabelFontSize);
+        const labelLineHeight = TextUtils.getLineHeight(labelFontSize);
+        const secondaryLabelLineHeight = TextUtils.getLineHeight(secondaryLabelFontSize);
         const sizeFitting = sizeFittingHeight(
             labelLineHeight + secondaryLabelLineHeight + heightAdjust,
             allowTruncation
@@ -234,7 +234,7 @@ export function formatSingleLabel<Meta>(
     };
 
     return findMaxValue<[LabelFormatting, Meta]>(minimumFontSize, props.fontSize, (fontSize) => {
-        const lineHeight = TextMeasurer.getLineHeight(fontSize);
+        const lineHeight = TextUtils.getLineHeight(fontSize);
         const allowTruncation = fontSize === minimumFontSize;
         const sizeFitting = sizeFittingHeight(lineHeight + sizeAdjust, allowTruncation);
         const availableWidth = sizeFitting.width - sizeAdjust;
@@ -349,8 +349,8 @@ function wrapLabel(
 
     if (!lines.length) return;
 
-    const lineHeight = TextMeasurer.getLineHeight(font.fontSize);
-    const { width } = TextMeasurer.measureLines(lines, { font });
+    const lineHeight = TextUtils.getLineHeight(font.fontSize);
+    const { width } = CachedTextMeasurerPool.measureLines(lines, { font });
 
     return {
         width,
@@ -363,7 +363,7 @@ function wrapLabel(
 
 function clipLines(
     lines: string[],
-    { font, lineHeight = TextWrapper.defaultLineHeight, maxWidth, maxHeight = Infinity }: WrapOptions
+    { font, lineHeight = TextUtils.defaultLineHeight, maxWidth, maxHeight = Infinity }: WrapOptions
 ) {
     let height = lineHeight * lines.length;
     while (height > maxHeight) {
@@ -373,7 +373,7 @@ function clipLines(
         height = lineHeight * lines.length;
     }
 
-    const metrics = TextMeasurer.measureLines(lines, { font });
+    const metrics = CachedTextMeasurerPool.measureLines(lines, { font });
 
     let text: string, width: number;
     if (metrics.width > maxWidth) {

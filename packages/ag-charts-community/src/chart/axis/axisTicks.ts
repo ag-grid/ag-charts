@@ -9,7 +9,7 @@ import { Text } from '../../scene/shape/text';
 import { createId } from '../../util/id';
 import { countFractionDigits, findMinMax, findRangeExtent, round } from '../../util/number';
 import { createIdsGenerator } from '../../util/tempUtils';
-import { TextMeasurer } from '../../util/textMeasurer';
+import { CachedTextMeasurerPool } from '../../util/textMeasurer';
 import { estimateTickCount } from '../../util/ticks';
 import { isNumber } from '../../util/type-guards';
 import { Layers } from '../layers';
@@ -165,7 +165,7 @@ export class AxisTicks {
         const tickData = this.getTicksData();
 
         if (this.position === 'bottom' || this.position === 'top') {
-            const measurer = TextMeasurer.getFontMeasurer({ font: this.label });
+            const measurer = CachedTextMeasurerPool.getMeasurer({ font: this.label });
 
             let lastTickPosition = -Infinity;
             tickData.ticks = tickData.ticks.filter((data) => {

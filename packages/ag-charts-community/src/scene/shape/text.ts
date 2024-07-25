@@ -1,6 +1,6 @@
 import type { FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-types';
 
-import { TextMeasurer } from '../../util/textMeasurer';
+import { CachedTextMeasurerPool, TextUtils } from '../../util/textMeasurer';
 import { BBox } from '../bbox';
 import type { RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
@@ -74,7 +74,7 @@ export class Text extends Shape {
 
     override computeBBox(): BBox {
         const { x, y, lines, textBaseline, textAlign } = this;
-        const { offsetTop, offsetLeft, width, height } = TextMeasurer.measureLines(lines, {
+        const { offsetTop, offsetLeft, width, height } = CachedTextMeasurerPool.measureLines(lines, {
             font: this,
             textBaseline,
             textAlign,
@@ -107,7 +107,7 @@ export class Text extends Shape {
         const { fill, stroke, strokeWidth } = this;
         const { pixelRatio } = this.layerManager.canvas;
 
-        ctx.font = TextMeasurer.toFontString(this);
+        ctx.font = TextUtils.toFontString(this);
         ctx.textAlign = this.textAlign;
         ctx.textBaseline = this.textBaseline;
 
@@ -158,8 +158,8 @@ export class Text extends Shape {
 
     private renderLines(renderCallback: (line: string, x: number, y: number) => void): void {
         const { lines, x, y } = this;
-        const lineHeight = this.lineHeight ?? TextMeasurer.getLineHeight(this.fontSize!);
-        let offsetY = (lineHeight - lineHeight * lines.length) * TextMeasurer.getVerticalModifier(this.textBaseline);
+        const lineHeight = this.lineHeight ?? TextUtils.getLineHeight(this.fontSize!);
+        let offsetY = (lineHeight - lineHeight * lines.length) * TextUtils.getVerticalModifier(this.textBaseline);
 
         for (const line of lines) {
             renderCallback(line, x, y + offsetY);

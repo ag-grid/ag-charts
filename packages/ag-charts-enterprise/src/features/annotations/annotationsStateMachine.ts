@@ -216,6 +216,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                         if (!datum) return;
 
                         if (isTextType(datum)) {
+                            // @ts-ignore TS bug
                             datum.fontSize = fontSize;
                         }
 

@@ -7,7 +7,7 @@ import { joinFunctions } from '../util/function';
 import { createId } from '../util/id';
 import { BaseProperties } from '../util/properties';
 import { ProxyPropertyOnWrite } from '../util/proxy';
-import { TextMeasurer } from '../util/textMeasurer';
+import { TextUtils } from '../util/textMeasurer';
 import { TextWrapper } from '../util/textWrapper';
 import {
     BOOLEAN,
@@ -111,7 +111,7 @@ export class Caption extends BaseProperties implements CaptionLike {
         }
         const wrappedText = TextWrapper.wrapText(text ?? '', { maxWidth, maxHeight, font: this, textWrap: wrapping });
         this.node.text = wrappedText;
-        this.truncated = wrappedText.includes(TextMeasurer.EllipsisChar);
+        this.truncated = wrappedText.includes(TextUtils.EllipsisChar);
     }
 
     updateA11yText(proxyService: ProxyInteractionService) {
