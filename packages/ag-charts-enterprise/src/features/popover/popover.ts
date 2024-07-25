@@ -2,14 +2,12 @@ import { type AgIconName, _ModuleSupport, _Scene, _Util } from 'ag-charts-commun
 
 const { createElement } = _ModuleSupport;
 
-const moduleId = 'popover';
 const canvasOverlay = 'canvas-overlay';
 
-export interface MenuItem {
+export interface MenuItem<Value = any> {
     label: string;
+    value: Value;
     icon?: AgIconName;
-    active?: boolean;
-    onPress: () => void;
 }
 
 export class Popover extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
@@ -17,16 +15,29 @@ export class Popover extends _ModuleSupport.BaseModuleInstance implements _Modul
     private anchor?: { x: number; y: number };
     private windowMouseMoveEvent?: (e: MouseEvent) => void | undefined;
 
-    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
+    private moduleId: string;
+
+    constructor(
+        private readonly ctx: _ModuleSupport.ModuleContext,
+        id: string
+    ) {
         super();
 
-        this.element = ctx.domManager.addChild(canvasOverlay, moduleId);
+        this.moduleId = `popover-${id}`;
+
+        this.element = ctx.domManager.addChild(canvasOverlay, this.moduleId);
         this.element.role = 'presentation';
 
-        this.destroyFns.push(() => ctx.domManager.removeChild(canvasOverlay, moduleId));
+        this.destroyFns.push(() => ctx.domManager.removeChild(canvasOverlay, this.moduleId));
     }
 
-    show(opts: { items: MenuItem[]; onClose: () => void }) {
+    show<Value = any>(opts: {
+        items: MenuItem<Value>[];
+        value?: Value;
+        onPress?: (item: MenuItem<Value>) => void;
+        onClose: () => void;
+        minWidth?: number;
+    }) {
         const { domManager } = this.ctx;
         const popover = createElement('div');
         popover.setAttribute('data-pointer-capture', 'exclusive');
@@ -34,10 +45,15 @@ export class Popover extends _ModuleSupport.BaseModuleInstance implements _Modul
         popover.setAttribute('role', 'menu');
         popover.className = `ag-charts-popover`;
 
+        if (opts.minWidth != null) {
+            popover.style.minWidth = `${opts.minWidth}px`;
+        }
+
         const rows = opts.items.map((item) => {
+            const active = item.value === opts.value;
             const row = createElement('div');
             row.className = `ag-charts-popover__row`;
-            row.classList.toggle(`ag-charts-popover__row--active`, item.active === true);
+            row.classList.toggle(`ag-charts-popover__row--active`, active);
             row.setAttribute('tabindex', '0');
             popover.setAttribute('role', 'menuitem');
 
@@ -54,19 +70,22 @@ export class Popover extends _ModuleSupport.BaseModuleInstance implements _Modul
 
             const select = () => {
                 opts.onClose();
-                item.onPress();
+                opts.onPress?.(item);
             };
 
             row.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     select();
                     e.preventDefault();
+                    e.stopPropagation();
                 }
             });
 
             row.addEventListener('click', (e) => {
                 if (e.button === 0) {
                     select();
+                    e.preventDefault();
+                    e.stopPropagation();
                 }
             });
 
@@ -113,6 +132,7 @@ export class Popover extends _ModuleSupport.BaseModuleInstance implements _Modul
             }
 
             e.preventDefault();
+            e.stopPropagation();
         });
 
         const windowMouseMoveEvent = (e: MouseEvent) => {
@@ -144,7 +164,7 @@ export class Popover extends _ModuleSupport.BaseModuleInstance implements _Modul
     }
 
     isChildElement(element: HTMLElement) {
-        return this.ctx.domManager.isManagedChildDOMElement(element, canvasOverlay, moduleId);
+        return this.ctx.domManager.isManagedChildDOMElement(element, canvasOverlay, this.moduleId);
     }
 
     private updatePosition(colorPicker: HTMLElement, x: number, y: number) {
