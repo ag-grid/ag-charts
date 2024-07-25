@@ -52,6 +52,13 @@ export interface LineCoords {
     y2: number;
 }
 
+export interface Bounds {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
 export interface Point {
     x?: number | string | Date;
     y?: number;
