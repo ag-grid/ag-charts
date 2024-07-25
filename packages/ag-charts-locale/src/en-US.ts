@@ -54,7 +54,7 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     // Default text for the 'no visible series' overlay
     overlayNoVisibleSeries: 'No visible series',
     // Text for the series type toolbar's chart type button
-    toolbarSeriesTypeDropdown: 'Chart type',
+    toolbarSeriesTypeDropdown: 'Chart Type',
     // Text for the series type toolbar's OHLC chart type button
     toolbarSeriesTypeOHLC: 'OHLC',
     // Text for the series type toolbar's HLC chart type button
