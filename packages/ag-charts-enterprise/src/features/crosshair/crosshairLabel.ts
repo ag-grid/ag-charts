@@ -87,7 +87,7 @@ export class CrosshairLabel extends BaseProperties {
         }
     }
 
-    computeBBox(): _Scene.BBox {
+    getBBox(): _Scene.BBox {
         const { element } = this;
         return new _Scene.BBox(element.clientLeft, element.clientTop, element.clientWidth, element.clientHeight);
     }

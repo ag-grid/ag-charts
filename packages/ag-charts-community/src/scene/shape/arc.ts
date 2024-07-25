@@ -77,7 +77,7 @@ export class Arc extends Path {
         }
     }
 
-    override computeBBox(): BBox {
+    protected override computeBBox(): BBox {
         // Only works with full arcs (circles) and untransformed ellipses.
         return new BBox(this.centerX - this.radius, this.centerY - this.radius, this.radius * 2, this.radius * 2);
     }

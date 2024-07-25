@@ -72,7 +72,7 @@ export class Text extends Shape {
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     lineHeight?: number;
 
-    override computeBBox(): BBox {
+    protected override computeBBox(): BBox {
         const { x, y, lines, textBaseline, textAlign } = this;
         const { offsetTop, offsetLeft, width, height } = CachedTextMeasurerPool.measureLines(lines, {
             font: this,

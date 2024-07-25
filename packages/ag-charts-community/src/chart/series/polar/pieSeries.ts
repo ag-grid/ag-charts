@@ -628,7 +628,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
         if (title) {
             const dy = this.getTitleTranslationY();
-            const titleBox = title.node.computeBBox();
+            const titleBox = title.node.getBBox();
             title.node.visible =
                 title.enabled && isFinite(dy) && !this.bboxIntersectsSurroundingSeries(titleBox, 0, dy);
             title.node.translationY = isFinite(dy) ? dy : 0;
@@ -934,7 +934,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 textAlign: label.collisionTextAlign ?? label.textAlign,
                 textBaseline: label.textBaseline,
             });
-            return tempTextNode.computeBBox();
+            return tempTextNode.getBBox();
         };
 
         const avoidNeighbourYCollision = (
@@ -1054,7 +1054,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             tempTextNode.y = y;
             tempTextNode.setFont(this.properties.calloutLabel);
             tempTextNode.setAlign(align);
-            const box = tempTextNode.computeBBox();
+            const box = tempTextNode.getBBox();
 
             let displayText = label.text;
             let visible = true;
@@ -1104,7 +1104,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                     textBaseline: 'bottom',
                     textAlign: 'center',
                 });
-                titleBox = text.computeBBox();
+                titleBox = text.getBBox();
                 textBoxes.push(titleBox);
             }
         }
@@ -1126,7 +1126,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 textAlign: label.collisionTextAlign ?? label.textAlign,
                 textBaseline: label.textBaseline,
             });
-            const box = text.computeBBox();
+            const box = text.getBBox();
             label.box = box;
 
             // Hide labels that where pushed too far by the collision avoidance algorithm
@@ -1206,7 +1206,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 text.textAlign = 'center';
                 text.textBaseline = 'middle';
 
-                const bbox = text.computeBBox();
+                const bbox = text.getBBox();
                 const corners = [
                     [bbox.x, bbox.y],
                     [bbox.x + bbox.width, bbox.y],

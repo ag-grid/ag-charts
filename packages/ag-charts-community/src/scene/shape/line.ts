@@ -40,7 +40,7 @@ export class Line extends Shape implements DistantObject {
         this.y2 = value;
     }
 
-    override computeBBox(): BBox {
+    protected override computeBBox(): BBox {
         return new BBox(
             Math.min(this.x1, this.x2),
             Math.min(this.y1, this.y2),

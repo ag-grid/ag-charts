@@ -572,7 +572,7 @@ describe('AreaSeries', () => {
             for (const { legend } of deproxy(chart).modulesManager.legends()) {
                 const markerLabels = (legend as any).itemSelection?._nodes as LegendMarkerLabel[];
                 for (const label of markerLabels) {
-                    const { x, y } = label.computeBBox().computeCenter();
+                    const { x, y } = label.getBBox().computeCenter();
 
                     await clickAction(x, y)(chart);
                     await waitForChartStability(chart);

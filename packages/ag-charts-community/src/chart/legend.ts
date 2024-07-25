@@ -450,7 +450,7 @@ export class Legend extends BaseProperties {
             const text = (labelText ?? '<unknown>').replace(/\r?\n/g, ' ');
             markerLabel.text = this.truncate(text, maxLength, maxItemWidth, paddedSymbolWidth, font, id);
 
-            bboxes.push(markerLabel.computeBBox());
+            bboxes.push(markerLabel.getBBox());
         });
 
         width = Math.max(1, width);
@@ -727,7 +727,7 @@ export class Legend extends BaseProperties {
         const orientation = this.getOrientation();
         const paginationVertical = ['left', 'right'].includes(this.position);
 
-        let paginationBBox: BBox = this.pagination.computeBBox();
+        let paginationBBox: BBox = this.pagination.getBBox();
         let lastPassPaginationBBox: BBox = new BBox(0, 0, 0, 0);
         let pages: Page[] = [];
         let maxPageWidth = 0;
@@ -769,7 +769,7 @@ export class Legend extends BaseProperties {
             this.pagination.totalPages = totalPages;
 
             this.pagination.update();
-            lastPassPaginationBBox = this.pagination.computeBBox();
+            lastPassPaginationBBox = this.pagination.getBBox();
 
             if (!this.pagination.visible) {
                 break;
@@ -838,7 +838,7 @@ export class Legend extends BaseProperties {
             markerLabel.translationY = y;
 
             // Update the hidden CSS button.
-            const { width, height } = markerLabel.computeBBox();
+            const { width, height } = markerLabel.getBBox();
             setElementBBox(markerLabel.proxyButton, { x, y, width, height });
         });
     }
@@ -915,7 +915,7 @@ export class Legend extends BaseProperties {
             if (!child.visible) continue;
             if (!(child instanceof LegendMarkerLabel)) continue;
 
-            const childBBox = child.computeBBox();
+            const childBBox = child.getBBox();
             childBBox.grow(this.item.paddingX / 2, 'horizontal');
             childBBox.grow(this.item.paddingY / 2, 'vertical');
             if (childBBox.containsPoint(x, y)) {
@@ -945,7 +945,7 @@ export class Legend extends BaseProperties {
     }
 
     private computePagedBBox(): BBox {
-        const actualBBox = this.group.computeBBox();
+        const actualBBox = this.group.getBBox();
         if (this.pages.length <= 1) {
             return actualBBox;
         }

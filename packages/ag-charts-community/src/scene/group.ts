@@ -131,14 +131,14 @@ export class Group extends Node {
         return true;
     }
 
-    override computeBBox(): BBox {
+    protected override computeBBox(): BBox {
         this.computeTransformMatrix();
 
         return Group.computeBBox(this.children);
     }
 
     override computeTransformedBBox(): BBox {
-        return this.computeBBox();
+        return this.getBBox();
     }
 
     computeTransformedRegionBBox(): BBox {

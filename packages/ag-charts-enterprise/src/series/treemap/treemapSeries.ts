@@ -49,7 +49,7 @@ function getTextSize(text: string, style: FontOptions): { width: number; height:
         textBaseline: 'top',
     });
 
-    const { width, height } = tempText.computeBBox();
+    const { width, height } = tempText.getBBox();
     return { width, height };
 }
 
@@ -82,7 +82,7 @@ const verticalAlignFactors: Record<VerticalAlign, number | undefined> = {
 
 class DistantGroup extends _Scene.Group implements _ModuleSupport.DistantObject {
     distanceSquared(x: number, y: number): number {
-        return this.computeBBox().distanceSquared(x, y);
+        return this.getBBox().distanceSquared(x, y);
     }
 }
 

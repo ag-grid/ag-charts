@@ -116,7 +116,7 @@ export class RangeHandle extends Path {
         maxHandle.layout(maxHandleX, handleY);
     }
 
-    override computeBBox() {
+    protected override computeBBox() {
         const { centerX, centerY, width, height } = this;
         const x = centerX - width / 2;
         const y = centerY - height / 2;

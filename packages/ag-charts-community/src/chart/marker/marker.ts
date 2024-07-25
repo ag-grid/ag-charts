@@ -20,7 +20,7 @@ export class Marker extends Path {
     @ScenePathChangeDetection()
     repeat?: { x: number; y: number }[];
 
-    override computeBBox(): BBox {
+    protected override computeBBox(): BBox {
         const { x, y, size } = this;
         const { center } = this.constructor as any;
 
