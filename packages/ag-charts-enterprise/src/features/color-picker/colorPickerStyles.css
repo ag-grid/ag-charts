@@ -8,6 +8,7 @@
     color: var(--ag-charts-toolbar-foreground-color);
     background: var(--ag-charts-toolbar-background-color);
     border-radius: 4px;
+    z-index: var(--ag-charts-layer-ui-overlay);
 
     --h: 0;
     --s: 0;

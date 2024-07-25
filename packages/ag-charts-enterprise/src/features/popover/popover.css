@@ -11,6 +11,7 @@
     color: var(--ag-charts-popover-foreground-color);
     font: var(--ag-charts-popover-font-size-small) var(--ag-charts-font-family);
     overflow: hidden;
+    z-index: var(--ag-charts-layer-ui-overlay);
 }
 
 .ag-charts-popover:has(.ag-charts-popover__icon) {
