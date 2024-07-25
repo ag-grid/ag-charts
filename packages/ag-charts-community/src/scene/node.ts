@@ -393,7 +393,7 @@ export abstract class Node extends ChangeDetectable {
     }
 
     computeTransformedBBox(): BBox | undefined {
-        const bbox = this.getBBox();
+        const bbox = this.getBBox()?.clone();
 
         if (!bbox) {
             return;
