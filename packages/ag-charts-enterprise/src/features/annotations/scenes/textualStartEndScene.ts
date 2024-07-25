@@ -1,10 +1,13 @@
-import { type AgAnnotationHandleStyles, _Scene, _Util } from 'ag-charts-community';
+import { type AgAnnotationHandleStyles, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { type AnnotationContext, type Coords, type LineCoords } from '../annotationTypes';
 import { convertLine, invertCoords, validateDatumPoint } from '../annotationUtils';
 import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
 import { DivariantHandle } from '../scenes/handle';
 import { LinearScene } from '../scenes/linearScene';
+
+const { TextMeasurer } = _ModuleSupport;
+const { BBox } = _Scene;
 
 interface AnchoredLayout {
     alignment: 'left' | 'center' | 'right';
@@ -34,6 +37,11 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
     protected readonly start = new DivariantHandle();
     protected readonly end = new DivariantHandle();
 
+    protected anchor: { x: number; y: number; position: 'above' | 'above-left' | 'right' } = {
+        x: 0,
+        y: 0,
+        position: 'above-left',
+    };
     protected textInputBBox?: _Scene.BBox;
 
     public setTextInputBBox(bbox: _Scene.BBox) {
@@ -41,22 +49,44 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
     }
 
     public update(datum: Datum, context: AnnotationContext) {
-        const { textInputBBox } = this;
-
         const coords = convertLine(datum, context);
 
         if (coords == null) {
             return;
         }
 
-        const { x2, y2 } = coords;
-        const bbox = new _Scene.BBox(x2, y2, textInputBBox?.width ?? 0, textInputBBox?.height ?? 0);
+        const bbox = this.getTextBBox(datum, coords);
 
         this.label.opacity = datum.visible ? 1 : 0;
 
         this.updateLabel(datum, bbox, coords);
         this.updateHandles(datum, bbox, coords);
         this.updateShape(datum, bbox, coords);
+
+        this.anchor = this.updateAnchor(datum, bbox, context);
+    }
+
+    protected getTextBBox(datum: Datum, coords: LineCoords) {
+        const { textInputBBox } = this;
+        const { x2, y2 } = coords;
+
+        if (textInputBBox) {
+            return new BBox(x2, y2, textInputBBox.width, textInputBBox.height);
+        }
+
+        const { lineMetrics, width } = TextMeasurer.measureLines(datum.text, {
+            font: {
+                fontFamily: datum.fontFamily,
+                fontSize: datum.fontSize,
+                fontStyle: datum.fontStyle,
+                fontWeight: datum.fontWeight,
+                lineHeight: 1,
+            },
+        });
+
+        const height = lineMetrics.reduce((sum, curr) => sum + curr.lineHeight, 0);
+
+        return new BBox(x2, y2, width, height);
     }
 
     override toggleHandles(show: boolean | Partial<Record<'start' | 'end', boolean>>) {
@@ -96,9 +126,8 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         this.end.toggleDragging(false);
     }
 
-    override getAnchor() {
-        const bbox = this.getCachedBBoxWithoutHandles();
-        return { x: bbox.x, y: bbox.y - 35, position: 'above-left' as const }; // TODO fix this
+    override getAnchor(): { x: number; y: number; position?: 'right' | 'above' | 'above-left' } {
+        return this.anchor;
     }
 
     override getCursor() {
@@ -153,6 +182,14 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
 
         this.start.toggleLocked(datum.locked ?? false);
         this.end.toggleLocked(datum.locked ?? false);
+    }
+
+    protected updateAnchor(_datum: Datum, bbox: _Scene.BBox, context: AnnotationContext) {
+        return {
+            x: bbox.x + context.seriesRect.x,
+            y: bbox.y + context.seriesRect.y - bbox.height,
+            position: this.anchor.position,
+        };
     }
 
     protected updateShape(_datum: Datum, _textBBox: _Scene.BBox, _coords: LineCoords) {
