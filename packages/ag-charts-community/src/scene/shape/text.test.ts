@@ -3,7 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 import type { TextWrap } from 'ag-charts-types';
 
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
-import { TextMeasurer } from '../../util/textMeasurer';
+import { CachedTextMeasurerPool } from '../../util/textMeasurer';
 import { TextWrapper } from '../../util/textWrapper';
 import type { LayersManager } from '../layersManager';
 import { Text } from './text';
@@ -390,14 +390,14 @@ describe('Text', () => {
     describe('text measurements', () => {
         it('should measure text currently', () => {
             expect(
-                TextMeasurer.measureText('Hello world!', {
+                CachedTextMeasurerPool.measureText('Hello world!', {
                     font: '24px serif',
                     textBaseline: 'bottom',
                     textAlign: 'start',
                 })
             ).toMatchSnapshot();
             expect(
-                TextMeasurer.measureText('Hello world!', {
+                CachedTextMeasurerPool.measureText('Hello world!', {
                     font: 'bold 48px serif',
                     textBaseline: 'middle',
                     textAlign: 'center',
@@ -406,8 +406,8 @@ describe('Text', () => {
         });
 
         it('should measure text size currently', () => {
-            expect(TextMeasurer.measureText('Hello world!', { font: '24px serif' })).toMatchSnapshot();
-            expect(TextMeasurer.measureText('Hello world!', { font: 'bold 48px serif' })).toMatchSnapshot();
+            expect(CachedTextMeasurerPool.measureText('Hello world!', { font: '24px serif' })).toMatchSnapshot();
+            expect(CachedTextMeasurerPool.measureText('Hello world!', { font: 'bold 48px serif' })).toMatchSnapshot();
         });
     });
 });
