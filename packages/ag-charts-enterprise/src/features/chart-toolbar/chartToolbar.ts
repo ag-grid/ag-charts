@@ -14,35 +14,43 @@ const itemConfigurations: Record<AgPriceVolumeChartType, { label: string; icon: 
     'hollow-candlestick': { label: 'toolbarSeriesTypeHollowCandles', icon: 'hollow-candlestick-series' },
     line: { label: 'toolbarSeriesTypeLine', icon: 'line-series' },
     'step-line': { label: 'toolbarSeriesTypeStepLine', icon: 'step-line-series' },
-    'range-area': { label: 'toolbarSeriesTypeArea', icon: 'area-series' },
-    hlc: { label: '', icon: undefined },
-    'high-low': { label: '', icon: undefined },
+    'range-area': { label: '', icon: undefined },
+    hlc: { label: 'toolbarSeriesTypeHLC', icon: 'hlc-series' },
+    'high-low': { label: 'toolbarSeriesTypeHighLow', icon: 'high-low-series' },
 };
 
 const BUTTON_GROUP = 'seriesType';
 const BUTTON_VALUE = 'type';
 
 export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+    @_ModuleSupport.Validate(_ModuleSupport.BOOLEAN)
+    @_ModuleSupport.ActionOnSet<ChartToolbar>({
+        changeValue: function (enabled) {
+            this.enableChanged(enabled);
+        },
+    })
+    enabled: boolean = false;
+
     private readonly popover = new Popover(this.ctx);
     private anchor?: _Scene.BBox = undefined;
-    private didSetInitialIcon = false;
     private isPopoverVisible = false;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
         const { toolbarManager } = ctx;
-
-        toolbarManager.toggleGroup('chart-toolbar', BUTTON_GROUP, { visible: true });
-
         this.destroyFns.push(
             toolbarManager.addListener('button-moved', this.toolbarButtonMoved.bind(this)),
             toolbarManager.addListener('button-pressed', this.toolbarButtonPressed.bind(this))
         );
     }
 
+    private enableChanged(enabled: boolean) {
+        this.ctx.toolbarManager.toggleGroup('chart-toolbar', BUTTON_GROUP, { visible: enabled });
+    }
+
     async processData() {
-        if (this.didSetInitialIcon) return;
+        if (!this.enabled) return;
 
         const { toolbarManager } = this.ctx;
         const chartType = this.getChartType();
@@ -50,7 +58,6 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
         if (icon != null) {
             toolbarManager.updateButton(BUTTON_GROUP, BUTTON_VALUE, { icon });
         }
-        this.didSetInitialIcon = true;
     }
 
     private setAnchor(anchor: _Scene.BBox) {
@@ -78,10 +85,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
         const item = (type: AgPriceVolumeChartType) => {
             const { label, icon } = itemConfigurations[type]!;
             const active = type === chartType;
-            const onPress = () => {
-                this.setChartType(type);
-                this.ctx.toolbarManager.updateButton(BUTTON_GROUP, BUTTON_VALUE, { icon });
-            };
+            const onPress = () => this.setChartType(type);
             return { label, icon, active, onPress };
         };
 
@@ -91,11 +95,9 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
                 item('candlestick'),
                 item('hollow-candlestick'),
                 item('line'),
-                // @todo(AG-XXX)
-                // item('line') },
                 item('step-line'),
-                // @todo(AG-12182)
-                // item('range-area'),
+                item('hlc'),
+                item('high-low'),
             ],
             onClose: () => {
                 this.hidePopover();
@@ -118,7 +120,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
     }
 
     private getChartType(): AgPriceVolumeChartType {
-        let chartType = (this.ctx.chartService.publicApi?.getOptions() as AgFinancialChartOptions).chartType;
+        let chartType = (this.ctx.chartService.publicApi?.getOptions() as AgFinancialChartOptions)?.chartType;
         if (chartType == null || itemConfigurations[chartType] == null) {
             chartType = 'candlestick';
         }

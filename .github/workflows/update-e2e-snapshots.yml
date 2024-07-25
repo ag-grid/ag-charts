@@ -96,7 +96,7 @@ jobs:
                   fi
 
             - uses: actions/github-script@v6
-              if: ${{github.event.issue.pull_request}} && failure()
+              if: failure() && github.event.issue.pull_request
               continue-on-error: true
               with:
                   script: |

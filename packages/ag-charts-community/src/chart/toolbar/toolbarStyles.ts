@@ -30,5 +30,6 @@ export const modifiers = {
         active: `ag-charts-toolbar__button--active`,
         hiddenValue: `ag-charts-toolbar__button--hidden-value`,
         hiddenToggled: `ag-charts-toolbar__button--hidden-toggled`,
+        fillVisible: `ag-charts-toolbar__button--fill-visible`,
     },
 };

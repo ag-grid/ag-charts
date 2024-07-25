@@ -1,8 +1,7 @@
 ---
 import { DOCS_FRAMEWORK_REDIRECT_PAGE } from '@features/docs/constants';
 import Layout from '@layouts/Layout.astro';
-
-const docsRedirectPage = DOCS_FRAMEWORK_REDIRECT_PAGE;
+import FrameworkRedirectPage from '@ag-website-shared/components/framework-redirect-page/FrameworkRedirectPage.astro';
 ---
 
 <Layout
@@ -10,16 +9,7 @@ const docsRedirectPage = DOCS_FRAMEWORK_REDIRECT_PAGE;
     description="AG Charts Documentation - This page will redirect to your chosen framework"
     hideFooter={true}
 >
-    <div id="docsRedirectPage" data-docs-redirect-page={docsRedirectPage}></div>
-    <script>
-        import { $internalFramework } from '@stores/frameworkStore';
-        import { getFrameworkFromInternalFramework } from '@utils/framework';
-        import { urlWithPrefix } from '@utils/urlWithPrefix';
-
-        const framework = getFrameworkFromInternalFramework($internalFramework.get());
-        const docsRedirectPage = document.getElementById('docsRedirectPage')?.dataset.docsRedirectPage;
-        const redirectUrl = urlWithPrefix({ framework, url: docsRedirectPage! });
-
-        window.location.replace(redirectUrl);
-    </script>
+    <FrameworkRedirectPage redirectPageName={DOCS_FRAMEWORK_REDIRECT_PAGE}>
+        <h1>Redirecting to AG Charts Documentation...</h1>
+    </FrameworkRedirectPage>
 </Layout>

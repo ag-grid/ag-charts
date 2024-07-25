@@ -127,6 +127,7 @@
     min-width: var(--ag-charts-toolbar-size);
     padding: var(--ag-charts-toolbar-button-padding);
     pointer-events: all;
+    position: relative;
     transition:
         background-color 0.25s ease-in-out,
         border-color 0.25s ease-in-out,
@@ -178,6 +179,7 @@
 
 .ag-charts-toolbar__button:hover {
     background: var(--ag-charts-toolbar-hover-color);
+    z-index: 1;
 }
 
 .ag-charts-toolbar__button:focus-visible {
@@ -200,6 +202,24 @@
 
 .ag-charts-toolbar__button:not([aria-disabled='true']) {
     cursor: pointer;
+}
+
+.ag-charts-toolbar__button--fill-visible::after {
+    content: '';
+    display: block;
+    position: absolute;
+    bottom: 3px;
+    left: 5px;
+    right: 5px;
+    height: 4px;
+    border-radius: 99px;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ag-charts-foreground-color) 10%, transparent);
+    background: var(--fill);
+}
+
+.ag-charts-toolbar__button--fill-visible[aria-disabled='true']::after {
+    filter: grayscale(1);
+    opacity: 0.5;
 }
 
 .ag-charts-toolbar__icon + .ag-charts-toolbar__label {

@@ -18,7 +18,7 @@ import type {
     ToolbarGroupToggledEvent,
     ToolbarProxyGroupOptionsEvent,
 } from '../interaction/toolbarManager';
-import { ToolbarGroupProperties } from './toolbarProperties';
+import { type ButtonConfiguration, ToolbarGroupProperties } from './toolbarProperties';
 import * as styles from './toolbarStyles';
 import {
     TOOLBAR_ALIGNMENTS,
@@ -26,7 +26,6 @@ import {
     TOOLBAR_GROUP_ORDERING,
     TOOLBAR_POSITIONS,
     type ToolbarAlignment,
-    type ToolbarButton,
     type ToolbarGroup,
     ToolbarPosition,
     isAnimatingFloatingPosition,
@@ -205,10 +204,16 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.toggleVisibilities();
     }
 
-    private onGroupButtonsChanged(group: ToolbarGroup, buttons?: Array<ToolbarButton>) {
+    private onGroupButtonsChanged(group: ToolbarGroup, buttons: ButtonConfiguration[], configurationOnly: boolean) {
         if (!this.enabled || this.groupProxied.has(group)) return;
 
-        this.createGroupButtons(group, buttons);
+        if (configurationOnly) {
+            for (const buttonOptions of this[group].buttonConfigurations()) {
+                this.refreshButtonContent(group, buttonOptions);
+            }
+        } else {
+            this.createGroupButtons(group, buttons);
+        }
         this.toggleVisibilities();
     }
 
@@ -219,8 +224,8 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     private onButtonUpdated(event: ToolbarButtonUpdatedEvent) {
-        const { group, id, icon } = event;
-        this[group].overrideButtonConfiguration(id, { icon });
+        const { type: _type, group, id, ...params } = event;
+        this[group].overrideButtonConfiguration(id, { ...params });
     }
 
     private setButtonActive(button: HTMLElement, active: boolean) {
@@ -342,7 +347,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
     }
 
-    private createGroupButtons(group: ToolbarGroup, buttons: Array<ToolbarButton> = []) {
+    private createGroupButtons(group: ToolbarGroup, buttons: ButtonConfiguration[] = []) {
         for (const button of this.groupButtons[group]) {
             button.remove();
         }
@@ -554,21 +559,21 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         elements[FloatingBottom].style.top = `${rect.y + rect.height - elements[FloatingBottom].offsetHeight}px`;
     }
 
-    private refreshButtonContent(group: ToolbarGroup, buttonOptions: ToolbarButton) {
+    private refreshButtonContent(group: ToolbarGroup, buttonOptions: ButtonConfiguration) {
         const id = this.buttonId(buttonOptions);
         const button = this.groupProxied.get(group)?.buttons?.find((b) => this.buttonId(b) === id) ?? buttonOptions;
 
         const element = this.groupButtons[group].find((b) => b.getAttribute('data-toolbar-id') === id);
         if (element == null) return;
 
-        this.updateButtonText(element, button);
+        this.updateButton(element, button);
     }
 
     private toggleVisibilities() {
         if (this.elements == null) return;
 
         const isGroupVisible = (group: ToolbarGroup) => this[group].enabled && this.groupCallers[group].size > 0;
-        const isButtonVisible = (element: HTMLButtonElement) => (button: ToolbarButton) => {
+        const isButtonVisible = (element: HTMLButtonElement) => (button: ButtonConfiguration) => {
             const id = this.buttonId(button);
             return id == null || id === element.dataset.toolbarId;
         };
@@ -619,12 +624,13 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         for (const align of TOOLBAR_ALIGNMENTS) {
             const alignmentElement = createElement('div');
             alignmentElement.classList.add(styles.elements.align, styles.modifiers.align[align]);
+            alignmentElement.dataset.pointerCapture = 'exclusive';
             element.appendChild(alignmentElement);
             this.positionAlignments[position][align] = alignmentElement;
         }
     }
 
-    private createButtonElement(group: ToolbarGroup, options: ToolbarButton) {
+    private createButtonElement(group: ToolbarGroup, options: ButtonConfiguration) {
         const button = createElement('button');
         button.classList.add(styles.elements.button);
         button.dataset.toolbarGroup = group;
@@ -635,7 +641,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             button,
             this.onButtonPress.bind(this, button, group, options.id, options.value)
         );
-        this.updateButtonText(button, options);
+        this.updateButton(button, options);
 
         this.destroyFns.push(() => button.remove());
 
@@ -658,7 +664,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         alignElement.ariaLabel = this.ctx.localeManager.t(map[group]);
     }
 
-    private updateButtonText(button: HTMLButtonElement, options: ToolbarButton) {
+    private updateButton(button: HTMLButtonElement, options: ButtonConfiguration) {
         const {
             ctx: { domManager, localeManager },
         } = this;
@@ -680,6 +686,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
 
         button.innerHTML = inner;
+
+        button.classList.toggle(styles.modifiers.button.fillVisible, options.fill != null);
+        button.style.setProperty('--fill', options.fill ?? null);
+
         const ariaLabel = options.ariaLabel ? this.ctx.localeManager.t(options.ariaLabel) : undefined;
         setAttribute(button, 'aria-label', ariaLabel);
     }
@@ -688,7 +698,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.ctx.toolbarManager.pressButton(group, this.buttonId({ id, value }), value, this.buttonRect(button));
     }
 
-    private buttonId(button: ToolbarButton) {
+    private buttonId(button: ButtonConfiguration) {
         const { id, value, label } = button;
         if (id != null) return id;
         if (value != null && typeof value !== 'object') return String(value);

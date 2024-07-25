@@ -48,7 +48,6 @@ const itemIdMap: Record<string, 'positive' | 'negative' | 'neutral' | 'altNeutra
 
 const neutralColourMap: Partial<Record<AgPriceVolumeChartType, 'neutral' | 'altNeutral'>> = {
     hlc: 'altNeutral',
-    'high-low': 'altNeutral',
 };
 
 export class StatusBar
@@ -402,7 +401,7 @@ export class StatusBar
     }
 
     private getChartType() {
-        let chartType = (this.ctx.chartService.publicApi?.getOptions() as AgFinancialChartOptions).chartType;
+        let chartType = (this.ctx.chartService.publicApi?.getOptions() as AgFinancialChartOptions)?.chartType;
         if (chartType == null || chartConfigurations[chartType] == null) {
             chartType = 'candlestick';
         }

@@ -457,6 +457,20 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private onColorPickerChange(color: string) {
         this.state.transition('color', color);
         this.defaultColor = color;
+
+        this.updateToolbarFills(color);
+    }
+
+    private updateToolbarFills(color: string | undefined) {
+        const active = this.state.getActive();
+        const annotation = active != null ? this.annotationData[active] : undefined;
+        const datum = getTypedDatum(annotation);
+        this.ctx.toolbarManager.updateButton('annotationOptions', AnnotationOptions.LineColor, {
+            fill: isLineType(datum) || isChannelType(datum) ? color : undefined,
+        });
+        this.ctx.toolbarManager.updateButton('annotationOptions', AnnotationOptions.TextColor, {
+            fill: isTextType(datum) ? color : undefined,
+        });
     }
 
     private onColorPickerClose() {
@@ -587,8 +601,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private onHover(event: _ModuleSupport.PointerInteractionEvent<'hover'>) {
         const { seriesRect, state } = this;
 
-        if (this.isOtherElement(event)) return;
-
         const context = this.getAnnotationContext();
         if (!context) return;
 
@@ -648,8 +660,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private onDragStart(event: _ModuleSupport.PointerInteractionEvent<'drag-start'>) {
         const { seriesRect, state } = this;
 
-        if (this.isOtherElement(event)) return;
-
         const context = this.getAnnotationContext();
         if (!context) return;
 
@@ -659,8 +669,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private onDrag(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
         const { seriesRect, state } = this;
-
-        if (this.isOtherElement(event)) return;
 
         const context = this.getAnnotationContext();
         if (!context) return;
@@ -719,6 +727,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const datum = getTypedDatum(annotationData.at(active));
         const locked = datum?.locked ?? false;
 
+        this.updateToolbarFills(datum?.getDefaultColor());
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.LineColor, {
             enabled: !locked,
             visible: isLineType(datum) || isChannelType(datum),
@@ -731,17 +740,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Delete, { enabled: !locked });
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Lock, { visible: !locked });
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Unlock, { visible: locked });
-    }
-
-    private isOtherElement({ targetElement }: { targetElement?: HTMLElement }) {
-        const {
-            colorPicker,
-            ctx: { domManager },
-        } = this;
-
-        if (!targetElement) return false;
-
-        return ToolbarManager.isChildElement(domManager, targetElement) || colorPicker.isChildElement(targetElement);
     }
 
     private clear() {
