@@ -238,7 +238,11 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 normalisePropertyTo('angleFilterValue', [0, 1], 0, 0)
             );
         }
-        if (animationEnabled && this.processedData && extraKeyProps.length > 0) {
+        if (
+            animationEnabled &&
+            this.processedData?.reduced?.animationValidation?.uniqueKeys &&
+            extraKeyProps.length > 0
+        ) {
             extraProps.push(diff(this.processedData));
         }
         extraProps.push(animationValidation());
