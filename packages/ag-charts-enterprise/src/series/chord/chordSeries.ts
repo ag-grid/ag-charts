@@ -15,7 +15,8 @@ import {
 import { ChordLink } from './chordLink';
 import { ChordSeriesProperties } from './chordSeriesProperties';
 
-const { SeriesNodePickMode, TextMeasurer, TextWrapper, createDatumId, EMPTY_TOOLTIP_CONTENT } = _ModuleSupport;
+const { SeriesNodePickMode, CachedTextMeasurerPool, TextWrapper, createDatumId, EMPTY_TOOLTIP_CONTENT } =
+    _ModuleSupport;
 const { angleBetween, normalizeAngle360, isBetweenAngles, sanitizeHtml, Logger } = _Util;
 const { Sector, Text } = _Scene;
 
@@ -168,7 +169,7 @@ export class ChordSeries extends FlowProportionSeries<
                     font: this.properties.label,
                     textWrap: 'never',
                 });
-                const { width } = TextMeasurer.measureText(text, {
+                const { width } = CachedTextMeasurerPool.measureText(text, {
                     font: canvasFont,
                     textAlign: 'left',
                     textBaseline: 'middle',

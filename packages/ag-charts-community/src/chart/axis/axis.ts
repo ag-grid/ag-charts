@@ -37,7 +37,7 @@ import { Logger } from '../../util/logger';
 import { clamp, countFractionDigits, findMinMax, findRangeExtent, round } from '../../util/number';
 import { ObserveChanges } from '../../util/proxy';
 import { StateMachine } from '../../util/stateMachine';
-import { TextMeasurer } from '../../util/textMeasurer';
+import { CachedTextMeasurerPool, type TextMeasurer, TextUtils } from '../../util/textMeasurer';
 import { TextWrapper } from '../../util/textWrapper';
 import { BOOLEAN, OBJECT, STRING_ARRAY, Validate } from '../../util/validation';
 import { Caption } from '../caption';
@@ -792,8 +792,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         let textAlign = getTextAlign(parallel, configuredRotation, 0, sideFlag, regularFlipFlag);
         const textBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);
-        const font = TextMeasurer.toFontString({ fontFamily, fontSize, fontStyle, fontWeight });
-        const textMeasurer = TextMeasurer.getFontMeasurer({ font });
+        const font = TextUtils.toFontString({ fontFamily, fontSize, fontStyle, fontWeight });
+        const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font });
 
         const textProps: TextSizeProperties = {
             fontFamily,

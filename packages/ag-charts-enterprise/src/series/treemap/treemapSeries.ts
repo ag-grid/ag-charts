@@ -12,7 +12,7 @@ import {
 import { formatLabels } from '../util/labelFormatter';
 import { TreemapSeriesProperties } from './treemapSeriesProperties';
 
-const { TextMeasurer, TextWrapper } = _ModuleSupport;
+const { TextUtils, TextWrapper } = _ModuleSupport;
 const { Rect, Group, BBox, Selection, Text } = _Scene;
 const { Color, Logger, clamp, isEqual, sanitizeHtml } = _Util;
 
@@ -634,7 +634,7 @@ export class TreemapSeries<
                     label: {
                         text,
                         fontSize: group.label.fontSize,
-                        lineHeight: TextMeasurer.getLineHeight(group.label.fontSize),
+                        lineHeight: TextUtils.getLineHeight(group.label.fontSize),
                         style: this.properties.group.label,
                         x: bbox.x + padding + innerWidth * textAlignFactor,
                         y: bbox.y + padding + groupTitleHeight * 0.5,

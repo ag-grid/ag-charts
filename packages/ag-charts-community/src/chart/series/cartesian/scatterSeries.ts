@@ -11,7 +11,7 @@ import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
-import { TextMeasurer } from '../../../util/textMeasurer';
+import { CachedTextMeasurerPool } from '../../../util/textMeasurer';
 import type { RequireOptional } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
@@ -131,7 +131,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         const nodeData: ScatterNodeDatum[] = [];
 
         const font = label.getFont();
-        const textMeasurer = TextMeasurer.getFontMeasurer({ font });
+        const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font });
         for (const { values, datum } of processedData.data ?? []) {
             const xDatum = values[xDataIdx];
             const yDatum = values[yDataIdx];

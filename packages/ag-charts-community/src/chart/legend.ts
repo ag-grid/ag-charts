@@ -27,7 +27,7 @@ import { Logger } from '../util/logger';
 import { clamp } from '../util/number';
 import { BaseProperties } from '../util/properties';
 import { ObserveChanges } from '../util/proxy';
-import { TextMeasurer } from '../util/textMeasurer';
+import { CachedTextMeasurerPool, TextUtils } from '../util/textMeasurer';
 import { TextWrapper } from '../util/textWrapper';
 import {
     BOOLEAN,
@@ -430,7 +430,7 @@ export class Legend extends BaseProperties {
         // Update properties that affect the size of the legend items and measure them.
         const bboxes: BBox[] = [];
 
-        const font = TextMeasurer.toFontString(label);
+        const font = TextUtils.toFontString(label);
 
         const itemMaxWidthPercentage = 0.8;
         const maxItemWidth = maxWidth ?? width * itemMaxWidthPercentage;
@@ -612,10 +612,10 @@ export class Legend extends BaseProperties {
             addEllipsis = true;
         }
 
-        const measurer = TextMeasurer.getFontMeasurer({ font });
+        const measurer = CachedTextMeasurerPool.getMeasurer({ font });
         const result = TextWrapper.truncateLine(text, measurer, maxItemWidth - paddedMarkerWidth, addEllipsis);
 
-        if (result.endsWith(TextWrapper.EllipsisChar)) {
+        if (result.endsWith(TextUtils.EllipsisChar)) {
             this.truncatedItems.add(id);
         } else {
             this.truncatedItems.delete(id);

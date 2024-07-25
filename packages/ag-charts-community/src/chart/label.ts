@@ -11,7 +11,7 @@ import type { Matrix } from '../scene/matrix';
 import type { PlacedLabelDatum } from '../scene/util/labelPlacement';
 import { normalizeAngle360, toRadians } from '../util/angle';
 import { BaseProperties } from '../util/properties';
-import { TextMeasurer } from '../util/textMeasurer';
+import { TextUtils } from '../util/textMeasurer';
 import type { RequireOptional } from '../util/types';
 import {
     BOOLEAN,
@@ -51,7 +51,7 @@ export class Label<TParams = never, TDatum = any>
     formatter?: Formatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>;
 
     getFont(): string {
-        return TextMeasurer.toFontString(this);
+        return TextUtils.toFontString(this);
     }
 }
 

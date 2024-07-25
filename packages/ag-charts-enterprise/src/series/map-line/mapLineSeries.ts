@@ -7,8 +7,15 @@ import { findFocusedGeoGeometry } from '../map-util/mapUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import { type MapLineNodeDatum, type MapLineNodeLabelDatum, MapLineSeriesProperties } from './mapLineSeriesProperties';
 
-const { getMissCount, createDatumId, DataModelSeries, SeriesNodePickMode, valueProperty, TextMeasurer, Validate } =
-    _ModuleSupport;
+const {
+    getMissCount,
+    createDatumId,
+    DataModelSeries,
+    SeriesNodePickMode,
+    valueProperty,
+    CachedTextMeasurerPool,
+    Validate,
+} = _ModuleSupport;
 const { ColorScale, LinearScale } = _Scale;
 const { Selection, Text } = _Scene;
 const { sanitizeHtml, Logger } = _Util;
@@ -207,7 +214,7 @@ export class MapLineSeries
         });
         if (labelText == null) return;
 
-        const labelSize = TextMeasurer.measureText(String(labelText), { font });
+        const labelSize = CachedTextMeasurerPool.measureText(String(labelText), { font });
         const labelCenter = lineStringCenter(lineString);
         if (labelCenter == null) return;
 
