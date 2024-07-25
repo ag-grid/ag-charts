@@ -216,6 +216,11 @@
     background: var(--fill);
 }
 
+.ag-charts-toolbar__button--fill-visible[aria-disabled='true']::after {
+    filter: grayscale(1);
+    opacity: 0.5;
+}
+
 .ag-charts-toolbar__icon + .ag-charts-toolbar__label {
     margin-left: var(--ag-charts-toolbar-gap);
 }
