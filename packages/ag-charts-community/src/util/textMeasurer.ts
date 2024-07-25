@@ -1,6 +1,7 @@
 import type { FontFamily, FontSize, FontStyle, FontWeight, Ratio } from 'ag-charts-types';
 
 import { createCanvasContext } from './canvas.util';
+import { LRUCache } from './lruCache';
 
 // Allows for mutation of a readonly type by making all properties writable.
 export type Writeable<T> = { -readonly [P in keyof T]: T[P] };
@@ -50,7 +51,7 @@ export class TextMeasurer {
     static readonly EllipsisChar = '\u2026'; // Representation for text clipping.
     static readonly defaultLineHeight = 1.15; // Normally between 1.1 and 1.2
 
-    private static readonly instanceMap = new Map<string, TextMeasurer>();
+    private static readonly instanceMap = new LRUCache<string, TextMeasurer>(10);
     protected static readonly lineSplitter = /\r?\n/g;
 
     static toFontString({ fontSize = 10, fontStyle, fontWeight, fontFamily, lineHeight }: FontOptions) {
@@ -75,14 +76,13 @@ export class TextMeasurer {
 
     // Measures the dimensions of the provided text, handling multiline if needed.
     static measureText(text: string, options: MeasureOptions) {
-        const { ctx } = this.getFontMeasurer(options);
-        return this.getMetrics(ctx, text);
+        const textMeasurer = this.getFontMeasurer(options);
+        return textMeasurer.measureText(text);
     }
 
     static measureLines(text: string | string[], options: MeasureOptions) {
-        const { ctx } = this.getFontMeasurer(options);
-        const lines = typeof text === 'string' ? text.split(this.lineSplitter) : text;
-        return this.getMultilineMetrics(ctx, lines);
+        const textMeasurer = this.getFontMeasurer(options);
+        return textMeasurer.measureLines(text);
     }
 
     // Determines vertical offset modifier based on text baseline.
@@ -104,28 +104,21 @@ export class TextMeasurer {
     // Gets a TextMeasurer instance, configuring text alignment and baseline if provided.
     static getFontMeasurer(options: MeasureOptions) {
         const font = typeof options.font === 'string' ? options.font : TextMeasurer.toFontString(options.font);
-        const measurer = this.instanceMap.get(font) ?? this.createFontMeasurer(font);
-        if (options.textAlign) {
-            measurer.ctx.textAlign = options.textAlign;
-        }
-        if (options.textBaseline) {
-            measurer.ctx.textBaseline = options.textBaseline;
-        }
-        return measurer;
+        const key = `${font}-${options.textAlign ?? 'start'}-${options.textBaseline ?? 'alphabetic'}`;
+        return this.instanceMap.get(key) ?? this.createFontMeasurer(font, options, key);
     }
 
     // Creates or retrieves a TextMeasurer instance for a specific font.
-    private static createFontMeasurer(font: string) {
+    private static createFontMeasurer(font: string, options: MeasureOptions, key: string) {
         const ctx = createCanvasContext();
-        const measurer = new this(ctx);
-        this.instanceMap.set(font, measurer);
-        ctx.font = font;
+        const measurer = new this(ctx, font, options);
+        this.instanceMap.set(key, measurer);
         return measurer;
     }
 
     // Measures metrics for a single line of text.
-    private static getMetrics(ctx: CanvasRenderingContext2D, text: string): LineMetrics {
-        const m = ctx.measureText(text) as LegacyTextMetrics;
+    private getMetrics(text: string): LineMetrics {
+        const m = this.cachedCtxMeasureText(text) as LegacyTextMetrics;
         // Apply fallbacks for environments like `node-canvas` where some metrics may be missing.
         m.fontBoundingBoxAscent ??= m.emHeightAscent;
         m.fontBoundingBoxDescent ??= m.emHeightDescent;
@@ -139,16 +132,20 @@ export class TextMeasurer {
     }
 
     // Calculates aggregated metrics for multiline text.
-    private static getMultilineMetrics(ctx: CanvasRenderingContext2D, lines: string[]): MultilineMetrics {
+    private getMultilineMetrics(lines: string[]): MultilineMetrics {
         let width = 0;
         let height = 0;
         let offsetTop = 0;
         let offsetLeft = 0;
         let baselineDistance = 0; // Distance between first and last baselines.
 
-        const verticalModifier = this.getVerticalModifier(ctx.textBaseline);
-        const lineMetrics = lines.map((line, index, { length }) => {
-            const m = ctx.measureText(line) as LegacyTextMetrics;
+        const verticalModifier = TextMeasurer.getVerticalModifier(this.options.textBaseline ?? 'alphabetic');
+        const lineMetrics = [];
+
+        let index = 0;
+        const length = lines.length;
+        for (const line of lines) {
+            const m = this.cachedCtxMeasureText(line);
             // Apply fallbacks for environments like `node-canvas` where some metrics may be missing.
             m.fontBoundingBoxAscent ??= m.emHeightAscent;
             m.fontBoundingBoxDescent ??= m.emHeightDescent;
@@ -171,15 +168,16 @@ export class TextMeasurer {
                 baselineDistance += m.fontBoundingBoxDescent;
             }
 
-            return {
+            lineMetrics.push({
                 text: line,
                 width: m.width,
                 height: m.actualBoundingBoxAscent + m.actualBoundingBoxDescent,
                 lineHeight: m.fontBoundingBoxAscent + m.fontBoundingBoxDescent,
                 offsetTop: m.actualBoundingBoxAscent,
                 offsetLeft: m.actualBoundingBoxLeft,
-            };
-        });
+            });
+            index++;
+        }
 
         height += baselineDistance;
         offsetTop += baselineDistance * verticalModifier;
@@ -190,7 +188,22 @@ export class TextMeasurer {
     // local chars width cache per TextMeasurer
     private readonly charMap = new Map<string, number>();
 
-    constructor(private readonly ctx: CanvasRenderingContext2D) {}
+    // cached text measurements
+    private readonly measureMap = new LRUCache<string, LegacyTextMetrics>(100);
+
+    constructor(
+        private readonly ctx: CanvasRenderingContext2D,
+        font: string,
+        private readonly options: MeasureOptions
+    ) {
+        if (options.textAlign) {
+            ctx.textAlign = options.textAlign;
+        }
+        if (options.textBaseline) {
+            ctx.textBaseline = options.textBaseline;
+        }
+        ctx.font = font;
+    }
 
     textWidth(text: string, estimate?: boolean): number {
         if (estimate) {
@@ -201,14 +214,48 @@ export class TextMeasurer {
             return estimatedWidth;
         }
         if (text.length > 1) {
-            return this.ctx.measureText(text).width;
+            return this.cachedCtxMeasureText(text).width;
         }
         return this.charMap.get(text) ?? this.charWidth(text);
     }
 
+    measureText(text: string) {
+        return this.getMetrics(text);
+    }
+
+    // Measures the dimensions of the provided text, handling multiline if needed.
+    measureLines(text: string | string[]) {
+        const lines = typeof text === 'string' ? text.split(TextMeasurer.lineSplitter) : text;
+        return this.getMultilineMetrics(lines);
+    }
+
     private charWidth(char: string) {
-        const { width } = this.ctx.measureText(char);
+        const { width } = this.cachedCtxMeasureText(char);
         this.charMap.set(char, width);
         return width;
+    }
+
+    private cachedCtxMeasureText(text: string): LegacyTextMetrics {
+        if (!this.measureMap.has(text)) {
+            const rawResult = this.ctx.measureText(text);
+
+            // Copy results so we don't call through to canvas context on later uses.
+            this.measureMap.set(text, {
+                actualBoundingBoxAscent: rawResult.actualBoundingBoxAscent,
+                emHeightAscent: rawResult.emHeightAscent,
+                emHeightDescent: rawResult.emHeightDescent,
+                actualBoundingBoxDescent: rawResult.actualBoundingBoxDescent,
+                actualBoundingBoxLeft: rawResult.actualBoundingBoxLeft,
+                actualBoundingBoxRight: rawResult.actualBoundingBoxRight,
+                alphabeticBaseline: rawResult.alphabeticBaseline,
+                fontBoundingBoxAscent: rawResult.fontBoundingBoxAscent,
+                fontBoundingBoxDescent: rawResult.fontBoundingBoxDescent,
+                hangingBaseline: rawResult.hangingBaseline,
+                ideographicBaseline: rawResult.ideographicBaseline,
+                width: rawResult.width,
+            });
+        }
+
+        return this.measureMap.get(text)!;
     }
 }

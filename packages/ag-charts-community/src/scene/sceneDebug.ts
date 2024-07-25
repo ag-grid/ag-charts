@@ -46,7 +46,8 @@ export function debugStats(
         `Layers: ${detailedStats ? pct(layersRendered, layersSkipped) : layersManager.size}`,
         detailedStats ? `Nodes: ${pct(nodesRendered, nodesSkipped)}` : null,
     ].filter(isString);
-    const statsSize = new Map(stats.map((t) => [t, TextMeasurer.measureText(t, ctx)]));
+    const measurer = new TextMeasurer(ctx, ctx.font, { font: ctx.font });
+    const statsSize = new Map(stats.map((t) => [t, measurer.measureLines(t)]));
     const width = Math.max(...Array.from(statsSize.values(), (s) => s.width));
     const height = accumulate(statsSize.values(), (s) => s.height);
 

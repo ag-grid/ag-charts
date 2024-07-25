@@ -37,7 +37,7 @@ import { Logger } from '../../util/logger';
 import { clamp, countFractionDigits, findMinMax, findRangeExtent, round } from '../../util/number';
 import { ObserveChanges } from '../../util/proxy';
 import { StateMachine } from '../../util/stateMachine';
-import { type MeasureOptions, TextMeasurer } from '../../util/textMeasurer';
+import { TextMeasurer } from '../../util/textMeasurer';
 import { TextWrapper } from '../../util/textWrapper';
 import { BOOLEAN, OBJECT, STRING_ARRAY, Validate } from '../../util/validation';
 import { Caption } from '../caption';
@@ -793,6 +793,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         let textAlign = getTextAlign(parallel, configuredRotation, 0, sideFlag, regularFlipFlag);
         const textBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);
         const font = TextMeasurer.toFontString({ fontFamily, fontSize, fontStyle, fontWeight });
+        const textMeasurer = TextMeasurer.getFontMeasurer({ font });
 
         const textProps: TextSizeProperties = {
             fontFamily,
@@ -837,7 +838,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 const labelRotation = initialRotation + autoRotation;
                 textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
                 labelOverlap = this.label.avoidCollisions
-                    ? this.checkLabelOverlap(labelRotation, rotated, labelMatrix, tickData.ticks, labelX, { font })
+                    ? this.checkLabelOverlap(labelRotation, rotated, labelMatrix, tickData.ticks, labelX, textMeasurer)
                     : false;
             }
         }
@@ -969,11 +970,11 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         labelMatrix: Matrix,
         tickData: TickDatum[],
         labelX: number,
-        textProps: MeasureOptions
+        textMeasurer: TextMeasurer
     ): boolean {
         Matrix.updateTransformMatrix(labelMatrix, 1, 1, rotation, 0, 0);
 
-        const labelData: PlacedLabelDatum[] = this.createLabelData(tickData, labelX, textProps, labelMatrix);
+        const labelData: PlacedLabelDatum[] = this.createLabelData(tickData, labelX, labelMatrix, textMeasurer);
         const labelSpacing = getLabelSpacing(this.label.minSpacing, rotated);
 
         return axisLabelsOverlap(labelData, labelSpacing);
@@ -982,14 +983,14 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     private createLabelData(
         tickData: TickDatum[],
         labelX: number,
-        textProps: MeasureOptions,
-        labelMatrix: Matrix
+        labelMatrix: Matrix,
+        textMeasurer: TextMeasurer
     ): PlacedLabelDatum[] {
         const labelData: PlacedLabelDatum[] = [];
         for (const { tickLabel, translationY } of tickData) {
             if (!tickLabel) continue;
 
-            const { width, height } = TextMeasurer.measureLines(tickLabel, textProps);
+            const { width, height } = textMeasurer.measureText(tickLabel);
             const bbox = new BBox(labelX, translationY, width, height);
             const labelDatum = calculateLabelBBox(tickLabel, bbox, labelMatrix);
 

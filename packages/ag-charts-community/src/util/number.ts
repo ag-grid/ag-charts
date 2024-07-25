@@ -66,7 +66,7 @@ export function countFractionDigits(value: number) {
     // Highly optimized fraction counting algorithm. This was highlighted as a hot-spot for
     // tick generation on canvas resize.
     if (Math.floor(value) === value) return 0;
-    return value.toString().split('.')[1]?.length || 0;
+    return String(value).split('.')[1]?.length ?? 0;
 }
 
 /**

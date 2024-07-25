@@ -131,6 +131,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         const nodeData: ScatterNodeDatum[] = [];
 
         const font = label.getFont();
+        const textMeasurer = TextMeasurer.getFontMeasurer({ font });
         for (const { values, datum } of processedData.data ?? []) {
             const xDatum = values[xDataIdx];
             const yDatum = values[yDataIdx];
@@ -148,7 +149,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 labelName,
             });
 
-            const size = TextMeasurer.measureText(labelText, { font });
+            const size = textMeasurer.measureText(labelText);
             const fill = colorKey ? colorScale.convert(values[colorDataIdx]) : undefined;
 
             nodeData.push({

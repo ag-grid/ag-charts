@@ -155,6 +155,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         sizeScale.range = [marker.size, marker.maxSize];
 
         const font = label.getFont();
+        const textMeasurer = TextMeasurer.getFontMeasurer({ font });
         for (const { values, datum } of processedData.data ?? []) {
             const xDatum = values[xDataIdx];
             const yDatum = values[yDataIdx];
@@ -174,7 +175,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 labelName,
             });
 
-            const size = TextMeasurer.measureText(String(labelText), { font });
+            const size = textMeasurer.measureText(String(labelText));
             const markerSize = sizeKey ? sizeScale.convert(values[sizeDataIdx]) : marker.size;
             const fill = colorKey ? colorScale.convert(values[colorDataIdx]) : undefined;
 
