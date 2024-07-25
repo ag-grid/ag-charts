@@ -162,6 +162,7 @@ export type AgToolbarAnnotationsButtonValue =
     | 'text'
     | 'comment'
     | 'callout'
+    | 'note'
     | 'clear';
 
 /* Series Type Options */

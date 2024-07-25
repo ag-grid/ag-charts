@@ -30,7 +30,7 @@ export const ANNOTATION_BUTTONS = [
     // Texts
     AnnotationType.Callout,
     AnnotationType.Comment,
-    // AnnotationType.Note,
+    AnnotationType.Note,
     AnnotationType.Text,
 ] as const;
 

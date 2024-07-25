@@ -159,12 +159,12 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         };
     }
 
-    protected getLabelCoords(_datum: Datum, point: _Util.Vec2) {
-        return point;
+    protected getLabelCoords(_datum: Datum, bbox: _Scene.BBox): _Util.Vec2 {
+        return bbox;
     }
 
-    protected getHandleCoords(_datum: Datum, point: _Util.Vec2) {
-        return point;
+    protected getHandleCoords(_datum: Datum, bbox: _Scene.BBox): _Util.Vec2 {
+        return bbox;
     }
 
     protected getHandleStyles(datum: Datum) {

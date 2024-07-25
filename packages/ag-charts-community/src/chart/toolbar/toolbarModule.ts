@@ -57,6 +57,30 @@ const annotations: AgToolbarOptions['annotations'] = {
         },
         {
             icon: 'text-annotation',
+            tooltip: 'toolbarAnnotationsText',
+            value: 'text',
+            section: 'annotations',
+        },
+        {
+            icon: 'comment-annotation',
+            tooltip: 'toolbarAnnotationsComment',
+            value: 'comment',
+            section: 'annotations',
+        },
+        {
+            icon: 'callout-annotation',
+            tooltip: 'callout',
+            value: 'callout',
+            section: 'annotations',
+        },
+        {
+            icon: 'note-annotation',
+            tooltip: 'toolbarAnnotationsNote',
+            value: 'note',
+            section: 'annotations',
+        },
+        {
+            icon: 'text-annotation',
             tooltip: 'toolbarAnnotationsTextAnnotations',
             value: 'text-menu',
             section: 'annotations',

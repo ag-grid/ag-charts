@@ -1,11 +1,15 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import { AnnotationType } from '../annotationTypes';
+import { Fill, Stroke } from '../annotationProperties';
+import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { TextualPointProperties } from '../properties/textualPointProperties';
+import { DEFAULT_PADDING, LABEL_OFFSET } from './noteScene';
 
-const { STRING, Validate, isObject } = _ModuleSupport;
+const { OBJECT, STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
 
-export class NoteProperties extends TextualPointProperties {
+class NoteBackgroundProperties extends Fill(Stroke(BaseProperties)) {}
+
+export class NoteProperties extends Fill(Stroke(TextualPointProperties)) {
     static is(value: unknown): value is NoteProperties {
         return isObject(value) && value.type === AnnotationType.Note;
     }
@@ -13,6 +17,19 @@ export class NoteProperties extends TextualPointProperties {
     @Validate(STRING)
     type = AnnotationType.Note as const;
 
-    override position = 'top' as const;
-    override alignment = 'left' as const;
+    @Validate(OBJECT, { optional: true })
+    background = new NoteBackgroundProperties();
+
+    override position = 'bottom' as const;
+    override alignment = 'center' as const;
+    override width = 200;
+
+    public override getTextInputCoords(context: AnnotationContext) {
+        const coords = super.getTextInputCoords(context);
+        const padding = this.padding ?? DEFAULT_PADDING;
+        return {
+            x: coords.x,
+            y: coords.y - padding - LABEL_OFFSET,
+        };
+    }
 }

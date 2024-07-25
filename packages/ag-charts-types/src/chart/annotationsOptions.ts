@@ -26,7 +26,7 @@ export interface AgAnnotationsThemeableOptions {
     // Texts
     callout?: AgTextShapeAnnotationStyles;
     comment?: AgTextShapeAnnotationStyles;
-    note?: AgTextAnnotationStyles;
+    note?: AgNoteAnnotationStyles;
     text?: AgTextAnnotationStyles;
 
     // Other
@@ -50,6 +50,9 @@ export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible
 }
 export interface AgTextAnnotationStyles extends FontOptions, Lockable, Visible {}
 export interface AgTextShapeAnnotationStyles extends AgTextAnnotationStyles, StrokeOptions, FillOptions {}
+export interface AgNoteAnnotationStyles extends AgTextAnnotationStyles {
+    background: AgNoteAnnotationBackground;
+}
 
 // ***********
 // * Options *
@@ -159,6 +162,7 @@ export interface AgCommentAnnotation extends TextualAnnotation {
 export interface AgNoteAnnotation extends TextualAnnotation {
     /** Configuration for the note annotation. */
     type: 'note';
+    background?: AgNoteAnnotationBackground;
 }
 
 export interface AgTextAnnotation extends TextualAnnotation {
@@ -176,6 +180,7 @@ interface TextualAnnotation extends AgAnnotationPoint, Lockable, Visible, FontOp
 
 export interface AgChannelAnnotationMiddle extends Visible, StrokeOptions, LineDashOptions {}
 export interface AgChannelAnnotationBackground extends FillOptions {}
+export interface AgNoteAnnotationBackground extends StrokeOptions, FillOptions {}
 export interface AgAnnotationAxisLabel
     extends Toggleable,
         FillOptions,

@@ -113,6 +113,10 @@ export const AnnotationsModule: _ModuleSupport.Module = {
             },
             note: {
                 color: 'black',
+                fill: _Theme.DEFAULT_ANNOTATION_COLOR,
+                stroke: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
+                strokeWidth: 1,
+                strokeOpacity: 1,
                 fontSize: 14,
                 fontFamily: _Theme.DEFAULT_FONT_FAMILY,
                 textAlign: 'left',
