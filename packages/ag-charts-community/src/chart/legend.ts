@@ -915,7 +915,7 @@ export class Legend extends BaseProperties {
             if (!child.visible) continue;
             if (!(child instanceof LegendMarkerLabel)) continue;
 
-            const childBBox = child.getBBox();
+            const childBBox = child.getBBox().clone();
             childBBox.grow(this.item.paddingX / 2, 'horizontal');
             childBBox.grow(this.item.paddingY / 2, 'vertical');
             if (childBBox.containsPoint(x, y)) {
