@@ -10,7 +10,7 @@ interface Props {
 }
 
 const DEFAULT_HEIGHT = 500;
-const FRAME_WRAPPER_HEIGHT = 48 + 26;
+const FRAME_WRAPPER_HEIGHT = 42 + 16;
 
 const { exampleHeight = DEFAULT_HEIGHT, pageName, exampleName } = Astro.props as Props;
 const minHeight = exampleHeight + FRAME_WRAPPER_HEIGHT;
@@ -23,6 +23,8 @@ const loadingLogoId = getLoadingLogoId({ pageName, exampleName });
 </div>
 
 <style lang="scss">
+    @use 'design-system' as *;
+
     .container {
         position: relative;
 
@@ -32,6 +34,14 @@ const loadingLogoId = getLoadingLogoId({ pageName, exampleName });
             left: 50%;
             transform: translate(-50%, -50%) scale(2);
         }
+    }
+
+    .example-runner-outer {
+        margin-bottom: $spacing-size-4;
+    }
+
+    :global(.tabs-content) .example-runner-outer {
+        margin-bottom: 0;
     }
 </style>
 

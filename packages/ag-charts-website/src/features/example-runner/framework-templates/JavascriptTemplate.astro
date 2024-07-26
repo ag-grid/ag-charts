@@ -5,6 +5,7 @@ interface Props {
 
     modifiedTimeMs: number;
     isEnterprise: boolean;
+    layout: 'grid' | 'toolbar';
     hasLocale: boolean;
 
     /**
@@ -25,6 +26,7 @@ const {
     modifiedTimeMs,
     isEnterprise,
     hasLocale,
+    layout,
     styleFiles,
     scriptFiles,
     indexFragment,
@@ -56,7 +58,7 @@ const chartScriptLocalePath = getCacheBustingUrl(getChartLocaleScriptPath(siteUr
 <html lang="en">
     <head>
         <MetaData isDev={isDev} title={`JavaScript Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
-        <ExampleStyle extraStyles={extraStyles} />
+        <ExampleStyle layout={layout} extraStyles={extraStyles} />
         <Styles
             baseUrl={appLocation}
             files={isDev && styleFiles

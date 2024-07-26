@@ -144,6 +144,8 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         },
     });
 
+    const layout = indexHtml.includes('class="toolbar"') ? 'toolbar' : 'grid';
+
     const getFrameworkFiles = frameworkFilesGenerator[internalFramework];
     if (!getFrameworkFiles) {
         throw new Error(`No entry file config generator for '${internalFramework}'`);
@@ -182,6 +184,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
 
     const result: GeneratedContents = {
         isEnterprise,
+        layout,
         hasLocale,
         scriptFiles: scriptFiles!,
         styleFiles: Object.keys(styleFiles),

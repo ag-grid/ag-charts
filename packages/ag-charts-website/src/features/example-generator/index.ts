@@ -52,6 +52,7 @@ type GeneratedContents = {
     entryFileName: string;
     files: Record<string, string>;
     scriptFiles: string[];
+    layout: 'toolbar' | 'grid';
 };
 
 const cacheKeys: Record<string, object> = {};

@@ -7,26 +7,41 @@ This section explains how the chart and its components are sized and laid out wi
 
 ## Chart Size
 
-The chart will auto-size by default, taking the size of the `container` element and auto-sizing the chart dynamically.
-Use the `width` and/or `height` options if a fixed size is required.
+{% if isFramework("javascript") %}
+The chart will auto-size to fill the size of the `container` element. The `class` and `style` attributes are preserved on the `container` element, each of which can be adjust the container's size. Additionally, the container can be placed as a child of a `grid` layout, and the grid will adjust the container's size.
 
-If auto-sizing is used for one or both dimensions, the chart will have a minimum width and height of 300px. Set `minHeight: 0` and/or `minWidth: 0` to effectively remove this constraint.
+The chart has a default minimum width and height of 300px, which can in some circumstances cause the container to grow in size. The `minHeight` and/or `minWidth` options can be used to change these values, or set them to zero.
+{% /if %}
+{% if isFramework("react") %}
+The `AgCharts` component accepts both `className` and `style` properties, each of which can be adjust the chart's size. Additionally, the component can be placed as a child of a `grid` layout, and the grid will adjust the chart's size.
 
-{% note %}
-The chart never affects the size of the `container` element.
+The chart has a default minimum width and height of 300px. The `minHeight` and/or `minWidth` options can be used to change these values, or set them to zero.
+{% /if %}
+{% if or(isFramework("angular"), isFramework("vue")) %}
+The `ag-charts` component accepts both `class` and `style` properties, each of which can be adjust the chart's size. Additionally, the component can be placed as a child of a `grid` layout, and the grid will adjust the chart's size.
 
-A `<div>` element is commonly used for the `container`, and the default height for this element
-is `0px`. You should explicitly manage the browser calculated `container` element size to achieve the dynamic size you
-require.
-{% /note %}
+The chart has a default minimum width and height of 300px. The `minHeight` and/or `minWidth` options can be used to change these values, or set them to zero.
+{% /if %}
 
-### Size Changes
+If auto-sizing is not required, the `width` and/or `height` options will render the chart at a fixed size, ignoring `minWidth` and `minHeight`.
 
-The chart monitors the size of the `container` element, and resizes dynamically.
+Below is an example of a chart with no CSS applied, followed by two different styling methods to change its size.
 
-When the chart size changes, the layout process is performed for the new available canvas space.
-Most components are typically a fixed size, so usually it is the series-area which shrinks or grows,
-with the other components moving around or adjusting alignment.
+{% tabs %}
+
+{% tabItem id="ChartSizeUnsized" label="No Styles" %}
+{% chartExampleRunner title="Chart Size" name="chart-unsized" type="generated" /%}
+{% /tabItem %}
+
+{% tabItem id="ChartSizeParentGrid" label="Parent Grid" %}
+{% chartExampleRunner title="Chart Size (Parent Grid)" name="chart-parent-grid" type="generated" /%}
+{% /tabItem %}
+
+{% tabItem id="ChartSizeClass" label="Class" %}
+{% chartExampleRunner title="Chart Size (Class)" name="chart-class" type="generated" /%}
+{% /tabItem %}
+
+{% /tabs %}
 
 ## Chart Layout Calculation
 
