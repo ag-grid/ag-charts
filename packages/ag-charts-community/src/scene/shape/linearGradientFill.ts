@@ -33,8 +33,8 @@ export class LinearGradientFill extends Shape {
         return this.mask?.isPointInPath(x, y) ?? false;
     }
 
-    override computeBBox() {
-        return this.mask?.computeBBox();
+    protected override computeBBox() {
+        return this.mask?.getBBox();
     }
 
     override render(renderCtx: RenderContext): void {

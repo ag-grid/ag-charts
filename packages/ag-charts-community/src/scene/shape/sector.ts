@@ -110,7 +110,7 @@ export class Sector extends Path {
         this.endInnerCornerRadius = value;
     }
 
-    override computeBBox(): BBox {
+    protected override computeBBox(): BBox {
         return sectorBox(this).translate(this.centerX, this.centerY);
     }
 

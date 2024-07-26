@@ -151,9 +151,12 @@ export abstract class Node extends ChangeDetectable {
     private childSet: { [id: string]: boolean } = {}; // new Set<Node>()
 
     setProperties<T>(this: T, styles: { [K in keyof T]?: T[K] }, pickKeys?: (keyof T)[]) {
-        const keys = pickKeys ?? (Object.keys(styles) as (keyof T)[]);
-        for (const key of keys) {
-            (this as any)[key] = styles[key];
+        if (pickKeys) {
+            for (const key of pickKeys) {
+                (this as any)[key] = styles[key];
+            }
+        } else {
+            Object.assign(this as any, styles);
         }
         return this;
     }
@@ -377,16 +380,20 @@ export abstract class Node extends ChangeDetectable {
 
     private cachedBBox?: BBox;
 
-    getCachedBBox(): BBox {
-        return this.cachedBBox ?? BBox.zero;
+    getBBox(): BBox {
+        if (this.cachedBBox == null) {
+            this.cachedBBox = Object.freeze(this.computeBBox());
+        }
+
+        return this.cachedBBox!;
     }
 
-    computeBBox(): BBox | undefined {
+    protected computeBBox(): BBox | undefined {
         return;
     }
 
     computeTransformedBBox(): BBox | undefined {
-        const bbox = this.computeBBox();
+        const bbox = this.getBBox()?.clone();
 
         if (!bbox) {
             return;
@@ -467,6 +474,8 @@ export abstract class Node extends ChangeDetectable {
     }
 
     override markDirty(_source: Node, type = RedrawType.TRIVIAL, parentType = type) {
+        this.cachedBBox = undefined;
+
         if (this._dirty > type || (this._dirty === type && type === parentType)) {
             return;
         }

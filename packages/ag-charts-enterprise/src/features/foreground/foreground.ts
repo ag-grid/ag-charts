@@ -65,7 +65,7 @@ export class Foreground extends _ModuleSupport.Background<Image> {
         textNode.fill = '#9b9b9b';
         textNode.textBaseline = 'top';
 
-        const textBBox = this.textNode.computeBBox();
+        const textBBox = this.textNode.getBBox();
         const textPadding = 10;
 
         textNode.x = placement.x + placement.width / 2 - textBBox.width / 2;

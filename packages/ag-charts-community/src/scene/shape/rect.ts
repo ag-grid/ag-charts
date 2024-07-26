@@ -407,9 +407,9 @@ export class Rect extends Path implements DistantObject {
         if ([topLeft, topRight, bottomRight, bottomLeft].every((r) => r === 0)) {
             this.hittester = (hitX: number, hitY: number) => {
                 const point = this.transformPoint(hitX, hitY);
-                return this.getCachedBBox().containsPoint(point.x, point.y);
+                return this.getBBox().containsPoint(point.x, point.y);
             };
-            this.distanceSquared = (hitX: number, hitY: number) => this.getCachedBBox().distanceSquared(hitX, hitY);
+            this.distanceSquared = (hitX: number, hitY: number) => this.getBBox().distanceSquared(hitX, hitY);
         } else {
             this.hittester = super.isPointInPath;
             this.distanceCalculator = super.distanceSquaredTransformedPoint;
@@ -420,7 +420,7 @@ export class Rect extends Path implements DistantObject {
         this.microPixelEffectOpacity = microPixelEffectOpacity;
     }
 
-    override computeBBox(): BBox {
+    protected override computeBBox(): BBox {
         const { x, y, width, height, clipBBox } = this;
         return clipBBox?.clone() ?? new BBox(x, y, width, height);
     }

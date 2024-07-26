@@ -525,7 +525,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             tempText.y = nodeDatum.label.y;
             tempText.setFont(label);
             tempText.setAlign(nodeDatum.label);
-            const box = tempText.computeBBox();
+            const box = tempText.getBBox();
             textBoxes.push(box);
         });
         if (textBoxes.length === 0) {

@@ -85,7 +85,7 @@ export class AxisTicks {
             node.setProperties(datum);
 
             if (datum.visible) {
-                boxes.push(node.computeBBox());
+                boxes.push(node.getBBox());
             }
         });
 

@@ -183,7 +183,7 @@ export class GradientLegend {
         axisTicks.scale.domain = positiveAxis ? data.colorDomain.slice().reverse() : data.colorDomain;
         axisTicks.scale.range = vertical ? [0, this.gradientRect.height] : [0, this.gradientRect.width];
 
-        return BBox.merge([axisTicks.calculateLayout(), this.gradientRect.computeBBox()]);
+        return BBox.merge([axisTicks.calculateLayout(), this.gradientRect.getBBox()]);
     }
 
     private updateArrow() {

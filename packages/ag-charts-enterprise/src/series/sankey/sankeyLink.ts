@@ -82,7 +82,7 @@ export class SankeyLink extends Path {
     @ScenePathChangeDetection()
     inset: number = 0;
 
-    override computeBBox(): _Scene.BBox | undefined {
+    protected override computeBBox(): _Scene.BBox | undefined {
         const x = Math.min(this.x1, this.x2);
         const width = Math.max(this.x1, this.x2) - x;
         const y = Math.min(this.y1, this.y2);
