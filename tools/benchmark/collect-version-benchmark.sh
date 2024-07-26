@@ -10,7 +10,7 @@ if [[ ${#versions[@]} -eq 0 ]]; then
 fi
 
 # Benchmark command
-command="./node_modules/.bin/nx run-many --skip-nx-cache --target=benchmark --parallel=false -- --updateSnapshot"
+command="node --expose-gc ./node_modules/jest/bin/jest.js --config packages/ag-charts-community/jest.config.ts --runInBand --testPathPattern '.*/benchmarks/.*' -u"
 
 # Files to check out for each version
 included_files=(

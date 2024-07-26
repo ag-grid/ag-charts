@@ -658,6 +658,20 @@ export function getData() {
                     canvasCount: 38,
                     canvasBytes: 72960000,
                 },
+                'resize benchmark initial load': {
+                    timeMs: 139.5267920000042,
+                    memoryUsage: 206782648,
+                    heapUsed: 185662648,
+                    canvasCount: 11,
+                    canvasBytes: 21120000,
+                },
+                'resize benchmark after load 10x resize': {
+                    timeMs: 542.5119589999958,
+                    memoryUsage: 207020632,
+                    heapUsed: 185900632,
+                    canvasCount: 11,
+                    canvasBytes: 21120000,
+                },
             },
         },
         {
