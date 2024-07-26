@@ -1,8 +1,10 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-const { Validate, BOOLEAN, POSITIVE_NUMBER, Layers, ActionOnSet, CategoryAxis, GroupedCategoryAxis } = _ModuleSupport;
+const { Validate, BOOLEAN, POSITIVE_NUMBER, Layers, ActionOnSet, CategoryAxis, GroupedCategoryAxis, TextUtils } =
+    _ModuleSupport;
+
 const { Padding, Logger } = _Util;
-const { Text, Group, BBox } = _Scene;
+const { Group, BBox } = _Scene;
 
 class MiniChartPadding {
     @Validate(POSITIVE_NUMBER)
@@ -212,17 +214,22 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
             return padding;
         }
 
-        this.axes.forEach((axis) => {
-            const { position, thickness = 0, line, label } = axis;
+        this.axes.forEach(({ position, thickness = 0, line, label }) => {
             if (position == null) return;
 
             let size: number;
             if (thickness > 0) {
                 size = thickness;
             } else {
+                // Because of the rotation technique used by axes rendering labels are padded 5px off,
+                // which need to be account for in these calculations to make sure labels aren't being clipped.
+                // This will become obsolete only once axes rotation technique would be removed.
+                const rotationPaddingFix = 5;
                 size =
                     (line.enabled ? line.width : 0) +
-                    (label.enabled ? (label.fontSize ?? 0) * Text.defaultLineHeightRatio + label.padding : 0);
+                    (label.enabled
+                        ? TextUtils.getLineHeight(label.fontSize ?? 0) + label.padding + rotationPaddingFix
+                        : 0);
             }
 
             padding[position] = Math.ceil(size);
