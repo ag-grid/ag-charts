@@ -91,7 +91,7 @@ export class ZoomRange {
         if (!changed) this.onChange?.(this.axisId, this.getRange());
     }
 
-    public updateAxis(axes: Array<_ModuleSupport.AxisLayout & { id: string }>) {
+    public updateAxis(axes: _ModuleSupport.AxisLayout[]) {
         const validAxis = axes.find(({ domain }) => {
             const isNumberAxis = !isFiniteNumber(domain[0]) || !isFiniteNumber(domain.at(-1));
             const isDateAxis = !isValidDate(domain[0]) || !isValidDate(domain.at(-1));

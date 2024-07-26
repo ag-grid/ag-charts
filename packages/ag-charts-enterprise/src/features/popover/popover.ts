@@ -14,8 +14,8 @@ export interface MenuItem {
 
 export class Popover extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     private readonly element: HTMLElement;
-    private anchor?: { x: number; y: number };
-    private windowMouseMoveEvent?: (e: MouseEvent) => void | undefined;
+    private anchor?: { x: number; y: number } = undefined;
+    private removeGlobalEventListeners?: () => void = undefined;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -61,12 +61,15 @@ export class Popover extends _ModuleSupport.BaseModuleInstance implements _Modul
                 if (e.key === 'Enter') {
                     select();
                     e.preventDefault();
+                    e.stopPropagation();
                 }
             });
 
             row.addEventListener('click', (e) => {
                 if (e.button === 0) {
                     select();
+                    e.preventDefault();
+                    e.stopPropagation();
                 }
             });
 
@@ -113,14 +116,27 @@ export class Popover extends _ModuleSupport.BaseModuleInstance implements _Modul
             }
 
             e.preventDefault();
+            e.stopPropagation();
         });
 
         const windowMouseMoveEvent = (e: MouseEvent) => {
             if (popover.contains(e.target as any)) return;
             popover.focus();
         };
-        this.windowMouseMoveEvent = windowMouseMoveEvent;
         window.addEventListener('mousemove', windowMouseMoveEvent);
+
+        const windowMouseMoveDown = (e: MouseEvent) => {
+            if (e.button !== 0 || popover.contains(e.target as any)) return;
+
+            opts.onClose();
+        };
+        window.addEventListener('mousedown', windowMouseMoveDown);
+
+        this.removeGlobalEventListeners?.();
+        this.removeGlobalEventListeners = () => {
+            window.removeEventListener('mousemove', windowMouseMoveEvent);
+            window.removeEventListener('mousedown', windowMouseMoveDown);
+        };
 
         popover.focus();
     }
@@ -136,11 +152,8 @@ export class Popover extends _ModuleSupport.BaseModuleInstance implements _Modul
 
     hide() {
         this.element.replaceChildren();
-        const { windowMouseMoveEvent } = this;
-        if (windowMouseMoveEvent != null) {
-            window.removeEventListener('mousemove', windowMouseMoveEvent);
-            this.windowMouseMoveEvent = undefined;
-        }
+        this.removeGlobalEventListeners?.();
+        this.removeGlobalEventListeners = undefined;
     }
 
     isChildElement(element: HTMLElement) {

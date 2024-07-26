@@ -16,16 +16,20 @@ describe('resize benchmark', () => {
 
     describe('after load', () => {
         beforeEach(async () => {
+            delete ctx.options.width;
+            delete ctx.options.height;
+
             await ctx.create();
         });
 
         benchmark('10x resize', ctx, EXPECTATIONS, async () => {
-            const height = ctx.options.height ?? 600;
+            const height = 600;
             const ratios = [0.9, 0.8, 0.7, 0.6, 0.5];
 
             for (let i = 0; i < 10; i++) {
-                ctx.options.height = height * ratios[i % ratios.length];
-                await ctx.update();
+                (ctx.chart as any).chart.parentResize({ width: 800, height: height * ratios[i % ratios.length] });
+
+                await ctx.waitForUpdate();
             }
         });
     });

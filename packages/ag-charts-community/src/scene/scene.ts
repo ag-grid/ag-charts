@@ -1,6 +1,7 @@
 import { Debug } from '../util/debug';
 import { downloadUrl } from '../util/dom';
 import { createId } from '../util/id';
+import type { BBox } from './bbox';
 import { type CanvasOptions, HdpiCanvas } from './canvas/hdpiCanvas';
 import { Group } from './group';
 import { LayersManager } from './layersManager';
@@ -135,8 +136,12 @@ export class Scene {
         return false;
     }
 
-    async render(opts?: { debugSplitTimes: Record<string, number>; extraDebugStats: Record<string, number> }) {
-        const { debugSplitTimes = { start: performance.now() }, extraDebugStats } = opts ?? {};
+    async render(opts?: {
+        debugSplitTimes: Record<string, number>;
+        extraDebugStats: Record<string, number>;
+        seriesRect?: BBox;
+    }) {
+        const { debugSplitTimes = { start: performance.now() }, extraDebugStats, seriesRect } = opts ?? {};
         const { canvas, canvas: { context: ctx } = {}, root, pendingSize } = this;
 
         if (!ctx) {
@@ -163,7 +168,7 @@ export class Scene {
                 });
             }
 
-            debugStats(this.layersManager, debugSplitTimes, ctx, undefined, extraDebugStats);
+            debugStats(this.layersManager, debugSplitTimes, ctx, undefined, extraDebugStats, seriesRect);
             return;
         }
 
@@ -228,7 +233,7 @@ export class Scene {
 
         this.isDirty = false;
 
-        debugStats(this.layersManager, debugSplitTimes, ctx, renderCtx.stats, extraDebugStats);
+        debugStats(this.layersManager, debugSplitTimes, ctx, renderCtx.stats, extraDebugStats, seriesRect);
         debugSceneNodeHighlight(ctx, renderCtx.debugNodes);
 
         if (root && this.debug.check()) {

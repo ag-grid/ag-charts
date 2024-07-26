@@ -21,18 +21,6 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
     @Validate(BOOLEAN)
     enabled = true;
 
-    /** If set to `false`, axis labels will not be wrapped on multiple lines. */
-    @Validate(BOOLEAN, { optional: true })
-    autoWrap: boolean = false;
-
-    /** Used to constrain the width of the label when `autoWrap` is `true`, if the label text width exceeds the `maxWidth`, it will be wrapped on multiple lines automatically. If `maxWidth` is omitted, a default width constraint will be applied. */
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    maxWidth?: number;
-
-    /** Used to constrain the height of the multiline label, if the label text height exceeds the `maxHeight`, it will be truncated automatically. If `maxHeight` is omitted, a default height constraint will be applied. */
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    maxHeight?: number;
-
     @Validate(FONT_STYLE, { optional: true })
     fontStyle?: FontStyle;
 

@@ -44,7 +44,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     private hoverRect: _Scene.BBox = new BBox(0, 0, 0, 0);
     private bounds: _Scene.BBox = new BBox(0, 0, 0, 0);
     private visible: boolean = false;
-    private axisLayout?: _ModuleSupport.AxisLayout & { id: string };
+    private axisLayout?: _ModuleSupport.AxisLayout;
     private labelFormatter?: (value: any) => string;
 
     private readonly crosshairGroup: _Scene.Group = new Group({ layer: true, zIndex: Layers.SERIES_CROSSHAIR_ZINDEX });
@@ -385,7 +385,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         const html = this.getLabelHtml(value, label);
 
         label.setLabelHtml(html);
-        const labelBBox = label.computeBBox();
+        const labelBBox = label.getBBox();
 
         const labelMeta = calculateAxisLabelPosition({
             x,

@@ -163,7 +163,7 @@ export abstract class Shape extends Node {
     }
 
     protected applyFill(ctx: CanvasContext) {
-        ctx.fillStyle = this.gradient?.createGradient(ctx as any, this.computeBBox()!) ?? this.fill!;
+        ctx.fillStyle = this.gradient?.createGradient(ctx as any, this.getBBox()!) ?? this.fill!;
     }
 
     protected applyFillAlpha(ctx: CanvasContext) {

@@ -242,7 +242,7 @@ export class Pagination extends BaseProperties {
     }
 
     private updateNextButtonPosition() {
-        const labelBBox = this.labelNode.computeBBox();
+        const labelBBox = this.labelNode.getBBox();
         this.nextButton.translationX = labelBBox.x + labelBBox.width + this.marker.size / 2 + this.marker.padding;
     }
 
@@ -389,8 +389,8 @@ export class Pagination extends BaseProperties {
         node.append(this.group);
     }
 
-    computeBBox() {
-        return this.group.computeBBox();
+    getBBox() {
+        return this.group.getBBox();
     }
 
     computeCSSBounds() {

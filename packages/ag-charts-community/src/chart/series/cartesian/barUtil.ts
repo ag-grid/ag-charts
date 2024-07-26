@@ -34,38 +34,21 @@ export type RectConfig = {
     visible?: boolean;
 };
 
-export function updateRect({ rect, config }: { rect: Rect; config: RectConfig }) {
-    const {
-        crisp = true,
-        fill,
-        stroke,
-        strokeWidth,
-        fillOpacity,
-        strokeOpacity,
-        lineDash,
-        lineDashOffset,
-        fillShadow,
-        cornerRadius = 0,
-        topLeftCornerRadius = true,
-        topRightCornerRadius = true,
-        bottomRightCornerRadius = true,
-        bottomLeftCornerRadius = true,
-        visible = true,
-    } = config;
-    rect.crisp = crisp;
-    rect.fill = fill;
-    rect.stroke = stroke;
-    rect.strokeWidth = strokeWidth;
-    rect.fillOpacity = fillOpacity;
-    rect.strokeOpacity = strokeOpacity;
-    rect.lineDash = lineDash;
-    rect.lineDashOffset = lineDashOffset;
-    rect.fillShadow = fillShadow;
-    rect.topLeftCornerRadius = topLeftCornerRadius ? cornerRadius : 0;
-    rect.topRightCornerRadius = topRightCornerRadius ? cornerRadius : 0;
-    rect.bottomRightCornerRadius = bottomRightCornerRadius ? cornerRadius : 0;
-    rect.bottomLeftCornerRadius = bottomLeftCornerRadius ? cornerRadius : 0;
-    rect.visible = visible;
+export function updateRect(rect: Rect, config: RectConfig) {
+    rect.crisp = config.crisp ?? true;
+    rect.fill = config.fill;
+    rect.stroke = config.stroke;
+    rect.strokeWidth = config.strokeWidth;
+    rect.fillOpacity = config.fillOpacity;
+    rect.strokeOpacity = config.strokeOpacity;
+    rect.lineDash = config.lineDash;
+    rect.lineDashOffset = config.lineDashOffset;
+    rect.fillShadow = config.fillShadow;
+    rect.topLeftCornerRadius = config.topLeftCornerRadius ? config.cornerRadius ?? 0 : 0;
+    rect.topRightCornerRadius = config.topRightCornerRadius ? config.cornerRadius ?? 0 : 0;
+    rect.bottomRightCornerRadius = config.bottomRightCornerRadius ? config.cornerRadius ?? 0 : 0;
+    rect.bottomLeftCornerRadius = config.bottomLeftCornerRadius ? config.cornerRadius ?? 0 : 0;
+    rect.visible = config.visible ?? true;
 }
 
 interface NodeDatum extends Omit<CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {}
@@ -98,13 +81,6 @@ export function getRectConfig<Params extends Omit<AgBarSeriesItemStylerParams<an
         lineDashOffset,
         cornerRadius = 0,
     } = mergeDefaults(isHighlighted && highlightStyle, style);
-    const {
-        fillShadow,
-        topLeftCornerRadius = true,
-        topRightCornerRadius = true,
-        bottomRightCornerRadius = true,
-        bottomLeftCornerRadius = true,
-    } = style;
 
     let format: AgBarSeriesStyle | undefined;
     if (itemStyler) {
@@ -134,11 +110,11 @@ export function getRectConfig<Params extends Omit<AgBarSeriesItemStylerParams<an
         lineDash: format?.lineDash ?? lineDash,
         lineDashOffset: format?.lineDashOffset ?? lineDashOffset,
         cornerRadius: format?.cornerRadius ?? cornerRadius,
-        topLeftCornerRadius,
-        topRightCornerRadius,
-        bottomRightCornerRadius,
-        bottomLeftCornerRadius,
-        fillShadow,
+        topLeftCornerRadius: style.topLeftCornerRadius,
+        topRightCornerRadius: style.topRightCornerRadius,
+        bottomRightCornerRadius: style.bottomRightCornerRadius,
+        bottomLeftCornerRadius: style.bottomLeftCornerRadius,
+        fillShadow: style.fillShadow,
     };
 }
 
