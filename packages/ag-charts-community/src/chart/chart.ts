@@ -585,7 +585,7 @@ export abstract class Chart extends Observable {
                 ctx.animationManager.endBatch();
 
                 extraDebugStats['updateShortcutCount'] = this.updateShortcutCount;
-                await ctx.scene.render({ debugSplitTimes: splits, extraDebugStats });
+                await ctx.scene.render({ debugSplitTimes: splits, extraDebugStats, seriesRect: this.seriesRect });
                 this.extraDebugStats = {};
                 for (const key in splits) {
                     delete splits[key];

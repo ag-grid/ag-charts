@@ -2,6 +2,7 @@ import { Debug } from '../util/debug';
 import { Logger } from '../util/logger';
 import { SimpleTextMeasurer } from '../util/textMeasurer';
 import { isString } from '../util/type-guards';
+import { BBox } from './bbox';
 import { Group } from './group';
 import type { LayersManager } from './layersManager';
 import { type Node, RedrawType, type RenderContext } from './node';
@@ -20,7 +21,8 @@ export function debugStats(
     debugSplitTimes: Record<string, number>,
     ctx: CanvasRenderingContext2D,
     renderCtxStats: RenderContext['stats'],
-    extraDebugStats = {}
+    extraDebugStats = {},
+    seriesRect = BBox.zero
 ) {
     if (!Debug.check(DebugSelectors.SCENE_STATS, DebugSelectors.SCENE_STATS_VERBOSE)) return;
 
@@ -59,7 +61,7 @@ export function debugStats(
     let y = 0;
     for (const [stat, size] of statsSize.entries()) {
         y += size.height;
-        ctx.fillText(stat, 2, y);
+        ctx.fillText(stat, 2 + seriesRect.x, y);
     }
     ctx.restore();
 }
