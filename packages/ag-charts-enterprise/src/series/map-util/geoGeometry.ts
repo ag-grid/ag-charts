@@ -22,7 +22,7 @@ export class GeoGeometry extends Path {
     // Keep non-filled shapes separate so we don't fill them
     private readonly strokePath = new ExtendedPath2D();
 
-    override computeBBox(): _Scene.BBox | undefined {
+    protected override computeBBox(): _Scene.BBox | undefined {
         if (this.dirtyPath || this.isDirtyPath()) {
             this.updatePath();
             this.dirtyPath = false;
@@ -51,7 +51,7 @@ export class GeoGeometry extends Path {
         if (projectedGeometry == null) return false;
 
         ({ x, y } = this.transformPoint(x, y));
-        if (!this.getCachedBBox().containsPoint(x, y)) return false;
+        if (!this.getBBox().containsPoint(x, y)) return false;
 
         return this.geometryDistance(projectedGeometry, x, y) <= 0;
     }

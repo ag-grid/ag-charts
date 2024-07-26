@@ -26,7 +26,7 @@ export interface ChartAxis {
     calculatePadding(min: number, max: number): [number, number];
     clipGrid(x: number, y: number, width: number, height: number): void;
     clipTickLines(x: number, y: number, width: number, height: number): void;
-    computeBBox(): BBox;
+    getBBox(): BBox;
     isReversed(): boolean;
     crossLines?: CrossLine[];
     dataDomain: { domain: any[]; clipped: boolean };

@@ -51,7 +51,7 @@ export class RangeHandle extends Path {
         maxHandle.setCenter(maxHandleX, handleY);
     }
 
-    override computeBBox() {
+    protected override computeBBox() {
         const { centerX, centerY, width, height } = this;
         const x = centerX - width / 2;
         const y = centerY - height / 2;
@@ -65,7 +65,7 @@ export class RangeHandle extends Path {
 
     override isPointInPath(x: number, y: number): boolean {
         const point = this.transformPoint(x, y);
-        const bbox = this.computeBBox();
+        const bbox = this.getBBox();
 
         return bbox.containsPoint(point.x, point.y);
     }
