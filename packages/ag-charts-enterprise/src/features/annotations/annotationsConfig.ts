@@ -139,7 +139,5 @@ export function colorDatum(datum: AnnotationProperties, color: string) {
         datum.fill = color;
     } else if ('color' in datum) {
         datum.color = color;
-    }
-
-    if ('stroke' in datum) datum.stroke = color;
+    } else if ('stroke' in datum) datum.stroke = color;
 }
