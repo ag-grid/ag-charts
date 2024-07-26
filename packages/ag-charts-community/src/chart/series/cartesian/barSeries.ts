@@ -522,40 +522,44 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             checkCrisp(xAxis?.scale, xAxis?.visibleRange, this.smallestDataInterval, this.largestDataInterval);
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
 
+        const style: RectConfig = {
+            fill,
+            stroke,
+            lineDash,
+            lineDashOffset,
+            fillShadow: shadow,
+            strokeWidth: this.getStrokeWidth(strokeWidth),
+            fillOpacity: 0,
+            strokeOpacity: 0,
+        };
+        const rectParams = {
+            datum: undefined as unknown as BarNodeDatum,
+            ctx: this.ctx,
+            seriesId: this.id,
+            isHighlighted: opts.isHighlight,
+            highlightStyle: itemHighlightStyle,
+            yKey,
+            style,
+            itemStyler,
+            stackGroup,
+        };
         opts.datumSelection.each((rect, datum) => {
-            const style: RectConfig = {
-                fill,
-                stroke,
-                fillOpacity: fillOpacity * (datum.phantom ? 0.2 : 1),
-                strokeOpacity: strokeOpacity * (datum.phantom ? 0.2 : 1),
-                lineDash,
-                lineDashOffset,
-                fillShadow: shadow,
-                strokeWidth: this.getStrokeWidth(strokeWidth),
-                cornerRadius: datum.cornerRadius,
-                topLeftCornerRadius: datum.topLeftCornerRadius,
-                topRightCornerRadius: datum.topRightCornerRadius,
-                bottomRightCornerRadius: datum.bottomRightCornerRadius,
-                bottomLeftCornerRadius: datum.bottomLeftCornerRadius,
-            };
+            style.fillOpacity = fillOpacity * (datum.phantom ? 0.2 : 1);
+            style.strokeOpacity = strokeOpacity * (datum.phantom ? 0.2 : 1);
+            style.cornerRadius = datum.cornerRadius;
+            style.topLeftCornerRadius = datum.topLeftCornerRadius;
+            style.topRightCornerRadius = datum.topRightCornerRadius;
+            style.bottomRightCornerRadius = datum.bottomRightCornerRadius;
+            style.bottomLeftCornerRadius = datum.bottomLeftCornerRadius;
             const visible = categoryAlongX
                 ? (datum.clipBBox?.width ?? datum.width) > 0
                 : (datum.clipBBox?.height ?? datum.height) > 0;
 
-            const config = getRectConfig({
-                datum,
-                ctx: this.ctx,
-                seriesId: this.id,
-                isHighlighted: opts.isHighlight,
-                highlightStyle: itemHighlightStyle,
-                yKey,
-                style,
-                itemStyler,
-                stackGroup,
-            });
+            rectParams.datum = datum;
+            const config = getRectConfig(rectParams);
             config.crisp = crisp;
             config.visible = visible;
-            updateRect({ rect, config });
+            updateRect(rect, config);
         });
     }
 
