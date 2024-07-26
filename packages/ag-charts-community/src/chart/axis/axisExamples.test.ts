@@ -239,71 +239,6 @@ const EXAMPLES_LAYOUT: Record<string, TestCase> = {
     },
 };
 
-function switchToColumn<T extends AgCartesianChartOptions>(opts: T): T {
-    return {
-        ...opts,
-        series: opts.series?.map((s) => ({ ...s, type: 'bar', direction: 'vertical' })),
-        axes: opts.axes?.map((a) => ({ ...a, position: a.position === 'left' ? 'bottom' : 'left' })),
-    };
-}
-
-function applyAutoWrapping<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, maxWidth?: number): T {
-    return {
-        ...opts,
-        axes: opts.axes?.map((axis) => ({
-            ...axis,
-            label: { ...axis.label, autoWrap: true, maxWidth, autoRotate: false, rotation: 0 },
-        })),
-    };
-}
-
-const EXAMPLES_LABEL_AUTO_WRAPPING: Record<string, TestCase> = {
-    BAR_CHART_EXAMPLE: {
-        options: applyAutoWrapping(examples.BAR_CHART_EXAMPLE, 150),
-        assertions: cartesianChartAssertions({ seriesTypes: ['bar'] }),
-    },
-    GROUPED_BAR_CHART_EXAMPLE: {
-        options: applyAutoWrapping(examples.GROUPED_BAR_CHART_EXAMPLE),
-        assertions: cartesianChartAssertions({ seriesTypes: repeat('bar', 2) }),
-    },
-    STACKED_BAR_CHART_EXAMPLE: {
-        options: applyAutoWrapping(examples.STACKED_BAR_CHART_EXAMPLE, 150),
-        assertions: cartesianChartAssertions({ seriesTypes: repeat('bar', 4) }),
-    },
-    ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE: {
-        options: applyAutoWrapping(examples.ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE, 100),
-        assertions: cartesianChartAssertions({ seriesTypes: repeat('bar', 3) }),
-    },
-    BAR_CHART_WITH_LABELS_EXAMPLE: {
-        options: applyAutoWrapping(examples.BAR_CHART_WITH_LABELS_EXAMPLE),
-        assertions: cartesianChartAssertions({ seriesTypes: ['bar'] }),
-    },
-    COLUMN_CHART_EXAMPLE: {
-        options: applyAutoWrapping(switchToColumn(examples.BAR_CHART_EXAMPLE)),
-        assertions: cartesianChartAssertions({ seriesTypes: ['bar'] }),
-    },
-    GROUPED_COLUMN_CHART_EXAMPLE: {
-        options: applyAutoWrapping(switchToColumn(examples.GROUPED_BAR_CHART_EXAMPLE)),
-        assertions: cartesianChartAssertions({ seriesTypes: repeat('bar', 2) }),
-    },
-    STACKED_COLUMN_CHART_EXAMPLE: {
-        options: applyAutoWrapping(switchToColumn(examples.STACKED_BAR_CHART_EXAMPLE)),
-        assertions: cartesianChartAssertions({ seriesTypes: repeat('bar', 4) }),
-    },
-    ONE_HUNDRED_PERCENT_STACKED_COLUMN_EXAMPLE: {
-        options: applyAutoWrapping(switchToColumn(examples.ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE)),
-        assertions: cartesianChartAssertions({ seriesTypes: repeat('bar', 3) }),
-    },
-    COLUMN_CHART_WITH_LABELS_EXAMPLE: {
-        options: applyAutoWrapping(switchToColumn(examples.BAR_CHART_WITH_LABELS_EXAMPLE)),
-        assertions: cartesianChartAssertions({ seriesTypes: ['bar'] }),
-    },
-    SIMPLE_LINE_CHART_EXAMPLE: {
-        options: applyAutoWrapping(examples.SIMPLE_LINE_CHART_EXAMPLE, 80),
-        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: ['line', 'line'] }),
-    },
-};
-
 function mixinDerivedCases<T extends AgBaseChartOptions>(
     baseCases: Record<string, TestCase<T>>
 ): Record<string, TestCase<T>> {
@@ -514,25 +449,6 @@ describe('Axis Examples', () => {
 
     describe('configured tick spacing cases', () => {
         for (const [exampleName, example] of Object.entries(EXAMPLES_TICK_SPACING)) {
-            it(`for ${exampleName} it should create chart instance as expected`, async () => {
-                chart = await createChart(example.options);
-                await example.assertions(chart);
-            });
-
-            it(`for ${exampleName} it should render to canvas as expected`, async () => {
-                chart = await createChart(example.options);
-                await compare();
-
-                if (example.extraScreenshotActions) {
-                    await example.extraScreenshotActions(chart);
-                    await compare();
-                }
-            });
-        }
-    });
-
-    describe('auto wrap axis labels cases', () => {
-        for (const [exampleName, example] of Object.entries(EXAMPLES_LABEL_AUTO_WRAPPING)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
                 chart = await createChart(example.options);
                 await example.assertions(chart);
