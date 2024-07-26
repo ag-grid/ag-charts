@@ -94,7 +94,7 @@ export class CartesianChart extends Chart {
                 visible: visibility.series,
                 shouldFlipXY: this.shouldFlipXY(),
             },
-            axes: this.axes.map((axis) => ({ id: axis.id, ...axis.getLayoutState() })),
+            axes: this.axes.map((axis) => axis.getLayoutState()),
         });
 
         const modulePromises = this.modulesManager.mapModules((m) => m.performCartesianLayout?.({ seriesRect }));

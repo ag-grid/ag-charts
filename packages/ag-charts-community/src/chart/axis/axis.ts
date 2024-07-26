@@ -1460,6 +1460,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     getLayoutState(): AxisLayout {
         return {
+            id: this.id,
             rect: this.computeBBox(),
             gridPadding: this.gridPadding,
             seriesAreaPadding: this.seriesAreaPadding,
