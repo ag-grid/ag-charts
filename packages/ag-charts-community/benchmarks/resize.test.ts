@@ -15,8 +15,6 @@ describe('resize benchmark', () => {
     });
 
     describe('after load', () => {
-        let container: HTMLElement | undefined;
-
         beforeEach(async () => {
             delete ctx.options.width;
             delete ctx.options.height;
