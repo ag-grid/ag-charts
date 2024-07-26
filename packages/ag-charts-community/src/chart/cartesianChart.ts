@@ -426,6 +426,13 @@ export class CartesianChart extends Chart {
         primaryTickCount = layout.primaryTickCount;
         primaryTickCounts[direction] ??= primaryTickCount;
 
+        // Because of the rotation technique used by axes rendering labels are padded 5px off,
+        // which need to be account for in these calculations to make sure labels aren't being clipped.
+        // This will become obsolete only once axes rotation technique would be removed.
+        if (this.padding[position] < 5) {
+            layout.bbox.grow(5 - this.padding[position], position);
+        }
+
         clipSeries ||= axis.dataDomain.clipped || axis.visibleRange[0] > 0 || axis.visibleRange[1] < 1;
 
         let axisThickness;
