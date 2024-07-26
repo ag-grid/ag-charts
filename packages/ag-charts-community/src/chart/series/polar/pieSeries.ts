@@ -917,24 +917,21 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             .filter((d) => d.midSin >= 0 && d.calloutLabel?.textAlign === 'center')
             .sort((a, b) => a.midCos - b.midCos);
 
-        const tempTextNode = new Text();
         const getTextBBox = (datum: (typeof data)[number]) => {
             const label = datum.calloutLabel;
-            if (label == null) return new BBox(0, 0, 0, 0);
+            if (label == null) return BBox.zero.clone();
 
             const labelRadius = datum.outerRadius + calloutLine.length + offset;
             const x = datum.midCos * labelRadius;
             const y = datum.midSin * labelRadius + label.collisionOffsetY;
 
-            tempTextNode.text = label.text;
-            tempTextNode.x = x;
-            tempTextNode.y = y;
-            tempTextNode.setFont(this.properties.calloutLabel);
-            tempTextNode.setAlign({
-                textAlign: label.collisionTextAlign ?? label.textAlign,
-                textBaseline: label.textBaseline,
+            const textAlign = label.collisionTextAlign ?? label.textAlign;
+            const textBaseline = label.textBaseline;
+            return Text.computeBBox(label.text, x, y, {
+                font: this.properties.calloutLabel,
+                textAlign,
+                textBaseline,
             });
-            return tempTextNode.getBBox();
         };
 
         const avoidNeighbourYCollision = (

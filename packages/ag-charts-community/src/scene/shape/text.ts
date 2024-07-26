@@ -1,6 +1,6 @@
 import type { FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-types';
 
-import { CachedTextMeasurerPool, TextUtils } from '../../util/textMeasurer';
+import { CachedTextMeasurerPool, type MeasureOptions, TextUtils } from '../../util/textMeasurer';
 import { BBox } from '../bbox';
 import type { RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
@@ -72,14 +72,14 @@ export class Text extends Shape {
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     lineHeight?: number;
 
+    static computeBBox(lines: string | string[], x: number, y: number, opts: MeasureOptions): BBox {
+        const { offsetTop, offsetLeft, width, height } = CachedTextMeasurerPool.measureLines(lines, opts);
+        return new BBox(x - offsetLeft, y - offsetTop, width, height);
+    }
+
     protected override computeBBox(): BBox {
         const { x, y, lines, textBaseline, textAlign } = this;
-        const { offsetTop, offsetLeft, width, height } = CachedTextMeasurerPool.measureLines(lines, {
-            font: this,
-            textBaseline,
-            textAlign,
-        });
-        return new BBox(x - offsetLeft, y - offsetTop, width, height);
+        return Text.computeBBox(lines, x, y, { font: this, textBaseline, textAlign });
     }
 
     isPointInPath(x: number, y: number): boolean {

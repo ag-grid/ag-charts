@@ -58,7 +58,7 @@ export class AxisLabelScene extends _Scene.Group {
     private updatePosition({ x, y, context, styles: { padding } }: UpdateOpts) {
         const { label, rect } = this;
 
-        const labelBBox = label.getBBox();
+        const labelBBox = label.getBBox()?.clone();
 
         const horizontalPadding = 8;
         const verticalPadding = 5;

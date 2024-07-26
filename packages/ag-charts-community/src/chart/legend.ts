@@ -945,12 +945,13 @@ export class Legend extends BaseProperties {
     }
 
     private computePagedBBox(): BBox {
-        const actualBBox = this.group.getBBox();
+        let actualBBox = this.group.getBBox();
         if (this.pages.length <= 1) {
             return actualBBox;
         }
 
         const [maxPageWidth, maxPageHeight] = this.maxPageSize;
+        actualBBox = actualBBox.clone();
         actualBBox.height = Math.max(maxPageHeight, actualBBox.height);
         actualBBox.width = Math.max(maxPageWidth, actualBBox.width);
 
