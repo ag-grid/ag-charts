@@ -130,7 +130,7 @@ export class RangeHandle extends Path {
 
     override isPointInPath(x: number, y: number): boolean {
         const point = this.transformPoint(x, y);
-        const bbox = this.computeBBox();
+        const bbox = this.getBBox();
 
         return bbox.containsPoint(point.x, point.y);
     }

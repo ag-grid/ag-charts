@@ -52,7 +52,8 @@ export class Line extends Shape implements DistantObject {
     isPointInPath(px: number, py: number): boolean {
         if (this.x1 === this.x2 || this.y1 === this.y2) {
             const { x, y } = this.transformPoint(px, py);
-            return this.computeBBox()
+            return this.getBBox()
+                .clone()
                 .grow(this.strokeWidth / 2)
                 .containsPoint(x, y);
         }

@@ -84,7 +84,7 @@ export class Text extends Shape {
 
     isPointInPath(x: number, y: number): boolean {
         const point = this.transformPoint(x, y);
-        const bbox = this.computeBBox();
+        const bbox = this.getBBox();
 
         return bbox ? bbox.containsPoint(point.x, point.y) : false;
     }

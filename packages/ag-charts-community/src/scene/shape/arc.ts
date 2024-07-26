@@ -84,7 +84,7 @@ export class Arc extends Path {
 
     override isPointInPath(x: number, y: number): boolean {
         const point = this.transformPoint(x, y);
-        const bbox = this.computeBBox();
+        const bbox = this.getBBox();
 
         return (
             this.type !== ArcType.Open &&
