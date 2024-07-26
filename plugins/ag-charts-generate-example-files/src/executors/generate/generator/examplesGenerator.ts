@@ -144,7 +144,10 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         },
     });
 
-    const layout = indexHtml.includes('class="toolbar"') ? 'toolbar' : 'grid';
+    const hasToolbarClass = Array.from(indexHtml.matchAll(/class="([^"]*)"/g)).some(([_fullMatch, classList]) => {
+        return classList.split(/\s+/g).includes('toolbar');
+    });
+    const layout = hasToolbarClass ? 'toolbar' : 'grid';
 
     const getFrameworkFiles = frameworkFilesGenerator[internalFramework];
     if (!getFrameworkFiles) {

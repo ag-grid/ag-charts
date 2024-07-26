@@ -17,7 +17,7 @@ export const ExampleStyle = ({
     const toolbarStyles = css`
         ${rootSelector ?? 'body'} {
             display: grid;
-            grid: 'toolbar' auto 'canvas' 1fr / 1fr;
+            grid: 'toolbar' auto 'canvas' minmax(0, 1fr) / 1fr;
             padding: 1rem;
         }
 
@@ -70,6 +70,7 @@ export const ExampleStyle = ({
 
     const styles = css`
         :root {
+            overflow: hidden;
             font-family: -apple-system, 'system-ui', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
                 'Liberation Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
                 'Noto Color Emoji';
