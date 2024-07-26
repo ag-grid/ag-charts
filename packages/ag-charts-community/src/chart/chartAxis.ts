@@ -81,14 +81,11 @@ export interface ChartAxis {
 export interface ChartAxisLabel extends FontOptions {
     autoRotate?: boolean;
     autoRotateAngle?: number;
-    autoWrap?: boolean;
     avoidCollisions: boolean;
     enabled: boolean;
     format?: string;
     formatter?: Formatter<AgAxisLabelFormatterParams>;
     getSideFlag(): ChartAxisLabelFlipFlag;
-    maxHeight?: number;
-    maxWidth?: number;
     minSpacing: number;
     mirrored: boolean;
     padding: number;
