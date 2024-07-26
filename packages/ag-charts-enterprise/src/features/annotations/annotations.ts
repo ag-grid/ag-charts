@@ -307,6 +307,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     point,
                     position: datum.position,
                     alignment: datum.alignment,
+                    textAlign: datum.textAlign,
                 });
             },
 

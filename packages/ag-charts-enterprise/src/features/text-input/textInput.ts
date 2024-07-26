@@ -1,23 +1,25 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
-import type { FontOptions } from 'ag-charts-types';
+import type { FontOptions, TextAlign } from 'ag-charts-types';
 
 import textInputTemplate from './textInputTemplate.html';
 
 const moduleId = 'text-input';
 const canvasOverlay = 'canvas-overlay';
 
-interface LayoutBBox {
+interface Layout {
     point: { x: number; y: number };
     position: 'top' | 'center' | 'bottom';
     alignment: 'left' | 'center' | 'right';
+    textAlign: TextAlign;
 }
 
 export class TextInput extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     private readonly element: HTMLElement;
-    private layout: LayoutBBox = {
+    private layout: Layout = {
         point: { x: 0, y: 0 },
         position: 'center',
         alignment: 'center',
+        textAlign: 'center',
     };
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
@@ -84,10 +86,11 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
             point: { x: 0, y: 0 },
             position: 'center',
             alignment: 'center',
+            textAlign: 'center',
         };
     }
 
-    public setLayout(layout: LayoutBBox) {
+    public setLayout(layout: Layout) {
         this.layout = layout;
         this.updatePosition();
     }
@@ -103,7 +106,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
             layout,
             ctx: { domManager },
         } = this;
-        const { point, position, alignment } = layout;
+        const { point, position, alignment, textAlign } = layout;
 
         const textArea = element.firstElementChild as HTMLDivElement | undefined;
         if (!textArea) return;
@@ -112,7 +115,6 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         const width = textArea?.offsetWidth;
 
         const boundingRect = domManager.getBoundingClientRect();
-        let maxWidth = boundingRect.width;
 
         switch (position) {
             case 'top':
@@ -126,28 +128,26 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
                 break;
         }
 
-        // TODO: shush sonarqube
-        const textAlign = 'text-align';
+        function setProperties(position: number) {
+            element.style.setProperty('left', `${position}px`);
+
+            element.style.setProperty('text-align', alignment);
+            textArea?.style.setProperty('text-align', textAlign);
+
+            element.style.setProperty('max-width', `${boundingRect.width - position}px`);
+        }
 
         switch (alignment) {
             case 'left':
-                element.style.setProperty('left', `${point.x}px`);
-                textArea?.style.setProperty(textAlign, 'left');
-                maxWidth = boundingRect.width - point.x;
+                setProperties(point.x);
                 break;
             case 'center':
-                element.style.setProperty('left', `${point.x - width / 2}px`);
-                textArea?.style.setProperty(textAlign, 'center');
-                maxWidth = boundingRect.width - (point.x - width / 2);
+                setProperties(point.x - width / 2);
                 break;
             case 'right':
-                element.style.setProperty('left', `${point.x - width}px`);
-                textArea?.style.setProperty(textAlign, 'right');
-                maxWidth = boundingRect.width - (point.x - width);
+                setProperties(point.x - width);
                 break;
         }
-
-        element.style.setProperty('max-width', `${maxWidth}px`);
     }
 
     private getBBox() {
