@@ -393,7 +393,7 @@ export class ChartTheme {
             DEFAULT_FILLS.YELLOW,
             DEFAULT_FILLS.GREEN,
         ]);
-        params.set(DEFAULT_PADDING, 15);
+        params.set(DEFAULT_PADDING, 20);
         params.set(DEFAULT_CAPTION_LAYOUT_STYLE, 'block');
         params.set(DEFAULT_CAPTION_ALIGNMENT, 'center');
         params.set(DEFAULT_HIERARCHY_FILLS, ['#ffffff', '#e0e5ea', '#c1ccd5', '#a3b4c1', '#859cad']);
