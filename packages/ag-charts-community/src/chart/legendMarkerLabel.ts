@@ -175,14 +175,14 @@ export class LegendMarkerLabel extends Group {
         }
 
         // clip the symbols to the size of a single symbol to match the size of other legend items
-        const bbox = this.symbolsGroup.computeBBox();
+        const bbox = this.symbolsGroup.getBBox();
         const clippedWidth = Math.max(lastMarker?.size ?? 0, lastSymbolProps?.length ?? 0);
         const clipRect = new BBox(bbox.x + clippedWidth / 2, bbox.y, clippedWidth, bbox.height);
 
         this.symbolsGroup.setClipRectInGroupCoordinateSpace(clipRect);
     }
 
-    override computeBBox(): BBox {
+    protected override computeBBox(): BBox {
         // The Image node (bitmap) includes some padding to render antialiasing pixel correctly, but we do
         // not want to include this padding in the layout bounds. So just compute the bounds for the Line
         // and Marker nodes directly rather than Group's default behaviour of computing this.bitmap's BBox.

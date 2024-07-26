@@ -14,7 +14,7 @@ import {
 } from '../test/utils';
 
 function calculateAxisBBox(axis: ChartAxis): { x: number; y: number; width: number; height: number } {
-    const bbox = axis.computeBBox();
+    const bbox = axis.getBBox();
 
     const { x, y, width, height } = bbox;
     return { x, y, width, height };

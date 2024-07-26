@@ -129,7 +129,7 @@ export function getTextAlign(
 }
 
 export function calculateLabelBBox(text: string, bbox: BBox, labelMatrix: Matrix): PlacedLabelDatum {
-    // Text.computeBBox() does not take into account any of the transformations that have been applied to the label nodes, only the width and height are useful.
+    // Text.getBBox() does not take into account any of the transformations that have been applied to the label nodes, only the width and height are useful.
     // Rather than taking into account all transformations including those of parent nodes which would be the result of `computeTransformedBBox()`, giving the x and y in the entire axis coordinate space,
     // take into account only the rotation and translation applied to individual label nodes to get the x y coordinates of the labels relative to each other
     // this makes label collision detection a lot simpler

@@ -385,7 +385,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         const html = this.getLabelHtml(value, label);
 
         label.setLabelHtml(html);
-        const labelBBox = label.computeBBox();
+        const labelBBox = label.getBBox();
 
         const labelMeta = calculateAxisLabelPosition({
             x,

@@ -27,7 +27,7 @@ export class RangeMask extends Path {
         this.dirtyPath = true;
     }
 
-    override computeBBox() {
+    protected override computeBBox() {
         const { x, y, width, height } = this;
         return new BBox(x, y, width, height);
     }

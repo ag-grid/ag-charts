@@ -47,7 +47,7 @@ export class RadialColumnShape extends Path {
         // TODO implement cornerRadius support
     }
 
-    override computeBBox(): BBox {
+    protected override computeBBox(): BBox {
         const { innerRadius, outerRadius, columnWidth } = this;
         const rotation = this.getRotation();
         const left = -columnWidth / 2;

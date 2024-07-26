@@ -453,7 +453,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     private checkAxisHover(event: PointerInteractionEvent<'hover'>) {
         if (!this.interactionEnabled) return;
 
-        const bbox = this.computeBBox();
+        const bbox = this.getBBox();
         const isInAxis = bbox.containsPoint(event.offsetX, event.offsetY);
 
         if (!isInAxis) return;
@@ -1412,8 +1412,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     maxThickness: number = Infinity;
 
-    computeBBox(): BBox {
-        return this.axisGroup.computeBBox();
+    getBBox(): BBox {
+        return this.axisGroup.getBBox();
     }
 
     initCrossLine(crossLine: CrossLine) {
@@ -1460,7 +1460,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     getLayoutState(): AxisLayout {
         return {
-            rect: this.computeBBox(),
+            rect: this.getBBox(),
             gridPadding: this.gridPadding,
             seriesAreaPadding: this.seriesAreaPadding,
             tickSize: this.getTickSize(),
