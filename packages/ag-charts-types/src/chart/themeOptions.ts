@@ -53,7 +53,7 @@ export type AgChartThemeName =
     | 'ag-financial'
     | 'ag-financial-dark';
 
-interface AgPaletteColors {
+export interface AgPaletteColors {
     fill?: CssColor;
     stroke?: CssColor;
 }
