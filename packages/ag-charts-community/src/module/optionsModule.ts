@@ -2,7 +2,6 @@ import {
     type AgBaseAxisOptions,
     type AgCartesianAxisOptions,
     type AgChartOptions,
-    type AgChartThemePalette,
     type AgPolarAxisOptions,
     type AgTooltipPositionOptions,
     AgTooltipPositionType,
@@ -310,7 +309,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             userPalette,
             colorsCount: Math.max(fills.length, strokes.length),
             themeTemplateParameters: this.activeTheme.getTemplateParameters(),
-            palette: this.activeTheme.palette as Required<AgChartThemePalette>,
+            palette: this.activeTheme.palette,
             takeColors(count) {
                 options.colourIndex += count;
                 return {

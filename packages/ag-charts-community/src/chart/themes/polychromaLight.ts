@@ -1,5 +1,3 @@
-import type { AgChartThemePalette } from 'ag-charts-types';
-
 import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
@@ -36,19 +34,16 @@ const POLYCHROMA_LIGHT_STROKES = {
 const POLYCHROMA_LIGHT_FILL_GRAY = '#bbbbbb';
 const POLYCHROMA_LIGHT_STROKE_GRAY = '#888888';
 
-const palette: AgChartThemePalette = {
-    fills: Object.values(POLYCHROMA_LIGHT_FILLS),
-    strokes: Object.values(POLYCHROMA_LIGHT_STROKES),
-};
-
 export class PolychromaLight extends ChartTheme {
     override getDefaultColors() {
         return {
             fills: POLYCHROMA_LIGHT_FILLS,
             strokes: POLYCHROMA_LIGHT_STROKES,
-            up: { fill: POLYCHROMA_LIGHT_FILLS.BLUE, stroke: POLYCHROMA_LIGHT_STROKES.BLUE },
+            up: { fill: POLYCHROMA_LIGHT_FILLS.GREEN, stroke: POLYCHROMA_LIGHT_STROKES.GREEN },
             down: { fill: POLYCHROMA_LIGHT_FILLS.RED, stroke: POLYCHROMA_LIGHT_STROKES.RED },
             neutral: { fill: POLYCHROMA_LIGHT_FILL_GRAY, stroke: POLYCHROMA_LIGHT_STROKE_GRAY },
+            altUp: { fill: POLYCHROMA_LIGHT_FILLS.BLUE, stroke: POLYCHROMA_LIGHT_STROKES.BLUE },
+            altDown: { fill: POLYCHROMA_LIGHT_FILLS.RED, stroke: POLYCHROMA_LIGHT_STROKES.RED },
         };
     }
 
@@ -61,8 +56,5 @@ export class PolychromaLight extends ChartTheme {
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, POLYCHROMA_LIGHT_FILLS.BLUE);
 
         return params;
-    }
-    protected override getPalette(): AgChartThemePalette {
-        return palette;
     }
 }
