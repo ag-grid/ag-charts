@@ -82,10 +82,11 @@ export class Popover extends _ModuleSupport.BaseModuleInstance implements _Modul
             return row;
         });
 
-        const popoverContainer = createElement('div');
-        popoverContainer.role = 'presentation';
-        popoverContainer.appendChild(popover);
-        this.element.replaceChildren(popoverContainer);
+        // const popoverContainer = createElement('div');
+        // popoverContainer.role = 'presentation';
+        // popoverContainer.appendChild(popover);
+        // this.element.replaceChildren(popoverContainer);
+        this.element.replaceChildren(popover);
 
         // If an anchor has already been provided, apply it to prevent a flash of the picker in the wrong location
         if (this.anchor) {
@@ -144,10 +145,10 @@ export class Popover extends _ModuleSupport.BaseModuleInstance implements _Modul
     setAnchor(anchor: { x: number; y: number }) {
         this.anchor = anchor;
 
-        const colorPicker = this.element.firstElementChild?.firstElementChild as HTMLElement | undefined;
-        if (!colorPicker) return;
+        const popover = this.element.firstElementChild as HTMLElement | undefined;
+        if (!popover) return;
 
-        this.updatePosition(colorPicker, anchor.x, anchor.y);
+        this.updatePosition(popover, anchor.x, anchor.y);
     }
 
     hide() {
@@ -160,10 +161,10 @@ export class Popover extends _ModuleSupport.BaseModuleInstance implements _Modul
         return this.ctx.domManager.isManagedChildDOMElement(element, canvasOverlay, moduleId);
     }
 
-    private updatePosition(colorPicker: HTMLElement, x: number, y: number) {
-        colorPicker.style.setProperty('top', 'unset');
-        colorPicker.style.setProperty('bottom', 'unset');
-        colorPicker.style.setProperty('left', `${x}px`);
-        colorPicker.style.setProperty('top', `${y}px`);
+    private updatePosition(popover: HTMLElement, x: number, y: number) {
+        popover.style.setProperty('top', 'unset');
+        popover.style.setProperty('bottom', 'unset');
+        popover.style.setProperty('left', `${x}px`);
+        popover.style.setProperty('top', `${y}px`);
     }
 }
