@@ -2,6 +2,7 @@ import { type Direction, _ModuleSupport, _Scene, _Util } from 'ag-charts-communi
 
 import { buildBounds } from '../../utils/position';
 import { ColorPicker } from '../color-picker/colorPicker';
+import { type MenuItem, Popover } from '../popover/popover';
 import { TextInput } from '../text-input/textInput';
 import type { AnnotationContext, Coords, Point } from './annotationTypes';
 import { ANNOTATION_BUTTONS, AnnotationType, stringToAnnotationType } from './annotationTypes';
@@ -45,11 +46,24 @@ type AnnotationAxis = {
 
 const AXIS_TYPE = UNION(['x', 'y', 'xy'], 'an axis type');
 
+const TEXT_SIZE_ITEMS: MenuItem<number>[] = [
+    { label: '10', value: 10 },
+    { label: '12', value: 12 },
+    { label: '14', value: 14 },
+    { label: '16', value: 16 },
+    { label: '18', value: 18 },
+    { label: '22', value: 22 },
+    { label: '28', value: 28 },
+    { label: '36', value: 36 },
+    { label: '46', value: 46 },
+];
+
 enum AnnotationOptions {
     Delete = 'delete',
     LineColor = 'line-color',
     Lock = 'lock',
     TextColor = 'text-color',
+    TextSize = 'text-size',
     Unlock = 'unlock',
 }
 
@@ -103,6 +117,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     );
 
     private readonly colorPicker = new ColorPicker(this.ctx);
+    private readonly popover = new Popover(this.ctx, 'annotations');
     private defaultColor?: string;
 
     private readonly textInput = new TextInput(this.ctx);
@@ -126,6 +141,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: false });
                 ctx.tooltipManager.unsuppressTooltip('annotations');
                 this.colorPicker.hide();
+                this.popover.hide();
                 this.resetToolbarButtonStates();
                 this.toggleAnnotationOptionsButtons();
                 this.update();
@@ -152,10 +168,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 const {
                     annotations,
                     colorPicker,
+                    popover,
                     ctx: { toolbarManager, tooltipManager },
                 } = this;
 
                 colorPicker.hide();
+                popover.hide();
 
                 if (previous != null) {
                     annotations.at(previous)?.toggleActive(false);
@@ -419,6 +437,15 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 });
                 break;
 
+            case AnnotationOptions.TextSize:
+                this.popover.show<number>({
+                    items: TEXT_SIZE_ITEMS,
+                    onPress: this.onPopoverPress.bind(this),
+                    onClose: this.onPopoverClose.bind(this),
+                    minWidth: 60,
+                });
+                break;
+
             case AnnotationOptions.Delete:
                 annotationData.splice(active, 1);
                 this.reset();
@@ -428,6 +455,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 annotationData[active].locked = true;
                 this.toggleAnnotationOptionsButtons();
                 this.colorPicker.hide();
+                this.popover.hide();
                 break;
 
             case AnnotationOptions.Unlock:
@@ -452,6 +480,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const anchor = Vec2.add(rect, Vec2.from(0, rect.height + 4));
         const fallback = { y: rect.y - 4 };
         this.colorPicker.setAnchor(anchor, fallback);
+        this.popover.setAnchor(anchor);
     }
 
     private onColorPickerChange(color: string) {
@@ -475,6 +504,23 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private onColorPickerClose() {
         this.colorPicker.hide();
+    }
+
+    private updateToolbarFontSize(fontSize: number | undefined) {
+        this.ctx.toolbarManager.updateButton('annotationOptions', AnnotationOptions.TextSize, {
+            label: fontSize != null ? String(fontSize) : undefined,
+        });
+    }
+
+    private onPopoverPress(item: MenuItem<number>) {
+        const fontSize = item.value;
+        this.state.transition('fontSize', fontSize);
+
+        this.updateToolbarFontSize(fontSize);
+    }
+
+    private onPopoverClose() {
+        this.popover.hide();
     }
 
     private onToolbarCancelled(event: _ModuleSupport.ToolbarCancelledEvent) {
@@ -728,11 +774,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const locked = datum?.locked ?? false;
 
         this.updateToolbarFills(datum?.getDefaultColor());
+        this.updateToolbarFontSize(datum != null && 'fontSize' in datum ? datum.fontSize : undefined);
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.LineColor, {
             enabled: !locked,
             visible: isLineType(datum) || isChannelType(datum),
         });
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.TextColor, {
+            enabled: !locked,
+            visible: isTextType(datum),
+        });
+        toolbarManager.toggleButton('annotationOptions', AnnotationOptions.TextSize, {
             enabled: !locked,
             visible: isTextType(datum),
         });

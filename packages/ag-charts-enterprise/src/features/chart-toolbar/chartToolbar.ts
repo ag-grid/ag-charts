@@ -1,23 +1,16 @@
-import {
-    type AgFinancialChartOptions,
-    type AgIconName,
-    type AgPriceVolumeChartType,
-    _ModuleSupport,
-    _Scene,
-} from 'ag-charts-community';
+import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import { Popover } from '../popover/popover';
+import { type MenuItem, Popover } from '../popover/popover';
 
-const itemConfigurations: Record<AgPriceVolumeChartType, { label: string; icon: AgIconName | undefined }> = {
-    ohlc: { label: 'toolbarSeriesTypeOHLC', icon: 'ohlc-series' },
-    candlestick: { label: 'toolbarSeriesTypeCandles', icon: 'candlestick-series' },
-    'hollow-candlestick': { label: 'toolbarSeriesTypeHollowCandles', icon: 'hollow-candlestick-series' },
-    line: { label: 'toolbarSeriesTypeLine', icon: 'line-series' },
-    'step-line': { label: 'toolbarSeriesTypeStepLine', icon: 'step-line-series' },
-    'range-area': { label: '', icon: undefined },
-    hlc: { label: 'toolbarSeriesTypeHLC', icon: 'hlc-series' },
-    'high-low': { label: 'toolbarSeriesTypeHighLow', icon: 'high-low-series' },
-};
+const menuItems: MenuItem<AgPriceVolumeChartType>[] = [
+    { label: 'toolbarSeriesTypeOHLC', icon: 'ohlc-series', value: 'ohlc' },
+    { label: 'toolbarSeriesTypeCandles', icon: 'candlestick-series', value: 'candlestick' },
+    { label: 'toolbarSeriesTypeHollowCandles', icon: 'hollow-candlestick-series', value: 'hollow-candlestick' },
+    { label: 'toolbarSeriesTypeLine', icon: 'line-series', value: 'line' },
+    { label: 'toolbarSeriesTypeStepLine', icon: 'step-line-series', value: 'step-line' },
+    { label: 'toolbarSeriesTypeHLC', icon: 'hlc-series', value: 'hlc' },
+    { label: 'toolbarSeriesTypeHighLow', icon: 'high-low-series', value: 'high-low' },
+];
 
 const BUTTON_GROUP = 'seriesType';
 const BUTTON_VALUE = 'type';
@@ -31,7 +24,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
     })
     enabled: boolean = false;
 
-    private readonly popover = new Popover(this.ctx);
+    private readonly popover = new Popover(this.ctx, 'chart-toolbar');
     private anchor?: _Scene.BBox = undefined;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
@@ -53,7 +46,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
 
         const { toolbarManager } = this.ctx;
         const chartType = this.getChartType();
-        const icon = itemConfigurations[chartType]?.icon;
+        const icon = menuItems.find((item) => item.value === chartType)?.icon;
         if (icon != null) {
             toolbarManager.updateButton(BUTTON_GROUP, BUTTON_VALUE, { icon });
         }
@@ -75,27 +68,11 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
 
         this.setAnchor(e.rect);
 
-        const chartType = this.getChartType();
-        const item = (type: AgPriceVolumeChartType) => {
-            const { label, icon } = itemConfigurations[type]!;
-            const active = type === chartType;
-            const onPress = () => this.setChartType(type);
-            return { label, icon, active, onPress };
-        };
-
         this.popover.show({
-            items: [
-                item('ohlc'),
-                item('candlestick'),
-                item('hollow-candlestick'),
-                item('line'),
-                item('step-line'),
-                item('hlc'),
-                item('high-low'),
-            ],
-            onClose: () => {
-                this.hidePopover();
-            },
+            items: menuItems,
+            value: this.getChartType(),
+            onPress: (item) => this.setChartType(item.value),
+            onClose: () => this.hidePopover(),
         });
 
         this.ctx.toolbarManager.toggleButton(BUTTON_GROUP, BUTTON_VALUE, { active: true });
@@ -113,7 +90,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
 
     private getChartType(): AgPriceVolumeChartType {
         let chartType = (this.ctx.chartService.publicApi?.getOptions() as AgFinancialChartOptions)?.chartType;
-        if (chartType == null || itemConfigurations[chartType] == null) {
+        if (chartType == null || !menuItems.some((item) => item.value === chartType)) {
             chartType = 'candlestick';
         }
         return chartType;

@@ -46,6 +46,7 @@ type AnnotationEvent =
     | 'cancel'
     | 'reset'
     | 'color'
+    | 'fontSize'
     | 'keyDown'
     | 'textInput'
     | 'render';
@@ -225,6 +226,22 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                         if (!datum) return;
 
                         colorDatum(datum, color);
+                        ctx.update();
+                    },
+                },
+
+                fontSize: {
+                    guard: () => this.active != null,
+                    target: States.Idle,
+                    action: (fontSize: number) => {
+                        const datum = ctx.datum(this.active!);
+                        if (!datum) return;
+
+                        if (isTextType(datum)) {
+                            // @ts-expect-error TS bug
+                            datum.fontSize = fontSize;
+                        }
+
                         ctx.update();
                     },
                 },

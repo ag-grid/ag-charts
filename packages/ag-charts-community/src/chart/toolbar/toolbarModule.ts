@@ -98,6 +98,10 @@ const annotationOptions: AgToolbarOptions['annotationOptions'] = {
             value: 'text-color',
         },
         {
+            tooltip: 'toolbarAnnotationsTextSize',
+            value: 'text-size',
+        },
+        {
             icon: 'unlocked',
             tooltip: 'toolbarAnnotationsLock',
             value: 'lock',

@@ -92,6 +92,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarAnnotationsLineColor: 'Pick annotation line color',
     // Text for the annotation toolbar's text color picker annotation button
     toolbarAnnotationsTextColor: 'Pick annotation text color',
+    // Text for the annotation toolbar's text size picker annotation button
+    toolbarAnnotationsTextSize: 'Pick annotation text size',
     // Text for the annotation toolbar's lock annotation button
     toolbarAnnotationsLock: 'Lock annotation',
     // Text for the annotation toolbar's unlock annotation button
