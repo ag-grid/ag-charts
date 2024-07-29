@@ -17,7 +17,7 @@ import { pickNode } from './util';
 /** Manager that handles all top-down series-area highlight concerns and state. */
 export class SeriesAreaHighlightManager extends BaseManager {
     private series: Series<any, any>[] = [];
-    private lastHoverEvent?: PointerInteractionEvent<'hover'>;
+    private lastHoverEvent?: PointerInteractionEvent<'hover' | 'drag'>;
     private hoverRect?: BBox;
 
     public constructor(
@@ -39,6 +39,11 @@ export class SeriesAreaHighlightManager extends BaseManager {
             this.ctx.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
             seriesRegion.addListener(
                 'hover',
+                (event) => this.onHover(event),
+                InteractionState.Default | InteractionState.Annotations
+            ),
+            seriesRegion.addListener(
+                'drag',
                 (event) => this.onHover(event),
                 InteractionState.Default | InteractionState.Annotations
             ),
@@ -83,7 +88,7 @@ export class SeriesAreaHighlightManager extends BaseManager {
         this.update(ChartUpdateType.SCENE_RENDER);
     }
 
-    private onHover(event: PointerInteractionEvent<'hover'>): void {
+    private onHover(event: PointerInteractionEvent<'hover' | 'drag'>): void {
         this.lastHoverEvent = event;
         this.hoverScheduler.schedule();
     }

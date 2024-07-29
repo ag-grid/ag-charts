@@ -64,13 +64,13 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.crosshairGroup.visible = false;
         this.labels = {};
 
-        const region = ctx.regionManager.getRegion('series')!;
+        const seriesRegion = ctx.regionManager.getRegion('series')!;
         const mouseMoveStates = InteractionState.Default | InteractionState.Annotations;
         this.destroyFns.push(
             ctx.scene.attachNode(this.crosshairGroup),
-            region.addListener('hover', (event) => this.onMouseMove(event), mouseMoveStates),
-            region.addListener('drag', (event) => this.onMouseMove(event), mouseMoveStates),
-            region.addListener('leave', () => this.onMouseOut(), mouseMoveStates),
+            seriesRegion.addListener('hover', (event) => this.onMouseMove(event), mouseMoveStates),
+            seriesRegion.addListener('drag', (event) => this.onMouseMove(event), mouseMoveStates),
+            seriesRegion.addListener('leave', () => this.onMouseOut(), mouseMoveStates),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
             ctx.layoutService.addListener('layout-complete', (event) => this.layout(event)),
             () => Object.entries(this.labels).forEach(([_, label]) => label.destroy())
