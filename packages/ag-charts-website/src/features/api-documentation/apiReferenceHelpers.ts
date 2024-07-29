@@ -302,6 +302,7 @@ export function extractSearchData(
     labelPrefix = ''
 ): SearchDatum[] {
     if (interfaceRef?.kind === 'interface' || (interfaceRef?.kind === 'typeLiteral' && interfaceRef.name)) {
+        const { genericsMap } = interfaceRef as any;
         return interfaceRef.members.flatMap((member) => {
             const navPath = basePath.concat({ name: cleanupName(member.name), type: getMemberType(member) });
             const results = [
@@ -311,11 +312,11 @@ export function extractSearchData(
                     navPath,
                 },
             ];
-            if (typeof member.type === 'string' && reference?.has(member.type)) {
+            if (typeof member.type === 'string' && reference?.has(genericsMap?.[member.type] ?? member.type)) {
                 results.push(
                     ...extractSearchData(
                         reference,
-                        reference.get(member.type)!,
+                        reference.get(genericsMap?.[member.type] ?? member.type)!,
                         navPath,
                         `${labelPrefix}${cleanupName(member.name)}.`
                     )
