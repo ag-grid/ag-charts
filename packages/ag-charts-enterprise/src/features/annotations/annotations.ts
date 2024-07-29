@@ -18,8 +18,8 @@ import {
     annotationScenes,
     colorDatum,
     getTypedDatum,
-    isChannelType,
-    isLineType,
+    hasFillColor,
+    hasLineColor,
     isTextType,
     updateAnnotation,
 } from './annotationsConfig';
@@ -858,11 +858,15 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.updateToolbarFills();
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.LineColor, {
             enabled: !locked,
-            visible: isLineType(datum) || isChannelType(datum),
+            visible: hasLineColor(datum),
         });
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.TextColor, {
             enabled: !locked,
             visible: isTextType(datum),
+        });
+        toolbarManager.toggleButton('annotationOptions', AnnotationOptions.FillColor, {
+            enabled: !locked,
+            visible: hasFillColor(datum),
         });
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.TextSize, {
             enabled: !locked,
