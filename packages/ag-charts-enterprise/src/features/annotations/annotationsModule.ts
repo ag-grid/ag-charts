@@ -125,6 +125,11 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                     strokeWidth: 2,
                     strokeOpacity: 1,
                 },
+                background: {
+                    fill: 'rgb(250, 250, 250)',
+                    stroke: '#dddddd',
+                    strokeWidth: 1,
+                },
             },
             text: {
                 color: _Theme.DEFAULT_ANNOTATION_COLOR,
