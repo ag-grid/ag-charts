@@ -81,6 +81,14 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarAnnotationsParallelChannel: 'Parallel channel',
     // Text for the annotation toolbar's disjoint channel button
     toolbarAnnotationsDisjointChannel: 'Disjoint channel',
+    // Text for the annotation toolbar's disjoint channel button
+    toolbarAnnotationsCallout: 'Callout',
+    // Text for the annotation toolbar's comment button
+    toolbarAnnotationsComment: 'Comment',
+    // Text for the annotation toolbar's note button
+    toolbarAnnotationsNote: 'Note',
+    // Text for the annotation toolbar's text button
+    toolbarAnnotationsText: 'Text',
     // Text for the annotation toolbar's clear all button
     toolbarAnnotationsClearAll: 'Clear all annotations',
     /**

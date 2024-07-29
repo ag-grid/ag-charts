@@ -69,7 +69,7 @@ const annotations: AgToolbarOptions['annotations'] = {
         },
         {
             icon: 'callout-annotation',
-            tooltip: 'callout',
+            tooltip: 'toolbarAnnotationsCallout',
             value: 'callout',
             section: 'annotations',
         },
