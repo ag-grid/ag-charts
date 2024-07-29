@@ -114,7 +114,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
                 fontSize: datum.fontSize,
                 fontStyle: datum.fontStyle,
                 fontWeight: datum.fontWeight,
-                lineHeight: 1,
+                lineHeight: Math.floor(datum.fontSize * 1.38),
             },
         });
 
@@ -136,7 +136,8 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         this.label.fontSize = datum.fontSize;
         this.label.fontStyle = datum.fontStyle;
         this.label.fontWeight = datum.fontWeight;
-        this.label.textAlign = datum.alignment;
+        this.label.textAlign = datum.textAlign ?? datum.alignment;
+        this.label.lineHeight = Math.floor(datum.fontSize * 1.38);
     }
 
     protected updateHandle(datum: Datum, bbox: _Scene.BBox) {
