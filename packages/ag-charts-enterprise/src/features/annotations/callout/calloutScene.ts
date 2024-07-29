@@ -21,6 +21,8 @@ interface CalloutDimensions {
     };
 }
 
+type PathType = 'corner' | 'side' | 'calloutCorner' | 'calloutSide';
+
 export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
     static override is(value: unknown): value is CalloutScene {
         return AnnotationScene.isCheck(value, AnnotationType.Callout);
@@ -109,121 +111,104 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         const placement = this.calculateCalloutPlacement({ x: tailX, y: tailY }, bodyBounds);
         const cornerRadius = Math.min(12, Math.min(width, height) / 2);
 
+        const pathParams: { coordinates: _Scene.Corner; type: PathType }[] = [
+            {
+                coordinates: {
+                    x0: x,
+                    x1: x + cornerRadius,
+                    y0: top + cornerRadius,
+                    y1: top,
+                    cx: placement === `topLeft` ? tailX : x + cornerRadius,
+                    cy: placement === `topLeft` ? tailY : top + cornerRadius,
+                },
+                type: placement === `topLeft` ? 'calloutCorner' : 'corner',
+            },
+            {
+                coordinates: {
+                    x0: x + cornerRadius,
+                    x1: right - cornerRadius,
+                    y0: top,
+                    y1: top,
+                    cx: tailX,
+                    cy: tailY,
+                },
+                type: placement === `top` ? 'calloutSide' : 'side',
+            },
+            {
+                coordinates: {
+                    x0: right - cornerRadius,
+                    x1: right,
+                    y0: top,
+                    y1: top + cornerRadius,
+                    cx: placement === `topRight` ? tailX : right - cornerRadius,
+                    cy: placement === `topRight` ? tailY : top + cornerRadius,
+                },
+                type: placement === `topRight` ? 'calloutCorner' : 'corner',
+            },
+            {
+                coordinates: {
+                    x0: right,
+                    x1: right,
+                    y0: top + cornerRadius,
+                    y1: y - cornerRadius,
+                    cx: tailX,
+                    cy: tailY,
+                },
+                type: placement === `right` ? 'calloutSide' : 'side',
+            },
+            {
+                coordinates: {
+                    x0: right,
+                    x1: right - cornerRadius,
+                    y0: y - cornerRadius,
+                    y1: y,
+                    cx: placement === `bottomRight` ? tailX : right - cornerRadius,
+                    cy: placement === `bottomRight` ? tailY : y - cornerRadius,
+                },
+                type: placement === `bottomRight` ? 'calloutCorner' : 'corner',
+            },
+            {
+                coordinates: {
+                    x0: right - cornerRadius,
+                    x1: x + cornerRadius,
+                    y0: y,
+                    y1: y,
+                    cx: tailX,
+                    cy: tailY,
+                },
+                type: placement === `bottom` ? 'calloutSide' : 'side',
+            },
+            {
+                coordinates: {
+                    x0: x + cornerRadius,
+                    x1: x,
+                    y0: y,
+                    y1: y - cornerRadius,
+                    cx: placement === `bottomLeft` ? tailX : x + cornerRadius,
+                    cy: placement === `bottomLeft` ? tailY : y - cornerRadius,
+                },
+                type: placement === `bottomLeft` ? 'calloutCorner' : 'corner',
+            },
+            {
+                coordinates: {
+                    x0: x,
+                    x1: x,
+                    y0: y - cornerRadius,
+                    y1: top + cornerRadius,
+                    cx: tailX,
+                    cy: tailY,
+                },
+                type: placement === `left` ? 'calloutSide' : 'side',
+            },
+        ];
+
         const { path } = this.shape;
         path.clear();
-
         path.moveTo(x, top + cornerRadius);
-        this.drawPath(
-            path,
-            {
-                x0: x,
-                x1: x + cornerRadius,
-                y0: top + cornerRadius,
-                y1: top,
-                cx: placement === `topLeft` ? tailX : x + cornerRadius,
-                cy: placement === `topLeft` ? tailY : top + cornerRadius,
-            },
-            cornerRadius,
-            placement === `topLeft` ? 'calloutCorner' : 'corner'
-        );
 
-        this.drawPath(
-            path,
-            {
-                x0: x + cornerRadius,
-                x1: right - cornerRadius,
-                y0: top,
-                y1: top,
-                cx: tailX,
-                cy: tailY,
-            },
-            cornerRadius,
-            placement === `top` ? 'calloutSide' : 'side'
-        );
-
-        this.drawPath(
-            path,
-            {
-                x0: right - cornerRadius,
-                x1: right,
-                y0: top,
-                y1: top + cornerRadius,
-                cx: placement === `topRight` ? tailX : right - cornerRadius,
-                cy: placement === `topRight` ? tailY : top + cornerRadius,
-            },
-            cornerRadius,
-            placement === `topRight` ? 'calloutCorner' : 'corner'
-        );
-
-        this.drawPath(
-            path,
-            {
-                x0: right,
-                x1: right,
-                y0: top + cornerRadius,
-                y1: y - cornerRadius,
-                cx: tailX,
-                cy: tailY,
-            },
-            cornerRadius,
-            placement === `right` ? 'calloutSide' : 'side'
-        );
-
-        this.drawPath(
-            path,
-            {
-                x0: right,
-                x1: right - cornerRadius,
-                y0: y - cornerRadius,
-                y1: y,
-                cx: placement === `bottomRight` ? tailX : right - cornerRadius,
-                cy: placement === `bottomRight` ? tailY : y - cornerRadius,
-            },
-            cornerRadius,
-            placement === `bottomRight` ? 'calloutCorner' : 'corner'
-        );
-
-        this.drawPath(
-            path,
-            {
-                x0: right - cornerRadius,
-                x1: x + cornerRadius,
-                y0: y,
-                y1: y,
-                cx: tailX,
-                cy: tailY,
-            },
-            cornerRadius,
-            placement === `bottom` ? 'calloutSide' : 'side'
-        );
-
-        this.drawPath(
-            path,
-            {
-                x0: x + cornerRadius,
-                x1: x,
-                y0: y,
-                y1: y - cornerRadius,
-                cx: placement === `bottomLeft` ? tailX : x + cornerRadius,
-                cy: placement === `bottomLeft` ? tailY : y - cornerRadius,
-            },
-            cornerRadius,
-            placement === `bottomLeft` ? 'calloutCorner' : 'corner'
-        );
-
-        this.drawPath(
-            path,
-            {
-                x0: x,
-                x1: x,
-                y0: y - cornerRadius,
-                y1: top + cornerRadius,
-                cx: tailX,
-                cy: tailY,
-            },
-            cornerRadius,
-            placement === `left` ? 'calloutSide' : 'side'
-        );
+        pathParams.forEach(({ coordinates, type }) => {
+            this.drawPath(path, coordinates, cornerRadius, type);
+        });
 
         path.closePath();
     }
@@ -232,7 +217,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         path: _Scene.ExtendedPath2D,
         { x0, y0, x1, y1, cx, cy }: _Scene.Corner,
         cornerRadius: number,
-        type: 'corner' | 'side' | 'calloutCorner' | 'calloutSide'
+        type: PathType
     ) {
         const halfCornerRadius = cornerRadius / 2;
         switch (type) {
