@@ -35,8 +35,6 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
     public update(datum: Datum, context: AnnotationContext) {
         const bbox = this.getTextBBox(datum, context);
 
-        this.label.visible = datum.visible ?? true;
-
         this.updateLabel(datum, bbox);
         this.updateHandle(datum, bbox);
         this.updateShape(datum, bbox);
@@ -96,7 +94,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
             return true;
         }
 
-        return label.containsPoint(x, y);
+        return label.visible && label.containsPoint(x, y);
     }
 
     protected getTextBBox(datum: Datum, context: AnnotationContext) {
@@ -125,6 +123,8 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
 
     protected updateLabel(datum: Datum, bbox: _Scene.BBox) {
         const { x, y } = this.getLabelCoords(datum, bbox);
+
+        this.label.visible = datum.visible ?? true;
 
         this.label.x = x;
         this.label.y = y;

@@ -53,7 +53,11 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
     }
 
     override updateLabel(datum: NoteProperties, bbox: _Scene.BBox): void {
+        const labelVisibility = datum.visible === false ? false : this.label.visible;
+
         super.updateLabel(datum, bbox);
+
+        this.label.visible = labelVisibility;
 
         const textLines = TextWrapper.wrapLines(datum.text, {
             font: {
@@ -146,25 +150,24 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         };
     }
 
-    override toggleHandles(show: boolean | Partial<Record<'handle', boolean>>): void {
-        super.toggleHandles(show);
+    override toggleHovered(hovered: boolean) {
+        super.toggleHovered(hovered);
 
-        this.label.visible = Boolean(show);
-        this.shape.visible = Boolean(show);
+        this.label.visible = hovered;
+        this.shape.visible = hovered;
     }
 
-    override toggleActive(active: boolean): void {
+    override toggleActive(active: boolean) {
         super.toggleActive(active);
 
         this.label.visible = active;
-        this.label.opacity = active ? 1 : 0;
         this.shape.visible = active;
 
         this.active = active;
     }
 
     override containsPoint(x: number, y: number) {
-        if (this.shape.containsPoint(x, y)) return true;
+        if (this.shape.visible && this.shape.containsPoint(x, y)) return true;
         if (this.iconBackgound.containsPoint(x, y)) return true;
 
         return super.containsPoint(x, y);

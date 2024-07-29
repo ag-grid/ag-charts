@@ -173,7 +173,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.annotations.each((annotation, _, index) => {
                     const contains = annotation.containsPoint(coords.x, coords.y);
                     if (contains) hovered ??= index;
-                    annotation.toggleHandles(contains || active === index);
+                    annotation.toggleHovered(contains || active === index);
                 });
 
                 this.ctx.cursorManager.updateCursor(
