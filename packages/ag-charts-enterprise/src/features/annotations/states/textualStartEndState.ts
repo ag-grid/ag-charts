@@ -48,7 +48,7 @@ export abstract class TextualStartEndStateMachine<
         };
 
         const onSave = ({ textInputValue }: { textInputValue?: string }) => {
-            if (textInputValue !== null) {
+            if (textInputValue !== undefined && textInputValue.length > 0) {
                 ctx.datum()?.set({ text: textInputValue });
                 ctx.update();
             } else {
