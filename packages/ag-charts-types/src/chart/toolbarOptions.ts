@@ -152,6 +152,7 @@ export interface AgToolbarAnnotationsButton extends AgToolbarButton {
 }
 
 export type AgToolbarAnnotationsButtonValue =
+    | 'text-menu'
     | 'line'
     | 'horizontal-line'
     | 'vertical-line'

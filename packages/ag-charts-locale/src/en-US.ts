@@ -100,6 +100,16 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarAnnotationsUnlock: 'Unlock annotation',
     // Text for the annotation toolbar's delete annotation button
     toolbarAnnotationsDelete: 'Delete annotation',
+    // Text for the annotation toolbar's text annotations menu button
+    toolbarAnnotationsTextAnnotations: 'Text annotations',
+    // Text for the annotation toolbar's text annotation button
+    toolbarAnnotationsText: 'Text',
+    // Text for the annotation toolbar's comment annotation button
+    toolbarAnnotationsComment: 'Comment',
+    // Text for the annotation toolbar's callout annotation button
+    toolbarAnnotationsCallout: 'Callout',
+    // Text for the annotation toolbar's note annotation button
+    toolbarAnnotationsNote: 'Text',
     // Text for the range toolbar's 1 month button
     toolbarRange1Month: '1M',
     // Aria label for the range toolbar's 1 month button

@@ -1,4 +1,10 @@
-import { type Direction, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import {
+    type AgToolbarAnnotationsButtonValue,
+    type Direction,
+    _ModuleSupport,
+    _Scene,
+    _Util,
+} from 'ag-charts-community';
 
 import { buildBounds } from '../../utils/position';
 import { ColorPicker } from '../color-picker/colorPicker';
@@ -56,6 +62,13 @@ const TEXT_SIZE_ITEMS: MenuItem<number>[] = [
     { label: '28', value: 28 },
     { label: '36', value: 36 },
     { label: '46', value: 46 },
+];
+
+const TEXT_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
+    { label: 'toolbarAnnotationsText', icon: 'text-annotation', value: AnnotationType.Text },
+    { label: 'toolbarAnnotationsComment', icon: 'comment-annotation', value: AnnotationType.Comment },
+    { label: 'toolbarAnnotationsCallout', icon: 'callout-annotation', value: AnnotationType.Callout },
+    { label: 'toolbarAnnotationsNote', icon: 'note-annotation', value: AnnotationType.Note },
 ];
 
 enum AnnotationOptions {
@@ -117,7 +130,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     );
 
     private readonly colorPicker = new ColorPicker(this.ctx);
-    private readonly popover = new Popover(this.ctx, 'annotations');
+    private readonly textSizePopover = new Popover(this.ctx, 'annotations');
+    private readonly textAnnotationsPopover = new Popover(this.ctx, 'text');
     private defaultColor?: string;
 
     private readonly textInput = new TextInput(this.ctx);
@@ -141,7 +155,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: false });
                 ctx.tooltipManager.unsuppressTooltip('annotations');
                 this.colorPicker.hide();
-                this.popover.hide();
+                this.textSizePopover.hide();
+                this.textAnnotationsPopover.hide();
                 this.resetToolbarButtonStates();
                 this.toggleAnnotationOptionsButtons();
                 this.update();
@@ -168,12 +183,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 const {
                     annotations,
                     colorPicker,
-                    popover,
+                    textSizePopover,
+                    textAnnotationsPopover,
                     ctx: { toolbarManager, tooltipManager },
                 } = this;
 
                 colorPicker.hide();
-                popover.hide();
+                textSizePopover.hide();
+                textAnnotationsPopover.hide();
 
                 if (previous != null) {
                     annotations.at(previous)?.toggleActive(false);
@@ -219,6 +236,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 }
 
                 this.update();
+
+                ctx.toolbarManager.updateButton('annotations', 'text-menu', {
+                    icon: undefined,
+                });
+                ctx.toolbarManager.toggleButton('annotations', 'text-menu', {
+                    active: false,
+                });
             },
 
             delete: (index: number) => {
@@ -373,10 +397,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onToolbarButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
-        const {
-            state,
-            ctx: { interactionManager, toolbarManager, tooltipManager },
-        } = this;
+        const { tooltipManager } = this.ctx;
 
         if (ToolbarManager.isGroup('annotationOptions', event)) {
             this.onToolbarAnnotationOptionButtonPress(event);
@@ -395,14 +416,33 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             return;
         }
 
+        if (event.value === 'text-menu') {
+            const { x, y, width } = event.rect;
+            this.textAnnotationsPopover.setAnchor({ x: x + width + 6, y });
+            this.textAnnotationsPopover.show<AnnotationType>({
+                items: TEXT_ANNOTATION_ITEMS,
+                onPress: this.onTextAnnotationsPopoverPress.bind(this, event),
+                onClose: this.onTextAnnotationsPopoverClose.bind(this),
+            });
+            return;
+        }
+
         tooltipManager.suppressTooltip('annotations');
 
         const annotation = stringToAnnotationType(event.value);
-        if (!annotation) {
+        if (annotation) {
+            this.beginAnnotationPlacement(annotation);
+        } else {
             _Util.Logger.errorOnce(`Can not create unknown annotation type [${event.value}], ignoring.`);
             this.update();
-            return;
         }
+    }
+
+    private beginAnnotationPlacement(annotation: AnnotationType) {
+        const {
+            state,
+            ctx: { interactionManager, toolbarManager },
+        } = this;
 
         if (!state.is('idle')) {
             this.cancel();
@@ -412,7 +452,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         interactionManager.pushState(InteractionState.Annotations);
         for (const annotationType of ANNOTATION_BUTTONS) {
-            toolbarManager.toggleButton('annotations', annotationType, { active: annotationType === event.value });
+            toolbarManager.toggleButton('annotations', annotationType, { active: annotationType === annotation });
         }
         state.transition(annotation);
 
@@ -438,10 +478,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 break;
 
             case AnnotationOptions.TextSize:
-                this.popover.show<number>({
+                this.textSizePopover.show<number>({
                     items: TEXT_SIZE_ITEMS,
-                    onPress: this.onPopoverPress.bind(this),
-                    onClose: this.onPopoverClose.bind(this),
+                    onPress: this.onTextSizePopoverPress.bind(this),
+                    onClose: this.onTextSizePopoverClose.bind(this),
                     minWidth: 60,
                 });
                 break;
@@ -455,7 +495,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 annotationData[active].locked = true;
                 this.toggleAnnotationOptionsButtons();
                 this.colorPicker.hide();
-                this.popover.hide();
+                this.textSizePopover.hide();
                 break;
 
             case AnnotationOptions.Unlock:
@@ -480,7 +520,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const anchor = Vec2.add(rect, Vec2.from(0, rect.height + 4));
         const fallback = { y: rect.y - 4 };
         this.colorPicker.setAnchor(anchor, fallback);
-        this.popover.setAnchor(anchor);
+        this.textSizePopover.setAnchor(anchor);
     }
 
     private onColorPickerChange(color: string) {
@@ -512,15 +552,34 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         });
     }
 
-    private onPopoverPress(item: MenuItem<number>) {
+    private onTextSizePopoverPress(item: MenuItem<number>) {
         const fontSize = item.value;
         this.state.transition('fontSize', fontSize);
 
         this.updateToolbarFontSize(fontSize);
     }
 
-    private onPopoverClose() {
-        this.popover.hide();
+    private onTextSizePopoverClose() {
+        this.textSizePopover.hide();
+    }
+
+    private onTextAnnotationsPopoverPress(
+        event: _ModuleSupport.ToolbarButtonPressedEvent<AgToolbarAnnotationsButtonValue>,
+        item: MenuItem<AnnotationType>
+    ) {
+        const { toolbarManager } = this.ctx;
+        toolbarManager.toggleButton('annotations', event.id, {
+            active: true,
+        });
+        toolbarManager.updateButton('annotations', event.id, {
+            icon: item.icon,
+        });
+        this.beginAnnotationPlacement(item.value);
+        this.onTextAnnotationsPopoverClose();
+    }
+
+    private onTextAnnotationsPopoverClose() {
+        this.textSizePopover.hide();
     }
 
     private onToolbarCancelled(event: _ModuleSupport.ToolbarCancelledEvent) {
