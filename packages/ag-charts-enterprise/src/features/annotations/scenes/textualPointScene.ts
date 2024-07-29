@@ -6,7 +6,7 @@ import type { TextualPointProperties } from '../properties/textualPointPropertie
 import { AnnotationScene } from './annotationScene';
 import { DivariantHandle } from './handle';
 
-const { CachedTextMeasurerPool } = _ModuleSupport;
+const { CachedTextMeasurerPool, TextWrapper } = _ModuleSupport;
 const { Vec2 } = _Util;
 
 export abstract class TextualPointScene<Datum extends TextualPointProperties> extends AnnotationScene {
@@ -30,6 +30,10 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
     public setTextInputBBox(bbox: _Scene.BBox) {
         this.textInputBBox = bbox;
         this.markDirty(this, _Scene.RedrawType.MINOR);
+    }
+
+    public invalidateTextInputBBox() {
+        this.textInputBBox = undefined;
     }
 
     public update(datum: Datum, context: AnnotationContext) {
@@ -106,16 +110,25 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
             return new _Scene.BBox(point.x, point.y, textInputBBox.width, textInputBBox.height);
         }
 
-        const { lineMetrics, width } = CachedTextMeasurerPool.measureLines(datum.text, {
+        const options = {
             font: {
                 fontFamily: datum.fontFamily,
                 fontSize: datum.fontSize,
                 fontStyle: datum.fontStyle,
                 fontWeight: datum.fontWeight,
-                lineHeight: Math.floor(datum.fontSize * 1.38),
             },
-        });
+            textAlign: datum.textAlign,
+        };
 
+        let text = datum.text;
+        if (datum.width) {
+            text = TextWrapper.wrapLines(datum.text, {
+                ...options,
+                maxWidth: datum.width,
+            }).join('\n');
+        }
+
+        const { lineMetrics, width } = CachedTextMeasurerPool.measureLines(text, options);
         const height = lineMetrics.reduce((sum, curr) => sum + curr.lineHeight, 0);
 
         return new _Scene.BBox(point.x, point.y, width, height);

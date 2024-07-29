@@ -249,11 +249,15 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     target: States.Idle,
                     action: (fontSize: number) => {
                         const datum = ctx.datum(this.active!);
-                        if (!datum) return;
+                        const node = ctx.node(this.active!);
+                        if (!datum || !node) return;
 
-                        if (isTextType(datum)) {
-                            // @ts-expect-error TS bug
+                        if ('fontSize' in datum) {
                             datum.fontSize = fontSize;
+                        }
+
+                        if ('invalidateTextInputBBox' in node) {
+                            node.invalidateTextInputBBox();
                         }
 
                         ctx.update();
