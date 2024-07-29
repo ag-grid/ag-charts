@@ -138,6 +138,10 @@ export function hasFillColor(datum?: AnnotationProperties) {
     );
 }
 
+export function hasTextColor(datum?: AnnotationProperties) {
+    return isTextType(datum) && !NoteProperties.is(datum);
+}
+
 export function colorDatum(
     datum: AnnotationProperties,
     colorPickerType: AnnotationOptionsColorPickerType,
@@ -146,7 +150,7 @@ export function colorDatum(
     switch (colorPickerType) {
         case `fill-color`: {
             if ('fill' in datum) datum.fill = color;
-            if ('background' in datum) datum.background.fill = color;
+            if ('background' in datum && !NoteProperties.is(datum)) datum.background.fill = color;
             break;
         }
         case `line-color`: {

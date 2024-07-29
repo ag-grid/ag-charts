@@ -1,7 +1,7 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { Fill, Stroke } from '../annotationProperties';
-import { type AnnotationContext, AnnotationType } from '../annotationTypes';
+import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
 import { TextualPointProperties } from '../properties/textualPointProperties';
 import { DEFAULT_PADDING, LABEL_OFFSET } from './noteScene';
 
@@ -31,5 +31,14 @@ export class NoteProperties extends Fill(Stroke(TextualPointProperties)) {
             x: coords.x,
             y: coords.y - padding - LABEL_OFFSET,
         };
+    }
+
+    override getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType) {
+        switch (colorPickerType) {
+            case `fill-color`:
+                return this.fill;
+            case `text-color`:
+                return this.color;
+        }
     }
 }

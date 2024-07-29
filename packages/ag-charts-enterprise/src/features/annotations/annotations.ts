@@ -20,6 +20,7 @@ import {
     getTypedDatum,
     hasFillColor,
     hasLineColor,
+    hasTextColor,
     isTextType,
     updateAnnotation,
 } from './annotationsConfig';
@@ -862,7 +863,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         });
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.TextColor, {
             enabled: !locked,
-            visible: isTextType(datum),
+            visible: hasTextColor(datum),
         });
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.FillColor, {
             enabled: !locked,
