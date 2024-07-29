@@ -7,7 +7,7 @@ export class SvgPath extends Path {
     @ScenePathChangeDetection()
     y: number = 0;
 
-    private commands: Array<[string, Array<number>]> = [];
+    private readonly commands: Array<[string, Array<number>]> = [];
 
     width = 0;
     height = 0;
