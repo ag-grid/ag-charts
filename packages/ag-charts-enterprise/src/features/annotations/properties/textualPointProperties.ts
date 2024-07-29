@@ -1,7 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
 import { Annotation, Font, Handle, Label, Point } from '../annotationProperties';
-import { type AnnotationContext } from '../annotationTypes';
+import { type AnnotationContext, type AnnotationOptionsColorPickerType } from '../annotationTypes';
 import { convertPoint } from '../annotationUtils';
 
 const { STRING, BaseProperties, Validate } = _ModuleSupport;
@@ -18,7 +18,7 @@ export class TextualPointProperties extends Annotation(Point(Handle(Label(Font(B
         return super.isValid(warningPrefix);
     }
 
-    override getDefaultColor() {
+    getDefaultColor(_colorPickerType: AnnotationOptionsColorPickerType) {
         return this.color;
     }
 

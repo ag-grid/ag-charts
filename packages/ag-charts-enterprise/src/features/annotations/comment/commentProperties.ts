@@ -1,7 +1,7 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { Fill, Stroke } from '../annotationProperties';
-import { type AnnotationContext, AnnotationType } from '../annotationTypes';
+import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
 import { convertPoint } from '../annotationUtils';
 import { TextualPointProperties } from '../properties/textualPointProperties';
 
@@ -18,6 +18,18 @@ export class CommentProperties extends Fill(Stroke(TextualPointProperties)) {
     override text = 'Comment';
     override position = 'bottom' as const;
     override alignment = 'left' as const;
+
+    override getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType) {
+        switch (colorPickerType) {
+            case `fill-color`:
+                return this.fill;
+            case `line-color`:
+                return this.stroke;
+            case `text-color`:
+            default:
+                return this.color;
+        }
+    }
 
     public override getTextInputCoords(context: AnnotationContext) {
         const padding = this.padding ?? 10;

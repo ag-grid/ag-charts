@@ -1,7 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
 import { Annotation, AxisLabel, Cappable, Handle, LineDash, Stroke, Value } from '../annotationProperties';
-import { type AnnotationContext, AnnotationType } from '../annotationTypes';
+import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
 import { validateDatumValue } from '../annotationUtils';
 
 const { STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
@@ -21,6 +21,10 @@ export class HorizontalLineProperties extends Annotation(
     override isValidWithContext(context: AnnotationContext, warningPrefix: string) {
         return super.isValid(warningPrefix) && validateDatumValue(context, this, warningPrefix);
     }
+
+    getDefaultColor(_colorPickerType: AnnotationOptionsColorPickerType) {
+        return this.stroke;
+    }
 }
 
 export class VerticalLineProperties extends Annotation(
@@ -37,6 +41,10 @@ export class VerticalLineProperties extends Annotation(
 
     override isValidWithContext(context: AnnotationContext, warningPrefix: string) {
         return super.isValid(warningPrefix) && validateDatumValue(context, this, warningPrefix);
+    }
+
+    getDefaultColor(_colorPickerType: AnnotationOptionsColorPickerType) {
+        return this.stroke;
     }
 }
 

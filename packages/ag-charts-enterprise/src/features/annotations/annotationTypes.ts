@@ -94,3 +94,5 @@ export interface GuardDragClickDoubleEvent {
     hover: () => void;
     reset: () => void;
 }
+
+export type AnnotationOptionsColorPickerType = 'line-color' | 'fill-color' | 'text-color';

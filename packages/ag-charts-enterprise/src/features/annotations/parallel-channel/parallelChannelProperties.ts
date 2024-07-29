@@ -10,7 +10,7 @@ import {
     LineDash,
     Stroke,
 } from '../annotationProperties';
-import { type AnnotationContext, AnnotationType } from '../annotationTypes';
+import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
 import { validateDatumLine } from '../annotationUtils';
 
 const { NUMBER, STRING, OBJECT, BaseProperties, Validate, isObject } = _ModuleSupport;
@@ -53,5 +53,14 @@ export class ParallelChannelProperties extends Annotation(
             validateDatumLine(context, this, warningPrefix) &&
             validateDatumLine(context, this.bottom, warningPrefix)
         );
+    }
+
+    getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType) {
+        switch (colorPickerType) {
+            case `fill-color`:
+                return this.background.fill;
+            case `line-color`:
+                return this.stroke;
+        }
     }
 }

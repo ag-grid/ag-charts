@@ -7,7 +7,7 @@ import {
     _Util,
 } from 'ag-charts-community';
 
-import type { AnnotationContext } from './annotationTypes';
+import type { AnnotationContext, AnnotationOptionsColorPickerType } from './annotationTypes';
 
 const {
     BOOLEAN,
@@ -72,7 +72,7 @@ export function Annotation<U extends Constructor<_ModuleSupport.BaseProperties>>
             return super.isValid(warningPrefix);
         }
 
-        abstract getDefaultColor(): string | undefined;
+        abstract getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType): string | undefined;
     }
     return AnnotationInternal;
 }
@@ -207,10 +207,6 @@ export function Stroke<T extends Constructor>(Parent: T) {
 
         @Validate(NUMBER, { optional: true })
         strokeWidth?: number;
-
-        getDefaultColor() {
-            return this.stroke;
-        }
     }
     return StrokeInternal;
 }

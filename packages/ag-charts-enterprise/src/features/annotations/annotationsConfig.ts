@@ -1,6 +1,6 @@
 import type { _Util } from 'ag-charts-community';
 
-import { type AnnotationContext, AnnotationType } from './annotationTypes';
+import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from './annotationTypes';
 import type { AnnotationProperties, AnnotationScene } from './annotationsSuperTypes';
 import { CalloutProperties } from './callout/calloutProperties';
 import { CalloutScene } from './callout/calloutScene';
@@ -128,16 +128,28 @@ export function isTextType(datum: unknown) {
     );
 }
 
-export function colorDatum(datum: AnnotationProperties, color: string) {
-    if ('axisLabel' in datum) {
-        datum.axisLabel.fill = color;
-        datum.axisLabel.stroke = color;
+export function colorDatum(
+    datum: AnnotationProperties,
+    colorPickerType: AnnotationOptionsColorPickerType,
+    color: string
+) {
+    switch (colorPickerType) {
+        case `fill-color`: {
+            if ('fill' in datum) datum.fill = color;
+            if ('background' in datum) datum.background.fill = color;
+            break;
+        }
+        case `line-color`: {
+            if ('stroke' in datum) datum.stroke = color;
+            if ('axisLabel' in datum) {
+                datum.axisLabel.fill = color;
+                datum.axisLabel.stroke = color;
+            }
+            break;
+        }
+        case `text-color`: {
+            if ('color' in datum) datum.color = color;
+            break;
+        }
     }
-    if ('background' in datum) datum.background.fill = color;
-
-    if (CommentProperties.is(datum)) {
-        datum.fill = color;
-    } else if ('color' in datum) {
-        datum.color = color;
-    } else if ('stroke' in datum) datum.stroke = color;
 }
