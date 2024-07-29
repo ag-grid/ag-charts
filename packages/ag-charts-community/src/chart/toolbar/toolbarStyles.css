@@ -135,6 +135,10 @@
     white-space: nowrap;
 }
 
+.ag-charts-toolbar__button[data-toolbar-group='ranges'] {
+    padding: var(--ag-charts-toolbar-button-padding) calc(var(--ag-charts-toolbar-button-padding) * 1.5);
+}
+
 .ag-charts-toolbar--top,
 .ag-charts-toolbar--bottom,
 .ag-charts-toolbar--floating,
