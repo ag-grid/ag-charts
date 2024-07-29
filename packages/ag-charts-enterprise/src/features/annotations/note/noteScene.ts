@@ -23,7 +23,6 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
     override type = AnnotationType.Note;
 
     private readonly shape = new _Scene.Rect();
-    // private readonly iconBackgound = new _Scene.Rect();
     private readonly iconBackgound = new _Scene.SvgPath(
         'M22 1.83333C22 0.820811 21.1792 0 20.1667 0H1.83333C0.820811 0 0 0.82081 0 1.83333V13.9868C0 14.9994 0.820811 15.8202 1.83333 15.8202L5.88971 15.8202C6.44575 15.8202 6.97175 16.0725 7.31971 16.5062L9.57006 19.3112C10.304 20.2259 11.6962 20.2259 12.4301 19.3112L14.6804 16.5062C15.0284 16.0725 15.5544 15.8202 16.1104 15.8202L20.1667 15.8202C21.1792 15.8202 22 14.9994 22 13.9868V1.83333Z'
     );
