@@ -57,7 +57,7 @@
         var(--ag-charts-toolbar-foreground-color) 6%
     );
     --ag-charts-toolbar-gap: var(--ag-charts-size);
-    --ag-charts-toolbar-font-size: 14px;
+    --ag-charts-toolbar-font-size: 13px;
     --ag-charts-toolbar-font-size-small: 12px;
     --ag-charts-toolbar-button-padding: 6px;
     --ag-charts-toolbar-button-padding-small: 1px;
