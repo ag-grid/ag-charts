@@ -53,7 +53,7 @@ jobs:
 
             - name: Checkout
               uses: actions/checkout@v2
-              if: ! github.event.issue.pull_request
+              if: (github.event.issue.pull_request && 'false') || 'true'
 
             - name: Setup
               id: setup
