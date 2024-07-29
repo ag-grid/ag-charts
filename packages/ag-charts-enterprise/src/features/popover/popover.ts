@@ -15,7 +15,7 @@ export class Popover extends _ModuleSupport.BaseModuleInstance implements _Modul
     private anchor?: { x: number; y: number } = undefined;
     private removeGlobalEventListeners?: () => void = undefined;
 
-    private moduleId: string;
+    private readonly moduleId: string;
 
     constructor(
         private readonly ctx: _ModuleSupport.ModuleContext,
