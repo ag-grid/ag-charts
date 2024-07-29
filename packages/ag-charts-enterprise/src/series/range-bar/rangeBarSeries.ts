@@ -438,7 +438,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             });
             config.crisp = crisp;
             config.visible = visible;
-            updateRect({ rect, config });
+            updateRect(rect, config);
         });
     }
 

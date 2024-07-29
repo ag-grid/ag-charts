@@ -44,7 +44,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     private hoverRect: _Scene.BBox = new BBox(0, 0, 0, 0);
     private bounds: _Scene.BBox = new BBox(0, 0, 0, 0);
     private visible: boolean = false;
-    private axisLayout?: _ModuleSupport.AxisLayout & { id: string };
+    private axisLayout?: _ModuleSupport.AxisLayout;
     private labelFormatter?: (value: any) => string;
 
     private readonly crosshairGroup: _Scene.Group = new Group({ layer: true, zIndex: Layers.SERIES_CROSSHAIR_ZINDEX });
@@ -64,13 +64,13 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.crosshairGroup.visible = false;
         this.labels = {};
 
-        const region = ctx.regionManager.getRegion('series')!;
+        const seriesRegion = ctx.regionManager.getRegion('series')!;
         const mouseMoveStates = InteractionState.Default | InteractionState.Annotations;
         this.destroyFns.push(
             ctx.scene.attachNode(this.crosshairGroup),
-            region.addListener('hover', (event) => this.onMouseMove(event), mouseMoveStates),
-            region.addListener('drag', (event) => this.onMouseMove(event), mouseMoveStates),
-            region.addListener('leave', () => this.onMouseOut(), mouseMoveStates),
+            seriesRegion.addListener('hover', (event) => this.onMouseMove(event), mouseMoveStates),
+            seriesRegion.addListener('drag', (event) => this.onMouseMove(event), mouseMoveStates),
+            seriesRegion.addListener('leave', () => this.onMouseOut(), mouseMoveStates),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
             ctx.layoutService.addListener('layout-complete', (event) => this.layout(event)),
             () => Object.entries(this.labels).forEach(([_, label]) => label.destroy())
@@ -385,7 +385,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         const html = this.getLabelHtml(value, label);
 
         label.setLabelHtml(html);
-        const labelBBox = label.computeBBox();
+        const labelBBox = label.getBBox();
 
         const labelMeta = calculateAxisLabelPosition({
             x,

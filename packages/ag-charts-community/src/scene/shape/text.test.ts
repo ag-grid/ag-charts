@@ -236,7 +236,7 @@ describe('Text', () => {
                     textNode.render({ ctx, forceRender: true, resized: false, devicePixelRatio: 1, debugNodes: {} });
                     ctx.restore();
 
-                    const { x, y, width, height } = textNode.computeBBox();
+                    const { x, y, width, height } = textNode.getBBox();
 
                     ctx.strokeRect(x, y, width, height);
 
@@ -288,7 +288,7 @@ describe('Text', () => {
                     textNode.render({ ctx, forceRender: true, resized: false, devicePixelRatio: 1, debugNodes: {} });
                     ctx.restore();
 
-                    const { x, y } = textNode.computeBBox();
+                    const { x, y } = textNode.getBBox();
 
                     ctx.strokeRect(x, y, maxWidth, maxHeight);
 

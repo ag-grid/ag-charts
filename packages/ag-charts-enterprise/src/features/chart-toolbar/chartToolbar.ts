@@ -26,7 +26,6 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
 
     private readonly popover = new Popover(this.ctx, 'chart-toolbar');
     private anchor?: _Scene.BBox = undefined;
-    private isPopoverVisible = false;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -67,11 +66,6 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
     private toolbarButtonPressed(e: _ModuleSupport.ToolbarButtonPressedEvent<any>) {
         if (e.group !== BUTTON_GROUP) return;
 
-        if (this.isPopoverVisible) {
-            this.hidePopover();
-            return;
-        }
-
         this.setAnchor(e.rect);
 
         this.popover.show({
@@ -81,14 +75,12 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
             onClose: () => this.hidePopover(),
         });
 
-        this.isPopoverVisible = true;
         this.ctx.toolbarManager.toggleButton(BUTTON_GROUP, BUTTON_VALUE, { active: true });
     }
 
     private hidePopover() {
         this.ctx.toolbarManager.toggleButton(BUTTON_GROUP, BUTTON_VALUE, { active: false });
         this.popover.hide();
-        this.isPopoverVisible = false;
     }
 
     private setChartType(chartType: AgPriceVolumeChartType) {

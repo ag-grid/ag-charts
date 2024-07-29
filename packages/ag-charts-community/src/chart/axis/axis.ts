@@ -38,7 +38,6 @@ import { clamp, countFractionDigits, findMinMax, findRangeExtent, round } from '
 import { ObserveChanges } from '../../util/proxy';
 import { StateMachine } from '../../util/stateMachine';
 import { CachedTextMeasurerPool, type TextMeasurer, TextUtils } from '../../util/textMeasurer';
-import { TextWrapper } from '../../util/textWrapper';
 import { BOOLEAN, OBJECT, STRING_ARRAY, Validate } from '../../util/validation';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
@@ -453,7 +452,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     private checkAxisHover(event: PointerInteractionEvent<'hover'>) {
         if (!this.interactionEnabled) return;
 
-        const bbox = this.computeBBox();
+        const bbox = this.getBBox();
         const isInAxis = bbox.containsPoint(event.offsetX, event.offsetY);
 
         if (!isInAxis) return;
@@ -893,12 +892,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             return strategies;
         }
 
-        if (label.autoWrap) {
-            const autoWrapStrategy = ({ index, tickData, textProps }: TickStrategyParams) =>
-                this.wrapLabels(tickData, index, textProps);
-
-            strategies.push(autoWrapStrategy);
-        } else if (autoRotate) {
+        if (autoRotate) {
             const autoRotateStrategy = ({ index, tickData, labelOverlap, terminate }: TickStrategyParams) => ({
                 index,
                 tickData,
@@ -1346,28 +1340,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         });
     }
 
-    private wrapLabels(tickData: TickData, index: number, labelProps: TextSizeProperties): TickStrategyResult {
-        const { parallel, maxWidth, maxHeight } = this.label;
-
-        let defaultMaxWidth = this.maxThickness;
-        let defaultMaxHeight = Math.round(this.calculateAvailableRange() / tickData.labelCount);
-
-        if (parallel) {
-            [defaultMaxWidth, defaultMaxHeight] = [defaultMaxHeight, defaultMaxWidth];
-        }
-
-        tickData.ticks.forEach((tickDatum) => {
-            tickDatum.tickLabel = TextWrapper.wrapText(tickDatum.tickLabel, {
-                maxWidth: maxWidth ?? defaultMaxWidth,
-                maxHeight: maxHeight ?? defaultMaxHeight,
-                font: labelProps,
-                textWrap: 'hyphenate',
-            });
-        });
-
-        return { tickData, index, autoRotation: 0, terminate: true };
-    }
-
     protected updateTitle(params: { anyTickVisible: boolean }): void {
         const { rotation, title, _titleCaption, lineNode, tickLineGroup, tickLabelGroup } = this;
 
@@ -1412,8 +1384,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     maxThickness: number = Infinity;
 
-    computeBBox(): BBox {
-        return this.axisGroup.computeBBox();
+    getBBox(): BBox {
+        return this.axisGroup.getBBox();
     }
 
     initCrossLine(crossLine: CrossLine) {
@@ -1460,7 +1432,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     getLayoutState(): AxisLayout {
         return {
-            rect: this.computeBBox(),
+            id: this.id,
+            rect: this.getBBox(),
             gridPadding: this.gridPadding,
             seriesAreaPadding: this.seriesAreaPadding,
             tickSize: this.getTickSize(),

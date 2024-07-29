@@ -656,7 +656,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
         if (title) {
             const dy = this.getTitleTranslationY();
-            const titleBox = title.node.computeBBox();
+            const titleBox = title.node.getBBox();
             title.node.visible =
                 title.enabled && isFinite(dy) && !this.bboxIntersectsSurroundingSeries(titleBox, 0, dy);
             title.node.translationY = isFinite(dy) ? dy : 0;
@@ -976,24 +976,21 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             .filter((d) => d.midSin >= 0 && d.calloutLabel?.textAlign === 'center')
             .sort((a, b) => a.midCos - b.midCos);
 
-        const tempTextNode = new Text();
         const getTextBBox = (datum: (typeof data)[number]) => {
             const label = datum.calloutLabel;
-            if (label == null) return new BBox(0, 0, 0, 0);
+            if (label == null) return BBox.zero.clone();
 
             const labelRadius = datum.outerRadius + calloutLine.length + offset;
             const x = datum.midCos * labelRadius;
             const y = datum.midSin * labelRadius + label.collisionOffsetY;
 
-            tempTextNode.text = label.text;
-            tempTextNode.x = x;
-            tempTextNode.y = y;
-            tempTextNode.setFont(this.properties.calloutLabel);
-            tempTextNode.setAlign({
-                textAlign: label.collisionTextAlign ?? label.textAlign,
-                textBaseline: label.textBaseline,
+            const textAlign = label.collisionTextAlign ?? label.textAlign;
+            const textBaseline = label.textBaseline;
+            return Text.computeBBox(label.text, x, y, {
+                font: this.properties.calloutLabel,
+                textAlign,
+                textBaseline,
             });
-            return tempTextNode.computeBBox();
         };
 
         const avoidNeighbourYCollision = (
@@ -1113,7 +1110,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             tempTextNode.y = y;
             tempTextNode.setFont(this.properties.calloutLabel);
             tempTextNode.setAlign(align);
-            const box = tempTextNode.computeBBox();
+            const box = tempTextNode.getBBox();
 
             let displayText = label.text;
             let visible = true;
@@ -1163,7 +1160,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                     textBaseline: 'bottom',
                     textAlign: 'center',
                 });
-                titleBox = text.computeBBox();
+                titleBox = text.getBBox();
                 textBoxes.push(titleBox);
             }
         }
@@ -1185,7 +1182,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 textAlign: label.collisionTextAlign ?? label.textAlign,
                 textBaseline: label.textBaseline,
             });
-            const box = text.computeBBox();
+            const box = text.getBBox();
             label.box = box;
 
             // Hide labels that where pushed too far by the collision avoidance algorithm
@@ -1256,7 +1253,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 text.textAlign = 'center';
                 text.textBaseline = 'middle';
 
-                const bbox = text.computeBBox();
+                const bbox = text.getBBox();
                 const corners = [
                     [bbox.x, bbox.y],
                     [bbox.x + bbox.width, bbox.y],
@@ -1291,7 +1288,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             text.fill = color;
             text.textAlign = 'center';
             text.textBaseline = 'alphabetic';
-            textBBoxes.push(text.computeBBox());
+            textBBoxes.push(text.getBBox());
             margins.push(datum.spacing);
         });
         const getMarginTop = (index: number) => (index === 0 ? 0 : margins[index]);

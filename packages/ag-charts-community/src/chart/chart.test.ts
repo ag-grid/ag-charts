@@ -144,7 +144,7 @@ describe('Chart', () => {
             offsetX?: boolean,
             offsetY?: boolean
         ) => {
-            const seriesAreaCenter = chartInstance.seriesRoot.computeBBox().computeCenter();
+            const seriesAreaCenter = chartInstance.seriesRoot.getBBox().computeCenter();
 
             await hoverChartNodes(chartInstance, async ({ x, y }) => {
                 if (offsetX) {

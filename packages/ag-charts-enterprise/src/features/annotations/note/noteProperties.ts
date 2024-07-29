@@ -1,11 +1,11 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { AnnotationType } from '../annotationTypes';
-import { TextualProperties } from '../properties/textualProperties';
+import { TextualPointProperties } from '../properties/textualPointProperties';
 
 const { STRING, Validate, isObject } = _ModuleSupport;
 
-export class NoteProperties extends TextualProperties {
+export class NoteProperties extends TextualPointProperties {
     static is(value: unknown): value is NoteProperties {
         return isObject(value) && value.type === AnnotationType.Note;
     }

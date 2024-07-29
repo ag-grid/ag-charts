@@ -27,8 +27,8 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
     width: number;
     height: number;
 
-    static readonly zero: Readonly<BBox> = new BBox(0, 0, 0, 0);
-    static readonly NaN: Readonly<BBox> = new BBox(NaN, NaN, NaN, NaN);
+    static readonly zero: Readonly<BBox> = Object.freeze(new BBox(0, 0, 0, 0));
+    static readonly NaN: Readonly<BBox> = Object.freeze(new BBox(NaN, NaN, NaN, NaN));
 
     constructor(x: number, y: number, width: number, height: number) {
         this.x = x;

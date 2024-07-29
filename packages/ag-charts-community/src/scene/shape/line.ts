@@ -40,7 +40,7 @@ export class Line extends Shape implements DistantObject {
         this.y2 = value;
     }
 
-    override computeBBox(): BBox {
+    protected override computeBBox(): BBox {
         return new BBox(
             Math.min(this.x1, this.x2),
             Math.min(this.y1, this.y2),
@@ -52,7 +52,8 @@ export class Line extends Shape implements DistantObject {
     isPointInPath(px: number, py: number): boolean {
         if (this.x1 === this.x2 || this.y1 === this.y2) {
             const { x, y } = this.transformPoint(px, py);
-            return this.computeBBox()
+            return this.getBBox()
+                .clone()
                 .grow(this.strokeWidth / 2)
                 .containsPoint(x, y);
         }

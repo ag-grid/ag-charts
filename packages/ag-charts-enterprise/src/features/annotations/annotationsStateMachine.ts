@@ -3,6 +3,9 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 import { type AnnotationContext, AnnotationType, type GuardDragClickDoubleEvent } from './annotationTypes';
 import { colorDatum, getTypedDatum, isTextType } from './annotationsConfig';
 import type { AnnotationProperties, AnnotationsStateMachineContext } from './annotationsSuperTypes';
+import { CalloutProperties } from './callout/calloutProperties';
+import { CalloutScene } from './callout/calloutScene';
+import { CalloutStateMachine } from './callout/calloutState';
 import { CommentProperties } from './comment/commentProperties';
 import { CommentScene } from './comment/commentScene';
 import { CommentStateMachine } from './comment/commentState';
@@ -45,6 +48,7 @@ type AnnotationEvent =
     | 'color'
     | 'fontSize'
     | 'keyDown'
+    | 'textInput'
     | 'render';
 
 export class AnnotationsStateMachine extends StateMachine<States, AnnotationType | AnnotationEvent> {
@@ -147,6 +151,24 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 }
             })();
         };
+
+        const textStateMachineContext = <T, U>(
+            type: AnnotationType,
+            isDatum: (value: unknown) => value is T,
+            isNode: (value: unknown) => value is U
+        ) => ({
+            ...ctx,
+            create: createDatum(type),
+            delete: () => {
+                if (this.active != null) ctx.delete(this.active);
+                this.active = ctx.select();
+            },
+            datum: getDatum<T>(isDatum),
+            node: getNode<U>(isNode),
+            showTextInput: () => {
+                if (this.active != null) ctx.showTextInput(this.active);
+            },
+        });
 
         super(States.Idle, {
             [States.Idle]: {
@@ -269,32 +291,27 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 }),
 
                 // Texts
-                [AnnotationType.Text]: new TextStateMachine({
-                    ...ctx,
-                    create: createDatum<TextProperties>(AnnotationType.Text),
-                    delete: () => {
-                        if (this.active != null) ctx.delete(this.active);
-                        this.active = ctx.select();
-                    },
-                    datum: getDatum<TextProperties>(TextProperties.is),
-                    node: getNode<TextScene>(TextScene.is),
-                    showTextInput: () => {
-                        if (this.active != null) ctx.showTextInput(this.active);
-                    },
-                }),
-                [AnnotationType.Comment]: new CommentStateMachine({
-                    ...ctx,
-                    create: createDatum<CommentProperties>(AnnotationType.Comment),
-                    delete: () => {
-                        if (this.active != null) ctx.delete(this.active);
-                        this.active = ctx.select();
-                    },
-                    datum: getDatum<CommentProperties>(CommentProperties.is),
-                    node: getNode<CommentScene>(CommentScene.is),
-                    showTextInput: () => {
-                        if (this.active != null) ctx.showTextInput(this.active);
-                    },
-                }),
+                [AnnotationType.Text]: new TextStateMachine(
+                    textStateMachineContext<TextProperties, TextScene>(
+                        AnnotationType.Text,
+                        TextProperties.is,
+                        TextScene.is
+                    )
+                ),
+                [AnnotationType.Comment]: new CommentStateMachine(
+                    textStateMachineContext<CommentProperties, CommentScene>(
+                        AnnotationType.Comment,
+                        CommentProperties.is,
+                        CommentScene.is
+                    )
+                ),
+                [AnnotationType.Callout]: new CalloutStateMachine(
+                    textStateMachineContext<CalloutProperties, CalloutScene>(
+                        AnnotationType.Callout,
+                        CalloutProperties.is,
+                        CalloutScene.is
+                    )
+                ),
             },
 
             [States.Dragging]: {
@@ -335,6 +352,10 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     CommentProperties.is,
                     CommentScene.is
                 ),
+                [AnnotationType.Callout]: dragStateMachine<CalloutProperties, CalloutScene>(
+                    CalloutProperties.is,
+                    CalloutScene.is
+                ),
             },
 
             [States.TextInput]: {
@@ -342,7 +363,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     if (this.active == null) return;
 
                     const datum = getTypedDatum(ctx.datum(this.active));
-                    if (!datum || !('getTextBBox' in datum)) return;
+                    if (!datum || !('getTextInputCoords' in datum)) return;
 
                     ctx.startInteracting();
                     ctx.showTextInput(this.active);
@@ -360,6 +381,14 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                             ctx.delete(this.active!);
                         }
                     },
+                },
+
+                textInput: ({ bbox }) => {
+                    if (this.active == null) return;
+                    const node = ctx.node(this.active);
+                    if (!node || !('setTextInputBBox' in node)) return;
+                    node.setTextInputBBox(bbox);
+                    ctx.update();
                 },
 
                 keyDown: [

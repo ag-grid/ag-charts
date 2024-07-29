@@ -68,6 +68,12 @@ const annotations: AgToolbarOptions['annotations'] = {
             section: 'annotations',
         },
         {
+            icon: 'callout-annotation',
+            tooltip: 'callout',
+            value: 'callout',
+            section: 'annotations',
+        },
+        {
             icon: 'delete',
             tooltip: 'toolbarAnnotationsClearAll',
             value: 'clear',

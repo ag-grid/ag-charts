@@ -12,8 +12,8 @@ export interface MenuItem<Value = any> {
 
 export class Popover extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     private readonly element: HTMLElement;
-    private anchor?: { x: number; y: number };
-    private windowMouseMoveEvent?: (e: MouseEvent) => void | undefined;
+    private anchor?: { x: number; y: number } = undefined;
+    private removeGlobalEventListeners?: () => void = undefined;
 
     private moduleId: string;
 
@@ -98,10 +98,11 @@ export class Popover extends _ModuleSupport.BaseModuleInstance implements _Modul
             return row;
         });
 
-        const popoverContainer = createElement('div');
-        popoverContainer.role = 'presentation';
-        popoverContainer.appendChild(popover);
-        this.element.replaceChildren(popoverContainer);
+        // const popoverContainer = createElement('div');
+        // popoverContainer.role = 'presentation';
+        // popoverContainer.appendChild(popover);
+        // this.element.replaceChildren(popoverContainer);
+        this.element.replaceChildren(popover);
 
         // If an anchor has already been provided, apply it to prevent a flash of the picker in the wrong location
         if (this.anchor) {
@@ -139,8 +140,20 @@ export class Popover extends _ModuleSupport.BaseModuleInstance implements _Modul
             if (popover.contains(e.target as any)) return;
             popover.focus();
         };
-        this.windowMouseMoveEvent = windowMouseMoveEvent;
         window.addEventListener('mousemove', windowMouseMoveEvent);
+
+        const windowMouseMoveDown = (e: MouseEvent) => {
+            if (e.button !== 0 || popover.contains(e.target as any)) return;
+
+            opts.onClose();
+        };
+        window.addEventListener('mousedown', windowMouseMoveDown);
+
+        this.removeGlobalEventListeners?.();
+        this.removeGlobalEventListeners = () => {
+            window.removeEventListener('mousemove', windowMouseMoveEvent);
+            window.removeEventListener('mousedown', windowMouseMoveDown);
+        };
 
         popover.focus();
     }
@@ -148,29 +161,26 @@ export class Popover extends _ModuleSupport.BaseModuleInstance implements _Modul
     setAnchor(anchor: { x: number; y: number }) {
         this.anchor = anchor;
 
-        const colorPicker = this.element.firstElementChild?.firstElementChild as HTMLElement | undefined;
-        if (!colorPicker) return;
+        const popover = this.element.firstElementChild as HTMLElement | undefined;
+        if (!popover) return;
 
-        this.updatePosition(colorPicker, anchor.x, anchor.y);
+        this.updatePosition(popover, anchor.x, anchor.y);
     }
 
     hide() {
         this.element.replaceChildren();
-        const { windowMouseMoveEvent } = this;
-        if (windowMouseMoveEvent != null) {
-            window.removeEventListener('mousemove', windowMouseMoveEvent);
-            this.windowMouseMoveEvent = undefined;
-        }
+        this.removeGlobalEventListeners?.();
+        this.removeGlobalEventListeners = undefined;
     }
 
     isChildElement(element: HTMLElement) {
         return this.ctx.domManager.isManagedChildDOMElement(element, canvasOverlay, this.moduleId);
     }
 
-    private updatePosition(colorPicker: HTMLElement, x: number, y: number) {
-        colorPicker.style.setProperty('top', 'unset');
-        colorPicker.style.setProperty('bottom', 'unset');
-        colorPicker.style.setProperty('left', `${x}px`);
-        colorPicker.style.setProperty('top', `${y}px`);
+    private updatePosition(popover: HTMLElement, x: number, y: number) {
+        popover.style.setProperty('top', 'unset');
+        popover.style.setProperty('bottom', 'unset');
+        popover.style.setProperty('left', `${x}px`);
+        popover.style.setProperty('top', `${y}px`);
     }
 }

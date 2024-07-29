@@ -83,15 +83,19 @@ export const AnnotationsModule: _ModuleSupport.Module = {
 
             // Texts
             callout: {
-                color: 'black',
+                color: _Theme.DEFAULT_LABEL_COLOUR,
                 fontSize: 14,
                 fontFamily: _Theme.DEFAULT_FONT_FAMILY,
-                textAlign: 'center',
+                textAlign: 'left',
                 handle: {
                     fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
                     strokeWidth: 2,
                     strokeOpacity: 1,
                 },
+                stroke: _Theme.DEFAULT_ANNOTATION_COLOR,
+                strokeWidth: 2,
+                fill: _Theme.DEFAULT_ANNOTATION_BACKGROUND_FILL,
+                fillOpacity: 0.2,
             },
             comment: {
                 color: 'white',
