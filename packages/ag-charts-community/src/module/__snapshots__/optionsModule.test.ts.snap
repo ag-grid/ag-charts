@@ -453,31 +453,8 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         {
           "icon": "text-annotation",
           "section": "annotations",
-<<<<<<< HEAD
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
-=======
-          "tooltip": "toolbarAnnotationsText",
-          "value": "text",
-        },
-        {
-          "icon": "comment-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsComment",
-          "value": "comment",
-        },
-        {
-          "icon": "callout-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsCallout",
-          "value": "callout",
->>>>>>> 1fe3a7135 (AG-12162 Update options snapshot)
-        },
-        {
-          "icon": "note-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsNote",
-          "value": "note",
         },
         {
           "icon": "delete",
@@ -1075,31 +1052,8 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         {
           "icon": "text-annotation",
           "section": "annotations",
-<<<<<<< HEAD
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
-=======
-          "tooltip": "toolbarAnnotationsText",
-          "value": "text",
-        },
-        {
-          "icon": "comment-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsComment",
-          "value": "comment",
-        },
-        {
-          "icon": "callout-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsCallout",
-          "value": "callout",
->>>>>>> 1fe3a7135 (AG-12162 Update options snapshot)
-        },
-        {
-          "icon": "note-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsNote",
-          "value": "note",
         },
         {
           "icon": "delete",
@@ -1845,31 +1799,8 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         {
           "icon": "text-annotation",
           "section": "annotations",
-<<<<<<< HEAD
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
-=======
-          "tooltip": "toolbarAnnotationsText",
-          "value": "text",
-        },
-        {
-          "icon": "comment-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsComment",
-          "value": "comment",
-        },
-        {
-          "icon": "callout-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsCallout",
-          "value": "callout",
->>>>>>> 1fe3a7135 (AG-12162 Update options snapshot)
-        },
-        {
-          "icon": "note-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsNote",
-          "value": "note",
         },
         {
           "icon": "delete",
@@ -2610,31 +2541,8 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         {
           "icon": "text-annotation",
           "section": "annotations",
-<<<<<<< HEAD
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
-=======
-          "tooltip": "toolbarAnnotationsText",
-          "value": "text",
-        },
-        {
-          "icon": "comment-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsComment",
-          "value": "comment",
-        },
-        {
-          "icon": "callout-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsCallout",
-          "value": "callout",
->>>>>>> 1fe3a7135 (AG-12162 Update options snapshot)
-        },
-        {
-          "icon": "note-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsNote",
-          "value": "note",
         },
         {
           "icon": "delete",
@@ -3070,31 +2978,8 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
         {
           "icon": "text-annotation",
           "section": "annotations",
-<<<<<<< HEAD
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
-=======
-          "tooltip": "toolbarAnnotationsText",
-          "value": "text",
-        },
-        {
-          "icon": "comment-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsComment",
-          "value": "comment",
-        },
-        {
-          "icon": "callout-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsCallout",
-          "value": "callout",
->>>>>>> 1fe3a7135 (AG-12162 Update options snapshot)
-        },
-        {
-          "icon": "note-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsNote",
-          "value": "note",
         },
         {
           "icon": "delete",
@@ -3679,31 +3564,8 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         {
           "icon": "text-annotation",
           "section": "annotations",
-<<<<<<< HEAD
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
-=======
-          "tooltip": "toolbarAnnotationsText",
-          "value": "text",
-        },
-        {
-          "icon": "comment-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsComment",
-          "value": "comment",
-        },
-        {
-          "icon": "callout-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsCallout",
-          "value": "callout",
->>>>>>> 1fe3a7135 (AG-12162 Update options snapshot)
-        },
-        {
-          "icon": "note-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsNote",
-          "value": "note",
         },
         {
           "icon": "delete",
@@ -4409,31 +4271,8 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         {
           "icon": "text-annotation",
           "section": "annotations",
-<<<<<<< HEAD
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
-=======
-          "tooltip": "toolbarAnnotationsText",
-          "value": "text",
-        },
-        {
-          "icon": "comment-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsComment",
-          "value": "comment",
-        },
-        {
-          "icon": "callout-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsCallout",
-          "value": "callout",
->>>>>>> 1fe3a7135 (AG-12162 Update options snapshot)
-        },
-        {
-          "icon": "note-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsNote",
-          "value": "note",
         },
         {
           "icon": "delete",
@@ -4882,31 +4721,8 @@ by Occupation",
         {
           "icon": "text-annotation",
           "section": "annotations",
-<<<<<<< HEAD
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
-=======
-          "tooltip": "toolbarAnnotationsText",
-          "value": "text",
-        },
-        {
-          "icon": "comment-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsComment",
-          "value": "comment",
-        },
-        {
-          "icon": "callout-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsCallout",
-          "value": "callout",
->>>>>>> 1fe3a7135 (AG-12162 Update options snapshot)
-        },
-        {
-          "icon": "note-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsNote",
-          "value": "note",
         },
         {
           "icon": "delete",
@@ -5352,31 +5168,8 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
         {
           "icon": "text-annotation",
           "section": "annotations",
-<<<<<<< HEAD
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
-=======
-          "tooltip": "toolbarAnnotationsText",
-          "value": "text",
-        },
-        {
-          "icon": "comment-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsComment",
-          "value": "comment",
-        },
-        {
-          "icon": "callout-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsCallout",
-          "value": "callout",
->>>>>>> 1fe3a7135 (AG-12162 Update options snapshot)
-        },
-        {
-          "icon": "note-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsNote",
-          "value": "note",
         },
         {
           "icon": "delete",
@@ -5810,31 +5603,8 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         {
           "icon": "text-annotation",
           "section": "annotations",
-<<<<<<< HEAD
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
-=======
-          "tooltip": "toolbarAnnotationsText",
-          "value": "text",
-        },
-        {
-          "icon": "comment-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsComment",
-          "value": "comment",
-        },
-        {
-          "icon": "callout-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsCallout",
-          "value": "callout",
->>>>>>> 1fe3a7135 (AG-12162 Update options snapshot)
-        },
-        {
-          "icon": "note-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsNote",
-          "value": "note",
         },
         {
           "icon": "delete",
@@ -6270,31 +6040,8 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
         {
           "icon": "text-annotation",
           "section": "annotations",
-<<<<<<< HEAD
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
-=======
-          "tooltip": "toolbarAnnotationsText",
-          "value": "text",
-        },
-        {
-          "icon": "comment-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsComment",
-          "value": "comment",
-        },
-        {
-          "icon": "callout-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsCallout",
-          "value": "callout",
->>>>>>> 1fe3a7135 (AG-12162 Update options snapshot)
-        },
-        {
-          "icon": "note-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsNote",
-          "value": "note",
         },
         {
           "icon": "delete",
@@ -6807,31 +6554,8 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         {
           "icon": "text-annotation",
           "section": "annotations",
-<<<<<<< HEAD
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
-=======
-          "tooltip": "toolbarAnnotationsText",
-          "value": "text",
-        },
-        {
-          "icon": "comment-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsComment",
-          "value": "comment",
-        },
-        {
-          "icon": "callout-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsCallout",
-          "value": "callout",
->>>>>>> 1fe3a7135 (AG-12162 Update options snapshot)
-        },
-        {
-          "icon": "note-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsNote",
-          "value": "note",
         },
         {
           "icon": "delete",
@@ -7348,31 +7072,8 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         {
           "icon": "text-annotation",
           "section": "annotations",
-<<<<<<< HEAD
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
-=======
-          "tooltip": "toolbarAnnotationsText",
-          "value": "text",
-        },
-        {
-          "icon": "comment-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsComment",
-          "value": "comment",
-        },
-        {
-          "icon": "callout-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsCallout",
-          "value": "callout",
->>>>>>> 1fe3a7135 (AG-12162 Update options snapshot)
-        },
-        {
-          "icon": "note-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsNote",
-          "value": "note",
         },
         {
           "icon": "delete",
@@ -8127,31 +7828,8 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         {
           "icon": "text-annotation",
           "section": "annotations",
-<<<<<<< HEAD
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
-=======
-          "tooltip": "toolbarAnnotationsText",
-          "value": "text",
-        },
-        {
-          "icon": "comment-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsComment",
-          "value": "comment",
-        },
-        {
-          "icon": "callout-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsCallout",
-          "value": "callout",
->>>>>>> 1fe3a7135 (AG-12162 Update options snapshot)
-        },
-        {
-          "icon": "note-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsNote",
-          "value": "note",
         },
         {
           "icon": "delete",
@@ -9330,31 +9008,8 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         {
           "icon": "text-annotation",
           "section": "annotations",
-<<<<<<< HEAD
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
-=======
-          "tooltip": "toolbarAnnotationsText",
-          "value": "text",
-        },
-        {
-          "icon": "comment-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsComment",
-          "value": "comment",
-        },
-        {
-          "icon": "callout-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsCallout",
-          "value": "callout",
->>>>>>> 1fe3a7135 (AG-12162 Update options snapshot)
-        },
-        {
-          "icon": "note-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsNote",
-          "value": "note",
         },
         {
           "icon": "delete",
@@ -9791,31 +9446,8 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
         {
           "icon": "text-annotation",
           "section": "annotations",
-<<<<<<< HEAD
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
-=======
-          "tooltip": "toolbarAnnotationsText",
-          "value": "text",
-        },
-        {
-          "icon": "comment-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsComment",
-          "value": "comment",
-        },
-        {
-          "icon": "callout-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsCallout",
-          "value": "callout",
->>>>>>> 1fe3a7135 (AG-12162 Update options snapshot)
-        },
-        {
-          "icon": "note-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsNote",
-          "value": "note",
         },
         {
           "icon": "delete",
@@ -10664,31 +10296,8 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         {
           "icon": "text-annotation",
           "section": "annotations",
-<<<<<<< HEAD
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
-=======
-          "tooltip": "toolbarAnnotationsText",
-          "value": "text",
-        },
-        {
-          "icon": "comment-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsComment",
-          "value": "comment",
-        },
-        {
-          "icon": "callout-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsCallout",
-          "value": "callout",
->>>>>>> 1fe3a7135 (AG-12162 Update options snapshot)
-        },
-        {
-          "icon": "note-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsNote",
-          "value": "note",
         },
         {
           "icon": "delete",
@@ -11258,31 +10867,8 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         {
           "icon": "text-annotation",
           "section": "annotations",
-<<<<<<< HEAD
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
-=======
-          "tooltip": "toolbarAnnotationsText",
-          "value": "text",
-        },
-        {
-          "icon": "comment-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsComment",
-          "value": "comment",
-        },
-        {
-          "icon": "callout-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsCallout",
-          "value": "callout",
->>>>>>> 1fe3a7135 (AG-12162 Update options snapshot)
-        },
-        {
-          "icon": "note-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsNote",
-          "value": "note",
         },
         {
           "icon": "delete",
@@ -11991,31 +11577,8 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         {
           "icon": "text-annotation",
           "section": "annotations",
-<<<<<<< HEAD
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
-=======
-          "tooltip": "toolbarAnnotationsText",
-          "value": "text",
-        },
-        {
-          "icon": "comment-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsComment",
-          "value": "comment",
-        },
-        {
-          "icon": "callout-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsCallout",
-          "value": "callout",
->>>>>>> 1fe3a7135 (AG-12162 Update options snapshot)
-        },
-        {
-          "icon": "note-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsNote",
-          "value": "note",
         },
         {
           "icon": "delete",
@@ -12633,31 +12196,8 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         {
           "icon": "text-annotation",
           "section": "annotations",
-<<<<<<< HEAD
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
-=======
-          "tooltip": "toolbarAnnotationsText",
-          "value": "text",
-        },
-        {
-          "icon": "comment-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsComment",
-          "value": "comment",
-        },
-        {
-          "icon": "callout-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsCallout",
-          "value": "callout",
->>>>>>> 1fe3a7135 (AG-12162 Update options snapshot)
-        },
-        {
-          "icon": "note-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsNote",
-          "value": "note",
         },
         {
           "icon": "delete",
@@ -13099,31 +12639,8 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
         {
           "icon": "text-annotation",
           "section": "annotations",
-<<<<<<< HEAD
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
-=======
-          "tooltip": "toolbarAnnotationsText",
-          "value": "text",
-        },
-        {
-          "icon": "comment-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsComment",
-          "value": "comment",
-        },
-        {
-          "icon": "callout-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsCallout",
-          "value": "callout",
->>>>>>> 1fe3a7135 (AG-12162 Update options snapshot)
-        },
-        {
-          "icon": "note-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsNote",
-          "value": "note",
         },
         {
           "icon": "delete",
@@ -13854,31 +13371,8 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         {
           "icon": "text-annotation",
           "section": "annotations",
-<<<<<<< HEAD
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
-=======
-          "tooltip": "toolbarAnnotationsText",
-          "value": "text",
-        },
-        {
-          "icon": "comment-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsComment",
-          "value": "comment",
-        },
-        {
-          "icon": "callout-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsCallout",
-          "value": "callout",
->>>>>>> 1fe3a7135 (AG-12162 Update options snapshot)
-        },
-        {
-          "icon": "note-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsNote",
-          "value": "note",
         },
         {
           "icon": "delete",
@@ -14503,31 +13997,8 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
         {
           "icon": "text-annotation",
           "section": "annotations",
-<<<<<<< HEAD
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
-=======
-          "tooltip": "toolbarAnnotationsText",
-          "value": "text",
-        },
-        {
-          "icon": "comment-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsComment",
-          "value": "comment",
-        },
-        {
-          "icon": "callout-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsCallout",
-          "value": "callout",
->>>>>>> 1fe3a7135 (AG-12162 Update options snapshot)
-        },
-        {
-          "icon": "note-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsNote",
-          "value": "note",
         },
         {
           "icon": "delete",
@@ -15338,31 +14809,8 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         {
           "icon": "text-annotation",
           "section": "annotations",
-<<<<<<< HEAD
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
-=======
-          "tooltip": "toolbarAnnotationsText",
-          "value": "text",
-        },
-        {
-          "icon": "comment-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsComment",
-          "value": "comment",
-        },
-        {
-          "icon": "callout-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsCallout",
-          "value": "callout",
->>>>>>> 1fe3a7135 (AG-12162 Update options snapshot)
-        },
-        {
-          "icon": "note-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsNote",
-          "value": "note",
         },
         {
           "icon": "delete",
@@ -15960,31 +15408,8 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         {
           "icon": "text-annotation",
           "section": "annotations",
-<<<<<<< HEAD
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
-=======
-          "tooltip": "toolbarAnnotationsText",
-          "value": "text",
-        },
-        {
-          "icon": "comment-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsComment",
-          "value": "comment",
-        },
-        {
-          "icon": "callout-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsCallout",
-          "value": "callout",
->>>>>>> 1fe3a7135 (AG-12162 Update options snapshot)
-        },
-        {
-          "icon": "note-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsNote",
-          "value": "note",
         },
         {
           "icon": "delete",
@@ -16651,31 +16076,8 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         {
           "icon": "text-annotation",
           "section": "annotations",
-<<<<<<< HEAD
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
-=======
-          "tooltip": "toolbarAnnotationsText",
-          "value": "text",
-        },
-        {
-          "icon": "comment-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsComment",
-          "value": "comment",
-        },
-        {
-          "icon": "callout-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsCallout",
-          "value": "callout",
->>>>>>> 1fe3a7135 (AG-12162 Update options snapshot)
-        },
-        {
-          "icon": "note-annotation",
-          "section": "annotations",
-          "tooltip": "toolbarAnnotationsNote",
-          "value": "note",
         },
         {
           "icon": "delete",
