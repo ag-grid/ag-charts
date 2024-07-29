@@ -286,7 +286,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
         if (target == null || pointerCapture == null || !pointerCaptures.has(pointerCapture)) return;
 
-        const isOverCanvasOverlay = target.matches(':hover');
+        const isOverCanvasOverlay = event.type === 'mouseover';
         const pointerCaptureCanvasElement = isOverCanvasOverlay ? target : undefined;
 
         if (this.pointerCaptureCanvasElement === pointerCaptureCanvasElement) return;
