@@ -144,6 +144,11 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         },
     });
 
+    const hasToolbarClass = Array.from(indexHtml.matchAll(/class="([^"]*)"/g)).some(([_fullMatch, classList]) => {
+        return classList.split(/\s+/g).includes('toolbar');
+    });
+    const layout = hasToolbarClass ? 'toolbar' : 'grid';
+
     const getFrameworkFiles = frameworkFilesGenerator[internalFramework];
     if (!getFrameworkFiles) {
         throw new Error(`No entry file config generator for '${internalFramework}'`);
@@ -182,6 +187,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
 
     const result: GeneratedContents = {
         isEnterprise,
+        layout,
         hasLocale,
         scriptFiles: scriptFiles!,
         styleFiles: Object.keys(styleFiles),
