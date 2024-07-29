@@ -64,7 +64,14 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
     }
 
     protected override getHandleStyles(datum: CalloutProperties, handle: 'start' | 'end') {
-        return handle === 'start' ? super.getHandleStyles(datum, handle) : { fill: undefined, strokeWidth: 0 };
+        return handle === 'start'
+            ? {
+                  fill: datum.handle.fill,
+                  stroke: datum.handle.stroke ?? datum.stroke,
+                  strokeOpacity: datum.handle.strokeOpacity,
+                  strokeWidth: datum.handle.strokeWidth,
+              }
+            : { fill: undefined, strokeWidth: 0 };
     }
 
     protected override updateAnchor(datum: CalloutProperties, bbox: _Scene.BBox, context: AnnotationContext) {

@@ -55,7 +55,7 @@ export class CommentScene extends TextualPointScene<CommentProperties> {
     protected override getHandleStyles(datum: CommentProperties) {
         return {
             fill: datum.handle.fill,
-            stroke: datum.handle.stroke ?? datum.fill,
+            stroke: datum.handle.stroke ?? datum.stroke,
             strokeOpacity: datum.handle.strokeOpacity,
             strokeWidth: datum.handle.strokeWidth,
         };
