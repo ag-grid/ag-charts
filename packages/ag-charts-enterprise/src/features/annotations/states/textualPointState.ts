@@ -34,7 +34,7 @@ export abstract class TextualPointStateMachine<
         };
 
         const onSave = ({ textInputValue }: { textInputValue?: string }) => {
-            if (textInputValue !== undefined && textInputValue.length > 0) {
+            if (textInputValue != null && textInputValue.length > 0) {
                 ctx.datum()?.set({ text: textInputValue });
                 ctx.update();
             } else {
