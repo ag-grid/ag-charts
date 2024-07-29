@@ -15,7 +15,6 @@ export class CommentProperties extends Fill(Stroke(TextualPointProperties)) {
     @Validate(STRING)
     type = AnnotationType.Comment as const;
 
-    override text = 'Comment';
     override position = 'bottom' as const;
     override alignment = 'left' as const;
 
