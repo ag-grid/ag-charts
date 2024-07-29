@@ -146,7 +146,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         this.label.fontSize = datum.fontSize;
         this.label.fontStyle = datum.fontStyle;
         this.label.fontWeight = datum.fontWeight;
-        this.label.textAlign = datum.alignment;
+        this.label.textAlign = datum.textAlign;
     }
 
     protected updateHandles(datum: Datum, bbox: _Scene.BBox, coords: LineCoords) {

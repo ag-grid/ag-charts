@@ -1,6 +1,11 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import { type AnnotationContext, AnnotationType, type GuardDragClickDoubleEvent } from './annotationTypes';
+import {
+    type AnnotationContext,
+    type AnnotationOptionsColorPickerType,
+    AnnotationType,
+    type GuardDragClickDoubleEvent,
+} from './annotationTypes';
 import { colorDatum, getTypedDatum, isTextType } from './annotationsConfig';
 import type { AnnotationProperties, AnnotationsStateMachineContext } from './annotationsSuperTypes';
 import { CalloutProperties } from './callout/calloutProperties';
@@ -221,11 +226,17 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 color: {
                     guard: () => this.active != null,
                     target: States.Idle,
-                    action: (color: string) => {
+                    action: ({
+                        colorPickerType,
+                        color,
+                    }: {
+                        colorPickerType: AnnotationOptionsColorPickerType;
+                        color: string;
+                    }) => {
                         const datum = ctx.datum(this.active!);
                         if (!datum) return;
 
-                        colorDatum(datum, color);
+                        colorDatum(datum, colorPickerType, color);
                         ctx.update();
                     },
                 },

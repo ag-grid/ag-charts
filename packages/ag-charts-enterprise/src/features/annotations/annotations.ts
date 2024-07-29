@@ -10,7 +10,7 @@ import { buildBounds } from '../../utils/position';
 import { ColorPicker } from '../color-picker/colorPicker';
 import { type MenuItem, Popover } from '../popover/popover';
 import { TextInput } from '../text-input/textInput';
-import type { AnnotationContext, Coords, Point } from './annotationTypes';
+import type { AnnotationContext, AnnotationOptionsColorPickerType, Coords, Point } from './annotationTypes';
 import { ANNOTATION_BUTTONS, AnnotationType, stringToAnnotationType } from './annotationTypes';
 import { calculateAxisLabelPadding, invertCoords, validateDatumPoint } from './annotationUtils';
 import {
@@ -74,6 +74,7 @@ const TEXT_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
 enum AnnotationOptions {
     Delete = 'delete',
     LineColor = 'line-color',
+    FillColor = 'fill-color',
     Lock = 'lock',
     TextColor = 'text-color',
     TextSize = 'text-size',
@@ -132,7 +133,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private readonly colorPicker = new ColorPicker(this.ctx);
     private readonly textSizePopover = new Popover(this.ctx, 'annotations');
     private readonly textAnnotationsPopover = new Popover(this.ctx, 'text');
-    private defaultColor?: string;
+    private readonly defaultColors: Map<AnnotationOptionsColorPickerType, string | undefined> = new Map([
+        ['line-color', undefined],
+        ['fill-color', undefined],
+        ['text-color', undefined],
+    ]);
 
     private readonly textInput = new TextInput(this.ctx);
 
@@ -231,8 +236,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 const styles = this.ctx.annotationManager.getAnnotationTypeStyles(type);
                 if (styles) datum.set(styles);
 
-                if (this.defaultColor) {
-                    colorDatum(datum, this.defaultColor);
+                for (const [colorPickerType, color] of this.defaultColors) {
+                    if (color) {
+                        colorDatum(datum, colorPickerType, color);
+                    }
                 }
 
                 this.update();
@@ -307,6 +314,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     point,
                     position: datum.position,
                     alignment: datum.alignment,
+                    textAlign: datum.textAlign,
                 });
             },
 
@@ -469,10 +477,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         switch (event.value) {
             case AnnotationOptions.LineColor:
+            case AnnotationOptions.FillColor:
             case AnnotationOptions.TextColor:
                 this.colorPicker.show({
-                    color: getTypedDatum(annotationData[active])?.getDefaultColor(),
-                    onChange: this.onColorPickerChange.bind(this),
+                    color: getTypedDatum(annotationData[active])?.getDefaultColor(event.value),
+                    onChange: this.onColorPickerChange.bind(this, event.value),
                     onClose: this.onColorPickerClose.bind(this),
                 });
                 break;
@@ -523,23 +532,35 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.textSizePopover.setAnchor(anchor);
     }
 
-    private onColorPickerChange(color: string) {
-        this.state.transition('color', color);
-        this.defaultColor = color;
+    private onColorPickerChange(colorPickerType: AnnotationOptionsColorPickerType, color: string) {
+        this.state.transition('color', { colorPickerType, color });
+        this.defaultColors.set(colorPickerType, color);
 
-        this.updateToolbarFills(color);
+        this.updateToolbarColorPickerFill(colorPickerType, color);
     }
 
-    private updateToolbarFills(color: string | undefined) {
+    private updateToolbarColorPickerFill(colorPickerType: AnnotationOptionsColorPickerType, color?: string) {
+        this.ctx.toolbarManager.updateButton('annotationOptions', colorPickerType, {
+            fill: color,
+        });
+    }
+
+    private updateToolbarFills() {
         const active = this.state.getActive();
         const annotation = active != null ? this.annotationData[active] : undefined;
         const datum = getTypedDatum(annotation);
-        this.ctx.toolbarManager.updateButton('annotationOptions', AnnotationOptions.LineColor, {
-            fill: isLineType(datum) || isChannelType(datum) ? color : undefined,
-        });
-        this.ctx.toolbarManager.updateButton('annotationOptions', AnnotationOptions.TextColor, {
-            fill: isTextType(datum) ? color : undefined,
-        });
+        this.updateToolbarColorPickerFill(
+            AnnotationOptions.LineColor,
+            datum?.getDefaultColor(AnnotationOptions.LineColor)
+        );
+        this.updateToolbarColorPickerFill(
+            AnnotationOptions.FillColor,
+            datum?.getDefaultColor(AnnotationOptions.FillColor)
+        );
+        this.updateToolbarColorPickerFill(
+            AnnotationOptions.TextColor,
+            datum?.getDefaultColor(AnnotationOptions.TextColor)
+        );
     }
 
     private onColorPickerClose() {
@@ -832,8 +853,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const datum = getTypedDatum(annotationData.at(active));
         const locked = datum?.locked ?? false;
 
-        this.updateToolbarFills(datum?.getDefaultColor());
         this.updateToolbarFontSize(datum != null && 'fontSize' in datum ? datum.fontSize : undefined);
+        this.updateToolbarFills();
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.LineColor, {
             enabled: !locked,
             visible: isLineType(datum) || isChannelType(datum),
