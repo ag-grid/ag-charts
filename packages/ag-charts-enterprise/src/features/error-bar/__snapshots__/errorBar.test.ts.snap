@@ -4,7 +4,7 @@ exports[`ErrorBars AG-10525 should render tooltips with no errorbars 1`] = `
 NodeList [
   <div
     aria-hidden="true"
-    class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-wrap-hyphenate"
+    class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-wrap-hyphenate ag-chart-tooltip-no-animation"
     data-pointer-capture="retain"
     style="transform: translate(-1px, 0px); pointer-events: none;"
   >
