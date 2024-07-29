@@ -133,7 +133,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private readonly colorPicker = new ColorPicker(this.ctx);
     private readonly textSizePopover = new Popover(this.ctx, 'annotations');
     private readonly textAnnotationsPopover = new Popover(this.ctx, 'text');
-    private defaultColors: Map<AnnotationOptionsColorPickerType, string | undefined> = new Map([
+    private readonly defaultColors: Map<AnnotationOptionsColorPickerType, string | undefined> = new Map([
         ['line-color', undefined],
         ['fill-color', undefined],
         ['text-color', undefined],

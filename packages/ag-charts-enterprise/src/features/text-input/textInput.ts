@@ -128,13 +128,13 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
                 break;
         }
 
-        function setProperties(position: number) {
-            element.style.setProperty('left', `${position}px`);
+        function setProperties(horizontalPosition: number) {
+            element.style.setProperty('left', `${horizontalPosition}px`);
 
             element.style.setProperty('text-align', alignment);
             textArea?.style.setProperty('text-align', textAlign);
 
-            element.style.setProperty('max-width', `${boundingRect.width - position}px`);
+            element.style.setProperty('max-width', `${boundingRect.width - horizontalPosition}px`);
         }
 
         switch (alignment) {
