@@ -208,9 +208,7 @@ export class TypeMapper {
                 }
                 return isFirstAppearance;
             })
-            .filter(({ docs }) => {
-                return docs?.some((d) => d.includes('@deprecated')) !== true;
-            })
+            .filter(({ docs }) => !docs?.some((d) => d.includes('@deprecated')))
             .sort((a, b) => {
                 if (a.optional && !b.optional) return 1;
                 if (!a.optional && b.optional) return -1;
@@ -275,12 +273,18 @@ export function formatNode(node: ts.Node) {
     }
 
     if (ts.isTypeAliasDeclaration(node)) {
-        return {
+        const docs = getJsDoc(node);
+        const result = {
             kind: 'typeAlias',
             name: printNode(node.name),
             type: formatNode(node.type),
             typeParams: node.typeParameters?.map(formatNode),
+            docs,
         };
+        if (docs?.some((d) => d.includes('@deprecated'))) {
+            result.deprecated = true;
+        }
+        return result;
     }
 
     if (ts.isTypeLiteralNode(node)) {
@@ -297,9 +301,9 @@ export function formatNode(node: ts.Node) {
     }
 
     if (ts.isInterfaceDeclaration(node)) {
-        return {
+        const docs = getJsDoc(node);
+        const result = {
             kind: 'interface',
-            docs: getJsDoc(node),
             name: formatNode(node.name),
             members: node.members.map((n) => {
                 let memberDocs = getJsDoc(n);
@@ -325,7 +329,12 @@ export function formatNode(node: ts.Node) {
                 };
             }),
             typeParams: node.typeParameters?.map(formatNode),
+            docs,
         };
+        if (docs?.some((d) => d.includes('@deprecated'))) {
+            result.deprecated = true;
+        }
+        return result;
     }
 
     if (ts.isParenthesizedTypeNode(node) || ts.isPropertySignature(node)) {
