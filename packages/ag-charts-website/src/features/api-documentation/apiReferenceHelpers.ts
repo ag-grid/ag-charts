@@ -124,12 +124,18 @@ export function processMembers(
         );
     }
     if (prioritise) {
-        return members.sort((a, b) => (prioritise.includes(a.name) ? -1 : prioritise.includes(b.name) ? 1 : 0));
+        members = members.sort((a, b) => (prioritise.includes(a.name) ? -1 : prioritise.includes(b.name) ? 1 : 0));
     }
     return members.map((member) => {
         if (isInterface) {
-            const memberType = normalizeType(member.type);
-            return genericsMap.has(memberType) ? { ...member, type: genericsMap.get(memberType) } : member;
+            let omit: string[] | undefined;
+            let memberType = normalizeType(member.type);
+            if (memberType === 'Omit') {
+                const { typeArguments } = member.type as any;
+                memberType = typeArguments[0];
+                omit = typeArguments[1];
+            }
+            return genericsMap.has(memberType) ? { ...member, type: genericsMap.get(memberType), omit } : member;
         }
         return member;
     });
