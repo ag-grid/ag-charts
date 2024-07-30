@@ -13,9 +13,6 @@ const options: AgFinancialChartOptions = {
             {
                 type: 'text',
                 text: 'Text',
-                visible: true,
-                fontSize: 14,
-                fontFamily: 'Verdana, sans-serif',
                 x: {
                     __type: 'date',
                     value: 'Thu Mar 21 2024 19:21:00 GMT+0000 (Greenwich Mean Time)',
@@ -25,14 +22,38 @@ const options: AgFinancialChartOptions = {
             {
                 type: 'comment',
                 text: 'Comment',
-                visible: true,
-                fontSize: 14,
-                fontFamily: 'Verdana, sans-serif',
                 x: {
                     __type: 'date',
                     value: 'Thu Mar 21 2024 19:06:00 GMT+0000 (Greenwich Mean Time)',
                 },
                 y: 39844.91891891892,
+            },
+            {
+                type: 'callout',
+                text: 'Callout',
+                start: {
+                    x: {
+                        __type: 'date',
+                        value: 'Thu Mar 21 2024 18:31:00 GMT+0000 (Greenwich Mean Time)',
+                    },
+                    y: 39856.820512820515,
+                },
+                end: {
+                    x: {
+                        __type: 'date',
+                        value: 'Thu Mar 21 2024 18:39:00 GMT+0000 (Greenwich Mean Time)',
+                    },
+                    y: 39859.282051282054,
+                },
+            },
+            {
+                type: 'note',
+                text: 'Note',
+                x: {
+                    __type: 'date',
+                    value: 'Thu Mar 21 2024 18:54:00 GMT+0000 (Greenwich Mean Time)',
+                },
+                y: 39843.28205128205,
             },
         ],
     },
