@@ -177,6 +177,7 @@ export function priceVolume(
         padding: {
             top: 6,
             right: 8,
+            bottom: 5,
         },
         axes: [
             {
