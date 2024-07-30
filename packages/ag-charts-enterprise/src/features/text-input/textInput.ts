@@ -109,47 +109,35 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
             layout,
             ctx: { domManager },
         } = this;
-        const { point, position, alignment, textAlign } = layout;
 
         const textArea = element.firstElementChild as HTMLDivElement | undefined;
         if (!textArea) return;
 
-        const height = textArea.offsetHeight;
         const width = layout.width ?? textArea.offsetWidth;
-
         const boundingRect = domManager.getBoundingClientRect();
+        const { point, position, alignment, textAlign } = layout;
 
-        switch (position) {
-            case 'top':
-                element.style.setProperty('top', `${point.y}px`);
-                break;
-            case 'center':
-                element.style.setProperty('top', `${point.y - height / 2}px`);
-                break;
-            case 'bottom':
-                element.style.setProperty('top', `${point.y - height}px`);
-                break;
+        let horizontalPosition = point.x;
+        if (alignment === 'center') {
+            horizontalPosition -= width / 2;
+        } else if (alignment === 'right') {
+            horizontalPosition -= width;
         }
 
-        const setHorizontalProperties = (horizontalPosition: number) => {
-            element.style.setProperty('left', `${horizontalPosition}px`);
-            element.style.setProperty('width', layout.width ? `${width}px` : 'unset');
-            element.style.setProperty('max-width', `${boundingRect.width - horizontalPosition}px`);
-            element.style.setProperty('text-align', alignment);
-            textArea.style.setProperty('text-align', textAlign);
-        };
+        element.style.setProperty('left', `${horizontalPosition}px`);
+        element.style.setProperty('width', layout.width ? `${width}px` : 'unset');
+        element.style.setProperty('max-width', `${boundingRect.width - horizontalPosition}px`);
+        element.style.setProperty('text-align', alignment);
+        textArea.style.setProperty('text-align', textAlign);
 
-        switch (alignment) {
-            case 'left':
-                setHorizontalProperties(point.x);
-                break;
-            case 'center':
-                setHorizontalProperties(point.x - width / 2);
-                break;
-            case 'right':
-                setHorizontalProperties(point.x - width);
-                break;
+        let verticalPosition = point.y;
+        if (position === 'center') {
+            verticalPosition -= textArea.offsetHeight / 2;
+        } else if (position === 'bottom') {
+            verticalPosition -= textArea.offsetHeight;
         }
+
+        element.style.setProperty('top', `${verticalPosition}px`);
     }
 
     private getBBox() {

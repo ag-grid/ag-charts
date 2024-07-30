@@ -113,10 +113,10 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         const text = this.wrapText(datum, datum.width);
         const textOptions = this.getTextOptions(datum);
 
-        const { lineMetrics, width } = CachedTextMeasurerPool.measureLines(text, textOptions);
+        const { lineMetrics, width, offsetTop } = CachedTextMeasurerPool.measureLines(text, textOptions);
         const height = lineMetrics.reduce((sum, curr) => sum + curr.lineHeight, 0);
 
-        return new _Scene.BBox(point.x, point.y, width, height);
+        return new _Scene.BBox(point.x, point.y + offsetTop, width, height);
     }
 
     protected updateLabel(datum: Datum, bbox: _Scene.BBox) {
@@ -136,7 +136,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         this.label.fontWeight = datum.fontWeight;
         this.label.textAlign = datum.textAlign ?? datum.alignment;
         this.label.textBaseline = datum.position == 'center' ? 'middle' : datum.position;
-        this.label.lineHeight = Math.floor(datum.fontSize * 1.38);
+        this.label.lineHeight = datum.fontSize * 1.38;
     }
 
     protected updateHandle(datum: Datum, bbox: _Scene.BBox) {
@@ -177,14 +177,14 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
     }
 
     private wrapText(datum: TextualPointProperties, width?: number) {
-        if (width == null) return datum.text;
-
-        return TextWrapper.wrapLines(datum.text, {
-            ...this.getTextOptions(datum),
-            avoidOrphans: false,
-            textWrap: 'always',
-            maxWidth: width,
-        }).join('\n');
+        return width
+            ? TextWrapper.wrapText(datum.text, {
+                  ...this.getTextOptions(datum),
+                  avoidOrphans: false,
+                  textWrap: 'always',
+                  maxWidth: width,
+              })
+            : datum.text;
     }
 
     private getTextOptions(datum: TextualPointProperties) {
@@ -197,6 +197,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
             },
             lineHeight: 1.38,
             textAlign: datum.textAlign,
+            textBaseline: 'hanging' as CanvasTextBaseline,
         };
     }
 }

@@ -64,8 +64,10 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
                 fontStyle: datum.fontStyle,
                 fontWeight: datum.fontWeight,
             },
-            textAlign: datum.textAlign,
             avoidOrphans: false,
+            textAlign: datum.textAlign,
+            textBaseline: 'hanging',
+            textWrap: 'always',
             maxWidth: 200,
         });
     }
