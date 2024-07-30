@@ -88,15 +88,7 @@ export function ApiReferenceWithContext({
 }
 
 export function ApiReferenceWithReferenceContext(props: ApiReferenceOptions & ApiReferenceConfig) {
-    const { data: reference } = useQuery(
-        ['resolved-interfaces'],
-        async () => {
-            const data = await fetchInterfacesReference();
-            return data;
-        },
-        queryOptions
-    );
-
+    const { data: reference } = useQuery(['resolved-interfaces'], fetchInterfacesReference, queryOptions);
     return (
         <ApiReferenceContext.Provider value={reference}>
             <ApiReference {...props} />
@@ -150,10 +142,19 @@ function NodeFactory({ member, anchorId, genericsMap, prefixPath = [], ...props 
     const [isExpanded, toggleExpanded, setExpanded] = useToggle();
     const interfaceRef = useMemberAdditionalDetails(member);
     const config = useContext(ApiReferenceConfigContext);
+    const reference = useContext(ApiReferenceContext);
     const location = useLocation();
 
     const hasMembers = interfaceRef && 'members' in interfaceRef;
     const hasNestedPages = config.specialTypes?.[getMemberType(member)] === 'NestedPage';
+
+    let skip: string[] | undefined;
+    if (member.omit && reference?.has(member.omit)) {
+        const omitType = reference.get(member.omit)!;
+        if (omitType.kind === 'typeAlias' && typeof omitType.type === 'object' && omitType.type.kind === 'union') {
+            skip = omitType.type.type.map((type) => normalizeType(type).replace(/^'(.*)'$/, '$1'));
+        }
+    }
 
     let typeArguments: string[] | undefined;
     if (hasMembers && typeof member.type === 'object' && member.type.kind === 'typeRef') {
@@ -183,20 +184,22 @@ function NodeFactory({ member, anchorId, genericsMap, prefixPath = [], ...props 
             />
             {hasMembers &&
                 isExpanded &&
-                processMembers(interfaceRef, config, typeArguments).map((childMember) => (
-                    <NodeFactory
-                        key={childMember.name}
-                        member={childMember}
-                        anchorId={`${anchorId}-${cleanupName(childMember.name)}`}
-                        prefixPath={prefixPath.concat(member.name)}
-                        genericsMap={(interfaceRef as any).genericsMap}
-                        nestedPath={
-                            hasNestedPages
-                                ? `${location?.pathname}/${member.name}/${cleanupName(childMember.name)}`
-                                : undefined
-                        }
-                    />
-                ))}
+                processMembers(interfaceRef, config, typeArguments)
+                    .filter((childMember) => !skip?.includes(childMember.name))
+                    .map((childMember) => (
+                        <NodeFactory
+                            key={childMember.name}
+                            member={childMember}
+                            anchorId={`${anchorId}-${cleanupName(childMember.name)}`}
+                            prefixPath={prefixPath.concat(member.name)}
+                            genericsMap={(interfaceRef as any).genericsMap}
+                            nestedPath={
+                                hasNestedPages
+                                    ? `${location?.pathname}/${member.name}/${cleanupName(childMember.name)}`
+                                    : undefined
+                            }
+                        />
+                    ))}
         </>
     );
 }

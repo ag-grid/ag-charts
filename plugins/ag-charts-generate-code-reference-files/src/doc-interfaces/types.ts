@@ -18,6 +18,7 @@ export interface MemberNode {
     name: string;
     type: TypeNode;
     docs?: string[];
+    omit?: string;
     optional?: boolean;
     defaultValue?: string;
 }

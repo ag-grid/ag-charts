@@ -10,7 +10,7 @@ import classnames from 'classnames';
 import type { AllHTMLAttributes, CSSProperties, Dispatch, MouseEventHandler, ReactNode, SetStateAction } from 'react';
 import { createContext, useContext, useEffect, useMemo, useRef } from 'react';
 
-import { type NavigationData, type NavigationPath, isInterfaceHidden } from '../apiReferenceHelpers';
+import { type NavigationData, type NavigationPath, isInterfaceHidden, normalizeType } from '../apiReferenceHelpers';
 import {
     cleanupName,
     extractSearchData,
@@ -190,6 +190,14 @@ function NavProperty({
         selection?.selection.pageInterface === navData.pageInterface &&
         selection?.selection.hash === navData.hash;
 
+    let skip: string[] | undefined;
+    if (member.omit && reference?.has(member.omit)) {
+        const omitType = reference.get(member.omit)!;
+        if (omitType.kind === 'typeAlias' && typeof omitType.type === 'object' && omitType.type.kind === 'union') {
+            skip = omitType.type.type.map((type) => normalizeType(type).replace(/^'(.*)'$/, '$1'));
+        }
+    }
+
     return (
         <>
             <div className={classnames(styles.navItem, isSelected && 'highlight')} onDoubleClick={toggleExpanded}>
@@ -225,18 +233,20 @@ function NavProperty({
                 <>
                     <NavGroup depth={depth + 1}>
                         {isInterface
-                            ? processMembers(interfaceRef, config).map((childMember) => (
-                                  <NavProperty
-                                      key={childMember.name}
-                                      depth={depth + 1}
-                                      member={childMember}
-                                      path={path.concat({
-                                          name: cleanupName(childMember.name),
-                                          type: getMemberType(childMember),
-                                      })}
-                                      onClick={onClick}
-                                  />
-                              ))
+                            ? processMembers(interfaceRef, config)
+                                  .filter((childMember) => !skip?.includes(childMember.name))
+                                  .map((childMember) => (
+                                      <NavProperty
+                                          key={childMember.name}
+                                          depth={depth + 1}
+                                          member={childMember}
+                                          path={path.concat({
+                                              name: cleanupName(childMember.name),
+                                              type: getMemberType(childMember),
+                                          })}
+                                          onClick={onClick}
+                                      />
+                                  ))
                             : getInterfaceArrayTypes(reference, interfaceRef).map(({ name, type }) => (
                                   <NavTypedUnionProperty
                                       key={type}
