@@ -125,6 +125,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
             text = TextWrapper.wrapLines(datum.text, {
                 ...options,
                 maxWidth: datum.width,
+                lineHeight: 1.38,
             }).join('\n');
         }
 

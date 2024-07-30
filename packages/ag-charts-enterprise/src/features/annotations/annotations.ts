@@ -328,7 +328,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     styles,
                     text: datum.text,
                     onChange: (_text, bbox) => {
-                        this.state.transition('textInput', { bbox });
+                        this.state.transition('showTextInput', bbox);
                     },
                 });
 

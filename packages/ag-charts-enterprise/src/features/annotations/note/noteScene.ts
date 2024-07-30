@@ -66,7 +66,7 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
                 fontWeight: datum.fontWeight,
             },
             textAlign: datum.textAlign,
-            maxWidth: 200,
+            maxWidth: datum.width,
         });
         const wrappedText = textLines.join('\n');
 
