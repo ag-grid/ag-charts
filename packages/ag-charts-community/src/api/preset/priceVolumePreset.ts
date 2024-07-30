@@ -46,7 +46,8 @@ export function priceVolume(
     getTheme: () => ChartTheme
 ): AgCartesianChartOptions {
     const {
-        xKey = 'date',
+        xKey,
+        dateKey = xKey ?? 'date',
         highKey = 'high',
         openKey = 'open',
         lowKey = 'low',
@@ -65,10 +66,14 @@ export function priceVolume(
         ...unusedOpts
     } = opts;
 
+    if (xKey != null) {
+        Logger.warnOnce('Property [xKey] is deprecated, use [dateKey] instead.');
+    }
     if (rangeToolbar != null) {
         Logger.warnOnce('Property [rangeToolbar] is deprecated, use [rangeButtons] instead.');
     }
 
+    const priceSeries = createPriceSeries(theme, chartType, dateKey, highKey, lowKey, openKey, closeKey);
     const volumeSeries = createVolumeSeries(theme, getTheme, openKey, closeKey, volume, volumeKey);
 
     const miniChart = volume
@@ -78,7 +83,7 @@ export function priceVolume(
                   series: [
                       {
                           type: 'line' as const,
-                          xKey: 'date',
+                          xKey: dateKey,
                           yKey: volumeKey,
                           marker: { enabled: false },
                       },

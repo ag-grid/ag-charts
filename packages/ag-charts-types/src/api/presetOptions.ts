@@ -19,8 +19,15 @@ export interface AgPriceVolumePreset {
     /** The key used to retrieve x-values from the data.
      *
      * Default: `'date'`
+     *
+     * @deprecated v10.1.0 use `dateKey` instead.
      */
     xKey?: string;
+    /** The key used to retrieve x-values from the data.
+     *
+     * Default: `'date'`
+     */
+    dateKey?: string;
     /** The key used to retrieve 'open' values from the data.
      *
      * Default: `'open'`
