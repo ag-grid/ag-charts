@@ -1,10 +1,11 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { Fill, Stroke } from '../annotationProperties';
 import { type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
 import { TextualStartEndProperties } from '../properties/textualStartEndProperties';
 
 const { STRING, Validate, isObject } = _ModuleSupport;
+const { Color } = _Util;
 
 export class CalloutProperties extends Fill(Stroke(TextualStartEndProperties)) {
     static is(value: unknown): value is CalloutProperties {
@@ -27,5 +28,10 @@ export class CalloutProperties extends Fill(Stroke(TextualStartEndProperties)) {
             default:
                 return this.color;
         }
+    }
+
+    override getPlaceholderColor() {
+        const textColor = this.color ?? '#888888';
+        return Color.mix(Color.fromString(textColor), Color.fromString(textColor), 0.66).toString();
     }
 }

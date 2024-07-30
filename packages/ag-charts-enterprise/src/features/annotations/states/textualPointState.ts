@@ -28,7 +28,7 @@ export abstract class TextualPointStateMachine<
     constructor(ctx: TextualPointStateMachineContext<Datum, Node>) {
         const onClick = ({ point }: { point: Point }) => {
             const datum = this.createDatum();
-            datum.set({ x: point.x, y: point.y, text: '' });
+            datum.set({ x: point.x, y: point.y });
             ctx.create(datum);
             ctx.resetToolbarButtonStates();
         };

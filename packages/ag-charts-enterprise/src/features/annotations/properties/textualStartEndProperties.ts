@@ -23,6 +23,10 @@ export class TextualStartEndProperties extends Annotation(Line(Handle(Label(Font
         return this.color;
     }
 
+    getPlaceholderColor(): string | undefined {
+        return undefined;
+    }
+
     public getTextInputCoords(context: AnnotationContext): { x: number; y: number } {
         const coords = convertLine(this, context);
         return { x: coords?.x2 ?? 0, y: coords?.y2 ?? 0 };

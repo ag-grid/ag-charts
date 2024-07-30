@@ -23,6 +23,10 @@ export class TextualPointProperties extends Annotation(Point(Handle(Label(Font(B
         return this.color;
     }
 
+    getPlaceholderColor(): string | undefined {
+        return undefined;
+    }
+
     public getTextInputCoords(context: AnnotationContext) {
         return convertPoint(this, context);
     }
