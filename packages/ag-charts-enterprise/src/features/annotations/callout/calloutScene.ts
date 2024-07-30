@@ -8,6 +8,13 @@ import type { CalloutProperties } from './calloutProperties';
 
 const { drawCorner } = _Scene;
 
+const DEFAULT_PADDING = {
+    top: 6,
+    right: 12,
+    bottom: 7,
+    left: 12,
+};
+
 interface CalloutDimensions {
     tailPoint: {
         x: number;
@@ -31,6 +38,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
     override type = AnnotationType.Callout;
 
     private readonly shape = new _Scene.Path();
+    private padding = DEFAULT_PADDING;
 
     constructor() {
         super();
@@ -58,7 +66,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         } = this.getDimensions(datum, bbox, coords) ?? {};
 
         return {
-            x: bodyBounds.x + (datum.padding ?? 10),
+            x: bodyBounds.x + this.padding.left,
             y: bodyBounds.y - bodyBounds.height / 2,
         };
     }
@@ -116,7 +124,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         const right = x + width;
 
         const placement = this.calculateCalloutPlacement({ x: tailX, y: tailY }, bodyBounds);
-        const cornerRadius = Math.min(12, Math.min(width, height) / 2);
+        const cornerRadius = 8;
 
         const pathParams: { coordinates: _Scene.Corner; type: PathType }[] = [
             {
@@ -312,11 +320,13 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         textBBox: _Scene.BBox,
         coords: LineCoords
     ): CalloutDimensions | undefined {
-        const { padding = 10, fontSize } = datum;
-        const doublePadding = padding * 2;
+        const { fontSize } = datum;
 
-        const width = textBBox.width + doublePadding;
-        const height = Math.max(textBBox.height + doublePadding, fontSize + doublePadding);
+        const horizontalPadding = this.padding.left + this.padding.right;
+        const verticalPadding = this.padding.top + this.padding.bottom;
+
+        const width = textBBox.width + horizontalPadding;
+        const height = Math.max(textBBox.height + verticalPadding, fontSize + verticalPadding);
 
         return {
             tailPoint: {
