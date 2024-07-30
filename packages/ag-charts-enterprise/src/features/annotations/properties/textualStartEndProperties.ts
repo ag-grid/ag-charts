@@ -13,6 +13,7 @@ export class TextualStartEndProperties extends Annotation(Line(Handle(Label(Font
     position: 'top' | 'center' | 'bottom' = 'top';
     alignment: 'left' | 'center' | 'right' = 'left';
     placement: 'inside' | 'outside' = 'inside';
+    width?: number;
 
     override isValidWithContext(_context: AnnotationContext, warningPrefix?: string) {
         return super.isValid(warningPrefix);

@@ -11,6 +11,7 @@ interface Layout {
     position: 'top' | 'center' | 'bottom';
     alignment: 'left' | 'center' | 'right';
     textAlign: TextAlign;
+    width?: number;
 }
 
 export class TextInput extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
@@ -111,8 +112,8 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         const textArea = element.firstElementChild as HTMLDivElement | undefined;
         if (!textArea) return;
 
-        const height = textArea?.offsetHeight;
-        const width = textArea?.offsetWidth;
+        const height = textArea.offsetHeight;
+        const width = layout.width ?? textArea.offsetWidth;
 
         const boundingRect = domManager.getBoundingClientRect();
 
@@ -128,24 +129,28 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
                 break;
         }
 
-        function setProperties(horizontalPosition: number) {
+        const setHorizontalProperties = (horizontalPosition: number) => {
             element.style.setProperty('left', `${horizontalPosition}px`);
-
             element.style.setProperty('text-align', alignment);
-            textArea?.style.setProperty('text-align', textAlign);
-
+            textArea.style.setProperty('text-align', textAlign);
             element.style.setProperty('max-width', `${boundingRect.width - horizontalPosition}px`);
-        }
+
+            if (layout.width) {
+                element.style.setProperty('width', `${width}px`);
+            } else {
+                element.style.setProperty('width', 'unset');
+            }
+        };
 
         switch (alignment) {
             case 'left':
-                setProperties(point.x);
+                setHorizontalProperties(point.x);
                 break;
             case 'center':
-                setProperties(point.x - width / 2);
+                setHorizontalProperties(point.x - width / 2);
                 break;
             case 'right':
-                setProperties(point.x - width);
+                setHorizontalProperties(point.x - width);
                 break;
         }
     }

@@ -60,7 +60,6 @@ export type AgIconName =
     | 'hollow-candlestick-series'
     | 'horizontal-line-drawing'
     | 'line-color'
-    | 'fill-color'
     | 'line-series'
     | 'line-with-markers-series'
     | 'locked'
@@ -163,6 +162,7 @@ export type AgToolbarAnnotationsButtonValue =
     | 'text'
     | 'comment'
     | 'callout'
+    | 'note'
     | 'clear';
 
 /* Series Type Options */
