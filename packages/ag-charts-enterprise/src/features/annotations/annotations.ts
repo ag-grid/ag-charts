@@ -442,13 +442,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (!ToolbarManager.isGroup('annotations', event)) {
             this.reset();
-            this.update();
             return;
         }
 
         if (event.value === 'clear') {
             this.clear();
-            this.update();
             return;
         }
 
@@ -494,7 +492,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 break;
 
             case AnnotationOptions.Delete:
-                annotationData.splice(active, 1);
+                this.cancel();
                 this.reset();
                 break;
 
@@ -851,7 +849,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private onCancel() {
         this.cancel();
         this.reset();
-        this.update();
     }
 
     private onDelete() {
@@ -876,7 +873,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const { key, shiftKey } = event.sourceEvent;
         const textInputValue = this.textInput.getValue();
 
-        // TODO: Use `event.sourceEvent.shiftKey`, @see AG-12164
         state.transition('keyDown', { key, shiftKey, textInputValue });
     }
 
@@ -944,8 +940,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         // TODO: shift delete into state machine
         // Delete active annotation if it is in the process of being created
-        if (!state.is('idle') && active != null && annotationData) {
+        if (active != null && annotationData) {
             annotationData.splice(active, 1);
+            this.update();
         }
     }
 
