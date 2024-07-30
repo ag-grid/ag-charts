@@ -38,7 +38,7 @@ export class SheetsDark extends DarkTheme {
             fills: { ...SHEETS_DARK_FILLS, RED: SHEETS_DARK_FILLS.ORANGE },
             strokes: { ...SHEETS_DARK_STROKES, RED: SHEETS_DARK_STROKES.ORANGE },
             up: { fill: SHEETS_DARK_FILLS.GREEN, stroke: SHEETS_DARK_STROKES.GREEN },
-            down: { fill: DEFAULT_FILLS.RED, stroke: DEFAULT_STROKES.RED },
+            down: { fill: SHEETS_DARK_FILLS.ORANGE, stroke: SHEETS_DARK_STROKES.ORANGE },
             neutral: { fill: SHEETS_DARK_FILLS.GRAY, stroke: SHEETS_DARK_STROKES.GRAY },
             altUp: { fill: SHEETS_DARK_FILLS.BLUE, stroke: SHEETS_DARK_STROKES.BLUE },
             altDown: { fill: SHEETS_DARK_FILLS.ORANGE, stroke: SHEETS_DARK_STROKES.ORANGE },

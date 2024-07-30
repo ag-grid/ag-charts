@@ -37,12 +37,12 @@ export class SheetsLight extends ChartTheme {
         return {
             fills: { ...SHEETS_LIGHT_FILLS, RED: SHEETS_LIGHT_FILLS.ORANGE },
             strokes: { ...SHEETS_LIGHT_STROKES, RED: SHEETS_LIGHT_STROKES.ORANGE },
-            up: { fill: SHEETS_LIGHT_STROKES.GREEN, stroke: SHEETS_LIGHT_FILLS.GREEN },
-            down: { fill: DEFAULT_FILLS.RED, stroke: DEFAULT_STROKES.RED },
-            neutral: { fill: SHEETS_LIGHT_STROKES.GRAY, stroke: SHEETS_LIGHT_FILLS.GRAY },
-            altUp: { fill: SHEETS_LIGHT_STROKES.BLUE, stroke: SHEETS_LIGHT_FILLS.BLUE },
-            altDown: { fill: SHEETS_LIGHT_STROKES.ORANGE, stroke: SHEETS_LIGHT_FILLS.ORANGE },
-            altNeutral: { fill: SHEETS_LIGHT_STROKES.GRAY, stroke: SHEETS_LIGHT_FILLS.GRAY },
+            up: { fill: SHEETS_LIGHT_FILLS.GREEN, stroke: SHEETS_LIGHT_STROKES.GREEN },
+            down: { fill: SHEETS_LIGHT_FILLS.ORANGE, stroke: SHEETS_LIGHT_STROKES.ORANGE },
+            neutral: { fill: SHEETS_LIGHT_STROKES.GRAY, stroke: SHEETS_LIGHT_STROKES.GRAY },
+            altUp: { fill: SHEETS_LIGHT_FILLS.BLUE, stroke: SHEETS_LIGHT_STROKES.BLUE },
+            altDown: { fill: SHEETS_LIGHT_FILLS.ORANGE, stroke: SHEETS_LIGHT_STROKES.ORANGE },
+            altNeutral: { fill: SHEETS_LIGHT_FILLS.GRAY, stroke: SHEETS_LIGHT_STROKES.GRAY },
         };
     }
 
