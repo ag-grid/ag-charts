@@ -131,13 +131,11 @@ export function hasFontSize(datum?: AnnotationProperties) {
 }
 
 export function hasLineColor(datum?: AnnotationProperties) {
-    return isLineType(datum) || isChannelType(datum) || CalloutProperties.is(datum);
+    return isLineType(datum) || isChannelType(datum) || CalloutProperties.is(datum) || NoteProperties.is(datum);
 }
 
 export function hasFillColor(datum?: AnnotationProperties) {
-    return (
-        isChannelType(datum) || CalloutProperties.is(datum) || CommentProperties.is(datum) || NoteProperties.is(datum)
-    );
+    return isChannelType(datum) || CalloutProperties.is(datum) || CommentProperties.is(datum);
 }
 
 export function hasTextColor(datum?: AnnotationProperties) {
@@ -152,15 +150,16 @@ export function colorDatum(
     switch (colorPickerType) {
         case `fill-color`: {
             if ('fill' in datum) datum.fill = color;
-            if ('background' in datum && !NoteProperties.is(datum)) datum.background.fill = color;
+            if ('background' in datum) datum.background.fill = color;
             break;
         }
         case `line-color`: {
-            if ('stroke' in datum) datum.stroke = color;
+            if ('stroke' in datum && !NoteProperties.is(datum)) datum.stroke = color;
             if ('axisLabel' in datum) {
                 datum.axisLabel.fill = color;
                 datum.axisLabel.stroke = color;
             }
+            if (NoteProperties.is(datum)) datum.fill = color;
             break;
         }
         case `text-color`: {
