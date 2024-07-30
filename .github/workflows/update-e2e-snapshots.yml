@@ -51,10 +51,6 @@ jobs:
               with:
                   ref: ${{ steps.get-branch.outputs.branch }}
 
-            - name: Checkout
-              uses: actions/checkout@v2
-              if: (github.event.issue.pull_request && 'false') || 'true'
-
             - name: Setup
               id: setup
               uses: ./.github/actions/setup-nx
