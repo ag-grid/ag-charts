@@ -13,7 +13,7 @@
     overflow: hidden;
     z-index: var(--ag-charts-layer-ui-overlay);
 
-    --item-padding: 4px 12px;
+    --item-padding: 6px 12px;
 }
 
 .ag-charts-popover:has(.ag-charts-popover__icon) {
