@@ -128,7 +128,7 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         const padding = datum.padding ?? DEFAULT_PADDING;
 
         return {
-            x: bbox.x - bbox.width / 2,
+            x: bbox.x - datum.width / 2,
             y: bbox.y - LABEL_OFFSET - padding,
         };
     }

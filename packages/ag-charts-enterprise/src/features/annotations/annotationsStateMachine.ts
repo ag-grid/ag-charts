@@ -430,24 +430,22 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                             ctx.update();
                         },
                     },
-                    {
-                        target: States.TextInput,
-                        action: ({ textInputValue }: { textInputValue?: string }) => {
-                            ctx.datum(this.active!)?.set({ text: textInputValue });
-                            ctx.update();
-                        },
-                    },
                 ],
 
                 onExit: () => {
                     if (this.active == null) return;
 
                     const datum = ctx.datum(this.active);
-                    if (!datum) return;
+                    const node = ctx.node(this.active);
+                    if (!datum || !node) return;
 
                     ctx.stopInteracting();
                     ctx.hideTextInput();
                     datum.visible = true;
+
+                    if ('invalidateTextInputBBox' in node) {
+                        node.invalidateTextInputBBox();
+                    }
 
                     this.active = this.hovered = ctx.select(undefined, this.active);
                 },
