@@ -9,9 +9,6 @@ export class SvgPath extends Path {
 
     private readonly commands: Array<[string, Array<number>]> = [];
 
-    width = 0;
-    height = 0;
-
     constructor(d: string) {
         super();
 

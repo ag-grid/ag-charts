@@ -81,14 +81,6 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarAnnotationsParallelChannel: 'Parallel channel',
     // Text for the annotation toolbar's disjoint channel button
     toolbarAnnotationsDisjointChannel: 'Disjoint channel',
-    // Text for the annotation toolbar's callout button
-    toolbarAnnotationsCallout: 'Callout',
-    // Text for the annotation toolbar's comment button
-    toolbarAnnotationsComment: 'Comment',
-    // Text for the annotation toolbar's note button
-    toolbarAnnotationsNote: 'Note',
-    // Text for the annotation toolbar's text button
-    toolbarAnnotationsText: 'Text',
     // Text for the annotation toolbar's clear all button
     toolbarAnnotationsClearAll: 'Clear all annotations',
     /**
@@ -110,6 +102,14 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarAnnotationsDelete: 'Delete annotation',
     // Text for the annotation toolbar's text annotations menu button
     toolbarAnnotationsTextAnnotations: 'Text annotations',
+    // Text for the annotation toolbar's callout button
+    toolbarAnnotationsCallout: 'Callout',
+    // Text for the annotation toolbar's comment button
+    toolbarAnnotationsComment: 'Comment',
+    // Text for the annotation toolbar's note button
+    toolbarAnnotationsNote: 'Note',
+    // Text for the annotation toolbar's text button
+    toolbarAnnotationsText: 'Text',
     // Text for the range toolbar's 1 month button
     toolbarRange1Month: '1M',
     // Aria label for the range toolbar's 1 month button
