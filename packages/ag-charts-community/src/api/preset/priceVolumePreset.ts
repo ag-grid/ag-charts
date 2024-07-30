@@ -59,7 +59,8 @@ export function priceVolume(
         rangeToolbar,
         rangeButtons = rangeToolbar ?? true,
         statusBar = true,
-        annotations = true,
+        annotations,
+        toolbar = annotations ?? true,
         zoom = true,
         theme,
         data,
@@ -124,13 +125,13 @@ export function priceVolume(
         chartToolbar: { enabled: true },
         toolbar: {
             seriesType: {
-                enabled: true,
+                enabled: toolbar,
             },
             annotationOptions: {
-                enabled: annotations,
+                enabled: toolbar,
             },
             annotations: {
-                enabled: annotations,
+                enabled: toolbar,
             },
             ranges: {
                 enabled: rangeButtons,
@@ -213,7 +214,7 @@ export function priceVolume(
             },
         ],
         annotations: {
-            enabled: annotations,
+            enabled: toolbar,
         },
         tooltip: { enabled: false },
         data,

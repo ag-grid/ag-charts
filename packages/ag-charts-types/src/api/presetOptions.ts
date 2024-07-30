@@ -85,8 +85,15 @@ export interface AgPriceVolumePreset {
     /** Whether Annotations are enabled.
      *
      * Default: `true`
+     *
+     * @deprecated v10.1.0 use `toolbar` instead.
      */
     annotations?: boolean;
+    /** Whether the toolbar is enabled.
+     *
+     * Default: `true`
+     */
+    toolbar?: boolean;
     /** Whether Zoom is enabled.
      *
      * Default: `true`
