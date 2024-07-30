@@ -70,7 +70,7 @@ export class SeriesAreaHighlightManager extends BaseManager {
 
     public seriesUpdated() {
         if (this.lastHoverEvent != null) {
-            this.onHover(this.lastHoverEvent);
+            this.handleHover(this.lastHoverEvent, false);
         }
     }
 
@@ -104,7 +104,6 @@ export class SeriesAreaHighlightManager extends BaseManager {
         }
 
         this.handleHover(this.lastHoverEvent, false);
-        this.lastHoverEvent = undefined;
     });
 
     private handleHover(event: TooltipPointerEvent, redisplay: boolean) {
