@@ -85,7 +85,6 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
             opts.onChange?.(this.getValue()!, this.getBBox());
         };
 
-        // Call this for initial creation?
         opts.onChange?.(this.getValue()!, this.getBBox());
     }
 
