@@ -4,12 +4,24 @@
         "date": "August 6th 2024",
         "highlights": [
             {
-                "text": "Text Annotations",
-                "path": "./financial-charts-toolbar#text-annotation"
-            },
-            {
                 "text": "Financial Chart Type Selection",
                 "path": "./financial-charts-toolbar#chart-type-selection"
+            },
+            {
+                "text": "Text Annotation",
+                "path": "./financial-charts-toolbar#annotations"
+            },
+            {
+                "text": "Comment Annotation",
+                "path": "./financial-charts-toolbar#annotations"
+            },
+            {
+                "text": "Callout Annotation",
+                "path": "./financial-charts-toolbar#annotations"
+            },
+            {
+                "text": "Note Annotation",
+                "path": "./financial-charts-toolbar#annotations"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-10-1"
