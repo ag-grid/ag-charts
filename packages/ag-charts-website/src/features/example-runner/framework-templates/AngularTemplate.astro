@@ -8,6 +8,7 @@ import { getCacheBustingUrl } from '@utils/chartLibraryPaths';
 import type { Library } from '@ag-grid-types';
 import { Scripts } from './lib/Scripts';
 
+const css = String.raw;
 interface Props {
     isDev: boolean;
     title: string;
@@ -36,9 +37,21 @@ const {
     styleFiles,
     scriptFiles,
     boilerplatePath,
-    extraStyles,
     headFragment,
 } = Astro.props as Props;
+
+const extraStylesArray: string[] = [];
+extraStylesArray.push(css`
+    ag-charts {
+        display: block;
+    }
+`);
+
+if (Astro.props.extraStyles != null) {
+    extraStylesArray.push(Astro.props.extraStyles);
+}
+
+const extraStyles = extraStylesArray.join('\n\n');
 
 const startFile = pathJoin(appLocation, entryFileName);
 ---
