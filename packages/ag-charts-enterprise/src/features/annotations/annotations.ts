@@ -64,6 +64,34 @@ const TEXT_SIZE_ITEMS: MenuItem<number>[] = [
     { label: '46', value: 46 },
 ];
 
+const LINE_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
+    {
+        label: 'toolbarAnnotationsTrendLine',
+        icon: 'trend-line-drawing',
+        value: AnnotationType.Line,
+    },
+    {
+        label: 'toolbarAnnotationsHorizontalLine',
+        icon: 'horizontal-line-drawing',
+        value: AnnotationType.HorizontalLine,
+    },
+    {
+        label: 'toolbarAnnotationsVerticalLine',
+        icon: 'vertical-line-drawing',
+        value: AnnotationType.VerticalLine,
+    },
+    {
+        label: 'toolbarAnnotationsParallelChannel',
+        icon: 'parallel-channel-drawing',
+        value: AnnotationType.ParallelChannel,
+    },
+    {
+        label: 'toolbarAnnotationsDisjointChannel',
+        icon: 'disjoint-channel-drawing',
+        value: AnnotationType.DisjointChannel,
+    },
+];
+
 const TEXT_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
     { label: 'toolbarAnnotationsText', icon: 'text-annotation', value: AnnotationType.Text },
     { label: 'toolbarAnnotationsComment', icon: 'comment-annotation', value: AnnotationType.Comment },
@@ -132,7 +160,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private readonly colorPicker = new ColorPicker(this.ctx);
     private readonly textSizePopover = new Popover(this.ctx, 'annotations');
-    private readonly textAnnotationsPopover = new Popover(this.ctx, 'text');
+    private readonly annotationPickerPopover = new Popover(this.ctx, 'text');
     private readonly defaultColors: Map<AnnotationOptionsColorPickerType, string | undefined> = new Map([
         ['line-color', undefined],
         ['fill-color', undefined],
@@ -161,7 +189,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 ctx.tooltipManager.unsuppressTooltip('annotations');
                 this.colorPicker.hide();
                 this.textSizePopover.hide();
-                this.textAnnotationsPopover.hide();
+                this.annotationPickerPopover.hide();
                 this.resetToolbarButtonStates();
                 this.toggleAnnotationOptionsButtons();
                 this.update();
@@ -189,13 +217,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     annotations,
                     colorPicker,
                     textSizePopover,
-                    textAnnotationsPopover,
+                    annotationPickerPopover,
                     ctx: { toolbarManager, tooltipManager },
                 } = this;
 
                 colorPicker.hide();
                 textSizePopover.hide();
-                textAnnotationsPopover.hide();
+                annotationPickerPopover.hide();
 
                 if (previous != null) {
                     annotations.at(previous)?.toggleActive(false);
@@ -244,12 +272,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
                 this.update();
 
-                ctx.toolbarManager.updateButton('annotations', 'text-menu', {
-                    icon: undefined,
-                });
-                ctx.toolbarManager.toggleButton('annotations', 'text-menu', {
-                    active: false,
-                });
+                ctx.toolbarManager.updateButton('annotations', 'line-menu', { icon: undefined });
+                ctx.toolbarManager.toggleButton('annotations', 'line-menu', { active: false });
+                ctx.toolbarManager.updateButton('annotations', 'text-menu', { icon: undefined });
+                ctx.toolbarManager.toggleButton('annotations', 'text-menu', { active: false });
             },
 
             delete: (index: number) => {
@@ -424,13 +450,24 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             return;
         }
 
+        if (event.value === 'line-menu') {
+            const { x, y, width } = event.rect;
+            this.annotationPickerPopover.setAnchor({ x: x + width + 6, y });
+            this.annotationPickerPopover.show<AnnotationType>({
+                items: LINE_ANNOTATION_ITEMS,
+                onPress: this.onAnnotationsPopoverPress.bind(this, event),
+                onClose: this.onAnnotationsPopoverClose.bind(this),
+            });
+            return;
+        }
+
         if (event.value === 'text-menu') {
             const { x, y, width } = event.rect;
-            this.textAnnotationsPopover.setAnchor({ x: x + width + 6, y });
-            this.textAnnotationsPopover.show<AnnotationType>({
+            this.annotationPickerPopover.setAnchor({ x: x + width + 6, y });
+            this.annotationPickerPopover.show<AnnotationType>({
                 items: TEXT_ANNOTATION_ITEMS,
-                onPress: this.onTextAnnotationsPopoverPress.bind(this, event),
-                onClose: this.onTextAnnotationsPopoverClose.bind(this),
+                onPress: this.onAnnotationsPopoverPress.bind(this, event),
+                onClose: this.onAnnotationsPopoverClose.bind(this),
             });
             return;
         }
@@ -584,7 +621,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.textSizePopover.hide();
     }
 
-    private onTextAnnotationsPopoverPress(
+    private onAnnotationsPopoverPress(
         event: _ModuleSupport.ToolbarButtonPressedEvent<AgToolbarAnnotationsButtonValue>,
         item: MenuItem<AnnotationType>
     ) {
@@ -596,11 +633,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             icon: item.icon,
         });
         this.beginAnnotationPlacement(item.value);
-        this.onTextAnnotationsPopoverClose();
+        this.onAnnotationsPopoverClose();
     }
 
-    private onTextAnnotationsPopoverClose() {
-        this.textSizePopover.hide();
+    private onAnnotationsPopoverClose() {
+        this.annotationPickerPopover.hide();
     }
 
     private onToolbarCancelled(event: _ModuleSupport.ToolbarCancelledEvent) {
