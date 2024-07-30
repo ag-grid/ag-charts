@@ -149,7 +149,7 @@ export interface AgDisjointChannelAnnotation
 // * Text Annotations *
 // ********************/
 
-export interface AgCalloutAnnotation extends TextualAnnotation {
+export interface AgCalloutAnnotation extends TextualAnnotation, AnnotationLinePoints {
     /** Configuration for the callout annotation. */
     type: 'callout';
 }
