@@ -19,9 +19,9 @@ import type {
 
 import type { ChartTheme } from '../../chart/themes/chartTheme';
 import {
+    PALETTE_ALT_NEUTRAL_STROKE,
     PALETTE_DOWN_FILL,
     PALETTE_DOWN_STROKE,
-    PALETTE_GRAY_STROKE,
     PALETTE_NEUTRAL_FILL,
     PALETTE_NEUTRAL_STROKE,
     PALETTE_UP_FILL,
@@ -346,7 +346,7 @@ function createPriceSeries(
                     type: 'line',
                     ...common,
                     ...singleKeys,
-                    stroke: fromTheme(theme, (t) => t.overrides?.line?.series?.stroke) ?? PALETTE_GRAY_STROKE,
+                    stroke: fromTheme(theme, (t) => t.overrides?.line?.series?.stroke) ?? PALETTE_ALT_NEUTRAL_STROKE,
                     strokeWidth: fromTheme(theme, (t) => t.overrides?.line?.series?.strokeWidth) ?? 2,
                     marker: fromTheme(theme, (t) => t.overrides?.line?.series?.marker) ?? { enabled: false },
                 } satisfies AgLineSeriesOptions,

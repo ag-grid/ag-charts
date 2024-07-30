@@ -41,10 +41,10 @@ import {
     DEFAULT_SHADOW_COLOUR,
     DEFAULT_TOOLBAR_POSITION,
     IS_DARK_THEME,
+    PALETTE_ALT_NEUTRAL_FILL,
+    PALETTE_ALT_NEUTRAL_STROKE,
     PALETTE_DOWN_FILL,
     PALETTE_DOWN_STROKE,
-    PALETTE_GRAY_FILL,
-    PALETTE_GRAY_STROKE,
     PALETTE_NEUTRAL_FILL,
     PALETTE_NEUTRAL_STROKE,
     PALETTE_UP_FILL,
@@ -417,8 +417,8 @@ export class ChartTheme {
         params.set(PALETTE_DOWN_FILL, this.palette.down?.fill ?? defaultColors.down.fill);
         params.set(PALETTE_NEUTRAL_STROKE, this.palette.neutral?.stroke ?? defaultColors.neutral.stroke);
         params.set(PALETTE_NEUTRAL_FILL, this.palette.neutral?.fill ?? defaultColors.neutral.fill);
-        params.set(PALETTE_GRAY_FILL, this.palette.altNeutral?.fill ?? defaultColors.altNeutral.fill);
-        params.set(PALETTE_GRAY_STROKE, this.palette.altNeutral?.stroke ?? defaultColors.altNeutral.stroke);
+        params.set(PALETTE_ALT_NEUTRAL_FILL, this.palette.altNeutral?.fill ?? defaultColors.altNeutral.fill);
+        params.set(PALETTE_ALT_NEUTRAL_STROKE, this.palette.altNeutral?.stroke ?? defaultColors.altNeutral.stroke);
 
         return params;
     }
