@@ -73,6 +73,9 @@ export function priceVolume(
     if (rangeToolbar != null) {
         Logger.warnOnce('Property [rangeToolbar] is deprecated, use [rangeButtons] instead.');
     }
+    if (annotations != null) {
+        Logger.warnOnce('Property [annotations] is deprecated, use [toolbar] instead.');
+    }
 
     const priceSeries = createPriceSeries(theme, chartType, dateKey, highKey, lowKey, openKey, closeKey);
     const volumeSeries = createVolumeSeries(theme, getTheme, openKey, closeKey, volume, volumeKey);
