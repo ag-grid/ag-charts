@@ -1,5 +1,3 @@
-import type { _Util } from 'ag-charts-community';
-
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from './annotationTypes';
 import type { AnnotationProperties, AnnotationScene } from './annotationsSuperTypes';
 import { CalloutProperties } from './callout/calloutProperties';

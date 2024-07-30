@@ -1,7 +1,9 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 import type { FontOptions, TextAlign } from 'ag-charts-types';
 
 import textInputTemplate from './textInputTemplate.html';
+
+const { getDocument, getWindow } = _ModuleSupport;
 
 const moduleId = 'text-input';
 const canvasOverlay = 'canvas-overlay';
@@ -66,19 +68,19 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         // Set the cursor to the end of the text
         if (textArea.lastChild?.textContent != null) {
-            const range = document.createRange();
+            const range = getDocument().createRange();
             range.setStart(textArea.lastChild, textArea.lastChild.textContent.length);
             range.setEnd(textArea.lastChild, textArea.lastChild.textContent.length);
 
-            const selection = window.getSelection();
+            const selection = getWindow().getSelection();
             selection?.removeAllRanges();
             selection?.addRange(range);
         }
 
-        textArea.oninput = () => {
+        textArea.addEventListener('input', () => {
             this.updatePosition();
             opts.onChange?.(this.getValue()!, this.getBBox());
-        };
+        });
     }
 
     public hide() {
@@ -131,15 +133,10 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         const setHorizontalProperties = (horizontalPosition: number) => {
             element.style.setProperty('left', `${horizontalPosition}px`);
+            element.style.setProperty('width', layout.width ? `${width}px` : 'unset');
+            element.style.setProperty('max-width', `${boundingRect.width - horizontalPosition}px`);
             element.style.setProperty('text-align', alignment);
             textArea.style.setProperty('text-align', textAlign);
-            element.style.setProperty('max-width', `${boundingRect.width - horizontalPosition}px`);
-
-            if (layout.width) {
-                element.style.setProperty('width', `${width}px`);
-            } else {
-                element.style.setProperty('width', 'unset');
-            }
         };
 
         switch (alignment) {
