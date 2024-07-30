@@ -31,6 +31,7 @@ const options: AgFinancialChartOptions = {
             {
                 type: 'callout',
                 text: 'Callout',
+                // @ts-expect-error
                 start: {
                     x: {
                         __type: 'date',
