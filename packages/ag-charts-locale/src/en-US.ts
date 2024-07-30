@@ -72,15 +72,15 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     // Text for the series type toolbar's line with step line chart type button
     toolbarSeriesTypeStepLine: 'Step Line',
     // Text for the annotation toolbar's trend line button
-    toolbarAnnotationsTrendLine: 'Trend line',
+    toolbarAnnotationsTrendLine: 'Trend Line',
     // Text for the annotation toolbar's horizontal line button
-    toolbarAnnotationsHorizontalLine: 'Horizontal line',
+    toolbarAnnotationsHorizontalLine: 'Horizontal Line',
     // Text for the annotation toolbar's vertical line button
-    toolbarAnnotationsVerticalLine: 'Vertical line',
+    toolbarAnnotationsVerticalLine: 'Vertical Line',
     // Text for the annotation toolbar's parallel channel button
-    toolbarAnnotationsParallelChannel: 'Parallel channel',
+    toolbarAnnotationsParallelChannel: 'Parallel Channel',
     // Text for the annotation toolbar's disjoint channel button
-    toolbarAnnotationsDisjointChannel: 'Disjoint channel',
+    toolbarAnnotationsDisjointChannel: 'Disjoint Channel',
     // Text for the annotation toolbar's clear all button
     toolbarAnnotationsClearAll: 'Clear all annotations',
     /**
@@ -101,7 +101,7 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     // Text for the annotation toolbar's delete annotation button
     toolbarAnnotationsDelete: 'Delete annotation',
     // Text for the annotation toolbar's line annotations menu button
-    toolbarAnnotationsLineAnnotations: 'Line annotations',
+    toolbarAnnotationsLineAnnotations: 'Trend Lines',
     // Text for the annotation toolbar's text annotations menu button
     toolbarAnnotationsTextAnnotations: 'Text annotations',
     // Text for the annotation toolbar's callout button

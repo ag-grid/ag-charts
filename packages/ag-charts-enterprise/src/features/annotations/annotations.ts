@@ -242,6 +242,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     this.toggleAnnotationOptionsButtons();
                 }
 
+                if (index == null || (index != null && index !== previous)) {
+                    ctx.toolbarManager.updateButton('annotations', 'line-menu', { icon: undefined });
+                    ctx.toolbarManager.updateButton('annotations', 'text-menu', { icon: undefined });
+                }
+
                 this.update();
 
                 return index;
@@ -273,9 +278,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
                 this.update();
 
-                ctx.toolbarManager.updateButton('annotations', 'line-menu', { icon: undefined });
                 ctx.toolbarManager.toggleButton('annotations', 'line-menu', { active: false });
-                ctx.toolbarManager.updateButton('annotations', 'text-menu', { icon: undefined });
                 ctx.toolbarManager.toggleButton('annotations', 'text-menu', { active: false });
             },
 
