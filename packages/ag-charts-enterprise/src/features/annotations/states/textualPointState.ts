@@ -56,6 +56,7 @@ export abstract class TextualPointStateMachine<
                     action: () => {
                         ctx.node()?.toggleActive(true);
                         ctx.showAnnotationOptions();
+                        ctx.update();
                     },
                 },
             },
