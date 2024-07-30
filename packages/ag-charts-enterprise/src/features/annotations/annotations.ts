@@ -484,14 +484,18 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 });
                 break;
 
-            case AnnotationOptions.TextSize:
+            case AnnotationOptions.TextSize: {
+                const datum = getTypedDatum(annotationData[active]);
+                const fontSize = datum != null && 'fontSize' in datum ? datum.fontSize : undefined;
                 this.textSizePopover.show<number>({
                     items: TEXT_SIZE_ITEMS,
+                    value: fontSize,
                     onPress: this.onTextSizePopoverPress.bind(this),
                     onClose: this.onTextSizePopoverClose.bind(this),
                     class: 'annotations__text-size',
                 });
                 break;
+            }
 
             case AnnotationOptions.Delete:
                 annotationData.splice(active, 1);
