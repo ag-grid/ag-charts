@@ -600,7 +600,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onTextAnnotationsPopoverClose() {
-        this.textSizePopover.hide();
+        this.textAnnotationsPopover.hide();
     }
 
     private onToolbarCancelled(event: _ModuleSupport.ToolbarCancelledEvent) {
