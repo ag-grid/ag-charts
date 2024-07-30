@@ -1,5 +1,4 @@
 import { ChartTheme } from './chartTheme';
-import { DEFAULT_FILLS, DEFAULT_STROKES } from './defaultColors';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_ANNOTATION_COLOR,
