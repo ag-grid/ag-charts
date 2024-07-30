@@ -10,3 +10,12 @@
     background: none;
     line-height: 1.38;
 }
+
+.ag-charts-text-input__textarea[placeholder]:empty:before {
+    content: attr(placeholder);
+    color: var(--ag-charts-text-annotations-placeholder);
+}
+
+.ag-charts-text-input__textarea[placeholder]:not(:empty):before {
+    content: '';
+}

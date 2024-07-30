@@ -324,6 +324,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     fontSize: datum.fontSize,
                     fontStyle: datum.fontStyle,
                     fontWeight: datum.fontWeight,
+                    placeholderColor: datum.getPlaceholderColor(),
                 };
 
                 this.textInput.show({

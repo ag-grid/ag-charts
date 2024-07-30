@@ -87,6 +87,9 @@
     --ag-charts-icon-font-weight: normal;
     --ag-charts-icon-font-color: color-mix(in srgb, transparent, var(--ag-charts-foreground-color), 90%);
     --ag-charts-icon-size: 20px;
+
+    /* Annotations */
+    --ag-charts-text-annotations-placeholder: #888888;
 }
 
 .ag-charts-theme-default-dark {
@@ -116,4 +119,7 @@
         --ag-input-focus-box-shadow,
         0 0 0 3px color-mix(in srgb, transparent, var(--ag-input-focus-border-color, var(--ag-charts-active-color)) 20%)
     );
+
+    /* Annotations */
+    --ag-charts-text-annotations-placeholder: #aaaaaa;
 }

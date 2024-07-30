@@ -30,7 +30,7 @@ export abstract class TextualStartEndStateMachine<
     constructor(ctx: TextualStartEndStateMachineContext<Datum, Node>) {
         const onStartClick = ({ point }: { point: Point }) => {
             const datum = this.createDatum();
-            datum.set({ start: point, end: point, text: '' });
+            datum.set({ start: point, end: point });
             ctx.create(datum);
         };
 
