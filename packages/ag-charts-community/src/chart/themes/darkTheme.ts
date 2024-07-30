@@ -1,4 +1,4 @@
-import type { AgChartThemeOptions, AgChartThemePalette } from 'ag-charts-types';
+import type { AgChartThemeOptions } from 'ag-charts-types';
 
 import { ChartTheme } from './chartTheme';
 import type { DefaultColors } from './defaultColors';
@@ -48,19 +48,16 @@ const DEFAULT_DARK_STROKES = {
     RED: '#ff7872',
 };
 
-const palette: AgChartThemePalette = {
-    fills: Object.values(DEFAULT_DARK_FILLS),
-    strokes: Object.values(DEFAULT_DARK_STROKES),
-};
-
 export class DarkTheme extends ChartTheme {
     override getDefaultColors(): DefaultColors {
         return {
             fills: DEFAULT_DARK_FILLS,
             strokes: DEFAULT_DARK_STROKES,
-            up: { fill: DEFAULT_DARK_FILLS.BLUE, stroke: DEFAULT_DARK_STROKES.BLUE },
-            down: { fill: DEFAULT_DARK_FILLS.ORANGE, stroke: DEFAULT_DARK_STROKES.ORANGE },
+            up: { fill: DEFAULT_DARK_FILLS.GREEN, stroke: DEFAULT_DARK_STROKES.GREEN },
+            down: { fill: DEFAULT_DARK_FILLS.RED, stroke: DEFAULT_DARK_STROKES.RED },
             neutral: { fill: DEFAULT_DARK_FILLS.GRAY, stroke: DEFAULT_DARK_STROKES.GRAY },
+            altUp: { fill: DEFAULT_DARK_FILLS.BLUE, stroke: DEFAULT_DARK_STROKES.BLUE },
+            altDown: { fill: DEFAULT_DARK_FILLS.ORANGE, stroke: DEFAULT_DARK_STROKES.ORANGE },
         };
     }
 
@@ -89,10 +86,6 @@ export class DarkTheme extends ChartTheme {
         params.set(DEFAULT_ANNOTATION_HANDLE_FILL, DEFAULT_DARK_BACKGROUND_FILL);
 
         return params;
-    }
-
-    protected override getPalette(): AgChartThemePalette {
-        return palette;
     }
 
     constructor(options?: AgChartThemeOptions) {

@@ -401,7 +401,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 click: {
                     target: States.Idle,
                     action: ({ textInputValue }: { textInputValue?: string }) => {
-                        if (textInputValue !== null) {
+                        if (textInputValue != null && textInputValue.length > 0) {
                             ctx.datum(this.active!)?.set({ text: textInputValue });
                         } else {
                             ctx.delete(this.active!);

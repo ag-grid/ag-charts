@@ -1,5 +1,3 @@
-import type { AgChartThemePalette } from 'ag-charts-types';
-
 import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
@@ -25,11 +23,6 @@ const FINANCIAL_LIGHT_STROKES = {
     BLUE: '#5090dc',
 };
 
-const palette: AgChartThemePalette = {
-    fills: Object.values(FINANCIAL_LIGHT_FILLS),
-    strokes: Object.values(FINANCIAL_LIGHT_STROKES),
-};
-
 export class FinancialLight extends ChartTheme {
     override getDefaultColors() {
         return {
@@ -38,6 +31,8 @@ export class FinancialLight extends ChartTheme {
             up: { fill: FINANCIAL_LIGHT_FILLS.GREEN, stroke: FINANCIAL_LIGHT_STROKES.GREEN },
             down: { fill: FINANCIAL_LIGHT_FILLS.RED, stroke: FINANCIAL_LIGHT_STROKES.RED },
             neutral: { fill: FINANCIAL_LIGHT_FILLS.BLUE, stroke: FINANCIAL_LIGHT_STROKES.BLUE },
+            altUp: { fill: FINANCIAL_LIGHT_FILLS.GREEN, stroke: FINANCIAL_LIGHT_STROKES.GREEN },
+            altDown: { fill: FINANCIAL_LIGHT_FILLS.RED, stroke: FINANCIAL_LIGHT_STROKES.RED },
         };
     }
 
@@ -61,9 +56,5 @@ export class FinancialLight extends ChartTheme {
         params.set(DEFAULT_GRIDLINE_ENABLED, true);
 
         return params;
-    }
-
-    protected override getPalette(): AgChartThemePalette {
-        return palette;
     }
 }

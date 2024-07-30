@@ -1,5 +1,3 @@
-import type { AgChartThemePalette } from 'ag-charts-types';
-
 import { DarkTheme } from './darkTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
@@ -36,19 +34,16 @@ const POLYCHROMA_DARK_STROKES = {
 const POLYCHROMA_DARK_FILL_GRAY = '#bbbbbb';
 const POLYCHROMA_DARK_STROKE_GRAY = '#eeeeee';
 
-const palette: AgChartThemePalette = {
-    fills: Object.values(POLYCHROMA_DARK_FILLS),
-    strokes: Object.values(POLYCHROMA_DARK_STROKES),
-};
-
 export class PolychromaDark extends DarkTheme {
     override getDefaultColors() {
         return {
             fills: POLYCHROMA_DARK_FILLS,
             strokes: POLYCHROMA_DARK_STROKES,
-            up: { fill: POLYCHROMA_DARK_FILLS.BLUE, stroke: POLYCHROMA_DARK_STROKES.BLUE },
+            up: { fill: POLYCHROMA_DARK_FILLS.GREEN, stroke: POLYCHROMA_DARK_STROKES.GREEN },
             down: { fill: POLYCHROMA_DARK_FILLS.RED, stroke: POLYCHROMA_DARK_STROKES.RED },
             neutral: { fill: POLYCHROMA_DARK_FILL_GRAY, stroke: POLYCHROMA_DARK_STROKE_GRAY },
+            altUp: { fill: POLYCHROMA_DARK_FILLS.BLUE, stroke: POLYCHROMA_DARK_STROKES.BLUE },
+            altDown: { fill: POLYCHROMA_DARK_FILLS.RED, stroke: POLYCHROMA_DARK_STROKES.RED },
         };
     }
 
@@ -61,8 +56,5 @@ export class PolychromaDark extends DarkTheme {
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, POLYCHROMA_DARK_FILLS.BLUE);
 
         return params;
-    }
-    protected override getPalette(): AgChartThemePalette {
-        return palette;
     }
 }

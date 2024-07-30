@@ -47,13 +47,9 @@ jobs:
 
             - name: Checkout PR
               uses: actions/checkout@v2
-              if: github.event.issue.pull_request
+              if: (github.event.issue.pull_request && 'true') || 'false'
               with:
                   ref: ${{ steps.get-branch.outputs.branch }}
-
-            - name: Checkout
-              uses: actions/checkout@v2
-              if: github.event.workflow_dispatch.workflow
 
             - name: Setup
               id: setup

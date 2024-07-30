@@ -81,6 +81,7 @@ export type AgIconName =
     | 'zoom-out'
     | AgIconLegacyName;
 
+/** @deprecated */
 export type AgIconLegacyName =
     | 'delete-legacy'
     | 'disjoint-channel'

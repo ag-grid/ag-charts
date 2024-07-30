@@ -4,6 +4,7 @@ import type {
     AgChartThemeOverrides,
     AgChartThemePalette,
     AgCommonThemeableChartOptions,
+    AgPaletteColors,
 } from 'ag-charts-types';
 
 import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
@@ -51,11 +52,6 @@ import {
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
 const DEFAULT_BACKGROUND_FILL = 'white';
 
-const DEFAULT_PALETTE: AgChartThemePalette = {
-    fills: Object.values(DEFAULT_FILLS),
-    strokes: Object.values(DEFAULT_STROKES),
-};
-
 type ChartTypeConfig = {
     seriesTypes: string[];
     commonOptions: (keyof AgCommonThemeableChartOptions)[];
@@ -84,12 +80,8 @@ const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).redu
 >((r, { commonOptions }) => r.concat(commonOptions), []);
 
 export class ChartTheme {
-    readonly palette: AgChartThemePalette;
+    readonly palette: Required<AgChartThemePalette> & { altUp: AgPaletteColors; altDown: AgPaletteColors };
     readonly paletteType: PaletteType;
-
-    protected getPalette(): AgChartThemePalette {
-        return DEFAULT_PALETTE;
-    }
 
     readonly config: any;
 
@@ -263,8 +255,12 @@ export class ChartTheme {
             this.mergeOverrides(defaults, overrides);
         }
 
-        const { fills: _fills, strokes: _strokes, ...otherColors } = this.getDefaultColors();
-        this.palette = mergeDefaults(palette, this.getPalette(), { ...otherColors });
+        const { fills, strokes, ...otherColors } = this.getDefaultColors();
+        this.palette = mergeDefaults(palette, {
+            fills: Object.values(fills),
+            strokes: Object.values(strokes),
+            ...otherColors,
+        });
         this.paletteType = paletteType(palette);
 
         this.config = Object.freeze(this.templateTheme(defaults));
@@ -369,9 +365,11 @@ export class ChartTheme {
         return {
             fills: DEFAULT_FILLS,
             strokes: DEFAULT_STROKES,
-            up: { fill: DEFAULT_FILLS.BLUE, stroke: DEFAULT_STROKES.BLUE },
-            down: { fill: DEFAULT_FILLS.ORANGE, stroke: DEFAULT_STROKES.ORANGE },
+            up: { fill: DEFAULT_FILLS.GREEN, stroke: DEFAULT_STROKES.GREEN },
+            down: { fill: DEFAULT_FILLS.RED, stroke: DEFAULT_STROKES.RED },
             neutral: { fill: DEFAULT_FILLS.GRAY, stroke: DEFAULT_STROKES.GRAY },
+            altUp: { fill: DEFAULT_FILLS.BLUE, stroke: DEFAULT_STROKES.BLUE },
+            altDown: { fill: DEFAULT_FILLS.ORANGE, stroke: DEFAULT_STROKES.ORANGE },
         };
     }
 
