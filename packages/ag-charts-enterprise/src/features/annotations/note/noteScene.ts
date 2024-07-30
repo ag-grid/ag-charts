@@ -23,7 +23,7 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
     override type = AnnotationType.Note;
 
     private readonly shape = new _Scene.Rect();
-    private readonly iconBackgound = new _Scene.SvgPath(
+    private readonly iconBackground = new _Scene.SvgPath(
         'M22 1.83333C22 0.820811 21.1792 0 20.1667 0H1.83333C0.820811 0 0 0.82081 0 1.83333V13.9868C0 14.9994 0.820811 15.8202 1.83333 15.8202L5.88971 15.8202C6.44575 15.8202 6.97175 16.0725 7.31971 16.5062L9.57006 19.3112C10.304 20.2259 11.6962 20.2259 12.4301 19.3112L14.6804 16.5062C15.0284 16.0725 15.5544 15.8202 16.1104 15.8202L20.1667 15.8202C21.1792 15.8202 22 14.9994 22 13.9868V1.83333Z'
     );
     private readonly iconLines = new _Scene.SvgPath(
@@ -39,9 +39,9 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         this.shape.visible = false;
         this.label.visible = false;
 
-        this.iconBackgound.fillShadow = new _Scene.DropShadow();
+        this.iconBackground.fillShadow = new _Scene.DropShadow();
 
-        this.append([this.shape, this.label, this.iconLines, this.iconBackgound, this.handle]);
+        this.append([this.shape, this.label, this.iconLines, this.iconBackground, this.handle]);
     }
 
     override update(datum: NoteProperties, context: AnnotationContext): void {
@@ -89,26 +89,26 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
     }
 
     private updateIcon(datum: NoteProperties, context: AnnotationContext) {
-        const { active, iconBackgound, iconLines } = this;
+        const { active, iconBackground, iconLines } = this;
         const { x, y } = convertPoint(datum, context);
 
-        iconBackgound.x = x - ICON_WIDTH / 2;
-        iconBackgound.y = y - ICON_HEIGHT;
+        iconBackground.x = x - ICON_WIDTH / 2;
+        iconBackground.y = y - ICON_HEIGHT;
 
-        iconLines.x = iconBackgound.x;
-        iconLines.y = iconBackgound.y;
+        iconLines.x = iconBackground.x;
+        iconLines.y = iconBackground.y;
 
-        iconBackgound.fill = datum.fill;
-        iconBackgound.stroke = datum.stroke;
-        iconBackgound.strokeOpacity = datum.strokeOpacity ?? 1;
-        iconBackgound.strokeWidth = datum.strokeWidth ?? 1;
+        iconBackground.fill = datum.fill;
+        iconBackground.stroke = datum.stroke;
+        iconBackground.strokeOpacity = datum.strokeOpacity ?? 1;
+        iconBackground.strokeWidth = datum.strokeWidth ?? 1;
 
         iconLines.fill = datum.stroke;
 
         if (active) {
-            iconBackgound.fillShadow!.color = datum.fill ?? 'rgba(0, 0, 0, 0.22)';
+            iconBackground.fillShadow!.color = datum.fill ?? 'rgba(0, 0, 0, 0.22)';
         } else {
-            iconBackgound.fillShadow!.color = 'rgba(0, 0, 0, 0.22)';
+            iconBackground.fillShadow!.color = 'rgba(0, 0, 0, 0.22)';
         }
     }
 
@@ -164,7 +164,7 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
 
     override containsPoint(x: number, y: number) {
         if (this.shape.visible && this.shape.containsPoint(x, y)) return true;
-        if (this.iconBackgound.containsPoint(x, y)) return true;
+        if (this.iconBackground.containsPoint(x, y)) return true;
 
         return super.containsPoint(x, y);
     }
