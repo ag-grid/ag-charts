@@ -57,8 +57,7 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         super.updateLabel(datum, bbox);
 
         this.label.visible = labelVisibility;
-
-        const textLines = TextWrapper.wrapLines(datum.text, {
+        this.label.text = TextWrapper.wrapText(datum.text, {
             font: {
                 fontFamily: datum.fontFamily,
                 fontSize: datum.fontSize,
@@ -66,11 +65,9 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
                 fontWeight: datum.fontWeight,
             },
             textAlign: datum.textAlign,
+            avoidOrphans: false,
             maxWidth: 200,
         });
-        const wrappedText = textLines.join('\n');
-
-        this.label.text = wrappedText;
     }
 
     override updateShape(datum: NoteProperties, bbox: _Scene.BBox) {

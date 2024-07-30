@@ -122,10 +122,11 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
 
         let text = datum.text;
         if (datum.width) {
-            text = TextWrapper.wrapLines(datum.text, {
+            text = TextWrapper.wrapText(datum.text, {
                 ...options,
                 maxWidth: datum.width,
-            }).join('\n');
+                avoidOrphans: false,
+            });
         }
 
         const { lineMetrics, width } = CachedTextMeasurerPool.measureLines(text, options);
