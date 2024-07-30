@@ -15,7 +15,7 @@ export class CalloutProperties extends Fill(Stroke(TextualStartEndProperties)) {
     type = AnnotationType.Callout as const;
 
     override position = 'center' as const;
-    override alignment = 'center' as const;
+    override alignment = 'left' as const;
 
     override getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType) {
         switch (colorPickerType) {
