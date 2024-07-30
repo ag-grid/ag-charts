@@ -52,6 +52,7 @@ export class Popover extends _ModuleSupport.BaseModuleInstance implements _Modul
         const rows = opts.items.map((item) => {
             const active = item.value === opts.value;
             const row = createElement('div');
+            row.dataset.popoverId = typeof item.value === 'string' ? item.value : undefined;
             row.className = `ag-charts-popover__row`;
             row.classList.toggle(`ag-charts-popover__row--active`, active);
             row.setAttribute('tabindex', '0');
