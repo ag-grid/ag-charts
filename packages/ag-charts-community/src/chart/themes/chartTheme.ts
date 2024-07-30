@@ -43,6 +43,8 @@ import {
     IS_DARK_THEME,
     PALETTE_DOWN_FILL,
     PALETTE_DOWN_STROKE,
+    PALETTE_GRAY_FILL,
+    PALETTE_GRAY_STROKE,
     PALETTE_NEUTRAL_FILL,
     PALETTE_NEUTRAL_STROKE,
     PALETTE_UP_FILL,
@@ -80,7 +82,11 @@ const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).redu
 >((r, { commonOptions }) => r.concat(commonOptions), []);
 
 export class ChartTheme {
-    readonly palette: Required<AgChartThemePalette> & { altUp: AgPaletteColors; altDown: AgPaletteColors };
+    readonly palette: Required<AgChartThemePalette> & {
+        altUp: AgPaletteColors;
+        altDown: AgPaletteColors;
+        altNeutral: AgPaletteColors;
+    };
     readonly paletteType: PaletteType;
 
     readonly config: any;
@@ -370,6 +376,7 @@ export class ChartTheme {
             neutral: { fill: DEFAULT_FILLS.GRAY, stroke: DEFAULT_STROKES.GRAY },
             altUp: { fill: DEFAULT_FILLS.BLUE, stroke: DEFAULT_STROKES.BLUE },
             altDown: { fill: DEFAULT_FILLS.ORANGE, stroke: DEFAULT_STROKES.ORANGE },
+            altNeutral: { fill: DEFAULT_FILLS.GRAY, stroke: DEFAULT_STROKES.GRAY },
         };
     }
 
@@ -410,6 +417,8 @@ export class ChartTheme {
         params.set(PALETTE_DOWN_FILL, this.palette.down?.fill ?? defaultColors.down.fill);
         params.set(PALETTE_NEUTRAL_STROKE, this.palette.neutral?.stroke ?? defaultColors.neutral.stroke);
         params.set(PALETTE_NEUTRAL_FILL, this.palette.neutral?.fill ?? defaultColors.neutral.fill);
+        params.set(PALETTE_GRAY_FILL, this.palette.altNeutral?.fill ?? defaultColors.altNeutral.fill);
+        params.set(PALETTE_GRAY_STROKE, this.palette.altNeutral?.stroke ?? defaultColors.altNeutral.stroke);
 
         return params;
     }

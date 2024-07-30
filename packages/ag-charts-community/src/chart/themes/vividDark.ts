@@ -41,6 +41,7 @@ export class VividDark extends DarkTheme {
             neutral: { fill: VIVID_DARK_FILLS.GRAY, stroke: VIVID_DARK_STROKES.GRAY },
             altUp: { fill: VIVID_DARK_FILLS.BLUE, stroke: VIVID_DARK_STROKES.BLUE },
             altDown: { fill: VIVID_DARK_FILLS.ORANGE, stroke: VIVID_DARK_STROKES.ORANGE },
+            altNeutral: { fill: VIVID_DARK_FILLS.GRAY, stroke: VIVID_DARK_STROKES.GRAY },
         };
     }
 
