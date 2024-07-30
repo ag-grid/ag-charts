@@ -41,6 +41,7 @@ export class VividLight extends ChartTheme {
             neutral: { fill: VIVID_FILLS.GRAY, stroke: VIVID_STROKES.GRAY },
             altUp: { fill: VIVID_FILLS.BLUE, stroke: VIVID_STROKES.BLUE },
             altDown: { fill: VIVID_FILLS.ORANGE, stroke: VIVID_STROKES.ORANGE },
+            altNeutral: { fill: VIVID_FILLS.GRAY, stroke: VIVID_STROKES.GRAY },
         };
     }
 

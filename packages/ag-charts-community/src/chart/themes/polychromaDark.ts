@@ -16,6 +16,7 @@ const POLYCHROMA_DARK_FILLS = {
     GREEN: '#21b448',
     CYAN: '#00b9a2',
     MODERATE_BLUE: '#00aee4',
+    GRAY: '#bbbbbb',
 };
 
 const POLYCHROMA_DARK_STROKES = {
@@ -29,10 +30,8 @@ const POLYCHROMA_DARK_STROKES = {
     GREEN: '#58dd70',
     CYAN: '#51e2c9',
     MODERATE_BLUE: '#4fd7ff',
+    GRAY: '#eeeeee',
 };
-
-const POLYCHROMA_DARK_FILL_GRAY = '#bbbbbb';
-const POLYCHROMA_DARK_STROKE_GRAY = '#eeeeee';
 
 export class PolychromaDark extends DarkTheme {
     override getDefaultColors() {
@@ -41,9 +40,10 @@ export class PolychromaDark extends DarkTheme {
             strokes: POLYCHROMA_DARK_STROKES,
             up: { fill: POLYCHROMA_DARK_FILLS.GREEN, stroke: POLYCHROMA_DARK_STROKES.GREEN },
             down: { fill: POLYCHROMA_DARK_FILLS.RED, stroke: POLYCHROMA_DARK_STROKES.RED },
-            neutral: { fill: POLYCHROMA_DARK_FILL_GRAY, stroke: POLYCHROMA_DARK_STROKE_GRAY },
+            neutral: { fill: POLYCHROMA_DARK_FILLS.GRAY, stroke: POLYCHROMA_DARK_STROKES.GRAY },
             altUp: { fill: POLYCHROMA_DARK_FILLS.BLUE, stroke: POLYCHROMA_DARK_STROKES.BLUE },
             altDown: { fill: POLYCHROMA_DARK_FILLS.RED, stroke: POLYCHROMA_DARK_STROKES.RED },
+            altNeutral: { fill: POLYCHROMA_DARK_FILLS.GRAY, stroke: POLYCHROMA_DARK_STROKES.GRAY },
         };
     }
 

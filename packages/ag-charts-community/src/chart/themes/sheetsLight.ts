@@ -42,6 +42,7 @@ export class SheetsLight extends ChartTheme {
             neutral: { fill: SHEETS_LIGHT_STROKES.GRAY, stroke: SHEETS_LIGHT_FILLS.GRAY },
             altUp: { fill: SHEETS_LIGHT_STROKES.BLUE, stroke: SHEETS_LIGHT_FILLS.BLUE },
             altDown: { fill: SHEETS_LIGHT_STROKES.ORANGE, stroke: SHEETS_LIGHT_FILLS.ORANGE },
+            altNeutral: { fill: SHEETS_LIGHT_STROKES.GRAY, stroke: SHEETS_LIGHT_FILLS.GRAY },
         };
     }
 

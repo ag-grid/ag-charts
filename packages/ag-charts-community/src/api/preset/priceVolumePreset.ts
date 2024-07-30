@@ -18,8 +18,8 @@ import type {
 } from 'ag-charts-types';
 
 import type { ChartTheme } from '../../chart/themes/chartTheme';
-import { DEFAULT_STROKES } from '../../chart/themes/defaultColors';
 import {
+    PALETTE_ALT_NEUTRAL_STROKE,
     PALETTE_DOWN_FILL,
     PALETTE_DOWN_STROKE,
     PALETTE_NEUTRAL_FILL,
@@ -342,6 +342,8 @@ function createPriceSeries(
                     yLowKey: closeKey,
                     fill: rangeAreaColors.fill ?? PALETTE_UP_FILL,
                     stroke: rangeAreaColors.stroke ?? PALETTE_UP_STROKE,
+                    fillOpacity: fromTheme(theme, (t) => t.overrides?.['range-area']?.series?.fillOpacity) ?? 0.3,
+                    strokeWidth: fromTheme(theme, (t) => t.overrides?.['range-area']?.series?.strokeWidth) ?? 2,
                 } satisfies AgRangeAreaSeriesOptions,
                 {
                     type: RANGE_AREA_TYPE,
@@ -351,12 +353,15 @@ function createPriceSeries(
                     yLowKey: lowKey,
                     fill: rangeAreaColors.fill ?? PALETTE_DOWN_FILL,
                     stroke: rangeAreaColors.stroke ?? PALETTE_DOWN_STROKE,
+                    fillOpacity: fromTheme(theme, (t) => t.overrides?.['range-area']?.series?.fillOpacity) ?? 0.3,
+                    strokeWidth: fromTheme(theme, (t) => t.overrides?.['range-area']?.series?.strokeWidth) ?? 2,
                 } satisfies AgRangeAreaSeriesOptions,
                 {
                     type: 'line',
                     ...common,
                     ...singleKeys,
-                    stroke: fromTheme(theme, (t) => t.overrides?.line?.series?.stroke) ?? DEFAULT_STROKES.GRAY,
+                    stroke: fromTheme(theme, (t) => t.overrides?.line?.series?.stroke) ?? PALETTE_ALT_NEUTRAL_STROKE,
+                    strokeWidth: fromTheme(theme, (t) => t.overrides?.line?.series?.strokeWidth) ?? 2,
                     marker: fromTheme(theme, (t) => t.overrides?.line?.series?.marker) ?? { enabled: false },
                 } satisfies AgLineSeriesOptions,
             ];

@@ -41,6 +41,7 @@ export class MaterialDark extends DarkTheme {
             neutral: { fill: MATERIAL_DARK_FILLS.GRAY, stroke: MATERIAL_DARK_STROKES.GRAY },
             altUp: { fill: MATERIAL_DARK_FILLS.BLUE, stroke: MATERIAL_DARK_STROKES.BLUE },
             altDown: { fill: MATERIAL_DARK_FILLS.RED, stroke: MATERIAL_DARK_STROKES.RED },
+            altNeutral: { fill: MATERIAL_DARK_FILLS.GRAY, stroke: MATERIAL_DARK_STROKES.GRAY },
         };
     }
 

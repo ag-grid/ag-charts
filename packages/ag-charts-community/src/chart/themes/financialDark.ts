@@ -15,12 +15,14 @@ const FINANCIAL_DARK_FILLS = {
     GREEN: '#089981',
     RED: '#F23645',
     BLUE: '#5090dc',
+    GRAY: '#A9A9A9',
 };
 
 const FINANCIAL_DARK_STROKES = {
     GREEN: '#089981',
     RED: '#F23645',
     BLUE: '#5090dc',
+    GRAY: '#909090',
 };
 
 export class FinancialDark extends DarkTheme {
@@ -33,6 +35,7 @@ export class FinancialDark extends DarkTheme {
             neutral: { fill: FINANCIAL_DARK_FILLS.BLUE, stroke: FINANCIAL_DARK_STROKES.BLUE },
             altUp: { fill: FINANCIAL_DARK_FILLS.GREEN, stroke: FINANCIAL_DARK_STROKES.GREEN },
             altDown: { fill: FINANCIAL_DARK_FILLS.RED, stroke: FINANCIAL_DARK_STROKES.RED },
+            altNeutral: { fill: FINANCIAL_DARK_FILLS.GRAY, stroke: FINANCIAL_DARK_STROKES.GRAY },
         };
     }
 

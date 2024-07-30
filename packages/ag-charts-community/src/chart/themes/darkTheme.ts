@@ -58,6 +58,7 @@ export class DarkTheme extends ChartTheme {
             neutral: { fill: DEFAULT_DARK_FILLS.GRAY, stroke: DEFAULT_DARK_STROKES.GRAY },
             altUp: { fill: DEFAULT_DARK_FILLS.BLUE, stroke: DEFAULT_DARK_STROKES.BLUE },
             altDown: { fill: DEFAULT_DARK_FILLS.ORANGE, stroke: DEFAULT_DARK_STROKES.ORANGE },
+            altNeutral: { fill: DEFAULT_DARK_FILLS.GRAY, stroke: DEFAULT_DARK_STROKES.GRAY },
         };
     }
 

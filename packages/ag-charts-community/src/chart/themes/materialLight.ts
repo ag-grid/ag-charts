@@ -41,6 +41,7 @@ export class MaterialLight extends ChartTheme {
             neutral: { fill: MATERIAL_LIGHT_FILLS.GRAY, stroke: MATERIAL_LIGHT_STROKES.GRAY },
             altUp: { fill: MATERIAL_LIGHT_FILLS.BLUE, stroke: MATERIAL_LIGHT_STROKES.BLUE },
             altDown: { fill: MATERIAL_LIGHT_FILLS.RED, stroke: MATERIAL_LIGHT_STROKES.RED },
+            altNeutral: { fill: MATERIAL_LIGHT_FILLS.GRAY, stroke: MATERIAL_LIGHT_STROKES.GRAY },
         };
     }
 

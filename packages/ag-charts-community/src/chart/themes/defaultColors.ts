@@ -32,4 +32,5 @@ export type DefaultColors = {
     neutral: { stroke: string; fill: string };
     altUp: { stroke: string; fill: string };
     altDown: { stroke: string; fill: string };
+    altNeutral: { stroke: string; fill: string };
 };
