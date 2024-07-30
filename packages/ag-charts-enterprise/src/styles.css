@@ -1,7 +1,8 @@
+/* Don't order alphabetically, Modules should be ordered after any other features they import. */
 @import url(./license/watermark.css);
-@import url(./features/annotations/axisButton.css);
+@import url(./features/popover/popover.css);
 @import url(./features/color-picker/colorPickerStyles.css);
+@import url(./features/annotations/annotations.css);
 @import url(./features/context-menu/contextMenuStyles.css);
 @import url(./features/crosshair/crosshairLabel.css);
-@import url(./features/popover/popover.css);
 @import url(./features/text-input/textInputStyles.css);

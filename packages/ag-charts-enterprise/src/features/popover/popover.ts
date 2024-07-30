@@ -36,7 +36,7 @@ export class Popover extends _ModuleSupport.BaseModuleInstance implements _Modul
         value?: Value;
         onPress?: (item: MenuItem<Value>) => void;
         onClose: () => void;
-        minWidth?: number;
+        class?: string;
     }) {
         const { domManager } = this.ctx;
         const popover = createElement('div');
@@ -45,14 +45,16 @@ export class Popover extends _ModuleSupport.BaseModuleInstance implements _Modul
         popover.setAttribute('role', 'menu');
         popover.className = `ag-charts-popover`;
 
-        if (opts.minWidth != null) {
-            popover.style.minWidth = `${opts.minWidth}px`;
+        if (opts.class != null) {
+            popover.classList.add(opts.class);
         }
 
         const rows = opts.items.map((item) => {
             const active = item.value === opts.value;
             const row = createElement('div');
-            row.dataset.popoverId = typeof item.value === 'string' ? item.value : undefined;
+            if (typeof item.value === 'string') {
+                row.dataset.popoverId = item.value;
+            }
             row.className = `ag-charts-popover__row`;
             row.classList.toggle(`ag-charts-popover__row--active`, active);
             row.setAttribute('tabindex', '0');
