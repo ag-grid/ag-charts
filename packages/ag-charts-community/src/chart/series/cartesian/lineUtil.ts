@@ -168,19 +168,19 @@ export function pairContinuousData(
         const toUnshifted = to ? scale(to.xValue ?? NaN, oldData.scales.x) : undefined;
 
         const NA = undefined;
-        if (fromShifted && closeMatch(fromShifted, to?.point.x)) {
+        if (fromShifted != null && closeMatch(fromShifted, to?.point.x)) {
             pairUp(from, to, to.xValue, 'move');
-        } else if (fromShifted && fromShifted < (minToNode?.point.x ?? -Infinity)) {
+        } else if (fromShifted != null && fromShifted < (minToNode?.point.x ?? -Infinity)) {
             pairUp(from, NA, from.xValue, 'out');
-        } else if (fromShifted && fromShifted > (maxToNode?.point.x ?? Infinity)) {
+        } else if (fromShifted != null && fromShifted > (maxToNode?.point.x ?? Infinity)) {
             pairUp(from, NA, from.xValue, 'out');
-        } else if (toUnshifted && toUnshifted < (minFromNode?.point.x ?? -Infinity)) {
+        } else if (toUnshifted != null && toUnshifted < (minFromNode?.point.x ?? -Infinity)) {
             pairUp(NA, to, to.xValue, 'in');
-        } else if (toUnshifted && toUnshifted > (maxFromNode?.point.x ?? Infinity)) {
+        } else if (toUnshifted != null && toUnshifted > (maxFromNode?.point.x ?? Infinity)) {
             pairUp(NA, to, to.xValue, 'in');
-        } else if (fromShifted && fromShifted < to?.point.x) {
+        } else if (fromShifted != null && fromShifted < to?.point.x) {
             pairUp(from, NA, from.xValue, 'out');
-        } else if (toUnshifted && toUnshifted < from?.point.x) {
+        } else if (toUnshifted != null && toUnshifted < from?.point.x) {
             pairUp(NA, to, to.xValue, 'in');
         } else if (from) {
             pairUp(from, NA, from.xValue, 'out');

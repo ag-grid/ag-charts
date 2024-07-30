@@ -19,8 +19,15 @@ export interface AgPriceVolumePreset {
     /** The key used to retrieve x-values from the data.
      *
      * Default: `'date'`
+     *
+     * @deprecated v10.1.0 use `dateKey` instead.
      */
     xKey?: string;
+    /** The key used to retrieve x-values from the data.
+     *
+     * Default: `'date'`
+     */
+    dateKey?: string;
     /** The key used to retrieve 'open' values from the data.
      *
      * Default: `'open'`
@@ -61,8 +68,15 @@ export interface AgPriceVolumePreset {
     /** Whether to show the range toolbar.
      *
      * Default: `true`
+     *
+     * @deprecated v10.1.0 use `rangeButtons` instead.
      */
     rangeToolbar?: boolean;
+    /** Whether to show the range buttons.
+     *
+     * Default: `true`
+     */
+    rangeButtons?: boolean;
     /** Whether to show the status bar.
      *
      * Default: `true`
@@ -71,8 +85,15 @@ export interface AgPriceVolumePreset {
     /** Whether Annotations are enabled.
      *
      * Default: `true`
+     *
+     * @deprecated v10.1.0 use `toolbar` instead.
      */
     annotations?: boolean;
+    /** Whether the toolbar is enabled.
+     *
+     * Default: `true`
+     */
+    toolbar?: boolean;
     /** Whether Zoom is enabled.
      *
      * Default: `true`

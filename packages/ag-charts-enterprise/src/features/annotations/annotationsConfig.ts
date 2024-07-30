@@ -128,6 +128,20 @@ export function isTextType(datum: unknown) {
     );
 }
 
+export function hasLineColor(datum?: AnnotationProperties) {
+    return isLineType(datum) || isChannelType(datum) || CalloutProperties.is(datum);
+}
+
+export function hasFillColor(datum?: AnnotationProperties) {
+    return (
+        isChannelType(datum) || CalloutProperties.is(datum) || CommentProperties.is(datum) || NoteProperties.is(datum)
+    );
+}
+
+export function hasTextColor(datum?: AnnotationProperties) {
+    return isTextType(datum) && !NoteProperties.is(datum);
+}
+
 export function colorDatum(
     datum: AnnotationProperties,
     colorPickerType: AnnotationOptionsColorPickerType,
@@ -136,7 +150,7 @@ export function colorDatum(
     switch (colorPickerType) {
         case `fill-color`: {
             if ('fill' in datum) datum.fill = color;
-            if ('background' in datum) datum.background.fill = color;
+            if ('background' in datum && !NoteProperties.is(datum)) datum.background.fill = color;
             break;
         }
         case `line-color`: {

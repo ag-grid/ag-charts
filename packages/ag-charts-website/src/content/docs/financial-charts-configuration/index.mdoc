@@ -117,7 +117,7 @@ This snippet assumes the supplied data includes 'date', 'open', 'high', 'low', '
 
 For custom data keys, map your data properties to the appropriate [AgFinancialChartOptions](#reference-AgFinancialChartOptions) keys:
 
--   `xKey` : key for the date values.
+-   `dateKey` : key for the date values.
 -   `openKey`: key for the open values.
 -   `highKey`: key for the high values.
 -   `lowKey`: key for the low values.
@@ -136,8 +136,8 @@ Financial Chart features can be enabled or disabled via the following properties
 const options: AgFinancialChartOptions = {
   // ...
   navigator: false, // disabled by default
-  annotations: true,
-  rangeToolbar: true,
+  toolbar: true,
+  rangeButtons: true,
   volume: true,
   statusBar: true,
   zoom: true,
@@ -147,8 +147,8 @@ const options: AgFinancialChartOptions = {
 In this configuration:
 
 -   `navigator`: Enables the mini chart navigator for easy dataset navigation.
--   `annotations`: Allows users to add annotations and drawings to the chart using the [Toolbar](./toolbar/).
--   `rangeToolbar`: Provides range buttons for navigating different time periods.
+-   `toolbar`: Allows users to add annotations and drawings to the chart using the [Toolbar](./toolbar/).
+-   `rangeButtons`: Provides range buttons for navigating different time periods.
 -   `volume`: Displays volume data on the chart.
 -   `statusBar`: Shows a status bar at the top of the chart when hovering over the chart series.
 -   `zoom`: Enables zoom functionality for detailed analysis of the data.

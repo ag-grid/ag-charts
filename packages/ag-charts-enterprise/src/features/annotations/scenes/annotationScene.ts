@@ -22,6 +22,10 @@ export abstract class AnnotationScene extends _Scene.Group {
     public abstract getAnchor(): { x: number; y: number; position?: 'right' | 'above' | 'above-left' };
     public abstract getCursor(): string;
 
+    public toggleHovered(hovered: boolean) {
+        this.toggleHandles(hovered);
+    }
+
     protected getCachedBBoxWithoutHandles() {
         return this.cachedBBoxWithoutHandles ?? _Scene.BBox.zero;
     }

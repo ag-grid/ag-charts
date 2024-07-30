@@ -21,7 +21,7 @@ export interface SpanInterpolation {
     to: Span;
 }
 
-function closeCmp(a: number, b: number, delta = 0.01): -1 | 0 | 1 {
+function closeCmp(a: number, b: number, delta = 1e-6): -1 | 0 | 1 {
     if (a === b || 1 - Math.min(a, b) / Math.max(a, b) < delta) {
         return 0;
     } else if (a < b) {
@@ -31,7 +31,7 @@ function closeCmp(a: number, b: number, delta = 0.01): -1 | 0 | 1 {
     }
 }
 
-function closeMatch<T extends number | string>(a: T, b: T, delta = 0.01) {
+function closeMatch<T extends number | string>(a: T, b: T, delta?: number) {
     if (a === b) {
         return true;
     }

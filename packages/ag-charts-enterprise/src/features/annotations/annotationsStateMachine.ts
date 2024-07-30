@@ -27,6 +27,9 @@ import { DisjointChannelStateMachine } from './disjoint-channel/disjointChannelS
 import { LineProperties } from './line/lineProperties';
 import { LineScene } from './line/lineScene';
 import { LineStateMachine } from './line/lineState';
+import { NoteProperties } from './note/noteProperties';
+import { NoteScene } from './note/noteScene';
+import { NoteStateMachine } from './note/noteState';
 import { ParallelChannelProperties } from './parallel-channel/parallelChannelProperties';
 import { ParallelChannelScene } from './parallel-channel/parallelChannelScene';
 import { ParallelChannelStateMachine } from './parallel-channel/parallelChannelState';
@@ -246,11 +249,15 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     target: States.Idle,
                     action: (fontSize: number) => {
                         const datum = ctx.datum(this.active!);
-                        if (!datum) return;
+                        const node = ctx.node(this.active!);
+                        if (!datum || !node) return;
 
-                        if (isTextType(datum)) {
-                            // @ts-expect-error TS bug
+                        if ('fontSize' in datum) {
                             datum.fontSize = fontSize;
+                        }
+
+                        if ('invalidateTextInputBBox' in node) {
+                            node.invalidateTextInputBBox();
                         }
 
                         ctx.update();
@@ -323,6 +330,13 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                         CalloutScene.is
                     )
                 ),
+                [AnnotationType.Note]: new NoteStateMachine(
+                    textStateMachineContext<NoteProperties, NoteScene>(
+                        AnnotationType.Note,
+                        NoteProperties.is,
+                        NoteScene.is
+                    )
+                ),
             },
 
             [States.Dragging]: {
@@ -367,6 +381,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     CalloutProperties.is,
                     CalloutScene.is
                 ),
+                [AnnotationType.Note]: dragStateMachine<NoteProperties, NoteScene>(NoteProperties.is, NoteScene.is),
             },
 
             [States.TextInput]: {

@@ -28,6 +28,10 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         this.markDirty(this, _Scene.RedrawType.MINOR);
     }
 
+    public invalidateTextInputBBox() {
+        this.textInputBBox = undefined;
+    }
+
     public update(datum: Datum, context: AnnotationContext) {
         const coords = convertLine(datum, context);
 
