@@ -87,21 +87,21 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
      * Text for the annotation toolbar's color picker annotation button
      * @deprecated v10.1.0 use `toolbarAnnotationsLineColor` instead.
      */
-    toolbarAnnotationsColor: 'Pick annotation color',
+    toolbarAnnotationsColor: 'Color',
     // Text for the annotation toolbar's fill color picker annotation button
-    toolbarAnnotationsFillColor: 'Pick annotation fill color',
+    toolbarAnnotationsFillColor: 'Fill color',
     // Text for the annotation toolbar's line color picker annotation button
-    toolbarAnnotationsLineColor: 'Pick annotation line color',
+    toolbarAnnotationsLineColor: 'Line color',
     // Text for the annotation toolbar's text color picker annotation button
-    toolbarAnnotationsTextColor: 'Pick annotation text color',
+    toolbarAnnotationsTextColor: 'Text color',
     // Text for the annotation toolbar's text size picker annotation button
-    toolbarAnnotationsTextSize: 'Pick annotation text size',
+    toolbarAnnotationsTextSize: 'Text size',
     // Text for the annotation toolbar's lock annotation button
-    toolbarAnnotationsLock: 'Lock annotation',
+    toolbarAnnotationsLock: 'Lock',
     // Text for the annotation toolbar's unlock annotation button
-    toolbarAnnotationsUnlock: 'Unlock annotation',
+    toolbarAnnotationsUnlock: 'Unlock',
     // Text for the annotation toolbar's delete annotation button
-    toolbarAnnotationsDelete: 'Delete annotation',
+    toolbarAnnotationsDelete: 'Delete',
     // Text for the annotation toolbar's line annotations menu button
     toolbarAnnotationsLineAnnotations: 'Trend Lines',
     // Text for the annotation toolbar's text annotations menu button
