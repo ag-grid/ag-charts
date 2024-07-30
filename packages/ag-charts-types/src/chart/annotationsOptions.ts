@@ -154,23 +154,23 @@ export interface AgCalloutAnnotation extends TextualAnnotation, AnnotationLinePo
     type: 'callout';
 }
 
-export interface AgCommentAnnotation extends TextualAnnotation {
+export interface AgCommentAnnotation extends TextualAnnotation, AgAnnotationPoint {
     /** Configuration for the comment annotation. */
     type: 'comment';
 }
 
-export interface AgNoteAnnotation extends TextualAnnotation {
+export interface AgNoteAnnotation extends TextualAnnotation, AgAnnotationPoint {
     /** Configuration for the note annotation. */
     type: 'note';
     background?: AgNoteAnnotationBackground;
 }
 
-export interface AgTextAnnotation extends TextualAnnotation {
+export interface AgTextAnnotation extends TextualAnnotation, AgAnnotationPoint {
     /** Configuration for the text annotation. */
     type: 'text';
 }
 
-interface TextualAnnotation extends AgAnnotationPoint, Lockable, Visible, FontOptions {
+interface TextualAnnotation extends Lockable, Visible, FontOptions {
     text: string;
 }
 
