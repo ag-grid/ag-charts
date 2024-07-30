@@ -100,6 +100,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarAnnotationsUnlock: 'Unlock annotation',
     // Text for the annotation toolbar's delete annotation button
     toolbarAnnotationsDelete: 'Delete annotation',
+    // Text for the annotation toolbar's line annotations menu button
+    toolbarAnnotationsLineAnnotations: 'Line annotations',
     // Text for the annotation toolbar's text annotations menu button
     toolbarAnnotationsTextAnnotations: 'Text annotations',
     // Text for the annotation toolbar's callout button

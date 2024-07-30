@@ -12,6 +12,8 @@
     font: var(--ag-charts-popover-font-size-small) var(--ag-charts-font-family);
     overflow: hidden;
     z-index: var(--ag-charts-layer-ui-overlay);
+
+    --item-padding: 4px 12px;
 }
 
 .ag-charts-popover:has(.ag-charts-popover__icon) {
@@ -23,7 +25,7 @@
     grid-column: 1 / -1;
     grid-template-columns: subgrid;
     align-items: center;
-    padding: 4px 12px;
+    padding: var(--item-padding);
     cursor: pointer;
 }
 

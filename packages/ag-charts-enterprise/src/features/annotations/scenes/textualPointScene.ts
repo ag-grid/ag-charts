@@ -110,26 +110,10 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
             return new _Scene.BBox(point.x, point.y, textInputBBox.width, textInputBBox.height);
         }
 
-        const options = {
-            font: {
-                fontFamily: datum.fontFamily,
-                fontSize: datum.fontSize,
-                fontStyle: datum.fontStyle,
-                fontWeight: datum.fontWeight,
-            },
-            textAlign: datum.textAlign,
-        };
+        const text = this.wrapText(datum, datum.width);
+        const textOptions = this.getTextOptions(datum);
 
-        let text = datum.text;
-        if (datum.width) {
-            text = TextWrapper.wrapText(datum.text, {
-                ...options,
-                maxWidth: datum.width,
-                avoidOrphans: false,
-            });
-        }
-
-        const { lineMetrics, width } = CachedTextMeasurerPool.measureLines(text, options);
+        const { lineMetrics, width } = CachedTextMeasurerPool.measureLines(text, textOptions);
         const height = lineMetrics.reduce((sum, curr) => sum + curr.lineHeight, 0);
 
         return new _Scene.BBox(point.x, point.y, width, height);
@@ -142,15 +126,16 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
 
         this.label.x = x;
         this.label.y = y;
-        this.label.textBaseline = datum.position == 'center' ? 'middle' : datum.position;
 
-        this.label.text = datum.text;
+        this.label.text = this.wrapText(datum, bbox.width);
+
         this.label.fill = datum.color;
         this.label.fontFamily = datum.fontFamily;
         this.label.fontSize = datum.fontSize;
         this.label.fontStyle = datum.fontStyle;
         this.label.fontWeight = datum.fontWeight;
         this.label.textAlign = datum.textAlign ?? datum.alignment;
+        this.label.textBaseline = datum.position == 'center' ? 'middle' : datum.position;
         this.label.lineHeight = Math.floor(datum.fontSize * 1.38);
     }
 
@@ -188,6 +173,30 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
             stroke: datum.handle.stroke ?? datum.color,
             strokeOpacity: datum.handle.strokeOpacity,
             strokeWidth: datum.handle.strokeWidth,
+        };
+    }
+
+    private wrapText(datum: TextualPointProperties, width?: number) {
+        if (width == null) return datum.text;
+
+        return TextWrapper.wrapLines(datum.text, {
+            ...this.getTextOptions(datum),
+            avoidOrphans: false,
+            textWrap: 'always',
+            maxWidth: width,
+        }).join('\n');
+    }
+
+    private getTextOptions(datum: TextualPointProperties) {
+        return {
+            font: {
+                fontFamily: datum.fontFamily,
+                fontSize: datum.fontSize,
+                fontStyle: datum.fontStyle,
+                fontWeight: datum.fontWeight,
+            },
+            lineHeight: 1.38,
+            textAlign: datum.textAlign,
         };
     }
 }

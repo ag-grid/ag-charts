@@ -530,7 +530,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     items: TEXT_SIZE_ITEMS,
                     onPress: this.onTextSizePopoverPress.bind(this),
                     onClose: this.onTextSizePopoverClose.bind(this),
-                    minWidth: 60,
+                    class: 'annotations__text-size',
                 });
                 break;
 
@@ -568,7 +568,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const anchor = Vec2.add(rect, Vec2.from(0, rect.height + 4));
         const fallback = { y: rect.y - 4 };
         this.colorPicker.setAnchor(anchor, fallback);
-        this.textSizePopover.setAnchor(anchor);
+
+        const textAnchor = { x: rect.x + 34 - 1, y: rect.y + rect.height - 1 };
+        this.textSizePopover.setAnchor(textAnchor);
     }
 
     private onColorPickerChange(colorPickerType: AnnotationOptionsColorPickerType, color: string) {
