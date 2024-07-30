@@ -55,7 +55,8 @@ export function priceVolume(
         chartType = 'candlestick',
         navigator = false,
         volume = true,
-        rangeToolbar = true,
+        rangeToolbar,
+        rangeButtons = rangeToolbar ?? true,
         statusBar = true,
         annotations = true,
         zoom = true,
@@ -64,7 +65,10 @@ export function priceVolume(
         ...unusedOpts
     } = opts;
 
-    const priceSeries = createPriceSeries(theme, chartType, xKey, highKey, lowKey, openKey, closeKey);
+    if (rangeToolbar != null) {
+        Logger.warnOnce('Property [rangeToolbar] is deprecated, use [rangeButtons] instead.');
+    }
+
     const volumeSeries = createVolumeSeries(theme, getTheme, openKey, closeKey, volume, volumeKey);
 
     const miniChart = volume
@@ -124,7 +128,7 @@ export function priceVolume(
                 enabled: annotations,
             },
             ranges: {
-                enabled: rangeToolbar,
+                enabled: rangeButtons,
             },
         } satisfies AgToolbarOptions,
     };

@@ -61,8 +61,15 @@ export interface AgPriceVolumePreset {
     /** Whether to show the range toolbar.
      *
      * Default: `true`
+     *
+     * @deprecated v10.1.0 use `rangeButtons` instead.
      */
     rangeToolbar?: boolean;
+    /** Whether to show the range buttons.
+     *
+     * Default: `true`
+     */
+    rangeButtons?: boolean;
     /** Whether to show the status bar.
      *
      * Default: `true`
