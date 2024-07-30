@@ -432,6 +432,8 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     },
                 ],
 
+                cancel: States.Idle,
+
                 onExit: () => {
                     if (this.active == null) return;
 
