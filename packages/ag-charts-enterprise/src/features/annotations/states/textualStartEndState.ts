@@ -32,7 +32,6 @@ export abstract class TextualStartEndStateMachine<
             const datum = this.createDatum();
             datum.set({ start: point, end: point, text: '' });
             ctx.create(datum);
-            ctx.resetToolbarButtonStates();
         };
 
         const onEndHover = ({ point }: { point: Point }) => {

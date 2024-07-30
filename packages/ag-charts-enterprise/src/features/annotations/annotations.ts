@@ -11,7 +11,12 @@ import { ColorPicker } from '../color-picker/colorPicker';
 import { type MenuItem, Popover } from '../popover/popover';
 import { TextInput } from '../text-input/textInput';
 import type { AnnotationContext, AnnotationOptionsColorPickerType, Coords, Point } from './annotationTypes';
-import { ANNOTATION_BUTTONS, AnnotationType, stringToAnnotationType } from './annotationTypes';
+import {
+    ANNOTATION_BUTTONS,
+    ANNOTATION_BUTTON_GROUPS,
+    AnnotationType,
+    stringToAnnotationType,
+} from './annotationTypes';
 import { calculateAxisLabelPadding, invertCoords, validateDatumPoint } from './annotationUtils';
 import {
     annotationDatums,
@@ -271,12 +276,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     }
                 }
 
+                this.resetToolbarButtonStates();
                 this.update();
-
-                ctx.toolbarManager.updateButton('annotations', 'line-menu', { icon: undefined });
-                ctx.toolbarManager.toggleButton('annotations', 'line-menu', { active: false });
-                ctx.toolbarManager.updateButton('annotations', 'text-menu', { icon: undefined });
-                ctx.toolbarManager.toggleButton('annotations', 'text-menu', { active: false });
             },
 
             delete: (index: number) => {
@@ -302,10 +303,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
             node: (index: number) => {
                 return this.annotations.at(index);
-            },
-
-            resetToolbarButtonStates: () => {
-                this.resetToolbarButtonStates();
             },
 
             update: () => {
@@ -433,8 +430,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onToolbarButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
-        const { tooltipManager } = this.ctx;
-
         if (ToolbarManager.isGroup('annotationOptions', event)) {
             this.onToolbarAnnotationOptionButtonPress(event);
             return;
@@ -453,57 +448,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         if (event.value === 'line-menu') {
-            const { x, y, width } = event.rect;
-            this.annotationPickerPopover.setAnchor({ x: x + width + 6, y });
-            this.annotationPickerPopover.show<AnnotationType>({
-                items: LINE_ANNOTATION_ITEMS,
-                onPress: this.onAnnotationsPopoverPress.bind(this, event),
-                onClose: this.onAnnotationsPopoverClose.bind(this),
-            });
+            this.onToolbarButtonPressLineMenu(event);
             return;
         }
 
         if (event.value === 'text-menu') {
-            const { x, y, width } = event.rect;
-            this.annotationPickerPopover.setAnchor({ x: x + width + 6, y });
-            this.annotationPickerPopover.show<AnnotationType>({
-                items: TEXT_ANNOTATION_ITEMS,
-                onPress: this.onAnnotationsPopoverPress.bind(this, event),
-                onClose: this.onAnnotationsPopoverClose.bind(this),
-            });
+            this.onToolbarButtonPressTextMenu(event);
             return;
         }
 
-        tooltipManager.suppressTooltip('annotations');
-
-        const annotation = stringToAnnotationType(event.value);
-        if (annotation) {
-            this.beginAnnotationPlacement(annotation);
-        } else {
-            _Util.Logger.errorOnce(`Can not create unknown annotation type [${event.value}], ignoring.`);
-            this.update();
-        }
-    }
-
-    private beginAnnotationPlacement(annotation: AnnotationType) {
-        const {
-            state,
-            ctx: { interactionManager, toolbarManager },
-        } = this;
-
-        if (!state.is('idle')) {
-            this.cancel();
-        }
-
-        this.reset();
-
-        interactionManager.pushState(InteractionState.Annotations);
-        for (const annotationType of ANNOTATION_BUTTONS) {
-            toolbarManager.toggleButton('annotations', annotationType, { active: annotationType === annotation });
-        }
-        state.transition(annotation);
-
-        this.update();
+        this.onToolbarButtonPressAnnotation(event);
     }
 
     private onToolbarAnnotationOptionButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
@@ -553,6 +507,44 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         this.update();
+    }
+
+    private onToolbarButtonPressLineMenu(event: _ModuleSupport.ToolbarButtonPressedEvent) {
+        const { x, y, width } = event.rect;
+
+        this.reset();
+
+        this.annotationPickerPopover.setAnchor({ x: x + width + 6, y });
+        this.annotationPickerPopover.show<AnnotationType>({
+            items: LINE_ANNOTATION_ITEMS,
+            onPress: this.onAnnotationsPopoverPress.bind(this, event),
+            onClose: this.onAnnotationsPopoverClose.bind(this),
+        });
+    }
+
+    private onToolbarButtonPressTextMenu(event: _ModuleSupport.ToolbarButtonPressedEvent) {
+        const { x, y, width } = event.rect;
+
+        this.reset();
+
+        this.annotationPickerPopover.setAnchor({ x: x + width + 6, y });
+        this.annotationPickerPopover.show<AnnotationType>({
+            items: TEXT_ANNOTATION_ITEMS,
+            onPress: this.onAnnotationsPopoverPress.bind(this, event),
+            onClose: this.onAnnotationsPopoverClose.bind(this),
+        });
+    }
+
+    private onToolbarButtonPressAnnotation(event: _ModuleSupport.ToolbarButtonPressedEvent) {
+        this.ctx.tooltipManager.suppressTooltip('annotations');
+
+        const annotation = stringToAnnotationType(event.value);
+        if (annotation) {
+            this.beginAnnotationPlacement(annotation);
+        } else {
+            _Util.Logger.errorOnce(`Can not create unknown annotation type [${event.value}], ignoring.`);
+            this.update();
+        }
     }
 
     private onToolbarButtonMoved(event: _ModuleSupport.ToolbarButtonMovedEvent) {
@@ -630,12 +622,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         item: MenuItem<AnnotationType>
     ) {
         const { toolbarManager } = this.ctx;
+
         toolbarManager.toggleButton('annotations', event.id, {
             active: true,
         });
         toolbarManager.updateButton('annotations', event.id, {
             icon: item.icon,
         });
+
         this.beginAnnotationPlacement(item.value);
         this.onAnnotationsPopoverClose();
     }
@@ -881,6 +875,15 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         state.transition('keyDown', { key, shiftKey, textInputValue });
     }
 
+    private beginAnnotationPlacement(annotation: AnnotationType) {
+        this.cancel();
+
+        this.ctx.interactionManager.pushState(InteractionState.Annotations);
+        this.state.transition(annotation);
+
+        this.update();
+    }
+
     private toggleAnnotationOptionsButtons() {
         const {
             annotationData,
@@ -919,6 +922,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private clear() {
+        this.cancel();
         this.annotationData.splice(0, this.annotationData.length);
         this.reset();
     }
@@ -934,16 +938,24 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         state.transition('cancel');
 
         // TODO: shift delete into state machine
-
         // Delete active annotation if it is in the process of being created
-        if (active != null && annotationData) {
+        if (!state.is('idle') && active != null && annotationData) {
             annotationData.splice(active, 1);
         }
     }
 
     private resetToolbarButtonStates() {
+        const {
+            ctx: { toolbarManager },
+        } = this;
+
         for (const annotationType of ANNOTATION_BUTTONS) {
-            this.ctx.toolbarManager.toggleButton('annotations', annotationType, { active: false });
+            toolbarManager.toggleButton('annotations', annotationType, { active: false });
+        }
+
+        for (const annotationGroup of ANNOTATION_BUTTON_GROUPS) {
+            toolbarManager.updateButton('annotations', annotationGroup, { icon: undefined });
+            toolbarManager.toggleButton('annotations', annotationGroup, { active: false });
         }
     }
 

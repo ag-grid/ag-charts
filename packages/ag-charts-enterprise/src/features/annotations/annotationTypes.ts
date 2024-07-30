@@ -33,6 +33,7 @@ export const ANNOTATION_BUTTONS = [
     AnnotationType.Note,
     AnnotationType.Text,
 ] as const;
+export const ANNOTATION_BUTTON_GROUPS = ['line-menu', 'text-menu'] as const;
 
 export function stringToAnnotationType(value: string) {
     for (const t of ANNOTATION_TYPES) {
