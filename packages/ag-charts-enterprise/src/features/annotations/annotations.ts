@@ -24,9 +24,9 @@ import {
     colorDatum,
     getTypedDatum,
     hasFillColor,
+    hasFontSize,
     hasLineColor,
     hasTextColor,
-    isTextType,
     updateAnnotation,
 } from './annotationsConfig';
 import { AnnotationsStateMachine } from './annotationsStateMachine';
@@ -918,7 +918,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         });
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.TextSize, {
             enabled: !locked,
-            visible: isTextType(datum),
+            visible: hasFontSize(datum),
         });
 
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Delete, { enabled: !locked });

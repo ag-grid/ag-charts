@@ -126,6 +126,10 @@ export function isTextType(datum: unknown) {
     );
 }
 
+export function hasFontSize(datum?: AnnotationProperties) {
+    return isTextType(datum) && !NoteProperties.is(datum);
+}
+
 export function hasLineColor(datum?: AnnotationProperties) {
     return isLineType(datum) || isChannelType(datum) || CalloutProperties.is(datum);
 }
