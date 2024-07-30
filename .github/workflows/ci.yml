@@ -11,6 +11,13 @@ on:
             - 'b[0-9][0-9]?.[0-9][0-9]?.[0-9][0-9]?'
     workflow_dispatch:
         inputs:
+            run_e2e:
+                type: 'choice'
+                required: true
+                default: 'false'
+                options:
+                    - 'true'
+                    - 'false'
             clean_checkout:
                 description: 'Disable all caching'
                 type: 'choice'
@@ -164,6 +171,7 @@ jobs:
     e2e_init:
         runs-on: ubuntu-latest
         name: E2E Test Setup
+        if: ${{ github.event.inputs.run_e2e }}
         env:
             AG_FORCE_ALL_TESTS: ${{ (github.ref == 'refs/heads/latest') && '1' || '0' }}
             AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
@@ -212,6 +220,7 @@ jobs:
         runs-on: ubuntu-latest
         name: E2E Tests (${{ matrix.shard }}/${{ strategy.job-total }})
         needs: [e2e_init]
+        if: ${{ github.event.inputs.run_e2e }}
         strategy:
             fail-fast: false
             matrix: ${{ fromJson(needs.e2e_init.outputs.matrix )}}
