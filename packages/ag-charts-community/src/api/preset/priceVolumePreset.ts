@@ -46,7 +46,8 @@ export function priceVolume(
     getTheme: () => ChartTheme
 ): AgCartesianChartOptions {
     const {
-        xKey = 'date',
+        xKey,
+        dateKey = xKey ?? 'date',
         highKey = 'high',
         openKey = 'open',
         lowKey = 'low',
@@ -55,16 +56,28 @@ export function priceVolume(
         chartType = 'candlestick',
         navigator = false,
         volume = true,
-        rangeToolbar = true,
+        rangeToolbar,
+        rangeButtons = rangeToolbar ?? true,
         statusBar = true,
-        annotations = true,
+        annotations,
+        toolbar = annotations ?? true,
         zoom = true,
         theme,
         data,
         ...unusedOpts
     } = opts;
 
-    const priceSeries = createPriceSeries(theme, chartType, xKey, highKey, lowKey, openKey, closeKey);
+    if (xKey != null) {
+        Logger.warnOnce('Property [xKey] is deprecated, use [dateKey] instead.');
+    }
+    if (rangeToolbar != null) {
+        Logger.warnOnce('Property [rangeToolbar] is deprecated, use [rangeButtons] instead.');
+    }
+    if (annotations != null) {
+        Logger.warnOnce('Property [annotations] is deprecated, use [toolbar] instead.');
+    }
+
+    const priceSeries = createPriceSeries(theme, chartType, dateKey, highKey, lowKey, openKey, closeKey);
     const volumeSeries = createVolumeSeries(theme, getTheme, openKey, closeKey, volume, volumeKey);
 
     const miniChart = volume
@@ -74,7 +87,7 @@ export function priceVolume(
                   series: [
                       {
                           type: 'line' as const,
-                          xKey: 'date',
+                          xKey: dateKey,
                           yKey: volumeKey,
                           marker: { enabled: false },
                       },
@@ -115,16 +128,16 @@ export function priceVolume(
         chartToolbar: { enabled: true },
         toolbar: {
             seriesType: {
-                enabled: true,
+                enabled: toolbar,
             },
             annotationOptions: {
-                enabled: annotations,
+                enabled: toolbar,
             },
             annotations: {
-                enabled: annotations,
+                enabled: toolbar,
             },
             ranges: {
-                enabled: rangeToolbar,
+                enabled: rangeButtons,
             },
         } satisfies AgToolbarOptions,
     };
@@ -204,7 +217,7 @@ export function priceVolume(
             },
         ],
         annotations: {
-            enabled: annotations,
+            enabled: toolbar,
         },
         tooltip: { enabled: false },
         data,
