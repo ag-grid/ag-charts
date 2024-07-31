@@ -108,7 +108,6 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                     strokeOpacity: 1,
                 },
                 fill: _Theme.PALETTE_NEUTRAL_FILL,
-                stroke: _Theme.PALETTE_NEUTRAL_STROKE,
             },
             note: {
                 color: 'black',
