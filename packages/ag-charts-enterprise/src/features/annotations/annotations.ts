@@ -353,6 +353,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.textInput.hide();
             },
 
+            updateTextInputColor: (color: string) => {
+                this.textInput.updateColor(color);
+            },
+
             showAnnotationOptions: () => {
                 const active = this.state.getActive();
                 if (active == null) return;
