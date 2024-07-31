@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-angular",
-  "version": "10.0.2-beta.20240728",
+  "version": "10.0.2-beta.20240731",
   "scripts": {
     "ng": "ng",
     "build": "ng build",
@@ -41,7 +41,7 @@
     "@angular/platform-browser": "^16.0.0",
     "@angular/platform-browser-dynamic": "^16.0.0",
     "@angular/router": "^16.0.0",
-    "ag-charts-community": "10.0.2-beta.20240728",
+    "ag-charts-community": "10.0.2-beta.20240731",
     "rxjs": "~7.5.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.11.4"
