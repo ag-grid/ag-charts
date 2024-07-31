@@ -1,6 +1,7 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import type { Point } from '../annotationTypes';
+import type { AnnotationOptionsColorPickerType, Point } from '../annotationTypes';
+import { colorDatum, getTypedDatum } from '../annotationsConfig';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import type { TextualPointProperties } from '../properties/textualPointProperties';
 import type { TextualPointScene } from '../scenes/textualPointScene';
@@ -21,7 +22,7 @@ export abstract class TextualPointStateMachine<
     Node extends TextualPointScene<Datum>,
 > extends StateMachine<
     'start' | 'waiting-first-render' | 'edit',
-    'click' | 'cancel' | 'keyDown' | 'showTextInput' | 'render'
+    'click' | 'cancel' | 'keyDown' | 'showTextInput' | 'color' | 'render'
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -60,6 +61,23 @@ export abstract class TextualPointStateMachine<
             ctx.update();
         };
 
+        const actionColor = ({
+            colorPickerType,
+            color,
+        }: {
+            colorPickerType: AnnotationOptionsColorPickerType;
+            color: string;
+        }) => {
+            const datum = getTypedDatum(ctx.datum());
+            if (!datum) return;
+
+            if (colorPickerType === 'text-color') {
+                ctx.updateTextInputColor(color);
+            }
+            colorDatum(datum, colorPickerType, color);
+            ctx.update();
+        };
+
         const actionCancel = () => {
             ctx.delete();
         };
@@ -94,6 +112,7 @@ export abstract class TextualPointStateMachine<
             edit: {
                 onEnter: onStartEditing,
                 showTextInput: actionShowTextInput,
+                color: actionColor,
                 keyDown: [
                     {
                         guard: guardCancelAndExit,

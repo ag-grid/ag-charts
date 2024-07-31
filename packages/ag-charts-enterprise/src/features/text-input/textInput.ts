@@ -100,6 +100,11 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         };
     }
 
+    public updateColor(color: string) {
+        if (!this.element.firstElementChild) return;
+        (this.element.firstElementChild as HTMLDivElement).style.color = color;
+    }
+
     public setLayout(layout: Layout) {
         this.layout = layout;
         this.updatePosition();
