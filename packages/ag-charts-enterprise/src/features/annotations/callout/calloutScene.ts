@@ -234,7 +234,8 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         cornerRadius: number,
         type: PathType
     ) {
-        const halfCornerRadius = cornerRadius / 2;
+        const sideTailRadius = 6;
+
         switch (type) {
             case 'calloutCorner': {
                 path.lineTo(cx, cy);
@@ -262,17 +263,17 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
                     const direction = x0 > x1 ? -1 : 1;
                     const midX = Math.min(x0, x1) + Math.abs(x1 - x0) / 2;
 
-                    path.lineTo(midX - halfCornerRadius * direction, y0);
+                    path.lineTo(midX - sideTailRadius * direction, y0);
                     path.lineTo(cx, cy);
-                    path.lineTo(midX + halfCornerRadius * direction, y0);
+                    path.lineTo(midX + sideTailRadius * direction, y0);
                     path.lineTo(x1, y1);
                 } else {
                     const direction = y0 > y1 ? -1 : 1;
                     const midY = Math.min(y0, y1) + Math.abs(y0 - y1) / 2;
 
-                    path.lineTo(x0, midY - halfCornerRadius * direction);
+                    path.lineTo(x0, midY - sideTailRadius * direction);
                     path.lineTo(cx, cy);
-                    path.lineTo(x0, midY + halfCornerRadius * direction);
+                    path.lineTo(x0, midY + sideTailRadius * direction);
                     path.lineTo(x1, y1);
                 }
                 break;
