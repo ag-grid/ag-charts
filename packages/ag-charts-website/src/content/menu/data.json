@@ -7,7 +7,7 @@
             },
             {
                 "title": "Docs",
-                "path": "/documentation"
+                "path": "./quick-start"
             },
             {
                 "title": "API",
