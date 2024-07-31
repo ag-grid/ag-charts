@@ -38,7 +38,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
     override type = AnnotationType.Callout;
 
     private readonly shape = new _Scene.Path();
-    private padding = DEFAULT_PADDING;
+    private readonly padding = DEFAULT_PADDING;
 
     constructor() {
         super();
