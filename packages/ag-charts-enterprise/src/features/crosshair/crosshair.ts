@@ -47,7 +47,11 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     private axisLayout?: _ModuleSupport.AxisLayout;
     private labelFormatter?: (value: any) => string;
 
-    private readonly crosshairGroup: _Scene.Group = new Group({ layer: true, zIndex: Layers.SERIES_CROSSHAIR_ZINDEX });
+    private readonly crosshairGroup: _Scene.Group = new Group({
+        name: 'crosshairs',
+        layer: true,
+        zIndex: Layers.SERIES_CROSSHAIR_ZINDEX,
+    });
     protected readonly lineGroup = this.crosshairGroup.appendChild(
         new Group({
             name: `${this.id}-crosshair-lines`,

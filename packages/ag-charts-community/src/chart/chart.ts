@@ -1,4 +1,4 @@
-import type { AgBaseAxisOptions, AgChartInstance, AgChartOptions } from 'ag-charts-types';
+import type { AgBaseAxisOptions, AgChartInstance, AgChartOptions, AgInitialStateOptions } from 'ag-charts-types';
 
 import type { ModuleInstance } from '../module/baseModule';
 import type { LegendModule, RootModule } from '../module/coreModules';
@@ -1209,17 +1209,19 @@ export abstract class Chart extends Observable {
             forceNodeDataRefresh,
         });
         this.update(updateType, { forceNodeDataRefresh, newAnimationBatch: true });
+
+        if (deltaOptions.initialState) {
+            this.applyInitialState(newChartOptions.userOptions.initialState);
+        }
     }
 
-    applyInitialState() {
+    private applyInitialState(initialState?: AgInitialStateOptions) {
         const {
             ctx: { annotationManager, stateManager },
         } = this;
 
-        const options = this.getOptions();
-
-        if (options.initialState?.annotations != null) {
-            const annotations = options.initialState.annotations.map((annotation) => {
+        if (initialState?.annotations != null) {
+            const annotations = initialState.annotations.map((annotation) => {
                 const annotationTheme = annotationManager.getAnnotationTypeStyles(annotation.type);
                 return mergeDefaults(annotation, annotationTheme);
             });
