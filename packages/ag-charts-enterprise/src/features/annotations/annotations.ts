@@ -327,25 +327,24 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     placeholderColor: datum.getPlaceholderColor(),
                 };
 
-                this.textInput.show({
-                    styles,
-                    text: datum.text,
-                    onChange: (_text, bbox) => {
-                        this.state.transition('showTextInput', bbox);
-                    },
-                });
-
                 const point = Vec2.add(
                     datum.getTextInputCoords(this.getAnnotationContext()!),
                     Vec2.required(this.seriesRect)
                 );
 
-                this.textInput.setLayout({
-                    point,
-                    position: datum.position,
-                    alignment: datum.alignment,
-                    textAlign: datum.textAlign,
-                    width: datum.width,
+                this.textInput.show({
+                    styles,
+                    layout: {
+                        point,
+                        position: datum.position,
+                        alignment: datum.alignment,
+                        textAlign: datum.textAlign,
+                        width: datum.width,
+                    },
+                    text: datum.text,
+                    onChange: (_text, bbox) => {
+                        this.state.transition('showTextInput', bbox);
+                    },
                 });
             },
 

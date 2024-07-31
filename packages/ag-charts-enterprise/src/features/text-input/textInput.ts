@@ -38,6 +38,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         anchor?: { x: number; y: number };
         text?: string;
         styles?: FontOptions & { placeholderColor?: string };
+        layout?: Layout;
         onChange?: (text: string, bbox: _Scene.BBox) => void;
         onClose?: (text: string) => void;
     }) {
@@ -87,6 +88,11 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
             opts.onChange?.(this.getValue()!, this.getBBox());
         });
 
+        if (opts.layout) {
+            this.layout = opts.layout;
+            this.updatePosition();
+        }
+
         opts.onChange?.(this.getValue()!, this.getBBox());
     }
 
@@ -103,11 +109,6 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
     public updateColor(color: string) {
         if (!this.element.firstElementChild) return;
         (this.element.firstElementChild as HTMLDivElement).style.color = color;
-    }
-
-    public setLayout(layout: Layout) {
-        this.layout = layout;
-        this.updatePosition();
     }
 
     public getValue() {
