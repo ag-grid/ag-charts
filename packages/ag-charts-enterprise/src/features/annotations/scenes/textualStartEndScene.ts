@@ -8,6 +8,7 @@ import { LinearScene } from '../scenes/linearScene';
 
 const { CachedTextMeasurerPool } = _ModuleSupport;
 const { BBox } = _Scene;
+const { Vec2 } = _Util;
 
 export abstract class TextualStartEndScene<Datum extends TextualStartEndProperties> extends LinearScene<Datum> {
     override activeHandle?: 'start' | 'end';
@@ -95,12 +96,13 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
     }
 
     override dragHandle(datum: Datum, target: Coords, context: AnnotationContext) {
-        const { activeHandle } = this;
+        const { activeHandle, dragState } = this;
 
-        if (!activeHandle) return;
+        if (!activeHandle || !dragState) return;
 
         this[activeHandle].toggleDragging(true);
-        const point = invertCoords(this[activeHandle].drag(target).point, context);
+        const coords = Vec2.add(dragState.end, Vec2.sub(target, dragState.offset));
+        const point = invertCoords(coords, context);
 
         if (!validateDatumPoint(context, point)) return;
 
