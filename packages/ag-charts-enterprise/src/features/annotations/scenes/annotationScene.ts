@@ -2,12 +2,14 @@ import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { Handle } from './handle';
 
-const { isObject } = _ModuleSupport;
+const { Layers, isObject } = _ModuleSupport;
 
 export abstract class AnnotationScene extends _Scene.Group {
     static isCheck(value: unknown, type: string) {
         return isObject(value) && Object.hasOwn(value, 'type') && value.type === type;
     }
+
+    override zIndex = Layers.CHART_ANNOTATION_ZINDEX;
 
     public abstract type: string;
     public abstract activeHandle?: string;
