@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import { Fill } from '../annotationProperties';
+import { Fill, Stroke } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
 import { convertPoint } from '../annotationUtils';
 import { TextualPointProperties } from '../properties/textualPointProperties';
@@ -8,7 +8,7 @@ import { TextualPointProperties } from '../properties/textualPointProperties';
 const { STRING, Validate, isObject } = _ModuleSupport;
 const { Color } = _Util;
 
-export class CommentProperties extends Fill(TextualPointProperties) {
+export class CommentProperties extends Fill(Stroke(TextualPointProperties)) {
     static is(value: unknown): value is CommentProperties {
         return isObject(value) && value.type === AnnotationType.Comment;
     }
@@ -23,6 +23,8 @@ export class CommentProperties extends Fill(TextualPointProperties) {
         switch (colorPickerType) {
             case `fill-color`:
                 return this.fill;
+            case `line-color`:
+                return this.stroke;
             case `text-color`:
             default:
                 return this.color;
