@@ -56,7 +56,7 @@ type AnnotationEvent =
     | 'color'
     | 'fontSize'
     | 'keyDown'
-    | 'textInput'
+    | 'showTextInput'
     | 'render';
 
 export class AnnotationsStateMachine extends StateMachine<States, AnnotationType | AnnotationEvent> {
@@ -409,7 +409,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     },
                 },
 
-                textInput: ({ bbox }) => {
+                showTextInput: (bbox: _Scene.BBox) => {
                     if (this.active == null) return;
                     const node = ctx.node(this.active);
                     if (!node || !('setTextInputBBox' in node)) return;

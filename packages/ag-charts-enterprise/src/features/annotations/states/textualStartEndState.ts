@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { Point } from '../annotationTypes';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
@@ -23,16 +23,43 @@ export abstract class TextualStartEndStateMachine<
     Node extends TextualStartEndScene<Datum>,
 > extends StateMachine<
     'start' | 'waiting-first-render' | 'edit' | 'end',
-    'click' | 'cancel' | 'hover' | 'keyDown' | 'textInput' | 'render'
+    'click' | 'cancel' | 'hover' | 'keyDown' | 'showTextInput' | 'render'
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(ctx: TextualStartEndStateMachineContext<Datum, Node>) {
-        const onStartClick = ({ point }: { point: Point }) => {
+        const actionCreate = ({ point }: { point: Point }) => {
             const datum = this.createDatum();
             datum.set({ start: point, end: point, visible: true });
             datum.placeholderText = 'Add Text';
             ctx.create(datum);
+        };
+
+        const actionFirstRender = () => {
+            ctx.node()?.toggleActive(true);
+            ctx.showAnnotationOptions();
+        };
+
+        const onStartEditing = () => {
+            ctx.showTextInput();
+            const datum = ctx.datum();
+            if (datum) {
+                datum.visible = false;
+            }
+        };
+
+        const onStopEditing = () => {
+            ctx.hideTextInput();
+            const datum = ctx.datum();
+            if (datum) {
+                datum.visible = true;
+            }
+        };
+
+        const actionShowTextInput = (bbox: _Scene.BBox) => {
+            const node = ctx.node();
+            node?.setTextInputBBox(bbox);
+            ctx.update();
         };
 
         const onEndHover = ({ point }: { point: Point }) => {
@@ -51,7 +78,11 @@ export abstract class TextualStartEndStateMachine<
             ctx.node()?.toggleHandles({ end: true });
         };
 
-        const onSave = ({ textInputValue }: { textInputValue?: string }) => {
+        const actionCancel = () => {
+            ctx.delete();
+        };
+
+        const actionSave = ({ textInputValue }: { textInputValue?: string }) => {
             if (textInputValue != null && textInputValue.length > 0) {
                 ctx.datum()?.set({ text: textInputValue });
                 ctx.update();
@@ -60,21 +91,22 @@ export abstract class TextualStartEndStateMachine<
             }
         };
 
+        const guardCancelAndExit = ({ key }: { key: string }) => key === 'Escape';
+        const guardSaveAndExit = ({ key, shiftKey }: { key: string; shiftKey: boolean }) =>
+            !shiftKey && key === 'Enter';
+
         super('start', {
             start: {
                 click: {
                     target: 'waiting-first-render',
-                    action: onStartClick,
+                    action: actionCreate,
                 },
                 cancel: StateMachine.parent,
             },
             'waiting-first-render': {
                 render: {
                     target: 'end',
-                    action: () => {
-                        ctx.node()?.toggleActive(true);
-                        ctx.showAnnotationOptions();
-                    },
+                    action: actionFirstRender,
                 },
             },
             end: {
@@ -86,44 +118,26 @@ export abstract class TextualStartEndStateMachine<
                 cancel: StateMachine.parent,
             },
             edit: {
-                onEnter: () => {
-                    ctx.showTextInput();
-                    const datum = ctx.datum();
-                    if (datum) {
-                        datum.visible = false;
-                    }
-                },
-                textInput: ({ bbox }) => {
-                    const node = ctx.node();
-                    node?.setTextInputBBox(bbox);
-                    ctx.update();
-                },
+                onEnter: onStartEditing,
+                showTextInput: actionShowTextInput,
                 keyDown: [
                     {
-                        guard: ({ key }: { key: string }) => key === 'Escape',
+                        guard: guardCancelAndExit,
                         target: StateMachine.parent,
-                        action: () => {
-                            ctx.delete();
-                        },
+                        action: actionCancel,
                     },
                     {
-                        guard: ({ key, shiftKey }: { key: string; shiftKey: boolean }) => !shiftKey && key === 'Enter',
+                        guard: guardSaveAndExit,
                         target: StateMachine.parent,
-                        action: onSave,
+                        action: actionSave,
                     },
                 ],
                 click: {
                     target: StateMachine.parent,
-                    action: onSave,
+                    action: actionSave,
                 },
                 cancel: StateMachine.parent,
-                onExit: () => {
-                    ctx.hideTextInput();
-                    const datum = ctx.datum();
-                    if (datum) {
-                        datum.visible = true;
-                    }
-                },
+                onExit: onStopEditing,
             },
         });
     }
