@@ -6,7 +6,7 @@
   "targets": {
     "build": {
       "executor": "@nx/js:swc",
-      "dependsOn": ["ag-charts-community:build:types"],
+      "dependsOn": ["ag-charts-community:build:types", "ag-charts-community:build:package"],
       "inputs": ["{projectRoot}/src/**"],
       "outputs": ["{options.outputPath}"],
       "cache": true,
