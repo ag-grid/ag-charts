@@ -58,7 +58,10 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
             return new BBox(x2, y2, textInputBBox.width, textInputBBox.height);
         }
 
-        const { lineMetrics, width } = CachedTextMeasurerPool.measureLines(datum.text, {
+        const hasText = datum.text.length > 0;
+        const text = hasText ? datum.text : datum.placeholderText ?? '';
+
+        const { lineMetrics, width } = CachedTextMeasurerPool.measureLines(text, {
             font: {
                 fontFamily: datum.fontFamily,
                 fontSize: datum.fontSize,
@@ -144,8 +147,9 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         this.label.y = y;
         this.label.textBaseline = datum.position == 'center' ? 'middle' : datum.position;
 
-        this.label.text = datum.text;
-        this.label.fill = datum.color;
+        const hasText = datum.text.length > 0;
+        this.label.text = hasText ? datum.text : datum.placeholderText;
+        this.label.fill = hasText ? datum.color : datum.getPlaceholderColor();
         this.label.fontFamily = datum.fontFamily;
         this.label.fontSize = datum.fontSize;
         this.label.fontStyle = datum.fontStyle;

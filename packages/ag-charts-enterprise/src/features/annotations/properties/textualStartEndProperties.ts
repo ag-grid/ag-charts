@@ -14,6 +14,7 @@ export class TextualStartEndProperties extends Annotation(Line(Handle(Label(Font
     alignment: 'left' | 'center' | 'right' = 'left';
     placement: 'inside' | 'outside' = 'inside';
     width?: number;
+    placeholderText?: string = undefined;
 
     override isValidWithContext(_context: AnnotationContext, warningPrefix?: string) {
         return super.isValid(warningPrefix);

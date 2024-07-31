@@ -30,7 +30,8 @@ export abstract class TextualStartEndStateMachine<
     constructor(ctx: TextualStartEndStateMachineContext<Datum, Node>) {
         const onStartClick = ({ point }: { point: Point }) => {
             const datum = this.createDatum();
-            datum.set({ start: point, end: point });
+            datum.set({ start: point, end: point, visible: true });
+            datum.placeholderText = 'Add Text';
             ctx.create(datum);
         };
 
@@ -42,7 +43,11 @@ export abstract class TextualStartEndStateMachine<
         };
 
         const onEndClick = ({ point }: { point: Point }) => {
-            ctx.datum()?.set({ end: point });
+            const datum = ctx.datum();
+            if (datum) {
+                datum.set({ end: point });
+                datum.placeholderText = undefined;
+            }
             ctx.node()?.toggleHandles({ end: true });
         };
 
