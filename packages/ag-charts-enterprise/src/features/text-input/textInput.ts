@@ -37,7 +37,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
     public show(opts: {
         anchor?: { x: number; y: number };
         text?: string;
-        styles?: FontOptions;
+        styles?: FontOptions & { placeholderColor?: string };
         onChange?: (text: string, bbox: _Scene.BBox) => void;
         onClose?: (text: string) => void;
     }) {
@@ -53,8 +53,13 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
             textArea.contentEditable = 'true';
         }
 
-        textArea.innerText = opts.text ?? '';
+        textArea.setAttribute('placeholder', 'Add Text');
 
+        if (opts.styles?.placeholderColor) {
+            textArea.style.setProperty('--ag-charts-text-annotations-placeholder', opts.styles?.placeholderColor);
+        }
+
+        textArea.innerText = opts.text ?? '';
         textArea.style.color = opts.styles?.color ?? 'inherit';
         textArea.style.fontFamily = opts.styles?.fontFamily ?? 'inherit';
         textArea.style.fontSize = opts.styles?.fontSize ? `${opts.styles.fontSize}px` : 'inherit';
@@ -81,6 +86,8 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
             this.updatePosition();
             opts.onChange?.(this.getValue()!, this.getBBox());
         });
+
+        opts.onChange?.(this.getValue()!, this.getBBox());
     }
 
     public hide() {

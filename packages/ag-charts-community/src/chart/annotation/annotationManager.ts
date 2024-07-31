@@ -38,7 +38,7 @@ export class AnnotationManager
     public restoreMemento(_version: string, _mementoVersion: string, memento: AnnotationsMemento) {
         // Migration from older versions can be implemented here.
 
-        const annotations = memento.map((annotation) => {
+        const annotations = this.cleanData(memento).map((annotation) => {
             const annotationTheme = this.getAnnotationTypeStyles(annotation.type);
             return mergeDefaults(annotation, annotationTheme);
         });
@@ -50,7 +50,7 @@ export class AnnotationManager
     }
 
     public updateData(annotations?: AnnotationsMemento) {
-        this.annotations = annotations ?? [];
+        this.annotations = this.cleanData(annotations ?? []);
     }
 
     public attachNode(node: Node) {
@@ -67,5 +67,13 @@ export class AnnotationManager
 
     public getAnnotationTypeStyles(type: keyof AgAnnotationsThemeableOptions) {
         return this.styles?.[type];
+    }
+
+    private cleanData(annotations: AnnotationsMemento) {
+        // Strip text align from annotations as this is fixed by annotation type
+        for (const annotation of annotations) {
+            if ('textAlign' in annotation) delete annotation.textAlign;
+        }
+        return annotations;
     }
 }

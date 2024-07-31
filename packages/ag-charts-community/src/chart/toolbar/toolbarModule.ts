@@ -52,6 +52,11 @@ const annotationOptions: AgToolbarOptions['annotationOptions'] = {
     align: 'start',
     buttons: [
         {
+            icon: 'text-annotation',
+            tooltip: 'toolbarAnnotationsTextColor',
+            value: 'text-color',
+        },
+        {
             icon: 'line-color',
             tooltip: 'toolbarAnnotationsLineColor',
             value: 'line-color',
@@ -60,11 +65,6 @@ const annotationOptions: AgToolbarOptions['annotationOptions'] = {
             icon: 'fill-color',
             tooltip: 'toolbarAnnotationsFillColor',
             value: 'fill-color',
-        },
-        {
-            icon: 'text-annotation',
-            tooltip: 'toolbarAnnotationsTextColor',
-            value: 'text-color',
         },
         {
             tooltip: 'toolbarAnnotationsTextSize',

@@ -1,13 +1,14 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import { Fill, Stroke } from '../annotationProperties';
+import { Fill } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
 import { convertPoint } from '../annotationUtils';
 import { TextualPointProperties } from '../properties/textualPointProperties';
 
 const { STRING, Validate, isObject } = _ModuleSupport;
+const { Color } = _Util;
 
-export class CommentProperties extends Fill(Stroke(TextualPointProperties)) {
+export class CommentProperties extends Fill(TextualPointProperties) {
     static is(value: unknown): value is CommentProperties {
         return isObject(value) && value.type === AnnotationType.Comment;
     }
@@ -22,12 +23,15 @@ export class CommentProperties extends Fill(Stroke(TextualPointProperties)) {
         switch (colorPickerType) {
             case `fill-color`:
                 return this.fill;
-            case `line-color`:
-                return this.stroke;
             case `text-color`:
             default:
                 return this.color;
         }
+    }
+
+    override getPlaceholderColor() {
+        const textColor = this.color ?? '#888888';
+        return Color.mix(Color.fromString(textColor), Color.fromString(textColor), 0.66).toString();
     }
 
     public override getTextInputCoords(context: AnnotationContext) {
