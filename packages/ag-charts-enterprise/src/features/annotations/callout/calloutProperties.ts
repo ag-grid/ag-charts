@@ -37,7 +37,9 @@ export class CalloutProperties extends Fill(Stroke(TextualStartEndProperties)) {
     }
 
     public override getTextInputCoords(context: AnnotationContext) {
+        const padding = this.padding ?? 12;
         const coords = convertLine(this, context);
-        return { x: coords?.x2 ?? 0, y: coords?.y2 ?? 0 };
+
+        return { x: (coords?.x2 ?? 0) + padding, y: coords?.y2 ?? 0 };
     }
 }
