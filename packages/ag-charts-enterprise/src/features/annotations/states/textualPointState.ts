@@ -14,6 +14,7 @@ interface TextualPointStateMachineContext<Datum extends TextualPointProperties, 
     datum: () => Datum | undefined;
     node: () => Node | undefined;
     showTextInput: () => void;
+    deselect: () => void;
 }
 
 export abstract class TextualPointStateMachine<
@@ -49,9 +50,8 @@ export abstract class TextualPointStateMachine<
         const onStopEditing = () => {
             ctx.hideTextInput();
             const datum = ctx.datum();
-            if (datum) {
-                datum.visible = true;
-            }
+            if (datum) datum.visible = true;
+            ctx.deselect();
         };
 
         const actionShowTextInput = (bbox: _Scene.BBox) => {
