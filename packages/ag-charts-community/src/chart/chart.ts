@@ -1,5 +1,4 @@
-import type { AgBaseAxisOptions, AgChartInstance, AgChartOptions } from 'ag-charts-types';
-import type { AgInitialStateOptions } from 'ag-charts-types/src/api/initialStateOptions';
+import type { AgBaseAxisOptions, AgChartInstance, AgChartOptions, AgInitialStateOptions } from 'ag-charts-types';
 
 import type { ModuleInstance } from '../module/baseModule';
 import type { LegendModule, RootModule } from '../module/coreModules';
