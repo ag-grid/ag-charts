@@ -97,7 +97,7 @@ export abstract class ChannelScene<
     protected updateBackground(datum: Datum, top: LineCoords, bottom: LineCoords) {
         const { background } = this;
 
-        background.path.clear();
+        background.path.clear(true);
         background.path.moveTo(top.x1, top.y1);
         background.path.lineTo(top.x2, top.y2);
         background.path.lineTo(bottom.x2, bottom.y2);
