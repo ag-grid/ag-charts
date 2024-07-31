@@ -8,6 +8,7 @@ import { LinearScene } from '../scenes/linearScene';
 
 const { CachedTextMeasurerPool } = _ModuleSupport;
 const { BBox } = _Scene;
+const { Vec2 } = _Util;
 
 export abstract class TextualStartEndScene<Datum extends TextualStartEndProperties> extends LinearScene<Datum> {
     override activeHandle?: 'start' | 'end';
@@ -41,8 +42,6 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
 
         const bbox = this.getTextBBox(datum, coords);
 
-        this.label.opacity = datum.visible ? 1 : 0;
-
         this.updateLabel(datum, bbox, coords);
         this.updateHandles(datum, bbox, coords);
         this.updateShape(datum, bbox, coords);
@@ -58,7 +57,10 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
             return new BBox(x2, y2, textInputBBox.width, textInputBBox.height);
         }
 
-        const { lineMetrics, width } = CachedTextMeasurerPool.measureLines(datum.text, {
+        const hasText = datum.text.length > 0;
+        const text = hasText ? datum.text : datum.placeholderText ?? '';
+
+        const { lineMetrics, width } = CachedTextMeasurerPool.measureLines(text, {
             font: {
                 fontFamily: datum.fontFamily,
                 fontSize: datum.fontSize,
@@ -92,12 +94,13 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
     }
 
     override dragHandle(datum: Datum, target: Coords, context: AnnotationContext) {
-        const { activeHandle } = this;
+        const { activeHandle, dragState } = this;
 
-        if (!activeHandle) return;
+        if (!activeHandle || !dragState) return;
 
         this[activeHandle].toggleDragging(true);
-        const point = invertCoords(this[activeHandle].drag(target).point, context);
+        const coords = Vec2.add(dragState.end, Vec2.sub(target, dragState.offset));
+        const point = invertCoords(coords, context);
 
         if (!validateDatumPoint(context, point)) return;
 
@@ -140,12 +143,15 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
     protected updateLabel(datum: Datum, bbox: _Scene.BBox, coords: LineCoords) {
         const { x, y } = this.getLabelCoords(datum, bbox, coords);
 
+        this.label.visible = datum.visible ?? true;
+
         this.label.x = x;
         this.label.y = y;
         this.label.textBaseline = datum.position == 'center' ? 'middle' : datum.position;
 
-        this.label.text = datum.text;
-        this.label.fill = datum.color;
+        const hasText = datum.text.length > 0;
+        this.label.text = hasText ? datum.text : datum.placeholderText;
+        this.label.fill = hasText ? datum.color : datum.getPlaceholderColor();
         this.label.fontFamily = datum.fontFamily;
         this.label.fontSize = datum.fontSize;
         this.label.fontStyle = datum.fontStyle;

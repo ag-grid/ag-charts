@@ -31,7 +31,7 @@ export class CalloutProperties extends Fill(Stroke(TextualStartEndProperties)) {
     }
 
     override getPlaceholderColor() {
-        const textColor = this.color ?? '#888888';
-        return Color.mix(Color.fromString(textColor), Color.fromString(textColor), 0.66).toString();
+        const { r, g, b } = Color.fromString(this.color ?? '#888888');
+        return new Color(r, g, b, 0.66).toString();
     }
 }
