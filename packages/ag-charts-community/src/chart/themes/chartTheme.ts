@@ -39,6 +39,9 @@ import {
     DEFAULT_PADDING,
     DEFAULT_POLAR_SERIES_STROKE,
     DEFAULT_SHADOW_COLOUR,
+    DEFAULT_TEXTBOX_COLOR,
+    DEFAULT_TEXTBOX_FILL,
+    DEFAULT_TEXTBOX_STROKE,
     DEFAULT_TOOLBAR_POSITION,
     IS_DARK_THEME,
     PALETTE_ALT_NEUTRAL_FILL,
@@ -404,9 +407,15 @@ export class ChartTheme {
         params.set(DEFAULT_HIERARCHY_FILLS, ['#ffffff', '#e0e5ea', '#c1ccd5', '#a3b4c1', '#859cad']);
         params.set(DEFAULT_HIERARCHY_STROKES, ['#ffffff', '#c5cbd1', '#a4b1bd', '#8498a9', '#648096']);
         params.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_BACKGROUND_FILL);
+
         params.set(DEFAULT_ANNOTATION_COLOR, DEFAULT_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, DEFAULT_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_HANDLE_FILL, DEFAULT_BACKGROUND_FILL);
+
+        params.set(DEFAULT_TEXTBOX_FILL, '#fafafa');
+        params.set(DEFAULT_TEXTBOX_STROKE, '#dddddd');
+        params.set(DEFAULT_TEXTBOX_COLOR, '#000000');
+
         params.set(DEFAULT_TOOLBAR_POSITION, 'top');
         params.set(DEFAULT_GRIDLINE_ENABLED, false);
 
