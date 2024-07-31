@@ -101,6 +101,7 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         iconLines.y = iconBackground.y;
 
         iconBackground.fill = datum.fill;
+        iconBackground.fillOpacity = datum.fillOpacity ?? 1;
         iconBackground.stroke = datum.stroke;
         iconBackground.strokeOpacity = datum.strokeOpacity ?? 1;
         iconBackground.strokeWidth = datum.strokeWidth ?? 1;
