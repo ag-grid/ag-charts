@@ -148,7 +148,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     private getBBox() {
-        const { offsetLeft, offsetTop, offsetWidth, offsetHeight } = this.element;
-        return new _Scene.BBox(offsetLeft, offsetTop, offsetWidth, offsetHeight);
+        const { left, top, width, height } = this.element.getBoundingClientRect();
+        return new _Scene.BBox(left, top, width, height);
     }
 }

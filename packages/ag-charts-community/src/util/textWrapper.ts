@@ -81,8 +81,8 @@ export class TextWrapper {
                     if (i === 0) break; // char width is greater than options.maxWidth
 
                     // check actual width in case estimation is off
-                    const actualWidth = measurer.textWidth(line.slice(0, i));
-                    if (actualWidth < options.maxWidth) {
+                    const actualWidth = measurer.textWidth(line.slice(0, i + 1));
+                    if (actualWidth <= options.maxWidth) {
                         estimatedWidth = actualWidth;
                         continue;
                     }
