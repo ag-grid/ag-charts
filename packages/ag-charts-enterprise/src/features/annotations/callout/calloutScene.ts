@@ -11,7 +11,7 @@ const { drawCorner } = _Scene;
 const DEFAULT_PADDING = {
     top: 6,
     right: 12,
-    bottom: 7,
+    bottom: 9,
     left: 12,
 };
 
@@ -67,7 +67,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
 
         return {
             x: bodyBounds.x + this.padding.left,
-            y: bodyBounds.y - bodyBounds.height / 2,
+            y: bodyBounds.y - this.padding.bottom - datum.fontSize / 2,
         };
     }
 
