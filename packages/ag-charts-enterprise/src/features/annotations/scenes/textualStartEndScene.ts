@@ -42,8 +42,6 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
 
         const bbox = this.getTextBBox(datum, coords);
 
-        this.label.opacity = datum.visible ? 1 : 0;
-
         this.updateLabel(datum, bbox, coords);
         this.updateHandles(datum, bbox, coords);
         this.updateShape(datum, bbox, coords);
@@ -144,6 +142,8 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
 
     protected updateLabel(datum: Datum, bbox: _Scene.BBox, coords: LineCoords) {
         const { x, y } = this.getLabelCoords(datum, bbox, coords);
+
+        this.label.visible = datum.visible ?? true;
 
         this.label.x = x;
         this.label.y = y;
