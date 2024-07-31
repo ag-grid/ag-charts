@@ -335,7 +335,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
                 y: coords.y1,
             },
             bodyBounds: {
-                x: textBBox.x - padding,
+                x: textBBox.x,
                 y: textBBox.y + height / 2,
                 width,
                 height,
