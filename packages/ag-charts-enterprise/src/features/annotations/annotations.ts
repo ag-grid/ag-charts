@@ -227,29 +227,36 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     ctx: { toolbarManager, tooltipManager },
                 } = this;
 
+                const node = index != null ? annotations.at(index) : undefined;
+                node?.toggleActive(true);
+
                 colorPicker.hide();
                 textSizePopover.hide();
                 annotationPickerPopover.hide();
 
-                if (previous != null) {
+                if (previous != null && previous != index) {
                     annotations.at(previous)?.toggleActive(false);
                 }
-
-                const node = index != null ? annotations.at(index) : undefined;
-                toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: index != null });
-                if (node) toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
 
                 if (index == null) {
                     tooltipManager.unsuppressTooltip('annotations');
                 } else {
-                    node?.toggleActive(true);
                     tooltipManager.suppressTooltip('annotations');
-                    this.toggleAnnotationOptionsButtons();
                 }
 
                 if (index == null || (index != null && index !== previous)) {
                     ctx.toolbarManager.updateButton('annotations', 'line-menu', { icon: undefined });
                     ctx.toolbarManager.updateButton('annotations', 'text-menu', { icon: undefined });
+                }
+
+                if (node) {
+                    // Only request updates to the DOM once it is ready to process them
+                    requestAnimationFrame(() => {
+                        this.toggleAnnotationOptionsButtons();
+                        toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: true });
+                    });
+                } else {
+                    toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: false });
                 }
 
                 this.update();
@@ -357,16 +364,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.textInput.updateColor(color);
             },
 
-            showAnnotationOptions: () => {
-                const active = this.state.getActive();
-                if (active == null) return;
-
+            showAnnotationOptions: (active: number) => {
                 const node = this.annotations.at(active);
                 if (!node) return;
 
-                ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: true });
                 ctx.toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
                 this.toggleAnnotationOptionsButtons();
+                ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: true });
             },
         });
     }

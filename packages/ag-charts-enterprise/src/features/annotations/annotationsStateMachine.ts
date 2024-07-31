@@ -179,6 +179,9 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             deselect: () => {
                 this.active = this.hovered = ctx.select(undefined, this.active);
             },
+            showAnnotationOptions: () => {
+                if (this.active != null) ctx.showAnnotationOptions(this.active);
+            },
         });
 
         super(States.Idle, {

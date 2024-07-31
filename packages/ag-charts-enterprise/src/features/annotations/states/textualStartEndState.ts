@@ -18,6 +18,7 @@ interface TextualStartEndStateMachineContext<
     node: () => Node | undefined;
     showTextInput: () => void;
     deselect: () => void;
+    showAnnotationOptions: () => void;
 }
 
 export abstract class TextualStartEndStateMachine<
