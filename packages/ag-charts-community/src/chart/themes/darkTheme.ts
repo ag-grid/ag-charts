@@ -16,6 +16,9 @@ import {
     DEFAULT_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
     DEFAULT_POLAR_SERIES_STROKE,
+    DEFAULT_TEXTBOX_COLOR,
+    DEFAULT_TEXTBOX_FILL,
+    DEFAULT_TEXTBOX_STROKE,
     IS_DARK_THEME,
 } from './symbols';
 
@@ -85,6 +88,10 @@ export class DarkTheme extends ChartTheme {
         params.set(DEFAULT_ANNOTATION_COLOR, DEFAULT_DARK_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, DEFAULT_DARK_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_HANDLE_FILL, DEFAULT_DARK_BACKGROUND_FILL);
+
+        params.set(DEFAULT_TEXTBOX_FILL, '#28313e');
+        params.set(DEFAULT_TEXTBOX_STROKE, '#4b525d');
+        params.set(DEFAULT_TEXTBOX_COLOR, '#ffffff');
 
         return params;
     }

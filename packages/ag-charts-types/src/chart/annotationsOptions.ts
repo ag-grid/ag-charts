@@ -24,8 +24,8 @@ export interface AgAnnotationsThemeableOptions {
     'parallel-channel'?: AgChannelAnnotationStyles;
 
     // Texts
-    callout?: AgTextShapeAnnotationStyles;
-    comment?: AgTextShapeAnnotationStyles;
+    callout?: AgCalloutAnnotationStyles;
+    comment?: AgCommentAnnotationStyles;
     note?: AgNoteAnnotationStyles;
     text?: AgTextAnnotationStyles;
 
@@ -48,9 +48,12 @@ export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible
     /** The fill colour for the middle of the channel. */
     background?: AgChannelAnnotationBackground;
 }
-export interface AgTextAnnotationStyles extends FontOptions, Lockable, Visible {}
-export interface AgTextShapeAnnotationStyles extends AgTextAnnotationStyles, StrokeOptions, FillOptions {}
-export interface AgNoteAnnotationStyles extends AgTextAnnotationStyles {
+export interface AgTextAnnotationStyles extends FontOptions, Lockable, Visible {
+    handle?: AgAnnotationHandleStyles;
+}
+export interface AgCalloutAnnotationStyles extends AgTextAnnotationStyles, StrokeOptions, FillOptions {}
+export interface AgCommentAnnotationStyles extends AgTextAnnotationStyles, StrokeOptions, FillOptions {}
+export interface AgNoteAnnotationStyles extends AgTextAnnotationStyles, StrokeOptions, FillOptions {
     background: AgNoteAnnotationBackground;
 }
 
@@ -149,27 +152,32 @@ export interface AgDisjointChannelAnnotation
 // * Text Annotations *
 // ********************/
 
-export interface AgCalloutAnnotation extends TextualAnnotation, AnnotationLinePoints {
+export interface AgCalloutAnnotation extends TextualStartEndAnnotation, FillOptions, StrokeOptions {
     /** Configuration for the callout annotation. */
     type: 'callout';
 }
 
-export interface AgCommentAnnotation extends TextualAnnotation, AgAnnotationPoint {
+export interface AgCommentAnnotation extends TextualPointAnnotation, FillOptions {
     /** Configuration for the comment annotation. */
     type: 'comment';
 }
 
-export interface AgNoteAnnotation extends TextualAnnotation, AgAnnotationPoint {
+export interface AgNoteAnnotation extends TextualPointAnnotation, FillOptions, StrokeOptions {
     /** Configuration for the note annotation. */
     type: 'note';
     background?: AgNoteAnnotationBackground;
 }
 
-export interface AgTextAnnotation extends TextualAnnotation, AgAnnotationPoint {
+export interface AgTextAnnotation extends TextualPointAnnotation {
     /** Configuration for the text annotation. */
     type: 'text';
 }
 
+interface TextualPointAnnotation extends TextualAnnotation, AgAnnotationPoint {}
+interface TextualStartEndAnnotation extends TextualAnnotation {
+    start: AgAnnotationPoint;
+    end: AgAnnotationPoint;
+}
 interface TextualAnnotation extends Lockable, Visible, FontOptions {
     text: string;
 }

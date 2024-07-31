@@ -35,7 +35,7 @@ export class NoteProperties extends Fill(Stroke(TextualPointProperties)) {
 
     override getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType) {
         switch (colorPickerType) {
-            case `fill-color`:
+            case `line-color`:
                 return this.fill;
             case `text-color`:
                 return this.color;

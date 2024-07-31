@@ -108,10 +108,9 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                     strokeOpacity: 1,
                 },
                 fill: _Theme.PALETTE_NEUTRAL_FILL,
-                stroke: _Theme.PALETTE_NEUTRAL_STROKE,
             },
             note: {
-                color: 'black',
+                color: _Theme.DEFAULT_TEXTBOX_COLOR,
                 fill: _Theme.DEFAULT_ANNOTATION_COLOR,
                 stroke: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
                 strokeWidth: 1,
@@ -125,8 +124,8 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                     strokeOpacity: 1,
                 },
                 background: {
-                    fill: 'rgb(250, 250, 250)',
-                    stroke: '#dddddd',
+                    fill: _Theme.DEFAULT_TEXTBOX_FILL,
+                    stroke: _Theme.DEFAULT_TEXTBOX_STROKE,
                     strokeWidth: 1,
                 },
             },

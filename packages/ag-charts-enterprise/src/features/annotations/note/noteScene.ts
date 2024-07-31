@@ -13,7 +13,7 @@ const ICON_WIDTH = 22;
 const ICON_SPACING = 10;
 export const LABEL_OFFSET = ICON_HEIGHT + ICON_SPACING;
 
-const { TextWrapper } = _ModuleSupport;
+const { Layers, TextWrapper } = _ModuleSupport;
 
 export class NoteScene extends TextualPointScene<NoteProperties> {
     static override is(value: unknown): value is NoteScene {
@@ -101,6 +101,7 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         iconLines.y = iconBackground.y;
 
         iconBackground.fill = datum.fill;
+        iconBackground.fillOpacity = datum.fillOpacity ?? 1;
         iconBackground.stroke = datum.stroke;
         iconBackground.strokeOpacity = datum.strokeOpacity ?? 1;
         iconBackground.strokeWidth = datum.strokeWidth ?? 1;
@@ -153,6 +154,8 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
 
         this.label.visible = hovered;
         this.shape.visible = hovered;
+
+        this.zIndex = hovered ? Layers.CHART_ANNOTATION_FOCUSED_ZINDEX : Layers.CHART_ANNOTATION_ZINDEX;
     }
 
     override toggleActive(active: boolean) {
