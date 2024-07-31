@@ -19,7 +19,7 @@ import { pickNode } from './util';
 interface SeriesAreaSubManager {
     seriesChanged(series: Series<any, any>[]): void;
     dataChanged?: () => void;
-    seriesUpdated?: () => void;
+    preSceneRender?: () => void;
 
     destroy(): void;
 }
@@ -55,7 +55,8 @@ export class SeriesAreaManager extends BaseManager {
         const seriesRegion = this.ctx.regionManager.getRegion(REGIONS.SERIES);
         this.destroyFns.push(
             () => this.subManagers.forEach((s) => s.destroy()),
-            seriesRegion.addListener('contextmenu', (event) => this.onContextMenu(event), InteractionState.All)
+            seriesRegion.addListener('contextmenu', (event) => this.onContextMenu(event), InteractionState.All),
+            this.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender())
         );
     }
 
@@ -65,9 +66,9 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    public seriesUpdated() {
+    private preSceneRender() {
         for (const manager of this.subManagers) {
-            manager.seriesUpdated?.();
+            manager.preSceneRender?.();
         }
     }
 

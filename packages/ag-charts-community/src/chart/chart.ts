@@ -571,10 +571,12 @@ export abstract class Chart extends Observable {
                 updateSplits('🤔');
             // fallthrough
 
-            case ChartUpdateType.TOOLTIP_RECALCULATION:
-                if (this.checkUpdateShortcut(ChartUpdateType.TOOLTIP_RECALCULATION)) break;
+            case ChartUpdateType.PRE_SCENE_RENDER:
+                if (this.checkUpdateShortcut(ChartUpdateType.PRE_SCENE_RENDER)) break;
 
-                this.seriesAreaManager.seriesUpdated();
+                // Allow any additional pre-rendering processing to happen.
+                ctx.updateService.dispatchPreSceneRender(this.getMinRects());
+
                 updateSplits('↖');
             // fallthrough
 

@@ -73,7 +73,7 @@ export class SeriesAreaHighlightManager extends BaseManager {
         this.clearHighlight();
     }
 
-    public seriesUpdated() {
+    public preSceneRender() {
         if (this.stashedHoverEvent != null) {
             this.pendingHoverEvent = this.stashedHoverEvent;
             this.handleHover(true);
@@ -104,10 +104,12 @@ export class SeriesAreaHighlightManager extends BaseManager {
         if (this.chart.performUpdateType <= ChartUpdateType.SERIES_UPDATE) {
             // Reschedule until the current update processing is complete, if we try to
             // perform a highlight mid-update then we may not have fresh node data to work with.
+            console.log('skipping update due to pending update', this.chart.performUpdateType);
             this.hoverScheduler.schedule();
             return;
         }
 
+        console.log('applying hover update');
         this.handleHover(false);
     });
 
