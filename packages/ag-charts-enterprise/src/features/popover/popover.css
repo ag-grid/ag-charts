@@ -6,7 +6,6 @@
     min-width: 200px;
     border: var(--ag-charts-popover-border);
     border-radius: 4px;
-    padding: 6px 0;
     background: var(--ag-charts-popover-background-color);
     color: var(--ag-charts-popover-foreground-color);
     font: var(--ag-charts-popover-font-size-small) var(--ag-charts-font-family);
@@ -26,6 +25,9 @@
     grid-template-columns: subgrid;
     align-items: center;
     padding: var(--item-padding);
+}
+
+.ag-charts-popover__row:not(.ag-charts-popover__row--active) {
     cursor: pointer;
 }
 
