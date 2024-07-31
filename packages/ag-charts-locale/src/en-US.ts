@@ -82,20 +82,20 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     // Text for the annotation toolbar's disjoint channel button
     toolbarAnnotationsDisjointChannel: 'Disjoint Channel',
     // Text for the annotation toolbar's clear all button
-    toolbarAnnotationsClearAll: 'Clear all annotations',
+    toolbarAnnotationsClearAll: 'Clear All',
     /**
      * Text for the annotation toolbar's color picker annotation button
      * @deprecated v10.1.0 use `toolbarAnnotationsLineColor` instead.
      */
     toolbarAnnotationsColor: 'Color',
     // Text for the annotation toolbar's fill color picker annotation button
-    toolbarAnnotationsFillColor: 'Fill color',
+    toolbarAnnotationsFillColor: 'Fill Color',
     // Text for the annotation toolbar's line color picker annotation button
-    toolbarAnnotationsLineColor: 'Line color',
+    toolbarAnnotationsLineColor: 'Line Color',
     // Text for the annotation toolbar's text color picker annotation button
-    toolbarAnnotationsTextColor: 'Text color',
+    toolbarAnnotationsTextColor: 'Text Color',
     // Text for the annotation toolbar's text size picker annotation button
-    toolbarAnnotationsTextSize: 'Text size',
+    toolbarAnnotationsTextSize: 'Text Size',
     // Text for the annotation toolbar's lock annotation button
     toolbarAnnotationsLock: 'Lock',
     // Text for the annotation toolbar's unlock annotation button
@@ -105,7 +105,7 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     // Text for the annotation toolbar's line annotations menu button
     toolbarAnnotationsLineAnnotations: 'Trend Lines',
     // Text for the annotation toolbar's text annotations menu button
-    toolbarAnnotationsTextAnnotations: 'Text annotations',
+    toolbarAnnotationsTextAnnotations: 'Text Annotations',
     // Text for the annotation toolbar's callout button
     toolbarAnnotationsCallout: 'Callout',
     // Text for the annotation toolbar's comment button
