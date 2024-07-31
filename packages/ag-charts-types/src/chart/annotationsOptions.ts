@@ -52,7 +52,7 @@ export interface AgTextAnnotationStyles extends FontOptions, Lockable, Visible {
     handle?: AgAnnotationHandleStyles;
 }
 export interface AgCalloutAnnotationStyles extends AgTextAnnotationStyles, StrokeOptions, FillOptions {}
-export interface AgCommentAnnotationStyles extends AgTextAnnotationStyles, FillOptions {}
+export interface AgCommentAnnotationStyles extends AgTextAnnotationStyles, StrokeOptions, FillOptions {}
 export interface AgNoteAnnotationStyles extends AgTextAnnotationStyles, StrokeOptions, FillOptions {
     background: AgNoteAnnotationBackground;
 }
