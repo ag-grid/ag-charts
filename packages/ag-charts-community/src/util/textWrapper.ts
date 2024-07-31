@@ -9,6 +9,7 @@ export interface WrapOptions extends MeasureOptions {
     lineHeight?: number;
     textWrap?: TextWrap;
     overflow?: OverflowStrategy;
+    avoidOrphans?: boolean;
 }
 
 export class TextWrapper {
@@ -61,6 +62,11 @@ export class TextWrapper {
 
         for (let line of lines) {
             line = line.trimEnd();
+
+            if (line === '') {
+                result.push(line);
+                continue;
+            }
 
             for (let i = 0, estimatedWidth = 0, lastSpaceIndex = 0; i < line.length; i++) {
                 const char = line.charAt(i);
@@ -167,7 +173,7 @@ export class TextWrapper {
     }
 
     private static avoidOrphans(lines: string[], measurer: TextMeasurer, options: WrapOptions) {
-        if (lines.length < 2) return;
+        if (options.avoidOrphans === false || lines.length < 2) return;
 
         const { length } = lines;
         const lastLine = lines[length - 1];
