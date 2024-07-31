@@ -50,7 +50,7 @@ export class SeriesAreaClickManager extends BaseManager {
         this.lastHover = undefined;
     }
 
-    public seriesUpdated() {
+    public preSceneRender() {
         if (this.lastHover) {
             this.onHover(this.lastHover);
         }

@@ -64,7 +64,7 @@ export class SeriesAreaTooltipManager extends BaseManager {
         this.ctx.tooltipManager.removeTooltip(this.id);
     }
 
-    public seriesUpdated() {
+    public preSceneRender() {
         if (this.lastHover != null) {
             this.handleHover(this.lastHover, true);
         }

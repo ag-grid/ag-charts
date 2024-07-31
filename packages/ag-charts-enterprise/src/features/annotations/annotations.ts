@@ -405,7 +405,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             ctx.toolbarManager.addListener('button-moved', this.onToolbarButtonMoved.bind(this)),
             ctx.toolbarManager.addListener('cancelled', this.onToolbarCancelled.bind(this)),
             ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this)),
-            ctx.updateService.addListener('update-complete', this.onUpdateComplete.bind(this)),
+            ctx.updateService.addListener('pre-scene-render', this.onPreRender.bind(this)),
 
             // DOM
             ctx.annotationManager.attachNode(this.container),
@@ -666,11 +666,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.yAxis = this.getAxis(axisLayout, seriesRect, this.yAxis?.button);
             }
         }
-
-        this.updateAnnotations();
     }
 
-    private onUpdateComplete() {
+    private onPreRender() {
+        this.updateAnnotations();
         this.state.transition('render');
     }
 
@@ -965,7 +964,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
     }
 
-    private update() {
-        this.ctx.updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+    private update(status = ChartUpdateType.PRE_SCENE_RENDER) {
+        this.ctx.updateService.update(status, { skipAnimations: true });
     }
 }

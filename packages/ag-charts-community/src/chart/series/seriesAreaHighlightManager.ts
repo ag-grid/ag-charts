@@ -8,7 +8,6 @@ import type { HighlightChangeEvent } from '../interaction/highlightManager';
 import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
 import { REGIONS } from '../interaction/regions';
 import type { LayoutCompleteEvent } from '../layout/layoutService';
-import { type TooltipPointerEvent } from '../tooltip/tooltip';
 import type { UpdateOpts } from '../updateService';
 import { type Series } from './series';
 import type { ISeries } from './seriesTypes';
@@ -17,7 +16,12 @@ import { pickNode } from './util';
 /** Manager that handles all top-down series-area highlight concerns and state. */
 export class SeriesAreaHighlightManager extends BaseManager {
     private series: Series<any, any>[] = [];
-    private lastHoverEvent?: PointerInteractionEvent<'hover' | 'drag'>;
+    /** Last received event that still needs to be applied. */
+    private pendingHoverEvent?: PointerInteractionEvent<'hover' | 'drag'>;
+    /** Last applied event. */
+    private appliedHoverEvent?: PointerInteractionEvent<'hover' | 'drag'>;
+    /** Last applied event, which has been temporarily stashed during the main chart update cycle. */
+    private stashedHoverEvent?: PointerInteractionEvent<'hover' | 'drag'>;
     private hoverRect?: BBox;
 
     public constructor(
@@ -65,12 +69,14 @@ export class SeriesAreaHighlightManager extends BaseManager {
     }
 
     public dataChanged() {
+        this.stashedHoverEvent ??= this.appliedHoverEvent;
         this.clearHighlight();
     }
 
-    public seriesUpdated() {
-        if (this.lastHoverEvent != null) {
-            this.handleHover(this.lastHoverEvent, false);
+    public preSceneRender() {
+        if (this.stashedHoverEvent != null) {
+            this.pendingHoverEvent = this.stashedHoverEvent;
+            this.handleHover(true);
         }
     }
 
@@ -83,18 +89,17 @@ export class SeriesAreaHighlightManager extends BaseManager {
     }
 
     private clearHighlight() {
+        this.appliedHoverEvent = undefined;
         this.ctx.highlightManager.updateHighlight(this.id);
-        this.lastHoverEvent = undefined;
-        this.update(ChartUpdateType.SCENE_RENDER);
     }
 
     private onHover(event: PointerInteractionEvent<'hover' | 'drag'>): void {
-        this.lastHoverEvent = event;
+        this.pendingHoverEvent = event;
         this.hoverScheduler.schedule();
     }
 
     private readonly hoverScheduler = debouncedAnimationFrame(() => {
-        if (!this.lastHoverEvent) return;
+        if (!this.pendingHoverEvent) return;
 
         if (this.chart.performUpdateType <= ChartUpdateType.SERIES_UPDATE) {
             // Reschedule until the current update processing is complete, if we try to
@@ -103,10 +108,16 @@ export class SeriesAreaHighlightManager extends BaseManager {
             return;
         }
 
-        this.handleHover(this.lastHoverEvent, false);
+        this.handleHover(false);
     });
 
-    private handleHover(event: TooltipPointerEvent, redisplay: boolean) {
+    private handleHover(redisplay: boolean) {
+        this.appliedHoverEvent = this.pendingHoverEvent;
+        this.pendingHoverEvent = undefined;
+
+        const event = this.appliedHoverEvent;
+        if (!event) return;
+
         const state = this.ctx.interactionManager.getState();
         if (state !== InteractionState.Default && state !== InteractionState.Annotations) return;
 

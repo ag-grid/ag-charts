@@ -11,6 +11,12 @@ export interface UpdateCompleteEvent {
     minVisibleRect?: BBox;
 }
 
+export interface PreSceneRenderEvent {
+    type: 'pre-scene-render';
+    minRect?: BBox;
+    minVisibleRect?: BBox;
+}
+
 export type UpdateOpts = {
     forceNodeDataRefresh?: boolean;
     skipAnimations?: boolean;
@@ -20,7 +26,11 @@ export type UpdateOpts = {
     skipSync?: boolean;
 };
 
-export class UpdateService extends Listeners<'update-complete', (event: UpdateCompleteEvent) => void> {
+type UpdateEventTypes = 'update-complete' | 'pre-scene-render';
+
+type UpdateEvents = UpdateCompleteEvent | PreSceneRenderEvent;
+
+export class UpdateService extends Listeners<UpdateEventTypes, (event: UpdateEvents) => void> {
     constructor(private readonly updateCallback: UpdateCallback) {
         super();
     }
@@ -35,5 +45,9 @@ export class UpdateService extends Listeners<'update-complete', (event: UpdateCo
             minRect: rects?.minRect,
             minVisibleRect: rects?.minVisibleRect,
         });
+    }
+
+    public dispatchPreSceneRender(rects?: { minRect: BBox; minVisibleRect: BBox }) {
+        this.dispatch('pre-scene-render', { type: 'pre-scene-render', ...rects });
     }
 }

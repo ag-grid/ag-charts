@@ -64,7 +64,7 @@ export class SeriesAreaFocusManager extends BaseManager {
         this.ctx.focusIndicator.updateBounds(undefined);
     }
 
-    public seriesUpdated() {
+    public preSceneRender() {
         this.refreshFocus();
     }
 
