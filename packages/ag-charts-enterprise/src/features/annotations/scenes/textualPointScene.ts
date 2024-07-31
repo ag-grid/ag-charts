@@ -9,6 +9,12 @@ import { DivariantHandle } from './handle';
 const { CachedTextMeasurerPool, TextWrapper } = _ModuleSupport;
 const { Vec2 } = _Util;
 
+interface Anchor {
+    x: number;
+    y: number;
+    position: 'above' | 'above-left' | 'right';
+}
+
 export abstract class TextualPointScene<Datum extends TextualPointProperties> extends AnnotationScene {
     override activeHandle?: string;
 
@@ -20,7 +26,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         handle: Coords;
     };
 
-    private anchor: { x: number; y: number; position: 'above' | 'above-left' | 'right' } = {
+    private anchor: Anchor = {
         x: 0,
         y: 0,
         position: 'above-left',
@@ -79,7 +85,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         this.handle.toggleDragging(false);
     }
 
-    override getAnchor(): { x: number; y: number; position?: 'right' | 'above' | 'above-left' } {
+    override getAnchor(): Anchor {
         return this.anchor;
     }
 
