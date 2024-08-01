@@ -101,6 +101,7 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                 color: 'white',
                 fontSize: 14,
                 fontFamily: _Theme.DEFAULT_FONT_FAMILY,
+                fontWeight: 700,
                 textAlign: 'left',
                 handle: {
                     fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
