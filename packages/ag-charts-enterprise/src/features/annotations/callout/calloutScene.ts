@@ -38,7 +38,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
     override type = AnnotationType.Callout;
 
     private readonly shape = new _Scene.Path();
-    private readonly padding = DEFAULT_PADDING;
+    private padding = DEFAULT_PADDING;
 
     constructor() {
         super();
@@ -56,6 +56,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
     }
 
     protected override getLabelCoords(datum: CalloutProperties, bbox: _Scene.BBox, coords: LineCoords): _Util.Vec2 {
+        const { padding } = this;
         const {
             bodyBounds = {
                 x: 0,
@@ -66,8 +67,8 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         } = this.getDimensions(datum, bbox, coords) ?? {};
 
         return {
-            x: bodyBounds.x + this.padding.left,
-            y: bodyBounds.y - this.padding.bottom - datum.fontSize / 2,
+            x: bodyBounds.x + padding.left,
+            y: bodyBounds.y - bodyBounds.height / 2,
         };
     }
 
@@ -80,6 +81,19 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
                   strokeWidth: datum.handle.strokeWidth,
               }
             : { fill: undefined, strokeWidth: 0 };
+    }
+
+    override update(datum: CalloutProperties, context: AnnotationContext): void {
+        if (datum.padding != null) {
+            this.padding = {
+                top: datum.padding,
+                right: datum.padding,
+                bottom: datum.padding,
+                left: datum.padding,
+            };
+        }
+
+        super.update(datum, context);
     }
 
     protected override updateAnchor(datum: CalloutProperties, bbox: _Scene.BBox, context: AnnotationContext) {
@@ -321,10 +335,11 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         textBBox: _Scene.BBox,
         coords: LineCoords
     ): CalloutDimensions | undefined {
+        const { padding } = this;
         const { fontSize } = datum;
 
-        const horizontalPadding = this.padding.left + this.padding.right;
-        const verticalPadding = this.padding.top + this.padding.bottom;
+        const horizontalPadding = padding.left + padding.right;
+        const verticalPadding = padding.top + padding.bottom;
 
         const width = textBBox.width + horizontalPadding;
         const height = Math.max(textBBox.height + verticalPadding, fontSize + verticalPadding);
@@ -335,7 +350,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
                 y: coords.y1,
             },
             bodyBounds: {
-                x: textBBox.x,
+                x: textBBox.x - padding.left,
                 y: textBBox.y + height / 2,
                 width,
                 height,
