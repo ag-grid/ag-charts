@@ -30,7 +30,8 @@ const options: AgFinancialChartOptions = {
                     comment: {
                         fill: 'orange',
                         color: 'blue',
-                        strokeWidth: 4,
+                        stroke: 'blue',
+                        strokeWidth: 2,
                     },
                 },
             },
