@@ -11,6 +11,8 @@ const { BBox } = _Scene;
 const { Vec2 } = _Util;
 
 export abstract class TextualStartEndScene<Datum extends TextualStartEndProperties> extends LinearScene<Datum> {
+    static LineHeight = 1.38;
+
     override activeHandle?: 'start' | 'end';
 
     protected readonly label = new _Scene.Text({ zIndex: 1 });
@@ -66,7 +68,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
                 fontSize: datum.fontSize,
                 fontStyle: datum.fontStyle,
                 fontWeight: datum.fontWeight,
-                lineHeight: 1.38,
+                lineHeight: TextualStartEndScene.LineHeight,
             },
         });
 
@@ -157,7 +159,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         this.label.fontStyle = datum.fontStyle;
         this.label.fontWeight = datum.fontWeight;
         this.label.textAlign = datum.textAlign;
-        this.label.lineHeight = datum.fontSize * 1.38;
+        this.label.lineHeight = datum.fontSize * TextualStartEndScene.LineHeight;
     }
 
     protected updateHandles(datum: Datum, bbox: _Scene.BBox, coords: LineCoords) {
