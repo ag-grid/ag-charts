@@ -14,6 +14,7 @@ const ICON_SPACING = 10;
 export const LABEL_OFFSET = ICON_HEIGHT + ICON_SPACING;
 
 const { Layers, TextWrapper } = _ModuleSupport;
+const { clamp } = _Util;
 
 export class NoteScene extends TextualPointScene<NoteProperties> {
     static override is(value: unknown): value is NoteScene {
@@ -49,6 +50,17 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
 
         this.updateIcon(datum, context);
         super.update(datum, context);
+    }
+
+    override getTextBBox(datum: NoteProperties, coords: _Util.Vec2, context: AnnotationContext) {
+        const bbox = super.getTextBBox(datum, coords, context);
+
+        const { seriesRect } = context;
+
+        bbox.y = clamp(seriesRect.y + bbox.height + LABEL_OFFSET + this.padding, bbox.y, seriesRect.height);
+        bbox.x = clamp(datum.width / 2, bbox.x, seriesRect.width - bbox.width);
+
+        return bbox;
     }
 
     override updateLabel(datum: NoteProperties, bbox: _Scene.BBox): void {
@@ -133,10 +145,10 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         };
     }
 
-    protected override getHandleCoords(_datum: NoteProperties, bbox: _Scene.BBox): _Util.Vec2 {
+    protected override getHandleCoords(_datum: NoteProperties, _bbox: _Scene.BBox, coords: _Util.Vec2): _Util.Vec2 {
         return {
-            x: bbox.x,
-            y: bbox.y + DivariantHandle.HANDLE_SIZE / 2 + 4,
+            x: coords.x,
+            y: coords.y + DivariantHandle.HANDLE_SIZE / 2 + 4,
         };
     }
 
