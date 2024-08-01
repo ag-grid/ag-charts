@@ -45,10 +45,11 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
     }
 
     public update(datum: Datum, context: AnnotationContext) {
-        const bbox = this.getTextBBox(datum, context);
+        const coords = convertPoint(datum, context);
+        const bbox = this.getTextBBox(datum, coords, context);
 
         this.updateLabel(datum, bbox);
-        this.updateHandle(datum, bbox);
+        this.updateHandle(datum, bbox, coords);
         this.updateShape(datum, bbox);
 
         this.anchor = this.updateAnchor(datum, bbox, context);
@@ -109,13 +110,11 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         return label.visible && label.containsPoint(x, y);
     }
 
-    protected getTextBBox(datum: Datum, context: AnnotationContext) {
+    protected getTextBBox(datum: Datum, coords: _Util.Vec2, _context: AnnotationContext) {
         const { textInputBBox } = this;
 
-        const point = convertPoint(datum, context);
-
         if (textInputBBox) {
-            return new _Scene.BBox(point.x, point.y, textInputBBox.width, textInputBBox.height);
+            return new _Scene.BBox(coords.x, coords.y, textInputBBox.width, textInputBBox.height);
         }
 
         const text = this.wrapText(datum, datum.width);
@@ -124,7 +123,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         const { lineMetrics, width } = CachedTextMeasurerPool.measureLines(text, textOptions);
         const height = lineMetrics.length * (textOptions.font.fontSize * TextualPointScene.LineHeight);
 
-        return new _Scene.BBox(point.x, point.y, width, height);
+        return new _Scene.BBox(coords.x, coords.y, width, height);
     }
 
     protected updateLabel(datum: Datum, bbox: _Scene.BBox) {
@@ -147,8 +146,8 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         this.label.lineHeight = datum.fontSize * TextualPointScene.LineHeight;
     }
 
-    protected updateHandle(datum: Datum, bbox: _Scene.BBox) {
-        const { x, y } = this.getHandleCoords(datum, bbox);
+    protected updateHandle(datum: Datum, bbox: _Scene.BBox, coords: _Util.Vec2) {
+        const { x, y } = this.getHandleCoords(datum, bbox, coords);
         const styles = this.getHandleStyles(datum);
 
         this.handle.update({ ...styles, x, y });
@@ -171,7 +170,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         return bbox;
     }
 
-    protected getHandleCoords(_datum: Datum, bbox: _Scene.BBox): _Util.Vec2 {
+    protected getHandleCoords(_datum: Datum, bbox: _Scene.BBox, _coords: _Util.Vec2): _Util.Vec2 {
         return bbox;
     }
 

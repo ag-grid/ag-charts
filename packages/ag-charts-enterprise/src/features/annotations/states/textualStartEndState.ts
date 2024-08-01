@@ -5,6 +5,7 @@ import { colorDatum, getTypedDatum } from '../annotationsConfig';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
 import type { TextualStartEndScene } from '../scenes/textualStartEndScene';
+import { guardCancelAndExit, guardSaveAndExit } from './textualStateUtils';
 
 const { StateMachine } = _ModuleSupport;
 
@@ -109,10 +110,6 @@ export abstract class TextualStartEndStateMachine<
                 ctx.delete();
             }
         };
-
-        const guardCancelAndExit = ({ key }: { key: string }) => key === 'Escape';
-        const guardSaveAndExit = ({ key, shiftKey }: { key: string; shiftKey: boolean }) =>
-            !shiftKey && key === 'Enter';
 
         super('start', {
             start: {

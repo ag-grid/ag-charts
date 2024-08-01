@@ -130,7 +130,7 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                 },
             },
             text: {
-                color: _Theme.DEFAULT_ANNOTATION_COLOR,
+                color: _Theme.DEFAULT_TEXT_ANNOTATION_COLOR,
                 fontSize: 14,
                 fontFamily: _Theme.DEFAULT_FONT_FAMILY,
                 textAlign: 'left',
