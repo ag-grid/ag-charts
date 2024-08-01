@@ -16,6 +16,7 @@ interface TextualPointStateMachineContext<Datum extends TextualPointProperties, 
     node: () => Node | undefined;
     showTextInput: () => void;
     deselect: () => void;
+    showAnnotationOptions: () => void;
 }
 
 export abstract class TextualPointStateMachine<
