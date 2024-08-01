@@ -528,6 +528,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private onToolbarButtonPressLineMenu(event: _ModuleSupport.ToolbarButtonPressedEvent) {
         const { x, y, width } = event.rect;
 
+        this.cancel();
         this.reset();
 
         this.annotationPickerPopover.setAnchor({ x: x + width + 6, y });
@@ -541,6 +542,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private onToolbarButtonPressTextMenu(event: _ModuleSupport.ToolbarButtonPressedEvent) {
         const { x, y, width } = event.rect;
 
+        this.cancel();
         this.reset();
 
         this.annotationPickerPopover.setAnchor({ x: x + width + 6, y });
