@@ -8,6 +8,13 @@ import type { CalloutProperties } from './calloutProperties';
 
 const { drawCorner } = _Scene;
 
+const DEFAULT_PADDING = {
+    top: 6,
+    right: 12,
+    bottom: 9,
+    left: 12,
+};
+
 interface CalloutDimensions {
     tailPoint: {
         x: number;
@@ -31,6 +38,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
     override type = AnnotationType.Callout;
 
     private readonly shape = new _Scene.Path();
+    private padding = DEFAULT_PADDING;
 
     constructor() {
         super();
@@ -48,6 +56,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
     }
 
     protected override getLabelCoords(datum: CalloutProperties, bbox: _Scene.BBox, coords: LineCoords): _Util.Vec2 {
+        const { padding } = this;
         const {
             bodyBounds = {
                 x: 0,
@@ -58,7 +67,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         } = this.getDimensions(datum, bbox, coords) ?? {};
 
         return {
-            x: bodyBounds.x + (datum.padding ?? 10),
+            x: bodyBounds.x + padding.left,
             y: bodyBounds.y - bodyBounds.height / 2,
         };
     }
@@ -72,6 +81,19 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
                   strokeWidth: datum.handle.strokeWidth,
               }
             : { fill: undefined, strokeWidth: 0 };
+    }
+
+    override update(datum: CalloutProperties, context: AnnotationContext): void {
+        if (datum.padding != null) {
+            this.padding = {
+                top: datum.padding,
+                right: datum.padding,
+                bottom: datum.padding,
+                left: datum.padding,
+            };
+        }
+
+        super.update(datum, context);
     }
 
     protected override updateAnchor(datum: CalloutProperties, bbox: _Scene.BBox, context: AnnotationContext) {
@@ -116,7 +138,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         const right = x + width;
 
         const placement = this.calculateCalloutPlacement({ x: tailX, y: tailY }, bodyBounds);
-        const cornerRadius = Math.min(12, Math.min(width, height) / 2);
+        const cornerRadius = 8;
 
         const pathParams: { coordinates: _Scene.Corner; type: PathType }[] = [
             {
@@ -226,7 +248,8 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         cornerRadius: number,
         type: PathType
     ) {
-        const halfCornerRadius = cornerRadius / 2;
+        const sideTailRadius = 6;
+
         switch (type) {
             case 'calloutCorner': {
                 path.lineTo(cx, cy);
@@ -254,17 +277,17 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
                     const direction = x0 > x1 ? -1 : 1;
                     const midX = Math.min(x0, x1) + Math.abs(x1 - x0) / 2;
 
-                    path.lineTo(midX - halfCornerRadius * direction, y0);
+                    path.lineTo(midX - sideTailRadius * direction, y0);
                     path.lineTo(cx, cy);
-                    path.lineTo(midX + halfCornerRadius * direction, y0);
+                    path.lineTo(midX + sideTailRadius * direction, y0);
                     path.lineTo(x1, y1);
                 } else {
                     const direction = y0 > y1 ? -1 : 1;
                     const midY = Math.min(y0, y1) + Math.abs(y0 - y1) / 2;
 
-                    path.lineTo(x0, midY - halfCornerRadius * direction);
+                    path.lineTo(x0, midY - sideTailRadius * direction);
                     path.lineTo(cx, cy);
-                    path.lineTo(x0, midY + halfCornerRadius * direction);
+                    path.lineTo(x0, midY + sideTailRadius * direction);
                     path.lineTo(x1, y1);
                 }
                 break;
@@ -312,11 +335,14 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         textBBox: _Scene.BBox,
         coords: LineCoords
     ): CalloutDimensions | undefined {
-        const { padding = 10, fontSize } = datum;
-        const doublePadding = padding * 2;
+        const { padding } = this;
+        const { fontSize } = datum;
 
-        const width = textBBox.width + doublePadding;
-        const height = Math.max(textBBox.height + doublePadding, fontSize + doublePadding);
+        const horizontalPadding = padding.left + padding.right;
+        const verticalPadding = padding.top + padding.bottom;
+
+        const width = textBBox.width + horizontalPadding;
+        const height = Math.max(textBBox.height + verticalPadding, fontSize + verticalPadding);
 
         return {
             tailPoint: {
@@ -324,7 +350,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
                 y: coords.y1,
             },
             bodyBounds: {
-                x: textBBox.x - padding,
+                x: textBBox.x - padding.left,
                 y: textBBox.y + height / 2,
                 width,
                 height,
