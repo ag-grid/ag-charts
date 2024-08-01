@@ -18,21 +18,11 @@ import type { ParallelChannelScene } from './parallel-channel/parallelChannelSce
 import { TextProperties } from './text/textProperties';
 import type { TextScene } from './text/textScene';
 
-export type AnnotationProperties =
-    // Lines
-    | LineProperties
-    | HorizontalLineProperties
-    | VerticalLineProperties
+export type TextualPropertiesType = CalloutProperties | CommentProperties | NoteProperties | TextProperties;
+export type LinePropertiesType = LineProperties | HorizontalLineProperties | VerticalLineProperties;
+export type ChannelPropertyType = ParallelChannelProperties | DisjointChannelProperties;
 
-    // Channels
-    | ParallelChannelProperties
-    | DisjointChannelProperties
-
-    // Texts
-    | CalloutProperties
-    | CommentProperties
-    | NoteProperties
-    | TextProperties;
+export type AnnotationProperties = LinePropertiesType | ChannelPropertyType | TextualPropertiesType;
 
 export type AnnotationScene =
     // Lines

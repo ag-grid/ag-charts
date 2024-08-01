@@ -10,7 +10,13 @@ import { buildBounds } from '../../utils/position';
 import { ColorPicker } from '../color-picker/colorPicker';
 import { type MenuItem, Popover } from '../popover/popover';
 import { TextInput } from '../text-input/textInput';
-import type { AnnotationContext, AnnotationOptionsColorPickerType, Coords, Point } from './annotationTypes';
+import {
+    type AnnotationContext,
+    type AnnotationOptionsColorPickerType,
+    type Coords,
+    type Point,
+    TextualAnnotationType,
+} from './annotationTypes';
 import {
     ANNOTATION_BUTTONS,
     ANNOTATION_BUTTON_GROUPS,
@@ -21,12 +27,13 @@ import { calculateAxisLabelPadding, invertCoords, validateDatumPoint } from './a
 import {
     annotationDatums,
     annotationScenes,
-    colorDatum,
     getTypedDatum,
     hasFillColor,
     hasFontSize,
     hasLineColor,
     hasTextColor,
+    isTextType,
+    setDefaults,
     updateAnnotation,
 } from './annotationsConfig';
 import { AnnotationsStateMachine } from './annotationsStateMachine';
@@ -167,10 +174,25 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private readonly colorPicker = new ColorPicker(this.ctx);
     private readonly textSizePopover = new Popover(this.ctx, 'annotations');
     private readonly annotationPickerPopover = new Popover(this.ctx, 'text');
-    private readonly defaultColors: Map<AnnotationOptionsColorPickerType, string | undefined> = new Map([
-        ['line-color', undefined],
-        ['fill-color', undefined],
-        ['text-color', undefined],
+    private readonly defaultColors: Map<
+        AnnotationType | TextualAnnotationType,
+        Map<AnnotationOptionsColorPickerType, string | undefined>
+    > = new Map(
+        Object.values(AnnotationType).map((type) => [
+            type,
+            new Map([
+                ['line-color', undefined],
+                ['fill-color', undefined],
+                ['text-color', undefined],
+            ]),
+        ])
+    );
+
+    private defaultFontSizes: Map<TextualAnnotationType, number | undefined> = new Map([
+        [TextualAnnotationType.Callout, undefined],
+        [TextualAnnotationType.Comment, undefined],
+        [TextualAnnotationType.Note, undefined],
+        [TextualAnnotationType.Text, undefined],
     ]);
 
     private readonly textInput = new TextInput(this.ctx);
@@ -275,11 +297,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 const styles = this.ctx.annotationManager.getAnnotationTypeStyles(type);
                 if (styles) datum.set(styles);
 
-                for (const [colorPickerType, color] of this.defaultColors) {
-                    if (color) {
-                        colorDatum(datum, colorPickerType, color);
-                    }
-                }
+                setDefaults({ datum, defaultColors: this.defaultColors, defaultFontSizes: this.defaultFontSizes });
 
                 this.resetToolbarButtonStates();
                 this.update();
@@ -482,24 +500,25 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.hideOverlays();
 
+        const datum = getTypedDatum(annotationData[active]);
+
         switch (event.value) {
             case AnnotationOptions.LineColor:
             case AnnotationOptions.FillColor:
             case AnnotationOptions.TextColor:
                 this.colorPicker.show({
                     color: getTypedDatum(annotationData[active])?.getDefaultColor(event.value),
-                    onChange: this.onColorPickerChange.bind(this, event.value),
+                    onChange: datum != null ? this.onColorPickerChange.bind(this, event.value, datum) : undefined,
                     onClose: this.onColorPickerClose.bind(this),
                 });
                 break;
 
             case AnnotationOptions.TextSize: {
-                const datum = getTypedDatum(annotationData[active]);
                 const fontSize = datum != null && 'fontSize' in datum ? datum.fontSize : undefined;
                 this.textSizePopover.show<number>({
                     items: TEXT_SIZE_ITEMS,
                     value: fontSize,
-                    onPress: this.onTextSizePopoverPress.bind(this),
+                    onPress: (item) => this.onTextSizePopoverPress(item, datum),
                     onClose: this.onTextSizePopoverClose.bind(this),
                     class: 'annotations__text-size',
                 });
@@ -589,9 +608,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
     }
 
-    private onColorPickerChange(colorPickerType: AnnotationOptionsColorPickerType, color: string) {
+    private onColorPickerChange(
+        colorPickerType: AnnotationOptionsColorPickerType,
+        datum: AnnotationProperties,
+        color: string
+    ) {
         this.state.transition('color', { colorPickerType, color });
-        this.defaultColors.set(colorPickerType, color);
+        this.defaultColors.get(datum.type)?.set(colorPickerType, color);
 
         this.updateToolbarColorPickerFill(colorPickerType, color);
     }
@@ -630,8 +653,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         });
     }
 
-    private onTextSizePopoverPress(item: MenuItem<number>) {
+    private onTextSizePopoverPress(item: MenuItem<number>, datum?: AnnotationProperties) {
         const fontSize = item.value;
+        if (isTextType(datum)) {
+            this.defaultFontSizes.set(datum.type, fontSize);
+        }
+
         this.state.transition('fontSize', fontSize);
 
         this.updateToolbarFontSize(fontSize);

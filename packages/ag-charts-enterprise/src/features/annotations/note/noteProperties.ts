@@ -1,7 +1,11 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { Fill, Stroke } from '../annotationProperties';
-import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
+import {
+    type AnnotationContext,
+    type AnnotationOptionsColorPickerType,
+    TextualAnnotationType,
+} from '../annotationTypes';
 import { TextualPointProperties } from '../properties/textualPointProperties';
 import { DEFAULT_PADDING, LABEL_OFFSET } from './noteScene';
 
@@ -11,11 +15,11 @@ class NoteBackgroundProperties extends Fill(Stroke(BaseProperties)) {}
 
 export class NoteProperties extends Fill(Stroke(TextualPointProperties)) {
     static is(value: unknown): value is NoteProperties {
-        return isObject(value) && value.type === AnnotationType.Note;
+        return isObject(value) && value.type === TextualAnnotationType.Note;
     }
 
     @Validate(STRING)
-    type = AnnotationType.Note as const;
+    type = TextualAnnotationType.Note as const;
 
     @Validate(OBJECT, { optional: true })
     background = new NoteBackgroundProperties();
