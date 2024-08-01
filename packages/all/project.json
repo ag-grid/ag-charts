@@ -60,6 +60,7 @@
       "dependsOn": ["^build:types", "^build:package"],
       "inputs": [],
       "outputs": [],
+      "cache": false,
       "options": {
         "parallel": false,
         "commands": [
