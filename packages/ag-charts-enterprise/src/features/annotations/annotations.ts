@@ -193,9 +193,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 ctx.interactionManager.popState(InteractionState.Annotations);
                 ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: false });
                 ctx.tooltipManager.unsuppressTooltip('annotations');
-                this.colorPicker.hide();
-                this.textSizePopover.hide();
-                this.annotationPickerPopover.hide();
+                this.hideOverlays();
                 this.resetToolbarButtonStates();
                 this.toggleAnnotationOptionsButtons();
                 this.update();
@@ -221,18 +219,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             select: (index?: number, previous?: number) => {
                 const {
                     annotations,
-                    colorPicker,
-                    textSizePopover,
-                    annotationPickerPopover,
                     ctx: { toolbarManager, tooltipManager },
                 } = this;
 
                 const node = index != null ? annotations.at(index) : undefined;
                 node?.toggleActive(true);
 
-                colorPicker.hide();
-                textSizePopover.hide();
-                annotationPickerPopover.hide();
+                this.hideOverlays();
 
                 if (previous != null && previous != index) {
                     annotations.at(previous)?.toggleActive(false);
@@ -479,6 +472,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (active == null) return;
 
+        this.hideOverlays();
+
         switch (event.value) {
             case AnnotationOptions.LineColor:
             case AnnotationOptions.FillColor:
@@ -511,8 +506,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             case AnnotationOptions.Lock:
                 annotationData[active].locked = true;
                 this.toggleAnnotationOptionsButtons();
-                this.colorPicker.hide();
-                this.textSizePopover.hide();
                 break;
 
             case AnnotationOptions.Unlock:
@@ -563,21 +556,27 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onToolbarButtonMoved(event: _ModuleSupport.ToolbarButtonMovedEvent) {
-        const { group, rect, value } = event;
+        const { group, rect, groupRect, value } = event;
 
-        if (
-            group !== 'annotationOptions' ||
-            (value !== AnnotationOptions.LineColor && value !== AnnotationOptions.TextColor)
-        ) {
-            return;
+        if (group !== 'annotationOptions') return;
+
+        switch (value as AnnotationOptions) {
+            case AnnotationOptions.FillColor:
+            case AnnotationOptions.LineColor:
+            case AnnotationOptions.TextColor: {
+                const anchor = Vec2.add(groupRect, Vec2.from(0, groupRect.height + 4));
+                const fallback = { y: groupRect.y - 4 };
+                this.colorPicker.setAnchor(anchor, fallback);
+                break;
+            }
+            case AnnotationOptions.TextSize: {
+                const anchor = { x: rect.x, y: rect.y + rect.height - 1 };
+                this.textSizePopover.setAnchor(anchor);
+                break;
+            }
+            default:
+                break;
         }
-
-        const anchor = Vec2.add(rect, Vec2.from(0, rect.height + 4));
-        const fallback = { y: rect.y - 4 };
-        this.colorPicker.setAnchor(anchor, fallback);
-
-        const textAnchor = { x: rect.x + 34 - 1, y: rect.y + rect.height - 1 };
-        this.textSizePopover.setAnchor(textAnchor);
     }
 
     private onColorPickerChange(colorPickerType: AnnotationOptionsColorPickerType, color: string) {
@@ -955,6 +954,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             annotationData.splice(active, 1);
             this.update();
         }
+    }
+
+    private hideOverlays() {
+        this.colorPicker.hide();
+        this.textSizePopover.hide();
+        this.annotationPickerPopover.hide();
     }
 
     private resetToolbarButtonStates() {

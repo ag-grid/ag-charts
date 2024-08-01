@@ -67,6 +67,7 @@ export interface ToolbarButtonUpdatedEvent extends Event<'button-updated'> {
 export interface ToolbarButtonMovedEvent<T = any> extends Event<'button-moved'> {
     value: T;
     rect: BBox;
+    groupRect: BBox;
 }
 
 export interface ToolbarProxyGroupOptionsEvent extends Event<'proxy-group-options'> {
@@ -128,8 +129,8 @@ export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
         this.listeners.dispatch('floating-anchor-changed', { type: 'floating-anchor-changed', group, anchor });
     }
 
-    buttonMoved(group: ToolbarGroup, value: any, rect: BBox) {
-        this.listeners.dispatch('button-moved', { type: 'button-moved', group, value, rect });
+    buttonMoved(group: ToolbarGroup, value: any, rect: BBox, groupRect: BBox) {
+        this.listeners.dispatch('button-moved', { type: 'button-moved', group, value, rect, groupRect });
     }
 
     proxyGroupOptions<T extends ToolbarGroup>(caller: string, group: T, options: Partial<AgToolbarOptions[T]>) {
