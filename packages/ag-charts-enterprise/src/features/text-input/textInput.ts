@@ -111,6 +111,12 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         (this.element.firstElementChild as HTMLDivElement).style.color = color;
     }
 
+    public updateFontSize(fontSize: number) {
+        if (!this.element.firstElementChild) return;
+        (this.element.firstElementChild as HTMLDivElement).style.fontSize = `${fontSize}px`;
+        this.updatePosition();
+    }
+
     public getValue() {
         if (!this.element.firstElementChild) return;
         return (this.element.firstElementChild as HTMLDivElement).innerText.trim();

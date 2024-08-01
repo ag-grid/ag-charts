@@ -27,7 +27,7 @@ export abstract class TextualStartEndStateMachine<
     Node extends TextualStartEndScene<Datum>,
 > extends StateMachine<
     'start' | 'waiting-first-render' | 'edit' | 'end',
-    'click' | 'cancel' | 'hover' | 'keyDown' | 'showTextInput' | 'color' | 'render'
+    'click' | 'cancel' | 'hover' | 'keyDown' | 'updateTextInputBBox' | 'color' | 'render'
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -59,7 +59,7 @@ export abstract class TextualStartEndStateMachine<
             ctx.deselect();
         };
 
-        const actionShowTextInput = (bbox: _Scene.BBox) => {
+        const actionUpdateTextInputBBox = (bbox: _Scene.BBox) => {
             const node = ctx.node();
             node?.setTextInputBBox(bbox);
             ctx.update();
@@ -135,7 +135,7 @@ export abstract class TextualStartEndStateMachine<
             },
             edit: {
                 onEnter: onStartEditing,
-                showTextInput: actionShowTextInput,
+                updateTextInputBBox: actionUpdateTextInputBBox,
                 color: actionColor,
                 keyDown: [
                     {

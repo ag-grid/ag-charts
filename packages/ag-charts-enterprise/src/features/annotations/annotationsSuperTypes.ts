@@ -70,6 +70,7 @@ export interface AnnotationsStateMachineContext {
     showTextInput: (index: number) => void;
     hideTextInput: () => void;
     updateTextInputColor: (color: string) => void;
+    updateTextInputFontSize: (fontSize: number) => void;
 
     showAnnotationOptions: (index: number) => void;
 
