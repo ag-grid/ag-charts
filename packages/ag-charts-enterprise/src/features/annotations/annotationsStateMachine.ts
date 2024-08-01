@@ -413,23 +413,27 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     ctx.update();
                 },
 
+                showTextInput: {
+                    guard: guardActive,
+                    target: States.TextInput,
+                    action: (bbox: _Scene.BBox) => {
+                        const node = ctx.node(this.active!);
+                        if (!node || !('setTextInputBBox' in node)) return;
+                        node.setTextInputBBox(bbox);
+                        ctx.update();
+                    },
+                },
+
                 click: {
                     target: States.Idle,
                     action: ({ textInputValue }: { textInputValue?: string }) => {
                         if (textInputValue != null && textInputValue.length > 0) {
                             ctx.datum(this.active!)?.set({ text: textInputValue });
+                            ctx.update();
                         } else {
                             ctx.delete(this.active!);
                         }
                     },
-                },
-
-                showTextInput: (bbox: _Scene.BBox) => {
-                    if (this.active == null) return;
-                    const node = ctx.node(this.active);
-                    if (!node || !('setTextInputBBox' in node)) return;
-                    node.setTextInputBBox(bbox);
-                    ctx.update();
                 },
 
                 keyDown: [
@@ -456,21 +460,23 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 cancel: States.Idle,
 
                 onExit: () => {
-                    if (this.active == null) return;
-
-                    const datum = ctx.datum(this.active);
-                    const node = ctx.node(this.active);
-                    if (!datum || !node) return;
-
                     ctx.stopInteracting();
                     ctx.hideTextInput();
+
+                    const wasActive = this.active;
+                    this.active = this.hovered = ctx.select(undefined, this.active);
+
+                    if (wasActive == null) return;
+
+                    const datum = ctx.datum(wasActive);
+                    const node = ctx.node(wasActive);
+                    if (!datum || !node) return;
+
                     datum.visible = true;
 
                     if ('invalidateTextInputBBox' in node) {
                         node.invalidateTextInputBBox();
                     }
-
-                    this.active = this.hovered = ctx.select(undefined, this.active);
                 },
             },
         });
