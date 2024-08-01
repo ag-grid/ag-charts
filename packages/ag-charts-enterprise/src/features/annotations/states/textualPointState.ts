@@ -25,7 +25,7 @@ export abstract class TextualPointStateMachine<
     Node extends TextualPointScene<Datum>,
 > extends StateMachine<
     'start' | 'waiting-first-render' | 'edit',
-    'click' | 'cancel' | 'keyDown' | 'updateTextInputBBox' | 'color' | 'render'
+    'click' | 'cancel' | 'keyDown' | 'updateTextInputBBox' | 'color' | 'fontSize' | 'render'
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -80,6 +80,24 @@ export abstract class TextualPointStateMachine<
             ctx.update();
         };
 
+        const actionFontSize = (fontSize: number) => {
+            const datum = ctx.datum();
+            const node = ctx.node();
+            if (!datum || !node) return;
+
+            ctx.updateTextInputFontSize(fontSize);
+
+            if ('fontSize' in datum) {
+                datum.fontSize = fontSize;
+            }
+
+            if ('invalidateTextInputBBox' in node) {
+                node.invalidateTextInputBBox();
+            }
+
+            ctx.update();
+        };
+
         const actionCancel = () => {
             ctx.delete();
         };
@@ -110,6 +128,7 @@ export abstract class TextualPointStateMachine<
                 onEnter: onStartEditing,
                 updateTextInputBBox: actionUpdateTextInputBBox,
                 color: actionColor,
+                fontSize: actionFontSize,
                 keyDown: [
                     {
                         guard: guardCancelAndExit,
