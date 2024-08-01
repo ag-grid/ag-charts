@@ -64,7 +64,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
                 fontSize: datum.fontSize,
                 fontStyle: datum.fontStyle,
                 fontWeight: datum.fontWeight,
-                lineHeight: 1,
+                lineHeight: 1.38,
             },
         });
 
@@ -151,6 +151,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         this.label.fontStyle = datum.fontStyle;
         this.label.fontWeight = datum.fontWeight;
         this.label.textAlign = datum.textAlign;
+        this.label.lineHeight = datum.fontSize * 1.38;
     }
 
     protected updateHandles(datum: Datum, bbox: _Scene.BBox, coords: LineCoords) {
