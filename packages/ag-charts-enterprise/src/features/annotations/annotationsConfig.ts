@@ -136,13 +136,6 @@ export function isTextType(datum: unknown): datum is TextualPropertiesType {
 export function hasFontSize(datum?: AnnotationProperties) {
     return isTextType(datum) && !NoteProperties.is(datum);
 }
-// export function isTextType(datum?: AnnotationProperties): datum is TextualPropertiesType {
-//     return isObject(datum) && datum.type in TextualAnnotationType;
-// }
-
-// export function isTextualAnnotationType(type: unknown): type is TextualAnnotationType {
-//     return typeof type === 'string' && type in TextualAnnotationType;
-// }
 
 export function hasLineColor(datum?: AnnotationProperties) {
     return isLineType(datum) || isChannelType(datum) || CalloutProperties.is(datum) || NoteProperties.is(datum);

@@ -188,7 +188,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         ])
     );
 
-    private defaultFontSizes: Map<TextualAnnotationType, number | undefined> = new Map([
+    private readonly defaultFontSizes: Map<TextualAnnotationType, number | undefined> = new Map([
         [TextualAnnotationType.Callout, undefined],
         [TextualAnnotationType.Comment, undefined],
         [TextualAnnotationType.Note, undefined],
