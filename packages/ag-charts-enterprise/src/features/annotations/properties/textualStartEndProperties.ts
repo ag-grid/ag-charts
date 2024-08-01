@@ -1,8 +1,8 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
 import { Annotation, Font, Handle, Label, Line } from '../annotationProperties';
-import { type AnnotationContext, type AnnotationOptionsColorPickerType } from '../annotationTypes';
-import { convertLine } from '../annotationUtils';
+import { type AnnotationContext, type AnnotationOptionsColorPickerType, type Padding } from '../annotationTypes';
+import { convertPoint } from '../annotationUtils';
 
 const { STRING, BaseProperties, Validate } = _ModuleSupport;
 
@@ -28,8 +28,7 @@ export class TextualStartEndProperties extends Annotation(Line(Handle(Label(Font
         return undefined;
     }
 
-    public getTextInputCoords(context: AnnotationContext): { x: number; y: number } {
-        const coords = convertLine(this, context);
-        return { x: coords?.x2 ?? 0, y: coords?.y2 ?? 0 };
+    public getTextInputCoords(context: AnnotationContext, _padding?: Padding | number): { x: number; y: number } {
+        return convertPoint(this.end, context);
     }
 }

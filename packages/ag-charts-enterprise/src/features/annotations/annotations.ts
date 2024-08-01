@@ -316,7 +316,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
             showTextInput: (active: number) => {
                 const datum = getTypedDatum(this.annotationData.at(active));
-                if (!datum || !('getTextInputCoords' in datum)) return;
+                const node = this.annotations.at(active);
+                if (!node || !datum || !('getTextInputCoords' in datum)) return;
 
                 const styles = {
                     color: datum.color,
@@ -328,7 +329,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 };
 
                 const point = Vec2.add(
-                    datum.getTextInputCoords(this.getAnnotationContext()!),
+                    datum.getTextInputCoords(
+                        this.getAnnotationContext()!,
+                        'padding' in node ? (node as any).padding : undefined
+                    ),
                     Vec2.required(this.seriesRect)
                 );
 
