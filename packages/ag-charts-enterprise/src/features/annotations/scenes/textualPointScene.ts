@@ -16,7 +16,7 @@ interface Anchor {
 }
 
 export abstract class TextualPointScene<Datum extends TextualPointProperties> extends AnnotationScene {
-    static LineHeight = 1.38;
+    static readonly LineHeight = 1.38;
 
     override activeHandle?: string;
 

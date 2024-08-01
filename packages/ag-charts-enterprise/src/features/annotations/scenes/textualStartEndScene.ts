@@ -11,7 +11,7 @@ const { BBox } = _Scene;
 const { Vec2 } = _Util;
 
 export abstract class TextualStartEndScene<Datum extends TextualStartEndProperties> extends LinearScene<Datum> {
-    static LineHeight = 1.38;
+    static readonly LineHeight = 1.38;
 
     override activeHandle?: 'start' | 'end';
 
