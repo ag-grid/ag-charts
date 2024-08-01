@@ -102,13 +102,12 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         zoom: [],
     };
 
-    private groupDestroyFns: Record<ToolbarGroup, Array<() => void>> = {
-        seriesType: [],
-        annotations: [],
-        annotationOptions: [],
-        ranges: [],
-        zoom: [],
-    };
+    private readonly ariaToolbars: { groups: ToolbarGroup[]; destroyFns: (() => void)[] }[] = [
+        { groups: ['seriesType', 'annotations'], destroyFns: [] },
+        { groups: ['annotationOptions'], destroyFns: [] },
+        { groups: ['ranges'], destroyFns: [] },
+        { groups: ['zoom'], destroyFns: [] },
+    ];
 
     private pendingButtonToggledEvents: Array<ToolbarButtonToggledEvent> = [];
 
@@ -357,9 +356,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             button.remove();
         }
 
+        const ariaToolbar = this.getAriaToolbar(group);
         this.groupButtons[group] = [];
-        this.groupDestroyFns[group].forEach((d) => d());
-        this.groupDestroyFns[group] = [];
+        ariaToolbar.destroyFns.forEach((d) => d());
+        ariaToolbar.destroyFns = [];
 
         if (buttons.length === 0) return;
 
@@ -431,10 +431,11 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
 
         const orientation = this.computeAriaOrientation(this[group].position);
-        this.groupDestroyFns[group] = initToolbarKeyNav({
+        const ariaToolbarButtons = ariaToolbar.groups.map((g) => this.groupButtons[g]).flat();
+        ariaToolbar.destroyFns = initToolbarKeyNav({
             orientation,
             toolbar: alignElement,
-            buttons: this.groupButtons[group],
+            buttons: ariaToolbarButtons,
             onEscape,
             onFocus,
             onBlur,
@@ -655,6 +656,15 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         return button;
     }
 
+    private getAriaToolbar(group: ToolbarGroup): Toolbar['ariaToolbars'][number] {
+        for (const ariaToolbar of this.ariaToolbars) {
+            if (ariaToolbar.groups.includes(group)) {
+                return ariaToolbar;
+            }
+        }
+        throw new Error(`AG Charts - cannot find aria-toolbar of '${group}'`);
+    }
+
     private updateToolbarAriaLabel(group: ToolbarGroup, alignElement?: HTMLElement) {
         if (!alignElement) {
             const { align, position } = this[group];
@@ -662,8 +672,8 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             if (!alignElement) return;
         }
         const map = {
-            seriesType: 'ariaLabelChartToolbar',
-            annotations: 'ariaLabelAnnotationsToolbar',
+            seriesType: 'ariaLabelFinancialCharts',
+            annotations: 'ariaLabelFinancialCharts',
             annotationOptions: 'ariaLabelAnnotationOptionsToolbar',
             ranges: 'ariaLabelRangesToolbar',
             zoom: 'ariaLabelZoomToolbar',
