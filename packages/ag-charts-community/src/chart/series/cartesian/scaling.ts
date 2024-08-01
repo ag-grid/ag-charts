@@ -53,5 +53,5 @@ export function isScaleValid(scale?: Scaling) {
     if (scale.type === 'category') {
         return scale.domain.every((v) => v != null);
     }
-    return scale.domain.every((v: any) => (typeof v === 'number' && isFinite(v)) || v instanceof Date);
+    return scale.domain.every((v: any) => (Number.isFinite(v)) || v instanceof Date);
 }
