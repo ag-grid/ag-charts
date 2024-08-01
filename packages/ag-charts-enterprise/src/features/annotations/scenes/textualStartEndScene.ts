@@ -230,7 +230,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
                 fontWeight: datum.fontWeight,
             },
             textAlign: datum.textAlign,
-            textBaseline: 'hanging' as CanvasTextBaseline,
+            textBaseline: (datum.position == 'center' ? 'middle' : datum.position) as CanvasTextBaseline,
             lineHeight: TextualStartEndScene.LineHeight,
         };
     }

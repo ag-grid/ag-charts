@@ -203,7 +203,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
                 fontWeight: datum.fontWeight,
             },
             textAlign: datum.textAlign,
-            textBaseline: 'hanging' as CanvasTextBaseline,
+            textBaseline: (datum.position == 'center' ? 'middle' : datum.position) as CanvasTextBaseline,
             lineHeight: TextualPointScene.LineHeight,
         };
     }

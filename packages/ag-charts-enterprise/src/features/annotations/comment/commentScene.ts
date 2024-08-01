@@ -7,7 +7,12 @@ import type { CommentProperties } from './commentProperties';
 
 const { drawCorner } = _Scene;
 
-const DEFAULT_PADDING = 10;
+const DEFAULT_PADDING = {
+    top: 8,
+    right: 14,
+    bottom: 8,
+    left: 14,
+};
 
 export class CommentScene extends TextualPointScene<CommentProperties> {
     static override is(value: unknown): value is CommentScene {
@@ -17,7 +22,7 @@ export class CommentScene extends TextualPointScene<CommentProperties> {
     override type = AnnotationType.Comment;
 
     private readonly shape = new _Scene.Path();
-    private padding = DEFAULT_PADDING;
+    private padding = { ...DEFAULT_PADDING };
 
     constructor() {
         super();
@@ -25,7 +30,22 @@ export class CommentScene extends TextualPointScene<CommentProperties> {
     }
 
     public override update(datum: CommentProperties, context: AnnotationContext): void {
-        this.padding = datum.padding ?? DEFAULT_PADDING;
+        const { padding } = this;
+
+        if (datum.padding == null) {
+            padding.top = Math.max(datum.fontSize * 0.4, DEFAULT_PADDING.top);
+            padding.bottom = Math.max(datum.fontSize * 0.4, DEFAULT_PADDING.bottom);
+            padding.left = Math.max(datum.fontSize * 0.8, DEFAULT_PADDING.left);
+            padding.right = Math.max(datum.fontSize * 0.8, DEFAULT_PADDING.right);
+        } else {
+            this.padding = {
+                top: datum.padding,
+                right: datum.padding,
+                bottom: datum.padding,
+                left: datum.padding,
+            };
+        }
+
         super.update(datum, context);
     }
 
@@ -43,12 +63,12 @@ export class CommentScene extends TextualPointScene<CommentProperties> {
         this.updatePath(datum, bbox);
     }
 
-    protected override getLabelCoords(datum: CommentProperties, point: _Util.Vec2): _Util.Vec2 {
-        const padding = datum.padding ?? DEFAULT_PADDING;
+    protected override getLabelCoords(_datum: CommentProperties, point: _Util.Vec2): _Util.Vec2 {
+        const { padding } = this;
 
         return {
-            x: point.x + padding,
-            y: point.y - padding,
+            x: point.x + padding.left,
+            y: point.y - padding.bottom,
         };
     }
 
@@ -63,19 +83,21 @@ export class CommentScene extends TextualPointScene<CommentProperties> {
 
     protected override updateAnchor(datum: CommentProperties, bbox: _Scene.BBox, context: AnnotationContext) {
         const anchor = super.updateAnchor(datum, bbox, context);
-        anchor.y -= this.padding * 2;
+        anchor.y -= this.padding.bottom + this.padding.top;
         return anchor;
     }
 
     private updatePath(datum: CommentProperties, bbox: _Scene.BBox) {
+        const { padding } = this;
         const { x, y } = bbox;
         let { width, height } = bbox;
+        const { fontSize } = datum;
 
-        const { padding = DEFAULT_PADDING, fontSize } = datum;
-        const doublePadding = padding * 2;
+        const horizontalPadding = padding.left + padding.right;
+        const verticalPadding = padding.top + padding.bottom;
 
-        width = width + doublePadding;
-        height = Math.max(height + doublePadding, fontSize + doublePadding);
+        width = width + horizontalPadding;
+        height = Math.max(height + verticalPadding, fontSize + verticalPadding);
 
         const top = y - height;
         const right = x + width;
