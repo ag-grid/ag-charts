@@ -48,7 +48,7 @@ export function areScalingEqual(a: Scaling | undefined, b: Scaling | undefined):
 
 export function isScaleValid(scale?: Scaling) {
     if (scale == null) return false;
-    if (!scale.range.every((v) => isFinite(v))) return false;
+    if (!scale.range.every((v) => Number.isFinite(v))) return false;
 
     if (scale.type === 'category') {
         return scale.domain.every((v) => v != null);
