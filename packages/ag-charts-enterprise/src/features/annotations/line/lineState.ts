@@ -9,6 +9,7 @@ const { StateMachine } = _ModuleSupport;
 
 interface LineStateMachineContext extends Omit<AnnotationsStateMachineContext, 'create'> {
     create: (datum: LineProperties) => void;
+    delete: () => void;
     datum: () => LineProperties | undefined;
     node: () => LineScene | undefined;
     guardDragClickDoubleEvent: GuardDragClickDoubleEvent;
@@ -18,13 +19,13 @@ export class LineStateMachine extends StateMachine<'start' | 'end', 'click' | 'h
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(ctx: LineStateMachineContext) {
-        const onStartClick = ({ point }: { point: Point }) => {
+        const actionCreate = ({ point }: { point: Point }) => {
             const datum = new LineProperties();
             datum.set({ start: point, end: point });
             ctx.create(datum);
         };
 
-        const onEndHover = ({ point }: { point: Point }) => {
+        const actionEndUpdate = ({ point }: { point: Point }) => {
             ctx.guardDragClickDoubleEvent.hover();
             ctx.datum()?.set({ end: point });
             ctx.node()?.toggleActive(true); // TODO: move to onEnter, but node doesn't exist until next render
@@ -32,32 +33,36 @@ export class LineStateMachine extends StateMachine<'start' | 'end', 'click' | 'h
             ctx.update();
         };
 
-        const onEndClick = ({ point }: { point: Point }) => {
+        const actionEndFinish = ({ point }: { point: Point }) => {
             ctx.datum()?.set({ end: point });
             ctx.node()?.toggleHandles({ end: true });
         };
+
+        const actionCancel = () => ctx.delete();
 
         super('start', {
             start: {
                 click: {
                     target: 'end',
-                    action: onStartClick,
+                    action: actionCreate,
                 },
                 drag: {
                     target: 'end',
-                    action: onStartClick,
+                    action: actionCreate,
                 },
-                cancel: StateMachine.parent,
             },
             end: {
-                hover: onEndHover,
+                hover: actionEndUpdate,
                 click: {
                     guard: ctx.guardDragClickDoubleEvent.guard,
                     target: StateMachine.parent,
-                    action: onEndClick,
+                    action: actionEndFinish,
                 },
-                drag: onEndHover,
-                cancel: StateMachine.parent,
+                drag: actionEndUpdate,
+                cancel: {
+                    target: StateMachine.parent,
+                    action: actionCancel,
+                },
                 onExit: ctx.guardDragClickDoubleEvent.reset,
             },
         });

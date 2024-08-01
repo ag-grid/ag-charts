@@ -131,7 +131,10 @@ export abstract class TextualStartEndStateMachine<
                     target: 'edit',
                     action: onEndClick,
                 },
-                cancel: StateMachine.parent,
+                cancel: {
+                    target: StateMachine.parent,
+                    action: actionCancel,
+                },
             },
             edit: {
                 onEnter: onStartEditing,
@@ -153,7 +156,6 @@ export abstract class TextualStartEndStateMachine<
                     target: StateMachine.parent,
                     action: actionSave,
                 },
-                cancel: StateMachine.parent,
                 onExit: onStopEditing,
             },
         });
