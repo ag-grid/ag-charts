@@ -381,6 +381,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
             if (!sectionElement) {
                 sectionElement = createElement('div');
+                sectionElement.role = 'presentation';
                 sectionElement.setAttribute(dataGroup, group);
                 sectionElement.setAttribute(dataSection, section ?? '');
 
@@ -628,6 +629,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         for (const align of TOOLBAR_ALIGNMENTS) {
             const alignmentElement = createElement('div');
+            alignmentElement.role = 'presentation';
             alignmentElement.classList.add(styles.elements.align, styles.modifiers.align[align]);
             alignmentElement.dataset.pointerCapture = 'exclusive';
             element.appendChild(alignmentElement);
