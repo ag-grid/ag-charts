@@ -184,6 +184,23 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             },
         });
 
+        const actionColor = ({
+            colorPickerType,
+            color,
+        }: {
+            colorPickerType: AnnotationOptionsColorPickerType;
+            color: string;
+        }) => {
+            const datum = ctx.datum(this.active!);
+            if (!datum) return;
+
+            if (colorPickerType === 'text-color') {
+                ctx.updateTextInputColor(color);
+            }
+            colorDatum(datum, colorPickerType, color);
+            ctx.update();
+        };
+
         super(States.Idle, {
             [States.Idle]: {
                 onEnter: () => {
@@ -235,19 +252,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 color: {
                     guard: () => this.active != null,
                     target: States.Idle,
-                    action: ({
-                        colorPickerType,
-                        color,
-                    }: {
-                        colorPickerType: AnnotationOptionsColorPickerType;
-                        color: string;
-                    }) => {
-                        const datum = ctx.datum(this.active!);
-                        if (!datum) return;
-
-                        colorDatum(datum, colorPickerType, color);
-                        ctx.update();
-                    },
+                    action: actionColor,
                 },
 
                 fontSize: {
@@ -437,6 +442,12 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                         },
                     },
                 ],
+
+                color: {
+                    guard: () => this.active != null,
+                    target: States.TextInput,
+                    action: actionColor,
+                },
 
                 cancel: States.Idle,
 
