@@ -51,7 +51,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 SeriesNodePickMode.NEAREST_NODE,
                 SeriesNodePickMode.EXACT_SHAPE_MATCH,
             ],
-            pathsPerSeries: 0,
+            pathsPerSeries: [],
             hasMarkers: true,
             markerSelectionGarbageCollection: false,
             animationResetFns: {

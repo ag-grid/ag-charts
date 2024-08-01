@@ -80,7 +80,7 @@ export abstract class OhlcSeriesBase<
                 x: ['xName'],
                 y: ['lowName', 'highName', 'openName', 'closeName'],
             },
-            pathsPerSeries: 1,
+            pathsPerSeries: [],
             datumSelectionGarbageCollection: false,
             animationAlwaysUpdateSelections: true,
             animationResetFns: {

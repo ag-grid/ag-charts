@@ -28,6 +28,7 @@ export type RenderContext = {
 };
 
 export interface NodeOptions {
+    name?: string;
     isVirtual?: boolean;
     tag?: number;
     zIndex?: number;
@@ -54,6 +55,7 @@ export abstract class Node extends ChangeDetectable {
      * Unique node ID in the form `ClassName-NaturalNumber`.
      */
     readonly id = createId(this);
+    readonly name?: string;
 
     protected _datum?: any;
     protected _previousDatum?: any;
@@ -322,8 +324,9 @@ export abstract class Node extends ChangeDetectable {
     @SceneChangeDetection({ type: 'transform' })
     translationY: number = 0;
 
-    constructor({ isVirtual, tag, zIndex }: NodeOptions = {}) {
+    constructor({ isVirtual, tag, zIndex, name }: NodeOptions = {}) {
         super();
+        this.name = name;
         this.isVirtual = isVirtual ?? false;
         this.tag = tag ?? NaN;
         this.zIndex = zIndex ?? 0;

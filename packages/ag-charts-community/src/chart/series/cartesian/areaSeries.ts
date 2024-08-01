@@ -93,7 +93,7 @@ export class AreaSeries extends CartesianSeries<
             moduleCtx,
             directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
             directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
-            pathsPerSeries: 2,
+            pathsPerSeries: ['fill', 'stroke'],
             pathsZIndexSubOrderOffset: [0, 1000],
             hasMarkers: true,
             markerSelectionGarbageCollection: false,

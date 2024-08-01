@@ -50,7 +50,7 @@ type CartesianSeriesOpts<
     TDatum extends CartesianSeriesNodeDatum,
     TLabel extends SeriesNodeDatum,
 > = {
-    pathsPerSeries: number;
+    pathsPerSeries: string[];
     pathsZIndexSubOrderOffset: number[];
     hasMarkers: boolean;
     hasHighlightedLabels: boolean;
@@ -209,7 +209,7 @@ export abstract class CartesianSeries<
     protected animationState: StateMachine<CartesianAnimationState, CartesianAnimationEvent>;
 
     protected constructor({
-        pathsPerSeries = 1,
+        pathsPerSeries = ['path'],
         hasMarkers = false,
         hasHighlightedLabels = false,
         pathsZIndexSubOrderOffset = [],
@@ -246,8 +246,8 @@ export abstract class CartesianSeries<
         };
 
         this.paths = [];
-        for (let index = 0; index < pathsPerSeries; index++) {
-            this.paths[index] = new Path();
+        for (let index = 0; index < pathsPerSeries.length; index++) {
+            this.paths[index] = new Path({ name: `${this.id}-${pathsPerSeries[index]}` });
             this.paths[index].zIndex = Layers.SERIES_LAYER_ZINDEX;
             this.paths[index].zIndexSubOrder = this.getGroupZIndexSubOrder('paths', index);
             this.contentGroup.appendChild(this.paths[index]);

@@ -15,7 +15,6 @@ export class Group extends Node {
 
     private clipRect?: BBox;
     protected layer?: HdpiCanvas;
-    readonly name?: string;
 
     @SceneChangeDetection({
         redraw: RedrawType.MAJOR,
@@ -44,7 +43,7 @@ export class Group extends Node {
             readonly nonEmptyChildDerivedZIndex?: boolean;
         }
     ) {
-        super({ isVirtual: opts?.isVirtual });
+        super({ isVirtual: opts?.isVirtual, name: opts?.name });
 
         const { zIndex, zIndexSubOrder } = opts ?? {};
 
@@ -55,7 +54,6 @@ export class Group extends Node {
         if (zIndexSubOrder !== undefined) {
             this.zIndexSubOrder = zIndexSubOrder;
         }
-        this.name = this.opts?.name;
     }
 
     override _setLayerManager(layersManager?: LayersManager) {

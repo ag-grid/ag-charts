@@ -87,7 +87,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         super({
             moduleCtx,
             hasMarkers: true,
-            pathsPerSeries: 2,
+            pathsPerSeries: ['fill', 'stroke'],
             directionKeys: {
                 [ChartAxisDirection.X]: ['xKey'],
                 [ChartAxisDirection.Y]: ['yLowKey', 'yHighKey'],

@@ -100,7 +100,7 @@ export function buildTree(node: Node): BuildTree {
 
     return {
         node,
-        name: (node instanceof Group ? node.name : null) ?? node.id,
+        name: node.name ?? node.id,
         dirty: RedrawType[node.dirty],
         ...(node.parent?.isVirtual
             ? {

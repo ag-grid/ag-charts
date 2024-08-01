@@ -66,7 +66,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 SeriesNodePickMode.NEAREST_NODE,
                 SeriesNodePickMode.EXACT_SHAPE_MATCH,
             ],
-            pathsPerSeries: 0,
+            pathsPerSeries: [],
             hasMarkers: true,
             markerSelectionGarbageCollection: false,
             animationResetFns: {
