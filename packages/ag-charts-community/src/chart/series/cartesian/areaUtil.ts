@@ -10,6 +10,7 @@ import { type Span, SpanJoin, interpolateSpans, plotSpan, reverseSpan } from './
 import { type SpanInterpolation, SplitMode, pairUpSpans } from './lineInterpolationUtil';
 import { pairCategoryData, pairContinuousData, prepareLinePathPropertyAnimation } from './lineUtil';
 import { prepareMarkerAnimation } from './markerUtil';
+import { isScaleValid } from './scaling';
 
 export enum AreaSeriesTag {
     Fill,
@@ -119,7 +120,7 @@ export function prepareAreaPathAnimation(
 ) {
     const isCategoryBased = newData.scales.x?.type === 'category';
     const wasCategoryBased = oldData.scales.x?.type === 'category';
-    if (isCategoryBased !== wasCategoryBased) {
+    if (isCategoryBased !== wasCategoryBased || !isScaleValid(newData.scales.x) || !isScaleValid(oldData.scales.x)) {
         // Not comparable.
         return;
     }

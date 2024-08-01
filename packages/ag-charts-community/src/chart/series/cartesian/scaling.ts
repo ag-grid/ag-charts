@@ -45,3 +45,13 @@ export function areScalingEqual(a: Scaling | undefined, b: Scaling | undefined):
     }
     return false;
 }
+
+export function isScaleValid(scale?: Scaling) {
+    if (scale == null) return false;
+    if (!scale.range.every((v) => isFinite(v))) return false;
+
+    if (scale.type === 'category') {
+        return scale.domain.every((v) => v != null);
+    }
+    return scale.domain.every((v: any) => (typeof v === 'number' && isFinite(v)) || v instanceof Date);
+}
