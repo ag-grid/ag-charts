@@ -16,7 +16,7 @@ env:
 jobs:
     update:
         name: Update
-        if: github.event.workflow_dispatch.workflow || (${{ github.event.issue.pull_request }} && github.event.comment.body == '/snapshots')
+        if: ${{ github.event.workflow_dispatch.workflow || (github.event.issue.pull_request && github.event.comment.body == '/snapshots') }}
         runs-on: ubuntu-latest
         env:
             NX_PARALLEL: 1
