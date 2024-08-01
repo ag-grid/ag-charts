@@ -240,6 +240,8 @@ export class RegionManager {
         let currentRegion: Region | undefined;
         for (const region of this.regions.values()) {
             for (const provider of region.properties.bboxproviders) {
+                if (provider.visible === false) continue;
+
                 const bbox = provider.computeTransformedRegionBBox?.() ?? provider.computeTransformedBBox();
                 const area = bbox.width * bbox.height;
                 if (area < currentArea && bbox.containsPoint(x, y)) {

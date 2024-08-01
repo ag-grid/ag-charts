@@ -76,6 +76,7 @@ export class SeriesAreaHighlightManager extends BaseManager {
     public preSceneRender() {
         if (this.stashedHoverEvent != null) {
             this.pendingHoverEvent = this.stashedHoverEvent;
+            this.stashedHoverEvent = undefined;
             this.handleHover(true);
         }
     }
@@ -89,6 +90,7 @@ export class SeriesAreaHighlightManager extends BaseManager {
     }
 
     private clearHighlight() {
+        this.pendingHoverEvent = undefined;
         this.appliedHoverEvent = undefined;
         this.ctx.highlightManager.updateHighlight(this.id);
     }
