@@ -143,7 +143,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         this.label.textBaseline = datum.position == 'center' ? 'middle' : datum.position;
 
         const hasText = datum.text.length > 0;
-        this.label.text = hasText ? datum.text : datum.placeholderText;
+        this.label.text = this.wrapText(datum, bbox.width);
         this.label.fill = hasText ? datum.color : datum.getPlaceholderColor();
         this.label.fontFamily = datum.fontFamily;
         this.label.fontSize = datum.fontSize;
@@ -218,7 +218,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
                   textWrap: 'always',
                   maxWidth: width,
               })
-            : datum.text;
+            : text;
     }
 
     private getTextOptions(datum: TextualStartEndProperties) {
