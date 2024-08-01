@@ -40,7 +40,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         this.destroyFns.push(
             seriesRegion.addListener('hover', (event) => this.onMouseMove(event), mouseMoveStates),
             seriesRegion.addListener('drag', (event) => this.onMouseMove(event), mouseMoveStates),
-            seriesRegion.addListener('leave', () => this.onLeave()),
+            seriesRegion.addListener('leave', () => this.onLeave(), mouseMoveStates),
             () => this.destroyElements(),
             () => this.wrapper.remove(),
             () => this.button.remove()
