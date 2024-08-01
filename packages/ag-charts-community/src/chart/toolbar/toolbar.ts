@@ -274,22 +274,26 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         const position = anchor.position ?? 'above';
 
-        let top = anchor.y - element.offsetHeight - verticalSpacing;
-        let left = anchor.x - element.offsetWidth / 2;
+        const { offsetWidth: width, offsetHeight: height } = element;
+
+        let top = anchor.y - height - verticalSpacing;
+        let left = anchor.x - width / 2;
 
         if (position === 'right') {
-            top = anchor.y - element.offsetHeight / 2;
+            top = anchor.y - height / 2;
             left = anchor.x + horizontalSpacing;
         } else if (position === 'above-left') {
             left = anchor.x;
         }
 
         const canvasRect = domManager.getBoundingClientRect();
-        top = clamp(0, top, canvasRect.height - element.offsetHeight);
-        left = clamp(0, left, canvasRect.width - element.offsetWidth);
+        top = clamp(0, top, canvasRect.height - height);
+        left = clamp(0, left, canvasRect.width - width);
 
         element.style.top = `${top}px`;
         element.style.left = `${left}px`;
+
+        const groupBBox = new BBox(left, top, width, height);
 
         for (const button of groupButtons[group]) {
             if (button.classList.contains(styles.modifiers.button.hiddenToggled)) continue;
@@ -303,7 +307,8 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
                     button.offsetTop + (parent?.offsetTop ?? 0),
                     button.offsetWidth,
                     button.offsetHeight
-                )
+                ),
+                groupBBox
             );
         }
     }
