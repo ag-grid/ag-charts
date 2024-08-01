@@ -29,6 +29,7 @@ export const DEFAULT_DIVERGING_SERIES_COLOUR_RANGE = Symbol(
 export const DEFAULT_HIERARCHY_FILLS = Symbol('default-hierarchy-fills') as unknown as string;
 export const DEFAULT_HIERARCHY_STROKES = Symbol('default-hierarchy-strokes') as unknown as string;
 export const DEFAULT_ANNOTATION_COLOR = Symbol('default-annotation-stroke') as unknown as string;
+export const DEFAULT_TEXT_ANNOTATION_COLOR = Symbol('default-text-annotation-color') as unknown as string;
 export const DEFAULT_ANNOTATION_BACKGROUND_FILL = Symbol('default-annotation-background-fill') as unknown as string;
 export const DEFAULT_ANNOTATION_HANDLE_FILL = Symbol('default-annotation-handle-fill') as unknown as string;
 export const DEFAULT_TEXTBOX_FILL = Symbol('default-textbox-fill') as unknown as string;
