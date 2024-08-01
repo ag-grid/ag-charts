@@ -6,7 +6,7 @@ import {
     AnnotationType,
     type GuardDragClickDoubleEvent,
 } from './annotationTypes';
-import { colorDatum, getTypedDatum, isTextType } from './annotationsConfig';
+import { getTypedDatum, isTextType, setColor, setFontsize } from './annotationsConfig';
 import type { AnnotationProperties, AnnotationsStateMachineContext } from './annotationsSuperTypes';
 import { CalloutProperties } from './callout/calloutProperties';
 import { CalloutScene } from './callout/calloutScene';
@@ -200,20 +200,18 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             if (colorPickerType === 'text-color') {
                 ctx.updateTextInputColor(color);
             }
-            colorDatum(datum, colorPickerType, color);
+            setColor(datum, colorPickerType, color);
             ctx.update();
         };
 
         const actionFontSize = (fontSize: number) => {
             const datum = ctx.datum(this.active!);
             const node = ctx.node(this.active!);
-            if (!datum || !node) return;
+            if (!datum || !node || !isTextType(datum)) return;
 
             ctx.updateTextInputFontSize(fontSize);
 
-            if ('fontSize' in datum) {
-                datum.fontSize = fontSize;
-            }
+            setFontsize(datum, datum.type, fontSize);
 
             if ('invalidateTextInputBBox' in node) {
                 node.invalidateTextInputBBox();

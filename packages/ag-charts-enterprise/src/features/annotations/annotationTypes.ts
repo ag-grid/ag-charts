@@ -1,5 +1,12 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
+export enum TextualAnnotationType {
+    Callout = 'callout',
+    Comment = 'comment',
+    Note = 'note',
+    Text = 'text',
+}
+
 export enum AnnotationType {
     // Lines
     Line = 'line',
@@ -11,11 +18,12 @@ export enum AnnotationType {
     ParallelChannel = 'parallel-channel',
 
     // Texts
-    Callout = 'callout',
-    Comment = 'comment',
-    Note = 'note',
-    Text = 'text',
+    Callout = TextualAnnotationType.Callout,
+    Comment = TextualAnnotationType.Comment,
+    Note = TextualAnnotationType.Note,
+    Text = TextualAnnotationType.Text,
 }
+
 export const ANNOTATION_TYPES = Object.values(AnnotationType);
 export const ANNOTATION_BUTTONS = [
     // Lines

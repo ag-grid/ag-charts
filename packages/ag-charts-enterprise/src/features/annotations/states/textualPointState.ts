@@ -1,7 +1,7 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { AnnotationOptionsColorPickerType, Point } from '../annotationTypes';
-import { colorDatum, getTypedDatum } from '../annotationsConfig';
+import { getTypedDatum, isTextType, setColor, setFontsize } from '../annotationsConfig';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import type { TextualPointProperties } from '../properties/textualPointProperties';
 import type { TextualPointScene } from '../scenes/textualPointScene';
@@ -76,20 +76,18 @@ export abstract class TextualPointStateMachine<
             if (colorPickerType === 'text-color') {
                 ctx.updateTextInputColor(color);
             }
-            colorDatum(datum, colorPickerType, color);
+            setColor(datum, colorPickerType, color);
             ctx.update();
         };
 
         const actionFontSize = (fontSize: number) => {
             const datum = ctx.datum();
             const node = ctx.node();
-            if (!datum || !node) return;
+            if (!datum || !node || !isTextType(datum)) return;
 
             ctx.updateTextInputFontSize(fontSize);
 
-            if ('fontSize' in datum) {
-                datum.fontSize = fontSize;
-            }
+            setFontsize(datum, datum.type, fontSize);
 
             if ('invalidateTextInputBBox' in node) {
                 node.invalidateTextInputBBox();

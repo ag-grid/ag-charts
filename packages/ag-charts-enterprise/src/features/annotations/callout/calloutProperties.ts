@@ -4,8 +4,8 @@ import { Fill, Stroke } from '../annotationProperties';
 import {
     type AnnotationContext,
     type AnnotationOptionsColorPickerType,
-    AnnotationType,
     type Padding,
+    TextualAnnotationType,
 } from '../annotationTypes';
 import { TextualStartEndProperties } from '../properties/textualStartEndProperties';
 
@@ -14,11 +14,11 @@ const { Color } = _Util;
 
 export class CalloutProperties extends Fill(Stroke(TextualStartEndProperties)) {
     static is(value: unknown): value is CalloutProperties {
-        return isObject(value) && value.type === AnnotationType.Callout;
+        return isObject(value) && value.type === TextualAnnotationType.Callout;
     }
 
     @Validate(STRING)
-    type = AnnotationType.Callout as const;
+    type = TextualAnnotationType.Callout as const;
 
     override position = 'bottom' as const;
     override alignment = 'left' as const;

@@ -1,5 +1,12 @@
-import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from './annotationTypes';
-import type { AnnotationProperties, AnnotationScene } from './annotationsSuperTypes';
+import { _ModuleSupport } from 'ag-charts-community';
+
+import {
+    type AnnotationContext,
+    type AnnotationOptionsColorPickerType,
+    AnnotationType,
+    TextualAnnotationType,
+} from './annotationTypes';
+import type { AnnotationProperties, AnnotationScene, TextualPropertiesType } from './annotationsSuperTypes';
 import { CalloutProperties } from './callout/calloutProperties';
 import { CalloutScene } from './callout/calloutScene';
 import { CommentProperties } from './comment/commentProperties';
@@ -117,7 +124,7 @@ export function isChannelType(datum: unknown) {
     return DisjointChannelProperties.is(datum) || ParallelChannelProperties.is(datum);
 }
 
-export function isTextType(datum: unknown) {
+export function isTextType(datum: unknown): datum is TextualPropertiesType {
     return (
         CalloutProperties.is(datum) ||
         CommentProperties.is(datum) ||
@@ -141,8 +148,48 @@ export function hasFillColor(datum?: AnnotationProperties) {
 export function hasTextColor(datum?: AnnotationProperties) {
     return isTextType(datum) && !NoteProperties.is(datum);
 }
+export function setDefaults({
+    datum,
+    defaultColors,
+    defaultFontSizes,
+}: {
+    datum: AnnotationProperties;
+    defaultColors: Map<
+        AnnotationType | TextualAnnotationType,
+        Map<AnnotationOptionsColorPickerType, string | undefined>
+    >;
+    defaultFontSizes: Map<TextualAnnotationType, number | undefined>;
+}) {
+    for (const [annotationType, colors] of defaultColors) {
+        if (datum.type !== annotationType) {
+            continue;
+        }
 
-export function colorDatum(
+        for (const [colorPickerType, color] of colors) {
+            if (color) {
+                setColor(datum, colorPickerType, color);
+            }
+        }
+    }
+
+    if (!isTextType(datum)) {
+        return;
+    }
+
+    for (const [annotationType, size] of defaultFontSizes) {
+        if (size) {
+            setFontsize(datum, annotationType, size);
+        }
+    }
+}
+
+export function setFontsize(datum: TextualPropertiesType, annotationType: TextualAnnotationType, fontSize: number) {
+    if (datum.type === annotationType && 'fontSize' in datum) {
+        datum.fontSize = fontSize;
+    }
+}
+
+export function setColor(
     datum: AnnotationProperties,
     colorPickerType: AnnotationOptionsColorPickerType,
     color: string
