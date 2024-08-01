@@ -6,7 +6,7 @@ import type { TextualStartEndProperties } from '../properties/textualStartEndPro
 import { DivariantHandle } from '../scenes/handle';
 import { LinearScene } from '../scenes/linearScene';
 
-const { CachedTextMeasurerPool } = _ModuleSupport;
+const { CachedTextMeasurerPool, TextWrapper } = _ModuleSupport;
 const { BBox } = _Scene;
 const { Vec2 } = _Util;
 
@@ -59,20 +59,11 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
             return new BBox(x2, y2, textInputBBox.width, textInputBBox.height);
         }
 
-        const hasText = datum.text.length > 0;
-        const text = hasText ? datum.text : datum.placeholderText ?? '';
+        const text = this.wrapText(datum, datum.width);
+        const textOptions = this.getTextOptions(datum);
 
-        const { lineMetrics, width } = CachedTextMeasurerPool.measureLines(text, {
-            font: {
-                fontFamily: datum.fontFamily,
-                fontSize: datum.fontSize,
-                fontStyle: datum.fontStyle,
-                fontWeight: datum.fontWeight,
-                lineHeight: TextualStartEndScene.LineHeight,
-            },
-        });
-
-        const height = lineMetrics.reduce((sum, curr) => sum + curr.lineHeight, 0);
+        const { lineMetrics, width } = CachedTextMeasurerPool.measureLines(text, textOptions);
+        const height = lineMetrics.length * (textOptions.font.fontSize * TextualStartEndScene.LineHeight);
 
         return new BBox(x2, y2, width, height);
     }
@@ -213,6 +204,34 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
             stroke: datum.handle.stroke ?? datum.color,
             strokeOpacity: datum.handle.strokeOpacity,
             strokeWidth: datum.handle.strokeWidth,
+        };
+    }
+
+    private wrapText(datum: TextualStartEndProperties, width?: number) {
+        const hasText = datum.text.length > 0;
+        const text = hasText ? datum.text : datum.placeholderText ?? '';
+
+        return width
+            ? TextWrapper.wrapText(text, {
+                  ...this.getTextOptions(datum),
+                  avoidOrphans: false,
+                  textWrap: 'always',
+                  maxWidth: width,
+              })
+            : datum.text;
+    }
+
+    private getTextOptions(datum: TextualStartEndProperties) {
+        return {
+            font: {
+                fontFamily: datum.fontFamily,
+                fontSize: datum.fontSize,
+                fontStyle: datum.fontStyle,
+                fontWeight: datum.fontWeight,
+            },
+            textAlign: datum.textAlign,
+            textBaseline: 'hanging' as CanvasTextBaseline,
+            lineHeight: TextualStartEndScene.LineHeight,
         };
     }
 }

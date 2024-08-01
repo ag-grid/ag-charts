@@ -1,7 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
 import { Annotation, Font, Handle, Label, Point } from '../annotationProperties';
-import { type AnnotationContext, type AnnotationOptionsColorPickerType } from '../annotationTypes';
+import { type AnnotationContext, type AnnotationOptionsColorPickerType, type Padding } from '../annotationTypes';
 import { convertPoint } from '../annotationUtils';
 
 const { STRING, BaseProperties, Validate } = _ModuleSupport;
@@ -27,7 +27,7 @@ export class TextualPointProperties extends Annotation(Point(Handle(Label(Font(B
         return undefined;
     }
 
-    public getTextInputCoords(context: AnnotationContext) {
+    public getTextInputCoords(context: AnnotationContext, _padding?: Padding | number) {
         return convertPoint(this, context);
     }
 }

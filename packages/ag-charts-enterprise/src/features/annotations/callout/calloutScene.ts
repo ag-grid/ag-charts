@@ -37,8 +37,8 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
 
     override type = AnnotationType.Callout;
 
+    public padding = DEFAULT_PADDING;
     private readonly shape = new _Scene.Path();
-    private padding = DEFAULT_PADDING;
 
     constructor() {
         super();
@@ -68,7 +68,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
 
         return {
             x: bodyBounds.x + padding.left,
-            y: bodyBounds.y - bodyBounds.height / 2,
+            y: bodyBounds.y - padding.bottom,
         };
     }
 
@@ -350,8 +350,8 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
                 y: coords.y1,
             },
             bodyBounds: {
-                x: textBBox.x - padding.left,
-                y: textBBox.y + height / 2,
+                x: textBBox.x,
+                y: textBBox.y,
                 width,
                 height,
             },
