@@ -33,6 +33,7 @@ import { NoteStateMachine } from './note/noteState';
 import { ParallelChannelProperties } from './parallel-channel/parallelChannelProperties';
 import { ParallelChannelScene } from './parallel-channel/parallelChannelScene';
 import { ParallelChannelStateMachine } from './parallel-channel/parallelChannelState';
+import { guardCancelAndExit, guardSaveAndExit } from './states/textualStateUtils';
 import { TextProperties } from './text/textProperties';
 import { TextScene } from './text/textScene';
 import { TextStateMachine } from './text/textState';
@@ -201,6 +202,9 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             ctx.update();
         };
 
+        const guardActive = () => this.active != null;
+        const guardHovered = () => this.hovered != null;
+
         super(States.Idle, {
             [States.Idle]: {
                 onEnter: () => {
@@ -232,7 +236,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 ],
 
                 drag: {
-                    guard: () => this.hovered != null,
+                    guard: guardHovered,
                     target: States.Idle,
                     action: () => {
                         this.active = ctx.select(this.hovered, this.active);
@@ -240,7 +244,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 },
 
                 dragStart: {
-                    guard: () => this.hovered != null,
+                    guard: guardHovered,
                     target: States.Dragging,
                     action: () => {
                         selectedWithDrag = this.active == null || this.hovered != this.active;
@@ -250,13 +254,13 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 },
 
                 color: {
-                    guard: () => this.active != null,
+                    guard: guardActive,
                     target: States.Idle,
                     action: actionColor,
                 },
 
                 fontSize: {
-                    guard: () => this.active != null,
+                    guard: guardActive,
                     target: States.Idle,
                     action: (fontSize: number) => {
                         const datum = ctx.datum(this.active!);
@@ -430,11 +434,11 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 keyDown: [
                     {
-                        guard: ({ key }: { key: string }) => key === 'Escape',
+                        guard: guardCancelAndExit,
                         target: States.Idle,
                     },
                     {
-                        guard: ({ key, shiftKey }: { key: string; shiftKey: boolean }) => !shiftKey && key === 'Enter',
+                        guard: guardSaveAndExit,
                         target: States.Idle,
                         action: ({ textInputValue }: { textInputValue?: string }) => {
                             ctx.datum(this.active!)?.set({ text: textInputValue });
@@ -444,7 +448,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 ],
 
                 color: {
-                    guard: () => this.active != null,
+                    guard: guardActive,
                     target: States.TextInput,
                     action: actionColor,
                 },

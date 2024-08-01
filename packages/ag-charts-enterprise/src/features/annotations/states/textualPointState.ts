@@ -5,6 +5,7 @@ import { colorDatum, getTypedDatum } from '../annotationsConfig';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import type { TextualPointProperties } from '../properties/textualPointProperties';
 import type { TextualPointScene } from '../scenes/textualPointScene';
+import { guardCancelAndExit, guardSaveAndExit } from './textualStateUtils';
 
 const { StateMachine } = _ModuleSupport;
 
@@ -91,10 +92,6 @@ export abstract class TextualPointStateMachine<
                 ctx.delete();
             }
         };
-
-        const guardCancelAndExit = ({ key }: { key: string }) => key === 'Escape';
-        const guardSaveAndExit = ({ key, shiftKey }: { key: string; shiftKey: boolean }) =>
-            !shiftKey && key === 'Enter';
 
         super('start', {
             start: {
