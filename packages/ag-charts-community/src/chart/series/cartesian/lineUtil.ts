@@ -14,7 +14,7 @@ import type {
     PathPointMap,
 } from './pathUtil';
 import { backfillPathPointData, minMax, renderPartialPath } from './pathUtil';
-import { type Scaling, areScalingEqual } from './scaling';
+import { type Scaling, areScalingEqual, isScaleValid } from './scaling';
 
 export function* pathRanges<T extends { point: PartialPathPoint }>(points: T[]) {
     let start = -1;
@@ -407,7 +407,7 @@ export function prepareLinePathAnimation(
 ) {
     const isCategoryBased = newData.scales.x?.type === 'category';
     const wasCategoryBased = oldData.scales.x?.type === 'category';
-    if (isCategoryBased !== wasCategoryBased) {
+    if (isCategoryBased !== wasCategoryBased || !isScaleValid(newData.scales.x) || !isScaleValid(oldData.scales.x)) {
         // Not comparable.
         return;
     }
