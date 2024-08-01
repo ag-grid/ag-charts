@@ -15,6 +15,7 @@ export interface HighlightChangeEvent {
     type: 'highlight-change';
     previousHighlight?: HighlightNodeDatum;
     currentHighlight?: HighlightNodeDatum;
+    callerId: string;
 }
 
 /**
@@ -34,6 +35,7 @@ export class HighlightManager extends BaseManager<'highlight-change', HighlightC
                 type: 'highlight-change',
                 currentHighlight: this.activeHighlight,
                 previousHighlight,
+                callerId,
             });
         }
     }
