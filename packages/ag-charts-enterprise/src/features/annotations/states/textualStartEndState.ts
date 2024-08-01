@@ -27,7 +27,7 @@ export abstract class TextualStartEndStateMachine<
     Node extends TextualStartEndScene<Datum>,
 > extends StateMachine<
     'start' | 'waiting-first-render' | 'edit' | 'end',
-    'click' | 'cancel' | 'hover' | 'keyDown' | 'updateTextInputBBox' | 'color' | 'render'
+    'click' | 'cancel' | 'hover' | 'keyDown' | 'updateTextInputBBox' | 'color' | 'fontSize' | 'render'
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -98,6 +98,24 @@ export abstract class TextualStartEndStateMachine<
             ctx.update();
         };
 
+        const actionFontSize = (fontSize: number) => {
+            const datum = ctx.datum();
+            const node = ctx.node();
+            if (!datum || !node) return;
+
+            ctx.updateTextInputFontSize(fontSize);
+
+            if ('fontSize' in datum) {
+                datum.fontSize = fontSize;
+            }
+
+            if ('invalidateTextInputBBox' in node) {
+                node.invalidateTextInputBBox();
+            }
+
+            ctx.update();
+        };
+
         const actionCancel = () => {
             ctx.delete();
         };
@@ -140,6 +158,7 @@ export abstract class TextualStartEndStateMachine<
                 onEnter: onStartEditing,
                 updateTextInputBBox: actionUpdateTextInputBBox,
                 color: actionColor,
+                fontSize: actionFontSize,
                 keyDown: [
                     {
                         guard: guardCancelAndExit,
