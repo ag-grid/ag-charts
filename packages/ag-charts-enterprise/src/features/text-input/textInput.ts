@@ -117,40 +117,38 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     private updatePosition() {
-        const {
-            element,
-            layout,
-            ctx: { domManager },
-        } = this;
-
+        const { element } = this;
         const textArea = element.firstElementChild as HTMLDivElement | undefined;
+
         if (!textArea) return;
 
-        const width = layout.width ?? textArea.offsetWidth;
-        const boundingRect = domManager.getBoundingClientRect();
-        const { point, position, alignment, textAlign } = layout;
+        const sceneRect = this.ctx.domManager.getBoundingClientRect();
+        const { width, point, position, alignment, textAlign } = this.layout;
+
+        // must be set before getting `textArea` bounding rect
+        element.style.setProperty('width', width ? `${width}px` : 'unset');
+
+        const textRect = textArea.getBoundingClientRect();
 
         let horizontalPosition = point.x;
         if (alignment === 'center') {
-            horizontalPosition -= width / 2;
+            horizontalPosition -= (width ?? textRect.width) / 2;
         } else if (alignment === 'right') {
-            horizontalPosition -= width;
+            horizontalPosition -= width ?? textRect.width;
         }
-
-        element.style.setProperty('left', `${horizontalPosition}px`);
-        element.style.setProperty('width', layout.width ? `${width}px` : 'unset');
-        element.style.setProperty('max-width', `${boundingRect.width - horizontalPosition}px`);
-        element.style.setProperty('text-align', alignment);
-        textArea.style.setProperty('text-align', textAlign);
 
         let verticalPosition = point.y;
         if (position === 'center') {
-            verticalPosition -= textArea.offsetHeight / 2;
+            verticalPosition -= textRect.height / 2;
         } else if (position === 'bottom') {
-            verticalPosition -= textArea.offsetHeight;
+            verticalPosition -= textRect.height;
         }
 
         element.style.setProperty('top', `${verticalPosition}px`);
+        element.style.setProperty('left', `${horizontalPosition}px`);
+        element.style.setProperty('max-width', `${sceneRect.width - horizontalPosition}px`);
+        element.style.setProperty('text-align', alignment);
+        textArea.style.setProperty('text-align', textAlign);
     }
 
     private getBBox() {

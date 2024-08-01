@@ -16,6 +16,8 @@ interface Anchor {
 }
 
 export abstract class TextualPointScene<Datum extends TextualPointProperties> extends AnnotationScene {
+    static readonly LineHeight = 1.38;
+
     override activeHandle?: string;
 
     protected readonly label = new _Scene.Text({ zIndex: 1 });
@@ -118,10 +120,10 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         const text = this.wrapText(datum, datum.width);
         const textOptions = this.getTextOptions(datum);
 
-        const { lineMetrics, width, offsetTop } = CachedTextMeasurerPool.measureLines(text, textOptions);
-        const height = lineMetrics.reduce((sum, curr) => sum + curr.lineHeight, 0);
+        const { lineMetrics, width } = CachedTextMeasurerPool.measureLines(text, textOptions);
+        const height = lineMetrics.length * (textOptions.font.fontSize * TextualPointScene.LineHeight);
 
-        return new _Scene.BBox(coords.x, coords.y + offsetTop, width, height);
+        return new _Scene.BBox(coords.x, coords.y, width, height);
     }
 
     protected updateLabel(datum: Datum, bbox: _Scene.BBox) {
@@ -141,7 +143,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         this.label.fontWeight = datum.fontWeight;
         this.label.textAlign = datum.textAlign ?? datum.alignment;
         this.label.textBaseline = datum.position == 'center' ? 'middle' : datum.position;
-        this.label.lineHeight = datum.fontSize * 1.38;
+        this.label.lineHeight = datum.fontSize * TextualPointScene.LineHeight;
     }
 
     protected updateHandle(datum: Datum, bbox: _Scene.BBox, coords: _Util.Vec2) {
@@ -200,9 +202,9 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
                 fontStyle: datum.fontStyle,
                 fontWeight: datum.fontWeight,
             },
-            lineHeight: 1.38,
             textAlign: datum.textAlign,
             textBaseline: 'hanging' as CanvasTextBaseline,
+            lineHeight: TextualPointScene.LineHeight,
         };
     }
 }
