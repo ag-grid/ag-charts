@@ -57,7 +57,7 @@ type AnnotationEvent =
     | 'color'
     | 'fontSize'
     | 'keyDown'
-    | 'showTextInput'
+    | 'updateTextInputBBox'
     | 'render';
 
 export class AnnotationsStateMachine extends StateMachine<States, AnnotationType | AnnotationEvent> {
@@ -202,6 +202,24 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             ctx.update();
         };
 
+        const actionFontSize = (fontSize: number) => {
+            const datum = ctx.datum(this.active!);
+            const node = ctx.node(this.active!);
+            if (!datum || !node) return;
+
+            ctx.updateTextInputFontSize(fontSize);
+
+            if ('fontSize' in datum) {
+                datum.fontSize = fontSize;
+            }
+
+            if ('invalidateTextInputBBox' in node) {
+                node.invalidateTextInputBBox();
+            }
+
+            ctx.update();
+        };
+
         const guardActive = () => this.active != null;
         const guardHovered = () => this.hovered != null;
 
@@ -262,21 +280,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 fontSize: {
                     guard: guardActive,
                     target: States.Idle,
-                    action: (fontSize: number) => {
-                        const datum = ctx.datum(this.active!);
-                        const node = ctx.node(this.active!);
-                        if (!datum || !node) return;
-
-                        if ('fontSize' in datum) {
-                            datum.fontSize = fontSize;
-                        }
-
-                        if ('invalidateTextInputBBox' in node) {
-                            node.invalidateTextInputBBox();
-                        }
-
-                        ctx.update();
-                    },
+                    action: actionFontSize,
                 },
 
                 reset: () => {
@@ -413,7 +417,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     ctx.update();
                 },
 
-                showTextInput: {
+                updateTextInputBBox: {
                     guard: guardActive,
                     target: States.TextInput,
                     action: (bbox: _Scene.BBox) => {
@@ -455,6 +459,12 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     guard: guardActive,
                     target: States.TextInput,
                     action: actionColor,
+                },
+
+                fontSize: {
+                    guard: guardActive,
+                    target: States.TextInput,
+                    action: actionFontSize,
                 },
 
                 cancel: States.Idle,

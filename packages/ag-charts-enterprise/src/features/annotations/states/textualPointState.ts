@@ -25,7 +25,7 @@ export abstract class TextualPointStateMachine<
     Node extends TextualPointScene<Datum>,
 > extends StateMachine<
     'start' | 'waiting-first-render' | 'edit',
-    'click' | 'cancel' | 'keyDown' | 'showTextInput' | 'color' | 'render'
+    'click' | 'cancel' | 'keyDown' | 'updateTextInputBBox' | 'color' | 'render'
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -57,7 +57,7 @@ export abstract class TextualPointStateMachine<
             ctx.deselect();
         };
 
-        const actionShowTextInput = (bbox: _Scene.BBox) => {
+        const actionUpdateTextInputBBox = (bbox: _Scene.BBox) => {
             const node = ctx.node();
             node?.setTextInputBBox(bbox);
             ctx.update();
@@ -109,7 +109,7 @@ export abstract class TextualPointStateMachine<
             },
             edit: {
                 onEnter: onStartEditing,
-                showTextInput: actionShowTextInput,
+                updateTextInputBBox: actionUpdateTextInputBBox,
                 color: actionColor,
                 keyDown: [
                     {

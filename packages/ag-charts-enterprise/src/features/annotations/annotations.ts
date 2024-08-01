@@ -350,7 +350,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     },
                     text: datum.text,
                     onChange: (_text, bbox) => {
-                        this.state.transition('showTextInput', bbox);
+                        this.state.transition('updateTextInputBBox', bbox);
                     },
                 });
             },
@@ -361,6 +361,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
             updateTextInputColor: (color: string) => {
                 this.textInput.updateColor(color);
+            },
+
+            updateTextInputFontSize: (fontSize: number) => {
+                this.textInput.updateFontSize(fontSize);
             },
 
             showAnnotationOptions: (active: number) => {
