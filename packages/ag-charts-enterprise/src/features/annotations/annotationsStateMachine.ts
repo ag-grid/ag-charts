@@ -111,6 +111,11 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 this.active = ctx.selectLast();
             };
 
+        const deleteDatum = () => {
+            if (this.active != null) ctx.delete(this.active);
+            this.active = ctx.select();
+        };
+
         const dragStateMachine = <
             D extends AnnotationProperties,
             N extends {
@@ -168,10 +173,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
         ) => ({
             ...ctx,
             create: createDatum(type),
-            delete: () => {
-                if (this.active != null) ctx.delete(this.active);
-                this.active = ctx.select();
-            },
+            delete: deleteDatum,
             datum: getDatum<T>(isDatum),
             node: getNode<U>(isNode),
             showTextInput: () => {
@@ -298,6 +300,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 [AnnotationType.Line]: new LineStateMachine({
                     ...ctx,
                     create: createDatum<LineProperties>(AnnotationType.Line),
+                    delete: deleteDatum,
                     datum: getDatum<LineProperties>(LineProperties.is),
                     node: getNode<LineScene>(LineScene.is),
                     guardDragClickDoubleEvent,
@@ -315,6 +318,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 [AnnotationType.DisjointChannel]: new DisjointChannelStateMachine({
                     ...ctx,
                     create: createDatum<DisjointChannelProperties>(AnnotationType.DisjointChannel),
+                    delete: deleteDatum,
                     datum: getDatum<DisjointChannelProperties>(DisjointChannelProperties.is),
                     node: getNode<DisjointChannelScene>(DisjointChannelScene.is),
                     guardDragClickDoubleEvent,
@@ -322,6 +326,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 [AnnotationType.ParallelChannel]: new ParallelChannelStateMachine({
                     ...ctx,
                     create: createDatum<ParallelChannelProperties>(AnnotationType.ParallelChannel),
+                    delete: deleteDatum,
                     datum: getDatum<ParallelChannelProperties>(ParallelChannelProperties.is),
                     node: getNode<ParallelChannelScene>(ParallelChannelScene.is),
                     guardDragClickDoubleEvent,

@@ -951,17 +951,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private cancel() {
-        const { annotationData, state } = this;
-        const active = state.getActive();
-
-        state.transition('cancel');
-
-        // TODO: shift delete into state machine
-        // Delete active annotation if it is in the process of being created
-        if (active != null && annotationData) {
-            annotationData.splice(active, 1);
-            this.update();
-        }
+        this.state.transition('cancel');
     }
 
     private hideOverlays() {

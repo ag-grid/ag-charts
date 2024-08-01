@@ -9,6 +9,7 @@ const { StateMachine } = _ModuleSupport;
 
 interface DisjointChannelStateMachineContext extends Omit<AnnotationsStateMachineContext, 'create'> {
     create: (datum: DisjointChannelProperties) => void;
+    delete: () => void;
     datum: () => DisjointChannelProperties | undefined;
     node: () => DisjointChannelScene | undefined;
     guardDragClickDoubleEvent: GuardDragClickDoubleEvent;
@@ -21,24 +22,24 @@ export class DisjointChannelStateMachine extends StateMachine<
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(ctx: DisjointChannelStateMachineContext) {
-        const onStartClick = ({ point }: { point: Point }) => {
+        const actionCreate = ({ point }: { point: Point }) => {
             const datum = new DisjointChannelProperties();
             datum.set({ start: point, end: point, startHeight: 0, endHeight: 0 });
             ctx.create(datum);
         };
 
-        const onEndHover = ({ point }: { point: Point }) => {
+        const actionEndUpdate = ({ point }: { point: Point }) => {
             ctx.guardDragClickDoubleEvent.hover();
             ctx.datum()?.set({ end: point });
             ctx.node()?.toggleHandles({ topRight: false, bottomLeft: false, bottomRight: false });
             ctx.update();
         };
 
-        const onEndClick = ({ point }: { point: Point }) => {
+        const actionEndFinish = ({ point }: { point: Point }) => {
             ctx.datum()?.set({ end: point });
         };
 
-        const onHeightHover = ({ point }: { point: Point }) => {
+        const actionHeightUpdate = ({ point }: { point: Point }) => {
             const datum = ctx.datum();
 
             if (datum?.start.y == null || datum?.end.y == null) return;
@@ -59,7 +60,7 @@ export class DisjointChannelStateMachine extends StateMachine<
             ctx.update();
         };
 
-        const onHeightClick = ({ point }: { point: Point }) => {
+        const actionHeightFinish = ({ point }: { point: Point }) => {
             const datum = ctx.datum();
 
             if (datum?.start.y == null || datum?.end.y == null) return;
@@ -80,38 +81,45 @@ export class DisjointChannelStateMachine extends StateMachine<
             ctx.update();
         };
 
+        const actionCancel = () => ctx.delete();
+
         super('start', {
             start: {
                 click: {
                     target: 'end',
-                    action: onStartClick,
+                    action: actionCreate,
                 },
                 drag: {
                     target: 'end',
-                    action: onStartClick,
+                    action: actionCreate,
                 },
-                cancel: StateMachine.parent,
             },
             end: {
-                hover: onEndHover,
+                hover: actionEndUpdate,
+                drag: actionEndUpdate,
                 click: {
                     // Ensure that a double event of drag before a single click does not trigger an immediate
                     // transition causing the start and end to be at the same point.
                     guard: ctx.guardDragClickDoubleEvent.guard,
                     target: 'height',
-                    action: onEndClick,
+                    action: actionEndFinish,
                 },
-                drag: onEndHover,
-                cancel: StateMachine.parent,
+                cancel: {
+                    target: StateMachine.parent,
+                    action: actionCancel,
+                },
                 onExit: ctx.guardDragClickDoubleEvent.reset,
             },
             height: {
-                hover: onHeightHover,
+                hover: actionHeightUpdate,
                 click: {
                     target: StateMachine.parent,
-                    action: onHeightClick,
+                    action: actionHeightFinish,
                 },
-                cancel: StateMachine.parent,
+                cancel: {
+                    target: StateMachine.parent,
+                    action: actionCancel,
+                },
             },
         });
     }

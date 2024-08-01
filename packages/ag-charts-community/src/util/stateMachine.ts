@@ -52,14 +52,6 @@ export class StateMachine<State extends string, Event extends string> {
         this.debug(`%c${this.constructor.name} | init -> ${defaultState}`, debugColor);
     }
 
-    // TODO: make this `protected` to prevent leaky design
-    is(value: any): boolean {
-        if (this.state === StateMachine.child && this.childState) {
-            return this.childState.is(value);
-        }
-        return this.state === value;
-    }
-
     transition(event: Event, data?: any) {
         const shouldTransitionSelf = this.transitionChild(event, data);
 
@@ -121,6 +113,13 @@ export class StateMachine<State extends string, Event extends string> {
         ) {
             this.states[destinationState].onEnter?.(currentState, data);
         }
+    }
+
+    protected is(value: any): boolean {
+        if (this.state === StateMachine.child && this.childState) {
+            return this.childState.is(value);
+        }
+        return this.state === value;
     }
 
     protected resetHierarchy() {
