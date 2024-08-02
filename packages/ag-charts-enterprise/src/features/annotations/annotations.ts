@@ -627,8 +627,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         opacity?: number
     ) {
         if (color != null && opacity != null) {
-            const [r, g, b] = _Util.Color.parseHex(color) ?? [0, 0, 0];
-            color = _Util.Color.fromArray([r / 256, g / 256, b / 256, opacity]).toHexString();
+            const { r, g, b } = _Util.Color.fromString(color);
+            color = _Util.Color.fromArray([r, g, b, opacity]).toHexString();
         }
         this.ctx.toolbarManager.updateButton('annotationOptions', colorPickerType, {
             fill: color,
