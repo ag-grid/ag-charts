@@ -178,6 +178,10 @@ export abstract class TextualStartEndStateMachine<
                     action: actionSave,
                 },
                 onExit: onStopEditing,
+                cancel: {
+                    target: StateMachine.parent,
+                    action: actionCancel,
+                },
             },
         });
     }

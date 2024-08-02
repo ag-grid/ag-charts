@@ -522,6 +522,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
             case AnnotationOptions.Delete:
                 this.cancel();
+                this.delete();
                 this.reset();
                 break;
 
@@ -907,14 +908,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onDelete() {
-        const { annotationData, state } = this;
-
-        const active = state.getActive();
-        if (active == null) return;
-
-        state.transition('cancel');
-        annotationData.splice(active, 1);
-
+        this.cancel();
+        this.delete();
         this.reset();
         this.update();
     }
@@ -989,6 +984,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private cancel() {
         this.state.transition('cancel');
+    }
+
+    private delete() {
+        this.state.transition('delete');
     }
 
     private hideOverlays() {
