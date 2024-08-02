@@ -7,39 +7,29 @@ This section explains how the chart and its components are sized and laid out wi
 
 ## Chart Size
 
-The chart out of the box uses the minimal styling to ensure the chart is visible, and has a default minimum width and height of 300px.
+The chart will auto-size by default, taking the size of the container element and auto-sizing the chart dynamically. Use the `width` and/or `height` options if a fixed size is required.
 
-Below is an example of a chart with no CSS applied. In this case, the default for CSS is to make the width as large as possible and the height as small as possible (the minimum of 300px).
+If auto-sizing is used for one or both dimensions, the chart will have a minimum width and height of 300px. Set `minHeight: 0` and/or `minWidth: 0` to effectively remove this constraint.
 
-{% chartExampleRunner title="Chart Size" name="chart-unsized" type="generated" /%}
+### Size Changes
 
-If it is required, the minimum width and height can be adjusted with the `minWidth` and `minHeight` options.
+The chart monitors the size of the `container` element, and resizes dynamically.
 
-```js
-{
-    minWidth: 100,
-    minHeight: 100
-}
-```
+When the chart size changes, the layout process is performed for the new available canvas space.
+Most components are typically a fixed size, so usually it is the series-area which shrinks or grows, with the other components moving around or adjusting alignment.
 
-An explicit size can be set using the `width` and `height` options. In this case, the `minWidth` and `minHeight` are ignored.
+## Sizing the Chart Container
 
-```js
-{
-    width: 400,
-    height: 400
-}
-```
+The chart never affects the size of the `container` element.
 
-### Styling with Classes and Styles
+A `<div>` element is commonly used for the `container`, and the default height for this element is `0px`.
+You should explicitly manage the browser calculated `container` element size to achieve the dynamic size you require.
 
-Below is a chart sized using classes and inline styles.
+### Sizing with Classes and Styles
 
 {% chartExampleRunner title="Chart Size (Class)" name="chart-class" type="generated" /%}
 
 {% if isFramework("javascript") %}
-
-All attributes on the `container` element are left unchanged when calling `AgCharts.create`, including `class` and `style`.
 
 ```html
 <div id="myChart" class="chart" style="width: 400px; height: 400px"></div>
@@ -53,10 +43,14 @@ const options = {
 AgCharts.create(options);
 ```
 
-{% /if %}
-{% if isFramework("react") %}
+In this configuration:
 
-The `className` and `style` props can be used to style the chart.
+-   The element containing the chart is sized using inline styles. It could also be sized by styling the provided class.
+-   All attributes on the `container` element - including `class` and `style` - are left unchanged when calling `AgCharts.create`.
+
+{% /if %}
+
+{% if isFramework("react") %}
 
 ```js
 <AgCharts
@@ -66,33 +60,53 @@ The `className` and `style` props can be used to style the chart.
 />
 ```
 
+In this configuration:
+
+-   The element containing the chart is sized using the `style` prop.
+-   It could also be sized by styling the class specified in the `className` prop.
+
 {% /if %}
 {% if isFramework("angular") %}
 
-The `class` and `style` attributes can be used to style the chart.
+```js
+<ag-charts
+    [options]="options"
+    class="chart"
+    style="width: 400px; height: 400px; display: block">
+</ag-charts>
 
-```html
-<ag-charts [options]="options" class="chart" style="width: 400px; height: 400px"></ag-charts>
 ```
+
+In this configuration:
+
+-   The element containing the chart is sized using the `style` attribute.
+-   It could also be sized by styling the class specified in the `class` attribute.
+
+{% note %}
+Due to the way that Angular works, the chart container should be styled as a `block` element in these scenarios.
+{% /note %}
 
 {% /if %}
 {% if isFramework("vue") %}
 
-The `class` and `style` attributes can be used to style the chart.
-
-```html
-<ag-charts :options="options" class="chart" style="width: 400px; height: 400px"></ag-charts>
+```js
+<ag-charts
+    :options="options"
+    class="chart"
+    style="width: 400px; height: 400px">
+</ag-charts>
 ```
+
+In this configuration:
+
+-   The element containing the chart is sized using the `style` attribute.
+-   It could also be sized by styling the class specified in the `class` attribute.
 
 {% /if %}
 
-### Styling with Grid
-
-Below is an example of a chart styled using a grid on the parent element.
+### Styling with Grid Layout
 
 {% chartExampleRunner title="Chart Size (Parent Grid)" name="chart-parent-grid" type="generated" /%}
-
-To use a grid layout, put the chart inside a parent element with `display: grid` on the parent element.
 
 {% if isFramework("javascript") %}
 
@@ -125,13 +139,16 @@ To use a grid layout, put the chart inside a parent element with `display: grid`
 
 ```html
 <div style="display: grid">
-    <ag-charts :options="options"></ag-charts>
+    <ag-charts :options="options"> </ag-charts>
 </div>
 ```
 
 {% /if %}
 
-In this configuration, the grid has a single cell. By default, grid stretches child elements to fill the width and height of the cell.
+In this configuration:
+
+-   The chart container is styled by placing it within a parent element using a `display: grid` layout.
+-   In this example, the grid has a single cell. By default, grid stretches child elements to fill the width and height of the cell.
 
 ## Chart Layout Calculation
 
