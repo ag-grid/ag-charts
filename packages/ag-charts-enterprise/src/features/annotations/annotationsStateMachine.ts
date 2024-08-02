@@ -312,10 +312,18 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 [AnnotationType.HorizontalLine]: new CrossLineStateMachine('horizontal', {
                     ...ctx,
                     create: createDatum<CrossLineProperties>(AnnotationType.HorizontalLine),
+                    node: getNode<CrossLineScene>(CrossLineScene.is),
+                    showAnnotationOptions: () => {
+                        if (this.active != null) ctx.showAnnotationOptions(this.active);
+                    },
                 }),
                 [AnnotationType.VerticalLine]: new CrossLineStateMachine('vertical', {
                     ...ctx,
                     create: createDatum<CrossLineProperties>(AnnotationType.VerticalLine),
+                    node: getNode<CrossLineScene>(CrossLineScene.is),
+                    showAnnotationOptions: () => {
+                        if (this.active != null) ctx.showAnnotationOptions(this.active);
+                    },
                 }),
 
                 // Channels
