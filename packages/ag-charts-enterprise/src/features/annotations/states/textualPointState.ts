@@ -119,6 +119,7 @@ export abstract class TextualPointStateMachine<
                     target: 'waiting-first-render',
                     action: actionCreate,
                 },
+                cancel: StateMachine.parent,
             },
             'waiting-first-render': {
                 render: {
@@ -148,6 +149,10 @@ export abstract class TextualPointStateMachine<
                     action: actionSave,
                 },
                 onExit: onStopEditing,
+                cancel: {
+                    target: StateMachine.parent,
+                    action: actionCancel,
+                },
             },
         });
     }

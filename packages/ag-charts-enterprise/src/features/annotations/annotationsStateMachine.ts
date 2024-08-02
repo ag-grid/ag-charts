@@ -54,6 +54,8 @@ type AnnotationEvent =
     | 'input'
     | 'cancel'
     | 'reset'
+    | 'delete'
+    | 'deleteAll'
     | 'color'
     | 'fontSize'
     | 'keyDown'
@@ -302,6 +304,16 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     this.active = undefined;
 
                     ctx.resetToIdle();
+                },
+
+                delete: () => {
+                    if (this.active != null) {
+                        ctx.delete(this.active);
+                    }
+                },
+
+                deleteAll: () => {
+                    ctx.deleteAll();
                 },
 
                 // Lines
