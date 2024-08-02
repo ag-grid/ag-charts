@@ -27,50 +27,50 @@ type ToolbarEventButtonValue<T extends ToolbarGroup> = NonNullable<
     NonNullable<AgToolbarOptions[T]>['buttons']
 >[number]['value'];
 
-interface Event<T extends EventTypes> {
+interface ToolbarBaseEvent<T extends EventTypes> {
     type: T;
     group: ToolbarGroup;
 }
 
-export interface ToolbarGroupToggledEvent extends Event<'group-toggled'> {
+export interface ToolbarGroupToggledEvent extends ToolbarBaseEvent<'group-toggled'> {
     caller: string;
     active: boolean | undefined;
     visible: boolean | undefined;
 }
 
-export interface ToolbarCancelledEvent extends Event<'cancelled'> {}
+export interface ToolbarCancelledEvent extends ToolbarBaseEvent<'cancelled'> {}
 
-export interface ToolbarFloatingAnchorChangedEvent extends Event<'floating-anchor-changed'> {
+export interface ToolbarFloatingAnchorChangedEvent extends ToolbarBaseEvent<'floating-anchor-changed'> {
     anchor: { x: number; y: number; position?: 'right' | 'above' | 'above-left' };
 }
 
-export interface ToolbarButtonPressedEvent<T = any> extends Event<'button-pressed'> {
+export interface ToolbarButtonPressedEvent<T = any> extends ToolbarBaseEvent<'button-pressed'> {
     id: string;
     value: T;
     rect: BBox;
 }
 
-export interface ToolbarButtonToggledEvent<_T = any> extends Event<'button-toggled'> {
+export interface ToolbarButtonToggledEvent<_T = any> extends ToolbarBaseEvent<'button-toggled'> {
     id: string;
     active: boolean;
     enabled: boolean;
     visible: boolean;
 }
 
-export interface ToolbarButtonUpdatedEvent extends Event<'button-updated'> {
+export interface ToolbarButtonUpdatedEvent extends ToolbarBaseEvent<'button-updated'> {
     id: string;
     label?: string | undefined;
     icon?: AgIconName | undefined;
     fill?: string | undefined;
 }
 
-export interface ToolbarButtonMovedEvent<T = any> extends Event<'button-moved'> {
+export interface ToolbarButtonMovedEvent<T = any> extends ToolbarBaseEvent<'button-moved'> {
     value: T;
     rect: BBox;
     groupRect: BBox;
 }
 
-export interface ToolbarProxyGroupOptionsEvent extends Event<'proxy-group-options'> {
+export interface ToolbarProxyGroupOptionsEvent extends ToolbarBaseEvent<'proxy-group-options'> {
     caller: string;
     options: Partial<NonNullable<AgToolbarOptions[ToolbarGroup]>>;
 }
