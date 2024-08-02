@@ -19,7 +19,7 @@ interface CrossLineStateMachineContext extends Omit<AnnotationsStateMachineConte
 
 export class CrossLineStateMachine extends StateMachine<
     'start' | 'waiting-first-render',
-    'click' | 'cancel' | 'render'
+    'click' | 'cancel' | 'render' | 'reset'
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -44,6 +44,7 @@ export class CrossLineStateMachine extends StateMachine<
                     target: 'waiting-first-render',
                     action: onClick,
                 },
+                reset: StateMachine.parent,
                 cancel: StateMachine.parent,
             },
             'waiting-first-render': {
