@@ -27,7 +27,7 @@ export abstract class TextualStartEndStateMachine<
     Node extends TextualStartEndScene<Datum>,
 > extends StateMachine<
     'start' | 'waiting-first-render' | 'edit' | 'end',
-    'click' | 'cancel' | 'hover' | 'keyDown' | 'updateTextInputBBox' | 'color' | 'fontSize' | 'render'
+    'click' | 'cancel' | 'hover' | 'keyDown' | 'updateTextInputBBox' | 'color' | 'fontSize' | 'render' | 'reset'
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -138,6 +138,7 @@ export abstract class TextualStartEndStateMachine<
                     action: actionCreate,
                 },
                 cancel: StateMachine.parent,
+                reset: StateMachine.parent,
             },
             'waiting-first-render': {
                 render: {
@@ -150,6 +151,10 @@ export abstract class TextualStartEndStateMachine<
                 click: {
                     target: 'edit',
                     action: onEndClick,
+                },
+                reset: {
+                    target: StateMachine.parent,
+                    action: actionCancel,
                 },
                 cancel: {
                     target: StateMachine.parent,

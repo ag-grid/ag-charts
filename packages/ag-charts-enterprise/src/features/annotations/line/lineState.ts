@@ -15,7 +15,7 @@ interface LineStateMachineContext extends Omit<AnnotationsStateMachineContext, '
     guardDragClickDoubleEvent: GuardDragClickDoubleEvent;
 }
 
-export class LineStateMachine extends StateMachine<'start' | 'end', 'click' | 'hover' | 'drag' | 'cancel'> {
+export class LineStateMachine extends StateMachine<'start' | 'end', 'click' | 'hover' | 'drag' | 'reset' | 'cancel'> {
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(ctx: LineStateMachineContext) {
@@ -42,6 +42,7 @@ export class LineStateMachine extends StateMachine<'start' | 'end', 'click' | 'h
 
         super('start', {
             start: {
+                reset: StateMachine.parent,
                 click: {
                     target: 'end',
                     action: actionCreate,
@@ -59,6 +60,10 @@ export class LineStateMachine extends StateMachine<'start' | 'end', 'click' | 'h
                     action: actionEndFinish,
                 },
                 drag: actionEndUpdate,
+                reset: {
+                    target: StateMachine.parent,
+                    action: actionCancel,
+                },
                 cancel: {
                     target: StateMachine.parent,
                     action: actionCancel,
