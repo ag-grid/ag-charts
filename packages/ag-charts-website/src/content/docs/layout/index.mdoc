@@ -20,10 +20,9 @@ As most chart components are a fixed size, it is usually the series-area which s
 
 ## Sizing the Chart Container
 
-The chart never affects the size of the `container` element.
+A `<div>` element is commonly used for the `container`, and the default height for this element type is `0px`. The chart's minimum height default will cause it to have a height of 300px.
 
-A `<div>` element is commonly used for the `container`, and the default height for this element is `0px`.
-You should explicitly manage the browser calculated `container` element size to achieve the dynamic size you require.
+Users should explicitly manage the browser calculated `container` element size to achieve the dynamic size required.
 
 ### Sizing with Classes and Styles
 
