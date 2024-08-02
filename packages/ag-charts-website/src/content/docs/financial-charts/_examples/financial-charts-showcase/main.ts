@@ -51,9 +51,9 @@ const options: AgFinancialChartOptions = {
                 text: 'Distribution',
                 x: {
                     __type: 'date',
-                    value: 'Thu Oct 26 2023 01:00:00 GMT+0100 (British Summer Time)',
+                    value: 'Thu Feb 22 2024 00:00:00 GMT+0000 (Greenwich Mean Time)',
                 },
-                y: 200.8247422680412,
+                y: 207.0103092783505,
             },
             {
                 type: 'comment',
@@ -62,10 +62,16 @@ const options: AgFinancialChartOptions = {
                     __type: 'date',
                     value: 'Thu Nov 09 2023 00:00:00 GMT+0000 (Greenwich Mean Time)',
                 },
-                y: 112.37113402061856,
+                y: 131.7479612248038,
             },
             {
                 type: 'callout',
+                color: '#040404',
+                fill: '#6baaf3',
+                fillOpacity: 0.6,
+                stroke: '#2395ff',
+                strokeOpacity: 1,
+                strokeWidth: 2,
                 text: 'Markup',
                 start: {
                     x: {
