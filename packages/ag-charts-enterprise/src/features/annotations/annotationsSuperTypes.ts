@@ -50,6 +50,7 @@ export interface AnnotationsStateMachineContext {
 
     create: (type: AnnotationType, datum: AnnotationProperties) => void;
     delete: (index: number) => void;
+    deleteAll: () => void;
     validatePoint: (point: Point) => boolean;
 
     getAnnotationType: (index: number) => AnnotationType | undefined;

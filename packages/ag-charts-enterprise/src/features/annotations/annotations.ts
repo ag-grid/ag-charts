@@ -301,6 +301,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.annotationData.splice(index, 1);
             },
 
+            deleteAll: () => {
+                this.annotationData.splice(0, this.annotationData.length);
+            },
+
             validatePoint: (point: Point) => {
                 const context = this.getAnnotationContext();
                 const valid = context ? validateDatumPoint(context, point) : true;
@@ -974,7 +978,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private clear() {
         this.cancel();
-        this.annotationData.splice(0, this.annotationData.length);
+        this.deleteAll();
         this.reset();
     }
 
@@ -988,6 +992,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private delete() {
         this.state.transition('delete');
+    }
+
+    private deleteAll() {
+        this.state.transition('deleteAll');
     }
 
     private hideOverlays() {

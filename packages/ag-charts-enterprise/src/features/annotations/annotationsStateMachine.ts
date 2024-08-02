@@ -55,6 +55,7 @@ type AnnotationEvent =
     | 'cancel'
     | 'reset'
     | 'delete'
+    | 'deleteAll'
     | 'color'
     | 'fontSize'
     | 'keyDown'
@@ -309,6 +310,10 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     if (this.active != null) {
                         ctx.delete(this.active);
                     }
+                },
+
+                deleteAll: () => {
+                    ctx.deleteAll();
                 },
 
                 // Lines
