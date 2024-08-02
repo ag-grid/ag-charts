@@ -377,6 +377,9 @@ function createPriceSeries(
                     yLowKey: lowKey,
                     fill: rangeBarColors.fill ?? PALETTE_NEUTRAL_FILL,
                     stroke: rangeBarColors.stroke ?? PALETTE_NEUTRAL_STROKE,
+                    tooltip: {
+                        range: 'nearest',
+                    },
                 } satisfies AgRangeBarSeriesOptions,
             ];
         case 'candlestick':
