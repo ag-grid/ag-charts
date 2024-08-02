@@ -265,18 +265,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 }
 
                 if (node) {
-                    // Only request updates to the DOM once it is ready to process them
-                    requestAnimationFrame(() => {
-                        this.toggleAnnotationOptionsButtons();
-                        toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: true });
-                    });
+                    this.toggleAnnotationOptionsButtons();
+                    toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: true });
                 } else {
                     toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: false });
                 }
 
                 this.update();
-
-                return index;
             },
 
             selectLast: () => {

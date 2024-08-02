@@ -63,10 +63,7 @@ type AnnotationEvent =
 export class AnnotationsStateMachine extends StateMachine<States, AnnotationType | AnnotationEvent> {
     override debug = _Util.Debug.create(true, 'annotations');
 
-    // eslint-disable-next-line @typescript-eslint/prefer-readonly
     private hovered?: number;
-
-    // eslint-disable-next-line @typescript-eslint/prefer-readonly
     private active?: number;
 
     constructor(ctx: AnnotationsStateMachineContext) {
@@ -113,7 +110,8 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
         const deleteDatum = () => {
             if (this.active != null) ctx.delete(this.active);
-            this.active = ctx.select();
+            this.active = undefined;
+            ctx.select();
         };
 
         const dragStateMachine = <
@@ -180,7 +178,9 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 if (this.active != null) ctx.showTextInput(this.active);
             },
             deselect: () => {
-                this.active = this.hovered = ctx.select(undefined, this.active);
+                const prevActive = this.active;
+                this.active = this.hovered = undefined;
+                ctx.select(this.active, prevActive);
             },
             showAnnotationOptions: () => {
                 if (this.active != null) ctx.showAnnotationOptions(this.active);
@@ -247,7 +247,9 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     {
                         target: States.Idle,
                         action: () => {
-                            this.active = ctx.select(this.hovered, this.active);
+                            const prevActive = this.active;
+                            this.active = this.hovered;
+                            ctx.select(this.hovered, prevActive);
                             selectedWithDrag = false;
                         },
                     },
@@ -257,7 +259,9 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     guard: guardHovered,
                     target: States.Idle,
                     action: () => {
-                        this.active = ctx.select(this.hovered, this.active);
+                        const prevActive = this.active;
+                        this.active = this.hovered;
+                        ctx.select(this.hovered, prevActive);
                     },
                 },
 
@@ -266,7 +270,9 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     target: States.Dragging,
                     action: () => {
                         selectedWithDrag = this.active == null || this.hovered != this.active;
-                        this.active = ctx.select(this.hovered, this.active);
+                        const prevActive = this.active;
+                        this.active = this.hovered;
+                        ctx.select(this.hovered, prevActive);
                         ctx.startInteracting();
                     },
                 },
@@ -477,7 +483,9 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     ctx.hideTextInput();
 
                     const wasActive = this.active;
-                    this.active = this.hovered = ctx.select(undefined, this.active);
+                    const prevActive = this.active;
+                    this.active = this.hovered = undefined;
+                    ctx.select(this.active, prevActive);
 
                     if (wasActive == null) return;
 
