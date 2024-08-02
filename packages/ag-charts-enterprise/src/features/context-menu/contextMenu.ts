@@ -83,9 +83,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.interactionManager = ctx.interactionManager;
         this.registry = ctx.contextMenuRegistry;
 
-        const { All } = _ModuleSupport.InteractionState;
-        this.destroyFns.push(ctx.regionManager.listenAll('click', (_region) => this.onClick(), All));
-
         // State
         this.groups = { default: [], extra: [], extraSeries: [], extraNode: [], extraLegendItem: [] };
 
@@ -126,16 +123,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         });
 
         this.destroyFns.push(this.registry.addListener((e) => this.onContext(e)));
-    }
-
-    private isShown(): boolean {
-        return this.menuElement !== undefined;
-    }
-
-    private onClick() {
-        if (this.isShown()) {
-            this.hide();
-        }
     }
 
     private onContext(event: ContextMenuEvent) {

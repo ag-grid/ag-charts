@@ -1,11 +1,23 @@
 function addRemovableEventListener<K extends keyof HTMLElementEventMap>(
     destroyFns: (() => void)[],
-    button: HTMLElement,
+    elem: HTMLElement,
     type: K,
     listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any
 ): void {
-    button.addEventListener(type, listener);
-    destroyFns.push(() => button.removeEventListener(type, listener));
+    elem.addEventListener(type, listener);
+    destroyFns.push(() => elem.removeEventListener(type, listener));
+}
+
+function addRemovableWindowEventListener<K extends keyof WindowEventMap>(
+    destroyFns: (() => void)[],
+    wind: Window,
+    type: K,
+    listener: (this: Window, ev: WindowEventMap[K]) => any
+): () => void {
+    wind.addEventListener(type, listener);
+    const remover = () => wind.removeEventListener(type, listener);
+    destroyFns.push(remover);
+    return remover;
 }
 
 function addEscapeEventListener(
@@ -18,6 +30,28 @@ function addEscapeEventListener(
             onEscape(event);
         }
     });
+}
+
+function addMouseCloseListener(destroyFns: (() => void)[], menu: HTMLElement, hideCallback: () => void): () => void {
+    const self = addRemovableWindowEventListener(destroyFns, window, 'mousedown', (event: MouseEvent) => {
+        if ([0, 2].includes(event.button) && !containsPoint(menu, event)) {
+            hideCallback();
+            self();
+        }
+    });
+    return self;
+}
+
+function containsPoint(
+    container: { getBoundingClientRect(): DOMRect },
+    event: { target: Element | EventTarget | null; clientX: number; clientY: number }
+) {
+    if (event.target instanceof Element) {
+        const { x, y, width, height } = container.getBoundingClientRect();
+        const { clientX: ex, clientY: ey } = event;
+        return ex >= x && ey >= y && ex <= x + width && ey <= y + height;
+    }
+    return false;
 }
 
 function matchesKey(event: KeyboardEvent, key: string, ...morekeys: string[]): boolean {
@@ -127,16 +161,19 @@ export function initMenuKeyNav(opts: {
 }): (() => void)[] {
     const { orientation, menu, buttons, sourceEvent, hideCallback } = opts;
     const { nextKey, prevKey } = PREV_NEXT_KEYS[orientation];
+    const destroyFns: (() => void)[] = [];
+
     const lastFocus = getLastFocus(sourceEvent);
+    const mouseCloseRemove = addMouseCloseListener(destroyFns, menu, hideCallback);
     const onEscape = () => {
         hideCallback();
+        mouseCloseRemove();
         lastFocus?.focus();
     };
 
     menu.role = 'menu';
     menu.ariaOrientation = orientation;
 
-    const destroyFns: (() => void)[] = [];
     for (let i = 0; i < buttons.length; i++) {
         // Use modules to wrap around when navigation past the start/end of the menu.
         const prev = buttons[(buttons.length + i - 1) % buttons.length];
