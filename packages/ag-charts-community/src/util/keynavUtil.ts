@@ -54,6 +54,20 @@ function linkThreeButtons(
     });
 }
 
+function getLastFocus(sourceEvent: Event): HTMLElement | undefined {
+    // We need to guess whether the event comes the mouse or keyboard, which isn't an obvious task because
+    // the event.sourceEvent instances are mostly indistinguishable.
+    //
+    // However, when right-clicking with the mouse, the target element will the
+    // <div class="ag-charts-canvas-overlay"> element. But when the contextmenu is requested using the
+    // keyboard, then the target should be an element with the tabindex attribute set. So that's what we'll
+    // use to determine the device that triggered the contextmenu event.
+    if (sourceEvent.target instanceof HTMLElement && 'tabindex' in sourceEvent.target.attributes) {
+        return sourceEvent.target;
+    }
+    return undefined;
+}
+
 const PREV_NEXT_KEYS = {
     horizontal: { nextKey: 'ArrowRight', prevKey: 'ArrowLeft' },
     vertical: { nextKey: 'ArrowDown', prevKey: 'ArrowUp' },
@@ -108,10 +122,16 @@ export function initMenuKeyNav(opts: {
     orientation: 'vertical';
     menu: HTMLElement;
     buttons: HTMLElement[];
-    onEscape?: (event: KeyboardEvent) => void;
+    sourceEvent: Event;
+    hideCallback: () => void;
 }): (() => void)[] {
-    const { orientation, menu, buttons, onEscape } = opts;
+    const { orientation, menu, buttons, sourceEvent, hideCallback } = opts;
     const { nextKey, prevKey } = PREV_NEXT_KEYS[orientation];
+    const lastFocus = getLastFocus(sourceEvent);
+    const onEscape = () => {
+        hideCallback();
+        lastFocus?.focus();
+    };
 
     menu.role = 'menu';
     menu.ariaOrientation = orientation;
@@ -122,14 +142,14 @@ export function initMenuKeyNav(opts: {
         const prev = buttons[(buttons.length + i - 1) % buttons.length];
         const curr = buttons[i];
         const next = buttons[(buttons.length + i + 1) % buttons.length];
-        if (onEscape) addEscapeEventListener(destroyFns, curr, onEscape);
+        addEscapeEventListener(destroyFns, curr, onEscape);
         linkThreeButtons(destroyFns, curr, prev, prevKey, next, nextKey);
         curr.tabIndex = -1;
     }
 
     // Add handlers for the menu element itself.
     menu.tabIndex = -1;
-    if (onEscape) addEscapeEventListener(destroyFns, menu, onEscape);
+    addEscapeEventListener(destroyFns, menu, onEscape);
     addRemovableEventListener(destroyFns, menu, 'keydown', (ev: KeyboardEvent) => {
         if (ev.target === menu && (ev.key === nextKey || ev.key === prevKey)) {
             ev.preventDefault();

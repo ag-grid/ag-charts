@@ -99,7 +99,16 @@ export class Popover extends _ModuleSupport.BaseModuleInstance implements _Modul
             return row;
         });
 
-        initMenuKeyNav({ orientation: 'vertical', menu: popover, buttons: rows });
+        initMenuKeyNav({
+            orientation: 'vertical',
+            menu: popover,
+            buttons: rows,
+            sourceEvent: opts.sourceEvent,
+            hideCallback: () => {
+                opts.onClose();
+                this.hide();
+            },
+        });
 
         this.element.replaceChildren(popover);
 
