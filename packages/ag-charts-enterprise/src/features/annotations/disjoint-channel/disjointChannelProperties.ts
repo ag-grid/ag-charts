@@ -52,4 +52,13 @@ export class DisjointChannelProperties extends Annotation(Background(Line(Handle
                 return this.stroke;
         }
     }
+
+    getDefaultOpacity(colorPickerType: AnnotationOptionsColorPickerType) {
+        switch (colorPickerType) {
+            case `fill-color`:
+                return this.background.fillOpacity;
+            case `line-color`:
+                return this.strokeOpacity;
+        }
+    }
 }

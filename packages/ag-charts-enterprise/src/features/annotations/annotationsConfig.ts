@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import {
     type AnnotationContext,
@@ -156,7 +156,7 @@ export function setDefaults({
     datum: AnnotationProperties;
     defaultColors: Map<
         AnnotationType | TextualAnnotationType,
-        Map<AnnotationOptionsColorPickerType, string | undefined>
+        Map<AnnotationOptionsColorPickerType, [string, string, number] | undefined>
     >;
     defaultFontSizes: Map<TextualAnnotationType, number | undefined>;
 }) {
@@ -165,9 +165,9 @@ export function setDefaults({
             continue;
         }
 
-        for (const [colorPickerType, color] of colors) {
-            if (color) {
-                setColor(datum, colorPickerType, color);
+        for (const [colorPickerType, [colorOpacity, color, opacity] = []] of colors) {
+            if (colorOpacity && color && opacity != null) {
+                setColor(datum, colorPickerType, colorOpacity, color, opacity);
             }
         }
     }
@@ -192,25 +192,37 @@ export function setFontsize(datum: TextualPropertiesType, annotationType: Textua
 export function setColor(
     datum: AnnotationProperties,
     colorPickerType: AnnotationOptionsColorPickerType,
-    color: string
+    colorOpacity: string,
+    color: string,
+    opacity: number
 ) {
     switch (colorPickerType) {
         case `fill-color`: {
             if ('fill' in datum) datum.fill = color;
-            if ('background' in datum) datum.background.fill = color;
+            if ('fillOpacity' in datum) datum.fillOpacity = opacity;
+            if ('background' in datum) {
+                datum.background.fill = color;
+                datum.background.fillOpacity = opacity;
+            }
             break;
         }
         case `line-color`: {
             if ('stroke' in datum && !NoteProperties.is(datum)) datum.stroke = color;
+            if ('strokeOpacity' in datum && !NoteProperties.is(datum)) datum.strokeOpacity = opacity;
             if ('axisLabel' in datum) {
                 datum.axisLabel.fill = color;
+                datum.axisLabel.fillOpacity = opacity;
                 datum.axisLabel.stroke = color;
+                datum.axisLabel.strokeOpacity = opacity;
             }
-            if (NoteProperties.is(datum)) datum.fill = color;
+            if (NoteProperties.is(datum)) {
+                datum.fill = color;
+                datum.fillOpacity = opacity;
+            }
             break;
         }
         case `text-color`: {
-            if ('color' in datum) datum.color = color;
+            if ('color' in datum) datum.color = colorOpacity;
             break;
         }
     }

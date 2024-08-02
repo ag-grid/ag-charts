@@ -24,6 +24,10 @@ export class TextualStartEndProperties extends Annotation(Line(Handle(Label(Font
         return this.color;
     }
 
+    getDefaultOpacity(_colorPickerType: AnnotationOptionsColorPickerType): number | undefined {
+        return undefined;
+    }
+
     getPlaceholderColor(): string | undefined {
         return undefined;
     }

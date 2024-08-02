@@ -189,10 +189,14 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
         const actionColor = ({
             colorPickerType,
+            colorOpacity,
             color,
+            opacity,
         }: {
             colorPickerType: AnnotationOptionsColorPickerType;
+            colorOpacity: string;
             color: string;
+            opacity: number;
         }) => {
             const datum = ctx.datum(this.active!);
             if (!datum) return;
@@ -200,7 +204,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             if (colorPickerType === 'text-color') {
                 ctx.updateTextInputColor(color);
             }
-            setColor(datum, colorPickerType, color);
+            setColor(datum, colorPickerType, colorOpacity, color, opacity);
             ctx.update();
         };
 

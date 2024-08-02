@@ -112,7 +112,7 @@ export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
     updateButton<T extends ToolbarGroup>(
         group: T,
         id: string,
-        options: { label?: string; icon?: AgIconName; fill?: string }
+        options: { label?: string; icon?: AgIconName; fill?: string; opacity?: number }
     ) {
         this.listeners.dispatch('button-updated', { type: 'button-updated', group, id, ...options });
     }

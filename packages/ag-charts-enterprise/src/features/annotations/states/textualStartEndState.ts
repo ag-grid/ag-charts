@@ -83,10 +83,14 @@ export abstract class TextualStartEndStateMachine<
 
         const actionColor = ({
             colorPickerType,
+            colorOpacity,
             color,
+            opacity,
         }: {
             colorPickerType: AnnotationOptionsColorPickerType;
+            colorOpacity: string;
             color: string;
+            opacity: number;
         }) => {
             const datum = getTypedDatum(ctx.datum());
             if (!datum) return;
@@ -94,7 +98,7 @@ export abstract class TextualStartEndStateMachine<
             if (colorPickerType === 'text-color') {
                 ctx.updateTextInputColor(color);
             }
-            setColor(datum, colorPickerType, color);
+            setColor(datum, colorPickerType, colorOpacity, color, opacity);
             ctx.update();
         };
 

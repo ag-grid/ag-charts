@@ -176,7 +176,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private readonly annotationPickerPopover = new Popover(this.ctx, 'text');
     private readonly defaultColors: Map<
         AnnotationType | TextualAnnotationType,
-        Map<AnnotationOptionsColorPickerType, string | undefined>
+        Map<AnnotationOptionsColorPickerType, [string, string, number] | undefined>
     > = new Map(
         Object.values(AnnotationType).map((type) => [
             type,
@@ -187,7 +187,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             ]),
         ])
     );
-
     private readonly defaultFontSizes: Map<TextualAnnotationType, number | undefined> = new Map([
         [TextualAnnotationType.Callout, undefined],
         [TextualAnnotationType.Comment, undefined],
@@ -507,7 +506,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             case AnnotationOptions.FillColor:
             case AnnotationOptions.TextColor:
                 this.colorPicker.show({
-                    color: getTypedDatum(annotationData[active])?.getDefaultColor(event.value),
+                    color: datum?.getDefaultColor(event.value),
+                    opacity: datum?.getDefaultOpacity(event.value),
                     onChange: datum != null ? this.onColorPickerChange.bind(this, event.value, datum) : undefined,
                     onClose: this.onColorPickerClose.bind(this),
                 });
@@ -611,15 +611,25 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private onColorPickerChange(
         colorPickerType: AnnotationOptionsColorPickerType,
         datum: AnnotationProperties,
-        color: string
+        colorOpacity: string,
+        color: string,
+        opacity: number
     ) {
-        this.state.transition('color', { colorPickerType, color });
-        this.defaultColors.get(datum.type)?.set(colorPickerType, color);
+        this.state.transition('color', { colorPickerType, colorOpacity, color, opacity });
+        this.defaultColors.get(datum.type)?.set(colorPickerType, [colorOpacity, color, opacity]);
 
-        this.updateToolbarColorPickerFill(colorPickerType, color);
+        this.updateToolbarColorPickerFill(colorPickerType, colorOpacity);
     }
 
-    private updateToolbarColorPickerFill(colorPickerType: AnnotationOptionsColorPickerType, color?: string) {
+    private updateToolbarColorPickerFill(
+        colorPickerType: AnnotationOptionsColorPickerType,
+        color?: string,
+        opacity?: number
+    ) {
+        if (color != null && opacity != null) {
+            const [r, g, b] = _Util.Color.parseHex(color) ?? [0, 0, 0];
+            color = _Util.Color.fromArray([r / 256, g / 256, b / 256, opacity]).toHexString();
+        }
         this.ctx.toolbarManager.updateButton('annotationOptions', colorPickerType, {
             fill: color,
         });
@@ -631,15 +641,18 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const datum = getTypedDatum(annotation);
         this.updateToolbarColorPickerFill(
             AnnotationOptions.LineColor,
-            datum?.getDefaultColor(AnnotationOptions.LineColor)
+            datum?.getDefaultColor(AnnotationOptions.LineColor),
+            datum?.getDefaultOpacity(AnnotationOptions.LineColor)
         );
         this.updateToolbarColorPickerFill(
             AnnotationOptions.FillColor,
-            datum?.getDefaultColor(AnnotationOptions.FillColor)
+            datum?.getDefaultColor(AnnotationOptions.FillColor),
+            datum?.getDefaultOpacity(AnnotationOptions.FillColor)
         );
         this.updateToolbarColorPickerFill(
             AnnotationOptions.TextColor,
-            datum?.getDefaultColor(AnnotationOptions.TextColor)
+            datum?.getDefaultColor(AnnotationOptions.TextColor),
+            datum?.getDefaultOpacity(AnnotationOptions.TextColor)
         );
     }
 
