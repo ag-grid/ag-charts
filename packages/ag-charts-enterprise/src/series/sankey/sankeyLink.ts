@@ -1,6 +1,6 @@
 import { _Scene } from 'ag-charts-community';
 
-const { BBox, Path, ScenePathChangeDetection } = _Scene;
+const { BBox, Path, ScenePathChangeDetection, splitBezier } = _Scene;
 
 function offsetTrivialCubicBezier(
     path: _Scene.ExtendedPath2D,
@@ -82,7 +82,7 @@ export class SankeyLink extends Path {
     @ScenePathChangeDetection()
     inset: number = 0;
 
-    override computeBBox(): _Scene.BBox | undefined {
+    protected override computeBBox(): _Scene.BBox | undefined {
         const x = Math.min(this.x1, this.x2);
         const width = Math.max(this.x1, this.x2) - x;
         const y = Math.min(this.y1, this.y2);
@@ -118,46 +118,14 @@ export class SankeyLink extends Path {
             path.lineTo(p3x, p3y + height / 2);
             path.cubicCurveTo(p2x, p2y + height / 2, p1x, p1y + height / 2, p0x, p0y + height / 2);
         } else {
-            // Use De Casteljau to split the base bezier at its midpoint (t = 0.5)
-            // This gives two 'trivial' beziers
-            const x01 = 0.5 * p0x + 0.5 * p1x;
-            const y01 = 0.5 * p0y + 0.5 * p1y;
-            const x12 = 0.5 * p1x + 0.5 * p2x;
-            const y12 = 0.5 * p1y + 0.5 * p2y;
-            const x23 = 0.5 * p2x + 0.5 * p3x;
-            const y23 = 0.5 * p2y + 0.5 * p3y;
-            const x012 = 0.5 * x01 + 0.5 * x12;
-            const y012 = 0.5 * y01 + 0.5 * y12;
-            const x123 = 0.5 * x12 + 0.5 * x23;
-            const y123 = 0.5 * y12 + 0.5 * y23;
-            const x0123 = 0.5 * x012 + 0.5 * x123;
-            const y0123 = 0.5 * y012 + 0.5 * y123;
-
-            const ap0x = p0x;
-            const ap0y = p0y;
-            const ap1x = x01;
-            const ap1y = y01;
-            const ap2x = x012;
-            const ap2y = y012;
-            const ap3x = x0123;
-            const ap3y = y0123;
-
-            const bp0x = x0123;
-            const bp0y = y0123;
-            const bp1x = x123;
-            const bp1y = y123;
-            const bp2x = x23;
-            const bp2y = y23;
-            const bp3x = p3x;
-            const bp3y = p3y;
-
+            const [a, b] = splitBezier(p0x, p0y, p1x, p1y, p2x, p2y, p3x, p3y, 0.5);
             const offset = ((y2 > y1 ? 1 : -1) * height) / 2;
 
-            offsetTrivialCubicBezier(path, ap0x, ap0y, ap1x, ap1y, ap2x, ap2y, ap3x, ap3y, offset);
-            offsetTrivialCubicBezier(path, bp0x, bp0y, bp1x, bp1y, bp2x, bp2y, bp3x, bp3y, -offset);
+            offsetTrivialCubicBezier(path, a[0].x, a[0].y, a[1].x, a[1].y, a[2].x, a[2].y, a[3].x, a[3].y, offset);
+            offsetTrivialCubicBezier(path, b[0].x, b[0].y, b[1].x, b[1].y, b[2].x, b[2].y, b[3].x, b[3].y, -offset);
             path.lineTo(p3x, p3y + height / 2);
-            offsetTrivialCubicBezier(path, bp3x, bp3y, bp2x, bp2y, bp1x, bp1y, bp0x, bp0y, offset);
-            offsetTrivialCubicBezier(path, ap3x, ap3y, ap2x, ap2y, ap1x, ap1y, ap0x, ap0y, -offset);
+            offsetTrivialCubicBezier(path, b[3].x, b[3].y, b[2].x, b[2].y, b[1].x, b[1].y, b[0].x, b[0].y, offset);
+            offsetTrivialCubicBezier(path, a[3].x, a[3].y, a[2].x, a[2].y, a[1].x, a[1].y, a[0].x, a[0].y, -offset);
         }
 
         path.closePath();

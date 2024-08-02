@@ -1,9 +1,7 @@
-import type { AgChartThemePalette } from 'ag-charts-types';
-
 import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
-    DEFAULT_ANNOTATION_STROKE,
+    DEFAULT_ANNOTATION_COLOR,
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_CAPTION_ALIGNMENT,
     DEFAULT_CAPTION_LAYOUT_STYLE,
@@ -17,17 +15,14 @@ const FINANCIAL_LIGHT_FILLS = {
     GREEN: '#089981',
     RED: '#F23645',
     BLUE: '#5090dc',
+    GRAY: '#A9A9A9',
 };
 
 const FINANCIAL_LIGHT_STROKES = {
     GREEN: '#089981',
     RED: '#F23645',
     BLUE: '#5090dc',
-};
-
-const palette: AgChartThemePalette = {
-    fills: Object.values(FINANCIAL_LIGHT_FILLS),
-    strokes: Object.values(FINANCIAL_LIGHT_STROKES),
+    GRAY: '#909090',
 };
 
 export class FinancialLight extends ChartTheme {
@@ -38,6 +33,9 @@ export class FinancialLight extends ChartTheme {
             up: { fill: FINANCIAL_LIGHT_FILLS.GREEN, stroke: FINANCIAL_LIGHT_STROKES.GREEN },
             down: { fill: FINANCIAL_LIGHT_FILLS.RED, stroke: FINANCIAL_LIGHT_STROKES.RED },
             neutral: { fill: FINANCIAL_LIGHT_FILLS.BLUE, stroke: FINANCIAL_LIGHT_STROKES.BLUE },
+            altUp: { fill: FINANCIAL_LIGHT_FILLS.GREEN, stroke: FINANCIAL_LIGHT_STROKES.GREEN },
+            altDown: { fill: FINANCIAL_LIGHT_FILLS.RED, stroke: FINANCIAL_LIGHT_STROKES.RED },
+            altNeutral: { fill: FINANCIAL_LIGHT_FILLS.GRAY, stroke: FINANCIAL_LIGHT_STROKES.GRAY },
         };
     }
 
@@ -50,7 +48,7 @@ export class FinancialLight extends ChartTheme {
             FINANCIAL_LIGHT_FILLS.RED,
         ]);
 
-        params.set(DEFAULT_ANNOTATION_STROKE, FINANCIAL_LIGHT_FILLS.BLUE);
+        params.set(DEFAULT_ANNOTATION_COLOR, FINANCIAL_LIGHT_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, FINANCIAL_LIGHT_FILLS.BLUE);
         params.set(DEFAULT_AXIS_GRID_COLOUR, '#F2F3F3');
 
@@ -61,9 +59,5 @@ export class FinancialLight extends ChartTheme {
         params.set(DEFAULT_GRIDLINE_ENABLED, true);
 
         return params;
-    }
-
-    protected override getPalette(): AgChartThemePalette {
-        return palette;
     }
 }

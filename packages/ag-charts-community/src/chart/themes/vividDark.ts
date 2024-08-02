@@ -1,9 +1,7 @@
-import type { AgChartThemePalette } from 'ag-charts-types';
-
 import { DarkTheme } from './darkTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
-    DEFAULT_ANNOTATION_STROKE,
+    DEFAULT_ANNOTATION_COLOR,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
 } from './symbols';
 
@@ -33,19 +31,17 @@ const VIVID_DARK_STROKES = {
     RED: '#ff726e',
 };
 
-const palette: AgChartThemePalette = {
-    fills: Object.values(VIVID_DARK_FILLS),
-    strokes: Object.values(VIVID_DARK_STROKES),
-};
-
 export class VividDark extends DarkTheme {
     override getDefaultColors() {
         return {
             fills: VIVID_DARK_FILLS,
             strokes: VIVID_DARK_STROKES,
-            up: { fill: VIVID_DARK_FILLS.BLUE, stroke: VIVID_DARK_STROKES.BLUE },
-            down: { fill: VIVID_DARK_FILLS.ORANGE, stroke: VIVID_DARK_STROKES.ORANGE },
+            up: { fill: VIVID_DARK_FILLS.GREEN, stroke: VIVID_DARK_STROKES.GREEN },
+            down: { fill: VIVID_DARK_FILLS.RED, stroke: VIVID_DARK_STROKES.RED },
             neutral: { fill: VIVID_DARK_FILLS.GRAY, stroke: VIVID_DARK_STROKES.GRAY },
+            altUp: { fill: VIVID_DARK_FILLS.BLUE, stroke: VIVID_DARK_STROKES.BLUE },
+            altDown: { fill: VIVID_DARK_FILLS.ORANGE, stroke: VIVID_DARK_STROKES.ORANGE },
+            altNeutral: { fill: VIVID_DARK_FILLS.GRAY, stroke: VIVID_DARK_STROKES.GRAY },
         };
     }
 
@@ -58,12 +54,9 @@ export class VividDark extends DarkTheme {
             VIVID_DARK_FILLS.GREEN,
         ]);
 
-        params.set(DEFAULT_ANNOTATION_STROKE, VIVID_DARK_FILLS.BLUE);
+        params.set(DEFAULT_ANNOTATION_COLOR, VIVID_DARK_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, VIVID_DARK_FILLS.BLUE);
 
         return params;
-    }
-    protected override getPalette(): AgChartThemePalette {
-        return palette;
     }
 }

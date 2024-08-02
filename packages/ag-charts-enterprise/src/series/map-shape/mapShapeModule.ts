@@ -17,7 +17,7 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
     chartTypes: ['topology'],
 
     identifier: 'map-shape',
-    instanceConstructor: MapShapeSeries,
+    moduleFactory: (ctx) => new MapShapeSeries(ctx),
     tooltipDefaults: { range: 'exact' },
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,

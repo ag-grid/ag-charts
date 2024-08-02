@@ -10,7 +10,7 @@ export const BulletModule: _ModuleSupport.SeriesModule<'bullet'> = {
     chartTypes: ['cartesian'],
     identifier: 'bullet',
     solo: true,
-    instanceConstructor: BulletSeries,
+    moduleFactory: (ctx) => new BulletSeries(ctx),
     tooltipDefaults: { range: 'exact' },
     defaultAxes: [
         {

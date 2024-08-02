@@ -56,6 +56,7 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
     }
 
     private toggleOverlay(overlay: Overlay, seriesRect: BBox, visible: boolean) {
+        this.overlayElem.ariaHidden = (!visible).toString();
         if (visible) {
             const element = overlay.getElement(this.animationManager, this.localeManager, seriesRect);
             this.overlayElem.appendChild(element);

@@ -1,14 +1,33 @@
+/** @deprecated v10.1.0 use 'hlc' instead. */
+export type DeprecatedAgPriceVolumeChartType = 'range-area';
+export type AgPriceVolumeChartType =
+    | 'candlestick'
+    | 'hollow-candlestick'
+    | 'ohlc'
+    | 'line'
+    | 'step-line'
+    | 'hlc'
+    | 'high-low'
+    | DeprecatedAgPriceVolumeChartType;
+
 export interface AgPriceVolumePreset {
     /** Series type used for the OHLC data.
      *
      *  Default: `'candlestick'`
      */
-    chartType?: 'candlestick' | 'hollow-candlestick' | 'ohlc' | 'line' | 'step-line' | 'range-area';
+    chartType?: AgPriceVolumeChartType;
+    /** The key used to retrieve x-values from the data.
+     *
+     * Default: `'date'`
+     *
+     * @deprecated v10.1.0 use `dateKey` instead.
+     */
+    xKey?: string;
     /** The key used to retrieve x-values from the data.
      *
      * Default: `'date'`
      */
-    xKey?: string;
+    dateKey?: string;
     /** The key used to retrieve 'open' values from the data.
      *
      * Default: `'open'`
@@ -49,8 +68,15 @@ export interface AgPriceVolumePreset {
     /** Whether to show the range toolbar.
      *
      * Default: `true`
+     *
+     * @deprecated v10.1.0 use `rangeButtons` instead.
      */
     rangeToolbar?: boolean;
+    /** Whether to show the range buttons.
+     *
+     * Default: `true`
+     */
+    rangeButtons?: boolean;
     /** Whether to show the status bar.
      *
      * Default: `true`
@@ -59,8 +85,15 @@ export interface AgPriceVolumePreset {
     /** Whether Annotations are enabled.
      *
      * Default: `true`
+     *
+     * @deprecated v10.1.0 use `toolbar` instead.
      */
     annotations?: boolean;
+    /** Whether the toolbar is enabled.
+     *
+     * Default: `true`
+     */
+    toolbar?: boolean;
     /** Whether Zoom is enabled.
      *
      * Default: `true`

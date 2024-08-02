@@ -8,7 +8,7 @@ export const StatusBarModule: _ModuleSupport.RootModule = {
     optionsKey: 'statusBar',
     packageType: 'enterprise',
     chartTypes: ['cartesian'],
-    instanceConstructor: StatusBar,
+    moduleFactory: (ctx) => new StatusBar(ctx),
     themeTemplate: {
         statusBar: {
             enabled: false,
@@ -26,6 +26,12 @@ export const StatusBarModule: _ModuleSupport.RootModule = {
             },
             negative: {
                 color: _Theme.PALETTE_DOWN_STROKE,
+            },
+            neutral: {
+                color: _Theme.PALETTE_NEUTRAL_STROKE,
+            },
+            altNeutral: {
+                color: 'gray',
             },
         },
     },

@@ -2,24 +2,23 @@ import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import {
     Annotation,
-    AnnotationHandle,
-    AnnotationLine,
-    ChannelAnnotation,
-    ChannelAnnotationMiddle,
+    Background,
+    ChannelAnnotationMiddleProperties,
     Extendable,
+    Handle,
+    Line,
     LineDash,
     Stroke,
 } from '../annotationProperties';
-import { type AnnotationContext, AnnotationType } from '../annotationTypes';
+import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
 import { validateDatumLine } from '../annotationUtils';
 
 const { NUMBER, STRING, OBJECT, BaseProperties, Validate, isObject } = _ModuleSupport;
 
-export class ParallelChannelAnnotation extends Annotation(
-    AnnotationType.ParallelChannel,
-    ChannelAnnotation(AnnotationLine(AnnotationHandle(Extendable(Stroke(LineDash(BaseProperties))))))
+export class ParallelChannelProperties extends Annotation(
+    Background(Line(Handle(Extendable(Stroke(LineDash(BaseProperties))))))
 ) {
-    static is(value: unknown): value is ParallelChannelAnnotation {
+    static is(value: unknown): value is ParallelChannelProperties {
         return isObject(value) && value.type === AnnotationType.ParallelChannel;
     }
 
@@ -30,7 +29,7 @@ export class ParallelChannelAnnotation extends Annotation(
     height!: number;
 
     @Validate(OBJECT, { optional: true })
-    middle = new ChannelAnnotationMiddle();
+    middle = new ChannelAnnotationMiddleProperties();
 
     get bottom() {
         const bottom = {
@@ -54,5 +53,23 @@ export class ParallelChannelAnnotation extends Annotation(
             validateDatumLine(context, this, warningPrefix) &&
             validateDatumLine(context, this.bottom, warningPrefix)
         );
+    }
+
+    getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType) {
+        switch (colorPickerType) {
+            case `fill-color`:
+                return this.background.fill;
+            case `line-color`:
+                return this.stroke;
+        }
+    }
+
+    getDefaultOpacity(colorPickerType: AnnotationOptionsColorPickerType) {
+        switch (colorPickerType) {
+            case `fill-color`:
+                return this.background.fillOpacity;
+            case `line-color`:
+                return this.strokeOpacity;
+        }
     }
 }

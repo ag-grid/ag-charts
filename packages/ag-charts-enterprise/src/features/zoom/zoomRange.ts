@@ -1,6 +1,6 @@
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
-const { AND, DATE, NUMBER, OR, ActionOnSet, isFiniteNumber, isValidDate, Validate } = _ModuleSupport;
+const { AND, DATE, NUMBER, OR, ActionOnSet, isFiniteNumber, isValidDate, Validate, arraysEqual } = _ModuleSupport;
 
 export class ZoomRange {
     @ActionOnSet<ZoomRange>({
@@ -56,6 +56,8 @@ export class ZoomRange {
 
         // If neither start or end were changed, ensure we still call the `onChange` callback
         if (!changed) this.onChange?.(this.axisId, this.getRange());
+
+        return { start, end };
     }
 
     public updateWith(fn: (start: Date | number, end: Date | number) => [Date | number, Date | number]) {
@@ -71,6 +73,8 @@ export class ZoomRange {
 
         // If neither start or end were changed, ensure we still call the `onChange` callback
         if (!changed) this.onChange?.(this.axisId, this.getRange());
+
+        return { start, end };
     }
 
     public extendAll() {
@@ -87,7 +91,7 @@ export class ZoomRange {
         if (!changed) this.onChange?.(this.axisId, this.getRange());
     }
 
-    public updateAxis(axes: Array<_ModuleSupport.AxisLayout & { id: string }>) {
+    public updateAxis(axes: _ModuleSupport.AxisLayout[]) {
         const validAxis = axes.find(({ domain }) => {
             const isNumberAxis = !isFiniteNumber(domain[0]) || !isFiniteNumber(domain.at(-1));
             const isDateAxis = !isValidDate(domain[0]) || !isValidDate(domain.at(-1));
@@ -110,7 +114,7 @@ export class ZoomRange {
             }
         }
 
-        const changed = this.domain == null || !_Util.areArrayItemsStrictlyEqual(this.domain, validAxisDomain);
+        const changed = this.domain == null || !arraysEqual(this.domain, validAxisDomain);
 
         if (changed) {
             this.domain = validAxisDomain;

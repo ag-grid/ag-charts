@@ -109,7 +109,7 @@
         "tsConfig": "{projectRoot}/tsconfig.lib.json",
         "esbuildConfig": "esbuild.config.cjs",
         "platform": "browser",
-        "target": "es6",
+        "target": "es2020",
         "bundle": true,
         "thirdParty": true,
         "skipTypeCheck": true,
@@ -189,6 +189,7 @@
     "pack": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
+      "inputs": ["allTransitiveOutputs"],
       "outputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "options": {
         "cwd": "packages/ag-charts-enterprise",
@@ -199,22 +200,16 @@
     "pack:extract": {
       "executor": "nx:run-commands",
       "dependsOn": ["pack"],
-      "inputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
+      "inputs": ["allOutputs"],
       "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-enterprise/"],
-      "options": {
-        "parallel": false,
-        "commands": [
-          "mkdir -p dist/packages/contents/ag-charts-enterprise",
-          "tar -xzf dist/packages/ag-charts-enterprise.tgz -C dist/packages/contents/ag-charts-enterprise/"
-        ]
-      }
+      "options": { "command": "tools/package/extract-contents.sh {projectRoot}" }
     },
     "pack:verify": {
       "executor": "nx:run-commands",
       "dependsOn": ["pack:extract"],
-      "inputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-enterprise/"],
+      "inputs": ["allOutputs"],
       "options": {
-        "commands": ["node tools/sanity-check-package.js dist/packages/contents/ag-charts-enterprise/package"]
+        "commands": ["node tools/package/sanity-check-package.js dist/packages/contents/ag-charts-enterprise/package"]
       }
     }
   },

@@ -15,6 +15,7 @@ export interface HighlightChangeEvent {
     type: 'highlight-change';
     previousHighlight?: HighlightNodeDatum;
     currentHighlight?: HighlightNodeDatum;
+    callerId: string;
 }
 
 /**
@@ -34,6 +35,7 @@ export class HighlightManager extends BaseManager<'highlight-change', HighlightC
                 type: 'highlight-change',
                 currentHighlight: this.activeHighlight,
                 previousHighlight,
+                callerId,
             });
         }
     }
@@ -43,6 +45,9 @@ export class HighlightManager extends BaseManager<'highlight-change', HighlightC
     }
 
     private isEqual(a?: SeriesNodeDatum, b?: SeriesNodeDatum) {
-        return a === b || (a?.series === b?.series && a?.itemId === b?.itemId && a?.datum === b?.datum);
+        return (
+            a === b ||
+            (a != null && b != null && a?.series === b?.series && a?.itemId === b?.itemId && a?.datum === b?.datum)
+        );
     }
 }

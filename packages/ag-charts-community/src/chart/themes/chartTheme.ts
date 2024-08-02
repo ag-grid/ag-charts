@@ -4,6 +4,7 @@ import type {
     AgChartThemeOverrides,
     AgChartThemePalette,
     AgCommonThemeableChartOptions,
+    AgPaletteColors,
 } from 'ag-charts-types';
 
 import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
@@ -18,8 +19,8 @@ import { CARTESIAN_AXIS_TYPE, FONT_SIZE, FONT_WEIGHT, POLAR_AXIS_TYPE, POSITION 
 import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultColors';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
+    DEFAULT_ANNOTATION_COLOR,
     DEFAULT_ANNOTATION_HANDLE_FILL,
-    DEFAULT_ANNOTATION_STROKE,
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_AXIS_LINE_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
@@ -38,8 +39,14 @@ import {
     DEFAULT_PADDING,
     DEFAULT_POLAR_SERIES_STROKE,
     DEFAULT_SHADOW_COLOUR,
+    DEFAULT_TEXTBOX_COLOR,
+    DEFAULT_TEXTBOX_FILL,
+    DEFAULT_TEXTBOX_STROKE,
+    DEFAULT_TEXT_ANNOTATION_COLOR,
     DEFAULT_TOOLBAR_POSITION,
     IS_DARK_THEME,
+    PALETTE_ALT_NEUTRAL_FILL,
+    PALETTE_ALT_NEUTRAL_STROKE,
     PALETTE_DOWN_FILL,
     PALETTE_DOWN_STROKE,
     PALETTE_NEUTRAL_FILL,
@@ -50,11 +57,6 @@ import {
 
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
 const DEFAULT_BACKGROUND_FILL = 'white';
-
-const DEFAULT_PALETTE: AgChartThemePalette = {
-    fills: Object.values(DEFAULT_FILLS),
-    strokes: Object.values(DEFAULT_STROKES),
-};
 
 type ChartTypeConfig = {
     seriesTypes: string[];
@@ -84,12 +86,12 @@ const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).redu
 >((r, { commonOptions }) => r.concat(commonOptions), []);
 
 export class ChartTheme {
-    readonly palette: AgChartThemePalette;
+    readonly palette: Required<AgChartThemePalette> & {
+        altUp: AgPaletteColors;
+        altDown: AgPaletteColors;
+        altNeutral: AgPaletteColors;
+    };
     readonly paletteType: PaletteType;
-
-    protected getPalette(): AgChartThemePalette {
-        return DEFAULT_PALETTE;
-    }
 
     readonly config: any;
 
@@ -138,6 +140,9 @@ export class ChartTheme {
                     padding: 5,
                     color: DEFAULT_LABEL_COLOUR,
                 },
+            },
+            crosshair: {
+                enabled: true,
             },
         });
     }
@@ -210,7 +215,6 @@ export class ChartTheme {
             tooltip: {
                 enabled: true,
                 darkTheme: IS_DARK_THEME,
-                range: undefined,
                 delay: 0,
             },
             overlays: { darkTheme: IS_DARK_THEME },
@@ -230,22 +234,13 @@ export class ChartTheme {
             groupPaddingInner: 0.1,
             label: { autoRotate: true },
             gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
+            crosshair: { enabled: false },
         }),
         [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults({ gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED } }),
         [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: ChartTheme.getAxisDefaults({
             groupPaddingInner: 0,
             label: { autoRotate: false },
             gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-            crosshair: {
-                enabled: true,
-                snap: true,
-                stroke: DEFAULT_MUTED_LABEL_COLOUR,
-                strokeWidth: 1,
-                strokeOpacity: 1,
-                lineDash: [5, 6],
-                lineDashOffset: 0,
-                label: { enabled: true },
-            },
         }),
         [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: ChartTheme.getAxisDefaults({
             gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
@@ -270,8 +265,12 @@ export class ChartTheme {
             this.mergeOverrides(defaults, overrides);
         }
 
-        const { fills: _fills, strokes: _strokes, ...otherColors } = this.getDefaultColors();
-        this.palette = mergeDefaults(palette, this.getPalette(), { ...otherColors });
+        const { fills, strokes, ...otherColors } = this.getDefaultColors();
+        this.palette = mergeDefaults(palette, {
+            fills: Object.values(fills),
+            strokes: Object.values(strokes),
+            ...otherColors,
+        });
         this.paletteType = paletteType(palette);
 
         this.config = Object.freeze(this.templateTheme(defaults));
@@ -376,9 +375,12 @@ export class ChartTheme {
         return {
             fills: DEFAULT_FILLS,
             strokes: DEFAULT_STROKES,
-            up: { fill: DEFAULT_FILLS.BLUE, stroke: DEFAULT_STROKES.BLUE },
-            down: { fill: DEFAULT_FILLS.ORANGE, stroke: DEFAULT_STROKES.ORANGE },
+            up: { fill: DEFAULT_FILLS.GREEN, stroke: DEFAULT_STROKES.GREEN },
+            down: { fill: DEFAULT_FILLS.RED, stroke: DEFAULT_STROKES.RED },
             neutral: { fill: DEFAULT_FILLS.GRAY, stroke: DEFAULT_STROKES.GRAY },
+            altUp: { fill: DEFAULT_FILLS.BLUE, stroke: DEFAULT_STROKES.BLUE },
+            altDown: { fill: DEFAULT_FILLS.ORANGE, stroke: DEFAULT_STROKES.ORANGE },
+            altNeutral: { fill: DEFAULT_FILLS.GRAY, stroke: DEFAULT_STROKES.GRAY },
         };
     }
 
@@ -406,9 +408,16 @@ export class ChartTheme {
         params.set(DEFAULT_HIERARCHY_FILLS, ['#ffffff', '#e0e5ea', '#c1ccd5', '#a3b4c1', '#859cad']);
         params.set(DEFAULT_HIERARCHY_STROKES, ['#ffffff', '#c5cbd1', '#a4b1bd', '#8498a9', '#648096']);
         params.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_BACKGROUND_FILL);
-        params.set(DEFAULT_ANNOTATION_STROKE, DEFAULT_FILLS.BLUE);
+
+        params.set(DEFAULT_ANNOTATION_COLOR, DEFAULT_FILLS.BLUE);
+        params.set(DEFAULT_TEXT_ANNOTATION_COLOR, DEFAULT_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, DEFAULT_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_HANDLE_FILL, DEFAULT_BACKGROUND_FILL);
+
+        params.set(DEFAULT_TEXTBOX_FILL, '#fafafa');
+        params.set(DEFAULT_TEXTBOX_STROKE, '#dddddd');
+        params.set(DEFAULT_TEXTBOX_COLOR, '#000000');
+
         params.set(DEFAULT_TOOLBAR_POSITION, 'top');
         params.set(DEFAULT_GRIDLINE_ENABLED, false);
 
@@ -419,6 +428,8 @@ export class ChartTheme {
         params.set(PALETTE_DOWN_FILL, this.palette.down?.fill ?? defaultColors.down.fill);
         params.set(PALETTE_NEUTRAL_STROKE, this.palette.neutral?.stroke ?? defaultColors.neutral.stroke);
         params.set(PALETTE_NEUTRAL_FILL, this.palette.neutral?.fill ?? defaultColors.neutral.fill);
+        params.set(PALETTE_ALT_NEUTRAL_FILL, this.palette.altNeutral?.fill ?? defaultColors.altNeutral.fill);
+        params.set(PALETTE_ALT_NEUTRAL_STROKE, this.palette.altNeutral?.stroke ?? defaultColors.altNeutral.stroke);
 
         return params;
     }

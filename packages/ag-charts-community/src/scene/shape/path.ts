@@ -83,6 +83,10 @@ export class Path extends Shape implements DistantObject {
 
     computeSVGDataPath(): string {
         const { x, y } = this.inverseTransformPoint(0, 0);
+        if (this.dirtyPath) {
+            this.updatePath();
+            this.dirtyPath = false;
+        }
         return this.path.computeSVGDataPath(x, y);
     }
 
@@ -110,8 +114,7 @@ export class Path extends Shape implements DistantObject {
             return;
         }
 
-        this.computeTransformMatrix();
-        this.matrix.toContext(ctx);
+        this.transformRenderContext(renderCtx);
 
         if (this.dirtyPath || this.isDirtyPath()) {
             this.updatePath();
@@ -140,7 +143,7 @@ export class Path extends Shape implements DistantObject {
                 // Bound the shape rendered to the clipping path.
                 ctx.clip(this._clipPath?.getPath2D());
                 // Fallback values, but practically these should never be used.
-                const { x = -10000, y = -10000, width = 20000, height = 20000 } = this.computeBBox() ?? {};
+                const { x = -10000, y = -10000, width = 20000, height = 20000 } = this.getBBox() ?? {};
                 ctx.clearRect(x, y, width, height);
             }
 

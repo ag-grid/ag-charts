@@ -7,8 +7,8 @@ const options: AgFinancialChartOptions = {
     data: getData(),
 
     navigator: false, // disabled by default!
-    annotations: true,
-    rangeToolbar: true,
+    toolbar: true,
+    rangeButtons: true,
     volume: true,
     statusBar: true,
     zoom: true,
@@ -16,7 +16,7 @@ const options: AgFinancialChartOptions = {
 
 const chart = AgCharts.createFinancialChart(options);
 
-function toggleFeature(type: 'navigator' | 'annotations' | 'rangeToolbar' | 'volume' | 'statusBar' | 'zoom') {
+function toggleFeature(type: 'navigator' | 'toolbar' | 'rangeButtons' | 'volume' | 'statusBar' | 'zoom') {
     options[type] = !options[type];
     chart.update(options);
 }

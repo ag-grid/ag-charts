@@ -1,4 +1,5 @@
 import { createId } from '../util/id';
+import { arraysIterable, toIterable } from '../util/iterator';
 import { BBox } from './bbox';
 import { ChangeDetectable, RedrawType, SceneChangeDetection } from './changeDetectable';
 import type { LayersManager, ZIndexSubOrder } from './layersManager';
@@ -12,7 +13,7 @@ export enum PointerEvents {
 }
 
 export type RenderContext = {
-    ctx: CanvasRenderingContext2D;
+    ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
     devicePixelRatio: number;
     forceRender: boolean | 'dirtyTransform';
     resized: boolean;
@@ -27,6 +28,7 @@ export type RenderContext = {
 };
 
 export interface NodeOptions {
+    name?: string;
     isVirtual?: boolean;
     tag?: number;
     zIndex?: number;
@@ -53,6 +55,7 @@ export abstract class Node extends ChangeDetectable {
      * Unique node ID in the form `ClassName-NaturalNumber`.
      */
     readonly id = createId(this);
+    readonly name?: string;
 
     protected _datum?: any;
     protected _previousDatum?: any;
@@ -150,9 +153,12 @@ export abstract class Node extends ChangeDetectable {
     private childSet: { [id: string]: boolean } = {}; // new Set<Node>()
 
     setProperties<T>(this: T, styles: { [K in keyof T]?: T[K] }, pickKeys?: (keyof T)[]) {
-        const keys = pickKeys ?? (Object.keys(styles) as (keyof T)[]);
-        for (const key of keys) {
-            (this as any)[key] = styles[key];
+        if (pickKeys) {
+            for (const key of pickKeys) {
+                (this as any)[key] = styles[key];
+            }
+        } else {
+            Object.assign(this as any, styles);
         }
         return this;
     }
@@ -165,12 +171,8 @@ export abstract class Node extends ChangeDetectable {
      * one should use the {@link insertBefore} method instead.
      * @param nodes A node or nodes to append.
      */
-    append(nodes: Node[] | Node) {
-        // Passing a single parameter to an open-ended version of `append`
-        // would be 30-35% slower than this.
-        if (!Array.isArray(nodes)) {
-            nodes = [nodes];
-        }
+    append(nodes: Iterable<Node> | Node) {
+        nodes = toIterable(nodes);
 
         for (const node of nodes) {
             if (node.parent) {
@@ -230,6 +232,16 @@ export abstract class Node extends ChangeDetectable {
         this.markDirty(node, RedrawType.MAJOR);
 
         return node;
+    }
+
+    clear() {
+        for (const child of arraysIterable(this._virtualChildren, this._children)) {
+            child._parent = undefined;
+            child._setLayerManager();
+        }
+        this._virtualChildren.length = 0;
+        this._children.length = 0;
+        this.childSet = {};
     }
 
     // These matrices may need to have package level visibility
@@ -312,8 +324,9 @@ export abstract class Node extends ChangeDetectable {
     @SceneChangeDetection({ type: 'transform' })
     translationY: number = 0;
 
-    constructor({ isVirtual, tag, zIndex }: NodeOptions = {}) {
+    constructor({ isVirtual, tag, zIndex, name }: NodeOptions = {}) {
         super();
+        this.name = name;
         this.isVirtual = isVirtual ?? false;
         this.tag = tag ?? NaN;
         this.zIndex = zIndex ?? 0;
@@ -370,16 +383,20 @@ export abstract class Node extends ChangeDetectable {
 
     private cachedBBox?: BBox;
 
-    getCachedBBox(): BBox {
-        return this.cachedBBox ?? BBox.zero;
+    getBBox(): BBox {
+        if (this.cachedBBox == null) {
+            this.cachedBBox = Object.freeze(this.computeBBox());
+        }
+
+        return this.cachedBBox!;
     }
 
-    computeBBox(): BBox | undefined {
+    protected computeBBox(): BBox | undefined {
         return;
     }
 
     computeTransformedBBox(): BBox | undefined {
-        const bbox = this.computeBBox();
+        const bbox = this.getBBox()?.clone();
 
         if (!bbox) {
             return;
@@ -424,6 +441,12 @@ export abstract class Node extends ChangeDetectable {
         this.dirtyTransform = false;
     }
 
+    protected transformRenderContext(renderCtx: RenderContext, layerCtx?: RenderContext['ctx']): Matrix {
+        this.computeTransformMatrix();
+        this.matrix.toContext(layerCtx ?? renderCtx.ctx);
+        return this.matrix;
+    }
+
     readonly _childNodeCounts: ChildNodeCounts = {
         groups: 0,
         nonGroups: 0,
@@ -454,6 +477,8 @@ export abstract class Node extends ChangeDetectable {
     }
 
     override markDirty(_source: Node, type = RedrawType.TRIVIAL, parentType = type) {
+        this.cachedBBox = undefined;
+
         if (this._dirty > type || (this._dirty === type && type === parentType)) {
             return;
         }

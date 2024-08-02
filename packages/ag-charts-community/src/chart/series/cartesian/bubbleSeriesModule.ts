@@ -11,7 +11,7 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
     chartTypes: ['cartesian'],
 
     identifier: 'bubble',
-    instanceConstructor: BubbleSeries,
+    moduleFactory: (ctx) => new BubbleSeries(ctx),
     tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
         {

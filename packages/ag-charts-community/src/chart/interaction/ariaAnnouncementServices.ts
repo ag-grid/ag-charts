@@ -13,7 +13,7 @@ export class AriaAnnouncementService {
     private static createAnnouncer(): HTMLElement {
         const e = getDocument().createElement('div');
         e.classList.add('ag-charts-aria-announcer');
-        setAttribute(e, 'role', 'figure');
+        setAttribute(e, 'role', 'status');
         setAttribute(e, 'aria-live', 'assertive');
         return e;
     }
@@ -40,7 +40,7 @@ export class AriaAnnouncementService {
         this.liveElem.style.height = `${event.chart.height}px`;
     }
 
-    public announceValue(id: string, params?: Record<string, any>): void {
+    announceValue(id: string, params?: Record<string, any>): void {
         const { localeManager, liveElem } = this;
         const value = localeManager.t(id, params);
         this.debug(`AriaAnnouncementService - announceValue: ${value}`);

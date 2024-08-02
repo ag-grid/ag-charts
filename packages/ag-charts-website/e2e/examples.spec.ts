@@ -54,9 +54,6 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
         '100--stacked-bar': { status: '404' },
     },
 
-    annotations: {
-        'annotation-save-restore': { skipCanvasUpdateCheck: true },
-    },
     'axes-labels': {
         // Too complex to test with a naive button-click sweep
         'axis-label-rotation': { skipCanvasUpdateCheck: true },
@@ -70,9 +67,16 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
             skipCanvasUpdateCheck: true,
         },
     },
+    'api-state': {
+        // Buttons have no visible rendering change
+        'state-save-restore': { skipCanvasUpdateCheck: true },
+    },
     events: {
         // Buttons have no visible rendering change
         'interaction-ranges': { skipCanvasUpdateCheck: true },
+    },
+    'financial-charts-toolbar': {
+        'annotation-save-restore': { skipCanvasUpdateCheck: true },
     },
     'financial-chart-types': {
         'toggle-financial-features': { clickOrder: 'reverse' },

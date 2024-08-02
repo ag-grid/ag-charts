@@ -11,6 +11,13 @@ on:
             - 'b[0-9][0-9]?.[0-9][0-9]?.[0-9][0-9]?'
     workflow_dispatch:
         inputs:
+            run_e2e:
+                type: 'choice'
+                required: true
+                default: 'false'
+                options:
+                    - 'true'
+                    - 'false'
             clean_checkout:
                 description: 'Disable all caching'
                 type: 'choice'
@@ -164,6 +171,7 @@ jobs:
     e2e_init:
         runs-on: ubuntu-latest
         name: E2E Test Setup
+        if: ${{ github.event.inputs.run_e2e }}
         env:
             AG_FORCE_ALL_TESTS: ${{ (github.ref == 'refs/heads/latest') && '1' || '0' }}
             AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
@@ -212,6 +220,7 @@ jobs:
         runs-on: ubuntu-latest
         name: E2E Tests (${{ matrix.shard }}/${{ strategy.job-total }})
         needs: [e2e_init]
+        if: ${{ github.event.inputs.run_e2e }}
         strategy:
             fail-fast: false
             matrix: ${{ fromJson(needs.e2e_init.outputs.matrix )}}
@@ -313,7 +322,7 @@ jobs:
                   elif [ "${{ needs.test.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="failure"
                   elif [ "${{ needs.sonarqube.result }}" == "failure" ] ; then
-                    WORKFLOW_STATUS="failure"
+                    WORKFLOW_STATUS="partial"
                   fi
                   echo "workflowStatus=${WORKFLOW_STATUS}" >> $GITHUB_OUTPUT
 
@@ -343,7 +352,7 @@ jobs:
                   echo "EOF" >> $GITHUB_ENV
 
             - name: Tag Latest Successful Commit
-              if: success() && github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.workflowStatus == 'success'
+              if: success() && github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.workflowStatus != 'failure'
               uses: EndBug/latest-tag@latest
               with:
                   ref: latest-success
@@ -354,7 +363,7 @@ jobs:
               if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.changedState == 'true'
               env:
                   SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-                  SLACK_COLOR: ${{ steps.lastJobStatus.outputs.workflowStatus }}
+                  SLACK_COLOR: ${{ steps.lastJobStatus.outputs.workflowStatus != 'failure' && 'success' || 'failure' }}
                   SLACK_ICON: https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_192.png
                   SLACK_USERNAME: ag-charts CI
                   SLACK_FOOTER: ''

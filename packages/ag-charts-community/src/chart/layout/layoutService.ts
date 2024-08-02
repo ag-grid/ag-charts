@@ -11,6 +11,7 @@ type LayoutStage = 'start-layout' | 'before-series';
 type LayoutComplete = 'layout-complete';
 
 export interface AxisLayout {
+    id: string;
     rect: BBox;
     gridPadding: number;
     seriesAreaPadding: number;
@@ -30,7 +31,7 @@ export interface LayoutCompleteEvent {
     chart: { width: number; height: number };
     series: { rect: BBox; paddedRect: BBox; visible: boolean; shouldFlipXY?: boolean };
     clipSeries: boolean;
-    axes?: Array<AxisLayout & { id: string }>;
+    axes?: AxisLayout[];
 }
 
 type EventTypes = LayoutStage | LayoutComplete;

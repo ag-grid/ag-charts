@@ -55,6 +55,14 @@ export function createElement<K extends keyof HTMLElementTagNameMap>(
     return element;
 }
 
+export function createElementNS<K extends keyof SVGElementTagNameMap>(
+    namespaceURI: 'http://www.w3.org/2000/svg',
+    qualifiedName: K
+): SVGElementTagNameMap[K];
+export function createElementNS(namespaceURI: 'http://www.w3.org/2000/svg', qualifiedName: string) {
+    return getDocument().createElementNS(namespaceURI, qualifiedName);
+}
+
 export function downloadUrl(dataUrl: string, fileName: string) {
     const { body } = getDocument();
     const element = createElement('a', { display: 'none' });

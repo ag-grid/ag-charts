@@ -11,6 +11,6 @@ export const ErrorBarsModule: _ModuleSupport.SeriesOptionModule = {
     packageType: 'enterprise',
     chartTypes: ['cartesian'],
     seriesTypes: AgErrorBarSupportedSeriesTypes,
-    instanceConstructor: ErrorBars,
+    moduleFactory: (ctx) => new ErrorBars(ctx),
     themeTemplate: ERROR_BARS_THEME,
 };

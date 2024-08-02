@@ -44,10 +44,14 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     private hoverRect: _Scene.BBox = new BBox(0, 0, 0, 0);
     private bounds: _Scene.BBox = new BBox(0, 0, 0, 0);
     private visible: boolean = false;
-    private axisLayout?: _ModuleSupport.AxisLayout & { id: string };
+    private axisLayout?: _ModuleSupport.AxisLayout;
     private labelFormatter?: (value: any) => string;
 
-    private readonly crosshairGroup: _Scene.Group = new Group({ layer: true, zIndex: Layers.SERIES_CROSSHAIR_ZINDEX });
+    private readonly crosshairGroup: _Scene.Group = new Group({
+        name: 'crosshairs',
+        layer: true,
+        zIndex: Layers.SERIES_CROSSHAIR_ZINDEX,
+    });
     protected readonly lineGroup = this.crosshairGroup.appendChild(
         new Group({
             name: `${this.id}-crosshair-lines`,
@@ -64,13 +68,13 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.crosshairGroup.visible = false;
         this.labels = {};
 
-        const region = ctx.regionManager.getRegion('series')!;
+        const seriesRegion = ctx.regionManager.getRegion('series')!;
         const mouseMoveStates = InteractionState.Default | InteractionState.Annotations;
         this.destroyFns.push(
             ctx.scene.attachNode(this.crosshairGroup),
-            region.addListener('hover', (event) => this.onMouseMove(event), mouseMoveStates),
-            region.addListener('drag', (event) => this.onMouseMove(event), mouseMoveStates),
-            region.addListener('leave', () => this.onMouseOut(), mouseMoveStates),
+            seriesRegion.addListener('hover', (event) => this.onMouseMove(event), mouseMoveStates),
+            seriesRegion.addListener('drag', (event) => this.onMouseMove(event), mouseMoveStates),
+            seriesRegion.addListener('leave', () => this.onMouseOut(), mouseMoveStates),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
             ctx.layoutService.addListener('layout-complete', (event) => this.layout(event)),
             () => Object.entries(this.labels).forEach(([_, label]) => label.destroy())
@@ -200,6 +204,8 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         } else {
             this.hideCrosshairs();
         }
+
+        this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.SCENE_RENDER);
     }
 
     private onMouseOut() {
@@ -218,8 +224,9 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.activeHighlight = hasCrosshair ? event.currentHighlight : undefined;
 
         if (this.snap) {
+            this.hideCrosshairs();
+
             if (!this.visible || !this.activeHighlight) {
-                this.hideCrosshairs();
                 return;
             }
 
@@ -229,6 +236,10 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
             crosshairGroup.visible = true;
         }
+    }
+
+    private isInRange(value: number) {
+        return this.axisCtx.inRange(value);
     }
 
     private updatePositions(data: { [key: string]: { value: any; position: number } }) {
@@ -294,26 +305,29 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         const isYKey = seriesKeyProperties.indexOf('yKey') > -1 && matchingAxisId;
         const isXKey = seriesKeyProperties.indexOf('xKey') > -1 && matchingAxisId;
 
-        if (isYKey && aggregatedValue !== undefined) {
-            return {
-                yKey: { value: aggregatedValue!, position: axisCtx.scaleConvert(aggregatedValue) + halfBandwidth },
-            };
-        }
-
-        if (isYKey && cumulativeValue !== undefined) {
-            return {
-                yKey: { value: cumulativeValue, position: axisCtx.scaleConvert(cumulativeValue) + halfBandwidth },
-            };
+        const datumValue = aggregatedValue ?? cumulativeValue;
+        if (isYKey && datumValue !== undefined) {
+            const position = axisCtx.scaleConvert(datumValue) + halfBandwidth;
+            const isInRange = this.isInRange(position);
+            return isInRange
+                ? {
+                      yKey: { value: datumValue, position },
+                  }
+                : {};
         }
 
         if (isXKey) {
             const position = (this.isVertical() ? midPoint?.x : midPoint?.y) ?? 0;
-            return {
-                xKey: {
-                    value: axisCtx.continuous ? axisCtx.scaleInvert(position) : datum[xKey],
-                    position,
-                },
-            };
+            const value = axisCtx.continuous ? axisCtx.scaleInvert(position) : datum[xKey];
+            const isInRange = this.isInRange(position);
+            return isInRange
+                ? {
+                      xKey: {
+                          value,
+                          position,
+                      },
+                  }
+                : {};
         }
 
         const activeHighlightData: Record<string, { position: number; value: any }> = {};
@@ -322,7 +336,11 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             const keyValue = series.properties[key];
             const value = datum[keyValue];
             const position = axisCtx.scaleConvert(value) + halfBandwidth;
-            activeHighlightData[key] = { value, position };
+            const isInRange = this.isInRange(position);
+
+            if (isInRange) {
+                activeHighlightData[key] = { value, position };
+            }
         });
 
         return activeHighlightData;
@@ -371,7 +389,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         const html = this.getLabelHtml(value, label);
 
         label.setLabelHtml(html);
-        const labelBBox = label.computeBBox();
+        const labelBBox = label.getBBox();
 
         const labelMeta = calculateAxisLabelPosition({
             x,

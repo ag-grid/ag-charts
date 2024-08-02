@@ -1,0 +1,45 @@
+.ag-charts-popover {
+    position: absolute;
+    display: grid;
+    grid: auto-flow auto / 1fr;
+    column-gap: 12px;
+    min-width: 200px;
+    border: var(--ag-charts-popover-border);
+    border-radius: 4px;
+    background: var(--ag-charts-popover-background-color);
+    color: var(--ag-charts-popover-foreground-color);
+    font: var(--ag-charts-popover-font-size-small) var(--ag-charts-font-family);
+    overflow: hidden;
+    z-index: var(--ag-charts-layer-ui-overlay);
+
+    --item-padding: 6px 12px;
+}
+
+.ag-charts-popover:has(.ag-charts-popover__icon) {
+    grid: auto-flow auto / auto 1fr;
+}
+
+.ag-charts-popover__row {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    align-items: center;
+    padding: var(--item-padding);
+}
+
+.ag-charts-popover__row:not(.ag-charts-popover__row--active) {
+    cursor: pointer;
+}
+
+.ag-charts-popover__row:focus {
+    background: var(--ag-charts-popover-hover-color);
+}
+
+.ag-charts-popover__row--active {
+    background: var(--ag-charts-popover-active-background-color);
+    color: var(--ag-charts-popover-active-color);
+}
+
+.ag-charts-popover__label {
+    grid-column: -1 / span 1;
+}

@@ -1,6 +1,6 @@
 import { _Scene } from 'ag-charts-community';
 
-import type { AnnotationPoint } from '../annotationProperties';
+import type { PointProperties } from '../annotationProperties';
 import type { AnnotationContext, LineCoords } from '../annotationTypes';
 import { convertLine } from '../annotationUtils';
 import type { Handle } from './handle';
@@ -12,9 +12,9 @@ export abstract class ChannelScene<
         background: { fill?: string; fillOpacity?: number };
         locked?: boolean;
         visible?: boolean;
-        start: Pick<AnnotationPoint, 'x' | 'y'>;
-        end: Pick<AnnotationPoint, 'x' | 'y'>;
-        bottom: { start: Pick<AnnotationPoint, 'x' | 'y'>; end: Pick<AnnotationPoint, 'x' | 'y'> };
+        start: Pick<PointProperties, 'x' | 'y'>;
+        end: Pick<PointProperties, 'x' | 'y'>;
+        bottom: { start: Pick<PointProperties, 'x' | 'y'>; end: Pick<PointProperties, 'x' | 'y'> };
     },
 > extends LinearScene<Datum> {
     protected handles: { [key: string]: Handle } = {};
@@ -27,7 +27,6 @@ export abstract class ChannelScene<
     public update(datum: Datum, context: AnnotationContext) {
         const { locked, visible } = datum;
 
-        this.locked = locked ?? false;
         this.seriesRect = context.seriesRect;
 
         const top = convertLine(datum, context);
@@ -45,7 +44,7 @@ export abstract class ChannelScene<
         this.updateBackground(datum, top, bottom);
 
         for (const handle of Object.values(this.handles)) {
-            handle.toggleLocked(this.locked);
+            handle.toggleLocked(locked ?? false);
         }
     }
 
@@ -98,7 +97,7 @@ export abstract class ChannelScene<
     protected updateBackground(datum: Datum, top: LineCoords, bottom: LineCoords) {
         const { background } = this;
 
-        background.path.clear();
+        background.path.clear(true);
         background.path.moveTo(top.x1, top.y1);
         background.path.lineTo(top.x2, top.y2);
         background.path.lineTo(bottom.x2, bottom.y2);

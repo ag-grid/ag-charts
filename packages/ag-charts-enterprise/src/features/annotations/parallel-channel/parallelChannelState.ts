@@ -1,107 +1,128 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import type { Point, StateClickEvent, StateDragEvent, StateHoverEvent } from '../annotationTypes';
-import { ParallelChannelAnnotation } from './parallelChannelProperties';
-import type { ParallelChannel } from './parallelChannelScene';
+import type { GuardDragClickDoubleEvent, Point } from '../annotationTypes';
+import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
+import { ParallelChannelProperties } from './parallelChannelProperties';
+import type { ParallelChannelScene } from './parallelChannelScene';
 
-type Click = StateClickEvent<ParallelChannelAnnotation, ParallelChannel>;
-type Drag = StateDragEvent<ParallelChannelAnnotation, ParallelChannel>;
-type Hover = StateHoverEvent<ParallelChannelAnnotation, ParallelChannel>;
+const { StateMachine } = _ModuleSupport;
 
-export class ParallelChannelStateMachine extends _ModuleSupport.StateMachine<
+interface ParallelChannelStateMachineContext extends Omit<AnnotationsStateMachineContext, 'create'> {
+    create: (datum: ParallelChannelProperties) => void;
+    delete: () => void;
+    datum: () => ParallelChannelProperties | undefined;
+    node: () => ParallelChannelScene | undefined;
+    guardDragClickDoubleEvent: GuardDragClickDoubleEvent;
+}
+
+export class ParallelChannelStateMachine extends StateMachine<
     'start' | 'end' | 'height',
     'click' | 'hover' | 'drag' | 'cancel'
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
-    constructor(
-        appendDatum: (datum: ParallelChannelAnnotation) => void,
-        validateDatumPoint: (point: Point) => boolean
-    ) {
-        const onStartClick = ({ point }: Click | Drag) => {
-            const datum = new ParallelChannelAnnotation();
+    constructor(ctx: ParallelChannelStateMachineContext) {
+        const actionCreate = ({ point }: { point: Point }) => {
+            const datum = new ParallelChannelProperties();
             datum.set({ start: point, end: point, height: 0 });
-            appendDatum(datum);
+            ctx.create(datum);
         };
 
-        const onEndHover = ({ datum, node, point }: Hover | Drag) => {
-            datum?.set({ end: point, height: 0 });
-            node?.toggleHandles({
+        const actionEndUpdate = ({ point }: { point: Point }) => {
+            ctx.guardDragClickDoubleEvent.hover();
+            ctx.datum()?.set({ end: point, height: 0 });
+            ctx.node()?.toggleHandles({
                 topMiddle: false,
                 topRight: false,
                 bottomLeft: false,
                 bottomMiddle: false,
                 bottomRight: false,
             });
+            ctx.update();
         };
 
-        const onEndClick = ({ datum, node, point }: Click) => {
-            datum?.set({ end: point });
-            node?.toggleHandles({ topMiddle: false, bottomMiddle: false });
+        const actionEndFinish = ({ point }: { point: Point }) => {
+            ctx.datum()?.set({ end: point });
+            ctx.node()?.toggleHandles({ topMiddle: false, bottomMiddle: false });
+            ctx.update();
         };
 
-        const onHeightHover = ({ datum, node, point }: Hover) => {
-            if (datum.start.y == null || datum.end.y == null) return;
+        const actionHeightUpdate = ({ point }: { point: Point }) => {
+            const datum = ctx.datum();
 
-            const height = datum.end.y - point.y;
+            if (datum?.start.y == null || datum?.end.y == null) return;
+
+            const height = datum.end.y - (point.y ?? 0);
             const bottomStartY = datum.start.y - height;
 
-            node.toggleHandles({ topMiddle: false, bottomMiddle: false });
+            ctx.node()?.toggleHandles({ topMiddle: false, bottomMiddle: false });
 
             if (
-                !validateDatumPoint({ x: datum.start.x, y: bottomStartY }) ||
-                !validateDatumPoint({ x: datum.end.x, y: point.y })
+                !ctx.validatePoint({ x: datum.start.x, y: bottomStartY }) ||
+                !ctx.validatePoint({ x: datum.end.x, y: point.y })
             ) {
                 return;
             }
 
             datum.set({ height });
+            ctx.update();
         };
 
-        const onHeightClick = ({ datum, node, point }: Click) => {
-            if (!datum || !node || datum.start.y == null || datum.end.y == null) return;
+        const actionHeightFinish = ({ point }: { point: Point }) => {
+            const datum = ctx.datum();
 
-            const height = datum.end.y - point.y;
+            if (datum?.start.y == null || datum?.end.y == null) return;
+
+            const height = datum.end.y - (point.y ?? 0);
             const bottomStartY = datum.start.y - height;
 
-            node.toggleHandles(true);
+            ctx.node()?.toggleHandles(true);
 
             if (
-                validateDatumPoint({ x: datum.start.x, y: bottomStartY }) &&
-                validateDatumPoint({ x: datum.end.x, y: point.y })
+                ctx.validatePoint({ x: datum.start.x, y: bottomStartY }) &&
+                ctx.validatePoint({ x: datum.end.x, y: point.y })
             ) {
                 datum.set({ height });
             }
         };
 
+        const actionCancel = () => ctx.delete();
+
         super('start', {
             start: {
                 click: {
                     target: 'end',
-                    action: onStartClick,
+                    action: actionCreate,
                 },
                 drag: {
                     target: 'end',
-                    action: onStartClick,
+                    action: actionCreate,
                 },
-                cancel: '__parent',
             },
             end: {
-                hover: onEndHover,
+                hover: actionEndUpdate,
+                drag: actionEndUpdate,
                 click: {
+                    guard: ctx.guardDragClickDoubleEvent.guard,
                     target: 'height',
-                    action: onEndClick,
+                    action: actionEndFinish,
                 },
-                drag: onEndHover,
-                cancel: '__parent',
+                cancel: {
+                    target: StateMachine.parent,
+                    action: actionCancel,
+                },
+                onExit: ctx.guardDragClickDoubleEvent.reset,
             },
             height: {
-                hover: onHeightHover,
+                hover: actionHeightUpdate,
                 click: {
-                    target: '__parent',
-                    action: onHeightClick,
+                    target: StateMachine.parent,
+                    action: actionHeightFinish,
                 },
-                cancel: '__parent',
+                cancel: {
+                    target: StateMachine.parent,
+                    action: actionCancel,
+                },
             },
         });
     }

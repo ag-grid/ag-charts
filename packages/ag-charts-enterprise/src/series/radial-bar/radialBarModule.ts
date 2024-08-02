@@ -10,7 +10,7 @@ export const RadialBarModule: _ModuleSupport.SeriesModule<'radial-bar'> = {
     chartTypes: ['polar'],
 
     identifier: 'radial-bar',
-    instanceConstructor: RadialBarSeries,
+    moduleFactory: (ctx) => new RadialBarSeries(ctx),
     tooltipDefaults: { range: 'exact' },
     defaultAxes: [
         {

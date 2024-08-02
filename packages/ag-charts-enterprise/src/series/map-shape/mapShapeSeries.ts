@@ -14,8 +14,16 @@ import {
     MapShapeSeriesProperties,
 } from './mapShapeSeriesProperties';
 
-const { getMissCount, createDatumId, DataModelSeries, SeriesNodePickMode, valueProperty, TextMeasurer, Validate } =
-    _ModuleSupport;
+const {
+    getMissCount,
+    createDatumId,
+    DataModelSeries,
+    SeriesNodePickMode,
+    valueProperty,
+    Validate,
+    CachedTextMeasurerPool,
+    TextUtils,
+} = _ModuleSupport;
 const { ColorScale } = _Scale;
 const { Group, Selection, Text, PointerEvents } = _Scene;
 const { sanitizeHtml, Logger } = _Util;
@@ -221,10 +229,10 @@ export class MapShapeSeries
         });
         if (labelText == null) return;
 
-        const baseSize = TextMeasurer.measureText(String(labelText), { font });
+        const baseSize = CachedTextMeasurerPool.measureText(String(labelText), { font });
         const numLines = labelText.split('\n').length;
         const aspectRatio =
-            (baseSize.width + 2 * padding) / (numLines * TextMeasurer.getLineHeight(label.fontSize) + 2 * padding);
+            (baseSize.width + 2 * padding) / (numLines * TextUtils.getLineHeight(label.fontSize) + 2 * padding);
 
         if (
             previousLabelLayout?.geometry === geometry &&
@@ -275,7 +283,7 @@ export class MapShapeSeries
 
         const [{ text, fontSize, lineHeight, width }, formattingX] = labelFormatting;
         // FIXME - formatSingleLabel should never return an ellipsis
-        if (text === TextMeasurer.EllipsisChar) return;
+        if (text === TextUtils.EllipsisChar) return;
 
         // Only shift horizontally if necessary
         const x = width < maxSizeWithoutTruncation.width ? untruncatedX : formattingX;

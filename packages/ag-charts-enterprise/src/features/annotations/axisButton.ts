@@ -40,7 +40,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         this.destroyFns.push(
             seriesRegion.addListener('hover', (event) => this.onMouseMove(event), mouseMoveStates),
             seriesRegion.addListener('drag', (event) => this.onMouseMove(event), mouseMoveStates),
-            seriesRegion.addListener('leave', () => this.onLeave()),
+            seriesRegion.addListener('leave', () => this.onLeave(), mouseMoveStates),
             () => this.destroyElements(),
             () => this.wrapper.remove(),
             () => this.button.remove()
@@ -152,9 +152,9 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
     }
 
     private updateButtonElement() {
-        const { button } = this;
+        const { button, ctx } = this;
         button.onclick = _ModuleSupport.makeAccessibleClickListener(button, () => this.onButtonClick(this.coords));
 
-        button.innerHTML = `<span class="ag-charts-icon-crossline-add-line ${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-icon"></span>`;
+        button.innerHTML = `<span class="${ctx.domManager.getIconClassNames('zoom-in')} ${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-icon"></span>`;
     }
 }

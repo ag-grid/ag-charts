@@ -7,9 +7,8 @@ import type {
     AgTopologySeriesOptions,
 } from 'ag-charts-types';
 
-import type { SeriesConstructor, SeriesModule, SeriesTooltipDefaults } from '../../module/coreModules';
+import type { SeriesFactory, SeriesModule, SeriesTooltipDefaults } from '../../module/coreModules';
 import type { SeriesPaletteFactory } from '../../module/coreModulesTypes';
-import { enterpriseModule } from '../../module/enterpriseModule';
 import type { ModuleContext } from '../../module/moduleContext';
 import { deepClone } from '../../util/json';
 import { mergeDefaults } from '../../util/object';
@@ -25,7 +24,7 @@ export type SeriesOptions =
     | AgFlowProportionSeriesOptions;
 
 interface SeriesRegistryRecord {
-    instanceConstructor?: SeriesConstructor;
+    moduleFactory?: SeriesFactory;
     defaultAxes?: object[];
     tooltipDefaults?: SeriesTooltipDefaults;
     paletteFactory?: SeriesPaletteFactory;
@@ -38,17 +37,16 @@ interface SeriesRegistryRecord {
 
 export class SeriesRegistry {
     private readonly seriesMap = new Map<SeriesType, SeriesRegistryRecord>();
-    private readonly themeTemplates = new Map<string, { community: object; enterprise: object }>();
+    private readonly themeTemplates = new Map<string, object>();
 
     register(
         seriesType: NonNullable<SeriesType>,
         {
             chartTypes: [chartType],
-            instanceConstructor,
+            moduleFactory,
             tooltipDefaults,
             defaultAxes,
             themeTemplate,
-            enterpriseThemeTemplate,
             paletteFactory,
             solo,
             stackable,
@@ -58,9 +56,9 @@ export class SeriesRegistry {
             hidden,
         }: SeriesModule<any, any>
     ) {
-        this.setThemeTemplate(seriesType, themeTemplate, enterpriseThemeTemplate);
+        this.setThemeTemplate(seriesType, themeTemplate);
         this.seriesMap.set(seriesType, {
-            instanceConstructor,
+            moduleFactory,
             tooltipDefaults,
             defaultAxes,
             paletteFactory,
@@ -77,9 +75,9 @@ export class SeriesRegistry {
     }
 
     create(seriesType: SeriesType, moduleContext: ModuleContext): ISeries<any, any> {
-        const SeriesConstructor = this.seriesMap.get(seriesType)?.instanceConstructor;
-        if (SeriesConstructor) {
-            return new SeriesConstructor(moduleContext);
+        const seriesFactory = this.seriesMap.get(seriesType)?.moduleFactory;
+        if (seriesFactory) {
+            return seriesFactory(moduleContext);
         }
         throw new Error(`AG Charts - unknown series type: ${seriesType}`);
     }
@@ -89,17 +87,13 @@ export class SeriesRegistry {
         return defaultAxes ? { axes: deepClone(defaultAxes) } : null;
     }
 
-    setThemeTemplate(seriesType: NonNullable<SeriesType>, themeTemplate: {}, enterpriseThemeTemplate = {}) {
+    setThemeTemplate(seriesType: NonNullable<SeriesType>, themeTemplate: {}) {
         const currentTemplate = this.themeTemplates.get(seriesType);
-        this.themeTemplates.set(seriesType, {
-            community: mergeDefaults(themeTemplate, currentTemplate?.community),
-            enterprise: mergeDefaults(enterpriseThemeTemplate, themeTemplate, currentTemplate?.community),
-        });
+        this.themeTemplates.set(seriesType, mergeDefaults(themeTemplate, currentTemplate));
     }
 
     getThemeTemplate(seriesType: string) {
-        const themeTemplate = this.themeTemplates.get(seriesType);
-        return enterpriseModule.isEnterprise ? themeTemplate?.enterprise : themeTemplate?.community;
+        return this.themeTemplates.get(seriesType);
     }
 
     getPaletteFactory(seriesType: SeriesType) {

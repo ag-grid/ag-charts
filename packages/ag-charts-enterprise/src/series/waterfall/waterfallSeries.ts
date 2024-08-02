@@ -86,7 +86,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
             directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
-            pathsPerSeries: 1,
+            pathsPerSeries: ['connector'],
             hasHighlightedLabels: true,
             pathsZIndexSubOrderOffset: [-1, -1],
             animationResetFns: {
@@ -590,7 +590,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             });
             config.crisp = crisp;
             config.visible = visible;
-            updateRect({ rect, config });
+            updateRect(rect, config);
         });
     }
 

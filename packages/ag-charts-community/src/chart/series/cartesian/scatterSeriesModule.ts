@@ -11,7 +11,7 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
     chartTypes: ['cartesian'],
 
     identifier: 'scatter',
-    instanceConstructor: ScatterSeries,
+    moduleFactory: (ctx) => new ScatterSeries(ctx),
     tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
         {
@@ -35,10 +35,6 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_LABEL_COLOUR,
             },
-        },
-    },
-    enterpriseThemeTemplate: {
-        series: {
             errorBar: {
                 cap: {
                     lengthRatio: 1,

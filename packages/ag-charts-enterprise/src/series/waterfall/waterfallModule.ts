@@ -12,7 +12,7 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
 
     identifier: 'waterfall',
     solo: true,
-    instanceConstructor: WaterfallSeries,
+    moduleFactory: (ctx) => new WaterfallSeries(ctx),
     tooltipDefaults: { range: 'exact' },
     defaultAxes: [
         {
@@ -51,15 +51,15 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
             line: { stroke: palette.neutral.stroke },
             item: {
                 positive: {
-                    fill: palette.up.fill,
-                    stroke: palette.up.stroke,
+                    fill: palette.altUp.fill,
+                    stroke: palette.altUp.stroke,
                     label: {
                         color: _Theme.DEFAULT_LABEL_COLOUR,
                     },
                 },
                 negative: {
-                    fill: palette.down.fill,
-                    stroke: palette.down.stroke,
+                    fill: palette.altDown.fill,
+                    stroke: palette.altDown.stroke,
                     label: {
                         color: _Theme.DEFAULT_LABEL_COLOUR,
                     },

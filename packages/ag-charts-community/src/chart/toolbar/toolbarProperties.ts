@@ -1,3 +1,6 @@
+import { ICONS_LEGACY } from 'ag-charts-types';
+
+import { Logger } from '../../util/logger';
 import { BaseProperties } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
 import { ARRAY, BOOLEAN, UNION, Validate } from '../../util/validation';
@@ -8,6 +11,10 @@ import {
     type ToolbarButton,
     ToolbarPosition,
 } from './toolbarTypes';
+
+export interface ButtonConfiguration extends ToolbarButton {
+    fill?: string;
+}
 
 export class ToolbarGroupProperties extends BaseProperties {
     @ObserveChanges<ToolbarGroupProperties>((target) => {
@@ -35,15 +42,66 @@ export class ToolbarGroupProperties extends BaseProperties {
     size: 'small' | 'normal' = 'normal';
 
     @ObserveChanges<ToolbarGroupProperties>((target) => {
-        target.onButtonsChange(target.buttons);
+        for (const button of target.buttons ?? []) {
+            if (button.icon != null && ICONS_LEGACY.includes(button.icon as any)) {
+                Logger.warnOnce(`Icon '${button.icon}' is deprecated, use another icon instead.`);
+            }
+
+            if (button.ariaLabel === 'toolbarAnnotationsColor') {
+                Logger.warnOnce(
+                    `Aria label '${button.ariaLabel}' is deprecated, use 'toolbarAnnotationsLineColor' instead.`
+                );
+            }
+
+            // @todo(AG-12343): buttons with non-primitive values need IDs
+            // if (button.value != null && typeof button.value === 'object' && button.id == null) {
+            //     Logger.warnOnce(`Buttons with non-primitive values must specify an id.`);
+            // }
+        }
+        target.buttonsChanged(false);
     })
     @Validate(ARRAY, { optional: true })
-    buttons?: Array<ToolbarButton>;
+    protected buttons?: ButtonConfiguration[];
+
+    private readonly buttonOverrides = new Map<any, Omit<ButtonConfiguration, 'value'>>();
 
     constructor(
-        private readonly onChange: (enabled?: boolean) => void,
-        private readonly onButtonsChange: (buttons?: Array<ToolbarButton>) => void
+        private readonly onChange: (enabled: boolean | undefined) => void,
+        private readonly onButtonsChange: (buttons: ButtonConfiguration[], configurationOnly: boolean) => void
     ) {
         super();
+    }
+
+    buttonConfigurations() {
+        return (
+            this.buttons?.map((button) => {
+                const id = button.id ?? button.value;
+                const overrides = this.buttonOverrides.get(id);
+                return overrides != null ? { ...button, ...overrides } : button;
+            }) ?? []
+        );
+    }
+
+    private buttonsChanged(configurationOnly: boolean) {
+        this.onButtonsChange(this.buttonConfigurations(), configurationOnly);
+    }
+
+    overrideButtonConfiguration(id: string, options: Omit<ButtonConfiguration, 'value'>) {
+        let overrides: any = this.buttonOverrides.get(id);
+        if (overrides == null) {
+            overrides = Object.create(null);
+            this.buttonOverrides.set(id, overrides!);
+        }
+
+        for (const key in options) {
+            const value = (options as any)[key];
+            if (value == null) {
+                delete overrides[key];
+            } else {
+                overrides[key] = value;
+            }
+        }
+
+        this.buttonsChanged(true);
     }
 }

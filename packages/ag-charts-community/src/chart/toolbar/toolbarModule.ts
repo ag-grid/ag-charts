@@ -8,40 +8,34 @@ const DAY = 1000 * 60 * 60 * 24;
 const MONTH = DAY * 30;
 const YEAR = DAY * 365;
 
+const seriesType: AgToolbarOptions['seriesType'] = {
+    enabled: false,
+    position: 'left',
+    align: 'start',
+    buttons: [
+        {
+            tooltip: 'toolbarSeriesTypeDropdown',
+            value: 'type',
+        },
+    ],
+};
+
 const annotations: AgToolbarOptions['annotations'] = {
     enabled: true,
     position: 'left',
     align: 'start',
     buttons: [
         {
-            icon: 'trend-line',
-            tooltip: 'toolbarAnnotationsTrendLine',
-            value: 'line',
-            section: 'create',
+            icon: 'trend-line-drawing',
+            tooltip: 'toolbarAnnotationsLineAnnotations',
+            value: 'line-menu',
+            section: 'line-annotations',
         },
         {
-            icon: 'parallel-channel',
-            tooltip: 'toolbarAnnotationsParallelChannel',
-            value: 'parallel-channel',
-            section: 'create',
-        },
-        {
-            icon: 'disjoint-channel',
-            tooltip: 'toolbarAnnotationsDisjointChannel',
-            value: 'disjoint-channel',
-            section: 'create',
-        },
-        {
-            icon: 'horizontal-line',
-            tooltip: 'toolbarAnnotationsHorizontalLine',
-            value: 'horizontal-line',
-            section: 'create',
-        },
-        {
-            icon: 'vertical-line',
-            tooltip: 'toolbarAnnotationsVerticalLine',
-            value: 'vertical-line',
-            section: 'create',
+            icon: 'text-annotation',
+            tooltip: 'toolbarAnnotationsTextAnnotations',
+            value: 'text-menu',
+            section: 'text-annotations',
         },
         {
             icon: 'delete',
@@ -58,17 +52,31 @@ const annotationOptions: AgToolbarOptions['annotationOptions'] = {
     align: 'start',
     buttons: [
         {
+            icon: 'text-annotation',
+            tooltip: 'toolbarAnnotationsTextColor',
+            value: 'text-color',
+        },
+        {
             icon: 'line-color',
-            tooltip: 'toolbarAnnotationsColor',
+            tooltip: 'toolbarAnnotationsLineColor',
             value: 'line-color',
         },
         {
-            icon: 'lock',
+            icon: 'fill-color',
+            tooltip: 'toolbarAnnotationsFillColor',
+            value: 'fill-color',
+        },
+        {
+            tooltip: 'toolbarAnnotationsTextSize',
+            value: 'text-size',
+        },
+        {
+            icon: 'unlocked',
             tooltip: 'toolbarAnnotationsLock',
             value: 'lock',
         },
         {
-            icon: 'unlock',
+            icon: 'locked',
             tooltip: 'toolbarAnnotationsUnlock',
             value: 'unlock',
         },
@@ -104,6 +112,7 @@ const ranges: AgToolbarOptions['ranges'] = {
             label: 'toolbarRangeYearToDate',
             ariaLabel: 'toolbarRangeYearToDateAria',
             value: (_start, end) => [new Date(`${new Date(end).getFullYear()}-01-01`).getTime(), end],
+            id: 'year-to-date',
         },
         {
             label: 'toolbarRange1Year',
@@ -114,6 +123,7 @@ const ranges: AgToolbarOptions['ranges'] = {
             label: 'toolbarRangeAll',
             ariaLabel: 'toolbarRangeAllAria',
             value: (start, end) => [start, end],
+            id: 'all',
         },
     ],
 };
@@ -124,12 +134,12 @@ const zoom: AgToolbarOptions['zoom'] = {
     align: 'end',
     buttons: [
         {
-            icon: 'zoom-out-alt',
+            icon: 'zoom-out',
             tooltip: 'toolbarZoomZoomOut',
             value: 'zoom-out',
         },
         {
-            icon: 'zoom-in-alt',
+            icon: 'zoom-in',
             tooltip: 'toolbarZoomZoomIn',
             value: 'zoom-in',
         },
@@ -166,10 +176,11 @@ export const ToolbarModule: Module = {
     optionsKey: 'toolbar',
     packageType: 'community',
     chartTypes: ['cartesian'],
-    instanceConstructor: Toolbar,
+    moduleFactory: (ctx) => new Toolbar(ctx),
     themeTemplate: {
         toolbar: {
             enabled: true,
+            seriesType,
             annotations,
             annotationOptions,
             ranges,

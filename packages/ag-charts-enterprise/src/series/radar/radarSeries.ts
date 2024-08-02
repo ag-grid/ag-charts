@@ -525,7 +525,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             tempText.y = nodeDatum.label.y;
             tempText.setFont(label);
             tempText.setAlign(nodeDatum.label);
-            const box = tempText.computeBBox();
+            const box = tempText.getBBox();
             textBoxes.push(box);
         });
         if (textBoxes.length === 0) {
@@ -535,7 +535,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     }
 
     protected getLineNode() {
-        return this.lineSelection.nodes()[0];
+        return this.lineSelection?.at(0)!;
     }
 
     protected beforePathAnimation() {

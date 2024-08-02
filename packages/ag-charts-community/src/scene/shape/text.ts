@@ -1,6 +1,6 @@
 import type { FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-types';
 
-import { TextMeasurer } from '../../util/textMeasurer';
+import { CachedTextMeasurerPool, type MeasureOptions, TextUtils } from '../../util/textMeasurer';
 import { BBox } from '../bbox';
 import type { RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
@@ -72,19 +72,19 @@ export class Text extends Shape {
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     lineHeight?: number;
 
-    override computeBBox(): BBox {
-        const { x, y, lines, textBaseline, textAlign } = this;
-        const { offsetTop, offsetLeft, width, height } = TextMeasurer.measureLines(lines, {
-            font: this,
-            textBaseline,
-            textAlign,
-        });
+    static computeBBox(lines: string | string[], x: number, y: number, opts: MeasureOptions): BBox {
+        const { offsetTop, offsetLeft, width, height } = CachedTextMeasurerPool.measureLines(lines, opts);
         return new BBox(x - offsetLeft, y - offsetTop, width, height);
+    }
+
+    protected override computeBBox(): BBox {
+        const { x, y, lines, textBaseline, textAlign } = this;
+        return Text.computeBBox(lines, x, y, { font: this, textBaseline, textAlign });
     }
 
     isPointInPath(x: number, y: number): boolean {
         const point = this.transformPoint(x, y);
-        const bbox = this.computeBBox();
+        const bbox = this.getBBox();
 
         return bbox ? bbox.containsPoint(point.x, point.y) : false;
     }
@@ -102,13 +102,12 @@ export class Text extends Shape {
             return;
         }
 
-        this.computeTransformMatrix();
-        this.matrix.toContext(ctx);
+        this.transformRenderContext(renderCtx);
 
         const { fill, stroke, strokeWidth } = this;
         const { pixelRatio } = this.layerManager.canvas;
 
-        ctx.font = TextMeasurer.toFontString(this);
+        ctx.font = TextUtils.toFontString(this);
         ctx.textAlign = this.textAlign;
         ctx.textBaseline = this.textBaseline;
 
@@ -159,8 +158,8 @@ export class Text extends Shape {
 
     private renderLines(renderCallback: (line: string, x: number, y: number) => void): void {
         const { lines, x, y } = this;
-        const lineHeight = this.lineHeight ?? TextMeasurer.getLineHeight(this.fontSize!);
-        let offsetY = (lineHeight - lineHeight * lines.length) * TextMeasurer.getVerticalModifier(this.textBaseline);
+        const lineHeight = this.lineHeight ?? TextUtils.getLineHeight(this.fontSize!);
+        let offsetY = (lineHeight - lineHeight * lines.length) * TextUtils.getVerticalModifier(this.textBaseline);
 
         for (const line of lines) {
             renderCallback(line, x, y + offsetY);

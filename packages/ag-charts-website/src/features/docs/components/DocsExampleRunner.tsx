@@ -5,8 +5,7 @@ import { ExternalLinks } from '@features/example-runner/components/ExternalLinks
 import type { ExampleOptions } from '@features/example-runner/types';
 import { getLoadingIFrameId } from '@features/example-runner/utils/getLoadingLogoId';
 import { useStore } from '@nanostores/react';
-import { $internalFramework, updateInternalFrameworkBasedOnFramework } from '@stores/frameworkStore';
-import { getFrameworkFromInternalFramework } from '@utils/framework';
+import { $internalFramework } from '@stores/frameworkStore';
 import { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
 

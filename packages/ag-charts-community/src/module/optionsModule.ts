@@ -2,7 +2,6 @@ import {
     type AgBaseAxisOptions,
     type AgCartesianAxisOptions,
     type AgChartOptions,
-    type AgChartThemePalette,
     type AgPolarAxisOptions,
     type AgTooltipPositionOptions,
     AgTooltipPositionType,
@@ -45,8 +44,8 @@ type AxisType = 'category' | 'number' | 'log' | 'time' | 'ordinal-time';
 export interface AxisOptionModule<M extends ModuleInstance = ModuleInstance> extends BaseModule {
     type: 'axis-option';
     axisTypes: AxisType[];
-    instanceConstructor: new (ctx: ModuleContextWithParent<AxisContext>) => M;
-    themeTemplate: { [K in AxisType]?: object };
+    moduleFactory: (ctx: ModuleContextWithParent<AxisContext>) => M;
+    themeTemplate: {};
 }
 
 interface ChartSpecialOverrides {
@@ -92,8 +91,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     constructor(userOptions: T, specialOverrides?: Partial<ChartSpecialOverrides>) {
         const cloneOptions = { shallow: ['data'] };
-        this.userOptions = deepClone(userOptions, cloneOptions);
-        const chartType = this.optionsType(this.userOptions);
+        userOptions = deepClone(userOptions, cloneOptions);
+        const chartType = this.optionsType(userOptions);
+
+        if (!enterpriseModule.isEnterprise) {
+            removeUsedEnterpriseOptions(userOptions);
+        }
 
         let options = deepClone(userOptions, cloneOptions);
 
@@ -120,6 +123,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             ...themeDefaults
         } = this.getSeriesThemeConfig(chartType);
 
+        this.userOptions = userOptions;
         this.processedOptions = deepClone(
             mergeDefaults(
                 options,
@@ -149,7 +153,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.enableConfiguredOptions(this.processedOptions);
 
         if (!enterpriseModule.isEnterprise) {
-            removeUsedEnterpriseOptions(this.processedOptions);
+            removeUsedEnterpriseOptions(this.processedOptions, true);
         }
     }
 
@@ -305,7 +309,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             userPalette,
             colorsCount: Math.max(fills.length, strokes.length),
             themeTemplateParameters: this.activeTheme.getTemplateParameters(),
-            palette: this.activeTheme.palette as Required<AgChartThemePalette>,
+            palette: this.activeTheme.palette,
             takeColors(count) {
                 options.colourIndex += count;
                 return {
@@ -487,7 +491,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 // If any of the axes type is invalid remove all user provided options in favour of our defaults.
                 if (!isAxisOptionType(type)) {
                     delete options.axes;
-                    const expectedTypes = Array.from(axisRegistry.publicKeys()).join(', ');
+                    const expectedTypes = axisRegistry.publicKeys().join(', ');
                     Logger.warnOnce(`unknown axis type: ${type}; expected one of: ${expectedTypes}`);
                 }
             }

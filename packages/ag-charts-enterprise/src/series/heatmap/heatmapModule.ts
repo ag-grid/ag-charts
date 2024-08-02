@@ -11,7 +11,7 @@ export const HeatmapModule: _ModuleSupport.SeriesModule<'heatmap'> = {
     chartTypes: ['cartesian'],
 
     identifier: 'heatmap',
-    instanceConstructor: HeatmapSeries,
+    moduleFactory: (ctx) => new HeatmapSeries(ctx),
     tooltipDefaults: { range: 'exact' },
     defaultAxes: [
         {

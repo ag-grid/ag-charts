@@ -7,30 +7,135 @@ This section explains how the chart and its components are sized and laid out wi
 
 ## Chart Size
 
-The chart will auto-size by default, taking the size of the `container` element and auto-sizing the chart dynamically.
-Use the `width` and/or `height` options if a fixed size is required.
+The chart out of the box uses the minimal styling to ensure the chart is visible, and has a default minimum width and height of 300px.
 
-If auto-sizing is used for one or both dimensions, the chart will have a minimum width and height of 300px. Set `minHeight: 0` and/or `minWidth: 0` to effectively remove this constraint.
+Below is an example of a chart with no CSS applied. In this case, the default for CSS is to make the width as large as possible and the height as small as possible (the minimum of 300px).
 
-{% note %}
-The chart never affects the size of the `container` element.
+{% chartExampleRunner title="Chart Size" name="chart-unsized" type="generated" /%}
 
-A `<div>` element is commonly used for the `container`, and the default height for this element
-is `0px`. You should explicitly manage the browser calculated `container` element size to achieve the dynamic size you
-require.
-{% /note %}
+If it is required, the minimum width and height can be adjusted with the `minWidth` and `minHeight` options.
 
-### Size Changes
+```js
+{
+    minWidth: 100,
+    minHeight: 100
+}
+```
 
-The chart monitors the size of the `container` element, and resizes dynamically.
+An explicit size can be set using the `width` and `height` options. In this case, the `minWidth` and `minHeight` are ignored.
 
-When the chart size changes, the layout process is performed for the new available canvas space.
-Most components are typically a fixed size, so usually it is the series-area which shrinks or grows,
-with the other components moving around or adjusting alignment.
+```js
+{
+    width: 400,
+    height: 400
+}
+```
+
+### Styling with Classes and Styles
+
+Below is a chart sized using classes and inline styles.
+
+{% chartExampleRunner title="Chart Size (Class)" name="chart-class" type="generated" /%}
+
+{% if isFramework("javascript") %}
+
+All attributes on the `container` element are left unchanged when calling `AgCharts.create`, including `class` and `style`.
+
+```html
+<div id="myChart" class="chart" style="width: 400px; height: 400px"></div>
+```
+
+```js
+const options = {
+    container: document.getElementById('myChart'),
+};
+
+AgCharts.create(options);
+```
+
+{% /if %}
+{% if isFramework("react") %}
+
+The `className` and `style` props can be used to style the chart.
+
+```js
+<AgCharts
+    options={options}
+    className="chart"
+    style={{ width: "400px", height: "400px" }}
+/>
+```
+
+{% /if %}
+{% if isFramework("angular") %}
+
+The `class` and `style` attributes can be used to style the chart.
+
+```html
+<ag-charts [options]="options" class="chart" style="width: 400px; height: 400px"></ag-charts>
+```
+
+{% /if %}
+{% if isFramework("vue") %}
+
+The `class` and `style` attributes can be used to style the chart.
+
+```html
+<ag-charts :options="options" class="chart" style="width: 400px; height: 400px"></ag-charts>
+```
+
+{% /if %}
+
+### Styling with Grid
+
+Below is an example of a chart styled using a grid on the parent element.
+
+{% chartExampleRunner title="Chart Size (Parent Grid)" name="chart-parent-grid" type="generated" /%}
+
+To use a grid layout, put the chart inside a parent element with `display: grid` on the parent element.
+
+{% if isFramework("javascript") %}
+
+```html
+<div style="display: grid">
+    <div id="myChart"></div>
+</div>
+```
+
+{% /if %}
+{% if isFramework("react") %}
+
+```js
+<div style={{ display: 'grid' }}>
+    <AgCharts options={options} />
+</div>
+```
+
+{% /if %}
+{% if isFramework("angular") %}
+
+```html
+<div style="display: grid">
+    <ag-charts [options]="options"></ag-charts>
+</div>
+```
+
+{% /if %}
+{% if isFramework("vue") %}
+
+```html
+<div style="display: grid">
+    <ag-charts :options="options"></ag-charts>
+</div>
+```
+
+{% /if %}
+
+In this configuration, the grid has a single cell. By default, grid stretches child elements to fill the width and height of the cell.
 
 ## Chart Layout Calculation
 
-{% imageCaption pageName="charts-layout" imageName="cartesian-chart-layout.png" alt="Chart Layout" maxWidth="80%" constrained=true centered=true filterDarkmode=true /%}
+{% imageCaption imagePath="resources/cartesian-chart-layout.png" alt="Chart Layout" maxWidth="80%" constrained=true centered=true enableDarkModeFilter=true /%}
 
 Each chart is composed of a single or multiple series, and optionally a [Legend](./legend/), [Axes](./axes-types/), and captions, such as title, subtitle and footnote. All of these components are managed by the chart's layout engine. They are sized and positioned appropriately based on the chart's dimensions, the nature of the data and the configuration.
 
@@ -42,7 +147,8 @@ of later elements:
 -   Subtitle plus its configured spacing.
 -   Footnote plus its configured spacing.
 -   [Legend](./legend/) plus its configured spacing.
--   [Toolbar](./toolbar/).
+-   [Toolbar](./financial-charts-toolbar/).
+-   [Range Buttons](/range-buttons/).
 -   [Navigator](./navigator/) plus its configured spacing.
 -   Series area padding.
 -   [Axes](./axes-types/).
@@ -76,9 +182,9 @@ height of the subtitle and its additional `subtitle.spacing`.
 
 `legend.spacing` can be used to adjust the space between the Legend and later components.
 
-### Toolbar
+### Toolbar and Range Buttons
 
-The Toolbar is then placed next, taking up a fixed amount of space.
+The Toolbar and Range Buttons are then placed next, taking up a fixed amount of space.
 
 ### Navigator
 

@@ -20,6 +20,10 @@ export class PolarChart extends Chart {
         this.ctx.axisManager.axisGroup.zIndex = Layers.AXIS_FOREGROUND_ZINDEX;
     }
 
+    override getChartType() {
+        return 'polar' as const;
+    }
+
     override async performLayout() {
         const shrinkRect = await super.performLayout();
 
@@ -27,8 +31,6 @@ export class PolarChart extends Chart {
         this.computeSeriesRect(shrinkRect);
         await this.computeCircle(shrinkRect);
         this.axes.forEach((axis) => axis.update());
-
-        this.hoverRect = shrinkRect;
 
         this.ctx.layoutService.dispatchLayoutComplete({
             type: 'layout-complete',

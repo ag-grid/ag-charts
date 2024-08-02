@@ -89,8 +89,8 @@ describe('DonutSeries', () => {
                         type: 'donut',
                         angleKey: 'value',
                         sectorLabelKey: 'continent',
-                        outerRadiusRatio: 0.2,
-                        innerRadiusRatio: 0.4,
+                        outerRadiusRatio: 0.4,
+                        innerRadiusRatio: 0.2,
                     },
                 ],
             });

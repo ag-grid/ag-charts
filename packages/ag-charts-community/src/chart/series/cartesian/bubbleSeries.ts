@@ -11,7 +11,7 @@ import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
-import { TextMeasurer } from '../../../util/textMeasurer';
+import { CachedTextMeasurerPool } from '../../../util/textMeasurer';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
@@ -66,7 +66,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 SeriesNodePickMode.NEAREST_NODE,
                 SeriesNodePickMode.EXACT_SHAPE_MATCH,
             ],
-            pathsPerSeries: 0,
+            pathsPerSeries: [],
             hasMarkers: true,
             markerSelectionGarbageCollection: false,
             animationResetFns: {
@@ -155,6 +155,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         sizeScale.range = [marker.size, marker.maxSize];
 
         const font = label.getFont();
+        const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font });
         for (const { values, datum } of processedData.data ?? []) {
             const xDatum = values[xDataIdx];
             const yDatum = values[yDataIdx];
@@ -174,7 +175,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 labelName,
             });
 
-            const size = TextMeasurer.measureText(String(labelText), { font });
+            const size = textMeasurer.measureText(String(labelText));
             const markerSize = sizeKey ? sizeScale.convert(values[sizeDataIdx]) : marker.size;
             const fill = colorKey ? colorScale.convert(values[colorDataIdx]) : undefined;
 

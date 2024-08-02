@@ -1,33 +1,51 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
+export enum TextualAnnotationType {
+    Callout = 'callout',
+    Comment = 'comment',
+    Note = 'note',
+    Text = 'text',
+}
+
 export enum AnnotationType {
+    // Lines
     Line = 'line',
-    DisjointChannel = 'disjoint-channel',
-    ParallelChannel = 'parallel-channel',
     HorizontalLine = 'horizontal-line',
     VerticalLine = 'vertical-line',
+
+    // Channels
+    DisjointChannel = 'disjoint-channel',
+    ParallelChannel = 'parallel-channel',
+
+    // Texts
+    Callout = TextualAnnotationType.Callout,
+    Comment = TextualAnnotationType.Comment,
+    Note = TextualAnnotationType.Note,
+    Text = TextualAnnotationType.Text,
 }
+
 export const ANNOTATION_TYPES = Object.values(AnnotationType);
 export const ANNOTATION_BUTTONS = [
+    // Lines
     AnnotationType.Line,
-    AnnotationType.DisjointChannel,
-    AnnotationType.ParallelChannel,
     AnnotationType.HorizontalLine,
     AnnotationType.VerticalLine,
+
+    // Channels
+    AnnotationType.DisjointChannel,
+    AnnotationType.ParallelChannel,
+
+    // Texts
+    AnnotationType.Callout,
+    AnnotationType.Comment,
+    AnnotationType.Note,
+    AnnotationType.Text,
 ] as const;
+export const ANNOTATION_BUTTON_GROUPS = ['line-menu', 'text-menu'] as const;
 
 export function stringToAnnotationType(value: string) {
-    switch (value) {
-        case 'line':
-            return AnnotationType.Line;
-        case 'horizontal-line':
-            return AnnotationType.HorizontalLine;
-        case 'vertical-line':
-            return AnnotationType.VerticalLine;
-        case 'disjoint-channel':
-            return AnnotationType.DisjointChannel;
-        case 'parallel-channel':
-            return AnnotationType.ParallelChannel;
+    for (const t of ANNOTATION_TYPES) {
+        if (t === value) return t;
     }
 }
 
@@ -43,26 +61,24 @@ export interface LineCoords {
     y2: number;
 }
 
+export interface Bounds {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
 export interface Point {
     x?: number | string | Date;
     y?: number;
 }
 
-export interface StateHoverEvent<Annotation, Scene> {
-    datum: Annotation;
-    node: Scene;
-    point: Coords;
-    region?: _ModuleSupport.RegionName;
+export interface Padding {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
 }
-
-export interface StateClickEvent<Annotation, Scene> {
-    datum?: Annotation;
-    node?: Scene;
-    point: Coords;
-    region?: _ModuleSupport.RegionName;
-}
-
-export interface StateDragEvent<Annotation, Scene> extends StateClickEvent<Annotation, Scene> {}
 
 export interface AnnotationAxisContext
     extends Pick<
@@ -88,3 +104,11 @@ export type AnnotationContext = {
     xAxis: AnnotationAxisContext;
     yAxis: AnnotationAxisContext;
 };
+
+export interface GuardDragClickDoubleEvent {
+    guard: () => boolean;
+    hover: () => void;
+    reset: () => void;
+}
+
+export type AnnotationOptionsColorPickerType = 'line-color' | 'fill-color' | 'text-color';

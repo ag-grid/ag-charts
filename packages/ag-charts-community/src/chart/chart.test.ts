@@ -141,11 +141,20 @@ describe('Chart', () => {
         const checkNodeClick = async (
             chartInstance: Chart,
             onNodeClick: () => void,
-            offset?: { x: number; y: number }
+            offsetX?: boolean,
+            offsetY?: boolean
         ) => {
+            const seriesAreaCenter = chartInstance.seriesRoot.getBBox().computeCenter();
+
             await hoverChartNodes(chartInstance, async ({ x, y }) => {
+                if (offsetX) {
+                    x += x < seriesAreaCenter.x ? 5 : -5;
+                }
+                if (offsetY) {
+                    y += y < seriesAreaCenter.y ? 5 : -5;
+                }
                 // Perform click
-                await clickAction(x + (offset?.x ?? 0), y + (offset?.y ?? 0))(chartInstance);
+                await clickAction(x, y)(chartInstance);
                 await waitForChartStability(chartInstance);
             });
 
@@ -218,13 +227,13 @@ describe('Chart', () => {
         it(`should handle nodeClick event with offset click when range is 'nearest'`, async () => {
             const onNodeClick = jest.fn();
             chart = await createChartPreset({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' });
-            await checkNodeClick(chart, onNodeClick, { x: 5, y: 5 });
+            await checkNodeClick(chart, onNodeClick, true, true);
         });
 
         it(`should handle nodeClick event with offset click when range is within pixel distance`, async () => {
             const onNodeClick = jest.fn();
             chart = await createChartPreset({ hasTooltip: true, onNodeClick, nodeClickRange: 6 });
-            await checkNodeClick(chart, onNodeClick, { x: 0, y: 5 });
+            await checkNodeClick(chart, onNodeClick, false, true);
         });
 
         it(`should trigger nodeClick event only on mousedown and mouseup`, async () => {
@@ -307,7 +316,7 @@ describe('Chart', () => {
         });
     });
 
-    describe(`Column Series Pointer Events`, () => {
+    describe(`Bar Series Pointer Events`, () => {
         testPointerEvents({
             ...cartesianTestParams,
             seriesOptions: {

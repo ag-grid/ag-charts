@@ -1,4 +1,5 @@
 export * from './api/presetOptions';
+export * from './api/initialStateOptions';
 export * from './chart/annotationsOptions';
 export * from './chart/axisOptions';
 export * from './chart/callbackOptions';

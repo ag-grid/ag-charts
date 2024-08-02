@@ -108,6 +108,8 @@ export class RegionManager {
         const region = this.regions.get(name);
         if (region) {
             region.properties.bboxproviders = [...bboxprovider];
+        } else {
+            throw new Error('AG Charts - unknown region: ' + name);
         }
     }
 
@@ -211,6 +213,13 @@ export class RegionManager {
         }
 
         const { currentRegion } = this;
+
+        if (event.type === 'leave') {
+            this.dispatch(currentRegion, { ...event, type: 'leave' });
+            this.currentRegion = undefined;
+            return;
+        }
+
         const newRegion = this.pickRegion(event.offsetX, event.offsetY);
         if (currentRegion !== undefined && newRegion?.properties.name !== currentRegion.properties.name) {
             this.dispatch(currentRegion, { ...event, type: 'leave' });
@@ -231,7 +240,9 @@ export class RegionManager {
         let currentRegion: Region | undefined;
         for (const region of this.regions.values()) {
             for (const provider of region.properties.bboxproviders) {
-                const bbox = provider.computeTransformedBBox();
+                if (provider.visible === false) continue;
+
+                const bbox = provider.computeTransformedRegionBBox?.() ?? provider.computeTransformedBBox();
                 const area = bbox.width * bbox.height;
                 if (area < currentArea && bbox.containsPoint(x, y)) {
                     currentArea = area;

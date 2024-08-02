@@ -33,25 +33,9 @@ In this configuration:
 
 ### Colour Range
 
-Series items colours can be customised via the `colorRange` configuration array.
-
-{% chartExampleRunner title="Customising Colour Range" name="customising-color-range" type="generated" /%}
-
-```js
-series: [
-    {
-        type: 'heatmap',
-        xKey: 'month',
-        yKey: 'year',
-        colorKey: 'temperature',
-        colorRange: ['#d7301f', '#fef0d9'],
-    },
-],
-```
-
-Colour Range can also have more than 2 values.
-
 {% chartExampleRunner title="Colour Range With Many Values" name="color-range-with-many-values" type="generated" /%}
+
+Series items colours can be customised via the `colorRange` configuration array.
 
 ```js
 series: [
@@ -65,20 +49,13 @@ series: [
 ],
 ```
 
-### Labels
+The `colourRange` array must contain 2 or more values.
 
-If `label.enabled` is set to `true`, the labels will show the numeric value from `colorKey`.
+### Labels
 
 {% chartExampleRunner title="Heatmap Label" name="customising-labels" type="generated" /%}
 
-```js
-colorKey: 'temperature',
-label: {
-    enabled: true,
-},
-```
-
-A label `formatter` can be used to customise the label text.
+If `label.enabled` is set to `true`, the labels will show the numeric value from `colorKey`.
 
 ```js
 colorKey: 'temperature',
@@ -90,6 +67,8 @@ label: {
     },
 },
 ```
+
+A label `formatter` can be used to customise the label text.
 
 ## Gradient Legend
 
@@ -145,9 +124,9 @@ In the above configuration:
 
 ### Labels
 
-It is possible to customise the font, colour and padding of the labels by using the `scale` options.
-
 {% chartExampleRunner title="Gradient Legend Labels" name="gradient-legend-labels" type="generated" /%}
+
+It is possible to customise the font, colour and padding of the labels by using the `scale` options.
 
 ```js
 gradientLegend: {

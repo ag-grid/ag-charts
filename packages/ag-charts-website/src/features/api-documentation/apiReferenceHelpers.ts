@@ -124,12 +124,18 @@ export function processMembers(
         );
     }
     if (prioritise) {
-        return members.sort((a, b) => (prioritise.includes(a.name) ? -1 : prioritise.includes(b.name) ? 1 : 0));
+        members = members.sort((a, b) => (prioritise.includes(a.name) ? -1 : prioritise.includes(b.name) ? 1 : 0));
     }
     return members.map((member) => {
         if (isInterface) {
-            const memberType = normalizeType(member.type);
-            return genericsMap.has(memberType) ? { ...member, type: genericsMap.get(memberType) } : member;
+            let omit: string[] | undefined;
+            let memberType = normalizeType(member.type);
+            if (memberType === 'Omit') {
+                const { typeArguments } = member.type as any;
+                memberType = typeArguments[0];
+                omit = typeArguments[1];
+            }
+            return genericsMap.has(memberType) ? { ...member, type: genericsMap.get(memberType), omit } : member;
         }
         return member;
     });
@@ -160,14 +166,25 @@ export function formatTypeToCode(
     }
 
     if (apiNode.kind === 'typeAlias') {
-        let nodeType = normalizeType(apiNode.type);
         if (typeof apiNode.type === 'object' && apiNode.type.kind === 'union') {
+            let nodeType = normalizeType({
+                kind: 'union',
+                type: apiNode.type.type.filter(
+                    (type) =>
+                        typeof type !== 'string' || !reference.has(type) || !('deprecated' in reference.get(type)!)
+                ),
+            });
             nodeType = '\n    ' + nodeType.replaceAll('|', '\n  |');
             return [`type ${apiNode.name} = ${nodeType};`]
                 .concat(
                     apiNode.type.type
                         .map((type) => {
-                            if (typeof type === 'string' && reference.has(type) && !hiddenInterfaces.includes(type)) {
+                            if (
+                                typeof type === 'string' &&
+                                reference.has(type) &&
+                                !hiddenInterfaces.includes(type) &&
+                                !('deprecated' in reference.get(type)!)
+                            ) {
                                 return formatTypeToCode(reference.get(type)!, member, reference);
                             }
                         })
@@ -175,7 +192,7 @@ export function formatTypeToCode(
                 )
                 .join('\n\n');
         }
-        return `type ${apiNode.name} = ${nodeType};`;
+        return `type ${apiNode.name} = ${normalizeType(apiNode.type)};`;
     }
 
     if (apiNode.kind === 'member' && typeof apiNode.type === 'object') {
@@ -184,6 +201,7 @@ export function formatTypeToCode(
                 '\n    ' +
                 apiNode.type.type
                     .map((type) => normalizeType(type))
+                    .filter((type) => !reference.has(type) || !('deprecated' in reference.get(type)!))
                     .join(' | ')
                     .replaceAll('|', '\n  |');
             return `type ${apiNode.name} = ${nodeType};`;
@@ -302,6 +320,7 @@ export function extractSearchData(
     labelPrefix = ''
 ): SearchDatum[] {
     if (interfaceRef?.kind === 'interface' || (interfaceRef?.kind === 'typeLiteral' && interfaceRef.name)) {
+        const { genericsMap } = interfaceRef as any;
         return interfaceRef.members.flatMap((member) => {
             const navPath = basePath.concat({ name: cleanupName(member.name), type: getMemberType(member) });
             const results = [
@@ -311,11 +330,11 @@ export function extractSearchData(
                     navPath,
                 },
             ];
-            if (typeof member.type === 'string' && reference?.has(member.type)) {
+            if (typeof member.type === 'string' && reference?.has(genericsMap?.[member.type] ?? member.type)) {
                 results.push(
                     ...extractSearchData(
                         reference,
-                        reference.get(member.type)!,
+                        reference.get(genericsMap?.[member.type] ?? member.type)!,
                         navPath,
                         `${labelPrefix}${cleanupName(member.name)}.`
                     )

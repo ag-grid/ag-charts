@@ -1,5 +1,5 @@
 type AttributeTypeMap = {
-    role: 'status' | 'figure';
+    role: 'status' | 'figure' | 'img';
     'aria-live': 'assertive' | 'polite';
     'aria-label': string | undefined;
     'aria-hidden': boolean;
@@ -15,4 +15,9 @@ export function setAttribute<A extends keyof AttributeTypeMap>(
     } else {
         e?.setAttribute(qualifiedName, value.toString());
     }
+}
+
+export function setVisibility(element: HTMLElement, hiddenToken: string, hidden: boolean) {
+    element.ariaHidden = `${hidden}`;
+    element.classList.toggle(hiddenToken, hidden);
 }

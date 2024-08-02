@@ -39,6 +39,10 @@ export class TopologyChart extends Chart {
         this.ctx.zoomManager.updateAxes([this.xAxis, this.yAxis]);
     }
 
+    override getChartType() {
+        return 'topology' as const;
+    }
+
     override async updateData() {
         await super.updateData();
 
@@ -69,7 +73,6 @@ export class TopologyChart extends Chart {
 
         this.seriesRect = shrinkRect;
         this.animationRect = shrinkRect;
-        this.hoverRect = shrinkRect;
 
         const mapSeries = this.series.filter<TopologySeries>(isTopologySeries);
 

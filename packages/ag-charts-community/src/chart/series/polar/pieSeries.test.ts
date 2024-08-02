@@ -3,9 +3,13 @@ import { afterEach, describe, expect, jest, test } from '@jest/globals';
 import type { AgPolarChartOptions } from 'ag-charts-types';
 
 import type { Chart } from '../../chart';
+import { LegendMarkerLabel } from '../../legendMarkerLabel';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    clickAction,
     createChart,
+    deproxy,
+    doubleClickAction,
     expectWarningsCalls,
     extractImageData,
     prepareTestOptions,
@@ -13,6 +17,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from '../../test/utils';
+import { PieSeries } from './pieSeries';
 
 describe('PieSeries', () => {
     setupMockConsole();
@@ -66,6 +71,107 @@ describe('PieSeries', () => {
   ],
 ]
 `);
+        });
+    });
+
+    describe('nodeClick', () => {
+        const clicks: string[] = [];
+        const doubleClicks: string[] = [];
+        const legendClicks: string[] = [];
+
+        const nodeClickOptions: AgPolarChartOptions = {
+            data: [
+                { asset: 'Stocks', amount: 5 },
+                { asset: 'Cash', amount: 5 },
+                { asset: 'Bonds', amount: 0 }, // AG-12321 - nodeClick not triggered for datums after a zero value.
+                { asset: 'Real Estate', amount: 5 },
+                { asset: 'Commodities', amount: 5 },
+            ],
+            series: [
+                {
+                    type: 'pie',
+                    angleKey: 'amount',
+                    legendItemKey: 'asset',
+                    listeners: {
+                        nodeClick: (event) => {
+                            clicks.push(event.datum.asset);
+                        },
+                        nodeDoubleClick: (event) => {
+                            doubleClicks.push(event.datum.asset);
+                        },
+                    },
+                },
+            ],
+            legend: {
+                listeners: {
+                    legendItemClick: (event) => {
+                        legendClicks.push(event.itemId);
+                    },
+                },
+            },
+        };
+
+        beforeEach(() => {
+            clicks.splice(0, clicks.length);
+            doubleClicks.splice(0, doubleClicks.length);
+            legendClicks.splice(0, legendClicks.length);
+        });
+
+        it('should fire a nodeClick event for visible each sector', async () => {
+            chart = await createChart(nodeClickOptions);
+
+            const pieSeries = deproxy(chart).series[0] as PieSeries;
+            for (const nodeData of pieSeries.getNodeData() ?? []) {
+                if (nodeData.angleValue < 1e-10) continue;
+
+                const { x = 0, y = 0 } = nodeData.midPoint ?? {};
+                const { x: clickX, y: clickY } = pieSeries.contentGroup.inverseTransformPoint(x, y);
+                await waitForChartStability(chart);
+                await clickAction(clickX, clickY)(chart);
+            }
+
+            expect(clicks).toEqual(['Stocks', 'Cash', 'Real Estate', 'Commodities']);
+            expect(doubleClicks).toHaveLength(0);
+            expect(legendClicks).toHaveLength(0);
+        });
+
+        it('should fire a nodeDoubleClick event for visible each sector', async () => {
+            chart = await createChart(nodeClickOptions);
+
+            const pieSeries = deproxy(chart).series[0] as PieSeries;
+            for (const nodeData of pieSeries.getNodeData() ?? []) {
+                if (nodeData.angleValue < 1e-10) continue;
+
+                const { x = 0, y = 0 } = nodeData.midPoint ?? {};
+                const { x: clickX, y: clickY } = pieSeries.contentGroup.inverseTransformPoint(x, y);
+                await waitForChartStability(chart);
+                await doubleClickAction(clickX, clickY)(chart);
+            }
+
+            expect(doubleClicks).toEqual(['Stocks', 'Cash', 'Real Estate', 'Commodities']);
+            expect(clicks).toHaveLength(8);
+            expect(legendClicks).toHaveLength(0);
+        });
+
+        it('should not fire series events for legend clicks', async () => {
+            chart = await createChart(nodeClickOptions);
+
+            for (const { legend } of deproxy(chart).modulesManager.legends()) {
+                const markerLabels = (legend as any).itemSelection?._nodes as LegendMarkerLabel[];
+                for (const label of markerLabels) {
+                    const { x, y } = label.getBBox().computeCenter();
+
+                    await clickAction(x, y)(chart);
+                    await waitForChartStability(chart);
+
+                    await clickAction(x, y)(chart);
+                    await waitForChartStability(chart);
+                }
+            }
+
+            expect(doubleClicks).toHaveLength(0);
+            expect(clicks).toHaveLength(0);
+            expect(legendClicks).toEqual([0, 0, 1, 1, 2, 2, 3, 3, 4, 4]);
         });
     });
 

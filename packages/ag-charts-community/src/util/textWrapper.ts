@@ -1,6 +1,6 @@
 import type { OverflowStrategy, TextWrap } from 'ag-charts-types';
 
-import { type MeasureOptions, TextMeasurer } from './textMeasurer';
+import { CachedTextMeasurerPool, type MeasureOptions, type TextMeasurer, TextUtils } from './textMeasurer';
 
 // Extended measurement options including wrapping behavior.
 export interface WrapOptions extends MeasureOptions {
@@ -9,27 +9,28 @@ export interface WrapOptions extends MeasureOptions {
     lineHeight?: number;
     textWrap?: TextWrap;
     overflow?: OverflowStrategy;
+    avoidOrphans?: boolean;
 }
 
-export class TextWrapper extends TextMeasurer {
+export class TextWrapper {
     static wrapText(text: string, options: WrapOptions) {
         return this.wrapLines(text, options).join('\n');
     }
 
     static wrapLines(text: string, options: WrapOptions) {
         const clippedResult = this.textWrap(text, options);
-        if (options.overflow === 'hide' && clippedResult.some((l) => l.endsWith(this.EllipsisChar))) {
+        if (options.overflow === 'hide' && clippedResult.some((l) => l.endsWith(TextUtils.EllipsisChar))) {
             return [];
         }
         return clippedResult;
     }
 
     static appendEllipsis(text: string) {
-        return text.replace(/[.,]{1,5}$/, '') + this.EllipsisChar;
+        return text.replace(/[.,]{1,5}$/, '') + TextUtils.EllipsisChar;
     }
 
     static truncateLine(text: string, measurer: TextMeasurer, maxWidth: number, ellipsisForce?: boolean) {
-        const ellipsisWidth = measurer.textWidth(this.EllipsisChar);
+        const ellipsisWidth = measurer.textWidth(TextUtils.EllipsisChar);
         let estimatedWidth = 0;
         let i = 0;
         for (; i < text.length; i++) {
@@ -38,18 +39,18 @@ export class TextWrapper extends TextMeasurer {
             estimatedWidth += charWidth;
         }
         if (text.length === i && (!ellipsisForce || estimatedWidth + ellipsisWidth <= maxWidth)) {
-            return ellipsisForce ? text + this.EllipsisChar : text;
+            return ellipsisForce ? text + TextUtils.EllipsisChar : text;
         }
         text = text.slice(0, i).trimEnd();
         while (text.length && measurer.textWidth(text) + ellipsisWidth > maxWidth) {
             text = text.slice(0, -1).trimEnd();
         }
-        return text + this.EllipsisChar;
+        return text + TextUtils.EllipsisChar;
     }
 
     private static textWrap(text: string, options: WrapOptions) {
-        const lines: string[] = text.split(this.lineSplitter);
-        const measurer = this.getFontMeasurer(options);
+        const lines: string[] = text.split(TextUtils.lineSplitter);
+        const measurer = CachedTextMeasurerPool.getMeasurer(options);
 
         if (options.textWrap === 'never') {
             return lines.map((line) => this.truncateLine(line.trimEnd(), measurer, options.maxWidth));
@@ -62,6 +63,11 @@ export class TextWrapper extends TextMeasurer {
         for (let line of lines) {
             line = line.trimEnd();
 
+            if (line === '') {
+                result.push(line);
+                continue;
+            }
+
             for (let i = 0, estimatedWidth = 0, lastSpaceIndex = 0; i < line.length; i++) {
                 const char = line.charAt(i);
 
@@ -73,6 +79,14 @@ export class TextWrapper extends TextMeasurer {
 
                 if (estimatedWidth > options.maxWidth) {
                     if (i === 0) break; // char width is greater than options.maxWidth
+
+                    // check actual width in case estimation is off
+                    const actualWidth = measurer.textWidth(line.slice(0, i + 1));
+                    if (actualWidth <= options.maxWidth) {
+                        estimatedWidth = actualWidth;
+                        continue;
+                    }
+
                     if (lastSpaceIndex) {
                         const nextWord = this.getWordAt(line, lastSpaceIndex + 1);
                         const textWidth = measurer.textWidth(nextWord);
@@ -144,7 +158,7 @@ export class TextWrapper extends TextMeasurer {
             return lines;
         }
 
-        const { height, lineMetrics } = this.measureLines(lines, options);
+        const { height, lineMetrics } = measurer.measureLines(lines);
 
         if (height <= options.maxHeight) {
             return lines;
@@ -167,7 +181,7 @@ export class TextWrapper extends TextMeasurer {
     }
 
     private static avoidOrphans(lines: string[], measurer: TextMeasurer, options: WrapOptions) {
-        if (lines.length < 2) return;
+        if (options.avoidOrphans === false || lines.length < 2) return;
 
         const { length } = lines;
         const lastLine = lines[length - 1];

@@ -1,9 +1,7 @@
-import type { AgChartThemePalette } from 'ag-charts-types';
-
 import { DarkTheme } from './darkTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
-    DEFAULT_ANNOTATION_STROKE,
+    DEFAULT_ANNOTATION_COLOR,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
 } from './symbols';
 
@@ -33,19 +31,17 @@ const MATERIAL_DARK_STROKES = {
     RED: '#EF9A9A',
 };
 
-const palette: AgChartThemePalette = {
-    fills: Object.values(MATERIAL_DARK_FILLS),
-    strokes: Object.values(MATERIAL_DARK_STROKES),
-};
-
 export class MaterialDark extends DarkTheme {
     override getDefaultColors() {
         return {
             fills: MATERIAL_DARK_FILLS,
             strokes: MATERIAL_DARK_STROKES,
-            up: { fill: MATERIAL_DARK_FILLS.BLUE, stroke: MATERIAL_DARK_STROKES.BLUE },
+            up: { fill: MATERIAL_DARK_FILLS.GREEN, stroke: MATERIAL_DARK_STROKES.GREEN },
             down: { fill: MATERIAL_DARK_FILLS.RED, stroke: MATERIAL_DARK_STROKES.RED },
             neutral: { fill: MATERIAL_DARK_FILLS.GRAY, stroke: MATERIAL_DARK_STROKES.GRAY },
+            altUp: { fill: MATERIAL_DARK_FILLS.BLUE, stroke: MATERIAL_DARK_STROKES.BLUE },
+            altDown: { fill: MATERIAL_DARK_FILLS.RED, stroke: MATERIAL_DARK_STROKES.RED },
+            altNeutral: { fill: MATERIAL_DARK_FILLS.GRAY, stroke: MATERIAL_DARK_STROKES.GRAY },
         };
     }
 
@@ -58,13 +54,9 @@ export class MaterialDark extends DarkTheme {
             MATERIAL_DARK_FILLS.GREEN,
         ]);
 
-        params.set(DEFAULT_ANNOTATION_STROKE, MATERIAL_DARK_FILLS.BLUE);
+        params.set(DEFAULT_ANNOTATION_COLOR, MATERIAL_DARK_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, MATERIAL_DARK_FILLS.BLUE);
 
         return params;
-    }
-
-    protected override getPalette(): AgChartThemePalette {
-        return palette;
     }
 }

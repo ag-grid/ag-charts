@@ -228,7 +228,7 @@ export type GroupValueProcessorDefinition<D, K extends keyof D & string> = Prope
 
 export type PropertyValueProcessorDefinition<D> = PropertyIdentifiers & {
     type: 'property-value-processor';
-    property: PropertyId<string>;
+    property: string;
     adjust: () => (processedData: ProcessedData<D>, valueIndex: number) => void;
 };
 
@@ -916,7 +916,7 @@ export class DataModel<
                 initDataDomain();
             }
 
-            if (valueInDatum && !(def.validation?.(value, datum) ?? true)) {
+            if (valueInDatum && def.validation?.(value, datum) === false) {
                 if ('invalidValue' in def) {
                     value = def.invalidValue;
                 } else {

@@ -3,12 +3,12 @@ import type { ModuleContext } from '../../module/moduleContext';
 import type { ChartAxis } from '../chartAxis';
 
 export class AxisRegistry {
-    private readonly axesMap = new Map<string, new (moduleContext: ModuleContext) => ChartAxis>();
+    private readonly axesMap = new Map<string, (moduleContext: ModuleContext) => ChartAxis>();
     private readonly hidden = new Set<string>();
     private readonly themeTemplates = new Map<string, object>();
 
-    register(axisType: string, module: Pick<AxisModule, 'instanceConstructor' | 'themeTemplate' | 'hidden'>) {
-        this.axesMap.set(axisType, module.instanceConstructor);
+    register(axisType: string, module: Pick<AxisModule, 'moduleFactory' | 'themeTemplate' | 'hidden'>) {
+        this.axesMap.set(axisType, module.moduleFactory);
         if (module.themeTemplate) {
             this.setThemeTemplate(axisType, module.themeTemplate);
         }
@@ -18,9 +18,9 @@ export class AxisRegistry {
     }
 
     create(axisType: string, moduleContext: ModuleContext) {
-        const AxisConstructor = this.axesMap.get(axisType);
-        if (AxisConstructor) {
-            return new AxisConstructor(moduleContext);
+        const axisFactory = this.axesMap.get(axisType);
+        if (axisFactory) {
+            return axisFactory(moduleContext);
         }
         throw new Error(`AG Charts - unknown axis type: ${axisType}`);
     }

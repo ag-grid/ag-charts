@@ -29,7 +29,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     public minHandle = new RangeHandle();
     public maxHandle = new RangeHandle();
     private readonly maskVisibleRange = {
-        computeBBox: (): BBox => this.mask.computeVisibleRangeBBox(),
+        getBBox: (): BBox => this.mask.computeVisibleRangeBBox(),
         computeTransformedBBox: (): BBox => this.mask.computeVisibleRangeBBox(),
     };
 
@@ -147,6 +147,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
         if (this.rangeSelector == null || enabled === this.rangeSelector.visible) return;
         this.rangeSelector.visible = enabled;
+        this.proxyNavigatorToolbar.ariaHidden = (!enabled).toString();
 
         if (enabled) {
             this.updateZoom();
@@ -333,7 +334,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         }
 
         [minHandle, this.maskVisibleRange, maxHandle].forEach((node, index) => {
-            const bbox = node.computeBBox();
+            const bbox = node.getBBox();
             const tbox = { x: bbox.x - x, y: bbox.y - y, height: bbox.height, width: bbox.width };
             setElementBBox(this.proxyNavigatorElements[index], tbox);
         });

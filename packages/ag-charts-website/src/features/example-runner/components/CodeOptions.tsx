@@ -15,15 +15,15 @@ const SELECTOR_CONFIG: Record<SelectorType, SelectorConfig> = {
     typescript: {
         label: 'Language',
         labelValues: {
-            Javascript: 'vanilla',
-            Typescript: 'typescript',
+            JavaScript: 'vanilla',
+            TypeScript: 'typescript',
         },
     },
     react: {
         label: 'Language',
         labelValues: {
-            Javascript: 'reactFunctional',
-            Typescript: 'reactFunctionalTs',
+            JavaScript: 'reactFunctional',
+            TypeScript: 'reactFunctionalTs',
         },
     },
 };

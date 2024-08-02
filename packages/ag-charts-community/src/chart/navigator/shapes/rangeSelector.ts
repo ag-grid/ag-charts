@@ -46,7 +46,7 @@ export class RangeSelector extends Group {
         }
     }
 
-    override computeBBox() {
+    protected override computeBBox() {
         const { x, y, width, height, lOffset, rOffset } = this;
         return new BBox(x - lOffset, y, width + (lOffset + rOffset), height);
     }

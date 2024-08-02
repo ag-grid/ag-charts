@@ -41,6 +41,10 @@ export class CartesianChart extends Chart {
         this.firstSeriesTranslation = true;
     }
 
+    override getChartType() {
+        return 'cartesian' as const;
+    }
+
     override async performLayout() {
         const shrinkRect = await super.performLayout();
         const { firstSeriesTranslation, seriesRoot, annotationRoot, highlightRoot } = this;
@@ -75,8 +79,6 @@ export class CartesianChart extends Chart {
         // Recreate padding object to prevent issues with getters in `BBox.shrink()`
         const seriesPaddedRect = seriesRect.clone().grow(this.seriesArea.padding);
 
-        this.hoverRect = seriesPaddedRect;
-
         const clipRect = this.seriesArea.clip || clipSeries ? seriesPaddedRect : undefined;
         seriesRoot.setClipRectInGroupCoordinateSpace(clipRect);
         highlightRoot.setClipRectInGroupCoordinateSpace(clipRect);
@@ -92,7 +94,7 @@ export class CartesianChart extends Chart {
                 visible: visibility.series,
                 shouldFlipXY: this.shouldFlipXY(),
             },
-            axes: this.axes.map((axis) => ({ id: axis.id, ...axis.getLayoutState() })),
+            axes: this.axes.map((axis) => axis.getLayoutState()),
         });
 
         const modulePromises = this.modulesManager.mapModules((m) => m.performCartesianLayout?.({ seriesRect }));

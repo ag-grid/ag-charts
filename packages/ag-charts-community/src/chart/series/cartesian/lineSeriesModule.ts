@@ -11,7 +11,7 @@ export const LineSeriesModule: SeriesModule<'line'> = {
     chartTypes: ['cartesian'],
 
     identifier: 'line',
-    instanceConstructor: LineSeries,
+    moduleFactory: (ctx) => new LineSeries(ctx),
     stackable: true,
     tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
@@ -48,10 +48,6 @@ export const LineSeriesModule: SeriesModule<'line'> = {
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_LABEL_COLOUR,
             },
-        },
-    },
-    enterpriseThemeTemplate: {
-        series: {
             errorBar: {
                 cap: {
                     lengthRatio: 1,

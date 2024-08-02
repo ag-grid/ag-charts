@@ -1,9 +1,7 @@
-import type { AgChartThemePalette } from 'ag-charts-types';
-
 import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
-    DEFAULT_ANNOTATION_STROKE,
+    DEFAULT_ANNOTATION_COLOR,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
 } from './symbols';
 
@@ -33,19 +31,17 @@ const MATERIAL_LIGHT_STROKES = {
     RED: '#B71C1C',
 };
 
-const palette: AgChartThemePalette = {
-    fills: Object.values(MATERIAL_LIGHT_FILLS),
-    strokes: Object.values(MATERIAL_LIGHT_STROKES),
-};
-
 export class MaterialLight extends ChartTheme {
     override getDefaultColors() {
         return {
             fills: MATERIAL_LIGHT_FILLS,
             strokes: MATERIAL_LIGHT_STROKES,
-            up: { fill: MATERIAL_LIGHT_FILLS.BLUE, stroke: MATERIAL_LIGHT_STROKES.BLUE },
+            up: { fill: MATERIAL_LIGHT_FILLS.GREEN, stroke: MATERIAL_LIGHT_STROKES.GREEN },
             down: { fill: MATERIAL_LIGHT_FILLS.RED, stroke: MATERIAL_LIGHT_STROKES.RED },
             neutral: { fill: MATERIAL_LIGHT_FILLS.GRAY, stroke: MATERIAL_LIGHT_STROKES.GRAY },
+            altUp: { fill: MATERIAL_LIGHT_FILLS.BLUE, stroke: MATERIAL_LIGHT_STROKES.BLUE },
+            altDown: { fill: MATERIAL_LIGHT_FILLS.RED, stroke: MATERIAL_LIGHT_STROKES.RED },
+            altNeutral: { fill: MATERIAL_LIGHT_FILLS.GRAY, stroke: MATERIAL_LIGHT_STROKES.GRAY },
         };
     }
 
@@ -58,12 +54,9 @@ export class MaterialLight extends ChartTheme {
             MATERIAL_LIGHT_FILLS.GREEN,
         ]);
 
-        params.set(DEFAULT_ANNOTATION_STROKE, MATERIAL_LIGHT_FILLS.BLUE);
+        params.set(DEFAULT_ANNOTATION_COLOR, MATERIAL_LIGHT_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, MATERIAL_LIGHT_FILLS.BLUE);
 
         return params;
-    }
-    protected override getPalette(): AgChartThemePalette {
-        return palette;
     }
 }

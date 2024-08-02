@@ -12,7 +12,7 @@ export const MapLineBackgroundModule: _ModuleSupport.SeriesModule<'map-line-back
     chartTypes: ['topology'],
 
     identifier: 'map-line-background',
-    instanceConstructor: MapLineBackgroundSeries,
+    moduleFactory: (ctx) => new MapLineBackgroundSeries(ctx),
     tooltipDefaults: { range: 'exact' },
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,

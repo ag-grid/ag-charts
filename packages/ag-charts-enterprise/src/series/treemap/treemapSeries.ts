@@ -12,7 +12,7 @@ import {
 import { formatLabels } from '../util/labelFormatter';
 import { TreemapSeriesProperties } from './treemapSeriesProperties';
 
-const { TextMeasurer, TextWrapper } = _ModuleSupport;
+const { TextUtils, TextWrapper } = _ModuleSupport;
 const { Rect, Group, BBox, Selection, Text } = _Scene;
 const { Color, Logger, clamp, isEqual, sanitizeHtml } = _Util;
 
@@ -49,7 +49,7 @@ function getTextSize(text: string, style: FontOptions): { width: number; height:
         textBaseline: 'top',
     });
 
-    const { width, height } = tempText.computeBBox();
+    const { width, height } = tempText.getBBox();
     return { width, height };
 }
 
@@ -82,7 +82,7 @@ const verticalAlignFactors: Record<VerticalAlign, number | undefined> = {
 
 class DistantGroup extends _Scene.Group implements _ModuleSupport.DistantObject {
     distanceSquared(x: number, y: number): number {
-        return this.computeBBox().distanceSquared(x, y);
+        return this.getBBox().distanceSquared(x, y);
     }
 }
 
@@ -634,7 +634,7 @@ export class TreemapSeries<
                     label: {
                         text,
                         fontSize: group.label.fontSize,
-                        lineHeight: TextMeasurer.getLineHeight(group.label.fontSize),
+                        lineHeight: TextUtils.getLineHeight(group.label.fontSize),
                         style: this.properties.group.label,
                         x: bbox.x + padding + innerWidth * textAlignFactor,
                         y: bbox.y + padding + groupTitleHeight * 0.5,

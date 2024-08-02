@@ -11,6 +11,7 @@ import {
     dx,
     isZoomEqual,
     isZoomLess,
+    isZoomRangeEqual,
     scaleZoom,
     scaleZoomAxisWithAnchor,
     translateZoom,
@@ -20,6 +21,9 @@ import {
 const { ChartAxisDirection, ToolbarManager } = _ModuleSupport;
 
 export class ZoomToolbar {
+    private selectedZoom: { id: string; range: { min: number; max: number } } | undefined = undefined;
+    private readonly destroyFns: (() => void)[] = [];
+
     constructor(
         private readonly toolbarManager: _ModuleSupport.ToolbarManager,
         private readonly zoomManager: _ModuleSupport.ZoomManager,
@@ -30,7 +34,15 @@ export class ZoomToolbar {
             direction: _ModuleSupport.ChartAxisDirection,
             partialZoom: _ModuleSupport.ZoomState | undefined
         ) => void
-    ) {}
+    ) {
+        this.destroyFns.push(zoomManager.addListener('zoom-change', this.onZoomChanged.bind(this)));
+    }
+
+    destroy() {
+        for (const fn of this.destroyFns) {
+            fn();
+        }
+    }
 
     public toggle(enabled: boolean | undefined, zoom: DefinedZoomState, props: ZoomProperties) {
         this.toggleGroups(enabled);
@@ -61,13 +73,14 @@ export class ZoomToolbar {
     }
 
     private toggleGroups(enabled?: boolean) {
-        this.toolbarManager?.toggleGroup('zoom', 'ranges', Boolean(enabled));
-        this.toolbarManager?.toggleGroup('zoom', 'zoom', Boolean(enabled));
+        this.toolbarManager?.toggleGroup('zoom', 'ranges', { visible: Boolean(enabled) });
+        this.toolbarManager?.toggleGroup('zoom', 'zoom', { visible: Boolean(enabled) });
     }
 
     private onButtonPressRanges(event: _ModuleSupport.ToolbarButtonPressedEvent, props: ZoomProperties) {
         if (!ToolbarManager.isGroup('ranges', event)) return;
 
+        const { id } = event;
         const { rangeX } = props;
 
         const time = event.value;
@@ -77,6 +90,25 @@ export class ZoomToolbar {
             rangeX.updateWith(() => time);
         } else if (typeof time === 'function') {
             rangeX.updateWith(time);
+        }
+
+        const range = rangeX.getRange();
+        this.selectedZoom = range != null ? { id, range } : undefined;
+
+        this.toolbarManager.toggleGroup('zoom-toolbar', 'ranges', { active: false });
+        this.toolbarManager.toggleButton('ranges', id, { active: true });
+    }
+
+    private onZoomChanged(e: _ModuleSupport.ZoomChangeEvent) {
+        const { selectedZoom } = this;
+        const { x } = e;
+
+        this.toolbarManager.toggleGroup('zoom-toolbar', 'ranges', { active: false });
+
+        if (selectedZoom != null && x != null && isZoomRangeEqual(selectedZoom.range, x)) {
+            this.toolbarManager.toggleButton('ranges', selectedZoom.id, { active: true });
+        } else {
+            this.selectedZoom = undefined;
         }
     }
 

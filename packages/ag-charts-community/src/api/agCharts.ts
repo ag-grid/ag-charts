@@ -91,12 +91,12 @@ export abstract class AgCharts {
      */
     public static create<O extends AgChartOptions>(options: O): AgChartInstance<O> {
         this.licenseCheck(options);
-        const chart = AgChartsInternal.createOrUpdate(options);
+        const chart = AgChartsInternal.createOrUpdate(options, undefined, this.licenseManager);
 
         if (enterpriseModule.styles != null) {
             chart.chart.ctx.domManager.addStyles('ag-charts-enterprise', enterpriseModule.styles);
         }
-        if (this.licenseManager?.isDisplayWatermark()) {
+        if (this.licenseManager?.isDisplayWatermark() && this.licenseManager) {
             enterpriseModule.injectWatermark?.(chart.chart.ctx.domManager, this.licenseManager.getWatermarkMessage());
         }
         return chart as unknown as AgChartInstance<O>;
@@ -138,7 +138,11 @@ class AgChartsInternal {
         },
     };
 
-    static createOrUpdate(options: ChartExtendedOptions, proxy?: AgChartInstanceProxy) {
+    static createOrUpdate(
+        options: ChartExtendedOptions,
+        proxy?: AgChartInstanceProxy,
+        licenseManager?: LicenseManager
+    ) {
         AgChartsInternal.initialiseModules();
 
         debug('>>> AgCharts.createOrUpdate() user options', options);
@@ -166,7 +170,7 @@ class AgChartsInternal {
         }
 
         if (proxy == null) {
-            proxy = new AgChartInstanceProxy(chart, AgChartsInternal.callbackApi);
+            proxy = new AgChartInstanceProxy(chart, AgChartsInternal.callbackApi, licenseManager);
         } else {
             proxy.chart = chart;
         }
@@ -183,7 +187,6 @@ class AgChartsInternal {
             // so we need to remove all queue items up to the last successfully applied item.
             const queueIdx = chartRef.queuedUserOptions.indexOf(userOptions) + 1;
             chartRef.queuedUserOptions.splice(0, queueIdx);
-            chartRef.applyInitialState();
         });
 
         return proxy;

@@ -1,4 +1,4 @@
-import type { AgChartOptions, AgChartThemePalette } from 'ag-charts-types';
+import type { AgChartOptions, AgChartThemePalette, AgPaletteColors } from 'ag-charts-types';
 
 import type { SeriesOptionsTypes } from '../chart/mapping/types';
 
@@ -19,7 +19,7 @@ export interface SeriesPaletteFactoryParams {
     takeColors: (count: number) => { fills: string[]; strokes: string[] };
     colorsCount: number;
     userPalette: PaletteType;
-    palette: Required<AgChartThemePalette>;
+    palette: Required<AgChartThemePalette & { altUp: AgPaletteColors; altDown: AgPaletteColors }>;
     themeTemplateParameters: Map<string, string | string[]>;
 }
 

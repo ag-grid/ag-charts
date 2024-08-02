@@ -8,5 +8,5 @@ export const OrdinalTimeAxisModule: _ModuleSupport.AxisModule = {
     packageType: 'enterprise',
     chartTypes: ['cartesian'],
     identifier: 'ordinal-time',
-    instanceConstructor: OrdinalTimeAxis,
+    moduleFactory: (ctx) => new OrdinalTimeAxis(ctx),
 };

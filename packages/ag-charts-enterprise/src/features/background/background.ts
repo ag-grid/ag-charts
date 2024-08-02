@@ -1,22 +1,22 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-import { BackgroundImage } from './backgroundImage';
+import { Image } from '../image/image';
 
 const { ActionOnSet, OBJECT, Validate } = _ModuleSupport;
 
-export class Background extends _ModuleSupport.Background<BackgroundImage> {
+export class Background extends _ModuleSupport.Background<Image> {
     @Validate(OBJECT, { optional: true })
     @ActionOnSet<Background>({
-        newValue(image: BackgroundImage) {
+        newValue(image: Image) {
             this.node.appendChild(image.node);
             image.onLoad = () => this.onImageLoad();
         },
-        oldValue(image: BackgroundImage) {
+        oldValue(image: Image) {
             this.node.removeChild(image.node);
             image.onLoad = undefined;
         },
     })
-    override image = new BackgroundImage();
+    override image = new Image();
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super(ctx);

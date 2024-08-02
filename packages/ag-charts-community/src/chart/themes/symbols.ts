@@ -19,6 +19,8 @@ export const PALETTE_UP_FILL = Symbol('palette-up-fill') as unknown as string;
 export const PALETTE_DOWN_FILL = Symbol('palette-down-fill') as unknown as string;
 export const PALETTE_NEUTRAL_STROKE = Symbol('palette-neutral-stroke') as unknown as string;
 export const PALETTE_NEUTRAL_FILL = Symbol('palette-neutral-fill') as unknown as string;
+export const PALETTE_ALT_NEUTRAL_FILL = Symbol('palette-gray-fill') as unknown as string;
+export const PALETTE_ALT_NEUTRAL_STROKE = Symbol('palette-gray-stroke') as unknown as string;
 
 export const DEFAULT_POLAR_SERIES_STROKE = Symbol('default-polar-series-stroke') as unknown as string;
 export const DEFAULT_DIVERGING_SERIES_COLOUR_RANGE = Symbol(
@@ -26,8 +28,12 @@ export const DEFAULT_DIVERGING_SERIES_COLOUR_RANGE = Symbol(
 ) as unknown as string;
 export const DEFAULT_HIERARCHY_FILLS = Symbol('default-hierarchy-fills') as unknown as string;
 export const DEFAULT_HIERARCHY_STROKES = Symbol('default-hierarchy-strokes') as unknown as string;
-export const DEFAULT_ANNOTATION_STROKE = Symbol('default-annotation-stroke') as unknown as string;
+export const DEFAULT_ANNOTATION_COLOR = Symbol('default-annotation-stroke') as unknown as string;
+export const DEFAULT_TEXT_ANNOTATION_COLOR = Symbol('default-text-annotation-color') as unknown as string;
 export const DEFAULT_ANNOTATION_BACKGROUND_FILL = Symbol('default-annotation-background-fill') as unknown as string;
 export const DEFAULT_ANNOTATION_HANDLE_FILL = Symbol('default-annotation-handle-fill') as unknown as string;
+export const DEFAULT_TEXTBOX_FILL = Symbol('default-textbox-fill') as unknown as string;
+export const DEFAULT_TEXTBOX_STROKE = Symbol('default-textbox-stroke') as unknown as string;
+export const DEFAULT_TEXTBOX_COLOR = Symbol('default-textbox-color') as unknown as string;
 export const DEFAULT_TOOLBAR_POSITION = Symbol('default-toolbar-position') as unknown as string;
 export const DEFAULT_GRIDLINE_ENABLED = Symbol('default-gridline-enabled') as unknown as string;

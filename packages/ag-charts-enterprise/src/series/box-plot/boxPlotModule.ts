@@ -12,7 +12,7 @@ export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
     chartTypes: ['cartesian'],
 
     identifier: 'box-plot',
-    instanceConstructor: BoxPlotSeries,
+    moduleFactory: (ctx) => new BoxPlotSeries(ctx),
     tooltipDefaults: { range: 'exact' },
     defaultAxes: [
         {

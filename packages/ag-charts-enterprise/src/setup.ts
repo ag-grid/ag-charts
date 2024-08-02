@@ -8,10 +8,12 @@ import { RadiusNumberAxisModule } from './axes/radius-number/main';
 import { AnimationModule } from './features/animation/main';
 import { AnnotationsModule } from './features/annotations/annotationsModule';
 import { BackgroundModule } from './features/background/main';
+import { ChartToolbarModule } from './features/chart-toolbar/main';
 import { ContextMenuModule } from './features/context-menu/main';
 import { CrosshairModule } from './features/crosshair/main';
 import { DataSourceModule } from './features/data-source/main';
 import { ErrorBarsModule } from './features/error-bar/errorBarModule';
+import { ForegroundModule } from './features/foreground/main';
 import { NavigatorModule } from './features/navigator/navigatorModule';
 import { StatusBarModule } from './features/status-bar/main';
 import { SyncModule } from './features/sync/syncModule';
@@ -50,11 +52,13 @@ export function setupEnterpriseModules() {
         AnimationModule,
         AnnotationsModule,
         BackgroundModule,
+        ForegroundModule,
         BoxPlotModule,
         CandlestickModule,
         ChordModule,
         OhlcModule,
         BulletModule,
+        ChartToolbarModule,
         ContextMenuModule,
         CrosshairModule,
         DataSourceModule,

@@ -9,7 +9,6 @@ import type {
     GroupValueProcessorDefinition,
     ProcessedData,
     ProcessorOutputPropertyDefinition,
-    PropertyId,
     PropertyValueProcessorDefinition,
     ReducerOutputPropertyDefinition,
 } from './dataModel';
@@ -77,20 +76,24 @@ function normaliseFnBuilder({ normaliseTo, mode }: { normaliseTo: number; mode: 
     return () => () => (values: any[], valueIndexes: number[]) => {
         const valuesExtent = [0, 0];
         for (const valueIdx of valueIndexes) {
-            const value = values[valueIdx];
-            const valIdx = value < 0 ? 0 : 1;
+            const value: number | number[] = values[valueIdx];
+            // Note - Array.isArray(new Float64Array) is false, and this type is used for stack accumulators
+            const valueExtent = typeof value === 'number' ? value : Math.max(...value);
+            const valIdx = valueExtent < 0 ? 0 : 1;
             if (mode === 'sum') {
-                valuesExtent[valIdx] += value;
+                valuesExtent[valIdx] += valueExtent;
             } else if (valIdx === 0) {
-                valuesExtent[valIdx] = Math.min(valuesExtent[valIdx], value);
+                valuesExtent[valIdx] = Math.min(valuesExtent[valIdx], valueExtent);
             } else {
-                valuesExtent[valIdx] = Math.max(valuesExtent[valIdx], value);
+                valuesExtent[valIdx] = Math.max(valuesExtent[valIdx], valueExtent);
             }
         }
 
         const extent = Math.max(Math.abs(valuesExtent[0]), valuesExtent[1]);
         for (const valueIdx of valueIndexes) {
-            values[valueIdx] = normalise(values[valueIdx], extent);
+            const value: number | number[] = values[valueIdx];
+            values[valueIdx] =
+                typeof value === 'number' ? normalise(value, extent) : value.map((v) => normalise(v, extent));
         }
     };
 }
@@ -153,7 +156,7 @@ function normalisePropertyFnBuilder({
 }
 
 export function normalisePropertyTo(
-    property: PropertyId<any>,
+    property: string,
     normaliseTo: [number, number],
     zeroDomain: number,
     rangeMin?: number,
@@ -285,30 +288,25 @@ export function accumulateGroup(
     };
 }
 
-function buildGroupContinuityAccFn({ separateNegative }: { separateNegative: boolean }) {
-    return () => () => (values: any[], valueIndexes: number[]) => {
+function groupStackAccFn() {
+    return () => (values: any[], valueIndexes: number[]) => {
         // Datum scope.
-        const acc = [true, true];
+        const acc = new Float64Array(32);
+        let stackCount = 0;
         for (const valueIdx of valueIndexes) {
-            const currentVal = values[valueIdx];
-            const accIndex = isNegative(currentVal) && separateNegative ? 0 : 1;
-
-            acc[accIndex] &&= isFiniteNumber(currentVal);
-            values[valueIdx] = acc[accIndex];
+            const currentValue = values[valueIdx];
+            acc[stackCount] = Number.isFinite(currentValue) ? currentValue : NaN;
+            stackCount += 1;
+            values[valueIdx] = acc.subarray(0, stackCount);
         }
     };
 }
 
-export function accumulateContinuity(
-    matchGroupId: string,
-    separateNegative = false
-): GroupValueProcessorDefinition<any, any> {
-    const adjust = memo({ separateNegative }, buildGroupContinuityAccFn);
-
+export function accumulateStack(matchGroupId: string): GroupValueProcessorDefinition<any, any> {
     return {
         type: 'group-value-processor',
         matchGroupIds: [matchGroupId],
-        adjust,
+        adjust: groupStackAccFn,
     };
 }
 
@@ -369,8 +367,8 @@ export function diff(
     };
 }
 
-type KeyType = string | number | object;
-export function createDatumId(keys: KeyType | KeyType[], ...extraKeys: (string | number)[]) {
+type KeyType = string | number | boolean | object;
+export function createDatumId(keys: KeyType | KeyType[], ...extraKeys: (string | number | boolean)[]) {
     let result;
     if (isArray(keys)) {
         result = keys.map((key) => transformIntegratedCategoryValue(key)).join('___');
@@ -378,7 +376,11 @@ export function createDatumId(keys: KeyType | KeyType[], ...extraKeys: (string |
         result = transformIntegratedCategoryValue(keys);
     }
 
-    const primitiveType = typeof result === 'string' || typeof result === 'number' || result instanceof Date;
+    const primitiveType =
+        typeof result === 'string' ||
+        typeof result === 'number' ||
+        typeof result === 'boolean' ||
+        result instanceof Date;
     if (primitiveType && extraKeys.length > 0) {
         result += `___${extraKeys.join('___')}`;
     }

@@ -10,7 +10,7 @@ export const RadialColumnModule: _ModuleSupport.SeriesModule<'radial-column'> = 
     chartTypes: ['polar'],
 
     identifier: 'radial-column',
-    instanceConstructor: RadialColumnSeries,
+    moduleFactory: (ctx) => new RadialColumnSeries(ctx),
     tooltipDefaults: { range: 'exact' },
     defaultAxes: [
         {

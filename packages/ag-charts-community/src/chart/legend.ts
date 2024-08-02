@@ -19,6 +19,7 @@ import { RedrawType } from '../scene/node';
 import type { Scene } from '../scene/scene';
 import { Selection } from '../scene/selection';
 import { Line } from '../scene/shape/line';
+import { SpriteRenderer } from '../scene/spriteRenderer';
 import { setElementBBox } from '../util/dom';
 import { createId } from '../util/id';
 import { initToolbarKeyNav } from '../util/keynavUtil';
@@ -26,7 +27,7 @@ import { Logger } from '../util/logger';
 import { clamp } from '../util/number';
 import { BaseProperties } from '../util/properties';
 import { ObserveChanges } from '../util/proxy';
-import { TextMeasurer } from '../util/textMeasurer';
+import { CachedTextMeasurerPool, TextUtils } from '../util/textMeasurer';
 import { TextWrapper } from '../util/textWrapper';
 import {
     BOOLEAN,
@@ -48,9 +49,9 @@ import { InteractionState, type PointerInteractionEvent } from './interaction/in
 import { makeKeyboardPointerEvent } from './keyboardUtil';
 import { Layers } from './layers';
 import type { CategoryLegendDatum, LegendSymbolOptions } from './legendDatum';
+import { LegendMarkerLabel } from './legendMarkerLabel';
 import type { Marker } from './marker/marker';
 import { type MarkerConstructor, getMarker } from './marker/util';
-import { MarkerLabel } from './markerLabel';
 import { Pagination } from './pagination/pagination';
 import { type TooltipPointerEvent, toTooltipHtml } from './tooltip/tooltip';
 
@@ -161,10 +162,12 @@ export class Legend extends BaseProperties {
 
     private readonly group: Group = new Group({ name: 'legend', layer: true, zIndex: Layers.LEGEND_ZINDEX });
 
-    private readonly itemSelection: Selection<MarkerLabel, CategoryLegendDatum> = Selection.select(
+    private readonly itemSelection: Selection<LegendMarkerLabel, CategoryLegendDatum> = Selection.select(
         this.group,
-        MarkerLabel
+        LegendMarkerLabel
     );
+
+    private readonly spriteRenderer = new SpriteRenderer();
 
     private readonly oldSize: [number, number] = [0, 0];
     private pages: Page[] = [];
@@ -272,8 +275,8 @@ export class Legend extends BaseProperties {
             region.addListener('leave', (e) => this.handleLegendMouseExit(e), animationState),
             region.addListener('enter', (e) => this.handleLegendMouseEnter(e), animationState),
             ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e)),
-            () => this.detachLegend(),
-            ctx.localeManager.addListener('locale-changed', () => this.onLocaleChanged())
+            ctx.localeManager.addListener('locale-changed', () => this.onLocaleChanged()),
+            () => this.group.parent?.removeChild(this.group)
         );
 
         this.proxyLegendToolbar = this.ctx.proxyInteractionService.createProxyContainer({
@@ -282,6 +285,7 @@ export class Legend extends BaseProperties {
             classList: ['ag-charts-proxy-legend-toolbar'],
             ariaLabel: { id: 'ariaLabelLegend' },
             ariaOrientation: 'horizontal',
+            ariaHidden: true,
         });
         this.proxyLegendPagination = this.ctx.proxyInteractionService.createProxyContainer({
             type: 'group',
@@ -289,6 +293,7 @@ export class Legend extends BaseProperties {
             classList: ['ag-charts-proxy-legend-pagination'],
             ariaLabel: { id: 'ariaLabelLegendPagination' },
             ariaOrientation: 'horizontal',
+            ariaHidden: true,
         });
     }
 
@@ -376,10 +381,6 @@ export class Legend extends BaseProperties {
         scene.appendChild(this.group);
     }
 
-    detachLegend() {
-        this.group.parent?.removeChild(this.group);
-    }
-
     private getItemLabel(datum: CategoryLegendDatum) {
         const {
             ctx: { callbackCache },
@@ -429,10 +430,13 @@ export class Legend extends BaseProperties {
         // Update properties that affect the size of the legend items and measure them.
         const bboxes: BBox[] = [];
 
-        const font = TextMeasurer.toFontString(label);
+        const font = TextUtils.toFontString(label);
 
         const itemMaxWidthPercentage = 0.8;
         const maxItemWidth = maxWidth ?? width * itemMaxWidthPercentage;
+
+        const { spriteAAPadding, spriteWidth, spriteHeight, markerWidth } = this.calculateSpriteDimensions();
+        this.spriteRenderer.resize(spriteWidth, spriteHeight);
 
         this.itemSelection.each((markerLabel, datum) => {
             markerLabel.fontStyle = fontStyle;
@@ -440,13 +444,13 @@ export class Legend extends BaseProperties {
             markerLabel.fontSize = fontSize;
             markerLabel.fontFamily = fontFamily;
 
-            const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, this.calcMarkerWidth());
+            const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, markerWidth, spriteAAPadding);
             const id = datum.itemId ?? datum.id;
             const labelText = this.getItemLabel(datum);
             const text = (labelText ?? '<unknown>').replace(/\r?\n/g, ' ');
             markerLabel.text = this.truncate(text, maxLength, maxItemWidth, paddedSymbolWidth, font, id);
 
-            bboxes.push(markerLabel.computeBBox());
+            bboxes.push(markerLabel.getBBox());
         });
 
         width = Math.max(1, width);
@@ -490,28 +494,52 @@ export class Legend extends BaseProperties {
         return { oldPages };
     }
 
-    private calcSymbolsLengths(symbol: LegendSymbolOptions) {
-        const { showSeriesStroke, marker, line } = this.item;
+    private calcSymbolsEnabled(symbol: LegendSymbolOptions) {
+        const { showSeriesStroke, marker } = this.item;
         const markerEnabled = marker.enabled ?? (showSeriesStroke && (symbol.marker.enabled ?? true));
-        const markerLength = markerEnabled ? marker.size : 0;
         const lineEnabled = !!(symbol.line && showSeriesStroke);
-        const lineLength = lineEnabled ? line.length ?? 25 : 0;
-        return { markerEnabled, markerLength, lineEnabled, lineLength };
+        return { markerEnabled, lineEnabled };
     }
 
-    private calcMarkerWidth(): number {
+    private calcSymbolsLengths(symbol: LegendSymbolOptions) {
+        const { marker, line } = this.item;
+        const { markerEnabled, lineEnabled } = this.calcSymbolsEnabled(symbol);
+        const { strokeWidth: markerStrokeWidth } = this.getMarkerStyles(symbol);
+        const { strokeWidth: lineStrokeWidth } = lineEnabled ? this.getLineStyles(symbol) : { strokeWidth: 0 };
+
+        const markerLength = markerEnabled ? marker.size : 0;
+        const lineLength = lineEnabled ? line.length ?? 25 : 0;
+        return { markerLength, markerStrokeWidth, lineLength, lineStrokeWidth };
+    }
+
+    private calculateSpriteDimensions() {
         // AG-11950 Calculate the length of the longest legend symbol to ensure that the text / symbols stay aligned.
-        let result: number = 0;
+        let spriteAAPadding = 0;
+        let spriteWidth = 0;
+        let spriteHeight = 0;
+        let markerWidth = 0;
         this.itemSelection.each((_, datum) => {
             datum.symbols.forEach((symbol) => {
-                const { lineLength, markerLength } = this.calcSymbolsLengths(symbol);
-                result = Math.max(result, lineLength, markerLength);
+                const { markerLength, markerStrokeWidth, lineLength, lineStrokeWidth } =
+                    this.calcSymbolsLengths(symbol);
+                const markerTotalLength = markerLength + markerStrokeWidth;
+                markerWidth = Math.max(markerWidth, lineLength, markerLength);
+                spriteWidth = Math.max(spriteWidth, lineLength, markerTotalLength);
+                spriteHeight = Math.max(spriteHeight, lineStrokeWidth, markerTotalLength);
+                spriteAAPadding = Math.max(spriteAAPadding, markerStrokeWidth);
             });
         });
-        return result;
+        spriteWidth += spriteAAPadding * 2;
+        spriteHeight += spriteAAPadding * 2;
+        return { spriteAAPadding, spriteWidth, spriteHeight, markerWidth };
     }
 
-    private updateMarkerLabel(markerLabel: MarkerLabel, datum: CategoryLegendDatum, markerWidth: number): number {
+    private updateMarkerLabel(
+        markerLabel: LegendMarkerLabel,
+        datum: CategoryLegendDatum,
+        markerWidth: number,
+        spriteAAPadding: number
+    ): number {
         const { marker: itemMarker, paddingX } = this.item;
         const dimensionProps: { length: number; spacing: number }[] = [];
         let paddedSymbolWidth = paddingX;
@@ -529,13 +557,12 @@ export class Legend extends BaseProperties {
                 markers.push(new MarkerCtr());
             });
 
-            markerLabel.markers = markers;
-            markerLabel.lines = lines;
+            markerLabel.updateSymbols(markers, lines);
         }
 
         datum.symbols.forEach((symbol, i) => {
             const spacing = symbol.marker.padding ?? itemMarker.padding;
-            const { markerEnabled, lineEnabled } = this.calcSymbolsLengths(symbol);
+            const { markerEnabled, lineEnabled } = this.calcSymbolsEnabled(symbol);
 
             markerLabel.markers[i].size = markerEnabled || !lineEnabled ? itemMarker.size : 0;
             dimensionProps.push({ length: markerWidth, spacing });
@@ -543,9 +570,31 @@ export class Legend extends BaseProperties {
             if (markerEnabled || lineEnabled) {
                 paddedSymbolWidth += spacing + markerWidth;
             }
+
+            const marker = markerLabel.markers[i];
+            const line = markerLabel.lines[i];
+
+            if (marker) {
+                const { strokeWidth, fill, stroke, fillOpacity, strokeOpacity } = this.getMarkerStyles(symbol);
+
+                marker.fill = fill;
+                marker.stroke = stroke;
+                marker.strokeWidth = strokeWidth;
+                marker.fillOpacity = fillOpacity;
+                marker.strokeOpacity = strokeOpacity;
+            }
+
+            if (line) {
+                const lineStyles = this.getLineStyles(symbol);
+
+                line.stroke = lineStyles.stroke;
+                line.strokeOpacity = lineStyles.strokeOpacity;
+                line.strokeWidth = lineStyles.strokeWidth;
+                line.lineDash = lineStyles.lineDash;
+            }
         });
 
-        markerLabel.update(dimensionProps);
+        markerLabel.update(this.spriteRenderer, spriteAAPadding, dimensionProps);
         return paddedSymbolWidth;
     }
 
@@ -563,10 +612,10 @@ export class Legend extends BaseProperties {
             addEllipsis = true;
         }
 
-        const measurer = TextMeasurer.getFontMeasurer({ font });
+        const measurer = CachedTextMeasurerPool.getMeasurer({ font });
         const result = TextWrapper.truncateLine(text, measurer, maxItemWidth - paddedMarkerWidth, addEllipsis);
 
-        if (result.endsWith(TextWrapper.EllipsisChar)) {
+        if (result.endsWith(TextUtils.EllipsisChar)) {
             this.truncatedItems.add(id);
         } else {
             this.truncatedItems.delete(id);
@@ -678,7 +727,7 @@ export class Legend extends BaseProperties {
         const orientation = this.getOrientation();
         const paginationVertical = ['left', 'right'].includes(this.position);
 
-        let paginationBBox: BBox = this.pagination.computeBBox();
+        let paginationBBox: BBox = this.pagination.getBBox();
         let lastPassPaginationBBox: BBox = new BBox(0, 0, 0, 0);
         let pages: Page[] = [];
         let maxPageWidth = 0;
@@ -720,7 +769,7 @@ export class Legend extends BaseProperties {
             this.pagination.totalPages = totalPages;
 
             this.pagination.update();
-            lastPassPaginationBBox = this.pagination.computeBBox();
+            lastPassPaginationBBox = this.pagination.getBBox();
 
             if (!this.pagination.visible) {
                 break;
@@ -789,7 +838,7 @@ export class Legend extends BaseProperties {
             markerLabel.translationY = y;
 
             // Update the hidden CSS button.
-            const { width, height } = markerLabel.computeBBox();
+            const { width, height } = markerLabel.getBBox();
             setElementBBox(markerLabel.proxyButton, { x, y, width, height });
         });
     }
@@ -822,31 +871,7 @@ export class Legend extends BaseProperties {
             label: { color },
         } = this.item;
         this.itemSelection.each((markerLabel, datum) => {
-            datum.symbols.forEach((symbol, index) => {
-                const marker = markerLabel.markers[index];
-                const line = markerLabel.lines[index];
-
-                if (marker) {
-                    const { strokeWidth, fill, stroke, fillOpacity, strokeOpacity } = this.getMarkerStyles(symbol);
-
-                    marker.fill = fill;
-                    marker.stroke = stroke;
-                    marker.strokeWidth = strokeWidth;
-                    marker.fillOpacity = fillOpacity;
-                    marker.strokeOpacity = strokeOpacity;
-                }
-
-                if (line) {
-                    const lineStyles = this.getLineStyles(symbol);
-
-                    line.stroke = lineStyles.stroke;
-                    line.strokeOpacity = lineStyles.strokeOpacity;
-                    line.strokeWidth = lineStyles.strokeWidth;
-                    line.lineDash = lineStyles.lineDash;
-                }
-            });
-
-            markerLabel.opacity = datum.enabled ? 1 : 0.5;
+            markerLabel.setEnabled(datum.enabled);
             markerLabel.color = color;
         });
 
@@ -888,9 +913,9 @@ export class Legend extends BaseProperties {
         const closestLeftTop = { dist: Infinity, datum: undefined as any };
         for (const child of this.group.children) {
             if (!child.visible) continue;
-            if (!(child instanceof MarkerLabel)) continue;
+            if (!(child instanceof LegendMarkerLabel)) continue;
 
-            const childBBox = child.computeBBox();
+            const childBBox = child.getBBox().clone();
             childBBox.grow(this.item.paddingX / 2, 'horizontal');
             childBBox.grow(this.item.paddingY / 2, 'vertical');
             if (childBBox.containsPoint(x, y)) {
@@ -920,12 +945,13 @@ export class Legend extends BaseProperties {
     }
 
     private computePagedBBox(): BBox {
-        const actualBBox = this.group.computeBBox();
+        let actualBBox = this.group.getBBox();
         if (this.pages.length <= 1) {
             return actualBBox;
         }
 
         const [maxPageWidth, maxPageHeight] = this.maxPageSize;
+        actualBBox = actualBBox.clone();
         actualBBox.height = Math.max(maxPageHeight, actualBBox.height);
         actualBBox.width = Math.max(maxPageWidth, actualBBox.width);
 

@@ -105,7 +105,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
-            pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pickModes: [SeriesNodePickMode.NEAREST_BY_MAIN_AXIS_FIRST, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             hasHighlightedLabels: true,
             directionKeys: {
                 x: ['xKey'],
@@ -438,7 +438,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             });
             config.crisp = crisp;
             config.visible = visible;
-            updateRect({ rect, config });
+            updateRect(rect, config);
         });
     }
 

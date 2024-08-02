@@ -227,7 +227,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx.updateService.addListener('update-complete', (event) => this.onUpdateComplete(event)),
             ctx.zoomManager.addListener('zoom-change', (event) => this.onZoomChange(event)),
             ctx.zoomManager.addListener('zoom-pan-start', (event) => this.onZoomPanStart(event)),
-            this.panner.addListener('update', (event) => this.onPanUpdate(event))
+            this.panner.addListener('update', (event) => this.onPanUpdate(event)),
+            () => this.toolbar.destroy()
         );
     }
 
@@ -588,7 +589,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private onUpdateComplete({ minRect, minVisibleRect }: _ModuleSupport.UpdateCompleteEvent) {
+    private onUpdateComplete(event: { minRect?: _Scene.BBox; minVisibleRect?: _Scene.BBox }) {
+        const { minRect, minVisibleRect } = event;
         const { enabled, minVisibleItemsX, minVisibleItemsY, paddedRect, shouldFlipXY } = this;
 
         if (!enabled || !paddedRect || !minRect || !minVisibleRect) return;

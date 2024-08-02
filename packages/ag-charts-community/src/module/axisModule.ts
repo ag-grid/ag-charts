@@ -2,14 +2,13 @@ import type { ChartAxis } from '../chart/chartAxis';
 import type { BaseModule } from './baseModule';
 import type { ModuleContext } from './moduleContext';
 
-type ModuleInstanceConstructor<M> = new (moduleContext: ModuleContext) => M;
-export type AxisConstructor = ModuleInstanceConstructor<ChartAxis>;
+export type AxisFactory = (moduleContext: ModuleContext) => ChartAxis;
 
 export interface AxisModule extends BaseModule {
     type: 'axis';
 
     identifier: string;
-    instanceConstructor: AxisConstructor;
+    moduleFactory: AxisFactory;
     hidden?: boolean;
 
     themeTemplate?: {};

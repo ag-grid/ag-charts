@@ -11,7 +11,7 @@ import type { Matrix } from '../scene/matrix';
 import type { PlacedLabelDatum } from '../scene/util/labelPlacement';
 import { normalizeAngle360, toRadians } from '../util/angle';
 import { BaseProperties } from '../util/properties';
-import { TextMeasurer } from '../util/textMeasurer';
+import { TextUtils } from '../util/textMeasurer';
 import type { RequireOptional } from '../util/types';
 import {
     BOOLEAN,
@@ -51,7 +51,7 @@ export class Label<TParams = never, TDatum = any>
     formatter?: Formatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>;
 
     getFont(): string {
-        return TextMeasurer.toFontString(this);
+        return TextUtils.toFontString(this);
     }
 }
 
@@ -128,27 +128,17 @@ export function getTextAlign(
     return 'start';
 }
 
-export function calculateLabelBBox(
-    text: string,
-    bbox: BBox,
-    labelX: number,
-    labelY: number,
-    labelMatrix: Matrix
-): PlacedLabelDatum {
-    // Text.computeBBox() does not take into account any of the transformations that have been applied to the label nodes, only the width and height are useful.
+export function calculateLabelBBox(text: string, bbox: BBox, labelMatrix: Matrix): PlacedLabelDatum {
+    // Text.getBBox() does not take into account any of the transformations that have been applied to the label nodes, only the width and height are useful.
     // Rather than taking into account all transformations including those of parent nodes which would be the result of `computeTransformedBBox()`, giving the x and y in the entire axis coordinate space,
     // take into account only the rotation and translation applied to individual label nodes to get the x y coordinates of the labels relative to each other
     // this makes label collision detection a lot simpler
-
-    const { width, height } = bbox;
-
+    const { x: labelX, y: labelY, width, height } = bbox;
     const translatedBBox = new BBox(labelX, labelY, 0, 0);
+
     labelMatrix.transformBBox(translatedBBox, bbox);
 
     const { x, y } = bbox;
-    bbox.width = width;
-    bbox.height = height;
-
     return {
         point: { x, y },
         label: { text, width, height },

@@ -10,7 +10,7 @@ export const RadarLineModule: _ModuleSupport.SeriesModule<'radar-line'> = {
     chartTypes: ['polar'],
 
     identifier: 'radar-line',
-    instanceConstructor: RadarLineSeries,
+    moduleFactory: (ctx) => new RadarLineSeries(ctx),
     tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
         {

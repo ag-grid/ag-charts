@@ -1,9 +1,7 @@
-import type { AgChartThemePalette } from 'ag-charts-types';
-
 import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
-    DEFAULT_ANNOTATION_STROKE,
+    DEFAULT_ANNOTATION_COLOR,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
 } from './symbols';
 
@@ -33,19 +31,17 @@ const VIVID_STROKES = {
     RED: '#cb0021',
 };
 
-const palette: AgChartThemePalette = {
-    fills: Object.values(VIVID_FILLS),
-    strokes: Object.values(VIVID_STROKES),
-};
-
 export class VividLight extends ChartTheme {
     override getDefaultColors() {
         return {
             fills: VIVID_FILLS,
             strokes: VIVID_STROKES,
-            up: { fill: VIVID_FILLS.BLUE, stroke: VIVID_STROKES.BLUE },
-            down: { fill: VIVID_FILLS.ORANGE, stroke: VIVID_STROKES.ORANGE },
+            up: { fill: VIVID_FILLS.GREEN, stroke: VIVID_STROKES.GREEN },
+            down: { fill: VIVID_FILLS.RED, stroke: VIVID_STROKES.RED },
             neutral: { fill: VIVID_FILLS.GRAY, stroke: VIVID_STROKES.GRAY },
+            altUp: { fill: VIVID_FILLS.BLUE, stroke: VIVID_STROKES.BLUE },
+            altDown: { fill: VIVID_FILLS.ORANGE, stroke: VIVID_STROKES.ORANGE },
+            altNeutral: { fill: VIVID_FILLS.GRAY, stroke: VIVID_STROKES.GRAY },
         };
     }
 
@@ -54,12 +50,9 @@ export class VividLight extends ChartTheme {
 
         params.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [VIVID_FILLS.ORANGE, VIVID_FILLS.YELLOW, VIVID_FILLS.GREEN]);
 
-        params.set(DEFAULT_ANNOTATION_STROKE, VIVID_FILLS.BLUE);
+        params.set(DEFAULT_ANNOTATION_COLOR, VIVID_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, VIVID_FILLS.BLUE);
 
         return params;
-    }
-    protected override getPalette(): AgChartThemePalette {
-        return palette;
     }
 }

@@ -69,7 +69,7 @@ export class BaseLayoutProcessor implements UpdateProcessor {
             caption.node.y = baseY;
             caption.node.textBaseline = 'top';
             updateCaption(caption);
-            const bbox = caption.node.computeBBox();
+            const bbox = caption.node.getBBox();
 
             // As the bbox (x,y) ends up at a different location than specified above, we need to
             // take it into consideration when calculating how much space needs to be reserved to
@@ -88,7 +88,7 @@ export class BaseLayoutProcessor implements UpdateProcessor {
             caption.node.y = baseY;
             caption.node.textBaseline = 'bottom';
             updateCaption(caption);
-            const bbox = caption.node.computeBBox();
+            const bbox = caption.node.getBBox();
 
             const bboxHeight = Math.ceil(baseY - bbox.y + spacing);
 
@@ -131,7 +131,7 @@ export class BaseLayoutProcessor implements UpdateProcessor {
             if (caption.textAlign === 'left') {
                 caption.node.x = rect.x + titlePadding;
             } else if (caption.textAlign === 'right') {
-                const bbox = caption.node.computeBBox();
+                const bbox = caption.node.getBBox();
                 caption.node.x = rect.x + rect.width - bbox.width - titlePadding;
             }
         }

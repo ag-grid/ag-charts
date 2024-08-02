@@ -60,6 +60,7 @@
       "dependsOn": ["^build:types", "^build:package"],
       "inputs": [],
       "outputs": [],
+      "cache": false,
       "options": {
         "parallel": false,
         "commands": [
@@ -126,6 +127,10 @@
       }
     },
     "clean": { "cache": false, "command": "rimraf dist/ 'packages/*/dist/'" },
+    "benchmark": {
+      "dependsOn": ["ag-charts-community:benchmark"],
+      "command": "node ./tools/benchmark/collate-reports.js"
+    },
     "generate-docs-example": {
       "executor": "nx:run-commands",
       "options": {

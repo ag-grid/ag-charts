@@ -18,6 +18,8 @@ const LICENSE_TYPES = {
     '0102': 'BOTH',
 };
 
+const LICENSING_HELP_URL = 'https://charts.ag-grid.com/licensing/';
+
 export class LicenseManager {
     private static readonly RELEASE_INFORMATION: string = 'MTcyMDAyMjAyNTIyOQ==';
     private licenseKey?: string;
@@ -348,7 +350,7 @@ export class LicenseManager {
                     ' ',
                     '*'
                 );
-                this.padAndOutput('* Please contact info@ag-grid.com to obtain a combined license key.', ' ', '*');
+                this.padAndOutput(`* To troubleshoot your license key visit ${LICENSING_HELP_URL}.`, ' ', '*');
                 this.centerPadAndOutput('');
                 this.centerPadAndOutput('');
             } else {
@@ -356,11 +358,8 @@ export class LicenseManager {
                 this.centerPadAndOutput('');
                 this.centerPadAndOutput(` ${currentLicenseName} License `);
                 this.centerPadAndOutput(' Invalid License Key ');
-                this.padAndOutput(
-                    `* Your license key is not valid - please contact info@ag-grid.com to obtain a valid license.`,
-                    ' ',
-                    '*'
-                );
+                this.padAndOutput(`* Your license key is not valid.`, ' ', '*');
+                this.padAndOutput(`* To troubleshoot your license key visit ${LICENSING_HELP_URL}.`, ' ', '*');
                 this.centerPadAndOutput('');
                 this.centerPadAndOutput('');
             }

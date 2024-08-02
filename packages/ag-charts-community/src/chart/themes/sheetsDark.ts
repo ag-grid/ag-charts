@@ -1,9 +1,7 @@
-import type { AgChartThemePalette } from 'ag-charts-types';
-
 import { DarkTheme } from './darkTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
-    DEFAULT_ANNOTATION_STROKE,
+    DEFAULT_ANNOTATION_COLOR,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
 } from './symbols';
 
@@ -33,19 +31,17 @@ const SHEETS_DARK_STROKES = {
     DARK_YELLOW: '#c0993d',
 };
 
-const palette: AgChartThemePalette = {
-    fills: Object.values(SHEETS_DARK_FILLS),
-    strokes: Object.values(SHEETS_DARK_STROKES),
-};
-
 export class SheetsDark extends DarkTheme {
     override getDefaultColors() {
         return {
             fills: { ...SHEETS_DARK_FILLS, RED: SHEETS_DARK_FILLS.ORANGE },
             strokes: { ...SHEETS_DARK_STROKES, RED: SHEETS_DARK_STROKES.ORANGE },
-            up: { fill: SHEETS_DARK_FILLS.BLUE, stroke: SHEETS_DARK_STROKES.BLUE },
+            up: { fill: SHEETS_DARK_FILLS.GREEN, stroke: SHEETS_DARK_STROKES.GREEN },
             down: { fill: SHEETS_DARK_FILLS.ORANGE, stroke: SHEETS_DARK_STROKES.ORANGE },
             neutral: { fill: SHEETS_DARK_FILLS.GRAY, stroke: SHEETS_DARK_STROKES.GRAY },
+            altUp: { fill: SHEETS_DARK_FILLS.BLUE, stroke: SHEETS_DARK_STROKES.BLUE },
+            altDown: { fill: SHEETS_DARK_FILLS.ORANGE, stroke: SHEETS_DARK_STROKES.ORANGE },
+            altNeutral: { fill: SHEETS_DARK_FILLS.GRAY, stroke: SHEETS_DARK_STROKES.GRAY },
         };
     }
 
@@ -58,13 +54,9 @@ export class SheetsDark extends DarkTheme {
             SHEETS_DARK_FILLS.GREEN,
         ]);
 
-        params.set(DEFAULT_ANNOTATION_STROKE, SHEETS_DARK_FILLS.BLUE);
+        params.set(DEFAULT_ANNOTATION_COLOR, SHEETS_DARK_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, SHEETS_DARK_FILLS.BLUE);
 
         return params;
-    }
-
-    protected override getPalette(): AgChartThemePalette {
-        return palette;
     }
 }
