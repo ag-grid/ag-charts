@@ -1,21 +1,25 @@
+function addRemovableEventListener<K extends keyof WindowEventMap>(
+    destroyFns: (() => void)[],
+    elem: Window,
+    type: K,
+    listener: (this: Window, ev: WindowEventMap[K]) => any
+): () => void;
+
 function addRemovableEventListener<K extends keyof HTMLElementEventMap>(
     destroyFns: (() => void)[],
     elem: HTMLElement,
     type: K,
     listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any
-): void {
-    elem.addEventListener(type, listener);
-    destroyFns.push(() => elem.removeEventListener(type, listener));
-}
+): () => void;
 
-function addRemovableWindowEventListener<K extends keyof WindowEventMap>(
+function addRemovableEventListener<K extends keyof (HTMLElementEventMap | WindowEventMap)>(
     destroyFns: (() => void)[],
-    wind: Window,
+    elem: HTMLElement | Window,
     type: K,
-    listener: (this: Window, ev: WindowEventMap[K]) => any
+    listener: (this: unknown, ev: unknown) => unknown
 ): () => void {
-    wind.addEventListener(type, listener);
-    const remover = () => wind.removeEventListener(type, listener);
+    elem.addEventListener(type, listener);
+    const remover = () => elem.removeEventListener(type, listener);
     destroyFns.push(remover);
     return remover;
 }
@@ -33,7 +37,7 @@ function addEscapeEventListener(
 }
 
 function addMouseCloseListener(destroyFns: (() => void)[], menu: HTMLElement, hideCallback: () => void): () => void {
-    const self = addRemovableWindowEventListener(destroyFns, window, 'mousedown', (event: MouseEvent) => {
+    const self = addRemovableEventListener(destroyFns, window, 'mousedown', (event: MouseEvent) => {
         if ([0, 2].includes(event.button) && !containsPoint(menu, event)) {
             hideCallback();
             self();
@@ -42,10 +46,7 @@ function addMouseCloseListener(destroyFns: (() => void)[], menu: HTMLElement, hi
     return self;
 }
 
-function containsPoint(
-    container: { getBoundingClientRect(): DOMRect },
-    event: { target: Element | EventTarget | null; clientX: number; clientY: number }
-) {
+function containsPoint(container: Element, event: MouseEvent) {
     if (event.target instanceof Element) {
         const { x, y, width, height } = container.getBoundingClientRect();
         const { clientX: ex, clientY: ey } = event;
