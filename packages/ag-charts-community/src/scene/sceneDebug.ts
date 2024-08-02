@@ -113,7 +113,17 @@ export function buildTree(node: Node): BuildTree {
             .reduce<Record<string, {}>>((result, childTree) => {
                 let { name: treeNodeName } = childTree;
                 const {
-                    node: { visible, opacity, zIndex, zIndexSubOrder },
+                    node: {
+                        visible,
+                        opacity,
+                        zIndex,
+                        zIndexSubOrder,
+                        translationX,
+                        translationY,
+                        rotation,
+                        scalingX,
+                        scalingY,
+                    },
                     node: childNode,
                     virtualParent,
                 } = childTree;
@@ -131,6 +141,11 @@ export function buildTree(node: Node): BuildTree {
                             .map((v: any) => (typeof v === 'function' ? `${v()} (fn)` : v))
                             .join(' / ')}`,
                     virtualParent && `(virtual parent)`,
+                    translationX && `x: ${translationX}`,
+                    translationY && `y: ${translationY}`,
+                    rotation && `r: ${rotation}`,
+                    scalingX !== 1 && `sx: ${scalingX}`,
+                    scalingY !== 1 && `sy: ${scalingY}`,
                 ]
                     .filter((v) => !!v)
                     .join(' ');
