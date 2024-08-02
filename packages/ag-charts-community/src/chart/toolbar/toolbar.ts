@@ -4,7 +4,7 @@ import type { LayoutContext, ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
-import { setAttribute } from '../../util/attributeUtil';
+import { setAttribute, setVisibility } from '../../util/attributeUtil';
 import { createElement } from '../../util/dom';
 import { initToolbarKeyNav, makeAccessibleClickListener } from '../../util/keynavUtil';
 import { clamp } from '../../util/number';
@@ -102,13 +102,12 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         zoom: [],
     };
 
-    private groupDestroyFns: Record<ToolbarGroup, Array<() => void>> = {
-        seriesType: [],
-        annotations: [],
-        annotationOptions: [],
-        ranges: [],
-        zoom: [],
-    };
+    private readonly ariaToolbars: { groups: ToolbarGroup[]; destroyFns: (() => void)[] }[] = [
+        { groups: ['seriesType', 'annotations'], destroyFns: [] },
+        { groups: ['annotationOptions'], destroyFns: [] },
+        { groups: ['ranges'], destroyFns: [] },
+        { groups: ['zoom'], destroyFns: [] },
+    ];
 
     private pendingButtonToggledEvents: Array<ToolbarButtonToggledEvent> = [];
 
@@ -243,7 +242,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         for (const button of this.groupButtons[group]) {
             if (button.dataset.toolbarId !== `${id}`) continue;
             button.ariaDisabled = `${!enabled}`;
-            button.classList.toggle(styles.modifiers.button.hiddenToggled, !visible);
+            setVisibility(button, styles.modifiers.button.hiddenToggled, !visible);
             this.setButtonActive(button, active);
         }
     }
@@ -357,9 +356,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             button.remove();
         }
 
+        const ariaToolbar = this.getAriaToolbar(group);
         this.groupButtons[group] = [];
-        this.groupDestroyFns[group].forEach((d) => d());
-        this.groupDestroyFns[group] = [];
+        ariaToolbar.destroyFns.forEach((d) => d());
+        ariaToolbar.destroyFns = [];
 
         if (buttons.length === 0) return;
 
@@ -381,6 +381,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
             if (!sectionElement) {
                 sectionElement = createElement('div');
+                sectionElement.role = 'presentation';
                 sectionElement.setAttribute(dataGroup, group);
                 sectionElement.setAttribute(dataSection, section ?? '');
 
@@ -430,10 +431,11 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
 
         const orientation = this.computeAriaOrientation(this[group].position);
-        this.groupDestroyFns[group] = initToolbarKeyNav({
+        const ariaToolbarButtons = ariaToolbar.groups.map((g) => this.groupButtons[g]).flat();
+        ariaToolbar.destroyFns = initToolbarKeyNav({
             orientation,
             toolbar: alignElement,
-            buttons: this.groupButtons[group],
+            buttons: ariaToolbarButtons,
             onEscape,
             onFocus,
             onBlur,
@@ -585,7 +587,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         for (const position of TOOLBAR_POSITIONS) {
             const visible = this.enabled && Array.from(this.positions[position].values()).some(isGroupVisible);
-            this.elements[position].classList.toggle(styles.modifiers.hidden, !visible);
+            setVisibility(this.elements[position], styles.modifiers.hidden, !visible);
         }
 
         for (const group of TOOLBAR_GROUPS) {
@@ -593,7 +595,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             const groupVisible = isGroupVisible(group);
             for (const button of this.groupButtons[group]) {
                 const buttonVisible = groupVisible && this[group].buttonConfigurations().some(isButtonVisible(button));
-                button.classList.toggle(styles.modifiers.button.hiddenValue, !buttonVisible);
+                setVisibility(button, styles.modifiers.button.hiddenValue, !buttonVisible);
             }
         }
     }
@@ -606,7 +608,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         const element = elements[position];
         const alignments = Object.values(positionAlignments[position]);
-        element.classList.toggle(styles.modifiers.floatingHidden, !visible);
+        setVisibility(element, styles.modifiers.floatingHidden, !visible);
 
         const dir = position === ToolbarPosition.FloatingBottom ? 1 : -1;
 
@@ -628,6 +630,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         for (const align of TOOLBAR_ALIGNMENTS) {
             const alignmentElement = createElement('div');
+            alignmentElement.role = 'presentation';
             alignmentElement.classList.add(styles.elements.align, styles.modifiers.align[align]);
             alignmentElement.dataset.pointerCapture = 'exclusive';
             element.appendChild(alignmentElement);
@@ -653,6 +656,15 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         return button;
     }
 
+    private getAriaToolbar(group: ToolbarGroup): Toolbar['ariaToolbars'][number] {
+        for (const ariaToolbar of this.ariaToolbars) {
+            if (ariaToolbar.groups.includes(group)) {
+                return ariaToolbar;
+            }
+        }
+        throw new Error(`AG Charts - cannot find aria-toolbar of '${group}'`);
+    }
+
     private updateToolbarAriaLabel(group: ToolbarGroup, alignElement?: HTMLElement) {
         if (!alignElement) {
             const { align, position } = this[group];
@@ -660,8 +672,8 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             if (!alignElement) return;
         }
         const map = {
-            seriesType: 'ariaLabelChartToolbar',
-            annotations: 'ariaLabelAnnotationsToolbar',
+            seriesType: 'ariaLabelFinancialCharts',
+            annotations: 'ariaLabelFinancialCharts',
             annotationOptions: 'ariaLabelAnnotationOptionsToolbar',
             ranges: 'ariaLabelRangesToolbar',
             zoom: 'ariaLabelZoomToolbar',

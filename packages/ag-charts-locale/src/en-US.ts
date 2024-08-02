@@ -13,14 +13,12 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaAnnounceFlowProportionLink: 'link ${index} of ${count}, from ${from} to ${to}, ${sizeName} ${size}',
     // Screen reader announcement when focusing a node in a Sankey or chord chart
     ariaAnnounceFlowProportionNode: 'node ${index} of ${count}, ${description}',
-    // Screen reader text for chart toolbar
-    ariaLabelSeriesTypeToolbar: 'Chart',
-    // Screen reader text for annotations toolbar
-    ariaLabelAnnotationsToolbar: 'Annotations',
     // Screen reader text for annotation-options toolbar
     ariaLabelAnnotationOptionsToolbar: 'Annotation Options',
     // Screen reader text for the color picker dialog
     ariaLabelColorPicker: 'Color picker',
+    // Screen reader text for the financial charts toolbar
+    ariaLabelFinancialCharts: 'Financial Charts',
     // Screen reader text for the legend toolbar
     ariaLabelLegend: 'Legend',
     // Screen reader text for the legend pagination button
