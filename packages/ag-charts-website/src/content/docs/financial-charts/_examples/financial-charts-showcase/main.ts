@@ -46,6 +46,42 @@ const options: AgFinancialChartOptions = {
                     fill: '#F23645',
                 },
             },
+            {
+                type: 'text',
+                text: 'Distribution',
+                x: {
+                    __type: 'date',
+                    value: 'Thu Oct 26 2023 01:00:00 GMT+0100 (British Summer Time)',
+                },
+                y: 200.8247422680412,
+            },
+            {
+                type: 'comment',
+                text: 'Accumulation',
+                x: {
+                    __type: 'date',
+                    value: 'Thu Nov 09 2023 00:00:00 GMT+0000 (Greenwich Mean Time)',
+                },
+                y: 112.37113402061856,
+            },
+            {
+                type: 'callout',
+                text: 'Markup',
+                start: {
+                    x: {
+                        __type: 'date',
+                        value: 'Tue Dec 26 2023 00:00:00 GMT+0000 (Greenwich Mean Time)',
+                    },
+                    y: 173.2989690721649,
+                },
+                end: {
+                    x: {
+                        __type: 'date',
+                        value: 'Tue Jul 25 2023 01:00:00 GMT+0100 (British Summer Time)',
+                    },
+                    y: 167.11340206185565,
+                },
+            },
         ],
     },
 };
