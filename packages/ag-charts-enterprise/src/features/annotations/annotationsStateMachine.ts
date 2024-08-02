@@ -65,7 +65,9 @@ type AnnotationEvent =
 export class AnnotationsStateMachine extends StateMachine<States, AnnotationType | AnnotationEvent> {
     override debug = _Util.Debug.create(true, 'annotations');
 
+    // eslint-disable-next-line @typescript-eslint/prefer-readonly
     private hovered?: number;
+    // eslint-disable-next-line @typescript-eslint/prefer-readonly
     private active?: number;
 
     constructor(ctx: AnnotationsStateMachineContext) {
@@ -181,7 +183,8 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             },
             deselect: () => {
                 const prevActive = this.active;
-                this.active = this.hovered = undefined;
+                this.active = undefined;
+                this.hovered = undefined;
                 ctx.select(this.active, prevActive);
             },
             showAnnotationOptions: () => {
