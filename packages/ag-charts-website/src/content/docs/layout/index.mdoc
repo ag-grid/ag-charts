@@ -9,7 +9,7 @@ This section explains how the chart and its components are sized and laid out wi
 
 The chart will auto-size by default, taking the size of the container element and auto-sizing the chart dynamically. Use the `width` and/or `height` options if a fixed size is required.
 
-If auto-sizing is used for one or both dimensions, the chart will have a minimum width and height of 300px. Set `minHeight: 0` and/or `minWidth: 0` to effectively remove this constraint.
+When auto-sizing, the chart will default to a minimum width and height of 300px. Set `minHeight: 0` and/or `minWidth: 0` to remove this constraint.
 
 ### Size Changes
 
@@ -52,7 +52,7 @@ In this configuration:
 
 {% if isFramework("react") %}
 
-```js
+```jsx
 <AgCharts
     options={options}
     className="chart"
@@ -68,7 +68,8 @@ In this configuration:
 {% /if %}
 {% if isFramework("angular") %}
 
-```js
+<!-- prettier-ignore -->
+```html
 <ag-charts
     [options]="options"
     class="chart"
@@ -83,13 +84,13 @@ In this configuration:
 -   It could also be sized by styling the class specified in the `class` attribute.
 
 {% note %}
-Due to the way that Angular works, the chart container should be styled as a `block` element in these scenarios.
+As the `ag-charts` container element is a custom HTML element without implicit browser styling, it should be styled as a `block` element.
 {% /note %}
 
 {% /if %}
 {% if isFramework("vue") %}
 
-```js
+```jsx
 <ag-charts
     :options="options"
     class="chart"
@@ -104,7 +105,7 @@ In this configuration:
 
 {% /if %}
 
-### Styling with Grid Layout
+### Sizing with Grid Layout
 
 {% chartExampleRunner title="Chart Size (Parent Grid)" name="chart-parent-grid" type="generated" /%}
 
@@ -119,7 +120,7 @@ In this configuration:
 {% /if %}
 {% if isFramework("react") %}
 
-```js
+```jsx
 <div style={{ display: 'grid' }}>
     <AgCharts options={options} />
 </div>
