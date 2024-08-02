@@ -63,4 +63,13 @@ export class ParallelChannelProperties extends Annotation(
                 return this.stroke;
         }
     }
+
+    getDefaultOpacity(colorPickerType: AnnotationOptionsColorPickerType) {
+        switch (colorPickerType) {
+            case `fill-color`:
+                return this.background.fillOpacity;
+            case `line-color`:
+                return this.strokeOpacity;
+        }
+    }
 }

@@ -35,6 +35,18 @@ export class CommentProperties extends Fill(Stroke(TextualPointProperties)) {
         }
     }
 
+    override getDefaultOpacity(colorPickerType: AnnotationOptionsColorPickerType) {
+        switch (colorPickerType) {
+            case `fill-color`:
+                return this.fillOpacity;
+            case `line-color`:
+                return this.strokeOpacity;
+            case `text-color`:
+            default:
+                return undefined;
+        }
+    }
+
     override getPlaceholderColor() {
         const { r, g, b } = Color.fromString(this.color ?? '#888888');
         return new Color(r, g, b, 0.66).toString();

@@ -45,4 +45,13 @@ export class NoteProperties extends Fill(Stroke(TextualPointProperties)) {
                 return this.color;
         }
     }
+
+    override getDefaultOpacity(colorPickerType: AnnotationOptionsColorPickerType) {
+        switch (colorPickerType) {
+            case `line-color`:
+                return this.fillOpacity;
+            case `text-color`:
+                return undefined;
+        }
+    }
 }

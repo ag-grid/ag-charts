@@ -23,6 +23,10 @@ export class TextualPointProperties extends Annotation(Point(Handle(Label(Font(B
         return this.color;
     }
 
+    getDefaultOpacity(_colorPickerType: AnnotationOptionsColorPickerType): number | undefined {
+        return undefined;
+    }
+
     getPlaceholderColor(): string | undefined {
         return undefined;
     }

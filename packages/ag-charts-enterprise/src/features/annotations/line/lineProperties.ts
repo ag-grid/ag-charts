@@ -21,4 +21,8 @@ export class LineProperties extends Annotation(Line(Handle(Cappable(Extendable(S
     getDefaultColor(_colorPickerType: AnnotationOptionsColorPickerType) {
         return this.stroke;
     }
+
+    getDefaultOpacity(_colorPickerType: AnnotationOptionsColorPickerType) {
+        return this.strokeOpacity;
+    }
 }

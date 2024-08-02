@@ -33,8 +33,14 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
         this.destroyFns.push(() => ctx.domManager.removeChild(canvasOverlay, moduleId));
     }
 
-    show(opts: { color?: string; onChange?: (colorString: string) => void; onClose: () => void }) {
+    show(opts: {
+        color?: string;
+        opacity?: number;
+        onChange?: (colorOpacity: string, color: string, opacity: number) => void;
+        onClose: () => void;
+    }) {
         let [h, s, v, a] = getHsva(opts.color ?? '#f00') ?? [0, 1, 0.5, 1];
+        a = opts.opacity ?? a;
 
         const colorPickerContainer = createElement('div');
         colorPickerContainer.role = 'presentation';
@@ -74,7 +80,8 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
                 colorInput.value = colorString.toUpperCase();
             }
 
-            opts.onChange?.(colorString);
+            const plainColor = Color.fromHSB(h, s, v, 1).toHexString();
+            opts.onChange?.(colorString, plainColor, a);
         };
 
         update();

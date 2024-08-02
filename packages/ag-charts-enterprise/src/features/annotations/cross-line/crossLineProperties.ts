@@ -25,6 +25,10 @@ export class HorizontalLineProperties extends Annotation(
     getDefaultColor(_colorPickerType: AnnotationOptionsColorPickerType) {
         return this.stroke;
     }
+
+    getDefaultOpacity(_colorPickerType: AnnotationOptionsColorPickerType) {
+        return this.strokeOpacity;
+    }
 }
 
 export class VerticalLineProperties extends Annotation(
@@ -45,6 +49,10 @@ export class VerticalLineProperties extends Annotation(
 
     getDefaultColor(_colorPickerType: AnnotationOptionsColorPickerType) {
         return this.stroke;
+    }
+
+    getDefaultOpacity(_colorPickerType: AnnotationOptionsColorPickerType) {
+        return this.strokeOpacity;
     }
 }
 
