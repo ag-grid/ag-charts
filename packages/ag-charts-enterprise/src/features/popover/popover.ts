@@ -32,6 +32,7 @@ export class Popover extends _ModuleSupport.BaseModuleInstance implements _Modul
 
     show<Value = any>(opts: {
         items: MenuItem<Value>[];
+        sourceEvent: Event;
         value?: Value;
         onPress?: (item: MenuItem<Value>) => void;
         onClose: () => void;

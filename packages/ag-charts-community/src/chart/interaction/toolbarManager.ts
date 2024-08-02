@@ -48,6 +48,7 @@ export interface ToolbarButtonPressedEvent<T = any> extends ToolbarBaseEvent<'bu
     id: string;
     value: T;
     rect: BBox;
+    sourceEvent: Event;
 }
 
 export interface ToolbarButtonToggledEvent<_T = any> extends ToolbarBaseEvent<'button-toggled'> {
@@ -92,8 +93,8 @@ export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
         return false;
     }
 
-    pressButton(group: ToolbarGroup, id: string, value: any, rect: BBox) {
-        this.listeners.dispatch('button-pressed', { type: 'button-pressed', group, id, value, rect });
+    pressButton(group: ToolbarGroup, id: string, value: any, rect: BBox, sourceEvent: Event) {
+        this.listeners.dispatch('button-pressed', { type: 'button-pressed', group, id, value, rect, sourceEvent });
     }
 
     cancel(group: ToolbarGroup) {

@@ -71,6 +71,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
         this.popover.show({
             items: menuItems,
             value: this.getChartType(),
+            sourceEvent: e.sourceEvent,
             onPress: (item) => this.setChartType(item.value),
             onClose: () => this.hidePopover(),
         });

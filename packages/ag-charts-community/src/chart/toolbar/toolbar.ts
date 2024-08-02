@@ -645,9 +645,8 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         button.tabIndex = -1;
 
         button.dataset.toolbarId = this.buttonId(options);
-        button.onclick = makeAccessibleClickListener(
-            button,
-            this.onButtonPress.bind(this, button, group, options.id, options.value)
+        button.onclick = makeAccessibleClickListener(button, (event) =>
+            this.onButtonPress(event, button, group, options.id, options.value)
         );
         this.updateButton(button, options);
 
@@ -711,8 +710,14 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         setAttribute(button, 'aria-label', ariaLabel);
     }
 
-    private onButtonPress(button: HTMLButtonElement, group: ToolbarGroup, id: string | undefined, value: any) {
-        this.ctx.toolbarManager.pressButton(group, this.buttonId({ id, value }), value, this.buttonRect(button));
+    private onButtonPress(
+        event: MouseEvent,
+        button: HTMLButtonElement,
+        group: ToolbarGroup,
+        id: string | undefined,
+        value: any
+    ) {
+        this.ctx.toolbarManager.pressButton(group, this.buttonId({ id, value }), value, this.buttonRect(button), event);
     }
 
     private buttonId(button: ButtonConfiguration) {

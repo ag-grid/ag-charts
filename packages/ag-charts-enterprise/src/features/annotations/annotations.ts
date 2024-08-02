@@ -519,6 +519,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.textSizePopover.show<number>({
                     items: TEXT_SIZE_ITEMS,
                     value: fontSize,
+                    sourceEvent: event.sourceEvent,
                     onPress: (item) => this.onTextSizePopoverPress(item, datum),
                     onClose: this.onTextSizePopoverClose.bind(this),
                     class: 'annotations__text-size',
@@ -555,6 +556,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.annotationPickerPopover.setAnchor({ x: x + width + 6, y });
         this.annotationPickerPopover.show<AnnotationType>({
             items: LINE_ANNOTATION_ITEMS,
+            sourceEvent: event.sourceEvent,
             onPress: this.onAnnotationsPopoverPress.bind(this, event),
             onClose: this.onAnnotationsPopoverClose.bind(this),
         });
@@ -569,6 +571,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.annotationPickerPopover.setAnchor({ x: x + width + 6, y });
         this.annotationPickerPopover.show<AnnotationType>({
             items: TEXT_ANNOTATION_ITEMS,
+            sourceEvent: event.sourceEvent,
             onPress: this.onAnnotationsPopoverPress.bind(this, event),
             onClose: this.onAnnotationsPopoverClose.bind(this),
         });
