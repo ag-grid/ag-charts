@@ -683,42 +683,50 @@ export class Legend extends BaseProperties {
         };
     }
 
+    private updateItemProxyButtons() {
+        this.itemSelection.each((markerLabel) => {
+            const bbox = markerLabel.computeTransformedBBox()?.clone();
+            bbox.translate(this.group.translationX, this.group.translationY);
+            setElementBBox(markerLabel.proxyButton, bbox);
+        });
+    }
+
     private updatePaginationProxyButtons(oldPages: Page[] | undefined) {
         this.proxyLegendPagination.style.display = this.pagination.visible ? 'absolute' : 'none';
 
         const oldNeedsButtons = (oldPages?.length ?? this.pages.length) > 1;
         const newNeedsButtons = this.pages.length > 1;
-        if (oldNeedsButtons === newNeedsButtons) return;
 
-        if (newNeedsButtons) {
-            this.proxyPrevButton = this.ctx.proxyInteractionService.createProxyElement({
-                type: 'button',
-                id: `${this.id}-prev-page`,
-                textContent: { id: 'ariaLabelLegendPagePrevious' },
-                tabIndex: 0,
-                parent: this.proxyLegendPagination,
-                focusable: this.pagination.previousButton,
-                onclick: () => this.pagination.clickPrevious(),
-            });
-            this.proxyNextButton ??= this.ctx.proxyInteractionService.createProxyElement({
-                type: 'button',
-                id: `${this.id}-next-page`,
-                textContent: { id: 'ariaLabelLegendPageNext' },
-                tabIndex: 0,
-                parent: this.proxyLegendPagination,
-                focusable: this.pagination.nextButton,
-                onclick: () => this.pagination.clickNext(),
-            });
-
-            const { group, prev, next } = this.pagination.computeCSSBounds();
-            setElementBBox(this.proxyLegendPagination, group);
-            setElementBBox(this.proxyPrevButton, prev);
-            setElementBBox(this.proxyNextButton, next);
-        } else {
-            this.proxyNextButton?.remove();
-            this.proxyPrevButton?.remove();
-            [this.proxyNextButton, this.proxyPrevButton] = [undefined, undefined];
+        if (oldNeedsButtons !== newNeedsButtons) {
+            if (newNeedsButtons) {
+                this.proxyPrevButton = this.ctx.proxyInteractionService.createProxyElement({
+                    type: 'button',
+                    id: `${this.id}-prev-page`,
+                    textContent: { id: 'ariaLabelLegendPagePrevious' },
+                    tabIndex: 0,
+                    parent: this.proxyLegendPagination,
+                    focusable: this.pagination.previousButton,
+                    onclick: () => this.pagination.clickPrevious(),
+                });
+                this.proxyNextButton ??= this.ctx.proxyInteractionService.createProxyElement({
+                    type: 'button',
+                    id: `${this.id}-next-page`,
+                    textContent: { id: 'ariaLabelLegendPageNext' },
+                    tabIndex: 0,
+                    parent: this.proxyLegendPagination,
+                    focusable: this.pagination.nextButton,
+                    onclick: () => this.pagination.clickNext(),
+                });
+            } else {
+                this.proxyNextButton?.remove();
+                this.proxyPrevButton?.remove();
+                [this.proxyNextButton, this.proxyPrevButton] = [undefined, undefined];
+            }
         }
+
+        const { prev, next } = this.pagination.computeCSSBounds();
+        setElementBBox(this.proxyPrevButton, prev);
+        setElementBBox(this.proxyNextButton, next);
     }
 
     private calculatePagination(bboxes: BBox[], width: number, height: number) {
@@ -836,10 +844,6 @@ export class Legend extends BaseProperties {
 
             markerLabel.translationX = x;
             markerLabel.translationY = y;
-
-            // Update the hidden CSS button.
-            const { width, height } = markerLabel.getBBox();
-            setElementBBox(markerLabel.proxyButton, { x, y, width, height });
         });
     }
 
@@ -1244,16 +1248,13 @@ export class Legend extends BaseProperties {
             this.group.translationX = Math.floor(-legendBBox.x + shrinkRect.x + translationX);
             this.group.translationY = Math.floor(-legendBBox.y + shrinkRect.y + translationY);
 
-            const proxyBBox = this.group.computeTransformedBBox();
-            if (proxyBBox) {
-                setElementBBox(this.proxyLegendToolbar, proxyBBox);
-                this.proxyLegendToolbar.style.removeProperty('display');
-            }
+            this.proxyLegendToolbar.style.removeProperty('display');
             this.proxyLegendToolbar.ariaOrientation = this.getOrientation();
         } else {
             this.proxyLegendToolbar.style.display = 'none';
         }
 
+        this.updateItemProxyButtons();
         this.updatePaginationProxyButtons(oldPages);
 
         return { ...ctx, shrinkRect: newShrinkRect };

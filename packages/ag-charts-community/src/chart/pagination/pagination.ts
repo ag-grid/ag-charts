@@ -394,13 +394,8 @@ export class Pagination extends BaseProperties {
     }
 
     computeCSSBounds() {
-        const group = this.group.computeTransformedBBox();
         const prev = this._previousButton.computeTransformedBBox();
         const next = this._nextButton.computeTransformedBBox();
-        prev.x -= group.x;
-        prev.y -= group.y;
-        next.x -= group.x;
-        next.y -= group.y;
-        return { group, prev, next };
+        return { prev, next };
     }
 }
