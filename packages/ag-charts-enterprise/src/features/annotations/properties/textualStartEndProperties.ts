@@ -32,7 +32,17 @@ export class TextualStartEndProperties extends Annotation(Line(Handle(Label(Font
         return undefined;
     }
 
-    public getTextInputCoords(context: AnnotationContext, _padding?: Padding | number): { x: number; y: number } {
+    getPadding(): Padding {
+        const { padding = 0 } = this;
+        return {
+            top: padding,
+            right: padding,
+            bottom: padding,
+            left: padding,
+        };
+    }
+
+    public getTextInputCoords(context: AnnotationContext): { x: number; y: number } {
         return convertPoint(this.end, context);
     }
 }
