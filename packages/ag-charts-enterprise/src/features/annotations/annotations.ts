@@ -344,18 +344,15 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     placeholderColor: datum.getPlaceholderColor(),
                 };
 
-                const point = Vec2.add(
-                    datum.getTextInputCoords(
-                        this.getAnnotationContext()!,
-                        'padding' in node ? (node as any).padding : undefined
-                    ),
-                    Vec2.required(this.seriesRect)
-                );
+                const context = this.getAnnotationContext()!;
+
+                const getTextInputCoords = () =>
+                    Vec2.add(datum.getTextInputCoords(context), Vec2.required(this.seriesRect));
 
                 this.textInput.show({
                     styles,
                     layout: {
-                        point,
+                        getTextInputCoords,
                         position: datum.position,
                         alignment: datum.alignment,
                         textAlign: datum.textAlign,
@@ -377,7 +374,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             },
 
             updateTextInputFontSize: (fontSize: number) => {
-                this.textInput.updateFontSize(fontSize);
+                const bbox = this.textInput.updateFontSize(fontSize);
+                this.state.transition('updateTextInputBBox', bbox);
             },
 
             showAnnotationOptions: (active: number) => {

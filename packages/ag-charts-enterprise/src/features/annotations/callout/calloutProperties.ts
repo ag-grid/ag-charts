@@ -12,6 +12,13 @@ import { TextualStartEndProperties } from '../properties/textualStartEndProperti
 const { STRING, Validate, isObject } = _ModuleSupport;
 const { Color } = _Util;
 
+const DEFAULT_CALLOUT_PADDING = {
+    top: 6,
+    right: 12,
+    bottom: 9,
+    left: 12,
+};
+
 export class CalloutProperties extends Fill(Stroke(TextualStartEndProperties)) {
     static is(value: unknown): value is CalloutProperties {
         return isObject(value) && value.type === TextualAnnotationType.Callout;
@@ -52,8 +59,23 @@ export class CalloutProperties extends Fill(Stroke(TextualStartEndProperties)) {
         return new Color(r, g, b, 0.66).toString();
     }
 
-    override getTextInputCoords(context: AnnotationContext, padding?: Padding | number) {
+    override getPadding(): Padding {
+        const { padding } = this;
+        if (padding == null) {
+            return { ...DEFAULT_CALLOUT_PADDING };
+        }
+
+        return {
+            top: padding,
+            right: padding,
+            bottom: padding,
+            left: padding,
+        };
+    }
+
+    override getTextInputCoords(context: AnnotationContext) {
         const coords = super.getTextInputCoords(context);
+        const padding = this.getPadding();
 
         const paddingLeft = typeof padding === 'number' ? padding : padding?.left ?? 0;
         const paddingBottom = typeof padding === 'number' ? padding : padding?.bottom ?? 0;

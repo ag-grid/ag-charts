@@ -32,7 +32,17 @@ export class TextualPointProperties extends Annotation(Point(Handle(Label(Font(B
         return undefined;
     }
 
-    public getTextInputCoords(context: AnnotationContext, _padding?: Padding | number) {
+    getPadding(): Padding {
+        const { padding = 0 } = this;
+        return {
+            top: padding,
+            right: padding,
+            bottom: padding,
+            left: padding,
+        };
+    }
+
+    public getTextInputCoords(context: AnnotationContext) {
         return convertPoint(this, context);
     }
 }

@@ -218,13 +218,9 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             const node = ctx.node(this.active!);
             if (!datum || !node || !isTextType(datum)) return;
 
-            ctx.updateTextInputFontSize(fontSize);
-
             setFontsize(datum, datum.type, fontSize);
 
-            if ('invalidateTextInputBBox' in node) {
-                node.invalidateTextInputBBox();
-            }
+            ctx.updateTextInputFontSize(fontSize);
 
             ctx.update();
         };

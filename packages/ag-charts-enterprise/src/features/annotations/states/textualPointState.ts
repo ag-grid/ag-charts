@@ -90,13 +90,9 @@ export abstract class TextualPointStateMachine<
             const node = ctx.node();
             if (!datum || !node || !isTextType(datum)) return;
 
-            ctx.updateTextInputFontSize(fontSize);
-
             setFontsize(datum, datum.type, fontSize);
 
-            if ('invalidateTextInputBBox' in node) {
-                node.invalidateTextInputBBox();
-            }
+            ctx.updateTextInputFontSize(fontSize);
 
             ctx.update();
         };
