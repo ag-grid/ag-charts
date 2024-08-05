@@ -92,6 +92,7 @@ export type PointerInteractionEvent<T extends PointerInteractionTypes = PointerI
         pageY: number;
         deltaX: number;
         deltaY: number;
+        button: number;
         pointerHistory: PointerHistoryEvent[];
     };
 
@@ -404,7 +405,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
                 return event.type;
 
             case 'mousedown':
-                if (!this.isEventOverElement(event) || !('button' in event) || event.button !== 0) {
+                if (!this.isEventOverElement(event)) {
                     return;
                 }
                 this.mouseDown = true;
@@ -563,6 +564,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
         const { relatedElement, targetElement } = this.extractElements(event);
 
+        const button = 'button' in event ? Number(event.button) : 0;
         const builtEvent = {
             type,
             offsetX,
@@ -571,6 +573,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             pageY,
             deltaX,
             deltaY,
+            button,
             pointerHistory,
             sourceEvent: event,
             relatedElement,
