@@ -1,7 +1,7 @@
 import { toIterable } from '../util/iterator';
 import type { Node, RenderContext } from './node';
 
-type RenderSpriteOptions = { translateY: number };
+type RenderSpriteOptions = { translateX: number; translateY: number };
 
 export class SpriteRenderer {
     private readonly offscreenCanvas: OffscreenCanvas;
@@ -32,13 +32,13 @@ export class SpriteRenderer {
             renderCtx: { ctx },
             offscreenCanvas,
         } = this;
-        const { translateY = 0 } = opts ?? {};
+        const { translateX = 0, translateY = 0 } = opts ?? {};
 
         ctx.resetTransform();
         ctx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
         ctx.save();
         ctx.beginPath();
-        ctx.setTransform(1, 0, 0, 1, 0, translateY);
+        ctx.setTransform(1, 0, 0, 1, translateX, translateY);
         for (const node of nodes) {
             node.render(renderCtx);
         }
