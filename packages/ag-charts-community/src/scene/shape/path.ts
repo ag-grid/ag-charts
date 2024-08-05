@@ -54,7 +54,7 @@ export class Path extends Shape implements DistantObject {
         if (this._dirtyPath !== value) {
             this._dirtyPath = value;
             if (value) {
-                this.markDirty(this, RedrawType.MAJOR);
+                this.markDirty(RedrawType.MAJOR);
             }
         }
     }
