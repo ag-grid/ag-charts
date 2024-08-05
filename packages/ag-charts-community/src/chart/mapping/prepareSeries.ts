@@ -3,28 +3,20 @@ import type { AgChartOptions } from 'ag-charts-types';
 import { jsonDiff } from '../../util/json';
 import type { ISeries } from '../series/seriesTypes';
 
-const MATCHING_KEYS = [
-    'direction',
-    'xKey',
-    'yKey',
-    'sizeKey',
-    'angleKey',
-    'radiusKey',
-    'normalizedTo',
-    'stacked',
-    'grouped',
-    'stackGroup',
-];
+const MATCHING_KEYS = ['direction', 'xKey', 'yKey', 'sizeKey', 'angleKey', 'radiusKey', 'normalizedTo'];
 
 export function matchSeriesOptions<S extends ISeries<any, any>>(
     series: S[],
     optSeries: NonNullable<AgChartOptions['series']>,
     oldOptsSeries?: AgChartOptions['series']
 ) {
-    const generateKey = (type: string | undefined, i: any) => {
+    const generateKey = (type: string | undefined, i: any, opts?: any) => {
         const result = [type];
         for (const key of MATCHING_KEYS) {
             if (key in i && i[key] != null) result.push(`${key}=${i[key]}`);
+        }
+        if (opts?.seriesGrouping) {
+            result.push(`seriesGrouping.groupId=${opts?.seriesGrouping.groupId}`);
         }
         return result.join(';');
     };
@@ -32,7 +24,7 @@ export function matchSeriesOptions<S extends ISeries<any, any>>(
     const seriesMap = new Map<string, [S, number][]>();
     let idx = 0;
     for (const s of series) {
-        const key = generateKey(s.type, s.properties);
+        const key = generateKey(s.type, s.properties, oldOptsSeries?.[idx]);
         if (!seriesMap.has(key)) {
             seriesMap.set(key, []);
         }
@@ -41,7 +33,7 @@ export function matchSeriesOptions<S extends ISeries<any, any>>(
 
     const optsMap = new Map<string, NonNullable<AgChartOptions['series']>[number][]>();
     for (const o of optSeries) {
-        const key = generateKey(o.type, o);
+        const key = generateKey(o.type, o, o);
         if (!optsMap.has(key)) {
             optsMap.set(key, []);
         }
