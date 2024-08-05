@@ -81,7 +81,9 @@ export function normalizeType(refType: TypeNode): string {
         case 'array':
             return `${normalizeType(refType.type)}[]`;
         case 'typeRef':
-            return refType.type;
+            return refType.typeArguments?.length
+                ? `${refType.type}<${refType.typeArguments.map(normalizeType).join(', ')}>`
+                : refType.type;
         case 'union':
             return refType.type.map((subType) => normalizeType(subType)).join(' | ');
         case 'intersection':
@@ -239,9 +241,17 @@ function formatFunctionCode(name: string, apiNode: FunctionNode, member: MemberN
         }
     }
 
+    const returnType =
+        typeof apiNode.returnType === 'object' &&
+        apiNode.returnType.kind === 'typeRef' &&
+        apiNode.returnType.type === 'Required' &&
+        typeof apiNode.returnType.typeArguments?.[0] === 'string'
+            ? apiNode.returnType.typeArguments[0]
+            : apiNode.returnType;
+
     const additionalTypes = apiNode.params
         ?.map((param) => param.type)
-        .concat(apiNode.returnType)
+        .concat(returnType)
         .flatMap(function typeMapper(type): PossibleTypeNode {
             if (typeof type === 'string') {
                 return reference.get(type);
