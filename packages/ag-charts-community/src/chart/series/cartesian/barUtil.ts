@@ -44,10 +44,10 @@ export function updateRect(rect: Rect, config: RectConfig) {
     rect.lineDash = config.lineDash;
     rect.lineDashOffset = config.lineDashOffset;
     rect.fillShadow = config.fillShadow;
-    rect.topLeftCornerRadius = config.topLeftCornerRadius ? config.cornerRadius ?? 0 : 0;
-    rect.topRightCornerRadius = config.topRightCornerRadius ? config.cornerRadius ?? 0 : 0;
-    rect.bottomRightCornerRadius = config.bottomRightCornerRadius ? config.cornerRadius ?? 0 : 0;
-    rect.bottomLeftCornerRadius = config.bottomLeftCornerRadius ? config.cornerRadius ?? 0 : 0;
+    rect.topLeftCornerRadius = config.topLeftCornerRadius !== false ? config.cornerRadius ?? 0 : 0;
+    rect.topRightCornerRadius = config.topRightCornerRadius !== false ? config.cornerRadius ?? 0 : 0;
+    rect.bottomRightCornerRadius = config.bottomRightCornerRadius !== false ? config.cornerRadius ?? 0 : 0;
+    rect.bottomLeftCornerRadius = config.bottomLeftCornerRadius !== false ? config.cornerRadius ?? 0 : 0;
     rect.visible = config.visible ?? true;
 }
 
