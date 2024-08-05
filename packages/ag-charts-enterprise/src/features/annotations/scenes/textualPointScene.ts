@@ -37,7 +37,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
 
     public setTextInputBBox(bbox: _Scene.BBox) {
         this.textInputBBox = bbox;
-        this.markDirty(this, _Scene.RedrawType.MINOR);
+        this.markDirty(_Scene.RedrawType.MINOR);
     }
 
     public invalidateTextInputBBox() {

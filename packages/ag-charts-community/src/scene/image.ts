@@ -12,7 +12,7 @@ export class Image extends Node {
         this.height = newImage.height;
         this.x = x;
         this.y = y;
-        this.markDirty(this, RedrawType.MAJOR);
+        this.markDirty(RedrawType.MAJOR);
     }
 
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
