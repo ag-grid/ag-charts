@@ -35,11 +35,12 @@ export class Overlay extends BaseProperties {
 
         if (this.renderer) {
             const htmlContent = this.renderer();
-            this.content = createElement('div');
             if (htmlContent instanceof HTMLElement) {
-                this.content.replaceChildren(htmlContent);
+                this.content = htmlContent;
             } else {
-                this.content.innerHTML = htmlContent;
+                const tempDiv = createElement('div');
+                tempDiv.innerHTML = htmlContent;
+                this.content = tempDiv.firstElementChild! as HTMLElement;
             }
         } else {
             const content = createElement('div', {
