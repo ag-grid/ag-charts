@@ -163,8 +163,13 @@ export class LegendMarkerLabel extends Group {
         if (this.bitmapDirty) {
             this.setBitmapVisibility(false);
 
-            const sprite = spriteRenderer.renderSprite(this.symbolsGroup, { translateY: spriteAAPadding - spriteY });
-            this.bitmap.updateBitmap(sprite, spriteX, spriteY - spriteAAPadding);
+            const translateX = spriteAAPadding + spriteX;
+            const translateY = spriteAAPadding - spriteY;
+            const sprite = spriteRenderer.renderSprite(this.symbolsGroup, {
+                translateX: Math.floor(translateX),
+                translateY: Math.floor(translateY),
+            });
+            this.bitmap.updateBitmap(sprite, Math.ceil(-translateX), Math.ceil(-translateY));
             this.bitmapDirty = false;
 
             this.refreshVisibilities();

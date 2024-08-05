@@ -23,17 +23,18 @@ const metaDescription = `Example of a ${page.title} Chart built with AG Charts J
     <div class="gallery-page-container layout-max-width-small text-base">
         <div class="title-container">
             <h1>{page.title}</h1>
-            <span>
-                {
-                    page.enterprise && (
-                        <span class="enterpriseIcon">
-                            <Icon client:only="react" name="enterprise" />
-                        </span>
-                    )
-                }
-            </span>
-
-            <GallerySeriesLink client:only="react" series={page.seriesTitle} link={page.seriesLink} />
+            <div class="chart-link-item">
+                <span>
+                    {
+                        page.enterprise && (
+                            <span class="enterpriseIcon">
+                                <Icon client:only="react" name="enterprise" />
+                            </span>
+                        )
+                    }
+                </span>
+                <GallerySeriesLink client:only="react" series={page.seriesTitle} link={page.seriesLink} />
+            </div>
         </div>
 
         <GalleryExampleRunner title={page.name} name={page.slug} />
@@ -65,6 +66,16 @@ const metaDescription = `Example of a ${page.title} Chart built with AG Charts J
     }
 
     .title-container {
+        display: flex;
+        align-items: center;
+        @media screen and (max-width: 500px) {
+            flex-direction: column;
+            align-items: start;
+            margin-bottom: $spacing-size-4;
+        }
+    }
+    .chart-link-item {
+        gap: 8px;
         display: flex;
         align-items: center;
     }
