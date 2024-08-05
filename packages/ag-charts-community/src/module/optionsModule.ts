@@ -68,7 +68,7 @@ type GroupingOptions = {
     };
 };
 type GroupingSeriesOptions = SeriesOptions & GroupingOptions & { xKey?: string };
-type SeriesGroup = { groupType: GroupingType; seriesType: string; series: GroupingSeriesOptions[] };
+type SeriesGroup = { groupType: GroupingType; seriesType: string; series: GroupingSeriesOptions[]; groupId: string };
 
 enum GroupingType {
     DEFAULT = 'default',
@@ -369,6 +369,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                         return seriesGroup.series.map((series, stackIndex) =>
                             Object.assign(series, {
                                 seriesGrouping: {
+                                    groupId: seriesGroup.groupId,
                                     groupIndex,
                                     groupCount: groupCount[seriesGroup.seriesType],
                                     stackIndex,
@@ -381,6 +382,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                         return seriesGroup.series.map((series) =>
                             Object.assign(series, {
                                 seriesGrouping: {
+                                    groupId: seriesGroup.groupId,
                                     groupIndex: groupIdx[seriesGroup.seriesType]++,
                                     groupCount: groupCount[seriesGroup.seriesType],
                                     stackIndex: 0,
@@ -406,12 +408,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return allSeries.reduce<SeriesGroup[]>((result, series) => {
             const seriesType = series.type!;
             if (!series.stacked && !series.grouped) {
-                result.push({ groupType: GroupingType.DEFAULT, seriesType, series: [series] });
+                result.push({ groupType: GroupingType.DEFAULT, seriesType, series: [series], groupId: '__default__' });
             } else {
                 const groupId = this.getSeriesGroupId(series);
                 if (!groupMap.has(groupId)) {
                     const groupType = series.stacked ? GroupingType.STACK : GroupingType.GROUP;
-                    const record = { groupType, seriesType, series: [] };
+                    const record = { groupType, seriesType, series: [], groupId };
                     groupMap.set(groupId, record);
                     result.push(record);
                 }
