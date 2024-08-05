@@ -171,7 +171,7 @@ export class GradientLegend {
             gradientFill.direction = reverseOrder ? 'to-left' : 'to-right';
         }
 
-        gradientRect.markDirty();
+        gradientRect.markDirty(gradientRect);
     }
 
     private updateAxis(data: _ModuleSupport.GradientLegendDatum) {

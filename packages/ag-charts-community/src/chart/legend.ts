@@ -345,7 +345,7 @@ export class Legend extends BaseProperties {
 
     public onMarkerShapeChange() {
         this.itemSelection.clear();
-        this.group.markDirty(RedrawType.MINOR);
+        this.group.markDirty(this.group, RedrawType.MINOR);
     }
 
     private getOrientation(): AgChartLegendOrientation {

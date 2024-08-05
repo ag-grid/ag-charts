@@ -198,7 +198,7 @@ export abstract class Node extends ChangeDetectable {
         }
 
         this.dirtyZIndex = true;
-        this.markDirty(RedrawType.MAJOR);
+        this.markDirty(this, RedrawType.MAJOR);
     }
 
     appendChild<T extends Node>(node: T): T {
@@ -229,7 +229,7 @@ export abstract class Node extends ChangeDetectable {
         node._setLayerManager();
 
         this.dirtyZIndex = true;
-        this.markDirty(RedrawType.MAJOR);
+        this.markDirty(node, RedrawType.MAJOR);
 
         return node;
     }
@@ -283,7 +283,7 @@ export abstract class Node extends ChangeDetectable {
     protected dirtyTransform = false;
     markDirtyTransform() {
         this.dirtyTransform = true;
-        this.markDirty(RedrawType.MAJOR);
+        this.markDirty(this, RedrawType.MAJOR);
     }
 
     @SceneChangeDetection({ type: 'transform' })
@@ -476,7 +476,7 @@ export abstract class Node extends ChangeDetectable {
         }
     }
 
-    override markDirty(type = RedrawType.TRIVIAL, parentType = type) {
+    override markDirty(_source: Node, type = RedrawType.TRIVIAL, parentType = type) {
         this.cachedBBox = undefined;
 
         if (this._dirty > type || (this._dirty === type && type === parentType)) {
@@ -485,7 +485,7 @@ export abstract class Node extends ChangeDetectable {
 
         this._dirty = type;
         if (this.parent) {
-            this.parent.markDirty(parentType);
+            this.parent.markDirty(this, parentType);
         } else if (this.layerManager) {
             this.layerManager.markDirty();
         }

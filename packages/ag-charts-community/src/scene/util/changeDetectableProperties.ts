@@ -4,7 +4,7 @@ import { RedrawType } from '../changeDetectable';
 export class ChangeDetectableProperties extends BaseProperties {
     protected _dirty: RedrawType = RedrawType.MAJOR;
 
-    protected markDirty(type = RedrawType.TRIVIAL) {
+    protected markDirty(_source: any, type = RedrawType.TRIVIAL) {
         if (this._dirty < type) {
             this._dirty = type;
         }

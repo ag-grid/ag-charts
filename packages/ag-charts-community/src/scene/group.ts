@@ -108,10 +108,10 @@ export class Group extends Node {
         }
     }
 
-    override markDirty(type = RedrawType.TRIVIAL) {
+    override markDirty(source: Node, type = RedrawType.TRIVIAL) {
         if (this.isVirtual) {
             // Always percolate directly for virtual nodes - they don't exist for rendering purposes.
-            super.markDirty(type);
+            super.markDirty(source, type);
             return;
         }
 
@@ -121,7 +121,7 @@ export class Group extends Node {
             parentType = RedrawType.TRIVIAL;
         }
 
-        super.markDirty(type, parentType);
+        super.markDirty(source, type, parentType);
     }
 
     // We consider a group to be boundless, thus any point belongs to it.
