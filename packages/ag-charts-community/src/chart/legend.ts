@@ -496,7 +496,7 @@ export class Legend extends BaseProperties {
 
     private calcSymbolsEnabled(symbol: LegendSymbolOptions) {
         const { showSeriesStroke, marker } = this.item;
-        const markerEnabled = marker.enabled || !showSeriesStroke || (symbol.marker.enabled ?? true);
+        const markerEnabled = !!marker.enabled || !showSeriesStroke || (symbol.marker.enabled ?? true);
         const lineEnabled = !!(symbol.line && showSeriesStroke);
         return { markerEnabled, lineEnabled };
     }
