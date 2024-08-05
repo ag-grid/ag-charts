@@ -8,6 +8,7 @@ export interface ExampleSettings {
 
 export type FileContents = Record<string, string>;
 
+export type Layout = 'grid' | 'toolbar' | 'none';
 export interface GeneratedContents {
     files: FileContents;
     entryFileName: string;
@@ -17,7 +18,7 @@ export interface GeneratedContents {
     htmlFiles: string[];
     isEnterprise: boolean;
     hasLocale: boolean;
-    layout: 'toolbar' | 'grid';
+    layout: Layout;
     sourceFileList: string[];
     boilerPlateFiles: FileContents;
     providedExamples: FileContents;

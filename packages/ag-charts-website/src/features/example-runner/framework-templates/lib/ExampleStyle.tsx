@@ -10,10 +10,16 @@ export const ExampleStyle = ({
     rootSelector,
     extraStyles,
 }: {
-    layout?: 'grid' | 'toolbar';
+    layout?: 'grid' | 'toolbar' | 'none';
     rootSelector?: string;
     extraStyles?: string;
 }) => {
+    if (layout === 'none') {
+        return extraStyles ? (
+            <style media="only screen" dangerouslySetInnerHTML={{ __html: extraStyles }}></style>
+        ) : null;
+    }
+
     const toolbarStyles = css`
         ${rootSelector ?? 'body'} {
             display: grid;
