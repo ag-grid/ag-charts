@@ -89,7 +89,10 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         this.dispatch('browserfocus', delta, event);
         this.hasBrowserFocus = true;
 
-        if (this.isClicking) {
+        // CRT-420 - Differentiate between keyboard-nav focus and click focus (when browser tab is also
+        // regaining focus - no click event is emitted).
+        const tabFocusFromClick = event.relatedElement == null && event.targetElement?.tagName === 'CANVAS';
+        if (this.isClicking || tabFocusFromClick) {
             this.isMouseBlurred = true;
             return;
         }
