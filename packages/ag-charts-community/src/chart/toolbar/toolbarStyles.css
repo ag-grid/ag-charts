@@ -190,14 +190,14 @@
 .ag-charts-toolbar__button:focus-visible {
     border-color: var(--ag-charts-toolbar-focus-color);
     box-shadow: var(--ag-charts-focus-border-shadow);
-    z-index: 1;
+    z-index: 3;
 }
 
 .ag-charts-toolbar__button.ag-charts-toolbar__button--active {
     background: var(--ag-charts-toolbar-active-background-color);
     border-color: var(--ag-charts-toolbar-active-color);
     color: var(--ag-charts-toolbar-active-color);
-    z-index: 1;
+    z-index: 2;
 }
 
 .ag-charts-toolbar__button[aria-disabled='true'] {
