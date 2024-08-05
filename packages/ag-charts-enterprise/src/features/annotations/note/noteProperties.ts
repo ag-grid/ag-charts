@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { Fill, Stroke } from '../annotationProperties';
 import {
@@ -10,6 +10,7 @@ import { TextualPointProperties } from '../properties/textualPointProperties';
 import { DEFAULT_PADDING, LABEL_OFFSET } from './noteScene';
 
 const { OBJECT, STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
+const { clamp } = _Util;
 
 class NoteBackgroundProperties extends Fill(Stroke(BaseProperties)) {}
 
@@ -29,12 +30,16 @@ export class NoteProperties extends Fill(Stroke(TextualPointProperties)) {
     override width = 200;
 
     public override getTextInputCoords(context: AnnotationContext) {
+        const { width } = this;
+        const { seriesRect } = context;
+
         const coords = super.getTextInputCoords(context);
         const padding = this.padding ?? DEFAULT_PADDING;
-        return {
-            x: coords.x,
-            y: coords.y - padding - LABEL_OFFSET,
-        };
+
+        coords.x = clamp(width / 2, coords.x, seriesRect.width - width / 2);
+        coords.y = coords.y - padding - LABEL_OFFSET;
+
+        return coords;
     }
 
     override getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType) {

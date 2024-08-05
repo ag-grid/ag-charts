@@ -53,12 +53,10 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
     }
 
     override getTextBBox(datum: NoteProperties, coords: _Util.Vec2, context: AnnotationContext) {
+        const { seriesRect } = context;
         const bbox = super.getTextBBox(datum, coords, context);
 
-        const { seriesRect } = context;
-
-        bbox.y = clamp(seriesRect.y + bbox.height + LABEL_OFFSET + this.padding, bbox.y, seriesRect.height);
-        bbox.x = clamp(datum.width / 2, bbox.x, seriesRect.width - bbox.width);
+        bbox.x = clamp(datum.width / 2, bbox.x, seriesRect.width - bbox.width / 2);
 
         return bbox;
     }
