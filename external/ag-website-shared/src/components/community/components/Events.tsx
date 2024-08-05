@@ -44,7 +44,7 @@ const separateEventsByDate = (events: Event[]): { upcomingEvents: Event[]; pastE
 const EventItem = ({ event }: { event: Event }) => {
     const [darkMode] = useDarkmode();
     return (
-        <div target="_blank" className={styles.linkWrapper}>
+        <div className={styles.linkWrapper}>
             <div className={styles.eventItemContainer}>
                 <div className={styles.eventItemLeftColumn}>
                     <div className={styles.titleContainer}>
