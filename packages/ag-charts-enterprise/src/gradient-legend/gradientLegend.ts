@@ -8,7 +8,7 @@ import {
 
 const { BOOLEAN, OBJECT, POSITION, POSITIVE_NUMBER, BaseProperties, AxisTicks, Layers, ProxyProperty, Validate } =
     _ModuleSupport;
-const { Group, Rect, LinearGradientFill, Triangle, BBox } = _Scene;
+const { Group, Rect, LinearGradientFill, Triangle } = _Scene;
 const { createId } = _Util;
 
 class GradientBar extends BaseProperties {
@@ -170,6 +170,8 @@ export class GradientLegend {
             gradientRect.height = thickness;
             gradientFill.direction = reverseOrder ? 'to-left' : 'to-right';
         }
+
+        gradientRect.markDirty(gradientRect);
     }
 
     private updateAxis(data: _ModuleSupport.GradientLegendDatum) {
@@ -183,7 +185,7 @@ export class GradientLegend {
         axisTicks.scale.domain = positiveAxis ? data.colorDomain.slice().reverse() : data.colorDomain;
         axisTicks.scale.range = vertical ? [0, this.gradientRect.height] : [0, this.gradientRect.width];
 
-        return BBox.merge([axisTicks.calculateLayout(), this.gradientRect.getBBox()]);
+        return axisTicks.calculateLayout();
     }
 
     private updateArrow() {
@@ -222,10 +224,13 @@ export class GradientLegend {
         let { x: left, y: top } = shrinkRect;
         let { width, height } = this.gradientRect;
 
+        // Because of the rotation technique used by axes rendering labels are padded 5px off,
+        // which need to be account for in these calculations to make sure labels aren't being clipped.
+        // This will become obsolete only once axes rotation technique would be removed.
         if (this.isVertical()) {
-            width += axisBox.width;
+            width += axisBox.width + 5;
         } else {
-            height += axisBox.height;
+            height += axisBox.height + 5;
         }
 
         switch (this.position) {
