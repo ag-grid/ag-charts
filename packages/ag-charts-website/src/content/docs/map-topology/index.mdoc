@@ -43,33 +43,34 @@ When using a Map Series which requires topology, both the `topology` and the `da
 
 ```js
 series: [
-{
-    type: 'map-shape',
-    topology: {
-        type: 'FeatureCollection',
-        features: [
-            {
-                type: 'Feature',
-                geometry: {
-                    type: 'Polygon',
-                    coordinates: [...],
-                },
-                properties: {
-                    name: 'United Kingdom',
-                    code: 'GB'
+    {
+        type: 'map-shape',
+        topology: {
+            type: 'FeatureCollection',
+            features: [
+                {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Polygon',
+                        coordinates: [...],
+                    },
+                    properties: {
+                        name: 'United Kingdom',
+                        code: 'GB'
+                    }
                 }
-            }
+            ],
+            // ...
+        },
+        data: [
+            { country: 'United Kingdom', population: 67330000 },
+            { country: 'France', population: 67500000 },
+            // ...
         ],
-        // ...
-    },
-    data: [
-        { country: 'United Kingdom', population: 67330000 },
-        { country: 'France', population: 67500000 },
-        // ...
-    ],
-    idKey: 'country',
-    topologyIdKey: 'name' //default value
-}
+        idKey: 'country',
+        topologyIdKey: 'name' //default value
+    }
+]
 ```
 
 -   Each item in the data must contain a field that refers to the associated geometry for that data item. In the above example this is the `country` field.
