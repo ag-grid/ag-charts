@@ -5,7 +5,7 @@ import { readFile } from '../../../executors-utils';
 import { ANGULAR_GENERATED_MAIN_FILE_NAME, SOURCE_ENTRY_FILE_NAME } from './constants';
 import { transformPlainEntryFile } from './transformPlainEntryFile';
 import chartVanillaSrcParser from './transformation-scripts/chart-vanilla-src-parser';
-import type { GeneratedContents, InternalFramework } from './types';
+import type { GeneratedContents, InternalFramework, Layout } from './types';
 import {
     getEntryFileName,
     getHasLocale,
@@ -95,6 +95,11 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
     let indexHtml = await readFile(path.join(folderPath, 'index.html'));
     extractOptions ||= entryFile.includes('@ag-options-extract');
 
+    let hasToolbarClass = Array.from(indexHtml.matchAll(/class="([^"]*)"/g)).some(([_fullMatch, classList]) => {
+        return classList.split(/\s+/g).includes('toolbar');
+    });
+    let layout: Layout = hasToolbarClass ? 'toolbar' : 'grid';
+
     if (entryFile.includes('@ag-skip-fws')) {
         if (['vanilla', 'typescript'].includes(internalFramework)) {
             entryFile = entryFile.replace(/^\s*\/\/ @ag-skip-fws\s*\n*$/g, '');
@@ -103,6 +108,11 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
             indexHtml = `<div id="myChart"></div>`;
             extractOptions = false;
         }
+    }
+
+    if (entryFile.includes('@ag-no-style')) {
+        entryFile = entryFile.replace(/^\s*\/\/ @ag-no-style\s*\n*$/g, '');
+        layout = 'none';
     }
 
     const otherScriptFiles = await getOtherScriptFiles({
@@ -143,11 +153,6 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
             enterprise: isEnterprise,
         },
     });
-
-    const hasToolbarClass = Array.from(indexHtml.matchAll(/class="([^"]*)"/g)).some(([_fullMatch, classList]) => {
-        return classList.split(/\s+/g).includes('toolbar');
-    });
-    const layout = hasToolbarClass ? 'toolbar' : 'grid';
 
     const getFrameworkFiles = frameworkFilesGenerator[internalFramework];
     if (!getFrameworkFiles) {

@@ -1,3 +1,4 @@
+// @ag-no-style
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
 const options: AgChartOptions = {
