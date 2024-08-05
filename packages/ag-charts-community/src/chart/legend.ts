@@ -496,7 +496,7 @@ export class Legend extends BaseProperties {
 
     private calcSymbolsEnabled(symbol: LegendSymbolOptions) {
         const { showSeriesStroke, marker } = this.item;
-        const markerEnabled = marker.enabled ?? (showSeriesStroke && (symbol.marker.enabled ?? true));
+        const markerEnabled = !!marker.enabled || !showSeriesStroke || (symbol.marker.enabled ?? true);
         const lineEnabled = !!(symbol.line && showSeriesStroke);
         return { markerEnabled, lineEnabled };
     }
@@ -526,7 +526,10 @@ export class Legend extends BaseProperties {
                 markerWidth = Math.max(markerWidth, lineLength, markerLength);
                 spriteWidth = Math.max(spriteWidth, lineLength, markerTotalLength);
                 spriteHeight = Math.max(spriteHeight, lineStrokeWidth, markerTotalLength);
-                spriteAAPadding = Math.max(spriteAAPadding, markerStrokeWidth);
+                // Add +0.5 padding to handle cases where the X/Y pixel coordinates are not integers
+                // (We need this extra row/column of pixels because legend's sprite render will use
+                // integers for X/Y coords).
+                spriteAAPadding = Math.max(spriteAAPadding, markerStrokeWidth + 0.5);
             });
         });
         spriteWidth += spriteAAPadding * 2;
