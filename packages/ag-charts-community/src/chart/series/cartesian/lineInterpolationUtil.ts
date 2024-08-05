@@ -84,7 +84,7 @@ function transformSpans(spanData: SpanDatum[], { x: xScale, y: yScale }: Cartesi
             const start = spanRange(startSpanDatum.span)[0];
             const end = spanRange(endSpanDatum.span)[1];
 
-            const unshifted: Span = {
+            const mergedUnshifted: Span = {
                 type: 'linear',
                 moveTo: startSpanDatum.span.moveTo,
                 x0: start.x,
@@ -100,20 +100,20 @@ function transformSpans(spanData: SpanDatum[], { x: xScale, y: yScale }: Cartesi
                 x: scale(endSpanDatum.xValue1, xScale),
                 y: scale(endSpanDatum.yValue1, yScale),
             };
-            const shifted = rescaleSpan(unshifted, transformStart, transformEnd);
-            mergingInvalidSpans.push({ unshifted, shifted });
+            const mergedShifted = rescaleSpan(mergedUnshifted, transformStart, transformEnd);
+            mergingInvalidSpans.push({ unshifted: mergedUnshifted, shifted: mergedShifted });
 
             const step = (end.x - start.x) / (rangeSpanData.length - 1);
 
             for (let i = 0; i < rangeSpanData.length; i += 1) {
-                const { span: unshifted, yValue0, yValue1 } = rangeSpanData[i];
+                const { span: interpolatingUnshifted, yValue0, yValue1 } = rangeSpanData[i];
 
-                const shifted = rescaleSpan(
-                    unshifted,
+                const interpolatingShifted = rescaleSpan(
+                    interpolatingUnshifted,
                     { x: start.x + step * (i + 0), y: scale(yValue0, yScale) },
                     { x: start.x + step * (i + 1), y: scale(yValue1, yScale) }
                 );
-                interpolatingInvalidSpans.push({ unshifted, shifted });
+                interpolatingInvalidSpans.push({ unshifted: interpolatingUnshifted, shifted: interpolatingShifted });
             }
 
             shiftedXStart = Math.min(shiftedXStart, transformStart.x);
