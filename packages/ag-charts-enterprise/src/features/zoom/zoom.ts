@@ -304,7 +304,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx: { cursorManager, zoomManager },
         } = this;
 
-        if (!enabled || !paddedRect) return;
+        if (!enabled || !paddedRect || event.button !== 0) return;
 
         this.panner.stopInteractions();
 
