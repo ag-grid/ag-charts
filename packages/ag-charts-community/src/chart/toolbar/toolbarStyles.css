@@ -63,6 +63,7 @@
 .ag-charts-toolbar--floating-bottom {
     height: calc(var(--ag-charts-toolbar-size) + 10px);
     padding-bottom: 10px;
+    overflow: hidden;
 }
 
 .ag-charts-toolbar__align {
