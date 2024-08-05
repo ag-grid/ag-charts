@@ -13,7 +13,7 @@ export interface MessageFormatterParams {
     /** The default, unformatted translation, if it exists in `localeText`. */
     defaultValue: string | undefined;
     /** Variables used for the translation. Keyed by the name of the variables. Values can be string, numbers, or dates. */
-    variables: Record<string, unknown>;
+    variables: Record<string, any>;
 }
 
 export type MessageFormatter = Formatter<MessageFormatterParams>;

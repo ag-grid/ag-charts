@@ -86,6 +86,7 @@ export type AgIconLegacyName =
     | 'delete-legacy'
     | 'disjoint-channel'
     | 'disjoint-channel-legacy'
+    | 'horizontal-line'
     | 'horizontal-line-legacy'
     | 'line-color-legacy'
     | 'lock'
