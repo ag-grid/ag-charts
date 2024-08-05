@@ -249,7 +249,7 @@ describe('AgChart', () => {
 
         expect(updatedSeries.length).toEqual(4);
         expect(updatedSeries[0].id).toEqual(createdSeries[0].id);
-        expect(updatedSeries[1].id).toEqual(createdSeries[1].id);
+        expect(updatedSeries[1].id).not.toEqual(createdSeries[1].id); // Switches from unstacked to stacked.
         expect((updatedSeries[0].properties as any).marker.shape).toEqual('square');
         expect((updatedSeries[0].properties as any).marker.size).toEqual(10);
         expect((updatedSeries[1].properties as any).fill).toEqual('lime');
@@ -291,8 +291,8 @@ describe('AgChart', () => {
 
         expect(updatedSeries2.length).toEqual(3);
         expect(updatedSeries2[0].id).toEqual(updatedSeries[0].id);
-        expect(updatedSeries2[1].id).toEqual(updatedSeries[1].id);
-        expect(updatedSeries2[2].id).toEqual(updatedSeries[2].id);
+        expect(updatedSeries2[1].id).not.toEqual(updatedSeries[1].id);
+        expect(updatedSeries2[2].id).not.toEqual(updatedSeries[2].id);
 
         await chartProxy.update({
             data: revenueProfitData,
@@ -326,8 +326,8 @@ describe('AgChart', () => {
         const updatedSeries3 = chart.series;
 
         expect(updatedSeries3.length).toEqual(3);
-        expect(updatedSeries3[0].id).toEqual(updatedSeries2[1].id);
-        expect(updatedSeries3[1].id).toEqual(updatedSeries2[2].id);
+        expect(updatedSeries3[0].id).not.toEqual(updatedSeries2[1].id);
+        expect(updatedSeries3[1].id).not.toEqual(updatedSeries2[2].id);
         expect(updatedSeries3[2].id).toEqual(updatedSeries2[0].id);
         expect(updatedSeries3[0]).toBeInstanceOf(BarSeries);
         expect(updatedSeries3[1]).toBeInstanceOf(BarSeries);
