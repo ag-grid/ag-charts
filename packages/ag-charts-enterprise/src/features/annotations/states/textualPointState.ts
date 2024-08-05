@@ -33,6 +33,7 @@ export abstract class TextualPointStateMachine<
         const actionCreate = ({ point }: { point: Point }) => {
             const datum = this.createDatum();
             datum.set({ x: point.x, y: point.y });
+            datum.placeholderText = 'Add Text';
             ctx.create(datum);
         };
 
@@ -106,7 +107,11 @@ export abstract class TextualPointStateMachine<
 
         const actionSave = ({ textInputValue }: { textInputValue?: string }) => {
             if (textInputValue != null && textInputValue.length > 0) {
-                ctx.datum()?.set({ text: textInputValue });
+                const datum = ctx.datum();
+                if (datum) {
+                    datum.placeholderText = undefined;
+                    datum.set({ text: textInputValue });
+                }
                 ctx.update();
             } else {
                 ctx.delete();
