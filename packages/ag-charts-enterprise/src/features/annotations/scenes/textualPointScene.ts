@@ -184,14 +184,17 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
     }
 
     private wrapText(datum: TextualPointProperties, width?: number) {
+        const hasText = datum.text.length > 0;
+        const text = hasText ? datum.text : datum.placeholderText ?? '';
+
         return width
-            ? TextWrapper.wrapText(datum.text, {
+            ? TextWrapper.wrapText(text, {
                   ...this.getTextOptions(datum),
                   avoidOrphans: false,
                   textWrap: 'always',
                   maxWidth: width,
               })
-            : datum.text;
+            : text;
     }
 
     private getTextOptions(datum: TextualPointProperties) {
