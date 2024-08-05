@@ -4,6 +4,8 @@
     position: relative;
     width: 100%;
     font-weight: var(--text-regular);
+    display: flex;
+    align-items: center;
 
     &:hover .arrowIcon {
         --color-icon: var(--color-link-hover);
@@ -13,8 +15,7 @@
 
     @media screen and (min-width: $breakpoint-gallery-small) {
         width: auto;
-        top: -3px;
-        margin-left: $spacing-size-4;
+        margin-left: $spacing-size-1;
     }
 }
 
