@@ -24,7 +24,7 @@ jobs:
             AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
             JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         steps:
-            - id: debug
+            - id: 'debug'
               run: |
                   echo "${{ toJson(github) }}"
 
