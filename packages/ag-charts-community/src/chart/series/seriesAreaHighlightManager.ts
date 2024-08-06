@@ -151,7 +151,7 @@ export class SeriesAreaHighlightManager extends BaseManager {
         if (lastSeries?.properties.cursor && lastDatum) {
             this.ctx.cursorManager.updateCursor(lastSeries.id);
         }
-        if (newSeries?.properties.cursor && newDatum) {
+        if (newSeries?.properties.cursor && newSeries?.properties.cursor !== 'default' && newDatum) {
             this.ctx.cursorManager.updateCursor(newSeries.id, newSeries.properties.cursor);
         }
 

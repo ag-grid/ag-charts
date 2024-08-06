@@ -60,8 +60,8 @@ export abstract class Handle extends _Scene.Group {
         this.locked = locked;
     }
 
-    public getCursor() {
-        return 'default';
+    public getCursor(): string | undefined {
+        return undefined;
     }
 
     override containsPoint(x: number, y: number) {
@@ -197,7 +197,7 @@ export class UnivariantHandle extends Handle {
     }
 
     override getCursor() {
-        if (this.locked) return 'default';
+        if (this.locked) return;
         return this.gradient === 'vertical' ? 'col-resize' : 'row-resize';
     }
 }

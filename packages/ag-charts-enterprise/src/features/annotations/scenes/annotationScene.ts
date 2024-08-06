@@ -22,7 +22,7 @@ export abstract class AnnotationScene extends _Scene.Group {
     public abstract toggleActive(active: boolean): void;
     public abstract stopDragging(): void;
     public abstract getAnchor(): { x: number; y: number; position?: 'right' | 'above' | 'above-left' };
-    public abstract getCursor(): string;
+    public abstract getCursor(): string | undefined;
 
     public toggleHovered(hovered: boolean) {
         this.toggleHandles(hovered);
