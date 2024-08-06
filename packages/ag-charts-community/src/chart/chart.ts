@@ -41,7 +41,7 @@ import { axisRegistry } from './factory/axisRegistry';
 import { EXPECTED_ENTERPRISE_MODULES } from './factory/expectedEnterpriseModules';
 import { legendRegistry } from './factory/legendRegistry';
 import { seriesRegistry } from './factory/seriesRegistry';
-import { REGIONS } from './interaction/regions';
+import { REGIONS, type RegionBBoxProvider } from './interaction/regions';
 import { SyncManager } from './interaction/syncManager';
 import { ZoomManager } from './interaction/zoomManager';
 import { Keyboard } from './keyboard';
@@ -1442,12 +1442,12 @@ export abstract class Chart extends Observable {
         debug(`Chart.applyAxes() - creating new axes instances; seriesStatus: ${seriesStatus}`);
         chart.axes = this.createAxis(axes, skip);
 
-        const axisGroups: { [Key in ChartAxisDirection]: Group[] } = {
+        const axisGroups: { [Key in ChartAxisDirection]: RegionBBoxProvider[] } = {
             [ChartAxisDirection.X]: [],
             [ChartAxisDirection.Y]: [],
         };
 
-        chart.axes.forEach((axis) => axisGroups[axis.direction].push(axis.getAxisGroup()));
+        chart.axes.forEach((axis) => axisGroups[axis.direction].push(axis.getRegionBBoxProvider()));
 
         if (registerRegions) {
             this.ctx.regionManager.updateRegion(REGIONS.HORIZONTAL_AXES, ...axisGroups[ChartAxisDirection.X]);
