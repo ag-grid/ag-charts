@@ -16,7 +16,7 @@ env:
 jobs:
     update:
         name: Update
-        # if: github.event_name == 'workflow_call' || (github.event_name == 'issue_comment' && github.event.comment.body == '/snapshots')
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'issue_comment' && github.event.comment.body == '/snapshots')
         runs-on: ubuntu-latest
         env:
             NX_PARALLEL: 1
@@ -57,7 +57,7 @@ jobs:
 
             - name: Checkout
               uses: actions/checkout@v2
-              if: github.event_name == 'workflow_call'
+              if: github.event_name == 'workflow_dispatch'
               with:
                   ref: ${{ github.ref }}
 
@@ -85,7 +85,7 @@ jobs:
             - name: Commit Snapshot Changes
               id: commit_changes
               env:
-                  BRANCH_NAME: ${{steps.get-branch.outputs.branch || github.ref}}
+                  BRANCH_NAME: ${{steps.get-branch.outputs.branch || github.ref_name}}
               run: |
                   # Based on https://github.com/actions/checkout?tab=readme-ov-file#push-a-commit-using-the-built-in-token
                   git config user.name "github-actions[bot]"
