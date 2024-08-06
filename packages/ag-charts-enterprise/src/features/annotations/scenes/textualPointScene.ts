@@ -94,7 +94,6 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
 
     override getCursor() {
         if (this.activeHandle == null) return 'pointer';
-        return 'default';
     }
 
     override containsPoint(x: number, y: number) {
