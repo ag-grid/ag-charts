@@ -95,7 +95,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
     let indexHtml = await readFile(path.join(folderPath, 'index.html'));
     extractOptions ||= entryFile.includes('@ag-options-extract');
 
-    let hasToolbarClass = Array.from(indexHtml.matchAll(/class="([^"]*)"/g)).some(([_fullMatch, classList]) => {
+    const hasToolbarClass = Array.from(indexHtml.matchAll(/class="([^"]*)"/g)).some(([_fullMatch, classList]) => {
         return classList.split(/\s+/g).includes('toolbar');
     });
     let layout: Layout = hasToolbarClass ? 'toolbar' : 'grid';
