@@ -16,7 +16,7 @@ env:
 jobs:
     update:
         name: Update
-        if: github.event_name == 'workflow_call' || (github.event_name == 'issue_comment' && github.event.comment.body == '/snapshots')
+        # if: github.event_name == 'workflow_call' || (github.event_name == 'issue_comment' && github.event.comment.body == '/snapshots')
         runs-on: ubuntu-latest
         env:
             NX_PARALLEL: 1
