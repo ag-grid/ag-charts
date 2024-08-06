@@ -213,12 +213,13 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             verticalAxesRegion.addListener(dragStartEventType, (event) => this.onDragStart(event), draggableState),
             verticalAxesRegion.addListener('drag-end', (event) => this.onDragEnd(event), draggableState),
             verticalAxesRegion.addListener('leave', () => this.onAxisLeave(), clickableState),
+            verticalAxesRegion.addListener('hover', (event) => this.onAxisHover(event, ChartAxisDirection.Y)),
             horizontalAxesRegion.addListener('drag', (event) => this.onDrag(event), draggableState),
             horizontalAxesRegion.addListener(dragStartEventType, (event) => this.onDragStart(event), draggableState),
             horizontalAxesRegion.addListener('drag-end', (event) => this.onDragEnd(event), draggableState),
             horizontalAxesRegion.addListener('leave', () => this.onAxisLeave(), clickableState),
+            horizontalAxesRegion.addListener('hover', (event) => this.onAxisHover(event, ChartAxisDirection.X)),
             region.addListener('wheel', (event) => this.onWheel(event), clickableState),
-            ctx.chartEventManager.addListener('axis-hover', (event) => this.onAxisHover(event)),
             ctx.gestureDetector.addListener('pinch-move', (event) => this.onPinchMove(event as PinchEvent)),
             ctx.toolbarManager.addListener('button-pressed', (event) =>
                 this.toolbar.onButtonPress(event, this.getModuleProperties())
@@ -516,7 +517,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         cursorManager.updateCursor(CURSOR_ID);
     }
 
-    private onAxisHover(event: _ModuleSupport.AxisHoverChartEvent) {
+    private onAxisHover(event: _ModuleSupport.RegionEvent, direction: _ModuleSupport.ChartAxisDirection) {
         const {
             enabled,
             enableAxisDragging,
@@ -526,12 +527,12 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (!enabled) return;
 
         this.hoveredAxis = {
-            id: event.axisId,
-            direction: event.direction,
+            id: event.bboxProviderId ?? 'unknown',
+            direction,
         };
 
         if (enableAxisDragging) {
-            cursorManager.updateCursor(CURSOR_ID, event.direction === ChartAxisDirection.X ? 'ew-resize' : 'ns-resize');
+            cursorManager.updateCursor(CURSOR_ID, direction === ChartAxisDirection.X ? 'ew-resize' : 'ns-resize');
         }
     }
 

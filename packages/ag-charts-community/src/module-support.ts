@@ -52,6 +52,7 @@ export * from './chart/interaction/gestureDetector';
 export * from './chart/interaction/highlightManager';
 export * from './chart/interaction/interactionManager';
 export * from './chart/interaction/keyNavManager';
+export * from './chart/interaction/regionManager';
 export * from './chart/interaction/toolbarManager';
 export * from './chart/interaction/tooltipManager';
 export * from './chart/interaction/zoomManager';

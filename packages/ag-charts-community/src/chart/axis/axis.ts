@@ -46,8 +46,7 @@ import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
 import type { AnimationManager } from '../interaction/animationManager';
-import { type PointerInteractionEvent } from '../interaction/interactionManager';
-import { REGIONS } from '../interaction/regions';
+import { type RegionBBoxProvider } from '../interaction/regions';
 import { calculateLabelBBox, calculateLabelRotation, getLabelSpacing, getTextAlign, getTextBaseline } from '../label';
 import { Layers } from '../layers';
 import type { AxisLayout } from '../layout/layoutService';
@@ -271,14 +270,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this._titleCaption.node.rotation = -Math.PI / 2;
         this.axisGroup.appendChild(this._titleCaption.node);
 
-        this.destroyFns.push(
-            moduleCtx.regionManager.getRegion(REGIONS.SERIES).addListener('hover', (e) => this.checkAxisHover(e)),
-            moduleCtx.regionManager
-                .getRegion(REGIONS.HORIZONTAL_AXES)
-                .addListener('hover', (e) => this.checkAxisHover(e)),
-            moduleCtx.regionManager.getRegion(REGIONS.VERTICAL_AXES).addListener('hover', (e) => this.checkAxisHover(e))
-        );
-
         this.animationManager = moduleCtx.animationManager;
         this.animationState = new StateMachine<AxisAnimationState, AxisAnimationEvent>('empty', {
             empty: {
@@ -447,17 +438,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     protected createLabel(): ChartAxisLabel {
         return new AxisLabel();
-    }
-
-    private checkAxisHover(event: PointerInteractionEvent<'hover'>) {
-        if (!this.interactionEnabled) return;
-
-        const bbox = this.getBBox();
-        const isInAxis = bbox.containsPoint(event.offsetX, event.offsetY);
-
-        if (!isInAxis) return;
-
-        this.moduleCtx.chartEventManager.axisHover(this.id, this.direction);
     }
 
     /**
@@ -1386,6 +1366,22 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     getBBox(): BBox {
         return this.axisGroup.getBBox();
+    }
+
+    getRegionBBoxProvider(): RegionBBoxProvider {
+        const { axisGroup } = this;
+        return {
+            id: this.id,
+            computeTransformedBBox() {
+                return axisGroup.computeTransformedBBox();
+            },
+            computeTransformedRegionBBox() {
+                return axisGroup.computeTransformedRegionBBox();
+            },
+            get visible() {
+                return axisGroup.visible;
+            },
+        };
     }
 
     initCrossLine(crossLine: CrossLine) {
