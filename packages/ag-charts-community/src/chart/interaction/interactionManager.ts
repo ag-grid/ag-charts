@@ -452,11 +452,6 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
                 return 'leave';
 
             case 'mouseenter':
-                const mouseButtonDown = event instanceof MouseEvent && (event.buttons & 1) === 1;
-                if (this.mouseDown !== mouseButtonDown) {
-                    this.mouseDown = mouseButtonDown;
-                    return mouseButtonDown ? dragStart : 'drag-end';
-                }
                 return 'enter';
 
             case 'pagehide':
