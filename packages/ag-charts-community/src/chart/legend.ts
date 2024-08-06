@@ -45,6 +45,7 @@ import {
 import { ChartUpdateType } from './chartUpdateType';
 import type { Page } from './gridLayout';
 import { gridLayout } from './gridLayout';
+import type { HighlightNodeDatum } from './interaction/highlightManager';
 import { InteractionState, type PointerInteractionEvent } from './interaction/interactionManager';
 import { makeKeyboardPointerEvent } from './keyboardUtil';
 import { Layers } from './layers';
@@ -237,6 +238,7 @@ export class Legend extends BaseProperties {
     private readonly proxyLegendPagination: HTMLDivElement;
     private proxyPrevButton?: HTMLButtonElement;
     private proxyNextButton?: HTMLButtonElement;
+    private pendingHighlightDatum?: HighlightNodeDatum;
 
     constructor(private readonly ctx: ModuleContext) {
         super();
@@ -271,8 +273,8 @@ export class Legend extends BaseProperties {
             region.addListener('contextmenu', (e) => this.checkContextClick(e), contextMenuState),
             region.addListener('click', (e) => this.checkLegendClick(e), animationState),
             region.addListener('dblclick', (e) => this.checkLegendDoubleClick(e), animationState),
-            region.addListener('hover', (e) => this.handleLegendMouseMove(e)),
-            region.addListener('leave', (e) => this.handleLegendMouseExit(e), animationState),
+            region.addListener('hover', (e) => this.handleLegendMouseMove(e), animationState),
+            region.addListener('leave', () => this.handleLegendMouseExit(), animationState),
             region.addListener('enter', (e) => this.handleLegendMouseEnter(e), animationState),
             ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e)),
             ctx.localeManager.addListener('locale-changed', () => this.onLocaleChanged()),
@@ -322,7 +324,7 @@ export class Legend extends BaseProperties {
                     this.doClick(markerLabel.datum);
                     markerLabel.proxyButton!.textContent = this.getItemAriaText(i, !markerLabel.datum.enabled);
                 },
-                onblur: () => this.doMouseExit(),
+                onblur: () => this.handleLegendMouseExit(),
                 onfocus: () => {
                     const bounds = markerLabel?.computeTransformedBBox();
                     const event = makeKeyboardPointerEvent(this.ctx.focusIndicator, { bounds, showFocusBox: true });
@@ -1118,7 +1120,7 @@ export class Legend extends BaseProperties {
 
         if (event === undefined || datum === undefined) {
             this.ctx.cursorManager.updateCursor(this.id);
-            this.ctx.highlightManager.updateHighlight(this.id);
+            this.updateHighlight();
             return;
         }
 
@@ -1139,27 +1141,33 @@ export class Legend extends BaseProperties {
         }
 
         if (datum?.enabled && series) {
-            this.ctx.highlightManager.updateHighlight(this.id, {
+            this.updateHighlight({
                 series,
                 itemId: datum?.itemId,
                 datum: undefined,
             });
         } else {
-            this.ctx.highlightManager.updateHighlight(this.id);
+            this.updateHighlight();
         }
     }
 
-    private handleLegendMouseExit(_event: PointerInteractionEvent<'leave'>) {
-        this.doMouseExit();
-    }
-
-    private doMouseExit() {
+    private handleLegendMouseExit() {
         this.ctx.cursorManager.updateCursor(this.id);
         this.ctx.tooltipManager.removeTooltip(this.id);
-        // Updating the highlight can interrupt animations, so only clear the highlight if the chart
-        // is in a state when highlighting is possible.
-        if (this.ctx.interactionManager.getState() === InteractionState.Default) {
-            this.ctx.highlightManager.updateHighlight(this.id);
+        this.updateHighlight();
+    }
+
+    private updateHighlight(datum?: HighlightNodeDatum) {
+        const state = this.ctx.interactionManager.getState();
+        if (state === InteractionState.Default) {
+            this.ctx.highlightManager.updateHighlight(this.id, datum);
+        } else if (state === InteractionState.Animation) {
+            // Updating the highlight can interrupt animations, so only clear the highlight if the chart
+            // is in a state when highlighting is possible.
+            this.pendingHighlightDatum = datum;
+            this.ctx.animationManager.onBatchStop(() => {
+                this.ctx.highlightManager.updateHighlight(this.id, this.pendingHighlightDatum);
+            });
         }
     }
 
