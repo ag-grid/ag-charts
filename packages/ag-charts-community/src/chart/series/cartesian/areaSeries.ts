@@ -808,7 +808,8 @@ export class AreaSeries extends CartesianSeries<
         // Handling initially hidden series case gracefully.
         if (fill == null && stroke == null) return;
 
-        super.resetAllAnimation(animationData);
+        this.resetMarkerAnimation(animationData);
+        this.resetLabelAnimation(animationData);
 
         const update = () => {
             this.updateAreaPaths(paths, contextData);
