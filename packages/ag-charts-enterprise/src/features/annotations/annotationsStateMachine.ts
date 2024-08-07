@@ -225,6 +225,13 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             ctx.update();
         };
 
+        const actionUpdateTextInputBBox = (bbox: _Scene.BBox) => {
+            const node = ctx.node(this.active!);
+            if (!node || !('setTextInputBBox' in node)) return;
+            node.setTextInputBBox(bbox);
+            ctx.update();
+        };
+
         const guardActive = () => this.active != null;
         const guardHovered = () => this.hovered != null;
 
@@ -292,6 +299,12 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     guard: guardActive,
                     target: States.Idle,
                     action: actionFontSize,
+                },
+
+                updateTextInputBBox: {
+                    guard: guardActive,
+                    target: States.Idle,
+                    action: actionUpdateTextInputBBox,
                 },
 
                 reset: () => {
@@ -452,12 +465,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 updateTextInputBBox: {
                     guard: guardActive,
                     target: States.TextInput,
-                    action: (bbox: _Scene.BBox) => {
-                        const node = ctx.node(this.active!);
-                        if (!node || !('setTextInputBBox' in node)) return;
-                        node.setTextInputBBox(bbox);
-                        ctx.update();
-                    },
+                    action: actionUpdateTextInputBBox,
                 },
 
                 click: {

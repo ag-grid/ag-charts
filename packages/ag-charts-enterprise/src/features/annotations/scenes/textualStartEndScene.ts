@@ -26,7 +26,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
     };
     protected textInputBBox?: _Scene.BBox;
 
-    public setTextInputBBox(bbox: _Scene.BBox) {
+    public setTextInputBBox(bbox?: _Scene.BBox) {
         this.textInputBBox = bbox;
         this.markDirty(this, _Scene.RedrawType.MINOR);
     }
