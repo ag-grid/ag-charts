@@ -56,6 +56,17 @@ export function* pathRangePointsReverse<T extends { point: PartialPathPoint }>(
     }
 }
 
+function integratedCategoryMatch(a: unknown, b: unknown) {
+    if (a == null || b == null) return false;
+    if (typeof a !== 'object' || typeof b !== 'object') return false;
+
+    if ('id' in a && 'id' in b) {
+        return a.id === b.id;
+    }
+
+    return a.toString() === b.toString();
+}
+
 export function scale(val: number | string | Date, scaling?: Scaling) {
     if (!scaling) return NaN;
 
@@ -74,6 +85,12 @@ export function scale(val: number | string | Date, scaling?: Scaling) {
     const matchingIndex = scaling.domain.findIndex((d) => d === val);
     if (matchingIndex >= 0) {
         return scaling.range[matchingIndex];
+    }
+
+    // Integrated Charts category case.
+    const matchingIntegratedIndex = scaling.domain.findIndex((d) => integratedCategoryMatch(val, d));
+    if (matchingIntegratedIndex >= 0) {
+        return scaling.range[matchingIntegratedIndex];
     }
 
     // We failed to convert using the scale.
