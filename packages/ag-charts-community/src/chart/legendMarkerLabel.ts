@@ -5,7 +5,7 @@ import { Group } from '../scene/group';
 import { Image } from '../scene/image';
 import type { Line } from '../scene/shape/line';
 import { Text } from '../scene/shape/text';
-import type { SpriteRenderer } from '../scene/spriteRenderer';
+import type { SpriteDimensions, SpriteRenderer } from '../scene/spriteRenderer';
 import { arraysEqual } from '../util/array';
 import { argsIterable, arraysIterable } from '../util/iterator';
 import { ProxyPropertyOnWrite } from '../util/proxy';
@@ -111,7 +111,7 @@ export class LegendMarkerLabel extends Group {
     // This padding allows the SpriteRenderer to draw antialiasing pixels that can extend beyond the shapes' bounds.
     update(
         spriteRenderer: SpriteRenderer,
-        spriteAAPadding: number,
+        { spriteAAPadding, spritePixelRatio: scale }: SpriteDimensions,
         dimensionProps: { length: number; spacing: number }[]
     ) {
         const { markers, lines } = this;
@@ -163,13 +163,14 @@ export class LegendMarkerLabel extends Group {
         if (this.bitmapDirty) {
             this.setBitmapVisibility(false);
 
-            const translateX = spriteAAPadding + spriteX;
-            const translateY = spriteAAPadding - spriteY;
+            const translateX = (spriteAAPadding + spriteX) * scale;
+            const translateY = (spriteAAPadding - spriteY) * scale;
             const sprite = spriteRenderer.renderSprite(this.symbolsGroup, {
+                scale,
                 translateX: Math.floor(translateX),
                 translateY: Math.floor(translateY),
             });
-            this.bitmap.updateBitmap(sprite, Math.ceil(-translateX), Math.ceil(-translateY));
+            this.bitmap.updateBitmap(sprite, scale, Math.ceil(-translateX), Math.ceil(-translateY));
             this.bitmapDirty = false;
 
             this.refreshVisibilities();
