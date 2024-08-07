@@ -241,9 +241,9 @@ export function pathFadeOutAnimation<T>(
     staticFromToMotion(id, subId, animationManager, selection, { opacity: 1 }, { opacity: 0 }, { phase: 'remove' });
 }
 
-export function buildResetPathFn(opts: { getOpacity(): number }) {
+export function buildResetPathFn(opts: { getVisible(): boolean; getOpacity(): number }) {
     return (_node: Path) => {
-        return { opacity: opts.getOpacity(), clipScalingX: 1, clipMode: undefined };
+        return { visible: opts.getVisible(), opacity: opts.getOpacity(), clipScalingX: 1, clipMode: undefined };
     };
 }
 
