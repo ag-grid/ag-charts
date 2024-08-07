@@ -812,6 +812,7 @@ export class AreaSeries extends CartesianSeries<
         this.resetLabelAnimation(animationData);
 
         const update = () => {
+            this.resetPathAnimation(animationData);
             this.updateAreaPaths(paths, contextData);
             this.updateStrokePath(paths, contextData);
         };

@@ -542,6 +542,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         this.resetLabelAnimation(animationData);
 
         const update = () => {
+            this.resetPathAnimation(animationData);
             this.updateLinePaths(paths, contextData);
         };
         const skip = () => {
