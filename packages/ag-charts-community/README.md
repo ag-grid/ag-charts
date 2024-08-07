@@ -67,7 +67,7 @@
 </div>
 
 <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/ag-grid/ag-charts/blob/latest/packages/ag-charts-website/public/images/readme-assets/financial-charts-annotations-light.gif?raw=true"/>
+    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/ag-grid/ag-charts/blob/latest/packages/ag-charts-website/public/images/readme-assets/gallery-dark.gif?raw=true"/>
     <source media="(prefers-color-scheme: light)" srcset="https://github.com/ag-grid/ag-charts/blob/latest/packages/ag-charts-website/public/images/readme-assets/gallery.gif?raw=true"/>
     <img width="100%" alt="Preview of AG Charts JavaScript Charting Examples" src="https://github.com/ag-grid/ag-charts/blob/latest/packages/ag-charts-website/public/images/readme-assets/gallery-dark.gif?raw=true"/>
 </picture>
