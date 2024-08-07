@@ -25,6 +25,12 @@ const initSelector = LIBRARY_INIT_SELECTOR;
         initSelector,
     }}
 >
+    const TIMEOUT_MS = 15000;
+    let hasTimedOut = false;
+    const timeout = setTimeout(() => {
+        hasTimedOut = true;
+    }, TIMEOUT_MS);
+
     const checkInit = function () {
         let elExists = false;
 
@@ -45,6 +51,15 @@ const initSelector = LIBRARY_INIT_SELECTOR;
                 exampleName,
             };
             window.parent?.postMessage(loadedEvent);
+            clearTimeout(timeout);
+        } else if (hasTimedOut) {
+            console.warn('Loading example timed out', {
+                pageName,
+                exampleName,
+                shadowDomSelector,
+                iframeSelector,
+                initSelector,
+            });
         } else {
             requestAnimationFrame(() => checkInit());
         }
