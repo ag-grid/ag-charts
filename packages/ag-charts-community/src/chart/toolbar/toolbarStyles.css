@@ -118,9 +118,9 @@
 .ag-charts-toolbar__button {
     /* Using a variable for the transition ensures it is evaluated at the same time as the border color variable,
        preventing a flash of the default border color on initial render. */
-    --transition: background-color 0.25s ease-in-out, border-color 0.25s ease-in-out,
-        color 0.25s ease-in-out align-items: center;
+    --transition: background-color 0.25s ease-in-out, border-color 0.25s ease-in-out, color 0.25s ease-in-out;
 
+    align-items: center;
     background: var(--ag-charts-toolbar-background-color);
     border: var(--ag-charts-toolbar-border);
     color: var(--ag-charts-toolbar-foreground-color);
