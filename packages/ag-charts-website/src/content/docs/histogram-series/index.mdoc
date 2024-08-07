@@ -3,32 +3,37 @@ title: 'Histogram Series'
 enterprise: true
 ---
 
-Histograms show the frequency distribution of continuous data. They are a good choice for when the data is larger than could be plotted on a bar chart and can be used to find underlying trends in data.
+A Histogram Series shows the frequency distribution of data values, providing a visual representation of the distribution and spread of the data.
 
 ## Simple Histogram
 
-Histograms require at least one numeric attribute in the data to be specified using the `xKey` property. Data will be distributed into bins according to the `xKey` values.
+{% chartExampleRunner title="Simple Histogram" name="simple" type="generated" /%}
 
-The simplest configuration for a Histogram Series is shown below:
+To create a Histogram Series, use the `histogram` series type and provide an `xKey`.
 
 ```js
 series: [
     {
         type: 'histogram',
         xKey: 'age',
+        xName: 'Participant Age',
     },
 ],
 ```
 
-{% chartExampleRunner title="Simple Histogram" name="simple" type="generated" /%}
+In this configuration:
 
-## Bin Count
+-   `xKey` defines the data values to be distributed into bins.
+-   By default the histogram will split the data into around ten identically sized bins, although the exact number will vary to show round values for the bin boundaries.
+-   `xName` configures display names, reflected in the [Tooltip Titles](./tooltips/).
 
-By default the histogram will split the X domain of the data into around ten regular-width bins, although the exact number of bins generated will vary so that the chart can find round values for the bin boundaries.
+## Bin Customisation
 
-The number of bins to aim for can be overridden by setting the `binCount` property on a histogram series.
+### Bin Count
 
-Given enough data, charts with more bins are able to more precisely illustrate underlying trends, but are also more sensitive to random noise.
+{% chartExampleRunner title="Larger Bin Count" name="larger-bin-count" type="generated" /%}
+
+The approximate number of bins to aim for can be overridden by setting the `binCount` property.
 
 ```js
 series: [{
@@ -38,17 +43,11 @@ series: [{
 }]
 ```
 
-{% chartExampleRunner title="Larger Bin Count" name="larger-bin-count" type="generated" /%}
+### Irregular Intervals
 
-## Irregular Intervals
+{% chartExampleRunner title="Irregular Intervals" name="irregular-intervals" type="generated" /%}
 
-Rather than specifying the number of bins, for cases where you know exactly which bins you wish to split your X axis values into, it is possible to explicitly give the start and end values for each bin.
-
-This is given using the `bins` property, and the value should be an array of arrays where each inner array contains the start and end value of a bin.
-
-For histogram charts with irregular bins, it is usual for the area of the bar, rather than its height, to visually represent the value of each bin. In this way the shape of the underlying curve is maintained over irregular intervals. The `areaPlot` property should be set to `true` to enable this mode.
-
-In the example below, the data from the race is split into irregular age categories and the `areaPlot` property has been set to `true`.
+Rather than specifying the number of bins, it is possible to explicitly give the start and end values for each bin.
 
 ```js
 series: [{
@@ -59,54 +58,59 @@ series: [{
 }]
 ```
 
+This is done using the `bins` property, and the value should be an array of arrays where each inner array contains the start and end value of a bin.
+
+For histogram charts with irregular bins, it is usual for the area of the bar, rather than its height, to visually represent the value of each bin. In this way the shape of the underlying curve is maintained over irregular intervals. The `areaPlot` property should be set to `true` to enable this mode.
+
+In the above example:
+
+-   The data from the race is split into irregular age categories.
+-   The `areaPlot` property has been set to `true`.
+
 {% warning %}
-Note that if you provide the `bins` property, you should refrain from including `binCount`; however, if both properties are present, 'binCount' takes precedence.
+If you provide the `bins` property, you should refrain from including `binCount`. If both properties are present, `binCount` takes precedence.
 {% /warning %}
 
-{% chartExampleRunner title="Irregular Intervals" name="irregular-intervals" type="generated" /%}
+## 2D Histogram
 
-## XY Histogram
+{% chartExampleRunner title="XY Histogram" name="2d-histogram" type="generated" /%}
 
-The histograms shown above all contain a single `xKey` with its frequency plotted on the Y axis. However, it is also possible to provide Y values corresponding to the X values, by specifying both `xKey` and `yKey` properties.
-
-When using XY Histograms it is useful to control how bins are aggregated using the `aggregation` series property. The following sections compare the `sum` and `mean` aggregation functions.
-
-### Summing Bins
-
-The `sum` aggregation function is used to sum the values of a column or attribute for each of the bins.
-
-When a `yKey` is specified, the default behaviour is to plot a total of the `yKey` values. The kind of aggregation to use is controlled by the `series.aggregation` property.
+To provide Y values as well as X values, specify both `xKey` and `yKey` properties.
 
 ```js
-series: [{
-    type: 'histogram'
-    xKey: 'age',
-    yKey: 'winnings',
-    aggregation: 'sum',
-}]
+series: [
+    {
+        type: 'histogram',
+        xKey: 'age',
+        xName: "Participant Age",
+        yKey: 'winnings',
+        yName: 'Winnings',
+    },
+],
 ```
 
-{% chartExampleRunner title="XY Histogram with Sum Aggregation" name="sum-histogram" type="generated" /%}
+-   `xKey` defines the data values to be distributed into bins along the horizontal axis.
+-   `yKey` defines the values determining the height of each bar along the vertical axis. These are [aggregated](#aggregation) within each bin.
+-   `xName` and `yName` configure display names, reflected in the [Tooltips](./tooltips/).
 
-### Mean Bins
+### Aggregation
 
-Showing frequencies or summing up the Y values isn't always the best way to visualize your data.
+{% chartExampleRunner title="Aggregation" name="aggregation-histogram" type="generated" /%}
 
-For data that is not evenly distributed in X, but is relatively uniform in Y, a sum plot XY histogram will tend to be dominated by the populations of the X bins.
-
-In the above example you may notice that the prize money distribution very closely follows the age distribution. In such cases, plotting the mean of a bin on the Y axis better illustrates an underlying trend in the data:
+The default aggregation method is `sum`. Use the `aggregation` option to change this to `count` or `mean`.
 
 ```js
-series: [{
-    type: 'histogram'
-    xKey: 'age',
-    yKey: 'time',
-    yName: 'Race time',
-    aggregation: 'mean',
-}]
+series: [
+    {
+        type: 'histogram',
+        xKey: 'age',
+        xName: 'Participant Age',
+        yKey: 'winnings',
+        yName: 'Winnings',
+        aggregation: 'sum' //default
+    },
+],
 ```
-
-{% chartExampleRunner title="XY Histogram with Mean Aggregation" name="mean-histogram" type="generated" /%}
 
 ## API Reference
 

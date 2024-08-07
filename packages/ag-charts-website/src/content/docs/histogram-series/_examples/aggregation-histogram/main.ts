@@ -5,17 +5,20 @@ import { getData } from './data';
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'Race results',
+        text: 'Prize money distribution',
+    },
+    subtitle: {
+        text: 'Total winnings by participant age',
     },
     data: getData(),
     series: [
         {
             type: 'histogram',
-            aggregation: 'mean',
             xKey: 'age',
             xName: 'Participant Age',
-            yKey: 'time',
-            yName: 'Race time',
+            yKey: 'winnings',
+            yName: 'Winnings',
+            aggregation: 'sum', //default
         },
     ],
     axes: [
@@ -28,9 +31,15 @@ const options: AgChartOptions = {
         {
             type: 'number',
             position: 'left',
-            title: { text: 'Mean race time (seconds)' },
+            title: { text: 'Total winnings (USD)' },
         },
     ],
 };
 
-AgCharts.create(options);
+const chart = AgCharts.create(options);
+
+function changeAggregation(aggType: string) {
+    options.series![0].aggregation = aggType;
+    options.axes[1].title.text = aggType == 'count' ? 'Number of winners' : 'Total winnings (USD)';
+    chart.update(options);
+}
