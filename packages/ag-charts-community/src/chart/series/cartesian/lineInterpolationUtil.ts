@@ -48,8 +48,6 @@ interface SpanTransform {
 
 function transformSpans(spanData: SpanDatum[], { x: xScale, y: yScale }: CartesianSeriesNodeDataContext['scales']) {
     let rangeSpanData: SpanDatum[] | undefined;
-    // I think we can remove this - but I'm not 100% sure
-    const mergingInvalidSpans: SpanTransform[] = [];
     const interpolatingInvalidSpans: SpanTransform[] = [];
 
     let shiftedXStart = Infinity;
@@ -69,7 +67,6 @@ function transformSpans(spanData: SpanDatum[], { x: xScale, y: yScale }: Cartesi
             const spanTransform: SpanTransform = { unshifted, shifted };
             shiftedXStart = Math.min(shiftedXStart, x0);
             shiftedXEnd = Math.max(shiftedXEnd, x1);
-            mergingInvalidSpans.push(spanTransform);
             interpolatingInvalidSpans.push(spanTransform);
         } else if (startIsFinite && !endIsFinite && rangeSpanData == null) {
             rangeSpanData = [spanDatum];
@@ -82,17 +79,7 @@ function transformSpans(spanData: SpanDatum[], { x: xScale, y: yScale }: Cartesi
 
             const startSpanDatum = rangeSpanData.at(0)!;
             const endSpanDatum = rangeSpanData.at(-1)!;
-            const start = spanRange(startSpanDatum.span)[0];
-            const end = spanRange(endSpanDatum.span)[1];
 
-            const mergedUnshifted: Span = {
-                type: 'linear',
-                moveTo: startSpanDatum.span.moveTo,
-                x0: start.x,
-                y0: start.y,
-                x1: end.x,
-                y1: end.y,
-            };
             const transformStart: Point = {
                 x: scale(startSpanDatum.xValue0, xScale),
                 y: scale(startSpanDatum.yValue0, yScale),
@@ -101,8 +88,6 @@ function transformSpans(spanData: SpanDatum[], { x: xScale, y: yScale }: Cartesi
                 x: scale(endSpanDatum.xValue1, xScale),
                 y: scale(endSpanDatum.yValue1, yScale),
             };
-            const mergedShifted = rescaleSpan(mergedUnshifted, transformStart, transformEnd);
-            mergingInvalidSpans.push({ unshifted: mergedUnshifted, shifted: mergedShifted });
 
             const step = (transformEnd.x - transformStart.x) / (rangeSpanData.length - 1);
 
