@@ -1,6 +1,6 @@
 .ag-chart-tooltip {
     transition: transform 0.1s ease;
-    max-width: 100%;
+    width: max-content;
     z-index: 99999;
     font:
         12px Verdana,
