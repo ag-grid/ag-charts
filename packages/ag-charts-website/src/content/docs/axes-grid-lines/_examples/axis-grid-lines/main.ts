@@ -28,24 +28,13 @@ const options: AgCartesianChartOptions = {
             position: 'bottom',
             gridLine: {
                 enabled: true,
-                style: [
-                    {
-                        stroke: 'rgba(219, 219, 219, 1)',
-                        lineDash: [4, 2],
-                    },
-                ],
             },
         },
         {
             type: 'number',
             position: 'left',
             gridLine: {
-                style: [
-                    {
-                        stroke: 'rgba(219, 219, 219, 1)',
-                        lineDash: [4, 2],
-                    },
-                ],
+                enabled: true,
             },
         },
     ],
@@ -88,13 +77,7 @@ function setGridStyle2() {
 }
 
 function setDefaultGridStyle() {
-    var gridStyle = [
-        {
-            stroke: 'rgba(219, 219, 219, 1)',
-            lineDash: [4, 2],
-        },
-    ];
-    options.axes![0].gridLine!.style = gridStyle;
-    options.axes![1].gridLine!.style = gridStyle;
+    delete options.axes![0].gridLine!.style;
+    delete options.axes![1].gridLine!.style;
     chart.update(options);
 }
