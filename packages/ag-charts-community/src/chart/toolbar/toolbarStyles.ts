@@ -27,9 +27,10 @@ export const modifiers = {
         end: 'ag-charts-toolbar__align--end',
     },
     button: {
-        active: `ag-charts-toolbar__button--active`,
-        hiddenValue: `ag-charts-toolbar__button--hidden-value`,
-        hiddenToggled: `ag-charts-toolbar__button--hidden-toggled`,
-        fillVisible: `ag-charts-toolbar__button--fill-visible`,
+        active: 'ag-charts-toolbar__button--active',
+        hiddenValue: 'ag-charts-toolbar__button--hidden-value',
+        hiddenToggled: 'ag-charts-toolbar__button--hidden-toggled',
+        fillVisible: 'ag-charts-toolbar__button--fill-visible',
+        withTransition: 'ag-charts-toolbar__button--with-transition',
     },
 };
