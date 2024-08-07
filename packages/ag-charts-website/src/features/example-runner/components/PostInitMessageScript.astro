@@ -8,9 +8,10 @@ interface Props {
     pageName: string;
     exampleName: string;
     shadowDomSelector?: string;
+    iframeSelector?: string;
 }
 
-const { pageName, exampleName, shadowDomSelector } = Astro.props as Props;
+const { pageName, exampleName, shadowDomSelector, iframeSelector } = Astro.props as Props;
 const initSelector = LIBRARY_INIT_SELECTOR;
 ---
 
@@ -20,14 +21,24 @@ const initSelector = LIBRARY_INIT_SELECTOR;
         pageName,
         exampleName,
         shadowDomSelector,
+        iframeSelector,
         initSelector,
     }}
 >
     const checkInit = function () {
-        const exists = shadowDomSelector
-            ? document.querySelector(shadowDomSelector)?.shadowRoot?.querySelector(initSelector)
-            : document.querySelector(initSelector);
-        if (exists) {
+        let elExists = false;
+
+        if (shadowDomSelector) {
+            elExists = Boolean(document.querySelector(shadowDomSelector)?.shadowRoot?.querySelector(initSelector));
+        } else if (iframeSelector) {
+            elExists = Boolean(
+                document.querySelector(iframeSelector)?.contentWindow.document.querySelector(initSelector)
+            );
+        } else {
+            elExists = document.querySelector(initSelector);
+        }
+
+        if (elExists) {
             const loadedEvent = {
                 type: 'init',
                 pageName,

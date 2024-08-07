@@ -15,6 +15,10 @@ export interface ExampleConfig {
      * Shadow DOM selector that the chart is inserted into
      */
     shadowDomSelector?: string;
+    /**
+     * iframe DOM selector that the chart is inserted into
+     */
+    iframeSelector?: string;
 }
 
 export interface GeneratedContents {
