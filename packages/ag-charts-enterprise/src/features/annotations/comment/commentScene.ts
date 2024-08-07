@@ -73,7 +73,8 @@ export class CommentScene extends TextualPointScene<CommentProperties> {
 
         const top = y - height;
         const right = x + width;
-        const cornerRadius = height / 2;
+
+        const cornerRadius = Math.min(20, Math.min(width, height) / 2);
 
         const { path } = this.shape;
         path.clear();
