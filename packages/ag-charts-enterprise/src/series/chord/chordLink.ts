@@ -1,7 +1,32 @@
 import { _Scene } from 'ag-charts-community';
 
-const { Path, ScenePathChangeDetection } = _Scene;
+const { BBox, Path, ScenePathChangeDetection } = _Scene;
 
+export function bezierControlPoints({
+    radius,
+    startAngle,
+    endAngle,
+    tension,
+}: {
+    radius: number;
+    startAngle: number;
+    endAngle: number;
+    tension: number;
+}) {
+    const cp0x = radius * Math.cos(startAngle);
+    const cp0y = radius * Math.sin(startAngle);
+    const cp3x = radius * Math.cos(endAngle);
+    const cp3y = radius * Math.sin(endAngle);
+    const cp1x = cp0x * tension;
+    const cp1y = cp0y * tension;
+    const cp2x = cp3x * tension;
+    const cp2y = cp3y * tension;
+
+    return {
+        x: [cp0x, cp1x, cp2x, cp3x] as const,
+        y: [cp0y, cp1y, cp2y, cp3y] as const,
+    };
+}
 export class ChordLink extends Path {
     @ScenePathChangeDetection()
     centerX: number = 0;
@@ -26,6 +51,21 @@ export class ChordLink extends Path {
 
     @ScenePathChangeDetection()
     tension: number = 1;
+
+    protected override computeBBox(): _Scene.BBox | undefined {
+        const { centerX, centerY, radius, startAngle1, endAngle1, startAngle2, endAngle2, tension } = this;
+
+        const outer = bezierControlPoints({ radius, startAngle: startAngle1, endAngle: endAngle2, tension });
+        const inner = bezierControlPoints({ radius, startAngle: startAngle2, endAngle: endAngle1, tension });
+
+        // The bbox of a Bezier's control points contains the bbox of the bezier itself
+        const x = Math.min(...outer.x, ...inner.x);
+        const width = Math.max(...outer.x, ...inner.x) - x;
+        const y = Math.min(...outer.y, ...inner.y);
+        const height = Math.max(...outer.y, ...inner.y) - y;
+
+        return new BBox(centerX + x, centerY + y, width, height);
+    }
 
     private tensionedCurveTo(
         cp0x: number,
