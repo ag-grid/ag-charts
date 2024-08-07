@@ -97,7 +97,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 [ChartAxisDirection.Y]: ['yLowName', 'yHighName', 'yName'],
             },
             animationResetFns: {
-                path: buildResetPathFn({ getOpacity: () => this.getOpacity() }),
+                path: buildResetPathFn({ getVisible: () => this.visible, getOpacity: () => this.getOpacity() }),
                 label: resetLabelFn,
                 marker: (node, datum) => ({ ...resetMarkerFn(node), ...resetMarkerPositionFn(node, datum) }),
             },
