@@ -6,12 +6,12 @@ export class Image extends Node {
         super();
     }
 
-    updateBitmap(newImage: ImageBitmap, x: number, y: number) {
-        this.sourceImage = newImage;
-        this.width = newImage.width;
-        this.height = newImage.height;
-        this.x = x;
-        this.y = y;
+    updateBitmap(newBitmap: ImageBitmap, bitmapPixelRatio: number, x: number, y: number) {
+        this.sourceImage = newBitmap;
+        this.width = newBitmap.width / bitmapPixelRatio;
+        this.height = newBitmap.height / bitmapPixelRatio;
+        this.x = x / bitmapPixelRatio;
+        this.y = y / bitmapPixelRatio;
         this.markDirty(this, RedrawType.MAJOR);
     }
 
