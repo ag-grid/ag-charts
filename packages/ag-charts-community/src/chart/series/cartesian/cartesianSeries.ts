@@ -942,26 +942,48 @@ export abstract class CartesianSeries<
         }
     }
 
-    protected resetAllAnimation(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
-        const { path, datum, label, marker } = this.opts?.animationResetFns ?? {};
-
-        // Stop any running animations by prefix convention.
-        this.ctx.animationManager.stopByAnimationGroupId(this.id);
+    protected resetPathAnimation(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
+        const { path } = this.opts?.animationResetFns ?? {};
 
         if (path) {
             data.paths.forEach((paths) => {
                 resetMotion([paths], path);
             });
         }
+    }
+
+    protected resetDatumAnimation(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
+        const { datum } = this.opts?.animationResetFns ?? {};
+
         if (datum) {
             resetMotion([data.datumSelection], datum);
         }
+    }
+
+    protected resetLabelAnimation(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
+        const { label } = this.opts?.animationResetFns ?? {};
+
         if (label) {
             resetMotion([data.labelSelection], label);
         }
+    }
+
+    protected resetMarkerAnimation(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
+        const { marker } = this.opts?.animationResetFns ?? {};
+
         if (marker && this.opts.hasMarkers) {
             resetMotion([data.markerSelection], marker);
         }
+    }
+
+    protected resetAllAnimation(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
+        // Stop any running animations by prefix convention.
+        this.ctx.animationManager.stopByAnimationGroupId(this.id);
+
+        this.resetPathAnimation(data);
+        this.resetDatumAnimation(data);
+        this.resetLabelAnimation(data);
+        this.resetMarkerAnimation(data);
 
         if (data.contextData?.animationValid === false) {
             this.ctx.animationManager.skipCurrentBatch();
