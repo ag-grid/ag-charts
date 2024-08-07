@@ -112,7 +112,7 @@ export class LineScene extends LinearScene<LineProperties> {
     }
 
     override getAnchor() {
-        const bbox = this.getCachedBBoxWithoutHandles();
+        const bbox = this.computeBBoxWithoutHandles();
         return { x: bbox.x + bbox.width / 2, y: bbox.y };
     }
 
