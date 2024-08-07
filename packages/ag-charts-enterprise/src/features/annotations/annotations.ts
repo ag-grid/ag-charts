@@ -378,6 +378,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.state.transition('updateTextInputBBox', bbox);
             },
 
+            updateTextInputBBox: (bbox?: _Scene.BBox) => {
+                this.state.transition('updateTextInputBBox', bbox);
+            },
+
             showAnnotationOptions: (active: number) => {
                 const node = this.annotations.at(active);
                 if (!node) return;

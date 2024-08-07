@@ -526,9 +526,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                     datum.visible = true;
 
-                    if ('invalidateTextInputBBox' in node) {
-                        node.invalidateTextInputBBox();
-                    }
+                    ctx.updateTextInputBBox(undefined);
                 },
             },
         });

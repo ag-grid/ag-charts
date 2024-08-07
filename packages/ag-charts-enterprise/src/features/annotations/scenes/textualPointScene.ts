@@ -40,10 +40,6 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         this.markDirty(this, _Scene.RedrawType.MINOR);
     }
 
-    public invalidateTextInputBBox() {
-        this.textInputBBox = undefined;
-    }
-
     public update(datum: Datum, context: AnnotationContext) {
         const coords = convertPoint(datum, context);
         const bbox = this.getTextBBox(datum, coords, context);

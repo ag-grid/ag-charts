@@ -1,4 +1,4 @@
-import type { _Util } from 'ag-charts-community';
+import type { _Scene, _Util } from 'ag-charts-community';
 
 import { AnnotationType, type Point } from './annotationTypes';
 import type { CalloutProperties } from './callout/calloutProperties';
@@ -62,6 +62,7 @@ export interface AnnotationsStateMachineContext {
     hideTextInput: () => void;
     updateTextInputColor: (color: string) => void;
     updateTextInputFontSize: (fontSize: number) => void;
+    updateTextInputBBox: (bbox?: _Scene.BBox) => void;
 
     showAnnotationOptions: (index: number) => void;
 
