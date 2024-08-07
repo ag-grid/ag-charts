@@ -166,7 +166,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     protected getSeriesThemeConfig(seriesType: string) {
-        return deepClone(this.activeTheme?.config[seriesType] ?? {});
+        const themeConfig = deepClone(this.activeTheme?.config[seriesType] ?? {});
+        this.removeLeftoverSymbols(themeConfig);
+        return themeConfig;
     }
 
     protected getDefaultAxes(options: T) {
