@@ -16,7 +16,7 @@ import { useDarkmode } from '@utils/hooks/useDarkmode';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classnames from 'classnames';
 import { createBrowserHistory } from 'history';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 const IS_SSR = typeof window === 'undefined';
 const ALL_FIX_VERSIONS = 'All Versions';
@@ -52,7 +52,7 @@ export const Changelog = () => {
     const location = useLocation();
     const [rowData, setRowData] = useState(null);
     const [gridApi, setGridApi] = useState<any>(null);
-    const [versions, setVersions] = useState<any>([]);
+    const [versions, setVersions] = useState<string[]>([]);
     const [allReleaseNotes, setAllReleaseNotes] = useState<any>(null);
     const [currentReleaseNotes, setCurrentReleaseNotes] = useState<any>(null);
     const [markdownContent, setMarkdownContent] = useState<any>(undefined);
@@ -89,7 +89,19 @@ export const Changelog = () => {
                     ALL_FIX_VERSIONS,
                     ...data.map((row: any) => row.versions[0]).map(gridToChartVersion),
                 ];
-                setVersions([...new Set(chartVersions)]);
+                const allVersions = Array.from(new Set<string>(chartVersions)).sort((v1, v2) => {
+                    const [v1Major, v1Minor, v1Patch] = v1.split('.').map((num: string) => parseInt(num, 10));
+                    const [v2Major, v2Minor, v2Patch] = v2.split('.').map((num: string) => parseInt(num, 10));
+
+                    if (v1Major !== v2Major) {
+                        return v2Major - v1Major;
+                    } else if (v1Minor !== v2Minor) {
+                        return v2Minor - v1Minor;
+                    }
+
+                    return v2Patch - v1Patch;
+                });
+                setVersions(allVersions);
                 setRowData(data);
             });
         fetch(urlWithBaseUrl(`/changelog/releaseVersionNotes.json`))

@@ -70,7 +70,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             ],
             markerSelectionGarbageCollection: false,
             animationResetFns: {
-                path: buildResetPathFn({ getOpacity: () => this.getOpacity() }),
+                path: buildResetPathFn({ getVisible: () => this.visible, getOpacity: () => this.getOpacity() }),
                 label: resetLabelFn,
                 marker: (node, datum) => ({ ...resetMarkerFn(node), ...resetMarkerPositionFn(node, datum) }),
             },
@@ -538,7 +538,8 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         } = animationData;
         const [path] = paths;
 
-        super.resetAllAnimation(animationData);
+        this.resetMarkerAnimation(animationData);
+        this.resetLabelAnimation(animationData);
 
         const update = () => {
             this.updateLinePaths(paths, contextData);

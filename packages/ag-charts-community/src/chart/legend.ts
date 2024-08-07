@@ -19,8 +19,8 @@ import { RedrawType } from '../scene/node';
 import type { Scene } from '../scene/scene';
 import { Selection } from '../scene/selection';
 import { Line } from '../scene/shape/line';
-import { SpriteRenderer } from '../scene/spriteRenderer';
-import { setElementBBox } from '../util/dom';
+import { type SpriteDimensions, SpriteRenderer } from '../scene/spriteRenderer';
+import { getWindow, setElementBBox } from '../util/dom';
 import { createId } from '../util/id';
 import { initToolbarKeyNav } from '../util/keynavUtil';
 import { Logger } from '../util/logger';
@@ -437,8 +437,8 @@ export class Legend extends BaseProperties {
         const itemMaxWidthPercentage = 0.8;
         const maxItemWidth = maxWidth ?? width * itemMaxWidthPercentage;
 
-        const { spriteAAPadding, spriteWidth, spriteHeight, markerWidth } = this.calculateSpriteDimensions();
-        this.spriteRenderer.resize(spriteWidth, spriteHeight);
+        const spriteDims = this.calculateSpriteDimensions();
+        this.spriteRenderer.resize(spriteDims);
 
         this.itemSelection.each((markerLabel, datum) => {
             markerLabel.fontStyle = fontStyle;
@@ -446,7 +446,7 @@ export class Legend extends BaseProperties {
             markerLabel.fontSize = fontSize;
             markerLabel.fontFamily = fontFamily;
 
-            const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, markerWidth, spriteAAPadding);
+            const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, spriteDims);
             const id = datum.itemId ?? datum.id;
             const labelText = this.getItemLabel(datum);
             const text = (labelText ?? '<unknown>').replace(/\r?\n/g, ' ');
@@ -514,7 +514,7 @@ export class Legend extends BaseProperties {
         return { markerLength, markerStrokeWidth, lineLength, lineStrokeWidth };
     }
 
-    private calculateSpriteDimensions() {
+    private calculateSpriteDimensions(): SpriteDimensions {
         // AG-11950 Calculate the length of the longest legend symbol to ensure that the text / symbols stay aligned.
         let spriteAAPadding = 0;
         let spriteWidth = 0;
@@ -536,16 +536,17 @@ export class Legend extends BaseProperties {
         });
         spriteWidth += spriteAAPadding * 2;
         spriteHeight += spriteAAPadding * 2;
-        return { spriteAAPadding, spriteWidth, spriteHeight, markerWidth };
+        const spritePixelRatio = getWindow().devicePixelRatio;
+        return { spritePixelRatio, spriteAAPadding, spriteWidth, spriteHeight, markerWidth };
     }
 
     private updateMarkerLabel(
         markerLabel: LegendMarkerLabel,
         datum: CategoryLegendDatum,
-        markerWidth: number,
-        spriteAAPadding: number
+        spriteDims: SpriteDimensions
     ): number {
         const { marker: itemMarker, paddingX } = this.item;
+        const { markerWidth } = spriteDims;
         const dimensionProps: { length: number; spacing: number }[] = [];
         let paddedSymbolWidth = paddingX;
 
@@ -599,7 +600,7 @@ export class Legend extends BaseProperties {
             }
         });
 
-        markerLabel.update(this.spriteRenderer, spriteAAPadding, dimensionProps);
+        markerLabel.update(this.spriteRenderer, spriteDims, dimensionProps);
         return paddedSymbolWidth;
     }
 

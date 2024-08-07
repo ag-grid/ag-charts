@@ -253,7 +253,13 @@ export function getPathComponents(path: string) {
     const components: string[] = [];
     let matchIndex = 0;
     let matchGroup: RegExpExecArray | null;
+    // This regex is a slightly less correct version of the commented out version below
+    // Safari <16.4 does not support negative look behinds
+    // Look at the skipped tests for what cases are not supported by this version
+    const regExp = /((?:(?:^|\.)\s*\w+|\[\s*(?:'(?:[^']|\\')*'|"(?:[^"]|\\")*"|-?\d+)\s*\])\s*)/g;
+    /*
     const regExp = /((?:(?:^|\.)\s*\w+|\[\s*(?:'(?:[^']|(?<!\\)\\')*'|"(?:[^"]|(?<!\\)\\")*"|-?\d+)\s*\])\s*)/g;
+    */
     /**              ^                         ^                      ^                      ^
      *               |                         |                      |                      |
      *                - .dotAccessor or initial property (i.e. a in "a.b")                   |

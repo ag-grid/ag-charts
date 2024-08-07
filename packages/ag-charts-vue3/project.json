@@ -67,6 +67,9 @@
         "watch": {
           "tsConfig": "packages/ag-charts-vue3/tsconfig.watch.json"
         },
+        "staging": {
+          "sourcemap": false
+        },
         "production": {
           "sourcemap": false
         }

@@ -25,6 +25,7 @@ export const ExampleStyle = ({
             display: grid;
             grid: 'toolbar' auto 'canvas' minmax(0, 1fr) / 1fr;
             padding: 1rem;
+            gap: 9px;
         }
 
         .toolbar {

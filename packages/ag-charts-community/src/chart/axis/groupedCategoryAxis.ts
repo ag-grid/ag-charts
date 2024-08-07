@@ -60,6 +60,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         this.axisLineSelection = Selection.select(tickLineGroup, Line);
         this.separatorSelection = Selection.select(tickLineGroup, Line);
         this.labelSelection = Selection.select(tickLabelGroup, Text);
+        this.lineNode.visible = false;
     }
 
     protected override updateRange() {

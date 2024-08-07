@@ -79,6 +79,9 @@
         "watch": {
           "tsConfig": "packages/ag-charts-react/tsconfig.watch.json"
         },
+        "staging": {
+          "sourcemap": false
+        },
         "production": {
           "sourcemap": false
         }
@@ -104,6 +107,9 @@
         "sourcemap": true
       },
       "configurations": {
+        "staging": {
+          "sourcemap": false
+        },
         "production": {
           "sourcemap": false
         }

@@ -92,6 +92,9 @@
         "watch": {
           "tsConfig": "{projectRoot}/tsconfig.watch.json"
         },
+        "staging": {
+          "sourcemap": false
+        },
         "production": {
           "sourcemap": false
         }
@@ -120,6 +123,9 @@
       "configurations": {
         "watch": {
           "tsConfig": "{projectRoot}/tsconfig.watch.json"
+        },
+        "staging": {
+          "sourcemap": false
         },
         "production": {
           "sourcemap": false

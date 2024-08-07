@@ -9,6 +9,10 @@
     border: 0;
     background: none;
     line-height: 1.38;
+
+    /* Adjust the position of the text input relative to the font size to
+       account for differences in canvas and html text rendering. */
+    transform: translate(0, 0.09em);
 }
 
 .ag-charts-text-input__textarea[placeholder]:empty:before {
