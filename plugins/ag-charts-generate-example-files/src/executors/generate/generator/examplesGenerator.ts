@@ -16,6 +16,7 @@ import {
 } from './utils/fileUtils';
 import { frameworkFilesGenerator } from './utils/frameworkFilesGenerator';
 import { getDarkModeSnippet } from './utils/getDarkModeSnippet';
+import { getExampleConfig } from './utils/getExampleConfig';
 import { getHtmlFiles } from './utils/getHtmlFiles';
 import { getOtherScriptFiles } from './utils/getOtherScriptFiles';
 import { getPackageJson } from './utils/getPackageJson';
@@ -145,6 +146,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
 
     const isEnterprise = getIsEnterprise({ entryFile });
     const hasLocale = getHasLocale({ entryFile });
+    const exampleConfig = await getExampleConfig({ folderPath, sourceFileList });
 
     const { bindings, typedBindings } = chartVanillaSrcParser({
         srcFile: entryFile,
@@ -194,6 +196,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         isEnterprise,
         layout,
         hasLocale,
+        exampleConfig,
         scriptFiles: scriptFiles!,
         styleFiles: Object.keys(styleFiles),
         htmlFiles: Object.keys(htmlFiles),

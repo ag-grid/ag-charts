@@ -51,7 +51,8 @@ const isDev = getIsDev();
 
 const library = 'charts';
 
-const { entryFileName, files, scriptFiles, styleFiles, isEnterprise, hasLocale, layout } = generatedContents || {};
+const { entryFileName, files, scriptFiles, styleFiles, isEnterprise, hasLocale, layout, exampleConfig } =
+    generatedContents || {};
 const indexFragment = files?.['index.html'];
 const headFragment = files?.['head.html'];
 const appLocation = relativePath ? '' : exampleUrl;
@@ -146,7 +147,16 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
     ) : null
 }
 
-{addInitMessageScript && <PostInitMessageScript pageName={pageName} exampleName={exampleName} />}
+{
+    addInitMessageScript && (
+        <PostInitMessageScript
+            pageName={pageName}
+            exampleName={exampleName}
+            shadowDomSelector={exampleConfig?.shadowDomSelector}
+            iframeSelector={exampleConfig?.iframeSelector}
+        />
+    )
+}
 
 <style>
     :global(astro-dev-toolbar) {
