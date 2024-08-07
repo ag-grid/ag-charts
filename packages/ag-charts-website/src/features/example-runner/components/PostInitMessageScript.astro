@@ -7,9 +7,10 @@ import {
 interface Props {
     pageName: string;
     exampleName: string;
+    shadowDomSelector?: string;
 }
 
-const { pageName, exampleName } = Astro.props as Props;
+const { pageName, exampleName, shadowDomSelector } = Astro.props as Props;
 const initSelector = LIBRARY_INIT_SELECTOR;
 ---
 
@@ -18,11 +19,15 @@ const initSelector = LIBRARY_INIT_SELECTOR;
     define:vars={{
         pageName,
         exampleName,
+        shadowDomSelector,
         initSelector,
     }}
 >
     const checkInit = function () {
-        if (document.querySelector(initSelector)) {
+        const exists = shadowDomSelector
+            ? document.querySelector(shadowDomSelector)?.shadowRoot?.querySelector(initSelector)
+            : document.querySelector(initSelector);
+        if (exists) {
             const loadedEvent = {
                 type: 'init',
                 pageName,
