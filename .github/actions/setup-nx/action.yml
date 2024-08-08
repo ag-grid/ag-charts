@@ -119,14 +119,14 @@ runs:
               cache: ${{ inputs.cache_mode != 'none' && !(steps.cache_rw.outputs.cache-hit == 'true' || steps.cache_ro.outputs.cache-hit == 'true') && 'yarn' || '' }}
 
         - name: yarn install
-          if: steps.cache_rw.outputs.cache-hit == 'false' || steps.cache_ro.outputs.cache-hit == 'false'
+          # if: steps.cache_rw.outputs.cache-hit == 'false' || steps.cache_ro.outputs.cache-hit == 'false'
           id: yarn_install
           shell: bash
           run: |
               (yarn check --integrity && yarn postinstall) || yarn install --ci ${{ inputs.yarn_opts }}
 
         - name: yarn postinstall
-          if: (steps.cache_rw.outputs.cache-hit == 'true' || steps.cache_ro.outputs.cache-hit == 'true') && inputs.yarn_postinstall == 'true'
+          # if: (steps.cache_rw.outputs.cache-hit == 'true' || steps.cache_ro.outputs.cache-hit == 'true') && inputs.yarn_postinstall == 'true'
           shell: bash
           run: yarn postinstall
 
