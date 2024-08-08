@@ -199,7 +199,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
 
         const cloneProxy = await this.factoryApi.createOrUpdate(options);
         await cloneProxy.setState(state);
-        cloneProxy.chart.ctx.zoomManager.updateZoom('agChartV2', chart.ctx.zoomManager.getZoom()); // sync zoom
+        cloneProxy.chart.ctx.zoomManager.updateZoom('chartProxy', chart.ctx.zoomManager.getZoom()); // sync zoom
         chart.series.forEach((series, index) => {
             if (!series.visible) {
                 cloneProxy.chart.series[index].visible = false; // sync series visibility

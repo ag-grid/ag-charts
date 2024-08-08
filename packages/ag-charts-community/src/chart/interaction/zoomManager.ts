@@ -207,9 +207,18 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
             if (!isFiniteNumber(d0) || !isFiniteNumber(d1)) return;
 
-            const diff = Math.abs(d1 - d0);
-            const start = axis.scale.invert?.(0);
-            const end = axis.scale.invert?.(Math.min(d0, d1) + diff * zoom[direction].max);
+            let start;
+            let end;
+
+            if (d0 <= d1) {
+                const diff = d1 - d0;
+                start = axis.scale.invert?.(0);
+                end = axis.scale.invert?.(d0 + diff * zoom[direction].max);
+            } else {
+                const diff = d0 - d1;
+                start = axis.scale.invert?.(d0 - diff * zoom[direction].min);
+                end = axis.scale.invert?.(0);
+            }
 
             return { start, end };
         }

@@ -111,13 +111,6 @@ export function circularSliceArray<T>(data: T[], size: number, offset = 0): T[] 
     return result;
 }
 
-export function bifurcate<T>(isLeft: (array: T) => boolean, array: T[]): [T[], T[]] {
-    return array.reduce(
-        ([left, right], value) => (isLeft(value) ? [[...left, value], right] : [left, [...right, value]]),
-        [[], []] as [T[], T[]]
-    );
-}
-
 export function* mapIterable<Src, Dst>(src: Iterable<Src>, predicate: (e: Src) => Dst): Iterable<Dst> {
     for (const e of src) {
         yield predicate(e);
