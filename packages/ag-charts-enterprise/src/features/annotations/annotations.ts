@@ -952,8 +952,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const datum = getTypedDatum(annotationData.at(active));
         const locked = datum?.locked ?? false;
 
-        this.updateToolbarFontSize(datum != null && 'fontSize' in datum ? datum.fontSize : undefined);
-        this.updateToolbarFills();
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.LineColor, {
             enabled: !locked,
             visible: hasLineColor(datum),
@@ -975,6 +973,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Lock, { checked: locked });
 
         toolbarManager.updateGroup('annotationOptions');
+
+        this.updateToolbarFontSize(datum != null && 'fontSize' in datum ? datum.fontSize : undefined);
+        this.updateToolbarFills();
     }
 
     private clear() {
