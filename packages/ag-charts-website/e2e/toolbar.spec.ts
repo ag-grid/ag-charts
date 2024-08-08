@@ -51,5 +51,44 @@ test.describe('toolbar', () => {
 
         await page.locator('.ag-charts-popover__label', { hasText: '46' }).click();
         await expect(page).toHaveScreenshot('text-7-change-font-size.png', { animations: 'disabled' });
+
+        await page.locator('[data-toolbar-id="delete"]').click();
+        await expect(page).toHaveScreenshot('text-8-deleted.png', { animations: 'disabled' });
+    });
+
+    test('callout', async ({ page }) => {
+        await gotoExample(page, url);
+
+        await page.locator('[data-toolbar-group="annotations"][data-toolbar-id="text-menu"]').click();
+        await page.locator('[data-popover-id="callout"]').click();
+
+        await page.hover('canvas', { position: { x: 200, y: 200 } });
+        await page.click('canvas', { position: { x: 200, y: 200 } });
+        await expect(page).toHaveScreenshot('callout-1-start.png', { animations: 'disabled' });
+
+        await page.hover('canvas', { position: { x: 250, y: 150 } });
+        await page.click('canvas', { position: { x: 250, y: 150 } });
+        await expect(page).toHaveScreenshot('callout-2-end.png', { animations: 'disabled' });
+
+        await page.keyboard.type('Hello, world!');
+        await expect(page).toHaveScreenshot('callout-3-input.png', { animations: 'disabled' });
+
+        await page.keyboard.down('Enter');
+        await expect(page).toHaveScreenshot('callout-4-save.png', { animations: 'disabled' });
+
+        await page.hover('canvas', { position: { x: 260, y: 140 } });
+        await page.click('canvas', { position: { x: 260, y: 140 } });
+        await page.locator('[data-toolbar-id="fill-color"]').click();
+        await expect(page).toHaveScreenshot('callout-5-fill-color-popover.png', { animations: 'disabled' });
+
+        await page.locator('.ag-charts-color-picker__hue-input').click({
+            position: {
+                x: 30,
+                y: 5,
+            },
+        });
+        await page.hover('canvas', { position: { x: 100, y: 100 } });
+        await page.click('canvas', { position: { x: 100, y: 100 } });
+        await expect(page).toHaveScreenshot('callout-6-change-fill-color.png', { animations: 'disabled' });
     });
 });
