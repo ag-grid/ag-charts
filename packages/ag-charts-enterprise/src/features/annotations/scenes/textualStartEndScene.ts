@@ -5,14 +5,12 @@ import { convertLine, invertCoords, validateDatumPoint } from '../annotationUtil
 import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
 import { DivariantHandle } from '../scenes/handle';
 import { LinearScene } from '../scenes/linearScene';
+import { ANNOTATION_TEXT_LINE_HEIGHT, measureAnnotationText, wrapText } from '../text/util';
 
-const { CachedTextMeasurerPool, TextWrapper } = _ModuleSupport;
 const { BBox } = _Scene;
 const { Vec2 } = _Util;
 
 export abstract class TextualStartEndScene<Datum extends TextualStartEndProperties> extends LinearScene<Datum> {
-    static readonly LineHeight = 1.38;
-
     override activeHandle?: 'start' | 'end';
 
     protected readonly label = new _Scene.Text({ zIndex: 1 });
@@ -55,11 +53,11 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
             return new BBox(x2, y2, textInputBBox.width, textInputBBox.height);
         }
 
-        const text = this.wrapText(datum, datum.width);
-        const textOptions = this.getTextOptions(datum);
+        const { text } = datum.getText();
 
-        const { lineMetrics, width } = CachedTextMeasurerPool.measureLines(text, textOptions);
-        const height = lineMetrics.length * (textOptions.font.fontSize * TextualStartEndScene.LineHeight);
+        const wrappedText = datum.width != null ? wrapText(datum, text, datum.width) : text;
+
+        const { width, height } = measureAnnotationText(datum, wrappedText);
 
         return new BBox(x2, y2, width, height);
     }
@@ -137,15 +135,15 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         this.label.y = y;
         this.label.textBaseline = datum.position == 'center' ? 'middle' : datum.position;
 
-        const hasText = datum.text.length > 0;
-        this.label.text = this.wrapText(datum, bbox.width);
-        this.label.fill = hasText ? datum.color : datum.getPlaceholderColor();
+        const { text, isPlaceholder } = datum.getText();
+        this.label.text = wrapText(datum, text, bbox.width);
+        this.label.fill = isPlaceholder ? datum.getPlaceholderColor() : datum.color;
         this.label.fontFamily = datum.fontFamily;
         this.label.fontSize = datum.fontSize;
         this.label.fontStyle = datum.fontStyle;
         this.label.fontWeight = datum.fontWeight;
         this.label.textAlign = datum.textAlign;
-        this.label.lineHeight = datum.fontSize * TextualStartEndScene.LineHeight;
+        this.label.lineHeight = datum.fontSize * ANNOTATION_TEXT_LINE_HEIGHT;
     }
 
     protected updateHandles(datum: Datum, bbox: _Scene.BBox, coords: LineCoords) {
@@ -199,34 +197,6 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
             stroke: datum.handle.stroke ?? datum.color,
             strokeOpacity: datum.handle.strokeOpacity,
             strokeWidth: datum.handle.strokeWidth,
-        };
-    }
-
-    private wrapText(datum: TextualStartEndProperties, width?: number) {
-        const hasText = datum.text.length > 0;
-        const text = hasText ? datum.text : datum.placeholderText ?? '';
-
-        return width
-            ? TextWrapper.wrapText(text, {
-                  ...this.getTextOptions(datum),
-                  avoidOrphans: false,
-                  textWrap: 'always',
-                  maxWidth: width,
-              })
-            : text;
-    }
-
-    private getTextOptions(datum: TextualStartEndProperties) {
-        return {
-            font: {
-                fontFamily: datum.fontFamily,
-                fontSize: datum.fontSize,
-                fontStyle: datum.fontStyle,
-                fontWeight: datum.fontWeight,
-            },
-            textAlign: datum.textAlign,
-            textBaseline: (datum.position == 'center' ? 'middle' : datum.position) as CanvasTextBaseline,
-            lineHeight: TextualStartEndScene.LineHeight,
         };
     }
 }

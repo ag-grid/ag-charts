@@ -3,10 +3,10 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 import type { AnnotationContext, Coords } from '../annotationTypes';
 import { convertPoint, invertCoords } from '../annotationUtils';
 import type { TextualPointProperties } from '../properties/textualPointProperties';
+import { ANNOTATION_TEXT_LINE_HEIGHT, measureAnnotationText, wrapText } from '../text/util';
 import { AnnotationScene } from './annotationScene';
 import { DivariantHandle } from './handle';
 
-const { CachedTextMeasurerPool, TextWrapper } = _ModuleSupport;
 const { Vec2 } = _Util;
 
 interface Anchor {
@@ -16,8 +16,6 @@ interface Anchor {
 }
 
 export abstract class TextualPointScene<Datum extends TextualPointProperties> extends AnnotationScene {
-    static readonly LineHeight = 1.38;
-
     override activeHandle?: string;
 
     protected readonly label = new _Scene.Text({ zIndex: 1 });
@@ -112,11 +110,11 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
             return new _Scene.BBox(coords.x, coords.y, textInputBBox.width, textInputBBox.height);
         }
 
-        const text = this.wrapText(datum, datum.width);
-        const textOptions = this.getTextOptions(datum);
+        const { text } = datum.getText();
 
-        const { lineMetrics, width } = CachedTextMeasurerPool.measureLines(text, textOptions);
-        const height = lineMetrics.length * (textOptions.font.fontSize * TextualPointScene.LineHeight);
+        const wrappedText = datum.width != null ? wrapText(datum, text, datum.width) : text;
+
+        const { width, height } = measureAnnotationText(datum, wrappedText);
 
         return new _Scene.BBox(coords.x, coords.y, width, height);
     }
@@ -129,7 +127,8 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         this.label.x = x;
         this.label.y = y;
 
-        this.label.text = this.wrapText(datum, bbox.width);
+        const { text } = datum.getText();
+        this.label.text = wrapText(datum, text, bbox.width);
 
         this.label.fill = datum.color;
         this.label.fontFamily = datum.fontFamily;
@@ -138,7 +137,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         this.label.fontWeight = datum.fontWeight;
         this.label.textAlign = datum.textAlign ?? datum.alignment;
         this.label.textBaseline = datum.position == 'center' ? 'middle' : datum.position;
-        this.label.lineHeight = datum.fontSize * TextualPointScene.LineHeight;
+        this.label.lineHeight = datum.fontSize * ANNOTATION_TEXT_LINE_HEIGHT;
     }
 
     protected updateHandle(datum: Datum, bbox: _Scene.BBox, coords: _Util.Vec2) {
@@ -175,34 +174,6 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
             stroke: datum.handle.stroke ?? datum.color,
             strokeOpacity: datum.handle.strokeOpacity,
             strokeWidth: datum.handle.strokeWidth,
-        };
-    }
-
-    private wrapText(datum: TextualPointProperties, width?: number) {
-        const hasText = datum.text.length > 0;
-        const text = hasText ? datum.text : datum.placeholderText ?? '';
-
-        return width
-            ? TextWrapper.wrapText(text, {
-                  ...this.getTextOptions(datum),
-                  avoidOrphans: false,
-                  textWrap: 'always',
-                  maxWidth: width,
-              })
-            : text;
-    }
-
-    private getTextOptions(datum: TextualPointProperties) {
-        return {
-            font: {
-                fontFamily: datum.fontFamily,
-                fontSize: datum.fontSize,
-                fontStyle: datum.fontStyle,
-                fontWeight: datum.fontWeight,
-            },
-            textAlign: datum.textAlign,
-            textBaseline: (datum.position == 'center' ? 'middle' : datum.position) as CanvasTextBaseline,
-            lineHeight: TextualPointScene.LineHeight,
         };
     }
 }
