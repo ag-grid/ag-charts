@@ -638,7 +638,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         const element = elements[position];
         const alignments = Object.values(positionAlignments[position]);
-        setHidden(element, styles.modifiers.floatingHidden, !visible);
+        element.classList.toggle(styles.modifiers.floatingHidden, !visible);
 
         const dir = position === ToolbarPosition.FloatingBottom ? 1 : -1;
 
