@@ -240,8 +240,6 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     private setButtonChecked(button: HTMLElement, checked: boolean) {
         if (button.role === 'switch') {
             button.ariaChecked = checked.toString();
-        } else {
-            button.attributes.removeNamedItem('aria-checked');
         }
     }
 
