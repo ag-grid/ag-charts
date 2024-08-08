@@ -289,7 +289,13 @@ export abstract class CartesianSeries<
                 waiting: {
                     update: {
                         target: 'ready',
-                        action: (data) => this.animateWaitingUpdateReady(data),
+                        action: (data) => {
+                            if (this.ctx.animationManager.isSkipped()) {
+                                this.resetAllAnimation(data);
+                            } else {
+                                this.animateWaitingUpdateReady(data);
+                            }
+                        },
                     },
                     reset: 'empty',
                     skip: 'ready',
