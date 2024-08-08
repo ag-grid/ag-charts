@@ -650,6 +650,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         );
         this.updateButton(button, options);
 
+        setTimeout(() => {
+            button.classList.add(styles.modifiers.button.withTransition);
+        }, 1);
+
         this.destroyFns.push(() => button.remove());
 
         return button;
