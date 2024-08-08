@@ -74,7 +74,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     private readonly element: HTMLElement;
     private menuElement?: HTMLDivElement;
     private menuElementDestroyFns: (() => void)[] = [];
-    private lastFocus?: HTMLElement;
     private readonly mutationObserver?: MutationObserver;
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
@@ -83,9 +82,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         // Module context
         this.interactionManager = ctx.interactionManager;
         this.registry = ctx.contextMenuRegistry;
-
-        const { All } = _ModuleSupport.InteractionState;
-        this.destroyFns.push(ctx.regionManager.listenAll('click', (_region) => this.onClick(), All));
 
         // State
         this.groups = { default: [], extra: [], extraSeries: [], extraNode: [], extraLegendItem: [] };
@@ -127,16 +123,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         });
 
         this.destroyFns.push(this.registry.addListener((e) => this.onContext(e)));
-    }
-
-    private isShown(): boolean {
-        return this.menuElement !== undefined;
-    }
-
-    private onClick() {
-        if (this.isShown()) {
-            this.hide();
-        }
     }
 
     private onContext(event: ContextMenuEvent) {
@@ -181,25 +167,10 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (groupCount === 0) return;
 
-        this.lastFocus = this.getLastFocus(event);
-        this.show();
+        this.show(event.sourceEvent);
     }
 
-    private getLastFocus(event: ContextMenuEvent): HTMLElement | undefined {
-        // We need to guess whether the event comes the mouse or keyboard, which isn't an obvious task because
-        // the event.sourceEvent instances are mostly indistinguishable.
-        //
-        // However, when right-clicking with the mouse, the target element will the
-        // <div class="ag-charts-canvas-overlay"> element. But when the contextmenu is requested using the
-        // keyboard, then the target should be an element with the tabindex attribute set. So that's what we'll
-        // use to determine the device that triggered the contextmenu event.
-        if (event.sourceEvent.target instanceof HTMLElement && 'tabindex' in event.sourceEvent.target.attributes) {
-            return event.sourceEvent.target;
-        }
-        return undefined;
-    }
-
-    private show() {
+    private show(sourceEvent: Event) {
         this.interactionManager.pushState(_ModuleSupport.InteractionState.ContextMenu);
         this.element.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
 
@@ -221,7 +192,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             menu: newMenuElement,
             buttons,
             orientation: 'vertical',
-            onEscape: () => this.hide(),
+            sourceEvent,
+            hideCallback: () => this.hide(),
         });
         newMenuElement.focus();
     }
@@ -237,8 +209,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         this.element.style.display = 'none';
-        this.lastFocus?.focus();
-        this.lastFocus = undefined;
     }
 
     private renderMenu() {

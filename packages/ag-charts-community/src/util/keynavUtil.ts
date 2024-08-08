@@ -1,11 +1,27 @@
+function addRemovableEventListener<K extends keyof WindowEventMap>(
+    destroyFns: (() => void)[],
+    elem: Window,
+    type: K,
+    listener: (this: Window, ev: WindowEventMap[K]) => any
+): () => void;
+
 function addRemovableEventListener<K extends keyof HTMLElementEventMap>(
     destroyFns: (() => void)[],
-    button: HTMLElement,
+    elem: HTMLElement,
     type: K,
     listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any
-): void {
-    button.addEventListener(type, listener);
-    destroyFns.push(() => button.removeEventListener(type, listener));
+): () => void;
+
+function addRemovableEventListener<K extends keyof (HTMLElementEventMap | WindowEventMap)>(
+    destroyFns: (() => void)[],
+    elem: HTMLElement | Window,
+    type: K,
+    listener: (this: unknown, ev: unknown) => unknown
+): () => void {
+    elem.addEventListener(type, listener);
+    const remover = () => elem.removeEventListener(type, listener);
+    destroyFns.push(remover);
+    return remover;
 }
 
 function addEscapeEventListener(
@@ -18,6 +34,25 @@ function addEscapeEventListener(
             onEscape(event);
         }
     });
+}
+
+function addMouseCloseListener(destroyFns: (() => void)[], menu: HTMLElement, hideCallback: () => void): () => void {
+    const self = addRemovableEventListener(destroyFns, window, 'mousedown', (event: MouseEvent) => {
+        if ([0, 2].includes(event.button) && !containsPoint(menu, event)) {
+            hideCallback();
+            self();
+        }
+    });
+    return self;
+}
+
+function containsPoint(container: Element, event: MouseEvent) {
+    if (event.target instanceof Element) {
+        const { x, y, width, height } = container.getBoundingClientRect();
+        const { clientX: ex, clientY: ey } = event;
+        return ex >= x && ey >= y && ex <= x + width && ey <= y + height;
+    }
+    return false;
 }
 
 function matchesKey(event: KeyboardEvent, key: string, ...morekeys: string[]): boolean {
@@ -52,6 +87,20 @@ function linkThreeButtons(
             event.preventDefault();
         }
     });
+}
+
+function getLastFocus(sourceEvent: Event): HTMLElement | undefined {
+    // We need to guess whether the event comes the mouse or keyboard, which isn't an obvious task because
+    // the event.sourceEvent instances are mostly indistinguishable.
+    //
+    // However, when right-clicking with the mouse, the target element will the
+    // <div class="ag-charts-canvas-overlay"> element. But when the contextmenu is requested using the
+    // keyboard, then the target should be an element with the tabindex attribute set. So that's what we'll
+    // use to determine the device that triggered the contextmenu event.
+    if (sourceEvent.target instanceof HTMLElement && 'tabindex' in sourceEvent.target.attributes) {
+        return sourceEvent.target;
+    }
+    return undefined;
 }
 
 const PREV_NEXT_KEYS = {
@@ -108,28 +157,37 @@ export function initMenuKeyNav(opts: {
     orientation: 'vertical';
     menu: HTMLElement;
     buttons: HTMLElement[];
-    onEscape?: (event: KeyboardEvent) => void;
+    sourceEvent: Event;
+    hideCallback: () => void;
 }): (() => void)[] {
-    const { orientation, menu, buttons, onEscape } = opts;
+    const { orientation, menu, buttons, sourceEvent, hideCallback } = opts;
     const { nextKey, prevKey } = PREV_NEXT_KEYS[orientation];
+    const destroyFns: (() => void)[] = [];
+
+    const lastFocus = getLastFocus(sourceEvent);
+    const mouseCloseRemove = addMouseCloseListener(destroyFns, menu, hideCallback);
+    const onEscape = () => {
+        hideCallback();
+        mouseCloseRemove();
+        lastFocus?.focus();
+    };
 
     menu.role = 'menu';
     menu.ariaOrientation = orientation;
 
-    const destroyFns: (() => void)[] = [];
     for (let i = 0; i < buttons.length; i++) {
         // Use modules to wrap around when navigation past the start/end of the menu.
         const prev = buttons[(buttons.length + i - 1) % buttons.length];
         const curr = buttons[i];
         const next = buttons[(buttons.length + i + 1) % buttons.length];
-        if (onEscape) addEscapeEventListener(destroyFns, curr, onEscape);
+        addEscapeEventListener(destroyFns, curr, onEscape);
         linkThreeButtons(destroyFns, curr, prev, prevKey, next, nextKey);
         curr.tabIndex = -1;
     }
 
     // Add handlers for the menu element itself.
     menu.tabIndex = -1;
-    if (onEscape) addEscapeEventListener(destroyFns, menu, onEscape);
+    addEscapeEventListener(destroyFns, menu, onEscape);
     addRemovableEventListener(destroyFns, menu, 'keydown', (ev: KeyboardEvent) => {
         if (ev.target === menu && (ev.key === nextKey || ev.key === prevKey)) {
             ev.preventDefault();
