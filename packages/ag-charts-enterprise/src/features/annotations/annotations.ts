@@ -979,6 +979,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Delete, { enabled: !locked });
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Lock, { visible: !locked });
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Unlock, { visible: locked });
+        toolbarManager.updateGroup('annotationOptions');
     }
 
     private clear() {

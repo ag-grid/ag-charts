@@ -102,11 +102,15 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         zoom: [],
     };
 
-    private readonly ariaToolbars: { groups: ToolbarGroup[]; destroyFns: (() => void)[] }[] = [
-        { groups: ['seriesType', 'annotations'], destroyFns: [] },
-        { groups: ['annotationOptions'], destroyFns: [] },
-        { groups: ['ranges'], destroyFns: [] },
-        { groups: ['zoom'], destroyFns: [] },
+    private readonly ariaToolbars: {
+        groups: ToolbarGroup[];
+        destroyFns: (() => void)[];
+        resetListeners: () => void;
+    }[] = [
+        { groups: ['seriesType', 'annotations'], destroyFns: [], resetListeners: () => {} },
+        { groups: ['annotationOptions'], destroyFns: [], resetListeners: () => {} },
+        { groups: ['ranges'], destroyFns: [], resetListeners: () => {} },
+        { groups: ['zoom'], destroyFns: [], resetListeners: () => {} },
     ];
 
     private pendingButtonToggledEvents: Array<ToolbarButtonToggledEvent> = [];
@@ -131,6 +135,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             ctx.toolbarManager.addListener('button-toggled', this.onButtonToggled.bind(this)),
             ctx.toolbarManager.addListener('button-updated', this.onButtonUpdated.bind(this)),
             ctx.toolbarManager.addListener('group-toggled', this.onGroupToggled.bind(this)),
+            ctx.toolbarManager.addListener('group-toggled', this.onGroupUpdated.bind(this)),
             ctx.toolbarManager.addListener('floating-anchor-changed', this.onFloatingAnchorChanged.bind(this)),
             ctx.toolbarManager.addListener('proxy-group-options', this.onProxyGroupOptions.bind(this)),
             ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this)),
@@ -254,6 +259,17 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.toggleVisibilities();
     }
 
+    private onGroupUpdated(event: ToolbarGroupToggledEvent) {
+        const { group } = event;
+
+        for (const ariaToolbar of this.ariaToolbars) {
+            if (ariaToolbar.groups.includes(group)) {
+                ariaToolbar.resetListeners();
+                return;
+            }
+        }
+    }
+
     private onFloatingAnchorChanged(event: ToolbarFloatingAnchorChangedEvent) {
         const {
             elements,
@@ -356,11 +372,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             button.remove();
         }
 
-        const ariaToolbar = this.getAriaToolbar(group);
         this.groupButtons[group] = [];
-        ariaToolbar.destroyFns.forEach((d) => d());
-        ariaToolbar.destroyFns = [];
-
         if (buttons.length === 0) return;
 
         const { align, position } = this[group];
@@ -421,26 +433,36 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         const onEscape = () => {
             this.ctx.toolbarManager.cancel(group);
         };
-
         let onFocus;
         let onBlur;
-
         if (isAnimatingFloatingPosition(position)) {
             onFocus = () => this.translateFloatingElements(position, true);
             onBlur = () => this.translateFloatingElements(position, false);
         }
 
+        this.createAriaToolbar(group, alignElement, onFocus, onBlur, onEscape);
+    }
+
+    private createAriaToolbar(
+        group: ToolbarGroup,
+        toolbar: HTMLElement,
+        onFocus: undefined | ((event: FocusEvent) => void),
+        onBlur: undefined | ((event: FocusEvent) => void),
+        onEscape: (event: KeyboardEvent) => void
+    ) {
         const orientation = this.computeAriaOrientation(this[group].position);
-        const ariaToolbarButtons = ariaToolbar.groups.map((g) => this.groupButtons[g]).flat();
-        ariaToolbar.destroyFns = initToolbarKeyNav({
-            orientation,
-            toolbar: alignElement,
-            buttons: ariaToolbarButtons,
-            onEscape,
-            onFocus,
-            onBlur,
-        });
-        this.updateToolbarAriaLabel(group, alignElement);
+        const ariaToolbar = this.getAriaToolbar(group);
+
+        ariaToolbar.resetListeners = () => {
+            const buttons = ariaToolbar.groups
+                .map((g) => this.groupButtons[g])
+                .flat()
+                .filter((b) => !b.classList.contains(styles.modifiers.button.hiddenToggled));
+            ariaToolbar.destroyFns.forEach((d) => d());
+            ariaToolbar.destroyFns = initToolbarKeyNav({ orientation, toolbar, buttons, onEscape, onFocus, onBlur });
+        };
+        ariaToolbar.resetListeners();
+        this.updateToolbarAriaLabel(group, toolbar);
     }
 
     private computeAriaOrientation(position: ToolbarPosition): 'horizontal' | 'vertical' {
