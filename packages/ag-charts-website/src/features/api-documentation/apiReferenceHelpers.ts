@@ -73,7 +73,7 @@ export function getMemberType(member: MemberNode): string {
     return member.type;
 }
 
-export function normalizeType(refType: TypeNode): string {
+export function normalizeType(refType: TypeNode, keepGenerics?: boolean): string {
     if (typeof refType === 'string') {
         return refType;
     }
@@ -81,8 +81,8 @@ export function normalizeType(refType: TypeNode): string {
         case 'array':
             return `${normalizeType(refType.type)}[]`;
         case 'typeRef':
-            return refType.typeArguments?.length
-                ? `${refType.type}<${refType.typeArguments.map(normalizeType).join(', ')}>`
+            return keepGenerics && refType.typeArguments?.length
+                ? `${refType.type}<${refType.typeArguments.map((typeArg) => normalizeType(typeArg)).join(', ')}>`
                 : refType.type;
         case 'union':
             return refType.type.map((subType) => normalizeType(subType)).join(' | ');
@@ -269,7 +269,7 @@ function formatFunctionCode(name: string, apiNode: FunctionNode, member: MemberN
 
     const params = apiNode.params?.map((param) => `${param.name}: ${normalizeType(param.type)}`).join(', ');
 
-    const codeSample = `function ${name}(${params ?? ''}): ${normalizeType(apiNode.returnType)};`;
+    const codeSample = `function ${name}(${params ?? ''}): ${normalizeType(apiNode.returnType, true)};`;
 
     return additionalTypes
         ? [codeSample].concat(additionalTypes.map((type) => formatTypeToCode(type, member, reference))).join('\n\n')
