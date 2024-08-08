@@ -26,6 +26,7 @@ import {
     TOOLBAR_GROUP_ORDERING,
     TOOLBAR_POSITIONS,
     type ToolbarAlignment,
+    type ToolbarButtonConfig,
     type ToolbarGroup,
     ToolbarPosition,
     isAnimatingFloatingPosition,
@@ -236,8 +237,16 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         button.classList.toggle(styles.modifiers.button.active, active);
     }
 
+    private setButtonChecked(button: HTMLElement, checked: boolean) {
+        if (button.role === 'switch') {
+            button.ariaChecked = checked.toString();
+        } else {
+            button.attributes.removeNamedItem('aria-checked');
+        }
+    }
+
     private onButtonToggled(event: ToolbarButtonToggledEvent) {
-        const { group, id, active, enabled, visible } = event;
+        const { group, id, active, enabled, visible, checked } = event;
 
         if (this.groupButtons[group].length === 0) {
             this.pendingButtonToggledEvents.push(event);
@@ -249,6 +258,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             button.ariaDisabled = `${!enabled}`;
             setVisibility(button, styles.modifiers.button.hiddenToggled, !visible);
             this.setButtonActive(button, active);
+            this.setButtonChecked(button, checked);
         }
     }
 
@@ -670,6 +680,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         button.onclick = makeAccessibleClickListener(button, (event) =>
             this.onButtonPress(event, button, group, options.id, options.value)
         );
+        if (options.role === 'switch') {
+            button.role = options.role;
+            button.ariaChecked = false.toString();
+        }
         this.updateButton(button, options);
 
         setTimeout(() => {
@@ -706,25 +720,35 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         alignElement.ariaLabel = this.ctx.localeManager.t(map[group]);
     }
 
-    private updateButton(button: HTMLButtonElement, options: ButtonConfiguration) {
-        const {
-            ctx: { domManager, localeManager },
-        } = this;
+    private expandConfig(button: HTMLButtonElement, options: ButtonConfiguration): ToolbarButtonConfig {
+        if (options.role !== 'switch' || button.ariaChecked !== 'true' || options.checkedOverrides === undefined)
+            return options;
 
-        if (options.tooltip) {
-            const tooltip = localeManager.t(options.tooltip);
-            button.title = tooltip;
+        return {
+            icon: options.checkedOverrides.icon ?? options.icon,
+            label: options.checkedOverrides.label ?? options.label,
+            ariaLabel: options.checkedOverrides.ariaLabel ?? options.ariaLabel,
+            tooltip: options.checkedOverrides.tooltip ?? options.tooltip,
+        };
+    }
+
+    private updateButton(button: HTMLButtonElement, options: ButtonConfiguration) {
+        const { domManager, localeManager } = this.ctx;
+        const { icon, label, ariaLabel, tooltip } = this.expandConfig(button, options);
+
+        if (tooltip) {
+            button.title = localeManager.t(tooltip);
         }
 
         let inner = '';
 
-        if (options.icon != null) {
-            inner = `<span class="${domManager.getIconClassNames(options.icon)} ${styles.elements.icon}"></span>`;
+        if (icon != null) {
+            inner = `<span class="${domManager.getIconClassNames(icon)} ${styles.elements.icon}"></span>`;
         }
 
-        if (options.label != null) {
-            const label = localeManager.t(options.label);
-            inner = `${inner}<span class="${styles.elements.label}">${label}</span>`;
+        if (label != null) {
+            const tlabel = localeManager.t(label);
+            inner = `${inner}<span class="${styles.elements.label}">${tlabel}</span>`;
         }
 
         button.innerHTML = inner;
@@ -732,8 +756,8 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         button.classList.toggle(styles.modifiers.button.fillVisible, options.fill != null);
         button.style.setProperty('--fill', options.fill ?? null);
 
-        const ariaLabel = options.ariaLabel ? this.ctx.localeManager.t(options.ariaLabel) : undefined;
-        setAttribute(button, 'aria-label', ariaLabel);
+        const tAriaLabel = ariaLabel ? this.ctx.localeManager.t(ariaLabel) : undefined;
+        setAttribute(button, 'aria-label', tAriaLabel);
     }
 
     private onButtonPress(

@@ -27,13 +27,10 @@ export type AgToolbarGroupPosition =
     | 'floating'
     | 'floating-top'
     | 'floating-bottom';
+
 export type AgToolbarGroupSize = 'small' | 'normal';
 
-export interface AgToolbarButton {
-    /** Section name used for grouping of buttons.
-     *
-     * Adjacent buttons with the same section are grouped together.*/
-    section?: string;
+interface AgToolbarButtonConfig {
     /** Icon to display on the button. */
     icon?: AgIconName;
     /** Text label to display on the button. */
@@ -42,10 +39,21 @@ export interface AgToolbarButton {
     ariaLabel?: string;
     /** Tooltip text to display on hover over the button. */
     tooltip?: string;
+}
+
+export interface AgToolbarButton extends AgToolbarButtonConfig {
+    /** Section name used for grouping of buttons.
+     *
+     * Adjacent buttons with the same section are grouped together.*/
+    section?: string;
     /** Value provided to caller when the button is pressed. */
     value: any;
     /** ID of the button (must be set when value is not a primitive) */
     id?: string;
+    /** The button type (default: `'button'`); `'switch'` is the same but also have an on/off state like checkboxes. */
+    role?: 'button' | 'switch';
+    /** Overrides for the button when checked. Only applicable with `role: 'switch'`. */
+    checkedOverrides?: AgToolbarButtonConfig;
 }
 
 export type AgIconName =
@@ -185,8 +193,7 @@ export type AgToolbarAnnotationOptionsButtonValue =
     | 'text-color'
     | 'text-size'
     | 'delete'
-    | 'lock'
-    | 'unlock';
+    | 'lock';
 
 /* Ranges */
 export interface AgToolbarRangesGroup extends AgToolbarGroup {

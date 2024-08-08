@@ -119,7 +119,6 @@ enum AnnotationOptions {
     Lock = 'lock',
     TextColor = 'text-color',
     TextSize = 'text-size',
-    Unlock = 'unlock',
 }
 
 class AxesButtons {
@@ -533,15 +532,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.reset();
                 break;
 
-            case AnnotationOptions.Lock:
-                annotationData[active].locked = true;
+            case AnnotationOptions.Lock: {
+                annotationData[active].locked = !annotationData[active].locked;
                 this.toggleAnnotationOptionsButtons();
                 break;
-
-            case AnnotationOptions.Unlock:
-                annotationData[active].locked = false;
-                this.toggleAnnotationOptionsButtons();
-                break;
+            }
         }
 
         this.update();
@@ -977,8 +972,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         });
 
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Delete, { enabled: !locked });
-        toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Lock, { visible: !locked });
-        toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Unlock, { visible: locked });
+        toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Lock, { checked: locked });
+
         toolbarManager.updateGroup('annotationOptions');
     }
 
