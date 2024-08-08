@@ -40,7 +40,6 @@ import { AreaSeriesProperties } from './areaSeriesProperties';
 import {
     type AreaPathSpan,
     type AreaSeriesNodeDataContext,
-    AreaSeriesTag,
     type LabelSelectionDatum,
     type MarkerSelectionDatum,
     prepareAreaPathAnimation,
@@ -538,7 +537,6 @@ export class AreaSeries extends CartesianSeries<
 
         const strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
         stroke.setProperties({
-            tag: AreaSeriesTag.Stroke,
             fill: undefined,
             lineJoin: (stroke.lineCap = 'round'),
             pointerEvents: PointerEvents.None,
@@ -551,7 +549,6 @@ export class AreaSeries extends CartesianSeries<
             visible,
         });
         fill.setProperties({
-            tag: AreaSeriesTag.Fill,
             stroke: undefined,
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
@@ -651,9 +648,7 @@ export class AreaSeries extends CartesianSeries<
     }) {
         const { labelData, labelSelection } = opts;
 
-        return labelSelection.update(labelData, (text) => {
-            text.tag = AreaSeriesTag.Label;
-        });
+        return labelSelection.update(labelData);
     }
 
     protected async updateLabelNodes(opts: { labelSelection: Selection<Text, LabelSelectionDatum> }) {

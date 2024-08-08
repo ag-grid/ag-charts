@@ -12,13 +12,6 @@ import { pairCategoryData, pairContinuousData, prepareLinePathPropertyAnimation 
 import { prepareMarkerAnimation } from './markerUtil';
 import { isScaleValid } from './scaling';
 
-export enum AreaSeriesTag {
-    Fill,
-    Stroke,
-    Marker,
-    Label,
-}
-
 export interface AreaPathPoint {
     point: {
         x: number;
