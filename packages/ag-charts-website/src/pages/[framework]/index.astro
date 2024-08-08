@@ -17,7 +17,7 @@ const frameworkDisplay = FRAMEWORK_DISPLAY_TEXT[Astro.params?.framework];
     description=`AG Charts ${frameworkDisplay} Documentation - This page will redirect to the landing page for ${frameworkDisplay} docs`
     hideFooter={true}
 >
-    <FrameworkRedirectPage redirectPageName={DOCS_FRAMEWORK_REDIRECT_PAGE}>
+    <FrameworkRedirectPage framework={Astro.params.framework} redirectPageName={DOCS_FRAMEWORK_REDIRECT_PAGE}>
         <h1>Redirecting to AG Charts {frameworkDisplay} Documentation...</h1>
     </FrameworkRedirectPage>
 </Layout>
