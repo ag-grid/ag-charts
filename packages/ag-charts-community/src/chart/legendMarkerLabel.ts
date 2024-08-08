@@ -1,6 +1,7 @@
 import type { FontStyle, FontWeight } from 'ag-charts-types';
 
 import { BBox } from '../scene/bbox';
+import { RedrawType } from '../scene/changeDetectable';
 import { Group } from '../scene/group';
 import { Image } from '../scene/image';
 import type { Line } from '../scene/shape/line';
@@ -144,7 +145,7 @@ export class LegendMarkerLabel extends Group {
                 line.x2 = shift + length;
                 line.y1 = 0;
                 line.y2 = 0;
-                line.markDirtyTransform();
+                line.markDirty(this, RedrawType.MAJOR);
                 lineTop = -line.strokeWidth / 2;
             }
 
