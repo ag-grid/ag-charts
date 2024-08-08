@@ -57,9 +57,9 @@ export interface AgHistogramSeriesOptions<TDatum = any>
         AgHistogramSeriesThemeableOptions<TDatum> {
     /** Configuration for Histogram Series. */
     type: 'histogram';
-    /** For variable width bins.
-     *
-     * If `true`, the histogram will represent the aggregated `yKey` values using the area of the bar, instead of just the height. */
+    /**
+     * If `true`, the aggregated `yKey` values will be represented using the area of the bar, instead of just the height.
+     */
     areaPlot?: boolean;
     /** Set the bin sizes explicitly.
      *

@@ -1,8 +1,8 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, AgHistogramSeriesOptions } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Prize money distribution',
@@ -38,8 +38,8 @@ const options: AgChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function changeAggregation(aggType: string) {
-    options.series![0].aggregation = aggType;
-    options.axes[1].title.text = aggType == 'count' ? 'Number of winners' : 'Total winnings (USD)';
+function changeAggregation(aggType: 'count' | 'sum' | 'mean') {
+    (options.series![0] as AgHistogramSeriesOptions).aggregation = aggType;
+    options.axes![1].title!.text = aggType == 'count' ? 'Number of winners' : 'Total winnings (USD)';
     chart.update(options);
 }

@@ -24,7 +24,7 @@ series: [
 In this configuration:
 
 -   `xKey` defines the data values to be distributed into bins.
--   By default the histogram will split the data into around ten identically sized bins, although the exact number will vary to show round values for the bin boundaries.
+-   The Histogram Series will split the data into around ten identically sized bins, although the exact number will vary to show round values for the bin boundaries.
 -   `xName` configures display names, reflected in the [Tooltip Titles](./tooltips/).
 
 ## Bin Customisation
@@ -58,17 +58,14 @@ series: [{
 }]
 ```
 
-This is done using the `bins` property, and the value should be an array of arrays where each inner array contains the start and end value of a bin.
+In this configuration:
 
-For histogram charts with irregular bins, it is usual for the area of the bar, rather than its height, to visually represent the value of each bin. In this way the shape of the underlying curve is maintained over irregular intervals. The `areaPlot` property should be set to `true` to enable this mode.
-
-In the above example:
-
--   The data from the race is split into irregular age categories.
--   The `areaPlot` property has been set to `true`.
+-   The data from the race is split into irregular age categories using the `bins`.
+-   This property takes an array of arrays where each inner array contains the start and end value of a bin.
+-   The `areaPlot` property has been set to `true`. This visualises the value using the area of the bar rather than its height and is often used for Histogram Series with irregular bin sizes.
 
 {% warning %}
-If you provide the `bins` property, you should refrain from including `binCount`. If both properties are present, `binCount` takes precedence.
+If both `bins` and `binCount` properties are provided, `binCount` takes precedence.
 {% /warning %}
 
 ## 2D Histogram
