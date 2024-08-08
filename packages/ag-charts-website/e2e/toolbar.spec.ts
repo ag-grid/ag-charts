@@ -44,16 +44,28 @@ test.describe('toolbar', () => {
         await page.keyboard.down('Enter');
         await expect(page).toHaveScreenshot('text-5-save.png', { animations: 'disabled' });
 
+        // Select text annotation
         await page.hover('canvas', { position: { x: 210, y: 190 } });
         await page.click('canvas', { position: { x: 210, y: 190 } });
+
+        await page.click('canvas', { position: { x: 210, y: 190 } });
+        await page.keyboard.type(' Editing!');
+        await expect(page).toHaveScreenshot('text-6-editing.png', { animations: 'disabled' });
+
+        await page.keyboard.down('Enter');
+
+        // Select text annotation
+        await page.hover('canvas', { position: { x: 210, y: 190 } });
+        await page.click('canvas', { position: { x: 210, y: 190 } });
+
         await page.locator('[data-toolbar-id="text-size"]').click();
-        await expect(page).toHaveScreenshot('text-6-font-size-popover.png', { animations: 'disabled' });
+        await expect(page).toHaveScreenshot('text-7-font-size-popover.png', { animations: 'disabled' });
 
         await page.locator('.ag-charts-popover__label', { hasText: '46' }).click();
-        await expect(page).toHaveScreenshot('text-7-change-font-size.png', { animations: 'disabled' });
+        await expect(page).toHaveScreenshot('text-8-change-font-size.png', { animations: 'disabled' });
 
         await page.locator('[data-toolbar-id="delete"]').click();
-        await expect(page).toHaveScreenshot('text-8-deleted.png', { animations: 'disabled' });
+        await expect(page).toHaveScreenshot('text-9-deleted.png', { animations: 'disabled' });
     });
 
     test('callout', async ({ page }) => {
