@@ -276,7 +276,7 @@ export class Legend extends BaseProperties {
             region.addListener('hover', (e) => this.handleLegendMouseMove(e), animationState),
             region.addListener('leave', () => this.handleLegendMouseExit(), animationState),
             region.addListener('enter', (e) => this.handleLegendMouseEnter(e), animationState),
-            ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e)),
+            ctx.layoutService.on('start-layout', (e) => this.positionLegend(e)),
             ctx.localeManager.addListener('locale-changed', () => this.onLocaleChanged()),
             () => this.group.parent?.removeChild(this.group)
         );
@@ -1208,13 +1208,10 @@ export class Legend extends BaseProperties {
     }
 
     private positionLegend(ctx: LayoutContext) {
+        if (!this.enabled || !this.data.length) return;
+
         const { shrinkRect } = ctx;
-        const newShrinkRect = shrinkRect.clone();
-
-        if (!this.enabled || !this.data.length) {
-            return { ...ctx, shrinkRect: newShrinkRect };
-        }
-
+        const { x, y, width, height } = shrinkRect;
         const [legendWidth, legendHeight] = this.calculateLegendDimensions(shrinkRect);
 
         this.group.translationX = 0;
@@ -1228,12 +1225,13 @@ export class Legend extends BaseProperties {
                 case 'left':
                     return 0;
                 case 'bottom':
-                    return shrinkRect.height - legendBBox.height;
+                    return height - legendBBox.height;
                 case 'right':
                 default:
-                    return shrinkRect.width - legendBBox.width;
+                    return width - legendBBox.width;
             }
         };
+
         if (this.visible) {
             const legendPadding = this.spacing;
 
@@ -1243,22 +1241,22 @@ export class Legend extends BaseProperties {
             switch (this.position) {
                 case 'top':
                 case 'bottom':
-                    translationX = (shrinkRect.width - legendBBox.width) / 2;
+                    translationX = (width - legendBBox.width) / 2;
                     translationY = calculateTranslationPerpendicularDimension();
-                    newShrinkRect.shrink(legendBBox.height + legendPadding, this.position);
+                    shrinkRect.shrink(legendBBox.height + legendPadding, this.position);
                     break;
 
                 case 'left':
                 case 'right':
                 default:
                     translationX = calculateTranslationPerpendicularDimension();
-                    translationY = (shrinkRect.height - legendBBox.height) / 2;
-                    newShrinkRect.shrink(legendBBox.width + legendPadding, this.position);
+                    translationY = (height - legendBBox.height) / 2;
+                    shrinkRect.shrink(legendBBox.width + legendPadding, this.position);
             }
 
             // Round off for pixel grid alignment to work properly.
-            this.group.translationX = Math.floor(-legendBBox.x + shrinkRect.x + translationX);
-            this.group.translationY = Math.floor(-legendBBox.y + shrinkRect.y + translationY);
+            this.group.translationX = Math.floor(x - legendBBox.x + translationX);
+            this.group.translationY = Math.floor(y - legendBBox.y + translationY);
 
             this.proxyLegendToolbar.style.removeProperty('display');
             this.proxyLegendToolbar.ariaOrientation = this.getOrientation();
@@ -1268,8 +1266,6 @@ export class Legend extends BaseProperties {
 
         this.updateItemProxyButtons();
         this.updatePaginationProxyButtons(oldPages);
-
-        return { ...ctx, shrinkRect: newShrinkRect };
     }
 
     private calculateLegendDimensions(shrinkRect: BBox): [number, number] {

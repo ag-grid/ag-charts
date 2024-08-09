@@ -92,7 +92,7 @@ export class GradientLegend {
 
         this.destroyFns.push(
             ctx.highlightManager.addListener('highlight-change', () => this.onChartHoverChange()),
-            ctx.layoutService.addListener('start-layout', (e) => this.onStartLayout(e)),
+            ctx.layoutService.on('start-layout', (e) => this.onStartLayout(e)),
             () => this.legendGroup.parent?.removeChild(this.legendGroup)
         );
     }
@@ -110,7 +110,7 @@ export class GradientLegend {
 
         if (!this.enabled || !data?.enabled) {
             this.legendGroup.visible = false;
-            return ctx;
+            return;
         }
 
         const { colorRange } = this.normalizeColorArrays(data);
@@ -125,8 +125,6 @@ export class GradientLegend {
         this.legendGroup.visible = true;
         this.legendGroup.translationX = left;
         this.legendGroup.translationY = top;
-
-        return ctx;
     }
 
     private normalizeColorArrays(data: _ModuleSupport.GradientLegendDatum) {
