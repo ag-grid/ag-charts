@@ -190,7 +190,7 @@ export interface AgToolbarSeriesTypeGroup extends AgToolbarGroup {}
 
 /* Annotation Options */
 export interface AgToolbarAnnotationOptionsGroup extends AgToolbarGroup {
-    buttons?: (AgToolbarAnnotationOptionsButton| AgToolbarAnnotationOptionsSwitch)[];
+    buttons?: (AgToolbarAnnotationOptionsButton | AgToolbarAnnotationOptionsSwitch)[];
 }
 
 export interface AgToolbarAnnotationOptionsButton extends AgToolbarButton {
