@@ -71,14 +71,14 @@ const annotationOptions: AgToolbarOptions['annotationOptions'] = {
             value: 'text-size',
         },
         {
+            role: 'switch',
             icon: 'unlocked',
             tooltip: 'toolbarAnnotationsLock',
+            checkedOverrides: {
+                icon: 'locked',
+                tooltip: 'toolbarAnnotationsUnlock',
+            },
             value: 'lock',
-        },
-        {
-            icon: 'locked',
-            tooltip: 'toolbarAnnotationsUnlock',
-            value: 'unlock',
         },
         {
             icon: 'delete',

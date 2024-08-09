@@ -119,7 +119,6 @@ enum AnnotationOptions {
     Lock = 'lock',
     TextColor = 'text-color',
     TextSize = 'text-size',
-    Unlock = 'unlock',
 }
 
 class AxesButtons {
@@ -533,15 +532,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.reset();
                 break;
 
-            case AnnotationOptions.Lock:
-                annotationData[active].locked = true;
+            case AnnotationOptions.Lock: {
+                annotationData[active].locked = !annotationData[active].locked;
                 this.toggleAnnotationOptionsButtons();
                 break;
-
-            case AnnotationOptions.Unlock:
-                annotationData[active].locked = false;
-                this.toggleAnnotationOptionsButtons();
-                break;
+            }
         }
 
         this.update();
@@ -957,8 +952,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const datum = getTypedDatum(annotationData.at(active));
         const locked = datum?.locked ?? false;
 
-        this.updateToolbarFontSize(datum != null && 'fontSize' in datum ? datum.fontSize : undefined);
-        this.updateToolbarFills();
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.LineColor, {
             enabled: !locked,
             visible: hasLineColor(datum),
@@ -977,8 +970,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         });
 
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Delete, { enabled: !locked });
-        toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Lock, { visible: !locked });
-        toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Unlock, { visible: locked });
+        toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Lock, { checked: locked });
+
+        toolbarManager.updateGroup('annotationOptions');
+
+        this.updateToolbarFontSize(datum != null && 'fontSize' in datum ? datum.fontSize : undefined);
+        this.updateToolbarFills();
     }
 
     private clear() {

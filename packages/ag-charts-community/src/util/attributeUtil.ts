@@ -17,7 +17,7 @@ export function setAttribute<A extends keyof AttributeTypeMap>(
     }
 }
 
-export function setVisibility(element: HTMLElement, hiddenToken: string, hidden: boolean) {
+export function setHidden(element: HTMLElement, hiddenToken: string, hidden: boolean) {
     element.ariaHidden = `${hidden}`;
     element.classList.toggle(hiddenToken, hidden);
 }

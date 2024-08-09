@@ -15,7 +15,7 @@ export interface AgToolbarGroup extends Toggleable {
     position?: AgToolbarGroupPosition;
     /** Size of the toolbar group buttons, defaults to 'normal'. */
     size?: AgToolbarGroupSize;
-    buttons?: AgToolbarButton[];
+    buttons?: (AgToolbarButton | AgToolbarSwitch)[];
 }
 
 export type AgToolbarGroupAlignment = 'start' | 'center' | 'end';
@@ -27,13 +27,10 @@ export type AgToolbarGroupPosition =
     | 'floating'
     | 'floating-top'
     | 'floating-bottom';
+
 export type AgToolbarGroupSize = 'small' | 'normal';
 
-export interface AgToolbarButton {
-    /** Section name used for grouping of buttons.
-     *
-     * Adjacent buttons with the same section are grouped together.*/
-    section?: string;
+interface AgToolbarButtonConfig {
     /** Icon to display on the button. */
     icon?: AgIconName;
     /** Text label to display on the button. */
@@ -42,10 +39,31 @@ export interface AgToolbarButton {
     ariaLabel?: string;
     /** Tooltip text to display on hover over the button. */
     tooltip?: string;
+}
+
+interface AgBaseToolbarButton extends AgToolbarButtonConfig {
+    /** Section name used for grouping of buttons.
+     *
+     * Adjacent buttons with the same section are grouped together.*/
+    section?: string;
     /** Value provided to caller when the button is pressed. */
     value: any;
     /** ID of the button (must be set when value is not a primitive) */
     id?: string;
+    /** The button type (default: `'button'`); `'switch'` is the same but also have an on/off state like checkboxes. */
+    role?: 'button' | 'switch';
+}
+
+export interface AgToolbarButton extends AgBaseToolbarButton {
+    /** The button type (default: `'button'`); `'switch'` is the same but also have an on/off state like checkboxes. */
+    role?: 'button';
+}
+
+export interface AgToolbarSwitch extends AgBaseToolbarButton {
+    /** The button type (default: `'button'`); `'switch'` is the same but also have an on/off state like checkboxes. */
+    role: 'switch';
+    /** Overrides for the switch-button when checked. */
+    checkedOverrides?: AgToolbarButtonConfig;
 }
 
 export type AgIconName =
@@ -172,10 +190,13 @@ export interface AgToolbarSeriesTypeGroup extends AgToolbarGroup {}
 
 /* Annotation Options */
 export interface AgToolbarAnnotationOptionsGroup extends AgToolbarGroup {
-    buttons?: AgToolbarAnnotationOptionsButton[];
+    buttons?: (AgToolbarAnnotationOptionsButton | AgToolbarAnnotationOptionsSwitch)[];
 }
 
 export interface AgToolbarAnnotationOptionsButton extends AgToolbarButton {
+    value: AgToolbarAnnotationOptionsButtonValue;
+}
+export interface AgToolbarAnnotationOptionsSwitch extends AgToolbarSwitch {
     value: AgToolbarAnnotationOptionsButtonValue;
 }
 
@@ -185,8 +206,7 @@ export type AgToolbarAnnotationOptionsButtonValue =
     | 'text-color'
     | 'text-size'
     | 'delete'
-    | 'lock'
-    | 'unlock';
+    | 'lock';
 
 /* Ranges */
 export interface AgToolbarRangesGroup extends AgToolbarGroup {
