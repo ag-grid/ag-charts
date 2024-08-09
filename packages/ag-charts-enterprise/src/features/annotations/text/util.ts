@@ -39,7 +39,7 @@ export function measureAnnotationText(options: TextOptions, text: string) {
     const textOptions = getTextWrapOptions(options);
 
     const { lineMetrics, width } = CachedTextMeasurerPool.measureLines(text, textOptions);
-    const height = lineMetrics.length * (options.fontSize ?? 1 * ANNOTATION_TEXT_LINE_HEIGHT);
+    const height = lineMetrics.length * (options.fontSize ?? 14) * ANNOTATION_TEXT_LINE_HEIGHT;
 
     return {
         width,
