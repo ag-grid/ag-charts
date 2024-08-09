@@ -1,6 +1,6 @@
 import { type AgAnnotationHandleStyles, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import { type AnnotationContext, type Coords, type LineCoords } from '../annotationTypes';
+import { type Anchor, type AnnotationContext, type Coords, type LineCoords } from '../annotationTypes';
 import { convertLine, invertCoords, validateDatumPoint } from '../annotationUtils';
 import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
 import { DivariantHandle } from '../scenes/handle';
@@ -16,7 +16,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
     protected readonly start = new DivariantHandle();
     protected readonly end = new DivariantHandle();
 
-    protected anchor: { x: number; y: number; position: 'above' | 'above-left' | 'right' } = {
+    protected anchor: Anchor = {
         x: 0,
         y: 0,
         position: 'above-left',
@@ -42,12 +42,6 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         this.updateShape(datum, bbox, coords);
 
         this.anchor = this.updateAnchor(datum, bbox, context);
-    }
-
-    protected getTextBBox(datum: Datum, coords: LineCoords) {
-        const { text } = datum.getText();
-
-        return getBBox(datum, text, { x: coords.x2, y: coords.y2 }, this.textInputBBox);
     }
 
     override toggleHandles(show: boolean | Partial<Record<'start' | 'end', boolean>>) {
@@ -114,6 +108,12 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         return label.containsPoint(x, y);
     }
 
+    protected getTextBBox(datum: Datum, coords: LineCoords) {
+        const { text } = datum.getText();
+
+        return getBBox(datum, text, { x: coords.x2, y: coords.y2 }, this.textInputBBox);
+    }
+
     protected updateLabel(datum: Datum, bbox: _Scene.BBox, coords: LineCoords) {
         const { text, isPlaceholder } = datum.getText();
         const wrappedText = wrapText(datum, text, bbox.width);
@@ -134,16 +134,16 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         this.end.toggleLocked(datum.locked ?? false);
     }
 
+    protected updateShape(_datum: Datum, _textBBox: _Scene.BBox, _coords: LineCoords) {
+        // Shapes should be implemented by the extending annotation type class
+    }
+
     protected updateAnchor(_datum: Datum, bbox: _Scene.BBox, context: AnnotationContext) {
         return {
             x: bbox.x + context.seriesRect.x,
             y: bbox.y + context.seriesRect.y - bbox.height,
             position: this.anchor.position,
         };
-    }
-
-    protected updateShape(_datum: Datum, _textBBox: _Scene.BBox, _coords: LineCoords) {
-        // Shapes should be implemented by the extending annotation type class
     }
 
     protected getLabelCoords(_datum: Datum, _bbox: _Scene.BBox, coords: LineCoords): _Util.Vec2 {

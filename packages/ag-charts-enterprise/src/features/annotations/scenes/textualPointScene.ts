@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import type { AnnotationContext, Coords } from '../annotationTypes';
+import type { Anchor, AnnotationContext, Coords } from '../annotationTypes';
 import { convertPoint, invertCoords } from '../annotationUtils';
 import type { TextualPointProperties } from '../properties/textualPointProperties';
 import { getBBox, updateTextNode, wrapText } from '../text/util';
@@ -8,12 +8,6 @@ import { AnnotationScene } from './annotationScene';
 import { DivariantHandle } from './handle';
 
 const { Vec2 } = _Util;
-
-interface Anchor {
-    x: number;
-    y: number;
-    position: 'above' | 'above-left' | 'right';
-}
 
 export abstract class TextualPointScene<Datum extends TextualPointProperties> extends AnnotationScene {
     override activeHandle?: string;
