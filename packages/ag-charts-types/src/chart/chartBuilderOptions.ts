@@ -137,6 +137,11 @@ export interface ImageDataUrlOptions {
     fileFormat?: string;
 }
 
+// TODO: this is a breaking change as previously it was permissive of any type for each key
+// export interface AgChartState extends AgInitialStateOptions {
+//     version: string;
+// }
+
 export interface AgChartState {
     version: string;
     annotations?: AgChartSerializableState;
