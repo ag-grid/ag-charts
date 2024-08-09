@@ -53,14 +53,7 @@ const descriptionWithSeoTagline = `${description} ${seoTagline}`;
     showSearchBar={true}
     showDocsNav={!hidePageMenu}
 >
-    <div
-        class:list={[
-            hidePageMenu && styles.noLeftMenu,
-            styles.contentViewport,
-            'layout-grid',
-            largeExamples && 'largeExamples',
-        ]}
-    >
+    <div class:list={[hidePageMenu && styles.noLeftMenu, styles.contentViewport, 'layout-grid', { largeExamples }]}>
         {
             !hidePageMenu && (
                 <PagesNavigation client:load menuData={menuData} framework={currentFramework} pageName={pageName} />
