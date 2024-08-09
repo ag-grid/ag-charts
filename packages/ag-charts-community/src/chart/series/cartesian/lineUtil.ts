@@ -1,4 +1,4 @@
-import { NODE_UPDATE_STATE_TO_PHASE_MAPPING, type NodeUpdateState } from '../../../motion/fromToMotion';
+import { type FromToFns, NODE_UPDATE_STATE_TO_PHASE_MAPPING, type NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Path } from '../../../scene/shape/path';
 import { transformIntegratedCategoryValue } from '../../../util/value';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
@@ -352,7 +352,10 @@ export function determinePathStatus(newData: LineContextLike, oldData: LineConte
     return status;
 }
 
-export function prepareLinePathPropertyAnimation(status: NodeUpdateState, visibleToggleMode: 'fade' | 'none') {
+export function prepareLinePathPropertyAnimation(
+    status: NodeUpdateState,
+    visibleToggleMode: 'fade' | 'none'
+): FromToFns<Path, any, unknown> {
     const phase: NodeUpdateState = visibleToggleMode === 'none' ? 'updated' : status;
 
     const result = {

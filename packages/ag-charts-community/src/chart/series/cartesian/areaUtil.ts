@@ -82,7 +82,13 @@ export interface AreaSeriesNodeDataContext
     stackVisible: boolean;
 }
 
-function plotSpans(ratio: number, path: Path, spans: SpanInterpolation[], phantomSpans: SpanInterpolation[]) {
+interface SpanAnimation {
+    added: SpanInterpolation[];
+    moved: SpanInterpolation[];
+    removed: SpanInterpolation[];
+}
+
+function plotFillSpans(ratio: number, path: Path, spans: SpanInterpolation[], phantomSpans: SpanInterpolation[]) {
     for (let i = 0; i < spans.length; i += 1) {
         const span = spans[i];
         const phantomSpan = phantomSpans[i];
@@ -93,21 +99,35 @@ function plotSpans(ratio: number, path: Path, spans: SpanInterpolation[], phanto
     }
 }
 
-interface SpanAnimation {
-    added: SpanInterpolation[];
-    moved: SpanInterpolation[];
-    removed: SpanInterpolation[];
-}
-
-function prepareAreaPathAnimationFns(
+function prepareAreaFillAnimationFns(
     status: NodeUpdateState,
     spans: SpanAnimation,
     phantomSpans: SpanAnimation,
     visibleToggleMode: 'fade' | 'none'
 ) {
-    const removePhaseFn = (ratio: number, path: Path) => plotSpans(ratio, path, spans.removed, phantomSpans.removed);
-    const updatePhaseFn = (ratio: number, path: Path) => plotSpans(ratio, path, spans.moved, phantomSpans.moved);
-    const addPhaseFn = (ratio: number, path: Path) => plotSpans(ratio, path, spans.added, phantomSpans.added);
+    const removePhaseFn = (ratio: number, path: Path) =>
+        plotFillSpans(ratio, path, spans.removed, phantomSpans.removed);
+    const updatePhaseFn = (ratio: number, path: Path) => plotFillSpans(ratio, path, spans.moved, phantomSpans.moved);
+    const addPhaseFn = (ratio: number, path: Path) => plotFillSpans(ratio, path, spans.added, phantomSpans.added);
+    const pathProperties = prepareLinePathPropertyAnimation(status, visibleToggleMode);
+
+    return { status, path: { addPhaseFn, updatePhaseFn, removePhaseFn }, pathProperties };
+}
+
+function plotStrokeSpans(ratio: number, path: Path, spans: SpanInterpolation[]) {
+    for (const span of spans) {
+        plotSpan(path.path, interpolateSpans(span.from, span.to, ratio));
+    }
+}
+
+function prepareAreaStrokeAnimationFns(
+    status: NodeUpdateState,
+    spans: SpanAnimation,
+    visibleToggleMode: 'fade' | 'none'
+) {
+    const removePhaseFn = (ratio: number, path: Path) => plotStrokeSpans(ratio, path, spans.removed);
+    const updatePhaseFn = (ratio: number, path: Path) => plotStrokeSpans(ratio, path, spans.moved);
+    const addPhaseFn = (ratio: number, path: Path) => plotStrokeSpans(ratio, path, spans.added);
     const pathProperties = prepareLinePathPropertyAnimation(status, visibleToggleMode);
 
     return { status, path: { addPhaseFn, updatePhaseFn, removePhaseFn }, pathProperties };
@@ -150,9 +170,9 @@ export function prepareAreaPathAnimation(
     const { resultMap: markerPairMap } = prepareMarkerPairs();
     if (markerPairMap === undefined) return;
 
-    const stackVisible = true;
-    const fadeMode = stackVisible ? 'none' : 'fade';
-    const fill = prepareAreaPathAnimationFns(status, spans, phantomSpans, fadeMode);
+    const fadeMode = 'none';
+    const fill = prepareAreaFillAnimationFns(status, spans, phantomSpans, fadeMode);
+    const stroke = prepareAreaStrokeAnimationFns(status, spans, fadeMode);
     const marker = prepareMarkerAnimation(markerPairMap, status);
-    return { status, fill, marker };
+    return { status, fill, stroke, marker };
 }

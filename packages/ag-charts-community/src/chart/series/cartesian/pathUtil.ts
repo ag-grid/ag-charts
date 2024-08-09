@@ -242,9 +242,12 @@ export function pathFadeOutAnimation<T>(
 }
 
 export function buildResetPathFn(opts: { getVisible(): boolean; getOpacity(): number }) {
-    return (_node: Path) => {
-        return { visible: opts.getVisible(), opacity: opts.getOpacity(), clipScalingX: 1, clipMode: undefined };
-    };
+    return (_node: Path) => ({
+        visible: opts.getVisible(),
+        opacity: opts.getOpacity(),
+        clipScalingX: 1,
+        clipMode: undefined,
+    });
 }
 
 export function updateClipPath({ nodeDataDependencies }: NodeDataDependant, path: Path): void {
