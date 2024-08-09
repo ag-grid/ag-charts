@@ -14,7 +14,7 @@ import { Group } from '../../scene/group';
 import { PointerEvents } from '../../scene/node';
 import type { Point } from '../../scene/point';
 import { Range } from '../../scene/shape/range';
-import { RotatableText } from '../../scene/shape/text';
+import { TransformableText } from '../../scene/shape/text';
 import { createId } from '../../util/id';
 import { clampArray } from '../../util/number';
 import { BaseProperties } from '../../util/properties';
@@ -167,7 +167,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     readonly group = new Group({ name: `${this.id}`, layer: true, zIndex: CartesianCrossLine.LINE_LAYER_ZINDEX });
     readonly labelGroup = new Group({ name: `${this.id}`, layer: true, zIndex: CartesianCrossLine.LABEL_LAYER_ZINDEX });
     private readonly crossLineRange = new Range();
-    private readonly crossLineLabel = new RotatableText();
+    private readonly crossLineLabel = new TransformableText();
     private labelPoint?: Point = undefined;
 
     private data: NodeData = [];
@@ -398,7 +398,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     private computeLabelBBox(): BBox | undefined {
         const { label } = this;
         if (!label.enabled) return;
-        const tempText = new RotatableText();
+        const tempText = new TransformableText();
         tempText.fontFamily = label.fontFamily;
         tempText.fontSize = label.fontSize;
         tempText.fontStyle = label.fontStyle;

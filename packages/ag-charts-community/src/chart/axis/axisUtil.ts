@@ -1,8 +1,9 @@
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../motion/fromToMotion';
 import type { FromToFns } from '../../motion/fromToMotion';
-import type { Group, RotatableGroup } from '../../scene/group';
+import type { Group, TransformableGroup } from '../../scene/group';
 import type { Line } from '../../scene/shape/line';
-import type { RotatableText } from '../../scene/shape/text';
+import type { RotatableText, TransformableText } from '../../scene/shape/text';
+import type { TranslatableType } from '../../scene/transformable';
 import { findMinMax } from '../../util/number';
 
 export type AxisLineDatum = { x: number; y1: number; y2: number };
@@ -57,7 +58,7 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
         const [min = ctx.min, max = ctx.max] = findMinMax(range ?? []);
         return y < min || y > max;
     };
-    const tick: FromToFns<Line, any, AxisNodeDatum> = {
+    const tick: FromToFns<TranslatableType<Line>, any, AxisNodeDatum> = {
         fromFn(node, datum, status) {
             // Default to starting at the same position that the node is currently in.
             let y = node.y1 + node.translationY;
@@ -95,7 +96,7 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
         },
     };
 
-    const label: FromToFns<RotatableText, Partial<Omit<AxisLabelDatum, 'range'>>, AxisLabelDatum> = {
+    const label: FromToFns<TransformableText, Partial<Omit<AxisLabelDatum, 'range'>>, AxisLabelDatum> = {
         fromFn(node, newDatum, status) {
             const datum: AxisLabelDatum = node.previousDatum ?? newDatum;
 
@@ -157,7 +158,7 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
             return { ...datum };
         },
     };
-    const group: FromToFns<RotatableGroup, any, AxisGroupDatum> = {
+    const group: FromToFns<TransformableGroup, any, AxisGroupDatum> = {
         fromFn(node, _datum) {
             const { rotation, translationX, translationY } = node;
             return {

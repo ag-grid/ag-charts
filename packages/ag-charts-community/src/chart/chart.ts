@@ -7,7 +7,7 @@ import type { ModuleContext } from '../module/moduleContext';
 import type { AxisOptionModule, ChartOptions } from '../module/optionsModule';
 import type { SeriesOptionModule } from '../module/optionsModuleTypes';
 import { BBox } from '../scene/bbox';
-import { Group } from '../scene/group';
+import { Group, TranslatableGroup } from '../scene/group';
 import type { Scene } from '../scene/scene';
 import type { PlacedLabel, PointLabelDatum } from '../scene/util/labelPlacement';
 import { isPointLabelDatum, placeLabels } from '../scene/util/labelPlacement';
@@ -117,14 +117,14 @@ export abstract class Chart extends Observable {
 
     className?: string;
 
-    readonly seriesRoot = new Group({ name: `${this.id}-series-root` });
-    readonly highlightRoot = new Group({
+    readonly seriesRoot = new TranslatableGroup({ name: `${this.id}-series-root` });
+    readonly highlightRoot = new TranslatableGroup({
         name: `${this.id}-highlight-root`,
         layer: true,
         zIndex: Layers.SERIES_HIGHLIGHT_ZINDEX,
         nonEmptyChildDerivedZIndex: true,
     });
-    readonly annotationRoot = new Group({
+    readonly annotationRoot = new TranslatableGroup({
         name: `${this.id}-annotation-root`,
         layer: true,
         zIndex: Layers.SERIES_ANNOTATION_ZINDEX,

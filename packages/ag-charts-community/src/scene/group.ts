@@ -5,7 +5,7 @@ import type { HdpiCanvas } from './canvas/hdpiCanvas';
 import type { LayersManager, ZIndexSubOrder } from './layersManager';
 import type { ChildNodeCounts, RenderContext } from './node';
 import { Node, RedrawType, SceneChangeDetection } from './node';
-import { Rotatable, Scalable } from './transformable';
+import { Rotatable, Scalable, Translatable } from './transformable';
 
 export class Group extends Node {
     static className = 'Group';
@@ -409,3 +409,6 @@ export class Group extends Node {
 
 export class ScalableGroup extends Scalable(Group) {}
 export class RotatableGroup extends Rotatable(Group) {}
+export class TranslatableGroup extends Translatable(Group) {}
+
+export class TransformableGroup extends Rotatable(Translatable(Group)) {}

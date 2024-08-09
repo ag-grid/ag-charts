@@ -4,7 +4,7 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { LinearScale } from '../../../scale/linearScale';
 import { BBox } from '../../../scene/bbox';
-import { Group } from '../../../scene/group';
+import { Group, TranslatableGroup } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
@@ -122,7 +122,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
     // The group node that contains the background graphics.
     readonly backgroundGroup = this.rootGroup.appendChild(
-        new Group({
+        new TranslatableGroup({
             name: `${this.id}-background`,
             layer: true,
             zIndex: Layers.SERIES_BACKGROUND_ZINDEX,
@@ -659,7 +659,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             const titleBox = title.node.getBBox();
             title.node.visible =
                 title.enabled && isFinite(dy) && !this.bboxIntersectsSurroundingSeries(titleBox, 0, dy);
-            title.node.translationY = isFinite(dy) ? dy : 0;
+            title.node.y = isFinite(dy) ? dy : 0;
         }
 
         for (const circle of [this.zerosumInnerRing, this.zerosumOuterRing]) {

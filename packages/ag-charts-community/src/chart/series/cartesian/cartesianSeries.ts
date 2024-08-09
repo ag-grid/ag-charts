@@ -3,7 +3,7 @@ import { resetMotion } from '../../../motion/resetMotion';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { LogScale } from '../../../scale/logScale';
 import { BBox } from '../../../scene/bbox';
-import { Group } from '../../../scene/group';
+import { Group, TranslatableGroup } from '../../../scene/group';
 import type { ZIndexSubOrder } from '../../../scene/layersManager';
 import type { Node, NodeWithOpacity } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
@@ -175,7 +175,7 @@ export abstract class CartesianSeries<
         })
     );
     override readonly labelGroup = this.contentGroup.appendChild(
-        new Group({
+        new TranslatableGroup({
             name: `${this.id}-series-labels`,
             zIndex: Layers.SERIES_LABEL_ZINDEX,
             zIndexSubOrder: this.getGroupZIndexSubOrder('labels'),

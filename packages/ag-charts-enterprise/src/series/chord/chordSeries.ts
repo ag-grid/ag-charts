@@ -327,14 +327,14 @@ export class ChordSeries extends FlowProportionSeries<
 
     protected async updateLabelSelection(opts: {
         labelData: ChordNodeLabelDatum[];
-        labelSelection: _Scene.Selection<_Scene.RotatableText, ChordNodeLabelDatum>;
+        labelSelection: _Scene.Selection<_Scene.TransformableText, ChordNodeLabelDatum>;
     }) {
         const labels = this.isLabelEnabled() ? opts.labelData : [];
         return opts.labelSelection.update(labels);
     }
 
     protected async updateLabelNodes(opts: {
-        labelSelection: _Scene.Selection<_Scene.RotatableText, ChordNodeLabelDatum>;
+        labelSelection: _Scene.Selection<_Scene.TransformableText, ChordNodeLabelDatum>;
     }) {
         const { labelSelection } = opts;
         const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = this.properties.label;

@@ -8,7 +8,7 @@ import {
 
 const { BOOLEAN, OBJECT, POSITION, POSITIVE_NUMBER, BaseProperties, AxisTicks, Layers, ProxyProperty, Validate } =
     _ModuleSupport;
-const { Group, Rect, LinearGradientFill, Triangle, Rotatable } = _Scene;
+const { Group, Rect, LinearGradientFill, Triangle, Rotatable, TranslatableGroup } = _Scene;
 const { createId } = _Util;
 
 class GradientBar extends BaseProperties {
@@ -42,7 +42,7 @@ export class GradientLegend {
     private readonly axisTicks: _ModuleSupport.AxisTicks;
     private readonly highlightManager: _ModuleSupport.HighlightManager;
 
-    private readonly legendGroup = new Group({
+    private readonly legendGroup = new TranslatableGroup({
         name: 'legend',
         layer: true,
         zIndex: Layers.LEGEND_ZINDEX,

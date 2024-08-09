@@ -3,7 +3,7 @@ import { arraysIterable, toIterable } from '../util/iterator';
 import { BBox } from './bbox';
 import { ChangeDetectable, RedrawType, SceneChangeDetection } from './changeDetectable';
 import type { LayersManager, ZIndexSubOrder } from './layersManager';
-import { Matrix } from './matrix';
+import { IDENTITY_MATRIX_ELEMENTS, Matrix } from './matrix';
 
 export { SceneChangeDetection, RedrawType };
 
@@ -286,12 +286,6 @@ export abstract class Node extends ChangeDetectable {
         this.markDirty(this, RedrawType.MAJOR);
     }
 
-    @SceneChangeDetection({ type: 'transform' })
-    translationX: number = 0;
-
-    @SceneChangeDetection({ type: 'transform' })
-    translationY: number = 0;
-
     constructor({ isVirtual, tag, zIndex, name }: NodeOptions = {}) {
         super();
         this.name = name;
@@ -386,9 +380,9 @@ export abstract class Node extends ChangeDetectable {
             return;
         }
 
-        const { matrix, translationX, translationY } = this;
-
-        Matrix.updateTransformMatrix(matrix, 1, 1, 0, translationX, translationY);
+        // Sub-classes will update this.matrix with their transforms, so we need to reset to the
+        // identity matrix here for consistency.
+        this.matrix.setElements(IDENTITY_MATRIX_ELEMENTS);
 
         this.dirtyTransform = false;
     }

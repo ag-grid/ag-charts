@@ -1,4 +1,4 @@
-import { Matrix } from './matrix';
+import { IDENTITY_MATRIX_ELEMENTS, Matrix } from './matrix';
 import { Node, SceneChangeDetection } from './node';
 
 type Constructor<T> = new (...args: any[]) => T;
@@ -39,7 +39,7 @@ export function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
             // Need to force parent re-calculation as we modify the matrix in place.
             super.computeTransformMatrix(true);
             if (this._dirtyTransform) {
-                this[TRANSFORM_MATRIX].setElements([1, 0, 0, 1, 0, 0]);
+                this[TRANSFORM_MATRIX].setElements(IDENTITY_MATRIX_ELEMENTS);
                 this.updateMatrix(this[TRANSFORM_MATRIX]);
                 this._dirtyTransform = false;
             }
@@ -124,4 +124,34 @@ export function Scalable<N extends Node>(Parent: Constructor<N>): Constructor<Sc
         }
     }
     return ScalableInternal as unknown as Constructor<ScalableType<N>>;
+}
+
+export type TranslatableType<T> = T & {
+    translationX: number;
+    translationY: number;
+};
+
+export function Translatable<N extends Node>(Parent: Constructor<N>): Constructor<TranslatableType<N>> {
+    const ParentNode = Parent as Constructor<Node>;
+    const TRANSLATABLE_MATRIX = Symbol('matrix_scalable');
+    class ScalableInternal extends MatrixTransform(ParentNode) {
+        [TRANSLATABLE_MATRIX] = new Matrix();
+
+        @SceneChangeDetection({ type: 'transform' })
+        translationX: number = 0;
+        @SceneChangeDetection({ type: 'transform' })
+        translationY: number = 0;
+
+        override updateMatrix(matrix: Matrix) {
+            super.updateMatrix(matrix);
+
+            const { translationX, translationY } = this;
+            if (translationX === 0 && translationY === 0) return;
+
+            Matrix.updateTransformMatrix(this[TRANSLATABLE_MATRIX], 1, 1, 0, translationX, translationY);
+
+            matrix.multiplySelf(this[TRANSLATABLE_MATRIX]);
+        }
+    }
+    return ScalableInternal as unknown as Constructor<TranslatableType<N>>;
 }

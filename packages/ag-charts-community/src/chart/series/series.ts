@@ -11,7 +11,7 @@ import { ModuleMap } from '../../module/moduleMap';
 import type { SeriesOptionInstance, SeriesOptionModule, SeriesType } from '../../module/optionsModuleTypes';
 import type { ScaleType } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
-import { Group } from '../../scene/group';
+import { Group, TranslatableGroup } from '../../scene/group';
 import type { ZIndexSubOrder } from '../../scene/layersManager';
 import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
@@ -316,17 +316,17 @@ export abstract class Series<
     readonly rootGroup: Group = new Group({ name: 'seriesRoot', isVirtual: true });
 
     // The group node that contains the series rendering in its default (non-highlighted) state.
-    readonly contentGroup: Group;
+    readonly contentGroup: TranslatableGroup;
 
     // The group node that contains all highlighted series items. This is a performance optimisation
     // for large-scale data-sets, where the only thing that routinely varies is the currently
     // highlighted node.
-    readonly highlightGroup: Group;
+    readonly highlightGroup: TranslatableGroup;
     readonly highlightNode: Group;
     readonly highlightLabel: Group;
 
     // Lazily initialised labelGroup for label presentation.
-    readonly labelGroup: Group;
+    readonly labelGroup: TranslatableGroup;
 
     readonly annotationGroup: Group;
 
@@ -432,7 +432,7 @@ export abstract class Series<
         this.canHaveAxes = canHaveAxes;
 
         this.contentGroup = this.rootGroup.appendChild(
-            new Group({
+            new TranslatableGroup({
                 name: `${this.internalId}-content`,
                 isVirtual: contentGroupVirtual,
                 zIndex: Layers.SERIES_LAYER_ZINDEX,
@@ -440,7 +440,7 @@ export abstract class Series<
             })
         );
 
-        this.highlightGroup = new Group({
+        this.highlightGroup = new TranslatableGroup({
             name: `${this.internalId}-highlight`,
             isVirtual: contentGroupVirtual,
             zIndex: Layers.SERIES_LAYER_ZINDEX,
@@ -452,7 +452,7 @@ export abstract class Series<
         this.pickModes = pickModes;
 
         this.labelGroup = this.rootGroup.appendChild(
-            new Group({
+            new TranslatableGroup({
                 name: `${this.internalId}-series-labels`,
                 zIndex: Layers.SERIES_LABEL_ZINDEX,
             })

@@ -1,6 +1,6 @@
 import type { AgChartLegendOrientation, FontStyle, FontWeight } from 'ag-charts-types';
 
-import { Group } from '../../scene/group';
+import { TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import { Text } from '../../scene/shape/text';
 import { Rotatable, type RotatableType } from '../../scene/transformable';
@@ -109,7 +109,7 @@ export class Pagination extends BaseProperties {
     @Validate(OBJECT)
     readonly label = new PaginationLabel();
 
-    private readonly group = new Group({ name: 'pagination' });
+    private readonly group = new TranslatableGroup({ name: 'pagination' });
     private readonly labelNode: Text = new Text();
     private highlightActive?: 'previous' | 'next';
     private readonly destroyFns: (() => void)[] = [];

@@ -1,5 +1,7 @@
 import { BBox } from './bbox';
 
+export const IDENTITY_MATRIX_ELEMENTS = Object.freeze([1, 0, 0, 1, 0, 0]);
+
 /**
  * As of Jan 8, 2019, Firefox still doesn't implement
  * `getTransform(): DOMMatrix;`
@@ -25,11 +27,11 @@ export class Matrix {
         return [...this.elements];
     }
 
-    constructor(elements: number[] = [1, 0, 0, 1, 0, 0]) {
+    constructor(elements: number[] = [...IDENTITY_MATRIX_ELEMENTS]) {
         this.elements = elements;
     }
 
-    setElements(elements: number[]): this {
+    setElements(elements: readonly number[]): this {
         const e = this.elements;
 
         // `this.elements = elements.slice()` is 4-5 times slower
