@@ -70,9 +70,9 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
     private readonly positions: Record<ToolbarPosition, Set<ToolbarGroup>> = {
         [ToolbarPosition.Top]: new Set(),
+        [ToolbarPosition.Left]: new Set(),
         [ToolbarPosition.Right]: new Set(),
         [ToolbarPosition.Bottom]: new Set(),
-        [ToolbarPosition.Left]: new Set(),
         [ToolbarPosition.Floating]: new Set(),
         [ToolbarPosition.FloatingTop]: new Set(),
         [ToolbarPosition.FloatingBottom]: new Set(),
@@ -80,9 +80,9 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
     private readonly positionAlignments: Record<ToolbarPosition, Partial<Record<ToolbarAlignment, HTMLElement>>> = {
         [ToolbarPosition.Top]: {},
+        [ToolbarPosition.Left]: {},
         [ToolbarPosition.Right]: {},
         [ToolbarPosition.Bottom]: {},
-        [ToolbarPosition.Left]: {},
         [ToolbarPosition.Floating]: {},
         [ToolbarPosition.FloatingTop]: {},
         [ToolbarPosition.FloatingBottom]: {},

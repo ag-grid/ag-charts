@@ -16,9 +16,9 @@ export const TOOLBAR_GROUP_ORDERING: Record<ToolbarGroup, number> = {
 
 export enum ToolbarPosition {
     Top = 'top',
+    Left = 'left',
     Right = 'right',
     Bottom = 'bottom',
-    Left = 'left',
     Floating = 'floating',
     FloatingTop = 'floating-top',
     FloatingBottom = 'floating-bottom',
