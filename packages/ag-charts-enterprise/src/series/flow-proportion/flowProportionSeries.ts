@@ -4,7 +4,7 @@ import type { FlowProportionSeriesProperties } from './flowProportionProperties'
 import { computeNodeGraph } from './flowProportionUtil';
 
 const { DataModelSeries, DataController, Validate, ARRAY, keyProperty, valueProperty } = _ModuleSupport;
-const { Selection, Group, Text } = _Scene;
+const { Selection, Group, RotatableText } = _Scene;
 
 export enum FlowProportionDatumType {
     Link,
@@ -77,7 +77,10 @@ export abstract class FlowProportionSeries<
     private readonly highlightLinkGroup = this.highlightNode.appendChild(new Group({ name: 'linkGroup' }));
     private readonly highlightNodeGroup = this.highlightNode.appendChild(new Group({ name: 'nodeGroup' }));
 
-    private labelSelection: _Scene.Selection<_Scene.Text, TLabel> = Selection.select(this.labelGroup, Text);
+    private labelSelection: _Scene.Selection<_Scene.RotatableText, TLabel> = Selection.select(
+        this.labelGroup,
+        RotatableText
+    );
     public linkSelection: _Scene.Selection<TLink, TLinkDatum> = Selection.select(this.linkGroup, () =>
         this.linkFactory()
     );
@@ -405,7 +408,7 @@ export abstract class FlowProportionSeries<
     protected abstract updateLabelSelection(opts: {
         labelData: TLabel[];
         labelSelection: _Scene.Selection<_Scene.Text, TLabel>;
-    }): Promise<_Scene.Selection<_Scene.Text, TLabel>>;
+    }): Promise<_Scene.Selection<_Scene.RotatableText, TLabel>>;
 
     protected abstract updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, TLabel> }): Promise<void>;
 

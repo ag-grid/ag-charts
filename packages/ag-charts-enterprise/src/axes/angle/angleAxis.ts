@@ -5,7 +5,7 @@ import { AngleCrossLine } from '../polar-crosslines/angleCrossLine';
 
 const { AND, ChartAxisDirection, GREATER_THAN, NUMBER, UNION, ProxyOnWrite, TextWrapper, TextUtils, Validate } =
     _ModuleSupport;
-const { Path, Text } = _Scene;
+const { Path, RotatableText } = _Scene;
 const { angleBetween, isNumberEqual, toRadians, normalizeAngle360 } = _Util;
 
 export interface AngleAxisLabelDatum {
@@ -267,7 +267,7 @@ export abstract class AngleAxis<
             return [];
         }
 
-        const tempText = new Text();
+        const tempText = new RotatableText();
 
         const seriesLeft = seriesRect.x - this.translation.x;
         const seriesRight = seriesRect.x + seriesRect.width - this.translation.x;

@@ -3,6 +3,7 @@ import type { AgChartLegendOrientation, FontStyle, FontWeight } from 'ag-charts-
 import { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import { Text } from '../../scene/shape/text';
+import { Rotatable, type RotatableType } from '../../scene/transformable';
 import { createId } from '../../util/id';
 import { clamp } from '../../util/number';
 import { BaseProperties } from '../../util/properties';
@@ -85,6 +86,8 @@ class PaginationMarker extends BaseProperties {
         super();
     }
 }
+
+class RotatableTriangle extends Rotatable(Triangle) {}
 
 export class Pagination extends BaseProperties {
     static readonly className = 'Pagination';
@@ -194,27 +197,27 @@ export class Pagination extends BaseProperties {
         return this._orientation;
     }
 
-    private _nextButton: Marker = new Triangle();
-    set nextButton(value: Marker) {
+    private _nextButton: RotatableType<Marker> = new RotatableTriangle();
+    set nextButton(value: RotatableType<Marker>) {
         if (this._nextButton !== value) {
             this.group.removeChild(this._nextButton);
             this._nextButton = value;
             this.group.appendChild(value);
         }
     }
-    get nextButton(): Marker {
+    get nextButton() {
         return this._nextButton;
     }
 
-    private _previousButton: Marker = new Triangle();
-    set previousButton(value: Marker) {
+    private _previousButton: RotatableType<Marker> = new RotatableTriangle();
+    set previousButton(value: RotatableType<Marker>) {
         if (this._previousButton !== value) {
             this.group.removeChild(this._previousButton);
             this._previousButton = value;
             this.group.appendChild(value);
         }
     }
-    get previousButton(): Marker {
+    get previousButton() {
         return this._previousButton;
     }
 
@@ -377,7 +380,7 @@ export class Pagination extends BaseProperties {
     }
 
     onMarkerShapeChange() {
-        const Marker = getMarker(this.marker.shape || Triangle);
+        const Marker = Rotatable(getMarker(this.marker.shape || Triangle));
         this.previousButton = new Marker();
         this.nextButton = new Marker();
         this.updatePositions();
@@ -394,8 +397,8 @@ export class Pagination extends BaseProperties {
     }
 
     computeCSSBounds() {
-        const prev = this._previousButton.computeTransformedBBox();
-        const next = this._nextButton.computeTransformedBBox();
+        const prev = this.previousButton.computeTransformedBBox();
+        const next = this.nextButton.computeTransformedBBox();
         return { prev, next };
     }
 }

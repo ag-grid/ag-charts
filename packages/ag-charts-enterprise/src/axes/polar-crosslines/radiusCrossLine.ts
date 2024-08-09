@@ -3,7 +3,7 @@ import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 import { PolarCrossLine, PolarCrossLineLabel } from './polarCrossLine';
 
 const { ChartAxisDirection, Validate, DEGREE, validateCrossLineValues } = _ModuleSupport;
-const { Path, Sector, Text } = _Scene;
+const { Path, Sector, RotatableText } = _Scene;
 const { normalizeAngle360, toRadians, isNumberEqual } = _Util;
 
 class RadiusCrossLineLabel extends PolarCrossLineLabel {
@@ -21,7 +21,7 @@ export class RadiusCrossLine extends PolarCrossLine {
 
     private readonly polygonNode = new Path();
     private readonly sectorNode = new Sector();
-    private readonly labelNode = new Text();
+    private readonly labelNode = new RotatableText();
 
     private outerRadius = 0;
     private innerRadius = 0;

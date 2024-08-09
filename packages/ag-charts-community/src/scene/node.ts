@@ -287,20 +287,6 @@ export abstract class Node extends ChangeDetectable {
     }
 
     @SceneChangeDetection({ type: 'transform' })
-    rotationCenterX: number | null = null;
-
-    @SceneChangeDetection({ type: 'transform' })
-    rotationCenterY: number | null = null;
-
-    /**
-     * Rotation angle in radians.
-     * The value is set as is. No normalization to the [-180, 180) or [0, 360)
-     * interval is performed.
-     */
-    @SceneChangeDetection({ type: 'transform' })
-    rotation: number = 0;
-
-    @SceneChangeDetection({ type: 'transform' })
     translationX: number = 0;
 
     @SceneChangeDetection({ type: 'transform' })
@@ -395,17 +381,14 @@ export abstract class Node extends ChangeDetectable {
         return bbox;
     }
 
-    computeTransformMatrix() {
-        if (!this.dirtyTransform) {
+    computeTransformMatrix(force = false) {
+        if (!force && !this.dirtyTransform) {
             return;
         }
 
-        const { matrix, rotation, translationX, translationY, rotationCenterX, rotationCenterY } = this;
+        const { matrix, translationX, translationY } = this;
 
-        Matrix.updateTransformMatrix(matrix, 1, 1, rotation, translationX, translationY, {
-            rotationCenterX,
-            rotationCenterY,
-        });
+        Matrix.updateTransformMatrix(matrix, 1, 1, 0, translationX, translationY);
 
         this.dirtyTransform = false;
     }
@@ -438,6 +421,7 @@ export abstract class Node extends ChangeDetectable {
         const { stats } = renderCtx;
 
         this._dirty = RedrawType.NONE;
+        this.cachedBBox = this.computeBBox();
 
         if (stats) {
             stats.nodesRendered++;

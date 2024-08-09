@@ -5,7 +5,7 @@ import { BandScale } from '../../scale/bandScale';
 import { BBox } from '../../scene/bbox';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
-import { Text } from '../../scene/shape/text';
+import { RotatableText } from '../../scene/shape/text';
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { extent, unique } from '../../util/array';
 import { isNumber } from '../../util/type-guards';
@@ -25,7 +25,7 @@ class GroupedCategoryAxisLabel extends AxisLabel {
 
 interface ComputedGroupAxisLayout {
     axisLineLayout: Partial<Line>[];
-    tickLabelLayout: Partial<Text>[];
+    tickLabelLayout: Partial<RotatableText>[];
     separatorLayout: Partial<Line>[];
 }
 
@@ -40,7 +40,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
     private readonly gridLineSelection: Selection<Line>;
     private readonly axisLineSelection: Selection<Line>;
     private readonly separatorSelection: Selection<Line>;
-    private readonly labelSelection: Selection<Text>;
+    private readonly labelSelection: Selection<RotatableText>;
     private tickTreeLayout?: TreeLayout;
 
     constructor(moduleCtx: ModuleContext) {
@@ -59,7 +59,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         this.gridLineSelection = Selection.select(gridLineGroup, Line);
         this.axisLineSelection = Selection.select(tickLineGroup, Line);
         this.separatorSelection = Selection.select(tickLineGroup, Line);
-        this.labelSelection = Selection.select(tickLabelGroup, Text);
+        this.labelSelection = Selection.select(tickLabelGroup, RotatableText);
         this.lineNode.visible = false;
     }
 
@@ -299,9 +299,9 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
             parallelFlipRotation: normalizeAngle360(rotation),
         });
 
-        const tickLabelLayout: Array<Partial<Text>> = [];
+        const tickLabelLayout: Array<Partial<RotatableText>> = [];
 
-        const copyLabelProps = (node: Text): Partial<Text> => {
+        const copyLabelProps = (node: RotatableText): Partial<RotatableText> => {
             return {
                 fill: node.fill,
                 fontFamily: node.fontFamily,
@@ -324,7 +324,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
 
         const labelBBoxes: Map<number, BBox> = new Map();
         let maxLeafLabelWidth = 0;
-        const tempText = new Text();
+        const tempText = new RotatableText();
 
         const setLabelProps = (datum: (typeof treeLabels)[number], index: number) => {
             tempText.setProperties({
@@ -442,7 +442,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
                 }
             }
 
-            let props: Partial<Text>;
+            let props: Partial<RotatableText>;
             if (visible) {
                 const bbox = tempText.computeTransformedBBox();
                 if (bbox) {

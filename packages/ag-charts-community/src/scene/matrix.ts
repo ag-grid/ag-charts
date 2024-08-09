@@ -54,7 +54,7 @@ export class Matrix {
         return this;
     }
 
-    private get identity(): boolean {
+    get identity(): boolean {
         const e = this.elements;
         return e[0] === 1 && e[1] === 0 && e[2] === 0 && e[3] === 1 && e[4] === 0 && e[5] === 0;
     }
