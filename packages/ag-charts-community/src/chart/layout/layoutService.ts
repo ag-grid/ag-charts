@@ -43,8 +43,9 @@ interface LayoutEventMap {
 
 export class LayoutService extends EventEmitter<LayoutEventMap> {
     setLayout(width: number, height: number, state: LayoutState) {
-        this.emit('layout-complete', {
-            type: 'layout-complete',
+        const eventType = 'layout-complete';
+        this.emit(eventType, {
+            type: eventType,
             chart: { width, height },
             axes: state.axes ?? [],
             clipSeries: state.clipSeries ?? false,
