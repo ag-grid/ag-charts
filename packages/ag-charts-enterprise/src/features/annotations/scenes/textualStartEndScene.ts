@@ -5,9 +5,8 @@ import { convertLine, invertCoords, validateDatumPoint } from '../annotationUtil
 import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
 import { DivariantHandle } from '../scenes/handle';
 import { LinearScene } from '../scenes/linearScene';
-import { ANNOTATION_TEXT_LINE_HEIGHT, measureAnnotationText, wrapText } from '../text/util';
+import { ANNOTATION_TEXT_LINE_HEIGHT, getBBox, wrapText } from '../text/util';
 
-const { BBox } = _Scene;
 const { Vec2 } = _Util;
 
 export abstract class TextualStartEndScene<Datum extends TextualStartEndProperties> extends LinearScene<Datum> {
@@ -46,20 +45,9 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
     }
 
     protected getTextBBox(datum: Datum, coords: LineCoords) {
-        const { textInputBBox } = this;
-        const { x2, y2 } = coords;
-
-        if (textInputBBox) {
-            return new BBox(x2, y2, textInputBBox.width, textInputBBox.height);
-        }
-
         const { text } = datum.getText();
 
-        const wrappedText = datum.width != null ? wrapText(datum, text, datum.width) : text;
-
-        const { width, height } = measureAnnotationText(datum, wrappedText);
-
-        return new BBox(x2, y2, width, height);
+        return getBBox(datum, text, { x: coords.x2, y: coords.y2 }, this.textInputBBox);
     }
 
     override toggleHandles(show: boolean | Partial<Record<'start' | 'end', boolean>>) {

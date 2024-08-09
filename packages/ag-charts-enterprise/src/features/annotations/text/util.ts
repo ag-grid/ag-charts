@@ -1,6 +1,7 @@
-import { type TextAlign, _ModuleSupport } from 'ag-charts-community';
+import { type TextAlign, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 const { TextWrapper, CachedTextMeasurerPool } = _ModuleSupport;
+const { BBox } = _Scene;
 
 export type AnnotationTextPosition = 'top' | 'center' | 'bottom';
 export type AnnotationTextAlignment = 'left' | 'center' | 'right';
@@ -44,4 +45,21 @@ export function measureAnnotationText(options: TextOptions, text: string) {
         width,
         height,
     };
+}
+
+export function getBBox(
+    options: TextOptions & { width?: number },
+    text: string,
+    coords: _Util.Vec2,
+    bbox?: _Scene.BBox
+) {
+    let width = bbox?.width ?? 0;
+    let height = bbox?.height ?? 0;
+
+    if (!bbox) {
+        const wrappedText = options.width != null ? wrapText(options, text, options.width) : text;
+        ({ width, height } = measureAnnotationText(options, wrappedText));
+    }
+
+    return new BBox(coords.x, coords.y, width, height);
 }

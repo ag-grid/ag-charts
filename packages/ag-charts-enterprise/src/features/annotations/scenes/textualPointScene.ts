@@ -3,7 +3,7 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 import type { AnnotationContext, Coords } from '../annotationTypes';
 import { convertPoint, invertCoords } from '../annotationUtils';
 import type { TextualPointProperties } from '../properties/textualPointProperties';
-import { ANNOTATION_TEXT_LINE_HEIGHT, measureAnnotationText, wrapText } from '../text/util';
+import { ANNOTATION_TEXT_LINE_HEIGHT, getBBox, wrapText } from '../text/util';
 import { AnnotationScene } from './annotationScene';
 import { DivariantHandle } from './handle';
 
@@ -104,19 +104,9 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
     }
 
     protected getTextBBox(datum: Datum, coords: _Util.Vec2, _context: AnnotationContext) {
-        const { textInputBBox } = this;
-
-        if (textInputBBox) {
-            return new _Scene.BBox(coords.x, coords.y, textInputBBox.width, textInputBBox.height);
-        }
-
         const { text } = datum.getText();
 
-        const wrappedText = datum.width != null ? wrapText(datum, text, datum.width) : text;
-
-        const { width, height } = measureAnnotationText(datum, wrappedText);
-
-        return new _Scene.BBox(coords.x, coords.y, width, height);
+        return getBBox(datum, text, { x: coords.x, y: coords.y }, this.textInputBBox);
     }
 
     protected updateLabel(datum: Datum, bbox: _Scene.BBox) {
