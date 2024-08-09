@@ -16,9 +16,9 @@ export class BaseLayoutProcessor implements UpdateProcessor {
     ) {
         this.destroyFns.push(
             // eslint-disable-next-line sonarjs/no-duplicate-string
-            this.layoutService.addListener('start-layout', (e) => this.positionPadding(e)),
-            this.layoutService.addListener('layout-complete', (e) => this.alignCaptions(e)),
-            this.layoutService.addListener('start-layout', (e) => this.positionCaptions(e))
+            this.layoutService.on('start-layout', (e) => this.positionPadding(e)),
+            this.layoutService.on('layout-complete', (e) => this.alignCaptions(e)),
+            this.layoutService.on('start-layout', (e) => this.positionCaptions(e))
         );
     }
 
@@ -27,29 +27,25 @@ export class BaseLayoutProcessor implements UpdateProcessor {
     }
 
     private positionPadding(ctx: LayoutContext) {
-        const { shrinkRect } = ctx;
         const { padding } = this.chartLike;
 
-        shrinkRect.shrink(padding.left, 'left');
-        shrinkRect.shrink(padding.top, 'top');
-        shrinkRect.shrink(padding.right, 'right');
-        shrinkRect.shrink(padding.bottom, 'bottom');
-
-        return { ...ctx, shrinkRect };
+        ctx.shrinkRect.shrink(padding.left, 'left');
+        ctx.shrinkRect.shrink(padding.top, 'top');
+        ctx.shrinkRect.shrink(padding.right, 'right');
+        ctx.shrinkRect.shrink(padding.bottom, 'bottom');
     }
 
     private positionCaptions(ctx: LayoutContext) {
         const { shrinkRect, positions, padding } = ctx;
         const { title, subtitle, footnote, titlePadding } = this.chartLike;
         const paddedShrinkRect = shrinkRect.clone().shrink(titlePadding);
-        const newShrinkRect = shrinkRect.clone();
+        const { width, height } = shrinkRect;
 
         const updateCaption = (caption: Caption) => {
-            const defaultCaptionHeight = shrinkRect.height / 10;
+            const defaultCaptionHeight = height / 10;
             const captionLineHeight = caption.lineHeight ?? caption.fontSize * Text.defaultLineHeightRatio;
-            const maxWidth = shrinkRect.width;
             const maxHeight = Math.max(captionLineHeight, defaultCaptionHeight);
-            caption.computeTextWrap(maxWidth, maxHeight);
+            caption.computeTextWrap(width, maxHeight);
         };
 
         const computeX = (align: TextAlign): number => {
@@ -77,7 +73,7 @@ export class BaseLayoutProcessor implements UpdateProcessor {
             const bboxHeight = Math.ceil(bbox.y - baseY + bbox.height + spacing);
 
             if (caption.layoutStyle === 'block') {
-                newShrinkRect.shrink(bboxHeight + 2 * titlePadding, 'top');
+                shrinkRect.shrink(bboxHeight + 2 * titlePadding, 'top');
                 paddedShrinkRect.shrink(bboxHeight, 'top');
             }
             return bbox;
@@ -93,7 +89,7 @@ export class BaseLayoutProcessor implements UpdateProcessor {
             const bboxHeight = Math.ceil(baseY - bbox.y + spacing);
 
             if (caption.layoutStyle === 'block') {
-                newShrinkRect.shrink(bboxHeight + 2 * titlePadding, 'bottom');
+                shrinkRect.shrink(bboxHeight + 2 * titlePadding, 'bottom');
                 paddedShrinkRect.shrink(bboxHeight, 'bottom');
             }
             return bbox;
@@ -117,8 +113,6 @@ export class BaseLayoutProcessor implements UpdateProcessor {
         }
 
         padding.title = titlePadding;
-
-        return { ...ctx, shrinkRect: newShrinkRect, positions };
     }
 
     alignCaptions(ctx: LayoutCompleteEvent): void {

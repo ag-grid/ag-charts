@@ -1,14 +1,9 @@
 import type { LayoutContext } from '../../module/baseModule';
 import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
-import { Debug } from '../../util/debug';
-import { type Listener, Listeners } from '../../util/listeners';
-import { Logger } from '../../util/logger';
+import { EventEmitter } from '../../util/eventEmitter';
 import type { TimeInterval } from '../../util/time/interval';
 import type { ChartAxisDirection } from '../chartAxisDirection';
-
-type LayoutStage = 'start-layout' | 'before-series';
-type LayoutComplete = 'layout-complete';
 
 export interface AxisLayout {
     id: string;
@@ -34,48 +29,27 @@ export interface LayoutCompleteEvent {
     axes?: AxisLayout[];
 }
 
-type EventTypes = LayoutStage | LayoutComplete;
-type LayoutListener = (event: LayoutCompleteEvent) => void;
-type LayoutProcessor = (ctx: LayoutContext) => LayoutContext;
+export interface LayoutState {
+    axes?: AxisLayout[];
+    clipSeries?: boolean;
+    series: { visible: boolean; rect: BBox; paddedRect: BBox; shouldFlipXY?: boolean };
+}
 
-type Handler<T extends EventTypes> = T extends LayoutStage ? LayoutProcessor : LayoutListener;
+interface LayoutEventMap {
+    'start-layout': LayoutContext;
+    'before-series': LayoutContext;
+    'layout-complete': LayoutCompleteEvent;
+}
 
-export class LayoutService extends Listeners<EventTypes, Handler<EventTypes>> {
-    private readonly layoutComplete = 'layout-complete';
-    private readonly debug = Debug.create(true, 'layout');
-
-    public override addListener<T extends EventTypes>(eventType: T, handler: Handler<T>) {
-        if (this.isLayoutStage(eventType) || this.isLayoutComplete(eventType)) {
-            return super.addListener(eventType, handler);
-        }
-        throw new Error(`AG Charts - unsupported listener type: ${eventType}`);
-    }
-
-    public dispatchPerformLayout<T extends LayoutStage>(stage: T, ctx: LayoutContext) {
-        if (this.isLayoutStage(stage)) {
-            return this.getListenersByType(stage).reduce((result, listener) => {
-                try {
-                    const newCtx = (listener as Listener<Handler<T>>).handler(result);
-                    this.debug('[LayoutService] Context updated to: ', { ...newCtx }, listener);
-                    return newCtx;
-                } catch (e) {
-                    Logger.errorOnce(e);
-                    return result;
-                }
-            }, ctx);
-        }
-        return ctx;
-    }
-
-    public dispatchLayoutComplete(event: LayoutCompleteEvent) {
-        this.dispatch(this.layoutComplete, event);
-    }
-
-    protected isLayoutStage(eventType: EventTypes): eventType is LayoutStage {
-        return eventType !== this.layoutComplete;
-    }
-
-    protected isLayoutComplete(eventType: EventTypes): eventType is LayoutComplete {
-        return eventType === this.layoutComplete;
+export class LayoutService extends EventEmitter<LayoutEventMap> {
+    setLayout(width: number, height: number, state: LayoutState) {
+        const eventType = 'layout-complete';
+        this.emit(eventType, {
+            type: eventType,
+            chart: { width, height },
+            axes: state.axes ?? [],
+            clipSeries: state.clipSeries ?? false,
+            series: state.series,
+        });
     }
 }

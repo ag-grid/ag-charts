@@ -230,7 +230,7 @@ export class StatusBar
 
         this.destroyFns.push(
             ctx.scene.attachNode(this.labelGroup, 'titles'),
-            ctx.layoutService.addListener('before-series', (e) => this.startPerformLayout(e)),
+            ctx.layoutService.on('before-series', (e) => this.startPerformLayout(e)),
             ctx.highlightManager.addListener('highlight-change', () => this.updateHighlight())
         );
     }
@@ -265,17 +265,17 @@ export class StatusBar
         }
     }
 
-    startPerformLayout(opts: _ModuleSupport.LayoutContext): _ModuleSupport.LayoutContext {
+    startPerformLayout(opts: _ModuleSupport.LayoutContext) {
+        this.labelGroup.translationX = 0;
+        this.labelGroup.translationY = 0;
+
+        if (!this.enabled) return;
+
         const { shrinkRect } = opts;
         const innerSpacing = 4;
         const outerSpacing = 12;
         const spacingAbove = 0;
         const spacingBelow = 8;
-
-        this.labelGroup.translationX = 0;
-        this.labelGroup.translationY = 0;
-
-        if (!this.enabled) return { ...opts, shrinkRect };
 
         this.labelGroup.translationY = shrinkRect.y + spacingAbove;
 
@@ -351,8 +351,6 @@ export class StatusBar
 
             left += maxValueWidth + outerSpacing;
         }
-
-        return { ...opts, shrinkRect };
     }
 
     async performCartesianLayout(opts: { seriesRect: _Scene.BBox }): Promise<void> {

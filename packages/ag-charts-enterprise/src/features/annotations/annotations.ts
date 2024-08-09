@@ -430,7 +430,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             ctx.toolbarManager.addListener('button-pressed', this.onToolbarButtonPress.bind(this)),
             ctx.toolbarManager.addListener('button-moved', this.onToolbarButtonMoved.bind(this)),
             ctx.toolbarManager.addListener('cancelled', this.onToolbarCancelled.bind(this)),
-            ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this)),
+            ctx.layoutService.on('layout-complete', this.onLayoutComplete.bind(this)),
             ctx.updateService.addListener('pre-scene-render', this.onPreRender.bind(this)),
 
             // DOM

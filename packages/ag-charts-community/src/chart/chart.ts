@@ -984,13 +984,13 @@ export abstract class Chart extends Observable {
 
     protected async performLayout() {
         const { width, height } = this.ctx.scene;
-        let ctx = { shrinkRect: new BBox(0, 0, width, height), positions: {}, padding: {} };
-        ctx = this.ctx.layoutService.dispatchPerformLayout('start-layout', ctx);
-        ctx = this.ctx.layoutService.dispatchPerformLayout('before-series', ctx);
+        const ctx = { shrinkRect: new BBox(0, 0, width, height), positions: {}, padding: {} };
+        this.ctx.layoutService.emit('start-layout', ctx);
+        this.ctx.layoutService.emit('before-series', ctx);
 
         for (const m of this.modulesManager.modules()) {
             if (m.performLayout != null) {
-                ctx = await m.performLayout(ctx);
+                await m.performLayout(ctx);
             }
         }
 

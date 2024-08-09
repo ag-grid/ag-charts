@@ -84,17 +84,16 @@ export class CartesianChart extends Chart {
         highlightRoot.setClipRectInGroupCoordinateSpace(clipRect);
         annotationRoot.setClipRectInGroupCoordinateSpace(clipRect);
 
-        this.ctx.layoutService.dispatchLayoutComplete({
-            type: 'layout-complete',
-            chart: { width: this.ctx.scene.width, height: this.ctx.scene.height },
-            clipSeries,
+        const { width, height } = this.ctx.scene;
+        this.ctx.layoutService.setLayout(width, height, {
+            axes: this.axes.map((axis) => axis.getLayoutState()),
             series: {
                 rect: seriesRect,
                 paddedRect: seriesPaddedRect,
                 visible: visibility.series,
                 shouldFlipXY: this.shouldFlipXY(),
             },
-            axes: this.axes.map((axis) => axis.getLayoutState()),
+            clipSeries,
         });
 
         const modulePromises = this.modulesManager.mapModules((m) => m.performCartesianLayout?.({ seriesRect }));
