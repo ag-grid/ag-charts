@@ -96,10 +96,14 @@ export class Matrix {
      * Returns a new matrix.
      * @param other
      */
-    multiply(other: Matrix): Matrix {
+    multiply(other: Matrix | DOMMatrix): Matrix {
         const elements = new Array(6);
 
-        this.AxB(this.elements, other.elements, elements);
+        if (other instanceof Matrix) {
+            this.AxB(this.elements, other.elements, elements);
+        } else {
+            this.AxB(this.elements, [other.a, other.b, other.c, other.d, other.e, other.f], elements);
+        }
 
         return new Matrix(elements);
     }

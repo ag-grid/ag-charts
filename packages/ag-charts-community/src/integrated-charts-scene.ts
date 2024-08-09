@@ -5,7 +5,7 @@ import { TextUtils } from './util/textMeasurer';
 export { Caption } from './chart/caption';
 export { DropShadow } from './scene/dropShadow';
 export { ChangeDetectableProperties } from './scene/util/changeDetectableProperties';
-export { Group } from './scene/group';
+export { Group, ScalableGroup } from './scene/group';
 export { Scene } from './scene/scene';
 export { Node, PointerEvents, RedrawType, SceneChangeDetection } from './scene/node';
 export type { RenderContext } from './scene/node';

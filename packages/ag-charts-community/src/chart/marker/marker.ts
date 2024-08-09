@@ -2,10 +2,11 @@ import { BBox } from '../../scene/bbox';
 import type { Point } from '../../scene/point';
 import { Path, ScenePathChangeDetection } from '../../scene/shape/path';
 import type { CanvasContext } from '../../scene/shape/shape';
+import { Scalable } from '../../scene/transformable';
 
 export type MarkerPathMove = { x: number; y: number; t?: 'move' };
 
-export class Marker extends Path {
+export class Marker extends Scalable(Path) {
     public static center: Point = { x: 0.5, y: 0.5 };
 
     @ScenePathChangeDetection()

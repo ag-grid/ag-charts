@@ -287,24 +287,6 @@ export abstract class Node extends ChangeDetectable {
     }
 
     @SceneChangeDetection({ type: 'transform' })
-    scalingX: number = 1;
-
-    @SceneChangeDetection({ type: 'transform' })
-    scalingY: number = 1;
-
-    /**
-     * The center of scaling.
-     * The default value of `null` means the scaling center will be
-     * determined automatically, as the center of the bounding box
-     * of a node.
-     */
-    @SceneChangeDetection({ type: 'transform' })
-    scalingCenterX: number | null = null;
-
-    @SceneChangeDetection({ type: 'transform' })
-    scalingCenterY: number | null = null;
-
-    @SceneChangeDetection({ type: 'transform' })
     rotationCenterX: number | null = null;
 
     @SceneChangeDetection({ type: 'transform' })
@@ -418,22 +400,9 @@ export abstract class Node extends ChangeDetectable {
             return;
         }
 
-        const {
-            matrix,
-            scalingX,
-            scalingY,
-            rotation,
-            translationX,
-            translationY,
-            scalingCenterX,
-            scalingCenterY,
-            rotationCenterX,
-            rotationCenterY,
-        } = this;
+        const { matrix, rotation, translationX, translationY, rotationCenterX, rotationCenterY } = this;
 
-        Matrix.updateTransformMatrix(matrix, scalingX, scalingY, rotation, translationX, translationY, {
-            scalingCenterX,
-            scalingCenterY,
+        Matrix.updateTransformMatrix(matrix, 1, 1, rotation, translationX, translationY, {
             rotationCenterX,
             rotationCenterY,
         });
@@ -469,7 +438,6 @@ export abstract class Node extends ChangeDetectable {
         const { stats } = renderCtx;
 
         this._dirty = RedrawType.NONE;
-        this.cachedBBox = this.computeBBox();
 
         if (stats) {
             stats.nodesRendered++;

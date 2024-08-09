@@ -1,7 +1,7 @@
 import { Marker } from './marker';
 
 export class Circle extends Marker {
-    static override readonly className = 'Circle';
+    static readonly className = 'Circle';
 
     override updatePath() {
         const { x, y, path, size } = this;

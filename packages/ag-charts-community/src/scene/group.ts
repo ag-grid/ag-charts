@@ -5,6 +5,7 @@ import type { HdpiCanvas } from './canvas/hdpiCanvas';
 import type { LayersManager, ZIndexSubOrder } from './layersManager';
 import type { ChildNodeCounts, RenderContext } from './node';
 import { Node, RedrawType, SceneChangeDetection } from './node';
+import { Scalable } from './transformable';
 
 export class Group extends Node {
     static className = 'Group';
@@ -405,3 +406,5 @@ export class Group extends Node {
         this.clipRect = bbox ? this.transformBBox(bbox) : undefined;
     }
 }
+
+export class ScalableGroup extends Scalable(Group) {}

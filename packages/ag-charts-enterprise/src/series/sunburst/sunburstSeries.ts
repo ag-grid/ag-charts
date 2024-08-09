@@ -5,7 +5,7 @@ import { formatLabels } from '../util/labelFormatter';
 import { SunburstSeriesProperties } from './sunburstSeriesProperties';
 
 const { fromToMotion } = _ModuleSupport;
-const { Sector, Group, Selection, Text } = _Scene;
+const { Sector, ScalableGroup, Selection, Text } = _Scene;
 const { sanitizeHtml } = _Util;
 
 interface LabelData {
@@ -53,7 +53,7 @@ enum TextNodeTag {
 }
 
 export class SunburstSeries extends _ModuleSupport.HierarchySeries<
-    _Scene.Group,
+    _Scene.ScalableGroup,
     SunburstSeriesProperties,
     _ModuleSupport.SeriesNodeDatum
 > {
@@ -62,9 +62,9 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
     override properties = new SunburstSeriesProperties();
 
-    groupSelection = Selection.select(this.contentGroup, Group);
+    groupSelection = Selection.select(this.contentGroup, ScalableGroup);
     private readonly highlightSelection: _Scene.Selection<_Scene.Group, _ModuleSupport.HierarchyNode> =
-        Selection.select(this.highlightGroup, Group);
+        Selection.select(this.highlightGroup, ScalableGroup);
 
     private angleData: Array<{ start: number; end: number } | undefined> = [];
 
@@ -576,10 +576,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
     protected override animateEmptyUpdateReady({
         datumSelections,
-    }: _ModuleSupport.HierarchyAnimationData<_Scene.Group, _ModuleSupport.SeriesNodeDatum>) {
+    }: _ModuleSupport.HierarchyAnimationData<_Scene.ScalableGroup, _ModuleSupport.SeriesNodeDatum>) {
         fromToMotion<
-            _Scene.Group,
-            Pick<_Scene.Group, 'scalingX' | 'scalingY'>,
+            _Scene.ScalableGroup,
+            Pick<_Scene.ScalableGroup, 'scalingX' | 'scalingY'>,
             _ModuleSupport.HierarchyNode<_ModuleSupport.SeriesNodeDatum>
         >(this.id, 'nodes', this.ctx.animationManager, datumSelections, {
             toFn(_group, _datum, _status) {
