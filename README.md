@@ -155,8 +155,10 @@ AG Charts JavaScript Charting Library comes with every feature you'd expect:
 | [Synchronization](https://charts.ag-grid.com/javascript/sync/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                    | ❌                  | ✅                   |
 | [Zoom](https://charts.ag-grid.com/javascript/zoom/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                               | ❌                  | ✅                   |
 
-> [!IMPORTANT]
-> Visit the [Pricing](https://charts.ag-grid.com/license-pricing/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github) page for a full comparison.
+<blockquote>
+    <p>ℹ️ <b>Note:</b></p>
+    <span>Visit the <a href="https://charts.ag-grid.com/license-pricing/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Pricing</a> page for a full comparison.</span>
+</blockquote>
 
 ### Financial Charts
 
@@ -296,8 +298,10 @@ const options = {
 
 <!-- END SETUP -->
 
-> [!IMPORTANT]
-> For more information on building JavaScript Charts with AG Charts, refer to our [Documentation](https://charts.ag-grid.com/javascript/quick-start/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github).
+<blockquote>
+    <p>ℹ️ <b>Note:</b></p>
+    <span>For more information on building JavaScript Charts with AG Charts, refer to our <a href="https://charts.ag-grid.com/javascript/quick-start/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Documentation</a>.</span>
+</blockquote>
 
 ## 🤝 Support
 
