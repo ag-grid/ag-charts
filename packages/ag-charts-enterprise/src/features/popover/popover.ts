@@ -33,6 +33,7 @@ export class Popover extends _ModuleSupport.BaseModuleInstance implements _Modul
     show<Value = any>(opts: {
         items: MenuItem<Value>[];
         sourceEvent: Event;
+        ariaLabel: string
         value?: Value;
         onPress?: (item: MenuItem<Value>) => void;
         onClose: () => void;
@@ -41,6 +42,7 @@ export class Popover extends _ModuleSupport.BaseModuleInstance implements _Modul
         const { domManager } = this.ctx;
         const popover = createElement('div');
         popover.setAttribute('role', 'menu');
+        popover.setAttribute('aria-label', opts.ariaLabel);
         popover.setAttribute('data-pointer-capture', 'exclusive');
         popover.className = `ag-charts-popover`;
 

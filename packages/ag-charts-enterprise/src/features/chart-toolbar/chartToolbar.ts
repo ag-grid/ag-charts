@@ -70,6 +70,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
 
         this.popover.show({
             items: menuItems,
+            ariaLabel: this.ctx.localeManager.t('toolbarSeriesTypeDropdown'),
             value: this.getChartType(),
             sourceEvent: e.sourceEvent,
             onPress: (item) => this.setChartType(item.value),
