@@ -16,6 +16,7 @@ import type {
     ToolbarButtonUpdatedEvent,
     ToolbarFloatingAnchorChangedEvent,
     ToolbarGroupToggledEvent,
+    ToolbarGroupUpdatedEvent,
     ToolbarProxyGroupOptionsEvent,
 } from '../interaction/toolbarManager';
 import { type ButtonConfiguration, ToolbarGroupProperties } from './toolbarProperties';
@@ -136,7 +137,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             ctx.toolbarManager.addListener('button-toggled', this.onButtonToggled.bind(this)),
             ctx.toolbarManager.addListener('button-updated', this.onButtonUpdated.bind(this)),
             ctx.toolbarManager.addListener('group-toggled', this.onGroupToggled.bind(this)),
-            ctx.toolbarManager.addListener('group-toggled', this.onGroupUpdated.bind(this)),
+            ctx.toolbarManager.addListener('group-updated', this.onGroupUpdated.bind(this)),
             ctx.toolbarManager.addListener('floating-anchor-changed', this.onFloatingAnchorChanged.bind(this)),
             ctx.toolbarManager.addListener('proxy-group-options', this.onProxyGroupOptions.bind(this)),
             ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this)),
@@ -267,7 +268,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.toggleVisibilities();
     }
 
-    private onGroupUpdated(event: ToolbarGroupToggledEvent) {
+    private onGroupUpdated(event: ToolbarGroupUpdatedEvent) {
         const { group } = event;
 
         for (const ariaToolbar of this.ariaToolbars) {
@@ -718,7 +719,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         alignElement.ariaLabel = this.ctx.localeManager.t(map[group]);
     }
 
-    private expandConfig(button: HTMLButtonElement, options: ButtonConfiguration): ToolbarButtonConfig {
+    private expandButtonConfig(button: HTMLButtonElement, options: ButtonConfiguration): ToolbarButtonConfig {
         if (options.role !== 'switch' || button.ariaChecked !== 'true' || options.checkedOverrides === undefined)
             return options;
 
@@ -732,7 +733,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
     private updateButton(button: HTMLButtonElement, options: ButtonConfiguration) {
         const { domManager, localeManager } = this.ctx;
-        const { icon, label, ariaLabel, tooltip } = this.expandConfig(button, options);
+        const { icon, label, ariaLabel, tooltip } = this.expandButtonConfig(button, options);
 
         if (tooltip) {
             button.title = localeManager.t(tooltip);

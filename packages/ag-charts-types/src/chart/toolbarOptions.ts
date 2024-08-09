@@ -15,7 +15,7 @@ export interface AgToolbarGroup extends Toggleable {
     position?: AgToolbarGroupPosition;
     /** Size of the toolbar group buttons, defaults to 'normal'. */
     size?: AgToolbarGroupSize;
-    buttons?: AgToolbarButton[];
+    buttons?: (AgToolbarButton | AgToolbarSwitch)[];
 }
 
 export type AgToolbarGroupAlignment = 'start' | 'center' | 'end';
@@ -41,7 +41,7 @@ interface AgToolbarButtonConfig {
     tooltip?: string;
 }
 
-export interface AgToolbarButton extends AgToolbarButtonConfig {
+interface AgBaseToolbarButton extends AgToolbarButtonConfig {
     /** Section name used for grouping of buttons.
      *
      * Adjacent buttons with the same section are grouped together.*/
@@ -52,7 +52,17 @@ export interface AgToolbarButton extends AgToolbarButtonConfig {
     id?: string;
     /** The button type (default: `'button'`); `'switch'` is the same but also have an on/off state like checkboxes. */
     role?: 'button' | 'switch';
-    /** Overrides for the button when checked. Only applicable with `role: 'switch'`. */
+}
+
+export interface AgToolbarButton extends AgBaseToolbarButton {
+    /** The button type (default: `'button'`); `'switch'` is the same but also have an on/off state like checkboxes. */
+    role?: 'button';
+}
+
+export interface AgToolbarSwitch extends AgBaseToolbarButton {
+    /** The button type (default: `'button'`); `'switch'` is the same but also have an on/off state like checkboxes. */
+    role: 'switch';
+    /** Overrides for the switch-button when checked. */
     checkedOverrides?: AgToolbarButtonConfig;
 }
 
@@ -180,10 +190,13 @@ export interface AgToolbarSeriesTypeGroup extends AgToolbarGroup {}
 
 /* Annotation Options */
 export interface AgToolbarAnnotationOptionsGroup extends AgToolbarGroup {
-    buttons?: AgToolbarAnnotationOptionsButton[];
+    buttons?: (AgToolbarAnnotationOptionsButton| AgToolbarAnnotationOptionsSwitch)[];
 }
 
 export interface AgToolbarAnnotationOptionsButton extends AgToolbarButton {
+    value: AgToolbarAnnotationOptionsButtonValue;
+}
+export interface AgToolbarAnnotationOptionsSwitch extends AgToolbarSwitch {
     value: AgToolbarAnnotationOptionsButtonValue;
 }
 
