@@ -1,7 +1,7 @@
 export type EventListener<T> = (event: T) => void;
 
 export class EventEmitter<EventMap extends object> {
-    private events = new Map<keyof EventMap, Set<EventListener<any>>>();
+    private readonly events = new Map<keyof EventMap, Set<EventListener<any>>>();
 
     /**
      * Registers an event listener.
