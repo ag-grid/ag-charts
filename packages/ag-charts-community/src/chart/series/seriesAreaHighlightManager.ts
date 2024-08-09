@@ -40,7 +40,7 @@ export class SeriesAreaHighlightManager extends BaseManager {
 
         const mouseMoveStates = InteractionState.Default | InteractionState.Annotations;
         this.destroyFns.push(
-            this.ctx.layoutService.addListener('layout-complete', (event) => this.layoutComplete(event)),
+            this.ctx.layoutService.on('layout-complete', (event) => this.layoutComplete(event)),
             this.ctx.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
             seriesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
             seriesRegion.addListener('drag', (event) => this.onHover(event), mouseMoveStates),

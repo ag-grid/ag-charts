@@ -5,7 +5,7 @@ import { gotoExample, setupIntrinsicAssertions, toExamplePageUrls } from './util
 test.describe('icons', () => {
     setupIntrinsicAssertions();
 
-    const testUrls = toExamplePageUrls('financial-charts-test', 'icons');
+    const testUrls = toExamplePageUrls('financial-charts-test', 'e2e-icons');
 
     for (const { url } of testUrls) {
         test('icons', async ({ page }) => {

@@ -41,7 +41,6 @@ export abstract class TextualStartEndStateMachine<
 
         const actionFirstRender = () => {
             ctx.node()?.toggleActive(true);
-            ctx.showAnnotationOptions();
         };
 
         const onStartEditing = () => {
@@ -73,6 +72,7 @@ export abstract class TextualStartEndStateMachine<
         };
 
         const onEndClick = ({ point }: { point: Point }) => {
+            ctx.showAnnotationOptions();
             const datum = ctx.datum();
             if (datum) {
                 datum.set({ end: point });

@@ -50,12 +50,9 @@ export class HierarchyChart extends Chart {
             new BBox(shrinkRect.x, shrinkRect.y, shrinkRect.width, shrinkRect.height)
         );
 
-        this.ctx.layoutService.dispatchLayoutComplete({
-            type: 'layout-complete',
-            chart: { width: this.ctx.scene.width, height: this.ctx.scene.height },
-            clipSeries: false,
-            series: { rect: fullSeriesRect, paddedRect: shrinkRect, visible: true },
-            axes: [],
+        const { width, height } = this.ctx.scene;
+        this.ctx.layoutService.setLayout(width, height, {
+            series: { visible: true, rect: fullSeriesRect, paddedRect: shrinkRect },
         });
 
         return shrinkRect;

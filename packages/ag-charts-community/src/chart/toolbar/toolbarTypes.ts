@@ -31,12 +31,17 @@ export function isAnimatingFloatingPosition(
     return [ToolbarPosition.FloatingTop, ToolbarPosition.FloatingBottom].includes(position);
 }
 
-export interface ToolbarButton {
-    section?: string;
+export interface ToolbarButtonConfig {
     icon?: AgIconName;
     label?: string;
     ariaLabel?: string;
     tooltip?: string;
+}
+
+export interface ToolbarButton extends ToolbarButtonConfig {
+    section?: string;
     value: any;
     id?: string;
+    role?: 'button' | 'switch';
+    checkedOverrides?: ToolbarButtonConfig;
 }
