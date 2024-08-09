@@ -5,7 +5,7 @@ import { dragCanvas, gotoExample, locateCanvas, setupIntrinsicAssertions, toExam
 test.describe('zoom', () => {
     setupIntrinsicAssertions();
 
-    const { url } = toExamplePageUrl('financial-charts-test', 'e2e-zoom-navigator', 'reactFunctionalTs');
+    const { url } = toExamplePageUrl('financial-charts-test', 'e2e-zoom-navigator', 'vanilla');
 
     test('navigator', async ({ page }) => {
         await gotoExample(page, url);

@@ -5,7 +5,7 @@ import { gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util'
 test.describe('toolbar', () => {
     setupIntrinsicAssertions();
 
-    const { url } = toExamplePageUrl('financial-charts-test', 'e2e-toolbar', 'reactFunctionalTs');
+    const { url } = toExamplePageUrl('financial-charts-test', 'e2e-toolbar', 'vanilla');
 
     test('line', async ({ page }) => {
         await gotoExample(page, url);
