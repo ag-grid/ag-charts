@@ -54,7 +54,7 @@ export class Matrix {
         return this;
     }
 
-    private get identity(): boolean {
+    get identity(): boolean {
         const e = this.elements;
         return e[0] === 1 && e[1] === 0 && e[2] === 0 && e[3] === 1 && e[4] === 0 && e[5] === 0;
     }
@@ -96,10 +96,14 @@ export class Matrix {
      * Returns a new matrix.
      * @param other
      */
-    multiply(other: Matrix): Matrix {
+    multiply(other: Matrix | DOMMatrix): Matrix {
         const elements = new Array(6);
 
-        this.AxB(this.elements, other.elements, elements);
+        if (other instanceof Matrix) {
+            this.AxB(this.elements, other.elements, elements);
+        } else {
+            this.AxB(this.elements, [other.a, other.b, other.c, other.d, other.e, other.f], elements);
+        }
 
         return new Matrix(elements);
     }

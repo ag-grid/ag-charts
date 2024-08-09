@@ -2,7 +2,7 @@ import type { FontStyle, FontWeight, TextAlign, TextWrap } from 'ag-charts-types
 
 import type { ModuleContext } from '../module/moduleContext';
 import { PointerEvents } from '../scene/node';
-import { Text } from '../scene/shape/text';
+import { RotatableText } from '../scene/shape/text';
 import { joinFunctions } from '../util/function';
 import { createId } from '../util/id';
 import { BaseProperties } from '../util/properties';
@@ -31,7 +31,7 @@ export class Caption extends BaseProperties implements CaptionLike {
     static readonly LARGE_PADDING = 20;
 
     readonly id = createId(this);
-    readonly node = new Text({ zIndex: 1 }).setProperties({
+    readonly node = new RotatableText({ zIndex: 1 }).setProperties({
         textAlign: 'center',
         pointerEvents: PointerEvents.None,
     });

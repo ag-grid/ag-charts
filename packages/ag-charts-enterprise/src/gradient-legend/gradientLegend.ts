@@ -8,7 +8,7 @@ import {
 
 const { BOOLEAN, OBJECT, POSITION, POSITIVE_NUMBER, BaseProperties, AxisTicks, Layers, ProxyProperty, Validate } =
     _ModuleSupport;
-const { Group, Rect, LinearGradientFill, Triangle } = _Scene;
+const { Group, Rect, LinearGradientFill, Triangle, Rotatable } = _Scene;
 const { createId } = _Util;
 
 class GradientBar extends BaseProperties {
@@ -32,6 +32,8 @@ class GradientLegendScale implements AgGradientLegendScaleOptions {
     padding?: _ModuleSupport.AxisTicks['padding'];
 }
 
+class RotatableTriangle extends Rotatable(Triangle) {}
+
 export class GradientLegend {
     static readonly className = 'GradientLegend';
 
@@ -47,7 +49,7 @@ export class GradientLegend {
     });
     private readonly gradientRect = new Rect();
     private readonly gradientFill = new LinearGradientFill();
-    private readonly arrow = new Triangle();
+    private readonly arrow = new RotatableTriangle();
 
     private readonly ticksGroup = new Group({ name: 'legend-axis-group' });
     private readonly destroyFns: Function[] = [];

@@ -9,7 +9,6 @@ const {
     mergeDefaults,
     updateLabelNode,
     fixNumericExtent,
-    AreaSeriesTag,
     buildResetPathFn,
     resetLabelFn,
     resetMarkerFn,
@@ -359,7 +358,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         const strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
         stroke.setProperties({
-            tag: AreaSeriesTag.Stroke,
             fill: undefined,
             lineJoin: (stroke.lineCap = 'round'),
             pointerEvents: PointerEvents.None,
@@ -372,7 +370,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             visible,
         });
         fill.setProperties({
-            tag: AreaSeriesTag.Fill,
             stroke: undefined,
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
@@ -469,7 +466,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const { labelData, labelSelection } = opts;
 
         return labelSelection.update(labelData, (text) => {
-            text.tag = AreaSeriesTag.Label;
             text.pointerEvents = PointerEvents.None;
         });
     }

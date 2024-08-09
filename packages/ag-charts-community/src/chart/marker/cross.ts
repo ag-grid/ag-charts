@@ -2,7 +2,7 @@ import type { MarkerPathMove } from './marker';
 import { Marker } from './marker';
 
 export class Cross extends Marker {
-    static override readonly className = 'Cross';
+    static readonly className = 'Cross';
     static moves: MarkerPathMove[] = [
         { x: -1, y: 0, t: 'move' },
         { x: -1, y: -1 },

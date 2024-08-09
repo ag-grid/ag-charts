@@ -44,11 +44,6 @@ import {
 import { type HistogramNodeDatum, HistogramSeriesProperties } from './histogramSeriesProperties';
 import { addHitTestersToQuadtree, childrenIter, findQuadtreeMatch } from './quadtreeUtil';
 
-enum HistogramSeriesNodeTag {
-    Bin,
-    Label,
-}
-
 const defaultBinCount = 10;
 
 type HistogramAnimationData = CartesianAnimationData<Rect, HistogramNodeDatum>;
@@ -367,7 +362,6 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         return datumSelection.update(
             nodeData,
             (rect) => {
-                rect.tag = HistogramSeriesNodeTag.Bin;
                 rect.crisp = true;
             },
             (datum: HistogramNodeDatum) => datum.domain.join('_')
@@ -433,7 +427,6 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         const { labelData, labelSelection } = opts;
 
         return labelSelection.update(labelData, (text) => {
-            text.tag = HistogramSeriesNodeTag.Label;
             text.pointerEvents = PointerEvents.None;
             text.textAlign = 'center';
             text.textBaseline = 'middle';

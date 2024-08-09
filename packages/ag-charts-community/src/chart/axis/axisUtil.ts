@@ -1,8 +1,8 @@
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../motion/fromToMotion';
 import type { FromToFns } from '../../motion/fromToMotion';
-import type { Group } from '../../scene/group';
+import type { Group, RotatableGroup } from '../../scene/group';
 import type { Line } from '../../scene/shape/line';
-import type { Text } from '../../scene/shape/text';
+import type { RotatableText } from '../../scene/shape/text';
 import { findMinMax } from '../../util/number';
 
 export type AxisLineDatum = { x: number; y1: number; y2: number };
@@ -95,7 +95,7 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
         },
     };
 
-    const label: FromToFns<Text, Partial<Omit<AxisLabelDatum, 'range'>>, AxisLabelDatum> = {
+    const label: FromToFns<RotatableText, Partial<Omit<AxisLabelDatum, 'range'>>, AxisLabelDatum> = {
         fromFn(node, newDatum, status) {
             const datum: AxisLabelDatum = node.previousDatum ?? newDatum;
 
@@ -157,7 +157,7 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
             return { ...datum };
         },
     };
-    const group: FromToFns<Group, any, AxisGroupDatum> = {
+    const group: FromToFns<RotatableGroup, any, AxisGroupDatum> = {
         fromFn(node, _datum) {
             const { rotation, translationX, translationY } = node;
             return {
@@ -209,7 +209,7 @@ export function resetAxisSelectionFn(ctx: AxisAnimationContext) {
 }
 
 export function resetAxisLabelSelectionFn() {
-    return (_node: Text, datum: AxisLabelDatum) => {
+    return (_node: RotatableText, datum: AxisLabelDatum) => {
         return {
             x: datum.x,
             y: datum.y,

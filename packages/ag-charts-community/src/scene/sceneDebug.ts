@@ -144,8 +144,8 @@ export function buildTree(node: Node): BuildTree {
                     translationX && `x: ${translationX}`,
                     translationY && `y: ${translationY}`,
                     rotation && `r: ${rotation}`,
-                    scalingX !== 1 && `sx: ${scalingX}`,
-                    scalingY !== 1 && `sy: ${scalingY}`,
+                    scalingX != null && scalingX !== 1 && `sx: ${scalingX}`,
+                    scalingY != null && scalingY !== 1 && `sy: ${scalingY}`,
                 ]
                     .filter((v) => !!v)
                     .join(' ');

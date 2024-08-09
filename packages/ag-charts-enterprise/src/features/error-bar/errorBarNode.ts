@@ -131,7 +131,7 @@ export class ErrorBarNode extends _Scene.Group {
 
         const whisker = this.whiskerPath;
         this.applyStyling(whisker, whiskerStyle);
-        whisker.path.clear();
+        whisker.path.clear(true);
         if (yBar !== undefined) {
             whisker.path.moveTo(yBar.lowerPoint.x, yBar.lowerPoint.y);
             whisker.path.lineTo(yBar.upperPoint.x, yBar.upperPoint.y);
@@ -149,7 +149,7 @@ export class ErrorBarNode extends _Scene.Group {
         const capOffset = this.capLength / 2;
         const caps = this.capsPath;
         this.applyStyling(caps, capsStyle);
-        caps.path.clear();
+        caps.path.clear(true);
         if (yBar !== undefined) {
             caps.path.moveTo(yBar.lowerPoint.x - capOffset, yBar.lowerPoint.y);
             caps.path.lineTo(yBar.lowerPoint.x + capOffset, yBar.lowerPoint.y);

@@ -5,6 +5,7 @@ import type { HdpiCanvas } from './canvas/hdpiCanvas';
 import type { LayersManager, ZIndexSubOrder } from './layersManager';
 import type { ChildNodeCounts, RenderContext } from './node';
 import { Node, RedrawType, SceneChangeDetection } from './node';
+import { Rotatable, Scalable } from './transformable';
 
 export class Group extends Node {
     static className = 'Group';
@@ -186,8 +187,6 @@ export class Group extends Node {
         let { ctx, forceRender, clipBBox } = renderCtx;
         const { resized, stats } = renderCtx;
 
-        const canvasCtxTransform = ctx.getTransform();
-
         const isDirty = dirty >= RedrawType.MINOR || dirtyZIndex || resized;
         let isChildDirty = isDirty;
         let isChildLayerDirty = false;
@@ -232,6 +231,8 @@ export class Group extends Node {
 
         const groupVisible = this.visible;
         if (layer) {
+            const canvasCtxTransform = ctx.getTransform();
+
             // Switch context to the canvas layer we use for this group.
             ctx = layer.context;
             ctx.save();
@@ -405,3 +406,6 @@ export class Group extends Node {
         this.clipRect = bbox ? this.transformBBox(bbox) : undefined;
     }
 }
+
+export class ScalableGroup extends Scalable(Group) {}
+export class RotatableGroup extends Rotatable(Group) {}
