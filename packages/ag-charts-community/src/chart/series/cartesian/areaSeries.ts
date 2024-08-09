@@ -548,7 +548,7 @@ export class AreaSeries extends CartesianSeries<
             lineDash: this.properties.lineDash,
             lineDashOffset: this.properties.lineDashOffset,
             opacity,
-            visible,
+            visible: visible || animationEnabled,
         });
         fill.setProperties({
             tag: AreaSeriesTag.Fill,
@@ -557,13 +557,9 @@ export class AreaSeries extends CartesianSeries<
             pointerEvents: PointerEvents.None,
             fill: this.properties.fill,
             fillOpacity: this.properties.fillOpacity,
-            lineDash: this.properties.lineDash,
-            lineDashOffset: this.properties.lineDashOffset,
-            strokeOpacity: this.properties.strokeOpacity,
             fillShadow: this.properties.shadow,
             opacity,
             visible: visible || animationEnabled,
-            strokeWidth,
         });
 
         updateClipPath(this, stroke);
@@ -827,7 +823,7 @@ export class AreaSeries extends CartesianSeries<
 
             markerFadeInAnimation(this, animationManager, 'added', markerSelection);
             pathFadeInAnimation(this, 'fill_path_properties', animationManager, 'add', fill);
-            pathFadeInAnimation(this, 'stroke', animationManager, 'trailing', stroke);
+            pathFadeInAnimation(this, 'stroke_path_properties', animationManager, 'add', stroke);
             seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
             return;
         }
@@ -842,11 +838,13 @@ export class AreaSeries extends CartesianSeries<
         }
 
         markerFadeInAnimation(this, animationManager, undefined, markerSelection);
+
         fromToMotion(this.id, 'fill_path_properties', animationManager, [fill], fns.fill.pathProperties);
         pathMotion(this.id, 'fill_path_update', animationManager, [fill], fns.fill.path);
 
-        this.updateStrokePath(paths, contextData);
-        pathFadeInAnimation(this, 'stroke', animationManager, 'trailing', stroke);
+        fromToMotion(this.id, 'stroke_path_properties', animationManager, [stroke], fns.stroke.pathProperties);
+        pathMotion(this.id, 'stroke_path_update', animationManager, [stroke], fns.stroke.path);
+
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
     }
 
