@@ -1,3 +1,4 @@
+import { ChartTypeOriginator } from '../api/preset/chartTypeOriginator';
 import { StateManager } from '../api/state/stateManager';
 import type { ModuleContext } from '../module/moduleContext';
 import type { Group } from '../scene/group';
@@ -48,6 +49,7 @@ export class ChartContext implements ModuleContext {
     annotationManager: AnnotationManager;
     ariaAnnouncementService: AriaAnnouncementService;
     chartEventManager: ChartEventManager;
+    chartTypeOriginator: ChartTypeOriginator;
     contextMenuRegistry: ContextMenuRegistry;
     cursorManager: CursorManager;
     domManager: DOMManager;
@@ -90,6 +92,7 @@ export class ChartContext implements ModuleContext {
         this.localeManager = new LocaleManager();
         this.annotationManager = new AnnotationManager(chart.annotationRoot);
         this.chartEventManager = new ChartEventManager();
+        this.chartTypeOriginator = new ChartTypeOriginator(chart);
         this.cursorManager = new CursorManager(this.domManager);
         this.highlightManager = new HighlightManager();
         this.interactionManager = new InteractionManager(chart.keyboard, this.domManager);
