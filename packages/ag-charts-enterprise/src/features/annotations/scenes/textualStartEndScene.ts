@@ -5,7 +5,7 @@ import { convertLine, invertCoords, validateDatumPoint } from '../annotationUtil
 import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
 import { DivariantHandle } from '../scenes/handle';
 import { LinearScene } from '../scenes/linearScene';
-import { ANNOTATION_TEXT_LINE_HEIGHT, getBBox, wrapText } from '../text/util';
+import { getBBox, updateTextNode, wrapText } from '../text/util';
 
 const { Vec2 } = _Util;
 
@@ -115,23 +115,9 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
     }
 
     protected updateLabel(datum: Datum, bbox: _Scene.BBox, coords: LineCoords) {
-        const { x, y } = this.getLabelCoords(datum, bbox, coords);
-
-        this.label.visible = datum.visible ?? true;
-
-        this.label.x = x;
-        this.label.y = y;
-        this.label.textBaseline = datum.position == 'center' ? 'middle' : datum.position;
-
         const { text, isPlaceholder } = datum.getText();
-        this.label.text = wrapText(datum, text, bbox.width);
-        this.label.fill = isPlaceholder ? datum.getPlaceholderColor() : datum.color;
-        this.label.fontFamily = datum.fontFamily;
-        this.label.fontSize = datum.fontSize;
-        this.label.fontStyle = datum.fontStyle;
-        this.label.fontWeight = datum.fontWeight;
-        this.label.textAlign = datum.textAlign;
-        this.label.lineHeight = datum.fontSize * ANNOTATION_TEXT_LINE_HEIGHT;
+        const wrappedText = wrapText(datum, text, bbox.width);
+        updateTextNode(this.label, wrappedText, isPlaceholder, datum, this.getLabelCoords(datum, bbox, coords));
     }
 
     protected updateHandles(datum: Datum, bbox: _Scene.BBox, coords: LineCoords) {

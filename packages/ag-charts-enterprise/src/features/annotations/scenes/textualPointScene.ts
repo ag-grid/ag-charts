@@ -3,7 +3,7 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 import type { AnnotationContext, Coords } from '../annotationTypes';
 import { convertPoint, invertCoords } from '../annotationUtils';
 import type { TextualPointProperties } from '../properties/textualPointProperties';
-import { ANNOTATION_TEXT_LINE_HEIGHT, getBBox, wrapText } from '../text/util';
+import { getBBox, updateTextNode, wrapText } from '../text/util';
 import { AnnotationScene } from './annotationScene';
 import { DivariantHandle } from './handle';
 
@@ -110,24 +110,10 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
     }
 
     protected updateLabel(datum: Datum, bbox: _Scene.BBox) {
-        const { x, y } = this.getLabelCoords(datum, bbox);
+        const { text, isPlaceholder } = datum.getText();
+        const wrappedText = wrapText(datum, text, bbox.width);
 
-        this.label.visible = datum.visible ?? true;
-
-        this.label.x = x;
-        this.label.y = y;
-
-        const { text } = datum.getText();
-        this.label.text = wrapText(datum, text, bbox.width);
-
-        this.label.fill = datum.color;
-        this.label.fontFamily = datum.fontFamily;
-        this.label.fontSize = datum.fontSize;
-        this.label.fontStyle = datum.fontStyle;
-        this.label.fontWeight = datum.fontWeight;
-        this.label.textAlign = datum.textAlign ?? datum.alignment;
-        this.label.textBaseline = datum.position == 'center' ? 'middle' : datum.position;
-        this.label.lineHeight = datum.fontSize * ANNOTATION_TEXT_LINE_HEIGHT;
+        updateTextNode(this.label, wrappedText, isPlaceholder, datum, this.getLabelCoords(datum, bbox));
     }
 
     protected updateHandle(datum: Datum, bbox: _Scene.BBox, coords: _Util.Vec2) {

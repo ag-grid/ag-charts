@@ -63,3 +63,31 @@ export function getBBox(
 
     return new BBox(coords.x, coords.y, width, height);
 }
+
+export function updateTextNode(
+    node: _Scene.Text,
+    text: string,
+    isPlaceholder: boolean,
+    config: TextOptions & { visible?: boolean; color?: string; getPlaceholderColor: () => string | undefined },
+    { x, y }: _Util.Vec2
+) {
+    const { visible = true, fontFamily, fontSize = 14, fontStyle, fontWeight, textAlign } = config;
+    const lineHeight = fontSize * ANNOTATION_TEXT_LINE_HEIGHT;
+    const textBaseline = config.position == 'center' ? 'middle' : config.position;
+    const fill = isPlaceholder ? config.getPlaceholderColor() : config.color;
+
+    node.setProperties({
+        x,
+        y,
+        visible,
+        text,
+        fill,
+        fontFamily,
+        fontSize,
+        fontStyle,
+        fontWeight,
+        textAlign,
+        lineHeight,
+        textBaseline,
+    });
+}
