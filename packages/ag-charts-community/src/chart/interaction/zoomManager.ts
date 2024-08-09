@@ -63,7 +63,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
     public addLayoutService(layoutService: LayoutService) {
         this.destroyFns.push(
-            layoutService.addListener('layout-complete', (event) => {
+            layoutService.on('layout-complete', (event) => {
                 this.axes = event.axes;
             })
         );
