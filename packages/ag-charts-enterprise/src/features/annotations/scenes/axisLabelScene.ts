@@ -77,8 +77,8 @@ export class AxisLabelScene extends _Scene.Group {
         const translationX = x + xTranslation;
         const translationY = y + yTranslation;
 
-        label.translationX = translationX;
-        label.translationY = translationY;
+        label.x = translationX;
+        label.y = translationY;
 
         rect.x = translationX - labelBBox.width / 2;
         rect.y = translationY - labelBBox.height / 2;

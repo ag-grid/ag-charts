@@ -5,7 +5,7 @@ import { formatLabels } from '../util/labelFormatter';
 import { SunburstSeriesProperties } from './sunburstSeriesProperties';
 
 const { fromToMotion } = _ModuleSupport;
-const { Sector, ScalableGroup, Selection, RotatableText } = _Scene;
+const { Sector, ScalableGroup, Selection, TransformableText } = _Scene;
 const { sanitizeHtml } = _Util;
 
 interface LabelData {
@@ -156,8 +156,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const updateGroup = (group: _Scene.Group) => {
             group.append([
                 new Sector(),
-                new RotatableText({ tag: TextNodeTag.Primary }),
-                new RotatableText({ tag: TextNodeTag.Secondary }),
+                new TransformableText({ tag: TextNodeTag.Primary }),
+                new TransformableText({ tag: TextNodeTag.Secondary }),
             ]);
         };
 
@@ -188,7 +188,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const highlightedNode: _ModuleSupport.HierarchyNode | undefined =
             this.ctx.highlightManager?.getActiveHighlight() as any;
 
-        const labelTextNode = new RotatableText();
+        const labelTextNode = new TransformableText();
         labelTextNode.setFont(this.properties.label);
 
         this.rootNode.walk((node) => {
@@ -377,7 +377,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
         const updateText = (
             node: _ModuleSupport.HierarchyNode,
-            text: _Scene.RotatableText,
+            text: _Scene.TransformableText,
             tag: TextNodeTag,
             highlighted: boolean
         ) => {
@@ -449,10 +449,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             text.visible = true;
         };
 
-        this.groupSelection.selectByClass(RotatableText).forEach((text) => {
+        this.groupSelection.selectByClass(TransformableText).forEach((text) => {
             updateText(text.datum, text, text.tag, false);
         });
-        this.highlightSelection.selectByClass(RotatableText).forEach((text) => {
+        this.highlightSelection.selectByClass(TransformableText).forEach((text) => {
             const node: _ModuleSupport.HierarchyNode = text.datum;
             const isHighlighted = highlightedNode === node;
             text.visible = isHighlighted;

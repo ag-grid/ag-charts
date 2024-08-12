@@ -21,12 +21,13 @@ import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
 import { TimeScale } from '../../scale/timeScale';
 import { BBox } from '../../scene/bbox';
-import { Group, RotatableGroup } from '../../scene/group';
+import { Group, TransformableGroup } from '../../scene/group';
 import { Matrix } from '../../scene/matrix';
 import type { Node } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
-import { RotatableText, type TextSizeProperties } from '../../scene/shape/text';
+import { RotatableText, type TextSizeProperties, TransformableText } from '../../scene/shape/text';
+import { Translatable } from '../../scene/transformable';
 import type { PlacedLabelDatum } from '../../scene/util/labelPlacement';
 import { axisLabelsOverlap } from '../../scene/util/labelPlacement';
 import { normalizeAngle360, toRadians } from '../../util/angle';
@@ -141,6 +142,8 @@ type AxisAnimationEvent = 'update' | 'resize' | 'reset';
 
 export type AxisModuleMap = ModuleMap<AxisOptionModule, ModuleInstance, ModuleContextWithParent<AxisContext>>;
 
+class TranslatableLine extends Translatable(Line) {}
+
 /**
  * A general purpose linear axis with no notion of orientation.
  * The axis is always rendered vertically, with horizontal labels positioned to the left
@@ -192,19 +195,19 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     interactionEnabled = true;
 
-    readonly axisGroup = new RotatableGroup({ name: `${this.id}-axis`, zIndex: Layers.AXIS_ZINDEX });
+    readonly axisGroup = new TransformableGroup({ name: `${this.id}-axis`, zIndex: Layers.AXIS_ZINDEX });
 
-    protected lineNode = this.axisGroup.appendChild(new Line({ name: `${this.id}-Axis-line` }));
+    protected lineNode = this.axisGroup.appendChild(new TranslatableLine({ name: `${this.id}-Axis-line` }));
     protected readonly tickLineGroup = this.axisGroup.appendChild(
         new Group({ name: `${this.id}-Axis-tick-lines`, zIndex: Layers.AXIS_ZINDEX })
     );
     protected readonly tickLabelGroup = this.axisGroup.appendChild(
         new Group({ name: `${this.id}-Axis-tick-labels`, zIndex: Layers.AXIS_ZINDEX })
     );
-    protected readonly crossLineGroup = new RotatableGroup({ name: `${this.id}-CrossLines` });
+    protected readonly crossLineGroup = new TransformableGroup({ name: `${this.id}-CrossLines` });
     protected readonly labelGroup = new Group({ name: `${this.id}-Labels`, zIndex: Layers.SERIES_ANNOTATION_ZINDEX });
 
-    readonly gridGroup = new RotatableGroup({ name: `${this.id}-Axis-grid` });
+    readonly gridGroup = new TransformableGroup({ name: `${this.id}-Axis-grid` });
     protected readonly gridLineGroup = this.gridGroup.appendChild(
         new Group({
             name: `${this.id}-gridLines`,
@@ -212,13 +215,13 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         })
     );
 
-    protected tickLineGroupSelection = Selection.select(this.tickLineGroup, Line, false);
-    protected tickLabelGroupSelection = Selection.select<RotatableText, LabelNodeDatum>(
+    protected tickLineGroupSelection = Selection.select(this.tickLineGroup, TranslatableLine, false);
+    protected tickLabelGroupSelection = Selection.select<TransformableText, LabelNodeDatum>(
         this.tickLabelGroup,
-        RotatableText,
+        TransformableText,
         false
     );
-    protected gridLineGroupSelection = Selection.select(this.gridLineGroup, Line, false);
+    protected gridLineGroupSelection = Selection.select(this.gridLineGroup, TranslatableLine, false);
 
     private _crossLines: CrossLine[] = [];
     set crossLines(value: CrossLine[]) {
@@ -623,7 +626,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
 
         if (this.label.enabled) {
-            const tempText = new RotatableText();
+            const tempText = new TransformableText();
             tickData.ticks.forEach((datum) => {
                 const labelProps = this.getTickLabelProps(datum, {
                     combinedRotation,

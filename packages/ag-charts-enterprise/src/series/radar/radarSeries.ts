@@ -331,8 +331,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             node.size = format?.size ?? marker.size;
 
             const { x, y } = datum.point!;
-            node.translationX = x;
-            node.translationY = y;
+            node.x = x;
+            node.y = y;
             node.visible = visible && node.size > 0 && !isNaN(x) && !isNaN(y);
         });
     }

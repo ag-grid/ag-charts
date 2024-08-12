@@ -1,10 +1,10 @@
 import { BBox } from '../../../scene/bbox';
-import { Group } from '../../../scene/group';
+import { Group, TranslatableGroup } from '../../../scene/group';
 import type { Node } from '../../../scene/node';
 import { Layers } from '../../layers';
 
 export class RangeSelector extends Group {
-    private readonly background: Group;
+    private readonly background: TranslatableGroup;
 
     private x = 0;
     private y = 0;
@@ -17,7 +17,7 @@ export class RangeSelector extends Group {
         super({ name: 'rangeSelectorGroup', layer: true, zIndex: Layers.NAVIGATOR_ZINDEX });
         this.isContainerNode = true;
 
-        this.background = new Group({ name: 'navigator-background' });
+        this.background = new TranslatableGroup({ name: 'navigator-background' });
         this.background.zIndex = 1;
 
         this.appendChild(this.background);

@@ -338,14 +338,14 @@ export class SankeySeries extends FlowProportionSeries<
 
     protected async updateLabelSelection(opts: {
         labelData: SankeyNodeLabelDatum[];
-        labelSelection: _Scene.Selection<_Scene.RotatableText, SankeyNodeLabelDatum>;
+        labelSelection: _Scene.Selection<_Scene.TransformableText, SankeyNodeLabelDatum>;
     }) {
         const labels = this.isLabelEnabled() ? opts.labelData : [];
         return opts.labelSelection.update(labels);
     }
 
     protected async updateLabelNodes(opts: {
-        labelSelection: _Scene.Selection<_Scene.RotatableText, SankeyNodeLabelDatum>;
+        labelSelection: _Scene.Selection<_Scene.TransformableText, SankeyNodeLabelDatum>;
     }) {
         const { labelSelection } = opts;
         const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = this.properties.label;

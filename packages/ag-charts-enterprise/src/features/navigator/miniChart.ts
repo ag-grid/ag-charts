@@ -4,7 +4,7 @@ const { Validate, BOOLEAN, POSITIVE_NUMBER, Layers, ActionOnSet, CategoryAxis, G
     _ModuleSupport;
 
 const { Padding, Logger } = _Util;
-const { Group, BBox } = _Scene;
+const { Group, BBox, TranslatableGroup } = _Scene;
 
 class MiniChartPadding {
     @Validate(POSITIVE_NUMBER)
@@ -22,7 +22,7 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     readonly root = new Group({ name: 'root' });
     readonly seriesRoot = this.root.appendChild(
-        new Group({ name: 'Series-root', layer: true, zIndex: Layers.SERIES_LAYER_ZINDEX })
+        new TranslatableGroup({ name: 'Series-root', layer: true, zIndex: Layers.SERIES_LAYER_ZINDEX })
     );
     readonly axisGridGroup = this.root.appendChild(
         new Group({ name: 'Axes-Grids', layer: true, zIndex: Layers.AXIS_GRID_ZINDEX })

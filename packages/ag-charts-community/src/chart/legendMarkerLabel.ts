@@ -7,14 +7,15 @@ import { Image } from '../scene/image';
 import type { Line } from '../scene/shape/line';
 import { Text } from '../scene/shape/text';
 import type { SpriteDimensions, SpriteRenderer } from '../scene/spriteRenderer';
+import { Translatable } from '../scene/transformable';
 import { arraysEqual } from '../util/array';
 import { argsIterable, arraysIterable } from '../util/iterator';
 import { ProxyPropertyOnWrite } from '../util/proxy';
 import type { Marker } from './marker/marker';
 import type { MarkerConstructor } from './marker/util';
 
-export class LegendMarkerLabel extends Group {
-    static override readonly className = 'MarkerLabel';
+export class LegendMarkerLabel extends Translatable(Group) {
+    static readonly className = 'MarkerLabel';
 
     private readonly label = new Text();
 

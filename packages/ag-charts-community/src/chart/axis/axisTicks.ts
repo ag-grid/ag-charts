@@ -2,7 +2,7 @@ import type { AgChartLegendPosition, CssColor, FontFamily, FontSize, FontStyle, 
 
 import { LinearScale } from '../../scale/linearScale';
 import { BBox } from '../../scene/bbox';
-import { Group } from '../../scene/group';
+import { TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { Text } from '../../scene/shape/text';
@@ -53,7 +53,7 @@ export class AxisTicks {
 
     readonly id = createId(this);
 
-    protected readonly axisGroup = new Group({ name: `${this.id}-AxisTicks`, zIndex: Layers.AXIS_ZINDEX });
+    protected readonly axisGroup = new TranslatableGroup({ name: `${this.id}-AxisTicks`, zIndex: Layers.AXIS_ZINDEX });
     protected readonly labelSelection = Selection.select<Text, LabelNodeDatum>(this.axisGroup, Text, false);
 
     readonly interval = new AxisInterval();

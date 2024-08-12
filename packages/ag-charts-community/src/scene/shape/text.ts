@@ -4,7 +4,7 @@ import { CachedTextMeasurerPool, type MeasureOptions, TextUtils } from '../../ut
 import { BBox } from '../bbox';
 import type { RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
-import { Rotatable } from '../transformable';
+import { Rotatable, Translatable } from '../transformable';
 import { Shape } from './shape';
 
 export interface TextSizeProperties {
@@ -182,3 +182,4 @@ export class Text extends Shape {
 }
 
 export class RotatableText extends Rotatable(Text) {}
+export class TransformableText extends Rotatable(Translatable(Text)) {}

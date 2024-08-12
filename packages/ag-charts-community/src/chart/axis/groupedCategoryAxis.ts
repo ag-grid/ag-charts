@@ -5,7 +5,7 @@ import { BandScale } from '../../scale/bandScale';
 import { BBox } from '../../scene/bbox';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
-import { RotatableText } from '../../scene/shape/text';
+import { RotatableText, TransformableText } from '../../scene/shape/text';
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { extent, unique } from '../../util/array';
 import { isNumber } from '../../util/type-guards';
@@ -40,7 +40,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
     private readonly gridLineSelection: Selection<Line>;
     private readonly axisLineSelection: Selection<Line>;
     private readonly separatorSelection: Selection<Line>;
-    private readonly labelSelection: Selection<RotatableText>;
+    private readonly labelSelection: Selection<TransformableText>;
     private tickTreeLayout?: TreeLayout;
 
     constructor(moduleCtx: ModuleContext) {
@@ -59,7 +59,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         this.gridLineSelection = Selection.select(gridLineGroup, Line);
         this.axisLineSelection = Selection.select(tickLineGroup, Line);
         this.separatorSelection = Selection.select(tickLineGroup, Line);
-        this.labelSelection = Selection.select(tickLabelGroup, RotatableText);
+        this.labelSelection = Selection.select(tickLabelGroup, TransformableText);
         this.lineNode.visible = false;
     }
 
@@ -299,9 +299,9 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
             parallelFlipRotation: normalizeAngle360(rotation),
         });
 
-        const tickLabelLayout: Array<Partial<RotatableText>> = [];
+        const tickLabelLayout: Array<Partial<TransformableText>> = [];
 
-        const copyLabelProps = (node: RotatableText): Partial<RotatableText> => {
+        const copyLabelProps = (node: TransformableText): Partial<TransformableText> => {
             return {
                 fill: node.fill,
                 fontFamily: node.fontFamily,
@@ -324,7 +324,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
 
         const labelBBoxes: Map<number, BBox> = new Map();
         let maxLeafLabelWidth = 0;
-        const tempText = new RotatableText();
+        const tempText = new TransformableText();
 
         const setLabelProps = (datum: (typeof treeLabels)[number], index: number) => {
             tempText.setProperties({

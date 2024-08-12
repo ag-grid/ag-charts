@@ -1,7 +1,7 @@
 import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 const { CachedTextMeasurerPool, Validate, OBJECT, BOOLEAN, STRING, valueProperty } = _ModuleSupport;
-const { Label, Text, Group } = _Scene;
+const { Label, Text } = _Scene;
 
 enum LabelConfiguration {
     Open = 1 << 1,
@@ -94,7 +94,7 @@ export class StatusBar
     data?: any[] = undefined;
 
     private readonly highlightManager: _ModuleSupport.HighlightManager;
-    private readonly labelGroup = new Group({ name: 'StatusBar' });
+    private readonly labelGroup = new _Scene.TranslatableGroup({ name: 'StatusBar' });
     private readonly labels = [
         {
             label: 'O',
@@ -340,14 +340,14 @@ export class StatusBar
             title.fill = this.title.color;
             title.text = label;
             title.textBaseline = textVAlign;
-            title.translationY = offsetTop;
-            title.translationX = left;
+            title.y = offsetTop;
+            title.x = left;
 
             left += titleMetrics.width + innerSpacing;
 
             value.textBaseline = textVAlign;
-            value.translationY = offsetTop;
-            value.translationX = left;
+            value.y = offsetTop;
+            value.x = left;
 
             left += maxValueWidth + outerSpacing;
         }

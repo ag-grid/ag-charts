@@ -568,8 +568,8 @@ export class MapMarkerSeries
             marker.stroke = highlightStyle?.stroke ?? format?.stroke ?? stroke;
             marker.strokeWidth = highlightStyle?.strokeWidth ?? format?.strokeWidth ?? strokeWidth;
             marker.strokeOpacity = highlightStyle?.strokeOpacity ?? format?.strokeOpacity ?? strokeOpacity;
-            marker.translationX = point.x;
-            marker.translationY = point.y;
+            marker.x = point.x;
+            marker.y = point.y;
             marker.zIndex = !isHighlight && highlightedDatum != null && datum === highlightedDatum.datum ? 1 : 0;
         });
     }
