@@ -171,10 +171,10 @@ export function Cappable<T extends Constructor>(Parent: T) {
 export function Extendable<T extends Constructor>(Parent: T) {
     class ExtendableInternal extends Parent {
         @Validate(BOOLEAN, { optional: true })
-        extendLeft?: boolean;
+        extendStart?: boolean;
 
         @Validate(BOOLEAN, { optional: true })
-        extendRight?: boolean;
+        extendEnd?: boolean;
     }
     return ExtendableInternal;
 }

@@ -6,6 +6,10 @@ export const Vec2 = {
     distance,
     distanceSquared,
     from,
+    gradient,
+    intercept,
+    intersectAtX,
+    intersectAtY,
     length,
     lengthSquared,
     multiply,
@@ -109,6 +113,48 @@ function angle(a: Vec2, b: Vec2 = origin()) {
 function rotate(a: Vec2, theta: number, b: Vec2 = origin()) {
     const l = length(a);
     return { x: b.x + l * Math.cos(theta), y: b.y + l * Math.sin(theta) };
+}
+
+/**
+ * Get the gradient of the line that intersects two points.
+ * Optionally reflect the line about the y-axis when the coordinate system has y = 0 at the top.
+ */
+function gradient(a: Vec2, b: Vec2, reflection?: number) {
+    const dx = b.x - a.x;
+    const dy = reflection == null ? b.y - a.y : reflection - b.y - (reflection - a.y);
+    return dy / dx;
+}
+
+/**
+ * Get the y-intercept of a line through a point with a gradient where `c = y - mx`.
+ * Optionally reflect the line about the y-axis when the coordinate system has y = 0 at the top.
+ */
+// eslint-disable-next-line @typescript-eslint/no-shadow
+function intercept(a: Vec2, gradient: number, reflection?: number) {
+    const y = reflection == null ? a.y : reflection - a.y;
+    return y - gradient * a.x;
+}
+
+/**
+ * Get the point where a line intersects a horizontal line at the given y value.
+ * Optionally reflect the line about the y-axis when the coordinate system has y = 0 at the top.
+ */
+// eslint-disable-next-line @typescript-eslint/no-shadow
+function intersectAtY(gradient: number, coefficient: number, y: number = 0, reflection?: number) {
+    return {
+        x: gradient === Infinity ? Infinity : (y - coefficient) / gradient,
+        y: reflection == null ? y : reflection - y,
+    };
+}
+
+/**
+ * Get the point where a line intersects a vertical line at the given x value.
+ * Optionally reflect the line about the y-axis when the coordinate system has y = 0 at the top.
+ */
+// eslint-disable-next-line @typescript-eslint/no-shadow
+function intersectAtX(gradient: number, coefficient: number, x: number = 0, reflection?: number) {
+    const y = gradient === Infinity ? Infinity : gradient * x + coefficient;
+    return { x: x, y: reflection == null ? y : reflection - y };
 }
 
 /**
