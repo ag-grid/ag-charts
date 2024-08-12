@@ -94,7 +94,7 @@ export class GradientLegend {
 
         this.destroyFns.push(
             ctx.highlightManager.addListener('highlight-change', () => this.onChartHoverChange()),
-            ctx.layoutService.on('start-layout', (e) => this.onStartLayout(e)),
+            ctx.layoutService.addListener('start-layout', (e) => this.onStartLayout(e)),
             () => this.legendGroup.parent?.removeChild(this.legendGroup)
         );
     }
@@ -117,10 +117,10 @@ export class GradientLegend {
 
         const { colorRange } = this.normalizeColorArrays(data);
 
-        this.updateGradientRect(ctx.shrinkRect, colorRange);
+        this.updateGradientRect(ctx.layoutRect, colorRange);
 
         const axisBBox = this.updateAxis(data);
-        const { left, top } = this.getMeasurements(ctx.shrinkRect, axisBBox);
+        const { left, top } = this.getMeasurements(ctx.layoutRect, axisBBox);
 
         this.updateArrow();
 

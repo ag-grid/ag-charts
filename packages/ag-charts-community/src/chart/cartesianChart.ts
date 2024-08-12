@@ -1,5 +1,6 @@
 import type { AgCartesianAxisPosition } from 'ag-charts-types';
 
+import type { LayoutContext } from '../module/baseModule';
 import type { ChartOptions } from '../module/optionsModule';
 import { staticFromToMotion } from '../motion/fromToMotion';
 import type { BBox } from '../scene/bbox';
@@ -45,11 +46,10 @@ export class CartesianChart extends Chart {
         return 'cartesian' as const;
     }
 
-    override async performLayout() {
-        const shrinkRect = await super.performLayout();
+    async performLayout(ctx: LayoutContext) {
         const { firstSeriesTranslation, seriesRoot, annotationRoot, highlightRoot } = this;
+        const { animationRect, seriesRect, visibility, clipSeries } = this.updateAxes(ctx.layoutRect);
 
-        const { animationRect, seriesRect, visibility, clipSeries } = this.updateAxes(shrinkRect);
         this.seriesRoot.visible = visibility.series;
         this.seriesRect = seriesRect;
         this.animationRect = animationRect;
@@ -85,7 +85,7 @@ export class CartesianChart extends Chart {
         annotationRoot.setClipRectInGroupCoordinateSpace(clipRect);
 
         const { width, height } = this.ctx.scene;
-        this.ctx.layoutService.setLayout(width, height, {
+        this.ctx.layoutService.emitLayoutComplete(width, height, {
             axes: this.axes.map((axis) => axis.getLayoutState()),
             series: {
                 rect: seriesRect,
@@ -96,10 +96,7 @@ export class CartesianChart extends Chart {
             clipSeries,
         });
 
-        const modulePromises = this.modulesManager.mapModules((m) => m.performCartesianLayout?.({ seriesRect }));
-        await Promise.all(modulePromises);
-
-        return shrinkRect;
+        await Promise.all(this.modulesManager.mapModules((m) => m.performCartesianLayout?.({ seriesRect })));
     }
 
     private _lastCrossLineIds?: string[] = undefined;

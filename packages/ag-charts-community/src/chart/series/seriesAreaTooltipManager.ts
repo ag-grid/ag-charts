@@ -34,7 +34,7 @@ export class SeriesAreaTooltipManager extends BaseManager {
         const verticalAxesRegion = this.ctx.regionManager.getRegion(REGIONS.VERTICAL_AXES);
 
         this.destroyFns.push(
-            this.ctx.layoutService.on('layout-complete', (event) => this.layoutComplete(event)),
+            this.ctx.layoutService.addListener('layout-complete', (event) => this.layoutComplete(event)),
             seriesRegion.addListener(
                 'hover',
                 (event) => this.onHover(event),

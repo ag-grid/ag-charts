@@ -1,6 +1,6 @@
 import type { AgBaseAxisOptions, AgChartInstance, AgChartOptions, AgInitialStateOptions } from 'ag-charts-types';
 
-import type { ModuleInstance } from '../module/baseModule';
+import type { LayoutContext, ModuleInstance } from '../module/baseModule';
 import type { LegendModule, RootModule } from '../module/coreModules';
 import { moduleRegistry } from '../module/module';
 import type { ModuleContext } from '../module/moduleContext';
@@ -972,30 +972,25 @@ export abstract class Chart extends Observable {
 
     private async processLayout() {
         const oldRect = this.animationRect;
-        await this.performLayout();
+        const { width, height } = this.ctx.scene;
+        const ctx = this.ctx.layoutService.createContext(width, height);
+
+        for (const m of this.modulesManager.modules()) {
+            await m.performLayout?.(ctx);
+        }
+        await this.performLayout(ctx);
+        // for (const m of this.modulesManager.modules()) {
+        //     await m.onLayoutComplete?.(ctx);
+        // }
 
         if (oldRect && !this.animationRect?.equals(oldRect)) {
             // Skip animations if the layout changed.
             this.ctx.animationManager.skipCurrentBatch();
         }
-
         this.debug('Chart.performUpdate() - seriesRect', this.seriesRect);
     }
 
-    protected async performLayout() {
-        const { width, height } = this.ctx.scene;
-        const ctx = { shrinkRect: new BBox(0, 0, width, height), positions: {}, padding: {} };
-        this.ctx.layoutService.emit('start-layout', ctx);
-        this.ctx.layoutService.emit('before-series', ctx);
-
-        for (const m of this.modulesManager.modules()) {
-            if (m.performLayout != null) {
-                await m.performLayout(ctx);
-            }
-        }
-
-        return ctx.shrinkRect;
-    }
+    protected abstract performLayout(ctx: LayoutContext): Promise<void> | void;
 
     // Should be available after the first layout.
     protected seriesRect?: BBox;

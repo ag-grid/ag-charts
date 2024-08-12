@@ -157,17 +157,15 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         }
     }
 
-    async performLayout(ctx: LayoutContext): Promise<LayoutContext> {
-        const { shrinkRect } = ctx;
+    async performLayout(ctx: LayoutContext) {
         if (this.enabled) {
+            const { layoutRect } = ctx;
             const navigatorTotalHeight = this.height + this.spacing;
-            shrinkRect.shrink(navigatorTotalHeight, 'bottom');
-            this.y = shrinkRect.y + shrinkRect.height + this.spacing;
+            layoutRect.shrink(navigatorTotalHeight, 'bottom');
+            this.y = layoutRect.y + layoutRect.height + this.spacing;
         } else {
             this.y = 0;
         }
-
-        return { ...ctx, shrinkRect };
     }
 
     async performCartesianLayout(opts: { seriesRect: BBox }): Promise<void> {

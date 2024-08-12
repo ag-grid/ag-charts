@@ -1,3 +1,4 @@
+import type { LayoutContext } from '../module/baseModule';
 import type { ChartOptions } from '../module/optionsModule';
 import { BBox } from '../scene/bbox';
 import type { TransferableResources } from './chart';
@@ -15,9 +16,8 @@ export class HierarchyChart extends Chart {
         return 'hierarchy' as const;
     }
 
-    override async performLayout() {
-        const shrinkRect = await super.performLayout();
-
+    override async performLayout({ layoutRect }: LayoutContext) {
+        const fullSeriesRect = layoutRect.clone();
         const {
             seriesArea: { padding },
             seriesRoot,
@@ -25,37 +25,31 @@ export class HierarchyChart extends Chart {
             highlightRoot,
         } = this;
 
-        const fullSeriesRect = shrinkRect.clone();
-        shrinkRect.shrink(padding.left, 'left');
-        shrinkRect.shrink(padding.top, 'top');
-        shrinkRect.shrink(padding.right, 'right');
-        shrinkRect.shrink(padding.bottom, 'bottom');
+        layoutRect.shrink(padding.left, 'left');
+        layoutRect.shrink(padding.top, 'top');
+        layoutRect.shrink(padding.right, 'right');
+        layoutRect.shrink(padding.bottom, 'bottom');
 
-        this.seriesRect = shrinkRect;
-        this.animationRect = shrinkRect;
+        this.seriesRect = layoutRect;
+        this.animationRect = layoutRect;
 
         for (const group of [seriesRoot, annotationRoot, highlightRoot]) {
-            group.translationX = Math.floor(shrinkRect.x);
-            group.translationY = Math.floor(shrinkRect.y);
+            group.translationX = Math.floor(layoutRect.x);
+            group.translationY = Math.floor(layoutRect.y);
         }
 
-        await Promise.all(
-            this.series.map(async (series) => {
-                await series.update({ seriesRect: shrinkRect }); // this has to happen after the `updateAxes` call
-            })
-        );
+        // this has to happen after the `updateAxes` call
+        await Promise.all(this.series.map((series) => series.update({ seriesRect: layoutRect })));
 
         seriesRoot.visible = this.series[0].visible;
         seriesRoot.setClipRectInGroupCoordinateSpace(
-            new BBox(shrinkRect.x, shrinkRect.y, shrinkRect.width, shrinkRect.height)
+            new BBox(layoutRect.x, layoutRect.y, layoutRect.width, layoutRect.height)
         );
 
         const { width, height } = this.ctx.scene;
-        this.ctx.layoutService.setLayout(width, height, {
-            series: { visible: true, rect: fullSeriesRect, paddedRect: shrinkRect },
+        this.ctx.layoutService.emitLayoutComplete(width, height, {
+            series: { visible: true, rect: fullSeriesRect, paddedRect: layoutRect },
         });
-
-        return shrinkRect;
     }
 
     protected override getAriaLabel(): string {

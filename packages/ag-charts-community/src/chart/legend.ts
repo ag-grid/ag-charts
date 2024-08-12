@@ -276,7 +276,7 @@ export class Legend extends BaseProperties {
             region.addListener('hover', (e) => this.handleLegendMouseMove(e), animationState),
             region.addListener('leave', () => this.handleLegendMouseExit(), animationState),
             region.addListener('enter', (e) => this.handleLegendMouseEnter(e), animationState),
-            ctx.layoutService.on('start-layout', (e) => this.positionLegend(e)),
+            ctx.layoutService.addListener('start-layout', (e) => this.positionLegend(e)),
             ctx.localeManager.addListener('locale-changed', () => this.onLocaleChanged()),
             () => this.group.parent?.removeChild(this.group)
         );
@@ -1210,9 +1210,9 @@ export class Legend extends BaseProperties {
     private positionLegend(ctx: LayoutContext) {
         if (!this.enabled || !this.data.length) return;
 
-        const { shrinkRect } = ctx;
-        const { x, y, width, height } = shrinkRect;
-        const [legendWidth, legendHeight] = this.calculateLegendDimensions(shrinkRect);
+        const { layoutRect } = ctx;
+        const { x, y, width, height } = layoutRect;
+        const [legendWidth, legendHeight] = this.calculateLegendDimensions(layoutRect);
 
         this.group.translationX = 0;
         this.group.translationY = 0;
@@ -1243,7 +1243,7 @@ export class Legend extends BaseProperties {
                 case 'bottom':
                     translationX = (width - legendBBox.width) / 2;
                     translationY = calculateTranslationPerpendicularDimension();
-                    shrinkRect.shrink(legendBBox.height + legendPadding, this.position);
+                    layoutRect.shrink(legendBBox.height + legendPadding, this.position);
                     break;
 
                 case 'left':
@@ -1251,7 +1251,7 @@ export class Legend extends BaseProperties {
                 default:
                     translationX = calculateTranslationPerpendicularDimension();
                     translationY = (height - legendBBox.height) / 2;
-                    shrinkRect.shrink(legendBBox.width + legendPadding, this.position);
+                    layoutRect.shrink(legendBBox.width + legendPadding, this.position);
             }
 
             // Round off for pixel grid alignment to work properly.

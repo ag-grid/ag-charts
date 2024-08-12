@@ -24,16 +24,14 @@ export class Navigator extends _ModuleSupport.Navigator {
         await this.miniChart.processData(opts);
     }
 
-    override async performLayout(opts: _ModuleSupport.LayoutContext): Promise<_ModuleSupport.LayoutContext> {
-        const { shrinkRect } = await super.performLayout(opts);
+    override async performLayout(opts: _ModuleSupport.LayoutContext) {
+        await super.performLayout(opts);
 
         if (this.enabled) {
             const { top, bottom } = this.miniChart.computeAxisPadding();
-            shrinkRect.shrink(top + bottom, 'bottom');
+            opts.layoutRect.shrink(top + bottom, 'bottom');
             this.y -= bottom;
         }
-
-        return { ...opts, shrinkRect };
     }
 
     override async performCartesianLayout(opts: { seriesRect: _Scene.BBox }): Promise<void> {

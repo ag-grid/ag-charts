@@ -230,7 +230,7 @@ export class StatusBar
 
         this.destroyFns.push(
             ctx.scene.attachNode(this.labelGroup, 'titles'),
-            ctx.layoutService.on('before-series', (e) => this.startPerformLayout(e)),
+            ctx.layoutService.addListener('before-series', (e) => this.startPerformLayout(e)),
             ctx.highlightManager.addListener('highlight-change', () => this.updateHighlight())
         );
     }
@@ -271,13 +271,13 @@ export class StatusBar
 
         if (!this.enabled) return;
 
-        const { shrinkRect } = opts;
+        const { layoutRect } = opts;
         const innerSpacing = 4;
         const outerSpacing = 12;
         const spacingAbove = 0;
         const spacingBelow = 8;
 
-        this.labelGroup.translationY = shrinkRect.y + spacingAbove;
+        this.labelGroup.translationY = layoutRect.y + spacingAbove;
 
         const maxFontSize = Math.max(this.title.fontSize, this.positive.fontSize, this.negative.fontSize);
         const lineHeight = maxFontSize * Text.defaultLineHeightRatio;
@@ -288,7 +288,7 @@ export class StatusBar
         let offsetTop: number;
         let textVAlign: CanvasTextBaseline = 'alphabetic';
         if (this.layoutStyle === 'block') {
-            shrinkRect.shrink(spacingAbove + lineHeight + spacingBelow, 'top');
+            layoutRect.shrink(spacingAbove + lineHeight + spacingBelow, 'top');
             offsetTop = maxFontSize + (lineHeight - maxFontSize) / 2;
         } else {
             const { title } = opts.positions;

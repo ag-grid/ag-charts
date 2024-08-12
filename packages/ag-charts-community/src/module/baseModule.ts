@@ -1,18 +1,21 @@
 import type { DataController } from '../chart/data/dataController';
 import type { BBox } from '../scene/bbox';
 
-type LayoutPositions = 'title' | 'subtitle' | 'footnote';
+export type LayoutPosition = 'top' | 'right' | 'bottom' | 'left';
+
+type LayoutElement = 'title' | 'subtitle' | 'footnote';
 export interface LayoutContext {
-    shrinkRect: BBox;
-    positions: { [K in LayoutPositions]?: BBox };
-    padding: { [K in LayoutPositions]?: number };
+    layoutRect: BBox;
+    positions: { [K in LayoutElement]?: BBox };
+    padding: { [K in LayoutElement]?: number };
 }
 
 export interface ModuleInstance {
     processData?: (opts: { dataController: DataController }) => Promise<void>;
     updateData?: (opts: { data: any }) => Promise<void>;
-    performLayout?: (opts: LayoutContext) => Promise<LayoutContext>;
+    performLayout?: (ctx: LayoutContext) => Promise<void> | void;
     performCartesianLayout?: (opts: { seriesRect: BBox }) => Promise<void>;
+    // onLayoutComplete?: (ctx: LayoutContext) => Promise<void> | void;
     destroy(): void;
 }
 

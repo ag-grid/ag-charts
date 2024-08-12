@@ -1,5 +1,6 @@
 import type { AgTopologyChartOptions } from 'ag-charts-types';
 
+import type { LayoutContext } from '../module/baseModule';
 import type { ChartOptions } from '../module/optionsModule';
 import { BBox } from '../scene/bbox';
 import { NumberAxis } from './axis/numberAxis';
@@ -55,9 +56,8 @@ export class TopologyChart extends Chart {
         });
     }
 
-    override async performLayout() {
-        const shrinkRect = await super.performLayout();
-
+    override async performLayout({ layoutRect }: LayoutContext) {
+        const fullSeriesRect = layoutRect.clone();
         const {
             seriesArea: { padding },
             seriesRoot,
@@ -65,14 +65,13 @@ export class TopologyChart extends Chart {
             highlightRoot,
         } = this;
 
-        const fullSeriesRect = shrinkRect.clone();
-        shrinkRect.shrink(padding.left, 'left');
-        shrinkRect.shrink(padding.top, 'top');
-        shrinkRect.shrink(padding.right, 'right');
-        shrinkRect.shrink(padding.bottom, 'bottom');
+        layoutRect.shrink(padding.left, 'left');
+        layoutRect.shrink(padding.top, 'top');
+        layoutRect.shrink(padding.right, 'right');
+        layoutRect.shrink(padding.bottom, 'bottom');
 
-        this.seriesRect = shrinkRect;
-        this.animationRect = shrinkRect;
+        this.seriesRect = layoutRect;
+        this.animationRect = layoutRect;
 
         const mapSeries = this.series.filter<TopologySeries>(isTopologySeries);
 
@@ -93,7 +92,7 @@ export class TopologyChart extends Chart {
                 [lon1, lat1],
             ];
             const bounds = MercatorScale.bounds(domain);
-            const { width, height } = shrinkRect;
+            const { width, height } = layoutRect;
 
             const viewBoxScale = Math.min(width / bounds.width, height / bounds.height);
 
@@ -127,18 +126,16 @@ export class TopologyChart extends Chart {
         const seriesVisible = this.series.some((s) => s.visible);
         seriesRoot.visible = seriesVisible;
         for (const group of [seriesRoot, annotationRoot, highlightRoot]) {
-            group.translationX = Math.floor(shrinkRect.x);
-            group.translationY = Math.floor(shrinkRect.y);
+            group.translationX = Math.floor(layoutRect.x);
+            group.translationY = Math.floor(layoutRect.y);
             group.setClipRectInGroupCoordinateSpace(
-                new BBox(shrinkRect.x, shrinkRect.y, shrinkRect.width, shrinkRect.height)
+                new BBox(layoutRect.x, layoutRect.y, layoutRect.width, layoutRect.height)
             );
         }
 
         const { width, height } = this.ctx.scene;
-        this.ctx.layoutService.setLayout(width, height, {
-            series: { visible: seriesVisible, rect: fullSeriesRect, paddedRect: shrinkRect },
+        this.ctx.layoutService.emitLayoutComplete(width, height, {
+            series: { visible: seriesVisible, rect: fullSeriesRect, paddedRect: layoutRect },
         });
-
-        return shrinkRect;
     }
 }

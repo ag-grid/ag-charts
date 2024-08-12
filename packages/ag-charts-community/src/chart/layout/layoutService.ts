@@ -1,7 +1,7 @@
-import type { LayoutContext } from '../../module/baseModule';
+import type { LayoutContext as ILayoutContext } from '../../module/baseModule';
 import type { Scale } from '../../scale/scale';
-import type { BBox } from '../../scene/bbox';
-import { EventEmitter } from '../../util/eventEmitter';
+import { BBox } from '../../scene/bbox';
+import { EventEmitter, type EventListener } from '../../util/eventEmitter';
 import type { TimeInterval } from '../../util/time/interval';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 
@@ -35,21 +35,49 @@ export interface LayoutState {
     series: { visible: boolean; rect: BBox; paddedRect: BBox; shouldFlipXY?: boolean };
 }
 
-interface LayoutEventMap {
+interface EventMap {
     'start-layout': LayoutContext;
     'before-series': LayoutContext;
     'layout-complete': LayoutCompleteEvent;
 }
 
-export class LayoutService extends EventEmitter<LayoutEventMap> {
-    setLayout(width: number, height: number, state: LayoutState) {
+export class LayoutService {
+    private readonly events = new EventEmitter<EventMap>();
+
+    addListener<K extends keyof EventMap>(eventName: K, listener: EventListener<EventMap[K]>) {
+        return this.events.on(eventName, listener);
+    }
+
+    createContext(width: number, height: number): LayoutContext {
+        const context = new LayoutContext(width, height);
+
+        this.events.emit('start-layout', context);
+        this.events.emit('before-series', context);
+
+        return context;
+    }
+
+    emitLayoutComplete(width: number, height: number, options: LayoutState) {
         const eventType = 'layout-complete';
-        this.emit(eventType, {
+        this.events.emit(eventType, {
             type: eventType,
+            axes: options.axes ?? [],
             chart: { width, height },
-            axes: state.axes ?? [],
-            clipSeries: state.clipSeries ?? false,
-            series: state.series,
+            clipSeries: options.clipSeries ?? false,
+            series: options.series,
         });
+    }
+}
+
+class LayoutContext implements ILayoutContext {
+    readonly layoutRect: BBox;
+    readonly padding: ILayoutContext['padding'] = {};
+    readonly positions: ILayoutContext['positions'] = {};
+
+    constructor(
+        public readonly width: number,
+        public readonly height: number
+    ) {
+        this.layoutRect = new BBox(0, 0, width, height);
     }
 }

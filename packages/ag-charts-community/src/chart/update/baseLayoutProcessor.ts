@@ -1,8 +1,7 @@
 import type { TextAlign } from 'ag-charts-types';
 
 import type { LayoutContext } from '../../module/baseModule';
-import { Text } from '../../scene/shape/text';
-import { Logger } from '../../util/logger';
+import { TextUtils } from '../../util/textMeasurer';
 import { Caption } from '../caption';
 import type { LayoutCompleteEvent, LayoutService } from '../layout/layoutService';
 import type { ChartLike, UpdateProcessor } from './processor';
@@ -15,10 +14,8 @@ export class BaseLayoutProcessor implements UpdateProcessor {
         private readonly layoutService: LayoutService
     ) {
         this.destroyFns.push(
-            // eslint-disable-next-line sonarjs/no-duplicate-string
-            this.layoutService.on('start-layout', (e) => this.positionPadding(e)),
-            this.layoutService.on('layout-complete', (e) => this.alignCaptions(e)),
-            this.layoutService.on('start-layout', (e) => this.positionCaptions(e))
+            this.layoutService.addListener('layout-complete', (e) => this.alignCaptions(e)),
+            this.layoutService.addListener('start-layout', (e) => this.positionCaptions(e))
         );
     }
 
@@ -26,26 +23,20 @@ export class BaseLayoutProcessor implements UpdateProcessor {
         this.destroyFns.forEach((cb) => cb());
     }
 
-    private positionPadding(ctx: LayoutContext) {
-        const { padding } = this.chartLike;
-
-        ctx.shrinkRect.shrink(padding.left, 'left');
-        ctx.shrinkRect.shrink(padding.top, 'top');
-        ctx.shrinkRect.shrink(padding.right, 'right');
-        ctx.shrinkRect.shrink(padding.bottom, 'bottom');
-    }
-
     private positionCaptions(ctx: LayoutContext) {
-        const { shrinkRect, positions, padding } = ctx;
+        const { layoutRect, positions, padding } = ctx;
         const { title, subtitle, footnote, titlePadding } = this.chartLike;
-        const paddedShrinkRect = shrinkRect.clone().shrink(titlePadding);
-        const { width, height } = shrinkRect;
+
+        // Apply chart padding
+        layoutRect.shrink(this.chartLike.padding.toJson());
+
+        const paddedShrinkRect = layoutRect.clone().shrink(titlePadding);
+        const defaultCaptionHeight = layoutRect.height / 10;
 
         const updateCaption = (caption: Caption) => {
-            const defaultCaptionHeight = height / 10;
-            const captionLineHeight = caption.lineHeight ?? caption.fontSize * Text.defaultLineHeightRatio;
+            const captionLineHeight = TextUtils.getLineHeight(caption.fontSize);
             const maxHeight = Math.max(captionLineHeight, defaultCaptionHeight);
-            caption.computeTextWrap(width, maxHeight);
+            caption.computeTextWrap(layoutRect.width, maxHeight);
         };
 
         const computeX = (align: TextAlign): number => {
@@ -53,8 +44,6 @@ export class BaseLayoutProcessor implements UpdateProcessor {
                 return paddedShrinkRect.x;
             } else if (align === 'right') {
                 return paddedShrinkRect.x + paddedShrinkRect.width;
-            } else if (align !== 'center') {
-                Logger.error(`invalid textAlign value: ${align}`);
             }
             return paddedShrinkRect.x + paddedShrinkRect.width / 2;
         };
@@ -73,7 +62,7 @@ export class BaseLayoutProcessor implements UpdateProcessor {
             const bboxHeight = Math.ceil(bbox.y - baseY + bbox.height + spacing);
 
             if (caption.layoutStyle === 'block') {
-                shrinkRect.shrink(bboxHeight + 2 * titlePadding, 'top');
+                layoutRect.shrink(bboxHeight + 2 * titlePadding, 'top');
                 paddedShrinkRect.shrink(bboxHeight, 'top');
             }
             return bbox;
@@ -89,7 +78,7 @@ export class BaseLayoutProcessor implements UpdateProcessor {
             const bboxHeight = Math.ceil(baseY - bbox.y + spacing);
 
             if (caption.layoutStyle === 'block') {
-                shrinkRect.shrink(bboxHeight + 2 * titlePadding, 'bottom');
+                layoutRect.shrink(bboxHeight + 2 * titlePadding, 'bottom');
                 paddedShrinkRect.shrink(bboxHeight, 'bottom');
             }
             return bbox;
