@@ -1,6 +1,6 @@
 import { type AgIconName, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-const { createElement, initMenuKeyNav } = _ModuleSupport;
+const { createElement, initMenuKeyNav, isButtonClickEvent } = _ModuleSupport;
 
 const canvasOverlay = 'canvas-overlay';
 
@@ -74,21 +74,15 @@ export class Popover extends _ModuleSupport.BaseModuleInstance implements _Modul
                 opts.onPress?.(item);
             };
 
-            row.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
+            const onclick = (e: KeyboardEvent | MouseEvent) => {
+                if (isButtonClickEvent(e)) {
                     select();
                     e.preventDefault();
                     e.stopPropagation();
                 }
-            });
-
-            row.addEventListener('click', (e) => {
-                if (e.button === 0) {
-                    select();
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
-            });
+            };
+            row.addEventListener('keydown', onclick);
+            row.addEventListener('click', onclick);
 
             row.addEventListener('mousemove', () => {
                 row.focus();

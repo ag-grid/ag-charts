@@ -4,7 +4,7 @@ import type { LayoutContext, ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
-import { setAttribute, setHidden } from '../../util/attributeUtil';
+import { setAttribute } from '../../util/attributeUtil';
 import { createElement } from '../../util/dom';
 import { initToolbarKeyNav, makeAccessibleClickListener } from '../../util/keynavUtil';
 import { clamp } from '../../util/number';
@@ -70,9 +70,9 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
     private readonly positions: Record<ToolbarPosition, Set<ToolbarGroup>> = {
         [ToolbarPosition.Top]: new Set(),
+        [ToolbarPosition.Left]: new Set(),
         [ToolbarPosition.Right]: new Set(),
         [ToolbarPosition.Bottom]: new Set(),
-        [ToolbarPosition.Left]: new Set(),
         [ToolbarPosition.Floating]: new Set(),
         [ToolbarPosition.FloatingTop]: new Set(),
         [ToolbarPosition.FloatingBottom]: new Set(),
@@ -80,9 +80,9 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
     private readonly positionAlignments: Record<ToolbarPosition, Partial<Record<ToolbarAlignment, HTMLElement>>> = {
         [ToolbarPosition.Top]: {},
+        [ToolbarPosition.Left]: {},
         [ToolbarPosition.Right]: {},
         [ToolbarPosition.Bottom]: {},
-        [ToolbarPosition.Left]: {},
         [ToolbarPosition.Floating]: {},
         [ToolbarPosition.FloatingTop]: {},
         [ToolbarPosition.FloatingBottom]: {},
@@ -255,7 +255,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         for (const button of this.groupButtons[group]) {
             if (button.dataset.toolbarId !== `${id}`) continue;
             button.ariaDisabled = `${!enabled}`;
-            setHidden(button, styles.modifiers.button.hiddenToggled, !visible);
+            button.classList.toggle(styles.modifiers.button.hiddenToggled, !visible);
             this.setButtonActive(button, active);
             this.setButtonChecked(button, checked);
         }
@@ -618,7 +618,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         for (const position of TOOLBAR_POSITIONS) {
             const visible = this.enabled && Array.from(this.positions[position].values()).some(isGroupVisible);
-            setHidden(this.elements[position], styles.modifiers.hidden, !visible);
+            this.elements[position].classList.toggle(styles.modifiers.hidden, !visible);
         }
 
         for (const group of TOOLBAR_GROUPS) {
@@ -626,7 +626,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             const groupVisible = isGroupVisible(group);
             for (const button of this.groupButtons[group]) {
                 const buttonVisible = groupVisible && this[group].buttonConfigurations().some(isButtonVisible(button));
-                setHidden(button, styles.modifiers.button.hiddenValue, !buttonVisible);
+                button.classList.toggle(styles.modifiers.button.hiddenValue, !buttonVisible);
             }
         }
     }

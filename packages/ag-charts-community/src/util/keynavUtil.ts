@@ -206,3 +206,12 @@ export function makeAccessibleClickListener(element: HTMLElement, onclick: (even
         onclick(event);
     };
 }
+
+export function isButtonClickEvent(event: KeyboardEvent | MouseEvent): boolean {
+    if ('button' in event) {
+        return event.button === 0;
+    }
+    return (
+        !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey && ['Enter', 'Space'].includes(event.code)
+    );
+}
