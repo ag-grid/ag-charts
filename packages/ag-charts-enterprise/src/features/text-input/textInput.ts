@@ -88,6 +88,10 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
             opts.onChange?.(this.getValue()!, this.getBBox());
         });
 
+        textArea.addEventListener('click', (event) => {
+            event.stopPropagation();
+        });
+
         if (opts.layout) {
             this.layout = opts.layout;
             this.updatePosition();
