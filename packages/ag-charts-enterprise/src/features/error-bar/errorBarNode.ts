@@ -141,7 +141,6 @@ export class ErrorBarNode extends _Scene.Group {
             whisker.path.lineTo(xBar.upperPoint.x, xBar.upperPoint.y);
         }
         whisker.path.closePath();
-        whisker.markDirtyTransform();
 
         // ErrorBar caps stretch out perpendicular to the whisker equally on both
         // sides, so we want the offset to be half of the total length.
@@ -163,7 +162,6 @@ export class ErrorBarNode extends _Scene.Group {
             caps.path.lineTo(xBar.upperPoint.x, xBar.upperPoint.y + capOffset);
         }
         caps.path.closePath();
-        caps.markDirtyTransform();
     }
 
     updateBBoxes(): void {
