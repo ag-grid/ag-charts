@@ -1,4 +1,3 @@
-import { BaseManager } from '../baseManager';
 import type {
     FocusInteractionEvent,
     InteractionEvent,
@@ -7,6 +6,7 @@ import type {
     PointerInteractionEvent,
 } from './interactionManager';
 import { InteractionState } from './interactionManager';
+import { InteractionStateListener } from './interactionStateListener';
 import { type PreventableEvent, dispatchTypedEvent } from './preventableEvent';
 
 export type KeyNavEventType = 'blur' | 'focus' | 'nav-hori' | 'nav-vert' | 'nav-zoom' | 'submit' | 'cancel' | 'delete';
@@ -20,12 +20,12 @@ export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = Preventab
 // The purpose of this class is to decouple keyboard input events configuration with
 // navigation commands. For example, keybindings might be different on macOS and Windows,
 // or the charts might include options to reconfigure keybindings.
-export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
+export class KeyNavManager extends InteractionStateListener<KeyNavEventType, KeyNavEvent> {
     private hasBrowserFocus: boolean = false;
     private isMouseBlurred: boolean = false;
     private isClicking: boolean = false;
 
-    constructor(interactionManager: InteractionManager) {
+    constructor(readonly interactionManager: InteractionManager) {
         super();
         this.destroyFns.push(
             interactionManager.addListener('drag-start', (e) => this.onClickStart(e), InteractionState.All),
@@ -39,6 +39,10 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
             interactionManager.addListener('focus', (e) => this.onFocus(e), InteractionState.All),
             interactionManager.addListener('keydown', (e) => this.onKeyDown(e), InteractionState.All)
         );
+    }
+
+    protected override getState() {
+        return this.interactionManager.getState();
     }
 
     public override destroy() {
