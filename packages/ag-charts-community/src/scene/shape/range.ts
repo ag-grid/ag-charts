@@ -53,8 +53,6 @@ export class Range extends Shape {
             return;
         }
 
-        this.transformRenderContext(renderCtx);
-
         let { x1, y1, x2, y2 } = this;
 
         x1 = this.align(x1);

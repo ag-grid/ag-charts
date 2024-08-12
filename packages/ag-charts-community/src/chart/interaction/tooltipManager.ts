@@ -1,3 +1,4 @@
+import { TransformableNode } from '../../scene/transformable';
 import { StateTracker } from '../../util/stateTracker';
 import type { DOMManager } from '../dom/domManager';
 import type { ErrorBoundSeriesNodeDatum, SeriesNodeDatum } from '../series/seriesTypes';
@@ -104,7 +105,7 @@ export class TooltipManager {
 
         if (tooltip.position.type === 'node' && refPoint) {
             const { x, y } = refPoint;
-            const point = datum.series.contentGroup.inverseTransformPoint(x, y);
+            const point = TransformableNode.toCanvasPoint(datum.series.contentGroup, x, y);
             return {
                 ...meta,
                 offsetX: Math.round(point.x),

@@ -519,11 +519,9 @@ export class Sector extends Path {
     }
 
     override isPointInPath(x: number, y: number): boolean {
-        const point = this.transformPoint(x, y);
-
         const { startAngle, endAngle, innerRadius, outerRadius } = this.clipSector ?? this;
 
-        return isPointInSector(point.x - this.centerX, point.y - this.centerY, {
+        return isPointInSector(x - this.centerX, y - this.centerY, {
             startAngle,
             endAngle,
             innerRadius: Math.min(innerRadius, outerRadius),

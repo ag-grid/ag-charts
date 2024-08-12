@@ -1,3 +1,4 @@
+import { TransformableNode } from '../../../integrated-charts-scene';
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
 import { ContinuousScale } from '../../../scale/continuousScale';
@@ -605,7 +606,7 @@ export abstract class CartesianSeries<
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        const hitPoint = rootGroup.transformPoint(x, y);
+        const hitPoint = TransformableNode.fromCanvasPoint(rootGroup, x, y);
 
         let minDistance = Infinity;
         let closestDatum: SeriesNodeDatum | undefined;
@@ -667,7 +668,7 @@ export abstract class CartesianSeries<
         // Default to X-axis unless we found a suitable category axis.
         const [majorDirection = ChartAxisDirection.X] = directions;
 
-        const hitPoint = rootGroup.transformPoint(x, y);
+        const hitPoint = TransformableNode.fromCanvasPoint(rootGroup, x, y);
         const hitPointCoords = [hitPoint.x, hitPoint.y];
         if (majorDirection !== ChartAxisDirection.X) hitPointCoords.reverse();
 

@@ -478,8 +478,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
     protected override pickNodeClosestDatum(point: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         const { x, y } = point;
-        const { rootGroup, nodeData, centerX: cx, centerY: cy } = this;
-        const hitPoint = rootGroup.transformPoint(x, y);
+        const { nodeData, centerX: cx, centerY: cy } = this;
+        const hitPoint = _Scene.TransformableNode.fromCanvasPoint(this.rootGroup, x, y);
         const radius = this.radius;
 
         const distanceFromCenter = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);

@@ -638,7 +638,7 @@ export class MapMarkerSeries
     }
 
     override pickNodeClosestDatum(p: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
-        const { x: x0, y: y0 } = this.rootGroup.transformPoint(p.x, p.y);
+        const { x: x0, y: y0 } = _Scene.TransformableNode.fromCanvasPoint(this.rootGroup, p.x, p.y);
 
         let minDistanceSquared = Infinity;
         let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;

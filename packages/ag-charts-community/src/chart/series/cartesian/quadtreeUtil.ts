@@ -1,6 +1,7 @@
 import type { Group } from '../../../scene/group';
 import type { Node } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
+import { TransformableNode } from '../../../scene/transformable';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Logger } from '../../../util/logger';
 import type { DistantObject } from '../../../util/nearest';
@@ -38,7 +39,7 @@ export function findQuadtreeMatch<TDatum extends SeriesNodeDatum>(
     series: SeriesWithQuadtreeNearest<TDatum>,
     point: Point
 ): SeriesNodePickMatch | undefined {
-    const { x, y } = series.contentGroup.transformPoint(point.x, point.y);
+    const { x, y } = TransformableNode.fromCanvasPoint(series.contentGroup, point.x, point.y);
     const { nearest, distanceSquared } = series.getQuadTree().find(x, y);
     if (nearest !== undefined) {
         return { datum: nearest.value, distance: Math.sqrt(distanceSquared) };

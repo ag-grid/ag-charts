@@ -308,7 +308,9 @@ export abstract class AngleAxis<
                 tempText.rotationCenterY = y;
             }
 
-            let box: _Scene.BBox | undefined = rotation ? tempText.computeTransformedBBox() : tempText.getBBox();
+            let box: _Scene.BBox | undefined = rotation
+                ? _Scene.TransformableNode.toCanvas(tempText)
+                : tempText.getBBox();
             if (box && options.hideWhenNecessary && !rotation) {
                 const overflowLeft = seriesLeft - box.x;
                 const overflowRight = box.x + box.width - seriesRight;

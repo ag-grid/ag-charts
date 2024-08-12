@@ -1,3 +1,5 @@
+import type { Node } from '../../scene/node';
+import { TransformableNode } from '../../scene/transformable';
 import { Listeners } from '../../util/listeners';
 import type { FocusIndicator } from '../dom/focusIndicator';
 import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
@@ -76,22 +78,22 @@ export class RegionManager {
         this.regions.clear();
     }
 
-    public addRegion(name: RegionName, ...bboxproviders: RegionBBoxProvider[]) {
+    public addRegion(name: RegionName, ...nodes: Node[]) {
         if (this.regions.has(name)) {
             throw new Error(`AG Charts - Region: ${name} already exists`);
         }
         const region = {
-            properties: { name, bboxproviders: [...bboxproviders] },
+            properties: { name, bboxproviders: nodes.map((n) => new TransformableNode(n)) },
             listeners: new RegionListeners(),
         };
         this.regions.set(name, region);
         return this.makeObserver(region);
     }
 
-    public updateRegion(name: RegionName, ...bboxprovider: RegionBBoxProvider[]) {
+    public updateRegion(name: RegionName, ...nodes: Node[]) {
         const region = this.regions.get(name);
         if (region) {
-            region.properties.bboxproviders = [...bboxprovider];
+            region.properties.bboxproviders = nodes.map((n) => new TransformableNode(n));
         } else {
             throw new Error('AG Charts - unknown region: ' + name);
         }
@@ -233,7 +235,7 @@ export class RegionManager {
             for (const provider of region.properties.bboxproviders) {
                 if (provider.visible === false) continue;
 
-                const bbox = provider.computeTransformedRegionBBox?.() ?? provider.computeTransformedBBox();
+                const bbox = provider.toCanvasBBox();
                 const area = bbox.width * bbox.height;
                 if (area < currentArea && bbox.containsPoint(x, y)) {
                     currentArea = area;

@@ -5,7 +5,7 @@ import type { HdpiCanvas } from './canvas/hdpiCanvas';
 import type { LayersManager, ZIndexSubOrder } from './layersManager';
 import type { ChildNodeCounts, RenderContext } from './node';
 import { Node, RedrawType, SceneChangeDetection } from './node';
-import { Rotatable, Scalable, Translatable } from './transformable';
+import { Rotatable, Scalable, TransformableNode, Translatable } from './transformable';
 
 export class Group extends Node {
     static className = 'Group';
@@ -131,22 +131,7 @@ export class Group extends Node {
     }
 
     protected override computeBBox(): BBox {
-        this.computeTransformMatrix();
-
-        return Group.computeBBox(this.children);
-    }
-
-    override computeTransformedBBox(): BBox {
-        return this.getBBox();
-    }
-
-    computeTransformedRegionBBox(): BBox {
-        if (this.clipRect) {
-            this.computeTransformMatrix();
-            return this.matrix.transformBBox(this.clipRect);
-        }
-
-        return this.computeTransformedBBox();
+        return Group.computeChildrenBBox(this.children);
     }
 
     private lastBBox?: BBox = undefined;
@@ -183,7 +168,7 @@ export class Group extends Node {
 
     override render(renderCtx: RenderContext) {
         const { opts: { name = undefined } = {}, _debug: debug } = this;
-        const { dirty, dirtyZIndex, layer, children, clipRect, dirtyTransform } = this;
+        const { dirty, dirtyZIndex, layer, children, clipRect } = this;
         let { ctx, forceRender, clipBBox } = renderCtx;
         const { resized, stats } = renderCtx;
 
@@ -199,12 +184,10 @@ export class Group extends Node {
         }
 
         if (name) {
-            debug?.({ name, group: this, isDirty, isChildDirty, dirtyTransform, renderCtx, forceRender });
+            debug?.({ name, group: this, isDirty, isChildDirty, renderCtx, forceRender });
         }
 
-        if (dirtyTransform) {
-            forceRender = 'dirtyTransform';
-        } else if (layer) {
+        if (layer) {
             // If bounding-box of a layer changes, force re-render.
             const currentBBox = this.getBBox();
             if (this.lastBBox === undefined || !this.lastBBox.equals(currentBBox)) {
@@ -267,11 +250,6 @@ export class Group extends Node {
             ctx.globalAlpha *= this.opacity;
         }
 
-        // A group can have `scaling`, `rotation`, `translation` properties
-        // that are applied to the canvas context before children are rendered,
-        // so all children can be transformed at once.
-        const matrix = this.transformRenderContext(renderCtx, ctx);
-
         if (clipRect) {
             // clipRect is in the group's coordinate space
             const { x, y, width, height } = clipRect;
@@ -282,9 +260,6 @@ export class Group extends Node {
             ctx.beginPath();
             ctx.rect(x, y, width, height);
             ctx.clip();
-
-            // clipBBox is in the canvas coordinate space, when we hit a layer we apply the new clipping at which point there are no transforms in play
-            clipBBox = matrix.transformBBox(clipRect);
         }
 
         const hasVirtualChildren = this.hasVirtualChildren();
@@ -364,7 +339,7 @@ export class Group extends Node {
         );
     }
 
-    static computeBBox(nodes: Iterable<Node>, opts?: { skipInvisible: boolean }) {
+    static computeChildrenBBox(nodes: Iterable<Node>, opts?: { skipInvisible: boolean }) {
         let left = Infinity;
         let right = -Infinity;
         let top = Infinity;
@@ -374,7 +349,7 @@ export class Group extends Node {
         for (const n of nodes) {
             if (skipInvisible && !n.visible) continue;
 
-            const bbox = n.computeTransformedBBox();
+            const bbox = n.getBBox();
 
             if (!bbox) continue;
 
@@ -397,13 +372,17 @@ export class Group extends Node {
         return new BBox(left, top, right - left, bottom - top);
     }
 
+    setClipRect(bbox?: BBox) {
+        this.clipRect = bbox;
+    }
+
     /**
      * Transforms bbox given in the canvas coordinate space to bbox in this group's coordinate space and
      * sets this group's clipRect to the transformed bbox.
      * @param bbox clipRect bbox in the canvas coordinate space.
      */
     setClipRectInGroupCoordinateSpace(bbox?: BBox) {
-        this.clipRect = bbox ? this.transformBBox(bbox) : undefined;
+        this.clipRect = bbox ? TransformableNode.fromCanvas(this, bbox) : undefined;
     }
 }
 

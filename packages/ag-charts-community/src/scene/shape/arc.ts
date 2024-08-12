@@ -83,13 +83,8 @@ export class Arc extends Path {
     }
 
     override isPointInPath(x: number, y: number): boolean {
-        const point = this.transformPoint(x, y);
         const bbox = this.getBBox();
 
-        return (
-            this.type !== ArcType.Open &&
-            bbox.containsPoint(point.x, point.y) &&
-            this.path.isPointInPath(point.x, point.y)
-        );
+        return this.type !== ArcType.Open && bbox.containsPoint(x, y) && this.path.isPointInPath(x, y);
     }
 }

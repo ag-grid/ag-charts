@@ -72,17 +72,14 @@ export class Path extends Shape implements DistantObject {
     }
 
     isPointInPath(x: number, y: number): boolean {
-        const point = this.transformPoint(x, y);
-        return this.path.closedPath && this.path.isPointInPath(point.x, point.y);
+        return this.path.closedPath && this.path.isPointInPath(x, y);
     }
 
     distanceSquared(x: number, y: number): number {
-        const point = this.transformPoint(x, y);
-        return this.distanceSquaredTransformedPoint(point.x, point.y);
+        return this.distanceSquaredTransformedPoint(x, y);
     }
 
-    computeSVGDataPath(): string {
-        const { x, y } = this.inverseTransformPoint(0, 0);
+    computeSVGDataPath(x: number, y: number): string {
         if (this.dirtyPath) {
             this.updatePath();
             this.dirtyPath = false;
@@ -113,8 +110,6 @@ export class Path extends Shape implements DistantObject {
             if (stats) stats.nodesSkipped += this.nodeCount.count;
             return;
         }
-
-        this.transformRenderContext(renderCtx);
 
         if (this.dirtyPath || this.isDirtyPath()) {
             this.updatePath();

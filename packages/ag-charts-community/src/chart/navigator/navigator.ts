@@ -3,6 +3,7 @@ import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
+import { TransformableNode } from '../../scene/transformable';
 import { setElementBBox } from '../../util/dom';
 import { initToolbarKeyNav } from '../../util/keynavUtil';
 import { Logger } from '../../util/logger';
@@ -32,7 +33,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     private readonly maskVisibleRange = {
         id: 'navigator-mask-visible-range',
         getBBox: (): BBox => this.mask.computeVisibleRangeBBox(),
-        computeTransformedBBox: (): BBox => this.mask.computeVisibleRangeBBox(),
+        toCanvasBBox: (): BBox => this.mask.computeVisibleRangeBBox(),
     };
 
     @Validate(POSITIVE_NUMBER)
@@ -111,7 +112,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
                 ariaLabel: { id: 'ariaLabelNavigatorMinimum' },
                 ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
-                focusable: this.minHandle,
+                focusable: new TransformableNode(this.minHandle),
                 onchange: (ev) => this.onMinSliderChange(ev),
             }),
             this.ctx.proxyInteractionService.createProxyElement({
@@ -129,7 +130,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
                 ariaLabel: { id: 'ariaLabelNavigatorMaximum' },
                 ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
-                focusable: this.maxHandle,
+                focusable: new TransformableNode(this.maxHandle),
                 onchange: (ev) => this.onMaxSliderChange(ev),
             }),
         ];

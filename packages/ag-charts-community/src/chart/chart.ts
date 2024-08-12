@@ -8,6 +8,7 @@ import type { AxisOptionModule, ChartOptions } from '../module/optionsModule';
 import type { SeriesOptionModule } from '../module/optionsModuleTypes';
 import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
+import type { Node } from '../scene/node';
 import type { Scene } from '../scene/scene';
 import type { PlacedLabel, PointLabelDatum } from '../scene/util/labelPlacement';
 import { isPointLabelDatum, placeLabels } from '../scene/util/labelPlacement';
@@ -41,7 +42,7 @@ import { axisRegistry } from './factory/axisRegistry';
 import { EXPECTED_ENTERPRISE_MODULES } from './factory/expectedEnterpriseModules';
 import { legendRegistry } from './factory/legendRegistry';
 import { seriesRegistry } from './factory/seriesRegistry';
-import { REGIONS, type RegionBBoxProvider } from './interaction/regions';
+import { REGIONS } from './interaction/regions';
 import { SyncManager } from './interaction/syncManager';
 import { ZoomManager } from './interaction/zoomManager';
 import { Keyboard } from './keyboard';
@@ -1404,12 +1405,12 @@ export abstract class Chart extends Observable {
         debug(`Chart.applyAxes() - creating new axes instances; seriesStatus: ${seriesStatus}`);
         chart.axes = this.createAxis(axes, skip);
 
-        const axisGroups: { [Key in ChartAxisDirection]: RegionBBoxProvider[] } = {
+        const axisGroups: { [Key in ChartAxisDirection]: Node[] } = {
             [ChartAxisDirection.X]: [],
             [ChartAxisDirection.Y]: [],
         };
 
-        chart.axes.forEach((axis) => axisGroups[axis.direction].push(axis.getRegionBBoxProvider()));
+        chart.axes.forEach((axis) => axisGroups[axis.direction].push(axis.getRegionNode()));
 
         if (registerRegions) {
             this.ctx.regionManager.updateRegion(REGIONS.HORIZONTAL_AXES, ...axisGroups[ChartAxisDirection.X]);

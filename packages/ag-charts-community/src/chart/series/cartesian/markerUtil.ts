@@ -1,3 +1,4 @@
+import { TransformableNode } from '../../../integrated-charts-scene';
 import { QUICK_TRANSITION } from '../../../motion/animation';
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING, fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
@@ -171,6 +172,7 @@ export function computeMarkerFocusBounds<TDatum extends { point: Point }>(
 
     const size = series.getFormattedMarkerStyle(datum).size;
     const radius = size / 2;
-    const { x, y } = series.contentGroup.inverseTransformPoint(datum.point.x - radius, datum.point.y - radius);
-    return new BBox(x, y, size, size);
+    const x = datum.point.x - radius;
+    const y = datum.point.y - radius;
+    return TransformableNode.toCanvas(series.contentGroup, new BBox(x, y, size, size));
 }

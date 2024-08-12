@@ -1,4 +1,5 @@
 import { Path } from '../../scene/shape/path';
+import { TransformableNode } from '../../scene/transformable';
 import type { BBoxValues } from '../../util/bboxinterface';
 import { getDocument, setElementBBox } from '../../util/dom';
 import type { DOMManager } from './domManager';
@@ -32,7 +33,8 @@ export class FocusIndicator {
         if (bounds === undefined) {
             this.element.classList.add(focusStyles.modifiers.hidden);
         } else if (bounds instanceof Path) {
-            this.path.setAttribute('d', bounds.computeSVGDataPath());
+            const { x, y } = TransformableNode.toCanvasPoint(bounds, 0, 0);
+            this.path.setAttribute('d', bounds.computeSVGDataPath(x, y));
             this.show(this.svg);
         } else {
             setElementBBox(this.div, bounds);

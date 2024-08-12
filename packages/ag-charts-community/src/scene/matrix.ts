@@ -2,6 +2,10 @@ import { BBox } from './bbox';
 
 export const IDENTITY_MATRIX_ELEMENTS = Object.freeze([1, 0, 0, 1, 0, 0]);
 
+function closeValue(val: number, ref: number, errorMargin = 1e-8) {
+    return val === ref || Math.abs(ref - val) < errorMargin;
+}
+
 /**
  * As of Jan 8, 2019, Firefox still doesn't implement
  * `getTransform(): DOMMatrix;`
@@ -58,7 +62,14 @@ export class Matrix {
 
     get identity(): boolean {
         const e = this.elements;
-        return e[0] === 1 && e[1] === 0 && e[2] === 0 && e[3] === 1 && e[4] === 0 && e[5] === 0;
+        return (
+            closeValue(e[0], 1) &&
+            closeValue(e[1], 0) &&
+            closeValue(e[2], 0) &&
+            closeValue(e[3], 1) &&
+            closeValue(e[4], 0) &&
+            closeValue(e[5], 0)
+        );
     }
 
     /**

@@ -357,7 +357,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         crossLineLabel.textBaseline = 'middle';
         crossLineLabel.textAlign = 'center';
 
-        const bbox = crossLineLabel.computeTransformedBBox();
+        const bbox = crossLineLabel.getBBox();
 
         if (!bbox) return;
 
@@ -426,7 +426,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         tempText.textBaseline = 'middle';
         tempText.textAlign = 'center';
 
-        const bbox = tempText.computeTransformedBBox();
+        const bbox = tempText.getBBox();
 
         if (!bbox) return;
 
@@ -438,10 +438,10 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
             bbox,
         });
 
-        tempText.translationX = x + xTranslation;
-        tempText.translationY = y + yTranslation;
+        tempText.x = x + xTranslation;
+        tempText.y = y + yTranslation;
 
-        return tempText.computeTransformedBBox();
+        return tempText.getBBox();
     }
 
     calculatePadding(padding: Partial<Record<AgCrossLineLabelPosition, number>>) {
