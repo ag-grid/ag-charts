@@ -293,10 +293,14 @@ export class StatusBar
             offsetTop = maxFontSize + (lineHeight - maxFontSize) / 2;
         } else {
             const { title } = this.ctx.chartService;
-            const titleBox = title.node.getBBox();
-            left = titleBox.x + titleBox.width + outerSpacing;
             textVAlign = 'top';
             offsetTop = spacingAbove + title.padding;
+            if (title.enabled) {
+                const titleBox = title.node.getBBox();
+                left = titleBox.x + titleBox.width + outerSpacing;
+            } else {
+                left = title.padding;
+            }
         }
 
         for (const { label, configuration, title, value, domain, formatter } of this.labels) {
