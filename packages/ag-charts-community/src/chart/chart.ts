@@ -888,7 +888,7 @@ export abstract class Chart extends Observable {
 
         const dataController = new DataController(this.mode);
         const seriesPromises = this.series.map((s) => s.processData(dataController));
-        const modulePromises = this.modulesManager.mapModules((m) => m.processData?.({ dataController }));
+        const modulePromises = this.modulesManager.mapModules((m) => m.processData?.(dataController));
         dataController.execute();
         await Promise.all([...seriesPromises, ...modulePromises]);
 
