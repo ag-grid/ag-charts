@@ -113,7 +113,7 @@ function NavItemContainer({
                         [styles.active]: isActive,
                     })}
                     aria-expanded={isActive}
-                    aria-controls={`#${toElementId(title)}`}
+                    aria-controls={toElementId(title)}
                 >
                     <Icon
                         name="chevronRight"
