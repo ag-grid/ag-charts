@@ -1,7 +1,6 @@
 import type { DataController } from '../chart/data/dataController';
 import type { BBox } from '../scene/bbox';
 
-type LayoutElement = 'title' | 'subtitle' | 'footnote';
 export interface LayoutContext {
     layoutBox: BBox;
 }
@@ -11,7 +10,6 @@ export interface ModuleInstance {
     updateData?: (opts: { data: any }) => Promise<void>;
     performLayout?: (ctx: LayoutContext) => Promise<void> | void;
     performCartesianLayout?: (opts: { seriesRect: BBox }) => Promise<void>;
-    // onLayoutComplete?: (ctx: LayoutContext) => Promise<void> | void;
     destroy(): void;
 }
 

@@ -577,8 +577,6 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         elements.top.style.left = `${rect.x}px`;
         elements.top.style.width = `${rect.width}px`;
 
-        // See: https://ag-grid.atlassian.net/browse/AG-11852
-        // elements.bottom.style.top = `${rect.y + rect.height}px`;
         elements.bottom.style.left = `${rect.x}px`;
         elements.bottom.style.width = `${rect.width}px`;
 
@@ -769,9 +767,11 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
     private buttonId(button: ButtonConfiguration) {
         const { id, value, label } = button;
-        if (id != null) return id;
-        if (value != null && typeof value !== 'object') return String(value);
-
+        if (id != null) {
+            return id;
+        } else if (value != null && typeof value !== 'object') {
+            return String(value);
+        }
         // @todo(AG-12343): buttons with non-primitive values need IDs
         return label ?? '';
     }

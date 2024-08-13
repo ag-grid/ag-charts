@@ -2,7 +2,7 @@ import type { LayoutContext as ILayoutContext } from '../../module/baseModule';
 import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { EventEmitter, type EventListener } from '../../util/eventEmitter';
-import type { TimeInterval } from '../../util/time/interval';
+import type { TimeInterval } from '../../util/time';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 
 export interface AxisLayout {
