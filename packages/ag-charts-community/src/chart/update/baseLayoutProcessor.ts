@@ -14,8 +14,8 @@ export class BaseLayoutProcessor implements UpdateProcessor {
         private readonly layoutService: LayoutService
     ) {
         this.destroyFns.push(
-            this.layoutService.addListener('layout:complete', (e) => this.alignCaptions(e)),
-            this.layoutService.addListener('layout:start', (e) => this.positionCaptions(e))
+            this.layoutService.addListener('layout:start', (e) => this.positionCaptions(e)),
+            this.layoutService.addListener('layout:complete', (e) => this.alignCaptions(e))
         );
     }
 

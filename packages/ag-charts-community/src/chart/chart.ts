@@ -784,12 +784,9 @@ export abstract class Chart extends Observable {
     }
 
     protected assignSeriesToAxes() {
-        this.axes.forEach((axis) => {
-            axis.boundSeries = this.series.filter((s) => {
-                const seriesAxis = s.axes[axis.direction];
-                return seriesAxis === axis;
-            });
-        });
+        for (const axis of this.axes) {
+            axis.boundSeries = this.series.filter((s) => s.axes[axis.direction] === axis);
+        }
     }
 
     protected assignAxesToSeries() {
@@ -992,24 +989,11 @@ export abstract class Chart extends Observable {
     protected animationRect?: BBox;
 
     private readonly onSeriesNodeClick = (event: TypedEvent) => {
-        const seriesNodeClickEvent = {
-            ...event,
-            type: 'seriesNodeClick',
-        };
-        Object.defineProperty(seriesNodeClickEvent, 'series', {
-            enumerable: false,
-            // Should display the deprecation warning
-            get: () => (event as any).series,
-        });
-        this.fireEvent(seriesNodeClickEvent);
+        this.fireEvent({ ...event, type: 'seriesNodeClick' });
     };
 
     private readonly onSeriesNodeDoubleClick = (event: TypedEvent) => {
-        const seriesNodeDoubleClick = {
-            ...event,
-            type: 'seriesNodeDoubleClick',
-        };
-        this.fireEvent(seriesNodeDoubleClick);
+        this.fireEvent({ ...event, type: 'seriesNodeDoubleClick' });
     };
 
     private readonly seriesGroupingChanged = (event: TypedEvent) => {
