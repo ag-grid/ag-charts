@@ -53,8 +53,9 @@ export class LayoutService {
         return context;
     }
 
-    emitLayoutComplete(width: number, height: number, options: LayoutState) {
+    emitLayoutComplete(context: LayoutContext, options: LayoutState) {
         const eventType = 'layout:complete';
+        const { width, height } = context;
         this.events.emit(eventType, {
             type: eventType,
             axes: options.axes ?? [],

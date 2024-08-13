@@ -84,8 +84,7 @@ export class CartesianChart extends Chart {
         highlightRoot.setClipRectInGroupCoordinateSpace(clipRect);
         annotationRoot.setClipRectInGroupCoordinateSpace(clipRect);
 
-        const { width, height } = this.ctx.scene;
-        this.ctx.layoutService.emitLayoutComplete(width, height, {
+        this.ctx.layoutService.emitLayoutComplete(ctx, {
             axes: this.axes.map((axis) => axis.getLayoutState()),
             series: {
                 rect: seriesRect,
@@ -95,8 +94,6 @@ export class CartesianChart extends Chart {
             },
             clipSeries,
         });
-
-        await Promise.all(this.modulesManager.mapModules((m) => m.performCartesianLayout?.({ seriesRect })));
     }
 
     private _lastCrossLineIds?: string[] = undefined;

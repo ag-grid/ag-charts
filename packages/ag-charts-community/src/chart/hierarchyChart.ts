@@ -16,7 +16,8 @@ export class HierarchyChart extends Chart {
         return 'hierarchy' as const;
     }
 
-    override async performLayout({ layoutBox }: LayoutContext) {
+    override async performLayout(ctx: LayoutContext) {
+        const { layoutBox } = ctx;
         const fullSeriesRect = layoutBox.clone();
         const {
             seriesArea: { padding },
@@ -46,8 +47,7 @@ export class HierarchyChart extends Chart {
             new BBox(layoutBox.x, layoutBox.y, layoutBox.width, layoutBox.height)
         );
 
-        const { width, height } = this.ctx.scene;
-        this.ctx.layoutService.emitLayoutComplete(width, height, {
+        this.ctx.layoutService.emitLayoutComplete(ctx, {
             series: { visible: true, rect: fullSeriesRect, paddedRect: layoutBox },
         });
     }

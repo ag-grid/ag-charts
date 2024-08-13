@@ -19,6 +19,7 @@ import type {
     ToolbarGroupUpdatedEvent,
     ToolbarProxyGroupOptionsEvent,
 } from '../interaction/toolbarManager';
+import type { LayoutCompleteEvent } from '../layout/layoutService';
 import { type ButtonConfiguration, ToolbarGroupProperties } from './toolbarProperties';
 import * as styles from './toolbarStyles';
 import {
@@ -223,9 +224,12 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.toggleVisibilities();
     }
 
-    private onLayoutComplete() {
+    private onLayoutComplete(opts: LayoutCompleteEvent) {
         for (const position of TOOLBAR_POSITIONS) {
             this.elements[position].classList.remove(styles.modifiers.preventFlash);
+        }
+        if (this.enabled) {
+            this.refreshInnerLayout(opts.series.rect);
         }
     }
 
@@ -522,12 +526,6 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             this.refreshOuterLayout(ctx.layoutBox);
             this.refreshLocale();
         }
-    }
-
-    async performCartesianLayout(opts: { seriesRect: BBox }): Promise<void> {
-        if (!this.enabled) return;
-
-        this.refreshInnerLayout(opts.seriesRect);
     }
 
     private refreshOuterLayout(shrinkRect: BBox) {

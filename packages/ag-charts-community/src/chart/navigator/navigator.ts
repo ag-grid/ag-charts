@@ -11,6 +11,7 @@ import { ActionOnSet, ObserveChanges } from '../../util/proxy';
 import { AND, BOOLEAN, GREATER_THAN, LESS_THAN, OBJECT, POSITIVE_NUMBER, RATIO, Validate } from '../../util/validation';
 import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
 import type { ZoomChangeEvent } from '../interaction/zoomManager';
+import type { LayoutCompleteEvent } from '../layout/layoutService';
 import { RangeHandle } from './shapes/rangeHandle';
 import { RangeMask } from './shapes/rangeMask';
 import { RangeSelector } from './shapes/rangeSelector';
@@ -87,6 +88,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             region.addListener('drag-end', () => this.onDragEnd(), dragStates),
             region.addListener('leave', (event) => this.onLeave(event), dragStates),
             this.ctx.localeManager.addListener('locale-changed', () => this.updateZoom()),
+            this.ctx.layoutService.addListener('layout:complete', (e) => this.onLayoutComplete(e)),
             ctx.zoomManager.addListener('zoom-change', (event) => this.onZoomChange(event))
         );
 
@@ -168,8 +170,8 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         }
     }
 
-    async performCartesianLayout(opts: { seriesRect: BBox }): Promise<void> {
-        const { x, width } = opts.seriesRect;
+    onLayoutComplete(opts: LayoutCompleteEvent) {
+        const { x, width } = opts.series.rect;
 
         if (this.enabled) {
             const { y, height } = this;

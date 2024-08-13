@@ -25,15 +25,15 @@ export class PolarChart extends Chart {
         return 'polar' as const;
     }
 
-    override async performLayout({ layoutBox }: LayoutContext) {
-        const { width, height } = this.ctx.scene;
+    override async performLayout(ctx: LayoutContext) {
+        const { layoutBox } = ctx;
         const fullSeriesRect = layoutBox.clone();
 
         this.computeSeriesRect(layoutBox);
         await this.computeCircle(layoutBox);
         this.axes.forEach((axis) => axis.update());
 
-        this.ctx.layoutService.emitLayoutComplete(width, height, {
+        this.ctx.layoutService.emitLayoutComplete(ctx, {
             series: { visible: true, rect: fullSeriesRect, paddedRect: layoutBox },
         });
     }

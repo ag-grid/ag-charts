@@ -2,6 +2,8 @@ import type { DataController } from '../chart/data/dataController';
 import type { BBox } from '../scene/bbox';
 
 export interface LayoutContext {
+    width: number;
+    height: number;
     layoutBox: BBox;
 }
 
@@ -9,7 +11,6 @@ export interface ModuleInstance {
     processData?: (opts: { dataController: DataController }) => Promise<void>;
     updateData?: (opts: { data: any }) => Promise<void>;
     performLayout?: (ctx: LayoutContext) => Promise<void> | void;
-    performCartesianLayout?: (opts: { seriesRect: BBox }) => Promise<void>;
     destroy(): void;
 }
 

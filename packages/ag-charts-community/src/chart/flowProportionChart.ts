@@ -29,7 +29,8 @@ export class FlowProportionChart extends Chart {
         });
     }
 
-    override async performLayout({ layoutBox }: LayoutContext) {
+    override async performLayout(ctx: LayoutContext) {
+        const { layoutBox } = ctx;
         const seriesVisible = this.series.some((s) => s.visible);
         const fullSeriesRect = layoutBox.clone();
         const {
@@ -56,8 +57,7 @@ export class FlowProportionChart extends Chart {
             );
         }
 
-        const { width, height } = this.ctx.scene;
-        this.ctx.layoutService.emitLayoutComplete(width, height, {
+        this.ctx.layoutService.emitLayoutComplete(ctx, {
             series: { visible: seriesVisible, rect: fullSeriesRect, paddedRect: layoutBox },
         });
     }

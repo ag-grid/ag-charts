@@ -976,9 +976,6 @@ export abstract class Chart extends Observable {
             await m.performLayout?.(ctx);
         }
         await this.performLayout(ctx);
-        // for (const m of this.modulesManager.modules()) {
-        //     await m.onLayoutComplete?.(ctx);
-        // }
 
         if (oldRect && !this.animationRect?.equals(oldRect)) {
             // Skip animations if the layout changed.

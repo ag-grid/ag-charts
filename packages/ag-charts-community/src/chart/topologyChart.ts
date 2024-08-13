@@ -56,7 +56,8 @@ export class TopologyChart extends Chart {
         });
     }
 
-    override async performLayout({ layoutBox }: LayoutContext) {
+    override async performLayout(ctx: LayoutContext) {
+        const { layoutBox } = ctx;
         const fullSeriesRect = layoutBox.clone();
         const {
             seriesArea: { padding },
@@ -133,8 +134,7 @@ export class TopologyChart extends Chart {
             );
         }
 
-        const { width, height } = this.ctx.scene;
-        this.ctx.layoutService.emitLayoutComplete(width, height, {
+        this.ctx.layoutService.emitLayoutComplete(ctx, {
             series: { visible: seriesVisible, rect: fullSeriesRect, paddedRect: layoutBox },
         });
     }

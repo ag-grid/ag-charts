@@ -34,8 +34,8 @@ export class Navigator extends _ModuleSupport.Navigator {
         }
     }
 
-    override async performCartesianLayout(opts: { seriesRect: _Scene.BBox }): Promise<void> {
-        await super.performCartesianLayout(opts);
+    override async onLayoutComplete(opts: _ModuleSupport.LayoutCompleteEvent) {
+        super.onLayoutComplete(opts);
         await this.miniChart.layout(this.width, this.height);
     }
 }

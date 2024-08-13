@@ -231,6 +231,7 @@ export class StatusBar
         this.destroyFns.push(
             ctx.scene.attachNode(this.labelGroup, 'titles'),
             ctx.layoutService.addListener('layout:start', (e) => this.startPerformLayout(e)),
+            ctx.layoutService.addListener('layout:complete', (e) => this.onLayoutComplete(e)),
             ctx.highlightManager.addListener('highlight-change', () => this.updateHighlight())
         );
     }
@@ -353,8 +354,8 @@ export class StatusBar
         }
     }
 
-    async performCartesianLayout(opts: { seriesRect: _Scene.BBox }): Promise<void> {
-        this.labelGroup.translationX = opts.seriesRect.x;
+    private onLayoutComplete(opts: _ModuleSupport.LayoutCompleteEvent) {
+        this.labelGroup.translationX = opts.series.rect.x;
     }
 
     private updateHighlight() {
