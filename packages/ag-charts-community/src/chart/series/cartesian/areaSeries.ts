@@ -595,7 +595,7 @@ export class AreaSeries extends CartesianSeries<
 
         path.clear(true);
         for (const { span } of spans) {
-            plotSpan(path, span);
+            plotSpan(path, span, SpanJoin.MoveTo);
         }
         stroke.checkPathDirty();
     }

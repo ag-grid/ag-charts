@@ -7,7 +7,7 @@ import type { ProcessedOutputDiff } from '../../data/dataModel';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { type Span, SpanJoin, interpolateSpans, plotSpan, reverseSpan } from './lineInterpolation';
-import { type SpanInterpolation, SplitMode, pairUpSpans } from './lineInterpolationUtil';
+import { type SpanInterpolation, pairUpSpans } from './lineInterpolationUtil';
 import { pairCategoryData, pairContinuousData, prepareLinePathPropertyAnimation } from './lineUtil';
 import { prepareMarkerAnimation } from './markerUtil';
 import { isScaleValid } from './scaling';
@@ -109,7 +109,7 @@ function prepareAreaFillAnimationFns(
 
 function plotStrokeSpans(ratio: number, path: Path, spans: SpanInterpolation[]) {
     for (const span of spans) {
-        plotSpan(path.path, interpolateSpans(span.from, span.to, ratio));
+        plotSpan(path.path, interpolateSpans(span.from, span.to, ratio), SpanJoin.MoveTo);
     }
 }
 
@@ -146,13 +146,11 @@ export function prepareAreaPathAnimation(
 
     const spans = pairUpSpans(
         { scales: newData.scales, data: newData.fillData.spans, visible: newData.visible },
-        { scales: oldData.scales, data: oldData.fillData.spans, visible: oldData.visible },
-        SplitMode.Zero
+        { scales: oldData.scales, data: oldData.fillData.spans, visible: oldData.visible }
     );
     const phantomSpans = pairUpSpans(
         { scales: newData.scales, data: newData.fillData.phantomSpans, visible: newData.visible },
-        { scales: oldData.scales, data: oldData.fillData.phantomSpans, visible: oldData.visible },
-        SplitMode.Zero
+        { scales: oldData.scales, data: oldData.fillData.phantomSpans, visible: oldData.visible }
     );
     const prepareMarkerPairs = () => {
         if (isCategoryBased) {
