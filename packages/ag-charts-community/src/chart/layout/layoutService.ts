@@ -37,7 +37,6 @@ export interface LayoutState {
 
 interface EventMap {
     'start-layout': LayoutContext;
-    'before-series': LayoutContext;
     'layout-complete': LayoutCompleteEvent;
 }
 
@@ -50,10 +49,7 @@ export class LayoutService {
 
     createContext(width: number, height: number): LayoutContext {
         const context = new LayoutContext(width, height);
-
         this.events.emit('start-layout', context);
-        this.events.emit('before-series', context);
-
         return context;
     }
 

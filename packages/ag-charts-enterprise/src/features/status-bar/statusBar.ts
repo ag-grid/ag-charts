@@ -230,7 +230,7 @@ export class StatusBar
 
         this.destroyFns.push(
             ctx.scene.attachNode(this.labelGroup, 'titles'),
-            ctx.layoutService.addListener('before-series', (e) => this.startPerformLayout(e)),
+            ctx.layoutService.addListener('start-layout', (e) => this.startPerformLayout(e)),
             ctx.highlightManager.addListener('highlight-change', () => this.updateHighlight())
         );
     }
