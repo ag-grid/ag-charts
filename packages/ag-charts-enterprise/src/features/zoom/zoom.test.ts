@@ -6,6 +6,7 @@ import {
     clickAction,
     doubleClickAction,
     dragAction,
+    expectWarningsCalls,
     extractImageData,
     hoverAction,
     scrollAction,
@@ -240,6 +241,16 @@ describe('Zoom', () => {
         it('should start at the given zoom', async () => {
             await prepareChart({ ratioX: { start: 0.2, end: 0.8 }, ratioY: { start: 0.1, end: 0.9 } });
             await compare();
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - Property [zoom.ratioX] is deprecated. Use [initialState.zoom.ratioX] instead.",
+  ],
+  [
+    "AG Charts - Property [zoom.ratioY] is deprecated. Use [initialState.zoom.ratioY] instead.",
+  ],
+]
+`);
         });
     });
 
@@ -247,16 +258,40 @@ describe('Zoom', () => {
         it('should start with the given range', async () => {
             await prepareChart({ rangeX: { start: 3, end: 6 }, rangeY: { start: 30, end: 70 } });
             await compare();
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - Property [zoom.rangeX] is deprecated. Use [initialState.zoom.rangeX] instead.",
+  ],
+  [
+    "AG Charts - Property [zoom.rangeY] is deprecated. Use [initialState.zoom.rangeY] instead.",
+  ],
+]
+`);
         });
 
         it('should extend the range to the start', async () => {
-            await prepareChart({ rangeX: { start: undefined, end: 6 } });
+            await prepareChart({ rangeX: { end: 6 } });
             await compare();
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - Property [zoom.rangeY] is deprecated. Use [initialState.zoom.rangeY] instead.",
+  ],
+]
+`);
         });
 
         it('should extend the range to the end', async () => {
-            await prepareChart({ rangeX: { start: 3, end: undefined } });
+            await prepareChart({ rangeX: { start: 3 } });
             await compare();
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - Property [zoom.rangeX] is deprecated. Use [initialState.zoom.rangeX] instead.",
+  ],
+]
+`);
         });
     });
 

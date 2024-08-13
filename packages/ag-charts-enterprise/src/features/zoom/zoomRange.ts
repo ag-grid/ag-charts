@@ -1,9 +1,13 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 const { AND, DATE, NUMBER, OR, ObserveChanges, Validate } = _ModuleSupport;
+const { Logger } = _Util;
 
 export class ZoomRange {
     @ObserveChanges<ZoomRange>((target, start) => {
+        if (target.initialStart == null && !target.hasRestored) {
+            Logger.warnOnce('Property [zoom.rangeX] is deprecated. Use [initialState.zoom.rangeX] instead.');
+        }
         target.initialStart ??= start;
         const range = target.getRangeWithValues(start, target.end);
         if (range) target.onChange?.(range);
@@ -13,9 +17,12 @@ export class ZoomRange {
     public start?: Date | number;
 
     @ObserveChanges<ZoomRange>((target, end) => {
+        if (target.initialEnd == null && !target.hasRestored) {
+            Logger.warnOnce('Property [zoom.rangeY] is deprecated. Use [initialState.zoom.rangeY] instead.');
+        }
         target.initialEnd ??= end;
         const range = target.getRangeWithValues(target.start, end);
-        if (range) target.onChange?.();
+        if (range) target.onChange?.(range);
     })
     // @todo(AG-11069)
     @Validate(AND(OR(DATE, NUMBER) /* GREATER_THAN('start') */), { optional: true })
@@ -24,6 +31,7 @@ export class ZoomRange {
     private domain?: Array<Date | number>;
     private initialStart?: Date | number;
     private initialEnd?: Date | number;
+    private hasRestored = false;
 
     constructor(private readonly onChange: (range?: { min: number; max: number }) => void) {}
 
@@ -39,7 +47,9 @@ export class ZoomRange {
         this.domain = domain;
     }
 
-    public reset(start?: Date | number, end?: Date | number) {
+    public restore(start?: Date | number, end?: Date | number) {
+        this.hasRestored = true;
+
         this.initialStart = start;
         this.initialEnd = end;
         this.start = start;
