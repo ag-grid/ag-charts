@@ -3,9 +3,13 @@ import { _ModuleSupport, _Util } from 'ag-charts-community';
 import { UNIT } from './zoomUtils';
 
 const { AND, GREATER_THAN, LESS_THAN, RATIO, ObserveChanges, Validate } = _ModuleSupport;
+const { Logger } = _Util;
 
 export class ZoomRatio {
     @ObserveChanges<ZoomRatio>((target, start) => {
+        if (target.initialStart == null) {
+            Logger.warnOnce('Property [zoom.ratioX] is deprecated. Use [initialState.zoom.ratioX] instead.');
+        }
         target.initialStart ??= start;
         const ratio = target.getRatioWithValues(start, target.end);
         if (ratio) target.onChange?.(ratio);
@@ -14,6 +18,9 @@ export class ZoomRatio {
     public start?: number;
 
     @ObserveChanges<ZoomRatio>((target, end) => {
+        if (target.initialEnd == null) {
+            Logger.warnOnce('Property [zoom.ratioY] is deprecated. Use [initialState.zoom.ratioY] instead.');
+        }
         target.initialEnd ??= end;
         const ratio = target.getRatioWithValues(target.start, end);
         if (ratio) target.onChange?.(ratio);

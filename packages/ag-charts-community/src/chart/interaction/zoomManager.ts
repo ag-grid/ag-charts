@@ -1,4 +1,4 @@
-import type { AgZoomOptions } from 'ag-charts-types';
+import type { AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
 import type { MementoOriginator } from '../../api/state/memento';
 import { deepClone } from '../../util/json';
@@ -23,6 +23,13 @@ export interface DefinedZoomState {
     y: ZoomState;
 }
 
+export type ZoomMemento = {
+    rangeX?: AgZoomRange;
+    rangeY?: AgZoomRange;
+    ratioX?: AgZoomRatio;
+    ratioY?: AgZoomRatio;
+};
+
 export interface ZoomChangeEvent extends AxisZoomState {
     type: 'zoom-change';
     callerId: string;
@@ -34,7 +41,7 @@ export interface ZoomPanStartEvent {
     callerId: string;
 }
 
-export interface ZoomRestoreEvent extends Pick<AgZoomOptions, 'rangeX' | 'rangeY' | 'ratioX' | 'ratioY'> {
+export interface ZoomRestoreEvent extends ZoomMemento {
     type: 'restore-zoom';
 }
 
@@ -45,8 +52,6 @@ export type ChartAxisLike = {
 };
 
 type ZoomEvents = ZoomChangeEvent | ZoomPanStartEvent | ZoomRestoreEvent;
-
-export type ZoomMemento = Pick<AgZoomOptions, 'rangeX' | 'rangeY' | 'ratioX' | 'ratioY'>;
 
 /**
  * Manages the current zoom state for a chart. Tracks the requested zoom from distinct dependents

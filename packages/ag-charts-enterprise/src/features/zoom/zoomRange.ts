@@ -1,9 +1,13 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 const { AND, DATE, NUMBER, OR, ObserveChanges, Validate } = _ModuleSupport;
+const { Logger } = _Util;
 
 export class ZoomRange {
     @ObserveChanges<ZoomRange>((target, start) => {
+        if (target.initialStart == null) {
+            Logger.warnOnce('Property [zoom.rangeX] is deprecated. Use [initialState.zoom.rangeX] instead.');
+        }
         target.initialStart ??= start;
         const range = target.getRangeWithValues(start, target.end);
         if (range) target.onChange?.(range);
@@ -13,9 +17,12 @@ export class ZoomRange {
     public start?: Date | number;
 
     @ObserveChanges<ZoomRange>((target, end) => {
+        if (target.initialEnd == null) {
+            Logger.warnOnce('Property [zoom.rangeY] is deprecated. Use [initialState.zoom.rangeY] instead.');
+        }
         target.initialEnd ??= end;
         const range = target.getRangeWithValues(target.start, end);
-        if (range) target.onChange?.();
+        if (range) target.onChange?.(range);
     })
     // @todo(AG-11069)
     @Validate(AND(OR(DATE, NUMBER) /* GREATER_THAN('start') */), { optional: true })

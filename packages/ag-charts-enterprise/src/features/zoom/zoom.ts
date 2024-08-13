@@ -148,8 +148,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     public rangeX = new ZoomRange(this.onRangeChange.bind(this, ChartAxisDirection.X));
     public rangeY = new ZoomRange(this.onRangeChange.bind(this, ChartAxisDirection.Y));
 
-    public ratioX = new ZoomRatio(this.onRatioChange.bind(this, ChartAxisDirection.X));
-    public ratioY = new ZoomRatio(this.onRatioChange.bind(this, ChartAxisDirection.Y));
+    public ratioX = new ZoomRatio(this.onRangeChange.bind(this, ChartAxisDirection.X));
+    public ratioY = new ZoomRatio(this.onRangeChange.bind(this, ChartAxisDirection.Y));
 
     // Scenes
     private seriesRect?: _Scene.BBox;
@@ -260,12 +260,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const axisId = this.axisIds[direction];
         if (!axisId || !rangeZoom) return;
         this.updateAxisZoom(axisId, direction, rangeZoom);
-    }
-
-    private onRatioChange(direction: _ModuleSupport.ChartAxisDirection, ratioZoom?: DefinedZoomState['x' | 'y']) {
-        const axisId = this.axisIds[direction];
-        if (!axisId || !ratioZoom) return;
-        this.updateAxisZoom(axisId, direction, ratioZoom);
     }
 
     private onDoubleClick(
