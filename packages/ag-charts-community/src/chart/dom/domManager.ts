@@ -3,7 +3,6 @@ import type { AgIconName } from 'ag-charts-types';
 import { BBox } from '../../scene/bbox';
 import STYLES from '../../styles.css';
 import { createElement, getDocument, getWindow } from '../../util/dom';
-import { GuardedElement } from '../../util/guardedElement';
 import { type Size, SizeMonitor } from '../../util/sizeMonitor';
 import { BaseManager } from '../baseManager';
 import BASE_DOM from './domLayout.html';
@@ -72,8 +71,6 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     private container?: HTMLElement = undefined;
     containerSize?: Size = undefined;
 
-    public guardedElement?: GuardedElement;
-
     private readonly observer?: IntersectionObserver;
     private readonly sizeMonitor = new SizeMonitor();
 
@@ -129,7 +126,6 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             el.element.remove();
         });
 
-        this.guardedElement?.destroy();
         this.element.remove();
     }
 
@@ -203,22 +199,11 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         this.element.classList.add(themeClassName);
     }
 
-    private createTabGuards(): GuardedElement {
-        const canvasElement = this.rootElements['canvas'].element.querySelector<HTMLCanvasElement>('canvas');
-        const tabGuards = this.element.querySelectorAll<HTMLElement>('.ag-charts-tab-guard');
-        if (canvasElement == null || tabGuards[0] == null || tabGuards[1] == null) {
-            throw new Error('AG Charts - error initialising canvas tab guards');
-        }
-        return new GuardedElement(canvasElement, tabGuards[0], tabGuards[1]);
-    }
-
     setTabIndex(tabIndex: number) {
-        this.guardedElement ??= this.createTabGuards();
-        this.guardedElement.tabIndex = tabIndex;
-    }
-
-    getBrowserFocusDelta(): -1 | 0 | 1 {
-        return this.guardedElement?.getBrowserFocusDelta() ?? 0;
+        const canvasElement = this.rootElements['canvas'].element.querySelector<HTMLCanvasElement>('canvas');
+        if (canvasElement) {
+            canvasElement.tabIndex = tabIndex;
+        }
     }
 
     addEventListenerOnElement<K extends keyof HTMLElementEventMap>(
