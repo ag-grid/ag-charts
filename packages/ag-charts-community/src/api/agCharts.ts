@@ -104,7 +104,7 @@ export abstract class AgCharts {
 
     public static createFinancialChart(options: AgFinancialChartOptions) {
         return this.create({
-            chartType: 'price-volume',
+            presetType: 'price-volume',
             ...options,
         } as AgChartOptions) as unknown as AgChartInstance<AgFinancialChartOptions>;
     }
