@@ -3,6 +3,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { Annotation, Font, Handle, Label, Line } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, type Padding } from '../annotationTypes';
 import { convertPoint } from '../annotationUtils';
+import type { AnnotationTextAlignment, AnnotationTextPosition } from '../text/util';
 
 const { STRING, BaseProperties, Validate } = _ModuleSupport;
 
@@ -10,8 +11,8 @@ export class TextualStartEndProperties extends Annotation(Line(Handle(Label(Font
     @Validate(STRING)
     text: string = '';
 
-    position: 'top' | 'center' | 'bottom' = 'top';
-    alignment: 'left' | 'center' | 'right' = 'left';
+    position: AnnotationTextPosition = 'top';
+    alignment: AnnotationTextAlignment = 'left';
     placement: 'inside' | 'outside' = 'inside';
     width?: number;
     placeholderText?: string = undefined;
@@ -39,6 +40,15 @@ export class TextualStartEndProperties extends Annotation(Line(Handle(Label(Font
             right: padding,
             bottom: padding,
             left: padding,
+        };
+    }
+
+    getText() {
+        const isPlaceholder = this.text.length == 0;
+        const text = !isPlaceholder ? this.text : this.placeholderText ?? '';
+        return {
+            text,
+            isPlaceholder,
         };
     }
 
