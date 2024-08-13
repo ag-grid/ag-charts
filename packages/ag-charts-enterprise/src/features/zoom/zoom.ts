@@ -807,19 +807,19 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const { rangeX, rangeY, ratioX, ratioY } = event;
 
         if (rangeX) {
-            this.rangeX.reset(rangeX.start, rangeX.end);
+            this.rangeX.restore(rangeX.start, rangeX.end);
         }
 
         if (rangeY) {
-            this.rangeY.reset(rangeY.start, rangeY.end);
+            this.rangeY.restore(rangeY.start, rangeY.end);
         }
 
         if (ratioX && !rangeX) {
-            this.ratioX.reset(ratioX.start, ratioX.end);
+            this.ratioX.restore(ratioX.start, ratioX.end);
         }
 
         if (ratioY && !rangeY) {
-            this.ratioY.reset(ratioY.start, ratioY.end);
+            this.ratioY.restore(ratioY.start, ratioY.end);
         }
     }
 

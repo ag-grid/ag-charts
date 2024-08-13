@@ -5,7 +5,7 @@ const { Logger } = _Util;
 
 export class ZoomRange {
     @ObserveChanges<ZoomRange>((target, start) => {
-        if (target.initialStart == null) {
+        if (target.initialStart == null && !target.hasRestored) {
             Logger.warnOnce('Property [zoom.rangeX] is deprecated. Use [initialState.zoom.rangeX] instead.');
         }
         target.initialStart ??= start;
@@ -17,7 +17,7 @@ export class ZoomRange {
     public start?: Date | number;
 
     @ObserveChanges<ZoomRange>((target, end) => {
-        if (target.initialEnd == null) {
+        if (target.initialEnd == null && !target.hasRestored) {
             Logger.warnOnce('Property [zoom.rangeY] is deprecated. Use [initialState.zoom.rangeY] instead.');
         }
         target.initialEnd ??= end;
@@ -31,6 +31,7 @@ export class ZoomRange {
     private domain?: Array<Date | number>;
     private initialStart?: Date | number;
     private initialEnd?: Date | number;
+    private hasRestored = false;
 
     constructor(private readonly onChange: (range?: { min: number; max: number }) => void) {}
 
@@ -46,7 +47,9 @@ export class ZoomRange {
         this.domain = domain;
     }
 
-    public reset(start?: Date | number, end?: Date | number) {
+    public restore(start?: Date | number, end?: Date | number) {
+        this.hasRestored = true;
+
         this.initialStart = start;
         this.initialEnd = end;
         this.start = start;

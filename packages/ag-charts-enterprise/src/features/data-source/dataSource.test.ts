@@ -186,7 +186,7 @@ describe('DataSource', () => {
         it('should load a window at the end', async () => {
             await prepareChart(dataSource, {
                 ...EXAMPLE_OPTIONS,
-                navigator: { min: 0.5, max: 1.0 },
+                initialState: { zoom: { ratioX: { start: 0.5, end: 1.0 } } },
             });
             await response;
             await compare();
@@ -195,7 +195,7 @@ describe('DataSource', () => {
         it('should load a window in the middle', async () => {
             await prepareChart(dataSource, {
                 ...EXAMPLE_OPTIONS,
-                navigator: { min: 0.25, max: 0.75 },
+                initialState: { zoom: { ratioX: { start: 0.25, end: 0.75 } } },
             });
             await response;
             await compare();

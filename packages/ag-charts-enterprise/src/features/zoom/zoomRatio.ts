@@ -7,7 +7,7 @@ const { Logger } = _Util;
 
 export class ZoomRatio {
     @ObserveChanges<ZoomRatio>((target, start) => {
-        if (target.initialStart == null) {
+        if (target.initialStart == null && !target.hasRestored) {
             Logger.warnOnce('Property [zoom.ratioX] is deprecated. Use [initialState.zoom.ratioX] instead.');
         }
         target.initialStart ??= start;
@@ -18,7 +18,7 @@ export class ZoomRatio {
     public start?: number;
 
     @ObserveChanges<ZoomRatio>((target, end) => {
-        if (target.initialEnd == null) {
+        if (target.initialEnd == null && !target.hasRestored) {
             Logger.warnOnce('Property [zoom.ratioY] is deprecated. Use [initialState.zoom.ratioY] instead.');
         }
         target.initialEnd ??= end;
@@ -30,6 +30,7 @@ export class ZoomRatio {
 
     private initialStart?: number;
     private initialEnd?: number;
+    private hasRestored = false;
 
     constructor(private readonly onChange: (ratio?: { min: number; max: number }) => void) {}
 
@@ -41,7 +42,9 @@ export class ZoomRatio {
         return this.getRatioWithValues(this.initialStart, this.initialEnd);
     }
 
-    public reset(start?: number, end?: number) {
+    public restore(start?: number, end?: number) {
+        this.hasRestored = true;
+
         this.initialStart = start;
         this.initialEnd = end;
         this.start = start;
