@@ -24,13 +24,12 @@ export class BaseLayoutProcessor implements UpdateProcessor {
     }
 
     private positionCaptions(ctx: LayoutContext) {
+        const { title, subtitle, footnote } = this.chartLike;
         const { layoutRect, positions, padding } = ctx;
-        const { title, subtitle, footnote, titlePadding } = this.chartLike;
 
         // Apply chart padding
         layoutRect.shrink(this.chartLike.padding.toJson());
 
-        const paddedShrinkRect = layoutRect.clone().shrink(titlePadding);
         const defaultCaptionHeight = layoutRect.height / 10;
 
         const updateCaption = (caption: Caption) => {
@@ -41,45 +40,39 @@ export class BaseLayoutProcessor implements UpdateProcessor {
 
         const computeX = (align: TextAlign): number => {
             if (align === 'left') {
-                return paddedShrinkRect.x;
+                return layoutRect.x;
             } else if (align === 'right') {
-                return paddedShrinkRect.x + paddedShrinkRect.width;
+                return layoutRect.x + layoutRect.width;
             }
-            return paddedShrinkRect.x + paddedShrinkRect.width / 2;
+            return layoutRect.x + layoutRect.width / 2;
         };
 
         const positionTopAndShrinkBBox = (caption: Caption, spacing: number) => {
-            const baseY = paddedShrinkRect.y;
-            caption.node.x = computeX(caption.textAlign);
-            caption.node.y = baseY;
+            const baseY = layoutRect.y;
+            caption.node.x = computeX(caption.textAlign) + caption.padding;
+            caption.node.y = baseY + caption.padding;
             caption.node.textBaseline = 'top';
             updateCaption(caption);
-            const bbox = caption.node.getBBox();
 
             // As the bbox (x,y) ends up at a different location than specified above, we need to
             // take it into consideration when calculating how much space needs to be reserved to
             // accommodate the caption.
-            const bboxHeight = Math.ceil(bbox.y - baseY + bbox.height + spacing);
-
+            const bbox = caption.node.getBBox();
             if (caption.layoutStyle === 'block') {
-                layoutRect.shrink(bboxHeight + 2 * titlePadding, 'top');
-                paddedShrinkRect.shrink(bboxHeight, 'top');
+                layoutRect.shrink(Math.ceil(bbox.y - baseY + bbox.height + spacing), 'top');
             }
             return bbox;
         };
         const positionBottomAndShrinkBBox = (caption: Caption, spacing: number) => {
-            const baseY = paddedShrinkRect.y + paddedShrinkRect.height;
-            caption.node.x = computeX(caption.textAlign);
-            caption.node.y = baseY;
+            const baseY = layoutRect.y + layoutRect.height;
+            caption.node.x = computeX(caption.textAlign) + caption.padding;
+            caption.node.y = baseY + caption.padding;
             caption.node.textBaseline = 'bottom';
             updateCaption(caption);
+
             const bbox = caption.node.getBBox();
-
-            const bboxHeight = Math.ceil(baseY - bbox.y + spacing);
-
             if (caption.layoutStyle === 'block') {
-                layoutRect.shrink(bboxHeight + 2 * titlePadding, 'bottom');
-                paddedShrinkRect.shrink(bboxHeight, 'bottom');
+                layoutRect.shrink(Math.ceil(baseY - bbox.y + spacing), 'bottom');
             }
             return bbox;
         };
@@ -101,21 +94,21 @@ export class BaseLayoutProcessor implements UpdateProcessor {
             positions.footnote = positionBottomAndShrinkBBox(footnote, footnote.spacing ?? 0);
         }
 
-        padding.title = titlePadding;
+        padding.title = title.padding;
     }
 
     alignCaptions(ctx: LayoutCompleteEvent): void {
         const { rect } = ctx.series;
-        const { title, subtitle, footnote, titlePadding } = this.chartLike;
+        const { title, subtitle, footnote } = this.chartLike;
 
         for (const caption of [title, subtitle, footnote]) {
             if (caption.layoutStyle !== 'overlay') continue;
 
             if (caption.textAlign === 'left') {
-                caption.node.x = rect.x + titlePadding;
+                caption.node.x = rect.x + caption.padding;
             } else if (caption.textAlign === 'right') {
                 const bbox = caption.node.getBBox();
-                caption.node.x = rect.x + rect.width - bbox.width - titlePadding;
+                caption.node.x = rect.x + rect.width - bbox.width - caption.padding;
             }
         }
     }

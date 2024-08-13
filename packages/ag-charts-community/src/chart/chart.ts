@@ -27,7 +27,7 @@ import { BaseProperties } from '../util/properties';
 import { ActionOnSet } from '../util/proxy';
 import { debouncedCallback } from '../util/render';
 import { isDefined, isFiniteNumber, isFunction, isNumber } from '../util/type-guards';
-import { BOOLEAN, NUMBER, OBJECT, UNION, Validate } from '../util/validation';
+import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
 import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxis } from './chartAxis';
@@ -198,9 +198,6 @@ export abstract class Chart extends Observable {
 
     @Validate(OBJECT)
     readonly padding = new Padding(20);
-
-    @Validate(NUMBER)
-    readonly titlePadding = 0;
 
     @Validate(OBJECT)
     readonly seriesArea = new SeriesArea();
