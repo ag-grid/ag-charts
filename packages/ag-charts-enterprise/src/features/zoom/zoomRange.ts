@@ -1,34 +1,31 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { AND, DATE, NUMBER, OR, ActionOnSet, isFiniteNumber, isValidDate, Validate, arraysEqual } = _ModuleSupport;
+const { AND, DATE, NUMBER, OR, ObserveChanges, Validate } = _ModuleSupport;
 
 export class ZoomRange {
-    @ActionOnSet<ZoomRange>({
-        changeValue(start) {
-            this.initialStart ??= start;
-            this.onChange?.(this.axisId, this.getRangeWithValues(start, this.end));
-        },
+    @ObserveChanges<ZoomRange>((target, start) => {
+        target.initialStart ??= start;
+        const range = target.getRangeWithValues(start, target.end);
+        if (range) target.onChange?.(range);
     })
     // @todo(AG-11069)
     @Validate(AND(OR(DATE, NUMBER) /* LESS_THAN('end') */), { optional: true })
     public start?: Date | number;
 
-    @ActionOnSet<ZoomRange>({
-        changeValue(end) {
-            this.initialEnd ??= end;
-            this.onChange?.(this.axisId, this.getRangeWithValues(this.start, end));
-        },
+    @ObserveChanges<ZoomRange>((target, end) => {
+        target.initialEnd ??= end;
+        const range = target.getRangeWithValues(target.start, end);
+        if (range) target.onChange?.();
     })
     // @todo(AG-11069)
     @Validate(AND(OR(DATE, NUMBER) /* GREATER_THAN('start') */), { optional: true })
     public end?: Date | number;
 
-    private axisId?: string;
     private domain?: Array<Date | number>;
-    private initialStart?: number;
-    private initialEnd?: number;
+    private initialStart?: Date | number;
+    private initialEnd?: Date | number;
 
-    constructor(private readonly onChange: (axisId?: string, range?: { min: number; max: number }) => void) {}
+    constructor(private readonly onChange: (range?: { min: number; max: number }) => void) {}
 
     public getRange() {
         return this.getRangeWithValues(this.start, this.end);
@@ -36,6 +33,18 @@ export class ZoomRange {
 
     public getInitialRange() {
         return this.getRangeWithValues(this.initialStart, this.initialEnd);
+    }
+
+    public updateDomain(domain: Array<Date | number>) {
+        this.domain = domain;
+    }
+
+    public reset(start?: Date | number, end?: Date | number) {
+        this.initialStart = start;
+        this.initialEnd = end;
+        this.start = start;
+        this.end = end;
+        this.onChange(this.getRange());
     }
 
     public extendToEnd(extent: number) {
@@ -55,7 +64,7 @@ export class ZoomRange {
         this.start = start;
 
         // If neither start or end were changed, ensure we still call the `onChange` callback
-        if (!changed) this.onChange?.(this.axisId, this.getRange());
+        if (!changed) this.onChange?.(this.getRange());
 
         return { start, end };
     }
@@ -72,7 +81,7 @@ export class ZoomRange {
         this.start = start;
 
         // If neither start or end were changed, ensure we still call the `onChange` callback
-        if (!changed) this.onChange?.(this.axisId, this.getRange());
+        if (!changed) this.onChange?.(this.getRange());
 
         return { start, end };
     }
@@ -88,39 +97,7 @@ export class ZoomRange {
         this.end = end;
 
         // If neither start or end were changed, ensure we still call the `onChange` callback
-        if (!changed) this.onChange?.(this.axisId, this.getRange());
-    }
-
-    public updateAxis(axes: _ModuleSupport.AxisLayout[]) {
-        const validAxis = axes.find(({ domain }) => {
-            const isNumberAxis = !isFiniteNumber(domain[0]) || !isFiniteNumber(domain.at(-1));
-            const isDateAxis = !isValidDate(domain[0]) || !isValidDate(domain.at(-1));
-
-            return isNumberAxis || isDateAxis;
-        });
-
-        if (!validAxis) return this.domain != null;
-
-        this.axisId = validAxis.id;
-        let validAxisDomain = validAxis.domain;
-
-        if (validAxisDomain != null) {
-            // We only need to compare the extents of the domain, not the full category domain
-            validAxisDomain = [validAxisDomain[0], validAxisDomain.at(-1)];
-
-            // Ensure a valid comparison of date objects by mapping to timestamps
-            if (validAxisDomain[0] instanceof Date && validAxisDomain[1] instanceof Date) {
-                validAxisDomain = [validAxisDomain[0].getTime(), validAxisDomain[1].getTime()];
-            }
-        }
-
-        const changed = this.domain == null || !arraysEqual(this.domain, validAxisDomain);
-
-        if (changed) {
-            this.domain = validAxisDomain;
-        }
-
-        return changed;
+        if (!changed) this.onChange?.(this.getRange());
     }
 
     private getRangeWithValues(start?: Date | number, end?: Date | number) {

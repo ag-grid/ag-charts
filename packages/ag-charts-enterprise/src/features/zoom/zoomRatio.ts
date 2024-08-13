@@ -2,23 +2,21 @@ import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import { UNIT } from './zoomUtils';
 
-const { AND, GREATER_THAN, LESS_THAN, RATIO, ActionOnSet, Validate } = _ModuleSupport;
+const { AND, GREATER_THAN, LESS_THAN, RATIO, ObserveChanges, Validate } = _ModuleSupport;
 
 export class ZoomRatio {
-    @ActionOnSet<ZoomRatio>({
-        changeValue(start?: number) {
-            this.initialStart ??= start;
-            this.onChange?.(this.getRatioWithValues(start, this.end));
-        },
+    @ObserveChanges<ZoomRatio>((target, start) => {
+        target.initialStart ??= start;
+        const ratio = target.getRatioWithValues(start, target.end);
+        if (ratio) target.onChange?.(ratio);
     })
     @Validate(AND(RATIO, LESS_THAN('end')), { optional: true })
     public start?: number;
 
-    @ActionOnSet<ZoomRatio>({
-        changeValue(end?: number) {
-            this.initialEnd ??= end;
-            this.onChange?.(this.getRatioWithValues(this.start, end));
-        },
+    @ObserveChanges<ZoomRatio>((target, end) => {
+        target.initialEnd ??= end;
+        const ratio = target.getRatioWithValues(target.start, end);
+        if (ratio) target.onChange?.(ratio);
     })
     @Validate(AND(RATIO, GREATER_THAN('start')), { optional: true })
     public end?: number;
@@ -34,6 +32,14 @@ export class ZoomRatio {
 
     public getInitialRatio() {
         return this.getRatioWithValues(this.initialStart, this.initialEnd);
+    }
+
+    public reset(start?: number, end?: number) {
+        this.initialStart = start;
+        this.initialEnd = end;
+        this.start = start;
+        this.end = end;
+        this.onChange(this.getRatio());
     }
 
     private getRatioWithValues(start?: number, end?: number) {

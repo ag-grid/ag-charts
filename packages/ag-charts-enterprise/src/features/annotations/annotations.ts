@@ -419,8 +419,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             seriesRegion.addListener('drag-start', this.onDragStart.bind(this), Default | ZoomDrag | AnnotationsState),
             seriesRegion.addListener('drag', this.onDrag.bind(this), Default | ZoomDrag | AnnotationsState),
             seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
-            seriesRegion.addListener('cancel', this.onCancel.bind(this), All),
-            seriesRegion.addListener('delete', this.onDelete.bind(this), All),
+            ctx.keyNavManager.addListener('cancel', this.onCancel.bind(this)),
+            ctx.keyNavManager.addListener('delete', this.onDelete.bind(this)),
             ctx.interactionManager.addListener('keydown', this.onKeyDown.bind(this), AnnotationsState),
             ...otherRegions.map((region) => region.addListener('click', this.onCancel.bind(this), All)),
 
@@ -517,6 +517,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 const fontSize = datum != null && 'fontSize' in datum ? datum.fontSize : undefined;
                 this.textSizePopover.show<number>({
                     items: TEXT_SIZE_ITEMS,
+                    ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsTextSize'),
                     value: fontSize,
                     sourceEvent: event.sourceEvent,
                     onPress: (item) => this.onTextSizePopoverPress(item, datum),
@@ -551,6 +552,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.annotationPickerPopover.setAnchor({ x: x + width + 6, y });
         this.annotationPickerPopover.show<AnnotationType>({
             items: LINE_ANNOTATION_ITEMS,
+            ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsLineAnnotations'),
             sourceEvent: event.sourceEvent,
             onPress: this.onAnnotationsPopoverPress.bind(this, event),
             onClose: this.onAnnotationsPopoverClose.bind(this),
@@ -566,6 +568,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.annotationPickerPopover.setAnchor({ x: x + width + 6, y });
         this.annotationPickerPopover.show<AnnotationType>({
             items: TEXT_ANNOTATION_ITEMS,
+            ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsTextAnnotations'),
             sourceEvent: event.sourceEvent,
             onPress: this.onAnnotationsPopoverPress.bind(this, event),
             onClose: this.onAnnotationsPopoverClose.bind(this),

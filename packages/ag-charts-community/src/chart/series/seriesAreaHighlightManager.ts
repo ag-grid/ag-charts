@@ -50,7 +50,7 @@ export class SeriesAreaHighlightManager extends BaseManager {
             // Cases where highlight should be cleared.
             this.ctx.domManager.addListener('resize', () => this.clearHighlight()),
             seriesRegion.addListener('leave', () => this.clearHighlight(), mouseMoveStates),
-            seriesRegion.addListener('blur', () => this.clearHighlight()),
+            this.ctx.keyNavManager.addListener('blur', () => this.clearHighlight()),
             this.ctx.animationManager.addListener('animation-start', () => this.clearHighlight()),
             this.ctx.zoomManager.addListener('zoom-pan-start', () => this.clearHighlight()),
             this.ctx.zoomManager.addListener('zoom-change', () => this.clearHighlight())
