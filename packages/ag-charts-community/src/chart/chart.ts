@@ -970,9 +970,6 @@ export abstract class Chart extends Observable {
         const ctx = this.ctx.layoutService.createContext(width, height);
 
         for (const m of this.modulesManager.modules()) {
-            if (m.performLayout) {
-                console.log(m);
-            }
             await m.performLayout?.(ctx);
         }
         await this.performLayout(ctx);
