@@ -8,8 +8,8 @@ export interface LayoutContext {
 }
 
 export interface ModuleInstance {
-    processData?: (opts: { dataController: DataController }) => Promise<void>;
-    updateData?: (opts: { data: any }) => Promise<void>;
+    processData?: (opts: { dataController: DataController }) => Promise<void> | void;
+    updateData?: (opts: { data: any }) => Promise<void> | void;
     performLayout?: (ctx: LayoutContext) => Promise<void> | void;
     destroy(): void;
 }

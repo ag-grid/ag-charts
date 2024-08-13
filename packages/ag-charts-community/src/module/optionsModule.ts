@@ -53,7 +53,7 @@ interface ChartSpecialOverrides {
     window: Window;
     overrideDevicePixelRatio?: number;
     sceneMode?: 'simple';
-    type?: string;
+    presetType?: string;
 }
 
 type GroupingOptions = {
@@ -85,7 +85,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     userOptions: Partial<T>;
     specialOverrides: ChartSpecialOverrides;
     annotationThemes: any;
-    type?: string;
+    presetType?: string;
 
     private readonly debug = Debug.create(true, 'opts');
 
@@ -100,15 +100,15 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         let options = deepClone(userOptions, cloneOptions);
 
-        this.type = specialOverrides?.type;
-        if (this.type != null) {
-            const presetOptions = (PRESETS as any)[this.type]?.(options, () => this.activeTheme) ?? options;
+        this.presetType = specialOverrides?.presetType;
+        if (this.presetType != null) {
+            const presetOptions = (PRESETS as any)[this.presetType]?.(options, () => this.activeTheme) ?? options;
             this.debug('>>> AgCharts.createOrUpdate() - applying preset', options, presetOptions);
             options = presetOptions;
         }
 
         this.activeTheme = getChartTheme(options.theme);
-        if (this.type) {
+        if (this.presetType) {
             options = this.activeTheme.templateTheme(options);
         }
 

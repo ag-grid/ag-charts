@@ -30,12 +30,7 @@ export interface LegendModule extends BaseModule {
 
 type SeriesOptionsTypes = NonNullable<AgChartOptions['series']>[number];
 
-type Extensible<T> = { [K in keyof T]?: NonNullable<T[K]> extends object ? Extensible<T[K]> : T[K] } & {
-    __extends__?: string;
-};
-export type ExtensibleTheme<SeriesType extends RequiredSeriesType> = Extensible<
-    NonNullable<AgChartThemeOverrides[SeriesType]>
->;
+export type ExtensibleTheme<SeriesType extends RequiredSeriesType> = NonNullable<AgChartThemeOverrides[SeriesType]>;
 
 export type SeriesTypeOptions<SeriesType extends RequiredSeriesType> = Extract<
     SeriesOptionsTypes,

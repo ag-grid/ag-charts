@@ -16,12 +16,12 @@ export class Navigator extends _ModuleSupport.Navigator {
         this.miniChart = new MiniChart(ctx);
     }
 
-    async updateData(opts: { data: any }): Promise<void> {
-        await this.miniChart.updateData(opts);
+    updateData(opts: { data: any }) {
+        return this.miniChart.updateData(opts);
     }
 
-    async processData(opts: { dataController: _ModuleSupport.DataController }): Promise<void> {
-        await this.miniChart.processData(opts);
+    processData(opts: { dataController: _ModuleSupport.DataController }) {
+        return this.miniChart.processData(opts);
     }
 
     override async performLayout(opts: _ModuleSupport.LayoutContext) {

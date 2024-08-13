@@ -9,20 +9,12 @@ export class ModuleMap<M extends Module<I, C>, I extends ModuleInstance, C = {}>
     protected moduleMap = new Map<string, { module: M; moduleInstance: I }>();
 
     *modules() {
-        const sequencedModules = ['toolbar', 'navigator'];
-
+        // const sequencedModules = ['toolbar', 'navigator'];
         for (const m of this.moduleMap.values()) {
-            if (sequencedModules.includes(m.module.optionsKey)) {
-                continue;
+            if (m.module.dependencies) {
+                console.log(m);
             }
             yield m.moduleInstance;
-        }
-
-        for (const key of sequencedModules) {
-            const module = this.moduleMap.get(key);
-            if (module) {
-                yield module.moduleInstance;
-            }
         }
     }
 

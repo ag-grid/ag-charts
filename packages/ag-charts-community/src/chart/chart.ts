@@ -93,7 +93,7 @@ export interface ChartSpecialOverrides {
     window?: Window;
     overrideDevicePixelRatio?: number;
     sceneMode?: 'simple';
-    _type?: string;
+    presetType?: string;
 }
 
 export type ChartExtendedOptions = AgChartOptions & ChartSpecialOverrides;
@@ -970,6 +970,9 @@ export abstract class Chart extends Observable {
         const ctx = this.ctx.layoutService.createContext(width, height);
 
         for (const m of this.modulesManager.modules()) {
+            if (m.performLayout) {
+                console.log(m);
+            }
             await m.performLayout?.(ctx);
         }
         await this.performLayout(ctx);
