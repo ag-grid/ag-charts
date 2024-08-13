@@ -517,6 +517,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 const fontSize = datum != null && 'fontSize' in datum ? datum.fontSize : undefined;
                 this.textSizePopover.show<number>({
                     items: TEXT_SIZE_ITEMS,
+                    ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsTextSize'),
                     value: fontSize,
                     sourceEvent: event.sourceEvent,
                     onPress: (item) => this.onTextSizePopoverPress(item, datum),
@@ -551,6 +552,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.annotationPickerPopover.setAnchor({ x: x + width + 6, y });
         this.annotationPickerPopover.show<AnnotationType>({
             items: LINE_ANNOTATION_ITEMS,
+            ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsLineAnnotations'),
             sourceEvent: event.sourceEvent,
             onPress: this.onAnnotationsPopoverPress.bind(this, event),
             onClose: this.onAnnotationsPopoverClose.bind(this),
@@ -566,6 +568,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.annotationPickerPopover.setAnchor({ x: x + width + 6, y });
         this.annotationPickerPopover.show<AnnotationType>({
             items: TEXT_ANNOTATION_ITEMS,
+            ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsTextAnnotations'),
             sourceEvent: event.sourceEvent,
             onPress: this.onAnnotationsPopoverPress.bind(this, event),
             onClose: this.onAnnotationsPopoverClose.bind(this),
