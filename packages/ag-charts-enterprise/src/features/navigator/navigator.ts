@@ -16,16 +16,16 @@ export class Navigator extends _ModuleSupport.Navigator {
         this.miniChart = new MiniChart(ctx);
     }
 
-    updateData(opts: { data: any }) {
-        return this.miniChart.updateData(opts);
+    updateData(data: any) {
+        return this.miniChart.updateData(data);
     }
 
-    processData(opts: { dataController: _ModuleSupport.DataController }) {
-        return this.miniChart.processData(opts);
+    processData(dataController: _ModuleSupport.DataController) {
+        return this.miniChart.processData(dataController);
     }
 
-    override async performLayout(opts: _ModuleSupport.LayoutContext) {
-        await super.performLayout(opts);
+    override performLayout(opts: _ModuleSupport.LayoutContext) {
+        super.performLayout(opts);
 
         if (this.enabled) {
             const { top, bottom } = this.miniChart.computeAxisPadding();

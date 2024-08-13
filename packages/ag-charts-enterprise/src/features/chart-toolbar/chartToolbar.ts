@@ -32,8 +32,9 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
         super();
 
         this.destroyFns.push(
-            ctx.toolbarManager.addListener('button-moved', this.toolbarButtonMoved.bind(this)),
-            ctx.toolbarManager.addListener('button-pressed', this.toolbarButtonPressed.bind(this))
+            ctx.layoutService.addListener('layout:complete', this.onLayoutComplete.bind(this)),
+            ctx.toolbarManager.addListener('button-moved', this.onToolbarButtonMoved.bind(this)),
+            ctx.toolbarManager.addListener('button-pressed', this.onToolbarButtonPressed.bind(this))
         );
     }
 
@@ -41,7 +42,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
         this.ctx.toolbarManager.toggleGroup('chart-toolbar', BUTTON_GROUP, { visible: enabled });
     }
 
-    processData() {
+    private onLayoutComplete() {
         if (!this.enabled) return;
 
         const chartType = this.getChartType();
@@ -55,12 +56,12 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
         this.popover.setAnchor({ x: anchor.x + anchor.width + 6, y: anchor.y });
     }
 
-    private toolbarButtonMoved(e: _ModuleSupport.ToolbarButtonMovedEvent<any>) {
+    private onToolbarButtonMoved(e: _ModuleSupport.ToolbarButtonMovedEvent<any>) {
         if (e.group !== BUTTON_GROUP) return;
         this.setAnchor(e.rect);
     }
 
-    private toolbarButtonPressed(e: _ModuleSupport.ToolbarButtonPressedEvent<any>) {
+    private onToolbarButtonPressed(e: _ModuleSupport.ToolbarButtonPressedEvent<any>) {
         if (e.group !== BUTTON_GROUP) return;
 
         this.setAnchor(e.rect);

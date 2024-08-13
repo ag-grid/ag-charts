@@ -8,9 +8,9 @@ export interface LayoutContext {
 }
 
 export interface ModuleInstance {
-    processData?: (opts: { dataController: DataController }) => Promise<void> | void;
-    updateData?: (opts: { data: any }) => Promise<void> | void;
-    performLayout?: (ctx: LayoutContext) => Promise<void> | void;
+    processData?: (dataController: DataController) => Promise<void>;
+    updateData?: (data: any) => void;
+    performLayout?: (ctx: LayoutContext) => void;
     destroy(): void;
 }
 

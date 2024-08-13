@@ -161,7 +161,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         }
     }
 
-    async performLayout(ctx: LayoutContext) {
+    performLayout(ctx: LayoutContext) {
         if (this.enabled) {
             const { layoutBox } = ctx;
             const navigatorTotalHeight = this.height + this.spacing;

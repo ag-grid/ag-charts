@@ -236,8 +236,8 @@ export class StatusBar
         );
     }
 
-    async processData(opts: { dataController: _ModuleSupport.DataController }) {
-        if (!this.enabled) return;
+    async processData(dataController: _ModuleSupport.DataController) {
+        if (!this.enabled || this.data == null) return;
 
         const props: _ModuleSupport.DatumPropertyDefinition<string>[] = [];
         for (const label of this.labels) {
@@ -250,12 +250,9 @@ export class StatusBar
             }
         }
 
-        if (props.length === 0 || this.data == null) return;
+        if (props.length === 0) return;
 
-        const { dataController } = opts;
-        const { processedData, dataModel } = await dataController.request(this.id, this.data, {
-            props,
-        });
+        const { processedData, dataModel } = await dataController.request(this.id, this.data, { props });
 
         for (const label of this.labels) {
             const { id, key } = label;

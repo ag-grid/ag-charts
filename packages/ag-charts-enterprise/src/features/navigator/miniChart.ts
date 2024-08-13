@@ -187,8 +187,8 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
         }
     }
 
-    updateData(opts: { data: any }) {
-        this.series.forEach((s) => s.setChartData(opts.data));
+    updateData(data: any) {
+        this.series.forEach((s) => s.setChartData(data));
         if (this.miniChartAnimationPhase === 'initial') {
             this.ctx.animationManager.onBatchStop(() => {
                 this.miniChartAnimationPhase = 'ready';
@@ -198,14 +198,12 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
         }
     }
 
-    async processData(opts: { dataController: _ModuleSupport.DataController }) {
+    async processData(dataController: _ModuleSupport.DataController) {
         if (this.series.some((s) => s.canHaveAxes)) {
             this.assignAxesToSeries();
             this.assignSeriesToAxes();
         }
-
-        const seriesPromises = this.series.map((s) => s.processData(opts.dataController));
-        await Promise.all(seriesPromises);
+        await Promise.all(this.series.map((s) => s.processData(dataController)));
     }
 
     computeAxisPadding() {
