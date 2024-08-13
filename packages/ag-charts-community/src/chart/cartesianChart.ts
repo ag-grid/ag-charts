@@ -95,7 +95,7 @@ export class CartesianChart extends Chart {
             this.ctx.animationManager.animate({
                 id: this.id,
                 groupId: 'clip-rect',
-                phase: 'trailing',
+                phase: 'update',
                 from: lastUpdateClipRect,
                 to: seriesPaddedRect,
                 onUpdate: (interpolatedClipRect) => this.setRootClipRects(interpolatedClipRect),
