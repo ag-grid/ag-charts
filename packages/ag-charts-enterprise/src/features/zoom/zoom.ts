@@ -148,8 +148,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     public rangeX = new ZoomRange(this.onRangeChange.bind(this, ChartAxisDirection.X));
     public rangeY = new ZoomRange(this.onRangeChange.bind(this, ChartAxisDirection.Y));
 
-    public ratioX = new ZoomRatio(this.onRatioChange.bind(this, ChartAxisDirection.X));
-    public ratioY = new ZoomRatio(this.onRatioChange.bind(this, ChartAxisDirection.Y));
+    public ratioX = new ZoomRatio(this.onRangeChange.bind(this, ChartAxisDirection.X));
+    public ratioY = new ZoomRatio(this.onRangeChange.bind(this, ChartAxisDirection.Y));
 
     // Scenes
     private seriesRect?: _Scene.BBox;
@@ -260,12 +260,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const axisId = this.axisIds[direction];
         if (!axisId || !rangeZoom) return;
         this.updateAxisZoom(axisId, direction, rangeZoom);
-    }
-
-    private onRatioChange(direction: _ModuleSupport.ChartAxisDirection, ratioZoom?: DefinedZoomState['x' | 'y']) {
-        const axisId = this.axisIds[direction];
-        if (!axisId || !ratioZoom) return;
-        this.updateAxisZoom(axisId, direction, ratioZoom);
     }
 
     private onDoubleClick(
@@ -813,19 +807,19 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const { rangeX, rangeY, ratioX, ratioY } = event;
 
         if (rangeX) {
-            this.rangeX.reset(rangeX.start, rangeX.end);
+            this.rangeX.restore(rangeX.start, rangeX.end);
         }
 
         if (rangeY) {
-            this.rangeY.reset(rangeY.start, rangeY.end);
+            this.rangeY.restore(rangeY.start, rangeY.end);
         }
 
         if (ratioX && !rangeX) {
-            this.ratioX.reset(ratioX.start, ratioX.end);
+            this.ratioX.restore(ratioX.start, ratioX.end);
         }
 
         if (ratioY && !rangeY) {
-            this.ratioY.reset(ratioY.start, ratioY.end);
+            this.ratioY.restore(ratioY.start, ratioY.end);
         }
     }
 

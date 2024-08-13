@@ -46,6 +46,15 @@ export class CartesianChart extends Chart {
         return 'cartesian' as const;
     }
 
+    private setRootClipRects(clipRect: BBox | undefined) {
+        const { seriesRoot, annotationRoot, highlightRoot } = this;
+        seriesRoot.setClipRectInGroupCoordinateSpace(clipRect);
+        highlightRoot.setClipRectInGroupCoordinateSpace(clipRect);
+        annotationRoot.setClipRectInGroupCoordinateSpace(clipRect);
+    }
+
+    private lastUpdateClipRect: BBox | undefined = undefined;
+
     async performLayout(ctx: LayoutContext) {
         const { firstSeriesTranslation, seriesRoot, annotationRoot, highlightRoot } = this;
         const { animationRect, seriesRect, visibility, clipSeries } = this.updateAxes(ctx.layoutBox);
@@ -80,9 +89,22 @@ export class CartesianChart extends Chart {
         const seriesPaddedRect = seriesRect.clone().grow(this.seriesArea.padding);
 
         const clipRect = this.seriesArea.clip || clipSeries ? seriesPaddedRect : undefined;
-        seriesRoot.setClipRectInGroupCoordinateSpace(clipRect);
-        highlightRoot.setClipRectInGroupCoordinateSpace(clipRect);
-        annotationRoot.setClipRectInGroupCoordinateSpace(clipRect);
+        const { lastUpdateClipRect } = this;
+        this.lastUpdateClipRect = clipRect;
+
+        if (this.ctx.animationManager.isActive() && lastUpdateClipRect != null) {
+            this.ctx.animationManager.animate({
+                id: this.id,
+                groupId: 'clip-rect',
+                phase: 'update',
+                from: lastUpdateClipRect,
+                to: seriesPaddedRect,
+                onUpdate: (interpolatedClipRect) => this.setRootClipRects(interpolatedClipRect),
+                onComplete: () => this.setRootClipRects(clipRect),
+            });
+        } else {
+            this.setRootClipRects(clipRect);
+        }
 
         this.ctx.layoutService.emitLayoutComplete(ctx, {
             axes: this.axes.map((axis) => axis.getLayoutState()),
