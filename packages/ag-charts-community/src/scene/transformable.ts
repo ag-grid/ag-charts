@@ -127,11 +127,13 @@ export function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
     return MatrixTransformInternal as unknown as Constructor<MatrixTransformType<N>>;
 }
 
-export type RotatableType<T> = T & {
-    rotationCenterX: number | null;
-    rotationCenterY: number | null;
-    rotation: number;
-};
+export type RotatableType<T> = MatrixTransformType<
+    T & {
+        rotationCenterX: number | null;
+        rotationCenterY: number | null;
+        rotation: number;
+    }
+>;
 
 export function Rotatable<N extends Node>(Parent: Constructor<N>): Constructor<RotatableType<N>> {
     const ParentNode = Parent as Constructor<Node>;
@@ -163,12 +165,14 @@ export function Rotatable<N extends Node>(Parent: Constructor<N>): Constructor<R
     return RotatableInternal as unknown as Constructor<RotatableType<N>>;
 }
 
-export type ScalableType<T> = T & {
-    scalingX: number;
-    scalingY: number;
-    scalingCenterX: number | null;
-    scalingCenterY: number | null;
-};
+export type ScalableType<T> = MatrixTransformType<
+    T & {
+        scalingX: number;
+        scalingY: number;
+        scalingCenterX: number | null;
+        scalingCenterY: number | null;
+    }
+>;
 
 export function Scalable<N extends Node>(Parent: Constructor<N>): Constructor<ScalableType<N>> {
     const ParentNode = Parent as Constructor<Node>;
@@ -202,10 +206,12 @@ export function Scalable<N extends Node>(Parent: Constructor<N>): Constructor<Sc
     return ScalableInternal as unknown as Constructor<ScalableType<N>>;
 }
 
-export type TranslatableType<T> = T & {
-    translationX: number;
-    translationY: number;
-};
+export type TranslatableType<T> = MatrixTransformType<
+    T & {
+        translationX: number;
+        translationY: number;
+    }
+>;
 
 export function Translatable<N extends Node>(Parent: Constructor<N>): Constructor<TranslatableType<N>> {
     const ParentNode = Parent as Constructor<Node>;

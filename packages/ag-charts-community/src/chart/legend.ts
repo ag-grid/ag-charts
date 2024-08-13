@@ -1217,8 +1217,6 @@ export class Legend extends BaseProperties {
         const { x, y, width, height } = layoutBox;
         const [legendWidth, legendHeight] = this.calculateLegendDimensions(layoutBox);
 
-        this.group.translationX = 0;
-        this.group.translationY = 0;
         const { oldPages } = this.calcLayout(legendWidth, legendHeight);
         const legendBBox = this.computePagedBBox();
 
@@ -1258,8 +1256,8 @@ export class Legend extends BaseProperties {
             }
 
             // Round off for pixel grid alignment to work properly.
-            this.group.translationX = Math.floor(x - legendBBox.x + translationX);
-            this.group.translationY = Math.floor(y - legendBBox.y + translationY);
+            this.group.translationX = Math.floor(x + translationX);
+            this.group.translationY = Math.floor(y + translationY);
 
             this.proxyLegendToolbar.style.removeProperty('display');
             this.proxyLegendToolbar.ariaOrientation = this.getOrientation();
