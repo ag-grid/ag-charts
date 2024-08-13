@@ -46,7 +46,7 @@ export class Background<TImage = never> extends BaseModuleInstance implements Mo
 
         this.destroyFns.push(
             ctx.scene.attachNode(this.node),
-            ctx.layoutService.addListener('layout-complete', (e) => this.onLayoutComplete(e))
+            ctx.layoutService.addListener('layout:complete', (e) => this.onLayoutComplete(e))
         );
     }
 

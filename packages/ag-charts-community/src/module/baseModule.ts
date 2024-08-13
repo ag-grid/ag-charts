@@ -1,13 +1,9 @@
 import type { DataController } from '../chart/data/dataController';
 import type { BBox } from '../scene/bbox';
 
-export type LayoutPosition = 'top' | 'right' | 'bottom' | 'left';
-
 type LayoutElement = 'title' | 'subtitle' | 'footnote';
 export interface LayoutContext {
-    layoutRect: BBox;
-    positions: { [K in LayoutElement]?: BBox };
-    padding: { [K in LayoutElement]?: number };
+    layoutBox: BBox;
 }
 
 export interface ModuleInstance {

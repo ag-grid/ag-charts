@@ -29,9 +29,9 @@ export class FlowProportionChart extends Chart {
         });
     }
 
-    override async performLayout({ layoutRect }: LayoutContext) {
+    override async performLayout({ layoutBox }: LayoutContext) {
         const seriesVisible = this.series.some((s) => s.visible);
-        const fullSeriesRect = layoutRect.clone();
+        const fullSeriesRect = layoutBox.clone();
         const {
             seriesArea: { padding },
             seriesRoot,
@@ -39,18 +39,18 @@ export class FlowProportionChart extends Chart {
             highlightRoot,
         } = this;
 
-        layoutRect.shrink(padding.left, 'left');
-        layoutRect.shrink(padding.top, 'top');
-        layoutRect.shrink(padding.right, 'right');
-        layoutRect.shrink(padding.bottom, 'bottom');
+        layoutBox.shrink(padding.left, 'left');
+        layoutBox.shrink(padding.top, 'top');
+        layoutBox.shrink(padding.right, 'right');
+        layoutBox.shrink(padding.bottom, 'bottom');
 
-        this.seriesRect = layoutRect;
-        this.animationRect = layoutRect;
+        this.seriesRect = layoutBox;
+        this.animationRect = layoutBox;
 
         seriesRoot.visible = seriesVisible;
         for (const group of [seriesRoot, annotationRoot, highlightRoot]) {
-            group.translationX = Math.floor(layoutRect.x);
-            group.translationY = Math.floor(layoutRect.y);
+            group.translationX = Math.floor(layoutBox.x);
+            group.translationY = Math.floor(layoutBox.y);
             group.setClipRectInGroupCoordinateSpace(
                 new BBox(fullSeriesRect.x, fullSeriesRect.y, fullSeriesRect.width, fullSeriesRect.height)
             );
@@ -58,7 +58,7 @@ export class FlowProportionChart extends Chart {
 
         const { width, height } = this.ctx.scene;
         this.ctx.layoutService.emitLayoutComplete(width, height, {
-            series: { visible: seriesVisible, rect: fullSeriesRect, paddedRect: layoutRect },
+            series: { visible: seriesVisible, rect: fullSeriesRect, paddedRect: layoutBox },
         });
     }
 }

@@ -159,10 +159,10 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
     async performLayout(ctx: LayoutContext) {
         if (this.enabled) {
-            const { layoutRect } = ctx;
+            const { layoutBox } = ctx;
             const navigatorTotalHeight = this.height + this.spacing;
-            layoutRect.shrink(navigatorTotalHeight, 'bottom');
-            this.y = layoutRect.y + layoutRect.height + this.spacing;
+            layoutBox.shrink(navigatorTotalHeight, 'bottom');
+            this.y = layoutBox.y + layoutBox.height + this.spacing;
         } else {
             this.y = 0;
         }

@@ -140,7 +140,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             ctx.toolbarManager.addListener('group-updated', this.onGroupUpdated.bind(this)),
             ctx.toolbarManager.addListener('floating-anchor-changed', this.onFloatingAnchorChanged.bind(this)),
             ctx.toolbarManager.addListener('proxy-group-options', this.onProxyGroupOptions.bind(this)),
-            ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this)),
+            ctx.layoutService.addListener('layout:complete', this.onLayoutComplete.bind(this)),
             ctx.localeManager.addListener('locale-changed', () => {
                 this.hasNewLocale = true;
             }),
@@ -519,7 +519,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
     performLayout(ctx: LayoutContext) {
         if (this.enabled) {
-            this.refreshOuterLayout(ctx.layoutRect);
+            this.refreshOuterLayout(ctx.layoutBox);
             this.refreshLocale();
         }
     }

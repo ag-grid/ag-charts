@@ -41,7 +41,7 @@ export class SeriesAreaFocusManager extends BaseManager {
 
         const seriesRegion = this.ctx.regionManager.getRegion(REGIONS.SERIES);
         this.destroyFns.push(
-            this.ctx.layoutService.addListener('layout-complete', (event) => this.layoutComplete(event)),
+            this.ctx.layoutService.addListener('layout:complete', (event) => this.layoutComplete(event)),
             this.ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
             seriesRegion.addListener('blur', () => this.onBlur()),
             seriesRegion.addListener('tab', (event) => this.onTab(event)),

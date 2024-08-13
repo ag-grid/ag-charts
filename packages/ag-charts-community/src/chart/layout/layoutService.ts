@@ -22,7 +22,7 @@ export interface AxisLayout {
 }
 
 export interface LayoutCompleteEvent {
-    type: 'layout-complete';
+    type: 'layout:complete';
     chart: { width: number; height: number };
     series: { rect: BBox; paddedRect: BBox; visible: boolean; shouldFlipXY?: boolean };
     clipSeries: boolean;
@@ -36,8 +36,8 @@ export interface LayoutState {
 }
 
 interface EventMap {
-    'start-layout': LayoutContext;
-    'layout-complete': LayoutCompleteEvent;
+    'layout:start': LayoutContext;
+    'layout:complete': LayoutCompleteEvent;
 }
 
 export class LayoutService {
@@ -49,12 +49,12 @@ export class LayoutService {
 
     createContext(width: number, height: number): LayoutContext {
         const context = new LayoutContext(width, height);
-        this.events.emit('start-layout', context);
+        this.events.emit('layout:start', context);
         return context;
     }
 
     emitLayoutComplete(width: number, height: number, options: LayoutState) {
-        const eventType = 'layout-complete';
+        const eventType = 'layout:complete';
         this.events.emit(eventType, {
             type: eventType,
             axes: options.axes ?? [],
@@ -66,14 +66,12 @@ export class LayoutService {
 }
 
 class LayoutContext implements ILayoutContext {
-    readonly layoutRect: BBox;
-    readonly padding: ILayoutContext['padding'] = {};
-    readonly positions: ILayoutContext['positions'] = {};
+    readonly layoutBox: BBox;
 
     constructor(
         public readonly width: number,
         public readonly height: number
     ) {
-        this.layoutRect = new BBox(0, 0, width, height);
+        this.layoutBox = new BBox(0, 0, width, height);
     }
 }

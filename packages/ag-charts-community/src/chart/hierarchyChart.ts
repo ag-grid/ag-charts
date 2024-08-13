@@ -16,8 +16,8 @@ export class HierarchyChart extends Chart {
         return 'hierarchy' as const;
     }
 
-    override async performLayout({ layoutRect }: LayoutContext) {
-        const fullSeriesRect = layoutRect.clone();
+    override async performLayout({ layoutBox }: LayoutContext) {
+        const fullSeriesRect = layoutBox.clone();
         const {
             seriesArea: { padding },
             seriesRoot,
@@ -25,30 +25,30 @@ export class HierarchyChart extends Chart {
             highlightRoot,
         } = this;
 
-        layoutRect.shrink(padding.left, 'left');
-        layoutRect.shrink(padding.top, 'top');
-        layoutRect.shrink(padding.right, 'right');
-        layoutRect.shrink(padding.bottom, 'bottom');
+        layoutBox.shrink(padding.left, 'left');
+        layoutBox.shrink(padding.top, 'top');
+        layoutBox.shrink(padding.right, 'right');
+        layoutBox.shrink(padding.bottom, 'bottom');
 
-        this.seriesRect = layoutRect;
-        this.animationRect = layoutRect;
+        this.seriesRect = layoutBox;
+        this.animationRect = layoutBox;
 
         for (const group of [seriesRoot, annotationRoot, highlightRoot]) {
-            group.translationX = Math.floor(layoutRect.x);
-            group.translationY = Math.floor(layoutRect.y);
+            group.translationX = Math.floor(layoutBox.x);
+            group.translationY = Math.floor(layoutBox.y);
         }
 
         // this has to happen after the `updateAxes` call
-        await Promise.all(this.series.map((series) => series.update({ seriesRect: layoutRect })));
+        await Promise.all(this.series.map((series) => series.update({ seriesRect: layoutBox })));
 
         seriesRoot.visible = this.series[0].visible;
         seriesRoot.setClipRectInGroupCoordinateSpace(
-            new BBox(layoutRect.x, layoutRect.y, layoutRect.width, layoutRect.height)
+            new BBox(layoutBox.x, layoutBox.y, layoutBox.width, layoutBox.height)
         );
 
         const { width, height } = this.ctx.scene;
         this.ctx.layoutService.emitLayoutComplete(width, height, {
-            series: { visible: true, rect: fullSeriesRect, paddedRect: layoutRect },
+            series: { visible: true, rect: fullSeriesRect, paddedRect: layoutBox },
         });
     }
 

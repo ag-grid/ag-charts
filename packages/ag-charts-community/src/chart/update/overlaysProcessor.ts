@@ -26,7 +26,7 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         this.overlayElem.ariaAtomic = 'false';
         this.overlayElem.ariaLive = 'polite';
         this.overlayElem.classList.toggle(DEFAULT_OVERLAY_CLASS);
-        this.destroyFns.push(this.layoutService.addListener('layout-complete', (e) => this.onLayoutComplete(e)));
+        this.destroyFns.push(this.layoutService.addListener('layout:complete', (e) => this.onLayoutComplete(e)));
     }
 
     public destroy() {

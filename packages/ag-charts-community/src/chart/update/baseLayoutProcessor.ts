@@ -14,8 +14,8 @@ export class BaseLayoutProcessor implements UpdateProcessor {
         private readonly layoutService: LayoutService
     ) {
         this.destroyFns.push(
-            this.layoutService.addListener('layout-complete', (e) => this.alignCaptions(e)),
-            this.layoutService.addListener('start-layout', (e) => this.positionCaptions(e))
+            this.layoutService.addListener('layout:complete', (e) => this.alignCaptions(e)),
+            this.layoutService.addListener('layout:start', (e) => this.positionCaptions(e))
         );
     }
 
@@ -25,30 +25,30 @@ export class BaseLayoutProcessor implements UpdateProcessor {
 
     private positionCaptions(ctx: LayoutContext) {
         const { title, subtitle, footnote } = this.chartLike;
-        const { layoutRect, positions, padding } = ctx;
+        const { layoutBox } = ctx;
 
         // Apply chart padding
-        layoutRect.shrink(this.chartLike.padding.toJson());
+        layoutBox.shrink(this.chartLike.padding.toJson());
 
-        const defaultCaptionHeight = layoutRect.height / 10;
+        const defaultCaptionHeight = layoutBox.height / 10;
 
         const updateCaption = (caption: Caption) => {
             const captionLineHeight = TextUtils.getLineHeight(caption.fontSize);
             const maxHeight = Math.max(captionLineHeight, defaultCaptionHeight);
-            caption.computeTextWrap(layoutRect.width, maxHeight);
+            caption.computeTextWrap(layoutBox.width, maxHeight);
         };
 
         const computeX = (align: TextAlign): number => {
             if (align === 'left') {
-                return layoutRect.x;
+                return layoutBox.x;
             } else if (align === 'right') {
-                return layoutRect.x + layoutRect.width;
+                return layoutBox.x + layoutBox.width;
             }
-            return layoutRect.x + layoutRect.width / 2;
+            return layoutBox.x + layoutBox.width / 2;
         };
 
         const positionTopAndShrinkBBox = (caption: Caption, spacing: number) => {
-            const baseY = layoutRect.y;
+            const baseY = layoutBox.y;
             caption.node.x = computeX(caption.textAlign) + caption.padding;
             caption.node.y = baseY + caption.padding;
             caption.node.textBaseline = 'top';
@@ -57,24 +57,22 @@ export class BaseLayoutProcessor implements UpdateProcessor {
             // As the bbox (x,y) ends up at a different location than specified above, we need to
             // take it into consideration when calculating how much space needs to be reserved to
             // accommodate the caption.
-            const bbox = caption.node.getBBox();
             if (caption.layoutStyle === 'block') {
-                layoutRect.shrink(Math.ceil(bbox.y - baseY + bbox.height + spacing), 'top');
+                const bbox = caption.node.getBBox();
+                layoutBox.shrink(Math.ceil(bbox.y - baseY + bbox.height + spacing), 'top');
             }
-            return bbox;
         };
         const positionBottomAndShrinkBBox = (caption: Caption, spacing: number) => {
-            const baseY = layoutRect.y + layoutRect.height;
+            const baseY = layoutBox.y + layoutBox.height;
             caption.node.x = computeX(caption.textAlign) + caption.padding;
             caption.node.y = baseY + caption.padding;
             caption.node.textBaseline = 'bottom';
             updateCaption(caption);
 
-            const bbox = caption.node.getBBox();
             if (caption.layoutStyle === 'block') {
-                layoutRect.shrink(Math.ceil(baseY - bbox.y + spacing), 'bottom');
+                const bbox = caption.node.getBBox();
+                layoutBox.shrink(Math.ceil(baseY - bbox.y + spacing), 'bottom');
             }
-            return bbox;
         };
 
         title.node.visible = title.enabled;
@@ -83,18 +81,16 @@ export class BaseLayoutProcessor implements UpdateProcessor {
 
         if (title.enabled) {
             const { spacing = subtitle.enabled ? Caption.SMALL_PADDING : Caption.LARGE_PADDING } = title;
-            positions.title = positionTopAndShrinkBBox(title, spacing);
+            positionTopAndShrinkBBox(title, spacing);
         }
 
         if (subtitle.enabled) {
-            positions.subtitle = positionTopAndShrinkBBox(subtitle, subtitle.spacing ?? 0);
+            positionTopAndShrinkBBox(subtitle, subtitle.spacing ?? 0);
         }
 
         if (footnote.enabled) {
-            positions.footnote = positionBottomAndShrinkBBox(footnote, footnote.spacing ?? 0);
+            positionBottomAndShrinkBBox(footnote, footnote.spacing ?? 0);
         }
-
-        padding.title = title.padding;
     }
 
     alignCaptions(ctx: LayoutCompleteEvent): void {

@@ -56,8 +56,8 @@ export class TopologyChart extends Chart {
         });
     }
 
-    override async performLayout({ layoutRect }: LayoutContext) {
-        const fullSeriesRect = layoutRect.clone();
+    override async performLayout({ layoutBox }: LayoutContext) {
+        const fullSeriesRect = layoutBox.clone();
         const {
             seriesArea: { padding },
             seriesRoot,
@@ -65,13 +65,13 @@ export class TopologyChart extends Chart {
             highlightRoot,
         } = this;
 
-        layoutRect.shrink(padding.left, 'left');
-        layoutRect.shrink(padding.top, 'top');
-        layoutRect.shrink(padding.right, 'right');
-        layoutRect.shrink(padding.bottom, 'bottom');
+        layoutBox.shrink(padding.left, 'left');
+        layoutBox.shrink(padding.top, 'top');
+        layoutBox.shrink(padding.right, 'right');
+        layoutBox.shrink(padding.bottom, 'bottom');
 
-        this.seriesRect = layoutRect;
-        this.animationRect = layoutRect;
+        this.seriesRect = layoutBox;
+        this.animationRect = layoutBox;
 
         const mapSeries = this.series.filter<TopologySeries>(isTopologySeries);
 
@@ -92,7 +92,7 @@ export class TopologyChart extends Chart {
                 [lon1, lat1],
             ];
             const bounds = MercatorScale.bounds(domain);
-            const { width, height } = layoutRect;
+            const { width, height } = layoutBox;
 
             const viewBoxScale = Math.min(width / bounds.width, height / bounds.height);
 
@@ -126,16 +126,16 @@ export class TopologyChart extends Chart {
         const seriesVisible = this.series.some((s) => s.visible);
         seriesRoot.visible = seriesVisible;
         for (const group of [seriesRoot, annotationRoot, highlightRoot]) {
-            group.translationX = Math.floor(layoutRect.x);
-            group.translationY = Math.floor(layoutRect.y);
+            group.translationX = Math.floor(layoutBox.x);
+            group.translationY = Math.floor(layoutBox.y);
             group.setClipRectInGroupCoordinateSpace(
-                new BBox(layoutRect.x, layoutRect.y, layoutRect.width, layoutRect.height)
+                new BBox(layoutBox.x, layoutBox.y, layoutBox.width, layoutBox.height)
             );
         }
 
         const { width, height } = this.ctx.scene;
         this.ctx.layoutService.emitLayoutComplete(width, height, {
-            series: { visible: seriesVisible, rect: fullSeriesRect, paddedRect: layoutRect },
+            series: { visible: seriesVisible, rect: fullSeriesRect, paddedRect: layoutBox },
         });
     }
 }

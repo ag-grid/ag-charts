@@ -76,7 +76,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             seriesRegion.addListener('drag', (event) => this.onMouseMove(event), mouseMoveStates),
             seriesRegion.addListener('leave', () => this.onMouseOut(), mouseMoveStates),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
-            ctx.layoutService.addListener('layout-complete', (event) => this.layout(event)),
+            ctx.layoutService.addListener('layout:complete', (event) => this.layout(event)),
             () => Object.entries(this.labels).forEach(([_, label]) => label.destroy())
         );
     }
