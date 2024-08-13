@@ -129,7 +129,6 @@ export class Caption extends BaseProperties implements CaptionLike {
     }
 
     handleMouseMove(moduleCtx: ModuleContext, event: PointerInteractionEvent<'hover'>) {
-        console.log(event);
         if (event !== undefined && this.enabled && this.node.visible && this.truncated) {
             const { offsetX, offsetY } = event;
             moduleCtx.tooltipManager.updateTooltip(
