@@ -870,7 +870,7 @@ export abstract class Chart extends Observable {
 
     async updateData() {
         this.series.forEach((s) => s.setChartData(this.data));
-        const modulePromises = this.modulesManager.mapModules((m) => m.updateData?.({ data: this.data }));
+        const modulePromises = this.modulesManager.mapModules((m) => m.updateData?.(this.data));
         await Promise.all(modulePromises);
     }
 
