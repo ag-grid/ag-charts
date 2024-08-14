@@ -67,6 +67,7 @@ export interface AgToolbarSwitch extends AgBaseToolbarButton {
 }
 
 export type AgIconName =
+    | 'arrow-drawing'
     | 'callout-annotation'
     | 'candlestick-series'
     | 'comment-annotation'
@@ -174,6 +175,7 @@ export interface AgToolbarAnnotationsButton extends AgToolbarButton {
 export type AgToolbarAnnotationsButtonValue =
     | 'line-menu'
     | 'text-menu'
+    | 'shape-menu'
     | 'line'
     | 'horizontal-line'
     | 'vertical-line'

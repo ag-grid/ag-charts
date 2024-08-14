@@ -401,6 +401,16 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                         NoteScene.is
                     )
                 ),
+
+                // Shapes
+                [AnnotationType.Arrow]: new LineStateMachine({
+                    ...ctx,
+                    create: createDatum<LineProperties>(AnnotationType.Arrow),
+                    delete: deleteDatum,
+                    datum: getDatum<LineProperties>(LineProperties.is),
+                    node: getNode<LineScene>(LineScene.is),
+                    guardDragClickDoubleEvent,
+                }),
             },
 
             [States.Dragging]: {
@@ -446,6 +456,9 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     CalloutScene.is
                 ),
                 [AnnotationType.Note]: dragStateMachine<NoteProperties, NoteScene>(NoteProperties.is, NoteScene.is),
+
+                // Shapes
+                [AnnotationType.Arrow]: dragStateMachine<LineProperties, LineScene>(LineProperties.is, LineScene.is),
             },
 
             [States.TextInput]: {

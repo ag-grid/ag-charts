@@ -1,14 +1,12 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-import { Annotation, AxisLabel, Cappable, Handle, LineDash, Stroke, Value } from '../annotationProperties';
+import { Annotation, AxisLabel, Handle, LineDash, Stroke, Value } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
 import { validateDatumValue } from '../annotationUtils';
 
 const { STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
 
-export class HorizontalLineProperties extends Annotation(
-    Value(Handle(AxisLabel(Cappable(Stroke(LineDash(BaseProperties))))))
-) {
+export class HorizontalLineProperties extends Annotation(Value(Handle(AxisLabel(Stroke(LineDash(BaseProperties)))))) {
     readonly direction = 'horizontal';
 
     static is(value: unknown): value is HorizontalLineProperties {
@@ -31,9 +29,7 @@ export class HorizontalLineProperties extends Annotation(
     }
 }
 
-export class VerticalLineProperties extends Annotation(
-    Value(Handle(AxisLabel(Cappable(Stroke(LineDash(BaseProperties))))))
-) {
+export class VerticalLineProperties extends Annotation(Value(Handle(AxisLabel(Stroke(LineDash(BaseProperties)))))) {
     readonly direction = 'vertical';
 
     static is(value: unknown): value is VerticalLineProperties {

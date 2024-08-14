@@ -6,9 +6,11 @@ export const Vec2 = {
     distance,
     distanceSquared,
     from,
+    fromBox,
     fromOffset,
     length,
     lengthSquared,
+    origin,
     required,
     rotate,
     sub,
@@ -68,15 +70,15 @@ function distanceSquared(a: Vec2, b: Vec2) {
 /**
  * Find the angle between two vectors.
  */
-function angle(a: Vec2, b: Vec2) {
+function angle(a: Vec2, b: Vec2 = origin()) {
     return Math.atan2(a.y, a.x) - Math.atan2(b.y, b.x);
 }
 
 /**
  * Rotate vector `a` by the angle `theta around the origin `b`.
  */
-function rotate(a: Vec2, theta: number, b: Vec2 = required()) {
-    const l = Vec2.length(a);
+function rotate(a: Vec2, theta: number, b: Vec2 = origin()) {
+    const l = length(a);
     return { x: b.x + l * Math.cos(theta), y: b.y + l * Math.sin(theta) };
 }
 
@@ -101,6 +103,13 @@ function fromOffset(a: { offsetX: number; offsetY: number }): Vec2 {
     return { x: a.offsetX, y: a.offsetY };
 }
 
+function fromBox(a: { x1: number; y1: number; x2: number; y2: number }): [Vec2, Vec2] {
+    return [
+        { x: a.x1, y: a.y1 },
+        { x: a.x2, y: a.y2 },
+    ];
+}
+
 /**
  * Apply the components of `b` to `a` and return `a`.
  */
@@ -115,4 +124,8 @@ function apply(a: Partial<Vec2>, b: Vec2): Vec2 {
  */
 function required(a?: Partial<Vec2>): Vec2 {
     return { x: a?.x ?? 0, y: a?.y ?? 0 };
+}
+
+function origin(): Vec2 {
+    return { x: 0, y: 0 };
 }
