@@ -5,7 +5,8 @@ import type { Point, SizedPoint } from '../../../scene/point';
 import type { Path } from '../../../scene/shape/path';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
-import { type Span, SpanJoin, interpolateSpans, plotSpan, reverseSpan } from './lineInterpolation';
+import { type Span, SpanJoin } from './lineInterpolation';
+import { plotInterpolatedSpans } from './lineInterpolationPlotting';
 import { type SpanInterpolation, pairUpSpans } from './lineInterpolationUtil';
 import { prepareLinePathPropertyAnimation } from './lineUtil';
 import { isScaleValid } from './scaling';
@@ -79,13 +80,20 @@ interface SpanAnimation {
     removed: SpanInterpolation[];
 }
 
-function plotFillSpans(ratio: number, path: Path, spans: SpanInterpolation[], phantomSpans: SpanInterpolation[]) {
+function plotFillSpans(ratio: number, path: Path, spans: SpanInterpolation[], fillPhantomSpans: SpanInterpolation[]) {
     for (let i = 0; i < spans.length; i += 1) {
         const span = spans[i];
-        const phantomSpan = phantomSpans[i];
+        const reversedPhantomSpan = fillPhantomSpans[i];
 
-        plotSpan(path.path, interpolateSpans(span.from, span.to, ratio), SpanJoin.MoveTo);
-        plotSpan(path.path, reverseSpan(interpolateSpans(phantomSpan.from, phantomSpan.to, ratio)), SpanJoin.LineTo);
+        plotInterpolatedSpans(path.path, span.from, span.to, ratio, SpanJoin.MoveTo, false);
+        plotInterpolatedSpans(
+            path.path,
+            reversedPhantomSpan.from,
+            reversedPhantomSpan.to,
+            ratio,
+            SpanJoin.LineTo,
+            true
+        );
         path.path.closePath();
     }
 }
@@ -93,13 +101,14 @@ function plotFillSpans(ratio: number, path: Path, spans: SpanInterpolation[], ph
 function prepareAreaFillAnimationFns(
     status: NodeUpdateState,
     spans: SpanAnimation,
-    phantomSpans: SpanAnimation,
+    fillPhantomSpans: SpanAnimation,
     visibleToggleMode: 'fade' | 'none'
 ) {
     const removePhaseFn = (ratio: number, path: Path) =>
-        plotFillSpans(ratio, path, spans.removed, phantomSpans.removed);
-    const updatePhaseFn = (ratio: number, path: Path) => plotFillSpans(ratio, path, spans.moved, phantomSpans.moved);
-    const addPhaseFn = (ratio: number, path: Path) => plotFillSpans(ratio, path, spans.added, phantomSpans.added);
+        plotFillSpans(ratio, path, spans.removed, fillPhantomSpans.removed);
+    const updatePhaseFn = (ratio: number, path: Path) =>
+        plotFillSpans(ratio, path, spans.moved, fillPhantomSpans.moved);
+    const addPhaseFn = (ratio: number, path: Path) => plotFillSpans(ratio, path, spans.added, fillPhantomSpans.added);
     const pathProperties = prepareLinePathPropertyAnimation(status, visibleToggleMode);
 
     return { status, path: { addPhaseFn, updatePhaseFn, removePhaseFn }, pathProperties };
@@ -107,7 +116,7 @@ function prepareAreaFillAnimationFns(
 
 function plotStrokeSpans(ratio: number, path: Path, spans: SpanInterpolation[]) {
     for (const span of spans) {
-        plotSpan(path.path, interpolateSpans(span.from, span.to, ratio), SpanJoin.MoveTo);
+        plotInterpolatedSpans(path.path, span.from, span.to, ratio, SpanJoin.MoveTo, false);
     }
 }
 

@@ -1,37 +1,39 @@
-import type { ExtendedPath2D } from '../../../scene/extendedPath2D';
 import type { Point } from '../../../scene/point';
 import { solveBezier, splitBezier } from '../../../scene/util/bezier';
 
-export type Span =
-    | {
-          type: 'linear';
-          moveTo: boolean;
-          x0: number;
-          y0: number;
-          x1: number;
-          y1: number;
-      }
-    | {
-          type: 'cubic';
-          moveTo: boolean;
-          cp0x: number;
-          cp0y: number;
-          cp1x: number;
-          cp1y: number;
-          cp2x: number;
-          cp2y: number;
-          cp3x: number;
-          cp3y: number;
-      }
-    | {
-          type: 'step';
-          moveTo: boolean;
-          x0: number;
-          y0: number;
-          x1: number;
-          y1: number;
-          stepX: number;
-      };
+export type LinearSpan = {
+    type: 'linear';
+    moveTo: boolean;
+    x0: number;
+    y0: number;
+    x1: number;
+    y1: number;
+};
+
+export type CubicSpan = {
+    type: 'cubic';
+    moveTo: boolean;
+    cp0x: number;
+    cp0y: number;
+    cp1x: number;
+    cp1y: number;
+    cp2x: number;
+    cp2y: number;
+    cp3x: number;
+    cp3y: number;
+};
+
+export type StepSpan = {
+    type: 'step';
+    moveTo: boolean;
+    x0: number;
+    y0: number;
+    x1: number;
+    y1: number;
+    stepX: number;
+};
+
+export type Span = LinearSpan | CubicSpan | StepSpan;
 
 export function spanRange(span: Span): [Point, Point] {
     switch (span.type) {
@@ -55,43 +57,6 @@ function spanRangeNormalized(span: Span): [Point, Point] {
         range.reverse();
     }
     return range;
-}
-
-export function reverseSpan(span: Span): Span {
-    switch (span.type) {
-        case 'linear':
-            return {
-                type: 'linear',
-                moveTo: span.moveTo,
-                x0: span.x1,
-                y0: span.y1,
-                x1: span.x0,
-                y1: span.y0,
-            };
-        case 'cubic':
-            return {
-                type: 'cubic',
-                moveTo: span.moveTo,
-                cp0x: span.cp3x,
-                cp0y: span.cp3y,
-                cp1x: span.cp2x,
-                cp1y: span.cp2y,
-                cp2x: span.cp1x,
-                cp2y: span.cp1y,
-                cp3x: span.cp0x,
-                cp3y: span.cp0y,
-            };
-        case 'step':
-            return {
-                type: 'step',
-                moveTo: span.moveTo,
-                x0: span.x1,
-                y0: span.y1,
-                x1: span.x0,
-                y1: span.y0,
-                stepX: span.stepX,
-            };
-    }
 }
 
 export function collapseSpanToPoint(span: Span, point: Point): Span {
@@ -322,78 +287,10 @@ export function clipSpanX(span: Span, x0: number, x1: number): Span {
     }
 }
 
-export function interpolateSpans(a: Span, b: Span, ratio: number): Span {
-    if (a.type === 'cubic' && b.type === 'cubic') {
-        return {
-            type: 'cubic',
-            moveTo: a.moveTo,
-            cp0x: (b.cp0x - a.cp0x) * ratio + a.cp0x,
-            cp0y: (b.cp0y - a.cp0y) * ratio + a.cp0y,
-            cp1x: (b.cp1x - a.cp1x) * ratio + a.cp1x,
-            cp1y: (b.cp1y - a.cp1y) * ratio + a.cp1y,
-            cp2x: (b.cp2x - a.cp2x) * ratio + a.cp2x,
-            cp2y: (b.cp2y - a.cp2y) * ratio + a.cp2y,
-            cp3x: (b.cp3x - a.cp3x) * ratio + a.cp3x,
-            cp3y: (b.cp3y - a.cp3y) * ratio + a.cp3y,
-        };
-    } else if (a.type === 'step' && b.type === 'step') {
-        return {
-            type: 'step',
-            moveTo: a.moveTo,
-            x0: (b.x0 - a.x0) * ratio + a.x0,
-            y0: (b.y0 - a.y0) * ratio + a.y0,
-            x1: (b.x1 - a.x1) * ratio + a.x1,
-            y1: (b.y1 - a.y1) * ratio + a.y1,
-            stepX: (b.stepX - a.stepX) * ratio + a.stepX,
-        };
-    }
-
-    const [aStart, aEnd] = spanRange(a);
-    const [bStart, bEnd] = spanRange(b);
-    return {
-        type: 'linear',
-        moveTo: a.moveTo,
-        x0: (bStart.x - aStart.x) * ratio + aStart.x,
-        y0: (bStart.y - aStart.y) * ratio + aStart.y,
-        x1: (bEnd.x - aEnd.x) * ratio + aEnd.x,
-        y1: (bEnd.y - aEnd.y) * ratio + aEnd.y,
-    };
-}
-
 export enum SpanJoin {
     None,
     MoveTo,
     LineTo,
-}
-
-export function plotSpan(
-    path: ExtendedPath2D,
-    span: Span,
-    moveTo: SpanJoin = span.moveTo ? SpanJoin.MoveTo : SpanJoin.None
-) {
-    const [start] = spanRange(span);
-    switch (moveTo) {
-        case SpanJoin.MoveTo:
-            path.moveTo(start.x, start.y);
-            break;
-        case SpanJoin.LineTo:
-            path.lineTo(start.x, start.y);
-            break;
-    }
-
-    switch (span.type) {
-        case 'linear':
-            path.lineTo(span.x1, span.y1);
-            break;
-        case 'cubic':
-            path.cubicCurveTo(span.cp1x, span.cp1y, span.cp2x, span.cp2y, span.cp3x, span.cp3y);
-            break;
-        case 'step':
-            path.lineTo(span.stepX, span.y0);
-            path.lineTo(span.stepX, span.y1);
-            path.lineTo(span.x1, span.y1);
-            break;
-    }
 }
 
 export function linearPoints(points: Iterable<Point>): Span[] {

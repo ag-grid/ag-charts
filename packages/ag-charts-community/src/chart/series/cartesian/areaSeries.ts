@@ -50,15 +50,8 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import {
-    type Span,
-    SpanJoin,
-    linearPoints,
-    plotSpan,
-    reverseSpan,
-    smoothPoints,
-    stepPoints,
-} from './lineInterpolation';
+import { type Span, SpanJoin, linearPoints, smoothPoints, stepPoints } from './lineInterpolation';
+import { plotSpan } from './lineInterpolationPlotting';
 import {
     computeMarkerFocusBounds,
     markerFadeInAnimation,
@@ -573,8 +566,8 @@ export class AreaSeries extends CartesianSeries<
         for (let i = 0; i < spans.length; i += 1) {
             const { span } = spans[i];
             const phantomSpan = phantomSpans[i].span;
-            plotSpan(path, span, SpanJoin.MoveTo);
-            plotSpan(path, reverseSpan(phantomSpan), SpanJoin.LineTo);
+            plotSpan(path, span, SpanJoin.MoveTo, false);
+            plotSpan(path, phantomSpan, SpanJoin.LineTo, true);
             path.closePath();
         }
         fill.checkPathDirty();
@@ -587,7 +580,7 @@ export class AreaSeries extends CartesianSeries<
 
         path.clear(true);
         for (const { span } of spans) {
-            plotSpan(path, span, SpanJoin.MoveTo);
+            plotSpan(path, span, SpanJoin.MoveTo, false);
         }
         stroke.checkPathDirty();
     }
