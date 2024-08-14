@@ -40,7 +40,7 @@ export class SeriesAreaHighlightManager extends BaseManager {
 
         const mouseMoveStates = InteractionState.Default | InteractionState.Annotations;
         this.destroyFns.push(
-            this.ctx.layoutService.on('layout-complete', (event) => this.layoutComplete(event)),
+            this.ctx.layoutService.addListener('layout:complete', (event) => this.layoutComplete(event)),
             this.ctx.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
             seriesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
             seriesRegion.addListener('drag', (event) => this.onHover(event), mouseMoveStates),
@@ -50,7 +50,7 @@ export class SeriesAreaHighlightManager extends BaseManager {
             // Cases where highlight should be cleared.
             this.ctx.domManager.addListener('resize', () => this.clearHighlight()),
             seriesRegion.addListener('leave', () => this.clearHighlight(), mouseMoveStates),
-            seriesRegion.addListener('blur', () => this.clearHighlight()),
+            this.ctx.keyNavManager.addListener('blur', () => this.clearHighlight()),
             this.ctx.animationManager.addListener('animation-start', () => this.clearHighlight()),
             this.ctx.zoomManager.addListener('zoom-pan-start', () => this.clearHighlight()),
             this.ctx.zoomManager.addListener('zoom-change', () => this.clearHighlight())

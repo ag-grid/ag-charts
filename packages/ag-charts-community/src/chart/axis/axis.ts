@@ -297,7 +297,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         let previousSize: { width: number; height: number } | undefined = undefined;
         this.destroyFns.push(
-            moduleCtx.layoutService.on('layout-complete', (e) => {
+            moduleCtx.layoutService.addListener('layout:complete', (e) => {
                 // Fire resize animation action if chart canvas size changes.
                 if (previousSize != null && jsonDiff(e.chart, previousSize) != null) {
                     this.animationState.transition('resize');

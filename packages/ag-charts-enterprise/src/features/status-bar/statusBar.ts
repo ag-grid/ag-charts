@@ -230,13 +230,14 @@ export class StatusBar
 
         this.destroyFns.push(
             ctx.scene.attachNode(this.labelGroup, 'titles'),
-            ctx.layoutService.on('before-series', (e) => this.startPerformLayout(e)),
+            ctx.layoutService.addListener('layout:start', (e) => this.startPerformLayout(e)),
+            ctx.layoutService.addListener('layout:complete', (e) => this.onLayoutComplete(e)),
             ctx.highlightManager.addListener('highlight-change', () => this.updateHighlight())
         );
     }
 
-    async processData(opts: { dataController: _ModuleSupport.DataController }) {
-        if (!this.enabled) return;
+    async processData(dataController: _ModuleSupport.DataController) {
+        if (!this.enabled || this.data == null) return;
 
         const props: _ModuleSupport.DatumPropertyDefinition<string>[] = [];
         for (const label of this.labels) {
@@ -249,12 +250,9 @@ export class StatusBar
             }
         }
 
-        if (props.length === 0 || this.data == null) return;
+        if (props.length === 0) return;
 
-        const { dataController } = opts;
-        const { processedData, dataModel } = await dataController.request(this.id, this.data, {
-            props,
-        });
+        const { processedData, dataModel } = await dataController.request(this.id, this.data, { props });
 
         for (const label of this.labels) {
             const { id, key } = label;
@@ -271,13 +269,13 @@ export class StatusBar
 
         if (!this.enabled) return;
 
-        const { shrinkRect } = opts;
+        const { layoutBox } = opts;
         const innerSpacing = 4;
         const outerSpacing = 12;
         const spacingAbove = 0;
         const spacingBelow = 8;
 
-        this.labelGroup.translationY = shrinkRect.y + spacingAbove;
+        this.labelGroup.translationY = layoutBox.y + spacingAbove;
 
         const maxFontSize = Math.max(this.title.fontSize, this.positive.fontSize, this.negative.fontSize);
         const lineHeight = maxFontSize * Text.defaultLineHeightRatio;
@@ -288,14 +286,18 @@ export class StatusBar
         let offsetTop: number;
         let textVAlign: CanvasTextBaseline = 'alphabetic';
         if (this.layoutStyle === 'block') {
-            shrinkRect.shrink(spacingAbove + lineHeight + spacingBelow, 'top');
+            layoutBox.shrink(spacingAbove + lineHeight + spacingBelow, 'top');
             offsetTop = maxFontSize + (lineHeight - maxFontSize) / 2;
         } else {
-            const { title } = opts.positions;
-            const { title: padding = 0 } = opts.padding;
-            left = (title?.x ?? 0) + (title?.width ?? 0) + (title ? outerSpacing : padding);
+            const { title } = this.ctx.chartService;
             textVAlign = 'top';
-            offsetTop = spacingAbove + padding;
+            offsetTop = spacingAbove + title.padding;
+            if (title.enabled) {
+                const titleBox = title.node.getBBox();
+                left = titleBox.x + titleBox.width + outerSpacing;
+            } else {
+                left = title.padding;
+            }
         }
 
         for (const { label, configuration, title, value, domain, formatter } of this.labels) {
@@ -353,8 +355,8 @@ export class StatusBar
         }
     }
 
-    async performCartesianLayout(opts: { seriesRect: _Scene.BBox }): Promise<void> {
-        this.labelGroup.translationX = opts.seriesRect.x;
+    private onLayoutComplete(opts: _ModuleSupport.LayoutCompleteEvent) {
+        this.labelGroup.translationX = opts.series.rect.x;
     }
 
     private updateHighlight() {

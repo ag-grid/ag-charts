@@ -1,3 +1,4 @@
+import type { LayoutContext } from '../module/baseModule';
 import type { ChartOptions } from '../module/optionsModule';
 import type { Scale } from '../scale/scale';
 import { BBox } from '../scene/bbox';
@@ -24,28 +25,23 @@ export class PolarChart extends Chart {
         return 'polar' as const;
     }
 
-    override async performLayout() {
-        const shrinkRect = await super.performLayout();
+    override async performLayout(ctx: LayoutContext) {
+        const { layoutBox } = ctx;
+        const fullSeriesRect = layoutBox.clone();
 
-        const fullSeriesRect = shrinkRect.clone();
-        this.computeSeriesRect(shrinkRect);
-        await this.computeCircle(shrinkRect);
+        this.computeSeriesRect(layoutBox);
+        await this.computeCircle(layoutBox);
         this.axes.forEach((axis) => axis.update());
 
-        const { width, height } = this.ctx.scene;
-        this.ctx.layoutService.setLayout(width, height, {
-            series: { visible: true, rect: fullSeriesRect, paddedRect: shrinkRect },
+        this.ctx.layoutService.emitLayoutComplete(ctx, {
+            series: { visible: true, rect: fullSeriesRect, paddedRect: layoutBox },
         });
-
-        return shrinkRect;
     }
 
     protected updateAxes(cx: number, cy: number, radius: number) {
         const angleAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.X);
         const radiusAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.Y);
-        if (!(angleAxis instanceof PolarAxis) || !(radiusAxis instanceof PolarAxis)) {
-            return;
-        }
+        if (!(angleAxis instanceof PolarAxis) || !(radiusAxis instanceof PolarAxis)) return;
 
         const angleScale: Scale<number, number> = angleAxis.scale;
         const angles = angleScale.ticks?.().map((value) => angleScale.convert(value));

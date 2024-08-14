@@ -1,25 +1,22 @@
 import { type AgAnnotationHandleStyles, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import { type AnnotationContext, type Coords, type LineCoords } from '../annotationTypes';
+import { type Anchor, type AnnotationContext, type Coords, type LineCoords } from '../annotationTypes';
 import { convertLine, invertCoords, validateDatumPoint } from '../annotationUtils';
 import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
 import { DivariantHandle } from '../scenes/handle';
 import { LinearScene } from '../scenes/linearScene';
+import { getBBox, updateTextNode, wrapText } from '../text/util';
 
-const { CachedTextMeasurerPool, TextWrapper } = _ModuleSupport;
-const { BBox } = _Scene;
 const { Vec2 } = _Util;
 
 export abstract class TextualStartEndScene<Datum extends TextualStartEndProperties> extends LinearScene<Datum> {
-    static readonly LineHeight = 1.38;
-
     override activeHandle?: 'start' | 'end';
 
     protected readonly label = new _Scene.Text({ zIndex: 1 });
     protected readonly start = new DivariantHandle();
     protected readonly end = new DivariantHandle();
 
-    protected anchor: { x: number; y: number; position: 'above' | 'above-left' | 'right' } = {
+    protected anchor: Anchor = {
         x: 0,
         y: 0,
         position: 'above-left',
@@ -45,23 +42,6 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         this.updateShape(datum, bbox, coords);
 
         this.anchor = this.updateAnchor(datum, bbox, context);
-    }
-
-    protected getTextBBox(datum: Datum, coords: LineCoords) {
-        const { textInputBBox } = this;
-        const { x2, y2 } = coords;
-
-        if (textInputBBox) {
-            return new BBox(x2, y2, textInputBBox.width, textInputBBox.height);
-        }
-
-        const text = this.wrapText(datum, datum.width);
-        const textOptions = this.getTextOptions(datum);
-
-        const { lineMetrics, width } = CachedTextMeasurerPool.measureLines(text, textOptions);
-        const height = lineMetrics.length * (textOptions.font.fontSize * TextualStartEndScene.LineHeight);
-
-        return new BBox(x2, y2, width, height);
     }
 
     override toggleHandles(show: boolean | Partial<Record<'start' | 'end', boolean>>) {
@@ -128,24 +108,16 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         return label.containsPoint(x, y);
     }
 
+    protected getTextBBox(datum: Datum, coords: LineCoords) {
+        const { text } = datum.getText();
+
+        return getBBox(datum, text, { x: coords.x2, y: coords.y2 }, this.textInputBBox);
+    }
+
     protected updateLabel(datum: Datum, bbox: _Scene.BBox, coords: LineCoords) {
-        const { x, y } = this.getLabelCoords(datum, bbox, coords);
-
-        this.label.visible = datum.visible ?? true;
-
-        this.label.x = x;
-        this.label.y = y;
-        this.label.textBaseline = datum.position == 'center' ? 'middle' : datum.position;
-
-        const hasText = datum.text.length > 0;
-        this.label.text = this.wrapText(datum, bbox.width);
-        this.label.fill = hasText ? datum.color : datum.getPlaceholderColor();
-        this.label.fontFamily = datum.fontFamily;
-        this.label.fontSize = datum.fontSize;
-        this.label.fontStyle = datum.fontStyle;
-        this.label.fontWeight = datum.fontWeight;
-        this.label.textAlign = datum.textAlign;
-        this.label.lineHeight = datum.fontSize * TextualStartEndScene.LineHeight;
+        const { text, isPlaceholder } = datum.getText();
+        const wrappedText = wrapText(datum, text, bbox.width);
+        updateTextNode(this.label, wrappedText, isPlaceholder, datum, this.getLabelCoords(datum, bbox, coords));
     }
 
     protected updateHandles(datum: Datum, bbox: _Scene.BBox, coords: LineCoords) {
@@ -162,16 +134,16 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         this.end.toggleLocked(datum.locked ?? false);
     }
 
+    protected updateShape(_datum: Datum, _textBBox: _Scene.BBox, _coords: LineCoords) {
+        // Shapes should be implemented by the extending annotation type class
+    }
+
     protected updateAnchor(_datum: Datum, bbox: _Scene.BBox, context: AnnotationContext) {
         return {
             x: bbox.x + context.seriesRect.x,
             y: bbox.y + context.seriesRect.y - bbox.height,
             position: this.anchor.position,
         };
-    }
-
-    protected updateShape(_datum: Datum, _textBBox: _Scene.BBox, _coords: LineCoords) {
-        // Shapes should be implemented by the extending annotation type class
     }
 
     protected getLabelCoords(_datum: Datum, _bbox: _Scene.BBox, coords: LineCoords): _Util.Vec2 {
@@ -199,34 +171,6 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
             stroke: datum.handle.stroke ?? datum.color,
             strokeOpacity: datum.handle.strokeOpacity,
             strokeWidth: datum.handle.strokeWidth,
-        };
-    }
-
-    private wrapText(datum: TextualStartEndProperties, width?: number) {
-        const hasText = datum.text.length > 0;
-        const text = hasText ? datum.text : datum.placeholderText ?? '';
-
-        return width
-            ? TextWrapper.wrapText(text, {
-                  ...this.getTextOptions(datum),
-                  avoidOrphans: false,
-                  textWrap: 'always',
-                  maxWidth: width,
-              })
-            : text;
-    }
-
-    private getTextOptions(datum: TextualStartEndProperties) {
-        return {
-            font: {
-                fontFamily: datum.fontFamily,
-                fontSize: datum.fontSize,
-                fontStyle: datum.fontStyle,
-                fontWeight: datum.fontWeight,
-            },
-            textAlign: datum.textAlign,
-            textBaseline: (datum.position == 'center' ? 'middle' : datum.position) as CanvasTextBaseline,
-            lineHeight: TextualStartEndScene.LineHeight,
         };
     }
 }

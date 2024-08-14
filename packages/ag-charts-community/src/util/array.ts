@@ -111,13 +111,6 @@ export function circularSliceArray<T>(data: T[], size: number, offset = 0): T[] 
     return result;
 }
 
-export function bifurcate<T>(isLeft: (array: T) => boolean, array: T[]): [T[], T[]] {
-    return array.reduce(
-        ([left, right], value) => (isLeft(value) ? [[...left, value], right] : [left, [...right, value]]),
-        [[], []] as [T[], T[]]
-    );
-}
-
 export function* mapIterable<Src, Dst>(src: Iterable<Src>, predicate: (e: Src) => Dst): Iterable<Dst> {
     for (const e of src) {
         yield predicate(e);
@@ -135,4 +128,19 @@ function isInStringUnion<T extends string>(unionValues: readonly T[], value: str
 
 export function allInStringUnion<T extends string>(unionValues: readonly T[], values: string[]): values is T[] {
     return !values.some((v: string) => !isInStringUnion(unionValues, v));
+}
+
+export function findLastIndex<T>(array: T[], predicate: (value: T, index: number, array: T[]) => boolean): number {
+    for (let i = array.length - 1; i >= 0; i -= 1) {
+        const value = array[i];
+        if (predicate(value, i, array)) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+export function findLast<T>(array: T[], predicate: (value: T, index: number, array: T[]) => boolean): T | undefined {
+    const index = findLastIndex(array, predicate);
+    return index !== -1 ? array[index] : undefined;
 }

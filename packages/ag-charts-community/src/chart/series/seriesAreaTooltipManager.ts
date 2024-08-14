@@ -34,7 +34,7 @@ export class SeriesAreaTooltipManager extends BaseManager {
         const verticalAxesRegion = this.ctx.regionManager.getRegion(REGIONS.VERTICAL_AXES);
 
         this.destroyFns.push(
-            this.ctx.layoutService.on('layout-complete', (event) => this.layoutComplete(event)),
+            this.ctx.layoutService.addListener('layout:complete', (event) => this.layoutComplete(event)),
             seriesRegion.addListener(
                 'hover',
                 (event) => this.onHover(event),
@@ -45,10 +45,10 @@ export class SeriesAreaTooltipManager extends BaseManager {
 
             // Events that clear tooltip.
             seriesRegion.addListener('leave', () => this.clearTooltip()),
-            seriesRegion.addListener('blur', () => this.clearTooltip()),
             seriesRegion.addListener('contextmenu', () => this.clearTooltip(), InteractionState.All),
             horizontalAxesRegion.addListener('leave', () => this.clearTooltip()),
             verticalAxesRegion.addListener('leave', () => this.clearTooltip()),
+            this.ctx.keyNavManager.addListener('blur', () => this.clearTooltip()),
             this.ctx.animationManager.addListener('animation-start', () => this.clearTooltip()),
             this.ctx.domManager.addListener('resize', () => this.clearTooltip()),
             this.ctx.zoomManager.addListener('zoom-pan-start', () => this.clearTooltip()),

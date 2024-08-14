@@ -71,9 +71,6 @@ export class Caption extends BaseProperties implements CaptionLike {
     spacing?: number;
 
     @Validate(POSITIVE_NUMBER, { optional: true })
-    lineHeight?: number;
-
-    @Validate(POSITIVE_NUMBER, { optional: true })
     maxWidth?: number;
 
     @Validate(POSITIVE_NUMBER, { optional: true })
@@ -82,18 +79,20 @@ export class Caption extends BaseProperties implements CaptionLike {
     @Validate(TEXT_WRAP)
     wrapping: TextWrap = 'always';
 
-    private truncated = false;
+    @Validate(POSITIVE_NUMBER)
+    padding: number = 0;
 
     @Validate(STRING)
     layoutStyle: 'block' | 'overlay' = 'block';
 
+    private truncated = false;
     private proxyText?: BoundedText;
 
     registerInteraction(moduleCtx: ModuleContext) {
         const { regionManager, proxyInteractionService, layoutService } = moduleCtx;
         const region = regionManager.getRegion('root');
         const destroyFns = [
-            layoutService.on('layout-complete', () => this.updateA11yText(proxyInteractionService)),
+            layoutService.addListener('layout:complete', () => this.updateA11yText(proxyInteractionService)),
             region.addListener('hover', (event) => this.handleMouseMove(moduleCtx, event)),
             region.addListener('leave', (event) => this.handleMouseLeave(moduleCtx, event)),
         ];
@@ -102,9 +101,9 @@ export class Caption extends BaseProperties implements CaptionLike {
     }
 
     computeTextWrap(containerWidth: number, containerHeight: number) {
-        const { text, wrapping } = this;
-        const maxWidth = Math.min(this.maxWidth ?? Infinity, containerWidth);
-        const maxHeight = this.maxHeight ?? containerHeight;
+        const { text, padding, wrapping } = this;
+        const maxWidth = Math.min(this.maxWidth ?? Infinity, containerWidth) - padding * 2;
+        const maxHeight = this.maxHeight ?? containerHeight - padding * 2;
         if (!isFinite(maxWidth) && !isFinite(maxHeight)) {
             this.node.text = text;
             return;

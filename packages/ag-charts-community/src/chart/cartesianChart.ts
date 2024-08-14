@@ -1,5 +1,6 @@
 import type { AgCartesianAxisPosition } from 'ag-charts-types';
 
+import type { LayoutContext } from '../module/baseModule';
 import type { ChartOptions } from '../module/optionsModule';
 import { staticFromToMotion } from '../motion/fromToMotion';
 import type { BBox } from '../scene/bbox';
@@ -45,11 +46,19 @@ export class CartesianChart extends Chart {
         return 'cartesian' as const;
     }
 
-    override async performLayout() {
-        const shrinkRect = await super.performLayout();
-        const { firstSeriesTranslation, seriesRoot, annotationRoot, highlightRoot } = this;
+    private setRootClipRects(clipRect: BBox | undefined) {
+        const { seriesRoot, annotationRoot, highlightRoot } = this;
+        seriesRoot.setClipRectInGroupCoordinateSpace(clipRect);
+        highlightRoot.setClipRectInGroupCoordinateSpace(clipRect);
+        annotationRoot.setClipRectInGroupCoordinateSpace(clipRect);
+    }
 
-        const { animationRect, seriesRect, visibility, clipSeries } = this.updateAxes(shrinkRect);
+    private lastUpdateClipRect: BBox | undefined = undefined;
+
+    async performLayout(ctx: LayoutContext) {
+        const { firstSeriesTranslation, seriesRoot, annotationRoot, highlightRoot } = this;
+        const { animationRect, seriesRect, visibility, clipSeries } = this.updateAxes(ctx.layoutBox);
+
         this.seriesRoot.visible = visibility.series;
         this.seriesRect = seriesRect;
         this.animationRect = animationRect;
@@ -80,12 +89,24 @@ export class CartesianChart extends Chart {
         const seriesPaddedRect = seriesRect.clone().grow(this.seriesArea.padding);
 
         const clipRect = this.seriesArea.clip || clipSeries ? seriesPaddedRect : undefined;
-        seriesRoot.setClipRectInGroupCoordinateSpace(clipRect);
-        highlightRoot.setClipRectInGroupCoordinateSpace(clipRect);
-        annotationRoot.setClipRectInGroupCoordinateSpace(clipRect);
+        const { lastUpdateClipRect } = this;
+        this.lastUpdateClipRect = clipRect;
 
-        const { width, height } = this.ctx.scene;
-        this.ctx.layoutService.setLayout(width, height, {
+        if (this.ctx.animationManager.isActive() && lastUpdateClipRect != null) {
+            this.ctx.animationManager.animate({
+                id: this.id,
+                groupId: 'clip-rect',
+                phase: 'update',
+                from: lastUpdateClipRect,
+                to: seriesPaddedRect,
+                onUpdate: (interpolatedClipRect) => this.setRootClipRects(interpolatedClipRect),
+                onComplete: () => this.setRootClipRects(clipRect),
+            });
+        } else {
+            this.setRootClipRects(clipRect);
+        }
+
+        this.ctx.layoutService.emitLayoutComplete(ctx, {
             axes: this.axes.map((axis) => axis.getLayoutState()),
             series: {
                 rect: seriesRect,
@@ -95,11 +116,6 @@ export class CartesianChart extends Chart {
             },
             clipSeries,
         });
-
-        const modulePromises = this.modulesManager.mapModules((m) => m.performCartesianLayout?.({ seriesRect }));
-        await Promise.all(modulePromises);
-
-        return shrinkRect;
     }
 
     private _lastCrossLineIds?: string[] = undefined;

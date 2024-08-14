@@ -16,28 +16,26 @@ export class Navigator extends _ModuleSupport.Navigator {
         this.miniChart = new MiniChart(ctx);
     }
 
-    async updateData(opts: { data: any }): Promise<void> {
-        await this.miniChart.updateData(opts);
+    updateData(data: any) {
+        return this.miniChart.updateData(data);
     }
 
-    async processData(opts: { dataController: _ModuleSupport.DataController }): Promise<void> {
-        await this.miniChart.processData(opts);
+    processData(dataController: _ModuleSupport.DataController) {
+        return this.miniChart.processData(dataController);
     }
 
-    override async performLayout(opts: _ModuleSupport.LayoutContext): Promise<_ModuleSupport.LayoutContext> {
-        const { shrinkRect } = await super.performLayout(opts);
+    override performLayout(opts: _ModuleSupport.LayoutContext) {
+        super.performLayout(opts);
 
         if (this.enabled) {
             const { top, bottom } = this.miniChart.computeAxisPadding();
-            shrinkRect.shrink(top + bottom, 'bottom');
+            opts.layoutBox.shrink(top + bottom, 'bottom');
             this.y -= bottom;
         }
-
-        return { ...opts, shrinkRect };
     }
 
-    override async performCartesianLayout(opts: { seriesRect: _Scene.BBox }): Promise<void> {
-        await super.performCartesianLayout(opts);
+    override async onLayoutComplete(opts: _ModuleSupport.LayoutCompleteEvent) {
+        super.onLayoutComplete(opts);
         await this.miniChart.layout(this.width, this.height);
     }
 }

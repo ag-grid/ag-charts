@@ -11,6 +11,7 @@ import { ActionOnSet, ObserveChanges } from '../../util/proxy';
 import { AND, BOOLEAN, GREATER_THAN, LESS_THAN, OBJECT, POSITIVE_NUMBER, RATIO, Validate } from '../../util/validation';
 import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
 import type { ZoomChangeEvent } from '../interaction/zoomManager';
+import type { LayoutCompleteEvent } from '../layout/layoutService';
 import { RangeHandle } from './shapes/rangeHandle';
 import { RangeMask } from './shapes/rangeMask';
 import { RangeSelector } from './shapes/rangeSelector';
@@ -42,6 +43,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
     @ActionOnSet<Navigator>({
         newValue(min) {
+            Logger.warnOnce(`Property [navigator.min] is deprecated. Use [initialState.zoom.ratioX] instead.`);
             this._min = min;
             this.updateZoom();
         },
@@ -51,6 +53,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
     @ActionOnSet<Navigator>({
         newValue(max) {
+            Logger.warnOnce(`Property [navigator.max] is deprecated. Use [initialState.zoom.ratioX] instead.`);
             this._max = max;
             this.updateZoom();
         },
@@ -87,6 +90,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             region.addListener('drag-end', () => this.onDragEnd(), dragStates),
             region.addListener('leave', (event) => this.onLeave(event), dragStates),
             this.ctx.localeManager.addListener('locale-changed', () => this.updateZoom()),
+            this.ctx.layoutService.addListener('layout:complete', (e) => this.onLayoutComplete(e)),
             ctx.zoomManager.addListener('zoom-change', (event) => this.onZoomChange(event))
         );
 
@@ -157,21 +161,19 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         }
     }
 
-    async performLayout(ctx: LayoutContext): Promise<LayoutContext> {
-        const { shrinkRect } = ctx;
+    performLayout(ctx: LayoutContext) {
         if (this.enabled) {
+            const { layoutBox } = ctx;
             const navigatorTotalHeight = this.height + this.spacing;
-            shrinkRect.shrink(navigatorTotalHeight, 'bottom');
-            this.y = shrinkRect.y + shrinkRect.height + this.spacing;
+            layoutBox.shrink(navigatorTotalHeight, 'bottom');
+            this.y = layoutBox.y + layoutBox.height + this.spacing;
         } else {
             this.y = 0;
         }
-
-        return { ...ctx, shrinkRect };
     }
 
-    async performCartesianLayout(opts: { seriesRect: BBox }): Promise<void> {
-        const { x, width } = opts.seriesRect;
+    onLayoutComplete(opts: LayoutCompleteEvent) {
+        const { x, width } = opts.series.rect;
 
         if (this.enabled) {
             const { y, height } = this;

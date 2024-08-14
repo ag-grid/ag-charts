@@ -1,4 +1,4 @@
-import type { MessageFormatter } from 'ag-charts-types';
+import type { Formatter, MessageFormatterParams } from 'ag-charts-types';
 
 import type { ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
@@ -17,7 +17,7 @@ export class Locale extends BaseModuleInstance implements ModuleInstance {
         target.ctx.localeManager.setLocaleTextFormatter(target.getLocaleText);
     })
     @Validate(FUNCTION, { optional: true })
-    getLocaleText: MessageFormatter | undefined;
+    getLocaleText: Formatter<MessageFormatterParams> | undefined;
 
     constructor(private readonly ctx: ModuleContext) {
         super();

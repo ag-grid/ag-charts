@@ -19,6 +19,7 @@ import type {
     ToolbarGroupUpdatedEvent,
     ToolbarProxyGroupOptionsEvent,
 } from '../interaction/toolbarManager';
+import type { LayoutCompleteEvent } from '../layout/layoutService';
 import { type ButtonConfiguration, ToolbarGroupProperties } from './toolbarProperties';
 import * as styles from './toolbarStyles';
 import {
@@ -140,7 +141,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             ctx.toolbarManager.addListener('group-updated', this.onGroupUpdated.bind(this)),
             ctx.toolbarManager.addListener('floating-anchor-changed', this.onFloatingAnchorChanged.bind(this)),
             ctx.toolbarManager.addListener('proxy-group-options', this.onProxyGroupOptions.bind(this)),
-            ctx.layoutService.on('layout-complete', this.onLayoutComplete.bind(this)),
+            ctx.layoutService.addListener('layout:complete', this.onLayoutComplete.bind(this)),
             ctx.localeManager.addListener('locale-changed', () => {
                 this.hasNewLocale = true;
             }),
@@ -223,9 +224,12 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.toggleVisibilities();
     }
 
-    private onLayoutComplete() {
+    private onLayoutComplete(opts: LayoutCompleteEvent) {
         for (const position of TOOLBAR_POSITIONS) {
             this.elements[position].classList.remove(styles.modifiers.preventFlash);
+        }
+        if (this.enabled) {
+            this.refreshInnerLayout(opts.series.rect);
         }
     }
 
@@ -517,19 +521,11 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.pendingButtonToggledEvents = [];
     }
 
-    async performLayout(ctx: LayoutContext): Promise<LayoutContext> {
-        if (!this.enabled) return ctx;
-
-        this.refreshOuterLayout(ctx.shrinkRect);
-        this.refreshLocale();
-
-        return ctx;
-    }
-
-    async performCartesianLayout(opts: { seriesRect: BBox }): Promise<void> {
-        if (!this.enabled) return;
-
-        this.refreshInnerLayout(opts.seriesRect);
+    performLayout(ctx: LayoutContext) {
+        if (this.enabled) {
+            this.refreshOuterLayout(ctx.layoutBox);
+            this.refreshLocale();
+        }
     }
 
     private refreshOuterLayout(shrinkRect: BBox) {
@@ -579,8 +575,6 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         elements.top.style.left = `${rect.x}px`;
         elements.top.style.width = `${rect.width}px`;
 
-        // See: https://ag-grid.atlassian.net/browse/AG-11852
-        // elements.bottom.style.top = `${rect.y + rect.height}px`;
         elements.bottom.style.left = `${rect.x}px`;
         elements.bottom.style.width = `${rect.width}px`;
 
@@ -771,9 +765,11 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
     private buttonId(button: ButtonConfiguration) {
         const { id, value, label } = button;
-        if (id != null) return id;
-        if (value != null && typeof value !== 'object') return String(value);
-
+        if (id != null) {
+            return id;
+        } else if (value != null && typeof value !== 'object') {
+            return String(value);
+        }
         // @todo(AG-12343): buttons with non-primitive values need IDs
         return label ?? '';
     }

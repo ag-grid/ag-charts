@@ -102,11 +102,8 @@ export abstract class AgCharts {
         return chart as unknown as AgChartInstance<O>;
     }
 
-    public static createFinancialChart(options: AgFinancialChartOptions) {
-        return this.create({
-            _type: 'price-volume',
-            ...options,
-        } as AgChartOptions) as unknown as AgChartInstance<AgFinancialChartOptions>;
+    public static createFinancialChart(options: AgFinancialChartOptions): AgChartInstance<AgFinancialChartOptions> {
+        return this.create({ presetType: 'price-volume', ...options } as AgChartOptions) as any;
     }
 }
 
@@ -147,21 +144,20 @@ class AgChartsInternal {
 
         debug('>>> AgCharts.createOrUpdate() user options', options);
 
-        const defaultType = proxy?.chart.chartOptions.type;
-        const { _type = defaultType, ...otherOptions } = options;
+        const { presetType = proxy?.chart.chartOptions.presetType, ...otherOptions } = options;
 
         let mutableOptions = otherOptions;
         if (AgCharts.optionsMutationFn) {
-            mutableOptions = AgCharts.optionsMutationFn(mutableOptions, _type);
+            mutableOptions = AgCharts.optionsMutationFn(mutableOptions, presetType);
             debug('>>> AgCharts.createOrUpdate() MUTATED user options', options);
         }
 
         const { overrideDevicePixelRatio, document, window: userWindow, ...userOptions } = mutableOptions;
         const chartOptions = new ChartOptions(userOptions, {
-            overrideDevicePixelRatio,
+            presetType,
             document,
             window: userWindow,
-            type: _type,
+            overrideDevicePixelRatio,
         });
 
         let chart = proxy?.chart;

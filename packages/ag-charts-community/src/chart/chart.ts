@@ -1,6 +1,6 @@
 import type { AgBaseAxisOptions, AgChartInstance, AgChartOptions, AgInitialStateOptions } from 'ag-charts-types';
 
-import type { ModuleInstance } from '../module/baseModule';
+import type { LayoutContext, ModuleInstance } from '../module/baseModule';
 import type { LegendModule, RootModule } from '../module/coreModules';
 import { moduleRegistry } from '../module/module';
 import type { ModuleContext } from '../module/moduleContext';
@@ -27,7 +27,7 @@ import { BaseProperties } from '../util/properties';
 import { ActionOnSet } from '../util/proxy';
 import { debouncedCallback } from '../util/render';
 import { isDefined, isFiniteNumber, isFunction, isNumber } from '../util/type-guards';
-import { BOOLEAN, NUMBER, OBJECT, UNION, Validate } from '../util/validation';
+import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
 import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxis } from './chartAxis';
@@ -93,7 +93,7 @@ export interface ChartSpecialOverrides {
     window?: Window;
     overrideDevicePixelRatio?: number;
     sceneMode?: 'simple';
-    _type?: string;
+    presetType?: string;
 }
 
 export type ChartExtendedOptions = AgChartOptions & ChartSpecialOverrides;
@@ -198,9 +198,6 @@ export abstract class Chart extends Observable {
 
     @Validate(OBJECT)
     readonly padding = new Padding(20);
-
-    @Validate(NUMBER)
-    readonly titlePadding = 0;
 
     @Validate(OBJECT)
     readonly seriesArea = new SeriesArea();
@@ -787,12 +784,9 @@ export abstract class Chart extends Observable {
     }
 
     protected assignSeriesToAxes() {
-        this.axes.forEach((axis) => {
-            axis.boundSeries = this.series.filter((s) => {
-                const seriesAxis = s.axes[axis.direction];
-                return seriesAxis === axis;
-            });
-        });
+        for (const axis of this.axes) {
+            axis.boundSeries = this.series.filter((s) => s.axes[axis.direction] === axis);
+        }
     }
 
     protected assignAxesToSeries() {
@@ -876,7 +870,7 @@ export abstract class Chart extends Observable {
 
     async updateData() {
         this.series.forEach((s) => s.setChartData(this.data));
-        const modulePromises = this.modulesManager.mapModules((m) => m.updateData?.({ data: this.data }));
+        const modulePromises = this.modulesManager.mapModules((m) => m.updateData?.(this.data));
         await Promise.all(modulePromises);
     }
 
@@ -894,7 +888,7 @@ export abstract class Chart extends Observable {
 
         const dataController = new DataController(this.mode);
         const seriesPromises = this.series.map((s) => s.processData(dataController));
-        const modulePromises = this.modulesManager.mapModules((m) => m.processData?.({ dataController }));
+        const modulePromises = this.modulesManager.mapModules((m) => m.processData?.(dataController));
         dataController.execute();
         await Promise.all([...seriesPromises, ...modulePromises]);
 
@@ -972,30 +966,22 @@ export abstract class Chart extends Observable {
 
     private async processLayout() {
         const oldRect = this.animationRect;
-        await this.performLayout();
+        const { width, height } = this.ctx.scene;
+        const ctx = this.ctx.layoutService.createContext(width, height);
+
+        for (const m of this.modulesManager.modules()) {
+            await m.performLayout?.(ctx);
+        }
+        await this.performLayout(ctx);
 
         if (oldRect && !this.animationRect?.equals(oldRect)) {
             // Skip animations if the layout changed.
             this.ctx.animationManager.skipCurrentBatch();
         }
-
         this.debug('Chart.performUpdate() - seriesRect', this.seriesRect);
     }
 
-    protected async performLayout() {
-        const { width, height } = this.ctx.scene;
-        const ctx = { shrinkRect: new BBox(0, 0, width, height), positions: {}, padding: {} };
-        this.ctx.layoutService.emit('start-layout', ctx);
-        this.ctx.layoutService.emit('before-series', ctx);
-
-        for (const m of this.modulesManager.modules()) {
-            if (m.performLayout != null) {
-                await m.performLayout(ctx);
-            }
-        }
-
-        return ctx.shrinkRect;
-    }
+    protected abstract performLayout(ctx: LayoutContext): Promise<void> | void;
 
     // Should be available after the first layout.
     protected seriesRect?: BBox;
@@ -1003,24 +989,11 @@ export abstract class Chart extends Observable {
     protected animationRect?: BBox;
 
     private readonly onSeriesNodeClick = (event: TypedEvent) => {
-        const seriesNodeClickEvent = {
-            ...event,
-            type: 'seriesNodeClick',
-        };
-        Object.defineProperty(seriesNodeClickEvent, 'series', {
-            enumerable: false,
-            // Should display the deprecation warning
-            get: () => (event as any).series,
-        });
-        this.fireEvent(seriesNodeClickEvent);
+        this.fireEvent({ ...event, type: 'seriesNodeClick' });
     };
 
     private readonly onSeriesNodeDoubleClick = (event: TypedEvent) => {
-        const seriesNodeDoubleClick = {
-            ...event,
-            type: 'seriesNodeDoubleClick',
-        };
-        this.fireEvent(seriesNodeDoubleClick);
+        this.fireEvent({ ...event, type: 'seriesNodeDoubleClick' });
     };
 
     private readonly seriesGroupingChanged = (event: TypedEvent) => {
@@ -1217,7 +1190,7 @@ export abstract class Chart extends Observable {
 
     private applyInitialState(initialState?: AgInitialStateOptions) {
         const {
-            ctx: { annotationManager, stateManager },
+            ctx: { annotationManager, stateManager, zoomManager },
         } = this;
 
         if (initialState?.annotations != null) {
@@ -1227,6 +1200,10 @@ export abstract class Chart extends Observable {
             });
 
             stateManager.setState(annotationManager, annotations);
+        }
+
+        if (initialState?.zoom != null) {
+            stateManager.setState(zoomManager, initialState.zoom);
         }
     }
 

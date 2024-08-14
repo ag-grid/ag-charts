@@ -1,6 +1,7 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 import type { FontOptions, TextAlign } from 'ag-charts-types';
 
+import type { AnnotationTextPosition } from '../annotations/text/util';
 import textInputTemplate from './textInputTemplate.html';
 
 const { getDocument, getWindow } = _ModuleSupport;
@@ -10,7 +11,7 @@ const canvasOverlay = 'canvas-overlay';
 
 interface Layout {
     getTextInputCoords: () => _Util.Vec2;
-    position: 'top' | 'center' | 'bottom';
+    position: AnnotationTextPosition;
     alignment: 'left' | 'center' | 'right';
     textAlign: TextAlign;
     width?: number;
@@ -86,6 +87,10 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         textArea.addEventListener('input', () => {
             this.updatePosition();
             opts.onChange?.(this.getValue()!, this.getBBox());
+        });
+
+        textArea.addEventListener('click', (event) => {
+            event.stopPropagation();
         });
 
         if (opts.layout) {
