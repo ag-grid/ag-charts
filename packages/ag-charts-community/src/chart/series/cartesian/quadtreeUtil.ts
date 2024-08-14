@@ -38,7 +38,7 @@ export function findQuadtreeMatch<TDatum extends SeriesNodeDatum>(
     series: SeriesWithQuadtreeNearest<TDatum>,
     point: Point
 ): SeriesNodePickMatch | undefined {
-    const { x, y } = TransformableNode.fromCanvasPoint(series.contentGroup, point.x, point.y);
+    const { x, y } = point;
     const { nearest, distanceSquared } = series.getQuadTree().find(x, y);
     if (nearest !== undefined) {
         return { datum: nearest.value, distance: Math.sqrt(distanceSquared) };

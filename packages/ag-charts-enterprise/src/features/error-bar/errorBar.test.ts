@@ -1,11 +1,12 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import type {
-    AgErrorBarItemStylerParams,
-    AgErrorBarThemeableOptions,
-    AgScatterSeriesOptions,
-    AgScatterSeriesTooltipRendererParams,
-    Styler,
+import {
+    type AgErrorBarItemStylerParams,
+    type AgErrorBarThemeableOptions,
+    type AgScatterSeriesOptions,
+    type AgScatterSeriesTooltipRendererParams,
+    type Styler,
+    _Scene,
 } from 'ag-charts-community';
 import {
     Chart,
@@ -167,7 +168,7 @@ describe('ErrorBars', () => {
     const getItemCoords = (itemIndex: number): { x: number; y: number } => {
         const series = chart['series'][0] as any;
         const item = series['contextNodeData'].nodeData[itemIndex];
-        return series.rootGroup.inverseTransformPoint(item.midPoint.x, item.midPoint.y);
+        return _Scene.TransformableNode.toCanvasPoint(series.rootGroup, item.midPoint.x, item.midPoint.y);
     };
 
     it('should render 1 line series as expected', async () => {
