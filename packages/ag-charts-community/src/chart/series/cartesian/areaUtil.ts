@@ -3,13 +3,11 @@ import type { FontStyle, FontWeight } from 'ag-charts-types';
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Point, SizedPoint } from '../../../scene/point';
 import type { Path } from '../../../scene/shape/path';
-import type { ProcessedOutputDiff } from '../../data/dataModel';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { type Span, SpanJoin, interpolateSpans, plotSpan, reverseSpan } from './lineInterpolation';
 import { type SpanInterpolation, pairUpSpans } from './lineInterpolationUtil';
-import { pairCategoryData, pairContinuousData, prepareLinePathPropertyAnimation } from './lineUtil';
-import { prepareMarkerAnimation } from './markerUtil';
+import { prepareLinePathPropertyAnimation } from './lineUtil';
 import { isScaleValid } from './scaling';
 
 export interface AreaPathPoint {
@@ -126,11 +124,7 @@ function prepareAreaStrokeAnimationFns(
     return { status, path: { addPhaseFn, updatePhaseFn, removePhaseFn }, pathProperties };
 }
 
-export function prepareAreaPathAnimation(
-    newData: AreaSeriesNodeDataContext,
-    oldData: AreaSeriesNodeDataContext,
-    diff: ProcessedOutputDiff | undefined
-) {
+export function prepareAreaPathAnimation(newData: AreaSeriesNodeDataContext, oldData: AreaSeriesNodeDataContext) {
     const isCategoryBased = newData.scales.x?.type === 'category';
     const wasCategoryBased = oldData.scales.x?.type === 'category';
     if (isCategoryBased !== wasCategoryBased || !isScaleValid(newData.scales.x) || !isScaleValid(oldData.scales.x)) {
@@ -144,26 +138,21 @@ export function prepareAreaPathAnimation(
         status = 'added';
     }
 
-    const spans = pairUpSpans(
+    const fillSpans = pairUpSpans(
         { scales: newData.scales, data: newData.fillData.spans, visible: newData.visible },
         { scales: oldData.scales, data: oldData.fillData.spans, visible: oldData.visible }
     );
-    const phantomSpans = pairUpSpans(
+    const fillPhantomSpans = pairUpSpans(
         { scales: newData.scales, data: newData.fillData.phantomSpans, visible: newData.visible },
         { scales: oldData.scales, data: oldData.fillData.phantomSpans, visible: oldData.visible }
     );
-    const prepareMarkerPairs = () => {
-        if (isCategoryBased) {
-            return pairCategoryData(newData, oldData, diff, { backfillSplitMode: 'static', multiDatum: true });
-        }
-        return pairContinuousData(newData, oldData, { backfillSplitMode: 'static' });
-    };
-    const { resultMap: markerPairMap } = prepareMarkerPairs();
-    if (markerPairMap === undefined) return;
+    const strokeSpans = pairUpSpans(
+        { scales: newData.scales, data: newData.strokeData.spans, visible: newData.visible },
+        { scales: oldData.scales, data: oldData.strokeData.spans, visible: oldData.visible }
+    );
 
     const fadeMode = 'none';
-    const fill = prepareAreaFillAnimationFns(status, spans, phantomSpans, fadeMode);
-    const stroke = prepareAreaStrokeAnimationFns(status, spans, fadeMode);
-    const marker = prepareMarkerAnimation(markerPairMap, status);
-    return { status, fill, stroke, marker };
+    const fill = prepareAreaFillAnimationFns(status, fillSpans, fillPhantomSpans, fadeMode);
+    const stroke = prepareAreaStrokeAnimationFns(status, strokeSpans, fadeMode);
+    return { status, fill, stroke };
 }

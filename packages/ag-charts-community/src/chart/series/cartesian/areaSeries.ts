@@ -823,7 +823,7 @@ export class AreaSeries extends CartesianSeries<
             return;
         }
 
-        const fns = prepareAreaPathAnimation(contextData, previousContextData, this.processedData?.reduced?.diff);
+        const fns = prepareAreaPathAnimation(contextData, previousContextData);
         if (fns === undefined) {
             // Un-animatable diff in data, skip all animations.
             skip();
