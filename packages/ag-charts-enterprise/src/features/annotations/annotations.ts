@@ -198,6 +198,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private xAxis?: AnnotationAxis;
     private yAxis?: AnnotationAxis;
 
+    private removeAmbientKeyboardListener?: () => void = undefined;
+
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         super();
         this.state = this.setupStateMachine();
@@ -293,6 +295,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 setDefaults({ datum, defaultColors: this.defaultColors, defaultFontSizes: this.defaultFontSizes });
 
                 this.resetToolbarButtonStates();
+
+                this.removeAmbientKeyboardListener?.();
+                this.removeAmbientKeyboardListener = undefined;
+
                 this.update();
             },
 
@@ -437,6 +443,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             () => this.colorPicker.destroy(),
             () => ctx.domManager.removeStyles(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS)
         );
+    }
+
+    override destroy(): void {
+        super.destroy();
+        this.removeAmbientKeyboardListener?.();
+        this.removeAmbientKeyboardListener = undefined;
     }
 
     private createAnnotationScene(datum: AnnotationProperties) {
@@ -688,7 +700,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         event: _ModuleSupport.ToolbarButtonPressedEvent<AgToolbarAnnotationsButtonValue>,
         item: MenuItem<AnnotationType>
     ) {
-        const { toolbarManager } = this.ctx;
+        const { toolbarManager, domManager } = this.ctx;
+
+        domManager.focus();
 
         toolbarManager.toggleButton('annotations', event.id, {
             active: true,
@@ -699,15 +713,38 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.beginAnnotationPlacement(item.value);
         this.onAnnotationsPopoverClose();
+
+        this.removeAmbientKeyboardListener?.();
+        this.removeAmbientKeyboardListener = this.ctx.interactionManager.addListener(
+            'keydown',
+            (e) => this.handleAmbientKeyboardEvent(e),
+            InteractionState.All
+        );
     }
 
     private onAnnotationsPopoverClose() {
         this.annotationPickerPopover.hide();
     }
 
-    private onToolbarCancelled(event: _ModuleSupport.ToolbarCancelledEvent) {
-        if (event.group !== 'annotations') return;
+    private handleAmbientKeyboardEvent(e: _ModuleSupport.KeyInteractionEvent<'keydown'>) {
+        if (e.sourceEvent.key !== 'Escape') return;
 
+        this.cancelPlacementInteraction();
+
+        e.preventDefault();
+        e.sourceEvent.stopPropagation();
+
+        this.removeAmbientKeyboardListener?.();
+        this.removeAmbientKeyboardListener = undefined;
+    }
+
+    private onToolbarCancelled(event: _ModuleSupport.ToolbarCancelledEvent) {
+        if (event.group === 'annotations') {
+            this.cancelPlacementInteraction();
+        }
+    }
+
+    private cancelPlacementInteraction() {
         this.cancel();
         this.resetToolbarButtonStates();
         this.reset();
