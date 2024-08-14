@@ -1,3 +1,4 @@
+import type { AgStateSerializableDate } from '../api/stateTypes';
 import type {
     FillOptions,
     FontOptions,
@@ -91,6 +92,7 @@ export interface AgLineAnnotation
         LineDashOptions {
     /** Configuration for the trend line annotation.*/
     type: 'line';
+    handle?: AgAnnotationHandle;
 }
 
 export interface AgHorizontalLineAnnotation extends AgCrossLineAnnotation {
@@ -108,6 +110,7 @@ export interface AgCrossLineAnnotation extends Lockable, Visible, StrokeOptions,
     value: AgAnnotationValue;
     /** Configuration for the annotation axis label. */
     axisLabel?: AgAnnotationAxisLabel;
+    handle?: AgAnnotationHandle;
 }
 
 // ***********************
@@ -125,6 +128,7 @@ export interface AgParallelChannelAnnotation
     type: 'parallel-channel';
     /** The height of the annotation along the y-axis. */
     height: number;
+    handle?: AgAnnotationHandle;
     /** Configuration for the line in the middle of the channel. */
     middle?: AgChannelAnnotationMiddle;
     /** The fill colour for the middle of the channel. */
@@ -144,6 +148,7 @@ export interface AgDisjointChannelAnnotation
     startHeight: number;
     /** The height of the annotation along the y-axis at the end. */
     endHeight: number;
+    handle?: AgAnnotationHandle;
     /** The fill colour for the middle of the channel. */
     background?: AgChannelAnnotationBackground;
 }
@@ -179,6 +184,7 @@ interface TextualStartEndAnnotation extends TextualAnnotation {
     end: AgAnnotationPoint;
 }
 interface TextualAnnotation extends Lockable, Visible, FontOptions {
+    handle?: AgAnnotationHandle;
     text: string;
 }
 
@@ -186,6 +192,7 @@ interface TextualAnnotation extends Lockable, Visible, FontOptions {
 // * Components *
 // **************/
 
+export interface AgAnnotationHandle extends FillOptions, StrokeOptions, LineDashOptions {}
 export interface AgChannelAnnotationMiddle extends Visible, StrokeOptions, LineDashOptions {}
 export interface AgChannelAnnotationBackground extends FillOptions {}
 export interface AgNoteAnnotationBackground extends StrokeOptions, FillOptions {}
@@ -245,8 +252,3 @@ interface Cappable {
 export type Cap = 'arrow' | 'circle';
 
 export type AgAnnotationValue = string | number | AgStateSerializableDate;
-
-export interface AgStateSerializableDate {
-    __type: 'date';
-    value: string | number;
-}

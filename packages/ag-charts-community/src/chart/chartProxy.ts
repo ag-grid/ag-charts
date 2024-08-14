@@ -117,11 +117,25 @@ export class AgChartInstanceProxy implements AgChartProxy {
     }
 
     getState() {
-        return this.factoryApi.caretaker.save(this.chart.ctx.annotationManager) as Required<AgChartState>;
+        const {
+            factoryApi: { caretaker },
+            chart: {
+                ctx: { annotationManager, zoomManager },
+            },
+        } = this;
+
+        return caretaker.save(annotationManager, zoomManager) as Required<AgChartState>;
     }
 
     async setState(state: AgChartState) {
-        this.factoryApi.caretaker.restore(state, this.chart.ctx.annotationManager);
+        const {
+            factoryApi: { caretaker },
+            chart: {
+                ctx: { annotationManager, zoomManager },
+            },
+        } = this;
+
+        caretaker.restore(state, annotationManager, zoomManager);
         await this.chart.waitForUpdate();
     }
 
@@ -185,7 +199,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
 
         const cloneProxy = await this.factoryApi.createOrUpdate(options);
         await cloneProxy.setState(state);
-        cloneProxy.chart.ctx.zoomManager.updateZoom('agChartV2', chart.ctx.zoomManager.getZoom()); // sync zoom
+        cloneProxy.chart.ctx.zoomManager.updateZoom('chartProxy', chart.ctx.zoomManager.getZoom()); // sync zoom
         chart.series.forEach((series, index) => {
             if (!series.visible) {
                 cloneProxy.chart.series[index].visible = false; // sync series visibility

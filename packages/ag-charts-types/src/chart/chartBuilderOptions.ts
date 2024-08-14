@@ -140,6 +140,16 @@ export interface ImageDataUrlOptions {
 export interface AgChartState {
     version: string;
     annotations?: AgChartSerializableState;
+    zoom?: AgChartSerializableState;
 }
 
+/**
+ * @deprecated v10.2.0 use `AgAnnotationsOptions` or `AgInitialStateZoomOptions` instead.
+ *
+ * ```
+ * export interface AgChartState extends AgInitialStateOptions {
+ *     version: string;
+ * }
+ * ```
+ */
 export type AgChartSerializableState = any;

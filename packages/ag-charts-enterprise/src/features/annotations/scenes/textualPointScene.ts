@@ -1,23 +1,15 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import type { AnnotationContext, Coords } from '../annotationTypes';
+import type { Anchor, AnnotationContext, Coords } from '../annotationTypes';
 import { convertPoint, invertCoords } from '../annotationUtils';
 import type { TextualPointProperties } from '../properties/textualPointProperties';
+import { getBBox, updateTextNode, wrapText } from '../text/util';
 import { AnnotationScene } from './annotationScene';
 import { DivariantHandle } from './handle';
 
-const { CachedTextMeasurerPool, TextWrapper } = _ModuleSupport;
 const { Vec2 } = _Util;
 
-interface Anchor {
-    x: number;
-    y: number;
-    position: 'above' | 'above-left' | 'right';
-}
-
 export abstract class TextualPointScene<Datum extends TextualPointProperties> extends AnnotationScene {
-    static readonly LineHeight = 1.38;
-
     override activeHandle?: string;
 
     protected readonly label = new _Scene.Text({ zIndex: 1 });
@@ -106,39 +98,16 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
     }
 
     protected getTextBBox(datum: Datum, coords: _Util.Vec2, _context: AnnotationContext) {
-        const { textInputBBox } = this;
+        const { text } = datum.getText();
 
-        if (textInputBBox) {
-            return new _Scene.BBox(coords.x, coords.y, textInputBBox.width, textInputBBox.height);
-        }
-
-        const text = this.wrapText(datum, datum.width);
-        const textOptions = this.getTextOptions(datum);
-
-        const { lineMetrics, width } = CachedTextMeasurerPool.measureLines(text, textOptions);
-        const height = lineMetrics.length * (textOptions.font.fontSize * TextualPointScene.LineHeight);
-
-        return new _Scene.BBox(coords.x, coords.y, width, height);
+        return getBBox(datum, text, { x: coords.x, y: coords.y }, this.textInputBBox);
     }
 
     protected updateLabel(datum: Datum, bbox: _Scene.BBox) {
-        const { x, y } = this.getLabelCoords(datum, bbox);
+        const { text, isPlaceholder } = datum.getText();
+        const wrappedText = wrapText(datum, text, bbox.width);
 
-        this.label.visible = datum.visible ?? true;
-
-        this.label.x = x;
-        this.label.y = y;
-
-        this.label.text = this.wrapText(datum, bbox.width);
-
-        this.label.fill = datum.color;
-        this.label.fontFamily = datum.fontFamily;
-        this.label.fontSize = datum.fontSize;
-        this.label.fontStyle = datum.fontStyle;
-        this.label.fontWeight = datum.fontWeight;
-        this.label.textAlign = datum.textAlign ?? datum.alignment;
-        this.label.textBaseline = datum.position == 'center' ? 'middle' : datum.position;
-        this.label.lineHeight = datum.fontSize * TextualPointScene.LineHeight;
+        updateTextNode(this.label, wrappedText, isPlaceholder, datum, this.getLabelCoords(datum, bbox));
     }
 
     protected updateHandle(datum: Datum, bbox: _Scene.BBox, coords: _Util.Vec2) {
@@ -175,34 +144,6 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
             stroke: datum.handle.stroke ?? datum.color,
             strokeOpacity: datum.handle.strokeOpacity,
             strokeWidth: datum.handle.strokeWidth,
-        };
-    }
-
-    private wrapText(datum: TextualPointProperties, width?: number) {
-        const hasText = datum.text.length > 0;
-        const text = hasText ? datum.text : datum.placeholderText ?? '';
-
-        return width
-            ? TextWrapper.wrapText(text, {
-                  ...this.getTextOptions(datum),
-                  avoidOrphans: false,
-                  textWrap: 'always',
-                  maxWidth: width,
-              })
-            : text;
-    }
-
-    private getTextOptions(datum: TextualPointProperties) {
-        return {
-            font: {
-                fontFamily: datum.fontFamily,
-                fontSize: datum.fontSize,
-                fontStyle: datum.fontStyle,
-                fontWeight: datum.fontWeight,
-            },
-            textAlign: datum.textAlign,
-            textBaseline: (datum.position == 'center' ? 'middle' : datum.position) as CanvasTextBaseline,
-            lineHeight: TextualPointScene.LineHeight,
         };
     }
 }
