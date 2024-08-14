@@ -155,26 +155,29 @@ function removeSpan(
 function alignSpanToContainingSpan(
     span: Span,
     axisValues: AxisValue[],
-    xValue0Index: number,
-    data: SpanContext,
-    spanIndices: SpanIndices
+    preData: SpanContext,
+    postData: SpanContext,
+    postSpanIndices: SpanIndices
 ) {
-    const startXValue0 = axisValues[spanIndices.xValue0Index];
-    const startDatum = data.data.find((span) => span.xValue0.valueOf() === startXValue0);
-    const endXValue1 = axisValues[spanIndices.xValue1Index];
-    const endDatum = data.data.find((span) => span.xValue1.valueOf() === endXValue1);
+    const startXValue0 = axisValues[postSpanIndices.xValue0Index];
+    const startDatum = preData.data.find((span) => span.xValue0.valueOf() === startXValue0);
+    const endXValue1 = axisValues[postSpanIndices.xValue1Index];
+    const endDatum = preData.data.find((span) => span.xValue1.valueOf() === endXValue1);
 
     if (startDatum == null || endDatum == null) return;
 
     const [{ x: x0 }, { x: x1 }] = spanRange(span);
 
-    const startY = scale(startDatum.yValue0, data.scales.y);
-    const endY = scale(endDatum.yValue1, data.scales.y);
-    const step = (endY - startY) / (spanIndices.xValue1Index - spanIndices.xValue0Index);
-    const y0 = startY + (xValue0Index - spanIndices.xValue0Index) * step;
-    const y1 = y0 + step;
+    const startX = scale(startDatum.xValue0, preData.scales.x);
+    const startY = scale(startDatum.yValue0, preData.scales.y);
+    const endX = scale(endDatum.xValue1, preData.scales.x);
+    const endY = scale(endDatum.yValue1, preData.scales.y);
 
-    return rescaleSpan(span, { x: x0, y: y0 }, { x: x1, y: y1 });
+    let altSpan = postData.data[postSpanIndices.datumIndex].span;
+    altSpan = rescaleSpan(altSpan, { x: startX, y: startY }, { x: endX, y: endY });
+    altSpan = clipSpanX(altSpan, x0, x1);
+
+    return altSpan;
 }
 
 function appendSpanPhases(
@@ -234,8 +237,8 @@ function appendSpanPhases(
         const clippedPostRemoveOldSpanOldScale = alignSpanToContainingSpan(
             clippedOldSpanOldScale,
             axisValues,
-            xValue0Index,
             oldData,
+            newData,
             newIndices
         );
         if (clippedPostRemoveOldSpanOldScale != null) {
@@ -250,8 +253,8 @@ function appendSpanPhases(
         const clippedPreAddedNewSpanNewScale = alignSpanToContainingSpan(
             clippedNewSpanNewScale,
             axisValues,
-            xValue0Index,
             newData,
+            oldData,
             oldIndices
         );
         if (clippedPreAddedNewSpanNewScale != null) {
