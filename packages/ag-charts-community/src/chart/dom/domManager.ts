@@ -387,6 +387,13 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         this.removeChild('styles', id);
     }
 
+    focus() {
+        for (const child of this.rootElements.canvas.children.values()) {
+            child.focus();
+            return;
+        }
+    }
+
     updateCursor(style: string) {
         this.element.style.cursor = style;
     }
