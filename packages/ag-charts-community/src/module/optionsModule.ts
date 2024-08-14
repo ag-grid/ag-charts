@@ -17,6 +17,7 @@ import { getChartTheme } from '../chart/mapping/themes';
 import {
     isAgCartesianChartOptions,
     isAgFlowProportionChartOptions,
+    isAgGaugeChartOptions,
     isAgHierarchyChartOptions,
     isAgPolarChartOptions,
     isAgPolarChartOptionsWithSeriesBasedLegend,
@@ -436,6 +437,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             return 'map-shape';
         } else if (isAgFlowProportionChartOptions(options)) {
             return 'sankey';
+        } else if (isAgGaugeChartOptions(options)) {
+            return 'radial-gauge';
         }
         throw new Error('Invalid chart options type detected.');
     }

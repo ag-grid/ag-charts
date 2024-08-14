@@ -38,7 +38,7 @@ export class SeriesAreaManager extends BaseManager {
             fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
         },
         private readonly ctx: ChartContext,
-        chartType: 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion',
+        chartType: 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'gauge',
         tooltip: Tooltip,
         highlight: ChartHighlight,
         overlays: ChartOverlays
