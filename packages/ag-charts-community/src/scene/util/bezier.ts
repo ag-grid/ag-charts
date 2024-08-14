@@ -14,7 +14,7 @@ export function solveBezier(p0: number, p1: number, p2: number, p3: number, valu
     let t0 = 0;
     let t1 = 1;
     let t = NaN;
-    for (let i = 0; i < 8; i += 1) {
+    for (let i = 0; i < 12; i += 1) {
         t = (t0 + t1) / 2;
         const curveValue = (1 - t) ** 3 * p0 + 3 * (1 - t) ** 2 * t * p1 + 3 * (1 - t) * t ** 2 * p2 + t ** 3 * p3;
         if (curveValue < value) {

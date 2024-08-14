@@ -49,6 +49,14 @@ export function spanRange(span: Span): [Point, Point] {
     }
 }
 
+function spanRangeNormalized(span: Span): [Point, Point] {
+    const range = spanRange(span);
+    if (range[0].x > range[1].x) {
+        range.reverse();
+    }
+    return range;
+}
+
 export function reverseSpan(span: Span): Span {
     switch (span.type) {
         case 'linear':
@@ -170,22 +178,9 @@ function setMoveTo(span: Span, moveTo: boolean) {
 }
 
 export function splitSpanAtX(span: Span, x: number): [Span, Span] {
-    const [start, end] = spanRange(span);
-    let x0: number;
-    let y0: number;
-    let x1: number;
-    let y1: number;
-    if (start.x < end.x) {
-        x0 = start.x;
-        y0 = start.y;
-        x1 = end.x;
-        y1 = end.y;
-    } else {
-        x0 = end.x;
-        y0 = end.y;
-        x1 = start.x;
-        y1 = start.y;
-    }
+    const [start, end] = spanRangeNormalized(span);
+    const { x: x0, y: y0 } = start;
+    const { x: x1, y: y1 } = end;
 
     if (x < x0) {
         return [rescaleSpan(span, start, start), setMoveTo(span, false)];
@@ -258,22 +253,9 @@ export function splitSpanAtX(span: Span, x: number): [Span, Span] {
 
 export function clipSpanX(span: Span, x0: number, x1: number): Span {
     const { moveTo } = span;
-    const [start, end] = spanRange(span);
-    let spanX0: number;
-    let spanY0: number;
-    let spanX1: number;
-    let spanY1: number;
-    if (start.x < end.x) {
-        spanX0 = start.x;
-        spanY0 = start.y;
-        spanX1 = end.x;
-        spanY1 = end.y;
-    } else {
-        spanX0 = end.x;
-        spanY0 = end.y;
-        spanX1 = start.x;
-        spanY1 = start.y;
-    }
+    const [start, end] = spanRangeNormalized(span);
+    const { x: spanX0, y: spanY0 } = start;
+    const { x: spanX1, y: spanY1 } = end;
 
     if (x1 < spanX0) {
         return rescaleSpan(span, start, start);

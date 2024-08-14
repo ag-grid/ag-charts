@@ -1,7 +1,9 @@
-import type { Point } from '../../../scene/point';
+import { findLast } from '../../../util/array';
 import type { CartesianSeriesNodeDataContext } from './cartesianSeries';
-import { type Span, clipSpanX, collapseSpanToPoint, rescaleSpan, spanRange, splitSpanAtX } from './lineInterpolation';
+import { type Span, clipSpanX, rescaleSpan, spanRange } from './lineInterpolation';
 import { scale } from './lineUtil';
+
+type AxisValue = string | number;
 
 export interface SpanDatum {
     span: Span;
@@ -22,281 +24,277 @@ export interface SpanInterpolation {
     to: Span;
 }
 
-function closeCmp(a: number, b: number, delta = 1e-6): -1 | 0 | 1 {
-    if (a === b || 1 - Math.min(a, b) / Math.max(a, b) < delta) {
-        return 0;
-    } else if (a < b) {
-        return -1;
-    } else {
-        return 1;
+export interface SpanInterpolationResult {
+    removed: SpanInterpolation[];
+    moved: SpanInterpolation[];
+    added: SpanInterpolation[];
+}
+
+interface SpanIndices {
+    xValue0Index: number;
+    xValue1Index: number;
+    datumIndex: number;
+}
+
+function getAxisIndices({ data }: SpanContext, axisValues: any[]): SpanIndices[] {
+    return data.map((datum, datumIndex) => ({
+        xValue0Index: axisValues.indexOf(datum.xValue0.valueOf()),
+        xValue1Index: axisValues.indexOf(datum.xValue1.valueOf()),
+        datumIndex,
+    }));
+}
+
+function getAxisValues(newData: SpanContext, oldData: SpanContext) {
+    const allAxisValues = new Set<AxisValue>();
+    for (const { xValue0, xValue1 } of oldData.data) {
+        allAxisValues.add(xValue0.valueOf()).add(xValue1.valueOf());
     }
-}
-
-function closeMatch<T extends number | string>(a: T, b: T, delta?: number) {
-    if (a === b) {
-        return true;
+    for (const { xValue0, xValue1 } of newData.data) {
+        allAxisValues.add(xValue0.valueOf()).add(xValue1.valueOf());
     }
-    const an = Number(a);
-    const bn = Number(b);
-    return Number.isFinite(an) && Number.isFinite(bn) && closeCmp(an, bn, delta) === 0;
-}
+    const axisValues = Array.from(allAxisValues).sort((a, b) => {
+        const newScaleDiff = scale(a, newData.scales.x) - scale(b, newData.scales.x);
+        if (Number.isFinite(newScaleDiff)) return newScaleDiff;
+        const oldScaleDiff = scale(a, oldData.scales.x) - scale(b, oldData.scales.x);
+        if (Number.isFinite(oldScaleDiff)) return oldScaleDiff;
 
-interface SpanTransform {
-    unshifted: Span;
-    shifted: Span;
-}
-
-function transformSpans(spanData: SpanDatum[], { x: xScale, y: yScale }: CartesianSeriesNodeDataContext['scales']) {
-    let rangeSpanData: SpanDatum[] | undefined;
-    const interpolatingInvalidSpans: SpanTransform[] = [];
-
-    let shiftedXStart = Infinity;
-    let shiftedXEnd = -Infinity;
-
-    for (const spanDatum of spanData) {
-        const x0 = scale(spanDatum.xValue0, xScale);
-        const y0 = scale(spanDatum.yValue0, yScale);
-        const x1 = scale(spanDatum.xValue1, xScale);
-        const y1 = scale(spanDatum.yValue1, yScale);
-        const startIsFinite = Number.isFinite(x0);
-        const endIsFinite = Number.isFinite(x1);
-
-        if (startIsFinite && endIsFinite && rangeSpanData == null) {
-            const unshifted = spanDatum.span;
-            const shifted = rescaleSpan(unshifted, { x: x0, y: y0 }, { x: x1, y: y1 });
-            const spanTransform: SpanTransform = { unshifted, shifted };
-            shiftedXStart = Math.min(shiftedXStart, x0);
-            shiftedXEnd = Math.max(shiftedXEnd, x1);
-            interpolatingInvalidSpans.push(spanTransform);
-        } else if (startIsFinite && !endIsFinite && rangeSpanData == null) {
-            rangeSpanData = [spanDatum];
-        } else if (!startIsFinite && !endIsFinite && rangeSpanData != null) {
-            if (rangeSpanData != null) {
-                rangeSpanData.push(spanDatum);
+        // Not comparable - just use any consistent sorting
+        const aValue = a.valueOf();
+        const bValue = b.valueOf();
+        if (typeof aValue === 'string') {
+            if (typeof bValue === 'string') {
+                return aValue.localeCompare(bValue);
+            } else {
+                return -1;
             }
-        } else if (!startIsFinite && endIsFinite && rangeSpanData != null) {
-            rangeSpanData.push(spanDatum);
-
-            const startSpanDatum = rangeSpanData.at(0)!;
-            const endSpanDatum = rangeSpanData.at(-1)!;
-
-            const transformStart: Point = {
-                x: scale(startSpanDatum.xValue0, xScale),
-                y: scale(startSpanDatum.yValue0, yScale),
-            };
-            const transformEnd: Point = {
-                x: scale(endSpanDatum.xValue1, xScale),
-                y: scale(endSpanDatum.yValue1, yScale),
-            };
-
-            const step = (transformEnd.x - transformStart.x) / (rangeSpanData.length - 1);
-
-            for (let i = 0; i < rangeSpanData.length; i += 1) {
-                const { span: interpolatingUnshifted, yValue0, yValue1 } = rangeSpanData[i];
-
-                const interpolatingShifted = rescaleSpan(
-                    interpolatingUnshifted,
-                    { x: transformStart.x + step * (i + 0), y: scale(yValue0, yScale) },
-                    { x: transformStart.x + step * (i + 1), y: scale(yValue1, yScale) }
-                );
-                interpolatingInvalidSpans.push({ unshifted: interpolatingUnshifted, shifted: interpolatingShifted });
-            }
-
-            shiftedXStart = Math.min(shiftedXStart, transformStart.x);
-            shiftedXEnd = Math.max(shiftedXEnd, transformEnd.x);
-
-            rangeSpanData = undefined;
-        } else if (!startIsFinite && endIsFinite && rangeSpanData == null) {
-            // Removed category at start
-            const unshifted = spanDatum.span;
-            const shifted = rescaleSpan(unshifted, { x: x1, y: y0 }, { x: x1, y: y1 });
-            interpolatingInvalidSpans.push({ unshifted, shifted });
+        } else if (typeof bValue === 'string') {
+            return 1;
         } else {
-            // Invalid state
-            rangeSpanData = undefined;
+            return aValue - bValue;
         }
-    }
+    });
 
-    // Removed category at end
-    if (rangeSpanData != null) {
-        const startSpanDatum = rangeSpanData.at(0)!;
-        const x = scale(startSpanDatum.xValue0, xScale);
+    const oldDataAxisIndices = getAxisIndices(oldData, axisValues);
+    const newDataAxisIndices = getAxisIndices(newData, axisValues);
 
-        for (const { span: interpolatingUnshifted, yValue0, yValue1 } of rangeSpanData) {
-            const interpolatingShifted = rescaleSpan(
-                interpolatingUnshifted,
-                { x, y: scale(yValue0, yScale) },
-                { x, y: scale(yValue1, yScale) }
-            );
-            interpolatingInvalidSpans.push({ unshifted: interpolatingUnshifted, shifted: interpolatingShifted });
-        }
-    }
-
-    const shiftedXRange = [shiftedXStart, shiftedXEnd];
-
-    return { interpolatingInvalidSpans, shiftedXRange };
+    return { axisValues, oldDataAxisIndices, newDataAxisIndices };
 }
 
-export enum SplitMode {
-    Zero,
-    Divide,
+function clipSpan(span: Span, xValue0Index: number, xIndices: SpanIndices): Span {
+    if (xIndices.xValue1Index === xIndices.xValue0Index + 1) return span;
+
+    const range = spanRange(span);
+    const step = (range[1].x - range[0].x) / (xIndices.xValue1Index - xIndices.xValue0Index);
+    const start = range[0].x + (xValue0Index - xIndices.xValue0Index) * step;
+    const end = start + step;
+    return clipSpanX(span, start, end);
 }
 
-export function pairUpSpans(newData: SpanContext, oldData: SpanContext, splitMode: SplitMode) {
-    const oldSpans = transformSpans(oldData.data, newData.scales);
-    const newSpans = transformSpans(newData.data, oldData.scales);
-
-    const [oldRangeStartNewScale, oldRangeEndNewScale] = oldSpans.shiftedXRange;
-    const [newRangeStartOldScale, newRangeEndOldScale] = newSpans.shiftedXRange;
-
-    const removed: SpanInterpolation[] = [];
-    const moved: SpanInterpolation[] = [];
-    for (const oldSpanDatum of oldSpans.interpolatingInvalidSpans) {
-        const oldSpanOldScale = oldSpanDatum.unshifted;
-        const oldSpanNewScale = oldSpanDatum.shifted;
-        const [{ x: fromStartOldScale, y: fromStartOldScaleY }, { x: fromEndOldScale, y: fromEndOldScaleY }] =
-            spanRange(oldSpanOldScale);
-
-        let hasCorrespondingSpan = false;
-        for (const newSpanDatum of newSpans.interpolatingInvalidSpans) {
-            const newSpanOldScale = newSpanDatum.shifted;
-            const newSpanNewScale = newSpanDatum.unshifted;
-
-            const [{ x: toStartOldScale }, { x: toEndOldScale }] = spanRange(newSpanOldScale);
-
-            if (closeCmp(fromStartOldScale, toEndOldScale) !== -1 || closeCmp(fromEndOldScale, toStartOldScale) !== 1) {
-                // No intersection
-                continue;
-            }
-
-            if (closeMatch(fromStartOldScale, toStartOldScale) && closeMatch(fromEndOldScale, toEndOldScale)) {
-                // Exact overlap
-                removed.push({ from: oldSpanOldScale, to: oldSpanOldScale });
-                moved.push({ from: oldSpanOldScale, to: newSpanNewScale });
-            } else if (fromStartOldScale <= toStartOldScale && fromEndOldScale >= toEndOldScale) {
-                removed.push({ from: oldSpanOldScale, to: oldSpanOldScale });
-                moved.push({ from: oldSpanOldScale, to: oldSpanNewScale });
-            } else {
-                // Overlap on left or right
-                const [{ x: fromStartNewScale }, { x: fromEndNewScale }] = spanRange(oldSpanNewScale);
-                const [{ x: toStartNewScale }, { x: toEndNewScale }] = spanRange(newSpanNewScale);
-
-                const xRangeStartOldScale = Math.max(fromStartOldScale, toStartOldScale);
-                const xRangeEndOldScale = Math.min(fromEndOldScale, toEndOldScale);
-                const clippedOldSpanOldScale = clipSpanX(oldSpanOldScale, xRangeStartOldScale, xRangeEndOldScale);
-                const clippedNewSpanOldScale = clipSpanX(newSpanOldScale, xRangeStartOldScale, xRangeEndOldScale);
-
-                const xRangeStartNewScale = Math.max(fromStartNewScale, toStartNewScale);
-                const xRangeEndNewScale = Math.min(fromEndNewScale, toEndNewScale);
-                const clippedNewSpanNewScale = clipSpanX(newSpanNewScale, xRangeStartNewScale, xRangeEndNewScale);
-
-                removed.push({ from: clippedOldSpanOldScale, to: clippedNewSpanOldScale });
-                moved.push({ from: clippedNewSpanOldScale, to: clippedNewSpanNewScale });
-            }
-
-            hasCorrespondingSpan = true;
-        }
-
-        if (hasCorrespondingSpan) continue;
-
-        if (closeCmp(fromEndOldScale, newRangeStartOldScale) !== 1) {
-            removed.push({
-                from: oldSpanOldScale,
-                to: rescaleSpan(
-                    oldSpanOldScale,
-                    { x: newRangeStartOldScale, y: fromStartOldScaleY },
-                    { x: newRangeStartOldScale, y: fromEndOldScaleY }
-                ),
-            });
-        } else if (closeCmp(fromStartOldScale, newRangeEndOldScale) !== -1) {
-            removed.push({
-                from: oldSpanOldScale,
-                to: rescaleSpan(
-                    oldSpanOldScale,
-                    { x: newRangeEndOldScale, y: fromStartOldScaleY },
-                    { x: newRangeEndOldScale, y: fromEndOldScaleY }
-                ),
-            });
-        } else if (splitMode === SplitMode.Zero) {
-            const y = scale(0, oldData.scales.y);
-            removed.push({
-                from: oldSpanOldScale,
-                to: rescaleSpan(oldSpanOldScale, { x: fromStartOldScale, y }, { x: fromEndOldScale, y }),
-            });
-        } else if (splitMode === SplitMode.Divide) {
-            const [left, right] = splitSpanAtX(oldSpanOldScale, (fromStartOldScale + fromEndOldScale) / 2);
-            removed.push(
-                { from: left, to: collapseSpanToPoint(left, { x: fromStartOldScale, y: fromStartOldScaleY }) },
-                { from: right, to: collapseSpanToPoint(right, { x: fromEndOldScale, y: fromEndOldScaleY }) }
-            );
-        }
+function collapseSpan(
+    span: Span,
+    data: SpanContext,
+    axisIndices: SpanIndices[],
+    indices: SpanIndices,
+    range: Pick<SpanIndices, 'xValue0Index' | 'xValue1Index'>
+) {
+    let xValue: any;
+    let yValue: any;
+    if (indices.xValue0Index >= range.xValue1Index) {
+        const datumIndex = findLast(axisIndices, (i) => i.xValue1Index <= range.xValue1Index)!.datumIndex;
+        const datum = data.data[datumIndex];
+        xValue = datum.xValue1;
+        yValue = datum.yValue1;
+    } else if (indices.xValue0Index <= range.xValue0Index) {
+        const datumIndex = axisIndices.find((i) => i.xValue0Index >= range.xValue0Index)!.datumIndex;
+        const datum = data.data[datumIndex];
+        xValue = datum.xValue0;
+        yValue = datum.yValue0;
+    } else {
+        const [r0, r1] = spanRange(span);
+        const y0 = scale(0, data.scales.y);
+        return rescaleSpan(span, { x: r0.x, y: y0 }, { x: r1.x, y: y0 });
     }
 
-    const added: SpanInterpolation[] = [];
-    for (const newSpanDatum of newData.data) {
-        const newSpanNewScale = newSpanDatum.span;
-        const [{ x: toStartNewScale, y: toStartNewScaleY }, { x: toEndNewScale, y: toEndNewScaleY }] =
-            spanRange(newSpanNewScale);
+    const x = scale(xValue, data.scales.x);
+    const y = scale(yValue, data.scales.y);
+    const point = { x, y };
 
-        let hasCorrespondingSpan = false;
-        for (const oldSpanDatum of oldSpans.interpolatingInvalidSpans) {
-            const oldSpanNewScale = oldSpanDatum.shifted;
-            const [{ x: fromStartNewScale }, { x: fromEndNewScale }] = spanRange(oldSpanNewScale);
+    return rescaleSpan(span, point, point);
+}
 
-            if (closeCmp(fromStartNewScale, toEndNewScale) !== -1 || closeCmp(fromEndNewScale, toStartNewScale) !== 1) {
-                // No intersection
-                continue;
-            }
+function addSpan(
+    newData: SpanContext,
+    newAxisIndices: SpanIndices[],
+    newIndices: SpanIndices,
+    range: Pick<SpanIndices, 'xValue0Index' | 'xValue1Index'>,
+    out: SpanInterpolationResult
+) {
+    const newSpan = newData.data[newIndices.datumIndex].span;
 
-            if (closeMatch(fromStartNewScale, toStartNewScale) && closeMatch(fromEndNewScale, toEndNewScale)) {
-                // Exact overlap (handled in move phase)
-                added.push({ from: newSpanNewScale, to: newSpanNewScale });
-            } else if (fromStartNewScale <= toStartNewScale && fromEndNewScale >= toEndNewScale) {
-                // Complete overlap
-                const clippedOldSpanNewScale = clipSpanX(oldSpanNewScale, toStartNewScale, toEndNewScale);
-                added.push({ from: clippedOldSpanNewScale, to: newSpanNewScale });
-            } else {
-                // Any overlap (handled in removed phase)
-                added.push({ from: newSpanNewScale, to: newSpanNewScale });
-            }
+    out.added.push({
+        from: collapseSpan(newSpan, newData, newAxisIndices, newIndices, range),
+        to: newSpan,
+    });
+}
 
-            hasCorrespondingSpan = true;
-        }
+function removeSpan(
+    oldData: SpanContext,
+    oldAxisIndices: SpanIndices[],
+    oldIndices: SpanIndices,
+    range: Pick<SpanIndices, 'xValue0Index' | 'xValue1Index'>,
+    out: SpanInterpolationResult
+) {
+    const oldSpan = oldData.data[oldIndices.datumIndex].span;
 
-        if (hasCorrespondingSpan) continue;
+    out.removed.push({
+        from: oldSpan,
+        to: collapseSpan(oldSpan, oldData, oldAxisIndices, oldIndices, range),
+    });
+}
 
-        if (closeCmp(toEndNewScale, oldRangeStartNewScale) !== 1) {
-            added.push({
-                from: rescaleSpan(
-                    newSpanNewScale,
-                    { x: oldRangeStartNewScale, y: toStartNewScaleY },
-                    { x: oldRangeStartNewScale, y: toEndNewScaleY }
-                ),
-                to: newSpanNewScale,
-            });
-        } else if (closeCmp(toStartNewScale, oldRangeEndNewScale) !== -1) {
-            added.push({
-                from: rescaleSpan(
-                    newSpanNewScale,
-                    { x: oldRangeEndNewScale, y: toStartNewScaleY },
-                    { x: oldRangeEndNewScale, y: toEndNewScaleY }
-                ),
-                to: newSpanNewScale,
-            });
-        } else if (splitMode === SplitMode.Zero) {
-            const y = scale(0, newData.scales.y);
-            added.push({
-                from: rescaleSpan(newSpanNewScale, { x: toStartNewScale, y }, { x: toEndNewScale, y }),
-                to: newSpanNewScale,
-            });
-        } else if (splitMode === SplitMode.Divide) {
-            const [left, right] = splitSpanAtX(newSpanNewScale, (toStartNewScale + toEndNewScale) / 2);
-            added.push(
-                { from: collapseSpanToPoint(left, { x: toStartNewScale, y: toStartNewScaleY }), to: newSpanNewScale },
-                { from: collapseSpanToPoint(right, { x: toEndNewScale, y: toEndNewScaleY }), to: newSpanNewScale }
-            );
-        }
+function alignSpanToContainingSpan(
+    span: Span,
+    axisValues: AxisValue[],
+    preData: SpanContext,
+    postData: SpanContext,
+    postSpanIndices: SpanIndices
+) {
+    const startXValue0 = axisValues[postSpanIndices.xValue0Index];
+    const startDatum = preData.data.find((spanDatum) => spanDatum.xValue0.valueOf() === startXValue0);
+    const endXValue1 = axisValues[postSpanIndices.xValue1Index];
+    const endDatum = preData.data.find((spanDatum) => spanDatum.xValue1.valueOf() === endXValue1);
+
+    if (startDatum == null || endDatum == null) return;
+
+    const [{ x: x0 }, { x: x1 }] = spanRange(span);
+
+    const startX = scale(startDatum.xValue0, preData.scales.x);
+    const startY = scale(startDatum.yValue0, preData.scales.y);
+    const endX = scale(endDatum.xValue1, preData.scales.x);
+    const endY = scale(endDatum.yValue1, preData.scales.y);
+
+    let altSpan = postData.data[postSpanIndices.datumIndex].span;
+    altSpan = rescaleSpan(altSpan, { x: startX, y: startY }, { x: endX, y: endY });
+    altSpan = clipSpanX(altSpan, x0, x1);
+
+    return altSpan;
+}
+
+function appendSpanPhases(
+    newData: SpanContext,
+    oldData: SpanContext,
+    axisValues: AxisValue[],
+    xValue0Index: number,
+    newAxisIndices: SpanIndices[],
+    oldAxisIndices: SpanIndices[],
+    range: Pick<SpanIndices, 'xValue0Index' | 'xValue1Index'>,
+    out: SpanInterpolationResult
+) {
+    const xValue1Index = xValue0Index + 1;
+
+    const oldIndices = oldAxisIndices.find((i) => i.xValue0Index <= xValue0Index && i.xValue1Index >= xValue1Index);
+    const newIndices = newAxisIndices.find((i) => i.xValue0Index <= xValue0Index && i.xValue1Index >= xValue1Index);
+
+    if (oldIndices == null && newIndices != null) {
+        addSpan(newData, newAxisIndices, newIndices, range, out);
+        return;
+    } else if (oldIndices != null && newIndices == null) {
+        removeSpan(oldData, oldAxisIndices, oldIndices, range, out);
+        return;
+    } else if (oldIndices == null || newIndices == null) {
+        return;
     }
 
-    return { added, moved, removed };
+    let ordering: 0 | 1 | -1;
+    if (oldIndices.xValue0Index === newIndices.xValue0Index && oldIndices.xValue1Index === newIndices.xValue1Index) {
+        // Ranges are equal
+        ordering = 0;
+    } else if (
+        oldIndices.xValue0Index <= newIndices.xValue0Index &&
+        oldIndices.xValue1Index >= newIndices.xValue1Index
+    ) {
+        // Old range contains new range
+        ordering = -1;
+    } else if (
+        oldIndices.xValue0Index >= newIndices.xValue0Index &&
+        oldIndices.xValue1Index <= newIndices.xValue1Index
+    ) {
+        // New range contains old range
+        ordering = 1;
+    } else {
+        // Ranges overlap, but no ordering
+        ordering = 0;
+    }
+
+    const oldSpanDatum = oldData.data[oldIndices.datumIndex];
+    const clippedOldSpanOldScale = clipSpan(oldSpanDatum.span, xValue0Index, oldIndices);
+
+    const newSpanDatum = newData.data[newIndices.datumIndex];
+    const clippedNewSpanNewScale = clipSpan(newSpanDatum.span, xValue0Index, newIndices);
+
+    if (ordering === 1) {
+        // Removed
+        const clippedPostRemoveOldSpanOldScale = alignSpanToContainingSpan(
+            clippedOldSpanOldScale,
+            axisValues,
+            oldData,
+            newData,
+            newIndices
+        );
+        if (clippedPostRemoveOldSpanOldScale != null) {
+            out.removed.push({ from: clippedOldSpanOldScale, to: clippedPostRemoveOldSpanOldScale });
+            out.moved.push({ from: clippedPostRemoveOldSpanOldScale, to: clippedNewSpanNewScale });
+            out.added.push({ from: clippedNewSpanNewScale, to: clippedNewSpanNewScale });
+        } else {
+            removeSpan(oldData, oldAxisIndices, oldIndices, range, out);
+        }
+    } else if (ordering === -1) {
+        // Added
+        const clippedPreAddedNewSpanNewScale = alignSpanToContainingSpan(
+            clippedNewSpanNewScale,
+            axisValues,
+            newData,
+            oldData,
+            oldIndices
+        );
+        if (clippedPreAddedNewSpanNewScale != null) {
+            out.removed.push({ from: clippedOldSpanOldScale, to: clippedOldSpanOldScale });
+            out.moved.push({ from: clippedOldSpanOldScale, to: clippedPreAddedNewSpanNewScale });
+            out.added.push({ from: clippedPreAddedNewSpanNewScale, to: clippedNewSpanNewScale });
+        } else {
+            addSpan(newData, newAxisIndices, newIndices, range, out);
+        }
+    } else {
+        // Updated
+        out.removed.push({ from: clippedOldSpanOldScale, to: clippedOldSpanOldScale });
+        out.moved.push({ from: clippedOldSpanOldScale, to: clippedNewSpanNewScale });
+        out.added.push({ from: clippedNewSpanNewScale, to: clippedNewSpanNewScale });
+    }
+}
+
+export function pairUpSpans(newData: SpanContext, oldData: SpanContext) {
+    const { axisValues, oldDataAxisIndices, newDataAxisIndices } = getAxisValues(newData, oldData);
+    const range = {
+        xValue0Index: Math.max(oldDataAxisIndices[0].xValue0Index, newDataAxisIndices[0].xValue0Index),
+        xValue1Index: Math.min(oldDataAxisIndices.at(-1)!.xValue1Index, newDataAxisIndices.at(-1)!.xValue1Index),
+    };
+    const out: SpanInterpolationResult = {
+        removed: [],
+        moved: [],
+        added: [],
+    };
+    for (let xValue0Index = 0; xValue0Index < axisValues.length - 1; xValue0Index += 1) {
+        appendSpanPhases(
+            newData,
+            oldData,
+            axisValues,
+            xValue0Index,
+            newDataAxisIndices,
+            oldDataAxisIndices,
+            range,
+            out
+        );
+    }
+
+    return out;
 }
