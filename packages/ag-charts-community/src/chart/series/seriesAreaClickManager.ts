@@ -34,7 +34,7 @@ export class SeriesAreaClickManager extends BaseManager {
         this.destroyFns.push(
             this.ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
             this.ctx.regionManager.listenAll('dblclick', (event) => this.onClick(event)),
-            this.ctx.layoutService.on('layout-complete', (event) => this.layoutComplete(event)),
+            this.ctx.layoutService.addListener('layout:complete', (event) => this.layoutComplete(event)),
             seriesRegion.addListener('hover', (event) => this.onHover(event)),
             seriesRegion.addListener('leave', () => this.onLeave()),
             horizontalAxesRegion.addListener('leave', () => this.onLeave()),

@@ -28,6 +28,7 @@ import {
     PALETTE_UP_STROKE,
 } from '../../chart/themes/symbols';
 import { Logger } from '../../util/logger';
+import { mergeDefaults } from '../../util/object';
 import { isObject } from '../../util/type-guards';
 
 function fromTheme<T>(
@@ -164,21 +165,24 @@ export function priceVolume(
         : [];
 
     return {
-        theme:
-            typeof theme === 'string'
-                ? theme
-                : {
-                      baseTheme: 'ag-financial' as AgChartThemeName,
-                      ...(theme ?? {}),
-                  },
+        theme: {
+            baseTheme: typeof theme === 'string' ? theme : ('ag-financial' as AgChartThemeName),
+            ...mergeDefaults(typeof theme === 'object' ? theme : null, {
+                overrides: {
+                    common: {
+                        title: { padding: 4 },
+                        padding: {
+                            top: 6,
+                            right: 8,
+                            bottom: 5,
+                        },
+                    },
+                },
+            }),
+        },
         animation: { enabled: false },
         legend: { enabled: false },
         series: [...volumeSeries, ...priceSeries],
-        padding: {
-            top: 6,
-            right: 8,
-            bottom: 5,
-        },
         axes: [
             {
                 type: 'number',
@@ -222,8 +226,6 @@ export function priceVolume(
         },
         tooltip: { enabled: false },
         data,
-        // @ts-expect-error
-        titlePadding: 4,
         ...navigatorOpts,
         ...statusBarOpts,
         ...zoomOpts,

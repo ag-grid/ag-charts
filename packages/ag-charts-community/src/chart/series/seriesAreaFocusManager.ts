@@ -39,7 +39,7 @@ export class SeriesAreaFocusManager extends BaseManager {
         super();
 
         this.destroyFns.push(
-            this.ctx.layoutService.on('layout-complete', (event) => this.layoutComplete(event)),
+            this.ctx.layoutService.addListener('layout:complete', (event) => this.layoutComplete(event)),
             this.ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
             this.ctx.keyNavManager.addListener('blur', () => this.onBlur()),
             this.ctx.keyNavManager.addListener('focus', (event) => this.onFocus(event)),

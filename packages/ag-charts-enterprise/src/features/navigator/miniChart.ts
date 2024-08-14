@@ -187,8 +187,8 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
         }
     }
 
-    async updateData(opts: { data: any }) {
-        this.series.forEach((s) => s.setChartData(opts.data));
+    updateData(data: any) {
+        this.series.forEach((s) => s.setChartData(data));
         if (this.miniChartAnimationPhase === 'initial') {
             this.ctx.animationManager.onBatchStop(() => {
                 this.miniChartAnimationPhase = 'ready';
@@ -198,14 +198,12 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
         }
     }
 
-    async processData(opts: { dataController: _ModuleSupport.DataController }) {
+    async processData(dataController: _ModuleSupport.DataController) {
         if (this.series.some((s) => s.canHaveAxes)) {
             this.assignAxesToSeries();
             this.assignSeriesToAxes();
         }
-
-        const seriesPromises = this.series.map((s) => s.processData(opts.dataController));
-        await Promise.all(seriesPromises);
+        await Promise.all(this.series.map((s) => s.processData(dataController)));
     }
 
     computeAxisPadding() {
@@ -240,27 +238,17 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     async layout(width: number, height: number) {
         const { padding } = this;
-
         const animated = this.seriesRect != null;
-
         const seriesRect = new BBox(0, 0, width, height - (padding.top + padding.bottom));
-        this.seriesRect = seriesRect;
 
+        this.seriesRect = seriesRect;
         this.seriesRoot.translationY = padding.top;
         this.seriesRoot.setClipRectInGroupCoordinateSpace(
             this.seriesRoot.inverseTransformBBox(new BBox(0, -padding.top, width, height))
         );
 
-        const axisLeftRightRange = (axis: _ModuleSupport.ChartAxis): [number, number] => {
-            if (axis instanceof CategoryAxis || axis instanceof GroupedCategoryAxis) {
-                return [0, seriesRect.height];
-            }
-            return [seriesRect.height, 0];
-        };
-
         this.axes.forEach((axis) => {
             const { position = 'left' } = axis;
-
             switch (position) {
                 case 'top':
                 case 'bottom':
@@ -269,32 +257,24 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
                     break;
                 case 'right':
                 case 'left':
-                    axis.range = axisLeftRightRange(axis);
+                    const isCategoryAxis = axis instanceof CategoryAxis || axis instanceof GroupedCategoryAxis;
+                    axis.range = isCategoryAxis ? [0, seriesRect.height] : [seriesRect.height, 0];
                     axis.gridLength = seriesRect.width;
                     break;
             }
 
-            switch (position) {
-                case 'top':
-                case 'left':
-                    axis.translation.x = 0;
-                    axis.translation.y = 0;
-                    break;
-                case 'bottom':
-                    axis.translation.x = 0;
-                    axis.translation.y = height;
-                    break;
-                case 'right':
-                    axis.translation.x = width;
-                    axis.translation.y = 0;
-                    break;
-            }
-
             axis.gridPadding = 0;
+            axis.translation.x = 0;
+            axis.translation.y = 0;
+
+            if (position === 'right') {
+                axis.translation.x = width;
+            } else if (position === 'bottom') {
+                axis.translation.y = height;
+            }
 
             axis.calculateLayout();
             axis.updatePosition();
-
             axis.update(undefined, animated);
         });
 

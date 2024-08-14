@@ -1,12 +1,12 @@
 import { AG_CHARTS_LOCALE_EN_US } from 'ag-charts-locale';
-import type { MessageFormatter } from 'ag-charts-types';
+import type { Formatter, MessageFormatterParams } from 'ag-charts-types';
 
 import { Listeners } from '../../util/listeners';
 import { defaultMessageFormatter } from './defaultMessageFormatter';
 
 export class LocaleManager extends Listeners<'locale-changed', () => void> {
     private localeText: Record<string, string> | undefined = undefined;
-    private getLocaleText: MessageFormatter | undefined = undefined;
+    private getLocaleText: Formatter<MessageFormatterParams> | undefined = undefined;
 
     setLocaleText(localeText: Record<string, string> | undefined) {
         if (this.localeText !== localeText) {
@@ -15,7 +15,7 @@ export class LocaleManager extends Listeners<'locale-changed', () => void> {
         }
     }
 
-    setLocaleTextFormatter(getLocaleText: MessageFormatter | undefined) {
+    setLocaleTextFormatter(getLocaleText: Formatter<MessageFormatterParams> | undefined) {
         this.getLocaleText = getLocaleText;
         if (this.getLocaleText !== getLocaleText) {
             this.getLocaleText = getLocaleText;

@@ -1,8 +1,8 @@
-import type { LayoutContext } from '../../module/baseModule';
+import type { LayoutContext as ILayoutContext } from '../../module/baseModule';
 import type { Scale } from '../../scale/scale';
-import type { BBox } from '../../scene/bbox';
-import { EventEmitter } from '../../util/eventEmitter';
-import type { TimeInterval } from '../../util/time/interval';
+import { BBox } from '../../scene/bbox';
+import { EventEmitter, type EventListener } from '../../util/eventEmitter';
+import type { TimeInterval } from '../../util/time';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 
 export interface AxisLayout {
@@ -22,7 +22,7 @@ export interface AxisLayout {
 }
 
 export interface LayoutCompleteEvent {
-    type: 'layout-complete';
+    type: 'layout:complete';
     chart: { width: number; height: number };
     series: { rect: BBox; paddedRect: BBox; visible: boolean; shouldFlipXY?: boolean };
     clipSeries: boolean;
@@ -35,21 +35,44 @@ export interface LayoutState {
     series: { visible: boolean; rect: BBox; paddedRect: BBox; shouldFlipXY?: boolean };
 }
 
-interface LayoutEventMap {
-    'start-layout': LayoutContext;
-    'before-series': LayoutContext;
-    'layout-complete': LayoutCompleteEvent;
+interface EventMap {
+    'layout:start': LayoutContext;
+    'layout:complete': LayoutCompleteEvent;
 }
 
-export class LayoutService extends EventEmitter<LayoutEventMap> {
-    setLayout(width: number, height: number, state: LayoutState) {
-        const eventType = 'layout-complete';
-        this.emit(eventType, {
+export class LayoutService {
+    private readonly events = new EventEmitter<EventMap>();
+
+    addListener<K extends keyof EventMap>(eventName: K, listener: EventListener<EventMap[K]>) {
+        return this.events.on(eventName, listener);
+    }
+
+    createContext(width: number, height: number): LayoutContext {
+        const context = new LayoutContext(width, height);
+        this.events.emit('layout:start', context);
+        return context;
+    }
+
+    emitLayoutComplete(context: LayoutContext, options: LayoutState) {
+        const eventType = 'layout:complete';
+        const { width, height } = context;
+        this.events.emit(eventType, {
             type: eventType,
+            axes: options.axes ?? [],
             chart: { width, height },
-            axes: state.axes ?? [],
-            clipSeries: state.clipSeries ?? false,
-            series: state.series,
+            clipSeries: options.clipSeries ?? false,
+            series: options.series,
         });
+    }
+}
+
+class LayoutContext implements ILayoutContext {
+    readonly layoutBox: BBox;
+
+    constructor(
+        public readonly width: number,
+        public readonly height: number
+    ) {
+        this.layoutBox = new BBox(0, 0, width, height);
     }
 }

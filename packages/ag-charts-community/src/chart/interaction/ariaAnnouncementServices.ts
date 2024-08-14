@@ -26,7 +26,7 @@ export class AriaAnnouncementService {
         this.liveElem = AriaAnnouncementService.createAnnouncer();
         this.domManager.addChild('canvas-proxy', 'ag-charts-canvas-proxy', this.liveElem);
         this.destroyFns.push(
-            this.layoutService.on('layout-complete', (ev) => this.onResize(ev)),
+            this.layoutService.addListener('layout:complete', (ev) => this.onResize(ev)),
             () => this.domManager.removeChild('canvas-proxy', 'ag-charts-canvas-proxy')
         );
     }

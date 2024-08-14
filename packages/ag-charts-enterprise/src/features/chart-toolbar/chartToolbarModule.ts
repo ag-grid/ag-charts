@@ -7,9 +7,5 @@ export const ChartToolbarModule: _ModuleSupport.Module = {
     optionsKey: 'chartToolbar',
     packageType: 'enterprise',
     chartTypes: ['cartesian'],
-    dependencies: ['toolbar'],
     moduleFactory: (ctx) => new ChartToolbar(ctx),
-    themeTemplate: {
-        chartToolbar: {},
-    },
 };

@@ -1,8 +1,7 @@
 import type { TextAlign } from 'ag-charts-types';
 
 import type { LayoutContext } from '../../module/baseModule';
-import { Text } from '../../scene/shape/text';
-import { Logger } from '../../util/logger';
+import { TextUtils } from '../../util/textMeasurer';
 import { Caption } from '../caption';
 import type { LayoutCompleteEvent, LayoutService } from '../layout/layoutService';
 import type { ChartLike, UpdateProcessor } from './processor';
@@ -15,10 +14,8 @@ export class BaseLayoutProcessor implements UpdateProcessor {
         private readonly layoutService: LayoutService
     ) {
         this.destroyFns.push(
-            // eslint-disable-next-line sonarjs/no-duplicate-string
-            this.layoutService.on('start-layout', (e) => this.positionPadding(e)),
-            this.layoutService.on('layout-complete', (e) => this.alignCaptions(e)),
-            this.layoutService.on('start-layout', (e) => this.positionCaptions(e))
+            this.layoutService.addListener('layout:start', (e) => this.positionCaptions(e)),
+            this.layoutService.addListener('layout:complete', (e) => this.alignCaptions(e))
         );
     }
 
@@ -26,73 +23,56 @@ export class BaseLayoutProcessor implements UpdateProcessor {
         this.destroyFns.forEach((cb) => cb());
     }
 
-    private positionPadding(ctx: LayoutContext) {
-        const { padding } = this.chartLike;
-
-        ctx.shrinkRect.shrink(padding.left, 'left');
-        ctx.shrinkRect.shrink(padding.top, 'top');
-        ctx.shrinkRect.shrink(padding.right, 'right');
-        ctx.shrinkRect.shrink(padding.bottom, 'bottom');
-    }
-
     private positionCaptions(ctx: LayoutContext) {
-        const { shrinkRect, positions, padding } = ctx;
-        const { title, subtitle, footnote, titlePadding } = this.chartLike;
-        const paddedShrinkRect = shrinkRect.clone().shrink(titlePadding);
-        const { width, height } = shrinkRect;
+        const { title, subtitle, footnote } = this.chartLike;
+        const { layoutBox } = ctx;
+
+        // Apply chart padding
+        layoutBox.shrink(this.chartLike.padding.toJson());
+
+        const defaultCaptionHeight = layoutBox.height / 10;
 
         const updateCaption = (caption: Caption) => {
-            const defaultCaptionHeight = height / 10;
-            const captionLineHeight = caption.lineHeight ?? caption.fontSize * Text.defaultLineHeightRatio;
+            const captionLineHeight = TextUtils.getLineHeight(caption.fontSize);
             const maxHeight = Math.max(captionLineHeight, defaultCaptionHeight);
-            caption.computeTextWrap(width, maxHeight);
+            caption.computeTextWrap(layoutBox.width, maxHeight);
         };
 
         const computeX = (align: TextAlign): number => {
             if (align === 'left') {
-                return paddedShrinkRect.x;
+                return layoutBox.x;
             } else if (align === 'right') {
-                return paddedShrinkRect.x + paddedShrinkRect.width;
-            } else if (align !== 'center') {
-                Logger.error(`invalid textAlign value: ${align}`);
+                return layoutBox.x + layoutBox.width;
             }
-            return paddedShrinkRect.x + paddedShrinkRect.width / 2;
+            return layoutBox.x + layoutBox.width / 2;
         };
 
         const positionTopAndShrinkBBox = (caption: Caption, spacing: number) => {
-            const baseY = paddedShrinkRect.y;
-            caption.node.x = computeX(caption.textAlign);
-            caption.node.y = baseY;
+            const baseY = layoutBox.y;
+            caption.node.x = computeX(caption.textAlign) + caption.padding;
+            caption.node.y = baseY + caption.padding;
             caption.node.textBaseline = 'top';
             updateCaption(caption);
-            const bbox = caption.node.getBBox();
 
             // As the bbox (x,y) ends up at a different location than specified above, we need to
             // take it into consideration when calculating how much space needs to be reserved to
             // accommodate the caption.
-            const bboxHeight = Math.ceil(bbox.y - baseY + bbox.height + spacing);
-
             if (caption.layoutStyle === 'block') {
-                shrinkRect.shrink(bboxHeight + 2 * titlePadding, 'top');
-                paddedShrinkRect.shrink(bboxHeight, 'top');
+                const bbox = caption.node.getBBox();
+                layoutBox.shrink(Math.ceil(bbox.y - baseY + bbox.height + spacing), 'top');
             }
-            return bbox;
         };
         const positionBottomAndShrinkBBox = (caption: Caption, spacing: number) => {
-            const baseY = paddedShrinkRect.y + paddedShrinkRect.height;
-            caption.node.x = computeX(caption.textAlign);
-            caption.node.y = baseY;
+            const baseY = layoutBox.y + layoutBox.height;
+            caption.node.x = computeX(caption.textAlign) + caption.padding;
+            caption.node.y = baseY + caption.padding;
             caption.node.textBaseline = 'bottom';
             updateCaption(caption);
-            const bbox = caption.node.getBBox();
-
-            const bboxHeight = Math.ceil(baseY - bbox.y + spacing);
 
             if (caption.layoutStyle === 'block') {
-                shrinkRect.shrink(bboxHeight + 2 * titlePadding, 'bottom');
-                paddedShrinkRect.shrink(bboxHeight, 'bottom');
+                const bbox = caption.node.getBBox();
+                layoutBox.shrink(Math.ceil(baseY - bbox.y + spacing), 'bottom');
             }
-            return bbox;
         };
 
         title.node.visible = title.enabled;
@@ -101,32 +81,30 @@ export class BaseLayoutProcessor implements UpdateProcessor {
 
         if (title.enabled) {
             const { spacing = subtitle.enabled ? Caption.SMALL_PADDING : Caption.LARGE_PADDING } = title;
-            positions.title = positionTopAndShrinkBBox(title, spacing);
+            positionTopAndShrinkBBox(title, spacing);
         }
 
         if (subtitle.enabled) {
-            positions.subtitle = positionTopAndShrinkBBox(subtitle, subtitle.spacing ?? 0);
+            positionTopAndShrinkBBox(subtitle, subtitle.spacing ?? 0);
         }
 
         if (footnote.enabled) {
-            positions.footnote = positionBottomAndShrinkBBox(footnote, footnote.spacing ?? 0);
+            positionBottomAndShrinkBBox(footnote, footnote.spacing ?? 0);
         }
-
-        padding.title = titlePadding;
     }
 
     alignCaptions(ctx: LayoutCompleteEvent): void {
         const { rect } = ctx.series;
-        const { title, subtitle, footnote, titlePadding } = this.chartLike;
+        const { title, subtitle, footnote } = this.chartLike;
 
         for (const caption of [title, subtitle, footnote]) {
             if (caption.layoutStyle !== 'overlay') continue;
 
             if (caption.textAlign === 'left') {
-                caption.node.x = rect.x + titlePadding;
+                caption.node.x = rect.x + caption.padding;
             } else if (caption.textAlign === 'right') {
                 const bbox = caption.node.getBBox();
-                caption.node.x = rect.x + rect.width - bbox.width - titlePadding;
+                caption.node.x = rect.x + rect.width - bbox.width - caption.padding;
             }
         }
     }

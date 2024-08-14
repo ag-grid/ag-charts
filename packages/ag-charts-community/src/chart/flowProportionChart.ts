@@ -1,5 +1,6 @@
 import type { AgFlowProportionChartOptions } from 'ag-charts-types';
 
+import type { LayoutContext } from '../module/baseModule';
 import { BBox } from '../scene/bbox';
 import { Chart } from './chart';
 import type { FlowProportionSeries } from './series/flowProportionSeries';
@@ -28,9 +29,10 @@ export class FlowProportionChart extends Chart {
         });
     }
 
-    override async performLayout() {
-        const shrinkRect = await super.performLayout();
-
+    override async performLayout(ctx: LayoutContext) {
+        const { layoutBox } = ctx;
+        const seriesVisible = this.series.some((s) => s.visible);
+        const fullSeriesRect = layoutBox.clone();
         const {
             seriesArea: { padding },
             seriesRoot,
@@ -38,30 +40,25 @@ export class FlowProportionChart extends Chart {
             highlightRoot,
         } = this;
 
-        const fullSeriesRect = shrinkRect.clone();
-        shrinkRect.shrink(padding.left, 'left');
-        shrinkRect.shrink(padding.top, 'top');
-        shrinkRect.shrink(padding.right, 'right');
-        shrinkRect.shrink(padding.bottom, 'bottom');
+        layoutBox.shrink(padding.left, 'left');
+        layoutBox.shrink(padding.top, 'top');
+        layoutBox.shrink(padding.right, 'right');
+        layoutBox.shrink(padding.bottom, 'bottom');
 
-        this.seriesRect = shrinkRect;
-        this.animationRect = shrinkRect;
+        this.seriesRect = layoutBox;
+        this.animationRect = layoutBox;
 
-        const seriesVisible = this.series.some((s) => s.visible);
         seriesRoot.visible = seriesVisible;
         for (const group of [seriesRoot, annotationRoot, highlightRoot]) {
-            group.translationX = Math.floor(shrinkRect.x);
-            group.translationY = Math.floor(shrinkRect.y);
+            group.translationX = Math.floor(layoutBox.x);
+            group.translationY = Math.floor(layoutBox.y);
             group.setClipRectInGroupCoordinateSpace(
                 new BBox(fullSeriesRect.x, fullSeriesRect.y, fullSeriesRect.width, fullSeriesRect.height)
             );
         }
 
-        const { width, height } = this.ctx.scene;
-        this.ctx.layoutService.setLayout(width, height, {
-            series: { visible: seriesVisible, rect: fullSeriesRect, paddedRect: shrinkRect },
+        this.ctx.layoutService.emitLayoutComplete(ctx, {
+            series: { visible: seriesVisible, rect: fullSeriesRect, paddedRect: layoutBox },
         });
-
-        return shrinkRect;
     }
 }
