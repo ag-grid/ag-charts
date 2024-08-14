@@ -3,9 +3,9 @@ import { _Scene } from 'ag-charts-community';
 import type { AnnotationContext, Coords } from '../annotationTypes';
 import { convertLine, invertCoords, validateDatumPoint } from '../annotationUtils';
 import { AnnotationScene } from '../scenes/annotationScene';
+import { CollidableLine } from '../scenes/collidableLineScene';
 import { DivariantHandle } from '../scenes/handle';
 import { LinearScene } from '../scenes/linearScene';
-import { CollidableLine } from '../scenes/shapes';
 import type { LineProperties } from './lineProperties';
 
 export class LineScene extends LinearScene<LineProperties> {

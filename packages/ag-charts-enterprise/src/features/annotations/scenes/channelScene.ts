@@ -3,9 +3,9 @@ import { _Scene } from 'ag-charts-community';
 import type { PointProperties } from '../annotationProperties';
 import type { AnnotationContext, LineCoords } from '../annotationTypes';
 import { convertLine } from '../annotationUtils';
+import { CollidableLine } from './collidableLineScene';
 import type { Handle } from './handle';
 import { LinearScene } from './linearScene';
-import { CollidableLine } from './shapes';
 
 export abstract class ChannelScene<
     Datum extends {
