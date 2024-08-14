@@ -160,9 +160,9 @@ function alignSpanToContainingSpan(
     postSpanIndices: SpanIndices
 ) {
     const startXValue0 = axisValues[postSpanIndices.xValue0Index];
-    const startDatum = preData.data.find((span) => span.xValue0.valueOf() === startXValue0);
+    const startDatum = preData.data.find((spanDatum) => spanDatum.xValue0.valueOf() === startXValue0);
     const endXValue1 = axisValues[postSpanIndices.xValue1Index];
-    const endDatum = preData.data.find((span) => span.xValue1.valueOf() === endXValue1);
+    const endDatum = preData.data.find((spanDatum) => spanDatum.xValue1.valueOf() === endXValue1);
 
     if (startDatum == null || endDatum == null) return;
 

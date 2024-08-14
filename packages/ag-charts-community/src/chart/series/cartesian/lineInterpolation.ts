@@ -1,6 +1,6 @@
 import type { ExtendedPath2D } from '../../../scene/extendedPath2D';
 import type { Point } from '../../../scene/point';
-import { evaluateBezier, solveBezier, splitBezier } from '../../../scene/util/bezier';
+import { solveBezier, splitBezier } from '../../../scene/util/bezier';
 
 export type Span =
     | {
