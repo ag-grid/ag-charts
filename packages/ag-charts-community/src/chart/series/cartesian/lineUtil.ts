@@ -404,7 +404,7 @@ export function prepareLinePathAnimationFns(
         interpolation: InterpolationProperties | undefined
     ) => void
 ) {
-    const status = determinePathStatus(newData, oldData, pairData);
+    const status: NodeUpdateState = determinePathStatus(newData, oldData, pairData);
     const removePhaseFn = (ratio: number, path: Path) => {
         render(pairData, { move: 0, out: ratio }, path, interpolation);
     };

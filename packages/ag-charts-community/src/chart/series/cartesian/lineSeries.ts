@@ -576,7 +576,15 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
 
         markerFadeInAnimation(this, animationManager, undefined, markerSelections);
         fromToMotion(this.id, 'path_properties', animationManager, [path], fns.pathProperties);
-        pathMotion(this.id, 'path_update', animationManager, [path], fns.path);
+
+        if (fns.status === 'added') {
+            this.updateLinePaths(paths, contextData);
+        } else if (fns.status === 'removed') {
+            this.updateLinePaths(paths, previousContextData);
+        } else {
+            pathMotion(this.id, 'path_update', animationManager, [path], fns.path);
+        }
+
         if (fns.hasMotion) {
             seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
             seriesLabelFadeInAnimation(this, 'annotations', animationManager, ...annotationSelections);
