@@ -14,7 +14,7 @@ import type {
 import type { LayoutContext } from '../module/baseModule';
 import type { ModuleContext } from '../module/moduleContext';
 import { BBox } from '../scene/bbox';
-import { TranslatableGroup } from '../scene/group';
+import { Group, TranslatableGroup } from '../scene/group';
 import { RedrawType } from '../scene/node';
 import type { Scene } from '../scene/scene';
 import { Selection } from '../scene/selection';
@@ -958,7 +958,8 @@ export class Legend extends BaseProperties {
     }
 
     private computePagedBBox(): BBox {
-        let actualBBox = this.group.getBBox();
+        // Get BBox without group transforms applied.
+        let actualBBox = Group.computeChildrenBBox(this.group.children);
         if (this.pages.length <= 1) {
             return actualBBox;
         }
@@ -1256,8 +1257,8 @@ export class Legend extends BaseProperties {
             }
 
             // Round off for pixel grid alignment to work properly.
-            this.group.translationX = Math.floor(x + translationX);
-            this.group.translationY = Math.floor(y + translationY);
+            this.group.translationX = Math.floor(x + translationX - legendBBox.x);
+            this.group.translationY = Math.floor(y + translationY - legendBBox.y);
 
             this.proxyLegendToolbar.style.removeProperty('display');
             this.proxyLegendToolbar.ariaOrientation = this.getOrientation();

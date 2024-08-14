@@ -226,8 +226,8 @@ export class GradientLegend {
         arrow.fill = label.color;
         arrow.rotation = rotation;
         arrow.size = size;
-        arrow.x = x;
-        arrow.y = y;
+        arrow.translationX = x;
+        arrow.translationY = y;
     }
 
     private getMeasurements(shrinkRect: _Scene.BBox, axisBox: _Scene.BBox) {

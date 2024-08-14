@@ -301,7 +301,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     pickNodeExact(point: Point): PickNodeDatumResult {
-        const { x, y } = _Scene.TransformableNode.fromCanvasPoint(this.groupNode, point.x, point.y);
+        const { x, y } = point;
         const node = this.groupNode.pickNode(x, y);
         if (node != null) {
             return { datum: node.datum, distanceSquared: 0 };

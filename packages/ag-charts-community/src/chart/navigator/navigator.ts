@@ -4,6 +4,7 @@ import type { ModuleContext } from '../../module/moduleContext';
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import { TransformableNode } from '../../scene/transformable';
+import type { BBoxProvider } from '../../util/bboxinterface';
 import { setElementBBox } from '../../util/dom';
 import { initToolbarKeyNav } from '../../util/keynavUtil';
 import { Logger } from '../../util/logger';
@@ -35,7 +36,8 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         id: 'navigator-mask-visible-range',
         getBBox: (): BBox => this.mask.computeVisibleRangeBBox(),
         toCanvasBBox: (): BBox => this.mask.computeVisibleRangeBBox(),
-    };
+        fromCanvasPoint: (x: number, y: number) => ({ x, y }),
+    } satisfies BBoxProvider & { getBBox(): BBox };
 
     @Validate(POSITIVE_NUMBER)
     public height: number = 30;

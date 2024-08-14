@@ -4,7 +4,7 @@ import { BaseManager } from '../baseManager';
 import type { ChartContext } from '../chartContext';
 import type { ChartHighlight } from '../chartHighlight';
 import { ChartUpdateType } from '../chartUpdateType';
-import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
+import { InteractionState } from '../interaction/interactionManager';
 import type { RegionEvent } from '../interaction/regionManager';
 import { REGIONS } from '../interaction/regions';
 import type { ChartOverlays } from '../overlay/chartOverlays';

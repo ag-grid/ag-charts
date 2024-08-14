@@ -260,6 +260,9 @@ export class Group extends Node {
             ctx.beginPath();
             ctx.rect(x, y, width, height);
             ctx.clip();
+
+            // clipBBox is in the canvas coordinate space, when we hit a layer we apply the new clipping at which point there are no transforms in play
+            clipBBox = TransformableNode.toCanvas(this, clipRect);
         }
 
         const hasVirtualChildren = this.hasVirtualChildren();

@@ -1,7 +1,6 @@
 import type { Group } from '../../../scene/group';
 import type { Node } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
-import { TransformableNode } from '../../../scene/transformable';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Logger } from '../../../util/logger';
 import type { DistantObject } from '../../../util/nearest';

@@ -1,4 +1,4 @@
-import type { Node } from '../../scene/node';
+import { Node } from '../../scene/node';
 import { TransformableNode } from '../../scene/transformable';
 import type { BBoxProvider } from '../../util/bboxinterface';
 import { Listeners } from '../../util/listeners';
@@ -19,8 +19,7 @@ type RegionEventMixins = {
     regionOffsetY: number;
 };
 
-type RegionEventTypes = PointerInteractionTypes;
-export type RegionEvent<T extends RegionEventTypes = RegionEventTypes> = RegionEventTypes &
+export type RegionEvent<T extends PointerInteractionTypes = PointerInteractionTypes> = PointerInteractionEvent &
     RegionEventMixins & { type: T };
 type RegionHandler = (event: RegionEvent) => void;
 
@@ -151,20 +150,18 @@ export class RegionManager {
     ) {
         if (current == null) return;
 
+        const mainBBoxProvider = current.region.properties.bboxproviders[0];
         let regionOffsetX = 0;
         let regionOffsetY = 0;
-        if (current.bboxProvider) {
-            const regionBBox = current.bboxProvider.toCanvasBBox();
-            if ('offsetX' in partialEvent) {
-                regionOffsetX = partialEvent.offsetX - regionBBox.x;
-            } else {
-                regionOffsetX = regionBBox.width / 2;
-            }
-            if ('offsetY' in partialEvent) {
-                regionOffsetY = partialEvent.offsetY - regionBBox.y;
-            } else {
-                regionOffsetY = regionBBox.height / 2;
-            }
+        if ('offsetX' in partialEvent && 'offsetY' in partialEvent) {
+            ({ x: regionOffsetX, y: regionOffsetY } = mainBBoxProvider.fromCanvasPoint(
+                partialEvent.offsetX,
+                partialEvent.offsetY
+            ));
+        } else {
+            const regionBBox = mainBBoxProvider.toCanvasBBox();
+            regionOffsetX = regionBBox.width / 2;
+            regionOffsetY = regionBBox.height / 2;
         }
 
         const event: RegionEvent = buildPreventable({

@@ -92,13 +92,10 @@ export function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
             return this.transformBBox(bbox);
         }
 
-        override containsPoint(x: number, y: number) {
-            this.computeTransformMatrix();
-            if (this[TRANSFORM_MATRIX].identity) return super.containsPoint(x, y);
+        override pickNode(x: number, y: number) {
+            ({ x, y } = this.inverseTransformPoint(x, y));
 
-            ({ x, y } = this[TRANSFORM_MATRIX].transformPoint(x, y));
-
-            return super.containsPoint(x, y);
+            return super.pickNode(x, y);
         }
 
         override render(renderCtx: RenderContext): void {
@@ -249,24 +246,26 @@ export class TransformableNode implements RegionBBoxProvider {
 
         parents.reverse();
         for (const parent of parents) {
-            bbox = parent.transformBBox(bbox);
+            bbox = parent.inverseTransformBBox(bbox);
         }
 
         if (isMatrixTransform(node)) {
-            bbox = node.transformBBox(bbox);
+            bbox = node.inverseTransformBBox(bbox);
         }
 
         return bbox;
     }
 
-    static toCanvas(node: Node, bbox = node.getBBox()) {
-        if (isMatrixTransform(node)) {
-            bbox = node.inverseTransformBBox(bbox);
+    static toCanvas(node: Node, bbox?: BBox) {
+        if (bbox == null) {
+            bbox = node.getBBox();
+        } else if (isMatrixTransform(node)) {
+            bbox = node.transformBBox(bbox);
         }
 
         for (const parent of node.ancestors()) {
             if (isMatrixTransform(parent)) {
-                bbox = parent.inverseTransformBBox(bbox);
+                bbox = parent.transformBBox(bbox);
             }
         }
 
@@ -283,11 +282,11 @@ export class TransformableNode implements RegionBBoxProvider {
 
         parents.reverse();
         for (const parent of parents) {
-            ({ x, y } = parent.transformPoint(x, y));
+            ({ x, y } = parent.inverseTransformPoint(x, y));
         }
 
         if (isMatrixTransform(node)) {
-            ({ x, y } = node.transformPoint(x, y));
+            ({ x, y } = node.inverseTransformPoint(x, y));
         }
 
         return { x, y };
@@ -295,12 +294,12 @@ export class TransformableNode implements RegionBBoxProvider {
 
     static toCanvasPoint(node: Node, x: number, y: number) {
         if (isMatrixTransform(node)) {
-            ({ x, y } = node.inverseTransformPoint(x, y));
+            ({ x, y } = node.transformPoint(x, y));
         }
 
         for (const parent of node.ancestors()) {
             if (isMatrixTransform(parent)) {
-                ({ x, y } = parent.inverseTransformPoint(x, y));
+                ({ x, y } = parent.transformPoint(x, y));
             }
         }
 
@@ -319,5 +318,9 @@ export class TransformableNode implements RegionBBoxProvider {
 
     toCanvasBBox() {
         return TransformableNode.toCanvas(this.node);
+    }
+
+    fromCanvasPoint(x: number, y: number) {
+        return TransformableNode.fromCanvasPoint(this.node, x, y);
     }
 }

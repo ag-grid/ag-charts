@@ -196,6 +196,7 @@ export abstract class Node extends ChangeDetectable {
             node._setLayerManager(this.layerManager);
         }
 
+        this.cachedBBox = undefined;
         this.dirtyZIndex = true;
         this.markDirty(this, RedrawType.MAJOR);
     }
@@ -227,6 +228,7 @@ export abstract class Node extends ChangeDetectable {
         node._parent = undefined;
         node._setLayerManager();
 
+        this.cachedBBox = undefined;
         this.dirtyZIndex = true;
         this.markDirty(node, RedrawType.MAJOR);
 
@@ -238,6 +240,7 @@ export abstract class Node extends ChangeDetectable {
             child._parent = undefined;
             child._setLayerManager();
         }
+        this.cachedBBox = undefined;
         this._virtualChildren.length = 0;
         this._children.length = 0;
         this.childSet = {};

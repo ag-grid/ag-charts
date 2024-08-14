@@ -1327,13 +1327,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     protected updateTitle(params: { anyTickVisible: boolean }): void {
-        const { rotation, title, _titleCaption, lineNode, tickLineGroup, tickLabelGroup } = this;
+        const { title, _titleCaption, lineNode, tickLineGroup, tickLabelGroup } = this;
 
         let spacing = 0;
         if (title.enabled && params.anyTickVisible) {
             const tickBBox = Group.computeChildrenBBox([tickLineGroup, tickLabelGroup, lineNode]);
-            const tickWidth = rotation === 0 ? tickBBox.width : tickBBox.height;
-            spacing += tickWidth + (this.tickLabelGroup.visible ? 0 : this.seriesAreaPadding);
+            spacing += tickBBox.width + (this.tickLabelGroup.visible ? 0 : this.seriesAreaPadding);
         }
         this.setTitleProps(_titleCaption, { spacing });
     }

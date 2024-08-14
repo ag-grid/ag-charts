@@ -1,11 +1,11 @@
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types';
 
+import { TransformableNode } from '../../integrated-charts-scene';
 import type { BBox } from '../../scene/bbox';
 import type { TypedEvent } from '../../util/observable';
 import { BaseManager } from '../baseManager';
 import type { ChartContext } from '../chartContext';
 import { ChartUpdateType } from '../chartUpdateType';
-import { type PointerInteractionEvent } from '../interaction/interactionManager';
 import type { RegionEvent } from '../interaction/regionManager';
 import { REGIONS } from '../interaction/regions';
 import type { LayoutCompleteEvent } from '../layout/layoutManager';
@@ -85,10 +85,12 @@ export class SeriesAreaClickManager extends BaseManager {
         this.chart.fireEvent(newEvent);
     }
 
-    private checkSeriesNodeClick(
-        event: PointerInteractionEvent<'click' | 'dblclick'> & { preventZoomDblClick?: boolean }
-    ) {
-        const result = pickNode(this.series, { x: event.offsetX, y: event.offsetY }, 'event');
+    private checkSeriesNodeClick(event: RegionEvent<'click' | 'dblclick'> & { preventZoomDblClick?: boolean }) {
+        let point = { x: event.regionOffsetX, y: event.regionOffsetY };
+        if (event.region !== 'series') {
+            point = TransformableNode.fromCanvasPoint(this.ctx.chartService.seriesRoot, event.offsetX, event.offsetY);
+        }
+        const result = pickNode(this.series, point, 'event');
         if (result == null) return false;
 
         if (event.type === 'click') {
