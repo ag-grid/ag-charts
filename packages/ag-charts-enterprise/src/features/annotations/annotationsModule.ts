@@ -141,6 +141,17 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                     strokeOpacity: 1,
                 },
             },
+
+            // Shapes
+            arrow: {
+                stroke: _Theme.DEFAULT_ANNOTATION_COLOR,
+                strokeWidth: 2,
+                strokeOpacity: 1,
+                handle: {
+                    fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
+                },
+                endCap: 'arrow',
+            },
         },
     },
 };

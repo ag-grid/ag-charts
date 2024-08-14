@@ -112,6 +112,10 @@ const TEXT_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
     { label: 'toolbarAnnotationsNote', icon: 'note-annotation', value: AnnotationType.Note },
 ];
 
+const SHAPE_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
+    { label: 'toolbarAnnotationsArrow', icon: 'arrow-drawing', value: AnnotationType.Arrow },
+];
+
 enum AnnotationOptions {
     Delete = 'delete',
     LineColor = 'line-color',
@@ -489,12 +493,17 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         if (event.value === 'line-menu') {
-            this.onToolbarButtonPressLineMenu(event);
+            this.onToolbarButtonPressMenu(event, 'toolbarAnnotationsLineAnnotations', LINE_ANNOTATION_ITEMS);
             return;
         }
 
         if (event.value === 'text-menu') {
-            this.onToolbarButtonPressTextMenu(event);
+            this.onToolbarButtonPressMenu(event, 'toolbarAnnotationsTextAnnotations', TEXT_ANNOTATION_ITEMS);
+            return;
+        }
+
+        if (event.value === 'shape-menu') {
+            this.onToolbarButtonPressMenu(event, 'toolbarAnnotationsShapeAnnotations', SHAPE_ANNOTATION_ITEMS);
             return;
         }
 
@@ -555,7 +564,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.update();
     }
 
-    private onToolbarButtonPressLineMenu(event: _ModuleSupport.ToolbarButtonPressedEvent) {
+    private onToolbarButtonPressMenu(
+        event: _ModuleSupport.ToolbarButtonPressedEvent,
+        ariaLabel: string,
+        items: Array<MenuItem<AnnotationType>>
+    ) {
         const { x, y, width } = event.rect;
 
         this.cancel();
@@ -563,24 +576,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.annotationPickerPopover.setAnchor({ x: x + width + 6, y });
         this.annotationPickerPopover.show<AnnotationType>({
-            items: LINE_ANNOTATION_ITEMS,
-            ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsLineAnnotations'),
-            sourceEvent: event.sourceEvent,
-            onPress: this.onAnnotationsPopoverPress.bind(this, event),
-            onClose: this.onAnnotationsPopoverClose.bind(this),
-        });
-    }
-
-    private onToolbarButtonPressTextMenu(event: _ModuleSupport.ToolbarButtonPressedEvent) {
-        const { x, y, width } = event.rect;
-
-        this.cancel();
-        this.reset();
-
-        this.annotationPickerPopover.setAnchor({ x: x + width + 6, y });
-        this.annotationPickerPopover.show<AnnotationType>({
-            items: TEXT_ANNOTATION_ITEMS,
-            ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsTextAnnotations'),
+            items,
+            ariaLabel: this.ctx.localeManager.t(ariaLabel),
             sourceEvent: event.sourceEvent,
             onPress: this.onAnnotationsPopoverPress.bind(this, event),
             onClose: this.onAnnotationsPopoverClose.bind(this),

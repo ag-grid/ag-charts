@@ -1,12 +1,15 @@
-import { _Scene } from 'ag-charts-community';
+import { _Scene, _Util } from 'ag-charts-community';
 
-import type { AnnotationContext, Coords } from '../annotationTypes';
+import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
 import { convertLine, invertCoords, validateDatumPoint } from '../annotationUtils';
 import { AnnotationScene } from '../scenes/annotationScene';
+import { ArrowCapScene, type CapScene } from '../scenes/capScene';
+import { CollidableLine } from '../scenes/collidableLineScene';
 import { DivariantHandle } from '../scenes/handle';
 import { LinearScene } from '../scenes/linearScene';
-import { CollidableLine } from '../scenes/shapes';
 import type { LineProperties } from './lineProperties';
+
+const { Vec2 } = _Util;
 
 export class LineScene extends LinearScene<LineProperties> {
     static override is(value: unknown): value is LineScene {
@@ -20,6 +23,8 @@ export class LineScene extends LinearScene<LineProperties> {
     private readonly line = new CollidableLine();
     private readonly start = new DivariantHandle();
     private readonly end = new DivariantHandle();
+    private startCap?: CapScene;
+    private endCap?: CapScene;
 
     private seriesRect?: _Scene.BBox;
 
@@ -29,9 +34,6 @@ export class LineScene extends LinearScene<LineProperties> {
     }
 
     public update(datum: LineProperties, context: AnnotationContext) {
-        const { line, start, end } = this;
-        const { visible, lineDash, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
-
         const locked = datum.locked ?? false;
         this.seriesRect = context.seriesRect;
 
@@ -40,10 +42,19 @@ export class LineScene extends LinearScene<LineProperties> {
         if (coords == null) {
             this.visible = false;
             return;
-        } else {
-            this.visible = visible ?? true;
         }
 
+        this.visible = datum.visible ?? true;
+        if (!this.visible) return;
+
+        this.updateLine(datum, coords);
+        this.updateHandles(datum, coords, locked);
+        this.updateCaps(datum, coords);
+    }
+
+    updateLine(datum: LineProperties, coords: LineCoords) {
+        const { line } = this;
+        const { lineDash, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
         const { x1, y1, x2, y2 } = coords;
 
         line.setProperties({
@@ -59,6 +70,12 @@ export class LineScene extends LinearScene<LineProperties> {
             fillOpacity: 0,
         });
         line.updateCollisionBBox();
+    }
+
+    updateHandles(datum: LineProperties, coords: LineCoords, locked: boolean) {
+        const { start, end } = this;
+        const { stroke, strokeWidth, strokeOpacity } = datum;
+        const { x1, y1, x2, y2 } = coords;
 
         const handleStyles = {
             fill: datum.handle.fill,
@@ -72,6 +89,66 @@ export class LineScene extends LinearScene<LineProperties> {
 
         start.toggleLocked(locked);
         end.toggleLocked(locked);
+    }
+
+    updateCaps(datum: LineProperties, coords: LineCoords) {
+        if (!datum.startCap && this.startCap) {
+            this.removeChild(this.startCap);
+            this.startCap = undefined;
+        }
+
+        if (!datum.endCap && this.endCap) {
+            this.removeChild(this.endCap);
+            this.endCap = undefined;
+        }
+
+        if (!datum.startCap && !datum.endCap) return;
+
+        const { stroke, strokeWidth, strokeOpacity } = datum;
+        const [start, end] = Vec2.fromBox(coords);
+        const angle = Vec2.angle(Vec2.sub(end, start));
+
+        if (datum.startCap) {
+            if (this.startCap && this.startCap.type !== datum.startCap) {
+                this.removeChild(this.startCap);
+                this.startCap = undefined;
+            }
+
+            if (this.startCap == null) {
+                this.startCap = new ArrowCapScene();
+                this.append([this.startCap]);
+            }
+
+            this.startCap!.update({
+                x: start.x,
+                y: start.y,
+                angle: angle - Math.PI,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+            });
+        }
+
+        if (datum.endCap) {
+            if (this.endCap && this.endCap.type !== datum.endCap) {
+                this.removeChild(this.endCap);
+                this.endCap = undefined;
+            }
+
+            if (this.endCap == null && datum.endCap) {
+                this.endCap = new ArrowCapScene();
+                this.append([this.endCap]);
+            }
+
+            this.endCap!.update({
+                x: end.x,
+                y: end.y,
+                angle,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+            });
+        }
     }
 
     override toggleHandles(show: boolean | Partial<Record<'start' | 'end', boolean>>) {

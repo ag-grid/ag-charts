@@ -38,6 +38,12 @@ const annotations: AgToolbarOptions['annotations'] = {
             section: 'text-annotations',
         },
         {
+            icon: 'arrow-drawing',
+            tooltip: 'toolbarAnnotationsShapeAnnotations',
+            value: 'shape-menu',
+            section: 'shape-annotations',
+        },
+        {
             icon: 'delete',
             tooltip: 'toolbarAnnotationsClearAll',
             value: 'clear',

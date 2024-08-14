@@ -100,10 +100,12 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarAnnotationsUnlock: 'Unlock',
     // Text for the annotation toolbar's delete annotation button
     toolbarAnnotationsDelete: 'Delete',
-    // Text for the annotation toolbar's line annotations menu button
+    // Text for the annotation toolbar's line drawings menu button
     toolbarAnnotationsLineAnnotations: 'Trend Lines',
     // Text for the annotation toolbar's text annotations menu button
     toolbarAnnotationsTextAnnotations: 'Text Annotations',
+    // Text for the annotation toolbar's shapes menu button
+    toolbarAnnotationsShapeAnnotations: 'Shapes',
     // Text for the annotation toolbar's callout button
     toolbarAnnotationsCallout: 'Callout',
     // Text for the annotation toolbar's comment button
@@ -112,6 +114,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarAnnotationsNote: 'Note',
     // Text for the annotation toolbar's text button
     toolbarAnnotationsText: 'Text',
+    // Text for the annotation toolbar's arrow button
+    toolbarAnnotationsArrow: 'Arrow',
     // Text for the range toolbar's 1 month button
     toolbarRange1Month: '1M',
     // Aria label for the range toolbar's 1 month button

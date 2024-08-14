@@ -41,6 +41,9 @@ export const annotationDatums: Record<AnnotationType, Constructor<AnnotationProp
     [AnnotationType.Comment]: CommentProperties,
     [AnnotationType.Note]: NoteProperties,
     [AnnotationType.Text]: TextProperties,
+
+    // Shapes
+    [AnnotationType.Arrow]: LineProperties,
 };
 
 export const annotationScenes: Record<AnnotationType, Constructor<AnnotationScene>> = {
@@ -58,6 +61,9 @@ export const annotationScenes: Record<AnnotationType, Constructor<AnnotationScen
     [AnnotationType.Comment]: CommentScene,
     [AnnotationType.Note]: NoteScene,
     [AnnotationType.Text]: TextScene,
+
+    // Shapes
+    [AnnotationType.Arrow]: LineScene,
 };
 
 export function updateAnnotation(node: AnnotationScene, datum: AnnotationProperties, context: AnnotationContext) {

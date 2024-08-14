@@ -4,8 +4,8 @@ import type { AnnotationAxisContext, AnnotationContext, Coords, LineCoords } fro
 import { convert, invertCoords } from '../annotationUtils';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { AxisLabelScene } from '../scenes/axisLabelScene';
+import { CollidableLine } from '../scenes/collidableLineScene';
 import { UnivariantHandle } from '../scenes/handle';
-import { CollidableLine } from '../scenes/shapes';
 import { type CrossLineProperties, HorizontalLineProperties } from './crossLineProperties';
 
 const { Vec2 } = _Util;

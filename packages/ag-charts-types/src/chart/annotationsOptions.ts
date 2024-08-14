@@ -30,6 +30,9 @@ export interface AgAnnotationsThemeableOptions {
     note?: AgNoteAnnotationStyles;
     text?: AgTextAnnotationStyles;
 
+    // Shapes
+    arrow?: AgLineAnnotationStyles;
+
     // Other
     axesButtons?: AgAnnotationAxesButtons;
 }
@@ -68,15 +71,20 @@ export interface AgAnnotationsOptions extends Toggleable {
 }
 
 export type AgAnnotation =
+    // Lines
     | AgLineAnnotation
     | AgHorizontalLineAnnotation
     | AgVerticalLineAnnotation
+    // Channels
     | AgDisjointChannelAnnotation
     | AgParallelChannelAnnotation
+    // Texts
     | AgCalloutAnnotation
     | AgCommentAnnotation
     | AgNoteAnnotation
-    | AgTextAnnotation;
+    | AgTextAnnotation
+    // Shapes
+    | AgArrowAnnotation;
 
 // ********************
 // * Line Annotations *
@@ -188,6 +196,23 @@ interface TextualAnnotation extends Lockable, Visible, FontOptions {
     text: string;
 }
 
+// ********************
+// * Shape Annotations *
+// ********************/
+
+export interface AgArrowAnnotation
+    extends AnnotationLinePoints,
+        Cappable,
+        Extendable,
+        Lockable,
+        Visible,
+        StrokeOptions,
+        LineDashOptions {
+    /** Configuration for the arrow annotation.*/
+    type: 'arrow';
+    handle?: AgAnnotationHandle;
+}
+
 // **************
 // * Components *
 // **************/
@@ -245,10 +270,12 @@ interface Extendable {
 }
 
 interface Cappable {
-    // startCap?: Cap;
-    // endCap?: Cap;
+    /** The cap to show at the start of the line. */
+    startCap?: Cap;
+    /** The cap to show at the end of the line. */
+    endCap?: Cap;
 }
 
-export type Cap = 'arrow' | 'circle';
+type Cap = 'arrow';
 
 export type AgAnnotationValue = string | number | AgStateSerializableDate;

@@ -22,6 +22,9 @@ export enum AnnotationType {
     Comment = TextualAnnotationType.Comment,
     Note = TextualAnnotationType.Note,
     Text = TextualAnnotationType.Text,
+
+    // Shapes
+    Arrow = 'arrow',
 }
 
 export const ANNOTATION_TYPES = Object.values(AnnotationType);
@@ -40,14 +43,18 @@ export const ANNOTATION_BUTTONS = [
     AnnotationType.Comment,
     AnnotationType.Note,
     AnnotationType.Text,
+
+    // Shapes
+    AnnotationType.Arrow,
 ] as const;
-export const ANNOTATION_BUTTON_GROUPS = ['line-menu', 'text-menu'] as const;
+export const ANNOTATION_BUTTON_GROUPS = ['line-menu', 'text-menu', 'shape-menu'] as const;
 
 export function stringToAnnotationType(value: string) {
     for (const t of ANNOTATION_TYPES) {
         if (t === value) return t;
     }
 }
+
 export interface Anchor extends Coords {
     position: 'above' | 'above-left' | 'right';
 }

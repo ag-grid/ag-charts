@@ -147,11 +147,11 @@ export function Label<T extends Constructor>(Parent: T) {
 
 export function Cappable<T extends Constructor>(Parent: T) {
     class CappableInternal extends Parent {
-        @Validate(UNION(['arrow', 'circle']), { optional: true })
-        startCap?: 'arrow' | 'circle';
+        @Validate(UNION(['arrow']), { optional: true })
+        startCap?: 'arrow';
 
-        @Validate(UNION(['arrow', 'circle']), { optional: true })
-        endCap?: 'arrow' | 'circle';
+        @Validate(UNION(['arrow']), { optional: true })
+        endCap?: 'arrow';
     }
     return CappableInternal;
 }
