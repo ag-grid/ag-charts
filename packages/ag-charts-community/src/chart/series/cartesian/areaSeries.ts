@@ -841,6 +841,22 @@ export class AreaSeries extends CartesianSeries<
         pathMotion(this.id, 'stroke_path_update', animationManager, [stroke], fns.stroke.path);
 
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
+
+        // The animation may clip spans
+        // When using smooth interpolation, the bezier spans are clipped using an approximation
+        // This can result in artefacting, which may be present on the final frame
+        // To remove this on the final frame, re-draw the series without animations
+        this.ctx.animationManager.animate({
+            id: this.id,
+            groupId: 'reset_after_animation',
+            phase: 'trailing',
+            from: {},
+            to: {},
+            onComplete: () => {
+                this.updateAreaPaths(paths, contextData);
+                this.updateStrokePath(paths, contextData);
+            },
+        });
     }
 
     protected isLabelEnabled() {
