@@ -1504,6 +1504,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     animateReadyUpdate(diff: FromToDiff) {
+        if (!diff.changed) return;
+
         const { animationManager } = this.moduleCtx;
         const selectionCtx = prepareAxisAnimationContext(this);
         const fns = prepareAxisAnimationFunctions(selectionCtx);
