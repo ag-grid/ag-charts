@@ -61,7 +61,7 @@ test.describe('toolbar', () => {
         await page.locator('[data-toolbar-id="text-size"]').click();
         await expect(page).toHaveScreenshot('text-7-font-size-popover.png', { animations: 'disabled' });
 
-        await page.locator('.ag-charts-popover__label', { hasText: '46' }).click();
+        await page.locator('.ag-charts-menu__label', { hasText: '46' }).click();
         await expect(page).toHaveScreenshot('text-8-change-font-size.png', { animations: 'disabled' });
 
         await page.locator('[data-toolbar-id="delete"]').click();
