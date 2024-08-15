@@ -35,15 +35,12 @@ export class Menu extends AnchoredPopover {
 
         super.show({ ...options, class: classes, role: 'menu' });
 
-        initMenuKeyNav({
+        this.menuCloser = initMenuKeyNav({
             orientation: 'vertical',
             menu: this.getPopoverElement()!,
             buttons: rows,
-            sourceEvent: options.sourceEvent,
-            hideCallback: () => {
-                options.onClose?.();
-                this.hide();
-            },
+            device: this.ctx.focusIndicator.guessDevice(options.sourceEvent),
+            closeCallback: () => this.doClose(),
         });
     }
 

@@ -89,20 +89,6 @@ function linkThreeButtons(
     });
 }
 
-function getLastFocus(sourceEvent: Event): HTMLElement | undefined {
-    // We need to guess whether the event comes the mouse or keyboard, which isn't an obvious task because
-    // the event.sourceEvent instances are mostly indistinguishable.
-    //
-    // However, when right-clicking with the mouse, the target element will the
-    // <div class="ag-charts-canvas-overlay"> element. But when the contextmenu is requested using the
-    // keyboard, then the target should be an element with the tabindex attribute set. So that's what we'll
-    // use to determine the device that triggered the contextmenu event.
-    if (sourceEvent.target instanceof HTMLElement && 'tabindex' in sourceEvent.target.attributes) {
-        return sourceEvent.target;
-    }
-    return undefined;
-}
-
 const PREV_NEXT_KEYS = {
     horizontal: { nextKey: 'ArrowRight', prevKey: 'ArrowLeft' },
     vertical: { nextKey: 'ArrowDown', prevKey: 'ArrowUp' },
@@ -152,42 +138,61 @@ export function initToolbarKeyNav(opts: {
     return destroyFns;
 }
 
+export interface MenuCloser {
+    close(): void;
+}
+
+export type MenuDevice = { type: 'keyboard'; lastFocus: HTMLElement } | { type: 'mouse'; lastFocus?: undefined };
+
+class MenuCloserImp implements MenuCloser {
+    public readonly destroyFns: (() => void)[] = [];
+
+    constructor(
+        menu: HTMLElement,
+        private lastFocus: HTMLElement | undefined,
+        public readonly closeCallback: () => void
+    ) {
+        this.destroyFns.push(addMouseCloseListener(this.destroyFns, menu, () => this.close()));
+    }
+
+    close() {
+        this.closeCallback();
+        this.destroyFns.forEach((d) => d());
+        this.lastFocus?.focus();
+    }
+}
+
 // https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/menu_role
 export function initMenuKeyNav(opts: {
     orientation: 'vertical';
+    device: MenuDevice;
     menu: HTMLElement;
     buttons: HTMLElement[];
-    sourceEvent: Event;
-    hideCallback: () => void;
-}): (() => void)[] {
-    const { orientation, menu, buttons, sourceEvent, hideCallback } = opts;
+    closeCallback: () => void;
+}): MenuCloser {
+    const { device, orientation, menu, buttons, closeCallback } = opts;
     const { nextKey, prevKey } = PREV_NEXT_KEYS[orientation];
-    const destroyFns: (() => void)[] = [];
+    console.log(`device: `, device);
 
-    const lastFocus = getLastFocus(sourceEvent);
-    const mouseCloseRemove = addMouseCloseListener(destroyFns, menu, hideCallback);
-    const onEscape = () => {
-        hideCallback();
-        mouseCloseRemove();
-        lastFocus?.focus();
-    };
+    const menuCloser = new MenuCloserImp(menu, device.lastFocus, closeCallback);
+    const close = () => menuCloser.close();
+    const { destroyFns } = menuCloser;
 
     menu.role = 'menu';
     menu.ariaOrientation = orientation;
-
     for (let i = 0; i < buttons.length; i++) {
         // Use modules to wrap around when navigation past the start/end of the menu.
         const prev = buttons[(buttons.length + i - 1) % buttons.length];
         const curr = buttons[i];
         const next = buttons[(buttons.length + i + 1) % buttons.length];
-        addEscapeEventListener(destroyFns, curr, onEscape);
+        addEscapeEventListener(destroyFns, curr, close);
         linkThreeButtons(destroyFns, curr, prev, prevKey, next, nextKey);
         curr.tabIndex = -1;
     }
 
     // Add handlers for the menu element itself.
     menu.tabIndex = -1;
-    addEscapeEventListener(destroyFns, menu, onEscape);
+    addEscapeEventListener(destroyFns, menu, close);
     addRemovableEventListener(destroyFns, menu, 'keydown', (ev: KeyboardEvent) => {
         if (ev.target === menu && (ev.key === nextKey || ev.key === prevKey)) {
             ev.preventDefault();
@@ -195,7 +200,13 @@ export function initMenuKeyNav(opts: {
         }
     });
 
-    return destroyFns;
+    if (device.type === 'keyboard') {
+        buttons[0]?.focus();
+    } else {
+        menu.focus();
+    }
+
+    return menuCloser;
 }
 
 export function makeAccessibleClickListener(element: HTMLElement, onclick: (event: MouseEvent) => unknown) {

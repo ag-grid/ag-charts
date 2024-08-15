@@ -73,7 +73,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     // HTML elements
     private readonly element: HTMLElement;
     private menuElement?: HTMLDivElement;
-    private menuElementDestroyFns: (() => void)[] = [];
+    private menuCloser?: _ModuleSupport.MenuCloser;
     private readonly mutationObserver?: MutationObserver;
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
@@ -178,7 +178,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (this.menuElement) {
             this.element.replaceChild(newMenuElement, this.menuElement);
-            this.menuElementDestroyFns.forEach((d) => d());
+            this.menuCloser?.close();
         } else {
             this.element.appendChild(newMenuElement);
         }
@@ -188,24 +188,26 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.element.style.display = 'block';
 
         const buttons = getChildrenOfType(newMenuElement, HTMLButtonElement);
-        this.menuElementDestroyFns = initMenuKeyNav({
+        this.menuCloser = initMenuKeyNav({
             menu: newMenuElement,
             buttons,
             orientation: 'vertical',
-            sourceEvent,
-            hideCallback: () => this.hide(),
+            device: this.ctx.focusIndicator.guessDevice(sourceEvent),
+            closeCallback: () => this.doClose(),
         });
-        newMenuElement.focus();
     }
 
     private hide() {
+        this.menuCloser?.close();
+    }
+
+    private doClose() {
         this.interactionManager.popState(_ModuleSupport.InteractionState.ContextMenu);
 
         if (this.menuElement) {
             this.element.removeChild(this.menuElement);
             this.menuElement = undefined;
-            this.menuElementDestroyFns.forEach((d) => d());
-            this.menuElementDestroyFns.length = 0;
+            this.menuCloser = undefined;
         }
 
         this.element.style.display = 'none';
