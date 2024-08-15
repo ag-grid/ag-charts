@@ -599,13 +599,13 @@ export abstract class CartesianSeries<
 
     protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
         const { x, y } = point;
-        const { axes, rootGroup, _contextNodeData: contextNodeData } = this;
+        const { axes, _contextNodeData: contextNodeData } = this;
         if (!contextNodeData) return;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        const hitPoint = rootGroup.transformPoint(x, y);
+        const hitPoint = { x, y };
 
         let minDistance = Infinity;
         let closestDatum: SeriesNodeDatum | undefined;
@@ -649,7 +649,7 @@ export abstract class CartesianSeries<
         requireCategoryAxis: boolean
     ): SeriesNodePickMatch | undefined {
         const { x, y } = point;
-        const { axes, rootGroup, _contextNodeData: contextNodeData } = this;
+        const { axes, _contextNodeData: contextNodeData } = this;
         const { pickOutsideVisibleMinorAxis } = this.properties;
         if (!contextNodeData) return;
 
@@ -667,8 +667,7 @@ export abstract class CartesianSeries<
         // Default to X-axis unless we found a suitable category axis.
         const [majorDirection = ChartAxisDirection.X] = directions;
 
-        const hitPoint = rootGroup.transformPoint(x, y);
-        const hitPointCoords = [hitPoint.x, hitPoint.y];
+        const hitPointCoords = [x, y];
         if (majorDirection !== ChartAxisDirection.X) hitPointCoords.reverse();
 
         const minDistance = [Infinity, Infinity];

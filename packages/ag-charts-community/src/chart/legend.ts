@@ -14,12 +14,13 @@ import type {
 import type { LayoutContext } from '../module/baseModule';
 import type { ModuleContext } from '../module/moduleContext';
 import { BBox } from '../scene/bbox';
-import { TranslatableGroup } from '../scene/group';
+import { Group, TranslatableGroup } from '../scene/group';
 import { RedrawType } from '../scene/node';
 import type { Scene } from '../scene/scene';
 import { Selection } from '../scene/selection';
 import { Line } from '../scene/shape/line';
 import { type SpriteDimensions, SpriteRenderer } from '../scene/spriteRenderer';
+import { Transformable } from '../scene/transformable';
 import { getWindow, setElementBBox } from '../util/dom';
 import { createId } from '../util/id';
 import { initToolbarKeyNav } from '../util/keynavUtil';
@@ -46,7 +47,9 @@ import { ChartUpdateType } from './chartUpdateType';
 import type { Page } from './gridLayout';
 import { gridLayout } from './gridLayout';
 import type { HighlightNodeDatum } from './interaction/highlightManager';
-import { InteractionState, type PointerInteractionEvent } from './interaction/interactionManager';
+import { InteractionState } from './interaction/interactionManager';
+import type { RegionEvent } from './interaction/regionManager';
+import { NodeRegionBBoxProvider } from './interaction/regions';
 import { makeKeyboardPointerEvent } from './keyboardUtil';
 import { Layers } from './layers';
 import { LayoutElement } from './layout/layoutManager';
@@ -317,7 +320,7 @@ export class Legend extends BaseProperties {
                 id: `ag-charts-legend-item-${i}`,
                 textContent: this.getItemAriaText(i),
                 parent: this.proxyLegendToolbar,
-                focusable: markerLabel,
+                focusable: new NodeRegionBBoxProvider(markerLabel),
                 // Retrieve the datum from the node rather than from the method parameter.
                 // The method parameter `datum` gets destroyed when the data is refreshed
                 // using Series.getLegendData(). But the scene node will stay the same.
@@ -327,7 +330,7 @@ export class Legend extends BaseProperties {
                 },
                 onblur: () => this.handleLegendMouseExit(),
                 onfocus: () => {
-                    const bounds = markerLabel?.computeTransformedBBox();
+                    const bounds = Transformable.toCanvas(markerLabel);
                     const event = makeKeyboardPointerEvent(this.ctx.focusIndicator, { bounds, showFocusBox: true });
                     this.doHover(event, markerLabel.datum);
                     this.pagination.setPage(markerLabel.pageIndex);
@@ -692,7 +695,7 @@ export class Legend extends BaseProperties {
 
     private updateItemProxyButtons() {
         this.itemSelection.each((markerLabel) => {
-            const bbox = markerLabel.computeTransformedBBox()?.clone();
+            const bbox = Transformable.toCanvas(markerLabel)?.clone();
             bbox.translate(this.group.translationX, this.group.translationY);
             setElementBBox(markerLabel.proxyButton, bbox);
         });
@@ -712,7 +715,7 @@ export class Legend extends BaseProperties {
                     textContent: { id: 'ariaLabelLegendPagePrevious' },
                     tabIndex: 0,
                     parent: this.proxyLegendPagination,
-                    focusable: this.pagination.previousButton,
+                    focusable: new NodeRegionBBoxProvider(this.pagination.previousButton),
                     onclick: () => this.pagination.clickPrevious(),
                 });
                 this.proxyNextButton ??= this.ctx.proxyInteractionService.createProxyElement({
@@ -721,7 +724,7 @@ export class Legend extends BaseProperties {
                     textContent: { id: 'ariaLabelLegendPageNext' },
                     tabIndex: 0,
                     parent: this.proxyLegendPagination,
-                    focusable: this.pagination.nextButton,
+                    focusable: new NodeRegionBBoxProvider(this.pagination.nextButton),
                     onclick: () => this.pagination.clickNext(),
                 });
             } else {
@@ -956,7 +959,8 @@ export class Legend extends BaseProperties {
     }
 
     private computePagedBBox(): BBox {
-        let actualBBox = this.group.getBBox();
+        // Get BBox without group transforms applied.
+        let actualBBox = Group.computeChildrenBBox(this.group.children);
         if (this.pages.length <= 1) {
             return actualBBox;
         }
@@ -979,8 +983,8 @@ export class Legend extends BaseProperties {
         this.doDoubleClick(datum);
     }
 
-    private checkContextClick(event: PointerInteractionEvent<'contextmenu'>) {
-        const legendItem = this.getDatumForPoint(event.offsetX, event.offsetY);
+    private checkContextClick(event: RegionEvent<'contextmenu'>) {
+        const legendItem = this.getDatumForPoint(event.regionOffsetX, event.regionOffsetY);
 
         if (this.preventHidingAll && this.contextMenuDatum?.enabled && this.getVisibleItemCount() <= 1) {
             this.ctx.contextMenuRegistry.disableAction(ID_LEGEND_VISIBILITY);
@@ -991,8 +995,8 @@ export class Legend extends BaseProperties {
         this.ctx.contextMenuRegistry.dispatchContext('legend', event, { legendItem });
     }
 
-    private checkLegendClick(event: PointerInteractionEvent<'click'>) {
-        const datum = this.getDatumForPoint(event.offsetX, event.offsetY);
+    private checkLegendClick(event: RegionEvent<'click'>) {
+        const datum = this.getDatumForPoint(event.regionOffsetX, event.regionOffsetY);
         if (this.doClick(datum)) {
             event.preventDefault();
         }
@@ -1052,8 +1056,8 @@ export class Legend extends BaseProperties {
         return true;
     }
 
-    private checkLegendDoubleClick(event: PointerInteractionEvent<'dblclick'>) {
-        const datum = this.getDatumForPoint(event.offsetX, event.offsetY);
+    private checkLegendDoubleClick(event: RegionEvent<'dblclick'>) {
+        const datum = this.getDatumForPoint(event.regionOffsetX, event.regionOffsetY);
         if (this.doDoubleClick(datum)) {
             event.preventDefault();
         }
@@ -1102,15 +1106,15 @@ export class Legend extends BaseProperties {
         return true;
     }
 
-    private handleLegendMouseMove(event: PointerInteractionEvent<'hover'>) {
+    private handleLegendMouseMove(event: RegionEvent<'hover'>) {
         if (!this.enabled) {
             return;
         }
 
-        const { offsetX, offsetY } = event;
         event.preventDefault();
 
-        const datum = this.getDatumForPoint(offsetX, offsetY);
+        const { regionOffsetX, regionOffsetY } = event;
+        const datum = this.getDatumForPoint(regionOffsetX, regionOffsetY);
         this.doHover(event, datum);
     }
 
@@ -1173,13 +1177,13 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private handleLegendMouseEnter(event: PointerInteractionEvent<'enter'>) {
+    private handleLegendMouseEnter(event: RegionEvent<'enter'>) {
         const {
             enabled,
             toggleSeries,
             listeners: { legendItemClick: clickListener, legendItemDoubleClick: dblclickListener },
         } = this;
-        const datum = this.getDatumForPoint(event.offsetX, event.offsetY);
+        const datum = this.getDatumForPoint(event.regionOffsetX, event.regionOffsetY);
         if (enabled && datum !== undefined && (toggleSeries || clickListener != null || dblclickListener != null)) {
             this.ctx.cursorManager.updateCursor(this.id, 'pointer');
         }
@@ -1215,8 +1219,6 @@ export class Legend extends BaseProperties {
         const { x, y, width, height } = layoutBox;
         const [legendWidth, legendHeight] = this.calculateLegendDimensions(layoutBox);
 
-        this.group.translationX = 0;
-        this.group.translationY = 0;
         const { oldPages } = this.calcLayout(legendWidth, legendHeight);
         const legendBBox = this.computePagedBBox();
 
@@ -1256,8 +1258,8 @@ export class Legend extends BaseProperties {
             }
 
             // Round off for pixel grid alignment to work properly.
-            this.group.translationX = Math.floor(x - legendBBox.x + translationX);
-            this.group.translationY = Math.floor(y - legendBBox.y + translationY);
+            this.group.translationX = Math.floor(x + translationX - legendBBox.x);
+            this.group.translationY = Math.floor(y + translationY - legendBBox.y);
 
             this.proxyLegendToolbar.style.removeProperty('display');
             this.proxyLegendToolbar.ariaOrientation = this.getOrientation();

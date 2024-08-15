@@ -187,7 +187,7 @@ export class CrossLineScene extends AnnotationScene {
     }
 
     override containsPoint(x: number, y: number) {
-        const { middle, seriesRect, line } = this;
+        const { middle, line } = this;
 
         this.activeHandle = undefined;
 
@@ -195,9 +195,6 @@ export class CrossLineScene extends AnnotationScene {
             this.activeHandle = 'middle';
             return true;
         }
-
-        x -= seriesRect?.x ?? 0;
-        y -= seriesRect?.y ?? 0;
 
         return line.isPointInPath(x, y);
     }

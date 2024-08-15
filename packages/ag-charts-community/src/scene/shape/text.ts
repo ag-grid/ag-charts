@@ -84,10 +84,9 @@ export class Text extends Shape {
     }
 
     isPointInPath(x: number, y: number): boolean {
-        const point = this.transformPoint(x, y);
         const bbox = this.getBBox();
 
-        return bbox ? bbox.containsPoint(point.x, point.y) : false;
+        return bbox ? bbox.containsPoint(x, y) : false;
     }
 
     override render(renderCtx: RenderContext): void {
@@ -102,8 +101,6 @@ export class Text extends Shape {
             if (stats) stats.nodesSkipped += this.nodeCount.count;
             return;
         }
-
-        this.transformRenderContext(renderCtx);
 
         const { fill, stroke, strokeWidth } = this;
         const { pixelRatio } = this.layerManager.canvas;

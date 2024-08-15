@@ -195,6 +195,8 @@ export class LegendMarkerLabel extends Translatable(Group) {
         // not want to include this padding in the layout bounds. So just compute the bounds for the Line
         // and Marker nodes directly rather than Group's default behaviour of computing this.bitmap's BBox.
         const { label, lines, markers } = this;
-        return Group.computeBBox(arraysIterable([label], lines, markers), { skipInvisible: false });
+        return this.transformBBox(
+            Group.computeChildrenBBox(arraysIterable([label], lines, markers), { skipInvisible: false })
+        );
     }
 }
