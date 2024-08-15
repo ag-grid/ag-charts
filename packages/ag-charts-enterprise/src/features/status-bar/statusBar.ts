@@ -263,7 +263,7 @@ export class StatusBar
         }
     }
 
-    startPerformLayout(opts: _ModuleSupport.LayoutContext) {
+    private startPerformLayout(opts: _ModuleSupport.LayoutContext) {
         this.labelGroup.translationX = 0;
         this.labelGroup.translationY = 0;
 

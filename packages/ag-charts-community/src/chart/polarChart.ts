@@ -77,12 +77,8 @@ export class PolarChart extends Chart {
     }
 
     private async computeCircle(seriesBox: BBox) {
-        const polarSeries = this.series.filter((series): series is PolarSeries<any, any, any> => {
-            return series instanceof PolarSeries;
-        });
-        const polarAxes = this.axes.filter((axis): axis is PolarAxis => {
-            return axis instanceof PolarAxis;
-        });
+        const polarSeries = this.series.filter(isPolarSeries);
+        const polarAxes = this.axes.filter(isPolarAxis);
 
         const setSeriesCircle = (cx: number, cy: number, r: number) => {
             this.updateAxes(cx, cy, r);
@@ -211,4 +207,12 @@ export class PolarChart extends Chart {
             radius: newRadius,
         };
     }
+}
+
+function isPolarSeries(series: unknown): series is PolarSeries<any, any, any> {
+    return series instanceof PolarSeries;
+}
+
+function isPolarAxis(axis: unknown): axis is PolarAxis {
+    return axis instanceof PolarAxis;
 }

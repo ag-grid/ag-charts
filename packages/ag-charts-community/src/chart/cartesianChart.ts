@@ -55,7 +55,7 @@ export class CartesianChart extends Chart {
 
     private lastUpdateClipRect: BBox | undefined = undefined;
 
-    async performLayout(ctx: LayoutContext) {
+    performLayout(ctx: LayoutContext) {
         const { firstSeriesTranslation, seriesRoot, annotationRoot, highlightRoot } = this;
         const { animationRect, seriesRect, visibility, clipSeries } = this.updateAxes(ctx.layoutBox);
 

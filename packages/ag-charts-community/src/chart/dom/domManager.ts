@@ -404,12 +404,13 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
     addChild(domElementClass: DOMElementClass, id: string, child?: HTMLElement) {
         const { element, children, listeners } = this.rootElements[domElementClass];
+
         if (!children) {
             throw new Error('AG Charts - unable to create DOM elements after destroy()');
         }
-
-        const existing = children.get(id);
-        if (existing != null) return existing;
+        if (children.has(id)) {
+            return children.get(id)!;
+        }
 
         const { childElementType = 'div' } = domElementConfig.get(domElementClass) ?? {};
         if (child && child.tagName.toLowerCase() !== childElementType.toLowerCase()) {
