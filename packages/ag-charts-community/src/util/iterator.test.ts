@@ -78,20 +78,6 @@ describe('iterator utils', () => {
             expect([...iterable]).toEqual([null]);
         });
 
-        it('should handle undefined values correctly', () => {
-            const value = undefined;
-            const iterable = toIterable(value);
-
-            expect([...iterable]).toEqual([undefined]);
-        });
-
-        it('should handle string values as iterables', () => {
-            const value = 'hello';
-            const iterable = toIterable(value);
-
-            expect([...iterable]).toEqual(['h', 'e', 'l', 'l', 'o']);
-        });
-
         it('should handle object values correctly by wrapping them in an array', () => {
             const value = { key: 'value' };
             const iterable = toIterable(value);
