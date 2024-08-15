@@ -47,7 +47,8 @@ import { ChartUpdateType } from './chartUpdateType';
 import type { Page } from './gridLayout';
 import { gridLayout } from './gridLayout';
 import type { HighlightNodeDatum } from './interaction/highlightManager';
-import { InteractionState, type PointerInteractionEvent } from './interaction/interactionManager';
+import { InteractionState } from './interaction/interactionManager';
+import type { RegionEvent } from './interaction/regionManager';
 import { makeKeyboardPointerEvent } from './keyboardUtil';
 import { Layers } from './layers';
 import { LayoutElement } from './layout/layoutManager';
@@ -980,8 +981,8 @@ export class Legend extends BaseProperties {
         this.doDoubleClick(datum);
     }
 
-    private checkContextClick(event: PointerInteractionEvent<'contextmenu'>) {
-        const legendItem = this.getDatumForPoint(event.offsetX, event.offsetY);
+    private checkContextClick(event: RegionEvent<'contextmenu'>) {
+        const legendItem = this.getDatumForPoint(event.regionOffsetX, event.regionOffsetY);
 
         if (this.preventHidingAll && this.contextMenuDatum?.enabled && this.getVisibleItemCount() <= 1) {
             this.ctx.contextMenuRegistry.disableAction(ID_LEGEND_VISIBILITY);
@@ -992,8 +993,8 @@ export class Legend extends BaseProperties {
         this.ctx.contextMenuRegistry.dispatchContext('legend', event, { legendItem });
     }
 
-    private checkLegendClick(event: PointerInteractionEvent<'click'>) {
-        const datum = this.getDatumForPoint(event.offsetX, event.offsetY);
+    private checkLegendClick(event: RegionEvent<'click'>) {
+        const datum = this.getDatumForPoint(event.regionOffsetX, event.regionOffsetY);
         if (this.doClick(datum)) {
             event.preventDefault();
         }
@@ -1053,8 +1054,8 @@ export class Legend extends BaseProperties {
         return true;
     }
 
-    private checkLegendDoubleClick(event: PointerInteractionEvent<'dblclick'>) {
-        const datum = this.getDatumForPoint(event.offsetX, event.offsetY);
+    private checkLegendDoubleClick(event: RegionEvent<'dblclick'>) {
+        const datum = this.getDatumForPoint(event.regionOffsetX, event.regionOffsetY);
         if (this.doDoubleClick(datum)) {
             event.preventDefault();
         }
@@ -1103,15 +1104,15 @@ export class Legend extends BaseProperties {
         return true;
     }
 
-    private handleLegendMouseMove(event: PointerInteractionEvent<'hover'>) {
+    private handleLegendMouseMove(event: RegionEvent<'hover'>) {
         if (!this.enabled) {
             return;
         }
 
-        const { offsetX, offsetY } = event;
         event.preventDefault();
 
-        const datum = this.getDatumForPoint(offsetX, offsetY);
+        const { regionOffsetX, regionOffsetY } = event;
+        const datum = this.getDatumForPoint(regionOffsetX, regionOffsetY);
         this.doHover(event, datum);
     }
 
@@ -1174,13 +1175,13 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private handleLegendMouseEnter(event: PointerInteractionEvent<'enter'>) {
+    private handleLegendMouseEnter(event: RegionEvent<'enter'>) {
         const {
             enabled,
             toggleSeries,
             listeners: { legendItemClick: clickListener, legendItemDoubleClick: dblclickListener },
         } = this;
-        const datum = this.getDatumForPoint(event.offsetX, event.offsetY);
+        const datum = this.getDatumForPoint(event.regionOffsetX, event.regionOffsetY);
         if (enabled && datum !== undefined && (toggleSeries || clickListener != null || dblclickListener != null)) {
             this.ctx.cursorManager.updateCursor(this.id, 'pointer');
         }

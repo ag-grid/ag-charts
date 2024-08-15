@@ -5,7 +5,8 @@ import type { TypedEvent } from '../../util/observable';
 import { BaseManager } from '../baseManager';
 import type { ChartContext } from '../chartContext';
 import { ChartUpdateType } from '../chartUpdateType';
-import { type PointerInteractionEvent, type PointerOffsets } from '../interaction/interactionManager';
+import { type PointerInteractionEvent } from '../interaction/interactionManager';
+import type { RegionEvent } from '../interaction/regionManager';
 import { REGIONS } from '../interaction/regions';
 import type { LayoutCompleteEvent } from '../layout/layoutManager';
 import type { UpdateOpts } from '../updateService';
@@ -15,7 +16,6 @@ import { pickNode } from './util';
 /** Manager that handles all top-down series-area node-click related concerns and state. */
 export class SeriesAreaClickManager extends BaseManager {
     private series: Series<any, any>[] = [];
-    private lastHover?: PointerOffsets;
     private seriesRect?: BBox;
 
     public constructor(
@@ -46,15 +46,9 @@ export class SeriesAreaClickManager extends BaseManager {
         this.series = series;
     }
 
-    public dataChanged() {
-        this.lastHover = undefined;
-    }
+    public dataChanged() {}
 
-    public preSceneRender() {
-        if (this.lastHover) {
-            this.onHover(this.lastHover);
-        }
-    }
+    public preSceneRender() {}
 
     private update(type?: ChartUpdateType, opts?: UpdateOpts) {
         this.ctx.updateService.update(type, opts);
@@ -65,12 +59,11 @@ export class SeriesAreaClickManager extends BaseManager {
     }
 
     private onLeave(): void {
-        this.lastHover = undefined;
         this.ctx.cursorManager.updateCursor(this.id);
     }
 
-    private onHover({ offsetX, offsetY }: PointerOffsets) {
-        const found = pickNode(this.series, { x: offsetX, y: offsetY }, 'event');
+    private onHover({ regionOffsetX, regionOffsetY }: RegionEvent) {
+        const found = pickNode(this.series, { x: regionOffsetX, y: regionOffsetY }, 'event');
         if (found?.series.hasEventListener('nodeClick') || found?.series.hasEventListener('nodeDoubleClick')) {
             this.ctx.cursorManager.updateCursor(this.id, 'pointer');
         } else {
@@ -78,7 +71,7 @@ export class SeriesAreaClickManager extends BaseManager {
         }
     }
 
-    private onClick(event: PointerInteractionEvent<'click' | 'dblclick'>) {
+    private onClick(event: RegionEvent<'click' | 'dblclick'>) {
         if (this.seriesRect?.containsPoint(event.offsetX, event.offsetY) && this.checkSeriesNodeClick(event)) {
             this.update(ChartUpdateType.SERIES_UPDATE);
             event.preventDefault();

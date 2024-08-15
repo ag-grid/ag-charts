@@ -20,8 +20,7 @@ import {
 } from '../../util/validation';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { CursorManager } from '../interaction/cursorManager';
-import type { PointerInteractionEvent } from '../interaction/interactionManager';
-import type { RegionManager } from '../interaction/regionManager';
+import type { RegionEvent, RegionManager } from '../interaction/regionManager';
 import type { Marker } from '../marker/marker';
 import { Triangle } from '../marker/triangle';
 import { type MarkerShape, getMarker } from '../marker/util';
@@ -337,24 +336,24 @@ export class Pagination extends BaseProperties {
         }
     }
 
-    private onPaginationClick(event: PointerInteractionEvent<'click'>) {
-        const { offsetX, offsetY } = event;
+    private onPaginationClick(event: RegionEvent<'click'>) {
+        const { regionOffsetX, regionOffsetY } = event;
         event.preventDefault();
 
-        if (this.nextButtonContainsPoint(offsetX, offsetY)) {
+        if (this.nextButtonContainsPoint(regionOffsetX, regionOffsetY)) {
             this.clickNext();
-        } else if (this.previousButtonContainsPoint(offsetX, offsetY)) {
+        } else if (this.previousButtonContainsPoint(regionOffsetX, regionOffsetY)) {
             this.clickPrevious();
         }
     }
 
-    private onPaginationMouseMove(event: PointerInteractionEvent<'hover'>) {
-        const { offsetX, offsetY } = event;
+    private onPaginationMouseMove(event: RegionEvent<'hover'>) {
+        const { regionOffsetX, regionOffsetY } = event;
 
-        if (this.nextButtonContainsPoint(offsetX, offsetY)) {
+        if (this.nextButtonContainsPoint(regionOffsetX, regionOffsetY)) {
             this.cursorManager.updateCursor(this.id, 'pointer');
             this.highlightActive = 'next';
-        } else if (this.previousButtonContainsPoint(offsetX, offsetY)) {
+        } else if (this.previousButtonContainsPoint(regionOffsetX, regionOffsetY)) {
             this.cursorManager.updateCursor(this.id, 'pointer');
             this.highlightActive = 'previous';
         } else {

@@ -1,5 +1,6 @@
 import type { Node } from '../../scene/node';
 import { TransformableNode } from '../../scene/transformable';
+import type { BBoxProvider } from '../../util/bboxinterface';
 import { Listeners } from '../../util/listeners';
 import type { FocusIndicator } from '../dom/focusIndicator';
 import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
@@ -9,11 +10,18 @@ import type { RegionBBoxProvider, RegionName } from './regions';
 
 // This type-map allows the compiler to automatically figure out the parameter type of handlers
 // specifies through the `addListener` method (see the `makeObserver` method).
-export type RegionEvent<K extends PointerInteractionTypes = PointerInteractionTypes> = PointerInteractionEvent<K> & {
+type TypeInfo = { [K in PointerInteractionTypes]: PointerInteractionEvent<K> & RegionEventMixins };
+
+type RegionEventMixins = {
     region: RegionName;
     bboxProviderId?: string;
+    regionOffsetX: number;
+    regionOffsetY: number;
 };
-type TypeInfo = { [K in PointerInteractionTypes]: RegionEvent<K> };
+
+type RegionEventTypes = PointerInteractionTypes;
+export type RegionEvent<T extends RegionEventTypes = RegionEventTypes> = RegionEventTypes &
+    RegionEventMixins & { type: T };
 type RegionHandler = (event: RegionEvent) => void;
 
 class RegionListeners extends Listeners<RegionEvent['type'], RegionHandler> {}
@@ -46,8 +54,7 @@ function addHandler<T extends RegionEvent['type']>(
 }
 
 export class RegionManager {
-    private currentRegion?: Region;
-    private currentBBoxProviderId?: string;
+    private current?: { region: Region; bboxProvider?: BBoxProvider };
     private isDragging = false;
     private leftCanvas = false;
 
@@ -69,7 +76,7 @@ export class RegionManager {
     public destroy() {
         this.destroyFns.forEach((fn) => fn());
 
-        this.currentRegion = undefined;
+        this.current = undefined;
         for (const region of this.regions.values()) {
             region.listeners.destroy();
         }
@@ -129,7 +136,7 @@ export class RegionManager {
 
     private checkPointerHistory(targetRegion: Region, event: PointerInteractionEvent): boolean {
         for (const historyEvent of event.pointerHistory) {
-            const { region: historyRegion } = this.pickRegion(historyEvent.offsetX, historyEvent.offsetY);
+            const { region: historyRegion } = this.pickRegion(historyEvent.offsetX, historyEvent.offsetY) ?? {};
             if (targetRegion.properties.name !== historyRegion?.properties.name) {
                 return false;
             }
@@ -139,24 +146,42 @@ export class RegionManager {
 
     // Create and dispatch a copy of the InteractionEvent.
     private dispatch(
-        region: Region | undefined,
-        partialEvent: Unpreventable<PointerInteractionEvent>,
-        bboxProviderId?: string
+        current: { region: Region; bboxProvider?: BBoxProvider } | undefined,
+        partialEvent: Unpreventable<PointerInteractionEvent>
     ) {
-        if (region == null) return;
+        if (current == null) return;
+
+        let regionOffsetX = 0;
+        let regionOffsetY = 0;
+        if (current.bboxProvider) {
+            const regionBBox = current.bboxProvider.toCanvasBBox();
+            if ('offsetX' in partialEvent) {
+                regionOffsetX = partialEvent.offsetX - regionBBox.x;
+            } else {
+                regionOffsetX = regionBBox.width / 2;
+            }
+            if ('offsetY' in partialEvent) {
+                regionOffsetY = partialEvent.offsetY - regionBBox.y;
+            } else {
+                regionOffsetY = regionBBox.height / 2;
+            }
+        }
+
         const event: RegionEvent = buildPreventable({
             ...partialEvent,
-            region: region.properties.name,
-            bboxProviderId: bboxProviderId,
+            region: current.region.properties.name,
+            bboxProviderId: current.bboxProvider?.id,
+            regionOffsetX,
+            regionOffsetY,
         });
         this.allRegionsListeners.dispatch(event.type, event);
-        region.listeners.dispatch(event.type, event);
+        current.region.listeners.dispatch(event.type, event);
     }
 
     // Process events during a drag action. Returns false if this event should follow the standard
     // RegionManager.processEvent flow, or true if this event already processed by this function.
     private handleDragging(event: PointerInteractionEvent): boolean {
-        const { currentRegion } = this;
+        const { current } = this;
 
         switch (event.type) {
             case 'drag-start':
@@ -178,16 +203,16 @@ export class RegionManager {
             // and defers it until the drag is done.
             case 'drag':
                 if (this.isDragging) {
-                    this.dispatch(currentRegion, event);
+                    this.dispatch(current, event);
                     return true;
                 }
                 break;
             case 'drag-end':
                 if (this.isDragging) {
                     this.isDragging = false;
-                    this.dispatch(currentRegion, event);
+                    this.dispatch(current, event);
                     if (this.leftCanvas) {
-                        this.dispatch(currentRegion, { ...event, type: 'leave' });
+                        this.dispatch(current, { ...event, type: 'leave' });
                     }
                     return true;
                 }
@@ -203,26 +228,26 @@ export class RegionManager {
             return;
         }
 
-        const { currentRegion } = this;
+        const { current } = this;
 
         if (event.type === 'leave') {
-            this.dispatch(currentRegion, { ...event, type: 'leave' });
-            this.currentRegion = undefined;
+            this.dispatch(current, { ...event, type: 'leave' });
+            this.current = undefined;
             return;
         }
 
-        const { region: newRegion, bboxProviderId } = this.pickRegion(event.offsetX, event.offsetY);
-        if (currentRegion !== undefined && newRegion?.properties.name !== currentRegion.properties.name) {
-            this.dispatch(currentRegion, { ...event, type: 'leave' }, this.currentBBoxProviderId);
+        const newCurrent = this.pickRegion(event.offsetX, event.offsetY);
+        const newRegion = newCurrent?.region;
+        if (current !== undefined && newRegion?.properties.name !== current.region.properties.name) {
+            this.dispatch(current, { ...event, type: 'leave' });
         }
-        if (newRegion !== undefined && newRegion.properties.name !== currentRegion?.properties.name) {
-            this.dispatch(newRegion, { ...event, type: 'enter' }, bboxProviderId);
+        if (newRegion !== undefined && newRegion.properties.name !== current?.region.properties.name) {
+            this.dispatch(newCurrent, { ...event, type: 'enter' });
         }
         if (newRegion !== undefined && this.checkPointerHistory(newRegion, event)) {
-            this.dispatch(newRegion, event, bboxProviderId);
+            this.dispatch(newCurrent, event);
         }
-        this.currentRegion = newRegion;
-        this.currentBBoxProviderId = bboxProviderId;
+        this.current = newCurrent;
     }
 
     private pickRegion(x: number, y: number) {
@@ -230,7 +255,7 @@ export class RegionManager {
         // This ensure that we prioritise smaller regions are contained inside larger regions.
         let currentArea = Infinity;
         let currentRegion: Region | undefined;
-        let currentBBoxProviderId: string | undefined;
+        let currentBBoxProvider: RegionBBoxProvider | undefined;
         for (const region of this.regions.values()) {
             for (const provider of region.properties.bboxproviders) {
                 if (provider.visible === false) continue;
@@ -240,10 +265,10 @@ export class RegionManager {
                 if (area < currentArea && bbox.containsPoint(x, y)) {
                     currentArea = area;
                     currentRegion = region;
-                    currentBBoxProviderId = provider.id;
+                    currentBBoxProvider = provider;
                 }
             }
         }
-        return { region: currentRegion, bboxProviderId: currentBBoxProviderId };
+        return currentRegion ? { region: currentRegion, bboxProvider: currentBBoxProvider } : undefined;
     }
 }

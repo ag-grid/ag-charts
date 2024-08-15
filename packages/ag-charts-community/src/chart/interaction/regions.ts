@@ -1,4 +1,4 @@
-import type { BBoxContainsTester, BBoxProvider } from '../../util/bboxinterface';
+import type { BBoxContainsTester, BBoxProvider, BBoxValues } from '../../util/bboxinterface';
 
 export enum REGIONS {
     TITLE = 'title',
@@ -16,4 +16,4 @@ export enum REGIONS {
 
 export type RegionName = `${REGIONS}`;
 
-export type RegionBBoxProvider = BBoxProvider<BBoxContainsTester & { width: number; height: number }>;
+export type RegionBBoxProvider = BBoxProvider<BBoxContainsTester & BBoxValues>;
