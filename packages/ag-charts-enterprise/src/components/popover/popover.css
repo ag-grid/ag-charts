@@ -4,6 +4,5 @@
     border-radius: 4px;
     background: var(--ag-charts-popover-background-color);
     color: var(--ag-charts-popover-foreground-color);
-    overflow: hidden;
     z-index: var(--ag-charts-layer-ui-overlay);
 }

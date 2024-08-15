@@ -81,6 +81,7 @@
         --ag-input-focus-box-shadow,
         0 0 0 3px color-mix(in srgb, transparent, var(--ag-input-focus-border-color, var(--ag-charts-active-color)) 20%)
     );
+    --ag-charts-focus-box-shadow: var(--box-shadow), 0 0 0 2px #fff8, var(--ag-charts-focus-border-shadow);
 
     /* Icons */
     --ag-charts-icon-font-family: 'agChartsDefault';
