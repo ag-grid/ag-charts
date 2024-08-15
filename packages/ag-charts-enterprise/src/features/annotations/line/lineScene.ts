@@ -26,8 +26,6 @@ export class LineScene extends LinearScene<LineProperties> {
     private startCap?: CapScene;
     private endCap?: CapScene;
 
-    private seriesRect?: _Scene.BBox;
-
     constructor() {
         super();
         this.append([this.line, this.start, this.end]);
@@ -35,7 +33,6 @@ export class LineScene extends LinearScene<LineProperties> {
 
     public update(datum: LineProperties, context: AnnotationContext) {
         const locked = datum.locked ?? false;
-        this.seriesRect = context.seriesRect;
 
         const coords = convertLine(datum, context);
 
@@ -198,7 +195,7 @@ export class LineScene extends LinearScene<LineProperties> {
     }
 
     override containsPoint(x: number, y: number) {
-        const { start, end, seriesRect, line } = this;
+        const { start, end, line } = this;
 
         this.activeHandle = undefined;
 
@@ -211,9 +208,6 @@ export class LineScene extends LinearScene<LineProperties> {
             this.activeHandle = 'end';
             return true;
         }
-
-        x -= seriesRect?.x ?? 0;
-        y -= seriesRect?.y ?? 0;
 
         return line.isPointInPath(x, y);
     }
