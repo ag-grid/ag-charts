@@ -1405,12 +1405,12 @@ export abstract class Chart extends Observable {
         debug(`Chart.applyAxes() - creating new axes instances; seriesStatus: ${seriesStatus}`);
         chart.axes = this.createAxis(axes, skip);
 
-        const axisGroups: { [Key in ChartAxisDirection]: Node[] } = {
+        const axisGroups: { [Key in ChartAxisDirection]: { id: string; node: Node }[] } = {
             [ChartAxisDirection.X]: [],
             [ChartAxisDirection.Y]: [],
         };
 
-        chart.axes.forEach((axis) => axisGroups[axis.direction].push(axis.getRegionNode()));
+        chart.axes.forEach((axis) => axisGroups[axis.direction].push({ id: axis.id, node: axis.getRegionNode() }));
 
         if (registerRegions) {
             this.ctx.regionManager.updateRegion(REGIONS.HORIZONTAL_AXES, ...axisGroups[ChartAxisDirection.X]);

@@ -51,6 +51,16 @@ function addHandler<T extends RegionEvent['type']>(
     );
 }
 
+type RegionNodeType = Node | { id: string; node: Node };
+
+function nodeToBBoxProvider(node: RegionNodeType) {
+    if (node instanceof Node) {
+        return new NodeRegionBBoxProvider(node);
+    }
+
+    return new NodeRegionBBoxProvider(node.node, node.id);
+}
+
 export class RegionManager {
     private current?: { region: Region; bboxProvider?: BBoxProvider };
     private isDragging = false;
@@ -83,22 +93,22 @@ export class RegionManager {
         this.regions.clear();
     }
 
-    public addRegion(name: RegionName, ...nodes: Node[]) {
+    public addRegion(name: RegionName, ...nodes: RegionNodeType[]) {
         if (this.regions.has(name)) {
             throw new Error(`AG Charts - Region: ${name} already exists`);
         }
         const region = {
-            properties: { name, bboxproviders: nodes.map((n) => new NodeRegionBBoxProvider(n)) },
+            properties: { name, bboxproviders: nodes.map(nodeToBBoxProvider) },
             listeners: new RegionListeners(),
         };
         this.regions.set(name, region);
         return this.makeObserver(region);
     }
 
-    public updateRegion(name: RegionName, ...nodes: Node[]) {
+    public updateRegion(name: RegionName, ...nodes: RegionNodeType[]) {
         const region = this.regions.get(name);
         if (region) {
-            region.properties.bboxproviders = nodes.map((n) => new NodeRegionBBoxProvider(n));
+            region.properties.bboxproviders = nodes.map(nodeToBBoxProvider);
         } else {
             throw new Error('AG Charts - unknown region: ' + name);
         }
