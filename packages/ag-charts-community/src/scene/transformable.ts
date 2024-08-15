@@ -29,7 +29,12 @@ function isMatrixTransformType<N extends Node>(cstr: Constructor<N>): cstr is Co
     return false;
 }
 
-export function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
+/**
+ * Base mixin type for operations that require matrix calculations.
+ *
+ * Only intended for use by concrete mixin types below.
+ */
+function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
     const ParentNode = Parent as Constructor<Node>;
 
     // Make sure we don't mixin `MatrixTransformInternal` multiple times.
@@ -131,6 +136,7 @@ export type RotatableType<T> = MatrixTransformType<
     }
 >;
 
+/** Mixin type for scene Nodes that are rotatable. */
 export function Rotatable<N extends Node>(Parent: Constructor<N>): Constructor<RotatableType<N>> {
     const ParentNode = Parent as Constructor<Node>;
     const ROTATABLE_MATRIX = Symbol('matrix_rotation');
@@ -170,6 +176,7 @@ export type ScalableType<T> = MatrixTransformType<
     }
 >;
 
+/** Mixin type for scene Nodes that are scalable. */
 export function Scalable<N extends Node>(Parent: Constructor<N>): Constructor<ScalableType<N>> {
     const ParentNode = Parent as Constructor<Node>;
     const SCALABLE_MATRIX = Symbol('matrix_scale');
@@ -209,6 +216,7 @@ export type TranslatableType<T> = MatrixTransformType<
     }
 >;
 
+/** Mixin type for scene Nodes that are translatable. */
 export function Translatable<N extends Node>(Parent: Constructor<N>): Constructor<TranslatableType<N>> {
     const ParentNode = Parent as Constructor<Node>;
     const TRANSLATABLE_MATRIX = Symbol('matrix_translation');
@@ -234,7 +242,11 @@ export function Translatable<N extends Node>(Parent: Constructor<N>): Constructo
     return ScalableInternal as unknown as Constructor<TranslatableType<N>>;
 }
 
+/** Utility class for operations relating to matrix-transformable mixin types. */
 export class Transformable {
+    /**
+     * Converts a BBox from canvas coordinate space into the coordinate space of the given Node.
+     */
     static fromCanvas(node: Node, bbox: BBox) {
         const parents = [];
         for (const parent of node.ancestors()) {
@@ -255,6 +267,10 @@ export class Transformable {
         return bbox;
     }
 
+    /**
+     * Converts a Nodes BBox (or an arbitrary BBox if supplied) from local Node coordinate space
+     * into the Canvas coordinate space.
+     */
     static toCanvas(node: Node, bbox?: BBox) {
         if (bbox == null) {
             bbox = node.getBBox();
@@ -271,6 +287,9 @@ export class Transformable {
         return bbox;
     }
 
+    /**
+     * Converts a point from canvas coordinate space into the coordinate space of the given Node.
+     */
     static fromCanvasPoint(node: Node, x: number, y: number) {
         const parents = [];
         for (const parent of node.ancestors()) {
@@ -291,6 +310,9 @@ export class Transformable {
         return { x, y };
     }
 
+    /**
+     * Converts a point from a Nodes local coordinate space into the Canvas coordinate space.
+     */
     static toCanvasPoint(node: Node, x: number, y: number) {
         if (isMatrixTransform(node)) {
             ({ x, y } = node.transformPoint(x, y));
