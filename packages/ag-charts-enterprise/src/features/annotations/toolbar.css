@@ -8,15 +8,11 @@
 
 .annotations__line-stroke-width {
     min-width: 0;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
     --item-padding: 6px;
 }
 
 .annotations__line-style-type {
     width: 34px;
     min-width: 0;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
     --item-padding: 6px;
 }
