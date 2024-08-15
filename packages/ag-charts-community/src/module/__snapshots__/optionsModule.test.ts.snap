@@ -399,6 +399,15 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           "value": "text-size",
         },
         {
+          "tooltip": "toolbarAnnotationsLineStrokeWidth",
+          "value": "line-stroke-width",
+        },
+        {
+          "icon": "line-style-solid",
+          "tooltip": "toolbarAnnotationsLineStyle=",
+          "value": "line-style-type",
+        },
+        {
           "checkedOverrides": {
             "icon": "locked",
             "tooltip": "toolbarAnnotationsUnlock",
@@ -980,6 +989,15 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         {
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
+        },
+        {
+          "tooltip": "toolbarAnnotationsLineStrokeWidth",
+          "value": "line-stroke-width",
+        },
+        {
+          "icon": "line-style-solid",
+          "tooltip": "toolbarAnnotationsLineStyle=",
+          "value": "line-style-type",
         },
         {
           "checkedOverrides": {
@@ -1709,6 +1727,15 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         {
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
+        },
+        {
+          "tooltip": "toolbarAnnotationsLineStrokeWidth",
+          "value": "line-stroke-width",
+        },
+        {
+          "icon": "line-style-solid",
+          "tooltip": "toolbarAnnotationsLineStyle=",
+          "value": "line-style-type",
         },
         {
           "checkedOverrides": {
@@ -2443,6 +2470,15 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
           "value": "text-size",
         },
         {
+          "tooltip": "toolbarAnnotationsLineStrokeWidth",
+          "value": "line-stroke-width",
+        },
+        {
+          "icon": "line-style-solid",
+          "tooltip": "toolbarAnnotationsLineStyle=",
+          "value": "line-style-type",
+        },
+        {
           "checkedOverrides": {
             "icon": "locked",
             "tooltip": "toolbarAnnotationsUnlock",
@@ -2860,6 +2896,15 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
         {
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
+        },
+        {
+          "tooltip": "toolbarAnnotationsLineStrokeWidth",
+          "value": "line-stroke-width",
+        },
+        {
+          "icon": "line-style-solid",
+          "tooltip": "toolbarAnnotationsLineStyle=",
+          "value": "line-style-type",
         },
         {
           "checkedOverrides": {
@@ -3428,6 +3473,15 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         {
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
+        },
+        {
+          "tooltip": "toolbarAnnotationsLineStrokeWidth",
+          "value": "line-stroke-width",
+        },
+        {
+          "icon": "line-style-solid",
+          "tooltip": "toolbarAnnotationsLineStyle=",
+          "value": "line-style-type",
         },
         {
           "checkedOverrides": {
@@ -4119,6 +4173,15 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
           "value": "text-size",
         },
         {
+          "tooltip": "toolbarAnnotationsLineStrokeWidth",
+          "value": "line-stroke-width",
+        },
+        {
+          "icon": "line-style-solid",
+          "tooltip": "toolbarAnnotationsLineStyle=",
+          "value": "line-style-type",
+        },
+        {
           "checkedOverrides": {
             "icon": "locked",
             "tooltip": "toolbarAnnotationsUnlock",
@@ -4552,6 +4615,15 @@ by Occupation",
           "value": "text-size",
         },
         {
+          "tooltip": "toolbarAnnotationsLineStrokeWidth",
+          "value": "line-stroke-width",
+        },
+        {
+          "icon": "line-style-solid",
+          "tooltip": "toolbarAnnotationsLineStyle=",
+          "value": "line-style-type",
+        },
+        {
           "checkedOverrides": {
             "icon": "locked",
             "tooltip": "toolbarAnnotationsUnlock",
@@ -4982,6 +5054,15 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
           "value": "text-size",
         },
         {
+          "tooltip": "toolbarAnnotationsLineStrokeWidth",
+          "value": "line-stroke-width",
+        },
+        {
+          "icon": "line-style-solid",
+          "tooltip": "toolbarAnnotationsLineStyle=",
+          "value": "line-style-type",
+        },
+        {
           "checkedOverrides": {
             "icon": "locked",
             "tooltip": "toolbarAnnotationsUnlock",
@@ -5397,6 +5478,15 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         {
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
+        },
+        {
+          "tooltip": "toolbarAnnotationsLineStrokeWidth",
+          "value": "line-stroke-width",
+        },
+        {
+          "icon": "line-style-solid",
+          "tooltip": "toolbarAnnotationsLineStyle=",
+          "value": "line-style-type",
         },
         {
           "checkedOverrides": {
@@ -5816,6 +5906,15 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
         {
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
+        },
+        {
+          "tooltip": "toolbarAnnotationsLineStrokeWidth",
+          "value": "line-stroke-width",
+        },
+        {
+          "icon": "line-style-solid",
+          "tooltip": "toolbarAnnotationsLineStyle=",
+          "value": "line-style-type",
         },
         {
           "checkedOverrides": {
@@ -6314,6 +6413,15 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         {
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
+        },
+        {
+          "tooltip": "toolbarAnnotationsLineStrokeWidth",
+          "value": "line-stroke-width",
+        },
+        {
+          "icon": "line-style-solid",
+          "tooltip": "toolbarAnnotationsLineStyle=",
+          "value": "line-style-type",
         },
         {
           "checkedOverrides": {
@@ -6816,6 +6924,15 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         {
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
+        },
+        {
+          "tooltip": "toolbarAnnotationsLineStrokeWidth",
+          "value": "line-stroke-width",
+        },
+        {
+          "icon": "line-style-solid",
+          "tooltip": "toolbarAnnotationsLineStyle=",
+          "value": "line-style-type",
         },
         {
           "checkedOverrides": {
@@ -7561,6 +7678,15 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         {
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
+        },
+        {
+          "tooltip": "toolbarAnnotationsLineStrokeWidth",
+          "value": "line-stroke-width",
+        },
+        {
+          "icon": "line-style-solid",
+          "tooltip": "toolbarAnnotationsLineStyle=",
+          "value": "line-style-type",
         },
         {
           "checkedOverrides": {
@@ -8725,6 +8851,15 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "value": "text-size",
         },
         {
+          "tooltip": "toolbarAnnotationsLineStrokeWidth",
+          "value": "line-stroke-width",
+        },
+        {
+          "icon": "line-style-solid",
+          "tooltip": "toolbarAnnotationsLineStyle=",
+          "value": "line-style-type",
+        },
+        {
           "checkedOverrides": {
             "icon": "locked",
             "tooltip": "toolbarAnnotationsUnlock",
@@ -9143,6 +9278,15 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
         {
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
+        },
+        {
+          "tooltip": "toolbarAnnotationsLineStrokeWidth",
+          "value": "line-stroke-width",
+        },
+        {
+          "icon": "line-style-solid",
+          "tooltip": "toolbarAnnotationsLineStyle=",
+          "value": "line-style-type",
         },
         {
           "checkedOverrides": {
@@ -9984,6 +10128,15 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
           "value": "text-size",
         },
         {
+          "tooltip": "toolbarAnnotationsLineStrokeWidth",
+          "value": "line-stroke-width",
+        },
+        {
+          "icon": "line-style-solid",
+          "tooltip": "toolbarAnnotationsLineStyle=",
+          "value": "line-style-type",
+        },
+        {
           "checkedOverrides": {
             "icon": "locked",
             "tooltip": "toolbarAnnotationsUnlock",
@@ -10538,6 +10691,15 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         {
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
+        },
+        {
+          "tooltip": "toolbarAnnotationsLineStrokeWidth",
+          "value": "line-stroke-width",
+        },
+        {
+          "icon": "line-style-solid",
+          "tooltip": "toolbarAnnotationsLineStyle=",
+          "value": "line-style-type",
         },
         {
           "checkedOverrides": {
@@ -11238,6 +11400,15 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
           "value": "text-size",
         },
         {
+          "tooltip": "toolbarAnnotationsLineStrokeWidth",
+          "value": "line-stroke-width",
+        },
+        {
+          "icon": "line-style-solid",
+          "tooltip": "toolbarAnnotationsLineStyle=",
+          "value": "line-style-type",
+        },
+        {
           "checkedOverrides": {
             "icon": "locked",
             "tooltip": "toolbarAnnotationsUnlock",
@@ -11839,6 +12010,15 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
           "value": "text-size",
         },
         {
+          "tooltip": "toolbarAnnotationsLineStrokeWidth",
+          "value": "line-stroke-width",
+        },
+        {
+          "icon": "line-style-solid",
+          "tooltip": "toolbarAnnotationsLineStyle=",
+          "value": "line-style-type",
+        },
+        {
           "checkedOverrides": {
             "icon": "locked",
             "tooltip": "toolbarAnnotationsUnlock",
@@ -12263,6 +12443,15 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
         {
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
+        },
+        {
+          "tooltip": "toolbarAnnotationsLineStrokeWidth",
+          "value": "line-stroke-width",
+        },
+        {
+          "icon": "line-style-solid",
+          "tooltip": "toolbarAnnotationsLineStyle=",
+          "value": "line-style-type",
         },
         {
           "checkedOverrides": {
@@ -12979,6 +13168,15 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
           "value": "text-size",
         },
         {
+          "tooltip": "toolbarAnnotationsLineStrokeWidth",
+          "value": "line-stroke-width",
+        },
+        {
+          "icon": "line-style-solid",
+          "tooltip": "toolbarAnnotationsLineStyle=",
+          "value": "line-style-type",
+        },
+        {
           "checkedOverrides": {
             "icon": "locked",
             "tooltip": "toolbarAnnotationsUnlock",
@@ -13585,6 +13783,15 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
         {
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
+        },
+        {
+          "tooltip": "toolbarAnnotationsLineStrokeWidth",
+          "value": "line-stroke-width",
+        },
+        {
+          "icon": "line-style-solid",
+          "tooltip": "toolbarAnnotationsLineStyle=",
+          "value": "line-style-type",
         },
         {
           "checkedOverrides": {
@@ -14387,6 +14594,15 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "value": "text-size",
         },
         {
+          "tooltip": "toolbarAnnotationsLineStrokeWidth",
+          "value": "line-stroke-width",
+        },
+        {
+          "icon": "line-style-solid",
+          "tooltip": "toolbarAnnotationsLineStyle=",
+          "value": "line-style-type",
+        },
+        {
           "checkedOverrides": {
             "icon": "locked",
             "tooltip": "toolbarAnnotationsUnlock",
@@ -14970,6 +15186,15 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         {
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
+        },
+        {
+          "tooltip": "toolbarAnnotationsLineStrokeWidth",
+          "value": "line-stroke-width",
+        },
+        {
+          "icon": "line-style-solid",
+          "tooltip": "toolbarAnnotationsLineStyle=",
+          "value": "line-style-type",
         },
         {
           "checkedOverrides": {
@@ -15625,6 +15850,15 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         {
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
+        },
+        {
+          "tooltip": "toolbarAnnotationsLineStrokeWidth",
+          "value": "line-stroke-width",
+        },
+        {
+          "icon": "line-style-solid",
+          "tooltip": "toolbarAnnotationsLineStyle=",
+          "value": "line-style-type",
         },
         {
           "checkedOverrides": {
