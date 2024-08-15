@@ -183,7 +183,7 @@ export function initMenuKeyNav(opts: {
 
     menu.role = 'menu';
     menu.ariaOrientation = orientation;
-    if (buttons.length ===0 )  return destroyFns;
+    if (buttons.length === 0) return destroyFns;
 
     buttons.forEach((b) => {
         if (b.id.length === 0) b.id = createId(b);
@@ -191,11 +191,21 @@ export function initMenuKeyNav(opts: {
 
     let currentIndex = 0;
     const doFocus = (delta: number, event?: KeyboardEvent) => {
-        currentIndex  = (currentIndex + delta + buttons.length) % buttons.length;
+        currentIndex = (currentIndex + delta + buttons.length) % buttons.length;
         const dst = buttons[currentIndex];
         menu.setAttribute('aria-activedescendant', dst.id);
+
+        // buttons.forEach((b) => {
+        //     b.style.outline = 'none';
+        //     b.style.outlineWidth = '0px';
+        // });
+        // dst.style.outline = 'solid';
+        // dst.style.outlineColor = 'blue';
+        // dst.style.outlineWidth = '2px';
+
         //buttons.forEach((b) => (b.ariaSelected = 'false'));
         //dst.ariaSelected = 'true';
+
         event?.preventDefault();
     };
     doFocus(0);
