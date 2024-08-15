@@ -1,4 +1,3 @@
-import { TransformableNode } from '../../../integrated-charts-scene';
 import { QUICK_TRANSITION } from '../../../motion/animation';
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING, fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
@@ -7,6 +6,7 @@ import type { Group } from '../../../scene/group';
 import type { Node } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
+import { Transformable } from '../../../scene/transformable';
 import { clamp } from '../../../util/number';
 import type { AnimationManager } from '../../interaction/animationManager';
 import type { Marker } from '../../marker/marker';
@@ -174,5 +174,5 @@ export function computeMarkerFocusBounds<TDatum extends { point: Point }>(
     const radius = size / 2;
     const x = datum.point.x - radius;
     const y = datum.point.y - radius;
-    return TransformableNode.toCanvas(series.contentGroup, new BBox(x, y, size, size));
+    return Transformable.toCanvas(series.contentGroup, new BBox(x, y, size, size));
 }

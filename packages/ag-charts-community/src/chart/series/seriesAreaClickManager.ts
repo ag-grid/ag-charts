@@ -1,7 +1,7 @@
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types';
 
-import { TransformableNode } from '../../integrated-charts-scene';
 import type { BBox } from '../../scene/bbox';
+import { Transformable } from '../../scene/transformable';
 import type { TypedEvent } from '../../util/observable';
 import { BaseManager } from '../baseManager';
 import type { ChartContext } from '../chartContext';
@@ -88,7 +88,7 @@ export class SeriesAreaClickManager extends BaseManager {
     private checkSeriesNodeClick(event: RegionEvent<'click' | 'dblclick'> & { preventZoomDblClick?: boolean }) {
         let point = { x: event.regionOffsetX, y: event.regionOffsetY };
         if (event.region !== 'series') {
-            point = TransformableNode.fromCanvasPoint(this.ctx.chartService.seriesRoot, event.offsetX, event.offsetY);
+            point = Transformable.fromCanvasPoint(this.ctx.chartService.seriesRoot, event.offsetX, event.offsetY);
         }
         const result = pickNode(this.series, point, 'event');
         if (result == null) return false;

@@ -221,7 +221,7 @@ describe('MapShapeSeries', () => {
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
-                    const { x, y } = _Scene.TransformableNode.toCanvasPoint(
+                    const { x, y } = _Scene.Transformable.toCanvasPoint(
                         series.contentGroup,
                         itemPoint[0],
                         itemPoint[1]

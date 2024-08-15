@@ -1,4 +1,3 @@
-import type { RegionBBoxProvider } from '../chart/interaction/regions';
 import type { BBox } from './bbox';
 import { IDENTITY_MATRIX_ELEMENTS, Matrix } from './matrix';
 import { Node, RedrawType, type RenderContext, SceneChangeDetection } from './node';
@@ -235,7 +234,7 @@ export function Translatable<N extends Node>(Parent: Constructor<N>): Constructo
     return ScalableInternal as unknown as Constructor<TranslatableType<N>>;
 }
 
-export class TransformableNode implements RegionBBoxProvider {
+export class Transformable {
     static fromCanvas(node: Node, bbox: BBox) {
         const parents = [];
         for (const parent of node.ancestors()) {
@@ -304,23 +303,5 @@ export class TransformableNode implements RegionBBoxProvider {
         }
 
         return { x, y };
-    }
-
-    constructor(private readonly node: Node) {}
-
-    get id() {
-        return this.node.id;
-    }
-
-    get visible() {
-        return this.node.visible;
-    }
-
-    toCanvasBBox() {
-        return TransformableNode.toCanvas(this.node);
-    }
-
-    fromCanvasPoint(x: number, y: number) {
-        return TransformableNode.fromCanvasPoint(this.node, x, y);
     }
 }

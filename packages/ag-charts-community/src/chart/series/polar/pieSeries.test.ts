@@ -2,7 +2,7 @@ import { afterEach, describe, expect, jest, test } from '@jest/globals';
 
 import type { AgPolarChartOptions } from 'ag-charts-types';
 
-import { TransformableNode } from '../../../scene/transformable';
+import { Transformable } from '../../../scene/transformable';
 import type { Chart } from '../../chart';
 import { LegendMarkerLabel } from '../../legendMarkerLabel';
 import {
@@ -126,7 +126,7 @@ describe('PieSeries', () => {
                 if (nodeData.angleValue < 1e-10) continue;
 
                 const { x = 0, y = 0 } = nodeData.midPoint ?? {};
-                const { x: clickX, y: clickY } = TransformableNode.toCanvasPoint(pieSeries.contentGroup, x, y);
+                const { x: clickX, y: clickY } = Transformable.toCanvasPoint(pieSeries.contentGroup, x, y);
                 await waitForChartStability(chart);
                 await clickAction(clickX, clickY)(chart);
             }
@@ -144,7 +144,7 @@ describe('PieSeries', () => {
                 if (nodeData.angleValue < 1e-10) continue;
 
                 const { x = 0, y = 0 } = nodeData.midPoint ?? {};
-                const { x: clickX, y: clickY } = TransformableNode.toCanvasPoint(pieSeries.contentGroup, x, y);
+                const { x: clickX, y: clickY } = Transformable.toCanvasPoint(pieSeries.contentGroup, x, y);
                 await waitForChartStability(chart);
                 await doubleClickAction(clickX, clickY)(chart);
             }
@@ -160,7 +160,7 @@ describe('PieSeries', () => {
             for (const { legend } of deproxy(chart).modulesManager.legends()) {
                 const markerLabels = (legend as any).itemSelection?._nodes as LegendMarkerLabel[];
                 for (const label of markerLabels) {
-                    const { x, y } = TransformableNode.toCanvas(label).computeCenter();
+                    const { x, y } = Transformable.toCanvas(label).computeCenter();
 
                     await clickAction(x, y)(chart);
                     await waitForChartStability(chart);

@@ -1,7 +1,7 @@
 import { ColorScale } from '../../scale/colorScale';
 import type { RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
-import { TransformableNode } from '../transformable';
+import { Transformable } from '../transformable';
 import type { Path } from './path';
 import { Shape } from './shape';
 
@@ -44,7 +44,7 @@ export class LinearGradientFill extends Shape {
         const pixelLength = 1 / devicePixelRatio;
 
         if (mask == null || stops == null) return;
-        const maskBbox = TransformableNode.toCanvas(mask);
+        const maskBbox = Transformable.toCanvas(mask);
 
         if (mask.dirtyPath) {
             mask.updatePath();

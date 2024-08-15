@@ -3,7 +3,7 @@ import type { AgChartLegendOrientation, FontStyle, FontWeight } from 'ag-charts-
 import { TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import { Text } from '../../scene/shape/text';
-import { Rotatable, type RotatableType, TransformableNode } from '../../scene/transformable';
+import { Rotatable, type RotatableType, Transformable } from '../../scene/transformable';
 import { createId } from '../../util/id';
 import { clamp } from '../../util/number';
 import { BaseProperties } from '../../util/properties';
@@ -396,8 +396,8 @@ export class Pagination extends BaseProperties {
     }
 
     computeCSSBounds() {
-        const prev = TransformableNode.toCanvas(this.previousButton);
-        const next = TransformableNode.toCanvas(this.nextButton);
+        const prev = Transformable.toCanvas(this.previousButton);
+        const next = Transformable.toCanvas(this.nextButton);
         return { prev, next };
     }
 }

@@ -626,7 +626,7 @@ export class SankeySeries extends FlowProportionSeries<
         if (datum?.type === FlowProportionDatumType.Node) {
             const { x, y, width, height } = datum;
             const bbox = new BBox(x, y, width, height);
-            return _Scene.TransformableNode.toCanvas(this.contentGroup, bbox).clip(seriesRect);
+            return _Scene.Transformable.toCanvas(this.contentGroup, bbox).clip(seriesRect);
         } else if (datum?.type === FlowProportionDatumType.Link) {
             for (const link of this.linkSelection) {
                 if (link.datum === datum) {

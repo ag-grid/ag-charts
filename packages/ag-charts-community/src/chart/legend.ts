@@ -20,7 +20,7 @@ import type { Scene } from '../scene/scene';
 import { Selection } from '../scene/selection';
 import { Line } from '../scene/shape/line';
 import { type SpriteDimensions, SpriteRenderer } from '../scene/spriteRenderer';
-import { TransformableNode } from '../scene/transformable';
+import { Transformable } from '../scene/transformable';
 import { getWindow, setElementBBox } from '../util/dom';
 import { createId } from '../util/id';
 import { initToolbarKeyNav } from '../util/keynavUtil';
@@ -49,6 +49,7 @@ import { gridLayout } from './gridLayout';
 import type { HighlightNodeDatum } from './interaction/highlightManager';
 import { InteractionState } from './interaction/interactionManager';
 import type { RegionEvent } from './interaction/regionManager';
+import { NodeRegionBBoxProvider } from './interaction/regions';
 import { makeKeyboardPointerEvent } from './keyboardUtil';
 import { Layers } from './layers';
 import { LayoutElement } from './layout/layoutManager';
@@ -319,7 +320,7 @@ export class Legend extends BaseProperties {
                 id: `ag-charts-legend-item-${i}`,
                 textContent: this.getItemAriaText(i),
                 parent: this.proxyLegendToolbar,
-                focusable: new TransformableNode(markerLabel),
+                focusable: new NodeRegionBBoxProvider(markerLabel),
                 // Retrieve the datum from the node rather than from the method parameter.
                 // The method parameter `datum` gets destroyed when the data is refreshed
                 // using Series.getLegendData(). But the scene node will stay the same.
@@ -329,7 +330,7 @@ export class Legend extends BaseProperties {
                 },
                 onblur: () => this.handleLegendMouseExit(),
                 onfocus: () => {
-                    const bounds = TransformableNode.toCanvas(markerLabel);
+                    const bounds = Transformable.toCanvas(markerLabel);
                     const event = makeKeyboardPointerEvent(this.ctx.focusIndicator, { bounds, showFocusBox: true });
                     this.doHover(event, markerLabel.datum);
                     this.pagination.setPage(markerLabel.pageIndex);
@@ -694,7 +695,7 @@ export class Legend extends BaseProperties {
 
     private updateItemProxyButtons() {
         this.itemSelection.each((markerLabel) => {
-            const bbox = TransformableNode.toCanvas(markerLabel)?.clone();
+            const bbox = Transformable.toCanvas(markerLabel)?.clone();
             bbox.translate(this.group.translationX, this.group.translationY);
             setElementBBox(markerLabel.proxyButton, bbox);
         });
@@ -714,7 +715,7 @@ export class Legend extends BaseProperties {
                     textContent: { id: 'ariaLabelLegendPagePrevious' },
                     tabIndex: 0,
                     parent: this.proxyLegendPagination,
-                    focusable: new TransformableNode(this.pagination.previousButton),
+                    focusable: new NodeRegionBBoxProvider(this.pagination.previousButton),
                     onclick: () => this.pagination.clickPrevious(),
                 });
                 this.proxyNextButton ??= this.ctx.proxyInteractionService.createProxyElement({
@@ -723,7 +724,7 @@ export class Legend extends BaseProperties {
                     textContent: { id: 'ariaLabelLegendPageNext' },
                     tabIndex: 0,
                     parent: this.proxyLegendPagination,
-                    focusable: new TransformableNode(this.pagination.nextButton),
+                    focusable: new NodeRegionBBoxProvider(this.pagination.nextButton),
                     onclick: () => this.pagination.clickNext(),
                 });
             } else {

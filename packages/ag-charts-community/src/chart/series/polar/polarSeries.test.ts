@@ -7,7 +7,7 @@ import { AgCharts } from '../../../api/agCharts';
 import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { Sector } from '../../../scene/shape/sector';
-import { TransformableNode } from '../../../scene/transformable';
+import { Transformable } from '../../../scene/transformable';
 import { ChartUpdateType } from '../../chartUpdateType';
 import type { ChartOrProxy } from '../../test/utils';
 import type { PolarTestCase } from '../../test/utils';
@@ -291,7 +291,7 @@ describe('PolarSeries', () => {
             const nodeToHighlight = (series as any).nodeData[0];
 
             let { x, y } = nodeToHighlight.midPoint as Point;
-            ({ x, y } = TransformableNode.toCanvasPoint(series.contentGroup, x, y));
+            ({ x, y } = Transformable.toCanvasPoint(series.contentGroup, x, y));
             await hoverAction(x, y)(chart);
             await waitForChartStability(chart);
 
@@ -358,7 +358,7 @@ describe('PolarSeries', () => {
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
-                    const { x, y } = TransformableNode.toCanvasPoint(series.contentGroup, itemPoint[0], itemPoint[1]);
+                    const { x, y } = Transformable.toCanvasPoint(series.contentGroup, itemPoint[0], itemPoint[1]);
                     await hoverAction(x, y)(chartInstance);
                     await waitForChartStability(chartInstance);
                     await iterator({ series, item, x, y });

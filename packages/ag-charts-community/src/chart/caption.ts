@@ -3,7 +3,7 @@ import type { FontStyle, FontWeight, TextAlign, TextWrap } from 'ag-charts-types
 import type { ModuleContext } from '../module/moduleContext';
 import { PointerEvents } from '../scene/node';
 import { RotatableText } from '../scene/shape/text';
-import { TransformableNode } from '../scene/transformable';
+import { Transformable } from '../scene/transformable';
 import { joinFunctions } from '../util/function';
 import { createId } from '../util/id';
 import { BaseProperties } from '../util/properties';
@@ -116,7 +116,7 @@ export class Caption extends BaseProperties implements CaptionLike {
 
     updateA11yText(proxyService: ProxyInteractionService) {
         if (this.enabled && this.text) {
-            const bbox = TransformableNode.toCanvas(this.node);
+            const bbox = Transformable.toCanvas(this.node);
             if (bbox) {
                 const { id } = this;
                 this.proxyText ??= proxyService.createProxyElement({ type: 'text', id, parent: 'canvas-proxy' });

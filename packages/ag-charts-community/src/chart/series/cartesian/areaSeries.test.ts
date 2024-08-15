@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import type { AgCartesianChartOptions, AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
-import { TransformableNode } from '../../../scene/transformable';
+import { Transformable } from '../../../scene/transformable';
 import { deepClone } from '../../../util/json';
 import { LegendMarkerLabel } from '../../legendMarkerLabel';
 import {
@@ -535,7 +535,7 @@ describe('AreaSeries', () => {
             const areaSeries = deproxy(chart).series[0] as AreaSeries;
             for (const nodeData of areaSeries.getNodeData() ?? []) {
                 const { x = 0, y = 0 } = nodeData.point ?? {};
-                const { x: clickX, y: clickY } = TransformableNode.toCanvasPoint(areaSeries.contentGroup, x, y);
+                const { x: clickX, y: clickY } = Transformable.toCanvasPoint(areaSeries.contentGroup, x, y);
                 await waitForChartStability(chart);
                 await clickAction(clickX, clickY)(chart);
             }
@@ -554,7 +554,7 @@ describe('AreaSeries', () => {
             const areaSeries = deproxy(chart).series[0] as AreaSeries;
             for (const nodeData of areaSeries.getNodeData() ?? []) {
                 const { x = 0, y = 0 } = nodeData.point ?? {};
-                const { x: clickX, y: clickY } = TransformableNode.toCanvasPoint(areaSeries.contentGroup, x, y);
+                const { x: clickX, y: clickY } = Transformable.toCanvasPoint(areaSeries.contentGroup, x, y);
                 await waitForChartStability(chart);
                 await doubleClickAction(clickX, clickY)(chart);
             }
@@ -573,7 +573,7 @@ describe('AreaSeries', () => {
             for (const { legend } of deproxy(chart).modulesManager.legends()) {
                 const markerLabels = (legend as any).itemSelection?._nodes as LegendMarkerLabel[];
                 for (const label of markerLabels) {
-                    const { x, y } = TransformableNode.toCanvas(label).computeCenter();
+                    const { x, y } = Transformable.toCanvas(label).computeCenter();
 
                     await clickAction(x, y)(chart);
                     await waitForChartStability(chart);

@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from '@jest/globals';
 import type { AgCartesianChartOptions, AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
-import { TransformableNode } from '../../../scene/transformable';
+import { Transformable } from '../../../scene/transformable';
 import { COMMUNITY_AND_ENTERPRISE_EXAMPLES as GALLERY_EXAMPLES, type TestCase } from '../../test/examples-gallery';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -150,7 +150,7 @@ describe('HistogramSeries', () => {
             const context: SeriesNodeDataContext<any, any> = (series as any)['contextNodeData'];
             const item = context.nodeData.find((n) => n.datum['weight'] === 65.6 && n.datum['age'] === 21);
 
-            const { x, y } = TransformableNode.toCanvasPoint(series.rootGroup, item.point.x, item.point.y);
+            const { x, y } = Transformable.toCanvasPoint(series.rootGroup, item.point.x, item.point.y);
 
             await hoverAction(x, y)(chart);
             await waitForChartStability(chart);

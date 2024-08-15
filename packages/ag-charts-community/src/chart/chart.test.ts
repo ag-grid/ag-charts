@@ -7,7 +7,7 @@ import type { Node } from '../scene/node';
 import { Selection } from '../scene/selection';
 import { Rect } from '../scene/shape/rect';
 import { Sector } from '../scene/shape/sector';
-import { TransformableNode } from '../scene/transformable';
+import { Transformable } from '../scene/transformable';
 import type { Chart } from './chart';
 import type { AgChartProxy } from './chartProxy';
 import { Circle } from './marker/circle';
@@ -122,7 +122,7 @@ describe('Chart', () => {
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
-                    const { x, y } = TransformableNode.toCanvasPoint(series.contentGroup, itemPoint[0], itemPoint[1]);
+                    const { x, y } = Transformable.toCanvasPoint(series.contentGroup, itemPoint[0], itemPoint[1]);
                     await hoverAction(x, y)(chartInstance);
                     await waitForChartStability(chartInstance);
                     await iterator({ series, item, x, y });

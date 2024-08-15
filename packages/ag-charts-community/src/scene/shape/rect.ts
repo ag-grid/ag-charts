@@ -406,9 +406,7 @@ export class Rect extends Path implements DistantObject {
         // so just use a BBox if the corners aren't rounded.
         if ([topLeft, topRight, bottomRight, bottomLeft].every((r) => r === 0)) {
             const bbox = this.getBBox();
-            this.hittester = (x: number, y: number) => {
-                return bbox.containsPoint(x, y);
-            };
+            this.hittester = bbox.containsPoint.bind(bbox);
             this.distanceSquared = (hitX: number, hitY: number) => this.getBBox().distanceSquared(hitX, hitY);
         } else {
             this.hittester = super.isPointInPath;

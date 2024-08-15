@@ -6,7 +6,7 @@ import { BBox } from '../../scene/bbox';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
 import { RotatableText, TransformableText } from '../../scene/shape/text';
-import { TransformableNode } from '../../scene/transformable';
+import { Transformable } from '../../scene/transformable';
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { extent, unique } from '../../util/array';
 import { isNumber } from '../../util/type-guards';
@@ -445,7 +445,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
 
             let props: Partial<RotatableText>;
             if (visible) {
-                const bbox = TransformableNode.toCanvas(tempText);
+                const bbox = Transformable.toCanvas(tempText);
                 if (bbox) {
                     labelBBoxes.set(index, bbox);
                 }

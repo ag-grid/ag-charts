@@ -5,7 +5,7 @@ import type { HdpiCanvas } from './canvas/hdpiCanvas';
 import type { LayersManager, ZIndexSubOrder } from './layersManager';
 import type { ChildNodeCounts, RenderContext } from './node';
 import { Node, RedrawType, SceneChangeDetection } from './node';
-import { Rotatable, Scalable, TransformableNode, Translatable } from './transformable';
+import { Rotatable, Scalable, Transformable, Translatable } from './transformable';
 
 export class Group extends Node {
     static className = 'Group';
@@ -262,7 +262,7 @@ export class Group extends Node {
             ctx.clip();
 
             // clipBBox is in the canvas coordinate space, when we hit a layer we apply the new clipping at which point there are no transforms in play
-            clipBBox = TransformableNode.toCanvas(this, clipRect);
+            clipBBox = Transformable.toCanvas(this, clipRect);
         }
 
         const hasVirtualChildren = this.hasVirtualChildren();
@@ -385,7 +385,7 @@ export class Group extends Node {
      * @param bbox clipRect bbox in the canvas coordinate space.
      */
     setClipRectInGroupCoordinateSpace(bbox?: BBox) {
-        this.clipRect = bbox ? TransformableNode.fromCanvas(this, bbox) : undefined;
+        this.clipRect = bbox ? Transformable.fromCanvas(this, bbox) : undefined;
     }
 }
 

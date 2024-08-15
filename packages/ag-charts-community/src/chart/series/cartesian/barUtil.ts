@@ -9,7 +9,7 @@ import { BBox } from '../../../scene/bbox';
 import type { DropShadow } from '../../../scene/dropShadow';
 import type { Group } from '../../../scene/group';
 import type { Rect } from '../../../scene/shape/rect';
-import { TransformableNode } from '../../../scene/transformable';
+import { Transformable } from '../../../scene/transformable';
 import { isNegative } from '../../../util/number';
 import { mergeDefaults } from '../../../util/object';
 import type { ChartAxis } from '../../chartAxis';
@@ -303,5 +303,5 @@ export function computeBarFocusBounds(
     if (datum === undefined) return undefined;
 
     const { x, y, width, height } = datum;
-    return TransformableNode.toCanvas(barGroup, new BBox(x, y, width, height)).clip(seriesRect);
+    return Transformable.toCanvas(barGroup, new BBox(x, y, width, height)).clip(seriesRect);
 }

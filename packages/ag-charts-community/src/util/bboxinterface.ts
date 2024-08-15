@@ -1,5 +1,3 @@
-import type { Point } from '../scene/point';
-
 export interface BBoxValues {
     x: number;
     y: number;
@@ -14,6 +12,6 @@ export interface BBoxContainsTester {
 export interface BBoxProvider<T = BBoxValues> {
     id: string;
     toCanvasBBox(): T;
-    fromCanvasPoint(x: number, y: number): Point;
+    fromCanvasPoint(x: number, y: number): { x: number; y: number };
     visible?: boolean;
 }

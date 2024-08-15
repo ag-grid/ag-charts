@@ -49,7 +49,7 @@ describe('BulletSeries', () => {
         const hoverOnBullet = async () => {
             const series = deproxy(chart!)['series'][0] as any;
             const item = series['contextNodeData'].nodeData[0];
-            const { x, y } = _Scene.TransformableNode.toCanvasPoint(series.rootGroup, item.midPoint.x, item.midPoint.y);
+            const { x, y } = _Scene.Transformable.toCanvasPoint(series.rootGroup, item.midPoint.x, item.midPoint.y);
             await hoverAction(x, y)(chart!);
         };
 

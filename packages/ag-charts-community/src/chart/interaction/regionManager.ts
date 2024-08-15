@@ -1,12 +1,11 @@
 import { Node } from '../../scene/node';
-import { TransformableNode } from '../../scene/transformable';
 import type { BBoxProvider } from '../../util/bboxinterface';
 import { Listeners } from '../../util/listeners';
 import type { FocusIndicator } from '../dom/focusIndicator';
 import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
 import { InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
 import { type Unpreventable, buildPreventable } from './preventableEvent';
-import type { RegionBBoxProvider, RegionName } from './regions';
+import { NodeRegionBBoxProvider, type RegionBBoxProvider, type RegionName } from './regions';
 
 // This type-map allows the compiler to automatically figure out the parameter type of handlers
 // specifies through the `addListener` method (see the `makeObserver` method).
@@ -89,7 +88,7 @@ export class RegionManager {
             throw new Error(`AG Charts - Region: ${name} already exists`);
         }
         const region = {
-            properties: { name, bboxproviders: nodes.map((n) => new TransformableNode(n)) },
+            properties: { name, bboxproviders: nodes.map((n) => new NodeRegionBBoxProvider(n)) },
             listeners: new RegionListeners(),
         };
         this.regions.set(name, region);
@@ -99,7 +98,7 @@ export class RegionManager {
     public updateRegion(name: RegionName, ...nodes: Node[]) {
         const region = this.regions.get(name);
         if (region) {
-            region.properties.bboxproviders = nodes.map((n) => new TransformableNode(n));
+            region.properties.bboxproviders = nodes.map((n) => new NodeRegionBBoxProvider(n));
         } else {
             throw new Error('AG Charts - unknown region: ' + name);
         }
