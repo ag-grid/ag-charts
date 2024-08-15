@@ -1,9 +1,9 @@
 import type { BBox } from '../../scene/bbox';
 import type { DataService } from '../data/dataService';
-import type { DOMManager } from '../dom/domManager';
+import type { DOMManager } from '../../dom/domManager';
 import type { AnimationManager } from '../interaction/animationManager';
 import type { LayoutCompleteEvent, LayoutManager } from '../layout/layoutManager';
-import type { LocaleManager } from '../locale/localeManager';
+import type { LocaleManager } from '../../locale/localeManager';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import { DEFAULT_OVERLAY_CLASS, DEFAULT_OVERLAY_DARK_CLASS, type Overlay } from '../overlay/overlay';
 import type { ChartLike, UpdateProcessor } from './processor';

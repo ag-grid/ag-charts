@@ -16,7 +16,7 @@ import {
     UNION,
     Validate,
 } from '../../util/validation';
-import type { DOMManager } from '../dom/domManager';
+import type { DOMManager } from '../../dom/domManager';
 import type { PointerOffsets } from '../interaction/interactionManager';
 
 export const DEFAULT_TOOLTIP_CLASS = 'ag-chart-tooltip';

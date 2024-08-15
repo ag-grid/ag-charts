@@ -1,6 +1,6 @@
 import { Transformable } from '../../scene/transformable';
 import { StateTracker } from '../../util/stateTracker';
-import type { DOMManager } from '../dom/domManager';
+import type { DOMManager } from '../../dom/domManager';
 import type { ErrorBoundSeriesNodeDatum, SeriesNodeDatum } from '../series/seriesTypes';
 import type { Tooltip, TooltipContent, TooltipMeta } from '../tooltip/tooltip';
 import { type TooltipPointerEvent } from '../tooltip/tooltip';

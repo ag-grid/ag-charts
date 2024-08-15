@@ -1,9 +1,9 @@
 import { setAttribute } from '../../util/attributeUtil';
 import { Debug } from '../../util/debug';
 import { getDocument } from '../../util/dom';
-import type { DOMManager } from '../dom/domManager';
+import type { DOMManager } from '../../dom/domManager';
 import type { LayoutCompleteEvent, LayoutManager } from '../layout/layoutManager';
-import type { LocaleManager } from '../locale/localeManager';
+import type { LocaleManager } from '../../locale/localeManager';
 
 export class AriaAnnouncementService {
     private readonly liveElem: HTMLElement;

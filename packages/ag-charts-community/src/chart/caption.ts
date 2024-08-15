@@ -22,8 +22,8 @@ import {
     Validate,
 } from '../util/validation';
 import type { CaptionLike } from './captionLike';
-import type { BoundedText } from './dom/boundedText';
-import type { ProxyInteractionService } from './dom/proxyInteractionService';
+import type { BoundedText } from '../dom/boundedText';
+import type { ProxyInteractionService } from '../dom/proxyInteractionService';
 import type { PointerInteractionEvent } from './interaction/interactionManager';
 import { toTooltipHtml } from './tooltip/tooltip';
 

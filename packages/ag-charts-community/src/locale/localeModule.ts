@@ -1,4 +1,4 @@
-import type { Module } from '../../module/module';
+import type { Module } from '../module/module';
 import { Locale } from './locale';
 
 export const LocaleModule: Module = {

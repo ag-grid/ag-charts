@@ -2,7 +2,7 @@ import type { AgIconName, AgToolbarOptions } from 'ag-charts-types';
 
 import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../baseManager';
-import type { DOMManager } from '../dom/domManager';
+import type { DOMManager } from '../../dom/domManager';
 import { TOOLBAR_POSITIONS, type ToolbarGroup } from '../toolbar/toolbarTypes';
 
 type EventTypes =
