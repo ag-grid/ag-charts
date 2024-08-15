@@ -32,7 +32,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
         super();
 
         this.destroyFns.push(
-            ctx.layoutService.addListener('layout:complete', this.onLayoutComplete.bind(this)),
+            ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
             ctx.toolbarManager.addListener('button-moved', this.onToolbarButtonMoved.bind(this)),
             ctx.toolbarManager.addListener('button-pressed', this.onToolbarButtonPressed.bind(this))
         );

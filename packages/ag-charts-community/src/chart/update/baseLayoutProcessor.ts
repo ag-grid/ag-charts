@@ -3,7 +3,7 @@ import type { TextAlign } from 'ag-charts-types';
 import type { LayoutContext } from '../../module/baseModule';
 import { TextUtils } from '../../util/textMeasurer';
 import { Caption } from '../caption';
-import type { LayoutCompleteEvent, LayoutService } from '../layout/layoutService';
+import { type LayoutCompleteEvent, LayoutElement, type LayoutManager } from '../layout/layoutManager';
 import type { ChartLike, UpdateProcessor } from './processor';
 
 export class BaseLayoutProcessor implements UpdateProcessor {
@@ -11,11 +11,11 @@ export class BaseLayoutProcessor implements UpdateProcessor {
 
     constructor(
         private readonly chartLike: ChartLike,
-        private readonly layoutService: LayoutService
+        private readonly layoutManager: LayoutManager
     ) {
         this.destroyFns.push(
-            this.layoutService.addListener('layout:start', (e) => this.positionCaptions(e)),
-            this.layoutService.addListener('layout:complete', (e) => this.alignCaptions(e))
+            this.layoutManager.registerElement(LayoutElement.Caption, (e) => this.positionCaptions(e)),
+            this.layoutManager.addListener('layout:complete', (e) => this.alignCaptions(e))
         );
     }
 

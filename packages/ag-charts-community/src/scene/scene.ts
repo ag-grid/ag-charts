@@ -9,9 +9,9 @@ import type { Node, RenderContext } from './node';
 import { RedrawType } from './node';
 import { DebugSelectors, buildDirtyTree, buildTree, debugSceneNodeHighlight, debugStats } from './sceneDebug';
 
-type DOMManagerLike = {
+interface DOMManagerLike {
     addChild(type: 'canvas', id: string, child?: HTMLElement): HTMLElement;
-};
+}
 
 interface SceneOptions {
     width?: number;
@@ -38,12 +38,7 @@ export class Scene {
 
     constructor({ width, height, pixelRatio, domManager }: SceneOptions) {
         this.domManager = domManager;
-
-        const canvasOpts: CanvasOptions = {
-            width,
-            height,
-            pixelRatio,
-        };
+        const canvasOpts: CanvasOptions = { width, height, pixelRatio };
         if (domManager) {
             canvasOpts.canvasConstructor = () => domManager.addChild('canvas', 'scene-canvas') as HTMLCanvasElement;
         }

@@ -47,7 +47,7 @@ export class HierarchyChart extends Chart {
             new BBox(layoutBox.x, layoutBox.y, layoutBox.width, layoutBox.height)
         );
 
-        this.ctx.layoutService.emitLayoutComplete(ctx, {
+        this.ctx.layoutManager.emitLayoutComplete(ctx, {
             series: { visible: true, rect: fullSeriesRect, paddedRect: layoutBox },
         });
     }

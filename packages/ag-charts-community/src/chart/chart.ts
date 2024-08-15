@@ -291,13 +291,13 @@ export abstract class Chart extends Observable {
             getLoadingSpinner(this.overlays.loading.getText(ctx.localeManager), ctx.animationManager.defaultDuration);
 
         this.processors = [
-            new BaseLayoutProcessor(this, ctx.layoutService),
+            new BaseLayoutProcessor(this, ctx.layoutManager),
             new DataWindowProcessor(this, ctx.dataService, ctx.updateService, ctx.zoomManager),
             new OverlaysProcessor(
                 this,
                 this.overlays,
                 ctx.dataService,
-                ctx.layoutService,
+                ctx.layoutManager,
                 ctx.localeManager,
                 ctx.animationManager,
                 ctx.domManager
@@ -774,15 +774,6 @@ export abstract class Chart extends Observable {
         series.addEventListener('groupingChanged', this.seriesGroupingChanged);
     }
 
-    updateAllSeriesListeners(): void {
-        this.series.forEach((series) => {
-            series.removeEventListener('nodeClick', this.onSeriesNodeClick);
-            series.removeEventListener('nodeDoubleClick', this.onSeriesNodeDoubleClick);
-
-            this.addSeriesListeners(series);
-        });
-    }
-
     protected assignSeriesToAxes() {
         for (const axis of this.axes) {
             axis.boundSeries = this.series.filter((s) => s.axes[axis.direction] === axis);
@@ -967,11 +958,8 @@ export abstract class Chart extends Observable {
     private async processLayout() {
         const oldRect = this.animationRect;
         const { width, height } = this.ctx.scene;
-        const ctx = this.ctx.layoutService.createContext(width, height);
+        const ctx = this.ctx.layoutManager.createContext(width, height);
 
-        for (const m of this.modulesManager.modules()) {
-            await m.performLayout?.(ctx);
-        }
         await this.performLayout(ctx);
 
         if (oldRect && !this.animationRect?.equals(oldRect)) {
@@ -1143,9 +1131,6 @@ export abstract class Chart extends Observable {
         }
         if (deltaOptions.legend?.listeners && this.modulesManager.isEnabled('legend')) {
             Object.assign((this as any).legend.listeners, deltaOptions.legend.listeners);
-        }
-        if (deltaOptions.listeners) {
-            this.updateAllSeriesListeners();
         }
         if (deltaOptions.locale?.localeText) {
             this.modulesManager.getModule<any>('locale').localeText = deltaOptions.locale?.localeText;

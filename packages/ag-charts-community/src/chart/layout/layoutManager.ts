@@ -36,20 +36,40 @@ export interface LayoutState {
 }
 
 interface EventMap {
-    'layout:start': LayoutContext;
     'layout:complete': LayoutCompleteEvent;
 }
 
-export class LayoutService {
+export enum LayoutElement {
+    Caption,
+    Legend,
+    Toolbar,
+    Navigator,
+    Overlay,
+}
+
+export class LayoutManager {
     private readonly events = new EventEmitter<EventMap>();
+    private readonly elements = new Map<LayoutElement, Set<EventListener<LayoutContext>>>();
 
     addListener<K extends keyof EventMap>(eventName: K, listener: EventListener<EventMap[K]>) {
         return this.events.on(eventName, listener);
     }
 
+    registerElement(element: LayoutElement, listener: EventListener<LayoutContext>) {
+        if (this.elements.has(element)) {
+            this.elements.get(element)!.add(listener);
+        } else {
+            this.elements.set(element, new Set([listener]));
+        }
+        return () => this.elements.get(element)?.delete(listener);
+    }
+
     createContext(width: number, height: number): LayoutContext {
         const context = new LayoutContext(width, height);
-        this.events.emit('layout:start', context);
+        for (const element of Object.values(LayoutElement)) {
+            if (typeof element !== 'number') continue;
+            this.elements.get(element)?.forEach((listener) => listener(context));
+        }
         return context;
     }
 

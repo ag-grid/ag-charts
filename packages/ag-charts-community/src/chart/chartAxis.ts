@@ -14,7 +14,7 @@ import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxisDirection } from './chartAxisDirection';
 import type { CrossLine } from './crossline/crossLine';
 import type { RegionBBoxProvider } from './interaction/regions';
-import type { AxisLayout } from './layout/layoutService';
+import type { AxisLayout } from './layout/layoutManager';
 import type { ISeries } from './series/seriesTypes';
 
 export type ChartAxisLabelFlipFlag = 1 | -1;

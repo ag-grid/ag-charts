@@ -10,7 +10,6 @@ export interface LayoutContext {
 export interface ModuleInstance {
     processData?: (dataController: DataController) => Promise<void>;
     updateData?: (data: any) => void;
-    performLayout?: (ctx: LayoutContext) => void;
     destroy(): void;
 }
 

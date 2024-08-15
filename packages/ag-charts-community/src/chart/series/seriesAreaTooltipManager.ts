@@ -7,7 +7,7 @@ import { ChartUpdateType } from '../chartUpdateType';
 import { InteractionState } from '../interaction/interactionManager';
 import { REGIONS } from '../interaction/regions';
 import { TooltipManager } from '../interaction/tooltipManager';
-import type { LayoutCompleteEvent } from '../layout/layoutService';
+import type { LayoutCompleteEvent } from '../layout/layoutManager';
 import { DEFAULT_TOOLTIP_CLASS, Tooltip, type TooltipPointerEvent } from '../tooltip/tooltip';
 import { type Series } from './series';
 import { pickNode } from './util';
@@ -34,7 +34,7 @@ export class SeriesAreaTooltipManager extends BaseManager {
         const verticalAxesRegion = this.ctx.regionManager.getRegion(REGIONS.VERTICAL_AXES);
 
         this.destroyFns.push(
-            this.ctx.layoutService.addListener('layout:complete', (event) => this.layoutComplete(event)),
+            this.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
             seriesRegion.addListener(
                 'hover',
                 (event) => this.onHover(event),
