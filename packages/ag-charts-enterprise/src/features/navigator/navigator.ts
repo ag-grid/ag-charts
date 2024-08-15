@@ -24,8 +24,8 @@ export class Navigator extends _ModuleSupport.Navigator {
         return this.miniChart.processData(dataController);
     }
 
-    override performLayout(opts: _ModuleSupport.LayoutContext) {
-        super.performLayout(opts);
+    protected override onLayoutStart(opts: _ModuleSupport.LayoutContext) {
+        super.onLayoutStart(opts);
 
         if (this.enabled) {
             const { top, bottom } = this.miniChart.computeAxisPadding();

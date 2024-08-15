@@ -106,7 +106,7 @@ export class CartesianChart extends Chart {
             this.setRootClipRects(clipRect);
         }
 
-        this.ctx.layoutService.emitLayoutComplete(ctx, {
+        this.ctx.layoutManager.emitLayoutComplete(ctx, {
             axes: this.axes.map((axis) => axis.getLayoutState()),
             series: {
                 rect: seriesRect,

@@ -26,7 +26,7 @@ import { ToolbarManager } from './interaction/toolbarManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import type { ZoomManager } from './interaction/zoomManager';
 import type { Keyboard } from './keyboard';
-import { LayoutService } from './layout/layoutService';
+import { LayoutManager } from './layout/layoutManager';
 import { LocaleManager } from './locale/localeManager';
 import { SeriesStateManager } from './series/seriesStateManager';
 import type { Tooltip } from './tooltip/tooltip';
@@ -40,7 +40,7 @@ export class ChartContext implements ModuleContext {
 
     chartService: ChartService;
     dataService: DataService<any>;
-    layoutService: LayoutService;
+    layoutManager: LayoutManager;
     updateService: UpdateService;
     axisManager: AxisManager;
 
@@ -99,11 +99,11 @@ export class ChartContext implements ModuleContext {
         this.contextMenuRegistry = new ContextMenuRegistry(this.regionManager);
         this.toolbarManager = new ToolbarManager();
         this.gestureDetector = new GestureDetector(this.domManager);
-        this.layoutService = new LayoutService();
+        this.layoutManager = new LayoutManager();
         this.ariaAnnouncementService = new AriaAnnouncementService(
             this.localeManager,
             this.domManager,
-            this.layoutService
+            this.layoutManager
         );
         this.updateService = new UpdateService(updateCallback);
         this.proxyInteractionService = new ProxyInteractionService(
@@ -123,7 +123,7 @@ export class ChartContext implements ModuleContext {
         this.dataService = new DataService<any>(this.animationManager);
         this.tooltipManager = new TooltipManager(this.domManager, chart.tooltip);
 
-        this.zoomManager.addLayoutService(this.layoutService);
+        this.zoomManager.addLayoutListeners(this.layoutManager);
     }
 
     destroy() {

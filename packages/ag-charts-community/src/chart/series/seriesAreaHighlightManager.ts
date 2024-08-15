@@ -7,7 +7,7 @@ import { ChartUpdateType } from '../chartUpdateType';
 import type { HighlightChangeEvent } from '../interaction/highlightManager';
 import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
 import { REGIONS } from '../interaction/regions';
-import type { LayoutCompleteEvent } from '../layout/layoutService';
+import type { LayoutCompleteEvent } from '../layout/layoutManager';
 import type { UpdateOpts } from '../updateService';
 import { type Series } from './series';
 import type { ISeries } from './seriesTypes';
@@ -40,7 +40,7 @@ export class SeriesAreaHighlightManager extends BaseManager {
 
         const mouseMoveStates = InteractionState.Default | InteractionState.Annotations;
         this.destroyFns.push(
-            this.ctx.layoutService.addListener('layout:complete', (event) => this.layoutComplete(event)),
+            this.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
             this.ctx.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
             seriesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
             seriesRegion.addListener('drag', (event) => this.onHover(event), mouseMoveStates),

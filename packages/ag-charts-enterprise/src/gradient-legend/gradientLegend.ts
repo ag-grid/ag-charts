@@ -6,8 +6,18 @@ import {
     _Util,
 } from 'ag-charts-community';
 
-const { BOOLEAN, OBJECT, POSITION, POSITIVE_NUMBER, BaseProperties, AxisTicks, Layers, ProxyProperty, Validate } =
-    _ModuleSupport;
+const {
+    BOOLEAN,
+    OBJECT,
+    POSITION,
+    POSITIVE_NUMBER,
+    BaseProperties,
+    AxisTicks,
+    Layers,
+    ProxyProperty,
+    Validate,
+    LayoutElement,
+} = _ModuleSupport;
 const { Group, Rect, LinearGradientFill, Triangle, Rotatable, TranslatableGroup } = _Scene;
 const { createId } = _Util;
 
@@ -94,7 +104,7 @@ export class GradientLegend {
 
         this.destroyFns.push(
             ctx.highlightManager.addListener('highlight-change', () => this.onChartHoverChange()),
-            ctx.layoutService.addListener('layout:start', (e) => this.onStartLayout(e)),
+            ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.onStartLayout(e)),
             () => this.legendGroup.parent?.removeChild(this.legendGroup)
         );
     }

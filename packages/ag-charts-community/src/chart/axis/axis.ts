@@ -50,7 +50,7 @@ import type { AnimationManager } from '../interaction/animationManager';
 import { type RegionBBoxProvider } from '../interaction/regions';
 import { calculateLabelBBox, calculateLabelRotation, getLabelSpacing, getTextAlign, getTextBaseline } from '../label';
 import { Layers } from '../layers';
-import type { AxisLayout } from '../layout/layoutService';
+import type { AxisLayout } from '../layout/layoutManager';
 import type { ISeries } from '../series/seriesTypes';
 import { AxisGridLine } from './axisGridLine';
 import { AxisInterval } from './axisInterval';
@@ -297,7 +297,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         let previousSize: { width: number; height: number } | undefined = undefined;
         this.destroyFns.push(
-            moduleCtx.layoutService.addListener('layout:complete', (e) => {
+            moduleCtx.layoutManager.addListener('layout:complete', (e) => {
                 // Fire resize animation action if chart canvas size changes.
                 if (previousSize != null && jsonDiff(e.chart, previousSize) != null) {
                     this.animationState.transition('resize');

@@ -33,7 +33,7 @@ export class PolarChart extends Chart {
         await this.computeCircle(layoutBox);
         this.axes.forEach((axis) => axis.update());
 
-        this.ctx.layoutService.emitLayoutComplete(ctx, {
+        this.ctx.layoutManager.emitLayoutComplete(ctx, {
             series: { visible: true, rect: fullSeriesRect, paddedRect: layoutBox },
         });
     }

@@ -11,7 +11,7 @@ import { ActionOnSet, ObserveChanges } from '../../util/proxy';
 import { AND, BOOLEAN, GREATER_THAN, LESS_THAN, OBJECT, POSITIVE_NUMBER, RATIO, Validate } from '../../util/validation';
 import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
 import type { ZoomChangeEvent } from '../interaction/zoomManager';
-import type { LayoutCompleteEvent } from '../layout/layoutService';
+import { type LayoutCompleteEvent, LayoutElement } from '../layout/layoutManager';
 import { RangeHandle } from './shapes/rangeHandle';
 import { RangeMask } from './shapes/rangeMask';
 import { RangeSelector } from './shapes/rangeSelector';
@@ -90,7 +90,8 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             region.addListener('drag-end', () => this.onDragEnd(), dragStates),
             region.addListener('leave', (event) => this.onLeave(event), dragStates),
             this.ctx.localeManager.addListener('locale-changed', () => this.updateZoom()),
-            this.ctx.layoutService.addListener('layout:complete', (e) => this.onLayoutComplete(e)),
+            this.ctx.layoutManager.registerElement(LayoutElement.Navigator, (e) => this.onLayoutStart(e)),
+            this.ctx.layoutManager.addListener('layout:complete', (e) => this.onLayoutComplete(e)),
             ctx.zoomManager.addListener('zoom-change', (event) => this.onZoomChange(event))
         );
 
@@ -161,7 +162,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         }
     }
 
-    performLayout(ctx: LayoutContext) {
+    protected onLayoutStart(ctx: LayoutContext) {
         if (this.enabled) {
             const { layoutBox } = ctx;
             const navigatorTotalHeight = this.height + this.spacing;

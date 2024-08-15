@@ -229,7 +229,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx.toolbarManager.addListener('button-pressed', (event) =>
                 this.toolbar.onButtonPress(event, this.getModuleProperties())
             ),
-            ctx.layoutService.addListener('layout:complete', (event) => this.onLayoutComplete(event)),
+            ctx.layoutManager.addListener('layout:complete', (event) => this.onLayoutComplete(event)),
             ctx.updateService.addListener('update-complete', (event) => this.onUpdateComplete(event)),
             ctx.zoomManager.addListener('zoom-change', (event) => this.onZoomChange(event)),
             ctx.zoomManager.addListener('zoom-pan-start', (event) => this.onZoomPanStart(event)),

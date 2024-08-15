@@ -7,7 +7,7 @@ import type { ChartContext } from '../chartContext';
 import { ChartUpdateType } from '../chartUpdateType';
 import { type PointerInteractionEvent, type PointerOffsets } from '../interaction/interactionManager';
 import { REGIONS } from '../interaction/regions';
-import type { LayoutCompleteEvent } from '../layout/layoutService';
+import type { LayoutCompleteEvent } from '../layout/layoutManager';
 import type { UpdateOpts } from '../updateService';
 import { type Series } from './series';
 import { pickNode } from './util';
@@ -34,7 +34,7 @@ export class SeriesAreaClickManager extends BaseManager {
         this.destroyFns.push(
             this.ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
             this.ctx.regionManager.listenAll('dblclick', (event) => this.onClick(event)),
-            this.ctx.layoutService.addListener('layout:complete', (event) => this.layoutComplete(event)),
+            this.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
             seriesRegion.addListener('hover', (event) => this.onHover(event)),
             seriesRegion.addListener('leave', () => this.onLeave()),
             horizontalAxesRegion.addListener('leave', () => this.onLeave()),

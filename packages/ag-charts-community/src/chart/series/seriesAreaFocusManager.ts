@@ -8,7 +8,7 @@ import type { ChartContext } from '../chartContext';
 import type { KeyNavEvent } from '../interaction/keyNavManager';
 import { TooltipManager } from '../interaction/tooltipManager';
 import { makeKeyboardPointerEvent } from '../keyboardUtil';
-import type { LayoutCompleteEvent } from '../layout/layoutService';
+import type { LayoutCompleteEvent } from '../layout/layoutManager';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import type { TooltipContent } from '../tooltip/tooltip';
 import type { PickFocusOutputs, Series } from './series';
@@ -39,7 +39,7 @@ export class SeriesAreaFocusManager extends BaseManager {
         super();
 
         this.destroyFns.push(
-            this.ctx.layoutService.addListener('layout:complete', (event) => this.layoutComplete(event)),
+            this.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
             this.ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
             this.ctx.keyNavManager.addListener('blur', () => this.onBlur()),
             this.ctx.keyNavManager.addListener('focus', (event) => this.onFocus(event)),

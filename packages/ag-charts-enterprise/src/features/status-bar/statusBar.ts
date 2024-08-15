@@ -1,6 +1,6 @@
 import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport, _Scene } from 'ag-charts-community';
 
-const { CachedTextMeasurerPool, Validate, OBJECT, BOOLEAN, STRING, valueProperty } = _ModuleSupport;
+const { CachedTextMeasurerPool, LayoutElement, Validate, OBJECT, BOOLEAN, STRING, valueProperty } = _ModuleSupport;
 const { Label, Text } = _Scene;
 
 enum LabelConfiguration {
@@ -230,8 +230,8 @@ export class StatusBar
 
         this.destroyFns.push(
             ctx.scene.attachNode(this.labelGroup, 'titles'),
-            ctx.layoutService.addListener('layout:start', (e) => this.startPerformLayout(e)),
-            ctx.layoutService.addListener('layout:complete', (e) => this.onLayoutComplete(e)),
+            ctx.layoutManager.registerElement(LayoutElement.Overlay, (e) => this.startPerformLayout(e)),
+            ctx.layoutManager.addListener('layout:complete', (e) => this.onLayoutComplete(e)),
             ctx.highlightManager.addListener('highlight-change', () => this.updateHighlight())
         );
     }
