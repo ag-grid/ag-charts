@@ -8,7 +8,7 @@ import { InteractionState } from '../interaction/interactionManager';
 import type { RegionEvent } from '../interaction/regionManager';
 import { REGIONS } from '../interaction/regions';
 import { TooltipManager } from '../interaction/tooltipManager';
-import type { LayoutCompleteEvent } from '../layout/layoutService';
+import type { LayoutCompleteEvent } from '../layout/layoutManager';
 import { DEFAULT_TOOLTIP_CLASS, Tooltip } from '../tooltip/tooltip';
 import { type Series } from './series';
 import { pickNode } from './util';
