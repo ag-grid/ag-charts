@@ -38,7 +38,9 @@ export class HorizontalLineProperties extends Annotation(
     }
 }
 
-export class VerticalLineProperties extends Annotation(Value(Handle(AxisLabel(Stroke(LineDash(BaseProperties)))))) {
+export class VerticalLineProperties extends Annotation(
+    Value(Handle(AxisLabel(Stroke(LineDash(LineStyle(BaseProperties))))))
+) {
     readonly direction = 'vertical';
 
     static is(value: unknown): value is VerticalLineProperties {
