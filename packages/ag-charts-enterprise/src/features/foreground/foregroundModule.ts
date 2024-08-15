@@ -6,6 +6,6 @@ export const ForegroundModule: _ModuleSupport.RootModule = {
     type: 'root',
     optionsKey: 'foreground',
     packageType: 'enterprise',
-    chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion'],
+    chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion', 'gauge'],
     moduleFactory: (ctx) => new Foreground(ctx),
 };

@@ -2,6 +2,7 @@ import type {
     AgCartesianSeriesOptions,
     AgChartOptions,
     AgFlowProportionSeriesOptions,
+    AgGaugeSeriesOptions,
     AgHierarchySeriesOptions,
     AgPolarSeriesOptions,
     AgTopologySeriesOptions,
@@ -21,7 +22,8 @@ export type SeriesOptions =
     | AgPolarSeriesOptions
     | AgHierarchySeriesOptions
     | AgTopologySeriesOptions
-    | AgFlowProportionSeriesOptions;
+    | AgFlowProportionSeriesOptions
+    | AgGaugeSeriesOptions;
 
 interface SeriesRegistryRecord {
     moduleFactory?: SeriesFactory;

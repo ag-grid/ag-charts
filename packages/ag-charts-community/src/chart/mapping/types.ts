@@ -1,6 +1,7 @@
 import type {
     AgCartesianChartOptions,
     AgFlowProportionChartOptions,
+    AgGaugeChartOptions,
     AgHierarchyChartOptions,
     AgPolarChartOptions,
     AgTopologyChartOptions,
@@ -13,6 +14,7 @@ import { chartTypes } from '../factory/chartTypes';
 import {
     isEnterpriseCartesian,
     isEnterpriseFlowProportion,
+    isEnterpriseGauge,
     isEnterpriseHierarchy,
     isEnterprisePolar,
     isEnterpriseTopology,
@@ -94,6 +96,20 @@ export function isAgFlowProportionChartOptions(input: AgChartOptions): input is 
     }
 
     return chartTypes.isFlowProportion(specifiedType) || isEnterpriseFlowProportion(specifiedType);
+}
+
+export function isAgGaugeChartOptions(input: AgChartOptions): input is AgGaugeChartOptions {
+    const specifiedType = optionsType(input);
+    if (specifiedType == null) {
+        return false;
+    }
+
+    if ((specifiedType as string) === 'flow-proportion') {
+        Logger.warnOnce(`type '${specifiedType}' is deprecated, use a series type instead`);
+        return true;
+    }
+
+    return chartTypes.isGauge(specifiedType) || isEnterpriseGauge(specifiedType);
 }
 
 export function isAgPolarChartOptionsWithSeriesBasedLegend(input: AgChartOptions): input is AgPolarChartOptions {
