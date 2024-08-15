@@ -1,6 +1,16 @@
-import type { AgRadialGaugeSeriesStyle } from 'ag-charts-types';
+import type {
+    AgChartLabelFormatterParams,
+    AgRadialGaugeSeriesLabelFormatterParams,
+    AgRadialGaugeSeriesStyle,
+    FontStyle,
+    FontWeight,
+    Formatter,
+} from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
+import { fromToMotion } from '../../../motion/fromToMotion';
+import { resetMotion } from '../../../motion/resetMotion';
+import { LinearScale } from '../../../scale/linearScale';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import { Selection } from '../../../scene/selection';
@@ -8,18 +18,60 @@ import type { Path } from '../../../scene/shape/path';
 import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
+import { StateMachine } from '../../../util/stateMachine';
+import type { RequireOptional } from '../../../util/types';
+import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import { createDatumId } from '../../data/processors';
 import type { ChartLegendDatum, ChartLegendType } from '../../legendDatum';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, Series, type SeriesNodeDataContext, SeriesNodePickMode } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import { RadialGaugeSeriesProperties } from './radialGaugeSeriesProperties';
+import {
+    prepareRadialGaugeSeriesAnimationFunctions,
+    resetRadialGaugeSeriesAnimationFunctions,
+} from './radialGaugeUtil';
 
-type RadialGaugeNodeDatum = SeriesNodeDatum;
-type RadialGaugeLabelDatum = never;
+export type GaugeAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
+export type GaugeAnimationEvent =
+    | 'update'
+    | 'updateData'
+    | 'highlight'
+    | 'highlightMarkers'
+    | 'resize'
+    | 'clear'
+    | 'reset'
+    | 'skip';
+export type GaugeAnimationData = { duration?: number };
 
-export interface RadialGaugeNodeDataContext
-    extends SeriesNodeDataContext<RadialGaugeNodeDatum, RadialGaugeLabelDatum> {}
+interface RadialGaugeNodeDatum extends SeriesNodeDatum {
+    centerX: number;
+    centerY: number;
+    innerRadius: number;
+    outerRadius: number;
+    startAngle: number;
+    endAngle: number;
+}
+type RadialGaugeLabelDatum = {
+    label: 'primary' | 'secondary';
+    centerX: number;
+    centerY: number;
+    text: string | undefined;
+    value: number;
+    fill: string | undefined;
+    fontStyle: FontStyle | undefined;
+    fontWeight: FontWeight | undefined;
+    fontSize: number;
+    fontFamily: string;
+    lineHeight: number | undefined;
+    formatter:
+        | Formatter<AgChartLabelFormatterParams<any> & RequireOptional<AgRadialGaugeSeriesLabelFormatterParams>>
+        | undefined;
+};
+
+export interface RadialGaugeNodeDataContext extends SeriesNodeDataContext<RadialGaugeNodeDatum, RadialGaugeLabelDatum> {
+    backgroundData: RadialGaugeNodeDatum[];
+}
 
 export class RadialGaugeSeries extends Series<
     RadialGaugeNodeDatum,
@@ -36,12 +88,14 @@ export class RadialGaugeSeries extends Series<
         return this.contextNodeData?.nodeData;
     }
 
-    // private readonly colorScale = new ColorScale();
-
+    private readonly backgroundGroup = this.contentGroup.appendChild(new Group({ name: 'backgroundGroup' }));
     private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
     private readonly itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
 
-    public datumSelection: Selection<Sector, RadialGaugeNodeDatum> = Selection.select(this.itemGroup, () =>
+    private backgroundSelection: Selection<Sector, RadialGaugeNodeDatum> = Selection.select(this.backgroundGroup, () =>
+        this.nodeFactory()
+    );
+    private datumSelection: Selection<Sector, RadialGaugeNodeDatum> = Selection.select(this.itemGroup, () =>
         this.nodeFactory()
     );
     private labelSelection: Selection<Text, RadialGaugeLabelDatum> = Selection.select(this.itemLabelGroup, Text);
@@ -49,6 +103,8 @@ export class RadialGaugeSeries extends Series<
         this.highlightNode,
         () => this.nodeFactory()
     );
+
+    private animationState: StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
 
     public contextNodeData?: RadialGaugeNodeDataContext;
 
@@ -60,34 +116,156 @@ export class RadialGaugeSeries extends Series<
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
         });
 
+        this.animationState = new StateMachine<GaugeAnimationState, GaugeAnimationEvent>('empty', {
+            empty: {
+                update: {
+                    target: 'ready',
+                    action: () => this.animateEmptyUpdateReady(),
+                },
+                reset: 'empty',
+                skip: 'ready',
+            },
+            ready: {
+                updateData: 'waiting',
+                clear: 'clearing',
+                // highlight: (data) => this.animateReadyHighlight(data),
+                // highlightMarkers: (data) => this.animateReadyHighlightMarkers(data),
+                resize: () => this.animateReadyResize(),
+                reset: 'empty',
+                skip: 'ready',
+            },
+            waiting: {
+                update: {
+                    target: 'ready',
+                    action: () => this.animateWaitingUpdateReady(),
+                },
+                reset: 'empty',
+                skip: 'ready',
+            },
+            clearing: {
+                update: {
+                    target: 'empty',
+                    // action: (data) => this.animateClearingUpdateEmpty(data),
+                },
+                reset: 'empty',
+                skip: 'ready',
+            },
+        });
+
+        this.backgroundGroup.pointerEvents = PointerEvents.None;
         this.itemLabelGroup.pointerEvents = PointerEvents.None;
     }
 
-    private isLabelEnabled() {
-        return false;
+    override get hasData(): boolean {
+        return true;
     }
 
     private nodeFactory(): Sector {
         return new Sector();
     }
 
-    override async processData(): Promise<void> {}
+    override async processData(): Promise<void> {
+        this.animationState.transition('updateData');
+    }
 
     override async createNodeData() {
         const { id: seriesId } = this;
-        const { value } = this.properties;
+        const { width, height } = this.chart!.seriesRect!;
+        const { value, range, innerRadiusRatio, startAngle, endAngle, label, secondaryLabel } = this.properties;
         const nodeData: RadialGaugeNodeDatum[] = [];
         const labelData: RadialGaugeLabelDatum[] = [];
+        const backgroundData: RadialGaugeNodeDatum[] = [];
+
+        const scale = new LinearScale();
+        scale.domain = range;
+        scale.range = [startAngle, endAngle];
+
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const outerRadius = Math.min(width, height) / 2;
+        const innerRadius = outerRadius * innerRadiusRatio;
 
         nodeData.push({
             series: this,
+            itemId: 'value',
             datum: value,
+            centerX,
+            centerY,
+            outerRadius,
+            innerRadius,
+            startAngle: startAngle,
+            endAngle: scale.convert(value),
+        });
+
+        if (label.enabled) {
+            const {
+                color: fill,
+                fontSize,
+                fontStyle,
+                fontWeight,
+                fontFamily,
+                lineHeight,
+                formatter,
+            } = this.properties.label;
+            labelData.push({
+                label: 'primary',
+                centerX,
+                centerY,
+                text: label.text,
+                value,
+                fill,
+                fontSize,
+                fontStyle,
+                fontWeight,
+                fontFamily,
+                lineHeight,
+                formatter,
+            });
+        }
+
+        if (secondaryLabel.enabled) {
+            const {
+                color: fill,
+                fontSize,
+                fontStyle,
+                fontWeight,
+                fontFamily,
+                lineHeight,
+                formatter,
+            } = this.properties.secondaryLabel;
+            labelData.push({
+                label: 'secondary',
+                centerX,
+                centerY,
+                text: secondaryLabel.text,
+                value,
+                fill,
+                fontSize,
+                fontStyle,
+                fontWeight,
+                fontFamily,
+                lineHeight,
+                formatter,
+            });
+        }
+
+        backgroundData.push({
+            series: this,
+            itemId: 'background',
+            datum: value,
+            centerX,
+            centerY,
+            outerRadius,
+            innerRadius,
+            startAngle,
+            endAngle,
         });
 
         return {
             itemId: seriesId,
             nodeData,
             labelData,
+            backgroundData,
         };
     }
 
@@ -99,7 +277,7 @@ export class RadialGaugeSeries extends Series<
     }
 
     override async update(): Promise<void> {
-        const { datumSelection, labelSelection, highlightDatumSelection } = this;
+        const { datumSelection, labelSelection, backgroundSelection, highlightDatumSelection } = this;
 
         await this.updateSelections();
 
@@ -113,6 +291,7 @@ export class RadialGaugeSeries extends Series<
 
         const nodeData = this.contextNodeData?.nodeData ?? [];
         const labelData = this.contextNodeData?.labelData ?? [];
+        const backgroundData = this.contextNodeData?.backgroundData ?? [];
 
         this.datumSelection = await this.updateDatumSelection({ nodeData, datumSelection });
         await this.updateDatumNodes({ datumSelection, isHighlight: false });
@@ -120,11 +299,16 @@ export class RadialGaugeSeries extends Series<
         this.labelSelection = await this.updateLabelSelection({ labelData, labelSelection });
         await this.updateLabelNodes({ labelSelection });
 
+        this.backgroundSelection = await this.updateBackgroundSelection({ backgroundData, backgroundSelection });
+        await this.updateBackgroundNodes({ backgroundSelection });
+
         this.highlightDatumSelection = await this.updateDatumSelection({
             nodeData: highlightedDatum != null ? [highlightedDatum] : [],
             datumSelection: highlightDatumSelection,
         });
         await this.updateDatumNodes({ datumSelection: highlightDatumSelection, isHighlight: true });
+
+        this.animationState.transition('update');
     }
 
     private async updateDatumSelection(opts: {
@@ -138,27 +322,193 @@ export class RadialGaugeSeries extends Series<
         datumSelection: Selection<Sector, RadialGaugeNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { datumSelection } = opts;
+        const { datumSelection, isHighlight } = opts;
+        const { ctx, properties } = this;
+        const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset, cornerRadius } = properties;
+        const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
+        const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
+        const animationDisabled = ctx.animationManager.isSkipped();
 
-        datumSelection.each((_sector, _datum) => {});
+        datumSelection.each((sector, datum) => {
+            sector.centerX = datum.centerX;
+            sector.centerY = datum.centerY;
+            if (animationDisabled || isHighlight) {
+                sector.innerRadius = datum.innerRadius;
+                sector.outerRadius = datum.outerRadius;
+                sector.startAngle = datum.startAngle;
+                sector.endAngle = datum.endAngle;
+            }
+
+            sector.fill = highlightStyle?.fill ?? fill;
+            sector.fillOpacity = highlightStyle?.fillOpacity ?? fillOpacity;
+            sector.stroke = highlightStyle?.stroke ?? stroke;
+            sector.strokeOpacity = highlightStyle?.strokeOpacity ?? strokeOpacity;
+            sector.strokeWidth = highlightStyle?.strokeWidth ?? strokeWidth;
+            sector.lineDash = highlightStyle?.lineDash ?? lineDash;
+            sector.lineDashOffset = highlightStyle?.lineDashOffset ?? lineDashOffset;
+            sector.cornerRadius = cornerRadius;
+
+            sector.inset = sector.strokeWidth / 2;
+        });
+    }
+
+    private async updateBackgroundSelection(opts: {
+        backgroundData: RadialGaugeNodeDatum[];
+        backgroundSelection: Selection<Sector, RadialGaugeNodeDatum>;
+    }) {
+        return opts.backgroundSelection.update(opts.backgroundData, undefined, () => createDatumId([]));
+    }
+
+    private async updateBackgroundNodes(opts: { backgroundSelection: Selection<Sector, RadialGaugeNodeDatum> }) {
+        const { backgroundSelection } = opts;
+        const { cornerRadius } = this.properties;
+        const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
+            this.properties.background;
+        const animationDisabled = this.ctx.animationManager.isSkipped();
+
+        backgroundSelection.each((sector, datum) => {
+            sector.centerX = datum.centerX;
+            sector.centerY = datum.centerY;
+            if (animationDisabled) {
+                sector.innerRadius = datum.innerRadius;
+                sector.outerRadius = datum.outerRadius;
+                sector.startAngle = datum.startAngle;
+                sector.endAngle = datum.endAngle;
+            }
+
+            sector.fill = fill;
+            sector.fillOpacity = fillOpacity;
+            sector.stroke = stroke;
+            sector.strokeOpacity = strokeOpacity;
+            sector.strokeWidth = strokeWidth;
+            sector.lineDash = lineDash;
+            sector.lineDashOffset = lineDashOffset;
+            sector.cornerRadius = cornerRadius;
+
+            sector.inset = sector.strokeWidth / 2;
+        });
     }
 
     private async updateLabelSelection(opts: {
         labelData: RadialGaugeLabelDatum[];
         labelSelection: Selection<Text, RadialGaugeLabelDatum>;
     }) {
-        const labels = this.isLabelEnabled() ? opts.labelData : [];
-        return opts.labelSelection.update(labels);
+        return opts.labelSelection.update(opts.labelData, undefined, (datum) => datum.label);
     }
 
     private async updateLabelNodes(opts: { labelSelection: Selection<Text, RadialGaugeLabelDatum> }) {
         const { labelSelection } = opts;
+        const animationDisabled = this.ctx.animationManager.isSkipped();
 
-        labelSelection.each((_label, _datum) => {});
+        const fixMeLabelRectHeight =
+            (this.properties.label.lineHeight ?? this.properties.label.fontSize * Text.defaultLineHeightRatio) +
+            (this.properties.secondaryLabel.lineHeight ??
+                this.properties.secondaryLabel.fontSize * Text.defaultLineHeightRatio);
+
+        labelSelection.each((label, datum) => {
+            label.x = datum.centerX;
+            const fixMeLabelHeight = datum.lineHeight ?? datum.fontSize * Text.defaultLineHeightRatio;
+            const fixMeLabelRectOriginInLabelRect =
+                datum.label === 'primary' ? fixMeLabelHeight / 2 : fixMeLabelRectHeight - fixMeLabelHeight / 2;
+            label.y = datum.centerY + fixMeLabelRectOriginInLabelRect - fixMeLabelRectHeight / 2;
+
+            label.fill = datum.fill;
+            label.fontStyle = datum.fontStyle;
+            label.fontWeight = datum.fontWeight;
+            label.fontSize = datum.fontSize;
+            label.fontFamily = datum.fontFamily;
+
+            label.textAlign = 'center';
+            label.textBaseline = 'middle';
+
+            if (datum.text != null) {
+                label.text = datum.text;
+            } else if (animationDisabled) {
+                label.text = datum.formatter?.({ seriesId: this.id, datum: undefined, value: datum.value });
+            }
+        });
     }
 
-    resetAnimation() {
-        // No animations
+    protected resetAllAnimation() {
+        this.ctx.animationManager.stopByAnimationGroupId(this.id);
+
+        resetMotion(
+            [this.backgroundSelection, this.datumSelection, this.highlightDatumSelection],
+            resetRadialGaugeSeriesAnimationFunctions
+        );
+
+        this.datumSelection.cleanup();
+        this.labelSelection.cleanup();
+    }
+
+    resetAnimation(phase: ChartAnimationPhase) {
+        if (phase === 'initial') {
+            this.animationState.transition('reset');
+        } else if (phase === 'ready') {
+            this.animationState.transition('skip');
+        }
+    }
+
+    animateEmptyUpdateReady() {
+        const { animationManager } = this.ctx;
+
+        const fns = prepareRadialGaugeSeriesAnimationFunctions(true);
+        fromToMotion(
+            this.id,
+            'nodes',
+            animationManager,
+            [this.backgroundSelection, this.datumSelection, this.highlightDatumSelection],
+            fns,
+            (_sector, datum) => datum.itemId!
+        );
+
+        this.labelSelection.each((label, datum) => {
+            label.text = datum.text ?? datum?.formatter?.({ seriesId: this.id, datum: undefined, value: datum.value });
+
+            animationManager.animate({
+                id: this.id,
+                groupId: 'label',
+                from: 0,
+                to: 1,
+                phase: 'initial',
+                onUpdate(opacity) {
+                    label.opacity = opacity;
+                },
+            });
+        });
+    }
+
+    animateWaitingUpdateReady() {
+        const { animationManager } = this.ctx;
+
+        const fns = prepareRadialGaugeSeriesAnimationFunctions(false);
+        fromToMotion(
+            this.id,
+            'nodes',
+            animationManager,
+            [this.backgroundSelection, this.datumSelection, this.highlightDatumSelection],
+            fns,
+            (_sector, datum) => datum.itemId!
+        );
+
+        this.labelSelection.each((label, datum) => {
+            if (datum.text != null) return;
+
+            animationManager.animate({
+                id: this.id,
+                groupId: 'label',
+                from: label.previousDatum?.value ?? 0,
+                to: datum.value,
+                phase: 'update',
+                onUpdate(value) {
+                    label.text = datum?.formatter?.({ seriesId: this.id, datum: undefined, value });
+                },
+            });
+        });
+    }
+
+    protected animateReadyResize() {
+        this.resetAllAnimation();
     }
 
     override getLabelData(): PointLabelDatum[] {

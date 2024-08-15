@@ -1,5 +1,5 @@
 import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
-import type { AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
+import type { AgChartAutoSizedLabelOptions, AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, PixelSize } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
@@ -23,13 +23,30 @@ export interface AgRadialGaugeSeriesOptionsKeys {}
 
 export interface AgRadialGaugeSeriesOptionsNames {}
 
+export interface AgChartRadialGaugeLabelOptions<TDatum>
+    extends AgChartAutoSizedLabelOptions<TDatum, AgRadialGaugeSeriesLabelFormatterParams> {
+    /** Text to always display. */
+    text?: string;
+    /** Line height to use. */
+    lineHeight?: string;
+}
+export interface AgChartRadialGaugeSecondaryLabelOptions<TDatum>
+    extends AgChartAutoSizedSecondaryLabelOptions<TDatum, AgRadialGaugeSeriesLabelFormatterParams> {
+    /** Text to always display. */
+    text?: string;
+    /** Line height to use. */
+    lineHeight?: string;
+}
+
 export interface AgRadialGaugeSeriesThemeableOptions<TDatum = any>
     extends AgRadialGaugeSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
     /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
     colorRange?: CssColor[];
     /** Configuration for the labels shown inside the shape. */
-    label?: AgChartAutoSizedSecondaryLabelOptions<TDatum, AgRadialGaugeSeriesLabelFormatterParams>;
+    label?: AgChartAutoSizedLabelOptions<TDatum, AgRadialGaugeSeriesLabelFormatterParams>;
+    /** Configuration for the labels shown inside the shape. */
+    secondaryLabel?: AgChartAutoSizedSecondaryLabelOptions<TDatum, AgRadialGaugeSeriesLabelFormatterParams>;
     /** Distance between the shape edges and the text. */
     padding?: PixelSize;
     /** Series-specific tooltip configuration. */
