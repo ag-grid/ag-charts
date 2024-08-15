@@ -1,3 +1,5 @@
+import { createId } from './id';
+
 function addRemovableEventListener<K extends keyof WindowEventMap>(
     destroyFns: (() => void)[],
     elem: Window,
@@ -62,12 +64,18 @@ function matchesKey(event: KeyboardEvent, key: string, ...morekeys: string[]): b
     );
 }
 
-function linkTwoButtons(destroyFns: (() => void)[], src: HTMLElement, dst: HTMLElement | undefined, key: string) {
+function linkTwoButtons(
+    destroyFns: (() => void)[],
+    src: HTMLElement,
+    dst: HTMLElement | undefined,
+    key: string,
+    action: (dst: HTMLElement) => void
+) {
     if (!dst) return;
 
     addRemovableEventListener(destroyFns, src, 'keydown', (event: KeyboardEvent) => {
         if (matchesKey(event, key)) {
-            dst.focus();
+            action(dst); // TODO: unneeded???
         }
     });
 }
@@ -78,10 +86,11 @@ function linkThreeButtons(
     next: HTMLElement | undefined,
     nextKey: string,
     prev: HTMLElement | undefined,
-    prevKey: string
+    prevKey: string,
+    action: (dst: HTMLElement) => void
 ) {
-    linkTwoButtons(destroyFns, curr, prev, prevKey);
-    linkTwoButtons(destroyFns, curr, next, nextKey);
+    linkTwoButtons(destroyFns, curr, prev, prevKey, action);
+    linkTwoButtons(destroyFns, curr, next, nextKey, action);
     addRemovableEventListener(destroyFns, curr, 'keydown', (event: KeyboardEvent) => {
         if (matchesKey(event, nextKey, prevKey)) {
             event.preventDefault();
@@ -145,7 +154,7 @@ export function initToolbarKeyNav(opts: {
         if (onFocus) addRemovableEventListener(destroyFns, curr, 'focus', onFocus);
         if (onBlur) addRemovableEventListener(destroyFns, curr, 'blur', onBlur);
         if (onEscape) addEscapeEventListener(destroyFns, curr, onEscape);
-        linkThreeButtons(destroyFns, curr, prev, prevKey, next, nextKey);
+        linkThreeButtons(destroyFns, curr, prev, prevKey, next, nextKey, (dst) => dst.focus());
         curr.tabIndex = i === 0 ? 0 : -1;
     }
 
@@ -174,24 +183,32 @@ export function initMenuKeyNav(opts: {
 
     menu.role = 'menu';
     menu.ariaOrientation = orientation;
+    if (buttons.length ===0 )  return destroyFns;
 
-    for (let i = 0; i < buttons.length; i++) {
-        // Use modules to wrap around when navigation past the start/end of the menu.
-        const prev = buttons[(buttons.length + i - 1) % buttons.length];
-        const curr = buttons[i];
-        const next = buttons[(buttons.length + i + 1) % buttons.length];
-        addEscapeEventListener(destroyFns, curr, onEscape);
-        linkThreeButtons(destroyFns, curr, prev, prevKey, next, nextKey);
-        curr.tabIndex = -1;
-    }
+    buttons.forEach((b) => {
+        if (b.id.length === 0) b.id = createId(b);
+    });
+
+    let currentIndex = 0;
+    const doFocus = (delta: number, event?: KeyboardEvent) => {
+        currentIndex  = (currentIndex + delta + buttons.length) % buttons.length;
+        const dst = buttons[currentIndex];
+        menu.setAttribute('aria-activedescendant', dst.id);
+        //buttons.forEach((b) => (b.ariaSelected = 'false'));
+        //dst.ariaSelected = 'true';
+        event?.preventDefault();
+    };
+    doFocus(0);
 
     // Add handlers for the menu element itself.
     menu.tabIndex = -1;
+    menu.setAttribute('aria-activedescendant', buttons[0]?.id ?? '');
     addEscapeEventListener(destroyFns, menu, onEscape);
-    addRemovableEventListener(destroyFns, menu, 'keydown', (ev: KeyboardEvent) => {
-        if (ev.target === menu && (ev.key === nextKey || ev.key === prevKey)) {
-            ev.preventDefault();
-            buttons[0]?.focus();
+    addRemovableEventListener(destroyFns, menu, 'keydown', (event: KeyboardEvent) => {
+        if (matchesKey(event, prevKey)) {
+            doFocus(-1, event);
+        } else if (matchesKey(event, nextKey)) {
+            doFocus(+1, event);
         }
     });
 
