@@ -6,7 +6,7 @@ export const GradientLegendModule: _ModuleSupport.LegendModule = {
     type: 'legend',
     optionsKey: 'gradientLegend',
     packageType: 'enterprise',
-    chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion'],
+    chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion', 'gauge'],
 
     identifier: 'gradient',
     moduleFactory: (ctx) => new GradientLegend(ctx),

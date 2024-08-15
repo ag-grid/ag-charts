@@ -33,7 +33,7 @@ export class SeriesAreaFocusManager extends BaseManager {
             fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
         },
         private readonly ctx: ChartContext,
-        private readonly chartType: 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion',
+        private readonly chartType: 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'gauge',
         private readonly overlays: ChartOverlays
     ) {
         super();
