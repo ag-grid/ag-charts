@@ -1,20 +1,11 @@
+export function* iterate<T extends Iterable<any>[]>(
+    ...iterators: T
+): Generator<T[number] extends Iterable<infer U> ? U : never, void, undefined> {
+    for (const iterator of iterators) {
+        yield* iterator;
+    }
+}
+
 export function toIterable<T>(value: T | Iterable<T>): Iterable<T> {
-    if (typeof value !== 'object' || value == null || !(Symbol.iterator in value)) {
-        return argsIterable(value);
-    }
-    return value;
-}
-
-export function* arraysIterable<T, A extends Array<Array<T>>>(...arrays: A): Iterable<A[number][number]> {
-    for (const array of arrays) {
-        for (const e of array) {
-            yield e;
-        }
-    }
-}
-
-export function* argsIterable<T, A extends Array<T>>(...args: A[number][]): Iterable<T> {
-    for (const arg of args) {
-        yield arg;
-    }
+    return value != null && typeof value === 'object' && Symbol.iterator in value ? value : [value];
 }

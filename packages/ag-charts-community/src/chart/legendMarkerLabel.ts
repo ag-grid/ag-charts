@@ -9,7 +9,7 @@ import { Text } from '../scene/shape/text';
 import type { SpriteDimensions, SpriteRenderer } from '../scene/spriteRenderer';
 import { Translatable } from '../scene/transformable';
 import { arraysEqual } from '../util/array';
-import { argsIterable, arraysIterable } from '../util/iterator';
+import { iterate } from '../util/iterator';
 import { ProxyPropertyOnWrite } from '../util/proxy';
 import type { Marker } from './marker/marker';
 import type { MarkerConstructor } from './marker/util';
@@ -40,7 +40,7 @@ export class LegendMarkerLabel extends Translatable(Group) {
         label.y = 1;
 
         this.updateSymbols(markers, lines);
-        this.append(argsIterable(this.symbolsGroup, label));
+        this.append([this.symbolsGroup, label]);
     }
 
     override destroy() {
@@ -195,6 +195,6 @@ export class LegendMarkerLabel extends Translatable(Group) {
         // not want to include this padding in the layout bounds. So just compute the bounds for the Line
         // and Marker nodes directly rather than Group's default behaviour of computing this.bitmap's BBox.
         const { label, lines, markers } = this;
-        return Group.computeBBox(arraysIterable([label], lines, markers), { skipInvisible: false });
+        return Group.computeBBox(iterate([label], lines, markers), { skipInvisible: false });
     }
 }

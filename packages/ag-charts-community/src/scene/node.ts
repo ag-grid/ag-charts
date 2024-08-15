@@ -1,5 +1,5 @@
 import { createId } from '../util/id';
-import { arraysIterable, toIterable } from '../util/iterator';
+import { iterate, toIterable } from '../util/iterator';
 import { BBox } from './bbox';
 import { ChangeDetectable, RedrawType, SceneChangeDetection } from './changeDetectable';
 import type { LayersManager, ZIndexSubOrder } from './layersManager';
@@ -235,7 +235,7 @@ export abstract class Node extends ChangeDetectable {
     }
 
     clear() {
-        for (const child of arraysIterable(this._virtualChildren, this._children)) {
+        for (const child of iterate(this._virtualChildren, this._children)) {
             child._parent = undefined;
             child._setLayerManager();
         }
