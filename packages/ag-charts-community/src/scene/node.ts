@@ -3,7 +3,6 @@ import { iterate, toIterable } from '../util/iterator';
 import { BBox } from './bbox';
 import { ChangeDetectable, RedrawType, SceneChangeDetection } from './changeDetectable';
 import type { LayersManager, ZIndexSubOrder } from './layersManager';
-import { IDENTITY_MATRIX_ELEMENTS, Matrix } from './matrix';
 
 export { SceneChangeDetection, RedrawType };
 
@@ -197,6 +196,7 @@ export abstract class Node extends ChangeDetectable {
             node._setLayerManager(this.layerManager);
         }
 
+        this.cachedBBox = undefined;
         this.dirtyZIndex = true;
         this.markDirty(this, RedrawType.MAJOR);
     }
@@ -228,6 +228,7 @@ export abstract class Node extends ChangeDetectable {
         node._parent = undefined;
         node._setLayerManager();
 
+        this.cachedBBox = undefined;
         this.dirtyZIndex = true;
         this.markDirty(node, RedrawType.MAJOR);
 
@@ -239,51 +240,10 @@ export abstract class Node extends ChangeDetectable {
             child._parent = undefined;
             child._setLayerManager();
         }
+        this.cachedBBox = undefined;
         this._virtualChildren.length = 0;
         this._children.length = 0;
         this.childSet = {};
-    }
-
-    // These matrices may need to have package level visibility
-    // for performance optimization purposes.
-    matrix = new Matrix();
-
-    private calculateCumulativeMatrix() {
-        this.computeTransformMatrix();
-        const matrix = Matrix.flyweight(this.matrix);
-
-        for (const parent of this.ancestors()) {
-            parent.computeTransformMatrix();
-            matrix.preMultiplySelf(parent.matrix);
-        }
-
-        return matrix;
-    }
-
-    transformPoint(x: number, y: number) {
-        const matrix = this.calculateCumulativeMatrix();
-        return matrix.invertSelf().transformPoint(x, y);
-    }
-
-    inverseTransformPoint(x: number, y: number) {
-        const matrix = this.calculateCumulativeMatrix();
-        return matrix.transformPoint(x, y);
-    }
-
-    transformBBox(bbox: BBox): BBox {
-        const matrix = this.calculateCumulativeMatrix();
-        return matrix.invertSelf().transformBBox(bbox);
-    }
-
-    inverseTransformBBox(bbox: BBox): BBox {
-        const matrix = this.calculateCumulativeMatrix();
-        return matrix.transformBBox(bbox);
-    }
-
-    protected dirtyTransform = false;
-    markDirtyTransform() {
-        this.dirtyTransform = true;
-        this.markDirty(this, RedrawType.MAJOR);
     }
 
     constructor({ isVirtual, tag, zIndex, name }: NodeOptions = {}) {
@@ -321,7 +281,7 @@ export abstract class Node extends ChangeDetectable {
             // processing when the point is nowhere near the child.
             for (let i = children.length - 1; i >= 0; i--) {
                 const child = children[i];
-                const containsPoint = child.computeTransformedBBox()?.containsPoint(x, y);
+                const containsPoint = child.containsPoint(x, y);
                 const hit = containsPoint ? child.pickNode(x, y) : undefined;
 
                 if (hit) {
@@ -355,42 +315,6 @@ export abstract class Node extends ChangeDetectable {
 
     protected computeBBox(): BBox | undefined {
         return;
-    }
-
-    computeTransformedBBox(): BBox | undefined {
-        const bbox = this.getBBox()?.clone();
-
-        if (!bbox) {
-            return;
-        }
-
-        this.computeTransformMatrix();
-        const matrix = Matrix.flyweight(this.matrix);
-        for (const parent of this.ancestors()) {
-            parent.computeTransformMatrix();
-            matrix.preMultiplySelf(parent.matrix);
-        }
-        matrix.transformBBox(bbox, bbox);
-
-        return bbox;
-    }
-
-    computeTransformMatrix(force = false) {
-        if (!force && !this.dirtyTransform) {
-            return;
-        }
-
-        // Sub-classes will update this.matrix with their transforms, so we need to reset to the
-        // identity matrix here for consistency.
-        this.matrix.setElements(IDENTITY_MATRIX_ELEMENTS);
-
-        this.dirtyTransform = false;
-    }
-
-    protected transformRenderContext(renderCtx: RenderContext, layerCtx?: RenderContext['ctx']): Matrix {
-        this.computeTransformMatrix();
-        this.matrix.toContext(layerCtx ?? renderCtx.ctx);
-        return this.matrix;
     }
 
     readonly _childNodeCounts: ChildNodeCounts = {
@@ -490,7 +414,7 @@ export abstract class Node extends ChangeDetectable {
 
     get nodeCount() {
         let count = 1;
-        let dirtyCount = this._dirty >= RedrawType.NONE || this.dirtyTransform ? 1 : 0;
+        let dirtyCount = this._dirty >= RedrawType.NONE ? 1 : 0;
         let visibleCount = this.visible ? 1 : 0;
 
         const countChild = (child: Node) => {

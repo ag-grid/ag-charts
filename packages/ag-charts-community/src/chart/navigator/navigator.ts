@@ -3,6 +3,7 @@ import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
+import type { BBoxProvider } from '../../util/bboxinterface';
 import { setElementBBox } from '../../util/dom';
 import { initToolbarKeyNav } from '../../util/keynavUtil';
 import { Logger } from '../../util/logger';
@@ -10,6 +11,8 @@ import { clamp, formatPercentage } from '../../util/number';
 import { ActionOnSet, ObserveChanges } from '../../util/proxy';
 import { AND, BOOLEAN, GREATER_THAN, LESS_THAN, OBJECT, POSITIVE_NUMBER, RATIO, Validate } from '../../util/validation';
 import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
+import type { RegionEvent } from '../interaction/regionManager';
+import { NodeRegionBBoxProvider } from '../interaction/regions';
 import type { ZoomChangeEvent } from '../interaction/zoomManager';
 import { type LayoutCompleteEvent, LayoutElement } from '../layout/layoutManager';
 import { RangeHandle } from './shapes/rangeHandle';
@@ -32,8 +35,9 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     private readonly maskVisibleRange = {
         id: 'navigator-mask-visible-range',
         getBBox: (): BBox => this.mask.computeVisibleRangeBBox(),
-        computeTransformedBBox: (): BBox => this.mask.computeVisibleRangeBBox(),
-    };
+        toCanvasBBox: (): BBox => this.mask.computeVisibleRangeBBox(),
+        fromCanvasPoint: (x: number, y: number) => ({ x, y }),
+    } satisfies BBoxProvider & { getBBox(): BBox };
 
     @Validate(POSITIVE_NUMBER)
     public height: number = 30;
@@ -111,7 +115,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
                 ariaLabel: { id: 'ariaLabelNavigatorMinimum' },
                 ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
-                focusable: this.minHandle,
+                focusable: new NodeRegionBBoxProvider(this.minHandle),
                 onchange: (ev) => this.onMinSliderChange(ev),
             }),
             this.ctx.proxyInteractionService.createProxyElement({
@@ -129,7 +133,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
                 ariaLabel: { id: 'ariaLabelNavigatorMaximum' },
                 ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
-                focusable: this.maxHandle,
+                focusable: new NodeRegionBBoxProvider(this.maxHandle),
                 onchange: (ev) => this.onMaxSliderChange(ev),
             }),
         ];
@@ -189,42 +193,45 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         this.width = width;
     }
 
-    private onHover(event: PointerInteractionEvent<'hover'>) {
+    private onHover(event: RegionEvent<'hover'>) {
         if (!this.enabled) return;
 
         const { mask, minHandle, maxHandle } = this;
-        const { offsetX, offsetY } = event;
+        const { regionOffsetX, regionOffsetY } = event;
 
-        if (minHandle.containsPoint(offsetX, offsetY) || maxHandle.containsPoint(offsetX, offsetY)) {
+        if (
+            minHandle.containsPoint(regionOffsetX, regionOffsetY) ||
+            maxHandle.containsPoint(regionOffsetX, regionOffsetY)
+        ) {
             this.ctx.cursorManager.updateCursor('navigator', 'ew-resize');
-        } else if (mask.computeVisibleRangeBBox().containsPoint(offsetX, offsetY)) {
+        } else if (mask.computeVisibleRangeBBox().containsPoint(regionOffsetX, regionOffsetY)) {
             this.ctx.cursorManager.updateCursor('navigator', 'grab');
         } else {
             this.ctx.cursorManager.updateCursor('navigator');
         }
     }
 
-    private onDragStart(event: PointerInteractionEvent<'drag-start'>) {
+    private onDragStart(event: RegionEvent<'drag-start'>) {
         if (!this.enabled) return;
 
         const { mask, minHandle, maxHandle, x, width, _min: min } = this;
-        const { offsetX, offsetY } = event;
+        const { regionOffsetX, regionOffsetY } = event;
 
         if (minHandle.zIndex < maxHandle.zIndex) {
-            if (maxHandle.containsPoint(offsetX, offsetY)) {
+            if (maxHandle.containsPoint(regionOffsetX, regionOffsetY)) {
                 this.dragging = 'max';
-            } else if (minHandle.containsPoint(offsetX, offsetY)) {
+            } else if (minHandle.containsPoint(regionOffsetX, regionOffsetY)) {
                 this.dragging = 'min';
             }
-        } else if (minHandle.containsPoint(offsetX, offsetY)) {
+        } else if (minHandle.containsPoint(regionOffsetX, regionOffsetY)) {
             this.dragging = 'min';
-        } else if (maxHandle.containsPoint(offsetX, offsetY)) {
+        } else if (maxHandle.containsPoint(regionOffsetX, regionOffsetY)) {
             this.dragging = 'max';
         }
 
-        if (this.dragging == null && mask.computeVisibleRangeBBox().containsPoint(offsetX, offsetY)) {
+        if (this.dragging == null && mask.computeVisibleRangeBBox().containsPoint(regionOffsetX, regionOffsetY)) {
             this.dragging = 'pan';
-            this.panStart = (offsetX - x) / width - min;
+            this.panStart = (regionOffsetX - x) / width - min;
         }
 
         if (this.dragging != null) {
@@ -232,14 +239,14 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         }
     }
 
-    private onDrag(event: PointerInteractionEvent<'drag'>) {
+    private onDrag(event: RegionEvent<'drag'>) {
         if (!this.enabled || this.dragging == null) return;
 
         const { dragging, minRange, panStart, x, width } = this;
         let { _min: min, _max: max } = this;
-        const { offsetX } = event;
+        const { regionOffsetX } = event;
 
-        const ratio = (offsetX - x) / width;
+        const ratio = (regionOffsetX - x) / width;
 
         if (dragging === 'min') {
             min = clamp(0, ratio, max - minRange);

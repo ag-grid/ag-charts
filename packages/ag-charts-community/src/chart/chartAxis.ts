@@ -13,7 +13,6 @@ import type { AxisTick, TickInterval } from './axis/axisTick';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxisDirection } from './chartAxisDirection';
 import type { CrossLine } from './crossline/crossLine';
-import type { RegionBBoxProvider } from './interaction/regions';
 import type { AxisLayout } from './layout/layoutManager';
 import type { ISeries } from './series/seriesTypes';
 
@@ -22,7 +21,7 @@ export type ChartAxisLabelFlipFlag = 1 | -1;
 export interface ChartAxis {
     attachAxis(axisGroup: Node, gridGroup: Node): void;
     getAxisGroup(): Group;
-    getRegionBBoxProvider(): RegionBBoxProvider;
+    getRegionNode(): Node;
     boundSeries: ISeries<unknown, unknown>[];
     calculateLayout(primaryTickCount?: number): { primaryTickCount: number | undefined; bbox: BBox };
     calculatePadding(min: number, max: number): [number, number];

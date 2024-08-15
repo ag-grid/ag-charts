@@ -262,10 +262,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updateAxisZoom(axisId, direction, rangeZoom);
     }
 
-    private onDoubleClick(
-        event: _ModuleSupport.PointerInteractionEvent<'dblclick'> & { preventZoomDblClick?: boolean }
-    ) {
-        const { enabled, enableDoubleClickToReset, hoveredAxis, paddedRect } = this;
+    private onDoubleClick(event: _ModuleSupport.RegionEvent<'dblclick'> & { preventZoomDblClick?: boolean }) {
+        const { enabled, enableDoubleClickToReset, hoveredAxis } = this;
 
         if (!enabled || !enableDoubleClickToReset) return;
 
@@ -274,23 +272,22 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (hoveredAxis) {
             const { id, direction } = hoveredAxis;
             this.updateAxisZoom(id, direction, zoom[direction]);
-        } else if (paddedRect?.containsPoint(event.offsetX, event.offsetY) && !event.preventZoomDblClick) {
+        } else if (!event.preventZoomDblClick) {
             this.updateZoom(zoom);
         }
     }
 
-    private onDragStart(event: _ModuleSupport.PointerInteractionEvent<'drag-start'>) {
+    private onDragStart(event: _ModuleSupport.RegionEvent<'drag-start'>) {
         const {
             enabled,
             enableAxisDragging,
             enablePanning,
             enableSelecting,
             hoveredAxis,
-            paddedRect,
             ctx: { cursorManager, zoomManager },
         } = this;
 
-        if (!enabled || !paddedRect || event.button !== 0) return;
+        if (!enabled || event.button !== 0) return;
 
         this.panner.stopInteractions();
 
@@ -299,7 +296,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         if (enableAxisDragging && hoveredAxis) {
             newDragState = DragState.Axis;
-        } else if (paddedRect.containsPoint(event.offsetX, event.offsetY)) {
+        } else {
             const panKeyPressed = this.isPanningKeyPressed(event.sourceEvent as DragEvent);
             // Allow panning if either selection is disabled or the panning key is pressed.
             if (enablePanning && (!enableSelecting || panKeyPressed)) {
@@ -320,7 +317,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private onDrag(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
+    private onDrag(event: _ModuleSupport.RegionEvent<'drag'>) {
         const {
             anchorPointX,
             anchorPointY,
@@ -368,7 +365,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
-    private onDragEnd(_event: _ModuleSupport.PointerInteractionEvent<'drag-end'>) {
+    private onDragEnd(_event: _ModuleSupport.RegionEvent<'drag-end'>) {
         const {
             axisDragger,
             dragState,
@@ -415,13 +412,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.updateZoom(scroller.updateDelta(event.delta, this.getModuleProperties(), this.getZoom()));
     }
 
-    private onWheel(event: _ModuleSupport.PointerInteractionEvent<'wheel'>) {
-        const { enabled, enableAxisDragging, enablePanning, enableScrolling, hoveredAxis, paddedRect } = this;
+    private onWheel(event: _ModuleSupport.RegionEvent<'wheel'>) {
+        const { enabled, enablePanning, enableScrolling, paddedRect } = this;
 
         if (!enabled || !enableScrolling || !paddedRect) return;
-
-        const isSeriesScrolling = paddedRect.containsPoint(event.offsetX, event.offsetY);
-        const isAxisScrolling = enableAxisDragging && hoveredAxis != null;
 
         const sourceEvent = event.sourceEvent as WheelEvent;
         const { deltaX, deltaY } = sourceEvent;
@@ -429,12 +423,12 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         if (enablePanning && isHorizontalScrolling) {
             this.onWheelPanning(event);
-        } else if (isSeriesScrolling || isAxisScrolling) {
+        } else {
             this.onWheelScrolling(event);
         }
     }
 
-    private onWheelPanning(event: _ModuleSupport.PointerInteractionEvent<'wheel'>) {
+    private onWheelPanning(event: _ModuleSupport.RegionEvent<'wheel'>) {
         const {
             scrollingStep,
             scrollPanner,
@@ -452,7 +446,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private onWheelScrolling(event: _ModuleSupport.PointerInteractionEvent<'wheel'>) {
+    private onWheelScrolling(event: _ModuleSupport.RegionEvent<'wheel'>) {
         const {
             enableAxisDragging,
             enableIndependentAxes,

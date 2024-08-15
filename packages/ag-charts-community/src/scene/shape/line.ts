@@ -49,9 +49,8 @@ export class Line extends Shape implements DistantObject {
         );
     }
 
-    isPointInPath(px: number, py: number): boolean {
+    isPointInPath(x: number, y: number): boolean {
         if (this.x1 === this.x2 || this.y1 === this.y2) {
-            const { x, y } = this.transformPoint(px, py);
             return this.getBBox()
                 .clone()
                 .grow(this.strokeWidth / 2)
@@ -72,8 +71,6 @@ export class Line extends Shape implements DistantObject {
             if (stats) stats.nodesSkipped += this.nodeCount.count;
             return;
         }
-
-        this.transformRenderContext(renderCtx);
 
         let { x1, y1, x2, y2 } = this;
 

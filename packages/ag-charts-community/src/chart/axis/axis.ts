@@ -47,7 +47,6 @@ import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
 import type { AnimationManager } from '../interaction/animationManager';
-import { type RegionBBoxProvider } from '../interaction/regions';
 import { calculateLabelBBox, calculateLabelRotation, getLabelSpacing, getTextAlign, getTextBaseline } from '../label';
 import { Layers } from '../layers';
 import type { AxisLayout } from '../layout/layoutManager';
@@ -643,7 +642,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                     translationY: Math.round(datum.translationY),
                 });
 
-                const box = tempText.computeTransformedBBox();
+                const box = tempText.getBBox();
                 if (box) {
                     boxes.push(box);
                 }
@@ -655,7 +654,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             const spacing = BBox.merge(boxes).width;
             this.setTitleProps(caption, { spacing });
             const titleNode = caption.node;
-            const titleBox = titleNode.computeTransformedBBox();
+            const titleBox = titleNode.getBBox();
             if (titleBox) {
                 boxes.push(titleBox);
             }
@@ -1328,13 +1327,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     protected updateTitle(params: { anyTickVisible: boolean }): void {
-        const { rotation, title, _titleCaption, lineNode, tickLineGroup, tickLabelGroup } = this;
+        const { title, _titleCaption, lineNode, tickLineGroup, tickLabelGroup } = this;
 
         let spacing = 0;
         if (title.enabled && params.anyTickVisible) {
-            const tickBBox = Group.computeBBox([tickLineGroup, tickLabelGroup, lineNode]);
-            const tickWidth = rotation === 0 ? tickBBox.width : tickBBox.height;
-            spacing += tickWidth + (this.tickLabelGroup.visible ? 0 : this.seriesAreaPadding);
+            const tickBBox = Group.computeChildrenBBox([tickLineGroup, tickLabelGroup, lineNode]);
+            spacing += tickBBox.width + (this.tickLabelGroup.visible ? 0 : this.seriesAreaPadding);
         }
         this.setTitleProps(_titleCaption, { spacing });
     }
@@ -1375,20 +1373,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return this.axisGroup.getBBox();
     }
 
-    getRegionBBoxProvider(): RegionBBoxProvider {
-        const { axisGroup } = this;
-        return {
-            id: this.id,
-            computeTransformedBBox() {
-                return axisGroup.computeTransformedBBox();
-            },
-            computeTransformedRegionBBox() {
-                return axisGroup.computeTransformedRegionBBox();
-            },
-            get visible() {
-                return axisGroup.visible;
-            },
-        };
+    getRegionNode() {
+        return this.axisGroup;
     }
 
     initCrossLine(crossLine: CrossLine) {

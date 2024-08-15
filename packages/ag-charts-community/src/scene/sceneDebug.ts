@@ -6,6 +6,7 @@ import { BBox } from './bbox';
 import { Group } from './group';
 import type { LayersManager } from './layersManager';
 import { type Node, RedrawType, type RenderContext } from './node';
+import { Transformable } from './transformable';
 
 export enum DebugSelectors {
     SCENE = 'scene',
@@ -70,7 +71,7 @@ export function debugSceneNodeHighlight(ctx: CanvasRenderingContext2D, debugNode
     ctx.save();
 
     for (const [name, node] of Object.entries(debugNodes)) {
-        const bbox = node.computeTransformedBBox();
+        const bbox = Transformable.toCanvas(node);
 
         if (!bbox) {
             Logger.log(`Scene.render() - no bbox for debugged node [${name}].`);

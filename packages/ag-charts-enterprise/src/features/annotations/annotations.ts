@@ -853,25 +853,25 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         };
     }
 
-    private onHover(event: _ModuleSupport.PointerInteractionEvent<'hover'>) {
-        const { seriesRect, state } = this;
+    private onHover(event: _ModuleSupport.RegionEvent<'hover'>) {
+        const { state } = this;
 
         const context = this.getAnnotationContext();
         if (!context) return;
 
-        const offset = Vec2.fromOffset(event);
-        const point = invertCoords(Vec2.sub(offset, Vec2.required(seriesRect)), context);
+        const offset = { x: event.regionOffsetX, y: event.regionOffsetY };
+        const point = invertCoords(offset, context);
 
         state.transition('hover', { offset, point });
     }
 
-    private onClick(event: _ModuleSupport.PointerInteractionEvent<'click'>) {
-        const { seriesRect, state } = this;
+    private onClick(event: _ModuleSupport.RegionEvent<'click'>) {
+        const { state } = this;
 
         const context = this.getAnnotationContext();
         if (!context) return;
 
-        const offset = Vec2.sub(Vec2.fromOffset(event), Vec2.required(seriesRect));
+        const offset = { x: event.regionOffsetX, y: event.regionOffsetY };
         const point = invertCoords(offset, context);
         const textInputValue = this.textInput.getValue();
 
@@ -912,28 +912,28 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.update();
     }
 
-    private onDragStart(event: _ModuleSupport.PointerInteractionEvent<'drag-start'>) {
-        const { seriesRect, state } = this;
+    private onDragStart(event: _ModuleSupport.RegionEvent<'drag-start'>) {
+        const { state } = this;
 
         const context = this.getAnnotationContext();
         if (!context) return;
 
-        const offset = Vec2.sub(Vec2.fromOffset(event), Vec2.required(seriesRect));
+        const offset = { x: event.regionOffsetX, y: event.regionOffsetY };
         state.transition('dragStart', { context, offset });
     }
 
-    private onDrag(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
-        const { seriesRect, state } = this;
+    private onDrag(event: _ModuleSupport.RegionEvent<'drag'>) {
+        const { state } = this;
 
         const context = this.getAnnotationContext();
         if (!context) return;
 
-        const offset = Vec2.sub(Vec2.fromOffset(event), Vec2.required(seriesRect));
+        const offset = { x: event.regionOffsetX, y: event.regionOffsetY };
         const point = invertCoords(offset, context);
         state.transition('drag', { context, offset, point });
     }
 
-    private onDragEnd(_event: _ModuleSupport.PointerInteractionEvent<'drag-end'>) {
+    private onDragEnd(_event: _ModuleSupport.RegionEvent<'drag-end'>) {
         this.state.transition('dragEnd');
     }
 
