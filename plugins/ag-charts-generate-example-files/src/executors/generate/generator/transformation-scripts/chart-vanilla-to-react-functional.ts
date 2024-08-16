@@ -11,9 +11,9 @@ import { toTitleCase } from './string-utils';
 export function processFunction(code: string): string {
     return wrapOptionsUpdateCode(
         convertFunctionToProperty(code),
-        'const clone = deepClone(options);',
-        'setOptions(clone);',
-        'clone'
+        'const nextOptions = clone(options);',
+        'setOptions(nextOptions);',
+        'nextOptions'
     );
 }
 
@@ -56,7 +56,7 @@ function getImports(componentFilenames: string[], bindings): string[] {
     );
 
     if (bindings.externalEventHandlers.length > 0 || bindings.instanceMethods.length > 0) {
-        imports.push(`import deepClone from 'deepclone';`);
+        imports.push(`import clone from 'clone';`);
     }
 
     if (componentFilenames) {

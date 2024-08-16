@@ -37,7 +37,7 @@ function getImports(componentFileNames: string[], bindings): string[] {
     }
 
     if (bindings.externalEventHandlers.length > 0 || bindings.instanceMethods.length > 0) {
-        imports.push(`import deepClone from 'deepclone';`);
+        imports.push(`import clone from 'clone';`);
     }
 
     return imports;
