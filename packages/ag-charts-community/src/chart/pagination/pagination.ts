@@ -245,7 +245,7 @@ export class Pagination extends BaseProperties {
 
     private updateNextButtonPosition() {
         const labelBBox = this.labelNode.getBBox();
-        this.nextButton.translationX = labelBBox.x + labelBBox.width + this.marker.size / 2 + this.marker.padding;
+        this.nextButton.translationX = labelBBox.width + (this.marker.size / 2 + this.marker.padding) * 2;
     }
 
     private updateLabel() {
