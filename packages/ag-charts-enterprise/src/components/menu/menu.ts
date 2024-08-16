@@ -65,7 +65,7 @@ export class Menu extends AnchoredPopover {
 
         const strokeWidthVisible = item.strokeWidth != null;
         if (strokeWidthVisible) {
-            row.classList.toggle(`ag-charts-popover__row--stroke-width-visible`, strokeWidthVisible);
+            row.classList.toggle(`ag-charts-menu__row--stroke-width-visible`, strokeWidthVisible);
             row.style.setProperty('--strokeWidth', strokeWidthVisible ? `${item.strokeWidth}px` : null);
         }
 
