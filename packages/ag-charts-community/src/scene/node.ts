@@ -23,6 +23,7 @@ export type RenderContext = {
         layersRendered: number;
         layersSkipped: number;
     };
+    debugNodeSearch?: (string | RegExp)[];
     debugNodes: Record<string, Node>;
 };
 
@@ -339,7 +340,13 @@ export abstract class Node extends ChangeDetectable {
         const { stats } = renderCtx;
 
         this._dirty = RedrawType.NONE;
-        this.cachedBBox = this.computeBBox();
+
+        if (renderCtx.debugNodeSearch) {
+            const idOrName = this.name ?? this.id;
+            if (renderCtx.debugNodeSearch.some((v) => (typeof v === 'string' ? v === idOrName : v.test(idOrName)))) {
+                renderCtx.debugNodes[this.name ?? this.id] = this;
+            }
+        }
 
         if (stats) {
             stats.nodesRendered++;
