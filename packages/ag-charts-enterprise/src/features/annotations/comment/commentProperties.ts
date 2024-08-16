@@ -4,8 +4,8 @@ import { Fill, Stroke } from '../annotationProperties';
 import {
     type AnnotationContext,
     type AnnotationOptionsColorPickerType,
+    AnnotationType,
     type Padding,
-    TextualAnnotationType,
 } from '../annotationTypes';
 import { TextualPointProperties } from '../properties/textualPointProperties';
 
@@ -21,11 +21,11 @@ const DEFAULT_COMMENT_PADDING = {
 
 export class CommentProperties extends Fill(Stroke(TextualPointProperties)) {
     static is(value: unknown): value is CommentProperties {
-        return isObject(value) && value.type === TextualAnnotationType.Comment;
+        return isObject(value) && value.type === AnnotationType.Comment;
     }
 
     @Validate(STRING)
-    type = TextualAnnotationType.Comment as const;
+    type = AnnotationType.Comment as const;
 
     override position = 'bottom' as const;
     override alignment = 'left' as const;

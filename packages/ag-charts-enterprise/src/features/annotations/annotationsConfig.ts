@@ -1,15 +1,15 @@
 import { type PixelSize, _ModuleSupport } from 'ag-charts-community';
 
-import {
-    type AnnotationContext,
-    type AnnotationLineStyle,
-    type AnnotationLineStyleType,
-    type AnnotationOptionsColorPickerType,
-    AnnotationType,
+import type {
+    AnnotationContext,
+    AnnotationLineStyle,
+    AnnotationLineStyleType,
+    AnnotationOptionsColorPickerType,
     ChannelAnnotationType,
     LineAnnotationType,
     TextualAnnotationType,
 } from './annotationTypes';
+import { AnnotationType } from './annotationTypes';
 import type {
     AnnotationProperties,
     AnnotationScene,

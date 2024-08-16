@@ -1,42 +1,34 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-export enum TextualAnnotationType {
+export enum AnnotationType {
+    // Lines
+    Line = 'line',
+    HorizontalLine = 'horizontal-line',
+    VerticalLine = 'vertical-line',
+
+    // Channels
+    DisjointChannel = 'disjoint-channel',
+    ParallelChannel = 'parallel-channel',
+
+    // Texts
     Callout = 'callout',
     Comment = 'comment',
     Note = 'note',
     Text = 'text',
-}
-
-export enum LineAnnotationType {
-    Line = 'line',
-    HorizontalLine = 'horizontal-line',
-    VerticalLine = 'vertical-line',
-}
-
-export enum ChannelAnnotationType {
-    DisjointChannel = 'disjoint-channel',
-    ParallelChannel = 'parallel-channel',
-}
-
-export enum AnnotationType {
-    // Lines
-    Line = LineAnnotationType.Line,
-    HorizontalLine = LineAnnotationType.HorizontalLine,
-    VerticalLine = LineAnnotationType.VerticalLine,
-
-    // Channels
-    DisjointChannel = ChannelAnnotationType.DisjointChannel,
-    ParallelChannel = ChannelAnnotationType.ParallelChannel,
-
-    // Texts
-    Callout = TextualAnnotationType.Callout,
-    Comment = TextualAnnotationType.Comment,
-    Note = TextualAnnotationType.Note,
-    Text = TextualAnnotationType.Text,
 
     // Shapes
     Arrow = 'arrow',
 }
+
+export type TextualAnnotationType =
+    | AnnotationType.Callout
+    | AnnotationType.Comment
+    | AnnotationType.Note
+    | AnnotationType.Text;
+
+export type LineAnnotationType = AnnotationType.Line | AnnotationType.HorizontalLine | AnnotationType.VerticalLine;
+
+export type ChannelAnnotationType = AnnotationType.DisjointChannel | AnnotationType.ParallelChannel;
 
 export const ANNOTATION_TYPES = Object.values(AnnotationType);
 export const ANNOTATION_BUTTONS = [

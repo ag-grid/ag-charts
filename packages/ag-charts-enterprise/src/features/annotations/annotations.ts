@@ -10,15 +10,15 @@ import { Menu, type MenuItem } from '../../components/menu/menu';
 import { buildBounds } from '../../utils/position';
 import { ColorPicker } from '../color-picker/colorPicker';
 import { TextInput } from '../text-input/textInput';
-import {
-    type AnnotationContext,
-    type AnnotationLineStyle,
-    type AnnotationLineStyleType,
-    type AnnotationOptionsColorPickerType,
+import type {
+    AnnotationContext,
+    AnnotationLineStyle,
+    AnnotationLineStyleType,
+    AnnotationOptionsColorPickerType,
     ChannelAnnotationType,
-    type Coords,
+    Coords,
     LineAnnotationType,
-    type Point,
+    Point,
     TextualAnnotationType,
 } from './annotationTypes';
 import {
@@ -195,21 +195,21 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         ])
     );
     private readonly defaultFontSizes: Map<TextualAnnotationType, number | undefined> = new Map([
-        [TextualAnnotationType.Callout, undefined],
-        [TextualAnnotationType.Comment, undefined],
-        [TextualAnnotationType.Note, undefined],
-        [TextualAnnotationType.Text, undefined],
+        [AnnotationType.Callout, undefined],
+        [AnnotationType.Comment, undefined],
+        [AnnotationType.Note, undefined],
+        [AnnotationType.Text, undefined],
     ]);
 
     private readonly defaultLineStyles: Map<
         LineAnnotationType | ChannelAnnotationType,
         AnnotationLineStyle | undefined
     > = new Map<LineAnnotationType | ChannelAnnotationType, AnnotationLineStyle | undefined>([
-        [LineAnnotationType.Line, undefined],
-        [LineAnnotationType.HorizontalLine, undefined],
-        [LineAnnotationType.VerticalLine, undefined],
-        [ChannelAnnotationType.DisjointChannel, undefined],
-        [ChannelAnnotationType.ParallelChannel, undefined],
+        [AnnotationType.Line, undefined],
+        [AnnotationType.HorizontalLine, undefined],
+        [AnnotationType.VerticalLine, undefined],
+        [AnnotationType.DisjointChannel, undefined],
+        [AnnotationType.ParallelChannel, undefined],
     ]);
 
     // Elements

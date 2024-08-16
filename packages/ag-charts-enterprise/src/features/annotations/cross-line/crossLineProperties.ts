@@ -1,7 +1,7 @@
 import { type PixelSize, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { Annotation, AxisLabel, Handle, LineDash, LineStyle, Stroke, Value } from '../annotationProperties';
-import { type AnnotationContext, type AnnotationOptionsColorPickerType, LineAnnotationType } from '../annotationTypes';
+import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
 import { validateDatumValue } from '../annotationUtils';
 
 const { STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
@@ -12,11 +12,11 @@ export class HorizontalLineProperties extends Annotation(
     readonly direction = 'horizontal';
 
     static is(value: unknown): value is HorizontalLineProperties {
-        return isObject(value) && value.type === LineAnnotationType.HorizontalLine;
+        return isObject(value) && value.type === AnnotationType.HorizontalLine;
     }
 
     @Validate(STRING)
-    type = LineAnnotationType.HorizontalLine as const;
+    type = AnnotationType.HorizontalLine as const;
 
     lineCap?: _Scene.ShapeLineCap = undefined;
     computedLineDash?: PixelSize[] = undefined;
@@ -44,11 +44,11 @@ export class VerticalLineProperties extends Annotation(
     readonly direction = 'vertical';
 
     static is(value: unknown): value is VerticalLineProperties {
-        return isObject(value) && value.type === LineAnnotationType.VerticalLine;
+        return isObject(value) && value.type === AnnotationType.VerticalLine;
     }
 
     @Validate(STRING)
-    type = LineAnnotationType.VerticalLine as const;
+    type = AnnotationType.VerticalLine as const;
 
     lineCap?: _Scene.ShapeLineCap = undefined;
     computedLineDash?: PixelSize[] = undefined;
