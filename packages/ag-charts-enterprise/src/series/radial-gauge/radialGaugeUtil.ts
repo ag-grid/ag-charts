@@ -45,7 +45,8 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean)
             return { startAngle, endAngle, innerRadius, outerRadius, clipSector, phase };
         },
         toFn(_sect, datum, status) {
-            let { startAngle, endAngle, innerRadius, outerRadius, clipStartAngle, clipEndAngle } = datum;
+            const { startAngle, endAngle, clipStartAngle, clipEndAngle } = datum;
+            let { innerRadius, outerRadius } = datum;
 
             if (status === 'removed') {
                 innerRadius = datum.innerRadius;
@@ -77,11 +78,11 @@ function getLabelText(
 export function formatRadialGaugeLabels(
     series: _ModuleSupport.Series<any, any>,
     selection: _Scene.Selection<_Scene.Text, RadialGaugeLabelDatum>,
-    label: RadialGaugeLabelProperties,
-    secondaryLabel: RadialGaugeSecondaryLabelProperties,
+    labelProps: RadialGaugeLabelProperties,
+    secondaryLabelProps: RadialGaugeSecondaryLabelProperties,
     padding: number,
     innerRadius: number,
-    datum?: { label: number; secondaryLabel: number }
+    datumOverrides?: { label: number; secondaryLabel: number }
 ) {
     let labelDatum: RadialGaugeLabelDatum | undefined;
     let secondaryLabelDatum: RadialGaugeLabelDatum | undefined;
@@ -93,12 +94,12 @@ export function formatRadialGaugeLabels(
         }
     });
 
-    const labelText = getLabelText(series, label, datum?.label ?? labelDatum?.value);
+    const labelText = getLabelText(series, labelProps, datumOverrides?.label ?? labelDatum?.value);
     if (labelText == null) return;
     const secondaryLabelText = getLabelText(
         series,
-        secondaryLabel,
-        datum?.secondaryLabel ?? secondaryLabelDatum?.value
+        secondaryLabelProps,
+        datumOverrides?.secondaryLabel ?? secondaryLabelDatum?.value
     );
 
     const params = { padding };
@@ -114,9 +115,9 @@ export function formatRadialGaugeLabels(
     if (secondaryLabelText != null) {
         const layout = formatStackedLabels(
             labelText,
-            label,
+            labelProps,
             secondaryLabelText,
-            secondaryLabel,
+            secondaryLabelProps,
             params,
             sizeFittingHeight
         );
@@ -125,7 +126,7 @@ export function formatRadialGaugeLabels(
         secondaryLabelLayout = layout?.secondaryLabel;
         height = layout?.height ?? 0;
     } else {
-        const layout = formatSingleLabel(labelText, label, params, sizeFittingHeight);
+        const layout = formatSingleLabel(labelText, labelProps, params, sizeFittingHeight);
 
         labelLayout = layout?.[0];
         secondaryLabelLayout = undefined;

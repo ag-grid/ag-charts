@@ -73,7 +73,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         () => this.nodeFactory()
     );
 
-    private animationState: _ModuleSupport.StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
+    private readonly animationState: _ModuleSupport.StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
 
     public contextNodeData?: RadialGaugeNodeDataContext;
 

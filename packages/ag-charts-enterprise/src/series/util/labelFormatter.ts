@@ -1,5 +1,4 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
-import type { WrapOptions } from 'ag-charts-community/dist/types/src/util/textWrapper';
 import type {
     AgChartAutoSizedBaseLabelOptions,
     AgChartAutoSizedLabelOptions,
@@ -374,7 +373,7 @@ function wrapLabel(
 
 function clipLines(
     lines: string[],
-    { font, lineHeight = TextUtils.defaultLineHeight, maxWidth, maxHeight = Infinity }: WrapOptions
+    { font, lineHeight = TextUtils.defaultLineHeight, maxWidth, maxHeight = Infinity }: _ModuleSupport.WrapOptions
 ) {
     let height = lineHeight * lines.length;
     while (height > maxHeight) {
