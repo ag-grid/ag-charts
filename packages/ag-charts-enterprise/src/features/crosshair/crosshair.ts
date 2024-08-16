@@ -76,7 +76,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             seriesRegion.addListener('drag', (event) => this.onMouseMove(event), mouseMoveStates),
             seriesRegion.addListener('leave', () => this.onMouseOut(), mouseMoveStates),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
-            ctx.layoutService.addListener('layout:complete', (event) => this.layout(event)),
+            ctx.layoutManager.addListener('layout:complete', (event) => this.layout(event)),
             () => Object.entries(this.labels).forEach(([_, label]) => label.destroy())
         );
     }
@@ -187,7 +187,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         return typeof val === 'number' ? val.toFixed(fractionDigits) : String(val);
     }
 
-    private onMouseMove(event: _ModuleSupport.PointerInteractionEvent<'hover' | 'drag'>) {
+    private onMouseMove(event: _ModuleSupport.RegionEvent<'hover' | 'drag'>) {
         if (!this.enabled || this.snap) {
             return;
         }
@@ -271,19 +271,16 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         });
     }
 
-    private getData(event: _ModuleSupport.PointerInteractionEvent<'hover' | 'drag'>): {
+    private getData(event: _ModuleSupport.RegionEvent<'hover' | 'drag'>): {
         [key: string]: { position: number; value: any };
     } {
-        const { seriesRect, axisCtx } = this;
+        const { axisCtx } = this;
         const key = 'pointer';
         const { datum, xKey = '', yKey = '' } = this.activeHighlight ?? {};
-        const { offsetX, offsetY } = event;
-
-        const x = offsetX - seriesRect.x;
-        const y = offsetY - seriesRect.y;
+        const { regionOffsetX, regionOffsetY } = event;
 
         const isVertical = this.isVertical();
-        const position = isVertical ? x : y;
+        const position = isVertical ? regionOffsetX : regionOffsetY;
         return {
             [key]: {
                 position,

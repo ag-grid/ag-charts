@@ -631,7 +631,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             const titleBox = title.node.getBBox();
             title.node.visible =
                 title.enabled && isFinite(dy) && !this.bboxIntersectsSurroundingSeries(titleBox, 0, dy);
-            title.node.x = isFinite(dy) ? dy : 0;
+            title.node.y = isFinite(dy) ? dy : 0;
         }
 
         this.zerosumOuterRing.fillOpacity = 0;

@@ -8,6 +8,7 @@ import type { AxisOptionModule, ChartOptions } from '../module/optionsModule';
 import type { SeriesOptionModule } from '../module/optionsModuleTypes';
 import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
+import type { Node } from '../scene/node';
 import type { Scene } from '../scene/scene';
 import type { PlacedLabel, PointLabelDatum } from '../scene/util/labelPlacement';
 import { isPointLabelDatum, placeLabels } from '../scene/util/labelPlacement';
@@ -41,7 +42,7 @@ import { axisRegistry } from './factory/axisRegistry';
 import { EXPECTED_ENTERPRISE_MODULES } from './factory/expectedEnterpriseModules';
 import { legendRegistry } from './factory/legendRegistry';
 import { seriesRegistry } from './factory/seriesRegistry';
-import { REGIONS, type RegionBBoxProvider } from './interaction/regions';
+import { REGIONS } from './interaction/regions';
 import { SyncManager } from './interaction/syncManager';
 import { ZoomManager } from './interaction/zoomManager';
 import { Keyboard } from './keyboard';
@@ -291,13 +292,13 @@ export abstract class Chart extends Observable {
             getLoadingSpinner(this.overlays.loading.getText(ctx.localeManager), ctx.animationManager.defaultDuration);
 
         this.processors = [
-            new BaseLayoutProcessor(this, ctx.layoutService),
+            new BaseLayoutProcessor(this, ctx.layoutManager),
             new DataWindowProcessor(this, ctx.dataService, ctx.updateService, ctx.zoomManager),
             new OverlaysProcessor(
                 this,
                 this.overlays,
                 ctx.dataService,
-                ctx.layoutService,
+                ctx.layoutManager,
                 ctx.localeManager,
                 ctx.animationManager,
                 ctx.domManager
@@ -774,15 +775,6 @@ export abstract class Chart extends Observable {
         series.addEventListener('groupingChanged', this.seriesGroupingChanged);
     }
 
-    updateAllSeriesListeners(): void {
-        this.series.forEach((series) => {
-            series.removeEventListener('nodeClick', this.onSeriesNodeClick);
-            series.removeEventListener('nodeDoubleClick', this.onSeriesNodeDoubleClick);
-
-            this.addSeriesListeners(series);
-        });
-    }
-
     protected assignSeriesToAxes() {
         for (const axis of this.axes) {
             axis.boundSeries = this.series.filter((s) => s.axes[axis.direction] === axis);
@@ -967,11 +959,8 @@ export abstract class Chart extends Observable {
     private async processLayout() {
         const oldRect = this.animationRect;
         const { width, height } = this.ctx.scene;
-        const ctx = this.ctx.layoutService.createContext(width, height);
+        const ctx = this.ctx.layoutManager.createContext(width, height);
 
-        for (const m of this.modulesManager.modules()) {
-            await m.performLayout?.(ctx);
-        }
         await this.performLayout(ctx);
 
         if (oldRect && !this.animationRect?.equals(oldRect)) {
@@ -1143,9 +1132,6 @@ export abstract class Chart extends Observable {
         }
         if (deltaOptions.legend?.listeners && this.modulesManager.isEnabled('legend')) {
             Object.assign((this as any).legend.listeners, deltaOptions.legend.listeners);
-        }
-        if (deltaOptions.listeners) {
-            this.updateAllSeriesListeners();
         }
         if (deltaOptions.locale?.localeText) {
             this.modulesManager.getModule<any>('locale').localeText = deltaOptions.locale?.localeText;
@@ -1419,12 +1405,12 @@ export abstract class Chart extends Observable {
         debug(`Chart.applyAxes() - creating new axes instances; seriesStatus: ${seriesStatus}`);
         chart.axes = this.createAxis(axes, skip);
 
-        const axisGroups: { [Key in ChartAxisDirection]: RegionBBoxProvider[] } = {
+        const axisGroups: { [Key in ChartAxisDirection]: { id: string; node: Node }[] } = {
             [ChartAxisDirection.X]: [],
             [ChartAxisDirection.Y]: [],
         };
 
-        chart.axes.forEach((axis) => axisGroups[axis.direction].push(axis.getRegionBBoxProvider()));
+        chart.axes.forEach((axis) => axisGroups[axis.direction].push({ id: axis.id, node: axis.getRegionNode() }));
 
         if (registerRegions) {
             this.ctx.regionManager.updateRegion(REGIONS.HORIZONTAL_AXES, ...axisGroups[ChartAxisDirection.X]);

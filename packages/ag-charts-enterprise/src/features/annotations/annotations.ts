@@ -6,9 +6,9 @@ import {
     _Util,
 } from 'ag-charts-community';
 
+import { Menu, type MenuItem } from '../../components/menu/menu';
 import { buildBounds } from '../../utils/position';
 import { ColorPicker } from '../color-picker/colorPicker';
-import { type MenuItem, Popover } from '../popover/popover';
 import { TextInput } from '../text-input/textInput';
 import {
     type AnnotationContext,
@@ -45,6 +45,7 @@ const {
     ChartUpdateType,
     Cursor,
     InteractionState,
+    ObserveChanges,
     PropertiesArray,
     ToolbarManager,
     Validate,
@@ -134,26 +135,19 @@ class AxesButtons {
 }
 
 export class Annotations extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
-    // TODO: When the 'restore-annotations' event is triggered from `ActionsOnSet.newValue()`, the module is still
-    // disabled when `onRestoreAnnotations()` is called, preventing the state from being restored. However,
-    // when `ObserveChanges()` is first called `target.enabled === false`, rather than `undefined`. So
-    // there is no way to detect if the module was actively disabled. This flag simulates a combined
-    // behaviour of both and is toggled when the module is actively disabled and enabled.
-    private __hackWasDisabled = false;
-
-    @_ModuleSupport.ObserveChanges<Annotations, boolean>((target, enabled) => {
+    @ObserveChanges<Annotations>((target, newValue?: boolean, oldValue?: boolean) => {
         const {
             ctx: { annotationManager, stateManager, toolbarManager },
         } = target;
 
-        toolbarManager.toggleGroup('annotations', 'annotations', { visible: Boolean(enabled) });
+        if (newValue === oldValue) return;
+
+        toolbarManager.toggleGroup('annotations', 'annotations', { visible: Boolean(newValue) });
 
         // Restore the annotations only if this module was previously disabled
-        if (target.__hackWasDisabled && enabled) {
+        if (oldValue === false && newValue === true) {
             stateManager.restoreState(annotationManager);
-            target.__hackWasDisabled = false;
-        } else if (enabled === false) {
-            target.__hackWasDisabled = true;
+        } else if (newValue === false) {
             target.clear();
         }
     })
@@ -165,18 +159,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     // State
     private readonly state: AnnotationsStateMachine;
     private readonly annotationData: AnnotationPropertiesArray = new PropertiesArray(this.createAnnotationDatum);
-
-    // Elements
-    private seriesRect?: _Scene.BBox;
-    private readonly container = new _Scene.Group({ name: 'static-annotations' });
-    private readonly annotations = new _Scene.Selection<AnnotationScene, AnnotationProperties>(
-        this.container,
-        this.createAnnotationScene.bind(this)
-    );
-
-    private readonly colorPicker = new ColorPicker(this.ctx);
-    private readonly textSizePopover = new Popover(this.ctx, 'annotations');
-    private readonly annotationPickerPopover = new Popover(this.ctx, 'text');
     private readonly defaultColors: Map<
         AnnotationType | TextualAnnotationType,
         Map<AnnotationOptionsColorPickerType, [string, string, number] | undefined>
@@ -197,6 +179,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         [TextualAnnotationType.Text, undefined],
     ]);
 
+    // Elements
+    private seriesRect?: _Scene.BBox;
+    private readonly container = new _Scene.Group({ name: 'static-annotations' });
+    private readonly annotations = new _Scene.Selection<AnnotationScene, AnnotationProperties>(
+        this.container,
+        this.createAnnotationScene.bind(this)
+    );
+    private readonly colorPicker = new ColorPicker(this.ctx);
+    private readonly textSizeMenu = new Menu(this.ctx, 'text-size');
+    private readonly annotationMenu = new Menu(this.ctx, 'annotations');
     private readonly textInput = new TextInput(this.ctx);
 
     private xAxis?: AnnotationAxis;
@@ -439,7 +431,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             ctx.toolbarManager.addListener('button-pressed', this.onToolbarButtonPress.bind(this)),
             ctx.toolbarManager.addListener('button-moved', this.onToolbarButtonMoved.bind(this)),
             ctx.toolbarManager.addListener('cancelled', this.onToolbarCancelled.bind(this)),
-            ctx.layoutService.addListener('layout:complete', this.onLayoutComplete.bind(this)),
+            ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
             ctx.updateService.addListener('pre-scene-render', this.onPreRender.bind(this)),
 
             // DOM
@@ -536,14 +528,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
             case AnnotationOptions.TextSize: {
                 const fontSize = datum != null && 'fontSize' in datum ? datum.fontSize : undefined;
-                this.textSizePopover.show<number>({
+                this.textSizeMenu.show<number>({
                     items: TEXT_SIZE_ITEMS,
                     ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsTextSize'),
                     value: fontSize,
                     sourceEvent: event.sourceEvent,
                     onPress: (item) => this.onTextSizePopoverPress(item, datum),
                     onClose: this.onTextSizePopoverClose.bind(this),
-                    class: 'annotations__text-size',
+                    class: 'ag-charts-annotations-text-size-menu',
                 });
                 break;
             }
@@ -574,8 +566,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.cancel();
         this.reset();
 
-        this.annotationPickerPopover.setAnchor({ x: x + width + 6, y });
-        this.annotationPickerPopover.show<AnnotationType>({
+        this.annotationMenu.setAnchor({ x: x + width + 6, y });
+        this.annotationMenu.show<AnnotationType>({
             items,
             ariaLabel: this.ctx.localeManager.t(ariaLabel),
             sourceEvent: event.sourceEvent,
@@ -612,7 +604,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             }
             case AnnotationOptions.TextSize: {
                 const anchor = { x: rect.x, y: rect.y + rect.height - 1 };
-                this.textSizePopover.setAnchor(anchor);
+                this.textSizeMenu.setAnchor(anchor);
                 break;
             }
             default:
@@ -690,7 +682,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onTextSizePopoverClose() {
-        this.textSizePopover.hide();
+        this.textSizeMenu.hide();
     }
 
     private onAnnotationsPopoverPress(
@@ -720,7 +712,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onAnnotationsPopoverClose() {
-        this.annotationPickerPopover.hide();
+        this.annotationMenu.hide();
     }
 
     private handleAmbientKeyboardEvent(e: _ModuleSupport.KeyInteractionEvent<'keydown'>) {
@@ -859,25 +851,25 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         };
     }
 
-    private onHover(event: _ModuleSupport.PointerInteractionEvent<'hover'>) {
-        const { seriesRect, state } = this;
+    private onHover(event: _ModuleSupport.RegionEvent<'hover'>) {
+        const { state } = this;
 
         const context = this.getAnnotationContext();
         if (!context) return;
 
-        const offset = Vec2.fromOffset(event);
-        const point = invertCoords(Vec2.sub(offset, Vec2.required(seriesRect)), context);
+        const offset = { x: event.regionOffsetX, y: event.regionOffsetY };
+        const point = invertCoords(offset, context);
 
         state.transition('hover', { offset, point });
     }
 
-    private onClick(event: _ModuleSupport.PointerInteractionEvent<'click'>) {
-        const { seriesRect, state } = this;
+    private onClick(event: _ModuleSupport.RegionEvent<'click'>) {
+        const { state } = this;
 
         const context = this.getAnnotationContext();
         if (!context) return;
 
-        const offset = Vec2.sub(Vec2.fromOffset(event), Vec2.required(seriesRect));
+        const offset = { x: event.regionOffsetX, y: event.regionOffsetY };
         const point = invertCoords(offset, context);
         const textInputValue = this.textInput.getValue();
 
@@ -918,28 +910,28 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.update();
     }
 
-    private onDragStart(event: _ModuleSupport.PointerInteractionEvent<'drag-start'>) {
-        const { seriesRect, state } = this;
+    private onDragStart(event: _ModuleSupport.RegionEvent<'drag-start'>) {
+        const { state } = this;
 
         const context = this.getAnnotationContext();
         if (!context) return;
 
-        const offset = Vec2.sub(Vec2.fromOffset(event), Vec2.required(seriesRect));
+        const offset = { x: event.regionOffsetX, y: event.regionOffsetY };
         state.transition('dragStart', { context, offset });
     }
 
-    private onDrag(event: _ModuleSupport.PointerInteractionEvent<'drag'>) {
-        const { seriesRect, state } = this;
+    private onDrag(event: _ModuleSupport.RegionEvent<'drag'>) {
+        const { state } = this;
 
         const context = this.getAnnotationContext();
         if (!context) return;
 
-        const offset = Vec2.sub(Vec2.fromOffset(event), Vec2.required(seriesRect));
+        const offset = { x: event.regionOffsetX, y: event.regionOffsetY };
         const point = invertCoords(offset, context);
         state.transition('drag', { context, offset, point });
     }
 
-    private onDragEnd(_event: _ModuleSupport.PointerInteractionEvent<'drag-end'>) {
+    private onDragEnd(_event: _ModuleSupport.RegionEvent<'drag-end'>) {
         this.state.transition('dragEnd');
     }
 
@@ -1039,8 +1031,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private hideOverlays() {
         this.colorPicker.hide();
-        this.textSizePopover.hide();
-        this.annotationPickerPopover.hide();
+        this.textSizeMenu.hide();
+        this.annotationMenu.hide();
     }
 
     private resetToolbarButtonStates() {

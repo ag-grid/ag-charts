@@ -1,13 +1,17 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
+import { AnchoredPopover, type AnchoredPopoverOptions } from '../../components/popover/anchoredPopover';
 import colorPickerTemplate from './colorPickerTemplate.html';
 
-const { clamp, createElement } = _ModuleSupport;
+const { createElement } = _ModuleSupport;
 
 const { Color } = _Util;
 
-const moduleId = 'color-picker';
-const canvasOverlay = 'canvas-overlay';
+export interface ColorPickerOptions extends AnchoredPopoverOptions {
+    color?: string;
+    opacity?: number;
+    onChange?: (colorOpacity: string, color: string, opacity: number) => void;
+}
 
 const getHsva = (input: string) => {
     try {
@@ -19,46 +23,30 @@ const getHsva = (input: string) => {
     }
 };
 
-export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
-    private readonly element: HTMLElement;
-    private anchor?: { x: number; y: number };
-    private fallbackAnchor?: { x?: number; y?: number };
-
-    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
-        super();
-
-        this.element = ctx.domManager.addChild(canvasOverlay, moduleId);
-        this.element.role = 'presentation';
-
-        this.destroyFns.push(() => ctx.domManager.removeChild(canvasOverlay, moduleId));
+export class ColorPicker extends AnchoredPopover<ColorPickerOptions> {
+    constructor(ctx: _ModuleSupport.ModuleContext) {
+        super(ctx, 'color-picker');
     }
 
-    show(opts: {
-        color?: string;
-        opacity?: number;
-        onChange?: (colorOpacity: string, color: string, opacity: number) => void;
-        onClose: () => void;
-    }) {
+    public override show(opts: ColorPickerOptions) {
+        const element = this.createColorPicker(opts);
+        this.setContent(element);
+        super.show({ ...opts, class: 'ag-charts-color-picker', role: 'dialog' });
+    }
+
+    private createColorPicker(opts: ColorPickerOptions) {
         let [h, s, v, a] = getHsva(opts.color ?? '#f00') ?? [0, 1, 0.5, 1];
         a = opts.opacity ?? a;
 
-        const colorPickerContainer = createElement('div');
-        colorPickerContainer.role = 'presentation';
-        colorPickerContainer.innerHTML = colorPickerTemplate;
-        this.element.replaceChildren(colorPickerContainer);
-
-        const colorPicker = colorPickerContainer.firstElementChild! as HTMLDivElement;
+        const colorPicker = createElement('div');
+        colorPicker.innerHTML = colorPickerTemplate;
         colorPicker.ariaLabel = this.ctx.localeManager.t('ariaLabelColorPicker');
+        colorPicker.className = 'ag-charts-color-picker__content';
 
         const paletteInput = colorPicker.querySelector<HTMLDivElement>('.ag-charts-color-picker__palette')!;
         const hueInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__hue-input')!;
         const alphaInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__alpha-input')!;
         const colorInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__color-input')!;
-
-        // If an anchor has already been provided, apply it to prevent a flash of the picker in the wrong location
-        if (this.anchor) {
-            this.setAnchor(this.anchor, this.fallbackAnchor);
-        }
 
         const update = () => {
             const color = Color.fromHSB(h, s, v, a);
@@ -158,53 +146,7 @@ export class ColorPicker extends _ModuleSupport.BaseModuleInstance implements _M
                 update();
             }
         });
-    }
 
-    setAnchor(anchor: { x: number; y: number }, fallbackAnchor?: { x?: number; y?: number }) {
-        this.anchor = anchor;
-        this.fallbackAnchor = fallbackAnchor;
-
-        const colorPicker = this.element.firstElementChild?.firstElementChild as HTMLElement | undefined;
-        if (!colorPicker) return;
-
-        this.updatePosition(colorPicker, anchor.x, anchor.y);
-        this.repositionWithinBounds(colorPicker, anchor, fallbackAnchor);
-    }
-
-    hide() {
-        this.element.replaceChildren();
-    }
-
-    isChildElement(element: HTMLElement) {
-        return this.ctx.domManager.isManagedChildDOMElement(element, canvasOverlay, moduleId);
-    }
-
-    private updatePosition(colorPicker: HTMLElement, x: number, y: number) {
-        colorPicker.style.setProperty('top', 'unset');
-        colorPicker.style.setProperty('bottom', 'unset');
-        colorPicker.style.setProperty('left', `${x}px`);
-        colorPicker.style.setProperty('top', `${y}px`);
-    }
-
-    private repositionWithinBounds(
-        colorPicker: HTMLElement,
-        anchor: { x: number; y: number },
-        fallbackAnchor?: { x?: number; y?: number }
-    ) {
-        const canvasRect = this.ctx.domManager.getBoundingClientRect();
-        const { offsetWidth: width, offsetHeight: height } = colorPicker;
-
-        let x = clamp(0, anchor.x, canvasRect.width - width);
-        let y = clamp(0, anchor.y, canvasRect.height - height);
-
-        if (x !== anchor.x && fallbackAnchor?.x != null) {
-            x = clamp(0, fallbackAnchor.x - width, canvasRect.width - width);
-        }
-
-        if (y !== anchor.y && fallbackAnchor?.y != null) {
-            y = clamp(0, fallbackAnchor.y - height, canvasRect.height - height);
-        }
-
-        this.updatePosition(colorPicker, x, y);
+        return colorPicker;
     }
 }

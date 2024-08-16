@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, xit } from '@jest/globals';
 
-import { type AgChartInstance, AgCharts } from 'ag-charts-community';
+import { type AgChartInstance, AgCharts, _Scene } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     deproxy,
@@ -49,7 +49,7 @@ describe('BulletSeries', () => {
         const hoverOnBullet = async () => {
             const series = deproxy(chart!)['series'][0] as any;
             const item = series['contextNodeData'].nodeData[0];
-            const { x, y } = series.rootGroup.inverseTransformPoint(item.midPoint.x, item.midPoint.y);
+            const { x, y } = _Scene.Transformable.toCanvasPoint(series.rootGroup, item.midPoint.x, item.midPoint.y);
             await hoverAction(x, y)(chart!);
         };
 

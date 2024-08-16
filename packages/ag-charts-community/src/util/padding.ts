@@ -21,8 +21,4 @@ export class Padding extends BaseProperties {
         this.bottom = bottom;
         this.left = left;
     }
-
-    clear() {
-        this.top = this.right = this.bottom = this.left = 0;
-    }
 }

@@ -7,7 +7,7 @@ import type {
     AgPolarChartOptions,
     InteractionRange,
 } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-community';
+import { AgCharts, _Scene } from 'ag-charts-community';
 import {
     Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -221,7 +221,11 @@ describe('MapShapeSeries', () => {
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
-                    const { x, y } = series.contentGroup.inverseTransformPoint(itemPoint[0], itemPoint[1]);
+                    const { x, y } = _Scene.Transformable.toCanvasPoint(
+                        series.contentGroup,
+                        itemPoint[0],
+                        itemPoint[1]
+                    );
                     await hoverAction(x, y)(chartInstance);
                     await waitForChartStability(chartInstance);
                     await iterator({ series, item, x, y });

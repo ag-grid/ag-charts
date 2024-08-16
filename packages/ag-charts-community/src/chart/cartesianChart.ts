@@ -55,7 +55,7 @@ export class CartesianChart extends Chart {
 
     private lastUpdateClipRect: BBox | undefined = undefined;
 
-    async performLayout(ctx: LayoutContext) {
+    performLayout(ctx: LayoutContext) {
         const { firstSeriesTranslation, seriesRoot, annotationRoot, highlightRoot } = this;
         const { animationRect, seriesRect, visibility, clipSeries } = this.updateAxes(ctx.layoutBox);
 
@@ -106,7 +106,7 @@ export class CartesianChart extends Chart {
             this.setRootClipRects(clipRect);
         }
 
-        this.ctx.layoutService.emitLayoutComplete(ctx, {
+        this.ctx.layoutManager.emitLayoutComplete(ctx, {
             axes: this.axes.map((axis) => axis.getLayoutState()),
             series: {
                 rect: seriesRect,

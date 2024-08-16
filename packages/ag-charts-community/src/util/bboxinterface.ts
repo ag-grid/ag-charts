@@ -11,7 +11,7 @@ export interface BBoxContainsTester {
 
 export interface BBoxProvider<T = BBoxValues> {
     id: string;
-    computeTransformedRegionBBox?(): T;
-    computeTransformedBBox(): T;
+    toCanvasBBox(): T;
+    fromCanvasPoint(x: number, y: number): { x: number; y: number };
     visible?: boolean;
 }

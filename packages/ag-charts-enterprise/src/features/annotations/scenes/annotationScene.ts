@@ -33,8 +33,10 @@ export abstract class AnnotationScene extends _Scene.Group {
     }
 
     protected computeBBoxWithoutHandles() {
-        this.computeTransformMatrix();
-        return _Scene.Group.computeBBox(this.children.filter((node) => !(node instanceof Handle)));
+        return _Scene.Transformable.toCanvas(
+            this,
+            _Scene.Group.computeChildrenBBox(this.children.filter((node) => !(node instanceof Handle)))
+        );
     }
 
     override render(renderCtx: _Scene.RenderContext) {

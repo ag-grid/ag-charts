@@ -568,8 +568,8 @@ export class MapMarkerSeries
             marker.stroke = highlightStyle?.stroke ?? format?.stroke ?? stroke;
             marker.strokeWidth = highlightStyle?.strokeWidth ?? format?.strokeWidth ?? strokeWidth;
             marker.strokeOpacity = highlightStyle?.strokeOpacity ?? format?.strokeOpacity ?? strokeOpacity;
-            marker.x = point.x;
-            marker.y = point.y;
+            marker.translationX = point.x;
+            marker.translationY = point.y;
             marker.zIndex = !isHighlight && highlightedDatum != null && datum === highlightedDatum.datum ? 1 : 0;
         });
     }
@@ -638,7 +638,7 @@ export class MapMarkerSeries
     }
 
     override pickNodeClosestDatum(p: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
-        const { x: x0, y: y0 } = this.rootGroup.transformPoint(p.x, p.y);
+        const { x: x0, y: y0 } = p;
 
         let minDistanceSquared = Infinity;
         let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;

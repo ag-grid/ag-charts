@@ -38,7 +38,7 @@ export class GaugeChart extends Chart {
             );
         }
 
-        this.ctx.layoutService.emitLayoutComplete(ctx, {
+        this.ctx.layoutManager.emitLayoutComplete(ctx, {
             series: { visible: seriesVisible, rect: fullSeriesRect, paddedRect: layoutBox },
         });
     }

@@ -40,8 +40,6 @@ export class Image extends Node {
         const image = this.sourceImage;
         if (!image) return;
 
-        this.transformRenderContext(renderCtx);
-
         ctx.globalAlpha = this.opacity;
         ctx.drawImage(image, 0, 0, image.width, image.height, this.x, this.y, this.width, this.height);
 

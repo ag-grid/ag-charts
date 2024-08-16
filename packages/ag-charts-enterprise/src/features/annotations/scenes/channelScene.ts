@@ -18,7 +18,6 @@ export abstract class ChannelScene<
     },
 > extends LinearScene<Datum> {
     protected handles: { [key: string]: Handle } = {};
-    protected seriesRect?: _Scene.BBox;
 
     protected topLine = new CollidableLine();
     protected bottomLine = new CollidableLine();
@@ -26,8 +25,6 @@ export abstract class ChannelScene<
 
     public update(datum: Datum, context: AnnotationContext) {
         const { locked, visible } = datum;
-
-        this.seriesRect = context.seriesRect;
 
         const top = convertLine(datum, context);
         const bottom = convertLine(datum.bottom, context);
@@ -73,7 +70,7 @@ export abstract class ChannelScene<
     }
 
     override containsPoint(x: number, y: number) {
-        const { handles, seriesRect, topLine, bottomLine } = this;
+        const { handles, topLine, bottomLine } = this;
 
         this.activeHandle = undefined;
 
@@ -83,9 +80,6 @@ export abstract class ChannelScene<
                 return true;
             }
         }
-
-        x -= seriesRect?.x ?? 0;
-        y -= seriesRect?.y ?? 0;
 
         return topLine.containsPoint(x, y) || bottomLine.containsPoint(x, y);
     }

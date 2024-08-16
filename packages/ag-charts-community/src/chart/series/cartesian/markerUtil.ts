@@ -6,6 +6,7 @@ import type { Group } from '../../../scene/group';
 import type { Node } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
+import { Transformable } from '../../../scene/transformable';
 import { clamp } from '../../../util/number';
 import type { AnimationManager } from '../../interaction/animationManager';
 import type { Marker } from '../../marker/marker';
@@ -171,6 +172,7 @@ export function computeMarkerFocusBounds<TDatum extends { point: Point }>(
 
     const size = series.getFormattedMarkerStyle(datum).size;
     const radius = size / 2;
-    const { x, y } = series.contentGroup.inverseTransformPoint(datum.point.x - radius, datum.point.y - radius);
-    return new BBox(x, y, size, size);
+    const x = datum.point.x - radius;
+    const y = datum.point.y - radius;
+    return Transformable.toCanvas(series.contentGroup, new BBox(x, y, size, size));
 }

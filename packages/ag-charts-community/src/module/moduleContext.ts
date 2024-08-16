@@ -20,7 +20,7 @@ import type { SyncManager } from '../chart/interaction/syncManager';
 import type { ToolbarManager } from '../chart/interaction/toolbarManager';
 import type { TooltipManager } from '../chart/interaction/tooltipManager';
 import type { ZoomManager } from '../chart/interaction/zoomManager';
-import type { LayoutService } from '../chart/layout/layoutService';
+import type { LayoutManager } from '../chart/layout/layoutManager';
 import type { LocaleManager } from '../chart/locale/localeManager';
 import type { SeriesStateManager } from '../chart/series/seriesStateManager';
 import type { UpdateService } from '../chart/updateService';
@@ -35,7 +35,7 @@ export interface ModuleContext {
 
     readonly chartService: ChartService;
     readonly dataService: DataService<any>;
-    readonly layoutService: LayoutService;
+    readonly layoutManager: LayoutManager;
     readonly updateService: UpdateService;
 
     readonly axisManager: AxisManager;

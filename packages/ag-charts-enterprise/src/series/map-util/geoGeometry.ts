@@ -50,7 +50,6 @@ export class GeoGeometry extends Path {
         const { projectedGeometry } = this;
         if (projectedGeometry == null) return false;
 
-        ({ x, y } = this.transformPoint(x, y));
         if (!this.getBBox().containsPoint(x, y)) return false;
 
         return this.geometryDistance(projectedGeometry, x, y) <= 0;
@@ -58,7 +57,6 @@ export class GeoGeometry extends Path {
 
     distanceToPoint(x: number, y: number) {
         const { projectedGeometry } = this;
-        ({ x, y } = this.transformPoint(x, y));
         return projectedGeometry != null ? this.geometryDistance(projectedGeometry, x, y) : Infinity;
     }
 

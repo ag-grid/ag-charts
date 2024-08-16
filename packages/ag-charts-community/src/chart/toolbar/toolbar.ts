@@ -19,7 +19,7 @@ import type {
     ToolbarGroupUpdatedEvent,
     ToolbarProxyGroupOptionsEvent,
 } from '../interaction/toolbarManager';
-import type { LayoutCompleteEvent } from '../layout/layoutService';
+import { type LayoutCompleteEvent, LayoutElement } from '../layout/layoutManager';
 import { type ButtonConfiguration, ToolbarGroupProperties } from './toolbarProperties';
 import * as styles from './toolbarStyles';
 import {
@@ -141,7 +141,8 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             ctx.toolbarManager.addListener('group-updated', this.onGroupUpdated.bind(this)),
             ctx.toolbarManager.addListener('floating-anchor-changed', this.onFloatingAnchorChanged.bind(this)),
             ctx.toolbarManager.addListener('proxy-group-options', this.onProxyGroupOptions.bind(this)),
-            ctx.layoutService.addListener('layout:complete', this.onLayoutComplete.bind(this)),
+            ctx.layoutManager.registerElement(LayoutElement.Toolbar, this.onLayoutStart.bind(this)),
+            ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
             ctx.localeManager.addListener('locale-changed', () => {
                 this.hasNewLocale = true;
             }),
@@ -521,7 +522,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.pendingButtonToggledEvents = [];
     }
 
-    performLayout(ctx: LayoutContext) {
+    private onLayoutStart(ctx: LayoutContext) {
         if (this.enabled) {
             this.refreshOuterLayout(ctx.layoutBox);
             this.refreshLocale();

@@ -5,10 +5,11 @@ import { BaseManager } from '../baseManager';
 import type { ChartContext } from '../chartContext';
 import { ChartUpdateType } from '../chartUpdateType';
 import { InteractionState } from '../interaction/interactionManager';
+import type { RegionEvent } from '../interaction/regionManager';
 import { REGIONS } from '../interaction/regions';
 import { TooltipManager } from '../interaction/tooltipManager';
-import type { LayoutCompleteEvent } from '../layout/layoutService';
-import { DEFAULT_TOOLTIP_CLASS, Tooltip, type TooltipPointerEvent } from '../tooltip/tooltip';
+import type { LayoutCompleteEvent } from '../layout/layoutManager';
+import { DEFAULT_TOOLTIP_CLASS, Tooltip } from '../tooltip/tooltip';
 import { type Series } from './series';
 import { pickNode } from './util';
 
@@ -16,7 +17,7 @@ import { pickNode } from './util';
 export class SeriesAreaTooltipManager extends BaseManager {
     private series: Series<any, any>[] = [];
     private hoverRect?: BBox;
-    private lastHover?: TooltipPointerEvent<'hover'>;
+    private lastHover?: RegionEvent<'hover'>;
 
     public constructor(
         private readonly id: string,
@@ -34,7 +35,7 @@ export class SeriesAreaTooltipManager extends BaseManager {
         const verticalAxesRegion = this.ctx.regionManager.getRegion(REGIONS.VERTICAL_AXES);
 
         this.destroyFns.push(
-            this.ctx.layoutService.addListener('layout:complete', (event) => this.layoutComplete(event)),
+            this.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
             seriesRegion.addListener(
                 'hover',
                 (event) => this.onHover(event),
@@ -74,7 +75,7 @@ export class SeriesAreaTooltipManager extends BaseManager {
         this.hoverRect = event.series.paddedRect;
     }
 
-    private onHover(event: TooltipPointerEvent<'hover'>): void {
+    private onHover(event: RegionEvent<'hover'>): void {
         this.lastHover = event;
         this.hoverScheduler.schedule();
     }
@@ -97,11 +98,11 @@ export class SeriesAreaTooltipManager extends BaseManager {
         this.handleHover(this.lastHover, false);
     });
 
-    private handleHover(event: TooltipPointerEvent<'hover'>, redisplay: boolean) {
+    private handleHover(event: RegionEvent<'hover'>, redisplay: boolean) {
         const state = this.ctx.interactionManager.getState();
         if (state !== InteractionState.Default && state !== InteractionState.Annotations) return;
 
-        const { offsetX, offsetY, targetElement } = event;
+        const { offsetX, offsetY, targetElement, regionOffsetX, regionOffsetY } = event;
         if (redisplay ? this.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(offsetX, offsetY)) {
             this.clearTooltip();
             return;
@@ -116,7 +117,7 @@ export class SeriesAreaTooltipManager extends BaseManager {
             return;
         }
 
-        const pick = pickNode(this.series, { x: offsetX, y: offsetY }, 'tooltip');
+        const pick = pickNode(this.series, { x: regionOffsetX, y: regionOffsetY }, 'tooltip');
         if (!pick) {
             this.clearTooltip();
             return;

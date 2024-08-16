@@ -1,5 +1,5 @@
 import { Debug } from '../../util/debug';
-import { iterate } from '../../util/function';
+import { iterate } from '../../util/iterator';
 import { Logger } from '../../util/logger';
 import { isNegative } from '../../util/number';
 import { isFiniteNumber, isObject } from '../../util/type-guards';

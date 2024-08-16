@@ -1,6 +1,6 @@
 import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import { type MenuItem, Popover } from '../popover/popover';
+import { Menu, type MenuItem } from '../../components/menu/menu';
 
 const { ActionOnSet, Validate, BOOLEAN } = _ModuleSupport;
 
@@ -26,13 +26,13 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
     })
     enabled: boolean = false;
 
-    private readonly popover = new Popover(this.ctx, 'chart-toolbar');
+    private readonly menu = new Menu(this.ctx, 'chart-toolbar');
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
         this.destroyFns.push(
-            ctx.layoutService.addListener('layout:complete', this.onLayoutComplete.bind(this)),
+            ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
             ctx.toolbarManager.addListener('button-moved', this.onToolbarButtonMoved.bind(this)),
             ctx.toolbarManager.addListener('button-pressed', this.onToolbarButtonPressed.bind(this))
         );
@@ -53,7 +53,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
     }
 
     private setAnchor(anchor: _Scene.BBox) {
-        this.popover.setAnchor({ x: anchor.x + anchor.width + 6, y: anchor.y });
+        this.menu.setAnchor({ x: anchor.x + anchor.width + 6, y: anchor.y });
     }
 
     private onToolbarButtonMoved(e: _ModuleSupport.ToolbarButtonMovedEvent<any>) {
@@ -66,7 +66,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
 
         this.setAnchor(e.rect);
 
-        this.popover.show({
+        this.menu.show({
             items: menuItems,
             ariaLabel: this.ctx.localeManager.t('toolbarSeriesTypeDropdown'),
             value: this.getChartType(),
@@ -80,7 +80,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
 
     private hidePopover() {
         this.ctx.toolbarManager.toggleButton(BUTTON_GROUP, BUTTON_VALUE, { active: false });
-        this.popover.hide();
+        this.menu.hide();
     }
 
     private setChartType(chartType: AgPriceVolumeChartType) {

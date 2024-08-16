@@ -1,13 +1,14 @@
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types';
 
 import type { BBox } from '../../scene/bbox';
+import { Transformable } from '../../scene/transformable';
 import type { TypedEvent } from '../../util/observable';
 import { BaseManager } from '../baseManager';
 import type { ChartContext } from '../chartContext';
 import { ChartUpdateType } from '../chartUpdateType';
-import { type PointerInteractionEvent, type PointerOffsets } from '../interaction/interactionManager';
+import type { RegionEvent } from '../interaction/regionManager';
 import { REGIONS } from '../interaction/regions';
-import type { LayoutCompleteEvent } from '../layout/layoutService';
+import type { LayoutCompleteEvent } from '../layout/layoutManager';
 import type { UpdateOpts } from '../updateService';
 import { type Series } from './series';
 import { pickNode } from './util';
@@ -15,7 +16,6 @@ import { pickNode } from './util';
 /** Manager that handles all top-down series-area node-click related concerns and state. */
 export class SeriesAreaClickManager extends BaseManager {
     private series: Series<any, any>[] = [];
-    private lastHover?: PointerOffsets;
     private seriesRect?: BBox;
 
     public constructor(
@@ -34,7 +34,7 @@ export class SeriesAreaClickManager extends BaseManager {
         this.destroyFns.push(
             this.ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
             this.ctx.regionManager.listenAll('dblclick', (event) => this.onClick(event)),
-            this.ctx.layoutService.addListener('layout:complete', (event) => this.layoutComplete(event)),
+            this.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
             seriesRegion.addListener('hover', (event) => this.onHover(event)),
             seriesRegion.addListener('leave', () => this.onLeave()),
             horizontalAxesRegion.addListener('leave', () => this.onLeave()),
@@ -46,15 +46,9 @@ export class SeriesAreaClickManager extends BaseManager {
         this.series = series;
     }
 
-    public dataChanged() {
-        this.lastHover = undefined;
-    }
+    public dataChanged() {}
 
-    public preSceneRender() {
-        if (this.lastHover) {
-            this.onHover(this.lastHover);
-        }
-    }
+    public preSceneRender() {}
 
     private update(type?: ChartUpdateType, opts?: UpdateOpts) {
         this.ctx.updateService.update(type, opts);
@@ -65,12 +59,11 @@ export class SeriesAreaClickManager extends BaseManager {
     }
 
     private onLeave(): void {
-        this.lastHover = undefined;
         this.ctx.cursorManager.updateCursor(this.id);
     }
 
-    private onHover({ offsetX, offsetY }: PointerOffsets) {
-        const found = pickNode(this.series, { x: offsetX, y: offsetY }, 'event');
+    private onHover({ regionOffsetX, regionOffsetY }: RegionEvent) {
+        const found = pickNode(this.series, { x: regionOffsetX, y: regionOffsetY }, 'event');
         if (found?.series.hasEventListener('nodeClick') || found?.series.hasEventListener('nodeDoubleClick')) {
             this.ctx.cursorManager.updateCursor(this.id, 'pointer');
         } else {
@@ -78,7 +71,7 @@ export class SeriesAreaClickManager extends BaseManager {
         }
     }
 
-    private onClick(event: PointerInteractionEvent<'click' | 'dblclick'>) {
+    private onClick(event: RegionEvent<'click' | 'dblclick'>) {
         if (this.seriesRect?.containsPoint(event.offsetX, event.offsetY) && this.checkSeriesNodeClick(event)) {
             this.update(ChartUpdateType.SERIES_UPDATE);
             event.preventDefault();
@@ -92,10 +85,12 @@ export class SeriesAreaClickManager extends BaseManager {
         this.chart.fireEvent(newEvent);
     }
 
-    private checkSeriesNodeClick(
-        event: PointerInteractionEvent<'click' | 'dblclick'> & { preventZoomDblClick?: boolean }
-    ) {
-        const result = pickNode(this.series, { x: event.offsetX, y: event.offsetY }, 'event');
+    private checkSeriesNodeClick(event: RegionEvent<'click' | 'dblclick'> & { preventZoomDblClick?: boolean }) {
+        let point = { x: event.regionOffsetX, y: event.regionOffsetY };
+        if (event.region !== 'series') {
+            point = Transformable.fromCanvasPoint(this.ctx.chartService.seriesRoot, event.offsetX, event.offsetY);
+        }
+        const result = pickNode(this.series, point, 'event');
         if (result == null) return false;
 
         if (event.type === 'click') {

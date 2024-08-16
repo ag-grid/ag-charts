@@ -7,6 +7,7 @@ import type { Node } from '../scene/node';
 import { Selection } from '../scene/selection';
 import { Rect } from '../scene/shape/rect';
 import { Sector } from '../scene/shape/sector';
+import { Transformable } from '../scene/transformable';
 import type { Chart } from './chart';
 import type { AgChartProxy } from './chartProxy';
 import { Circle } from './marker/circle';
@@ -121,7 +122,7 @@ describe('Chart', () => {
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
-                    const { x, y } = series.contentGroup.inverseTransformPoint(itemPoint[0], itemPoint[1]);
+                    const { x, y } = Transformable.toCanvasPoint(series.contentGroup, itemPoint[0], itemPoint[1]);
                     await hoverAction(x, y)(chartInstance);
                     await waitForChartStability(chartInstance);
                     await iterator({ series, item, x, y });
@@ -144,9 +145,9 @@ describe('Chart', () => {
             offsetX?: boolean,
             offsetY?: boolean
         ) => {
-            const seriesAreaCenter = chartInstance.seriesRoot.getBBox().computeCenter();
-
             await hoverChartNodes(chartInstance, async ({ x, y }) => {
+                const seriesAreaCenter = (chartInstance as any).seriesRect.computeCenter();
+
                 if (offsetX) {
                     x += x < seriesAreaCenter.x ? 5 : -5;
                 }
@@ -233,12 +234,14 @@ describe('Chart', () => {
         it(`should handle nodeClick event with offset click when range is within pixel distance`, async () => {
             const onNodeClick = jest.fn();
             chart = await createChartPreset({ hasTooltip: true, onNodeClick, nodeClickRange: 6 });
+            await waitForChartStability(chart);
             await checkNodeClick(chart, onNodeClick, false, true);
         });
 
         it(`should trigger nodeClick event only on mousedown and mouseup`, async () => {
             const onNodeClick = jest.fn();
             chart = await createChartPreset({ hasTooltip: true });
+            await waitForChartStability(chart);
             await checkMouseUpOnlyClick(chart, onNodeClick, testParams.getNodeExitPoint);
         });
     };

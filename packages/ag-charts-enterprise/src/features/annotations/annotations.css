@@ -1,2 +1,11 @@
 @import url(./axisButton.css);
 @import url(./toolbar.css);
+
+.ag-charts-annotations-text-size-menu {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    min-width: 0;
+    width: 34px;
+
+    --item-padding: 4px 8px;
+}

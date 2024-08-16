@@ -6,7 +6,7 @@ import { StateTracker } from '../../util/stateTracker';
 import { isFiniteNumber, isObject } from '../../util/type-guards';
 import { BaseManager } from '../baseManager';
 import { ChartAxisDirection } from '../chartAxisDirection';
-import type { LayoutCompleteEvent, LayoutService } from '../layout/layoutService';
+import type { LayoutCompleteEvent, LayoutManager } from '../layout/layoutManager';
 
 export interface ZoomState {
     min: number;
@@ -66,9 +66,9 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
     private axes?: LayoutCompleteEvent['axes'];
 
-    public addLayoutService(layoutService: LayoutService) {
+    public addLayoutListeners(layoutManager: LayoutManager) {
         this.destroyFns.push(
-            layoutService.addListener('layout:complete', (event) => {
+            layoutManager.addListener('layout:complete', (event) => {
                 this.axes = event.axes;
             })
         );
