@@ -91,7 +91,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.element.addEventListener('contextmenu', (event) => event.preventDefault()); // AG-10223
         this.destroyFns.push(() => this.element.parentNode?.removeChild(this.element));
 
-        this.hide();
+        this.doClose();
 
         this.destroyFns.push(ctx.domManager.addListener('hidden', () => this.hide()));
 
