@@ -37,7 +37,7 @@ export function isObjectLike(value: unknown): value is PlainObject | unknown[] {
 }
 
 export function isPlainObject(value: unknown): value is PlainObject {
-    return typeof value === 'object' && value !== null && Object.getPrototypeOf(value) === Object.prototype;
+    return typeof value === 'object' && value !== null && value.constructor === Object;
 }
 
 export function isString(value: unknown): value is string {
