@@ -8,7 +8,6 @@ import {
     Handle,
     Line,
     LineDash,
-    LineStyle,
     Stroke,
 } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
@@ -17,7 +16,7 @@ import { validateDatumLine } from '../annotationUtils';
 const { NUMBER, STRING, OBJECT, BaseProperties, Validate, isObject } = _ModuleSupport;
 
 export class ParallelChannelProperties extends Annotation(
-    Background(Line(Handle(Extendable(Stroke(LineDash(LineStyle(BaseProperties)))))))
+    Background(Line(Handle(Extendable(Stroke(LineDash(BaseProperties))))))
 ) {
     static is(value: unknown): value is ParallelChannelProperties {
         return isObject(value) && value.type === AnnotationType.ParallelChannel;

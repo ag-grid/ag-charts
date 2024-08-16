@@ -219,16 +219,11 @@ export function LineDash<T extends Constructor>(Parent: T) {
 
         @Validate(NUMBER, { optional: true })
         lineDashOffset?: number;
-    }
-    return LineDashInternal;
-}
 
-export function LineStyle<T extends Constructor>(Parent: T) {
-    class LineStyleInternal extends Parent {
         @Validate(LINE_STYLE, { optional: true })
         lineStyle?: AnnotationLineStyleType;
     }
-    return LineStyleInternal;
+    return LineDashInternal;
 }
 
 export function Font<T extends Constructor>(Parent: T) {

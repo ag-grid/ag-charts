@@ -1,14 +1,12 @@
 import { type PixelSize, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import { Annotation, Background, Handle, Line, LineDash, LineStyle, Stroke } from '../annotationProperties';
+import { Annotation, Background, Handle, Line, LineDash, Stroke } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
 import { validateDatumLine } from '../annotationUtils';
 
 const { NUMBER, STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
 
-export class DisjointChannelProperties extends Annotation(
-    Background(Line(Handle(Stroke(LineDash(LineStyle(BaseProperties))))))
-) {
+export class DisjointChannelProperties extends Annotation(Background(Line(Handle(Stroke(LineDash(BaseProperties)))))) {
     static is(value: unknown): value is DisjointChannelProperties {
         return isObject(value) && value.type === AnnotationType.DisjointChannel;
     }

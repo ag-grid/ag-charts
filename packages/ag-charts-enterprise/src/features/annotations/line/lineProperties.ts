@@ -1,14 +1,12 @@
 import { type PixelSize, _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import { Annotation, Cappable, Extendable, Handle, Line, LineDash, LineStyle, Stroke } from '../annotationProperties';
+import { Annotation, Cappable, Extendable, Handle, Line, LineDash, Stroke } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
 import { validateDatumLine } from '../annotationUtils';
 
 const { STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
 
-export class LineProperties extends Annotation(
-    Line(Handle(Cappable(Extendable(Stroke(LineDash(LineStyle(BaseProperties)))))))
-) {
+export class LineProperties extends Annotation(Line(Handle(Cappable(Extendable(Stroke(LineDash(BaseProperties))))))) {
     static is(value: unknown): value is LineProperties {
         return isObject(value) && value.type === AnnotationType.Line;
     }
