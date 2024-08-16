@@ -1,15 +1,14 @@
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
-import type {
-    AgChartLabelFormatterParams,
-    AgRadialGaugeSeriesLabelFormatterParams,
-    AgRadialGaugeSeriesStyle,
-    FontStyle,
-    FontWeight,
-    Formatter,
-} from 'ag-charts-types';
+import type { AgRadialGaugeSeriesStyle } from 'ag-charts-types';
 
-import { RadialGaugeSeriesProperties } from './radialGaugeSeriesProperties';
 import {
+    LabelType,
+    type RadialGaugeLabelDatum,
+    type RadialGaugeNodeDatum,
+    RadialGaugeSeriesProperties,
+} from './radialGaugeSeriesProperties';
+import {
+    formatRadialGaugeLabels,
     prepareRadialGaugeSeriesAnimationFunctions,
     resetRadialGaugeSeriesAnimationFunctions,
 } from './radialGaugeUtil';
@@ -31,35 +30,6 @@ export type GaugeAnimationEvent =
     | 'skip';
 export type GaugeAnimationData = { duration?: number };
 
-interface RadialGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
-    centerX: number;
-    centerY: number;
-    innerRadius: number;
-    outerRadius: number;
-    startAngle: number;
-    endAngle: number;
-    clipStartAngle: number | undefined;
-    clipEndAngle: number | undefined;
-}
-type RadialGaugeLabelDatum = {
-    label: 'primary' | 'secondary';
-    centerX: number;
-    centerY: number;
-    text: string | undefined;
-    value: number;
-    fill: string | undefined;
-    fontStyle: FontStyle | undefined;
-    fontWeight: FontWeight | undefined;
-    fontSize: number;
-    fontFamily: string;
-    lineHeight: number | undefined;
-    formatter:
-        | Formatter<
-              AgChartLabelFormatterParams<any> & _ModuleSupport.RequireOptional<AgRadialGaugeSeriesLabelFormatterParams>
-          >
-        | undefined;
-};
-
 export interface RadialGaugeNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<RadialGaugeNodeDatum, RadialGaugeLabelDatum> {
     backgroundData: RadialGaugeNodeDatum[];
@@ -75,6 +45,8 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
     static readonly type = 'radial-gauge' as const;
 
     override properties = new RadialGaugeSeriesProperties();
+
+    public radius: number = 0;
 
     public getNodeData(): RadialGaugeNodeDatum[] | undefined {
         return this.contextNodeData?.nodeData;
@@ -162,6 +134,8 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
     }
 
     override async processData(): Promise<void> {
+        this.nodeDataRefresh = true;
+
         this.animationState.transition('updateData');
     }
 
@@ -183,9 +157,11 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         const labelData: RadialGaugeLabelDatum[] = [];
         const backgroundData: RadialGaugeNodeDatum[] = [];
 
+        this.radius = Math.min(width, height) / 2;
+
         const centerX = width / 2;
         const centerY = height / 2;
-        const outerRadius = Math.min(width, height) / 2;
+        const outerRadius = this.radius;
         const innerRadius = outerRadius * innerRadiusRatio;
 
         if (cornerRadiusMode === 'item') {
@@ -239,7 +215,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                 formatter,
             } = this.properties.label;
             labelData.push({
-                label: 'primary',
+                label: LabelType.Primary,
                 centerX,
                 centerY,
                 text: label.text,
@@ -265,7 +241,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                 formatter,
             } = this.properties.secondaryLabel;
             labelData.push({
-                label: 'secondary',
+                label: LabelType.Secondary,
                 centerX,
                 centerY,
                 text: secondaryLabel.text,
@@ -445,20 +421,10 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
 
     private async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, RadialGaugeLabelDatum> }) {
         const { labelSelection } = opts;
+        let allHaveExplicitText = true;
         const animationDisabled = this.ctx.animationManager.isSkipped();
 
-        const fixMeLabelRectHeight =
-            (this.properties.label.lineHeight ?? this.properties.label.fontSize * Text.defaultLineHeightRatio) +
-            (this.properties.secondaryLabel.lineHeight ??
-                this.properties.secondaryLabel.fontSize * Text.defaultLineHeightRatio);
-
         labelSelection.each((label, datum) => {
-            label.x = datum.centerX;
-            const fixMeLabelHeight = datum.lineHeight ?? datum.fontSize * Text.defaultLineHeightRatio;
-            const fixMeLabelRectOriginInLabelRect =
-                datum.label === 'primary' ? fixMeLabelHeight / 2 : fixMeLabelRectHeight - fixMeLabelHeight / 2;
-            label.y = datum.centerY + fixMeLabelRectOriginInLabelRect - fixMeLabelRectHeight / 2;
-
             label.fill = datum.fill;
             label.fontStyle = datum.fontStyle;
             label.fontWeight = datum.fontWeight;
@@ -468,12 +434,20 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             label.textAlign = 'center';
             label.textBaseline = 'middle';
 
-            if (datum.text != null) {
-                label.text = datum.text;
-            } else if (animationDisabled) {
-                label.text = datum.formatter?.({ seriesId: this.id, datum: undefined, value: datum.value });
+            if (datum.text == null) {
+                allHaveExplicitText = false;
             }
         });
+
+        if (allHaveExplicitText || animationDisabled) {
+            this.formatLabelText();
+        }
+    }
+
+    formatLabelText(datum?: { label: number; secondaryLabel: number }) {
+        const { labelSelection, radius } = this;
+        const { label, secondaryLabel, padding, innerRadiusRatio } = this.properties;
+        formatRadialGaugeLabels(this, labelSelection, label, secondaryLabel, padding, radius * innerRadiusRatio, datum);
     }
 
     protected resetAllAnimation() {
@@ -509,8 +483,11 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             (_sector, datum) => datum.itemId!
         );
 
+        let allHaveExplicitText = true;
         this.labelSelection.each((label, datum) => {
-            label.text = datum.text ?? datum?.formatter?.({ seriesId: this.id, datum: undefined, value: datum.value });
+            if (datum.text == null) {
+                allHaveExplicitText = false;
+            }
 
             animationManager.animate({
                 id: this.id,
@@ -523,6 +500,10 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                 },
             });
         });
+
+        if (!allHaveExplicitText) {
+            this.formatLabelText();
+        }
     }
 
     animateWaitingUpdateReady() {
@@ -538,20 +519,40 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             (_sector, datum) => datum.itemId!
         );
 
+        let allHaveExplicitText = true;
+        let labelFrom = 0;
+        let labelTo = 0;
+        let secondaryLabelFrom = 0;
+        let secondaryLabelTo = 0;
         this.labelSelection.each((label, datum) => {
-            if (datum.text != null) return;
+            if (datum.text == null) {
+                allHaveExplicitText = false;
+            }
 
+            if (datum.label === LabelType.Primary) {
+                labelFrom = label.previousDatum?.value ?? 0;
+                labelTo = datum.value;
+            } else if (datum.label === LabelType.Secondary) {
+                secondaryLabelFrom = label.previousDatum?.value ?? 0;
+                secondaryLabelTo = datum.value;
+            }
+        });
+
+        if (!allHaveExplicitText) {
             animationManager.animate({
                 id: this.id,
                 groupId: 'label',
-                from: label.previousDatum?.value ?? 0,
-                to: datum.value,
+                from: 0,
+                to: 1,
                 phase: 'update',
-                onUpdate(value) {
-                    label.text = datum?.formatter?.({ seriesId: this.id, datum: undefined, value });
+                onUpdate: (ratio) => {
+                    this.formatLabelText({
+                        label: (labelTo - labelFrom) * ratio + labelFrom,
+                        secondaryLabel: (secondaryLabelTo - secondaryLabelFrom) * ratio + secondaryLabelFrom,
+                    });
                 },
             });
-        });
+        }
     }
 
     protected animateReadyResize() {

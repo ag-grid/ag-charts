@@ -14,7 +14,7 @@ const {
 export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
     type: 'series',
     optionsKey: 'series[]',
-    packageType: 'community',
+    packageType: 'enterprise',
     chartTypes: ['gauge'],
 
     identifier: 'radial-gauge',

@@ -1,12 +1,53 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 import type {
+    AgChartLabelFormatterParams,
     AgRadialGaugeSeriesItemStylerParams,
     AgRadialGaugeSeriesLabelFormatterParams,
     AgRadialGaugeSeriesOptions,
     AgRadialGaugeSeriesStyle,
     AgRadialGaugeSeriesTooltipRendererParams,
+    FontStyle,
+    FontWeight,
+    Formatter,
     Styler,
 } from 'ag-charts-types';
+
+import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
+
+export enum LabelType {
+    Primary,
+    Secondary,
+}
+
+export interface RadialGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
+    centerX: number;
+    centerY: number;
+    innerRadius: number;
+    outerRadius: number;
+    startAngle: number;
+    endAngle: number;
+    clipStartAngle: number | undefined;
+    clipEndAngle: number | undefined;
+}
+
+export type RadialGaugeLabelDatum = {
+    label: LabelType;
+    centerX: number;
+    centerY: number;
+    text: string | undefined;
+    value: number;
+    fill: string | undefined;
+    fontStyle: FontStyle | undefined;
+    fontWeight: FontWeight | undefined;
+    fontSize: number;
+    fontFamily: string;
+    lineHeight: number | undefined;
+    formatter:
+        | Formatter<
+              AgChartLabelFormatterParams<any> & _ModuleSupport.RequireOptional<AgRadialGaugeSeriesLabelFormatterParams>
+          >
+        | undefined;
+};
 
 const {
     BaseProperties,
@@ -23,7 +64,6 @@ const {
     STRING,
     Validate,
 } = _ModuleSupport;
-const { Label } = _Scene;
 
 export class RadialGaugeBackgroundProperties extends BaseProperties {
     @Validate(COLOR_STRING)
@@ -48,21 +88,14 @@ export class RadialGaugeBackgroundProperties extends BaseProperties {
     lineDashOffset: number = 0;
 }
 
-// TODO: Use AutoSized Label
-export class RadialGaugeLabelProperties extends Label<AgRadialGaugeSeriesLabelFormatterParams> {
+export class RadialGaugeLabelProperties extends AutoSizedLabel<AgRadialGaugeSeriesLabelFormatterParams> {
     @Validate(STRING, { optional: true })
     text?: string;
-
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    lineHeight?: number;
 }
 
-export class RadialGaugeSecondaryLabelProperties extends Label<AgRadialGaugeSeriesLabelFormatterParams> {
+export class RadialGaugeSecondaryLabelProperties extends AutoSizedSecondaryLabel<AgRadialGaugeSeriesLabelFormatterParams> {
     @Validate(STRING, { optional: true })
     text?: string;
-
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    lineHeight?: number;
 }
 
 export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeSeriesOptions> {
@@ -107,6 +140,9 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeS
 
     @Validate(STRING) // FIXME
     cornerRadiusMode: 'container' | 'item' = 'container';
+
+    @Validate(NUMBER)
+    padding: number = 0;
 
     @Validate(OBJECT)
     readonly background = new RadialGaugeBackgroundProperties();

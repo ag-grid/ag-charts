@@ -27,15 +27,11 @@ export interface AgChartRadialGaugeLabelOptions<TDatum>
     extends AgChartAutoSizedLabelOptions<TDatum, AgRadialGaugeSeriesLabelFormatterParams> {
     /** Text to always display. */
     text?: string;
-    /** Line height to use. */
-    lineHeight?: string;
 }
 export interface AgChartRadialGaugeSecondaryLabelOptions<TDatum>
     extends AgChartAutoSizedSecondaryLabelOptions<TDatum, AgRadialGaugeSeriesLabelFormatterParams> {
     /** Text to always display. */
     text?: string;
-    /** Line height to use. */
-    lineHeight?: string;
 }
 
 export interface AgRadialGaugeSeriesThemeableOptions<TDatum = any>
