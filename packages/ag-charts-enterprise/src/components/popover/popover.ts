@@ -21,6 +21,8 @@ export class Popover<Options extends PopoverOptions = PopoverOptions>
     private readonly element: HTMLElement;
     private content?: Array<HTMLElement>;
 
+    protected menuCloser?: _ModuleSupport.MenuCloser;
+
     constructor(
         protected readonly ctx: _ModuleSupport.ModuleContext,
         id: string
@@ -57,12 +59,15 @@ export class Popover<Options extends PopoverOptions = PopoverOptions>
         }
 
         this.element.replaceChildren(popover);
-
-        popover.focus();
     }
 
     public hide() {
+        this.menuCloser?.close();
+    }
+
+    protected doClose() {
         this.element.replaceChildren();
+        this.menuCloser = undefined;
     }
 
     protected getPopoverElement() {

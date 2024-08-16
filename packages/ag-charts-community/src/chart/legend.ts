@@ -694,11 +694,7 @@ export class Legend extends BaseProperties {
     }
 
     private updateItemProxyButtons() {
-        this.itemSelection.each((markerLabel) => {
-            const bbox = Transformable.toCanvas(markerLabel)?.clone();
-            bbox.translate(this.group.translationX, this.group.translationY);
-            setElementBBox(markerLabel.proxyButton, bbox);
-        });
+        this.itemSelection.each((l) => setElementBBox(l.proxyButton, Transformable.toCanvas(l)));
     }
 
     private updatePaginationProxyButtons(oldPages: Page[] | undefined) {

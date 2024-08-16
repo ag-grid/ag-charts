@@ -25,7 +25,9 @@
 }
 
 .ag-charts-menu__row:focus {
-    background: var(--ag-charts-popover-hover-color);
+    outline: var(--ag-charts-focus-border);
+    box-shadow: var(--ag-charts-focus-border-shadow);
+    z-index: calc(var(--ag-charts-layer-ui-overlay) + 1);
 }
 
 .ag-charts-menu__row--active {

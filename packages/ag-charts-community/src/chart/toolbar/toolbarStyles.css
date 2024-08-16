@@ -194,9 +194,9 @@
 }
 
 .ag-charts-toolbar__button:focus-visible {
-    border-color: var(--ag-charts-toolbar-focus-color);
+    outline: var(--ag-charts-focus-border);
     box-shadow: var(--ag-charts-focus-border-shadow);
-    z-index: 3;
+    z-index: calc(var(--ag-charts-layer-ui-overlay) + 1);
 }
 
 .ag-charts-toolbar__button.ag-charts-toolbar__button--active {
