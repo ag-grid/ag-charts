@@ -15,8 +15,8 @@ import type {
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
 export enum LabelType {
-    Primary,
-    Secondary,
+    Primary = 'primary',
+    Secondary = 'secondary',
 }
 
 export interface RadialGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum {

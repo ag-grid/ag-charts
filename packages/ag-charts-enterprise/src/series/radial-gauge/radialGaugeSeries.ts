@@ -421,7 +421,6 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
 
     private async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, RadialGaugeLabelDatum> }) {
         const { labelSelection } = opts;
-        let allHaveExplicitText = true;
         const animationDisabled = this.ctx.animationManager.isSkipped();
 
         labelSelection.each((label, datum) => {
@@ -433,15 +432,21 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
 
             label.textAlign = 'center';
             label.textBaseline = 'middle';
-
-            if (datum.text == null) {
-                allHaveExplicitText = false;
-            }
         });
 
-        if (allHaveExplicitText || animationDisabled) {
+        if (animationDisabled || this.labelsHaveExplicitText()) {
             this.formatLabelText();
         }
+    }
+
+    labelsHaveExplicitText() {
+        for (const { datum } of this.labelSelection) {
+            if (datum.text == null) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     formatLabelText(datum?: { label: number; secondaryLabel: number }) {
@@ -453,10 +458,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
     protected resetAllAnimation() {
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
-        resetMotion(
-            [this.backgroundSelection, this.datumSelection, this.highlightDatumSelection],
-            resetRadialGaugeSeriesAnimationFunctions
-        );
+        resetMotion([this.backgroundSelection, this.datumSelection], resetRadialGaugeSeriesAnimationFunctions);
 
         this.datumSelection.cleanup();
         this.labelSelection.cleanup();
@@ -483,14 +485,10 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             (_sector, datum) => datum.itemId!
         );
 
-        let allHaveExplicitText = true;
         this.labelSelection.each((label, datum) => {
-            if (datum.text == null) {
-                allHaveExplicitText = false;
-            }
-
+            const animationId = `${this.id}_label_${datum.label}`;
             animationManager.animate({
-                id: this.id,
+                id: animationId,
                 groupId: 'label',
                 from: 0,
                 to: 1,
@@ -501,7 +499,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             });
         });
 
-        if (!allHaveExplicitText) {
+        if (!this.labelsHaveExplicitText()) {
             this.formatLabelText();
         }
     }
@@ -514,20 +512,18 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             this.id,
             'nodes',
             animationManager,
-            [this.backgroundSelection, this.datumSelection, this.highlightDatumSelection],
+            [this.backgroundSelection, this.datumSelection],
             fns,
             (_sector, datum) => datum.itemId!
         );
 
-        let allHaveExplicitText = true;
         let labelFrom = 0;
         let labelTo = 0;
         let secondaryLabelFrom = 0;
         let secondaryLabelTo = 0;
         this.labelSelection.each((label, datum) => {
-            if (datum.text == null) {
-                allHaveExplicitText = false;
-            }
+            // Reset animation
+            label.opacity = 1;
 
             if (datum.label === LabelType.Primary) {
                 labelFrom = label.previousDatum?.value ?? 0;
@@ -538,19 +534,16 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             }
         });
 
-        if (!allHaveExplicitText) {
+        if (!this.labelsHaveExplicitText()) {
+            const animationId = `${this.id}_labels`;
+
             animationManager.animate({
-                id: this.id,
+                id: animationId,
                 groupId: 'label',
-                from: 0,
-                to: 1,
+                from: { label: labelFrom, secondaryLabel: secondaryLabelFrom },
+                to: { label: labelTo, secondaryLabel: secondaryLabelTo },
                 phase: 'update',
-                onUpdate: (ratio) => {
-                    this.formatLabelText({
-                        label: (labelTo - labelFrom) * ratio + labelFrom,
-                        secondaryLabel: (secondaryLabelTo - secondaryLabelFrom) * ratio + secondaryLabelFrom,
-                    });
-                },
+                onUpdate: (datum) => this.formatLabelText(datum),
             });
         }
     }
