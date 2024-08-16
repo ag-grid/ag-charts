@@ -288,9 +288,13 @@ export class InteractionManager extends InteractionStateListener<InteractionType
         const type = this.decideInteractionEventTypes(event);
 
         // AG-11385 Ignore clicks on focusable & disabled elements.
-        const target: (EventTarget & { ariaDisabled?: string }) | null = event.target;
+        const target: (EventTarget & { ariaDisabled?: string; tagName?: string; role?: string }) | null = event.target;
         if (event.type === 'click' && target?.ariaDisabled === 'true') {
             event.preventDefault();
+            return;
+        }
+        // AG-12037 Interacting with HTML buttons can also fire events on the series, which we don't want.
+        if ([target?.tagName?.toLowerCase(), target?.role].includes('button')) {
             return;
         }
 
