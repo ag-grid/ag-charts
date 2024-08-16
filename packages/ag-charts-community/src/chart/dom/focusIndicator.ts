@@ -1,8 +1,8 @@
-import type { MenuDevice } from '../../module-support';
 import { Path } from '../../scene/shape/path';
 import { Transformable } from '../../scene/transformable';
 import type { BBoxValues } from '../../util/bboxinterface';
 import { getDocument, setElementBBox } from '../../util/dom';
+import type { MenuDevice } from '../../util/keynavUtil';
 import type { DOMManager } from './domManager';
 import * as focusStyles from './focusStyles';
 
