@@ -6,9 +6,9 @@ import {
     _Util,
 } from 'ag-charts-community';
 
+import { Menu, type MenuItem } from '../../components/menu/menu';
 import { buildBounds } from '../../utils/position';
 import { ColorPicker } from '../color-picker/colorPicker';
-import { type MenuItem, Popover } from '../popover/popover';
 import { TextInput } from '../text-input/textInput';
 import {
     type AnnotationContext,
@@ -159,18 +159,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     // State
     private readonly state: AnnotationsStateMachine;
     private readonly annotationData: AnnotationPropertiesArray = new PropertiesArray(this.createAnnotationDatum);
-
-    // Elements
-    private seriesRect?: _Scene.BBox;
-    private readonly container = new _Scene.Group({ name: 'static-annotations' });
-    private readonly annotations = new _Scene.Selection<AnnotationScene, AnnotationProperties>(
-        this.container,
-        this.createAnnotationScene.bind(this)
-    );
-
-    private readonly colorPicker = new ColorPicker(this.ctx);
-    private readonly textSizePopover = new Popover(this.ctx, 'annotations');
-    private readonly annotationPickerPopover = new Popover(this.ctx, 'text');
     private readonly defaultColors: Map<
         AnnotationType | TextualAnnotationType,
         Map<AnnotationOptionsColorPickerType, [string, string, number] | undefined>
@@ -191,6 +179,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         [TextualAnnotationType.Text, undefined],
     ]);
 
+    // Elements
+    private seriesRect?: _Scene.BBox;
+    private readonly container = new _Scene.Group({ name: 'static-annotations' });
+    private readonly annotations = new _Scene.Selection<AnnotationScene, AnnotationProperties>(
+        this.container,
+        this.createAnnotationScene.bind(this)
+    );
+    private readonly colorPicker = new ColorPicker(this.ctx);
+    private readonly textSizeMenu = new Menu(this.ctx, 'text-size');
+    private readonly annotationMenu = new Menu(this.ctx, 'annotations');
     private readonly textInput = new TextInput(this.ctx);
 
     private xAxis?: AnnotationAxis;
@@ -530,14 +528,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
             case AnnotationOptions.TextSize: {
                 const fontSize = datum != null && 'fontSize' in datum ? datum.fontSize : undefined;
-                this.textSizePopover.show<number>({
+                this.textSizeMenu.show<number>({
                     items: TEXT_SIZE_ITEMS,
                     ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsTextSize'),
                     value: fontSize,
                     sourceEvent: event.sourceEvent,
                     onPress: (item) => this.onTextSizePopoverPress(item, datum),
                     onClose: this.onTextSizePopoverClose.bind(this),
-                    class: 'annotations__text-size',
+                    class: 'ag-charts-annotations-text-size-menu',
                 });
                 break;
             }
@@ -568,8 +566,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.cancel();
         this.reset();
 
-        this.annotationPickerPopover.setAnchor({ x: x + width + 6, y });
-        this.annotationPickerPopover.show<AnnotationType>({
+        this.annotationMenu.setAnchor({ x: x + width + 6, y });
+        this.annotationMenu.show<AnnotationType>({
             items,
             ariaLabel: this.ctx.localeManager.t(ariaLabel),
             sourceEvent: event.sourceEvent,
@@ -606,7 +604,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             }
             case AnnotationOptions.TextSize: {
                 const anchor = { x: rect.x, y: rect.y + rect.height - 1 };
-                this.textSizePopover.setAnchor(anchor);
+                this.textSizeMenu.setAnchor(anchor);
                 break;
             }
             default:
@@ -684,7 +682,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onTextSizePopoverClose() {
-        this.textSizePopover.hide();
+        this.textSizeMenu.hide();
     }
 
     private onAnnotationsPopoverPress(
@@ -714,7 +712,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onAnnotationsPopoverClose() {
-        this.annotationPickerPopover.hide();
+        this.annotationMenu.hide();
     }
 
     private handleAmbientKeyboardEvent(e: _ModuleSupport.KeyInteractionEvent<'keydown'>) {
@@ -1033,8 +1031,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private hideOverlays() {
         this.colorPicker.hide();
-        this.textSizePopover.hide();
-        this.annotationPickerPopover.hide();
+        this.textSizeMenu.hide();
+        this.annotationMenu.hide();
     }
 
     private resetToolbarButtonStates() {
