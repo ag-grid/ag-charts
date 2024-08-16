@@ -130,7 +130,7 @@
     pointer-events: all;
     position: relative;
     white-space: nowrap;
-    --icon-color: var(--ag-charts-toolbar-foreground-color);
+    --stroke-width-color: var(--ag-charts-toolbar-foreground-color);
 }
 
 /* Applying this class just after the element is created prevents the flash of the default border color on initial
@@ -205,7 +205,7 @@
     border-color: var(--ag-charts-toolbar-active-color);
     color: var(--ag-charts-toolbar-active-color);
     z-index: 2;
-    --icon-color: var(--ag-charts-toolbar-active-color);
+    --stroke-width-color: var(--ag-charts-toolbar-active-color);
 }
 
 .ag-charts-toolbar__button[aria-disabled='true'] {
@@ -239,7 +239,7 @@
     content: '';
     height: var(--strokeWidth);
     width: 12px;
-    background: var(--icon-color);
+    background: var(--stroke-width-color);
     margin-right: var(--ag-charts-toolbar-button-padding);
 }
 
