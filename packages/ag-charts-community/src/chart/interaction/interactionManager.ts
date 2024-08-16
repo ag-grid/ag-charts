@@ -1,9 +1,9 @@
+import type { DOMManager } from '../../dom/domManager';
 import { Debug } from '../../util/debug';
 import { getWindow } from '../../util/dom';
 import { Logger } from '../../util/logger';
 import { partialAssign } from '../../util/object';
 import { isFiniteNumber } from '../../util/type-guards';
-import type { DOMManager } from '../../dom/domManager';
 import { InteractionState, InteractionStateListener } from './interactionStateListener';
 import { type PreventableEvent, type Unpreventable, dispatchTypedEvent } from './preventableEvent';
 

@@ -1,5 +1,7 @@
 import type { FontStyle, FontWeight, TextAlign, TextWrap } from 'ag-charts-types';
 
+import type { BoundedText } from '../dom/boundedText';
+import type { ProxyInteractionService } from '../dom/proxyInteractionService';
 import type { ModuleContext } from '../module/moduleContext';
 import { PointerEvents } from '../scene/node';
 import { RotatableText } from '../scene/shape/text';
@@ -22,8 +24,6 @@ import {
     Validate,
 } from '../util/validation';
 import type { CaptionLike } from './captionLike';
-import type { BoundedText } from '../dom/boundedText';
-import type { ProxyInteractionService } from '../dom/proxyInteractionService';
 import type { PointerInteractionEvent } from './interaction/interactionManager';
 import { toTooltipHtml } from './tooltip/tooltip';
 

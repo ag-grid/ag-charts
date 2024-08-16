@@ -1,7 +1,7 @@
+import type { FocusIndicator } from '../../dom/focusIndicator';
 import { Node } from '../../scene/node';
 import type { BBoxProvider } from '../../util/bboxinterface';
 import { Listeners } from '../../util/listeners';
-import type { FocusIndicator } from '../../dom/focusIndicator';
 import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
 import { InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
 import { type Unpreventable, buildPreventable } from './preventableEvent';

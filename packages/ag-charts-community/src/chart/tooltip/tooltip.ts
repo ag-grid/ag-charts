@@ -1,5 +1,6 @@
 import type { AgTooltipRendererResult, InteractionRange, TextWrap } from 'ag-charts-types';
 
+import type { DOMManager } from '../../dom/domManager';
 import { setAttribute } from '../../util/attributeUtil';
 import { clamp } from '../../util/number';
 import { type Bounds, calculatePlacement } from '../../util/placement';
@@ -16,7 +17,6 @@ import {
     UNION,
     Validate,
 } from '../../util/validation';
-import type { DOMManager } from '../../dom/domManager';
 import type { PointerOffsets } from '../interaction/interactionManager';
 
 export const DEFAULT_TOOLTIP_CLASS = 'ag-chart-tooltip';

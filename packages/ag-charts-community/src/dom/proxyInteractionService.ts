@@ -1,15 +1,15 @@
 import type { Direction } from 'ag-charts-types';
 
+import type { LocaleManager } from '../locale/localeManager';
 import type { BBoxProvider, BBoxValues } from '../util/bboxinterface';
 import { Debug } from '../util/debug';
 import { createElement } from '../util/dom';
-import type { LocaleManager } from '../locale/localeManager';
 import { BoundedText } from './boundedText';
 import type { DOMElementClass, DOMManager } from './domManager';
 import type { FocusIndicator } from './focusIndicator';
 
 type UpdateServiceLike = {
-    addListener(type: 'update-complete', handler: () => unknown): ()=>void;
+    addListener(type: 'update-complete', handler: () => unknown): () => void;
 };
 
 type ElemParams<T extends ProxyElementType> = {
