@@ -150,7 +150,7 @@ export function isTextType(datum: unknown): datum is TextualPropertiesType {
     );
 }
 
-export function hasFontSize(datum?: AnnotationProperties) {
+export function hasFontSize(datum?: AnnotationProperties): datum is TextualPropertiesType {
     return isTextType(datum) && !NoteProperties.is(datum);
 }
 
@@ -195,7 +195,7 @@ export function setDefaults({
         }
     }
 
-    if (isTextType(datum)) {
+    if (hasFontSize(datum)) {
         for (const [annotationType, size] of defaultFontSizes) {
             if (size) {
                 setFontsize(datum, annotationType, size);
