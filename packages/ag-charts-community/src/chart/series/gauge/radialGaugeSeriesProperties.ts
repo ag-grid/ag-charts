@@ -104,6 +104,9 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeS
     @Validate(POSITIVE_NUMBER)
     cornerRadius: number = 0;
 
+    @Validate(STRING) // FIXME
+    cornerRadiusMode: 'container' | 'item' = 'container';
+
     @Validate(OBJECT)
     readonly background = new RadialGaugeBackgroundProperties();
 

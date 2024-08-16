@@ -13,6 +13,7 @@ import { resetMotion } from '../../../motion/resetMotion';
 import { LinearScale } from '../../../scale/linearScale';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
+import { SectorBox } from '../../../scene/sectorBox';
 import { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import { Sector } from '../../../scene/shape/sector';
@@ -51,6 +52,8 @@ interface RadialGaugeNodeDatum extends SeriesNodeDatum {
     outerRadius: number;
     startAngle: number;
     endAngle: number;
+    clipStartAngle: number | undefined;
+    clipEndAngle: number | undefined;
 }
 type RadialGaugeLabelDatum = {
     label: 'primary' | 'secondary';
@@ -171,31 +174,65 @@ export class RadialGaugeSeries extends Series<
     override async createNodeData() {
         const { id: seriesId } = this;
         const { width, height } = this.chart!.seriesRect!;
-        const { value, range, innerRadiusRatio, startAngle, endAngle, label, secondaryLabel } = this.properties;
+        const {
+            value,
+            range,
+            innerRadiusRatio,
+            startAngle,
+            endAngle,
+            cornerRadius,
+            cornerRadiusMode,
+            label,
+            secondaryLabel,
+        } = this.properties;
         const nodeData: RadialGaugeNodeDatum[] = [];
         const labelData: RadialGaugeLabelDatum[] = [];
         const backgroundData: RadialGaugeNodeDatum[] = [];
-
-        const scale = new LinearScale();
-        scale.domain = range;
-        scale.range = [startAngle, endAngle];
 
         const centerX = width / 2;
         const centerY = height / 2;
         const outerRadius = Math.min(width, height) / 2;
         const innerRadius = outerRadius * innerRadiusRatio;
 
-        nodeData.push({
-            series: this,
-            itemId: 'value',
-            datum: value,
-            centerX,
-            centerY,
-            outerRadius,
-            innerRadius,
-            startAngle: startAngle,
-            endAngle: scale.convert(value),
-        });
+        if (cornerRadiusMode === 'item') {
+            const appliedCornerRadius = Math.min(cornerRadius, (outerRadius - innerRadius) / 2);
+            const angleInset = appliedCornerRadius / ((innerRadius + outerRadius) / 2);
+            const scale = new LinearScale();
+            scale.domain = range;
+            scale.range = [startAngle + angleInset, endAngle - angleInset];
+
+            nodeData.push({
+                series: this,
+                itemId: 'value',
+                datum: value,
+                centerX,
+                centerY,
+                outerRadius,
+                innerRadius,
+                startAngle: scale.convert(range[0]) - angleInset,
+                endAngle: scale.convert(value) + angleInset,
+                clipStartAngle: undefined,
+                clipEndAngle: undefined,
+            });
+        } else {
+            const scale = new LinearScale();
+            scale.domain = range;
+            scale.range = [startAngle, endAngle];
+
+            nodeData.push({
+                series: this,
+                itemId: 'value',
+                datum: value,
+                centerX,
+                centerY,
+                outerRadius,
+                innerRadius,
+                startAngle,
+                endAngle,
+                clipStartAngle: startAngle,
+                clipEndAngle: scale.convert(value),
+            });
+        }
 
         if (label.enabled) {
             const {
@@ -259,6 +296,8 @@ export class RadialGaugeSeries extends Series<
             innerRadius,
             startAngle,
             endAngle,
+            clipStartAngle: undefined,
+            clipEndAngle: undefined,
         });
 
         return {
@@ -330,13 +369,19 @@ export class RadialGaugeSeries extends Series<
         const animationDisabled = ctx.animationManager.isSkipped();
 
         datumSelection.each((sector, datum) => {
-            sector.centerX = datum.centerX;
-            sector.centerY = datum.centerY;
+            const { centerX, centerY, innerRadius, outerRadius, startAngle, endAngle, clipStartAngle, clipEndAngle } =
+                datum;
+            sector.centerX = centerX;
+            sector.centerY = centerY;
             if (animationDisabled || isHighlight) {
-                sector.innerRadius = datum.innerRadius;
-                sector.outerRadius = datum.outerRadius;
-                sector.startAngle = datum.startAngle;
-                sector.endAngle = datum.endAngle;
+                sector.innerRadius = innerRadius;
+                sector.outerRadius = outerRadius;
+                sector.startAngle = startAngle;
+                sector.endAngle = endAngle;
+                sector.clipSector =
+                    clipStartAngle != null && clipEndAngle != null
+                        ? new SectorBox(clipStartAngle, clipEndAngle, innerRadius, outerRadius)
+                        : undefined;
             }
 
             sector.fill = highlightStyle?.fill ?? fill;
@@ -367,13 +412,19 @@ export class RadialGaugeSeries extends Series<
         const animationDisabled = this.ctx.animationManager.isSkipped();
 
         backgroundSelection.each((sector, datum) => {
-            sector.centerX = datum.centerX;
-            sector.centerY = datum.centerY;
+            const { centerX, centerY, innerRadius, outerRadius, startAngle, endAngle, clipStartAngle, clipEndAngle } =
+                datum;
+            sector.centerX = centerX;
+            sector.centerY = centerY;
             if (animationDisabled) {
-                sector.innerRadius = datum.innerRadius;
-                sector.outerRadius = datum.outerRadius;
-                sector.startAngle = datum.startAngle;
-                sector.endAngle = datum.endAngle;
+                sector.innerRadius = innerRadius;
+                sector.outerRadius = outerRadius;
+                sector.startAngle = startAngle;
+                sector.endAngle = endAngle;
+                sector.clipSector =
+                    clipStartAngle != null && clipEndAngle != null
+                        ? new SectorBox(clipStartAngle, clipEndAngle, innerRadius, outerRadius)
+                        : undefined;
             }
 
             sector.fill = fill;
