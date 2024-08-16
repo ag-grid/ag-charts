@@ -1,6 +1,5 @@
 import type { LayoutContext } from '../module/baseModule';
 import type { ChartOptions } from '../module/optionsModule';
-import { BBox } from '../scene/bbox';
 import type { TransferableResources } from './chart';
 import { Chart } from './chart';
 
@@ -16,20 +15,12 @@ export class HierarchyChart extends Chart {
         return 'hierarchy' as const;
     }
 
-    override async performLayout(ctx: LayoutContext) {
+    protected performLayout(ctx: LayoutContext) {
+        const { seriesRoot, annotationRoot, highlightRoot } = this;
         const { layoutBox } = ctx;
-        const fullSeriesRect = layoutBox.clone();
-        const {
-            seriesArea: { padding },
-            seriesRoot,
-            annotationRoot,
-            highlightRoot,
-        } = this;
+        const seriesRect = layoutBox.clone();
 
-        layoutBox.shrink(padding.left, 'left');
-        layoutBox.shrink(padding.top, 'top');
-        layoutBox.shrink(padding.right, 'right');
-        layoutBox.shrink(padding.bottom, 'bottom');
+        layoutBox.shrink(this.seriesArea.padding.toJson());
 
         this.seriesRect = layoutBox;
         this.animationRect = layoutBox;
@@ -39,16 +30,11 @@ export class HierarchyChart extends Chart {
             group.translationY = Math.floor(layoutBox.y);
         }
 
-        // this has to happen after the `updateAxes` call
-        await Promise.all(this.series.map((series) => series.update({ seriesRect: layoutBox })));
-
         seriesRoot.visible = this.series[0].visible;
-        seriesRoot.setClipRectInGroupCoordinateSpace(
-            new BBox(layoutBox.x, layoutBox.y, layoutBox.width, layoutBox.height)
-        );
+        seriesRoot.setClipRectInGroupCoordinateSpace(layoutBox.clone());
 
         this.ctx.layoutManager.emitLayoutComplete(ctx, {
-            series: { visible: true, rect: fullSeriesRect, paddedRect: layoutBox },
+            series: { visible: true, rect: seriesRect, paddedRect: layoutBox },
         });
     }
 

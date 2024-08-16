@@ -55,7 +55,7 @@ export class CartesianChart extends Chart {
 
     private lastUpdateClipRect: BBox | undefined = undefined;
 
-    performLayout(ctx: LayoutContext) {
+    protected performLayout(ctx: LayoutContext) {
         const { firstSeriesTranslation, seriesRoot, annotationRoot, highlightRoot } = this;
         const { animationRect, seriesRect, visibility, clipSeries } = this.updateAxes(ctx.layoutBox);
 
@@ -427,7 +427,6 @@ export class CartesianChart extends Chart {
 
         this.sizeAxis(axis, seriesRect, position);
 
-        let primaryTickCount = axis.nice ? primaryTickCounts[direction] : undefined;
         const isVertical = direction === ChartAxisDirection.Y;
         const paddedBoundsCoefficient = 0.3;
 
@@ -437,9 +436,8 @@ export class CartesianChart extends Chart {
             axis.maxThickness = (isVertical ? paddedBounds.width : paddedBounds.height) * paddedBoundsCoefficient;
         }
 
-        const layout = axis.calculateLayout(primaryTickCount);
-        primaryTickCount = layout.primaryTickCount;
-        primaryTickCounts[direction] ??= primaryTickCount;
+        const layout = axis.calculateLayout(axis.nice ? primaryTickCounts[direction] : undefined);
+        primaryTickCounts[direction] ??= layout.primaryTickCount;
 
         clipSeries ||= axis.dataDomain.clipped || axis.visibleRange[0] > 0 || axis.visibleRange[1] < 1;
 
@@ -452,7 +450,7 @@ export class CartesianChart extends Chart {
 
         axisThickness = Math.ceil(axisThickness);
 
-        return { clipSeries, axisThickness, primaryTickCount };
+        return { clipSeries, axisThickness };
     }
 
     private sizeAxis(axis: ChartAxis, seriesRect: BBox, position: AgCartesianAxisPosition) {
@@ -556,6 +554,6 @@ export class CartesianChart extends Chart {
 
     private shouldFlipXY() {
         // Only flip the xy axes if all the series agree on flipping
-        return !this.series.some((series) => !(series instanceof CartesianSeries && series.shouldFlipXY()));
+        return this.series.every((series) => series instanceof CartesianSeries && series.shouldFlipXY());
     }
 }

@@ -25,16 +25,20 @@ export class PolarChart extends Chart {
         return 'polar' as const;
     }
 
-    override async performLayout(ctx: LayoutContext) {
+    protected async performLayout(ctx: LayoutContext) {
         const { layoutBox } = ctx;
-        const fullSeriesRect = layoutBox.clone();
+        const seriesRect = layoutBox.clone();
 
-        this.computeSeriesRect(layoutBox);
+        layoutBox.shrink(this.seriesArea.padding.toJson());
+
+        this.seriesRect = layoutBox;
+        this.animationRect = layoutBox;
+
         await this.computeCircle(layoutBox);
         this.axes.forEach((axis) => axis.update());
 
         this.ctx.layoutManager.emitLayoutComplete(ctx, {
-            series: { visible: true, rect: fullSeriesRect, paddedRect: layoutBox },
+            series: { visible: true, rect: seriesRect, paddedRect: layoutBox },
         });
     }
 
@@ -60,20 +64,6 @@ export class PolarChart extends Chart {
             axis.translation.y = cy;
             axis.calculateLayout();
         });
-    }
-
-    private computeSeriesRect(shrinkRect: BBox) {
-        const {
-            seriesArea: { padding },
-        } = this;
-
-        shrinkRect.shrink(padding.left, 'left');
-        shrinkRect.shrink(padding.top, 'top');
-        shrinkRect.shrink(padding.right, 'right');
-        shrinkRect.shrink(padding.bottom, 'bottom');
-
-        this.seriesRect = shrinkRect;
-        this.animationRect = shrinkRect;
     }
 
     private async computeCircle(seriesBox: BBox) {

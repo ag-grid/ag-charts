@@ -574,14 +574,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const { formatter = (p) => p.defaultValue } = title;
         const text = callbackCache.call(formatter, this.getTitleFormatterParams());
 
-        titleNode.setProperties({
-            rotation,
-            text,
-            textBaseline,
-            visible: true,
-            x,
-            y,
-        });
+        titleNode.setProperties({ visible: true, text, textBaseline, x, y, rotation });
     }
 
     private tickGenerationResult: TickGenerationResult | undefined = undefined;

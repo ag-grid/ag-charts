@@ -2,7 +2,6 @@ import type { AgTopologyChartOptions } from 'ag-charts-types';
 
 import type { LayoutContext } from '../module/baseModule';
 import type { ChartOptions } from '../module/optionsModule';
-import { BBox } from '../scene/bbox';
 import { NumberAxis } from './axis/numberAxis';
 import type { TransferableResources } from './chart';
 import { Chart } from './chart';
@@ -56,27 +55,18 @@ export class TopologyChart extends Chart {
         });
     }
 
-    override async performLayout(ctx: LayoutContext) {
+    protected performLayout(ctx: LayoutContext) {
+        const { seriesRoot, annotationRoot, highlightRoot } = this;
         const { layoutBox } = ctx;
-        const fullSeriesRect = layoutBox.clone();
-        const {
-            seriesArea: { padding },
-            seriesRoot,
-            annotationRoot,
-            highlightRoot,
-        } = this;
+        const seriesRect = layoutBox.clone();
 
-        layoutBox.shrink(padding.left, 'left');
-        layoutBox.shrink(padding.top, 'top');
-        layoutBox.shrink(padding.right, 'right');
-        layoutBox.shrink(padding.bottom, 'bottom');
+        layoutBox.shrink(this.seriesArea.padding.toJson());
 
         this.seriesRect = layoutBox;
         this.animationRect = layoutBox;
 
         const mapSeries = this.series.filter<TopologySeries>(isTopologySeries);
-
-        const combinedBbox: LonLatBBox | undefined = mapSeries.reduce<LonLatBBox | undefined>((combined, series) => {
+        const combinedBbox = mapSeries.reduce<LonLatBBox | undefined>((combined, series) => {
             if (!series.visible) return combined;
             const bbox = series.topologyBounds;
             if (bbox == null) return combined;
@@ -129,13 +119,11 @@ export class TopologyChart extends Chart {
         for (const group of [seriesRoot, annotationRoot, highlightRoot]) {
             group.translationX = Math.floor(layoutBox.x);
             group.translationY = Math.floor(layoutBox.y);
-            group.setClipRectInGroupCoordinateSpace(
-                new BBox(layoutBox.x, layoutBox.y, layoutBox.width, layoutBox.height)
-            );
+            group.setClipRectInGroupCoordinateSpace(layoutBox.clone());
         }
 
         this.ctx.layoutManager.emitLayoutComplete(ctx, {
-            series: { visible: seriesVisible, rect: fullSeriesRect, paddedRect: layoutBox },
+            series: { visible: seriesVisible, rect: seriesRect, paddedRect: layoutBox },
         });
     }
 }

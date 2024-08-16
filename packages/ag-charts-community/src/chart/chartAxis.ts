@@ -23,7 +23,7 @@ export interface ChartAxis {
     getAxisGroup(): Group;
     getRegionNode(): Node;
     boundSeries: ISeries<unknown, unknown>[];
-    calculateLayout(primaryTickCount?: number): { primaryTickCount: number | undefined; bbox: BBox };
+    calculateLayout(primaryTickCount?: number): { primaryTickCount?: number; bbox: BBox };
     calculatePadding(min: number, max: number): [number, number];
     clipGrid(x: number, y: number, width: number, height: number): void;
     clipTickLines(x: number, y: number, width: number, height: number): void;
@@ -60,7 +60,6 @@ export interface ChartAxis {
     translation: { x: number; y: number };
     type: string;
     update(primaryTickCount?: number, animated?: boolean): number | undefined;
-    updateScale(): void;
     updatePosition(): void;
     visibleRange: [number, number];
     createModuleContext: () => ModuleContextWithParent<AxisContext>;
