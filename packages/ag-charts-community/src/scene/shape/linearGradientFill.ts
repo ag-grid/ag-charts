@@ -1,7 +1,6 @@
 import { ColorScale } from '../../scale/colorScale';
 import type { RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
-import { Transformable } from '../transformable';
 import type { Path } from './path';
 import { Shape } from './shape';
 
