@@ -149,7 +149,7 @@ class MenuCloserImp implements MenuCloser {
 
     constructor(
         menu: HTMLElement,
-        private lastFocus: HTMLElement | undefined,
+        private readonly lastFocus: HTMLElement | undefined,
         public readonly closeCallback: () => void
     ) {
         this.destroyFns.push(addMouseCloseListener(this.destroyFns, menu, () => this.close()));
@@ -172,7 +172,6 @@ export function initMenuKeyNav(opts: {
 }): MenuCloser {
     const { device, orientation, menu, buttons, closeCallback } = opts;
     const { nextKey, prevKey } = PREV_NEXT_KEYS[orientation];
-    console.log(`device: `, device);
 
     const menuCloser = new MenuCloserImp(menu, device.lastFocus, closeCallback);
     const close = () => menuCloser.close();
