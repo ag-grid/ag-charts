@@ -44,7 +44,7 @@ export class LinearGradientFill extends Shape {
         const pixelLength = 1 / devicePixelRatio;
 
         if (mask == null || stops == null) return;
-        const maskBbox = Transformable.toCanvas(mask);
+        const maskBbox = mask.getBBox();
 
         if (mask.dirtyPath) {
             mask.updatePath();
@@ -53,7 +53,6 @@ export class LinearGradientFill extends Shape {
 
         ctx.save();
         ctx.clip(mask.path.getPath2D());
-        ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
 
         const x0 = Math.floor(maskBbox.x);
         const x1 = Math.ceil(maskBbox.x + maskBbox.width);
