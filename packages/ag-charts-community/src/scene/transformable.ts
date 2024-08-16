@@ -21,23 +21,16 @@ interface ParentToLocalCoordinateSpaceTransforms {
 type MatrixTransformType<T> = T &
     LocalToParentCoordinateSpaceTransforms &
     ParentToLocalCoordinateSpaceTransforms & {
-    updateMatrix(matrix: Matrix): void;
-};
+        updateMatrix(matrix: Matrix): void;
+    };
 
 function isMatrixTransform<N extends Node>(node: N): node is MatrixTransformType<N> {
     return isMatrixTransformType(node.constructor as any);
 }
 
+const MATRIX_TRANSFORM_TYPE = Symbol('isMatrixTransform');
 function isMatrixTransformType<N extends Node>(cstr: Constructor<N>): cstr is Constructor<MatrixTransformType<N>> {
-    let nextType = cstr;
-    while (nextType != null) {
-        if (nextType.name === 'MatrixTransformInternal') {
-            return true;
-        }
-        nextType = Object.getPrototypeOf(nextType);
-    }
-
-    return false;
+    return (cstr as any)[MATRIX_TRANSFORM_TYPE] === true;
 }
 
 /**
@@ -55,6 +48,7 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
 
     const TRANSFORM_MATRIX = Symbol('matrix_combined_transform');
     class MatrixTransformInternal extends ParentNode implements MatrixTransformType<Node> {
+        public static readonly [MATRIX_TRANSFORM_TYPE] = true;
         private [TRANSFORM_MATRIX] = new Matrix();
 
         private _dirtyTransform = true;
