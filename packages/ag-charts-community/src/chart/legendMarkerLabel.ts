@@ -9,7 +9,7 @@ import { Text } from '../scene/shape/text';
 import type { SpriteDimensions, SpriteRenderer } from '../scene/spriteRenderer';
 import { Translatable } from '../scene/transformable';
 import { arraysEqual } from '../util/array';
-import { argsIterable, arraysIterable } from '../util/iterator';
+import { iterate } from '../util/iterator';
 import { ProxyPropertyOnWrite } from '../util/proxy';
 import type { Marker } from './marker/marker';
 import type { MarkerConstructor } from './marker/util';
@@ -40,7 +40,7 @@ export class LegendMarkerLabel extends Translatable(Group) {
         label.y = 1;
 
         this.updateSymbols(markers, lines);
-        this.append(argsIterable(this.symbolsGroup, label));
+        this.append([this.symbolsGroup, label]);
     }
 
     override destroy() {
@@ -196,7 +196,7 @@ export class LegendMarkerLabel extends Translatable(Group) {
         // and Marker nodes directly rather than Group's default behaviour of computing this.bitmap's BBox.
         const { label, lines, markers } = this;
         return this.transformBBox(
-            Group.computeChildrenBBox(arraysIterable([label], lines, markers), { skipInvisible: false })
+            Group.computeChildrenBBox(iterate([label], lines, markers), { skipInvisible: false })
         );
     }
 }
