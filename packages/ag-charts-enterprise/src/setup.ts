@@ -37,6 +37,7 @@ import { RadarAreaModule } from './series/radar-area/main';
 import { RadarLineModule } from './series/radar-line/main';
 import { RadialBarModule } from './series/radial-bar/main';
 import { RadialColumnModule } from './series/radial-column/main';
+import { RadialGaugeModule } from './series/radial-gauge/main';
 import { RangeAreaModule } from './series/range-area/main';
 import { RangeBarModule } from './series/range-bar/main';
 import { SankeyModule } from './series/sankey/main';
@@ -79,6 +80,7 @@ export function setupEnterpriseModules() {
         RadialBarModule,
         RadialColumnModule,
         RadiusCategoryAxisModule,
+        RadialGaugeModule,
         RadiusNumberAxisModule,
         RangeBarModule,
         RangeAreaModule,

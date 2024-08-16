@@ -1,3 +1,4 @@
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 import type {
     AgRadialGaugeSeriesItemStylerParams,
     AgRadialGaugeSeriesLabelFormatterParams,
@@ -7,8 +8,10 @@ import type {
     Styler,
 } from 'ag-charts-types';
 
-import { BaseProperties } from '../../../util/properties';
-import {
+const {
+    BaseProperties,
+    SeriesTooltip,
+    SeriesProperties,
     COLOR_STRING,
     FUNCTION,
     LINE_DASH,
@@ -19,10 +22,8 @@ import {
     RATIO,
     STRING,
     Validate,
-} from '../../../util/validation';
-import { Label } from '../../label';
-import { SeriesProperties } from '../seriesProperties';
-import { SeriesTooltip } from '../seriesTooltip';
+} = _ModuleSupport;
+const { Label } = _Scene;
 
 export class RadialGaugeBackgroundProperties extends BaseProperties {
     @Validate(COLOR_STRING)

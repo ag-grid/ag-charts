@@ -1,3 +1,4 @@
+import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 import type {
     AgChartLabelFormatterParams,
     AgRadialGaugeSeriesLabelFormatterParams,
@@ -7,31 +8,16 @@ import type {
     Formatter,
 } from 'ag-charts-types';
 
-import type { ModuleContext } from '../../../module/moduleContext';
-import { fromToMotion } from '../../../motion/fromToMotion';
-import { resetMotion } from '../../../motion/resetMotion';
-import { LinearScale } from '../../../scale/linearScale';
-import { Group } from '../../../scene/group';
-import { PointerEvents } from '../../../scene/node';
-import { SectorBox } from '../../../scene/sectorBox';
-import { Selection } from '../../../scene/selection';
-import type { Path } from '../../../scene/shape/path';
-import { Sector } from '../../../scene/shape/sector';
-import { Text } from '../../../scene/shape/text';
-import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
-import { StateMachine } from '../../../util/stateMachine';
-import type { RequireOptional } from '../../../util/types';
-import type { ChartAnimationPhase } from '../../chartAnimationPhase';
-import { createDatumId } from '../../data/processors';
-import type { ChartLegendDatum, ChartLegendType } from '../../legendDatum';
-import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
-import { type PickFocusInputs, Series, type SeriesNodeDataContext, SeriesNodePickMode } from '../series';
-import type { SeriesNodeDatum } from '../seriesTypes';
 import { RadialGaugeSeriesProperties } from './radialGaugeSeriesProperties';
 import {
     prepareRadialGaugeSeriesAnimationFunctions,
     resetRadialGaugeSeriesAnimationFunctions,
 } from './radialGaugeUtil';
+
+const { fromToMotion, resetMotion, SeriesNodePickMode, StateMachine, createDatumId, EMPTY_TOOLTIP_CONTENT } =
+    _ModuleSupport;
+const { Group, PointerEvents, SectorBox, Selection, Sector, Text } = _Scene;
+const { LinearScale } = _Scale;
 
 export type GaugeAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 export type GaugeAnimationEvent =
@@ -45,7 +31,7 @@ export type GaugeAnimationEvent =
     | 'skip';
 export type GaugeAnimationData = { duration?: number };
 
-interface RadialGaugeNodeDatum extends SeriesNodeDatum {
+interface RadialGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     centerX: number;
     centerY: number;
     innerRadius: number;
@@ -68,15 +54,18 @@ type RadialGaugeLabelDatum = {
     fontFamily: string;
     lineHeight: number | undefined;
     formatter:
-        | Formatter<AgChartLabelFormatterParams<any> & RequireOptional<AgRadialGaugeSeriesLabelFormatterParams>>
+        | Formatter<
+              AgChartLabelFormatterParams<any> & _ModuleSupport.RequireOptional<AgRadialGaugeSeriesLabelFormatterParams>
+          >
         | undefined;
 };
 
-export interface RadialGaugeNodeDataContext extends SeriesNodeDataContext<RadialGaugeNodeDatum, RadialGaugeLabelDatum> {
+export interface RadialGaugeNodeDataContext
+    extends _ModuleSupport.SeriesNodeDataContext<RadialGaugeNodeDatum, RadialGaugeLabelDatum> {
     backgroundData: RadialGaugeNodeDatum[];
 }
 
-export class RadialGaugeSeries extends Series<
+export class RadialGaugeSeries extends _ModuleSupport.Series<
     RadialGaugeNodeDatum,
     RadialGaugeSeriesProperties,
     RadialGaugeLabelDatum,
@@ -95,23 +84,28 @@ export class RadialGaugeSeries extends Series<
     private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
     private readonly itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
 
-    private backgroundSelection: Selection<Sector, RadialGaugeNodeDatum> = Selection.select(this.backgroundGroup, () =>
-        this.nodeFactory()
+    private backgroundSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum> = Selection.select(
+        this.backgroundGroup,
+        () => this.nodeFactory()
     );
-    private datumSelection: Selection<Sector, RadialGaugeNodeDatum> = Selection.select(this.itemGroup, () =>
-        this.nodeFactory()
+    private datumSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum> = Selection.select(
+        this.itemGroup,
+        () => this.nodeFactory()
     );
-    private labelSelection: Selection<Text, RadialGaugeLabelDatum> = Selection.select(this.itemLabelGroup, Text);
-    private highlightDatumSelection: Selection<Sector, RadialGaugeNodeDatum> = Selection.select(
+    private labelSelection: _Scene.Selection<_Scene.Text, RadialGaugeLabelDatum> = Selection.select(
+        this.itemLabelGroup,
+        Text
+    );
+    private highlightDatumSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum> = Selection.select(
         this.highlightNode,
         () => this.nodeFactory()
     );
 
-    private animationState: StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
+    private animationState: _ModuleSupport.StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
 
     public contextNodeData?: RadialGaugeNodeDataContext;
 
-    constructor(moduleCtx: ModuleContext) {
+    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
             contentGroupVirtual: false,
@@ -163,7 +157,7 @@ export class RadialGaugeSeries extends Series<
         return true;
     }
 
-    private nodeFactory(): Sector {
+    private nodeFactory(): _Scene.Sector {
         return new Sector();
     }
 
@@ -352,13 +346,13 @@ export class RadialGaugeSeries extends Series<
 
     private async updateDatumSelection(opts: {
         nodeData: RadialGaugeNodeDatum[];
-        datumSelection: Selection<Sector, RadialGaugeNodeDatum>;
+        datumSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, () => createDatumId([]));
     }
 
     private async updateDatumNodes(opts: {
-        datumSelection: Selection<Sector, RadialGaugeNodeDatum>;
+        datumSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum>;
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
@@ -399,12 +393,14 @@ export class RadialGaugeSeries extends Series<
 
     private async updateBackgroundSelection(opts: {
         backgroundData: RadialGaugeNodeDatum[];
-        backgroundSelection: Selection<Sector, RadialGaugeNodeDatum>;
+        backgroundSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum>;
     }) {
         return opts.backgroundSelection.update(opts.backgroundData, undefined, () => createDatumId([]));
     }
 
-    private async updateBackgroundNodes(opts: { backgroundSelection: Selection<Sector, RadialGaugeNodeDatum> }) {
+    private async updateBackgroundNodes(opts: {
+        backgroundSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum>;
+    }) {
         const { backgroundSelection } = opts;
         const { cornerRadius } = this.properties;
         const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
@@ -442,12 +438,12 @@ export class RadialGaugeSeries extends Series<
 
     private async updateLabelSelection(opts: {
         labelData: RadialGaugeLabelDatum[];
-        labelSelection: Selection<Text, RadialGaugeLabelDatum>;
+        labelSelection: _Scene.Selection<_Scene.Text, RadialGaugeLabelDatum>;
     }) {
         return opts.labelSelection.update(opts.labelData, undefined, (datum) => datum.label);
     }
 
-    private async updateLabelNodes(opts: { labelSelection: Selection<Text, RadialGaugeLabelDatum> }) {
+    private async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, RadialGaugeLabelDatum> }) {
         const { labelSelection } = opts;
         const animationDisabled = this.ctx.animationManager.isSkipped();
 
@@ -492,7 +488,7 @@ export class RadialGaugeSeries extends Series<
         this.labelSelection.cleanup();
     }
 
-    resetAnimation(phase: ChartAnimationPhase) {
+    resetAnimation(phase: _ModuleSupport.ChartAnimationPhase) {
         if (phase === 'initial') {
             this.animationState.transition('reset');
         } else if (phase === 'ready') {
@@ -562,7 +558,7 @@ export class RadialGaugeSeries extends Series<
         this.resetAllAnimation();
     }
 
-    override getLabelData(): PointLabelDatum[] {
+    override getLabelData(): _Util.PointLabelDatum[] {
         return [];
     }
 
@@ -570,11 +566,13 @@ export class RadialGaugeSeries extends Series<
         return [NaN, NaN];
     }
 
-    override getLegendData(_legendType: unknown): ChartLegendDatum<any>[] | ChartLegendDatum<ChartLegendType>[] {
+    override getLegendData(
+        _legendType: unknown
+    ): _ModuleSupport.ChartLegendDatum<any>[] | _ModuleSupport.ChartLegendDatum<_ModuleSupport.ChartLegendType>[] {
         return [];
     }
 
-    override getTooltipHtml(nodeDatum: Sector): TooltipContent {
+    override getTooltipHtml(nodeDatum: _Scene.Sector): _ModuleSupport.TooltipContent {
         const { id: seriesId, properties } = this;
 
         if (!properties.isValid()) {
@@ -612,7 +610,7 @@ export class RadialGaugeSeries extends Series<
         );
     }
 
-    computeFocusBounds(_opts: PickFocusInputs): Path | undefined {
+    computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): _Scene.Path | undefined {
         return;
     }
 }

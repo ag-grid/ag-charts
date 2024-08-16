@@ -1,15 +1,17 @@
-import type { SeriesModule } from '../../../module/coreModules';
-import { singleSeriesPaletteFactory } from '../../../module/theme';
-import { FONT_WEIGHT } from '../../themes/constants';
-import {
+import { _ModuleSupport, _Theme } from 'ag-charts-community';
+
+import { RadialGaugeSeries } from './radialGaugeSeries';
+
+const {
+    FONT_WEIGHT,
     DEFAULT_FONT_FAMILY,
     DEFAULT_HIERARCHY_FILLS,
     DEFAULT_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
-} from '../../themes/symbols';
-import { RadialGaugeSeries } from './radialGaugeSeries';
+    singleSeriesPaletteFactory,
+} = _Theme;
 
-export const RadialGaugeSeriesModule: SeriesModule<'radial-gauge'> = {
+export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'community',

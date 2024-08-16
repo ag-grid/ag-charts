@@ -1,6 +1,6 @@
-import type { FromToFns } from '../../../motion/fromToMotion';
-import { SectorBox } from '../../../scene/sectorBox';
-import type { Sector } from '../../../scene/shape/sector';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
+
+const { SectorBox } = _Scene;
 
 type AnimatableSectorDatum = {
     innerRadius: number;
@@ -14,7 +14,7 @@ type AnimatableSectorDatum = {
 export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean) {
     const phase = initialLoad ? 'initial' : 'update';
 
-    const fns: FromToFns<Sector, any, AnimatableSectorDatum> = {
+    const fns: _ModuleSupport.FromToFns<_Scene.Sector, any, AnimatableSectorDatum> = {
         fromFn(sect, datum) {
             let { startAngle, endAngle, innerRadius, outerRadius } = sect;
             let clipStartAngle = sect.clipSector?.startAngle;
@@ -56,7 +56,7 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean)
     return fns;
 }
 
-export function resetRadialGaugeSeriesAnimationFunctions(_node: Sector, datum: AnimatableSectorDatum) {
+export function resetRadialGaugeSeriesAnimationFunctions(_node: _Scene.Sector, datum: AnimatableSectorDatum) {
     return {
         startAngle: datum.startAngle,
         endAngle: datum.endAngle,
