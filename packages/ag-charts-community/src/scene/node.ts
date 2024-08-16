@@ -269,7 +269,7 @@ export abstract class Node extends ChangeDetectable {
      * Returns the first matching node or `undefined`.
      * Nodes that render later (show on top) are hit tested first.
      */
-    pickNode(x: number, y: number): Node | undefined {
+    pickNode(x: number, y: number, _localCoords = false): Node | undefined {
         if (!this.visible || this.pointerEvents === PointerEvents.None || !this.containsPoint(x, y)) {
             return;
         }

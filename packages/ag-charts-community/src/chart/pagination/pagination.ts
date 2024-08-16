@@ -310,14 +310,6 @@ export class Pagination extends BaseProperties {
         this.previousButtonDisabled = onFirstPage || zeroPagesToDisplay;
     }
 
-    private nextButtonContainsPoint(offsetX: number, offsetY: number) {
-        return !this.nextButtonDisabled && this.nextButton.containsPoint(offsetX, offsetY);
-    }
-
-    private previousButtonContainsPoint(offsetX: number, offsetY: number) {
-        return !this.previousButtonDisabled && this.previousButton.containsPoint(offsetX, offsetY);
-    }
-
     public clickNext() {
         this.incrementPage();
         this.onPaginationChanged();
@@ -340,9 +332,10 @@ export class Pagination extends BaseProperties {
         const { regionOffsetX, regionOffsetY } = event;
         event.preventDefault();
 
-        if (this.nextButtonContainsPoint(regionOffsetX, regionOffsetY)) {
+        const node = this.group.pickNode(regionOffsetX, regionOffsetY, true);
+        if (node === this.nextButton && !this.nextButtonDisabled) {
             this.clickNext();
-        } else if (this.previousButtonContainsPoint(regionOffsetX, regionOffsetY)) {
+        } else if (node === this.previousButton && !this.previousButtonDisabled) {
             this.clickPrevious();
         }
     }
@@ -350,10 +343,11 @@ export class Pagination extends BaseProperties {
     private onPaginationMouseMove(event: RegionEvent<'hover'>) {
         const { regionOffsetX, regionOffsetY } = event;
 
-        if (this.nextButtonContainsPoint(regionOffsetX, regionOffsetY)) {
+        const node = this.group.pickNode(regionOffsetX, regionOffsetY, true);
+        if (node === this.nextButton && !this.nextButtonDisabled) {
             this.cursorManager.updateCursor(this.id, 'pointer');
             this.highlightActive = 'next';
-        } else if (this.previousButtonContainsPoint(regionOffsetX, regionOffsetY)) {
+        } else if (node === this.previousButton && !this.previousButtonDisabled) {
             this.cursorManager.updateCursor(this.id, 'pointer');
             this.highlightActive = 'previous';
         } else {
