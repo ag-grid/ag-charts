@@ -1,13 +1,16 @@
 import type { Direction } from 'ag-charts-types';
 
-import type { BBoxProvider, BBoxValues } from '../../util/bboxinterface';
-import { Debug } from '../../util/debug';
-import { createElement } from '../../util/dom';
 import type { LocaleManager } from '../locale/localeManager';
-import type { UpdateService } from '../updateService';
+import type { BBoxProvider, BBoxValues } from '../util/bboxinterface';
+import { Debug } from '../util/debug';
+import { createElement } from '../util/dom';
 import { BoundedText } from './boundedText';
 import type { DOMElementClass, DOMManager } from './domManager';
 import type { FocusIndicator } from './focusIndicator';
+
+type UpdateServiceLike = {
+    addListener(type: 'update-complete', handler: () => unknown): () => void;
+};
 
 type ElemParams<T extends ProxyElementType> = {
     readonly type: T;
@@ -93,7 +96,7 @@ export class ProxyInteractionService {
     private readonly destroyFns: Array<() => void> = [];
 
     constructor(
-        updateService: UpdateService,
+        updateService: UpdateServiceLike,
         private readonly localeManager: LocaleManager,
         private readonly domManager: DOMManager,
         private readonly focusIndicator: FocusIndicator

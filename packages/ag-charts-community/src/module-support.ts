@@ -104,7 +104,7 @@ export * as Motion from './motion/easing';
 export * from './util/stateMachine';
 export * from './motion/resetMotion';
 export * from './motion/fromToMotion';
-export * from './chart/dom/domManager';
+export * from './dom/domManager';
 export { resetIds } from './util/id';
 export { type DefaultColors } from './chart/themes/defaultColors';
 

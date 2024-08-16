@@ -1,10 +1,10 @@
 import type { Formatter, MessageFormatterParams } from 'ag-charts-types';
 
-import type { ModuleInstance } from '../../module/baseModule';
-import { BaseModuleInstance } from '../../module/module';
-import type { ModuleContext } from '../../module/moduleContext';
-import { ObserveChanges } from '../../util/proxy';
-import { FUNCTION, PLAIN_OBJECT, Validate } from '../../util/validation';
+import type { ModuleInstance } from '../module/baseModule';
+import { BaseModuleInstance } from '../module/module';
+import type { ModuleContext } from '../module/moduleContext';
+import { ObserveChanges } from '../util/proxy';
+import { FUNCTION, PLAIN_OBJECT, Validate } from '../util/validation';
 
 export class Locale extends BaseModuleInstance implements ModuleInstance {
     @ObserveChanges<Locale>((target) => {

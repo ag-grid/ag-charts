@@ -1,7 +1,7 @@
 import { AG_CHARTS_LOCALE_EN_US } from 'ag-charts-locale';
 import type { Formatter, MessageFormatterParams } from 'ag-charts-types';
 
-import { Listeners } from '../../util/listeners';
+import { Listeners } from '../util/listeners';
 import { defaultMessageFormatter } from './defaultMessageFormatter';
 
 export class LocaleManager extends Listeners<'locale-changed', () => void> {

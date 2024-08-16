@@ -1,5 +1,5 @@
-import type { BBoxValues } from '../../util/bboxinterface';
-import { createElement, createElementNS, setElementBBox } from '../../util/dom';
+import type { BBoxValues } from '../util/bboxinterface';
+import { createElement, createElementNS, setElementBBox } from '../util/dom';
 
 // This class represents text that is sized by bounds rather than font size.
 // Its main purpose to tell screenreaders about the bounds & content of text scene nodes.

@@ -1,10 +1,11 @@
 import type { AgIconName } from 'ag-charts-types';
 
-import { BBox } from '../../scene/bbox';
-import STYLES from '../../styles.css';
-import { createElement, getDocument, getWindow } from '../../util/dom';
-import { type Size, SizeMonitor } from '../../util/sizeMonitor';
-import { BaseManager } from '../baseManager';
+import { BaseManager } from '../chart/baseManager';
+import { BBox } from '../scene/bbox';
+import STYLES from '../styles.css';
+import { createElement, getDocument, getWindow } from '../util/dom';
+import { type Size, SizeMonitor } from '../util/sizeMonitor';
+// TODO move to utils
 import BASE_DOM from './domLayout.html';
 
 const CANVAS_CENTER_CLASS = 'canvas-center';

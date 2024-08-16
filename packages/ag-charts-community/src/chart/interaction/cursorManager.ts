@@ -1,5 +1,5 @@
+import type { DOMManager } from '../../dom/domManager';
 import { StateTracker } from '../../util/stateTracker';
-import type { DOMManager } from '../dom/domManager';
 
 export enum Cursor {
     Auto = 'auto',
