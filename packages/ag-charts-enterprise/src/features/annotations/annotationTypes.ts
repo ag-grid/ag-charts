@@ -7,15 +7,26 @@ export enum TextualAnnotationType {
     Text = 'text',
 }
 
-export enum AnnotationType {
-    // Lines
+export enum LineAnnotationType {
     Line = 'line',
     HorizontalLine = 'horizontal-line',
     VerticalLine = 'vertical-line',
+}
 
-    // Channels
+export enum ChannelAnnotationType {
     DisjointChannel = 'disjoint-channel',
     ParallelChannel = 'parallel-channel',
+}
+
+export enum AnnotationType {
+    // Lines
+    Line = LineAnnotationType.Line,
+    HorizontalLine = LineAnnotationType.HorizontalLine,
+    VerticalLine = LineAnnotationType.VerticalLine,
+
+    // Channels
+    DisjointChannel = ChannelAnnotationType.DisjointChannel,
+    ParallelChannel = ChannelAnnotationType.ParallelChannel,
 
     // Texts
     Callout = TextualAnnotationType.Callout,
@@ -122,3 +133,10 @@ export interface GuardDragClickDoubleEvent {
 }
 
 export type AnnotationOptionsColorPickerType = 'line-color' | 'fill-color' | 'text-color';
+
+export type AnnotationLineStyle = {
+    type?: AnnotationLineStyleType;
+    strokeWidth?: number;
+};
+
+export type AnnotationLineStyleType = 'solid' | 'dashed' | 'dotted';

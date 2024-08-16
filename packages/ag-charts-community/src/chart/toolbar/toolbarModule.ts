@@ -77,6 +77,16 @@ const annotationOptions: AgToolbarOptions['annotationOptions'] = {
             value: 'text-size',
         },
         {
+            tooltip: 'toolbarAnnotationsLineStrokeWidth',
+            value: 'line-stroke-width',
+        },
+        {
+            icon: 'line-style-solid',
+            tooltip: 'toolbarAnnotationsLineStyle=',
+            value: 'line-style-type',
+        },
+
+        {
             role: 'switch',
             icon: 'unlocked',
             tooltip: 'toolbarAnnotationsLock',

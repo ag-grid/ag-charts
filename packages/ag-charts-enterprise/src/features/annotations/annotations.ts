@@ -12,8 +12,12 @@ import { ColorPicker } from '../color-picker/colorPicker';
 import { TextInput } from '../text-input/textInput';
 import {
     type AnnotationContext,
+    type AnnotationLineStyle,
+    type AnnotationLineStyleType,
     type AnnotationOptionsColorPickerType,
+    ChannelAnnotationType,
     type Coords,
+    LineAnnotationType,
     type Point,
     TextualAnnotationType,
 } from './annotationTypes';
@@ -27,10 +31,12 @@ import { calculateAxisLabelPadding, invertCoords, validateDatumPoint } from './a
 import {
     annotationDatums,
     annotationScenes,
+    getLineStyle,
     getTypedDatum,
     hasFillColor,
     hasFontSize,
     hasLineColor,
+    hasLineStyle,
     hasTextColor,
     isTextType,
     setDefaults,
@@ -65,6 +71,20 @@ type AnnotationAxis = {
 };
 
 const AXIS_TYPE = UNION(['x', 'y', 'xy'], 'an axis type');
+
+const LINE_STROKE_WIDTH_ITEMS: MenuItem<number>[] = [
+    { strokeWidth: 1, label: '1', value: 1 },
+    { strokeWidth: 2, label: '2', value: 2 },
+    { strokeWidth: 3, label: '3', value: 3 },
+    { strokeWidth: 4, label: '4', value: 4 },
+    { strokeWidth: 8, label: '8', value: 8 },
+];
+
+const LINE_STYLE_TYPE_ITEMS: MenuItem<AnnotationLineStyleType>[] = [
+    { icon: 'line-style-solid', value: 'solid' },
+    { icon: 'line-style-dashed', value: 'dashed' },
+    { icon: 'line-style-dotted', value: 'dotted' },
+];
 
 const TEXT_SIZE_ITEMS: MenuItem<number>[] = [
     { label: '10', value: 10 },
@@ -119,6 +139,8 @@ const SHAPE_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
 
 enum AnnotationOptions {
     Delete = 'delete',
+    LineStrokeWidth = 'line-stroke-width',
+    LineStyleType = 'line-style-type',
     LineColor = 'line-color',
     FillColor = 'fill-color',
     Lock = 'lock',
@@ -160,7 +182,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private readonly state: AnnotationsStateMachine;
     private readonly annotationData: AnnotationPropertiesArray = new PropertiesArray(this.createAnnotationDatum);
     private readonly defaultColors: Map<
-        AnnotationType | TextualAnnotationType,
+        AnnotationType | TextualAnnotationType | LineAnnotationType | ChannelAnnotationType,
         Map<AnnotationOptionsColorPickerType, [string, string, number] | undefined>
     > = new Map(
         Object.values(AnnotationType).map((type) => [
@@ -179,6 +201,17 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         [TextualAnnotationType.Text, undefined],
     ]);
 
+    private readonly defaultLineStyles: Map<
+        LineAnnotationType | ChannelAnnotationType,
+        AnnotationLineStyle | undefined
+    > = new Map<LineAnnotationType | ChannelAnnotationType, AnnotationLineStyle | undefined>([
+        [LineAnnotationType.Line, undefined],
+        [LineAnnotationType.HorizontalLine, undefined],
+        [LineAnnotationType.VerticalLine, undefined],
+        [ChannelAnnotationType.DisjointChannel, undefined],
+        [ChannelAnnotationType.ParallelChannel, undefined],
+    ]);
+
     // Elements
     private seriesRect?: _Scene.BBox;
     private readonly container = new _Scene.Group({ name: 'static-annotations' });
@@ -188,7 +221,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     );
     private readonly colorPicker = new ColorPicker(this.ctx);
     private readonly textSizeMenu = new Menu(this.ctx, 'text-size');
+    private readonly lineStyleTypeMenu = new Menu(this.ctx, 'annotations-line-style-type');
+    private readonly lineStrokeWidthMenu = new Menu(this.ctx, 'annotations-line-stroke-width');
     private readonly annotationMenu = new Menu(this.ctx, 'annotations');
+
     private readonly textInput = new TextInput(this.ctx);
 
     private xAxis?: AnnotationAxis;
@@ -288,7 +324,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 const styles = this.ctx.annotationManager.getAnnotationTypeStyles(type);
                 if (styles) datum.set(styles);
 
-                setDefaults({ datum, defaultColors: this.defaultColors, defaultFontSizes: this.defaultFontSizes });
+                setDefaults({
+                    datum,
+                    defaultColors: this.defaultColors,
+                    defaultFontSizes: this.defaultFontSizes,
+                    defaultLineStyles: this.defaultLineStyles,
+                });
 
                 this.resetToolbarButtonStates();
 
@@ -515,6 +556,30 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const datum = getTypedDatum(annotationData[active]);
 
         switch (event.value) {
+            case AnnotationOptions.LineStyleType:
+                const lineStyle = hasLineStyle(datum) ? getLineStyle(datum.lineDash, datum.lineStyle) : undefined;
+                this.lineStyleTypeMenu.show<AnnotationLineStyleType>({
+                    items: LINE_STYLE_TYPE_ITEMS,
+                    ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsLineStyleType'),
+                    value: lineStyle,
+                    sourceEvent: event.sourceEvent,
+                    onPress: (item) => this.onLineStyleTypeMenuPress(item, datum),
+                    onClose: this.onLineStyleTypeMenuClose.bind(this),
+                    class: 'annotations__line-style-type',
+                });
+                break;
+            case AnnotationOptions.LineStrokeWidth:
+                const strokeWidth = hasLineStyle(datum) ? datum.strokeWidth : undefined;
+                this.lineStrokeWidthMenu.show<number>({
+                    items: LINE_STROKE_WIDTH_ITEMS,
+                    ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsLineStrokeWidth'),
+                    value: strokeWidth,
+                    sourceEvent: event.sourceEvent,
+                    onPress: (item) => this.onLineStrokeWidthMenuPress(item, datum),
+                    onClose: this.onLineStrokeWidthMenuClose.bind(this),
+                    class: 'annotations__line-stroke-width',
+                });
+                break;
             case AnnotationOptions.LineColor:
             case AnnotationOptions.FillColor:
             case AnnotationOptions.TextColor:
@@ -527,14 +592,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 break;
 
             case AnnotationOptions.TextSize: {
-                const fontSize = datum != null && 'fontSize' in datum ? datum.fontSize : undefined;
+                const fontSize = isTextType(datum) ? datum.fontSize : undefined;
                 this.textSizeMenu.show<number>({
                     items: TEXT_SIZE_ITEMS,
                     ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsTextSize'),
                     value: fontSize,
                     sourceEvent: event.sourceEvent,
-                    onPress: (item) => this.onTextSizePopoverPress(item, datum),
-                    onClose: this.onTextSizePopoverClose.bind(this),
+                    onPress: (item) => this.onTextSizeMenuPress(item, datum),
+                    onClose: this.onTextSizeMenuClose.bind(this),
                     class: 'ag-charts-annotations-text-size-menu',
                 });
                 break;
@@ -571,8 +636,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             items,
             ariaLabel: this.ctx.localeManager.t(ariaLabel),
             sourceEvent: event.sourceEvent,
-            onPress: this.onAnnotationsPopoverPress.bind(this, event),
-            onClose: this.onAnnotationsPopoverClose.bind(this),
+            onPress: this.onAnnotationsMenuPress.bind(this, event),
+            onClose: this.onAnnotationsMenuClose.bind(this),
         });
     }
 
@@ -593,17 +658,26 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (group !== 'annotationOptions') return;
 
+        const anchor = { x: rect.x, y: rect.y + rect.height - 1 };
+
         switch (value as AnnotationOptions) {
             case AnnotationOptions.FillColor:
             case AnnotationOptions.LineColor:
             case AnnotationOptions.TextColor: {
-                const anchor = Vec2.add(groupRect, Vec2.from(0, groupRect.height + 4));
+                const colorPickerAnchor = Vec2.add(groupRect, Vec2.from(0, groupRect.height + 4));
                 const fallback = { y: groupRect.y - 4 };
-                this.colorPicker.setAnchor(anchor, fallback);
+                this.colorPicker.setAnchor(colorPickerAnchor, fallback);
+                break;
+            }
+            case AnnotationOptions.LineStrokeWidth: {
+                this.lineStrokeWidthMenu.setAnchor(anchor);
+                break;
+            }
+            case AnnotationOptions.LineStyleType: {
+                this.lineStyleTypeMenu.setAnchor(anchor);
                 break;
             }
             case AnnotationOptions.TextSize: {
-                const anchor = { x: rect.x, y: rect.y + rect.height - 1 };
                 this.textSizeMenu.setAnchor(anchor);
                 break;
             }
@@ -670,7 +744,20 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         });
     }
 
-    private onTextSizePopoverPress(item: MenuItem<number>, datum?: AnnotationProperties) {
+    private updateToolbarLineStyleType(item: MenuItem<AnnotationLineStyleType>) {
+        this.ctx.toolbarManager.updateButton('annotationOptions', AnnotationOptions.LineStyleType, {
+            icon: item.icon,
+        });
+    }
+
+    private updateToolbarStrokeWidth(item: MenuItem<number>) {
+        this.ctx.toolbarManager.updateButton('annotationOptions', AnnotationOptions.LineStrokeWidth, {
+            label: item.label,
+            strokeWidth: item.value,
+        });
+    }
+
+    private onTextSizeMenuPress(item: MenuItem<number>, datum?: AnnotationProperties) {
         const fontSize = item.value;
         if (isTextType(datum)) {
             this.defaultFontSizes.set(datum.type, fontSize);
@@ -681,11 +768,57 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.updateToolbarFontSize(fontSize);
     }
 
-    private onTextSizePopoverClose() {
+    private onLineStyleTypeMenuPress(item: MenuItem<AnnotationLineStyleType>, datum?: AnnotationProperties) {
+        if (!hasLineStyle(datum)) {
+            return;
+        }
+
+        const type = item.value;
+
+        const defaultStyle = this.defaultLineStyles.get(datum.type);
+        if (defaultStyle) {
+            defaultStyle.type = type;
+        } else {
+            this.defaultLineStyles.set(datum.type, { type: type });
+        }
+
+        this.state.transition('lineStyle', { type });
+
+        this.updateToolbarLineStyleType(item);
+    }
+
+    private onLineStrokeWidthMenuPress(item: MenuItem<number>, datum?: AnnotationProperties) {
+        if (!hasLineStyle(datum)) {
+            return;
+        }
+
+        const strokeWidth = item.value;
+
+        const defaultStyle = this.defaultLineStyles.get(datum.type);
+        if (defaultStyle) {
+            defaultStyle.strokeWidth = strokeWidth;
+        } else {
+            this.defaultLineStyles.set(datum.type, { strokeWidth });
+        }
+
+        this.state.transition('lineStyle', { strokeWidth });
+
+        this.updateToolbarStrokeWidth(item);
+    }
+
+    private onTextSizeMenuClose() {
         this.textSizeMenu.hide();
     }
 
-    private onAnnotationsPopoverPress(
+    private onLineStyleTypeMenuClose() {
+        this.lineStyleTypeMenu.hide();
+    }
+
+    private onLineStrokeWidthMenuClose() {
+        this.lineStrokeWidthMenu.hide();
+    }
+
+    private onAnnotationsMenuPress(
         event: _ModuleSupport.ToolbarButtonPressedEvent<AgToolbarAnnotationsButtonValue>,
         item: MenuItem<AnnotationType>
     ) {
@@ -701,7 +834,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         });
 
         this.beginAnnotationPlacement(item.value);
-        this.onAnnotationsPopoverClose();
+        this.onAnnotationsMenuClose();
 
         this.removeAmbientKeyboardListener?.();
         this.removeAmbientKeyboardListener = this.ctx.interactionManager.addListener(
@@ -711,7 +844,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         );
     }
 
-    private onAnnotationsPopoverClose() {
+    private onAnnotationsMenuClose() {
         this.annotationMenu.hide();
     }
 
@@ -981,6 +1114,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const datum = getTypedDatum(annotationData.at(active));
         const locked = datum?.locked ?? false;
 
+        toolbarManager.toggleButton('annotationOptions', AnnotationOptions.LineStyleType, {
+            enabled: !locked,
+            visible: hasLineStyle(datum),
+        });
+        toolbarManager.toggleButton('annotationOptions', AnnotationOptions.LineStrokeWidth, {
+            enabled: !locked,
+            visible: hasLineStyle(datum),
+        });
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.LineColor, {
             enabled: !locked,
             visible: hasLineColor(datum),
@@ -1005,6 +1146,25 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.updateToolbarFontSize(datum != null && 'fontSize' in datum ? datum.fontSize : undefined);
         this.updateToolbarFills();
+        this.updateToolbarLineStyles(datum);
+    }
+
+    updateToolbarLineStyles(datum?: AnnotationProperties) {
+        if (!hasLineStyle(datum)) {
+            return;
+        }
+        const strokeWidth = datum.strokeWidth ?? 1;
+        const lineStyleType = getLineStyle(datum.lineDash, datum.lineStyle);
+
+        this.updateToolbarStrokeWidth({
+            strokeWidth,
+            value: strokeWidth,
+            label: String(strokeWidth),
+        });
+
+        this.updateToolbarLineStyleType(
+            LINE_STYLE_TYPE_ITEMS.find((item) => item.value === lineStyleType) ?? LINE_STYLE_TYPE_ITEMS[0]
+        );
     }
 
     private clear() {
@@ -1032,6 +1192,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private hideOverlays() {
         this.colorPicker.hide();
         this.textSizeMenu.hide();
+        this.lineStyleTypeMenu.hide();
+        this.lineStrokeWidthMenu.hide();
         this.annotationMenu.hide();
     }
 

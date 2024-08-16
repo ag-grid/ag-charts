@@ -7,7 +7,7 @@ import {
     _Util,
 } from 'ag-charts-community';
 
-import type { AnnotationContext, AnnotationOptionsColorPickerType } from './annotationTypes';
+import type { AnnotationContext, AnnotationLineStyleType, AnnotationOptionsColorPickerType } from './annotationTypes';
 
 const {
     BOOLEAN,
@@ -27,6 +27,7 @@ const {
     UNION,
     BaseProperties,
     Validate,
+    LINE_STYLE,
 } = _ModuleSupport;
 
 type Constructor<T = {}> = new (...args: any[]) => T;
@@ -220,6 +221,14 @@ export function LineDash<T extends Constructor>(Parent: T) {
         lineDashOffset?: number;
     }
     return LineDashInternal;
+}
+
+export function LineStyle<T extends Constructor>(Parent: T) {
+    class LineStyleInternal extends Parent {
+        @Validate(LINE_STYLE, { optional: true })
+        lineStyle?: AnnotationLineStyleType;
+    }
+    return LineStyleInternal;
 }
 
 export function Font<T extends Constructor>(Parent: T) {

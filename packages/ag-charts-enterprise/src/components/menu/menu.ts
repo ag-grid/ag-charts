@@ -15,9 +15,10 @@ export interface MenuOptions<Value = any> extends PopoverOptions {
 }
 
 export interface MenuItem<Value = any> {
-    label: string;
+    label?: string;
     value: Value;
     icon?: AgIconName;
+    strokeWidth?: number;
 }
 
 /**
@@ -62,8 +63,14 @@ export class Menu extends AnchoredPopover {
             row.appendChild(icon);
         }
 
+        const strokeWidthVisible = item.strokeWidth != null;
+        if (strokeWidthVisible) {
+            row.classList.toggle(`ag-charts-popover__row--stroke-width-visible`, strokeWidthVisible);
+            row.style.setProperty('--strokeWidth', strokeWidthVisible ? `${item.strokeWidth}px` : null);
+        }
+
         const title = createElement('span');
-        title.textContent = this.ctx.localeManager.t(item.label);
+        title.textContent = this.ctx.localeManager.t(item.label ?? '');
         title.className = `ag-charts-menu__label`;
         row.appendChild(title);
 

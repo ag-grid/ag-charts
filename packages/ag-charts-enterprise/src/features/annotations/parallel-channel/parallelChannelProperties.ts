@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import { type PixelSize, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import {
     Annotation,
@@ -8,28 +8,36 @@ import {
     Handle,
     Line,
     LineDash,
+    LineStyle,
     Stroke,
 } from '../annotationProperties';
-import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
+import {
+    type AnnotationContext,
+    type AnnotationOptionsColorPickerType,
+    ChannelAnnotationType,
+} from '../annotationTypes';
 import { validateDatumLine } from '../annotationUtils';
 
 const { NUMBER, STRING, OBJECT, BaseProperties, Validate, isObject } = _ModuleSupport;
 
 export class ParallelChannelProperties extends Annotation(
-    Background(Line(Handle(Extendable(Stroke(LineDash(BaseProperties))))))
+    Background(Line(Handle(Extendable(Stroke(LineDash(LineStyle(BaseProperties)))))))
 ) {
     static is(value: unknown): value is ParallelChannelProperties {
-        return isObject(value) && value.type === AnnotationType.ParallelChannel;
+        return isObject(value) && value.type === ChannelAnnotationType.ParallelChannel;
     }
 
     @Validate(STRING)
-    type = AnnotationType.ParallelChannel as const;
+    type = ChannelAnnotationType.ParallelChannel as const;
 
     @Validate(NUMBER)
     height!: number;
 
     @Validate(OBJECT, { optional: true })
     middle = new ChannelAnnotationMiddleProperties();
+
+    lineCap?: _Scene.ShapeLineCap = undefined;
+    computedLineDash?: PixelSize[] = undefined;
 
     get bottom() {
         const bottom = {
@@ -71,5 +79,9 @@ export class ParallelChannelProperties extends Annotation(
             case `line-color`:
                 return this.strokeOpacity;
         }
+    }
+
+    getLineDash(): PixelSize[] | undefined {
+        return this.lineDash ?? this.computedLineDash;
     }
 }

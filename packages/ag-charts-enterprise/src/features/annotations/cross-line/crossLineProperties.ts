@@ -1,20 +1,25 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type PixelSize, _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import { Annotation, AxisLabel, Handle, LineDash, Stroke, Value } from '../annotationProperties';
-import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
+import { Annotation, AxisLabel, Handle, LineDash, LineStyle, Stroke, Value } from '../annotationProperties';
+import { type AnnotationContext, type AnnotationOptionsColorPickerType, LineAnnotationType } from '../annotationTypes';
 import { validateDatumValue } from '../annotationUtils';
 
 const { STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
 
-export class HorizontalLineProperties extends Annotation(Value(Handle(AxisLabel(Stroke(LineDash(BaseProperties)))))) {
+export class HorizontalLineProperties extends Annotation(
+    Value(Handle(AxisLabel(Stroke(LineDash(LineStyle(BaseProperties))))))
+) {
     readonly direction = 'horizontal';
 
     static is(value: unknown): value is HorizontalLineProperties {
-        return isObject(value) && value.type === AnnotationType.HorizontalLine;
+        return isObject(value) && value.type === LineAnnotationType.HorizontalLine;
     }
 
     @Validate(STRING)
-    type = AnnotationType.HorizontalLine as const;
+    type = LineAnnotationType.HorizontalLine as const;
+
+    lineCap?: _Scene.ShapeLineCap = undefined;
+    computedLineDash?: PixelSize[] = undefined;
 
     override isValidWithContext(context: AnnotationContext, warningPrefix: string) {
         return super.isValid(warningPrefix) && validateDatumValue(context, this, warningPrefix);
@@ -26,6 +31,10 @@ export class HorizontalLineProperties extends Annotation(Value(Handle(AxisLabel(
 
     getDefaultOpacity(_colorPickerType: AnnotationOptionsColorPickerType) {
         return this.strokeOpacity;
+    }
+
+    getLineDash(): PixelSize[] | undefined {
+        return this.lineDash ?? this.computedLineDash;
     }
 }
 
@@ -33,11 +42,14 @@ export class VerticalLineProperties extends Annotation(Value(Handle(AxisLabel(St
     readonly direction = 'vertical';
 
     static is(value: unknown): value is VerticalLineProperties {
-        return isObject(value) && value.type === AnnotationType.VerticalLine;
+        return isObject(value) && value.type === LineAnnotationType.VerticalLine;
     }
 
     @Validate(STRING)
-    type = AnnotationType.VerticalLine as const;
+    type = LineAnnotationType.VerticalLine as const;
+
+    lineCap?: _Scene.ShapeLineCap = undefined;
+    computedLineDash?: PixelSize[] = undefined;
 
     override isValidWithContext(context: AnnotationContext, warningPrefix: string) {
         return super.isValid(warningPrefix) && validateDatumValue(context, this, warningPrefix);
@@ -49,6 +61,10 @@ export class VerticalLineProperties extends Annotation(Value(Handle(AxisLabel(St
 
     getDefaultOpacity(_colorPickerType: AnnotationOptionsColorPickerType) {
         return this.strokeOpacity;
+    }
+
+    getLineDash(): PixelSize[] | undefined {
+        return this.lineDash ?? this.computedLineDash;
     }
 }
 

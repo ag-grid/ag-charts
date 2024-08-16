@@ -152,9 +152,16 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
 
     override updateLines(datum: DisjointChannelProperties, top: LineCoords, bottom: LineCoords) {
         const { topLine, bottomLine } = this;
-        const { lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } = datum;
+        const { lineDashOffset, stroke, strokeOpacity, strokeWidth, lineCap } = datum;
 
-        const lineStyles = { lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth };
+        const lineStyles = {
+            lineDash: datum.getLineDash(),
+            lineDashOffset,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            lineCap,
+        };
 
         topLine.setProperties({
             x1: top.x1,

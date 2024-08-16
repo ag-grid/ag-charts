@@ -157,6 +157,7 @@ export const OBJECT_ARRAY = predicateWithMessage(ARRAY_OF(OBJECT), 'objects');
 
 export const LINE_CAP = UNION(['butt', 'round', 'square'], 'a line cap');
 export const LINE_JOIN = UNION(['round', 'bevel', 'miter'], 'a line join');
+export const LINE_STYLE = UNION(['solid', 'dashed', 'dotted'], 'a line style');
 export const LINE_DASH = predicateWithMessage(
     ARRAY_OF(POSITIVE_NUMBER),
     'numbers specifying the length in pixels of alternating dashes and gaps, for example, [6, 3] means dashes with a length of 6 pixels with gaps between of 3 pixels.'
