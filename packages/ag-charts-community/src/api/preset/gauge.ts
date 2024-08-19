@@ -9,7 +9,7 @@ import type { RequireOptional } from '../../util/types';
 
 function allProperties<T>(opts: AgGaugeChartOptions2, v: RequireOptional<T>): T {
     Object.keys(v).forEach((key) => {
-        if (!opts.hasOwnProperty(key)) {
+        if (!Object.hasOwn(opts, key)) {
             // @ts-expect-error
             delete v[key];
         }
