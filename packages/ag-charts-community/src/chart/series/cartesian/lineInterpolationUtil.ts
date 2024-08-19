@@ -45,34 +45,52 @@ function getAxisIndices({ data }: SpanContext, axisValues: any[]): SpanIndices[]
 }
 
 function getAxisValues(newData: SpanContext, oldData: SpanContext) {
+    // Old and new axis values might not be directly comparable
+    // Array.sort does not handle this case
     const allAxisValues = new Set<AxisValue>();
-    for (const { xValue0, xValue1 } of oldData.data) {
-        allAxisValues.add(xValue0.valueOf()).add(xValue1.valueOf());
-    }
     for (const { xValue0, xValue1 } of newData.data) {
-        allAxisValues.add(xValue0.valueOf()).add(xValue1.valueOf());
+        const xValue0ValueOf = xValue0.valueOf();
+        const xValue1ValueOf = xValue1.valueOf();
+        allAxisValues.add(xValue0ValueOf).add(xValue1ValueOf);
     }
-    const axisValues = Array.from(allAxisValues).sort((a, b) => {
-        const newScaleDiff = scale(a, newData.scales.x) - scale(b, newData.scales.x);
-        if (Number.isFinite(newScaleDiff)) return newScaleDiff;
-        const oldScaleDiff = scale(a, oldData.scales.x) - scale(b, oldData.scales.x);
-        if (Number.isFinite(oldScaleDiff)) return oldScaleDiff;
 
-        // Not comparable - just use any consistent sorting
-        const aValue = a.valueOf();
-        const bValue = b.valueOf();
-        if (typeof aValue === 'string') {
-            if (typeof bValue === 'string') {
-                return aValue.localeCompare(bValue);
-            } else {
-                return -1;
-            }
-        } else if (typeof bValue === 'string') {
-            return 1;
-        } else {
-            return aValue - bValue;
-        }
+    const newAxisValues = Array.from(allAxisValues).sort((a, b) => {
+        return scale(a, newData.scales.x) - scale(b, newData.scales.x);
     });
+
+    const exclusivelyOldAxisValues = [];
+    for (const { xValue0, xValue1 } of oldData.data) {
+        const xValue0ValueOf = xValue0.valueOf();
+        const xValue1ValueOf = xValue1.valueOf();
+        if (!allAxisValues.has(xValue0ValueOf)) {
+            allAxisValues.add(xValue0ValueOf);
+            exclusivelyOldAxisValues.push(xValue0ValueOf);
+        }
+        if (!allAxisValues.has(xValue1ValueOf)) {
+            allAxisValues.add(xValue1ValueOf);
+            exclusivelyOldAxisValues.push(xValue1ValueOf);
+        }
+    }
+
+    exclusivelyOldAxisValues.sort((a, b) => {
+        return scale(a, oldData.scales.x) - scale(b, oldData.scales.x);
+    });
+
+    const axisValues = newAxisValues;
+    let insertionIndex = 0;
+    for (const oldValue of exclusivelyOldAxisValues) {
+        inner: for (let i = axisValues.length; i > insertionIndex; i -= 1) {
+            const oldValueX = scale(oldValue, oldData.scales.x);
+            const newValueX = scale(axisValues[i], oldData.scales.x);
+            if (oldValueX > newValueX) {
+                insertionIndex = i + 1;
+                break inner;
+            }
+        }
+
+        axisValues.splice(insertionIndex, 0, oldValue);
+        insertionIndex += 1;
+    }
 
     const oldDataAxisIndices = getAxisIndices(oldData, axisValues);
     const newDataAxisIndices = getAxisIndices(newData, axisValues);
