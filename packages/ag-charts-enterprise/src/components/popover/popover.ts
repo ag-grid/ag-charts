@@ -17,10 +17,10 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
     extends BaseModuleInstance
     implements _ModuleSupport.ModuleInstance
 {
+    protected readonly hideFns: Array<() => void> = [];
+
     private readonly moduleId: string;
     private readonly element: HTMLElement;
-
-    protected menuCloser?: _ModuleSupport.MenuCloser;
 
     constructor(
         protected readonly ctx: _ModuleSupport.ModuleContext,
@@ -37,7 +37,11 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
     }
 
     public hide() {
-        this.menuCloser?.close();
+        this.hideFns.forEach((fn) => fn());
+    }
+
+    protected removeChildren() {
+        this.element.replaceChildren();
     }
 
     protected showWithChildren(children: Array<HTMLElement>, options: Options) {
@@ -55,12 +59,9 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         popover.replaceChildren(...children);
         this.element.replaceChildren(popover);
 
-        return popover;
-    }
+        this.hideFns.push(() => this.removeChildren());
 
-    protected doClose() {
-        this.element.replaceChildren();
-        this.menuCloser = undefined;
+        return popover;
     }
 
     protected getPopoverElement() {

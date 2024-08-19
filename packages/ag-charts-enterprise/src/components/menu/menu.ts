@@ -31,13 +31,14 @@ export class Menu extends AnchoredPopover {
         popover.classList.add('ag-charts-menu');
         popover.setAttribute('role', 'menu');
 
-        this.menuCloser = initMenuKeyNav({
+        const menuCloser = initMenuKeyNav({
             orientation: 'vertical',
             menu: popover,
             buttons: rows,
             device: this.ctx.focusIndicator.guessDevice(options.sourceEvent),
-            closeCallback: () => this.doClose(),
+            closeCallback: () => this.removeChildren(),
         });
+        this.hideFns.push(() => menuCloser.close());
     }
 
     private createRow<Value>(options: MenuOptions<Value>, item: MenuItem<Value>) {
