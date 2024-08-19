@@ -78,7 +78,7 @@ export function prepareSceneNodeHighlight(ctx: RenderContext) {
     const result: (string | RegExp)[] = [];
     config.forEach((name: string) => {
         if (name === 'layout') {
-            result.push('seriesRoot', 'legend', 'root', /.*Axis-[0-9]+-axis.*/);
+            result.push('seriesRoot', 'legend', 'root', /.*Axis-\d+-axis.*/);
         } else {
             result.push(name);
         }
