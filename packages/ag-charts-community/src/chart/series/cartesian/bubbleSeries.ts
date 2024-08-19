@@ -122,8 +122,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         if (dataDef?.def.type === 'value' && dataDef?.def.valueType === 'category') {
             return domain;
         }
-        const axis = this.axes[direction];
-        return fixNumericExtent(extent(domain), axis);
+        return fixNumericExtent(extent(domain));
     }
 
     async createNodeData() {

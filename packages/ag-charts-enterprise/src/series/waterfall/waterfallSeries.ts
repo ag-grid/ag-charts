@@ -224,7 +224,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             const d0 = keysExtent[0] + padding0;
             const d1 = keysExtent[1] + padding1;
 
-            return fixNumericExtent([d0, d1], categoryAxis);
+            return fixNumericExtent([d0, d1]);
         } else {
             const yCurrIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrent');
             const yExtent = values[yCurrIndex];

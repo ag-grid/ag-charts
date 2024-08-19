@@ -117,7 +117,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             const minValues = dataModel.getDomain(this, `minValue`, 'value', processedData);
             const maxValues = dataModel.getDomain(this, `maxValue`, 'value', processedData);
 
-            return fixNumericExtent([Math.min(...minValues), Math.max(...maxValues)], this.getValueAxis());
+            return fixNumericExtent([Math.min(...minValues), Math.max(...maxValues)]);
         }
 
         const { index, def } = dataModel.resolveProcessedDataDefById(this, `xValue`);
@@ -126,14 +126,12 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             return keys;
         }
 
-        const categoryAxis = this.getCategoryAxis();
-
         const keysExtent = extent(keys) ?? [NaN, NaN];
         const scalePadding = isFiniteNumber(smallestDataInterval) ? smallestDataInterval * 0.5 : 0;
 
         const d0 = keysExtent[0] + -scalePadding;
         const d1 = keysExtent[1] + scalePadding;
-        return fixNumericExtent([d0, d1], categoryAxis);
+        return fixNumericExtent([d0, d1]);
     }
 
     async createNodeData() {

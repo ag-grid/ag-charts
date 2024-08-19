@@ -209,9 +209,6 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const { processedData, dataModel, smallestDataInterval } = this;
         if (!processedData || !dataModel || processedData.data.length === 0) return [];
 
-        const categoryAxis = this.getCategoryAxis();
-        const valueAxis = this.getValueAxis();
-
         const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const keys = dataModel.getDomain(this, `xValue`, 'key', processedData);
 
@@ -233,12 +230,12 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
             const d0 = keysExtent[0] + -scalePadding;
             const d1 = keysExtent[1] + scalePadding;
-            return fixNumericExtent([d0, d1], categoryAxis);
+            return fixNumericExtent([d0, d1]);
         } else if (this.getValueAxis() instanceof LogAxis) {
-            return fixNumericExtent(yExtent, valueAxis);
+            return fixNumericExtent(yExtent);
         } else {
             const fixedYExtent = [Math.min(0, yExtent[0]), Math.max(0, yExtent[1])];
-            return fixNumericExtent(fixedYExtent, valueAxis);
+            return fixNumericExtent(fixedYExtent);
         }
     }
 

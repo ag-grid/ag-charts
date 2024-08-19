@@ -169,13 +169,10 @@ export abstract class OhlcSeriesBase<
             const openValues = openKey ? dataModel.getDomain(this, `openValue`, 'value', processedData) : [];
             const closeValues = dataModel.getDomain(this, `closeValue`, 'value', processedData);
 
-            return fixNumericExtent(
-                [
-                    Math.min(...lowValues, ...highValues, ...openValues, ...closeValues),
-                    Math.max(...highValues, ...lowValues, ...openValues, ...closeValues),
-                ],
-                this.getValueAxis()
-            );
+            return fixNumericExtent([
+                Math.min(...lowValues, ...highValues, ...openValues, ...closeValues),
+                Math.max(...highValues, ...lowValues, ...openValues, ...closeValues),
+            ]);
         }
 
         const { index, def } = dataModel.resolveProcessedDataDefById(this, `xValue`);
@@ -184,14 +181,12 @@ export abstract class OhlcSeriesBase<
             return keys;
         }
 
-        const categoryAxis = this.getCategoryAxis();
-
         const keysExtent = extent(keys) ?? [NaN, NaN];
         const scalePadding = isFiniteNumber(smallestDataInterval) ? smallestDataInterval : 0;
 
         const d0 = keysExtent[0] + -scalePadding;
         const d1 = keysExtent[1] + scalePadding;
-        return fixNumericExtent([d0, d1], categoryAxis);
+        return fixNumericExtent([d0, d1]);
     }
 
     createBaseNodeData() {

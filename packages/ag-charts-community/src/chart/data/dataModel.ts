@@ -90,7 +90,7 @@ function round(val: number): number {
     return Math.round(val * accuracy) / accuracy;
 }
 
-function fixNumericExtentInternal(extent?: (number | Date)[]): [] | [number, number] {
+export function fixNumericExtent(extent?: (number | Date)[]): [] | [number, number] {
     if (extent == null) {
         // Don't return a range, there is no range.
         return [];
@@ -113,28 +113,6 @@ function fixNumericExtentInternal(extent?: (number | Date)[]): [] | [number, num
     }
 
     return isFiniteNumber(min) && isFiniteNumber(max) ? [min, max] : [];
-}
-
-export function fixNumericExtent(
-    extent?: (number | Date)[],
-    axis?: { calculatePadding(min: number, max: number): [number, number] }
-): [] | [number, number] {
-    const fixedExtent = fixNumericExtentInternal(extent);
-
-    if (fixedExtent.length === 0) {
-        return fixedExtent;
-    }
-
-    let [min, max] = fixedExtent;
-    if (min === max) {
-        // domain has zero length, there is only a single valid value in data
-
-        const [paddingMin, paddingMax] = axis?.calculatePadding(min, max) ?? [1, 1];
-        min -= paddingMin;
-        max += paddingMax;
-    }
-
-    return [min, max];
 }
 
 // AG-10337 Keep track of the number of missing values in each per-series data array.

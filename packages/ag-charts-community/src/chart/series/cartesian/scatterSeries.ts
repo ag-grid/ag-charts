@@ -102,8 +102,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         if (dataDef?.def.type === 'value' && dataDef?.def.valueType === 'category') {
             return domain;
         }
-        const axis = this.axes[direction];
-        return fixNumericExtent(extent(domain), axis);
+        return fixNumericExtent(extent(domain));
     }
 
     async createNodeData() {

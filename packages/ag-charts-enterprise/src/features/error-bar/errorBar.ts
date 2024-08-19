@@ -178,12 +178,11 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
             const { dataModel, processedData, cartesianSeries: series } = this;
 
             if (dataModel != null && processedData != null) {
-                const axis = series.axes[direction];
                 const id = { x: xErrorsID, y: yErrorsID }[direction];
                 const lowerDomain = dataModel.getDomain(series, `${id}-lower`, 'value', processedData);
                 const upperDomain = dataModel.getDomain(series, `${id}-upper`, 'value', processedData);
                 const domain = [Math.min(...lowerDomain, ...upperDomain), Math.max(...lowerDomain, ...upperDomain)];
-                return fixNumericExtent(domain, axis);
+                return fixNumericExtent(domain);
             }
         }
         return [];

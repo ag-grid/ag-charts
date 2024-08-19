@@ -1265,14 +1265,10 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         );
     }
 
-    protected updateAxisLine() {
-        const { line } = this;
+    private updateAxisLine() {
+        const { enabled, stroke, width } = this.line;
         // Without this the layout isn't consistent when enabling/disabling the line, padding configurations are not respected.
-        const strokeWidth = line.enabled ? line.width : 0;
-        this.lineNode.setProperties({
-            stroke: line.stroke,
-            strokeWidth,
-        });
+        this.lineNode.setProperties({ stroke, strokeWidth: enabled ? width : 0 });
     }
 
     protected updateGridLines(sideFlag: ChartAxisLabelFlipFlag) {
@@ -1299,10 +1295,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     protected updateLabels() {
-        const { label } = this;
-        if (!label.enabled) {
-            return;
-        }
+        if (!this.label.enabled) return;
 
         // Apply label option values
         this.tickLabelGroupSelection.each((node, datum) => {
@@ -1383,11 +1376,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     clipGrid(x: number, y: number, width: number, height: number) {
         this.gridGroup.setClipRectInGroupCoordinateSpace(new BBox(x, y, width, height));
-    }
-
-    calculatePadding(min: number, max: number): [number, number] {
-        const padding = Math.abs(this.reverse ? max : min) * 0.01;
-        return [padding, padding];
     }
 
     protected getTitleFormatterParams() {

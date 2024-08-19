@@ -24,7 +24,6 @@ export interface ChartAxis {
     getRegionNode(): Node;
     boundSeries: ISeries<unknown, unknown>[];
     calculateLayout(primaryTickCount?: number): { primaryTickCount?: number; bbox: BBox };
-    calculatePadding(min: number, max: number): [number, number];
     clipGrid(x: number, y: number, width: number, height: number): void;
     clipTickLines(x: number, y: number, width: number, height: number): void;
     getBBox(): BBox;

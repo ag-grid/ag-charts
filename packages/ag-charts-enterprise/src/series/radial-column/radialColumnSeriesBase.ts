@@ -106,16 +106,15 @@ export abstract class RadialColumnSeriesBase<
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
-        const { axes, dataModel, processedData } = this;
+        const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 
         if (direction === ChartAxisDirection.X) {
             return dataModel.getDomain(this, 'angleValue', 'key', processedData);
         } else {
-            const radiusAxis = axes[ChartAxisDirection.Y];
             const yExtent = dataModel.getDomain(this, 'radiusValue-end', 'value', processedData);
             const fixedYExtent = [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]];
-            return fixNumericExtent(fixedYExtent as any, radiusAxis);
+            return fixNumericExtent(fixedYExtent);
         }
     }
 

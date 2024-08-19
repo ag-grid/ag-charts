@@ -182,9 +182,7 @@ export class AreaSeries extends CartesianSeries<
         const { processedData, dataModel, axes } = this;
         if (!processedData || !dataModel || processedData.data.length === 0) return [];
 
-        const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
-
         const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const keys = dataModel.getDomain(this, `xValue`, 'key', processedData);
         const yExtent = dataModel.getDomain(this, `yValueEnd`, 'value', processedData);
@@ -194,12 +192,12 @@ export class AreaSeries extends CartesianSeries<
                 return keys;
             }
 
-            return fixNumericExtent(extent(keys), xAxis);
+            return fixNumericExtent(extent(keys));
         } else if (yAxis instanceof LogAxis || yAxis instanceof TimeAxis) {
-            return fixNumericExtent(yExtent as any, yAxis);
+            return fixNumericExtent(yExtent);
         } else {
             const fixedYExtent = [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]];
-            return fixNumericExtent(fixedYExtent as any, yAxis);
+            return fixNumericExtent(fixedYExtent);
         }
     }
 
