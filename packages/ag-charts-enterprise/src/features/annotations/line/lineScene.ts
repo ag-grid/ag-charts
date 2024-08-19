@@ -51,7 +51,7 @@ export class LineScene extends LinearScene<LineProperties> {
 
     updateLine(datum: LineProperties, coords: LineCoords) {
         const { line } = this;
-        const { lineDash, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
+        const { lineDashOffset, stroke, strokeWidth, strokeOpacity, lineCap } = datum;
         const { x1, y1, x2, y2 } = coords;
 
         line.setProperties({
@@ -59,12 +59,13 @@ export class LineScene extends LinearScene<LineProperties> {
             y1,
             x2,
             y2,
-            lineDash,
+            lineDash: datum.getLineDash(),
             lineDashOffset,
             stroke,
             strokeWidth,
             strokeOpacity,
             fillOpacity: 0,
+            lineCap,
         });
         line.updateCollisionBBox();
     }

@@ -74,6 +74,9 @@ export type AgIconName =
     | 'delete'
     | 'disjoint-channel-drawing'
     | 'fill-color'
+    | 'line-style-solid'
+    | 'line-style-dashed'
+    | 'line-style-dotted'
     | 'high-low-series'
     | 'hlc-series'
     | 'hollow-candlestick-series'
@@ -203,6 +206,8 @@ export interface AgToolbarAnnotationOptionsSwitch extends AgToolbarSwitch {
 }
 
 export type AgToolbarAnnotationOptionsButtonValue =
+    | 'line-stroke-width'
+    | 'line-style-type'
     | 'line-color'
     | 'fill-color'
     | 'text-color'

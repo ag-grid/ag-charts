@@ -23,7 +23,7 @@ export { drawCorner } from './scene/util/corner';
 export type { Corner } from './scene/util/corner';
 export { RadialColumnShape, getRadialColumnWidth } from './scene/shape/radialColumnShape';
 export { Shape } from './scene/shape/shape';
-export type { ShapeLineCap } from './scene/shape/shape';
+export type { ShapeLineCap, ShapeLineJoin } from './scene/shape/shape';
 export { SvgPath } from './scene/shape/svgPath';
 export { Text, RotatableText, TransformableText } from './scene/shape/text';
 export type { Scale } from './scale/scale';

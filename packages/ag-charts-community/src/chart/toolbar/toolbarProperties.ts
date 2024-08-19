@@ -14,6 +14,7 @@ import {
 
 export interface ButtonConfiguration extends ToolbarButton {
     fill?: string;
+    strokeWidth?: number;
 }
 
 export class ToolbarGroupProperties extends BaseProperties {

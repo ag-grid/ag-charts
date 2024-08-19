@@ -750,6 +750,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         button.classList.toggle(styles.modifiers.button.fillVisible, options.fill != null);
         button.style.setProperty('--fill', options.fill ?? null);
 
+        const strokeWidthVisible = options.strokeWidth != null;
+        button.classList.toggle(styles.modifiers.button.strokeWidthVisible, strokeWidthVisible);
+        button.style.setProperty('--strokeWidth', strokeWidthVisible ? `${options.strokeWidth}px` : null);
+
         const tAriaLabel = ariaLabel ? this.ctx.localeManager.t(ariaLabel) : undefined;
         setAttribute(button, 'aria-label', tAriaLabel);
     }

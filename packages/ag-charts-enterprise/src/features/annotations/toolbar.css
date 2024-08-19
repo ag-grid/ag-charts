@@ -5,3 +5,14 @@
     border-top-right-radius: 0;
     --item-padding: 4px 8px;
 }
+
+.annotations__line-stroke-width {
+    min-width: 0;
+    --item-padding: 6px;
+}
+
+.annotations__line-style-type {
+    width: 34px;
+    min-width: 0;
+    --item-padding: 6px;
+}
