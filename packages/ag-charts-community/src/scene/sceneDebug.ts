@@ -77,13 +77,10 @@ export function prepareSceneNodeHighlight(ctx: RenderContext) {
 
     const result: (string | RegExp)[] = [];
     config.forEach((name: string) => {
-        switch (name) {
-            case 'layout':
-                result.push('seriesRoot', 'legend', 'root', /.*Axis-[0-9]+-axis.*/);
-                break;
-
-            default:
-                result.push(name);
+        if (name === 'layout') {
+            result.push('seriesRoot', 'legend', 'root', /.*Axis-[0-9]+-axis.*/);
+        } else {
+            result.push(name);
         }
     });
 
