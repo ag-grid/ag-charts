@@ -25,9 +25,9 @@ import { CrossLineStateMachine } from './cross-line/crossLineState';
 import { DisjointChannelProperties } from './disjoint-channel/disjointChannelProperties';
 import { DisjointChannelScene } from './disjoint-channel/disjointChannelScene';
 import { DisjointChannelStateMachine } from './disjoint-channel/disjointChannelState';
-import { LineProperties } from './line/lineProperties';
+import { ArrowProperties, LineProperties } from './line/lineProperties';
 import { LineScene } from './line/lineScene';
-import { LineStateMachine } from './line/lineState';
+import { ArrowStateMachine, LineStateMachine } from './line/lineState';
 import { NoteProperties } from './note/noteProperties';
 import { NoteScene } from './note/noteScene';
 import { NoteStateMachine } from './note/noteState';
@@ -421,11 +421,11 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 ),
 
                 // Shapes
-                [AnnotationType.Arrow]: new LineStateMachine({
+                [AnnotationType.Arrow]: new ArrowStateMachine({
                     ...ctx,
-                    create: createDatum<LineProperties>(AnnotationType.Arrow),
+                    create: createDatum<ArrowProperties>(AnnotationType.Arrow),
                     delete: deleteDatum,
-                    datum: getDatum<LineProperties>(LineProperties.is),
+                    datum: getDatum<ArrowProperties>(ArrowProperties.is),
                     node: getNode<LineScene>(LineScene.is),
                     guardDragClickDoubleEvent,
                 }),
@@ -476,7 +476,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 [AnnotationType.Note]: dragStateMachine<NoteProperties, NoteScene>(NoteProperties.is, NoteScene.is),
 
                 // Shapes
-                [AnnotationType.Arrow]: dragStateMachine<LineProperties, LineScene>(LineProperties.is, LineScene.is),
+                [AnnotationType.Arrow]: dragStateMachine<ArrowProperties, LineScene>(ArrowProperties.is, LineScene.is),
             },
 
             [States.TextInput]: {

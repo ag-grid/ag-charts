@@ -25,7 +25,7 @@ import { HorizontalLineProperties, VerticalLineProperties } from './cross-line/c
 import { CrossLineScene } from './cross-line/crossLineScene';
 import { DisjointChannelProperties } from './disjoint-channel/disjointChannelProperties';
 import { DisjointChannelScene } from './disjoint-channel/disjointChannelScene';
-import { LineProperties } from './line/lineProperties';
+import { ArrowProperties, LineProperties } from './line/lineProperties';
 import { LineScene } from './line/lineScene';
 import { NoteProperties } from './note/noteProperties';
 import { NoteScene } from './note/noteScene';
@@ -53,7 +53,7 @@ export const annotationDatums: Record<AnnotationType, Constructor<AnnotationProp
     [AnnotationType.Text]: TextProperties,
 
     // Shapes
-    [AnnotationType.Arrow]: LineProperties,
+    [AnnotationType.Arrow]: ArrowProperties,
 };
 
 export const annotationScenes: Record<AnnotationType, Constructor<AnnotationScene>> = {
@@ -111,6 +111,11 @@ export function updateAnnotation(node: AnnotationScene, datum: AnnotationPropert
     if (TextProperties.is(datum) && TextScene.is(node)) {
         node.update(datum, context);
     }
+
+    // Shapes
+    if (ArrowProperties.is(datum) && LineScene.is(node)) {
+        node.update(datum, context);
+    }
 }
 
 export function getTypedDatum(datum: unknown) {
@@ -126,14 +131,21 @@ export function getTypedDatum(datum: unknown) {
         CalloutProperties.is(datum) ||
         CommentProperties.is(datum) ||
         NoteProperties.is(datum) ||
-        TextProperties.is(datum)
+        TextProperties.is(datum) ||
+        // Shapes
+        ArrowProperties.is(datum)
     ) {
         return datum;
     }
 }
 
 export function isLineType(datum: unknown): datum is LinePropertiesType {
-    return LineProperties.is(datum) || HorizontalLineProperties.is(datum) || VerticalLineProperties.is(datum);
+    return (
+        LineProperties.is(datum) ||
+        HorizontalLineProperties.is(datum) ||
+        VerticalLineProperties.is(datum) ||
+        ArrowProperties.is(datum)
+    );
 }
 
 export function isChannelType(datum: unknown): datum is ChannelPropertiesType {

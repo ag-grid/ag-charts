@@ -9,7 +9,7 @@ import { HorizontalLineProperties, VerticalLineProperties } from './cross-line/c
 import type { CrossLineScene } from './cross-line/crossLineScene';
 import { DisjointChannelProperties } from './disjoint-channel/disjointChannelProperties';
 import type { DisjointChannelScene } from './disjoint-channel/disjointChannelScene';
-import { LineProperties } from './line/lineProperties';
+import { ArrowProperties, LineProperties } from './line/lineProperties';
 import type { LineScene } from './line/lineScene';
 import type { NoteProperties } from './note/noteProperties';
 import type { NoteScene } from './note/noteScene';
@@ -19,7 +19,7 @@ import { TextProperties } from './text/textProperties';
 import type { TextScene } from './text/textScene';
 
 export type TextualPropertiesType = CalloutProperties | CommentProperties | NoteProperties | TextProperties;
-export type LinePropertiesType = LineProperties | HorizontalLineProperties | VerticalLineProperties;
+export type LinePropertiesType = LineProperties | HorizontalLineProperties | VerticalLineProperties | ArrowProperties;
 export type ChannelPropertiesType = ParallelChannelProperties | DisjointChannelProperties;
 
 export type AnnotationProperties = LinePropertiesType | ChannelPropertiesType | TextualPropertiesType;

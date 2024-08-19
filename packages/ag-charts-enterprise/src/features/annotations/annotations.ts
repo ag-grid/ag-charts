@@ -210,6 +210,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         [AnnotationType.VerticalLine, undefined],
         [AnnotationType.DisjointChannel, undefined],
         [AnnotationType.ParallelChannel, undefined],
+        [AnnotationType.Arrow, undefined],
     ]);
 
     // Elements

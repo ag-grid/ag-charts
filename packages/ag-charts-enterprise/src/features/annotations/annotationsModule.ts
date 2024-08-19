@@ -155,7 +155,6 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                 handle: {
                     fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
                 },
-                endCap: 'arrow',
             },
         },
     },
