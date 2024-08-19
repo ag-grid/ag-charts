@@ -56,7 +56,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
     override properties = new RadialGaugeSeriesProperties();
 
     public radius: number = 0;
-    private axis: AngleNumberAxis;
+    private readonly axis: AngleNumberAxis;
 
     public getNodeData(): RadialGaugeNodeDatum[] | undefined {
         return this.contextNodeData?.nodeData;

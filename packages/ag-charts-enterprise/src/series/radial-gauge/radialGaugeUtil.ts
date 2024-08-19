@@ -74,8 +74,8 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean)
     };
 
     const needle: _ModuleSupport.FromToFns<RadialGaugeNeedle, any, AnimatableNeedleDatum> = {
-        fromFn(needle, datum) {
-            let { rotation, scalingX, scalingY } = needle;
+        fromFn(needleNode, datum) {
+            let { rotation, scalingX, scalingY } = needleNode;
 
             if (initialLoad) {
                 scalingX = 0;
@@ -85,7 +85,7 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean)
 
             return { rotation, scalingX, scalingY, phase };
         },
-        toFn(_needle, datum, status) {
+        toFn(_needleNode, datum, status) {
             let scalingX = datum.radius * 2;
             let scalingY = datum.radius * 2;
             const { angle: rotation } = datum;
