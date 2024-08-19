@@ -48,7 +48,6 @@ export interface ChartAxis {
     gridLine: AxisGridLine;
     label: ChartAxisLabel;
     tick: AxisTick;
-    maxThickness: number;
     nice: boolean;
     position?: AgCartesianAxisPosition;
     range: [number, number];

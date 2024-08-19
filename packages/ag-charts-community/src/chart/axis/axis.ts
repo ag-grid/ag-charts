@@ -1360,8 +1360,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return (datum) => String(datum);
     }
 
-    maxThickness: number = Infinity;
-
     getBBox(): BBox {
         return this.axisGroup.getBBox();
     }

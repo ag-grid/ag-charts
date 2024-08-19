@@ -298,7 +298,6 @@ export class CartesianChart extends Chart {
             const { clipSeries: newClipSeries, axisThickness } = this.calculateAxisDimensions({
                 axis,
                 seriesRect,
-                paddedBounds,
                 primaryTickCounts,
                 clipSeries,
             });
@@ -417,24 +416,16 @@ export class CartesianChart extends Chart {
     private calculateAxisDimensions(opts: {
         axis: ChartAxis;
         seriesRect: BBox;
-        paddedBounds: BBox;
         primaryTickCounts: Partial<Record<ChartAxisDirection, number>>;
         clipSeries: boolean;
     }) {
-        const { axis, seriesRect, paddedBounds, primaryTickCounts } = opts;
+        const { axis, seriesRect, primaryTickCounts } = opts;
         let { clipSeries } = opts;
         const { position = 'left', direction } = axis;
 
         this.sizeAxis(axis, seriesRect, position);
 
         const isVertical = direction === ChartAxisDirection.Y;
-        const paddedBoundsCoefficient = 0.3;
-
-        if (axis.thickness) {
-            axis.maxThickness = axis.thickness;
-        } else {
-            axis.maxThickness = (isVertical ? paddedBounds.width : paddedBounds.height) * paddedBoundsCoefficient;
-        }
 
         const layout = axis.calculateLayout(axis.nice ? primaryTickCounts[direction] : undefined);
         primaryTickCounts[direction] ??= layout.primaryTickCount;
