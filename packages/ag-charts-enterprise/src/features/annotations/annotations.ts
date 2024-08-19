@@ -787,6 +787,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         this.state.transition('lineStyle', { type });
+        this.lineStyleTypeMenu.hide();
 
         this.updateToolbarLineStyleType(item);
     }
@@ -806,6 +807,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         this.state.transition('lineStyle', { strokeWidth });
+        this.lineStrokeWidthMenu.hide();
 
         this.updateToolbarStrokeWidth(item);
     }
