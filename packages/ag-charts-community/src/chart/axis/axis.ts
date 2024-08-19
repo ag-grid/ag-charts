@@ -449,7 +449,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     /**
      * Creates/removes/updates the scene graph nodes that constitute the axis.
      */
-    update(_primaryTickCount: number = 0, animated = true): number | undefined {
+    update(animated = true): number | undefined {
         if (!this.tickGenerationResult) {
             return;
         }

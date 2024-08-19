@@ -136,7 +136,7 @@ export class CartesianChart extends Chart {
 
         let axisAreaWidths: typeof this._lastAxisAreaWidths;
         let clipSeries: boolean;
-        let visibility: typeof this._lastVisibility;
+        let visibility: VisibilityMap;
         if (axesValid) {
             // Start with a good approximation from the last update - this should mean that in many resize
             // cases that only a single pass is needed \o/.
@@ -204,7 +204,6 @@ export class CartesianChart extends Chart {
         let lastPassClipSeries = false;
         let seriesRect = this.seriesRect?.clone();
         let count = 0;
-        let primaryTickCounts: Partial<Record<ChartAxisDirection, number>> = {};
         do {
             axisAreaWidths = new Map(lastPassAxisAreaWidths.entries());
             clipSeries = lastPassClipSeries;
@@ -214,7 +213,7 @@ export class CartesianChart extends Chart {
             lastPassAxisAreaWidths = ceilValues(result.axisAreaWidths);
             lastPassVisibility = result.visibility;
             lastPassClipSeries = result.clipSeries;
-            ({ seriesRect, primaryTickCounts } = result);
+            ({ seriesRect } = result);
 
             if (count++ > 10) {
                 Logger.warn('unable to find stable axis layout.');
@@ -223,7 +222,7 @@ export class CartesianChart extends Chart {
         } while (!stableOutputs(lastPassAxisAreaWidths, lastPassClipSeries, lastPassVisibility));
 
         this.axes.forEach((axis) => {
-            axis.update(primaryTickCounts[axis.direction]);
+            axis.update();
         });
 
         const clipRectPadding = 5;
@@ -329,7 +328,7 @@ export class CartesianChart extends Chart {
             });
         }
 
-        return { clipSeries, seriesRect, axisAreaWidths: newAxisAreaWidths, visibility, primaryTickCounts };
+        return { clipSeries, seriesRect, axisAreaWidths: newAxisAreaWidths, visibility };
     }
 
     private buildCrossLinePadding(axisAreaSize: Map<AgCartesianAxisPosition, number>) {

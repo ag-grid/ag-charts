@@ -58,7 +58,7 @@ export interface ChartAxis {
     thickness?: number;
     translation: { x: number; y: number };
     type: string;
-    update(primaryTickCount?: number, animated?: boolean): number | undefined;
+    update(animated?: boolean): number | undefined;
     updatePosition(): void;
     visibleRange: [number, number];
     createModuleContext: () => ModuleContextWithParent<AxisContext>;
