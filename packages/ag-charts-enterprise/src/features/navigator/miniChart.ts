@@ -273,7 +273,7 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
 
             axis.calculateLayout();
             axis.updatePosition();
-            axis.update(undefined, animated);
+            axis.update(animated);
         });
 
         await Promise.all(this.series.map((series) => series.update({ seriesRect })));

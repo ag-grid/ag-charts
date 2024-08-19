@@ -133,7 +133,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
-        const { processedData, dataModel, axes } = this;
+        const { processedData, dataModel } = this;
         if (!(processedData && dataModel)) return [];
 
         const {
@@ -145,13 +145,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         if (direction === ChartAxisDirection.X) {
             const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
-
-            const xAxis = axes[ChartAxisDirection.X];
             if (keyDef?.def.type === 'key' && keyDef.def.valueType === 'category') {
                 return keys;
             }
-
-            return fixNumericExtent(extent(keys), xAxis);
+            return fixNumericExtent(extent(keys));
         } else {
             const yLowIndex = dataModel.resolveProcessedDataIndexById(this, 'yLowValue');
             const yLowExtent = values[yLowIndex];
@@ -161,7 +158,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 yLowExtent[0] > yHighExtent[0] ? yHighExtent[0] : yLowExtent[0],
                 yHighExtent[1] < yLowExtent[1] ? yLowExtent[1] : yHighExtent[1],
             ];
-            return fixNumericExtent(fixedYExtent as any);
+            return fixNumericExtent(fixedYExtent);
         }
     }
 

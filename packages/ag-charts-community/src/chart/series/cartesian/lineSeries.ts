@@ -178,11 +178,8 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
-        const { processedData, dataModel, axes } = this;
-        if (!processedData || !dataModel || processedData.data.length === 0) return [];
-
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData?.data.length) return [];
 
         const xDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
         if (direction === ChartAxisDirection.X) {
@@ -191,14 +188,14 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
                 return domain;
             }
 
-            return fixNumericExtent(extent(domain), xAxis);
+            return fixNumericExtent(extent(domain));
         } else {
             const stackCount = this.seriesGrouping?.stackCount ?? 1;
             const domain =
                 stackCount > 1
                     ? dataModel.getDomain(this, `yValueEnd`, 'value', processedData)
                     : dataModel.getDomain(this, `yValueRaw`, 'value', processedData);
-            return fixNumericExtent(domain as any, yAxis);
+            return fixNumericExtent(domain);
         }
     }
 

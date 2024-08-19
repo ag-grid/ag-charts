@@ -258,19 +258,15 @@ export class Transformable {
         const parents = [];
         for (const parent of node.ancestors()) {
             if (isMatrixTransform(parent)) {
-                parents.push(parent);
+                parents.unshift(parent);
             }
         }
-
-        parents.reverse();
         for (const parent of parents) {
             bbox = parent.fromParent(bbox);
         }
-
         if (isMatrixTransform(node)) {
             bbox = node.fromParent(bbox);
         }
-
         return bbox;
     }
 
@@ -284,13 +280,11 @@ export class Transformable {
         } else if (isMatrixTransform(node)) {
             bbox = node.toParent(bbox);
         }
-
         for (const parent of node.ancestors()) {
             if (isMatrixTransform(parent)) {
                 bbox = parent.toParent(bbox);
             }
         }
-
         return bbox;
     }
 
@@ -301,19 +295,15 @@ export class Transformable {
         const parents = [];
         for (const parent of node.ancestors()) {
             if (isMatrixTransform(parent)) {
-                parents.push(parent);
+                parents.unshift(parent);
             }
         }
-
-        parents.reverse();
         for (const parent of parents) {
             ({ x, y } = parent.fromParentPoint(x, y));
         }
-
         if (isMatrixTransform(node)) {
             ({ x, y } = node.fromParentPoint(x, y));
         }
-
         return { x, y };
     }
 
@@ -324,13 +314,11 @@ export class Transformable {
         if (isMatrixTransform(node)) {
             ({ x, y } = node.toParentPoint(x, y));
         }
-
         for (const parent of node.ancestors()) {
             if (isMatrixTransform(parent)) {
                 ({ x, y } = parent.toParentPoint(x, y));
             }
         }
-
         return { x, y };
     }
 }

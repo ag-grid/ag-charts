@@ -392,5 +392,4 @@ export class Group extends Node {
 export class ScalableGroup extends Scalable(Group) {}
 export class RotatableGroup extends Rotatable(Group) {}
 export class TranslatableGroup extends Translatable(Group) {}
-
 export class TransformableGroup extends Rotatable(Translatable(Group)) {}

@@ -55,7 +55,7 @@ export class CartesianChart extends Chart {
 
     private lastUpdateClipRect: BBox | undefined = undefined;
 
-    performLayout(ctx: LayoutContext) {
+    protected performLayout(ctx: LayoutContext) {
         const { firstSeriesTranslation, seriesRoot, annotationRoot, highlightRoot } = this;
         const { animationRect, seriesRect, visibility, clipSeries } = this.updateAxes(ctx.layoutBox);
 
@@ -136,7 +136,7 @@ export class CartesianChart extends Chart {
 
         let axisAreaWidths: typeof this._lastAxisAreaWidths;
         let clipSeries: boolean;
-        let visibility: typeof this._lastVisibility;
+        let visibility: VisibilityMap;
         if (axesValid) {
             // Start with a good approximation from the last update - this should mean that in many resize
             // cases that only a single pass is needed \o/.
@@ -204,7 +204,6 @@ export class CartesianChart extends Chart {
         let lastPassClipSeries = false;
         let seriesRect = this.seriesRect?.clone();
         let count = 0;
-        let primaryTickCounts: Partial<Record<ChartAxisDirection, number>> = {};
         do {
             axisAreaWidths = new Map(lastPassAxisAreaWidths.entries());
             clipSeries = lastPassClipSeries;
@@ -214,7 +213,7 @@ export class CartesianChart extends Chart {
             lastPassAxisAreaWidths = ceilValues(result.axisAreaWidths);
             lastPassVisibility = result.visibility;
             lastPassClipSeries = result.clipSeries;
-            ({ seriesRect, primaryTickCounts } = result);
+            ({ seriesRect } = result);
 
             if (count++ > 10) {
                 Logger.warn('unable to find stable axis layout.');
@@ -223,7 +222,7 @@ export class CartesianChart extends Chart {
         } while (!stableOutputs(lastPassAxisAreaWidths, lastPassClipSeries, lastPassVisibility));
 
         this.axes.forEach((axis) => {
-            axis.update(primaryTickCounts[axis.direction]);
+            axis.update();
         });
 
         const clipRectPadding = 5;
@@ -298,7 +297,6 @@ export class CartesianChart extends Chart {
             const { clipSeries: newClipSeries, axisThickness } = this.calculateAxisDimensions({
                 axis,
                 seriesRect,
-                paddedBounds,
                 primaryTickCounts,
                 clipSeries,
             });
@@ -330,7 +328,7 @@ export class CartesianChart extends Chart {
             });
         }
 
-        return { clipSeries, seriesRect, axisAreaWidths: newAxisAreaWidths, visibility, primaryTickCounts };
+        return { clipSeries, seriesRect, axisAreaWidths: newAxisAreaWidths, visibility };
     }
 
     private buildCrossLinePadding(axisAreaSize: Map<AgCartesianAxisPosition, number>) {
@@ -417,29 +415,19 @@ export class CartesianChart extends Chart {
     private calculateAxisDimensions(opts: {
         axis: ChartAxis;
         seriesRect: BBox;
-        paddedBounds: BBox;
         primaryTickCounts: Partial<Record<ChartAxisDirection, number>>;
         clipSeries: boolean;
     }) {
-        const { axis, seriesRect, paddedBounds, primaryTickCounts } = opts;
+        const { axis, seriesRect, primaryTickCounts } = opts;
         let { clipSeries } = opts;
         const { position = 'left', direction } = axis;
 
         this.sizeAxis(axis, seriesRect, position);
 
-        let primaryTickCount = axis.nice ? primaryTickCounts[direction] : undefined;
         const isVertical = direction === ChartAxisDirection.Y;
-        const paddedBoundsCoefficient = 0.3;
 
-        if (axis.thickness) {
-            axis.maxThickness = axis.thickness;
-        } else {
-            axis.maxThickness = (isVertical ? paddedBounds.width : paddedBounds.height) * paddedBoundsCoefficient;
-        }
-
-        const layout = axis.calculateLayout(primaryTickCount);
-        primaryTickCount = layout.primaryTickCount;
-        primaryTickCounts[direction] ??= primaryTickCount;
+        const layout = axis.calculateLayout(axis.nice ? primaryTickCounts[direction] : undefined);
+        primaryTickCounts[direction] ??= layout.primaryTickCount;
 
         clipSeries ||= axis.dataDomain.clipped || axis.visibleRange[0] > 0 || axis.visibleRange[1] < 1;
 
@@ -452,7 +440,7 @@ export class CartesianChart extends Chart {
 
         axisThickness = Math.ceil(axisThickness);
 
-        return { clipSeries, axisThickness, primaryTickCount };
+        return { clipSeries, axisThickness };
     }
 
     private sizeAxis(axis: ChartAxis, seriesRect: BBox, position: AgCartesianAxisPosition) {
@@ -556,6 +544,6 @@ export class CartesianChart extends Chart {
 
     private shouldFlipXY() {
         // Only flip the xy axes if all the series agree on flipping
-        return !this.series.some((series) => !(series instanceof CartesianSeries && series.shouldFlipXY()));
+        return this.series.every((series) => series instanceof CartesianSeries && series.shouldFlipXY());
     }
 }
