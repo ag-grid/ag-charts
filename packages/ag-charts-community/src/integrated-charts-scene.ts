@@ -9,7 +9,7 @@ export { Group, ScalableGroup, RotatableGroup, TranslatableGroup } from './scene
 export { Scene } from './scene/scene';
 export { Node, PointerEvents, RedrawType, SceneChangeDetection } from './scene/node';
 export type { RenderContext } from './scene/node';
-export { Rotatable, Translatable, Transformable } from './scene/transformable';
+export { Rotatable, Translatable, Transformable, Scalable } from './scene/transformable';
 export { Selection } from './scene/selection';
 export type { Point, SizedPoint } from './scene/point';
 export { Arc } from './scene/shape/arc';

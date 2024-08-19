@@ -22,7 +22,14 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
     tooltipDefaults: { range: 'exact' },
     themeTemplate: {
         series: {
-            strokeWidth: 0,
+            foreground: {
+                strokeWidth: 0,
+            },
+            needle: {
+                enabled: false,
+                fill: DEFAULT_LABEL_COLOUR,
+                spacing: 10,
+            },
             label: {
                 enabled: true,
                 fontWeight: FONT_WEIGHT.NORMAL,
@@ -43,8 +50,10 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
         const { fill, stroke } = singleSeriesPaletteFactory(params);
         const hierarchyFills = params.themeTemplateParameters.get(DEFAULT_HIERARCHY_FILLS);
         return {
-            fill,
-            stroke,
+            foreground: {
+                fill,
+                stroke,
+            },
             background: {
                 fill: hierarchyFills?.[1],
                 stroke: hierarchyFills?.[2],

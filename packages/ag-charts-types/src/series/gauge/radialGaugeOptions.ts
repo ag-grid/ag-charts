@@ -5,19 +5,41 @@ import type { CssColor, PixelSize } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
-export type AgRadialGaugeSeriesTooltipRendererParams<TDatum> = AgSeriesTooltipRendererParams<TDatum> &
-    AgRadialGaugeSeriesOptionsKeys &
-    AgRadialGaugeSeriesOptionsNames;
+export interface AgRadialGaugeSeriesTooltipRendererParams<TDatum>
+    extends AgSeriesTooltipRendererParams<TDatum>,
+        AgRadialGaugeSeriesOptionsKeys,
+        AgRadialGaugeSeriesOptionsNames {}
 
-export type AgRadialGaugeSeriesHighlightStyle<_TDatum> = AgSeriesHighlightStyle & FillOptions & StrokeOptions;
+export interface AgRadialGaugeSeriesHighlightStyle<_TDatum>
+    extends AgSeriesHighlightStyle,
+        FillOptions,
+        StrokeOptions {}
 
-export type AgRadialGaugeSeriesStyle = FillOptions & StrokeOptions & LineDashOptions;
+export interface AgRadialGaugeSeriesStyle {}
 
-export type AgRadialGaugeSeriesLabelFormatterParams = AgRadialGaugeSeriesOptionsKeys & AgRadialGaugeSeriesOptionsNames;
+export interface AgRadialGaugeSeriesForegroundStyle extends FillOptions, StrokeOptions, LineDashOptions {
+    enabled?: boolean;
+}
 
-export type AgRadialGaugeSeriesItemStylerParams<TDatum = any> = DatumCallbackParams<TDatum> &
-    AgRadialGaugeSeriesOptionsKeys &
-    Required<AgRadialGaugeSeriesStyle>;
+export interface AgRadialGaugeSeriesBackgroundStyle extends FillOptions, StrokeOptions, LineDashOptions {
+    enabled?: boolean;
+}
+
+export interface AgRadialGaugeSeriesNeedleStyle extends FillOptions, StrokeOptions, LineDashOptions {
+    enabled?: boolean;
+    shape?: 'needle';
+    radiusRatio?: number;
+    spacing?: number;
+}
+
+export interface AgRadialGaugeSeriesLabelFormatterParams
+    extends AgRadialGaugeSeriesOptionsKeys,
+        AgRadialGaugeSeriesOptionsNames {}
+
+export interface AgRadialGaugeSeriesItemStylerParams<TDatum = any>
+    extends DatumCallbackParams<TDatum>,
+        AgRadialGaugeSeriesOptionsKeys,
+        Required<AgRadialGaugeSeriesStyle> {}
 
 export interface AgRadialGaugeSeriesOptionsKeys {}
 
@@ -39,6 +61,12 @@ export interface AgRadialGaugeSeriesThemeableOptions<TDatum = any>
         Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
     /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
     colorRange?: CssColor[];
+    /** Configuration for the needle. */
+    needle?: AgRadialGaugeSeriesNeedleStyle;
+    /** Configuration for the foreground. */
+    foreground?: AgRadialGaugeSeriesForegroundStyle;
+    /** Configuration for the background. */
+    background?: AgRadialGaugeSeriesBackgroundStyle;
     /** Configuration for the labels shown inside the shape. */
     label?: AgChartAutoSizedLabelOptions<TDatum, AgRadialGaugeSeriesLabelFormatterParams>;
     /** Configuration for the labels shown inside the shape. */
@@ -60,4 +88,8 @@ export interface AgRadialGaugeSeriesOptions<TDatum = any>
         AgRadialGaugeSeriesThemeableOptions<TDatum> {
     /** Configuration for the Radial Gauge Series. */
     type: 'radial-gauge';
+    /** Value of the series. */
+    value: number;
+    /** Range of the value. Defaults to [0, 1]. */
+    range?: [number, number];
 }

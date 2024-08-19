@@ -9,13 +9,27 @@ export class SvgPath extends Path {
 
     private readonly commands: Array<[string, Array<number>]> = [];
 
-    constructor(d: string) {
-        super();
+    private _d: string = '';
+    get d() {
+        return this._d;
+    }
+    set d(d: string) {
+        if (d === this._d) return;
 
-        for (const [_, command, paramsString] of d.matchAll(/([A-Z])([0-9. ]+)/g)) {
-            const params = paramsString.split(' ').map(Number);
+        this._d = d;
+        this.commands.length = 0;
+        for (const [_, command, paramsString] of d.matchAll(/([A-Z])([0-9. ]*)/g)) {
+            const params = paramsString.split(/\s+/g).map(Number);
             this.commands.push([command, params]);
         }
+
+        this.checkPathDirty();
+    }
+
+    constructor(d: string = '') {
+        super();
+
+        this.d = d;
     }
 
     override updatePath(): void {
@@ -59,6 +73,10 @@ export class SvgPath extends Path {
                 case 'V':
                     path.lineTo(lastX, y + params[0]);
                     lastY = y + params[0];
+                    break;
+
+                case 'Z':
+                    path.closePath();
                     break;
 
                 default:
