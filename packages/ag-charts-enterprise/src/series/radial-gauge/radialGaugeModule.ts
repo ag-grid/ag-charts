@@ -48,8 +48,10 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
         const { fill, stroke } = singleSeriesPaletteFactory(params);
         const hierarchyFills = params.themeTemplateParameters.get(DEFAULT_HIERARCHY_FILLS);
         return {
-            fill,
-            stroke,
+            foreground: {
+                fill,
+                stroke,
+            },
             background: {
                 fill: hierarchyFills?.[1],
                 stroke: hierarchyFills?.[2],

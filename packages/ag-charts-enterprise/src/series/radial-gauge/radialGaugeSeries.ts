@@ -1,6 +1,7 @@
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 import type { AgRadialGaugeSeriesStyle } from 'ag-charts-types';
 
+import { AngleNumberAxis } from '../../axes/angle-number/angleNumberAxis';
 import { RadialGaugeNeedle } from './radialGaugeNeedle';
 import {
     LabelType,
@@ -56,6 +57,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
     override properties = new RadialGaugeSeriesProperties();
 
     public radius: number = 0;
+    private axis: AngleNumberAxis;
 
     public getNodeData(): RadialGaugeNodeDatum[] | undefined {
         return this.contextNodeData?.nodeData;
@@ -135,6 +137,8 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             },
         });
 
+        this.axis = new AngleNumberAxis(moduleCtx);
+
         this.backgroundGroup.pointerEvents = PointerEvents.None;
         this.itemLabelGroup.pointerEvents = PointerEvents.None;
     }
@@ -166,13 +170,14 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         const { width, height } = this.chart!.seriesRect!;
         const {
             value,
-            range,
+            range: domain,
             innerRadiusRatio,
             startAngle,
             endAngle,
             cornerRadius,
             cornerRadiusMode,
             needle,
+            foreground,
             background,
             label,
             secondaryLabel,
@@ -189,13 +194,21 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         const outerRadius = this.radius;
         const innerRadius = outerRadius * innerRadiusRatio;
 
-        const scale = new LinearScale();
-        scale.domain = range;
+        let angleInset = 0;
         if (cornerRadiusMode === 'item') {
             const appliedCornerRadius = Math.min(cornerRadius, (outerRadius - innerRadius) / 2);
-            const angleInset = appliedCornerRadius / ((innerRadius + outerRadius) / 2);
-            scale.range = [startAngle + angleInset, endAngle - angleInset];
+            angleInset = appliedCornerRadius / ((innerRadius + outerRadius) / 2);
+        }
 
+        const range: [number, number] = [startAngle + angleInset, endAngle - angleInset];
+
+        this.axis.setDomain(domain);
+        this.axis.range = range;
+
+        const scale = new LinearScale();
+        scale.domain = domain;
+        scale.range = range;
+        if (foreground.enabled && cornerRadiusMode === 'item') {
             nodeData.push({
                 series: this,
                 itemId: 'value',
@@ -204,14 +217,12 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                 centerY,
                 outerRadius,
                 innerRadius,
-                startAngle: scale.convert(range[0]) - angleInset,
+                startAngle: scale.convert(domain[0]) - angleInset,
                 endAngle: scale.convert(value) + angleInset,
                 clipStartAngle: undefined,
                 clipEndAngle: undefined,
             });
-        } else {
-            scale.range = [startAngle, endAngle];
-
+        } else if (foreground.enabled) {
             nodeData.push({
                 series: this,
                 itemId: 'value',
@@ -361,9 +372,10 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
     }) {
         const { datumSelection, isHighlight } = opts;
         const { ctx, properties } = this;
-        const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset, cornerRadius } = properties;
+        const { cornerRadius, foreground } = properties;
+        const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = foreground;
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
-        const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
+        const strokeWidth = this.getStrokeWidth(foreground.strokeWidth);
         const animationDisabled = ctx.animationManager.isSkipped();
 
         datumSelection.each((sector, datum) => {
@@ -444,9 +456,8 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         backgroundSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum>;
     }) {
         const { backgroundSelection } = opts;
-        const { cornerRadius } = this.properties;
-        const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
-            this.properties.background;
+        const { cornerRadius, background } = this.properties;
+        const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = background;
         const animationDisabled = this.ctx.animationManager.isSkipped();
 
         backgroundSelection.each((sector, datum) => {

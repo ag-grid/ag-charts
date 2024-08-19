@@ -17,6 +17,10 @@ export interface AgRadialGaugeSeriesHighlightStyle<_TDatum>
 
 export interface AgRadialGaugeSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
+export interface AgRadialGaugeSeriesForegroundStyle extends FillOptions, StrokeOptions, LineDashOptions {
+    enabled?: boolean;
+}
+
 export interface AgRadialGaugeSeriesBackgroundStyle extends FillOptions, StrokeOptions, LineDashOptions {
     enabled?: boolean;
 }
@@ -59,6 +63,8 @@ export interface AgRadialGaugeSeriesThemeableOptions<TDatum = any>
     colorRange?: CssColor[];
     /** Configuration for the needle. */
     needle?: AgRadialGaugeSeriesNeedleStyle;
+    /** Configuration for the foreground. */
+    foreground?: AgRadialGaugeSeriesForegroundStyle;
     /** Configuration for the background. */
     background?: AgRadialGaugeSeriesBackgroundStyle;
     /** Configuration for the labels shown inside the shape. */
