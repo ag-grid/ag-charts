@@ -44,17 +44,15 @@ export class Menu extends AnchoredPopover {
         const { domManager } = this.ctx;
 
         const active = item.value === options.value;
-        const row = createElement('div');
+        const row = createElement('div', 'ag-charts-menu__row');
         row.setAttribute('role', 'menuitem');
         if (typeof item.value === 'string') {
             row.dataset.popoverId = item.value;
         }
-        row.className = `ag-charts-menu__row`;
         row.classList.toggle(`ag-charts-menu__row--active`, active);
 
         if (item.icon != null) {
-            const icon = createElement('span');
-            icon.className = `ag-charts-menu__icon ${domManager.getIconClassNames(item.icon)}`;
+            const icon = createElement('span', `ag-charts-menu__icon ${domManager.getIconClassNames(item.icon)}`);
             row.appendChild(icon);
         }
 
@@ -64,10 +62,11 @@ export class Menu extends AnchoredPopover {
             row.style.setProperty('--strokeWidth', strokeWidthVisible ? `${item.strokeWidth}px` : null);
         }
 
-        const title = createElement('span');
-        title.textContent = this.ctx.localeManager.t(item.label ?? '');
-        title.className = `ag-charts-menu__label`;
-        row.appendChild(title);
+        if (item.label != null) {
+            const label = createElement('span', 'ag-charts-menu__label');
+            label.textContent = this.ctx.localeManager.t(item.label);
+            row.appendChild(label);
+        }
 
         const select = () => {
             options.onClose?.();

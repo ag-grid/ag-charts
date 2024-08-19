@@ -47,7 +47,9 @@ export function createElement<K extends keyof HTMLElementTagNameMap>(
         className = undefined;
     }
     if (className) {
-        element.classList.add(className);
+        for (const name of className.split(' ')) {
+            element.classList.add(name);
+        }
     }
     if (style) {
         Object.assign(element.style, style);

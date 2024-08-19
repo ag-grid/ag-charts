@@ -40,10 +40,9 @@ export class ColorPicker extends AnchoredPopover<ColorPickerOptions> {
         let [h, s, v, a] = getHsva(opts.color ?? '#f00') ?? [0, 1, 0.5, 1];
         a = opts.opacity ?? a;
 
-        const colorPicker = createElement('div');
+        const colorPicker = createElement('div', 'ag-charts-color-picker__content');
         colorPicker.innerHTML = colorPickerTemplate;
         colorPicker.ariaLabel = this.ctx.localeManager.t('ariaLabelColorPicker');
-        colorPicker.className = 'ag-charts-color-picker__content';
 
         const paletteInput = colorPicker.querySelector<HTMLDivElement>('.ag-charts-color-picker__palette')!;
         const hueInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__hue-input')!;

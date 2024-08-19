@@ -41,9 +41,8 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
     }
 
     protected showWithChildren(children: Array<HTMLElement>, options: Options) {
-        const popover = createElement('div');
+        const popover = createElement('div', 'ag-charts-popover');
         popover.setAttribute('data-pointer-capture', 'exclusive');
-        popover.className = 'ag-charts-popover';
 
         if (options.ariaLabel != null) {
             popover.setAttribute('aria-label', options.ariaLabel);
