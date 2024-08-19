@@ -617,7 +617,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             }
 
             case AnnotationOptions.Settings: {
-                const datum = getTypedDatum(this.annotationData.at(this.state.getActive()!));
                 if (!LineProperties.is(datum)) break;
                 this.settingsDialog.showLine(datum, {
                     onChangeText: (_text: string) => {

@@ -91,7 +91,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const closeButtonIcon = createElement('span', this.ctx.domManager.getIconClassNames('delete'));
         closeButton.append(closeButtonIcon);
         closeButton.addEventListener('click', () => {
-            console.log('click close');
+            this.hide();
         });
 
         return closeButton;
