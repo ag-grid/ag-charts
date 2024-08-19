@@ -18,7 +18,7 @@
             'react-dom': 'npm:react-dom@18.2.0',
             'react-dom/client': 'npm:react-dom@18.2.0',
 
-            deepclone: 'npm:deepclone@1.0.2',
+            clone: 'npm:clone@2.1.2',
 
             ts: 'npm:plugin-typescript@8.0.0/lib/plugin.js',
             typescript: 'npm:typescript@4.3.5/lib/typescript.min.js',

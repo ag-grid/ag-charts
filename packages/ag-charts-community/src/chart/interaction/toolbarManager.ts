@@ -1,8 +1,8 @@
 import type { AgIconName, AgToolbarOptions } from 'ag-charts-types';
 
+import type { DOMManager } from '../../dom/domManager';
 import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../baseManager';
-import type { DOMManager } from '../dom/domManager';
 import { TOOLBAR_POSITIONS, type ToolbarGroup } from '../toolbar/toolbarTypes';
 
 type EventTypes =
@@ -126,7 +126,7 @@ export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
     updateButton<T extends ToolbarGroup>(
         group: T,
         id: string,
-        options: { label?: string; icon?: AgIconName; fill?: string }
+        options: { label?: string; icon?: AgIconName; fill?: string; strokeWidth?: number }
     ) {
         this.listeners.dispatch('button-updated', { type: 'button-updated', group, id, ...options });
     }

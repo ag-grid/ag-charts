@@ -13,7 +13,7 @@
             ts: 'npm:plugin-typescript@8.0.0/lib/plugin.js',
             typescript: 'npm:typescript@4.3.5/lib/typescript.min.js',
 
-            deepclone: 'npm:deepclone@1.0.2',
+            clone: 'npm:clone@2.1.2',
 
             // vuejs
             vue: 'npm:vue@3.2.29/dist/vue.esm-browser.js',

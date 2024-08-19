@@ -4,29 +4,33 @@ import { Node, RedrawType, type RenderContext, SceneChangeDetection } from './no
 
 type Constructor<T> = new (...args: any[]) => T;
 
-type MatrixTransformType<T> = T & {
-    updateMatrix(matrix: Matrix): void;
+interface LocalToParentCoordinateSpaceTransforms {
+    /** Apply local node transforms to the given BBox. */
+    toParent(bbox: BBox): BBox;
+    /** Apply local node transforms to the given point. */
+    toParentPoint(x: number, y: number): { x: number; y: number };
+}
 
-    transformBBox(bbox: BBox): BBox;
-    transformPoint(x: number, y: number): { x: number; y: number };
-    inverseTransformBBox(bbox: BBox): BBox;
-    inverseTransformPoint(x: number, y: number): { x: number; y: number };
-};
+interface ParentToLocalCoordinateSpaceTransforms {
+    /** Apply local node inverse transforms to the given BBox. */
+    fromParent(bbox: BBox): BBox;
+    /** Apply local node inverse transforms to the given point. */
+    fromParentPoint(x: number, y: number): { x: number; y: number };
+}
+
+type MatrixTransformType<T> = T &
+    LocalToParentCoordinateSpaceTransforms &
+    ParentToLocalCoordinateSpaceTransforms & {
+        updateMatrix(matrix: Matrix): void;
+    };
 
 function isMatrixTransform<N extends Node>(node: N): node is MatrixTransformType<N> {
     return isMatrixTransformType(node.constructor as any);
 }
 
+const MATRIX_TRANSFORM_TYPE = Symbol('isMatrixTransform');
 function isMatrixTransformType<N extends Node>(cstr: Constructor<N>): cstr is Constructor<MatrixTransformType<N>> {
-    let nextType = cstr;
-    while (nextType != null) {
-        if (nextType.name === 'MatrixTransformInternal') {
-            return true;
-        }
-        nextType = Object.getPrototypeOf(nextType);
-    }
-
-    return false;
+    return (cstr as any)[MATRIX_TRANSFORM_TYPE] === true;
 }
 
 /**
@@ -43,7 +47,8 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
     }
 
     const TRANSFORM_MATRIX = Symbol('matrix_combined_transform');
-    class MatrixTransformInternal extends ParentNode {
+    class MatrixTransformInternal extends ParentNode implements MatrixTransformType<Node> {
+        public static readonly [MATRIX_TRANSFORM_TYPE] = true;
         private [TRANSFORM_MATRIX] = new Matrix();
 
         private _dirtyTransform = true;
@@ -52,7 +57,7 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
             super.markDirty(this, RedrawType.MAJOR);
         }
 
-        protected updateMatrix(_matrix: Matrix) {
+        updateMatrix(_matrix: Matrix) {
             // For override by sub-classes.
         }
 
@@ -65,25 +70,25 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
             this._dirtyTransform = false;
         }
 
-        transformBBox(bbox: BBox) {
+        toParent(bbox: BBox) {
             this.computeTransformMatrix();
             if (this[TRANSFORM_MATRIX].identity) return bbox.clone();
             return this[TRANSFORM_MATRIX].transformBBox(bbox);
         }
 
-        transformPoint(x: number, y: number) {
+        toParentPoint(x: number, y: number) {
             this.computeTransformMatrix();
             if (this[TRANSFORM_MATRIX].identity) return { x, y };
             return this[TRANSFORM_MATRIX].transformPoint(x, y);
         }
 
-        inverseTransformBBox(bbox: BBox) {
+        fromParent(bbox: BBox) {
             this.computeTransformMatrix();
             if (this[TRANSFORM_MATRIX].identity) return bbox.clone();
             return this[TRANSFORM_MATRIX].inverse().transformBBox(bbox);
         }
 
-        inverseTransformPoint(x: number, y: number) {
+        fromParentPoint(x: number, y: number) {
             this.computeTransformMatrix();
             if (this[TRANSFORM_MATRIX].identity) return { x, y };
             return this[TRANSFORM_MATRIX].inverse().transformPoint(x, y);
@@ -93,11 +98,13 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
             const bbox = super.computeBBox();
             if (!bbox) return bbox;
 
-            return this.transformBBox(bbox);
+            return this.toParent(bbox);
         }
 
-        override pickNode(x: number, y: number) {
-            ({ x, y } = this.inverseTransformPoint(x, y));
+        override pickNode(x: number, y: number, localCoords = false) {
+            if (!localCoords) {
+                ({ x, y } = this.fromParentPoint(x, y));
+            }
 
             return super.pickNode(x, y);
         }
@@ -255,10 +262,10 @@ export class Transformable {
             }
         }
         for (const parent of parents) {
-            bbox = parent.inverseTransformBBox(bbox);
+            bbox = parent.fromParent(bbox);
         }
         if (isMatrixTransform(node)) {
-            bbox = node.inverseTransformBBox(bbox);
+            bbox = node.fromParent(bbox);
         }
         return bbox;
     }
@@ -271,11 +278,11 @@ export class Transformable {
         if (bbox == null) {
             bbox = node.getBBox();
         } else if (isMatrixTransform(node)) {
-            bbox = node.transformBBox(bbox);
+            bbox = node.toParent(bbox);
         }
         for (const parent of node.ancestors()) {
             if (isMatrixTransform(parent)) {
-                bbox = parent.transformBBox(bbox);
+                bbox = parent.toParent(bbox);
             }
         }
         return bbox;
@@ -292,10 +299,10 @@ export class Transformable {
             }
         }
         for (const parent of parents) {
-            ({ x, y } = parent.inverseTransformPoint(x, y));
+            ({ x, y } = parent.fromParentPoint(x, y));
         }
         if (isMatrixTransform(node)) {
-            ({ x, y } = node.inverseTransformPoint(x, y));
+            ({ x, y } = node.fromParentPoint(x, y));
         }
         return { x, y };
     }
@@ -305,11 +312,11 @@ export class Transformable {
      */
     static toCanvasPoint(node: Node, x: number, y: number) {
         if (isMatrixTransform(node)) {
-            ({ x, y } = node.transformPoint(x, y));
+            ({ x, y } = node.toParentPoint(x, y));
         }
         for (const parent of node.ancestors()) {
             if (isMatrixTransform(parent)) {
-                ({ x, y } = parent.transformPoint(x, y));
+                ({ x, y } = parent.toParentPoint(x, y));
             }
         }
         return { x, y };

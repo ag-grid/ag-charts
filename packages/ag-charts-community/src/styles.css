@@ -1,5 +1,5 @@
-@import url(./chart/dom/domStyles.css);
-@import url(./chart/dom/focusStyles.css);
+@import url(./dom/domStyles.css);
+@import url(./dom/focusStyles.css);
 @import url(./chart/toolbar/toolbarStyles.css);
 @import url(./chart/toolbar/toolbarStyles.css);
 @import url(./chart/update/overlaysProcessor.css);

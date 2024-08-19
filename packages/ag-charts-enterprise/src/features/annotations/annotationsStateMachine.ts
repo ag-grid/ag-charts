@@ -2,11 +2,12 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import {
     type AnnotationContext,
+    type AnnotationLineStyle,
     type AnnotationOptionsColorPickerType,
     AnnotationType,
     type GuardDragClickDoubleEvent,
 } from './annotationTypes';
-import { getTypedDatum, isTextType, setColor, setFontsize } from './annotationsConfig';
+import { getTypedDatum, hasLineStyle, isTextType, setColor, setFontsize, setLineStyle } from './annotationsConfig';
 import type { AnnotationProperties, AnnotationsStateMachineContext } from './annotationsSuperTypes';
 import { CalloutProperties } from './callout/calloutProperties';
 import { CalloutScene } from './callout/calloutScene';
@@ -58,6 +59,7 @@ type AnnotationEvent =
     | 'deleteAll'
     | 'color'
     | 'fontSize'
+    | 'lineStyle'
     | 'keyDown'
     | 'updateTextInputBBox'
     | 'render';
@@ -225,6 +227,16 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             ctx.update();
         };
 
+        const actionLineStyle = (lineStyle: AnnotationLineStyle) => {
+            const datum = ctx.datum(this.active!);
+            const node = ctx.node(this.active!);
+            if (!datum || !node || !hasLineStyle(datum)) return;
+
+            setLineStyle(datum, datum.type, lineStyle);
+
+            ctx.update();
+        };
+
         const actionUpdateTextInputBBox = (bbox: _Scene.BBox) => {
             const node = ctx.node(this.active!);
             if (!node || !('setTextInputBBox' in node)) return;
@@ -299,6 +311,12 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     guard: guardActive,
                     target: States.Idle,
                     action: actionFontSize,
+                },
+
+                lineStyle: {
+                    guard: guardActive,
+                    target: States.Idle,
+                    action: actionLineStyle,
                 },
 
                 updateTextInputBBox: {

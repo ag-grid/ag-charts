@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type PixelSize, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { Annotation, AxisLabel, Handle, LineDash, Stroke, Value } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
@@ -16,6 +16,9 @@ export class HorizontalLineProperties extends Annotation(Value(Handle(AxisLabel(
     @Validate(STRING)
     type = AnnotationType.HorizontalLine as const;
 
+    lineCap?: _Scene.ShapeLineCap = undefined;
+    computedLineDash?: PixelSize[] = undefined;
+
     override isValidWithContext(context: AnnotationContext, warningPrefix: string) {
         return super.isValid(warningPrefix) && validateDatumValue(context, this, warningPrefix);
     }
@@ -26,6 +29,10 @@ export class HorizontalLineProperties extends Annotation(Value(Handle(AxisLabel(
 
     getDefaultOpacity(_colorPickerType: AnnotationOptionsColorPickerType) {
         return this.strokeOpacity;
+    }
+
+    getLineDash(): PixelSize[] | undefined {
+        return this.lineDash ?? this.computedLineDash;
     }
 }
 
@@ -39,6 +46,9 @@ export class VerticalLineProperties extends Annotation(Value(Handle(AxisLabel(St
     @Validate(STRING)
     type = AnnotationType.VerticalLine as const;
 
+    lineCap?: _Scene.ShapeLineCap = undefined;
+    computedLineDash?: PixelSize[] = undefined;
+
     override isValidWithContext(context: AnnotationContext, warningPrefix: string) {
         return super.isValid(warningPrefix) && validateDatumValue(context, this, warningPrefix);
     }
@@ -49,6 +59,10 @@ export class VerticalLineProperties extends Annotation(Value(Handle(AxisLabel(St
 
     getDefaultOpacity(_colorPickerType: AnnotationOptionsColorPickerType) {
         return this.strokeOpacity;
+    }
+
+    getLineDash(): PixelSize[] | undefined {
+        return this.lineDash ?? this.computedLineDash;
     }
 }
 

@@ -11,6 +11,7 @@ import {
 import { AgChartProxy, deproxy, prepareTestOptions } from '../src/chart/test/utils';
 import { AgCharts } from '../src/main';
 import { Point } from '../src/scene/point';
+import { Transformable } from '../src/scene/transformable';
 import { extractImageData, setupMockCanvas } from '../src/util/test/mockCanvas';
 
 export interface BenchmarkExpectations {
@@ -154,7 +155,7 @@ export function addSeriesNodePoints<T extends AgChartOptions>(
         const midPoint = node?.midPoint;
         if (!midPoint) throw new Error('No node midPoint found.');
 
-        const point = series.contentGroup.inverseTransformPoint(midPoint.x, midPoint.y);
+        const point = Transformable.toCanvasPoint(series.contentGroup, midPoint.x, midPoint.y);
         results.push(point);
     };
 

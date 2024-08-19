@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type PixelSize, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { Annotation, Cappable, Extendable, Handle, Line, LineDash, Stroke } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
@@ -14,6 +14,9 @@ export class LineProperties extends Annotation(Line(Handle(Cappable(Extendable(S
     @Validate(STRING)
     type = AnnotationType.Line as const;
 
+    lineCap?: _Scene.ShapeLineCap = undefined;
+    computedLineDash?: PixelSize[] = undefined;
+
     override isValidWithContext(context: AnnotationContext, warningPrefix?: string) {
         return super.isValid(warningPrefix) && validateDatumLine(context, this, warningPrefix);
     }
@@ -24,5 +27,9 @@ export class LineProperties extends Annotation(Line(Handle(Cappable(Extendable(S
 
     getDefaultOpacity(_colorPickerType: AnnotationOptionsColorPickerType) {
         return this.strokeOpacity;
+    }
+
+    getLineDash(): PixelSize[] | undefined {
+        return this.lineDash ?? this.computedLineDash;
     }
 }

@@ -82,6 +82,7 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     { type: 'series', optionsKey: 'series[]', chartTypes: ['topology'], identifier: 'map-line-background' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['flow-proportion'], identifier: 'chord' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['flow-proportion'], identifier: 'sankey' },
+    { type: 'series', optionsKey: 'series[]', chartTypes: ['gauge'], identifier: 'radial-gauge' },
     { type: 'series-option', optionsKey: 'errorBar', chartTypes: ['cartesian'], identifier: 'error-bars' },
 ];
 

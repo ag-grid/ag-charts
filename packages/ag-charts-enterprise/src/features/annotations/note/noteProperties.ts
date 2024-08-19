@@ -4,8 +4,8 @@ import { Fill, Stroke } from '../annotationProperties';
 import {
     type AnnotationContext,
     type AnnotationOptionsColorPickerType,
+    AnnotationType,
     type Padding,
-    TextualAnnotationType,
 } from '../annotationTypes';
 import { TextualPointProperties } from '../properties/textualPointProperties';
 import { LABEL_OFFSET } from './noteScene';
@@ -19,11 +19,11 @@ class NoteBackgroundProperties extends Fill(Stroke(BaseProperties)) {}
 
 export class NoteProperties extends Fill(Stroke(TextualPointProperties)) {
     static is(value: unknown): value is NoteProperties {
-        return isObject(value) && value.type === TextualAnnotationType.Note;
+        return isObject(value) && value.type === AnnotationType.Note;
     }
 
     @Validate(STRING)
-    type = TextualAnnotationType.Note as const;
+    type = AnnotationType.Note as const;
 
     @Validate(OBJECT, { optional: true })
     background = new NoteBackgroundProperties();

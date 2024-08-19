@@ -32,6 +32,7 @@ export class ColorPicker extends AnchoredPopover<ColorPickerOptions> {
         const element = this.createColorPicker(opts);
         this.setContent(element);
         super.show({ ...opts, class: 'ag-charts-color-picker', role: 'dialog' });
+        this.menuCloser = { close: () => this.doClose() };
     }
 
     private createColorPicker(opts: ColorPickerOptions) {

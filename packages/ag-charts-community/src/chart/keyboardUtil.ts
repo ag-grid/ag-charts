@@ -1,7 +1,7 @@
+import type { FocusIndicator } from '../dom/focusIndicator';
 import { BBox } from '../scene/bbox';
 import type { Path } from '../scene/shape/path';
 import { Transformable } from '../scene/transformable';
-import type { FocusIndicator } from './dom/focusIndicator';
 import type { TooltipPointerEvent } from './tooltip/tooltip';
 
 function computeCenter(bboxOrPath: Path | BBox | undefined) {

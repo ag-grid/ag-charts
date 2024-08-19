@@ -14,8 +14,6 @@ export abstract class AnnotationScene extends _Scene.Group {
     public abstract type: string;
     public abstract activeHandle?: string;
 
-    private cachedBBoxWithoutHandles?: _Scene.BBox;
-
     abstract override containsPoint(x: number, y: number): boolean;
 
     public abstract toggleHandles(show: boolean | Record<string, boolean>): void;
@@ -28,19 +26,10 @@ export abstract class AnnotationScene extends _Scene.Group {
         this.toggleHandles(hovered);
     }
 
-    protected getCachedBBoxWithoutHandles() {
-        return this.cachedBBoxWithoutHandles ?? _Scene.BBox.zero;
-    }
-
     protected computeBBoxWithoutHandles() {
         return _Scene.Transformable.toCanvas(
             this,
             _Scene.Group.computeChildrenBBox(this.children.filter((node) => !(node instanceof Handle)))
         );
-    }
-
-    override render(renderCtx: _Scene.RenderContext) {
-        super.render(renderCtx);
-        this.cachedBBoxWithoutHandles = this.computeBBoxWithoutHandles();
     }
 }

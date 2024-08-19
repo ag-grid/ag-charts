@@ -149,9 +149,18 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
 
     override updateLines(datum: ParallelChannelProperties, top: LineCoords, bottom: LineCoords) {
         const { topLine, middleLine, bottomLine } = this;
-        const { lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } = datum;
+        const { lineDashOffset, stroke, strokeOpacity, strokeWidth, lineCap } = datum;
 
-        const lineStyles = { lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth };
+        const lineDash = datum.getLineDash();
+
+        const lineStyles = {
+            lineDash,
+            lineDashOffset,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            lineCap,
+        };
 
         topLine.setProperties({
             x1: top.x1,

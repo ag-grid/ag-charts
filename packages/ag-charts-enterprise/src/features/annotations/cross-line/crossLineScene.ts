@@ -38,7 +38,7 @@ export class CrossLineScene extends AnnotationScene {
 
     public update(datum: CrossLineProperties, context: AnnotationContext) {
         const { line, middle } = this;
-        const { locked, visible, lineDash, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
+        const { locked, visible, lineDashOffset, stroke, strokeWidth, strokeOpacity, lineCap } = datum;
         const { seriesRect } = context;
 
         this.seriesRect = seriesRect;
@@ -62,12 +62,13 @@ export class CrossLineScene extends AnnotationScene {
             y1,
             x2,
             y2,
-            lineDash,
+            lineDash: datum.getLineDash(),
             lineDashOffset,
             stroke,
             strokeWidth,
             strokeOpacity,
             fillOpacity: 0,
+            lineCap,
         });
         line.updateCollisionBBox();
 

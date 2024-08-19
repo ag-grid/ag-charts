@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import { type PixelSize, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import {
     Annotation,
@@ -30,6 +30,9 @@ export class ParallelChannelProperties extends Annotation(
 
     @Validate(OBJECT, { optional: true })
     middle = new ChannelAnnotationMiddleProperties();
+
+    lineCap?: _Scene.ShapeLineCap = undefined;
+    computedLineDash?: PixelSize[] = undefined;
 
     get bottom() {
         const bottom = {
@@ -71,5 +74,9 @@ export class ParallelChannelProperties extends Annotation(
             case `line-color`:
                 return this.strokeOpacity;
         }
+    }
+
+    getLineDash(): PixelSize[] | undefined {
+        return this.lineDash ?? this.computedLineDash;
     }
 }

@@ -694,11 +694,7 @@ export class Legend extends BaseProperties {
     }
 
     private updateItemProxyButtons() {
-        this.itemSelection.each((markerLabel) => {
-            const bbox = Transformable.toCanvas(markerLabel)?.clone();
-            bbox.translate(this.group.translationX, this.group.translationY);
-            setElementBBox(markerLabel.proxyButton, bbox);
-        });
+        this.itemSelection.each((l) => setElementBBox(l.proxyButton, Transformable.toCanvas(l)));
     }
 
     private updatePaginationProxyButtons(oldPages: Page[] | undefined) {
@@ -787,6 +783,7 @@ export class Legend extends BaseProperties {
             this.pagination.totalPages = totalPages;
 
             this.pagination.update();
+            this.pagination.updateMarkers();
             lastPassPaginationBBox = this.pagination.getBBox();
 
             if (!this.pagination.visible) {
@@ -794,7 +791,7 @@ export class Legend extends BaseProperties {
             }
         } while (!stableOutput(lastPassPaginationBBox));
 
-        return { maxPageWidth, maxPageHeight, pages, paginationBBox, paginationVertical };
+        return { maxPageWidth, maxPageHeight, pages, paginationBBox: lastPassPaginationBBox, paginationVertical };
     }
 
     private updatePositions(pageNumber: number = 0) {

@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import { type PixelSize, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { Annotation, Background, Handle, Line, LineDash, Stroke } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
@@ -19,6 +19,9 @@ export class DisjointChannelProperties extends Annotation(Background(Line(Handle
 
     @Validate(NUMBER)
     endHeight!: number;
+
+    lineCap?: _Scene.ShapeLineCap = undefined;
+    computedLineDash?: PixelSize[] = undefined;
 
     get bottom() {
         const bottom = {
@@ -60,5 +63,9 @@ export class DisjointChannelProperties extends Annotation(Background(Line(Handle
             case `line-color`:
                 return this.strokeOpacity;
         }
+    }
+
+    getLineDash(): PixelSize[] | undefined {
+        return this.lineDash ?? this.computedLineDash;
     }
 }
