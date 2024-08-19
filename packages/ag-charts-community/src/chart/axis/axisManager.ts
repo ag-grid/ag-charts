@@ -1,15 +1,8 @@
 import type { AxisContext } from '../../module/axisContext';
 import { Group } from '../../scene/group';
+import type { ChartAxis } from '../chartAxis';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import { Layers } from '../layers';
-
-type Axis = {
-    createAxisContext(): AxisContext;
-    attachAxis(axisGroup: Group, axisGridGroup: Group): void;
-    detachAxis(axisGroup: Group, axisGridGroup: Group): void;
-
-    destroy(): void;
-};
 
 export class AxisManager {
     private readonly axes: Map<ChartAxisDirection, AxisContext[]> = new Map();
@@ -25,7 +18,7 @@ export class AxisManager {
         this.sceneRoot.appendChild(this.axisGridGroup);
     }
 
-    updateAxes(oldAxes: Axis[], newAxes: Axis[]) {
+    updateAxes(oldAxes: ChartAxis[], newAxes: ChartAxis[]) {
         for (const axis of oldAxes) {
             if (newAxes.includes(axis)) continue;
             axis.detachAxis(this.axisGroup, this.axisGridGroup);
@@ -49,7 +42,7 @@ export class AxisManager {
     }
 
     getAxisContext(direction: ChartAxisDirection) {
-        return [...(this.axes.get(direction) ?? [])];
+        return this.axes.get(direction) ?? [];
     }
 
     destroy() {

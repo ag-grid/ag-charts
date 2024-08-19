@@ -66,10 +66,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     override createAxisContext(): AxisContext {
-        return {
-            ...super.createAxisContext(),
-            position: this.position,
-        };
+        return { ...super.createAxisContext(), position: this.position };
     }
 
     protected override createLabel() {

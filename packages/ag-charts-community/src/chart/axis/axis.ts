@@ -362,10 +362,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         axisNode.removeChild(this.labelGroup);
     }
 
-    getAxisGroup(): Group {
-        return this.axisGroup;
-    }
-
     range: [number, number] = [0, 1];
     visibleRange: [number, number] = [0, 1];
 
@@ -1423,7 +1419,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return { ...this.moduleCtx, parent: this.axisContext };
     }
 
-    public createAxisContext(): AxisContext {
+    createAxisContext(): AxisContext {
         const { scale } = this;
         return {
             axisId: this.id,
