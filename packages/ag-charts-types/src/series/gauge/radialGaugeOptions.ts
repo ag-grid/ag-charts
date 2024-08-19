@@ -60,4 +60,8 @@ export interface AgRadialGaugeSeriesOptions<TDatum = any>
         AgRadialGaugeSeriesThemeableOptions<TDatum> {
     /** Configuration for the Radial Gauge Series. */
     type: 'radial-gauge';
+    /** Value of the series. */
+    value: number;
+    /** Range of the value. Defaults to [0, 1]. */
+    range?: [number, number];
 }

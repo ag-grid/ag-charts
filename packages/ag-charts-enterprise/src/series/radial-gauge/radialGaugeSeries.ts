@@ -139,6 +139,14 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         this.animationState.transition('updateData');
     }
 
+    private createDefaultLabelFormatter() {
+        const [r0, r1] = this.properties.range;
+        const r0Log10 = r0 !== 0 ? Math.ceil(Math.log10(Math.abs(r0))) : 0;
+        const r1Log10 = r1 !== 0 ? Math.ceil(Math.log10(Math.abs(r1))) : 0;
+        const dp = Math.max(2 - Math.max(r0Log10, r1Log10), 0);
+        return (value: number) => value.toFixed(dp);
+    }
+
     override async createNodeData() {
         const { id: seriesId } = this;
         const { width, height } = this.chart!.seriesRect!;
@@ -452,7 +460,16 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
     formatLabelText(datum?: { label: number; secondaryLabel: number }) {
         const { labelSelection, radius } = this;
         const { label, secondaryLabel, padding, innerRadiusRatio } = this.properties;
-        formatRadialGaugeLabels(this, labelSelection, label, secondaryLabel, padding, radius * innerRadiusRatio, datum);
+        formatRadialGaugeLabels(
+            this,
+            labelSelection,
+            label,
+            secondaryLabel,
+            padding,
+            radius * innerRadiusRatio,
+            this.createDefaultLabelFormatter(),
+            datum
+        );
     }
 
     protected resetAllAnimation() {

@@ -68,11 +68,14 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean)
 function getLabelText(
     series: _ModuleSupport.Series<any, any>,
     label: RadialGaugeLabelProperties | RadialGaugeSecondaryLabelProperties,
-    value: number | undefined
+    value: number | undefined,
+    defaultFormatter?: (value: number) => void
 ) {
-    return (
-        label.text ?? (value != null ? label?.formatter?.({ seriesId: series.id, datum: undefined, value }) : undefined)
-    );
+    if (label.text != null) {
+        return label.text;
+    } else if (value != null) {
+        return label?.formatter?.({ seriesId: series.id, datum: undefined, value }) ?? defaultFormatter?.(value);
+    }
 }
 
 export function formatRadialGaugeLabels(
@@ -82,6 +85,7 @@ export function formatRadialGaugeLabels(
     secondaryLabelProps: RadialGaugeSecondaryLabelProperties,
     padding: number,
     innerRadius: number,
+    defaultFormatter: (value: number) => void,
     datumOverrides?: { label: number; secondaryLabel: number }
 ) {
     let labelDatum: RadialGaugeLabelDatum | undefined;
@@ -94,7 +98,7 @@ export function formatRadialGaugeLabels(
         }
     });
 
-    const labelText = getLabelText(series, labelProps, datumOverrides?.label ?? labelDatum?.value);
+    const labelText = getLabelText(series, labelProps, datumOverrides?.label ?? labelDatum?.value, defaultFormatter);
     if (labelText == null) return;
     const secondaryLabelText = getLabelText(
         series,
