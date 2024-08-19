@@ -190,7 +190,7 @@ export type AgToolbarAnnotationsButtonValue =
     | 'note'
     | 'clear';
 
-/* Series Type Options */
+/* Series Type */
 export interface AgToolbarSeriesTypeGroup extends AgToolbarGroup {}
 
 /* Annotation Options */
@@ -213,7 +213,8 @@ export type AgToolbarAnnotationOptionsButtonValue =
     | 'text-color'
     | 'text-size'
     | 'delete'
-    | 'lock';
+    | 'lock'
+    | 'settings';
 
 /* Ranges */
 export interface AgToolbarRangesGroup extends AgToolbarGroup {

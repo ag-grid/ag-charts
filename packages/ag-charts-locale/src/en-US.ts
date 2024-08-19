@@ -94,6 +94,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarAnnotationsTextColor: 'Text Color',
     // Text for the annotation toolbar's text size picker annotation button
     toolbarAnnotationsTextSize: 'Text Size',
+    // Text for the annotation toolbar's text options annotation button
+    toolbarAnnotationsTextOptions: 'Text Options',
     // Text for the annotation toolbar's lock annotation button
     toolbarAnnotationsLock: 'Lock',
     // Text for the annotation toolbar's unlock annotation button

@@ -5,23 +5,22 @@ const canvasOverlay = 'canvas-overlay';
 
 export interface PopoverOptions {
     ariaLabel?: string;
-    class?: string | Array<string>;
+    class?: string;
     role?: string;
-    onClose?: () => void;
+    onHide?: () => void;
 }
 
 /**
  * A non-modal element that overlays the chart.
  */
-export class Popover<Options extends PopoverOptions = PopoverOptions>
+export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
     extends BaseModuleInstance
     implements _ModuleSupport.ModuleInstance
 {
+    protected readonly hideFns: Array<() => void> = [];
+
     private readonly moduleId: string;
     private readonly element: HTMLElement;
-    private content?: Array<HTMLElement>;
-
-    protected menuCloser?: _ModuleSupport.MenuCloser;
 
     constructor(
         protected readonly ctx: _ModuleSupport.ModuleContext,
@@ -37,45 +36,39 @@ export class Popover<Options extends PopoverOptions = PopoverOptions>
         this.destroyFns.push(() => ctx.domManager.removeChild(canvasOverlay, this.moduleId));
     }
 
-    public show(options: Options) {
-        const popover = createElement('div');
+    public hide() {
+        this.hideFns.forEach((fn) => fn());
+    }
+
+    protected removeChildren() {
+        this.element.replaceChildren();
+    }
+
+    protected showWithChildren(children: Array<HTMLElement>, options: Options) {
+        const popover = createElement('div', 'ag-charts-popover');
         popover.setAttribute('data-pointer-capture', 'exclusive');
-        popover.className = 'ag-charts-popover';
 
         if (options.ariaLabel != null) {
             popover.setAttribute('aria-label', options.ariaLabel);
         }
 
-        if (options.role != null) {
-            popover.setAttribute('role', options.role);
-        }
-
         if (options.class != null) {
-            popover.classList.add(...(Array.isArray(options.class) ? options.class : [options.class]));
+            popover.classList.add(options.class);
         }
 
-        if (this.content) {
-            popover.replaceChildren(...this.content);
-        }
-
+        popover.replaceChildren(...children);
         this.element.replaceChildren(popover);
-    }
 
-    public hide() {
-        this.menuCloser?.close();
-    }
+        this.hideFns.push(() => this.removeChildren());
+        if (options.onHide) {
+            this.hideFns.push(options.onHide);
+        }
 
-    protected doClose() {
-        this.element.replaceChildren();
-        this.menuCloser = undefined;
+        return popover;
     }
 
     protected getPopoverElement() {
         return this.element.firstElementChild as HTMLDivElement | undefined;
-    }
-
-    protected setContent(content: HTMLElement | Array<HTMLElement>) {
-        this.content = Array.isArray(content) ? content : [content];
     }
 
     protected updatePosition(position: _Util.Vec2) {

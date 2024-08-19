@@ -71,8 +71,10 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
             ariaLabel: this.ctx.localeManager.t('toolbarSeriesTypeDropdown'),
             value: this.getChartType(),
             sourceEvent: e.sourceEvent,
-            onPress: (item) => this.setChartType(item.value),
-            onClose: () => this.hidePopover(),
+            onPress: (item) => {
+                this.setChartType(item.value);
+                this.hidePopover();
+            },
         });
 
         this.ctx.toolbarManager.toggleButton(BUTTON_GROUP, BUTTON_VALUE, { active: true });

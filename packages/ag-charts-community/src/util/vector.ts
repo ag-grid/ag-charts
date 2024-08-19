@@ -6,8 +6,6 @@ export const Vec2 = {
     distance,
     distanceSquared,
     from,
-    fromBox,
-    fromOffset,
     length,
     lengthSquared,
     origin,
@@ -24,14 +22,24 @@ export interface Vec2 {
 /**
  * Add the components of the vectors `a` and `b`.
  */
-function add(a: Vec2, b: Vec2): Vec2 {
+function add(a: Vec2, b: Vec2): Vec2;
+function add(a: Vec2, b: number): Vec2;
+function add(a: Vec2, b: Vec2 | number): Vec2 {
+    if (typeof b === 'number') {
+        return { x: a.x + b, y: a.y + b };
+    }
     return { x: a.x + b.x, y: a.y + b.y };
 }
 
 /**
  * Subtract the components of `b` from `a`.
  */
-function sub(a: Vec2, b: Vec2): Vec2 {
+function sub(a: Vec2, b: Vec2): Vec2;
+function sub(a: Vec2, b: number): Vec2;
+function sub(a: Vec2, b: Vec2 | number): Vec2 {
+    if (typeof b === 'number') {
+        return { x: a.x - b, y: a.y - b };
+    }
     return { x: a.x - b.x, y: a.y - b.y };
 }
 
@@ -92,22 +100,57 @@ function equal(a: Vec2, b: Vec2): boolean {
 /**
  * Create a vector from an `x` and `y`.
  */
-function from(x: number, y: number): Vec2 {
-    return { x, y };
-}
-
+function from(x: number, y: number): Vec2;
 /**
- * Transform an object with `offsetX` and `offsetY` to a vector.
+ * Create a vector from a box containing a `width` and `height`.
  */
-function fromOffset(a: { offsetX: number; offsetY: number }): Vec2 {
-    return { x: a.offsetX, y: a.offsetY };
-}
+function from(bbox: { width: number; height: number }): Vec2;
+/**
+ * Create a vector from a html element's `offsetWidth` and `offsetHeight`.
+ */
+function from(element: { offsetWidth: number; offsetHeight: number }): Vec2;
+/**
+ * Create a vector from a region event.
+ */
+function from(regionEvent: { regionOffsetX: number; regionOffsetY: number }): Vec2;
+/**
+ * Create a vector from a line or box containing a pair of coordinates.
+ */
+function from(pair: { x1: number; y1: number; x2: number; y2: number }): [Vec2, Vec2];
+function from(
+    a:
+        | number
+        | { width: number; height: number }
+        | { offsetWidth: number; offsetHeight: number }
+        | { regionOffsetX: number; regionOffsetY: number }
+        | { x1: number; y1: number; x2: number; y2: number },
+    b?: number
+): Vec2 | [Vec2, Vec2] {
+    if (typeof a === 'number') {
+        return { x: a, y: b! };
+    }
 
-function fromBox(a: { x1: number; y1: number; x2: number; y2: number }): [Vec2, Vec2] {
-    return [
-        { x: a.x1, y: a.y1 },
-        { x: a.x2, y: a.y2 },
-    ];
+    // Pick from object properties in order of specificity and return type
+    if ('regionOffsetX' in a) {
+        return { x: a.regionOffsetX, y: a.regionOffsetY };
+    }
+
+    if ('offsetWidth' in a) {
+        return { x: a.offsetWidth, y: a.offsetHeight };
+    }
+
+    if ('width' in a) {
+        return { x: a.width, y: a.height };
+    }
+
+    if ('x1' in a) {
+        return [
+            { x: a.x1, y: a.y1 },
+            { x: a.x2, y: a.y2 },
+        ];
+    }
+
+    throw new Error(`Values can not be converted into a vector: [${a}] [${b}]`);
 }
 
 /**
@@ -126,6 +169,9 @@ function required(a?: Partial<Vec2>): Vec2 {
     return { x: a?.x ?? 0, y: a?.y ?? 0 };
 }
 
+/**
+ * Create a vector at the origin point (0,0).
+ */
 function origin(): Vec2 {
     return { x: 0, y: 0 };
 }
