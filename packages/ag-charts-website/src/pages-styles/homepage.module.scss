@@ -1,5 +1,16 @@
 @use 'design-system' as *;
 
+$z-index-base: 10000; // For automated example mouse
+$z-index-debug-canvas: $z-index-base + 10;
+$z-index-debug-panel: $z-index-debug-canvas + 200;
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    position: relative;
+}
+
 .homepageHero {
     background-color: var(--color-util-brand-500);
     color: var(--color-white);
@@ -229,31 +240,32 @@
 
 .gridCopy {
     width: 100%;
-    margin-bottom: $spacing-size-8;
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-size-2;
+    align-items: center;
 
     @media screen and (min-width: 920px) {
-        display: flex;
-        flex-direction: column;
+        flex-direction: row;
+        gap: $spacing-size-6;
         justify-content: center;
-        width: 40%;
         margin-bottom: 0;
-        padding-right: $spacing-size-8;
         text-align: left;
+    }
+
+    p {
+        max-width: 25rem;
     }
 }
 
 .agGridLogo {
-    width: 100%;
-    margin-bottom: $spacing-size-4;
-    margin-left: $spacing-size-4;
+    width: 218px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 
     @media screen and (min-width: 920px) {
         $logo-scale: 1.3;
-
-        max-width: 320px;
-        margin-bottom: $spacing-size-2;
-        margin-left: -$spacing-size-2;
 
         :global(.logotype) {
             width: 154px * $logo-scale;
@@ -359,5 +371,118 @@
             background: #192232;
             border: 1px solid var(--color-border-secondary);
         }
+    }
+}
+
+.automatedExampleDebugPanel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 220px;
+    height: fit-content;
+    border-left: 1px solid var(--color-border-primary);
+    border-bottom: 1px solid var(--color-border-primary);
+    background-color: rgba(255, 255, 255, 0.85);
+    padding: $spacing-size-4;
+    z-index: $z-index-debug-panel;
+
+    :global(.disabled) {
+        h2 {
+            color: var(--color-text-tertiary);
+
+            &::after {
+                content: ' (disabled)';
+            }
+        }
+    }
+
+    h2 {
+        font-size: var(--text-fs-base);
+        margin-bottom: $spacing-size-1;
+        margin-top: $spacing-size-2;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    :global(.state) {
+        &::before {
+            content: 'State: ';
+            color: var(--color-text-tertiary);
+        }
+    }
+
+    :global(.step) {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        :global(.index) {
+            &::after {
+                content: ':';
+            }
+        }
+    }
+
+    :global(.paused-state) {
+        &::before {
+            content: 'Paused at: ';
+            color: var(--color-text-tertiary);
+        }
+    }
+
+    :global(.controls) {
+        display: flex;
+        justify-content: space-between;
+
+        button:not([class^='ag-']) {
+            padding: $spacing-size-1;
+            line-height: var(--text-lh-ultra-tight);
+        }
+    }
+
+    :global(.draw-checkbox) {
+        margin-top: $spacing-size-2;
+        cursor: pointer;
+    }
+
+    :global(.mouse-position) {
+        margin-top: $spacing-size-2;
+        cursor: pointer;
+
+        &::before {
+            content: 'Mouse: ';
+            color: var(--color-text-tertiary);
+        }
+    }
+
+    :global(.manager-state) {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        &::before {
+            content: 'Manager: ';
+            color: var(--color-text-tertiary);
+        }
+    }
+}
+
+.automatedExampleDebugCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: $z-index-debug-canvas;
+}
+
+:global(.automated-example-drag) {
+    pointer-events: none;
+
+    @media screen and (max-width: $breakpoint-automated-row-grouping-medium) {
+        transform-origin: center left;
+        transform: translate(-30px, 0) scale(0.5);
     }
 }

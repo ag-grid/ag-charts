@@ -74,12 +74,14 @@ $z-index-splash-contents: 10;
     text-align: center;
     margin-bottom: $spacing-size-12;
 
-    h2 {
-        margin-bottom: $spacing-size-4;
-    }
+    &.defaultContent {
+        h2 {
+            margin-bottom: $spacing-size-4;
+        }
 
-    p {
-        max-width: 50em;
+        p {
+            max-width: 50em;
+        }
     }
 }
 
