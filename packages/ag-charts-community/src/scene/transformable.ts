@@ -101,8 +101,10 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
             return this.toParent(bbox);
         }
 
-        override pickNode(x: number, y: number) {
-            ({ x, y } = this.fromParentPoint(x, y));
+        override pickNode(x: number, y: number, localCoords = false) {
+            if (!localCoords) {
+                ({ x, y } = this.fromParentPoint(x, y));
+            }
 
             return super.pickNode(x, y);
         }

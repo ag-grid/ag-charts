@@ -7,7 +7,14 @@ import { Group } from './group';
 import { LayersManager } from './layersManager';
 import type { Node, RenderContext } from './node';
 import { RedrawType } from './node';
-import { DebugSelectors, buildDirtyTree, buildTree, debugSceneNodeHighlight, debugStats } from './sceneDebug';
+import {
+    DebugSelectors,
+    buildDirtyTree,
+    buildTree,
+    debugSceneNodeHighlight,
+    debugStats,
+    prepareSceneNodeHighlight,
+} from './sceneDebug';
 
 interface DOMManagerLike {
     addChild(type: 'canvas', id: string, child?: HTMLElement): HTMLElement;
@@ -178,6 +185,8 @@ export class Scene {
         if (Debug.check(DebugSelectors.SCENE_STATS_VERBOSE)) {
             renderCtx.stats = { layersRendered: 0, layersSkipped: 0, nodesRendered: 0, nodesSkipped: 0 };
         }
+
+        prepareSceneNodeHighlight(renderCtx);
 
         let canvasCleared = false;
         if (!root || root.dirty >= RedrawType.TRIVIAL) {

@@ -1,4 +1,5 @@
 import { Debug } from '../util/debug';
+import { getWindow } from '../util/dom';
 import { Logger } from '../util/logger';
 import { SimpleTextMeasurer } from '../util/textMeasurer';
 import { isString } from '../util/type-guards';
@@ -65,6 +66,25 @@ export function debugStats(
         ctx.fillText(stat, 2 + seriesRect.x, y);
     }
     ctx.restore();
+}
+
+export function prepareSceneNodeHighlight(ctx: RenderContext) {
+    let config: string | string[] = getWindow('agChartsSceneDebug') ?? [];
+
+    if (typeof config === 'string') {
+        config = [config];
+    }
+
+    const result: (string | RegExp)[] = [];
+    config.forEach((name: string) => {
+        if (name === 'layout') {
+            result.push('seriesRoot', 'legend', 'root', /.*Axis-\d+-axis.*/);
+        } else {
+            result.push(name);
+        }
+    });
+
+    ctx.debugNodeSearch = result;
 }
 
 export function debugSceneNodeHighlight(ctx: CanvasRenderingContext2D, debugNodes: Record<string, Node>) {

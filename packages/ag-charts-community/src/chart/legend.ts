@@ -783,6 +783,7 @@ export class Legend extends BaseProperties {
             this.pagination.totalPages = totalPages;
 
             this.pagination.update();
+            this.pagination.updateMarkers();
             lastPassPaginationBBox = this.pagination.getBBox();
 
             if (!this.pagination.visible) {
@@ -790,7 +791,7 @@ export class Legend extends BaseProperties {
             }
         } while (!stableOutput(lastPassPaginationBBox));
 
-        return { maxPageWidth, maxPageHeight, pages, paginationBBox, paginationVertical };
+        return { maxPageWidth, maxPageHeight, pages, paginationBBox: lastPassPaginationBBox, paginationVertical };
     }
 
     private updatePositions(pageNumber: number = 0) {
