@@ -567,7 +567,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     value: lineStyle,
                     sourceEvent: event.sourceEvent,
                     onPress: (item) => this.onLineStyleTypeMenuPress(item, datum),
-                    onClose: this.onLineStyleTypeMenuClose.bind(this),
                     class: 'annotations__line-style-type',
                 });
                 break;
@@ -579,7 +578,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     value: strokeWidth,
                     sourceEvent: event.sourceEvent,
                     onPress: (item) => this.onLineStrokeWidthMenuPress(item, datum),
-                    onClose: this.onLineStrokeWidthMenuClose.bind(this),
                     class: 'annotations__line-stroke-width',
                 });
                 break;
@@ -590,7 +588,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     color: datum?.getDefaultColor(event.value),
                     opacity: datum?.getDefaultOpacity(event.value),
                     onChange: datum != null ? this.onColorPickerChange.bind(this, event.value, datum) : undefined,
-                    onClose: this.onColorPickerClose.bind(this),
                 });
                 break;
 
@@ -602,7 +599,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     value: fontSize,
                     sourceEvent: event.sourceEvent,
                     onPress: (item) => this.onTextSizeMenuPress(item, datum),
-                    onClose: this.onTextSizeMenuClose.bind(this),
                     class: 'ag-charts-annotations-text-size-menu',
                 });
                 break;
@@ -650,7 +646,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             ariaLabel: this.ctx.localeManager.t(ariaLabel),
             sourceEvent: event.sourceEvent,
             onPress: this.onAnnotationsMenuPress.bind(this, event),
-            onClose: this.onAnnotationsMenuClose.bind(this),
         });
     }
 
@@ -747,10 +742,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         );
     }
 
-    private onColorPickerClose() {
-        this.colorPicker.hide();
-    }
-
     private updateToolbarFontSize(fontSize: number | undefined) {
         this.ctx.toolbarManager.updateButton('annotationOptions', AnnotationOptions.TextSize, {
             label: fontSize != null ? String(fontSize) : undefined,
@@ -777,6 +768,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         this.state.transition('fontSize', fontSize);
+        this.textSizeMenu.hide();
 
         this.updateToolbarFontSize(fontSize);
     }
@@ -819,18 +811,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.updateToolbarStrokeWidth(item);
     }
 
-    private onTextSizeMenuClose() {
-        this.textSizeMenu.hide();
-    }
-
-    private onLineStyleTypeMenuClose() {
-        this.lineStyleTypeMenu.hide();
-    }
-
-    private onLineStrokeWidthMenuClose() {
-        this.lineStrokeWidthMenu.hide();
-    }
-
     private onAnnotationsMenuPress(
         event: _ModuleSupport.ToolbarButtonPressedEvent<AgToolbarAnnotationsButtonValue>,
         item: MenuItem<AnnotationType>
@@ -847,7 +827,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         });
 
         this.beginAnnotationPlacement(item.value);
-        this.onAnnotationsMenuClose();
+        this.annotationMenu.hide();
 
         this.removeAmbientKeyboardListener?.();
         this.removeAmbientKeyboardListener = this.ctx.interactionManager.addListener(
@@ -855,10 +835,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             (e) => this.handleAmbientKeyboardEvent(e),
             InteractionState.All
         );
-    }
-
-    private onAnnotationsMenuClose() {
-        this.annotationMenu.hide();
     }
 
     private handleAmbientKeyboardEvent(e: _ModuleSupport.KeyInteractionEvent<'keydown'>) {

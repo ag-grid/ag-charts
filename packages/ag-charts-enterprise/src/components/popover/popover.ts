@@ -7,7 +7,7 @@ export interface PopoverOptions {
     ariaLabel?: string;
     class?: string;
     role?: string;
-    onClose?: () => void;
+    onHide?: () => void;
 }
 
 /**
@@ -60,6 +60,9 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         this.element.replaceChildren(popover);
 
         this.hideFns.push(() => this.removeChildren());
+        if (options.onHide) {
+            this.hideFns.push(options.onHide);
+        }
 
         return popover;
     }

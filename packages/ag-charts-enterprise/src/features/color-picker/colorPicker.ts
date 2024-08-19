@@ -102,7 +102,7 @@ export class ColorPicker extends AnchoredPopover<ColorPickerOptions> {
             switch (e.key) {
                 case 'Enter':
                 case 'Escape':
-                    opts.onClose?.();
+                    this.hide();
                     break;
                 default:
                     return;

@@ -70,7 +70,6 @@ export class Menu extends AnchoredPopover {
         }
 
         const select = () => {
-            options.onClose?.();
             options.onPress?.(item);
         };
 
