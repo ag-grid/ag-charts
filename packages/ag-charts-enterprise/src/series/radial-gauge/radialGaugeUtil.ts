@@ -1,6 +1,7 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { type LabelFormatting, formatSingleLabel, formatStackedLabels } from '../util/labelFormatter';
+import type { RadialGaugeNeedle } from './radialGaugeNeedle';
 import {
     LabelType,
     type RadialGaugeLabelDatum,
@@ -19,10 +20,20 @@ type AnimatableSectorDatum = {
     clipEndAngle: number | undefined;
 };
 
+type AnimatableNeedleDatum = {
+    radius: number;
+    angle: number;
+};
+
+export const fadeInFns: _ModuleSupport.FromToFns<_Scene.Node, any, any> = {
+    fromFn: () => ({ opacity: 0, phase: 'initial' }),
+    toFn: () => ({ opacity: 1 }),
+};
+
 export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean) {
     const phase = initialLoad ? 'initial' : 'update';
 
-    const fns: _ModuleSupport.FromToFns<_Scene.Sector, any, AnimatableSectorDatum> = {
+    const node: _ModuleSupport.FromToFns<_Scene.Sector, any, AnimatableSectorDatum> = {
         fromFn(sect, datum) {
             let { startAngle, endAngle, innerRadius, outerRadius } = sect;
             let clipStartAngle = sect.clipSector?.startAngle;
@@ -62,17 +73,46 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean)
         },
     };
 
-    return fns;
+    const needle: _ModuleSupport.FromToFns<RadialGaugeNeedle, any, AnimatableNeedleDatum> = {
+        fromFn(needle, datum) {
+            let { rotation, scalingX, scalingY } = needle;
+
+            if (initialLoad) {
+                scalingX = 0;
+                scalingY = 0;
+                rotation = datum.angle;
+            }
+
+            return { rotation, scalingX, scalingY, phase };
+        },
+        toFn(_needle, datum, status) {
+            let scalingX = datum.radius * 2;
+            let scalingY = datum.radius * 2;
+            const { angle: rotation } = datum;
+
+            if (status === 'removed') {
+                scalingX = 0;
+                scalingY = 0;
+            }
+
+            return { rotation, scalingX, scalingY };
+        },
+    };
+
+    return { node, needle };
 }
 
 function getLabelText(
     series: _ModuleSupport.Series<any, any>,
     label: RadialGaugeLabelProperties | RadialGaugeSecondaryLabelProperties,
-    value: number | undefined
+    value: number | undefined,
+    defaultFormatter?: (value: number) => void
 ) {
-    return (
-        label.text ?? (value != null ? label?.formatter?.({ seriesId: series.id, datum: undefined, value }) : undefined)
-    );
+    if (label.text != null) {
+        return label.text;
+    } else if (value != null) {
+        return label?.formatter?.({ seriesId: series.id, datum: undefined, value }) ?? defaultFormatter?.(value);
+    }
 }
 
 export function formatRadialGaugeLabels(
@@ -82,6 +122,7 @@ export function formatRadialGaugeLabels(
     secondaryLabelProps: RadialGaugeSecondaryLabelProperties,
     padding: number,
     innerRadius: number,
+    defaultFormatter: (value: number) => void,
     datumOverrides?: { label: number; secondaryLabel: number }
 ) {
     let labelDatum: RadialGaugeLabelDatum | undefined;
@@ -94,7 +135,7 @@ export function formatRadialGaugeLabels(
         }
     });
 
-    const labelText = getLabelText(series, labelProps, datumOverrides?.label ?? labelDatum?.value);
+    const labelText = getLabelText(series, labelProps, datumOverrides?.label ?? labelDatum?.value, defaultFormatter);
     if (labelText == null) return;
     const secondaryLabelText = getLabelText(
         series,

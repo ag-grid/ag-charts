@@ -23,6 +23,11 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
     themeTemplate: {
         series: {
             strokeWidth: 0,
+            needle: {
+                enabled: false,
+                fill: DEFAULT_LABEL_COLOUR,
+                spacing: 10,
+            },
             label: {
                 enabled: true,
                 fontWeight: FONT_WEIGHT.NORMAL,

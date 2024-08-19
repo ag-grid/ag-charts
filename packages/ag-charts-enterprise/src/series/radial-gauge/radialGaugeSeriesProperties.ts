@@ -53,11 +53,12 @@ const {
     BaseProperties,
     SeriesTooltip,
     SeriesProperties,
+    BOOLEAN,
     COLOR_STRING,
     FUNCTION,
     LINE_DASH,
-    NUMBER,
     NUMBER_ARRAY,
+    NUMBER,
     OBJECT,
     POSITIVE_NUMBER,
     RATIO,
@@ -66,6 +67,41 @@ const {
 } = _ModuleSupport;
 
 export class RadialGaugeBackgroundProperties extends BaseProperties {
+    @Validate(BOOLEAN)
+    enabled = true;
+
+    @Validate(COLOR_STRING)
+    fill: string = 'black';
+
+    @Validate(RATIO)
+    fillOpacity: number = 1;
+
+    @Validate(COLOR_STRING)
+    stroke: string = 'black';
+
+    @Validate(POSITIVE_NUMBER)
+    strokeWidth: number = 0;
+
+    @Validate(RATIO)
+    strokeOpacity: number = 1;
+
+    @Validate(LINE_DASH)
+    lineDash: number[] = [0];
+
+    @Validate(POSITIVE_NUMBER)
+    lineDashOffset: number = 0;
+}
+
+export class RadialGaugeNeedleProperties extends BaseProperties {
+    @Validate(BOOLEAN)
+    enabled = true;
+
+    @Validate(RATIO, { optional: true })
+    radiusRatio?: number | undefined;
+
+    @Validate(NUMBER)
+    spacing: number = 0;
+
     @Validate(COLOR_STRING)
     fill: string = 'black';
 
@@ -143,6 +179,9 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeS
 
     @Validate(NUMBER)
     padding: number = 0;
+
+    @Validate(OBJECT)
+    readonly needle = new RadialGaugeNeedleProperties();
 
     @Validate(OBJECT)
     readonly background = new RadialGaugeBackgroundProperties();
