@@ -103,7 +103,7 @@ export class LineScene extends LinearScene<LineProperties> {
         if (!datum.startCap && !datum.endCap) return;
 
         const { stroke, strokeWidth, strokeOpacity } = datum;
-        const [start, end] = Vec2.fromBox(coords);
+        const [start, end] = Vec2.from(coords);
         const angle = Vec2.angle(Vec2.sub(end, start));
 
         if (datum.startCap) {

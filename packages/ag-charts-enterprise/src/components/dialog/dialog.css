@@ -1,0 +1,49 @@
+.ag-charts-dialog {
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    font-size: 14px;
+    gap: 1em;
+    padding: 1em;
+}
+
+.ag-charts-dialog__header {
+    border-bottom: 2px solid darkgrey;
+    display: flex;
+}
+
+.ag-charts-dialog__drag-handle {
+    cursor: grab;
+    padding: 1px 6px;
+    text-align: center;
+}
+
+.ag-charts-dialog__title {
+    border-bottom: 2px solid black;
+    font-size: 18px;
+    margin-bottom: -2px;
+    padding: 4px;
+}
+
+.ag-charts-dialog__close-button {
+    background: none;
+    border: 0;
+    cursor: pointer;
+    margin-left: auto;
+    padding: 1px 6px;
+}
+
+.ag-charts-dialog__textarea {
+    --line-height: 1.38;
+    background: white;
+    cursor: text;
+    line-height: var(--line-height);
+    height: calc(var(--line-height) * 4em);
+    overflow-y: scroll;
+    padding: 1em;
+}
+
+.ag-charts-dialog__textarea:empty::before {
+    color: var(--ag-charts-text-annotations-placeholder);
+    content: attr(placeholder);
+}

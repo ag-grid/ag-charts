@@ -45,6 +45,8 @@ import {
 import { AnnotationsStateMachine } from './annotationsStateMachine';
 import type { AnnotationProperties, AnnotationScene } from './annotationsSuperTypes';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
+import { LineProperties } from './line/lineProperties';
+import { AnnotationSettingsDialog } from './settings-dialog/settingsDialog';
 
 const {
     BOOLEAN,
@@ -146,6 +148,7 @@ enum AnnotationOptions {
     Lock = 'lock',
     TextColor = 'text-color',
     TextSize = 'text-size',
+    Settings = 'settings',
 }
 
 class AxesButtons {
@@ -224,7 +227,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private readonly lineStyleTypeMenu = new Menu(this.ctx, 'annotations-line-style-type');
     private readonly lineStrokeWidthMenu = new Menu(this.ctx, 'annotations-line-stroke-width');
     private readonly annotationMenu = new Menu(this.ctx, 'annotations');
-
+    private readonly settingsDialog = new AnnotationSettingsDialog(this.ctx);
     private readonly textInput = new TextInput(this.ctx);
 
     private xAxis?: AnnotationAxis;
@@ -616,6 +619,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.toggleAnnotationOptionsButtons();
                 break;
             }
+
+            case AnnotationOptions.Settings: {
+                const datum = getTypedDatum(this.annotationData.at(this.state.getActive()!));
+                if (!LineProperties.is(datum)) break;
+                this.settingsDialog.showLine(datum, {
+                    onChangeText: (_text: string) => {
+                        // TODO: AG-12600
+                    },
+                });
+            }
         }
 
         this.update();
@@ -990,7 +1003,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const context = this.getAnnotationContext();
         if (!context) return;
 
-        const offset = { x: event.regionOffsetX, y: event.regionOffsetY };
+        const offset = Vec2.from(event);
         const point = invertCoords(offset, context);
 
         state.transition('hover', { offset, point });
@@ -1002,7 +1015,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const context = this.getAnnotationContext();
         if (!context) return;
 
-        const offset = { x: event.regionOffsetX, y: event.regionOffsetY };
+        const offset = Vec2.from(event);
         const point = invertCoords(offset, context);
         const textInputValue = this.textInput.getValue();
 
@@ -1049,7 +1062,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const context = this.getAnnotationContext();
         if (!context) return;
 
-        const offset = { x: event.regionOffsetX, y: event.regionOffsetY };
+        const offset = Vec2.from(event);
         state.transition('dragStart', { context, offset });
     }
 
@@ -1059,7 +1072,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const context = this.getAnnotationContext();
         if (!context) return;
 
-        const offset = { x: event.regionOffsetX, y: event.regionOffsetY };
+        const offset = Vec2.from(event);
         const point = invertCoords(offset, context);
         state.transition('drag', { context, offset, point });
     }
@@ -1138,6 +1151,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             enabled: !locked,
             visible: hasFontSize(datum),
         });
+        toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Settings, {
+            enabled: !locked,
+            visible: LineProperties.is(datum),
+        });
 
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Delete, { enabled: !locked });
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Lock, { checked: locked });
@@ -1195,6 +1212,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.lineStyleTypeMenu.hide();
         this.lineStrokeWidthMenu.hide();
         this.annotationMenu.hide();
+        this.settingsDialog.hide();
     }
 
     private resetToolbarButtonStates() {

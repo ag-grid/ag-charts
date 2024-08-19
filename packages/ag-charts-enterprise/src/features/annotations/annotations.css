@@ -1,5 +1,6 @@
 @import url(./axisButton.css);
 @import url(./toolbar.css);
+@import url(./settings-dialog/settingsDialog.css);
 
 .ag-charts-annotations-text-size-menu {
     border-top-left-radius: 0;
