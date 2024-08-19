@@ -1,7 +1,7 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { AnnotationOptionsColorPickerType, Point } from '../annotationTypes';
-import { getTypedDatum, isTextType, setColor, setFontsize } from '../annotationsConfig';
+import { getTypedDatum, isTextType, setColor, setFontSize } from '../annotationsConfig';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
 import type { TextualStartEndScene } from '../scenes/textualStartEndScene';
@@ -107,7 +107,7 @@ export abstract class TextualStartEndStateMachine<
             const node = ctx.node();
             if (!datum || !node || !isTextType(datum)) return;
 
-            setFontsize(datum, datum.type, fontSize);
+            setFontSize(datum, datum.type, fontSize);
 
             ctx.updateTextInputFontSize(fontSize);
 

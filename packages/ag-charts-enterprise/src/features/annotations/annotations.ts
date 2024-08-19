@@ -182,7 +182,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private readonly state: AnnotationsStateMachine;
     private readonly annotationData: AnnotationPropertiesArray = new PropertiesArray(this.createAnnotationDatum);
     private readonly defaultColors: Map<
-        AnnotationType | TextualAnnotationType | LineAnnotationType | ChannelAnnotationType,
+        AnnotationType,
         Map<AnnotationOptionsColorPickerType, [string, string, number] | undefined>
     > = new Map(
         Object.values(AnnotationType).map((type) => [
@@ -210,6 +210,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         [AnnotationType.VerticalLine, undefined],
         [AnnotationType.DisjointChannel, undefined],
         [AnnotationType.ParallelChannel, undefined],
+        [AnnotationType.Arrow, undefined],
     ]);
 
     // Elements

@@ -26,7 +26,11 @@ export type TextualAnnotationType =
     | AnnotationType.Note
     | AnnotationType.Text;
 
-export type LineAnnotationType = AnnotationType.Line | AnnotationType.HorizontalLine | AnnotationType.VerticalLine;
+export type LineAnnotationType =
+    | AnnotationType.Line
+    | AnnotationType.HorizontalLine
+    | AnnotationType.VerticalLine
+    | AnnotationType.Arrow;
 
 export type ChannelAnnotationType = AnnotationType.DisjointChannel | AnnotationType.ParallelChannel;
 
