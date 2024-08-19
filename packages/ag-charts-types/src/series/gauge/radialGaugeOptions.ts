@@ -15,7 +15,7 @@ export interface AgRadialGaugeSeriesHighlightStyle<_TDatum>
         FillOptions,
         StrokeOptions {}
 
-export interface AgRadialGaugeSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {}
+export interface AgRadialGaugeSeriesStyle {}
 
 export interface AgRadialGaugeSeriesForegroundStyle extends FillOptions, StrokeOptions, LineDashOptions {
     enabled?: boolean;

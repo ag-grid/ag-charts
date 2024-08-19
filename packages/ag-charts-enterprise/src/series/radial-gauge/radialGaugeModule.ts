@@ -22,7 +22,9 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
     tooltipDefaults: { range: 'exact' },
     themeTemplate: {
         series: {
-            strokeWidth: 0,
+            foreground: {
+                strokeWidth: 0,
+            },
             needle: {
                 enabled: false,
                 fill: DEFAULT_LABEL_COLOUR,

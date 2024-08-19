@@ -1,26 +1,27 @@
 import type {
     AgBasePresetOptions,
     AgGaugeChartOptions,
-    AgGaugeChartOptions2,
+    AgGaugeOptions,
     AgRadialGaugeSeriesOptions,
 } from 'ag-charts-types';
 
 import type { RequireOptional } from '../../util/types';
 
-function allProperties<T>(opts: AgGaugeChartOptions2, v: RequireOptional<T>): T {
-    Object.keys(v).forEach((key) => {
-        if (!Object.hasOwn(opts, key)) {
+function allProperties<T>(opts: AgGaugeOptions, typeCheckedOpts: RequireOptional<T>): T {
+    const out: T = {} as any;
+    Object.keys(typeCheckedOpts).forEach((key) => {
+        if (Object.hasOwn(opts, key)) {
             // @ts-expect-error
-            delete v[key];
+            out[key] = opts[key];
         }
     });
-    return v as any;
+    return out;
 }
 
-export function gauge(opts: AgGaugeChartOptions2): AgGaugeChartOptions {
+export function gauge(opts: AgGaugeOptions): AgGaugeChartOptions {
     const baseOpts = allProperties<AgBasePresetOptions>(opts, {
         container: opts.container,
-        data: opts.data,
+        animation: opts.animation,
         width: opts.width,
         height: opts.height,
         minWidth: opts.minWidth,
@@ -37,22 +38,18 @@ export function gauge(opts: AgGaugeChartOptions2): AgGaugeChartOptions {
         nodeClickRange: opts.nodeClickRange,
         showInLegend: opts.showInLegend,
         listeners: opts.listeners,
+        tooltip: opts.tooltip,
         value: opts.value,
         range: opts.range,
+        itemStyler: opts.itemStyler,
+        highlightStyle: opts.highlightStyle,
+        foreground: opts.foreground,
+        background: opts.background,
+        needle: opts.needle,
         colorRange: opts.colorRange,
         label: opts.label,
         secondaryLabel: opts.secondaryLabel,
         padding: opts.padding,
-        tooltip: opts.tooltip,
-        itemStyler: opts.itemStyler,
-        highlightStyle: opts.highlightStyle,
-        fill: opts.fill,
-        fillOpacity: opts.fillOpacity,
-        stroke: opts.stroke,
-        strokeWidth: opts.strokeWidth,
-        strokeOpacity: opts.strokeOpacity,
-        lineDash: opts.lineDash,
-        lineDashOffset: opts.lineDashOffset,
     });
     return {
         ...baseOpts,

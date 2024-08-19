@@ -44,14 +44,14 @@ export type AgChartOptions =
 
 export type AgBasePresetOptions = Pick<
     AgCartesianChartOptions,
-    'data' | 'container' | 'width' | 'height' | 'minWidth' | 'minHeight' | 'theme' | 'title'
+    'container' | 'animation' | 'width' | 'height' | 'minWidth' | 'minHeight' | 'theme' | 'title'
 >;
 
-export type AgBaseFinancialPresetOptions = AgBasePresetOptions & Pick<AgCartesianChartOptions, 'initialState'>;
+export type AgBaseFinancialPresetOptions = AgBasePresetOptions & Pick<AgCartesianChartOptions, 'initialState' | 'data'>;
 
 export type AgFinancialChartOptions = AgFinancialChartPresets & AgBaseFinancialPresetOptions;
 
-export type AgGaugeChartOptions2 = AgBasePresetOptions & AgGaugeSeriesOptions;
+export type AgGaugeOptions = AgBasePresetOptions & AgGaugeSeriesOptions;
 
 export type AgChartInstanceOptions = AgChartOptions | AgFinancialChartOptions;
 

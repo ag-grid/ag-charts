@@ -1,5 +1,4 @@
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
-import type { AgRadialGaugeSeriesStyle } from 'ag-charts-types';
 
 import { AngleNumberAxis } from '../../axes/angle-number/angleNumberAxis';
 import { RadialGaugeNeedle } from './radialGaugeNeedle';
@@ -662,8 +661,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         const title = '';
         const content = '';
 
-        let format: AgRadialGaugeSeriesStyle | undefined;
-
+        // let format: AgRadialGaugeSeriesStyle | undefined;
         // if (itemStyler) {
         //     format = callbackCache.call(itemStyler, {
         //         seriesId,
@@ -672,7 +670,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         //     });
         // }
 
-        const color = format?.fill ?? fill;
+        const color = fill;
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: color },

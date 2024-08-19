@@ -1,4 +1,4 @@
-import type { AgChartInstance, AgChartOptions, AgFinancialChartOptions, AgGaugeChartOptions2 } from 'ag-charts-types';
+import type { AgChartInstance, AgChartOptions, AgFinancialChartOptions, AgGaugeOptions } from 'ag-charts-types';
 
 import { CartesianChart } from '../chart/cartesianChart';
 import { Chart, type ChartExtendedOptions } from '../chart/chart';
@@ -31,7 +31,7 @@ import { MementoCaretaker } from './state/memento';
 const debug = Debug.create(true, 'opts');
 
 function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'gauge' {
-    if ((options as AgGaugeChartOptions2).type === 'radial-gauge') {
+    if ((options as AgGaugeOptions).type === 'radial-gauge') {
         return 'gauge';
     }
 
@@ -114,7 +114,7 @@ export abstract class AgCharts {
         return this.create({ presetType: 'price-volume', ...options } as AgChartOptions) as any;
     }
 
-    public static createGaugeChart(options: AgGaugeChartOptions2): AgChartInstance<AgGaugeChartOptions2> {
+    public static createGauge(options: AgGaugeOptions): AgChartInstance<AgGaugeOptions> {
         return this.create({ presetType: 'gauge', ...options } as AgChartOptions) as any;
     }
 }
