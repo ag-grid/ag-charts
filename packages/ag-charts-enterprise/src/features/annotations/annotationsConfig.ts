@@ -14,7 +14,6 @@ import type {
     AnnotationProperties,
     AnnotationScene,
     ChannelPropertiesType,
-    LineOrChannelPropertiesType,
     LinePropertiesType,
     TextualPropertiesType,
 } from './annotationsSuperTypes';
@@ -154,7 +153,7 @@ export function hasFontSize(datum?: AnnotationProperties): datum is TextualPrope
     return isTextType(datum) && !NoteProperties.is(datum);
 }
 
-export function hasLineStyle(datum?: AnnotationProperties): datum is LineOrChannelPropertiesType {
+export function hasLineStyle(datum?: AnnotationProperties): datum is LinePropertiesType | ChannelPropertiesType {
     return isLineType(datum) || isChannelType(datum);
 }
 
@@ -176,10 +175,7 @@ export function setDefaults({
     defaultLineStyles,
 }: {
     datum: AnnotationProperties;
-    defaultColors: Map<
-        AnnotationType | TextualAnnotationType | LineAnnotationType | ChannelAnnotationType,
-        Map<AnnotationOptionsColorPickerType, [string, string, number] | undefined>
-    >;
+    defaultColors: Map<AnnotationType, Map<AnnotationOptionsColorPickerType, [string, string, number] | undefined>>;
     defaultFontSizes: Map<TextualAnnotationType, number | undefined>;
     defaultLineStyles: Map<LineAnnotationType | ChannelAnnotationType, AnnotationLineStyle | undefined>;
 }) {
@@ -198,7 +194,7 @@ export function setDefaults({
     if (hasFontSize(datum)) {
         for (const [annotationType, size] of defaultFontSizes) {
             if (size) {
-                setFontsize(datum, annotationType, size);
+                setFontSize(datum, annotationType, size);
             }
         }
     }
@@ -212,14 +208,14 @@ export function setDefaults({
     }
 }
 
-export function setFontsize(datum: TextualPropertiesType, annotationType: TextualAnnotationType, fontSize: number) {
+export function setFontSize(datum: TextualPropertiesType, annotationType: TextualAnnotationType, fontSize: number) {
     if (datum.type === annotationType && 'fontSize' in datum) {
         datum.fontSize = fontSize;
     }
 }
 
 export function setLineStyle(
-    datum: LineOrChannelPropertiesType,
+    datum: LinePropertiesType | ChannelPropertiesType,
     annotationType: LineAnnotationType | ChannelAnnotationType,
     style: AnnotationLineStyle
 ) {

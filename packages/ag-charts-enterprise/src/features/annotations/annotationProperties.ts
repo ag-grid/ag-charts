@@ -13,21 +13,20 @@ const {
     BOOLEAN,
     COLOR_STRING,
     DATE,
-    LINE_DASH,
-    NUMBER,
-    RATIO,
-    STRING,
-    OBJECT,
-    FUNCTION,
-    TEXT_ALIGN,
     FONT_STYLE,
     FONT_WEIGHT,
+    FUNCTION,
+    LINE_DASH,
+    LINE_STYLE,
+    NUMBER,
+    OBJECT,
     POSITIVE_NUMBER,
+    RATIO,
+    STRING,
+    TEXT_ALIGN,
     OR,
-    UNION,
     BaseProperties,
     Validate,
-    LINE_STYLE,
 } = _ModuleSupport;
 
 type Constructor<T = {}> = new (...args: any[]) => T;
@@ -43,9 +42,9 @@ export class PointProperties extends BaseProperties {
     y?: number;
 }
 
-export class ChannelAnnotationMiddleProperties extends Stroke(LineDash(Visible(BaseProperties))) {}
+export class ChannelAnnotationMiddleProperties extends Stroke(LineStyle(Visible(BaseProperties))) {}
 
-export class AxisLabelProperties extends Stroke(LineDash(Fill(Label(Font(BaseProperties))))) {
+export class AxisLabelProperties extends Stroke(LineStyle(Fill(Label(Font(BaseProperties))))) {
     @Validate(BOOLEAN)
     enabled?: boolean;
 
@@ -55,7 +54,7 @@ export class AxisLabelProperties extends Stroke(LineDash(Fill(Label(Font(BasePro
 
 export class BackgroundProperties extends Fill(BaseProperties) {}
 
-export class HandleProperties extends Stroke(LineDash(Fill(BaseProperties))) {}
+export class HandleProperties extends Stroke(LineStyle(Fill(BaseProperties))) {}
 
 export interface AxisLabelFormatterParams {
     readonly value: any;
@@ -212,7 +211,7 @@ export function Stroke<T extends Constructor>(Parent: T) {
     return StrokeInternal;
 }
 
-export function LineDash<T extends Constructor>(Parent: T) {
+export function LineStyle<T extends Constructor>(Parent: T) {
     class LineDashInternal extends Parent {
         @Validate(LINE_DASH, { optional: true })
         lineDash?: number[];

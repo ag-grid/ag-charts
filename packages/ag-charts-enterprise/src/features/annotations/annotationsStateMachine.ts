@@ -7,7 +7,7 @@ import {
     AnnotationType,
     type GuardDragClickDoubleEvent,
 } from './annotationTypes';
-import { getTypedDatum, hasLineStyle, isTextType, setColor, setFontsize, setLineStyle } from './annotationsConfig';
+import { getTypedDatum, hasLineStyle, isTextType, setColor, setFontSize, setLineStyle } from './annotationsConfig';
 import type { AnnotationProperties, AnnotationsStateMachineContext } from './annotationsSuperTypes';
 import { CalloutProperties } from './callout/calloutProperties';
 import { CalloutScene } from './callout/calloutScene';
@@ -220,7 +220,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             const node = ctx.node(this.active!);
             if (!datum || !node || !isTextType(datum)) return;
 
-            setFontsize(datum, datum.type, fontSize);
+            setFontSize(datum, datum.type, fontSize);
 
             ctx.updateTextInputFontSize(fontSize);
 

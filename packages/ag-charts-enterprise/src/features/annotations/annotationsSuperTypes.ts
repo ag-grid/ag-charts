@@ -21,7 +21,6 @@ import type { TextScene } from './text/textScene';
 export type TextualPropertiesType = CalloutProperties | CommentProperties | NoteProperties | TextProperties;
 export type LinePropertiesType = LineProperties | HorizontalLineProperties | VerticalLineProperties;
 export type ChannelPropertiesType = ParallelChannelProperties | DisjointChannelProperties;
-export type LineOrChannelPropertiesType = LinePropertiesType | ChannelPropertiesType;
 
 export type AnnotationProperties = LinePropertiesType | ChannelPropertiesType | TextualPropertiesType;
 
