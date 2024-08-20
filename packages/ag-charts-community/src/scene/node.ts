@@ -354,12 +354,14 @@ export abstract class Node extends ChangeDetectable {
     }
 
     override markDirty(_source: Node, type = RedrawType.TRIVIAL, parentType = type) {
+        // Short-circuit case to avoid needing to percolate all dirty flag changes if redundant.
+        const dirtyTypeBelowHighWatermark = this._dirty > type || (this._dirty === type && type === parentType);
+        // If parent node cached a bbox previously, this node will have a cached bbox too. Therefore
+        // if this node has no cached bbox, we don't need to force clearing of parents cached bbox.
+        const noParentCachedBBox = this.cachedBBox == null;
+        if (noParentCachedBBox && dirtyTypeBelowHighWatermark) return;
+
         this.cachedBBox = undefined;
-
-        if (this._dirty > type || (this._dirty === type && type === parentType)) {
-            return;
-        }
-
         this._dirty = type;
         if (this.parent) {
             this.parent.markDirty(this, parentType);
