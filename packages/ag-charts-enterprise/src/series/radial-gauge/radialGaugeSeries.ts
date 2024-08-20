@@ -9,6 +9,7 @@ import {
     RadialGaugeSeriesProperties,
 } from './radialGaugeSeriesProperties';
 import {
+    computeClipSector,
     fadeInFns,
     formatRadialGaugeLabels,
     prepareRadialGaugeSeriesAnimationFunctions,
@@ -17,8 +18,8 @@ import {
 
 const { fromToMotion, resetMotion, SeriesNodePickMode, StateMachine, createDatumId, EMPTY_TOOLTIP_CONTENT } =
     _ModuleSupport;
-const { Group, PointerEvents, SectorBox, Selection, Sector, Text } = _Scene;
-const { LinearScale } = _Scale;
+const { Group, PointerEvents, Selection, Sector, Text } = _Scene;
+const { LinearScale, ColorScale } = _Scale;
 
 export type GaugeAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 export type GaugeAnimationEvent =
@@ -171,10 +172,12 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             value,
             range: domain,
             innerRadiusRatio,
+            outerRadiusRatio,
             startAngle,
             endAngle,
             cornerRadius,
-            cornerRadiusMode,
+            itemMode,
+            cornerMode,
             needle,
             foreground,
             background,
@@ -190,11 +193,13 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
 
         const centerX = width / 2;
         const centerY = height / 2;
-        const outerRadius = this.radius;
-        const innerRadius = outerRadius * innerRadiusRatio;
+        const outerRadius = this.radius * outerRadiusRatio;
+        const innerRadius = this.radius * innerRadiusRatio;
 
+        const isContinuous = itemMode === 'continuous';
+        const cornersOnAllItems = cornerMode === 'item';
         let angleInset = 0;
-        if (cornerRadiusMode === 'item') {
+        if (isContinuous && cornersOnAllItems) {
             const appliedCornerRadius = Math.min(cornerRadius, (outerRadius - innerRadius) / 2);
             angleInset = appliedCornerRadius / ((innerRadius + outerRadius) / 2);
         }
@@ -207,34 +212,136 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         const scale = new LinearScale();
         scale.domain = domain;
         scale.range = range;
-        if (foreground.enabled && cornerRadiusMode === 'item') {
-            nodeData.push({
-                series: this,
-                itemId: 'value',
-                datum: value,
-                centerX,
-                centerY,
-                outerRadius,
-                innerRadius,
-                startAngle: scale.convert(domain[0]) - angleInset,
-                endAngle: scale.convert(value) + angleInset,
-                clipStartAngle: undefined,
-                clipEndAngle: undefined,
-            });
-        } else if (foreground.enabled) {
-            nodeData.push({
-                series: this,
-                itemId: 'value',
-                datum: value,
-                centerX,
-                centerY,
-                outerRadius,
-                innerRadius,
-                startAngle,
-                endAngle,
-                clipStartAngle: startAngle,
-                clipEndAngle: scale.convert(value),
-            });
+
+        const containerStartAngle = scale.convert(domain[0]);
+        const containerEndAngle = scale.convert(value);
+
+        let foregroundColorScale: _Scale.ColorScale | undefined;
+        if (foreground.colorRange != null) {
+            foregroundColorScale = new ColorScale();
+            foregroundColorScale.domain = domain;
+            foregroundColorScale.range = foreground.colorRange!;
+        }
+
+        let backgroundColorScale: _Scale.ColorScale | undefined;
+        if (background.colorRange != null) {
+            backgroundColorScale = new ColorScale();
+            backgroundColorScale.domain = domain;
+            backgroundColorScale.range = background.colorRange!;
+        }
+
+        // const colorRangeStops = colorRange?.length ?? 1;
+        if (isContinuous) {
+            const { fill } = foreground;
+            if (foreground.enabled && cornersOnAllItems) {
+                nodeData.push({
+                    series: this,
+                    itemId: `value`,
+                    datum: value,
+                    centerX,
+                    centerY,
+                    outerRadius,
+                    innerRadius,
+                    startAngle: containerStartAngle - angleInset,
+                    endAngle: containerEndAngle + angleInset,
+                    clipStartAngle: undefined,
+                    clipEndAngle: undefined,
+                    startCornerRadius: cornerRadius,
+                    endCornerRadius: cornerRadius,
+                    fill,
+                });
+            } else if (foreground.enabled) {
+                const { fill } = foreground;
+                nodeData.push({
+                    series: this,
+                    itemId: `value`,
+                    datum: value,
+                    centerX,
+                    centerY,
+                    outerRadius,
+                    innerRadius,
+                    startAngle: startAngle,
+                    endAngle: endAngle,
+                    clipStartAngle: containerStartAngle,
+                    clipEndAngle: containerEndAngle,
+                    startCornerRadius: cornerRadius,
+                    endCornerRadius: cornerRadius,
+                    fill,
+                });
+            }
+
+            if (background.enabled) {
+                const { fill } = background;
+                backgroundData.push({
+                    series: this,
+                    itemId: `background`,
+                    datum: value,
+                    centerX,
+                    centerY,
+                    outerRadius,
+                    innerRadius,
+                    startAngle: startAngle,
+                    endAngle: endAngle,
+                    clipStartAngle: undefined,
+                    clipEndAngle: undefined,
+                    startCornerRadius: cornerRadius,
+                    endCornerRadius: cornerRadius,
+                    fill,
+                });
+            }
+        } else {
+            const colorRangeStops = 8;
+            for (let i = 0; i < colorRangeStops; i += 1) {
+                const isStart = i === 0;
+                const isEnd = i === colorRangeStops - 1;
+                const domainStep = (domain[1] - domain[0]) / colorRangeStops;
+                const itemStartValue = domain[0] + domainStep * (i + 0);
+                const itemEndValue = domain[0] + domainStep * (i + 1);
+                const itemStartAngle = scale.convert(itemStartValue);
+                const itemEndAngle = scale.convert(itemEndValue);
+
+                if (foreground.enabled) {
+                    const fill = foregroundColorScale?.convert(itemStartValue) ?? foreground.fill;
+
+                    nodeData.push({
+                        series: this,
+                        itemId: `value-${i}`,
+                        datum: value,
+                        centerX,
+                        centerY,
+                        outerRadius,
+                        innerRadius,
+                        startAngle: itemStartAngle,
+                        endAngle: itemEndAngle,
+                        clipStartAngle: containerStartAngle,
+                        clipEndAngle: containerEndAngle,
+                        startCornerRadius: cornersOnAllItems || isStart ? cornerRadius : 0,
+                        endCornerRadius: cornersOnAllItems || isEnd ? cornerRadius : 0,
+                        fill,
+                    });
+                }
+
+                if (background.enabled) {
+                    const fill = backgroundColorScale?.convert(itemStartValue) ?? background.fill;
+
+                    backgroundData.push({
+                        series: this,
+                        itemId: `background-${i}`,
+                        datum: value,
+                        centerX,
+                        centerY,
+                        outerRadius,
+                        innerRadius,
+                        startAngle: itemStartAngle,
+                        endAngle: itemEndAngle,
+                        clipStartAngle: undefined,
+                        clipEndAngle: undefined,
+                        startCornerRadius: cornersOnAllItems || isStart ? cornerRadius : 0,
+                        endCornerRadius: cornersOnAllItems || isEnd ? cornerRadius : 0,
+                        fill,
+                    });
+                }
+            }
         }
 
         if (label.enabled) {
@@ -284,22 +391,6 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                 centerY,
                 radius,
                 angle,
-            });
-        }
-
-        if (background.enabled) {
-            backgroundData.push({
-                series: this,
-                itemId: 'background',
-                datum: value,
-                centerX,
-                centerY,
-                outerRadius,
-                innerRadius,
-                startAngle,
-                endAngle,
-                clipStartAngle: undefined,
-                clipEndAngle: undefined,
             });
         }
 
@@ -362,7 +453,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         nodeData: RadialGaugeNodeDatum[];
         datumSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum>;
     }) {
-        return opts.datumSelection.update(opts.nodeData, undefined, () => createDatumId([]));
+        return opts.datumSelection.update(opts.nodeData, undefined, (datum) => datum.itemId!);
     }
 
     private async updateDatumNodes(opts: {
@@ -371,15 +462,24 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
     }) {
         const { datumSelection, isHighlight } = opts;
         const { ctx, properties } = this;
-        const { cornerRadius, foreground } = properties;
-        const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = foreground;
+        const { sectorSpacing, foreground } = properties;
+        const { fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = foreground;
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(foreground.strokeWidth);
         const animationDisabled = ctx.animationManager.isSkipped();
 
         datumSelection.each((sector, datum) => {
-            const { centerX, centerY, innerRadius, outerRadius, startAngle, endAngle, clipStartAngle, clipEndAngle } =
-                datum;
+            const {
+                centerX,
+                centerY,
+                innerRadius,
+                outerRadius,
+                startAngle,
+                endAngle,
+                startCornerRadius,
+                endCornerRadius,
+                fill,
+            } = datum;
             sector.centerX = centerX;
             sector.centerY = centerY;
             if (animationDisabled || isHighlight) {
@@ -387,10 +487,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                 sector.outerRadius = outerRadius;
                 sector.startAngle = startAngle;
                 sector.endAngle = endAngle;
-                sector.clipSector =
-                    clipStartAngle != null && clipEndAngle != null
-                        ? new SectorBox(clipStartAngle, clipEndAngle, innerRadius, outerRadius)
-                        : undefined;
+                sector.clipSector = computeClipSector(datum);
             }
 
             sector.fill = highlightStyle?.fill ?? fill;
@@ -400,9 +497,13 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             sector.strokeWidth = highlightStyle?.strokeWidth ?? strokeWidth;
             sector.lineDash = highlightStyle?.lineDash ?? lineDash;
             sector.lineDashOffset = highlightStyle?.lineDashOffset ?? lineDashOffset;
-            sector.cornerRadius = cornerRadius;
+            sector.startOuterCornerRadius = startCornerRadius;
+            sector.startInnerCornerRadius = startCornerRadius;
+            sector.endOuterCornerRadius = endCornerRadius;
+            sector.endInnerCornerRadius = endCornerRadius;
 
-            sector.inset = sector.strokeWidth / 2;
+            sector.radialEdgeInset = (sectorSpacing + sector.strokeWidth) / 2;
+            sector.concentricEdgeInset = sector.strokeWidth / 2;
         });
     }
 
@@ -448,20 +549,29 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         backgroundData: RadialGaugeNodeDatum[];
         backgroundSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum>;
     }) {
-        return opts.backgroundSelection.update(opts.backgroundData, undefined, () => createDatumId([]));
+        return opts.backgroundSelection.update(opts.backgroundData, undefined, (datum) => datum.itemId!);
     }
 
     private async updateBackgroundNodes(opts: {
         backgroundSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum>;
     }) {
         const { backgroundSelection } = opts;
-        const { cornerRadius, background } = this.properties;
-        const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = background;
+        const { sectorSpacing, background } = this.properties;
+        const { fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = background;
         const animationDisabled = this.ctx.animationManager.isSkipped();
 
         backgroundSelection.each((sector, datum) => {
-            const { centerX, centerY, innerRadius, outerRadius, startAngle, endAngle, clipStartAngle, clipEndAngle } =
-                datum;
+            const {
+                centerX,
+                centerY,
+                innerRadius,
+                outerRadius,
+                startAngle,
+                endAngle,
+                startCornerRadius,
+                endCornerRadius,
+                fill,
+            } = datum;
             sector.centerX = centerX;
             sector.centerY = centerY;
             if (animationDisabled) {
@@ -469,10 +579,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                 sector.outerRadius = outerRadius;
                 sector.startAngle = startAngle;
                 sector.endAngle = endAngle;
-                sector.clipSector =
-                    clipStartAngle != null && clipEndAngle != null
-                        ? new SectorBox(clipStartAngle, clipEndAngle, innerRadius, outerRadius)
-                        : undefined;
+                sector.clipSector = computeClipSector(datum);
             }
 
             sector.fill = fill;
@@ -482,9 +589,13 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             sector.strokeWidth = strokeWidth;
             sector.lineDash = lineDash;
             sector.lineDashOffset = lineDashOffset;
-            sector.cornerRadius = cornerRadius;
+            sector.startOuterCornerRadius = startCornerRadius;
+            sector.startInnerCornerRadius = startCornerRadius;
+            sector.endOuterCornerRadius = endCornerRadius;
+            sector.endInnerCornerRadius = endCornerRadius;
 
-            sector.inset = sector.strokeWidth / 2;
+            sector.radialEdgeInset = (sectorSpacing + sector.strokeWidth) / 2;
+            sector.concentricEdgeInset = sector.strokeWidth / 2;
         });
     }
 

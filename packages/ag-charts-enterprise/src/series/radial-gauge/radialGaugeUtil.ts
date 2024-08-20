@@ -20,6 +20,14 @@ type AnimatableSectorDatum = {
     clipEndAngle: number | undefined;
 };
 
+type SectorAnimation = {
+    startAngle: number;
+    endAngle: number;
+    innerRadius: number;
+    outerRadius: number;
+    clipSector: _Scene.SectorBox | undefined;
+};
+
 type AnimatableNeedleDatum = {
     radius: number;
     angle: number;
@@ -30,22 +38,30 @@ export const fadeInFns: _ModuleSupport.FromToFns<_Scene.Node, any, any> = {
     toFn: () => ({ opacity: 1 }),
 };
 
+export function computeClipSector(datum: AnimatableSectorDatum) {
+    const { startAngle, endAngle, clipStartAngle, clipEndAngle, innerRadius, outerRadius } = datum;
+
+    if (clipStartAngle == null || clipEndAngle == null) return;
+
+    return new SectorBox(
+        Math.max(clipStartAngle, startAngle),
+        Math.min(clipEndAngle, endAngle),
+        innerRadius,
+        outerRadius
+    );
+}
+
 export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean) {
     const phase = initialLoad ? 'initial' : 'update';
 
-    const node: _ModuleSupport.FromToFns<_Scene.Sector, any, AnimatableSectorDatum> = {
+    const node: _ModuleSupport.FromToFns<_Scene.Sector, SectorAnimation, AnimatableSectorDatum> = {
         fromFn(sect, datum) {
-            let { startAngle, endAngle, innerRadius, outerRadius } = sect;
-            let clipStartAngle = sect.clipSector?.startAngle;
-            let clipEndAngle = sect.clipSector?.endAngle;
+            const previousDatum: AnimatableSectorDatum = sect.previousDatum ?? datum;
+            const { startAngle, endAngle, clipStartAngle, clipEndAngle, innerRadius } = previousDatum;
+            let { outerRadius } = previousDatum;
 
             if (initialLoad) {
-                startAngle = datum.startAngle;
-                endAngle = datum.endAngle;
-                innerRadius = datum.innerRadius;
-                outerRadius = datum.innerRadius;
-                clipStartAngle = datum.clipStartAngle;
-                clipEndAngle = datum.clipEndAngle;
+                outerRadius = innerRadius;
             }
 
             const clipSector =
@@ -70,6 +86,26 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean)
                     : undefined;
 
             return { startAngle, endAngle, outerRadius, innerRadius, clipSector };
+        },
+        mapFn(params, datum) {
+            const { clipStartAngle, clipEndAngle } = datum;
+            const { startAngle, endAngle, outerRadius, innerRadius } = params;
+            let { clipSector } = params;
+
+            let visible = true;
+
+            if (clipSector != null && clipStartAngle != null && clipEndAngle != null) {
+                clipSector = new SectorBox(
+                    Math.max(startAngle, clipSector.startAngle),
+                    Math.min(endAngle, clipSector.endAngle),
+                    clipSector.innerRadius,
+                    clipSector.outerRadius
+                );
+
+                visible &&= Math.max(startAngle, clipSector.startAngle) <= Math.min(endAngle, clipSector.endAngle);
+            }
+
+            return { visible, startAngle, endAngle, outerRadius, innerRadius, clipSector };
         },
     };
 

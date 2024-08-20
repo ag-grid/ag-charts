@@ -28,6 +28,9 @@ export interface RadialGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     endAngle: number;
     clipStartAngle: number | undefined;
     clipEndAngle: number | undefined;
+    startCornerRadius: number;
+    endCornerRadius: number;
+    fill: string;
 }
 
 export type RadialGaugeLabelDatum = {
@@ -55,6 +58,7 @@ const {
     SeriesProperties,
     BOOLEAN,
     COLOR_STRING,
+    COLOR_STRING_ARRAY,
     FUNCTION,
     LINE_DASH,
     NUMBER_ARRAY,
@@ -69,6 +73,9 @@ const {
 export class RadialGaugeForegroundProperties extends BaseProperties {
     @Validate(BOOLEAN)
     enabled = true;
+
+    @Validate(COLOR_STRING_ARRAY, { optional: true })
+    colorRange?: string[];
 
     @Validate(COLOR_STRING)
     fill: string = 'black';
@@ -95,6 +102,9 @@ export class RadialGaugeForegroundProperties extends BaseProperties {
 export class RadialGaugeBackgroundProperties extends BaseProperties {
     @Validate(BOOLEAN)
     enabled = true;
+
+    @Validate(COLOR_STRING_ARRAY, { optional: true })
+    colorRange?: string[];
 
     @Validate(COLOR_STRING)
     fill: string = 'black';
@@ -174,13 +184,22 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeS
     endAngle: number = 2.25 * Math.PI;
 
     @Validate(RATIO)
-    innerRadiusRatio: number = 0.8;
+    outerRadiusRatio: number = 1;
+
+    @Validate(RATIO)
+    innerRadiusRatio: number = 1;
+
+    @Validate(POSITIVE_NUMBER)
+    sectorSpacing: number = 0;
 
     @Validate(POSITIVE_NUMBER)
     cornerRadius: number = 0;
 
     @Validate(STRING) // FIXME
-    cornerRadiusMode: 'container' | 'item' = 'container';
+    itemMode: 'continuous' | 'segmented' = 'continuous';
+
+    @Validate(STRING) // FIXME
+    cornerMode: 'container' | 'item' = 'container';
 
     @Validate(NUMBER)
     padding: number = 0;

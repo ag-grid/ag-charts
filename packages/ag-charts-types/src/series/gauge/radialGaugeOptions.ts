@@ -59,6 +59,14 @@ export interface AgChartRadialGaugeSecondaryLabelOptions<TDatum>
 export interface AgRadialGaugeSeriesThemeableOptions<TDatum = any>
     extends AgRadialGaugeSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
+    outerRadiusRatio?: number;
+    innerRadiusRatio?: number;
+    startAngle?: number;
+    endAngle?: number;
+    sectorSpacing?: number;
+    cornerRadius?: number;
+    itemMode?: 'continuous' | 'segmented';
+    cornerMode?: 'container' | 'item';
     /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
     colorRange?: CssColor[];
     /** Configuration for the needle. */
