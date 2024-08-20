@@ -20,11 +20,12 @@ const {
     LINE_STYLE,
     NUMBER,
     OBJECT,
+    OR,
     POSITIVE_NUMBER,
     RATIO,
     STRING,
     TEXT_ALIGN,
-    OR,
+    UNION,
     BaseProperties,
     Validate,
 } = _ModuleSupport;
@@ -55,6 +56,17 @@ export class AxisLabelProperties extends Stroke(LineStyle(Fill(Label(Font(BasePr
 export class BackgroundProperties extends Fill(BaseProperties) {}
 
 export class HandleProperties extends Stroke(LineStyle(Fill(BaseProperties))) {}
+
+export class LineText extends Font(BaseProperties) {
+    @Validate(STRING)
+    label: string = '';
+
+    @Validate(UNION(['top', 'center', 'bottom']), { optional: true })
+    position?: 'top' | 'center' | 'bottom';
+
+    @Validate(UNION(['left', 'center', 'right']), { optional: true })
+    alignment?: 'left' | 'center' | 'right';
+}
 
 export interface AxisLabelFormatterParams {
     readonly value: any;

@@ -23,6 +23,7 @@ export class LineScene extends LinearScene<LineTypeProperties> {
     private readonly line = new CollidableLine();
     private readonly start = new DivariantHandle();
     private readonly end = new DivariantHandle();
+    private text?: _Scene.TransformableText;
     private startCap?: CapScene;
     private endCap?: CapScene;
 
@@ -46,6 +47,7 @@ export class LineScene extends LinearScene<LineTypeProperties> {
 
         this.updateLine(datum, coords);
         this.updateHandles(datum, coords, locked);
+        this.updateText(datum, coords);
         this.updateCaps(datum, coords);
     }
 
@@ -87,6 +89,57 @@ export class LineScene extends LinearScene<LineTypeProperties> {
 
         start.toggleLocked(locked);
         end.toggleLocked(locked);
+    }
+
+    updateText(datum: LineTypeProperties, coords: LineCoords) {
+        if (!datum.text && this.text) {
+            this.removeChild(this.text);
+        }
+
+        if (!datum.text) return;
+
+        if (this.text == null) {
+            this.text = new _Scene.TransformableText();
+            this.appendChild(this.text);
+        }
+
+        const [start, end] = Vec2.from(coords);
+        const [left, right] = start.x <= end.x ? [start, end] : [end, start];
+        const angle = Vec2.angle(Vec2.sub(right, left));
+
+        let textAnchor = left;
+        if (datum.text.alignment === 'right') {
+            textAnchor = right;
+        } else if (datum.text.alignment === 'center') {
+            textAnchor = Vec2.rotate(Vec2.from(0, Vec2.distance(left, right) / 2), angle, left);
+        }
+
+        let point = textAnchor;
+        let textBaseline: CanvasTextBaseline = 'middle';
+        if (datum.text.position === 'top') {
+            point = Vec2.rotate(Vec2.from(0, 5), angle - Math.PI / 2, textAnchor);
+            textBaseline = 'bottom';
+        } else if (datum.text.position === 'bottom') {
+            point = Vec2.rotate(Vec2.from(0, 5), angle + Math.PI / 2, textAnchor);
+            textBaseline = 'top';
+        }
+
+        this.text.setProperties({
+            text: datum.text.label,
+
+            x: point.x,
+            y: point.y,
+            rotation: angle,
+            rotationCenterX: point.x,
+            rotationCenterY: point.y,
+
+            fontFamily: datum.text.fontFamily,
+            fontSize: datum.text.fontSize,
+            fontStyle: datum.text.fontStyle,
+            fontWeight: datum.text.fontWeight,
+            textAlign: datum.text.alignment,
+            textBaseline: textBaseline,
+        });
     }
 
     updateCaps(datum: LineTypeProperties, coords: LineCoords) {

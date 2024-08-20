@@ -26,6 +26,11 @@ const options: AgFinancialChartOptions = {
                     },
                     y: 39844.70176730486,
                 },
+                text: {
+                    label: 'Trend line',
+                    position: 'bottom',
+                    alignment: 'right',
+                },
 
                 stroke: '#5090dc',
                 strokeOpacity: 1,

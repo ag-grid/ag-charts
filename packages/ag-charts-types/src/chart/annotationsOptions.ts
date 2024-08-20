@@ -110,6 +110,8 @@ export interface AgLineAnnotation
     /** Configuration for the trend line annotation.*/
     type: 'line';
     handle?: AgAnnotationHandle;
+    /** Configuration for the line text. */
+    text?: AgLineText;
 }
 
 export interface AgHorizontalLineAnnotation extends AgCrossLineAnnotation {
@@ -257,6 +259,12 @@ export interface AgAnnotationAxisLabel
 export interface AgAnnotationLabelFormatterParams {
     /** The default label value that would have been used without a formatter. */
     value: any;
+}
+
+export interface AgLineText extends FontOptions {
+    label?: string;
+    position?: 'top' | 'center' | 'bottom';
+    alignment?: 'left' | 'center' | 'right';
 }
 
 interface AnnotationLinePoints {

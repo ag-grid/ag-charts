@@ -83,7 +83,7 @@ function angle(a: Vec2, b: Vec2 = origin()) {
 }
 
 /**
- * Rotate vector `a` by the angle `theta around the origin `b`.
+ * Rotate vector `a` by the angle `theta` around the origin `b`.
  */
 function rotate(a: Vec2, theta: number, b: Vec2 = origin()) {
     const l = length(a);

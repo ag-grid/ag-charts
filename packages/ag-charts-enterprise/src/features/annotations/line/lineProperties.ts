@@ -1,14 +1,17 @@
 import { type PixelSize, _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import { Annotation, Cappable, Extendable, Handle, Line, LineStyle, Stroke } from '../annotationProperties';
+import { Annotation, Cappable, Extendable, Handle, Line, LineStyle, LineText, Stroke } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
 import { validateDatumLine } from '../annotationUtils';
 
-const { STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
+const { OBJECT, STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
 
 export abstract class LineTypeProperties extends Annotation(
     Line(Handle(Cappable(Extendable(Stroke(LineStyle(BaseProperties))))))
 ) {
+    @Validate(OBJECT, { optional: true })
+    text = new LineText();
+
     lineCap?: _Scene.ShapeLineCap = undefined;
     computedLineDash?: PixelSize[] = undefined;
 
