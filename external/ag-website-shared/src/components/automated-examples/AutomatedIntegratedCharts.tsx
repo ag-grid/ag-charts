@@ -26,6 +26,16 @@ interface Params {
     children?: ReactNode;
 }
 
+function useClientIsReady() {
+    const [clientIsReady, setClientIsReady] = useState<boolean>(false);
+
+    useEffect(() => {
+        setClientIsReady(true);
+    }, []);
+
+    return clientIsReady;
+}
+
 export function AutomatedIntegratedCharts({
     automatedExampleManager,
     useStaticData,
@@ -39,6 +49,7 @@ export function AutomatedIntegratedCharts({
     const overlayRef = useRef(null);
     const [scriptIsEnabled, setScriptIsEnabled] = useState(true);
     const [gridIsReady, setGridIsReady] = useState(false);
+    const clientIsReady = useClientIsReady();
     const [automatedExample, setAutomatedExample] = useState();
     const [gridIsHoveredOver, setGridIsHoveredOver] = useState(false);
     const [darkMode] = useDarkmode();
@@ -77,6 +88,10 @@ export function AutomatedIntegratedCharts({
     });
 
     useEffect(() => {
+        if (!clientIsReady) {
+            return;
+        }
+
         const params = {
             gridClassname,
             darkMode,
@@ -120,7 +135,7 @@ export function AutomatedIntegratedCharts({
         });
 
         setAutomatedExample(automatedExample);
-    }, []);
+    }, [clientIsReady]);
 
     useEffect(() => {
         if (!automatedExample) {
@@ -148,32 +163,37 @@ export function AutomatedIntegratedCharts({
                     </>
                 )}
             </header>
-            <div
-                ref={gridRef}
-                className={classNames('automated-integrated-charts-grid', {
-                    'ag-theme-quartz': !darkMode,
-                    'ag-theme-quartz-dark': darkMode,
-                })}
-                onClick={gridInteraction}
-            >
-                <OverlayButton
-                    ref={overlayRef}
-                    ariaLabel="Give me control"
-                    isHidden={!scriptIsEnabled}
-                    onPointerEnter={() => setGridIsHoveredOver(true)}
-                    onPointerOut={() => setGridIsHoveredOver(false)}
-                    onClick={() => {
-                        if (!isMobile()) {
-                            setAllScriptEnabledVars(false);
-                            automatedExampleManager.stop(exampleId);
 
-                            trackHomepageExampleIntegratedCharts({
-                                type: 'controlGridClick',
-                                clickType: 'overlay',
-                            });
-                        }
-                    }}
-                />
+            <div className={styles.automatedExampleWrapper}>
+                {clientIsReady && (
+                    <div
+                        ref={gridRef}
+                        className={classNames('automated-integrated-charts-grid', {
+                            'ag-theme-quartz': !darkMode,
+                            'ag-theme-quartz-dark': darkMode,
+                        })}
+                        onClick={gridInteraction}
+                    >
+                        <OverlayButton
+                            ref={overlayRef}
+                            ariaLabel="Give me control"
+                            isHidden={!scriptIsEnabled}
+                            onPointerEnter={() => setGridIsHoveredOver(true)}
+                            onPointerOut={() => setGridIsHoveredOver(false)}
+                            onClick={() => {
+                                if (!isMobile()) {
+                                    setAllScriptEnabledVars(false);
+                                    automatedExampleManager.stop(exampleId);
+
+                                    trackHomepageExampleIntegratedCharts({
+                                        type: 'controlGridClick',
+                                        clickType: 'overlay',
+                                    });
+                                }
+                            }}
+                        />
+                    </div>
+                )}
                 {!gridIsReady && !useStaticData && <LogoMark isSpinning />}
             </div>
 
