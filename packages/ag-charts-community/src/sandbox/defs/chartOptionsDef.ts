@@ -1,4 +1,3 @@
-import type { AgChartOptions } from '../chart/chartTypes';
 import {
     type OptionsDefs,
     arrayOf,
@@ -11,7 +10,8 @@ import {
     positiveNumber,
     required,
     string,
-} from '../util/validation';
+} from '../../util/validate';
+import type { AgChartOptions } from '../chart/chartTypes';
 import { captionOptionsDef, directionMetricsOptionsDef } from './commonOptionsDefs';
 import { themeOptionsDef } from './themeOptionsDef';
 

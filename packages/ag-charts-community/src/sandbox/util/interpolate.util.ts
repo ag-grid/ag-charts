@@ -30,7 +30,6 @@ export function interpolateColor(a: OKLCH, b: OKLCH) {
             c = a.c * (1 - d) + b.c * d;
             h = a.h * (1 - d) + bH * d;
         }
-
         return { l, c, h, a: a.a * (1 - d) + b.a * d };
     };
 }

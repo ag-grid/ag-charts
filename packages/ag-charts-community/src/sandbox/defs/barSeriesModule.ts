@@ -1,8 +1,8 @@
+import { boolean, number, required, string, union } from '../../util/validate';
 import type { CartesianSeriesModule } from '../modules/modulesTypes';
 import { BarSeries } from '../series/barSeries';
 import type { BarSeriesOptions } from '../series/seriesTypes';
 import { ChartType } from '../types/enums';
-import { boolean, number, required, string, union } from '../util/validation';
 import { commonSeriesOptionsDefs } from './commonOptionsDefs';
 
 export const BarSeriesModule: CartesianSeriesModule<BarSeriesOptions> = {

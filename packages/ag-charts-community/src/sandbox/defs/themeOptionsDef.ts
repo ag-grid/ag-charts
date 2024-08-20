@@ -1,5 +1,5 @@
+import { type OptionsDefs, union } from '../../util/validate';
 import type { ThemeOptions } from '../themes/themeTypes';
-import { type OptionsDefs, union } from '../util/validation';
 
 export const themeOptionsDef: OptionsDefs<ThemeOptions> = {
     baseTheme: union(

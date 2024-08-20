@@ -1,10 +1,10 @@
+import { EventEmitter } from '../../util/eventEmitter';
 import { CartesianCoordinate } from '../axes/axesEnums';
 import { DataPipeline } from '../data/dataPipeline';
 import { CategoryProcessor, NumberProcessor } from '../data/dataProcessor';
 import type { IStage } from '../drawing/drawingTypes';
 import { moduleRegistry } from '../modules/moduleRegistry';
 import type { SeriesModule } from '../modules/modulesTypes';
-import { EventEmitter } from '../util/eventEmitter';
 import { PipelinePhase, PipelineQueue } from '../util/pipelineQueue';
 import { SizeObserver } from '../util/resizeObserver';
 import type { ChartOptions } from './chartOptions';

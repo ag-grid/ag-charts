@@ -1,5 +1,5 @@
 import { createElement } from '../../util/dom';
-import { EventEmitter } from '../util/eventEmitter';
+import { EventEmitter } from '../../util/eventEmitter';
 import type { IStage, StageEventMap } from './drawingTypes';
 import { StageLayout } from './stageLayout';
 

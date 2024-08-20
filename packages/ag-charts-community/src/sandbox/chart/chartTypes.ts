@@ -1,4 +1,6 @@
-import type { AgChartCaptionOptions } from '../../options/chart/chartOptions';
+import type { AgChartCaptionOptions } from 'ag-charts-types';
+
+import type { EventEmitter } from '../../util/eventEmitter';
 import type { CartesianChartAxes, PolarChartAxes } from '../axes/axesTypes';
 import type { IStage } from '../drawing/drawingTypes';
 import type {
@@ -9,7 +11,6 @@ import type {
 } from '../series/seriesTypes';
 import type { DirectionMetrics } from '../types/commonTypes';
 import type { ChartType } from '../types/enums';
-import type { EventEmitter } from '../util/eventEmitter';
 import type { PipelineQueue } from '../util/pipelineQueue';
 
 export interface IChartOptions<T extends AgChartOptions> {

@@ -1,8 +1,8 @@
+import type { OptionsDefs } from '../../util/validate';
 import type { CartesianCoordinate, PolarCoordinate } from '../axes/axesEnums';
 import type { CartesianChartAxes, IAxis, PolarChartAxes } from '../axes/axesTypes';
 import type { ISeries } from '../series/seriesTypes';
 import type { ChartType } from '../types/enums';
-import type { OptionsDefs } from '../util/validation';
 
 export interface IModule {}
 

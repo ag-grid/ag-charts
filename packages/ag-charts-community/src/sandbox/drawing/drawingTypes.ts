@@ -1,6 +1,6 @@
+import type { EventEmitter } from '../../util/eventEmitter';
 import type { BBox } from '../types/commonTypes';
 import type { Direction } from '../types/enums';
-import type { EventEmitter } from '../util/eventEmitter';
 import type { LayoutHierarchy } from './drawingEnums';
 import type { TreeNode } from './nodes/treeNode';
 
