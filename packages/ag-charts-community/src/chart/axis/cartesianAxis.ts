@@ -11,7 +11,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     S,
     D
 > {
-    static is(value: any): value is CartesianAxis<any> {
+    static is(value: unknown): value is CartesianAxis<any> {
         return value instanceof CartesianAxis;
     }
 

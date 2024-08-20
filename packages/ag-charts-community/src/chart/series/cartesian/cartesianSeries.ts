@@ -657,12 +657,8 @@ export abstract class CartesianSeries<
         const yAxis = axes[ChartAxisDirection.Y];
 
         // Prefer to start search with any available category axis.
-        const directions = [xAxis, yAxis]
-            .filter((a): a is CategoryAxis => a instanceof CategoryAxis)
-            .map((a) => a.direction);
-        if (requireCategoryAxis && directions.length === 0) {
-            return;
-        }
+        const directions = [xAxis, yAxis].filter(CategoryAxis.is).map((a) => a.direction);
+        if (requireCategoryAxis && directions.length === 0) return;
 
         // Default to X-axis unless we found a suitable category axis.
         const [majorDirection = ChartAxisDirection.X] = directions;
@@ -675,18 +671,18 @@ export abstract class CartesianSeries<
 
         for (const datum of contextNodeData.nodeData) {
             const { x: datumX = NaN, y: datumY = NaN } = datum.point ?? datum.midPoint ?? {};
-            if (isNaN(datumX) || isNaN(datumY) || datum.missing === true) {
-                continue;
-            }
+            if (isNaN(datumX) || isNaN(datumY) || datum.missing === true) continue;
 
             const visible = [xAxis?.inRange(datumX), yAxis?.inRange(datumY)];
-            if (majorDirection !== ChartAxisDirection.X) visible.reverse();
-            if (!visible[0] || (!pickOutsideVisibleMinorAxis && !visible[1])) {
-                continue;
+            if (majorDirection !== ChartAxisDirection.X) {
+                visible.reverse();
             }
+            if (!visible[0] || (!pickOutsideVisibleMinorAxis && !visible[1])) continue;
 
             const datumPoint = [datumX, datumY];
-            if (majorDirection !== ChartAxisDirection.X) datumPoint.reverse();
+            if (majorDirection !== ChartAxisDirection.X) {
+                datumPoint.reverse();
+            }
 
             // Compare distances from most significant dimension to least.
             let newMinDistance = true;
@@ -695,8 +691,7 @@ export abstract class CartesianSeries<
                 if (dist > minDistance[i]) {
                     newMinDistance = false;
                     break;
-                }
-                if (dist < minDistance[i]) {
+                } else if (dist < minDistance[i]) {
                     minDistance[i] = dist;
                     minDistance.fill(Infinity, i + 1, minDistance.length);
                 }

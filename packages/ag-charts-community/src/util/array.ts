@@ -6,7 +6,7 @@ export function times<T>(n: number, callback: (index: number) => T): T[] {
     return results;
 }
 
-export function extent(values: Array<number | Date>): [number, number] | null {
+export function extent(values: Array<Date | number | unknown>): [number, number] | null {
     if (values.length === 0) {
         return null;
     }
