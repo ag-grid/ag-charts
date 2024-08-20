@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
+import { Translatable } from '../transformable';
 import { Range } from './range';
 
 const CANVAS_WIDTH = 1150;
@@ -78,8 +79,13 @@ describe('Range', () => {
                 currY = currY + rowHeight + GAP;
                 rowHeight = 0;
 
+                const TranslatableRange = Translatable(Range);
                 for (const testCase of testCaseRow) {
-                    const range = Object.assign(new Range(), { ...COORDINATES, ...STYLE_TC_PARAMS }, testCase);
+                    const range = Object.assign(
+                        new TranslatableRange(),
+                        { ...COORDINATES, ...STYLE_TC_PARAMS },
+                        testCase
+                    );
 
                     // Position Range.
                     range.translationX = currX;

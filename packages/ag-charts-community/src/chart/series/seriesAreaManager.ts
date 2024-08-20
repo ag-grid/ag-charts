@@ -4,7 +4,8 @@ import { BaseManager } from '../baseManager';
 import type { ChartContext } from '../chartContext';
 import type { ChartHighlight } from '../chartHighlight';
 import { ChartUpdateType } from '../chartUpdateType';
-import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
+import { InteractionState } from '../interaction/interactionManager';
+import type { RegionEvent } from '../interaction/regionManager';
 import { REGIONS } from '../interaction/regions';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import { Tooltip } from '../tooltip/tooltip';
@@ -38,7 +39,7 @@ export class SeriesAreaManager extends BaseManager {
             fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
         },
         private readonly ctx: ChartContext,
-        chartType: 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion',
+        chartType: 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'gauge',
         tooltip: Tooltip,
         highlight: ChartHighlight,
         overlays: ChartOverlays
@@ -79,7 +80,7 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private onContextMenu(event: PointerInteractionEvent<'contextmenu'>): void {
+    private onContextMenu(event: RegionEvent<'contextmenu'>): void {
         // If there is already a context menu visible, then re-pick the highlighted node.
         // We check InteractionState.Default too just in case we were in ContextMenu and the
         // mouse hasn't moved since (see AG-10233).
@@ -87,7 +88,7 @@ export class SeriesAreaManager extends BaseManager {
 
         let pickedNode: SeriesNodeDatum | undefined;
         if (this.ctx.interactionManager.getState() & (Default | ContextMenu)) {
-            const match = pickNode(this.series, { x: event.offsetX, y: event.offsetY }, 'context-menu');
+            const match = pickNode(this.series, { x: event.regionOffsetX, y: event.regionOffsetY }, 'context-menu');
             if (match) {
                 this.ctx.highlightManager.updateHighlight(this.id);
                 pickedNode = match.datum;

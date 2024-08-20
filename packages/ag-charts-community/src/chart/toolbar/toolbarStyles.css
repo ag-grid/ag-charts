@@ -63,6 +63,7 @@
 .ag-charts-toolbar--floating-bottom {
     height: calc(var(--ag-charts-toolbar-size) + 10px);
     padding-bottom: 10px;
+    overflow: hidden;
 }
 
 .ag-charts-toolbar__align {
@@ -128,11 +129,18 @@
     padding: var(--ag-charts-toolbar-button-padding);
     pointer-events: all;
     position: relative;
+    white-space: nowrap;
+    --stroke-width-color: var(--ag-charts-toolbar-foreground-color);
+}
+
+/* Applying this class just after the element is created prevents the flash of the default border color on initial
+   render. The border color variable is evaluated after the transition and a fallback value can not be provided as it
+   differs per theme. */
+.ag-charts-toolbar__button--with-transition {
     transition:
         background-color 0.25s ease-in-out,
         border-color 0.25s ease-in-out,
         color 0.25s ease-in-out;
-    white-space: nowrap;
 }
 
 .ag-charts-toolbar__button[data-toolbar-group='ranges'] {
@@ -187,16 +195,17 @@
 }
 
 .ag-charts-toolbar__button:focus-visible {
-    border-color: var(--ag-charts-toolbar-focus-color);
+    outline: var(--ag-charts-focus-border);
     box-shadow: var(--ag-charts-focus-border-shadow);
-    z-index: 1;
+    z-index: calc(var(--ag-charts-layer-ui-overlay) + 1);
 }
 
 .ag-charts-toolbar__button.ag-charts-toolbar__button--active {
     background: var(--ag-charts-toolbar-active-background-color);
     border-color: var(--ag-charts-toolbar-active-color);
     color: var(--ag-charts-toolbar-active-color);
-    z-index: 1;
+    z-index: 2;
+    --stroke-width-color: var(--ag-charts-toolbar-active-color);
 }
 
 .ag-charts-toolbar__button[aria-disabled='true'] {
@@ -222,6 +231,19 @@
 }
 
 .ag-charts-toolbar__button--fill-visible[aria-disabled='true']::after {
+    filter: grayscale(1);
+    opacity: 0.5;
+}
+
+.ag-charts-toolbar__button--stroke-width-visible::before {
+    content: '';
+    height: var(--strokeWidth);
+    width: 12px;
+    background: var(--stroke-width-color);
+    margin-right: var(--ag-charts-toolbar-button-padding);
+}
+
+.ag-charts-toolbar__button--stroke-width-visible[aria-disabled='true']::before {
     filter: grayscale(1);
     opacity: 0.5;
 }

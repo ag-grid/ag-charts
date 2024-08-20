@@ -1,11 +1,27 @@
+function addRemovableEventListener<K extends keyof WindowEventMap>(
+    destroyFns: (() => void)[],
+    elem: Window,
+    type: K,
+    listener: (this: Window, ev: WindowEventMap[K]) => any
+): () => void;
+
 function addRemovableEventListener<K extends keyof HTMLElementEventMap>(
     destroyFns: (() => void)[],
-    button: HTMLElement,
+    elem: HTMLElement,
     type: K,
     listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any
-): void {
-    button.addEventListener(type, listener);
-    destroyFns.push(() => button.removeEventListener(type, listener));
+): () => void;
+
+function addRemovableEventListener<K extends keyof (HTMLElementEventMap | WindowEventMap)>(
+    destroyFns: (() => void)[],
+    elem: HTMLElement | Window,
+    type: K,
+    listener: (this: unknown, ev: unknown) => unknown
+): () => void {
+    elem.addEventListener(type, listener);
+    const remover = () => elem.removeEventListener(type, listener);
+    destroyFns.push(remover);
+    return remover;
 }
 
 function addEscapeEventListener(
@@ -18,6 +34,25 @@ function addEscapeEventListener(
             onEscape(event);
         }
     });
+}
+
+function addMouseCloseListener(destroyFns: (() => void)[], menu: HTMLElement, hideCallback: () => void): () => void {
+    const self = addRemovableEventListener(destroyFns, window, 'mousedown', (event: MouseEvent) => {
+        if ([0, 2].includes(event.button) && !containsPoint(menu, event)) {
+            hideCallback();
+            self();
+        }
+    });
+    return self;
+}
+
+function containsPoint(container: Element, event: MouseEvent) {
+    if (event.target instanceof Element) {
+        const { x, y, width, height } = container.getBoundingClientRect();
+        const { clientX: ex, clientY: ey } = event;
+        return ex >= x && ey >= y && ex <= x + width && ey <= y + height;
+    }
+    return false;
 }
 
 function matchesKey(event: KeyboardEvent, key: string, ...morekeys: string[]): boolean {
@@ -103,33 +138,60 @@ export function initToolbarKeyNav(opts: {
     return destroyFns;
 }
 
+export interface MenuCloser {
+    close(): void;
+}
+
+export type MenuDevice = { type: 'keyboard'; lastFocus: HTMLElement } | { type: 'mouse'; lastFocus?: undefined };
+
+class MenuCloserImp implements MenuCloser {
+    public readonly destroyFns: (() => void)[] = [];
+
+    constructor(
+        menu: HTMLElement,
+        private readonly lastFocus: HTMLElement | undefined,
+        public readonly closeCallback: () => void
+    ) {
+        this.destroyFns.push(addMouseCloseListener(this.destroyFns, menu, () => this.close()));
+    }
+
+    close() {
+        this.closeCallback();
+        this.destroyFns.forEach((d) => d());
+        this.lastFocus?.focus();
+    }
+}
+
 // https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/menu_role
 export function initMenuKeyNav(opts: {
     orientation: 'vertical';
+    device: MenuDevice;
     menu: HTMLElement;
     buttons: HTMLElement[];
-    onEscape?: (event: KeyboardEvent) => void;
-}): (() => void)[] {
-    const { orientation, menu, buttons, onEscape } = opts;
+    closeCallback: () => void;
+}): MenuCloser {
+    const { device, orientation, menu, buttons, closeCallback } = opts;
     const { nextKey, prevKey } = PREV_NEXT_KEYS[orientation];
+
+    const menuCloser = new MenuCloserImp(menu, device.lastFocus, closeCallback);
+    const close = () => menuCloser.close();
+    const { destroyFns } = menuCloser;
 
     menu.role = 'menu';
     menu.ariaOrientation = orientation;
-
-    const destroyFns: (() => void)[] = [];
     for (let i = 0; i < buttons.length; i++) {
         // Use modules to wrap around when navigation past the start/end of the menu.
         const prev = buttons[(buttons.length + i - 1) % buttons.length];
         const curr = buttons[i];
         const next = buttons[(buttons.length + i + 1) % buttons.length];
-        if (onEscape) addEscapeEventListener(destroyFns, curr, onEscape);
+        addEscapeEventListener(destroyFns, curr, close);
         linkThreeButtons(destroyFns, curr, prev, prevKey, next, nextKey);
         curr.tabIndex = -1;
     }
 
     // Add handlers for the menu element itself.
     menu.tabIndex = -1;
-    if (onEscape) addEscapeEventListener(destroyFns, menu, onEscape);
+    addEscapeEventListener(destroyFns, menu, close);
     addRemovableEventListener(destroyFns, menu, 'keydown', (ev: KeyboardEvent) => {
         if (ev.target === menu && (ev.key === nextKey || ev.key === prevKey)) {
             ev.preventDefault();
@@ -137,7 +199,13 @@ export function initMenuKeyNav(opts: {
         }
     });
 
-    return destroyFns;
+    if (device.type === 'keyboard') {
+        buttons[0]?.focus();
+    } else {
+        menu.focus();
+    }
+
+    return menuCloser;
 }
 
 export function makeAccessibleClickListener(element: HTMLElement, onclick: (event: MouseEvent) => unknown) {
@@ -147,4 +215,13 @@ export function makeAccessibleClickListener(element: HTMLElement, onclick: (even
         }
         onclick(event);
     };
+}
+
+export function isButtonClickEvent(event: KeyboardEvent | MouseEvent): boolean {
+    if ('button' in event) {
+        return event.button === 0;
+    }
+    return (
+        !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey && ['Enter', 'Space'].includes(event.code)
+    );
 }

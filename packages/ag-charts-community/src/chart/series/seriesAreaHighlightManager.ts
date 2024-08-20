@@ -5,9 +5,10 @@ import type { ChartContext } from '../chartContext';
 import type { ChartHighlight } from '../chartHighlight';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { HighlightChangeEvent } from '../interaction/highlightManager';
-import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
+import { InteractionState } from '../interaction/interactionManager';
+import type { RegionEvent } from '../interaction/regionManager';
 import { REGIONS } from '../interaction/regions';
-import type { LayoutCompleteEvent } from '../layout/layoutService';
+import type { LayoutCompleteEvent } from '../layout/layoutManager';
 import type { UpdateOpts } from '../updateService';
 import { type Series } from './series';
 import type { ISeries } from './seriesTypes';
@@ -17,11 +18,11 @@ import { pickNode } from './util';
 export class SeriesAreaHighlightManager extends BaseManager {
     private series: Series<any, any>[] = [];
     /** Last received event that still needs to be applied. */
-    private pendingHoverEvent?: PointerInteractionEvent<'hover' | 'drag'>;
+    private pendingHoverEvent?: RegionEvent<'hover' | 'drag'>;
     /** Last applied event. */
-    private appliedHoverEvent?: PointerInteractionEvent<'hover' | 'drag'>;
+    private appliedHoverEvent?: RegionEvent<'hover' | 'drag'>;
     /** Last applied event, which has been temporarily stashed during the main chart update cycle. */
-    private stashedHoverEvent?: PointerInteractionEvent<'hover' | 'drag'>;
+    private stashedHoverEvent?: RegionEvent<'hover' | 'drag'>;
     private hoverRect?: BBox;
 
     public constructor(
@@ -40,7 +41,7 @@ export class SeriesAreaHighlightManager extends BaseManager {
 
         const mouseMoveStates = InteractionState.Default | InteractionState.Annotations;
         this.destroyFns.push(
-            this.ctx.layoutService.addListener('layout-complete', (event) => this.layoutComplete(event)),
+            this.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
             this.ctx.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
             seriesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
             seriesRegion.addListener('drag', (event) => this.onHover(event), mouseMoveStates),
@@ -50,7 +51,7 @@ export class SeriesAreaHighlightManager extends BaseManager {
             // Cases where highlight should be cleared.
             this.ctx.domManager.addListener('resize', () => this.clearHighlight()),
             seriesRegion.addListener('leave', () => this.clearHighlight(), mouseMoveStates),
-            seriesRegion.addListener('blur', () => this.clearHighlight()),
+            this.ctx.keyNavManager.addListener('blur', () => this.clearHighlight()),
             this.ctx.animationManager.addListener('animation-start', () => this.clearHighlight()),
             this.ctx.zoomManager.addListener('zoom-pan-start', () => this.clearHighlight()),
             this.ctx.zoomManager.addListener('zoom-change', () => this.clearHighlight())
@@ -88,7 +89,7 @@ export class SeriesAreaHighlightManager extends BaseManager {
         this.ctx.highlightManager.updateHighlight(this.id);
     }
 
-    private onHover(event: PointerInteractionEvent<'hover' | 'drag'>): void {
+    private onHover(event: RegionEvent<'hover' | 'drag'>): void {
         this.pendingHoverEvent = event;
         this.hoverScheduler.schedule();
     }
@@ -125,7 +126,7 @@ export class SeriesAreaHighlightManager extends BaseManager {
         const { range } = this.highlight;
 
         const intent = range === 'tooltip' ? 'highlight-tooltip' : 'highlight';
-        const found = pickNode(this.series, { x: event.offsetX, y: event.offsetY }, intent);
+        const found = pickNode(this.series, { x: event.regionOffsetX, y: event.regionOffsetY }, intent);
         if (found) {
             this.ctx.highlightManager.updateHighlight(this.id, found.datum);
             return;
@@ -151,7 +152,7 @@ export class SeriesAreaHighlightManager extends BaseManager {
         if (lastSeries?.properties.cursor && lastDatum) {
             this.ctx.cursorManager.updateCursor(lastSeries.id);
         }
-        if (newSeries?.properties.cursor && newDatum) {
+        if (newSeries?.properties.cursor && newSeries?.properties.cursor !== 'default' && newDatum) {
             this.ctx.cursorManager.updateCursor(newSeries.id, newSeries.properties.cursor);
         }
 

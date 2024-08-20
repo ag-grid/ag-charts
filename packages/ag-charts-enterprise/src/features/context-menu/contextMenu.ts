@@ -73,8 +73,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     // HTML elements
     private readonly element: HTMLElement;
     private menuElement?: HTMLDivElement;
-    private menuElementDestroyFns: (() => void)[] = [];
-    private lastFocus?: HTMLElement;
+    private menuCloser?: _ModuleSupport.MenuCloser;
     private readonly mutationObserver?: MutationObserver;
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
@@ -84,9 +83,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.interactionManager = ctx.interactionManager;
         this.registry = ctx.contextMenuRegistry;
 
-        const { All } = _ModuleSupport.InteractionState;
-        this.destroyFns.push(ctx.regionManager.listenAll('click', (_region) => this.onClick(), All));
-
         // State
         this.groups = { default: [], extra: [], extraSeries: [], extraNode: [], extraLegendItem: [] };
 
@@ -95,7 +91,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.element.addEventListener('contextmenu', (event) => event.preventDefault()); // AG-10223
         this.destroyFns.push(() => this.element.parentNode?.removeChild(this.element));
 
-        this.hide();
+        this.doClose();
 
         this.destroyFns.push(ctx.domManager.addListener('hidden', () => this.hide()));
 
@@ -127,16 +123,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         });
 
         this.destroyFns.push(this.registry.addListener((e) => this.onContext(e)));
-    }
-
-    private isShown(): boolean {
-        return this.menuElement !== undefined;
-    }
-
-    private onClick() {
-        if (this.isShown()) {
-            this.hide();
-        }
     }
 
     private onContext(event: ContextMenuEvent) {
@@ -181,25 +167,10 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (groupCount === 0) return;
 
-        this.lastFocus = this.getLastFocus(event);
-        this.show();
+        this.show(event.sourceEvent);
     }
 
-    private getLastFocus(event: ContextMenuEvent): HTMLElement | undefined {
-        // We need to guess whether the event comes the mouse or keyboard, which isn't an obvious task because
-        // the event.sourceEvent instances are mostly indistinguishable.
-        //
-        // However, when right-clicking with the mouse, the target element will the
-        // <div class="ag-charts-canvas-overlay"> element. But when the contextmenu is requested using the
-        // keyboard, then the target should be an element with the tabindex attribute set. So that's what we'll
-        // use to determine the device that triggered the contextmenu event.
-        if (event.sourceEvent.target instanceof HTMLElement && 'tabindex' in event.sourceEvent.target.attributes) {
-            return event.sourceEvent.target;
-        }
-        return undefined;
-    }
-
-    private show() {
+    private show(sourceEvent: Event) {
         this.interactionManager.pushState(_ModuleSupport.InteractionState.ContextMenu);
         this.element.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
 
@@ -207,7 +178,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (this.menuElement) {
             this.element.replaceChild(newMenuElement, this.menuElement);
-            this.menuElementDestroyFns.forEach((d) => d());
+            this.menuCloser?.close();
         } else {
             this.element.appendChild(newMenuElement);
         }
@@ -217,28 +188,29 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.element.style.display = 'block';
 
         const buttons = getChildrenOfType(newMenuElement, HTMLButtonElement);
-        this.menuElementDestroyFns = initMenuKeyNav({
+        this.menuCloser = initMenuKeyNav({
             menu: newMenuElement,
             buttons,
             orientation: 'vertical',
-            onEscape: () => this.hide(),
+            device: this.ctx.focusIndicator.guessDevice(sourceEvent),
+            closeCallback: () => this.doClose(),
         });
-        newMenuElement.focus();
     }
 
     private hide() {
+        this.menuCloser?.close();
+    }
+
+    private doClose() {
         this.interactionManager.popState(_ModuleSupport.InteractionState.ContextMenu);
 
         if (this.menuElement) {
             this.element.removeChild(this.menuElement);
             this.menuElement = undefined;
-            this.menuElementDestroyFns.forEach((d) => d());
-            this.menuElementDestroyFns.length = 0;
+            this.menuCloser = undefined;
         }
 
         this.element.style.display = 'none';
-        this.lastFocus?.focus();
-        this.lastFocus = undefined;
     }
 
     private renderMenu() {

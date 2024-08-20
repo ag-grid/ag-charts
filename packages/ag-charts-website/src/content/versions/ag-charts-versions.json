@@ -1,7 +1,7 @@
 [
     {
         "version": "10.1.0",
-        "date": "August 6th 2024",
+        "date": "August 8th 2024",
         "highlights": [
             {
                 "text": "Financial Chart Type Selection",
@@ -44,7 +44,7 @@
             },
             {
                 "text": "Annotations",
-                "path": "./annotations"
+                "path": "./financial-charts-toolbar#annotations"
             },
             {
                 "text": "Sankey Series",

@@ -1,6 +1,6 @@
 import { mergeDefaults } from '../../util/object';
 
-export type ChartType = 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion';
+export type ChartType = 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'gauge';
 
 class ChartTypes extends Map<string, ChartType | 'unknown'> {
     override get(seriesType: string) {
@@ -21,6 +21,9 @@ class ChartTypes extends Map<string, ChartType | 'unknown'> {
     isFlowProportion(seriesType: string) {
         return this.get(seriesType) === 'flow-proportion';
     }
+    isGauge(seriesType: string) {
+        return this.get(seriesType) === 'gauge';
+    }
     get seriesTypes() {
         return Array.from(this.keys());
     }
@@ -38,6 +41,9 @@ class ChartTypes extends Map<string, ChartType | 'unknown'> {
     }
     get flowProportionTypes() {
         return this.seriesTypes.filter((t) => this.isFlowProportion(t));
+    }
+    get gaugeTypes() {
+        return this.seriesTypes.filter((t) => this.isGauge(t));
     }
 }
 

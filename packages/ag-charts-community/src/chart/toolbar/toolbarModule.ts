@@ -38,6 +38,12 @@ const annotations: AgToolbarOptions['annotations'] = {
             section: 'text-annotations',
         },
         {
+            icon: 'arrow-drawing',
+            tooltip: 'toolbarAnnotationsShapeAnnotations',
+            value: 'shape-menu',
+            section: 'shape-annotations',
+        },
+        {
             icon: 'delete',
             tooltip: 'toolbarAnnotationsClearAll',
             value: 'clear',
@@ -71,14 +77,24 @@ const annotationOptions: AgToolbarOptions['annotationOptions'] = {
             value: 'text-size',
         },
         {
-            icon: 'unlocked',
-            tooltip: 'toolbarAnnotationsLock',
-            value: 'lock',
+            tooltip: 'toolbarAnnotationsLineStrokeWidth',
+            value: 'line-stroke-width',
         },
         {
-            icon: 'locked',
-            tooltip: 'toolbarAnnotationsUnlock',
-            value: 'unlock',
+            icon: 'line-style-solid',
+            tooltip: 'toolbarAnnotationsLineStyle=',
+            value: 'line-style-type',
+        },
+
+        {
+            role: 'switch',
+            icon: 'unlocked',
+            tooltip: 'toolbarAnnotationsLock',
+            checkedOverrides: {
+                icon: 'locked',
+                tooltip: 'toolbarAnnotationsUnlock',
+            },
+            value: 'lock',
         },
         {
             icon: 'delete',

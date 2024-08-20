@@ -2,7 +2,7 @@ import type { BindingImport } from './parser-utils';
 
 export function wrapOptionsUpdateCode(
     code: string,
-    before = 'const options = deepClone(this.options);',
+    before = 'const options = clone(this.options);',
     after = 'this.options = options;',
     localVar = 'options'
 ): string {

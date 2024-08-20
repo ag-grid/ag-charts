@@ -1,7 +1,15 @@
 import { toIterable } from '../util/iterator';
 import type { Node, RenderContext } from './node';
 
-type RenderSpriteOptions = { translateY: number };
+type RenderSpriteOptions = { scale: number; translateX: number; translateY: number };
+
+export type SpriteDimensions = {
+    spritePixelRatio: number;
+    spriteAAPadding: number;
+    spriteWidth: number;
+    spriteHeight: number;
+    markerWidth: number;
+};
 
 export class SpriteRenderer {
     private readonly offscreenCanvas: OffscreenCanvas;
@@ -20,9 +28,9 @@ export class SpriteRenderer {
         };
     }
 
-    resize(width: number, height: number) {
-        this.offscreenCanvas.width = Math.max(width, 0);
-        this.offscreenCanvas.height = Math.max(height, 0);
+    resize({ spritePixelRatio, spriteWidth, spriteHeight }: SpriteDimensions) {
+        this.offscreenCanvas.width = Math.max(spriteWidth, 0) * spritePixelRatio;
+        this.offscreenCanvas.height = Math.max(spriteHeight, 0) * spritePixelRatio;
     }
 
     renderSprite(nodes: Node | Iterable<Node>, opts?: RenderSpriteOptions) {
@@ -32,13 +40,13 @@ export class SpriteRenderer {
             renderCtx: { ctx },
             offscreenCanvas,
         } = this;
-        const { translateY = 0 } = opts ?? {};
+        const { scale = 1, translateX = 0, translateY = 0 } = opts ?? {};
 
         ctx.resetTransform();
         ctx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
         ctx.save();
         ctx.beginPath();
-        ctx.setTransform(1, 0, 0, 1, 0, translateY);
+        ctx.setTransform(scale, 0, 0, scale, translateX, translateY);
         for (const node of nodes) {
             node.render(renderCtx);
         }

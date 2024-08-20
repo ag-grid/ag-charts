@@ -181,11 +181,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             const scalePadding = isFiniteNumber(smallestDataInterval) ? smallestDataInterval : 0;
             const keysExtent = extent(keys) ?? [NaN, NaN];
 
-            const categoryAxis = this.getCategoryAxis();
-
             const d0 = keysExtent[0] + -scalePadding;
             const d1 = keysExtent[1] + scalePadding;
-            return fixNumericExtent([d0, d1], categoryAxis);
+            return fixNumericExtent([d0, d1]);
         } else {
             const yLowIndex = dataModel.resolveProcessedDataIndexById(this, 'yLowValue');
             const yLowExtent = values[yLowIndex];

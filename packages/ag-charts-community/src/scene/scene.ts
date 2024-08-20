@@ -7,11 +7,18 @@ import { Group } from './group';
 import { LayersManager } from './layersManager';
 import type { Node, RenderContext } from './node';
 import { RedrawType } from './node';
-import { DebugSelectors, buildDirtyTree, buildTree, debugSceneNodeHighlight, debugStats } from './sceneDebug';
+import {
+    DebugSelectors,
+    buildDirtyTree,
+    buildTree,
+    debugSceneNodeHighlight,
+    debugStats,
+    prepareSceneNodeHighlight,
+} from './sceneDebug';
 
-type DOMManagerLike = {
+interface DOMManagerLike {
     addChild(type: 'canvas', id: string, child?: HTMLElement): HTMLElement;
-};
+}
 
 interface SceneOptions {
     width?: number;
@@ -38,12 +45,7 @@ export class Scene {
 
     constructor({ width, height, pixelRatio, domManager }: SceneOptions) {
         this.domManager = domManager;
-
-        const canvasOpts: CanvasOptions = {
-            width,
-            height,
-            pixelRatio,
-        };
+        const canvasOpts: CanvasOptions = { width, height, pixelRatio };
         if (domManager) {
             canvasOpts.canvasConstructor = () => domManager.addChild('canvas', 'scene-canvas') as HTMLCanvasElement;
         }
@@ -183,6 +185,8 @@ export class Scene {
         if (Debug.check(DebugSelectors.SCENE_STATS_VERBOSE)) {
             renderCtx.stats = { layersRendered: 0, layersSkipped: 0, nodesRendered: 0, nodesSkipped: 0 };
         }
+
+        prepareSceneNodeHighlight(renderCtx);
 
         let canvasCleared = false;
         if (!root || root.dirty >= RedrawType.TRIVIAL) {

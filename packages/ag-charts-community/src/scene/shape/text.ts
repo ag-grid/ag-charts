@@ -4,6 +4,7 @@ import { CachedTextMeasurerPool, type MeasureOptions, TextUtils } from '../../ut
 import { BBox } from '../bbox';
 import type { RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
+import { Rotatable, Translatable } from '../transformable';
 import { Shape } from './shape';
 
 export interface TextSizeProperties {
@@ -83,10 +84,9 @@ export class Text extends Shape {
     }
 
     isPointInPath(x: number, y: number): boolean {
-        const point = this.transformPoint(x, y);
         const bbox = this.getBBox();
 
-        return bbox ? bbox.containsPoint(point.x, point.y) : false;
+        return bbox ? bbox.containsPoint(x, y) : false;
     }
 
     override render(renderCtx: RenderContext): void {
@@ -101,8 +101,6 @@ export class Text extends Shape {
             if (stats) stats.nodesSkipped += this.nodeCount.count;
             return;
         }
-
-        this.transformRenderContext(renderCtx);
 
         const { fill, stroke, strokeWidth } = this;
         const { pixelRatio } = this.layerManager.canvas;
@@ -179,3 +177,6 @@ export class Text extends Shape {
         this.textBaseline = props.textBaseline;
     }
 }
+
+export class RotatableText extends Rotatable(Text) {}
+export class TransformableText extends Rotatable(Translatable(Text)) {}

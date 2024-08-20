@@ -22,7 +22,7 @@ import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import type { DatumPropertyDefinition } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
-import { animationValidation, diff, normaliseGroupTo } from '../../data/processors';
+import { animationValidation, normaliseGroupTo } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
@@ -40,7 +40,6 @@ import { AreaSeriesProperties } from './areaSeriesProperties';
 import {
     type AreaPathSpan,
     type AreaSeriesNodeDataContext,
-    AreaSeriesTag,
     type LabelSelectionDatum,
     type MarkerSelectionDatum,
     prepareAreaPathAnimation,
@@ -51,15 +50,8 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import {
-    type Span,
-    SpanJoin,
-    linearPoints,
-    plotSpan,
-    reverseSpan,
-    smoothPoints,
-    stepPoints,
-} from './lineInterpolation';
+import { type Span, SpanJoin, linearPoints, smoothPoints, stepPoints } from './lineInterpolation';
+import { plotSpan } from './lineInterpolationPlotting';
 import {
     computeMarkerFocusBounds,
     markerFadeInAnimation,
@@ -99,7 +91,7 @@ export class AreaSeries extends CartesianSeries<
             markerSelectionGarbageCollection: false,
             pickModes: [SeriesNodePickMode.NEAREST_BY_MAIN_AXIS_FIRST, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             animationResetFns: {
-                path: buildResetPathFn({ getOpacity: () => this.getOpacity() }),
+                path: buildResetPathFn({ getVisible: () => this.visible, getOpacity: () => this.getOpacity() }),
                 label: resetLabelFn,
                 marker: (node, datum) => ({ ...resetMarkerFn(node), ...resetMarkerPositionFn(node, datum) }),
             },
@@ -117,7 +109,7 @@ export class AreaSeries extends CartesianSeries<
 
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
-        const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
+        const { xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
         const currentIds = {
             value: `area-stack-${groupIndex}-yValue`,
@@ -129,14 +121,6 @@ export class AreaSeries extends CartesianSeries<
         const extraProps = [];
         if (isDefined(normalizedTo)) {
             extraProps.push(normaliseGroupTo(Object.values(currentIds), normalizedTo, 'range'));
-        }
-
-        // If two or more datums share an x-value, i.e. lined up vertically, they will have the same datum id.
-        // They must be identified this way when animated to ensure they can be tracked when their y-value
-        // is updated. If this is a static chart, we can instead not bother with identifying datums and
-        // automatically garbage collect the marker selection.
-        if (!isContinuousX && animationEnabled && this.processedData) {
-            extraProps.push(diff(this.processedData));
         }
         if (animationEnabled) {
             extraProps.push(animationValidation());
@@ -198,9 +182,7 @@ export class AreaSeries extends CartesianSeries<
         const { processedData, dataModel, axes } = this;
         if (!processedData || !dataModel || processedData.data.length === 0) return [];
 
-        const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
-
         const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const keys = dataModel.getDomain(this, `xValue`, 'key', processedData);
         const yExtent = dataModel.getDomain(this, `yValueEnd`, 'value', processedData);
@@ -210,12 +192,12 @@ export class AreaSeries extends CartesianSeries<
                 return keys;
             }
 
-            return fixNumericExtent(extent(keys), xAxis);
+            return fixNumericExtent(extent(keys));
         } else if (yAxis instanceof LogAxis || yAxis instanceof TimeAxis) {
-            return fixNumericExtent(yExtent as any, yAxis);
+            return fixNumericExtent(yExtent);
         } else {
             const fixedYExtent = [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]];
-            return fixNumericExtent(fixedYExtent as any, yAxis);
+            return fixNumericExtent(fixedYExtent);
         }
     }
 
@@ -538,7 +520,6 @@ export class AreaSeries extends CartesianSeries<
 
         const strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
         stroke.setProperties({
-            tag: AreaSeriesTag.Stroke,
             fill: undefined,
             lineJoin: (stroke.lineCap = 'round'),
             pointerEvents: PointerEvents.None,
@@ -548,22 +529,17 @@ export class AreaSeries extends CartesianSeries<
             lineDash: this.properties.lineDash,
             lineDashOffset: this.properties.lineDashOffset,
             opacity,
-            visible,
+            visible: visible || animationEnabled,
         });
         fill.setProperties({
-            tag: AreaSeriesTag.Fill,
             stroke: undefined,
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
             fill: this.properties.fill,
             fillOpacity: this.properties.fillOpacity,
-            lineDash: this.properties.lineDash,
-            lineDashOffset: this.properties.lineDashOffset,
-            strokeOpacity: this.properties.strokeOpacity,
             fillShadow: this.properties.shadow,
             opacity,
             visible: visible || animationEnabled,
-            strokeWidth,
         });
 
         updateClipPath(this, stroke);
@@ -588,8 +564,8 @@ export class AreaSeries extends CartesianSeries<
         for (let i = 0; i < spans.length; i += 1) {
             const { span } = spans[i];
             const phantomSpan = phantomSpans[i].span;
-            plotSpan(path, span, SpanJoin.MoveTo);
-            plotSpan(path, reverseSpan(phantomSpan), SpanJoin.LineTo);
+            plotSpan(path, span, SpanJoin.MoveTo, false);
+            plotSpan(path, phantomSpan, SpanJoin.LineTo, true);
             path.closePath();
         }
         fill.checkPathDirty();
@@ -602,7 +578,7 @@ export class AreaSeries extends CartesianSeries<
 
         path.clear(true);
         for (const { span } of spans) {
-            plotSpan(path, span);
+            plotSpan(path, span, SpanJoin.MoveTo, false);
         }
         stroke.checkPathDirty();
     }
@@ -651,9 +627,7 @@ export class AreaSeries extends CartesianSeries<
     }) {
         const { labelData, labelSelection } = opts;
 
-        return labelSelection.update(labelData, (text) => {
-            text.tag = AreaSeriesTag.Label;
-        });
+        return labelSelection.update(labelData);
     }
 
     protected async updateLabelNodes(opts: { labelSelection: Selection<Text, LabelSelectionDatum> }) {
@@ -808,9 +782,11 @@ export class AreaSeries extends CartesianSeries<
         // Handling initially hidden series case gracefully.
         if (fill == null && stroke == null) return;
 
-        super.resetAllAnimation(animationData);
+        this.resetMarkerAnimation(animationData);
+        this.resetLabelAnimation(animationData);
 
         const update = () => {
+            this.resetPathAnimation(animationData);
             this.updateAreaPaths(paths, contextData);
             this.updateStrokePath(paths, contextData);
         };
@@ -825,14 +801,14 @@ export class AreaSeries extends CartesianSeries<
 
             markerFadeInAnimation(this, animationManager, 'added', markerSelection);
             pathFadeInAnimation(this, 'fill_path_properties', animationManager, 'add', fill);
-            pathFadeInAnimation(this, 'stroke', animationManager, 'trailing', stroke);
+            pathFadeInAnimation(this, 'stroke_path_properties', animationManager, 'add', stroke);
             seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
             return;
         }
 
-        const fns = prepareAreaPathAnimation(contextData, previousContextData, this.processedData?.reduced?.diff);
+        const fns = prepareAreaPathAnimation(contextData, previousContextData);
         if (fns === undefined) {
-            // Un-animatable diff in data, skip all animations.
+            // Un-animatable - skip all animations.
             skip();
             return;
         } else if (fns.status === 'no-op') {
@@ -840,12 +816,30 @@ export class AreaSeries extends CartesianSeries<
         }
 
         markerFadeInAnimation(this, animationManager, undefined, markerSelection);
+
         fromToMotion(this.id, 'fill_path_properties', animationManager, [fill], fns.fill.pathProperties);
         pathMotion(this.id, 'fill_path_update', animationManager, [fill], fns.fill.path);
 
-        this.updateStrokePath(paths, contextData);
-        pathFadeInAnimation(this, 'stroke', animationManager, 'trailing', stroke);
+        fromToMotion(this.id, 'stroke_path_properties', animationManager, [stroke], fns.stroke.pathProperties);
+        pathMotion(this.id, 'stroke_path_update', animationManager, [stroke], fns.stroke.path);
+
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
+
+        // The animation may clip spans
+        // When using smooth interpolation, the bezier spans are clipped using an approximation
+        // This can result in artefacting, which may be present on the final frame
+        // To remove this on the final frame, re-draw the series without animations
+        this.ctx.animationManager.animate({
+            id: this.id,
+            groupId: 'reset_after_animation',
+            phase: 'trailing',
+            from: {},
+            to: {},
+            onComplete: () => {
+                this.updateAreaPaths(paths, contextData);
+                this.updateStrokePath(paths, contextData);
+            },
+        });
     }
 
     protected isLabelEnabled() {

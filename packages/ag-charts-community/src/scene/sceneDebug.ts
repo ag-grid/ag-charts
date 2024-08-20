@@ -1,4 +1,5 @@
 import { Debug } from '../util/debug';
+import { getWindow } from '../util/dom';
 import { Logger } from '../util/logger';
 import { SimpleTextMeasurer } from '../util/textMeasurer';
 import { isString } from '../util/type-guards';
@@ -6,6 +7,7 @@ import { BBox } from './bbox';
 import { Group } from './group';
 import type { LayersManager } from './layersManager';
 import { type Node, RedrawType, type RenderContext } from './node';
+import { Transformable } from './transformable';
 
 export enum DebugSelectors {
     SCENE = 'scene',
@@ -66,11 +68,30 @@ export function debugStats(
     ctx.restore();
 }
 
+export function prepareSceneNodeHighlight(ctx: RenderContext) {
+    let config: string | string[] = getWindow('agChartsSceneDebug') ?? [];
+
+    if (typeof config === 'string') {
+        config = [config];
+    }
+
+    const result: (string | RegExp)[] = [];
+    config.forEach((name: string) => {
+        if (name === 'layout') {
+            result.push('seriesRoot', 'legend', 'root', /.*Axis-\d+-axis.*/);
+        } else {
+            result.push(name);
+        }
+    });
+
+    ctx.debugNodeSearch = result;
+}
+
 export function debugSceneNodeHighlight(ctx: CanvasRenderingContext2D, debugNodes: Record<string, Node>) {
     ctx.save();
 
     for (const [name, node] of Object.entries(debugNodes)) {
-        const bbox = node.computeTransformedBBox();
+        const bbox = Transformable.toCanvas(node);
 
         if (!bbox) {
             Logger.log(`Scene.render() - no bbox for debugged node [${name}].`);
@@ -113,7 +134,17 @@ export function buildTree(node: Node): BuildTree {
             .reduce<Record<string, {}>>((result, childTree) => {
                 let { name: treeNodeName } = childTree;
                 const {
-                    node: { visible, opacity, zIndex, zIndexSubOrder },
+                    node: {
+                        visible,
+                        opacity,
+                        zIndex,
+                        zIndexSubOrder,
+                        translationX,
+                        translationY,
+                        rotation,
+                        scalingX,
+                        scalingY,
+                    },
                     node: childNode,
                     virtualParent,
                 } = childTree;
@@ -131,6 +162,11 @@ export function buildTree(node: Node): BuildTree {
                             .map((v: any) => (typeof v === 'function' ? `${v()} (fn)` : v))
                             .join(' / ')}`,
                     virtualParent && `(virtual parent)`,
+                    translationX && `x: ${translationX}`,
+                    translationY && `y: ${translationY}`,
+                    rotation && `r: ${rotation}`,
+                    scalingX != null && scalingX !== 1 && `sx: ${scalingX}`,
+                    scalingY != null && scalingY !== 1 && `sy: ${scalingY}`,
                 ]
                     .filter((v) => !!v)
                     .join(' ');

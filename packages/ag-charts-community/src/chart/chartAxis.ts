@@ -13,7 +13,7 @@ import type { AxisTick, TickInterval } from './axis/axisTick';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxisDirection } from './chartAxisDirection';
 import type { CrossLine } from './crossline/crossLine';
-import type { AxisLayout } from './layout/layoutService';
+import type { AxisLayout } from './layout/layoutManager';
 import type { ISeries } from './series/seriesTypes';
 
 export type ChartAxisLabelFlipFlag = 1 | -1;
@@ -21,9 +21,9 @@ export type ChartAxisLabelFlipFlag = 1 | -1;
 export interface ChartAxis {
     attachAxis(axisGroup: Node, gridGroup: Node): void;
     getAxisGroup(): Group;
+    getRegionNode(): Node;
     boundSeries: ISeries<unknown, unknown>[];
-    calculateLayout(primaryTickCount?: number): { primaryTickCount: number | undefined; bbox: BBox };
-    calculatePadding(min: number, max: number): [number, number];
+    calculateLayout(primaryTickCount?: number): { primaryTickCount?: number; bbox: BBox };
     clipGrid(x: number, y: number, width: number, height: number): void;
     clipTickLines(x: number, y: number, width: number, height: number): void;
     getBBox(): BBox;
@@ -47,7 +47,6 @@ export interface ChartAxis {
     gridLine: AxisGridLine;
     label: ChartAxisLabel;
     tick: AxisTick;
-    maxThickness: number;
     nice: boolean;
     position?: AgCartesianAxisPosition;
     range: [number, number];
@@ -58,8 +57,7 @@ export interface ChartAxis {
     thickness?: number;
     translation: { x: number; y: number };
     type: string;
-    update(primaryTickCount?: number, animated?: boolean): number | undefined;
-    updateScale(): void;
+    update(animated?: boolean): number | undefined;
     updatePosition(): void;
     visibleRange: [number, number];
     createModuleContext: () => ModuleContextWithParent<AxisContext>;

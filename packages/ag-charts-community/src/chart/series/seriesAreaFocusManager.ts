@@ -6,10 +6,9 @@ import type { TypedEvent } from '../../util/observable';
 import { BaseManager } from '../baseManager';
 import type { ChartContext } from '../chartContext';
 import type { KeyNavEvent } from '../interaction/keyNavManager';
-import { REGIONS } from '../interaction/regions';
 import { TooltipManager } from '../interaction/tooltipManager';
 import { makeKeyboardPointerEvent } from '../keyboardUtil';
-import type { LayoutCompleteEvent } from '../layout/layoutService';
+import type { LayoutCompleteEvent } from '../layout/layoutManager';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import type { TooltipContent } from '../tooltip/tooltip';
 import type { PickFocusOutputs, Series } from './series';
@@ -34,21 +33,19 @@ export class SeriesAreaFocusManager extends BaseManager {
             fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
         },
         private readonly ctx: ChartContext,
-        private readonly chartType: 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion',
+        private readonly chartType: 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'gauge',
         private readonly overlays: ChartOverlays
     ) {
         super();
 
-        const seriesRegion = this.ctx.regionManager.getRegion(REGIONS.SERIES);
         this.destroyFns.push(
-            this.ctx.layoutService.addListener('layout-complete', (event) => this.layoutComplete(event)),
+            this.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
             this.ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
-            seriesRegion.addListener('blur', () => this.onBlur()),
-            seriesRegion.addListener('tab', (event) => this.onTab(event)),
-            seriesRegion.addListener('nav-vert', (event) => this.onNavVert(event)),
-            seriesRegion.addListener('nav-hori', (event) => this.onNavHori(event)),
-            seriesRegion.addListener('submit', (event) => this.onSubmit(event)),
-            this.ctx.keyNavManager.addListener('browserfocus', (event) => this.onBrowserFocus(event)),
+            this.ctx.keyNavManager.addListener('blur', () => this.onBlur()),
+            this.ctx.keyNavManager.addListener('focus', (event) => this.onFocus(event)),
+            this.ctx.keyNavManager.addListener('nav-vert', (event) => this.onNavVert(event)),
+            this.ctx.keyNavManager.addListener('nav-hori', (event) => this.onNavHori(event)),
+            this.ctx.keyNavManager.addListener('submit', (event) => this.onSubmit(event)),
             this.ctx.zoomManager.addListener('zoom-change', () => {
                 this.ctx.focusIndicator.updateBounds(undefined);
             })
@@ -78,7 +75,7 @@ export class SeriesAreaFocusManager extends BaseManager {
         }
     }
 
-    private onTab(event: KeyNavEvent<'tab'>): void {
+    private onFocus(event: KeyNavEvent<'focus'>): void {
         this.handleFocus(0, 0);
         event.preventDefault();
         this.focus.hasFocus = true;
@@ -94,20 +91,6 @@ export class SeriesAreaFocusManager extends BaseManager {
         this.focus.datumIndex += event.delta;
         this.handleFocus(0, event.delta);
         event.preventDefault();
-    }
-
-    private onBrowserFocus(event: KeyNavEvent<'browserfocus'>): void {
-        if (event.delta > 0) {
-            this.focus.datum = undefined;
-            this.focus.series = undefined;
-            this.focus.datumIndex = 0;
-            this.focus.seriesIndex = 0;
-        } else if (event.delta < 0) {
-            this.focus.datum = undefined;
-            this.focus.series = undefined;
-            this.focus.datumIndex = Infinity;
-            this.focus.seriesIndex = Infinity;
-        }
     }
 
     private onAnimationStart() {

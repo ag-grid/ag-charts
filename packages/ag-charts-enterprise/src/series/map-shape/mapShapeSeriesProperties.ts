@@ -9,7 +9,7 @@ import type {
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { GEOJSON_OBJECT } from '../map-util/validation';
-import { AutoSizeableSecondaryLabel } from '../util/autoSizedLabel';
+import { AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
 const {
     AND,
@@ -105,7 +105,7 @@ export class MapShapeSeriesProperties extends SeriesProperties<AgMapShapeSeriesO
     itemStyler?: Styler<AgMapShapeSeriesItemStylerParams<unknown>, AgMapShapeSeriesStyle>;
 
     @Validate(OBJECT)
-    readonly label = new AutoSizeableSecondaryLabel<AgMapShapeSeriesLabelFormatterParams>();
+    readonly label = new AutoSizedSecondaryLabel<AgMapShapeSeriesLabelFormatterParams>();
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgMapShapeSeriesTooltipRendererParams<any>>();

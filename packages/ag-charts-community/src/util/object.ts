@@ -4,6 +4,17 @@ import type { Intersection, PlainObject } from './types';
 
 type FalsyType = false | null | undefined;
 
+export function objectEqualWith<T extends PlainObject>(a: T, b: T, cmp: (a: T, b: T) => boolean): boolean {
+    for (const key in b) {
+        if (!(key in a)) return false;
+    }
+    for (const key in a) {
+        if (!(key in b)) return false;
+        if (!cmp(a[key], b[key])) return false;
+    }
+    return true;
+}
+
 export function deepMerge<TSource extends PlainObject, TArgs extends (TSource | FalsyType)[]>(...sources: TArgs) {
     return mergeDefaults(...sources.reverse());
 }

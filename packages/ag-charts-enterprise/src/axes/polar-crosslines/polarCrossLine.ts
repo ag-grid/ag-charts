@@ -130,7 +130,7 @@ export abstract class PolarCrossLine extends BaseProperties implements _ModuleSu
     }
 
     protected setLabelNodeProps(
-        node: _Scene.Text,
+        node: _Scene.RotatableText,
         x: number,
         y: number,
         baseline: CanvasTextBaseline,

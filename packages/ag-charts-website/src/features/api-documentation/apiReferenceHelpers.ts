@@ -73,7 +73,7 @@ export function getMemberType(member: MemberNode): string {
     return member.type;
 }
 
-export function normalizeType(refType: TypeNode): string {
+export function normalizeType(refType: TypeNode, keepGenerics?: boolean): string {
     if (typeof refType === 'string') {
         return refType;
     }
@@ -81,7 +81,9 @@ export function normalizeType(refType: TypeNode): string {
         case 'array':
             return `${normalizeType(refType.type)}[]`;
         case 'typeRef':
-            return refType.type;
+            return keepGenerics && refType.typeArguments?.length
+                ? `${refType.type}<${refType.typeArguments.map((typeArg) => normalizeType(typeArg)).join(', ')}>`
+                : refType.type;
         case 'union':
             return refType.type.map((subType) => normalizeType(subType)).join(' | ');
         case 'intersection':
@@ -239,9 +241,17 @@ function formatFunctionCode(name: string, apiNode: FunctionNode, member: MemberN
         }
     }
 
+    const returnType =
+        typeof apiNode.returnType === 'object' &&
+        apiNode.returnType.kind === 'typeRef' &&
+        apiNode.returnType.type === 'Required' &&
+        typeof apiNode.returnType.typeArguments?.[0] === 'string'
+            ? apiNode.returnType.typeArguments[0]
+            : apiNode.returnType;
+
     const additionalTypes = apiNode.params
         ?.map((param) => param.type)
-        .concat(apiNode.returnType)
+        .concat(returnType)
         .flatMap(function typeMapper(type): PossibleTypeNode {
             if (typeof type === 'string') {
                 return reference.get(type);
@@ -259,7 +269,7 @@ function formatFunctionCode(name: string, apiNode: FunctionNode, member: MemberN
 
     const params = apiNode.params?.map((param) => `${param.name}: ${normalizeType(param.type)}`).join(', ');
 
-    const codeSample = `function ${name}(${params ?? ''}): ${normalizeType(apiNode.returnType)};`;
+    const codeSample = `function ${name}(${params ?? ''}): ${normalizeType(apiNode.returnType, true)};`;
 
     return additionalTypes
         ? [codeSample].concat(additionalTypes.map((type) => formatTypeToCode(type, member, reference))).join('\n\n')

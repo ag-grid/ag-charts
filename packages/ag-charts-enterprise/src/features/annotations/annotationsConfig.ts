@@ -1,12 +1,23 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type PixelSize, _ModuleSupport } from 'ag-charts-community';
 
-import {
-    type AnnotationContext,
-    type AnnotationOptionsColorPickerType,
-    AnnotationType,
+import type {
+    AnnotationContext,
+    AnnotationLineStyle,
+    AnnotationLineStyleType,
+    AnnotationOptionsColorPickerType,
+    ChannelAnnotationType,
+    LineAnnotationType,
     TextualAnnotationType,
 } from './annotationTypes';
-import type { AnnotationProperties, AnnotationScene, TextualPropertiesType } from './annotationsSuperTypes';
+import { AnnotationType } from './annotationTypes';
+import type {
+    AnnotationProperties,
+    AnnotationScene,
+    ChannelPropertiesType,
+    LineOrChannelPropertiesType,
+    LinePropertiesType,
+    TextualPropertiesType,
+} from './annotationsSuperTypes';
 import { CalloutProperties } from './callout/calloutProperties';
 import { CalloutScene } from './callout/calloutScene';
 import { CommentProperties } from './comment/commentProperties';
@@ -41,6 +52,9 @@ export const annotationDatums: Record<AnnotationType, Constructor<AnnotationProp
     [AnnotationType.Comment]: CommentProperties,
     [AnnotationType.Note]: NoteProperties,
     [AnnotationType.Text]: TextProperties,
+
+    // Shapes
+    [AnnotationType.Arrow]: LineProperties,
 };
 
 export const annotationScenes: Record<AnnotationType, Constructor<AnnotationScene>> = {
@@ -58,6 +72,9 @@ export const annotationScenes: Record<AnnotationType, Constructor<AnnotationScen
     [AnnotationType.Comment]: CommentScene,
     [AnnotationType.Note]: NoteScene,
     [AnnotationType.Text]: TextScene,
+
+    // Shapes
+    [AnnotationType.Arrow]: LineScene,
 };
 
 export function updateAnnotation(node: AnnotationScene, datum: AnnotationProperties, context: AnnotationContext) {
@@ -116,11 +133,11 @@ export function getTypedDatum(datum: unknown) {
     }
 }
 
-export function isLineType(datum: unknown) {
+export function isLineType(datum: unknown): datum is LinePropertiesType {
     return LineProperties.is(datum) || HorizontalLineProperties.is(datum) || VerticalLineProperties.is(datum);
 }
 
-export function isChannelType(datum: unknown) {
+export function isChannelType(datum: unknown): datum is ChannelPropertiesType {
     return DisjointChannelProperties.is(datum) || ParallelChannelProperties.is(datum);
 }
 
@@ -133,8 +150,12 @@ export function isTextType(datum: unknown): datum is TextualPropertiesType {
     );
 }
 
-export function hasFontSize(datum?: AnnotationProperties) {
+export function hasFontSize(datum?: AnnotationProperties): datum is TextualPropertiesType {
     return isTextType(datum) && !NoteProperties.is(datum);
+}
+
+export function hasLineStyle(datum?: AnnotationProperties): datum is LineOrChannelPropertiesType {
+    return isLineType(datum) || isChannelType(datum);
 }
 
 export function hasLineColor(datum?: AnnotationProperties) {
@@ -152,13 +173,15 @@ export function setDefaults({
     datum,
     defaultColors,
     defaultFontSizes,
+    defaultLineStyles,
 }: {
     datum: AnnotationProperties;
     defaultColors: Map<
-        AnnotationType | TextualAnnotationType,
+        AnnotationType | TextualAnnotationType | LineAnnotationType | ChannelAnnotationType,
         Map<AnnotationOptionsColorPickerType, [string, string, number] | undefined>
     >;
     defaultFontSizes: Map<TextualAnnotationType, number | undefined>;
+    defaultLineStyles: Map<LineAnnotationType | ChannelAnnotationType, AnnotationLineStyle | undefined>;
 }) {
     for (const [annotationType, colors] of defaultColors) {
         if (datum.type !== annotationType) {
@@ -172,13 +195,19 @@ export function setDefaults({
         }
     }
 
-    if (!isTextType(datum)) {
-        return;
+    if (hasFontSize(datum)) {
+        for (const [annotationType, size] of defaultFontSizes) {
+            if (size) {
+                setFontsize(datum, annotationType, size);
+            }
+        }
     }
 
-    for (const [annotationType, size] of defaultFontSizes) {
-        if (size) {
-            setFontsize(datum, annotationType, size);
+    if (hasLineStyle(datum)) {
+        for (const [annotationType, style] of defaultLineStyles) {
+            if (style) {
+                setLineStyle(datum, annotationType, style);
+            }
         }
     }
 }
@@ -186,6 +215,40 @@ export function setDefaults({
 export function setFontsize(datum: TextualPropertiesType, annotationType: TextualAnnotationType, fontSize: number) {
     if (datum.type === annotationType && 'fontSize' in datum) {
         datum.fontSize = fontSize;
+    }
+}
+
+export function setLineStyle(
+    datum: LineOrChannelPropertiesType,
+    annotationType: LineAnnotationType | ChannelAnnotationType,
+    style: AnnotationLineStyle
+) {
+    if (!(datum.type === annotationType)) {
+        return;
+    }
+
+    const strokeWidth = style.strokeWidth ?? datum.strokeWidth ?? 1;
+    const styleType = getLineStyle(datum.lineDash, style.type ?? datum.lineStyle);
+    const computedLineDash = getComputedLineDash(strokeWidth, styleType);
+
+    datum.strokeWidth = strokeWidth;
+    datum.computedLineDash = computedLineDash;
+    datum.lineStyle = styleType;
+    datum.lineCap = styleType === 'dotted' ? 'round' : undefined;
+}
+
+export function getLineStyle(lineDash?: PixelSize[], lineStyle?: AnnotationLineStyleType) {
+    return lineDash ? 'dashed' : lineStyle ?? 'solid';
+}
+
+export function getComputedLineDash(strokeWidth: number, styleType: AnnotationLineStyleType): PixelSize[] {
+    switch (styleType) {
+        case 'solid':
+            return [];
+        case 'dashed':
+            return [strokeWidth * 4, strokeWidth * 2];
+        case 'dotted':
+            return [0, strokeWidth * 2];
     }
 }
 

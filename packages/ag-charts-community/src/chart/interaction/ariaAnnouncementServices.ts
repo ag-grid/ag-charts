@@ -1,9 +1,9 @@
+import type { DOMManager } from '../../dom/domManager';
+import type { LocaleManager } from '../../locale/localeManager';
 import { setAttribute } from '../../util/attributeUtil';
 import { Debug } from '../../util/debug';
 import { getDocument } from '../../util/dom';
-import type { DOMManager } from '../dom/domManager';
-import type { LayoutCompleteEvent, LayoutService } from '../layout/layoutService';
-import type { LocaleManager } from '../locale/localeManager';
+import type { LayoutCompleteEvent, LayoutManager } from '../layout/layoutManager';
 
 export class AriaAnnouncementService {
     private readonly liveElem: HTMLElement;
@@ -21,12 +21,12 @@ export class AriaAnnouncementService {
     constructor(
         private readonly localeManager: LocaleManager,
         private readonly domManager: DOMManager,
-        private readonly layoutService: LayoutService
+        private readonly layoutManager: LayoutManager
     ) {
         this.liveElem = AriaAnnouncementService.createAnnouncer();
         this.domManager.addChild('canvas-proxy', 'ag-charts-canvas-proxy', this.liveElem);
         this.destroyFns.push(
-            this.layoutService.addListener('layout-complete', (ev) => this.onResize(ev)),
+            this.layoutManager.addListener('layout:complete', (ev) => this.onResize(ev)),
             () => this.domManager.removeChild('canvas-proxy', 'ag-charts-canvas-proxy')
         );
     }

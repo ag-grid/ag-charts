@@ -167,7 +167,7 @@ describe('Tooltip', () => {
                 series: [{ type: 'bar', xKey: 'x', yKey: 'a' }],
             });
             await testHover(58, 28); // highlight nothing
-            await testHover(137, 137); // highlight datum Q1 series b
+            await testHover(160, 137); // highlight datum Q1 series b
         });
 
         it('should use series tooltip.range as default', async () => {
@@ -189,7 +189,7 @@ describe('Tooltip', () => {
                 series: [{ type: 'bar', xKey: 'x', yKey: 'a', tooltip: { range: 20 } }],
             });
             await testHover(58, 28); // no highlight match
-            await testHover(137, 137); // match within range <= 20
+            await testHover(140, 140); // match within range <= 20
         });
     });
 });

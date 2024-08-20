@@ -17,6 +17,8 @@ import type { AgWaterfallSeriesThemeableOptions } from '../series/cartesian/wate
 import type { AgChordSeriesThemeableOptions } from '../series/flow-proportion/chordOptions';
 import type { AgBaseFlowProportionThemeOptions } from '../series/flow-proportion/flowProportionOptions';
 import type { AgSankeySeriesOptions, AgSankeySeriesThemeableOptions } from '../series/flow-proportion/sankeyOptions';
+import type { AgBaseGaugeThemeOptions } from '../series/gauge/gaugeOptions';
+import type { AgRadialGaugeSeriesThemeableOptions } from '../series/gauge/radialGaugeOptions';
 import type { AgBaseHierarchyThemeOptions, AgHierarchySeriesOptions } from '../series/hierarchy/hierarchyOptions';
 import type { AgSunburstSeriesThemeableOptions } from '../series/hierarchy/sunburstOptions';
 import type { AgTreemapSeriesThemeableOptions } from '../series/hierarchy/treemapOptions';
@@ -175,6 +177,9 @@ export interface AgSankeyThemeOverrides extends AgBaseFlowProportionThemeOptions
 export interface AgChordThemeOverrides extends AgBaseFlowProportionThemeOptions {
     series?: AgChordSeriesThemeableOptions;
 }
+export interface AgRadialGaugeThemeOverrides extends AgBaseGaugeThemeOptions {
+    series?: AgRadialGaugeSeriesThemeableOptions;
+}
 
 export interface AgCommonThemeableAxisOptions extends AgCartesianAxesTheme, AgPolarAxesTheme {}
 
@@ -234,20 +239,22 @@ export interface AgChartThemeOverrides {
     sunburst?: AgSunburstSeriesThemeOverrides;
     /** Treemap series theme overrides. */
     treemap?: AgTreemapSeriesThemeOverrides;
-    /** Map series theme overrides. */
+    /** Map shape series theme overrides. */
     'map-shape'?: AgMapShapeSeriesThemeOverrides;
-    /** Map-line series theme overrides. */
+    /** Map line series theme overrides. */
     'map-line'?: AgMapLineSeriesThemeOverrides;
-    /** Map-marker series theme overrides. */
+    /** Map marker series theme overrides. */
     'map-marker'?: AgMapMarkerSeriesThemeOverrides;
-    /** map-shape-background series theme overrides. */
+    /** Map shape background series theme overrides. */
     'map-shape-background'?: AgMapShapeBackgroundThemeOverrides;
-    /** map-line-background series theme overrides. */
+    /** Map line background series theme overrides. */
     'map-line-background'?: AgMapLineBackgroundThemeOverrides;
-    /** sankey series theme overrides. */
+    /** Sankey series theme overrides. */
     sankey?: AgSankeyThemeOverrides;
-    /** sankey series theme overrides. */
+    /** Chord series theme overrides. */
     chord?: AgChordThemeOverrides;
+    /** radial gauge theme overrides. */
+    'radial-gauge'?: AgRadialGaugeThemeOverrides;
 }
 
 // Use Typescript function types to verify that all series types are present in the manually

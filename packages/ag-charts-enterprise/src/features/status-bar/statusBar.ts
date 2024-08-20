@@ -1,7 +1,7 @@
 import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport, _Scene } from 'ag-charts-community';
 
-const { CachedTextMeasurerPool, Validate, OBJECT, BOOLEAN, STRING, valueProperty } = _ModuleSupport;
-const { Label, Text, Group } = _Scene;
+const { CachedTextMeasurerPool, LayoutElement, Validate, OBJECT, BOOLEAN, STRING, valueProperty } = _ModuleSupport;
+const { Label, Text } = _Scene;
 
 enum LabelConfiguration {
     Open = 1 << 1,
@@ -94,7 +94,7 @@ export class StatusBar
     data?: any[] = undefined;
 
     private readonly highlightManager: _ModuleSupport.HighlightManager;
-    private readonly labelGroup = new Group({ name: 'StatusBar' });
+    private readonly labelGroup = new _Scene.TranslatableGroup({ name: 'StatusBar' });
     private readonly labels = [
         {
             label: 'O',
@@ -230,13 +230,14 @@ export class StatusBar
 
         this.destroyFns.push(
             ctx.scene.attachNode(this.labelGroup, 'titles'),
-            ctx.layoutService.addListener('before-series', (e) => this.startPerformLayout(e)),
+            ctx.layoutManager.registerElement(LayoutElement.Overlay, (e) => this.startPerformLayout(e)),
+            ctx.layoutManager.addListener('layout:complete', (e) => this.onLayoutComplete(e)),
             ctx.highlightManager.addListener('highlight-change', () => this.updateHighlight())
         );
     }
 
-    async processData(opts: { dataController: _ModuleSupport.DataController }) {
-        if (!this.enabled) return;
+    async processData(dataController: _ModuleSupport.DataController) {
+        if (!this.enabled || this.data == null) return;
 
         const props: _ModuleSupport.DatumPropertyDefinition<string>[] = [];
         for (const label of this.labels) {
@@ -249,12 +250,9 @@ export class StatusBar
             }
         }
 
-        if (props.length === 0 || this.data == null) return;
+        if (props.length === 0) return;
 
-        const { dataController } = opts;
-        const { processedData, dataModel } = await dataController.request(this.id, this.data, {
-            props,
-        });
+        const { processedData, dataModel } = await dataController.request(this.id, this.data, { props });
 
         for (const label of this.labels) {
             const { id, key } = label;
@@ -265,19 +263,19 @@ export class StatusBar
         }
     }
 
-    startPerformLayout(opts: _ModuleSupport.LayoutContext): _ModuleSupport.LayoutContext {
-        const { shrinkRect } = opts;
+    private startPerformLayout(opts: _ModuleSupport.LayoutContext) {
+        this.labelGroup.translationX = 0;
+        this.labelGroup.translationY = 0;
+
+        if (!this.enabled) return;
+
+        const { layoutBox } = opts;
         const innerSpacing = 4;
         const outerSpacing = 12;
         const spacingAbove = 0;
         const spacingBelow = 8;
 
-        this.labelGroup.translationX = 0;
-        this.labelGroup.translationY = 0;
-
-        if (!this.enabled) return { ...opts, shrinkRect };
-
-        this.labelGroup.translationY = shrinkRect.y + spacingAbove;
+        this.labelGroup.translationY = layoutBox.y + spacingAbove;
 
         const maxFontSize = Math.max(this.title.fontSize, this.positive.fontSize, this.negative.fontSize);
         const lineHeight = maxFontSize * Text.defaultLineHeightRatio;
@@ -288,14 +286,18 @@ export class StatusBar
         let offsetTop: number;
         let textVAlign: CanvasTextBaseline = 'alphabetic';
         if (this.layoutStyle === 'block') {
-            shrinkRect.shrink(spacingAbove + lineHeight + spacingBelow, 'top');
+            layoutBox.shrink(spacingAbove + lineHeight + spacingBelow, 'top');
             offsetTop = maxFontSize + (lineHeight - maxFontSize) / 2;
         } else {
-            const { title } = opts.positions;
-            const { title: padding = 0 } = opts.padding;
-            left = (title?.x ?? 0) + (title?.width ?? 0) + (title ? outerSpacing : padding);
+            const { title } = this.ctx.chartService;
             textVAlign = 'top';
-            offsetTop = spacingAbove + padding;
+            offsetTop = spacingAbove + title.padding;
+            if (title.enabled) {
+                const titleBox = title.node.getBBox();
+                left = titleBox.x + titleBox.width + outerSpacing;
+            } else {
+                left = title.padding;
+            }
         }
 
         for (const { label, configuration, title, value, domain, formatter } of this.labels) {
@@ -340,23 +342,21 @@ export class StatusBar
             title.fill = this.title.color;
             title.text = label;
             title.textBaseline = textVAlign;
-            title.translationY = offsetTop;
-            title.translationX = left;
+            title.y = offsetTop;
+            title.x = left;
 
             left += titleMetrics.width + innerSpacing;
 
             value.textBaseline = textVAlign;
-            value.translationY = offsetTop;
-            value.translationX = left;
+            value.y = offsetTop;
+            value.x = left;
 
             left += maxValueWidth + outerSpacing;
         }
-
-        return { ...opts, shrinkRect };
     }
 
-    async performCartesianLayout(opts: { seriesRect: _Scene.BBox }): Promise<void> {
-        this.labelGroup.translationX = opts.seriesRect.x;
+    private onLayoutComplete(opts: _ModuleSupport.LayoutCompleteEvent) {
+        this.labelGroup.translationX = opts.series.rect.x;
     }
 
     private updateHighlight() {

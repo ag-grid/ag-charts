@@ -4,8 +4,8 @@ import type { AnnotationAxisContext, AnnotationContext, Coords, LineCoords } fro
 import { convert, invertCoords } from '../annotationUtils';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { AxisLabelScene } from '../scenes/axisLabelScene';
+import { CollidableLine } from '../scenes/collidableLineScene';
 import { UnivariantHandle } from '../scenes/handle';
-import { CollidableLine } from '../scenes/shapes';
 import { type CrossLineProperties, HorizontalLineProperties } from './crossLineProperties';
 
 const { Vec2 } = _Util;
@@ -38,7 +38,7 @@ export class CrossLineScene extends AnnotationScene {
 
     public update(datum: CrossLineProperties, context: AnnotationContext) {
         const { line, middle } = this;
-        const { locked, visible, lineDash, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
+        const { locked, visible, lineDashOffset, stroke, strokeWidth, strokeOpacity, lineCap } = datum;
         const { seriesRect } = context;
 
         this.seriesRect = seriesRect;
@@ -62,12 +62,13 @@ export class CrossLineScene extends AnnotationScene {
             y1,
             x2,
             y2,
-            lineDash,
+            lineDash: datum.getLineDash(),
             lineDashOffset,
             stroke,
             strokeWidth,
             strokeOpacity,
             fillOpacity: 0,
+            lineCap,
         });
         line.updateCollisionBBox();
 
@@ -187,7 +188,7 @@ export class CrossLineScene extends AnnotationScene {
     }
 
     override containsPoint(x: number, y: number) {
-        const { middle, seriesRect, line } = this;
+        const { middle, line } = this;
 
         this.activeHandle = undefined;
 
@@ -196,20 +197,11 @@ export class CrossLineScene extends AnnotationScene {
             return true;
         }
 
-        x -= seriesRect?.x ?? 0;
-        y -= seriesRect?.y ?? 0;
-
         return line.isPointInPath(x, y);
     }
 
     override getAnchor() {
-        let bbox = this.getCachedBBoxWithoutHandles();
-
-        // Since crosslines are created in a single click, the anchor is required before their first render and
-        // caching of the bbox. So force a computation of it here.
-        if (bbox.width === 0 && bbox.height === 0) {
-            bbox = this.computeBBoxWithoutHandles();
-        }
+        const bbox = this.computeBBoxWithoutHandles();
 
         if (this.isHorizontal) {
             return { x: bbox.x + bbox.width / 2, y: bbox.y };

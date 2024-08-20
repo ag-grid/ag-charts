@@ -6,10 +6,12 @@ import { AgChartInstanceProxy, type FactoryApi } from '../chart/chartProxy';
 import { registerInbuiltModules } from '../chart/factory/registerInbuiltModules';
 import { setupModules } from '../chart/factory/setupModules';
 import { FlowProportionChart } from '../chart/flowProportionChart';
+import { GaugeChart } from '../chart/gaugeChart';
 import { HierarchyChart } from '../chart/hierarchyChart';
 import {
     isAgCartesianChartOptions,
     isAgFlowProportionChartOptions,
+    isAgGaugeChartOptions,
     isAgHierarchyChartOptions,
     isAgPolarChartOptions,
     isAgTopologyChartOptions,
@@ -28,7 +30,7 @@ import { MementoCaretaker } from './state/memento';
 
 const debug = Debug.create(true, 'opts');
 
-function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' {
+function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'gauge' {
     if (isAgCartesianChartOptions(options)) {
         return 'cartesian';
     } else if (isAgPolarChartOptions(options)) {
@@ -39,6 +41,8 @@ function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' | 'topolog
         return 'topology';
     } else if (isAgFlowProportionChartOptions(options)) {
         return 'flow-proportion';
+    } else if (isAgGaugeChartOptions(options)) {
+        return 'gauge';
     }
 
     throw new Error(`AG Chart - unknown type of chart for options with type: ${options.type}`);
@@ -102,11 +106,8 @@ export abstract class AgCharts {
         return chart as unknown as AgChartInstance<O>;
     }
 
-    public static createFinancialChart(options: AgFinancialChartOptions) {
-        return this.create({
-            _type: 'price-volume',
-            ...options,
-        } as AgChartOptions) as unknown as AgChartInstance<AgFinancialChartOptions>;
+    public static createFinancialChart(options: AgFinancialChartOptions): AgChartInstance<AgFinancialChartOptions> {
+        return this.create({ presetType: 'price-volume', ...options } as AgChartOptions) as any;
     }
 }
 
@@ -147,21 +148,20 @@ class AgChartsInternal {
 
         debug('>>> AgCharts.createOrUpdate() user options', options);
 
-        const defaultType = proxy?.chart.chartOptions.type;
-        const { _type = defaultType, ...otherOptions } = options;
+        const { presetType = proxy?.chart.chartOptions.presetType, ...otherOptions } = options;
 
         let mutableOptions = otherOptions;
         if (AgCharts.optionsMutationFn) {
-            mutableOptions = AgCharts.optionsMutationFn(mutableOptions, _type);
+            mutableOptions = AgCharts.optionsMutationFn(mutableOptions, presetType);
             debug('>>> AgCharts.createOrUpdate() MUTATED user options', options);
         }
 
         const { overrideDevicePixelRatio, document, window: userWindow, ...userOptions } = mutableOptions;
         const chartOptions = new ChartOptions(userOptions, {
-            overrideDevicePixelRatio,
+            presetType,
             document,
             window: userWindow,
-            type: _type,
+            overrideDevicePixelRatio,
         });
 
         let chart = proxy?.chart;
@@ -233,6 +233,8 @@ class AgChartsInternal {
             return TopologyChart;
         } else if (isAgFlowProportionChartOptions(options)) {
             return FlowProportionChart;
+        } else if (isAgGaugeChartOptions(options)) {
+            return GaugeChart;
         }
 
         throw new Error(

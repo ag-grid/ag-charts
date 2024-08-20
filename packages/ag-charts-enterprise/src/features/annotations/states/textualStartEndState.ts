@@ -27,7 +27,7 @@ export abstract class TextualStartEndStateMachine<
     Node extends TextualStartEndScene<Datum>,
 > extends StateMachine<
     'start' | 'waiting-first-render' | 'edit' | 'end',
-    'click' | 'cancel' | 'hover' | 'keyDown' | 'updateTextInputBBox' | 'color' | 'fontSize' | 'render'
+    'click' | 'cancel' | 'hover' | 'keyDown' | 'updateTextInputBBox' | 'color' | 'fontSize' | 'render' | 'reset'
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -41,7 +41,6 @@ export abstract class TextualStartEndStateMachine<
 
         const actionFirstRender = () => {
             ctx.node()?.toggleActive(true);
-            ctx.showAnnotationOptions();
         };
 
         const onStartEditing = () => {
@@ -73,6 +72,7 @@ export abstract class TextualStartEndStateMachine<
         };
 
         const onEndClick = ({ point }: { point: Point }) => {
+            ctx.showAnnotationOptions();
             const datum = ctx.datum();
             if (datum) {
                 datum.set({ end: point });
@@ -107,13 +107,9 @@ export abstract class TextualStartEndStateMachine<
             const node = ctx.node();
             if (!datum || !node || !isTextType(datum)) return;
 
-            ctx.updateTextInputFontSize(fontSize);
-
             setFontsize(datum, datum.type, fontSize);
 
-            if ('invalidateTextInputBBox' in node) {
-                node.invalidateTextInputBBox();
-            }
+            ctx.updateTextInputFontSize(fontSize);
 
             ctx.update();
         };
@@ -138,6 +134,7 @@ export abstract class TextualStartEndStateMachine<
                     action: actionCreate,
                 },
                 cancel: StateMachine.parent,
+                reset: StateMachine.parent,
             },
             'waiting-first-render': {
                 render: {
@@ -150,6 +147,10 @@ export abstract class TextualStartEndStateMachine<
                 click: {
                     target: 'edit',
                     action: onEndClick,
+                },
+                reset: {
+                    target: StateMachine.parent,
+                    action: actionCancel,
                 },
                 cancel: {
                     target: StateMachine.parent,

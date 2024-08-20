@@ -1,23 +1,26 @@
-import type { BBoxContainsTester, BBoxProvider } from '../../util/bboxinterface';
+import type { FocusIndicator } from '../../dom/focusIndicator';
+import { Node } from '../../scene/node';
+import type { BBoxProvider } from '../../util/bboxinterface';
 import { Listeners } from '../../util/listeners';
-import type { FocusIndicator } from '../dom/focusIndicator';
 import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
 import { InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
-import type { KeyNavEvent, KeyNavEventType, KeyNavManager } from './keyNavManager';
 import { type Unpreventable, buildPreventable } from './preventableEvent';
-import type { RegionName } from './regions';
-
-const REGION_TAB_ORDERING: RegionName[] = ['series'];
+import { NodeRegionBBoxProvider, type RegionBBoxProvider, type RegionName } from './regions';
 
 // This type-map allows the compiler to automatically figure out the parameter type of handlers
 // specifies through the `addListener` method (see the `makeObserver` method).
-type TypeInfo = { [K in PointerInteractionTypes]: PointerInteractionEvent<K> & { region: RegionName } } & {
-    [K in KeyNavEventType]: KeyNavEvent<K> & { region: RegionName };
+type TypeInfo = { [K in PointerInteractionTypes]: PointerInteractionEvent<K> & RegionEventMixins };
+
+type RegionEventMixins = {
+    region: RegionName;
+    bboxProviderId?: string;
+    regionOffsetX: number;
+    regionOffsetY: number;
 };
 
-type RegionEvent = (PointerInteractionEvent | KeyNavEvent) & { region: RegionName };
+export type RegionEvent<T extends PointerInteractionTypes = PointerInteractionTypes> = PointerInteractionEvent &
+    RegionEventMixins & { type: T };
 type RegionHandler = (event: RegionEvent) => void;
-type RegionBBoxProvider = BBoxProvider<BBoxContainsTester & { width: number; height: number }>;
 
 class RegionListeners extends Listeners<RegionEvent['type'], RegionHandler> {}
 
@@ -48,10 +51,18 @@ function addHandler<T extends RegionEvent['type']>(
     );
 }
 
-export class RegionManager {
-    private currentTabIndex = 0;
+type RegionNodeType = Node | { id: string; node: Node };
 
-    private currentRegion?: Region;
+function nodeToBBoxProvider(node: RegionNodeType) {
+    if (node instanceof Node) {
+        return new NodeRegionBBoxProvider(node);
+    }
+
+    return new NodeRegionBBoxProvider(node.node, node.id);
+}
+
+export class RegionManager {
+    private current?: { region: Region; bboxProvider?: BBoxProvider };
     private isDragging = false;
     private leftCanvas = false;
 
@@ -61,29 +72,19 @@ export class RegionManager {
 
     constructor(
         private readonly interactionManager: InteractionManager,
-        private readonly keyNavManager: KeyNavManager,
         private readonly focusIndicator: FocusIndicator
     ) {
         this.destroyFns.push(
             ...POINTER_INTERACTION_TYPES.map((eventName) =>
                 interactionManager.addListener(eventName, this.processPointerEvent.bind(this), InteractionState.All)
-            ),
-            this.keyNavManager.addListener('blur', this.onNav.bind(this)),
-            this.keyNavManager.addListener('browserfocus', this.onBrowserFocus.bind(this)),
-            this.keyNavManager.addListener('tab', this.onTab.bind(this)),
-            this.keyNavManager.addListener('nav-vert', this.onNav.bind(this)),
-            this.keyNavManager.addListener('nav-hori', this.onNav.bind(this)),
-            this.keyNavManager.addListener('nav-zoom', this.onNav.bind(this)),
-            this.keyNavManager.addListener('submit', this.onNav.bind(this)),
-            this.keyNavManager.addListener('cancel', this.onNav.bind(this)),
-            this.keyNavManager.addListener('delete', this.onNav.bind(this))
+            )
         );
     }
 
     public destroy() {
         this.destroyFns.forEach((fn) => fn());
 
-        this.currentRegion = undefined;
+        this.current = undefined;
         for (const region of this.regions.values()) {
             region.listeners.destroy();
         }
@@ -92,22 +93,22 @@ export class RegionManager {
         this.regions.clear();
     }
 
-    public addRegion(name: RegionName, ...bboxproviders: RegionBBoxProvider[]) {
+    public addRegion(name: RegionName, ...nodes: RegionNodeType[]) {
         if (this.regions.has(name)) {
             throw new Error(`AG Charts - Region: ${name} already exists`);
         }
         const region = {
-            properties: { name, bboxproviders: [...bboxproviders] },
+            properties: { name, bboxproviders: nodes.map(nodeToBBoxProvider) },
             listeners: new RegionListeners(),
         };
         this.regions.set(name, region);
         return this.makeObserver(region);
     }
 
-    public updateRegion(name: RegionName, ...bboxprovider: RegionBBoxProvider[]) {
+    public updateRegion(name: RegionName, ...nodes: RegionNodeType[]) {
         const region = this.regions.get(name);
         if (region) {
-            region.properties.bboxproviders = [...bboxprovider];
+            region.properties.bboxproviders = nodes.map(nodeToBBoxProvider);
         } else {
             throw new Error('AG Charts - unknown region: ' + name);
         }
@@ -143,7 +144,7 @@ export class RegionManager {
 
     private checkPointerHistory(targetRegion: Region, event: PointerInteractionEvent): boolean {
         for (const historyEvent of event.pointerHistory) {
-            const historyRegion = this.pickRegion(historyEvent.offsetX, historyEvent.offsetY);
+            const { region: historyRegion } = this.pickRegion(historyEvent.offsetX, historyEvent.offsetY) ?? {};
             if (targetRegion.properties.name !== historyRegion?.properties.name) {
                 return false;
             }
@@ -153,19 +154,40 @@ export class RegionManager {
 
     // Create and dispatch a copy of the InteractionEvent.
     private dispatch(
-        region: Region | undefined,
-        partialEvent: Unpreventable<PointerInteractionEvent> | Unpreventable<KeyNavEvent>
+        current: { region: Region; bboxProvider?: BBoxProvider } | undefined,
+        partialEvent: Unpreventable<PointerInteractionEvent>
     ) {
-        if (region == null) return;
-        const event: RegionEvent = buildPreventable({ ...partialEvent, region: region.properties.name });
+        if (current == null) return;
+
+        const mainBBoxProvider = current.region.properties.bboxproviders[0];
+        let regionOffsetX = 0;
+        let regionOffsetY = 0;
+        if ('offsetX' in partialEvent && 'offsetY' in partialEvent) {
+            ({ x: regionOffsetX, y: regionOffsetY } = mainBBoxProvider.fromCanvasPoint(
+                partialEvent.offsetX,
+                partialEvent.offsetY
+            ));
+        } else {
+            const regionBBox = mainBBoxProvider.toCanvasBBox();
+            regionOffsetX = regionBBox.width / 2;
+            regionOffsetY = regionBBox.height / 2;
+        }
+
+        const event: RegionEvent = buildPreventable({
+            ...partialEvent,
+            region: current.region.properties.name,
+            bboxProviderId: current.bboxProvider?.id,
+            regionOffsetX,
+            regionOffsetY,
+        });
         this.allRegionsListeners.dispatch(event.type, event);
-        region.listeners.dispatch(event.type, event);
+        current.region.listeners.dispatch(event.type, event);
     }
 
     // Process events during a drag action. Returns false if this event should follow the standard
     // RegionManager.processEvent flow, or true if this event already processed by this function.
     private handleDragging(event: PointerInteractionEvent): boolean {
-        const { currentRegion } = this;
+        const { current } = this;
 
         switch (event.type) {
             case 'drag-start':
@@ -187,16 +209,16 @@ export class RegionManager {
             // and defers it until the drag is done.
             case 'drag':
                 if (this.isDragging) {
-                    this.dispatch(currentRegion, event);
+                    this.dispatch(current, event);
                     return true;
                 }
                 break;
             case 'drag-end':
                 if (this.isDragging) {
                     this.isDragging = false;
-                    this.dispatch(currentRegion, event);
+                    this.dispatch(current, event);
                     if (this.leftCanvas) {
-                        this.dispatch(currentRegion, { ...event, type: 'leave' });
+                        this.dispatch(current, { ...event, type: 'leave' });
                     }
                     return true;
                 }
@@ -212,110 +234,47 @@ export class RegionManager {
             return;
         }
 
-        const { currentRegion } = this;
+        const { current } = this;
 
         if (event.type === 'leave') {
-            this.dispatch(currentRegion, { ...event, type: 'leave' });
-            this.currentRegion = undefined;
+            this.dispatch(current, { ...event, type: 'leave' });
+            this.current = undefined;
             return;
         }
 
-        const newRegion = this.pickRegion(event.offsetX, event.offsetY);
-        if (currentRegion !== undefined && newRegion?.properties.name !== currentRegion.properties.name) {
-            this.dispatch(currentRegion, { ...event, type: 'leave' });
+        const newCurrent = this.pickRegion(event.offsetX, event.offsetY);
+        const newRegion = newCurrent?.region;
+        if (current !== undefined && newRegion?.properties.name !== current.region.properties.name) {
+            this.dispatch(current, { ...event, type: 'leave' });
         }
-        if (newRegion !== undefined && newRegion.properties.name !== currentRegion?.properties.name) {
-            this.dispatch(newRegion, { ...event, type: 'enter' });
+        if (newRegion !== undefined && newRegion.properties.name !== current?.region.properties.name) {
+            this.dispatch(newCurrent, { ...event, type: 'enter' });
         }
         if (newRegion !== undefined && this.checkPointerHistory(newRegion, event)) {
-            this.dispatch(newRegion, event);
+            this.dispatch(newCurrent, event);
         }
-        this.currentRegion = newRegion;
+        this.current = newCurrent;
     }
 
-    private pickRegion(x: number, y: number): Region | undefined {
+    private pickRegion(x: number, y: number) {
         // Sort matches by area.
         // This ensure that we prioritise smaller regions are contained inside larger regions.
         let currentArea = Infinity;
         let currentRegion: Region | undefined;
+        let currentBBoxProvider: RegionBBoxProvider | undefined;
         for (const region of this.regions.values()) {
             for (const provider of region.properties.bboxproviders) {
                 if (provider.visible === false) continue;
 
-                const bbox = provider.computeTransformedRegionBBox?.() ?? provider.computeTransformedBBox();
+                const bbox = provider.toCanvasBBox();
                 const area = bbox.width * bbox.height;
                 if (area < currentArea && bbox.containsPoint(x, y)) {
                     currentArea = area;
                     currentRegion = region;
+                    currentBBoxProvider = provider;
                 }
             }
         }
-        return currentRegion;
-    }
-
-    private getTabRegion(tabIndex: number | undefined): Region | undefined {
-        if (tabIndex !== undefined && tabIndex >= 0 && tabIndex < REGION_TAB_ORDERING.length) {
-            return this.regions.get(REGION_TAB_ORDERING[tabIndex]);
-        }
-        return undefined;
-    }
-
-    private getNextInteractableTabIndex(currentIndex: number, delta: number): number | undefined {
-        const direction = delta < 0 ? -1 : 1;
-        let i = currentIndex;
-        while (delta !== 0) {
-            const region = this.getTabRegion(i + direction);
-            if (region === undefined) {
-                return undefined;
-            } else {
-                delta = delta - direction;
-            }
-            i = i + direction;
-        }
-        return i;
-    }
-
-    private validateCurrentTabIndex() {
-        // This currentTabIndex might be referencing a region that is no longer interactable.
-        // If that's the case, then refresh the focus to the first interactable region.
-        const focusedRegion = this.getTabRegion(this.currentTabIndex);
-        if (focusedRegion !== undefined) {
-            this.currentTabIndex = this.getNextInteractableTabIndex(-1, 1) ?? 0;
-        }
-    }
-
-    private onBrowserFocus(event: KeyNavEvent<'browserfocus'>) {
-        if (event.delta > 0) {
-            this.currentTabIndex = -1;
-        } else if (event.delta < 0) {
-            this.currentTabIndex = REGION_TAB_ORDERING.length;
-        }
-    }
-
-    private onTab(event: KeyNavEvent<'tab'>) {
-        this.validateCurrentTabIndex();
-        const newTabIndex = this.getNextInteractableTabIndex(this.currentTabIndex, event.delta);
-        const newRegion = this.getTabRegion(newTabIndex);
-        const focusedRegion = this.getTabRegion(this.currentTabIndex);
-        if (newTabIndex !== undefined) {
-            this.currentTabIndex = newTabIndex;
-        }
-
-        if (focusedRegion !== undefined && newRegion?.properties.name !== focusedRegion.properties.name) {
-            // Build a distinct consumable event, since we don't care about consumed status of blur.
-            const { delta, sourceEvent } = event;
-            const blurEvent = buildPreventable({ type: 'blur' as const, delta, sourceEvent });
-            this.dispatch(focusedRegion, blurEvent);
-        }
-        if (newRegion === undefined) {
-            this.focusIndicator.updateBounds(undefined);
-        } else {
-            this.dispatch(newRegion, event);
-        }
-    }
-
-    private onNav(event: KeyNavEvent<'blur' | 'nav-hori' | 'nav-vert' | 'nav-zoom' | 'submit' | 'cancel' | 'delete'>) {
-        const focusedRegion = this.getTabRegion(this.currentTabIndex);
-        this.dispatch(focusedRegion, event);
+        return currentRegion ? { region: currentRegion, bboxProvider: currentBBoxProvider } : undefined;
     }
 }

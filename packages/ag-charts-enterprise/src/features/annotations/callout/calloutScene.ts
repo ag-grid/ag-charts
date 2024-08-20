@@ -8,13 +8,6 @@ import type { CalloutProperties } from './calloutProperties';
 
 const { drawCorner } = _Scene;
 
-const DEFAULT_PADDING = {
-    top: 6,
-    right: 12,
-    bottom: 9,
-    left: 12,
-};
-
 interface CalloutDimensions {
     tailPoint: {
         x: number;
@@ -37,7 +30,6 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
 
     override type = AnnotationType.Callout;
 
-    public padding = { ...DEFAULT_PADDING };
     private readonly shape = new _Scene.Path();
 
     constructor() {
@@ -56,7 +48,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
     }
 
     protected override getLabelCoords(datum: CalloutProperties, bbox: _Scene.BBox, coords: LineCoords): _Util.Vec2 {
-        const { padding } = this;
+        const padding = datum.getPadding();
         const {
             bodyBounds = {
                 x: 0,
@@ -81,19 +73,6 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
                   strokeWidth: datum.handle.strokeWidth,
               }
             : { fill: undefined, strokeWidth: 0 };
-    }
-
-    override update(datum: CalloutProperties, context: AnnotationContext): void {
-        if (datum.padding != null) {
-            this.padding = {
-                top: datum.padding,
-                right: datum.padding,
-                bottom: datum.padding,
-                left: datum.padding,
-            };
-        }
-
-        super.update(datum, context);
     }
 
     protected override updateAnchor(datum: CalloutProperties, bbox: _Scene.BBox, context: AnnotationContext) {
@@ -335,8 +314,8 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         textBBox: _Scene.BBox,
         coords: LineCoords
     ): CalloutDimensions | undefined {
-        const { padding } = this;
         const { fontSize } = datum;
+        const padding = datum.getPadding();
 
         const horizontalPadding = padding.left + padding.right;
         const verticalPadding = padding.top + padding.bottom;
@@ -356,6 +335,10 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
                 height,
             },
         };
+    }
+
+    override getCursor() {
+        if (this.activeHandle == null || this.activeHandle === 'end') return 'pointer';
     }
 
     override containsPoint(x: number, y: number) {

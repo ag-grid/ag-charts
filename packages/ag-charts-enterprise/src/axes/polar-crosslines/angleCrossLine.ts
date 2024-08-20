@@ -3,7 +3,7 @@ import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 import { PolarCrossLine } from './polarCrossLine';
 
 const { ChartAxisDirection, validateCrossLineValues } = _ModuleSupport;
-const { Path, Sector, Text } = _Scene;
+const { Path, Sector, RotatableText } = _Scene;
 const { normalizeAngle360, isNumberEqual } = _Util;
 export class AngleCrossLine extends PolarCrossLine {
     static readonly className = 'AngleCrossLine';
@@ -13,7 +13,7 @@ export class AngleCrossLine extends PolarCrossLine {
     private readonly polygonNode = new Path();
     private readonly sectorNode = new Sector();
     private readonly lineNode = new Path();
-    private readonly labelNode = new Text();
+    private readonly labelNode = new RotatableText();
 
     constructor() {
         super();

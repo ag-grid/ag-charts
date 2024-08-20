@@ -1,4 +1,4 @@
-import { NODE_UPDATE_STATE_TO_PHASE_MAPPING, type NodeUpdateState } from '../../../motion/fromToMotion';
+import { type FromToFns, NODE_UPDATE_STATE_TO_PHASE_MAPPING, type NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Path } from '../../../scene/shape/path';
 import { transformIntegratedCategoryValue } from '../../../util/value';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
@@ -56,6 +56,17 @@ export function* pathRangePointsReverse<T extends { point: PartialPathPoint }>(
     }
 }
 
+function integratedCategoryMatch(a: unknown, b: unknown) {
+    if (a == null || b == null) return false;
+    if (typeof a !== 'object' || typeof b !== 'object') return false;
+
+    if ('id' in a && 'id' in b) {
+        return a.id === b.id;
+    }
+
+    return a.toString() === b.toString();
+}
+
 export function scale(val: number | string | Date, scaling?: Scaling) {
     if (!scaling) return NaN;
 
@@ -74,6 +85,12 @@ export function scale(val: number | string | Date, scaling?: Scaling) {
     const matchingIndex = scaling.domain.findIndex((d) => d === val);
     if (matchingIndex >= 0) {
         return scaling.range[matchingIndex];
+    }
+
+    // Integrated Charts category case.
+    const matchingIntegratedIndex = scaling.domain.findIndex((d) => integratedCategoryMatch(val, d));
+    if (matchingIntegratedIndex >= 0) {
+        return scaling.range[matchingIntegratedIndex];
     }
 
     // We failed to convert using the scale.
@@ -335,7 +352,10 @@ export function determinePathStatus(newData: LineContextLike, oldData: LineConte
     return status;
 }
 
-export function prepareLinePathPropertyAnimation(status: NodeUpdateState, visibleToggleMode: 'fade' | 'none') {
+export function prepareLinePathPropertyAnimation(
+    status: NodeUpdateState,
+    visibleToggleMode: 'fade' | 'none'
+): FromToFns<Path, any, unknown> {
     const phase: NodeUpdateState = visibleToggleMode === 'none' ? 'updated' : status;
 
     const result = {
@@ -384,7 +404,7 @@ export function prepareLinePathAnimationFns(
         interpolation: InterpolationProperties | undefined
     ) => void
 ) {
-    const status = determinePathStatus(newData, oldData, pairData);
+    const status: NodeUpdateState = determinePathStatus(newData, oldData, pairData);
     const removePhaseFn = (ratio: number, path: Path) => {
         render(pairData, { move: 0, out: ratio }, path, interpolation);
     };

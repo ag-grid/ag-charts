@@ -1,8 +1,9 @@
 import type { AgChartLegendOrientation, FontStyle, FontWeight } from 'ag-charts-types';
 
-import { Group } from '../../scene/group';
+import { TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import { Text } from '../../scene/shape/text';
+import { Rotatable, type RotatableType, Transformable } from '../../scene/transformable';
 import { createId } from '../../util/id';
 import { clamp } from '../../util/number';
 import { BaseProperties } from '../../util/properties';
@@ -19,8 +20,7 @@ import {
 } from '../../util/validation';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { CursorManager } from '../interaction/cursorManager';
-import type { PointerInteractionEvent } from '../interaction/interactionManager';
-import type { RegionManager } from '../interaction/regionManager';
+import type { RegionEvent, RegionManager } from '../interaction/regionManager';
 import type { Marker } from '../marker/marker';
 import { Triangle } from '../marker/triangle';
 import { type MarkerShape, getMarker } from '../marker/util';
@@ -86,6 +86,8 @@ class PaginationMarker extends BaseProperties {
     }
 }
 
+class RotatableTriangle extends Rotatable(Triangle) {}
+
 export class Pagination extends BaseProperties {
     static readonly className = 'Pagination';
 
@@ -106,7 +108,7 @@ export class Pagination extends BaseProperties {
     @Validate(OBJECT)
     readonly label = new PaginationLabel();
 
-    private readonly group = new Group({ name: 'pagination' });
+    private readonly group = new TranslatableGroup({ name: 'pagination' });
     private readonly labelNode: Text = new Text();
     private highlightActive?: 'previous' | 'next';
     private readonly destroyFns: (() => void)[] = [];
@@ -194,27 +196,27 @@ export class Pagination extends BaseProperties {
         return this._orientation;
     }
 
-    private _nextButton: Marker = new Triangle();
-    set nextButton(value: Marker) {
+    private _nextButton: RotatableType<Marker> = new RotatableTriangle();
+    set nextButton(value: RotatableType<Marker>) {
         if (this._nextButton !== value) {
             this.group.removeChild(this._nextButton);
             this._nextButton = value;
             this.group.appendChild(value);
         }
     }
-    get nextButton(): Marker {
+    get nextButton() {
         return this._nextButton;
     }
 
-    private _previousButton: Marker = new Triangle();
-    set previousButton(value: Marker) {
+    private _previousButton: RotatableType<Marker> = new RotatableTriangle();
+    set previousButton(value: RotatableType<Marker>) {
         if (this._previousButton !== value) {
             this.group.removeChild(this._previousButton);
             this._previousButton = value;
             this.group.appendChild(value);
         }
     }
-    get previousButton(): Marker {
+    get previousButton() {
         return this._previousButton;
     }
 
@@ -243,7 +245,7 @@ export class Pagination extends BaseProperties {
 
     private updateNextButtonPosition() {
         const labelBBox = this.labelNode.getBBox();
-        this.nextButton.translationX = labelBBox.x + labelBBox.width + this.marker.size / 2 + this.marker.padding;
+        this.nextButton.translationX = labelBBox.width + (this.marker.size / 2 + this.marker.padding) * 2;
     }
 
     private updateLabel() {
@@ -308,14 +310,6 @@ export class Pagination extends BaseProperties {
         this.previousButtonDisabled = onFirstPage || zeroPagesToDisplay;
     }
 
-    private nextButtonContainsPoint(offsetX: number, offsetY: number) {
-        return !this.nextButtonDisabled && this.nextButton.containsPoint(offsetX, offsetY);
-    }
-
-    private previousButtonContainsPoint(offsetX: number, offsetY: number) {
-        return !this.previousButtonDisabled && this.previousButton.containsPoint(offsetX, offsetY);
-    }
-
     public clickNext() {
         this.incrementPage();
         this.onPaginationChanged();
@@ -334,24 +328,26 @@ export class Pagination extends BaseProperties {
         }
     }
 
-    private onPaginationClick(event: PointerInteractionEvent<'click'>) {
-        const { offsetX, offsetY } = event;
+    private onPaginationClick(event: RegionEvent<'click'>) {
+        const { regionOffsetX, regionOffsetY } = event;
         event.preventDefault();
 
-        if (this.nextButtonContainsPoint(offsetX, offsetY)) {
+        const node = this.group.pickNode(regionOffsetX, regionOffsetY, true);
+        if (node === this.nextButton && !this.nextButtonDisabled) {
             this.clickNext();
-        } else if (this.previousButtonContainsPoint(offsetX, offsetY)) {
+        } else if (node === this.previousButton && !this.previousButtonDisabled) {
             this.clickPrevious();
         }
     }
 
-    private onPaginationMouseMove(event: PointerInteractionEvent<'hover'>) {
-        const { offsetX, offsetY } = event;
+    private onPaginationMouseMove(event: RegionEvent<'hover'>) {
+        const { regionOffsetX, regionOffsetY } = event;
 
-        if (this.nextButtonContainsPoint(offsetX, offsetY)) {
+        const node = this.group.pickNode(regionOffsetX, regionOffsetY, true);
+        if (node === this.nextButton && !this.nextButtonDisabled) {
             this.cursorManager.updateCursor(this.id, 'pointer');
             this.highlightActive = 'next';
-        } else if (this.previousButtonContainsPoint(offsetX, offsetY)) {
+        } else if (node === this.previousButton && !this.previousButtonDisabled) {
             this.cursorManager.updateCursor(this.id, 'pointer');
             this.highlightActive = 'previous';
         } else {
@@ -377,7 +373,7 @@ export class Pagination extends BaseProperties {
     }
 
     onMarkerShapeChange() {
-        const Marker = getMarker(this.marker.shape || Triangle);
+        const Marker = Rotatable(getMarker(this.marker.shape || Triangle));
         this.previousButton = new Marker();
         this.nextButton = new Marker();
         this.updatePositions();
@@ -390,17 +386,12 @@ export class Pagination extends BaseProperties {
     }
 
     getBBox() {
-        return this.group.getBBox();
+        return this.group.getBBox(true);
     }
 
     computeCSSBounds() {
-        const group = this.group.computeTransformedBBox();
-        const prev = this._previousButton.computeTransformedBBox();
-        const next = this._nextButton.computeTransformedBBox();
-        prev.x -= group.x;
-        prev.y -= group.y;
-        next.x -= group.x;
-        next.y -= group.y;
-        return { group, prev, next };
+        const prev = Transformable.toCanvas(this.previousButton);
+        const next = Transformable.toCanvas(this.nextButton);
+        return { prev, next };
     }
 }

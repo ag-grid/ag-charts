@@ -661,6 +661,7 @@ export class MapLineSeries
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
-        return findFocusedGeoGeometry(this, opts)?.computeTransformedBBox();
+        const geometry = findFocusedGeoGeometry(this, opts);
+        return geometry ? _Scene.Transformable.toCanvas(geometry) : undefined;
     }
 }

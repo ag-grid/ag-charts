@@ -96,5 +96,6 @@ export const getGeneratedContentsFileList = async (params: GeneratedExampleParam
 };
 
 export const getGeneratedContents = async (params: GeneratedExampleParams) => {
+    // Generated from `plugins/ag-charts-generate-example-files`
     return readContentJson(params);
 };

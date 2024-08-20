@@ -5,7 +5,7 @@ type EnterpriseModuleStub = {
     packageType?: 'enterprise';
     identifier?: string;
     optionsKey: string;
-    chartTypes: ('cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion')[];
+    chartTypes: ('cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'gauge')[];
     useCount?: number;
     optionsInnerKey?: string;
 };
@@ -14,19 +14,19 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     {
         type: 'root',
         optionsKey: 'animation',
-        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion'],
+        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion', 'gauge'],
     },
     { type: 'root', optionsKey: 'annotations', chartTypes: ['cartesian'] },
     {
         type: 'root',
         optionsKey: 'background',
-        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion'],
+        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion', 'gauge'],
         optionsInnerKey: 'image',
     },
     {
         type: 'root',
         optionsKey: 'foreground',
-        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion'],
+        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion', 'gauge'],
         optionsInnerKey: 'image',
     },
     {
@@ -37,20 +37,20 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     {
         type: 'root',
         optionsKey: 'contextMenu',
-        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion'],
+        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion', 'gauge'],
     },
     { type: 'root', optionsKey: 'statusBar', chartTypes: ['cartesian'], identifier: 'status-bar' },
     {
         type: 'root',
         optionsKey: 'dataSource',
-        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion'],
+        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion', 'gauge'],
     },
     { type: 'root', optionsKey: 'sync', chartTypes: ['cartesian'] },
     { type: 'root', optionsKey: 'zoom', chartTypes: ['cartesian', 'topology'] },
     {
         type: 'legend',
         optionsKey: 'gradientLegend',
-        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion'],
+        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion', 'gauge'],
         identifier: 'gradient',
     },
     { type: 'root', optionsKey: 'navigator', chartTypes: ['cartesian'], optionsInnerKey: 'miniChart' },
@@ -82,6 +82,7 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     { type: 'series', optionsKey: 'series[]', chartTypes: ['topology'], identifier: 'map-line-background' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['flow-proportion'], identifier: 'chord' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['flow-proportion'], identifier: 'sankey' },
+    { type: 'series', optionsKey: 'series[]', chartTypes: ['gauge'], identifier: 'radial-gauge' },
     { type: 'series-option', optionsKey: 'errorBar', chartTypes: ['cartesian'], identifier: 'error-bars' },
 ];
 
@@ -116,6 +117,10 @@ export function isEnterpriseTopology(seriesType: string) {
 export function isEnterpriseFlowProportion(seriesType: string) {
     const type = getEnterpriseSeriesChartTypes(seriesType)?.find((v) => v === 'flow-proportion');
     return type === 'flow-proportion';
+}
+export function isEnterpriseGauge(seriesType: string) {
+    const type = getEnterpriseSeriesChartTypes(seriesType)?.find((v) => v === 'gauge');
+    return type === 'gauge';
 }
 
 type UnknownPackage = { packageType: string } | EnterpriseModuleStub;

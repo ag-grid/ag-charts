@@ -3,7 +3,7 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
-const { Group, Rect, Line, BBox, Selection } = _Scene;
+const { ScalableGroup, Rect, Line, BBox, Selection } = _Scene;
 const { Logger } = _Util;
 
 enum GroupTags {
@@ -14,7 +14,7 @@ enum GroupTags {
     Cap,
 }
 
-export class BoxPlotGroup extends Group implements _ModuleSupport.DistantObject {
+export class BoxPlotGroup extends ScalableGroup implements _ModuleSupport.DistantObject {
     constructor() {
         super();
         this.append([

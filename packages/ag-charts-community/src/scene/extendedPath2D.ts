@@ -338,7 +338,8 @@ export class ExtendedPath2D {
                     const y1 = oy + cy + Math.sin(a1) * r;
                     const largeArcFlag = angleDiff(a0, a1, !!ccw) > Math.PI ? 1 : 0;
                     const sweepFlag = (ccw + 1) % 2;
-                    buffer.push('L', x0, y0, 'A', r, r, 0, largeArcFlag, sweepFlag, x1, y1);
+                    const move = buffer.length === 0 ? 'M' : 'L';
+                    buffer.push(move, x0, y0, 'A', r, r, 0, largeArcFlag, sweepFlag, x1, y1);
                     break;
                 case Command.ClosePath:
                     buffer.push('Z');

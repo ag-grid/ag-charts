@@ -10,7 +10,7 @@ export type Listener<H extends Handler> = {
 export class Listeners<EventType extends string, EventHandler extends Handler> {
     protected readonly registeredListeners: Map<EventType, Listener<EventHandler>[]> = new Map();
 
-    public addListener(eventType: EventType, handler: EventHandler) {
+    public addListener<T extends EventType>(eventType: T, handler: EventHandler) {
         const record = { symbol: Symbol(eventType), handler };
 
         if (this.registeredListeners.has(eventType)) {

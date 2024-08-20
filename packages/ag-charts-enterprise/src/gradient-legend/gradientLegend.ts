@@ -6,9 +6,19 @@ import {
     _Util,
 } from 'ag-charts-community';
 
-const { BOOLEAN, OBJECT, POSITION, POSITIVE_NUMBER, BaseProperties, AxisTicks, Layers, ProxyProperty, Validate } =
-    _ModuleSupport;
-const { Group, Rect, LinearGradientFill, Triangle, BBox } = _Scene;
+const {
+    BOOLEAN,
+    OBJECT,
+    POSITION,
+    POSITIVE_NUMBER,
+    BaseProperties,
+    AxisTicks,
+    Layers,
+    ProxyProperty,
+    Validate,
+    LayoutElement,
+} = _ModuleSupport;
+const { Group, Rect, LinearGradientFill, Triangle, Rotatable, TranslatableGroup } = _Scene;
 const { createId } = _Util;
 
 class GradientBar extends BaseProperties {
@@ -32,6 +42,8 @@ class GradientLegendScale implements AgGradientLegendScaleOptions {
     padding?: _ModuleSupport.AxisTicks['padding'];
 }
 
+class RotatableTriangle extends Rotatable(Triangle) {}
+
 export class GradientLegend {
     static readonly className = 'GradientLegend';
 
@@ -40,14 +52,14 @@ export class GradientLegend {
     private readonly axisTicks: _ModuleSupport.AxisTicks;
     private readonly highlightManager: _ModuleSupport.HighlightManager;
 
-    private readonly legendGroup = new Group({
+    private readonly legendGroup = new TranslatableGroup({
         name: 'legend',
         layer: true,
         zIndex: Layers.LEGEND_ZINDEX,
     });
     private readonly gradientRect = new Rect();
     private readonly gradientFill = new LinearGradientFill();
-    private readonly arrow = new Triangle();
+    private readonly arrow = new RotatableTriangle();
 
     private readonly ticksGroup = new Group({ name: 'legend-axis-group' });
     private readonly destroyFns: Function[] = [];
@@ -92,7 +104,7 @@ export class GradientLegend {
 
         this.destroyFns.push(
             ctx.highlightManager.addListener('highlight-change', () => this.onChartHoverChange()),
-            ctx.layoutService.addListener('start-layout', (e) => this.onStartLayout(e)),
+            ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.onStartLayout(e)),
             () => this.legendGroup.parent?.removeChild(this.legendGroup)
         );
     }
@@ -110,23 +122,21 @@ export class GradientLegend {
 
         if (!this.enabled || !data?.enabled) {
             this.legendGroup.visible = false;
-            return ctx;
+            return;
         }
 
         const { colorRange } = this.normalizeColorArrays(data);
 
-        this.updateGradientRect(ctx.shrinkRect, colorRange);
+        this.updateGradientRect(ctx.layoutBox, colorRange);
 
         const axisBBox = this.updateAxis(data);
-        const { left, top } = this.getMeasurements(ctx.shrinkRect, axisBBox);
+        const { left, top } = this.getMeasurements(ctx.layoutBox, axisBBox);
 
         this.updateArrow();
 
         this.legendGroup.visible = true;
         this.legendGroup.translationX = left;
         this.legendGroup.translationY = top;
-
-        return ctx;
     }
 
     private normalizeColorArrays(data: _ModuleSupport.GradientLegendDatum) {
@@ -170,6 +180,8 @@ export class GradientLegend {
             gradientRect.height = thickness;
             gradientFill.direction = reverseOrder ? 'to-left' : 'to-right';
         }
+
+        gradientRect.markDirty(gradientRect);
     }
 
     private updateAxis(data: _ModuleSupport.GradientLegendDatum) {
@@ -183,7 +195,7 @@ export class GradientLegend {
         axisTicks.scale.domain = positiveAxis ? data.colorDomain.slice().reverse() : data.colorDomain;
         axisTicks.scale.range = vertical ? [0, this.gradientRect.height] : [0, this.gradientRect.width];
 
-        return BBox.merge([axisTicks.calculateLayout(), this.gradientRect.getBBox()]);
+        return axisTicks.calculateLayout();
     }
 
     private updateArrow() {
@@ -222,10 +234,13 @@ export class GradientLegend {
         let { x: left, y: top } = shrinkRect;
         let { width, height } = this.gradientRect;
 
+        // Because of the rotation technique used by axes rendering labels are padded 5px off,
+        // which need to be account for in these calculations to make sure labels aren't being clipped.
+        // This will become obsolete only once axes rotation technique would be removed.
         if (this.isVertical()) {
-            width += axisBox.width;
+            width += axisBox.width + 5;
         } else {
-            height += axisBox.height;
+            height += axisBox.height + 5;
         }
 
         switch (this.position) {

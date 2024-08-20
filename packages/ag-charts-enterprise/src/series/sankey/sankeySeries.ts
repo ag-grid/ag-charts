@@ -338,13 +338,15 @@ export class SankeySeries extends FlowProportionSeries<
 
     protected async updateLabelSelection(opts: {
         labelData: SankeyNodeLabelDatum[];
-        labelSelection: _Scene.Selection<_Scene.Text, SankeyNodeLabelDatum>;
+        labelSelection: _Scene.Selection<_Scene.TransformableText, SankeyNodeLabelDatum>;
     }) {
         const labels = this.isLabelEnabled() ? opts.labelData : [];
         return opts.labelSelection.update(labels);
     }
 
-    protected async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, SankeyNodeLabelDatum> }) {
+    protected async updateLabelNodes(opts: {
+        labelSelection: _Scene.Selection<_Scene.TransformableText, SankeyNodeLabelDatum>;
+    }) {
         const { labelSelection } = opts;
         const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = this.properties.label;
 
@@ -624,7 +626,7 @@ export class SankeySeries extends FlowProportionSeries<
         if (datum?.type === FlowProportionDatumType.Node) {
             const { x, y, width, height } = datum;
             const bbox = new BBox(x, y, width, height);
-            return this.contentGroup.inverseTransformBBox(bbox).clip(seriesRect);
+            return _Scene.Transformable.toCanvas(this.contentGroup, bbox).clip(seriesRect);
         } else if (datum?.type === FlowProportionDatumType.Link) {
             for (const link of this.linkSelection) {
                 if (link.datum === datum) {

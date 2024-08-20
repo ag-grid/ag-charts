@@ -1,12 +1,5 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-export enum TextualAnnotationType {
-    Callout = 'callout',
-    Comment = 'comment',
-    Note = 'note',
-    Text = 'text',
-}
-
 export enum AnnotationType {
     // Lines
     Line = 'line',
@@ -18,11 +11,24 @@ export enum AnnotationType {
     ParallelChannel = 'parallel-channel',
 
     // Texts
-    Callout = TextualAnnotationType.Callout,
-    Comment = TextualAnnotationType.Comment,
-    Note = TextualAnnotationType.Note,
-    Text = TextualAnnotationType.Text,
+    Callout = 'callout',
+    Comment = 'comment',
+    Note = 'note',
+    Text = 'text',
+
+    // Shapes
+    Arrow = 'arrow',
 }
+
+export type TextualAnnotationType =
+    | AnnotationType.Callout
+    | AnnotationType.Comment
+    | AnnotationType.Note
+    | AnnotationType.Text;
+
+export type LineAnnotationType = AnnotationType.Line | AnnotationType.HorizontalLine | AnnotationType.VerticalLine;
+
+export type ChannelAnnotationType = AnnotationType.DisjointChannel | AnnotationType.ParallelChannel;
 
 export const ANNOTATION_TYPES = Object.values(AnnotationType);
 export const ANNOTATION_BUTTONS = [
@@ -40,13 +46,20 @@ export const ANNOTATION_BUTTONS = [
     AnnotationType.Comment,
     AnnotationType.Note,
     AnnotationType.Text,
+
+    // Shapes
+    AnnotationType.Arrow,
 ] as const;
-export const ANNOTATION_BUTTON_GROUPS = ['line-menu', 'text-menu'] as const;
+export const ANNOTATION_BUTTON_GROUPS = ['line-menu', 'text-menu', 'shape-menu'] as const;
 
 export function stringToAnnotationType(value: string) {
     for (const t of ANNOTATION_TYPES) {
         if (t === value) return t;
     }
+}
+
+export interface Anchor extends Coords {
+    position: 'above' | 'above-left' | 'right';
 }
 
 export interface Coords {
@@ -112,3 +125,10 @@ export interface GuardDragClickDoubleEvent {
 }
 
 export type AnnotationOptionsColorPickerType = 'line-color' | 'fill-color' | 'text-color';
+
+export type AnnotationLineStyle = {
+    type?: AnnotationLineStyleType;
+    strokeWidth?: number;
+};
+
+export type AnnotationLineStyleType = 'solid' | 'dashed' | 'dotted';

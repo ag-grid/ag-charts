@@ -1,0 +1,50 @@
+.ag-charts-wrapper {
+    position: relative;
+}
+
+.ag-charts-canvas-center {
+    width: 100%;
+    height: 100%;
+
+    position: absolute;
+    touch-action: auto;
+
+    display: flex;
+    align-items: var(--ag-charts-align);
+    justify-content: var(--ag-charts-justify);
+}
+
+.ag-charts-canvas-container,
+.ag-charts-canvas {
+    position: relative;
+}
+
+.ag-charts-canvas-container > *,
+.ag-charts-canvas > * {
+    display: block;
+}
+
+.ag-charts-canvas-proxy {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ag-charts-tab-guard {
+    width: 0;
+    height: 0;
+    opacity: 0;
+}
+
+.ag-charts-canvas-overlay {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+}
+
+.ag-charts-canvas-overlay > * {
+    position: absolute;
+    pointer-events: auto;
+}

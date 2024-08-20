@@ -1,7 +1,7 @@
 import type { AgTopologyChartOptions } from 'ag-charts-types';
 
+import type { LayoutContext } from '../module/baseModule';
 import type { ChartOptions } from '../module/optionsModule';
-import { BBox } from '../scene/bbox';
 import { NumberAxis } from './axis/numberAxis';
 import type { TransferableResources } from './chart';
 import { Chart } from './chart';
@@ -55,28 +55,18 @@ export class TopologyChart extends Chart {
         });
     }
 
-    override async performLayout() {
-        const shrinkRect = await super.performLayout();
+    protected performLayout(ctx: LayoutContext) {
+        const { seriesRoot, annotationRoot, highlightRoot } = this;
+        const { layoutBox } = ctx;
+        const seriesRect = layoutBox.clone();
 
-        const {
-            seriesArea: { padding },
-            seriesRoot,
-            annotationRoot,
-            highlightRoot,
-        } = this;
+        layoutBox.shrink(this.seriesArea.padding.toJson());
 
-        const fullSeriesRect = shrinkRect.clone();
-        shrinkRect.shrink(padding.left, 'left');
-        shrinkRect.shrink(padding.top, 'top');
-        shrinkRect.shrink(padding.right, 'right');
-        shrinkRect.shrink(padding.bottom, 'bottom');
-
-        this.seriesRect = shrinkRect;
-        this.animationRect = shrinkRect;
+        this.seriesRect = layoutBox;
+        this.animationRect = layoutBox;
 
         const mapSeries = this.series.filter<TopologySeries>(isTopologySeries);
-
-        const combinedBbox: LonLatBBox | undefined = mapSeries.reduce<LonLatBBox | undefined>((combined, series) => {
+        const combinedBbox = mapSeries.reduce<LonLatBBox | undefined>((combined, series) => {
             if (!series.visible) return combined;
             const bbox = series.topologyBounds;
             if (bbox == null) return combined;
@@ -93,7 +83,7 @@ export class TopologyChart extends Chart {
                 [lon1, lat1],
             ];
             const bounds = MercatorScale.bounds(domain);
-            const { width, height } = shrinkRect;
+            const { width, height } = layoutBox;
 
             const viewBoxScale = Math.min(width / bounds.width, height / bounds.height);
 
@@ -127,21 +117,13 @@ export class TopologyChart extends Chart {
         const seriesVisible = this.series.some((s) => s.visible);
         seriesRoot.visible = seriesVisible;
         for (const group of [seriesRoot, annotationRoot, highlightRoot]) {
-            group.translationX = Math.floor(shrinkRect.x);
-            group.translationY = Math.floor(shrinkRect.y);
-            group.setClipRectInGroupCoordinateSpace(
-                new BBox(shrinkRect.x, shrinkRect.y, shrinkRect.width, shrinkRect.height)
-            );
+            group.translationX = Math.floor(layoutBox.x);
+            group.translationY = Math.floor(layoutBox.y);
+            group.setClipRectInGroupCoordinateSpace(layoutBox.clone());
         }
 
-        this.ctx.layoutService.dispatchLayoutComplete({
-            type: 'layout-complete',
-            chart: { width: this.ctx.scene.width, height: this.ctx.scene.height },
-            clipSeries: false,
-            series: { rect: fullSeriesRect, paddedRect: shrinkRect, visible: seriesVisible },
-            axes: [],
+        this.ctx.layoutManager.emitLayoutComplete(ctx, {
+            series: { visible: seriesVisible, rect: seriesRect, paddedRect: layoutBox },
         });
-
-        return shrinkRect;
     }
 }

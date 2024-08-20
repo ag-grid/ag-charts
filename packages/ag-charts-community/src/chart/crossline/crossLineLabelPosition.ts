@@ -91,10 +91,8 @@ export function calculateLabelTranslation({
         ? horizontalCrosslineTranslationDirections
         : verticalCrossLineTranslationDirections;
     const { xTranslationDirection, yTranslationDirection } = crossLineTranslationDirections[position];
-    const w = yDirection ? bbox.width : bbox.height;
-    const h = yDirection ? bbox.height : bbox.width;
-    const xTranslation = xTranslationDirection * (padding + w / 2);
-    const yTranslation = yTranslationDirection * (padding + h / 2);
+    const xTranslation = xTranslationDirection * (padding + bbox.width / 2);
+    const yTranslation = yTranslationDirection * (padding + bbox.height / 2);
 
     return {
         xTranslation,

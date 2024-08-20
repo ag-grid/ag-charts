@@ -16,9 +16,9 @@ export const TOOLBAR_GROUP_ORDERING: Record<ToolbarGroup, number> = {
 
 export enum ToolbarPosition {
     Top = 'top',
+    Left = 'left',
     Right = 'right',
     Bottom = 'bottom',
-    Left = 'left',
     Floating = 'floating',
     FloatingTop = 'floating-top',
     FloatingBottom = 'floating-bottom',
@@ -31,12 +31,17 @@ export function isAnimatingFloatingPosition(
     return [ToolbarPosition.FloatingTop, ToolbarPosition.FloatingBottom].includes(position);
 }
 
-export interface ToolbarButton {
-    section?: string;
+export interface ToolbarButtonConfig {
     icon?: AgIconName;
     label?: string;
     ariaLabel?: string;
     tooltip?: string;
+}
+
+export interface ToolbarButton extends ToolbarButtonConfig {
+    section?: string;
     value: any;
     id?: string;
+    role?: 'button' | 'switch';
+    checkedOverrides?: ToolbarButtonConfig;
 }

@@ -1,6 +1,6 @@
 import type { AgFlowProportionChartOptions } from 'ag-charts-types';
 
-import { BBox } from '../scene/bbox';
+import type { LayoutContext } from '../module/baseModule';
 import { Chart } from './chart';
 import type { FlowProportionSeries } from './series/flowProportionSeries';
 import type { Series } from './series/series';
@@ -28,43 +28,25 @@ export class FlowProportionChart extends Chart {
         });
     }
 
-    override async performLayout() {
-        const shrinkRect = await super.performLayout();
+    protected performLayout(ctx: LayoutContext) {
+        const { seriesRoot, annotationRoot, highlightRoot } = this;
+        const { layoutBox } = ctx;
+        const seriesRect = layoutBox.clone();
 
-        const {
-            seriesArea: { padding },
-            seriesRoot,
-            annotationRoot,
-            highlightRoot,
-        } = this;
+        layoutBox.shrink(this.seriesArea.padding.toJson());
 
-        const fullSeriesRect = shrinkRect.clone();
-        shrinkRect.shrink(padding.left, 'left');
-        shrinkRect.shrink(padding.top, 'top');
-        shrinkRect.shrink(padding.right, 'right');
-        shrinkRect.shrink(padding.bottom, 'bottom');
+        this.seriesRect = layoutBox;
+        this.animationRect = layoutBox;
+        seriesRoot.visible = this.series.some((s) => s.visible);
 
-        this.seriesRect = shrinkRect;
-        this.animationRect = shrinkRect;
-
-        const seriesVisible = this.series.some((s) => s.visible);
-        seriesRoot.visible = seriesVisible;
         for (const group of [seriesRoot, annotationRoot, highlightRoot]) {
-            group.translationX = Math.floor(shrinkRect.x);
-            group.translationY = Math.floor(shrinkRect.y);
-            group.setClipRectInGroupCoordinateSpace(
-                new BBox(fullSeriesRect.x, fullSeriesRect.y, fullSeriesRect.width, fullSeriesRect.height)
-            );
+            group.translationX = Math.floor(layoutBox.x);
+            group.translationY = Math.floor(layoutBox.y);
+            group.setClipRectInGroupCoordinateSpace(seriesRect.clone());
         }
 
-        this.ctx.layoutService.dispatchLayoutComplete({
-            type: 'layout-complete',
-            chart: { width: this.ctx.scene.width, height: this.ctx.scene.height },
-            clipSeries: false,
-            series: { rect: fullSeriesRect, paddedRect: shrinkRect, visible: seriesVisible },
-            axes: [],
+        this.ctx.layoutManager.emitLayoutComplete(ctx, {
+            series: { visible: seriesRoot.visible, rect: seriesRect, paddedRect: layoutBox },
         });
-
-        return shrinkRect;
     }
 }

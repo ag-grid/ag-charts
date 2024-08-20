@@ -1,4 +1,8 @@
 import { StateManager } from '../api/state/stateManager';
+import { DOMManager } from '../dom/domManager';
+import { FocusIndicator } from '../dom/focusIndicator';
+import { ProxyInteractionService } from '../dom/proxyInteractionService';
+import { LocaleManager } from '../locale/localeManager';
 import type { ModuleContext } from '../module/moduleContext';
 import type { Group } from '../scene/group';
 import { Scene } from '../scene/scene';
@@ -8,9 +12,6 @@ import { AnnotationManager } from './annotation/annotationManager';
 import { AxisManager } from './axis/axisManager';
 import type { ChartService } from './chartService';
 import { DataService } from './data/dataService';
-import { DOMManager } from './dom/domManager';
-import { FocusIndicator } from './dom/focusIndicator';
-import { ProxyInteractionService } from './dom/proxyInteractionService';
 import { AnimationManager } from './interaction/animationManager';
 import { AriaAnnouncementService } from './interaction/ariaAnnouncementServices';
 import { ChartEventManager } from './interaction/chartEventManager';
@@ -26,8 +27,7 @@ import { ToolbarManager } from './interaction/toolbarManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import type { ZoomManager } from './interaction/zoomManager';
 import type { Keyboard } from './keyboard';
-import { LayoutService } from './layout/layoutService';
-import { LocaleManager } from './locale/localeManager';
+import { LayoutManager } from './layout/layoutManager';
 import { SeriesStateManager } from './series/seriesStateManager';
 import type { Tooltip } from './tooltip/tooltip';
 import { type UpdateCallback, UpdateService } from './updateService';
@@ -40,7 +40,7 @@ export class ChartContext implements ModuleContext {
 
     chartService: ChartService;
     dataService: DataService<any>;
-    layoutService: LayoutService;
+    layoutManager: LayoutManager;
     updateService: UpdateService;
     axisManager: AxisManager;
 
@@ -93,17 +93,17 @@ export class ChartContext implements ModuleContext {
         this.cursorManager = new CursorManager(this.domManager);
         this.highlightManager = new HighlightManager();
         this.interactionManager = new InteractionManager(chart.keyboard, this.domManager);
-        this.keyNavManager = new KeyNavManager(this.interactionManager, this.domManager);
+        this.keyNavManager = new KeyNavManager(this.interactionManager);
         this.focusIndicator = new FocusIndicator(this.domManager);
-        this.regionManager = new RegionManager(this.interactionManager, this.keyNavManager, this.focusIndicator);
+        this.regionManager = new RegionManager(this.interactionManager, this.focusIndicator);
         this.contextMenuRegistry = new ContextMenuRegistry(this.regionManager);
         this.toolbarManager = new ToolbarManager();
         this.gestureDetector = new GestureDetector(this.domManager);
-        this.layoutService = new LayoutService();
+        this.layoutManager = new LayoutManager();
         this.ariaAnnouncementService = new AriaAnnouncementService(
             this.localeManager,
             this.domManager,
-            this.layoutService
+            this.layoutManager
         );
         this.updateService = new UpdateService(updateCallback);
         this.proxyInteractionService = new ProxyInteractionService(
@@ -122,6 +122,8 @@ export class ChartContext implements ModuleContext {
 
         this.dataService = new DataService<any>(this.animationManager);
         this.tooltipManager = new TooltipManager(this.domManager, chart.tooltip);
+
+        this.zoomManager.addLayoutListeners(this.layoutManager);
     }
 
     destroy() {

@@ -1,19 +1,21 @@
 import type { FontStyle, FontWeight } from 'ag-charts-types';
 
 import { BBox } from '../scene/bbox';
+import { RedrawType } from '../scene/changeDetectable';
 import { Group } from '../scene/group';
 import { Image } from '../scene/image';
 import type { Line } from '../scene/shape/line';
 import { Text } from '../scene/shape/text';
-import type { SpriteRenderer } from '../scene/spriteRenderer';
+import type { SpriteDimensions, SpriteRenderer } from '../scene/spriteRenderer';
+import { Translatable } from '../scene/transformable';
 import { arraysEqual } from '../util/array';
-import { argsIterable, arraysIterable } from '../util/iterator';
+import { iterate } from '../util/iterator';
 import { ProxyPropertyOnWrite } from '../util/proxy';
 import type { Marker } from './marker/marker';
 import type { MarkerConstructor } from './marker/util';
 
-export class LegendMarkerLabel extends Group {
-    static override readonly className = 'MarkerLabel';
+export class LegendMarkerLabel extends Translatable(Group) {
+    static readonly className = 'MarkerLabel';
 
     private readonly label = new Text();
 
@@ -38,7 +40,7 @@ export class LegendMarkerLabel extends Group {
         label.y = 1;
 
         this.updateSymbols(markers, lines);
-        this.append(argsIterable(this.symbolsGroup, label));
+        this.append([this.symbolsGroup, label]);
     }
 
     override destroy() {
@@ -111,7 +113,7 @@ export class LegendMarkerLabel extends Group {
     // This padding allows the SpriteRenderer to draw antialiasing pixels that can extend beyond the shapes' bounds.
     update(
         spriteRenderer: SpriteRenderer,
-        spriteAAPadding: number,
+        { spriteAAPadding, spritePixelRatio: scale }: SpriteDimensions,
         dimensionProps: { length: number; spacing: number }[]
     ) {
         const { markers, lines } = this;
@@ -144,7 +146,7 @@ export class LegendMarkerLabel extends Group {
                 line.x2 = shift + length;
                 line.y1 = 0;
                 line.y2 = 0;
-                line.markDirtyTransform();
+                line.markDirty(this, RedrawType.MAJOR);
                 lineTop = -line.strokeWidth / 2;
             }
 
@@ -163,8 +165,14 @@ export class LegendMarkerLabel extends Group {
         if (this.bitmapDirty) {
             this.setBitmapVisibility(false);
 
-            const sprite = spriteRenderer.renderSprite(this.symbolsGroup, { translateY: spriteAAPadding - spriteY });
-            this.bitmap.updateBitmap(sprite, spriteX, spriteY - spriteAAPadding);
+            const translateX = (spriteAAPadding + spriteX) * scale;
+            const translateY = (spriteAAPadding - spriteY) * scale;
+            const sprite = spriteRenderer.renderSprite(this.symbolsGroup, {
+                scale,
+                translateX: Math.floor(translateX),
+                translateY: Math.floor(translateY),
+            });
+            this.bitmap.updateBitmap(sprite, scale, Math.ceil(-translateX), Math.ceil(-translateY));
             this.bitmapDirty = false;
 
             this.refreshVisibilities();
@@ -187,6 +195,6 @@ export class LegendMarkerLabel extends Group {
         // not want to include this padding in the layout bounds. So just compute the bounds for the Line
         // and Marker nodes directly rather than Group's default behaviour of computing this.bitmap's BBox.
         const { label, lines, markers } = this;
-        return Group.computeBBox(arraysIterable([label], lines, markers), { skipInvisible: false });
+        return this.toParent(Group.computeChildrenBBox(iterate([label], lines, markers), { skipInvisible: false }));
     }
 }

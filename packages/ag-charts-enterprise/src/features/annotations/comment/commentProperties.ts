@@ -4,21 +4,28 @@ import { Fill, Stroke } from '../annotationProperties';
 import {
     type AnnotationContext,
     type AnnotationOptionsColorPickerType,
+    AnnotationType,
     type Padding,
-    TextualAnnotationType,
 } from '../annotationTypes';
 import { TextualPointProperties } from '../properties/textualPointProperties';
 
 const { STRING, Validate, isObject } = _ModuleSupport;
 const { Color } = _Util;
 
+const DEFAULT_COMMENT_PADDING = {
+    top: 8,
+    right: 14,
+    bottom: 8,
+    left: 14,
+};
+
 export class CommentProperties extends Fill(Stroke(TextualPointProperties)) {
     static is(value: unknown): value is CommentProperties {
-        return isObject(value) && value.type === TextualAnnotationType.Comment;
+        return isObject(value) && value.type === AnnotationType.Comment;
     }
 
     @Validate(STRING)
-    type = TextualAnnotationType.Comment as const;
+    type = AnnotationType.Comment as const;
 
     override position = 'bottom' as const;
     override alignment = 'left' as const;
@@ -52,15 +59,32 @@ export class CommentProperties extends Fill(Stroke(TextualPointProperties)) {
         return new Color(r, g, b, 0.66).toString();
     }
 
-    public override getTextInputCoords(context: AnnotationContext, padding?: Padding | number) {
+    override getPadding(): Padding {
+        const { padding, fontSize } = this;
+        if (padding == null) {
+            return {
+                top: Math.max(fontSize * 0.4, DEFAULT_COMMENT_PADDING.top),
+                bottom: Math.max(fontSize * 0.4, DEFAULT_COMMENT_PADDING.bottom),
+                left: Math.max(fontSize * 0.8, DEFAULT_COMMENT_PADDING.left),
+                right: Math.max(fontSize * 0.8, DEFAULT_COMMENT_PADDING.right),
+            };
+        }
+        return {
+            top: padding,
+            right: padding,
+            bottom: padding,
+            left: padding,
+        };
+    }
+
+    public override getTextInputCoords(context: AnnotationContext) {
         const coords = super.getTextInputCoords(context);
 
-        const paddingLeft = typeof padding === 'number' ? padding : padding?.left ?? 0;
-        const paddingBottom = typeof padding === 'number' ? padding : padding?.bottom ?? 0;
+        const padding = this.getPadding();
 
         return {
-            x: coords.x + paddingLeft,
-            y: coords.y - paddingBottom,
+            x: coords.x + padding.left,
+            y: coords.y - padding.bottom,
         };
     }
 }

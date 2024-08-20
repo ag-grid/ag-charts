@@ -54,7 +54,7 @@ jobs:
               id: git_branch
               if: ${{ github.event.inputs.type == 'create' }}
               run: |
-                  git branch -b b${{ github.event.inputs.version }}
+                  git checkout -b b${{ github.event.inputs.version }}
 
             - name: Reset Package Version
               id: reset_version

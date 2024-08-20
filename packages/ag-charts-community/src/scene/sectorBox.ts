@@ -14,6 +14,15 @@ export class SectorBox implements Interpolating<SectorBox> {
         return new SectorBox(startAngle, endAngle, innerRadius, outerRadius);
     }
 
+    equals(other: SectorBox): boolean {
+        return (
+            this.startAngle === other.startAngle &&
+            this.endAngle === other.endAngle &&
+            this.innerRadius === other.innerRadius &&
+            this.outerRadius === other.outerRadius
+        );
+    }
+
     [interpolate](other: SectorBox, d: number) {
         return new SectorBox(
             this.startAngle * (1 - d) + other.startAngle * d,

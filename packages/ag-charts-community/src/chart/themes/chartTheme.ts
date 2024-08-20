@@ -45,8 +45,12 @@ import {
     DEFAULT_TEXT_ANNOTATION_COLOR,
     DEFAULT_TOOLBAR_POSITION,
     IS_DARK_THEME,
+    PALETTE_ALT_DOWN_FILL,
+    PALETTE_ALT_DOWN_STROKE,
     PALETTE_ALT_NEUTRAL_FILL,
     PALETTE_ALT_NEUTRAL_STROKE,
+    PALETTE_ALT_UP_FILL,
+    PALETTE_ALT_UP_STROKE,
     PALETTE_DOWN_FILL,
     PALETTE_DOWN_STROKE,
     PALETTE_NEUTRAL_FILL,
@@ -78,6 +82,9 @@ const CHART_TYPE_CONFIG: { [k in ChartType]: ChartTypeConfig } = {
     },
     get 'flow-proportion'(): ChartTypeConfig {
         return { seriesTypes: chartTypes.flowProportionTypes, commonOptions: [] };
+    },
+    get gauge(): ChartTypeConfig {
+        return { seriesTypes: chartTypes.gaugeTypes, commonOptions: [] };
     },
 };
 
@@ -343,7 +350,8 @@ export class ChartTheme {
             getOverridesByType('polar', chartTypes.polarTypes),
             getOverridesByType('hierarchy', chartTypes.hierarchyTypes),
             getOverridesByType('topology', chartTypes.topologyTypes),
-            getOverridesByType('flow-proportion', chartTypes.flowProportionTypes)
+            getOverridesByType('flow-proportion', chartTypes.flowProportionTypes),
+            getOverridesByType('gauge', chartTypes.gaugeTypes)
         );
     }
 
@@ -428,6 +436,10 @@ export class ChartTheme {
         params.set(PALETTE_DOWN_FILL, this.palette.down?.fill ?? defaultColors.down.fill);
         params.set(PALETTE_NEUTRAL_STROKE, this.palette.neutral?.stroke ?? defaultColors.neutral.stroke);
         params.set(PALETTE_NEUTRAL_FILL, this.palette.neutral?.fill ?? defaultColors.neutral.fill);
+        params.set(PALETTE_ALT_UP_STROKE, this.palette.altUp?.stroke ?? defaultColors.up.stroke);
+        params.set(PALETTE_ALT_UP_FILL, this.palette.altUp?.fill ?? defaultColors.up.fill);
+        params.set(PALETTE_ALT_DOWN_STROKE, this.palette.altDown?.stroke ?? defaultColors.down.stroke);
+        params.set(PALETTE_ALT_DOWN_FILL, this.palette.altDown?.fill ?? defaultColors.down.fill);
         params.set(PALETTE_ALT_NEUTRAL_FILL, this.palette.altNeutral?.fill ?? defaultColors.altNeutral.fill);
         params.set(PALETTE_ALT_NEUTRAL_STROKE, this.palette.altNeutral?.stroke ?? defaultColors.altNeutral.stroke);
 

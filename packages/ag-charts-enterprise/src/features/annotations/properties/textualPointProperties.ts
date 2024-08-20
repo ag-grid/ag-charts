@@ -3,6 +3,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { Annotation, Font, Handle, Label, Point } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, type Padding } from '../annotationTypes';
 import { convertPoint } from '../annotationUtils';
+import type { AnnotationTextAlignment, AnnotationTextPosition } from '../text/util';
 
 const { STRING, BaseProperties, Validate } = _ModuleSupport;
 
@@ -10,10 +11,11 @@ export class TextualPointProperties extends Annotation(Point(Handle(Label(Font(B
     @Validate(STRING)
     text: string = '';
 
-    position: 'top' | 'center' | 'bottom' = 'top';
-    alignment: 'left' | 'center' | 'right' = 'left';
+    position: AnnotationTextPosition = 'top';
+    alignment: AnnotationTextAlignment = 'left';
     placement: 'inside' | 'outside' = 'inside';
     width?: number;
+    placeholderText?: string = undefined;
 
     override isValidWithContext(_context: AnnotationContext, warningPrefix?: string) {
         return super.isValid(warningPrefix);
@@ -31,7 +33,26 @@ export class TextualPointProperties extends Annotation(Point(Handle(Label(Font(B
         return undefined;
     }
 
-    public getTextInputCoords(context: AnnotationContext, _padding?: Padding | number) {
+    getPadding(): Padding {
+        const { padding = 0 } = this;
+        return {
+            top: padding,
+            right: padding,
+            bottom: padding,
+            left: padding,
+        };
+    }
+
+    getText() {
+        const isPlaceholder = this.text.length == 0;
+        const text = !isPlaceholder ? this.text : this.placeholderText ?? '';
+        return {
+            text,
+            isPlaceholder,
+        };
+    }
+
+    public getTextInputCoords(context: AnnotationContext) {
         return convertPoint(this, context);
     }
 }

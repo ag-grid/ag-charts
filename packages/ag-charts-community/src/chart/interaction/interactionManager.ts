@@ -1,11 +1,13 @@
+import type { DOMManager } from '../../dom/domManager';
 import { Debug } from '../../util/debug';
 import { getWindow } from '../../util/dom';
 import { Logger } from '../../util/logger';
 import { partialAssign } from '../../util/object';
 import { isFiniteNumber } from '../../util/type-guards';
-import { BaseManager } from '../baseManager';
-import type { DOMManager } from '../dom/domManager';
+import { InteractionState, InteractionStateListener } from './interactionStateListener';
 import { type PreventableEvent, type Unpreventable, dispatchTypedEvent } from './preventableEvent';
+
+export { InteractionState };
 
 export const POINTER_INTERACTION_TYPES = [
     'click',
@@ -92,6 +94,7 @@ export type PointerInteractionEvent<T extends PointerInteractionTypes = PointerI
         pageY: number;
         deltaX: number;
         deltaY: number;
+        button: number;
         pointerHistory: PointerHistoryEvent[];
     };
 
@@ -121,18 +124,6 @@ interface Coords {
 
 type SupportedEvent = MouseEvent | TouchEvent | Event;
 
-// These interaction state are both bitflags and priorities.
-// Smaller numbers have higher priority, because it is possible to find the least
-// significant bit in O(1) complexity using a bitwise operation.
-export enum InteractionState {
-    Default = 16,
-    ZoomDrag = 8,
-    Annotations = 4,
-    ContextMenu = 2,
-    Animation = 1,
-    All = Default | ZoomDrag | Annotations | ContextMenu | Animation,
-}
-
 // Setting data-pointer-capture on an element will stop the interaction manager
 // sending mouse events to the canvas while the mouse is over one of these elements
 enum PointerCapture {
@@ -159,7 +150,7 @@ function isKeyEvent(type: InteractionTypes): type is KeyInteractionTypes {
  * Manages user interactions with a specific HTMLElement (or interactions that bubble from it's
  * children)
  */
-export class InteractionManager extends BaseManager<InteractionTypes, InteractionEvent> {
+export class InteractionManager extends InteractionStateListener<InteractionTypes, InteractionEvent> {
     private readonly debug = Debug.create(true, 'interaction');
 
     private rootElement: HTMLElement | undefined;
@@ -241,20 +232,6 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         this.domManager.removeStyles('interactionManager');
     }
 
-    // Wrapper to only broadcast events when the InteractionManager is a given state.
-    override addListener<T extends InteractionTypes>(
-        type: T,
-        handler: (event: InteractionEvent & { type: T }) => void,
-        triggeringStates: InteractionState = InteractionState.Default
-    ) {
-        return super.addListener(type, (e) => {
-            const currentState = this.getState();
-            if (currentState & triggeringStates) {
-                handler(e);
-            }
-        });
-    }
-
     public pushState(state: InteractionState) {
         this.stateQueue |= state;
     }
@@ -263,7 +240,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         this.stateQueue &= ~state;
     }
 
-    public getState() {
+    public override getState(): InteractionState {
         // Bitwise operation to get the least significant bit:
         return this.stateQueue & -this.stateQueue;
     }
@@ -404,7 +381,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
                 return event.type;
 
             case 'mousedown':
-                if (!this.isEventOverElement(event) || !('button' in event) || event.button !== 0) {
+                if (!this.isEventOverElement(event)) {
                     return;
                 }
                 this.mouseDown = true;
@@ -451,11 +428,6 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
                 return 'leave';
 
             case 'mouseenter':
-                const mouseButtonDown = event instanceof MouseEvent && (event.buttons & 1) === 1;
-                if (this.mouseDown !== mouseButtonDown) {
-                    this.mouseDown = mouseButtonDown;
-                    return mouseButtonDown ? dragStart : 'drag-end';
-                }
                 return 'enter';
 
             case 'pagehide':
@@ -563,6 +535,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
         const { relatedElement, targetElement } = this.extractElements(event);
 
+        const button = 'button' in event ? Number(event.button) : 0;
         const builtEvent = {
             type,
             offsetX,
@@ -571,6 +544,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             pageY,
             deltaX,
             deltaY,
+            button,
             pointerHistory,
             sourceEvent: event,
             relatedElement,

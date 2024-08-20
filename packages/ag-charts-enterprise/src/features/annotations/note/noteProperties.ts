@@ -1,25 +1,29 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { Fill, Stroke } from '../annotationProperties';
 import {
     type AnnotationContext,
     type AnnotationOptionsColorPickerType,
-    TextualAnnotationType,
+    AnnotationType,
+    type Padding,
 } from '../annotationTypes';
 import { TextualPointProperties } from '../properties/textualPointProperties';
-import { DEFAULT_PADDING, LABEL_OFFSET } from './noteScene';
+import { LABEL_OFFSET } from './noteScene';
 
 const { OBJECT, STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
+const { clamp } = _Util;
+
+const DEFAULT_NOTE_PADDING = 10;
 
 class NoteBackgroundProperties extends Fill(Stroke(BaseProperties)) {}
 
 export class NoteProperties extends Fill(Stroke(TextualPointProperties)) {
     static is(value: unknown): value is NoteProperties {
-        return isObject(value) && value.type === TextualAnnotationType.Note;
+        return isObject(value) && value.type === AnnotationType.Note;
     }
 
     @Validate(STRING)
-    type = TextualAnnotationType.Note as const;
+    type = AnnotationType.Note as const;
 
     @Validate(OBJECT, { optional: true })
     background = new NoteBackgroundProperties();
@@ -27,15 +31,6 @@ export class NoteProperties extends Fill(Stroke(TextualPointProperties)) {
     override position = 'bottom' as const;
     override alignment = 'center' as const;
     override width = 200;
-
-    public override getTextInputCoords(context: AnnotationContext) {
-        const coords = super.getTextInputCoords(context);
-        const padding = this.padding ?? DEFAULT_PADDING;
-        return {
-            x: coords.x,
-            y: coords.y - padding - LABEL_OFFSET,
-        };
-    }
 
     override getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType) {
         switch (colorPickerType) {
@@ -53,5 +48,27 @@ export class NoteProperties extends Fill(Stroke(TextualPointProperties)) {
             case `text-color`:
                 return undefined;
         }
+    }
+
+    override getPadding(): Padding {
+        const padding = this.padding ?? DEFAULT_NOTE_PADDING;
+        return {
+            top: padding,
+            right: padding,
+            bottom: padding,
+            left: padding,
+        };
+    }
+
+    public override getTextInputCoords(context: AnnotationContext) {
+        const { width } = this;
+        const { seriesRect } = context;
+        const coords = super.getTextInputCoords(context);
+        const padding = this.getPadding();
+
+        coords.x = clamp(width / 2, coords.x, seriesRect.width - width / 2);
+        coords.y = coords.y - padding.top - LABEL_OFFSET;
+
+        return coords;
     }
 }

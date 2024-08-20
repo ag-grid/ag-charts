@@ -1,4 +1,4 @@
-import type { _Util } from 'ag-charts-community';
+import type { _Scene, _Util } from 'ag-charts-community';
 
 import { AnnotationType, type Point } from './annotationTypes';
 import type { CalloutProperties } from './callout/calloutProperties';
@@ -20,9 +20,10 @@ import type { TextScene } from './text/textScene';
 
 export type TextualPropertiesType = CalloutProperties | CommentProperties | NoteProperties | TextProperties;
 export type LinePropertiesType = LineProperties | HorizontalLineProperties | VerticalLineProperties;
-export type ChannelPropertyType = ParallelChannelProperties | DisjointChannelProperties;
+export type ChannelPropertiesType = ParallelChannelProperties | DisjointChannelProperties;
+export type LineOrChannelPropertiesType = LinePropertiesType | ChannelPropertiesType;
 
-export type AnnotationProperties = LinePropertiesType | ChannelPropertyType | TextualPropertiesType;
+export type AnnotationProperties = LinePropertiesType | ChannelPropertiesType | TextualPropertiesType;
 
 export type AnnotationScene =
     // Lines
@@ -62,6 +63,7 @@ export interface AnnotationsStateMachineContext {
     hideTextInput: () => void;
     updateTextInputColor: (color: string) => void;
     updateTextInputFontSize: (fontSize: number) => void;
+    updateTextInputBBox: (bbox?: _Scene.BBox) => void;
 
     showAnnotationOptions: (index: number) => void;
 

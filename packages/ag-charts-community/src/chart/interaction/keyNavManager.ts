@@ -1,5 +1,3 @@
-import { BaseManager } from '../baseManager';
-import type { DOMManager } from '../dom/domManager';
 import type {
     FocusInteractionEvent,
     InteractionEvent,
@@ -8,18 +6,10 @@ import type {
     PointerInteractionEvent,
 } from './interactionManager';
 import { InteractionState } from './interactionManager';
+import { InteractionStateListener } from './interactionStateListener';
 import { type PreventableEvent, dispatchTypedEvent } from './preventableEvent';
 
-export type KeyNavEventType =
-    | 'blur'
-    | 'browserfocus'
-    | 'tab'
-    | 'nav-hori'
-    | 'nav-vert'
-    | 'nav-zoom'
-    | 'submit'
-    | 'cancel'
-    | 'delete';
+export type KeyNavEventType = 'blur' | 'focus' | 'nav-hori' | 'nav-vert' | 'nav-zoom' | 'submit' | 'cancel' | 'delete';
 
 export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = PreventableEvent & {
     type: T;
@@ -30,15 +20,12 @@ export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = Preventab
 // The purpose of this class is to decouple keyboard input events configuration with
 // navigation commands. For example, keybindings might be different on macOS and Windows,
 // or the charts might include options to reconfigure keybindings.
-export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
+export class KeyNavManager extends InteractionStateListener<KeyNavEventType, KeyNavEvent> {
     private hasBrowserFocus: boolean = false;
     private isMouseBlurred: boolean = false;
     private isClicking: boolean = false;
 
-    constructor(
-        interactionManager: InteractionManager,
-        private readonly domManager: DOMManager
-    ) {
+    constructor(readonly interactionManager: InteractionManager) {
         super();
         this.destroyFns.push(
             interactionManager.addListener('drag-start', (e) => this.onClickStart(e), InteractionState.All),
@@ -52,6 +39,10 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
             interactionManager.addListener('focus', (e) => this.onFocus(e), InteractionState.All),
             interactionManager.addListener('keydown', (e) => this.onKeyDown(e), InteractionState.All)
         );
+    }
+
+    protected override getState() {
+        return this.interactionManager.getState();
     }
 
     public override destroy() {
@@ -84,17 +75,17 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
     }
 
     private onFocus(event: FocusInteractionEvent<'focus'>) {
-        const delta = this.domManager.getBrowserFocusDelta();
-
-        this.dispatch('browserfocus', delta, event);
         this.hasBrowserFocus = true;
 
-        if (this.isClicking) {
+        // CRT-420 - Differentiate between keyboard-nav focus and click focus (when browser tab is also
+        // regaining focus - no click event is emitted).
+        const tabFocusFromClick = event.relatedElement == null && event.targetElement?.tagName === 'CANVAS';
+        if (this.isClicking || tabFocusFromClick) {
             this.isMouseBlurred = true;
             return;
         }
 
-        this.dispatch('tab', delta, event);
+        this.dispatch('focus', 0, event);
     }
 
     private onKeyDown(event: KeyInteractionEvent<'keydown'>) {
@@ -103,15 +94,6 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         this.isMouseBlurred = false;
 
         const { code, altKey, shiftKey, metaKey, ctrlKey } = event.sourceEvent;
-
-        if (code === 'Tab') {
-            if (shiftKey) {
-                return this.dispatch('tab', -1, event);
-            } else {
-                return this.dispatch('tab', 1, event);
-            }
-        }
-
         if (altKey || shiftKey || metaKey || ctrlKey) return;
 
         switch (code) {

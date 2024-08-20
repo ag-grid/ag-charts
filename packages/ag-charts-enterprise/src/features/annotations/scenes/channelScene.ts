@@ -3,9 +3,9 @@ import { _Scene } from 'ag-charts-community';
 import type { PointProperties } from '../annotationProperties';
 import type { AnnotationContext, LineCoords } from '../annotationTypes';
 import { convertLine } from '../annotationUtils';
+import { CollidableLine } from './collidableLineScene';
 import type { Handle } from './handle';
 import { LinearScene } from './linearScene';
-import { CollidableLine } from './shapes';
 
 export abstract class ChannelScene<
     Datum extends {
@@ -18,7 +18,6 @@ export abstract class ChannelScene<
     },
 > extends LinearScene<Datum> {
     protected handles: { [key: string]: Handle } = {};
-    protected seriesRect?: _Scene.BBox;
 
     protected topLine = new CollidableLine();
     protected bottomLine = new CollidableLine();
@@ -26,8 +25,6 @@ export abstract class ChannelScene<
 
     public update(datum: Datum, context: AnnotationContext) {
         const { locked, visible } = datum;
-
-        this.seriesRect = context.seriesRect;
 
         const top = convertLine(datum, context);
         const bottom = convertLine(datum.bottom, context);
@@ -63,7 +60,7 @@ export abstract class ChannelScene<
     }
 
     override getAnchor() {
-        const bbox = this.getCachedBBoxWithoutHandles();
+        const bbox = this.computeBBoxWithoutHandles();
         return { x: bbox.x + bbox.width / 2, y: bbox.y };
     }
 
@@ -73,7 +70,7 @@ export abstract class ChannelScene<
     }
 
     override containsPoint(x: number, y: number) {
-        const { handles, seriesRect, topLine, bottomLine } = this;
+        const { handles, topLine, bottomLine } = this;
 
         this.activeHandle = undefined;
 
@@ -83,9 +80,6 @@ export abstract class ChannelScene<
                 return true;
             }
         }
-
-        x -= seriesRect?.x ?? 0;
-        y -= seriesRect?.y ?? 0;
 
         return topLine.containsPoint(x, y) || bottomLine.containsPoint(x, y);
     }

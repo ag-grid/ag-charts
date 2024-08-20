@@ -7,7 +7,6 @@ import { DivariantHandle } from '../scenes/handle';
 import { TextualPointScene } from '../scenes/textualPointScene';
 import type { NoteProperties } from './noteProperties';
 
-export const DEFAULT_PADDING = 10;
 const ICON_HEIGHT = 20;
 const ICON_WIDTH = 22;
 const ICON_SPACING = 10;
@@ -30,7 +29,6 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
     private readonly iconLines = new _Scene.SvgPath(
         'M17.1114 5.75C17.1114 6.16421 16.7756 6.5 16.3614 6.5H5.63916C5.22495 6.5 4.88916 6.16421 4.88916 5.75V5.75C4.88916 5.33579 5.22495 5 5.63916 5H16.3614C16.7756 5 17.1114 5.33579 17.1114 5.75V5.75ZM17.1114 9.25C17.1114 9.66421 16.7756 10 16.3614 10H5.63916C5.22495 10 4.88916 9.66421 4.88916 9.25V9.25C4.88916 8.83579 5.22495 8.5 5.63916 8.5H16.3614C16.7756 8.5 17.1114 8.83579 17.1114 9.25V9.25Z'
     );
-    private padding = DEFAULT_PADDING;
 
     private active = false;
 
@@ -46,19 +44,15 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
     }
 
     override update(datum: NoteProperties, context: AnnotationContext): void {
-        this.padding = datum.padding ?? DEFAULT_PADDING;
-
         this.updateIcon(datum, context);
         super.update(datum, context);
     }
 
     override getTextBBox(datum: NoteProperties, coords: _Util.Vec2, context: AnnotationContext) {
+        const { seriesRect } = context;
         const bbox = super.getTextBBox(datum, coords, context);
 
-        const { seriesRect } = context;
-
-        bbox.y = clamp(seriesRect.y + bbox.height + LABEL_OFFSET + this.padding, bbox.y, seriesRect.height);
-        bbox.x = clamp(datum.width / 2, bbox.x, seriesRect.width - bbox.width);
+        bbox.x = clamp(datum.width / 2, bbox.x, seriesRect.width - bbox.width / 2);
 
         return bbox;
     }
@@ -86,9 +80,6 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
 
     override updateShape(datum: NoteProperties, bbox: _Scene.BBox) {
         const { shape } = this;
-
-        const padding = datum.padding ?? DEFAULT_PADDING;
-
         shape.fill = datum.background.fill;
         shape.fillOpacity = datum.background.fillOpacity ?? 1;
         shape.stroke = datum.background.stroke;
@@ -96,6 +87,7 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         shape.strokeWidth = datum.background.strokeWidth ?? 1;
         shape.cornerRadius = 4;
 
+        const padding = datum.getPadding().top;
         shape.x = bbox.x - datum.width / 2 - padding;
         shape.width = datum.width + padding * 2;
         shape.height = bbox.height + padding * 2;
@@ -129,16 +121,16 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
 
     protected override updateAnchor(datum: NoteProperties, bbox: _Scene.BBox, context: AnnotationContext) {
         const anchor = super.updateAnchor(datum, bbox, context);
+        const padding = datum.getPadding().top;
         return {
             x: anchor.x,
-            y: anchor.y - this.padding * 2 - LABEL_OFFSET,
+            y: anchor.y - padding * 2 - LABEL_OFFSET,
             position: 'above' as const,
         };
     }
 
     protected override getLabelCoords(datum: NoteProperties, bbox: _Scene.BBox): _Util.Vec2 {
-        const padding = datum.padding ?? DEFAULT_PADDING;
-
+        const padding = datum.getPadding().top;
         return {
             x: bbox.x - datum.width / 2,
             y: bbox.y - LABEL_OFFSET - padding,

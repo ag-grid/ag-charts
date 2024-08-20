@@ -8,6 +8,19 @@ export interface ExampleSettings {
 
 export type FileContents = Record<string, string>;
 
+export type Layout = 'grid' | 'toolbar' | 'none';
+
+export interface ExampleConfig {
+    /**
+     * Shadow DOM selector that the chart is inserted into
+     */
+    shadowDomSelector?: string;
+    /**
+     * iframe DOM selector that the chart is inserted into
+     */
+    iframeSelector?: string;
+}
+
 export interface GeneratedContents {
     files: FileContents;
     entryFileName: string;
@@ -17,12 +30,13 @@ export interface GeneratedContents {
     htmlFiles: string[];
     isEnterprise: boolean;
     hasLocale: boolean;
-    layout: 'toolbar' | 'grid';
+    layout: Layout;
     sourceFileList: string[];
     boilerPlateFiles: FileContents;
     providedExamples: FileContents;
     generatedFiles: FileContents;
     packageJson: Record<string, any>;
+    exampleConfig: ExampleConfig;
 }
 
 export type InternalFramework = 'vanilla' | 'typescript' | 'reactFunctional' | 'reactFunctionalTs' | 'angular' | 'vue3';

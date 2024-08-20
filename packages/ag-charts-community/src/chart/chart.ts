@@ -1,13 +1,14 @@
 import type { AgBaseAxisOptions, AgChartInstance, AgChartOptions, AgInitialStateOptions } from 'ag-charts-types';
 
-import type { ModuleInstance } from '../module/baseModule';
+import type { LayoutContext, ModuleInstance } from '../module/baseModule';
 import type { LegendModule, RootModule } from '../module/coreModules';
 import { moduleRegistry } from '../module/module';
 import type { ModuleContext } from '../module/moduleContext';
 import type { AxisOptionModule, ChartOptions } from '../module/optionsModule';
 import type { SeriesOptionModule } from '../module/optionsModuleTypes';
 import { BBox } from '../scene/bbox';
-import { Group } from '../scene/group';
+import { Group, TranslatableGroup } from '../scene/group';
+import type { Node } from '../scene/node';
 import type { Scene } from '../scene/scene';
 import type { PlacedLabel, PointLabelDatum } from '../scene/util/labelPlacement';
 import { isPointLabelDatum, placeLabels } from '../scene/util/labelPlacement';
@@ -27,7 +28,7 @@ import { BaseProperties } from '../util/properties';
 import { ActionOnSet } from '../util/proxy';
 import { debouncedCallback } from '../util/render';
 import { isDefined, isFiniteNumber, isFunction, isNumber } from '../util/type-guards';
-import { BOOLEAN, NUMBER, OBJECT, UNION, Validate } from '../util/validation';
+import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
 import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxis } from './chartAxis';
@@ -93,7 +94,7 @@ export interface ChartSpecialOverrides {
     window?: Window;
     overrideDevicePixelRatio?: number;
     sceneMode?: 'simple';
-    _type?: string;
+    presetType?: string;
 }
 
 export type ChartExtendedOptions = AgChartOptions & ChartSpecialOverrides;
@@ -117,14 +118,14 @@ export abstract class Chart extends Observable {
 
     className?: string;
 
-    readonly seriesRoot = new Group({ name: `${this.id}-series-root` });
-    readonly highlightRoot = new Group({
+    readonly seriesRoot = new TranslatableGroup({ name: `${this.id}-series-root` });
+    readonly highlightRoot = new TranslatableGroup({
         name: `${this.id}-highlight-root`,
         layer: true,
         zIndex: Layers.SERIES_HIGHLIGHT_ZINDEX,
         nonEmptyChildDerivedZIndex: true,
     });
-    readonly annotationRoot = new Group({
+    readonly annotationRoot = new TranslatableGroup({
         name: `${this.id}-annotation-root`,
         layer: true,
         zIndex: Layers.SERIES_ANNOTATION_ZINDEX,
@@ -198,9 +199,6 @@ export abstract class Chart extends Observable {
 
     @Validate(OBJECT)
     readonly padding = new Padding(20);
-
-    @Validate(NUMBER)
-    readonly titlePadding = 0;
 
     @Validate(OBJECT)
     readonly seriesArea = new SeriesArea();
@@ -294,13 +292,13 @@ export abstract class Chart extends Observable {
             getLoadingSpinner(this.overlays.loading.getText(ctx.localeManager), ctx.animationManager.defaultDuration);
 
         this.processors = [
-            new BaseLayoutProcessor(this, ctx.layoutService),
+            new BaseLayoutProcessor(this, ctx.layoutManager),
             new DataWindowProcessor(this, ctx.dataService, ctx.updateService, ctx.zoomManager),
             new OverlaysProcessor(
                 this,
                 this.overlays,
                 ctx.dataService,
-                ctx.layoutService,
+                ctx.layoutManager,
                 ctx.localeManager,
                 ctx.animationManager,
                 ctx.domManager
@@ -359,7 +357,7 @@ export abstract class Chart extends Observable {
         return this.ctx;
     }
 
-    abstract getChartType(): 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion';
+    abstract getChartType(): 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'gauge';
 
     protected getCaptionText(): string {
         return [this.title, this.subtitle, this.footnote]
@@ -777,22 +775,10 @@ export abstract class Chart extends Observable {
         series.addEventListener('groupingChanged', this.seriesGroupingChanged);
     }
 
-    updateAllSeriesListeners(): void {
-        this.series.forEach((series) => {
-            series.removeEventListener('nodeClick', this.onSeriesNodeClick);
-            series.removeEventListener('nodeDoubleClick', this.onSeriesNodeDoubleClick);
-
-            this.addSeriesListeners(series);
-        });
-    }
-
     protected assignSeriesToAxes() {
-        this.axes.forEach((axis) => {
-            axis.boundSeries = this.series.filter((s) => {
-                const seriesAxis = s.axes[axis.direction];
-                return seriesAxis === axis;
-            });
-        });
+        for (const axis of this.axes) {
+            axis.boundSeries = this.series.filter((s) => s.axes[axis.direction] === axis);
+        }
     }
 
     protected assignAxesToSeries() {
@@ -876,7 +862,7 @@ export abstract class Chart extends Observable {
 
     async updateData() {
         this.series.forEach((s) => s.setChartData(this.data));
-        const modulePromises = this.modulesManager.mapModules((m) => m.updateData?.({ data: this.data }));
+        const modulePromises = this.modulesManager.mapModules((m) => m.updateData?.(this.data));
         await Promise.all(modulePromises);
     }
 
@@ -894,7 +880,7 @@ export abstract class Chart extends Observable {
 
         const dataController = new DataController(this.mode);
         const seriesPromises = this.series.map((s) => s.processData(dataController));
-        const modulePromises = this.modulesManager.mapModules((m) => m.processData?.({ dataController }));
+        const modulePromises = this.modulesManager.mapModules((m) => m.processData?.(dataController));
         dataController.execute();
         await Promise.all([...seriesPromises, ...modulePromises]);
 
@@ -972,30 +958,19 @@ export abstract class Chart extends Observable {
 
     private async processLayout() {
         const oldRect = this.animationRect;
-        await this.performLayout();
+        const { width, height } = this.ctx.scene;
+        const ctx = this.ctx.layoutManager.createContext(width, height);
+
+        await this.performLayout(ctx);
 
         if (oldRect && !this.animationRect?.equals(oldRect)) {
             // Skip animations if the layout changed.
             this.ctx.animationManager.skipCurrentBatch();
         }
-
         this.debug('Chart.performUpdate() - seriesRect', this.seriesRect);
     }
 
-    protected async performLayout() {
-        const { width, height } = this.ctx.scene;
-        let ctx = { shrinkRect: new BBox(0, 0, width, height), positions: {}, padding: {} };
-        ctx = this.ctx.layoutService.dispatchPerformLayout('start-layout', ctx);
-        ctx = this.ctx.layoutService.dispatchPerformLayout('before-series', ctx);
-
-        for (const m of this.modulesManager.modules()) {
-            if (m.performLayout != null) {
-                ctx = await m.performLayout(ctx);
-            }
-        }
-
-        return ctx.shrinkRect;
-    }
+    protected abstract performLayout(ctx: LayoutContext): Promise<void> | void;
 
     // Should be available after the first layout.
     protected seriesRect?: BBox;
@@ -1003,24 +978,11 @@ export abstract class Chart extends Observable {
     protected animationRect?: BBox;
 
     private readonly onSeriesNodeClick = (event: TypedEvent) => {
-        const seriesNodeClickEvent = {
-            ...event,
-            type: 'seriesNodeClick',
-        };
-        Object.defineProperty(seriesNodeClickEvent, 'series', {
-            enumerable: false,
-            // Should display the deprecation warning
-            get: () => (event as any).series,
-        });
-        this.fireEvent(seriesNodeClickEvent);
+        this.fireEvent({ ...event, type: 'seriesNodeClick' });
     };
 
     private readonly onSeriesNodeDoubleClick = (event: TypedEvent) => {
-        const seriesNodeDoubleClick = {
-            ...event,
-            type: 'seriesNodeDoubleClick',
-        };
-        this.fireEvent(seriesNodeDoubleClick);
+        this.fireEvent({ ...event, type: 'seriesNodeDoubleClick' });
     };
 
     private readonly seriesGroupingChanged = (event: TypedEvent) => {
@@ -1171,9 +1133,6 @@ export abstract class Chart extends Observable {
         if (deltaOptions.legend?.listeners && this.modulesManager.isEnabled('legend')) {
             Object.assign((this as any).legend.listeners, deltaOptions.legend.listeners);
         }
-        if (deltaOptions.listeners) {
-            this.updateAllSeriesListeners();
-        }
         if (deltaOptions.locale?.localeText) {
             this.modulesManager.getModule<any>('locale').localeText = deltaOptions.locale?.localeText;
         }
@@ -1217,7 +1176,7 @@ export abstract class Chart extends Observable {
 
     private applyInitialState(initialState?: AgInitialStateOptions) {
         const {
-            ctx: { annotationManager, stateManager },
+            ctx: { annotationManager, stateManager, zoomManager },
         } = this;
 
         if (initialState?.annotations != null) {
@@ -1227,6 +1186,10 @@ export abstract class Chart extends Observable {
             });
 
             stateManager.setState(annotationManager, annotations);
+        }
+
+        if (initialState?.zoom != null) {
+            stateManager.setState(zoomManager, initialState.zoom);
         }
     }
 
@@ -1442,12 +1405,12 @@ export abstract class Chart extends Observable {
         debug(`Chart.applyAxes() - creating new axes instances; seriesStatus: ${seriesStatus}`);
         chart.axes = this.createAxis(axes, skip);
 
-        const axisGroups: { [Key in ChartAxisDirection]: Group[] } = {
+        const axisGroups: { [Key in ChartAxisDirection]: { id: string; node: Node }[] } = {
             [ChartAxisDirection.X]: [],
             [ChartAxisDirection.Y]: [],
         };
 
-        chart.axes.forEach((axis) => axisGroups[axis.direction].push(axis.getAxisGroup()));
+        chart.axes.forEach((axis) => axisGroups[axis.direction].push({ id: axis.id, node: axis.getRegionNode() }));
 
         if (registerRegions) {
             this.ctx.regionManager.updateRegion(REGIONS.HORIZONTAL_AXES, ...axisGroups[ChartAxisDirection.X]);

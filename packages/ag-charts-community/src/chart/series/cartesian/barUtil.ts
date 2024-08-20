@@ -7,8 +7,9 @@ import { ContinuousScale } from '../../../scale/continuousScale';
 import type { Scale } from '../../../scale/scale';
 import { BBox } from '../../../scene/bbox';
 import type { DropShadow } from '../../../scene/dropShadow';
-import type { Node } from '../../../scene/node';
+import type { Group } from '../../../scene/group';
 import type { Rect } from '../../../scene/shape/rect';
+import { Transformable } from '../../../scene/transformable';
 import { isNegative } from '../../../util/number';
 import { mergeDefaults } from '../../../util/object';
 import type { ChartAxis } from '../../chartAxis';
@@ -44,10 +45,10 @@ export function updateRect(rect: Rect, config: RectConfig) {
     rect.lineDash = config.lineDash;
     rect.lineDashOffset = config.lineDashOffset;
     rect.fillShadow = config.fillShadow;
-    rect.topLeftCornerRadius = config.topLeftCornerRadius ? config.cornerRadius ?? 0 : 0;
-    rect.topRightCornerRadius = config.topRightCornerRadius ? config.cornerRadius ?? 0 : 0;
-    rect.bottomRightCornerRadius = config.bottomRightCornerRadius ? config.cornerRadius ?? 0 : 0;
-    rect.bottomLeftCornerRadius = config.bottomLeftCornerRadius ? config.cornerRadius ?? 0 : 0;
+    rect.topLeftCornerRadius = config.topLeftCornerRadius !== false ? config.cornerRadius ?? 0 : 0;
+    rect.topRightCornerRadius = config.topRightCornerRadius !== false ? config.cornerRadius ?? 0 : 0;
+    rect.bottomRightCornerRadius = config.bottomRightCornerRadius !== false ? config.cornerRadius ?? 0 : 0;
+    rect.bottomLeftCornerRadius = config.bottomLeftCornerRadius !== false ? config.cornerRadius ?? 0 : 0;
     rect.visible = config.visible ?? true;
 }
 
@@ -296,11 +297,11 @@ export function resetBarSelectionsFn(_node: Rect, { x, y, width, height, clipBBo
 
 export function computeBarFocusBounds(
     datum: { x: number; y: number; width: number; height: number } | undefined,
-    barGroup: Node,
+    barGroup: Group,
     seriesRect: BBox | undefined
 ): BBox | undefined {
     if (datum === undefined) return undefined;
 
     const { x, y, width, height } = datum;
-    return barGroup.inverseTransformBBox(new BBox(x, y, width, height)).clip(seriesRect);
+    return Transformable.toCanvas(barGroup, new BBox(x, y, width, height)).clip(seriesRect);
 }

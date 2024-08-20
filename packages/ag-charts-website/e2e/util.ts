@@ -3,7 +3,7 @@ import { execSync } from 'child_process';
 import glob from 'glob';
 
 const baseUrl = 'http://localhost:4601';
-const fws = ['vanilla', 'typescript', 'reactFunctional', 'reactFunctionalTs', 'angular', 'vue3'];
+const fws = ['vanilla', 'typescript', 'reactFunctional', 'reactFunctionalTs', 'angular', 'vue3'] as const;
 
 export function getExamples() {
     const examples = glob.glob.sync('./src/content/**/_examples/*/main.ts').map((e) => ({ path: e, affected: true }));
@@ -34,6 +34,10 @@ export function getExamples() {
 
 export function toExamplePageUrls(page: string, example: string) {
     return fws.map((framework) => ({ framework, url: `${baseUrl}/${framework}/${page}/examples/${example}`, example }));
+}
+
+export function toExamplePageUrl(page: string, example: string, framework: (typeof fws)[number]) {
+    return { url: `${baseUrl}/${framework}/${page}/examples/${example}`, example };
 }
 
 export function toGalleryPageUrls(example: string) {

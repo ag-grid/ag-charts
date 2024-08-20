@@ -1,5 +1,4 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
-import type { WrapOptions } from 'ag-charts-community/dist/types/src/util/textWrapper';
 import type {
     AgChartAutoSizedBaseLabelOptions,
     AgChartAutoSizedLabelOptions,
@@ -87,7 +86,7 @@ type LayoutParams = {
     padding: number;
 };
 
-type LabelFormatting = {
+export type LabelFormatting = {
     text: string;
     fontSize: number;
     lineHeight: number;
@@ -122,6 +121,14 @@ type SizeFittingHeightFn<Meta> = (
     height: number;
     meta: Meta;
 };
+
+function getLineHeight(labelProps: AgChartAutoSizedLabelOptions<any, any>, fontSize: number) {
+    if (labelProps.lineHeight != null && labelProps.fontSize != null) {
+        return (labelProps.lineHeight * fontSize) / labelProps.fontSize;
+    } else {
+        return TextUtils.getLineHeight(fontSize);
+    }
+}
 
 export function formatStackedLabels<Meta>(
     labelValue: string,
@@ -164,8 +171,8 @@ export function formatStackedLabels<Meta>(
     return findMaxValue<StackedLabelFormatting<Meta>>(0, fontSizeCandidates.length - 1, (index) => {
         const { labelFontSize, secondaryLabelFontSize } = fontSizeCandidates[index];
         const allowTruncation = index === 0;
-        const labelLineHeight = TextUtils.getLineHeight(labelFontSize);
-        const secondaryLabelLineHeight = TextUtils.getLineHeight(secondaryLabelFontSize);
+        const labelLineHeight = getLineHeight(labelProps, labelFontSize);
+        const secondaryLabelLineHeight = getLineHeight(secondaryLabelProps, secondaryLabelFontSize);
         const sizeFitting = sizeFittingHeight(
             labelLineHeight + secondaryLabelLineHeight + heightAdjust,
             allowTruncation
@@ -178,6 +185,7 @@ export function formatStackedLabels<Meta>(
         if (label == null || label.fontSize !== labelFontSize) {
             labelTextSizeProps.fontSize = labelFontSize;
             label = wrapLabel(
+                labelProps,
                 labelValue,
                 availableWidth,
                 availableHeight,
@@ -192,6 +200,7 @@ export function formatStackedLabels<Meta>(
         if (secondaryLabel == null || secondaryLabel.fontSize !== secondaryLabelFontSize) {
             secondaryLabelTextSizeProps.fontSize = secondaryLabelFontSize;
             secondaryLabel = wrapLabel(
+                secondaryLabelProps,
                 secondaryLabelValue,
                 availableWidth,
                 availableHeight,
@@ -234,7 +243,7 @@ export function formatSingleLabel<Meta>(
     };
 
     return findMaxValue<[LabelFormatting, Meta]>(minimumFontSize, props.fontSize, (fontSize) => {
-        const lineHeight = TextUtils.getLineHeight(fontSize);
+        const lineHeight = getLineHeight(props, fontSize);
         const allowTruncation = fontSize === minimumFontSize;
         const sizeFitting = sizeFittingHeight(lineHeight + sizeAdjust, allowTruncation);
         const availableWidth = sizeFitting.width - sizeAdjust;
@@ -338,6 +347,7 @@ export function formatLabels<Meta = never>(
 }
 
 function wrapLabel(
+    props: AgChartAutoSizedLabelOptions<any, any>,
     text: string,
     maxWidth: number,
     maxHeight: number,
@@ -349,7 +359,7 @@ function wrapLabel(
 
     if (!lines.length) return;
 
-    const lineHeight = TextUtils.getLineHeight(font.fontSize);
+    const lineHeight = getLineHeight(props, font.fontSize);
     const { width } = CachedTextMeasurerPool.measureLines(lines, { font });
 
     return {
@@ -363,7 +373,7 @@ function wrapLabel(
 
 function clipLines(
     lines: string[],
-    { font, lineHeight = TextUtils.defaultLineHeight, maxWidth, maxHeight = Infinity }: WrapOptions
+    { font, lineHeight = TextUtils.defaultLineHeight, maxWidth, maxHeight = Infinity }: _ModuleSupport.WrapOptions
 ) {
     let height = lineHeight * lines.length;
     while (height > maxHeight) {

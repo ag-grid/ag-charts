@@ -11,13 +11,13 @@ on:
             - 'b[0-9][0-9]?.[0-9][0-9]?.[0-9][0-9]?'
     workflow_dispatch:
         inputs:
-            run_e2e:
-                type: 'choice'
-                required: true
-                default: 'false'
-                options:
-                    - 'true'
-                    - 'false'
+            # run_e2e:
+            #     type: 'choice'
+            #     required: true
+            #     default: 'false'
+            #     options:
+            #         - 'true'
+            #         - 'false'
             clean_checkout:
                 description: 'Disable all caching'
                 type: 'choice'
@@ -171,9 +171,8 @@ jobs:
     e2e_init:
         runs-on: ubuntu-latest
         name: E2E Test Setup
-        if: ${{ github.event.inputs.run_e2e }}
         env:
-            AG_FORCE_ALL_TESTS: ${{ (github.ref == 'refs/heads/latest') && '1' || '0' }}
+            AG_FORCE_ALL_TESTS: 1
             AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
         outputs:
             nx_base: ${{ steps.setup.outputs.base }}
@@ -220,14 +219,13 @@ jobs:
         runs-on: ubuntu-latest
         name: E2E Tests (${{ matrix.shard }}/${{ strategy.job-total }})
         needs: [e2e_init]
-        if: ${{ github.event.inputs.run_e2e }}
         strategy:
             fail-fast: false
             matrix: ${{ fromJson(needs.e2e_init.outputs.matrix )}}
         env:
             NX_PARALLEL: 1
             NX_BASE: ${{ needs.e2e_init.outputs.nx_base }}
-            AG_FORCE_ALL_TESTS: ${{ (github.ref == 'refs/heads/latest') && '1' || '0' }}
+            AG_FORCE_ALL_TESTS: 1
             AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
         steps:
             - name: Checkout
@@ -254,19 +252,6 @@ jobs:
                   cd packages/ag-charts-website/
                   npx playwright test --shard=${{ matrix.shard }}/${{ strategy.job-total }}
               timeout-minutes: 10
-
-            # - name: Commit Snapshot Changes
-            #   id: commit_changes
-            #   if: github.event.inputs.update == 'true'
-            #   run: |
-            #       # Based on https://github.com/actions/checkout?tab=readme-ov-file#push-a-commit-using-the-built-in-token
-            #       git config user.name "github-actions[bot]"
-            #       git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            #       git add .
-            #       if [[ $(git diff --cached --name-only | wc -l) -gt 0 ]] ; then
-            #         git commit -m "Update snapshots (shard ${{ matrix.shard }})."
-            #         git push origin ${BRANCH_NAME}
-            #       fi
 
             - name: Perist test results
               if: always()

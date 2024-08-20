@@ -15,7 +15,7 @@ export interface AgToolbarGroup extends Toggleable {
     position?: AgToolbarGroupPosition;
     /** Size of the toolbar group buttons, defaults to 'normal'. */
     size?: AgToolbarGroupSize;
-    buttons?: AgToolbarButton[];
+    buttons?: (AgToolbarButton | AgToolbarSwitch)[];
 }
 
 export type AgToolbarGroupAlignment = 'start' | 'center' | 'end';
@@ -27,13 +27,10 @@ export type AgToolbarGroupPosition =
     | 'floating'
     | 'floating-top'
     | 'floating-bottom';
+
 export type AgToolbarGroupSize = 'small' | 'normal';
 
-export interface AgToolbarButton {
-    /** Section name used for grouping of buttons.
-     *
-     * Adjacent buttons with the same section are grouped together.*/
-    section?: string;
+interface AgToolbarButtonConfig {
     /** Icon to display on the button. */
     icon?: AgIconName;
     /** Text label to display on the button. */
@@ -42,19 +39,44 @@ export interface AgToolbarButton {
     ariaLabel?: string;
     /** Tooltip text to display on hover over the button. */
     tooltip?: string;
+}
+
+interface AgBaseToolbarButton extends AgToolbarButtonConfig {
+    /** Section name used for grouping of buttons.
+     *
+     * Adjacent buttons with the same section are grouped together.*/
+    section?: string;
     /** Value provided to caller when the button is pressed. */
     value: any;
     /** ID of the button (must be set when value is not a primitive) */
     id?: string;
+    /** The button type (default: `'button'`); `'switch'` is the same but also have an on/off state like checkboxes. */
+    role?: 'button' | 'switch';
+}
+
+export interface AgToolbarButton extends AgBaseToolbarButton {
+    /** The button type (default: `'button'`); `'switch'` is the same but also have an on/off state like checkboxes. */
+    role?: 'button';
+}
+
+export interface AgToolbarSwitch extends AgBaseToolbarButton {
+    /** The button type (default: `'button'`); `'switch'` is the same but also have an on/off state like checkboxes. */
+    role: 'switch';
+    /** Overrides for the switch-button when checked. */
+    checkedOverrides?: AgToolbarButtonConfig;
 }
 
 export type AgIconName =
+    | 'arrow-drawing'
     | 'callout-annotation'
     | 'candlestick-series'
     | 'comment-annotation'
     | 'delete'
     | 'disjoint-channel-drawing'
     | 'fill-color'
+    | 'line-style-solid'
+    | 'line-style-dashed'
+    | 'line-style-dotted'
     | 'high-low-series'
     | 'hlc-series'
     | 'hollow-candlestick-series'
@@ -86,6 +108,7 @@ export type AgIconLegacyName =
     | 'delete-legacy'
     | 'disjoint-channel'
     | 'disjoint-channel-legacy'
+    | 'horizontal-line'
     | 'horizontal-line-legacy'
     | 'line-color-legacy'
     | 'lock'
@@ -155,6 +178,7 @@ export interface AgToolbarAnnotationsButton extends AgToolbarButton {
 export type AgToolbarAnnotationsButtonValue =
     | 'line-menu'
     | 'text-menu'
+    | 'shape-menu'
     | 'line'
     | 'horizontal-line'
     | 'vertical-line'
@@ -171,21 +195,25 @@ export interface AgToolbarSeriesTypeGroup extends AgToolbarGroup {}
 
 /* Annotation Options */
 export interface AgToolbarAnnotationOptionsGroup extends AgToolbarGroup {
-    buttons?: AgToolbarAnnotationOptionsButton[];
+    buttons?: (AgToolbarAnnotationOptionsButton | AgToolbarAnnotationOptionsSwitch)[];
 }
 
 export interface AgToolbarAnnotationOptionsButton extends AgToolbarButton {
     value: AgToolbarAnnotationOptionsButtonValue;
 }
+export interface AgToolbarAnnotationOptionsSwitch extends AgToolbarSwitch {
+    value: AgToolbarAnnotationOptionsButtonValue;
+}
 
 export type AgToolbarAnnotationOptionsButtonValue =
+    | 'line-stroke-width'
+    | 'line-style-type'
     | 'line-color'
     | 'fill-color'
     | 'text-color'
     | 'text-size'
     | 'delete'
-    | 'lock'
-    | 'unlock';
+    | 'lock';
 
 /* Ranges */
 export interface AgToolbarRangesGroup extends AgToolbarGroup {

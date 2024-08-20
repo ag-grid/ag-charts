@@ -1,6 +1,7 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 import type { FontOptions, TextAlign } from 'ag-charts-types';
 
+import type { AnnotationTextPosition } from '../annotations/text/util';
 import textInputTemplate from './textInputTemplate.html';
 
 const { getDocument, getWindow } = _ModuleSupport;
@@ -9,8 +10,8 @@ const moduleId = 'text-input';
 const canvasOverlay = 'canvas-overlay';
 
 interface Layout {
-    point: { x: number; y: number };
-    position: 'top' | 'center' | 'bottom';
+    getTextInputCoords: () => _Util.Vec2;
+    position: AnnotationTextPosition;
     alignment: 'left' | 'center' | 'right';
     textAlign: TextAlign;
     width?: number;
@@ -19,7 +20,7 @@ interface Layout {
 export class TextInput extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     private readonly element: HTMLElement;
     private layout: Layout = {
-        point: { x: 0, y: 0 },
+        getTextInputCoords: () => ({ x: 0, y: 0 }),
         position: 'center',
         alignment: 'center',
         textAlign: 'center',
@@ -88,6 +89,10 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
             opts.onChange?.(this.getValue()!, this.getBBox());
         });
 
+        textArea.addEventListener('click', (event) => {
+            event.stopPropagation();
+        });
+
         if (opts.layout) {
             this.layout = opts.layout;
             this.updatePosition();
@@ -99,7 +104,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
     public hide() {
         this.element.innerHTML = '';
         this.layout = {
-            point: { x: 0, y: 0 },
+            getTextInputCoords: () => ({ x: 0, y: 0 }),
             position: 'center',
             alignment: 'center',
             textAlign: 'center',
@@ -115,6 +120,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         if (!this.element.firstElementChild) return;
         (this.element.firstElementChild as HTMLDivElement).style.fontSize = `${fontSize}px`;
         this.updatePosition();
+        return this.getBBox();
     }
 
     public getValue() {
@@ -129,13 +135,14 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         if (!textArea) return;
 
         const sceneRect = this.ctx.domManager.getBoundingClientRect();
-        const { width, point, position, alignment, textAlign } = this.layout;
+        const { width, getTextInputCoords, position, alignment, textAlign } = this.layout;
 
         // must be set before getting `textArea` bounding rect
         element.style.setProperty('width', width ? `${width}px` : 'unset');
 
         const textRect = textArea.getBoundingClientRect();
 
+        const point = getTextInputCoords();
         let horizontalPosition = point.x;
         if (alignment === 'center') {
             horizontalPosition -= (width ?? textRect.width) / 2;

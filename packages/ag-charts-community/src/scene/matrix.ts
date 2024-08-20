@@ -1,5 +1,11 @@
 import { BBox } from './bbox';
 
+export const IDENTITY_MATRIX_ELEMENTS = Object.freeze([1, 0, 0, 1, 0, 0]);
+
+function closeValue(val: number, ref: number, errorMargin = 1e-8) {
+    return val === ref || Math.abs(ref - val) < errorMargin;
+}
+
 /**
  * As of Jan 8, 2019, Firefox still doesn't implement
  * `getTransform(): DOMMatrix;`
@@ -25,11 +31,11 @@ export class Matrix {
         return [...this.elements];
     }
 
-    constructor(elements: number[] = [1, 0, 0, 1, 0, 0]) {
+    constructor(elements: number[] = [...IDENTITY_MATRIX_ELEMENTS]) {
         this.elements = elements;
     }
 
-    setElements(elements: number[]): this {
+    setElements(elements: readonly number[]): this {
         const e = this.elements;
 
         // `this.elements = elements.slice()` is 4-5 times slower
@@ -54,9 +60,16 @@ export class Matrix {
         return this;
     }
 
-    private get identity(): boolean {
+    get identity(): boolean {
         const e = this.elements;
-        return e[0] === 1 && e[1] === 0 && e[2] === 0 && e[3] === 1 && e[4] === 0 && e[5] === 0;
+        return (
+            closeValue(e[0], 1) &&
+            closeValue(e[1], 0) &&
+            closeValue(e[2], 0) &&
+            closeValue(e[3], 1) &&
+            closeValue(e[4], 0) &&
+            closeValue(e[5], 0)
+        );
     }
 
     /**
@@ -96,10 +109,14 @@ export class Matrix {
      * Returns a new matrix.
      * @param other
      */
-    multiply(other: Matrix): Matrix {
+    multiply(other: Matrix | DOMMatrix): Matrix {
         const elements = new Array(6);
 
-        this.AxB(this.elements, other.elements, elements);
+        if (other instanceof Matrix) {
+            this.AxB(this.elements, other.elements, elements);
+        } else {
+            this.AxB(this.elements, [other.a, other.b, other.c, other.d, other.e, other.f], elements);
+        }
 
         return new Matrix(elements);
     }

@@ -1,6 +1,8 @@
 import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import { type MenuItem, Popover } from '../popover/popover';
+import { Menu, type MenuItem } from '../../components/menu/menu';
+
+const { ActionOnSet, Validate, BOOLEAN } = _ModuleSupport;
 
 const menuItems: MenuItem<AgPriceVolumeChartType>[] = [
     { label: 'toolbarSeriesTypeOHLC', icon: 'ohlc-series', value: 'ohlc' },
@@ -16,61 +18,59 @@ const BUTTON_GROUP = 'seriesType';
 const BUTTON_VALUE = 'type';
 
 export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
-    @_ModuleSupport.Validate(_ModuleSupport.BOOLEAN)
-    @_ModuleSupport.ActionOnSet<ChartToolbar>({
+    @Validate(BOOLEAN)
+    @ActionOnSet<ChartToolbar>({
         changeValue: function (enabled) {
-            this.enableChanged(enabled);
+            this.onEnableChanged(enabled);
         },
     })
     enabled: boolean = false;
 
-    private readonly popover = new Popover(this.ctx, 'chart-toolbar');
-    private anchor?: _Scene.BBox = undefined;
+    private readonly menu = new Menu(this.ctx, 'chart-toolbar');
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
-        const { toolbarManager } = ctx;
         this.destroyFns.push(
-            toolbarManager.addListener('button-moved', this.toolbarButtonMoved.bind(this)),
-            toolbarManager.addListener('button-pressed', this.toolbarButtonPressed.bind(this))
+            ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
+            ctx.toolbarManager.addListener('button-moved', this.onToolbarButtonMoved.bind(this)),
+            ctx.toolbarManager.addListener('button-pressed', this.onToolbarButtonPressed.bind(this))
         );
     }
 
-    private enableChanged(enabled: boolean) {
+    private onEnableChanged(enabled: boolean) {
         this.ctx.toolbarManager.toggleGroup('chart-toolbar', BUTTON_GROUP, { visible: enabled });
     }
 
-    async processData() {
+    private onLayoutComplete() {
         if (!this.enabled) return;
 
-        const { toolbarManager } = this.ctx;
         const chartType = this.getChartType();
         const icon = menuItems.find((item) => item.value === chartType)?.icon;
         if (icon != null) {
-            toolbarManager.updateButton(BUTTON_GROUP, BUTTON_VALUE, { icon });
+            this.ctx.toolbarManager.updateButton(BUTTON_GROUP, BUTTON_VALUE, { icon });
         }
     }
 
     private setAnchor(anchor: _Scene.BBox) {
-        this.anchor = anchor;
-        const position = { x: this.anchor.x + this.anchor.width + 6, y: this.anchor.y };
-        this.popover.setAnchor(position);
+        this.menu.setAnchor({ x: anchor.x + anchor.width + 6, y: anchor.y });
     }
 
-    private toolbarButtonMoved(e: _ModuleSupport.ToolbarButtonMovedEvent<any>) {
+    private onToolbarButtonMoved(e: _ModuleSupport.ToolbarButtonMovedEvent<any>) {
         if (e.group !== BUTTON_GROUP) return;
         this.setAnchor(e.rect);
     }
 
-    private toolbarButtonPressed(e: _ModuleSupport.ToolbarButtonPressedEvent<any>) {
+    private onToolbarButtonPressed(e: _ModuleSupport.ToolbarButtonPressedEvent<any>) {
         if (e.group !== BUTTON_GROUP) return;
 
         this.setAnchor(e.rect);
 
-        this.popover.show({
+        this.menu.show({
             items: menuItems,
+            ariaLabel: this.ctx.localeManager.t('toolbarSeriesTypeDropdown'),
             value: this.getChartType(),
+            sourceEvent: e.sourceEvent,
             onPress: (item) => this.setChartType(item.value),
             onClose: () => this.hidePopover(),
         });
@@ -80,7 +80,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
 
     private hidePopover() {
         this.ctx.toolbarManager.toggleButton(BUTTON_GROUP, BUTTON_VALUE, { active: false });
-        this.popover.hide();
+        this.menu.hide();
     }
 
     private setChartType(chartType: AgPriceVolumeChartType) {
@@ -89,9 +89,9 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
     }
 
     private getChartType(): AgPriceVolumeChartType {
-        let chartType = (this.ctx.chartService.publicApi?.getOptions() as AgFinancialChartOptions)?.chartType;
+        const chartType = (this.ctx.chartService.publicApi?.getOptions() as AgFinancialChartOptions)?.chartType;
         if (chartType == null || !menuItems.some((item) => item.value === chartType)) {
-            chartType = 'candlestick';
+            return 'candlestick';
         }
         return chartType;
     }

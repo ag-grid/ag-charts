@@ -4,7 +4,7 @@ import type { LayoutContext, ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
-import { setAttribute, setVisibility } from '../../util/attributeUtil';
+import { setAttribute } from '../../util/attributeUtil';
 import { createElement } from '../../util/dom';
 import { initToolbarKeyNav, makeAccessibleClickListener } from '../../util/keynavUtil';
 import { clamp } from '../../util/number';
@@ -16,8 +16,10 @@ import type {
     ToolbarButtonUpdatedEvent,
     ToolbarFloatingAnchorChangedEvent,
     ToolbarGroupToggledEvent,
+    ToolbarGroupUpdatedEvent,
     ToolbarProxyGroupOptionsEvent,
 } from '../interaction/toolbarManager';
+import { type LayoutCompleteEvent, LayoutElement } from '../layout/layoutManager';
 import { type ButtonConfiguration, ToolbarGroupProperties } from './toolbarProperties';
 import * as styles from './toolbarStyles';
 import {
@@ -26,6 +28,7 @@ import {
     TOOLBAR_GROUP_ORDERING,
     TOOLBAR_POSITIONS,
     type ToolbarAlignment,
+    type ToolbarButtonConfig,
     type ToolbarGroup,
     ToolbarPosition,
     isAnimatingFloatingPosition,
@@ -68,9 +71,9 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
     private readonly positions: Record<ToolbarPosition, Set<ToolbarGroup>> = {
         [ToolbarPosition.Top]: new Set(),
+        [ToolbarPosition.Left]: new Set(),
         [ToolbarPosition.Right]: new Set(),
         [ToolbarPosition.Bottom]: new Set(),
-        [ToolbarPosition.Left]: new Set(),
         [ToolbarPosition.Floating]: new Set(),
         [ToolbarPosition.FloatingTop]: new Set(),
         [ToolbarPosition.FloatingBottom]: new Set(),
@@ -78,9 +81,9 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
     private readonly positionAlignments: Record<ToolbarPosition, Partial<Record<ToolbarAlignment, HTMLElement>>> = {
         [ToolbarPosition.Top]: {},
+        [ToolbarPosition.Left]: {},
         [ToolbarPosition.Right]: {},
         [ToolbarPosition.Bottom]: {},
-        [ToolbarPosition.Left]: {},
         [ToolbarPosition.Floating]: {},
         [ToolbarPosition.FloatingTop]: {},
         [ToolbarPosition.FloatingBottom]: {},
@@ -102,11 +105,15 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         zoom: [],
     };
 
-    private readonly ariaToolbars: { groups: ToolbarGroup[]; destroyFns: (() => void)[] }[] = [
-        { groups: ['seriesType', 'annotations'], destroyFns: [] },
-        { groups: ['annotationOptions'], destroyFns: [] },
-        { groups: ['ranges'], destroyFns: [] },
-        { groups: ['zoom'], destroyFns: [] },
+    private readonly ariaToolbars: {
+        groups: ToolbarGroup[];
+        destroyFns: (() => void)[];
+        resetListeners: () => void;
+    }[] = [
+        { groups: ['seriesType', 'annotations'], destroyFns: [], resetListeners: () => {} },
+        { groups: ['annotationOptions'], destroyFns: [], resetListeners: () => {} },
+        { groups: ['ranges'], destroyFns: [], resetListeners: () => {} },
+        { groups: ['zoom'], destroyFns: [], resetListeners: () => {} },
     ];
 
     private pendingButtonToggledEvents: Array<ToolbarButtonToggledEvent> = [];
@@ -131,9 +138,11 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             ctx.toolbarManager.addListener('button-toggled', this.onButtonToggled.bind(this)),
             ctx.toolbarManager.addListener('button-updated', this.onButtonUpdated.bind(this)),
             ctx.toolbarManager.addListener('group-toggled', this.onGroupToggled.bind(this)),
+            ctx.toolbarManager.addListener('group-updated', this.onGroupUpdated.bind(this)),
             ctx.toolbarManager.addListener('floating-anchor-changed', this.onFloatingAnchorChanged.bind(this)),
             ctx.toolbarManager.addListener('proxy-group-options', this.onProxyGroupOptions.bind(this)),
-            ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this)),
+            ctx.layoutManager.registerElement(LayoutElement.Toolbar, this.onLayoutStart.bind(this)),
+            ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
             ctx.localeManager.addListener('locale-changed', () => {
                 this.hasNewLocale = true;
             }),
@@ -216,9 +225,12 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.toggleVisibilities();
     }
 
-    private onLayoutComplete() {
+    private onLayoutComplete(opts: LayoutCompleteEvent) {
         for (const position of TOOLBAR_POSITIONS) {
             this.elements[position].classList.remove(styles.modifiers.preventFlash);
+        }
+        if (this.enabled) {
+            this.refreshInnerLayout(opts.series.rect);
         }
     }
 
@@ -231,8 +243,14 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         button.classList.toggle(styles.modifiers.button.active, active);
     }
 
+    private setButtonChecked(button: HTMLElement, checked: boolean) {
+        if (button.role === 'switch') {
+            button.ariaChecked = checked.toString();
+        }
+    }
+
     private onButtonToggled(event: ToolbarButtonToggledEvent) {
-        const { group, id, active, enabled, visible } = event;
+        const { group, id, active, enabled, visible, checked } = event;
 
         if (this.groupButtons[group].length === 0) {
             this.pendingButtonToggledEvents.push(event);
@@ -242,8 +260,9 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         for (const button of this.groupButtons[group]) {
             if (button.dataset.toolbarId !== `${id}`) continue;
             button.ariaDisabled = `${!enabled}`;
-            setVisibility(button, styles.modifiers.button.hiddenToggled, !visible);
+            button.classList.toggle(styles.modifiers.button.hiddenToggled, !visible);
             this.setButtonActive(button, active);
+            this.setButtonChecked(button, checked);
         }
     }
 
@@ -252,6 +271,17 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         this.toggleGroup(caller, group, active, visible);
         this.toggleVisibilities();
+    }
+
+    private onGroupUpdated(event: ToolbarGroupUpdatedEvent) {
+        const { group } = event;
+
+        for (const ariaToolbar of this.ariaToolbars) {
+            if (ariaToolbar.groups.includes(group)) {
+                ariaToolbar.resetListeners();
+                return;
+            }
+        }
     }
 
     private onFloatingAnchorChanged(event: ToolbarFloatingAnchorChangedEvent) {
@@ -356,11 +386,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             button.remove();
         }
 
-        const ariaToolbar = this.getAriaToolbar(group);
         this.groupButtons[group] = [];
-        ariaToolbar.destroyFns.forEach((d) => d());
-        ariaToolbar.destroyFns = [];
-
         if (buttons.length === 0) return;
 
         const { align, position } = this[group];
@@ -421,26 +447,36 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         const onEscape = () => {
             this.ctx.toolbarManager.cancel(group);
         };
-
         let onFocus;
         let onBlur;
-
         if (isAnimatingFloatingPosition(position)) {
             onFocus = () => this.translateFloatingElements(position, true);
             onBlur = () => this.translateFloatingElements(position, false);
         }
 
+        this.createAriaToolbar(group, alignElement, onFocus, onBlur, onEscape);
+    }
+
+    private createAriaToolbar(
+        group: ToolbarGroup,
+        toolbar: HTMLElement,
+        onFocus: undefined | ((event: FocusEvent) => void),
+        onBlur: undefined | ((event: FocusEvent) => void),
+        onEscape: (event: KeyboardEvent) => void
+    ) {
         const orientation = this.computeAriaOrientation(this[group].position);
-        const ariaToolbarButtons = ariaToolbar.groups.map((g) => this.groupButtons[g]).flat();
-        ariaToolbar.destroyFns = initToolbarKeyNav({
-            orientation,
-            toolbar: alignElement,
-            buttons: ariaToolbarButtons,
-            onEscape,
-            onFocus,
-            onBlur,
-        });
-        this.updateToolbarAriaLabel(group, alignElement);
+        const ariaToolbar = this.getAriaToolbar(group);
+
+        ariaToolbar.resetListeners = () => {
+            const buttons = ariaToolbar.groups
+                .map((g) => this.groupButtons[g])
+                .flat()
+                .filter((b) => !b.classList.contains(styles.modifiers.button.hiddenToggled));
+            ariaToolbar.destroyFns.forEach((d) => d());
+            ariaToolbar.destroyFns = initToolbarKeyNav({ orientation, toolbar, buttons, onEscape, onFocus, onBlur });
+        };
+        ariaToolbar.resetListeners();
+        this.updateToolbarAriaLabel(group, toolbar);
     }
 
     private computeAriaOrientation(position: ToolbarPosition): 'horizontal' | 'vertical' {
@@ -486,19 +522,11 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.pendingButtonToggledEvents = [];
     }
 
-    async performLayout(ctx: LayoutContext): Promise<LayoutContext> {
-        if (!this.enabled) return ctx;
-
-        this.refreshOuterLayout(ctx.shrinkRect);
-        this.refreshLocale();
-
-        return ctx;
-    }
-
-    async performCartesianLayout(opts: { seriesRect: BBox }): Promise<void> {
-        if (!this.enabled) return;
-
-        this.refreshInnerLayout(opts.seriesRect);
+    private onLayoutStart(ctx: LayoutContext) {
+        if (this.enabled) {
+            this.refreshOuterLayout(ctx.layoutBox);
+            this.refreshLocale();
+        }
     }
 
     private refreshOuterLayout(shrinkRect: BBox) {
@@ -548,8 +576,6 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         elements.top.style.left = `${rect.x}px`;
         elements.top.style.width = `${rect.width}px`;
 
-        // See: https://ag-grid.atlassian.net/browse/AG-11852
-        // elements.bottom.style.top = `${rect.y + rect.height}px`;
         elements.bottom.style.left = `${rect.x}px`;
         elements.bottom.style.width = `${rect.width}px`;
 
@@ -587,7 +613,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         for (const position of TOOLBAR_POSITIONS) {
             const visible = this.enabled && Array.from(this.positions[position].values()).some(isGroupVisible);
-            setVisibility(this.elements[position], styles.modifiers.hidden, !visible);
+            this.elements[position].classList.toggle(styles.modifiers.hidden, !visible);
         }
 
         for (const group of TOOLBAR_GROUPS) {
@@ -595,7 +621,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             const groupVisible = isGroupVisible(group);
             for (const button of this.groupButtons[group]) {
                 const buttonVisible = groupVisible && this[group].buttonConfigurations().some(isButtonVisible(button));
-                setVisibility(button, styles.modifiers.button.hiddenValue, !buttonVisible);
+                button.classList.toggle(styles.modifiers.button.hiddenValue, !buttonVisible);
             }
         }
     }
@@ -608,7 +634,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         const element = elements[position];
         const alignments = Object.values(positionAlignments[position]);
-        setVisibility(element, styles.modifiers.floatingHidden, !visible);
+        element.classList.toggle(styles.modifiers.floatingHidden, !visible);
 
         const dir = position === ToolbarPosition.FloatingBottom ? 1 : -1;
 
@@ -645,11 +671,18 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         button.tabIndex = -1;
 
         button.dataset.toolbarId = this.buttonId(options);
-        button.onclick = makeAccessibleClickListener(
-            button,
-            this.onButtonPress.bind(this, button, group, options.id, options.value)
+        button.onclick = makeAccessibleClickListener(button, (event) =>
+            this.onButtonPress(event, button, group, options.id, options.value)
         );
+        if (options.role === 'switch') {
+            button.role = options.role;
+            button.ariaChecked = false.toString();
+        }
         this.updateButton(button, options);
+
+        setTimeout(() => {
+            button.classList.add(styles.modifiers.button.withTransition);
+        }, 1);
 
         this.destroyFns.push(() => button.remove());
 
@@ -681,25 +714,35 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         alignElement.ariaLabel = this.ctx.localeManager.t(map[group]);
     }
 
-    private updateButton(button: HTMLButtonElement, options: ButtonConfiguration) {
-        const {
-            ctx: { domManager, localeManager },
-        } = this;
+    private expandButtonConfig(button: HTMLButtonElement, options: ButtonConfiguration): ToolbarButtonConfig {
+        if (options.role !== 'switch' || button.ariaChecked !== 'true' || options.checkedOverrides === undefined)
+            return options;
 
-        if (options.tooltip) {
-            const tooltip = localeManager.t(options.tooltip);
-            button.title = tooltip;
+        return {
+            icon: options.checkedOverrides.icon ?? options.icon,
+            label: options.checkedOverrides.label ?? options.label,
+            ariaLabel: options.checkedOverrides.ariaLabel ?? options.ariaLabel,
+            tooltip: options.checkedOverrides.tooltip ?? options.tooltip,
+        };
+    }
+
+    private updateButton(button: HTMLButtonElement, options: ButtonConfiguration) {
+        const { domManager, localeManager } = this.ctx;
+        const { icon, label, ariaLabel, tooltip } = this.expandButtonConfig(button, options);
+
+        if (tooltip) {
+            button.title = localeManager.t(tooltip);
         }
 
         let inner = '';
 
-        if (options.icon != null) {
-            inner = `<span class="${domManager.getIconClassNames(options.icon)} ${styles.elements.icon}"></span>`;
+        if (icon != null) {
+            inner = `<span class="${domManager.getIconClassNames(icon)} ${styles.elements.icon}"></span>`;
         }
 
-        if (options.label != null) {
-            const label = localeManager.t(options.label);
-            inner = `${inner}<span class="${styles.elements.label}">${label}</span>`;
+        if (label != null) {
+            const tlabel = localeManager.t(label);
+            inner = `${inner}<span class="${styles.elements.label}">${tlabel}</span>`;
         }
 
         button.innerHTML = inner;
@@ -707,19 +750,31 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         button.classList.toggle(styles.modifiers.button.fillVisible, options.fill != null);
         button.style.setProperty('--fill', options.fill ?? null);
 
-        const ariaLabel = options.ariaLabel ? this.ctx.localeManager.t(options.ariaLabel) : undefined;
-        setAttribute(button, 'aria-label', ariaLabel);
+        const strokeWidthVisible = options.strokeWidth != null;
+        button.classList.toggle(styles.modifiers.button.strokeWidthVisible, strokeWidthVisible);
+        button.style.setProperty('--strokeWidth', strokeWidthVisible ? `${options.strokeWidth}px` : null);
+
+        const tAriaLabel = ariaLabel ? this.ctx.localeManager.t(ariaLabel) : undefined;
+        setAttribute(button, 'aria-label', tAriaLabel);
     }
 
-    private onButtonPress(button: HTMLButtonElement, group: ToolbarGroup, id: string | undefined, value: any) {
-        this.ctx.toolbarManager.pressButton(group, this.buttonId({ id, value }), value, this.buttonRect(button));
+    private onButtonPress(
+        event: MouseEvent,
+        button: HTMLButtonElement,
+        group: ToolbarGroup,
+        id: string | undefined,
+        value: any
+    ) {
+        this.ctx.toolbarManager.pressButton(group, this.buttonId({ id, value }), value, this.buttonRect(button), event);
     }
 
     private buttonId(button: ButtonConfiguration) {
         const { id, value, label } = button;
-        if (id != null) return id;
-        if (value != null && typeof value !== 'object') return String(value);
-
+        if (id != null) {
+            return id;
+        } else if (value != null && typeof value !== 'object') {
+            return String(value);
+        }
         // @todo(AG-12343): buttons with non-primitive values need IDs
         return label ?? '';
     }

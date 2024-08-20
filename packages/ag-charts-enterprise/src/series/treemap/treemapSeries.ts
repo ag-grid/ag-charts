@@ -834,6 +834,6 @@ export class TreemapSeries<
         node: _ModuleSupport.HierarchyNode<_ModuleSupport.SeriesNodeDatum>
     ): _Scene.BBox | undefined {
         const rects = this.groupSelection.selectByClass(Rect);
-        return rects[node.index]?.computeTransformedBBox();
+        return _Scene.Transformable.toCanvas(rects[node.index]);
     }
 }
