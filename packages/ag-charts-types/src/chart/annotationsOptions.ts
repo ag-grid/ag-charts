@@ -152,7 +152,7 @@ export interface AgParallelChannelAnnotation
     middle?: AgChannelAnnotationMiddle;
     /** The fill colour for the middle of the channel. */
     background?: AgChannelAnnotationBackground;
-    /** Configuration for the line text. */
+    /** Configuration for the channel text. */
     text?: AgChannelText;
 }
 
@@ -172,6 +172,8 @@ export interface AgDisjointChannelAnnotation
     handle?: AgAnnotationHandle;
     /** The fill colour for the middle of the channel. */
     background?: AgChannelAnnotationBackground;
+    /** Configuration for the channel text. */
+    text?: AgChannelText;
 }
 
 // ********************

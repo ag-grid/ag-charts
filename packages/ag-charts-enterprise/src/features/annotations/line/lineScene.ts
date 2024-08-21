@@ -105,8 +105,8 @@ export class LineScene extends LinearScene<LineTypeProperties> {
             this.appendChild(this.text);
         }
 
-        const [start, end] = Vec2.from(coords);
-        const [left, right] = start.x <= end.x ? [start, end] : [end, start];
+        let [left, right] = Vec2.from(coords);
+        if (left.x > right.x) [left, right] = [right, left];
         const normal = Vec2.normalized(Vec2.sub(right, left));
         const angle = Vec2.angle(normal);
 

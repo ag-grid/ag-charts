@@ -28,8 +28,9 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         bottomRight: new DivariantHandle(),
     };
 
+    override offsetInsideTextLabel = true;
+
     private readonly middleLine = new _Scene.Line();
-    private text?: _Scene.TransformableText;
 
     constructor() {
         super();
@@ -219,77 +220,6 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
             ...handleStyles,
             x: bottom.x1 + (bottom.x2 - bottom.x1) / 2 - bottomMiddle.handle.width / 2,
             y: bottom.y1 + (bottom.y2 - bottom.y1) / 2 - bottomMiddle.handle.height / 2,
-        });
-    }
-
-    override updateText(datum: ParallelChannelProperties, top: LineCoords, bottom: LineCoords) {
-        if (!datum.text && this.text) {
-            this.removeChild(this.text);
-        }
-
-        if (!datum.text) return;
-
-        if (this.text == null) {
-            this.text = new _Scene.TransformableText();
-            this.appendChild(this.text);
-        }
-
-        const { alignment, position } = datum.text;
-
-        let relativeLine = top;
-        if (position === 'bottom') {
-            relativeLine = bottom;
-        } else if (position === 'inside') {
-            relativeLine = {
-                x1: (top.x1 + bottom.x1) / 2,
-                y1: (top.y1 + bottom.y1) / 2,
-                x2: (top.x2 + bottom.x2) / 2,
-                y2: (top.y2 + bottom.y2) / 2,
-            };
-        }
-        const [start, end] = Vec2.from(relativeLine);
-        const [left, right] = start.x <= end.x ? [start, end] : [end, start];
-        const normal = Vec2.normalized(Vec2.sub(right, left));
-        const angle = Vec2.angle(normal);
-
-        const inset = Vec2.multiply(normal, (datum.strokeWidth ?? 2) + 13);
-        const offset = Vec2.multiply(normal, (datum.strokeWidth ?? 2) + 3);
-
-        let point = left;
-        if (alignment === 'left' && position === 'inside') {
-            point = Vec2.add(left, inset);
-        } else if (alignment === 'right' && position === 'inside') {
-            point = Vec2.sub(right, inset);
-        } else if (alignment === 'right') {
-            point = right;
-        } else if (alignment === 'center') {
-            point = Vec2.add(left, Vec2.multiply(normal, Vec2.distance(left, right) / 2));
-        }
-
-        let textBaseline: CanvasTextBaseline = 'bottom';
-        if (position === 'bottom') {
-            point = Vec2.rotate(offset, angle + Math.PI / 2, point);
-            textBaseline = 'top';
-        } else {
-            point = Vec2.rotate(offset, angle - Math.PI / 2, point);
-        }
-
-        this.text.setProperties({
-            text: datum.text.label,
-
-            x: point.x,
-            y: point.y,
-            rotation: Vec2.angle(normal),
-            rotationCenterX: point.x,
-            rotationCenterY: point.y,
-
-            fill: datum.text.color,
-            fontFamily: datum.text.fontFamily,
-            fontSize: datum.text.fontSize,
-            fontStyle: datum.text.fontStyle,
-            fontWeight: datum.text.fontWeight,
-            textAlign: datum.text.alignment,
-            textBaseline: textBaseline,
         });
     }
 }

@@ -28,8 +28,8 @@ const options: AgFinancialChartOptions = {
                 },
                 text: {
                     label: 'Trend line',
-                    position: 'bottom',
-                    alignment: 'right',
+                    position: 'center',
+                    alignment: 'center',
                 },
 
                 stroke: '#5090dc',
@@ -38,7 +38,7 @@ const options: AgFinancialChartOptions = {
             },
             {
                 type: 'parallel-channel',
-                height: 13.282400589101599,
+                height: 15.282400589101599,
                 middle: {
                     strokeWidth: 1,
                     lineDash: [6, 5],
@@ -60,6 +60,11 @@ const options: AgFinancialChartOptions = {
                         value: 'Thu Mar 21 2024 18:59:00 GMT+0000 (Greenwich Mean Time)',
                     },
                     y: 39842.30854197349,
+                },
+                text: {
+                    label: 'Parallel channel',
+                    position: 'top',
+                    alignment: 'left',
                 },
 
                 stroke: '#5090dc',
@@ -87,6 +92,11 @@ const options: AgFinancialChartOptions = {
                         value: 'Thu Mar 21 2024 19:17:00 GMT+0000 (Greenwich Mean Time)',
                     },
                     y: 39845.30007363771,
+                },
+                text: {
+                    label: 'Disjoint channel',
+                    position: 'bottom',
+                    alignment: 'right',
                 },
 
                 stroke: '#5090dc',

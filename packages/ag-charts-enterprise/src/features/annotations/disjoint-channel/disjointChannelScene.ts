@@ -1,4 +1,4 @@
-import { _Util } from 'ag-charts-community';
+import { _Scene, _Util } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
 import { convertPoint, invertCoords } from '../annotationUtils';
@@ -26,6 +26,8 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
         bottomLeft: new DivariantHandle(),
         bottomRight: new UnivariantHandle(),
     };
+
+    override offsetInsideTextLabel = false;
 
     constructor() {
         super();
