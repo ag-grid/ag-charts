@@ -6,6 +6,7 @@ import { AnnotationScene } from '../scenes/annotationScene';
 import { ArrowCapScene, type CapScene } from '../scenes/capScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
 import { DivariantHandle } from '../scenes/handle';
+import { LineWithTextScene } from '../scenes/lineWithTextScene';
 import { LinearScene } from '../scenes/linearScene';
 import type { LineTypeProperties } from './lineProperties';
 
@@ -21,10 +22,10 @@ export class LineScene extends LinearScene<LineTypeProperties> {
     override activeHandle?: 'start' | 'end';
 
     private readonly line = new CollidableLine();
-    private readonly lineClipGroup = new _Scene.Group({ name: 'LineSceneClipGroup' });
+    public readonly lineClipGroup = new _Scene.Group({ name: 'LineSceneClipGroup' });
     private readonly start = new DivariantHandle();
     private readonly end = new DivariantHandle();
-    private text?: _Scene.TransformableText;
+    public text?: _Scene.TransformableText;
     private startCap?: CapScene;
     private endCap?: CapScene;
 
@@ -93,79 +94,7 @@ export class LineScene extends LinearScene<LineTypeProperties> {
         end.toggleLocked(locked);
     }
 
-    updateText(datum: LineTypeProperties, coords: LineCoords) {
-        if (!datum.text && this.text) {
-            this.removeChild(this.text);
-        }
-
-        if (!datum.text) return;
-
-        if (this.text == null) {
-            this.text = new _Scene.TransformableText();
-            this.appendChild(this.text);
-        }
-
-        let [left, right] = Vec2.from(coords);
-        if (left.x > right.x) [left, right] = [right, left];
-        const normal = Vec2.normalized(Vec2.sub(right, left));
-        const angle = Vec2.angle(normal);
-
-        const { alignment, position } = datum.text;
-
-        const inset = Vec2.multiply(normal, (datum.strokeWidth ?? 2) + 13);
-        const offset = Vec2.multiply(normal, (datum.strokeWidth ?? 2) + 3);
-
-        let point = left;
-        if (alignment === 'left' && position === 'center') {
-            point = Vec2.add(left, inset);
-        } else if (alignment === 'right' && position === 'center') {
-            point = Vec2.sub(right, inset);
-        } else if (alignment === 'right') {
-            point = right;
-        } else if (alignment === 'center') {
-            point = Vec2.add(left, Vec2.multiply(normal, Vec2.distance(left, right) / 2));
-        }
-
-        let textBaseline: CanvasTextBaseline = 'middle';
-        if (position === 'top') {
-            point = Vec2.rotate(offset, angle - Math.PI / 2, point);
-            textBaseline = 'bottom';
-        } else if (position === 'bottom') {
-            point = Vec2.rotate(offset, angle + Math.PI / 2, point);
-            textBaseline = 'top';
-        }
-
-        this.text.setProperties({
-            text: datum.text.label,
-
-            x: point.x,
-            y: point.y,
-            rotation: angle,
-            rotationCenterX: point.x,
-            rotationCenterY: point.y,
-
-            fill: datum.text.color,
-            fontFamily: datum.text.fontFamily,
-            fontSize: datum.text.fontSize,
-            fontStyle: datum.text.fontStyle,
-            fontWeight: datum.text.fontWeight,
-            textAlign: datum.text.alignment,
-            textBaseline: textBaseline,
-        });
-
-        if (position === 'center') {
-            const { x, y, width, height } = this.text.getBBox();
-            const diameter = Vec2.length(Vec2.from(width, height));
-            this.lineClipGroup.setClipMask(
-                {
-                    x: x + width / 2,
-                    y: y + height / 2,
-                    radius: diameter / 2 + Vec2.length(offset),
-                },
-                'outside'
-            );
-        }
-    }
+    private updateText = LineWithTextScene.updateLineText.bind(this);
 
     updateCaps(datum: LineTypeProperties, coords: LineCoords) {
         if (!datum.startCap && this.startCap) {
