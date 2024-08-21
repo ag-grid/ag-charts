@@ -109,7 +109,11 @@ const options: AgFinancialChartOptions = {
                     __type: 'date',
                     value: 'Thu Mar 21 2024 19:08:00 GMT+0000 (Greenwich Mean Time)',
                 },
-
+                text: {
+                    label: 'Vertical line',
+                    position: 'top',
+                    alignment: 'center',
+                },
                 axisLabel: {
                     enabled: true,
                 },
@@ -120,6 +124,11 @@ const options: AgFinancialChartOptions = {
             {
                 type: 'horizontal-line',
                 value: 39863.48858615611,
+                text: {
+                    label: 'Horizontal line',
+                    position: 'center',
+                    alignment: 'right',
+                },
                 axisLabel: {
                     enabled: true,
                 },

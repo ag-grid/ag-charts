@@ -117,11 +117,15 @@ export interface AgLineAnnotation
 export interface AgHorizontalLineAnnotation extends AgCrossLineAnnotation {
     /** Configuration for the horizontal-line annotation.*/
     type: 'horizontal-line';
+    /** Configuration for the line text. */
+    text?: AgLineText;
 }
 
 export interface AgVerticalLineAnnotation extends AgCrossLineAnnotation {
     /** Configuration for the vertical-line annotation.*/
     type: 'vertical-line';
+    /** Configuration for the line text. */
+    text?: AgLineText;
 }
 
 export interface AgCrossLineAnnotation extends Lockable, Visible, StrokeOptions, LineDashOptions {

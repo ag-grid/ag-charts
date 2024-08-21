@@ -196,6 +196,7 @@ export function hasFillColor(datum?: AnnotationProperties) {
 export function hasTextColor(datum?: AnnotationProperties) {
     return isTextType(datum) && !NoteProperties.is(datum);
 }
+
 export function setDefaults({
     datum,
     defaultColors,

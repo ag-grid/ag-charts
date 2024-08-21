@@ -43,6 +43,13 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                     fontSize: 12,
                     fontFamily: _Theme.DEFAULT_FONT_FAMILY,
                 },
+                text: {
+                    position: 'top',
+                    alignment: 'left',
+                    color: _Theme.DEFAULT_ANNOTATION_COLOR,
+                    fontSize: 14,
+                    fontFamily: _Theme.DEFAULT_FONT_FAMILY,
+                },
             },
             'vertical-line': {
                 stroke: _Theme.DEFAULT_ANNOTATION_COLOR,
@@ -57,6 +64,13 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                     color: 'white',
                     fill: _Theme.DEFAULT_ANNOTATION_COLOR,
                     fontSize: 12,
+                    fontFamily: _Theme.DEFAULT_FONT_FAMILY,
+                },
+                text: {
+                    position: 'top',
+                    alignment: 'left',
+                    color: _Theme.DEFAULT_ANNOTATION_COLOR,
+                    fontSize: 14,
                     fontFamily: _Theme.DEFAULT_FONT_FAMILY,
                 },
             },
