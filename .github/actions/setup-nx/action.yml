@@ -79,7 +79,8 @@ runs:
                   packages/*/node_modules/
                   plugins/*/node_modules/
                   libraries/*/node_modules/
-              key: node_modules-${{ runner.os }}-${{hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json')}}
+                  external/*/node_modules/
+              key: node_modules-${{ runner.os }}-${{hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json', 'libraries/*/package.json', 'external/*/package.json')}}
               restore-keys: node_modules-${{ runner.os }}- # Take any latest cache if failed to find it for current yarn.lock
 
         - name: Cache Nx
