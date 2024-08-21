@@ -33,6 +33,10 @@ type AnimatableNeedleDatum = {
     angle: number;
 };
 
+type AnimatableTargetDatum = {
+    size: number;
+};
+
 export const fadeInFns: _ModuleSupport.FromToFns<_Scene.Node, any, any> = {
     fromFn: () => ({ opacity: 0, phase: 'initial' }),
     toFn: () => ({ opacity: 1 }),
@@ -137,7 +141,34 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean)
         },
     };
 
-    return { node, needle };
+    const target: _ModuleSupport.FromToFns<_Scene.Marker, any, AnimatableTargetDatum> = {
+        fromFn(_targetNode, datum) {
+            const { size } = datum;
+
+            let scalingX = size;
+            let scalingY = size;
+            if (initialLoad) {
+                scalingX = 0;
+                scalingY = 0;
+            }
+
+            return { scalingX, scalingY, phase };
+        },
+        toFn(_targetNode, datum, status) {
+            const { size } = datum;
+
+            let scalingX = size;
+            let scalingY = size;
+            if (status === 'removed') {
+                scalingX = 0;
+                scalingY = 0;
+            }
+
+            return { scalingX, scalingY };
+        },
+    };
+
+    return { node, needle, target };
 }
 
 function getLabelText(

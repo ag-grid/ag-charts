@@ -9,6 +9,7 @@ import type {
     FontStyle,
     FontWeight,
     Formatter,
+    MarkerShape,
     Styler,
 } from 'ag-charts-types';
 
@@ -33,18 +34,22 @@ export interface RadialGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     fill: string;
 }
 
-export interface RadialGaugeStopDatum {
+export interface RadialGaugeTargetDatum {
+    index: number;
     centerX: number;
     centerY: number;
-    innerRadius: number;
-    outerRadius: number;
-    startAngle: number;
-    endAngle: number;
-    clipStartAngle: number | undefined;
-    clipEndAngle: number | undefined;
-    startCornerRadius: number;
-    endCornerRadius: number;
+    shape: MarkerShape;
+    radius: number;
+    angle: number;
+    size: number;
+    rotation: number;
     fill: string;
+    fillOpacity: number;
+    stroke: string;
+    strokeOpacity: number;
+    strokeWidth: number;
+    lineDash: number[];
+    lineDashOffset: number;
 }
 
 export type RadialGaugeLabelDatum = {
@@ -73,20 +78,59 @@ const {
     PropertiesArray,
     Validate,
     BOOLEAN,
-    COLOR_STRING,
     COLOR_STRING_ARRAY,
+    COLOR_STRING,
     FUNCTION,
     LINE_DASH,
+    MARKER_SHAPE,
     NUMBER_ARRAY,
     NUMBER,
-    OBJECT,
     OBJECT_ARRAY,
+    OBJECT,
     POSITIVE_NUMBER,
     RATIO,
     STRING,
 } = _ModuleSupport;
 
-export class RadialGaugeStop extends BaseProperties {
+export class RadialGaugeTargetProperties extends BaseProperties {
+    @Validate(NUMBER)
+    value: number = 0;
+
+    @Validate(MARKER_SHAPE, { optional: true })
+    shape: MarkerShape | undefined;
+
+    @Validate(RATIO, { optional: true })
+    radiusRatio: number | undefined;
+
+    @Validate(RATIO)
+    sizeRatio: number = 0.2;
+
+    @Validate(NUMBER)
+    rotation: number = 0;
+
+    @Validate(COLOR_STRING)
+    fill: string = 'black';
+
+    @Validate(RATIO)
+    fillOpacity: number = 1;
+
+    @Validate(COLOR_STRING)
+    stroke: string = 'black';
+
+    @Validate(POSITIVE_NUMBER)
+    strokeWidth: number = 0;
+
+    @Validate(RATIO)
+    strokeOpacity: number = 1;
+
+    @Validate(LINE_DASH)
+    lineDash: number[] = [0];
+
+    @Validate(POSITIVE_NUMBER)
+    lineDashOffset: number = 0;
+}
+
+export class RadialGaugeStopProperties extends BaseProperties {
     @Validate(NUMBER, { optional: true })
     stop?: number;
 
@@ -202,7 +246,10 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeS
     range: number[] = [0, 1];
 
     @Validate(OBJECT_ARRAY)
-    colorStops = new PropertiesArray<RadialGaugeStop>(RadialGaugeStop);
+    colorStops = new PropertiesArray<RadialGaugeStopProperties>(RadialGaugeStopProperties);
+
+    @Validate(OBJECT_ARRAY)
+    targets = new PropertiesArray<RadialGaugeTargetProperties>(RadialGaugeTargetProperties);
 
     @Validate(NUMBER)
     startAngle: number = 0.75 * Math.PI;
