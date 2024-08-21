@@ -55,7 +55,7 @@ export class BaseProperties<T extends object = object> {
     }
 }
 
-export class PropertiesArray<T extends BaseProperties> extends Array {
+export class PropertiesArray<T extends BaseProperties> extends Array<T> {
     private readonly itemFactory!: (params: any) => T;
 
     constructor(itemFactory: (new () => T) | ((params: any) => T), ...properties: object[]) {

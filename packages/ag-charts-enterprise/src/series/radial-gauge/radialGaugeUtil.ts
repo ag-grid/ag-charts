@@ -20,9 +20,21 @@ type AnimatableSectorDatum = {
     clipEndAngle: number | undefined;
 };
 
+type SectorAnimation = {
+    startAngle: number;
+    endAngle: number;
+    innerRadius: number;
+    outerRadius: number;
+    clipSector: _Scene.SectorBox | undefined;
+};
+
 type AnimatableNeedleDatum = {
     radius: number;
     angle: number;
+};
+
+type AnimatableTargetDatum = {
+    size: number;
 };
 
 export const fadeInFns: _ModuleSupport.FromToFns<_Scene.Node, any, any> = {
@@ -30,22 +42,34 @@ export const fadeInFns: _ModuleSupport.FromToFns<_Scene.Node, any, any> = {
     toFn: () => ({ opacity: 1 }),
 };
 
+export function computeClipSector(datum: AnimatableSectorDatum) {
+    const { startAngle, endAngle, clipStartAngle, clipEndAngle, innerRadius, outerRadius } = datum;
+
+    if (clipStartAngle == null || clipEndAngle == null) return;
+
+    return new SectorBox(
+        Math.max(clipStartAngle, startAngle),
+        Math.min(clipEndAngle, endAngle),
+        innerRadius,
+        outerRadius
+    );
+}
+
+export function clipSectorVisibility(startAngle: number, endAngle: number, clipSector: _Scene.SectorBox) {
+    return Math.max(startAngle, clipSector.startAngle) <= Math.min(endAngle, clipSector.endAngle);
+}
+
 export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean) {
     const phase = initialLoad ? 'initial' : 'update';
 
-    const node: _ModuleSupport.FromToFns<_Scene.Sector, any, AnimatableSectorDatum> = {
+    const node: _ModuleSupport.FromToFns<_Scene.Sector, SectorAnimation, AnimatableSectorDatum> = {
         fromFn(sect, datum) {
-            let { startAngle, endAngle, innerRadius, outerRadius } = sect;
-            let clipStartAngle = sect.clipSector?.startAngle;
-            let clipEndAngle = sect.clipSector?.endAngle;
+            const previousDatum: AnimatableSectorDatum = sect.previousDatum ?? datum;
+            const { startAngle, endAngle, clipStartAngle, clipEndAngle, innerRadius } = previousDatum;
+            let { outerRadius } = previousDatum;
 
             if (initialLoad) {
-                startAngle = datum.startAngle;
-                endAngle = datum.endAngle;
-                innerRadius = datum.innerRadius;
-                outerRadius = datum.innerRadius;
-                clipStartAngle = datum.clipStartAngle;
-                clipEndAngle = datum.clipEndAngle;
+                outerRadius = innerRadius;
             }
 
             const clipSector =
@@ -70,6 +94,24 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean)
                     : undefined;
 
             return { startAngle, endAngle, outerRadius, innerRadius, clipSector };
+        },
+        mapFn(params, datum) {
+            const { clipStartAngle, clipEndAngle } = datum;
+            const { startAngle, endAngle, outerRadius, innerRadius } = params;
+            let { clipSector } = params;
+
+            if (clipSector != null && clipStartAngle != null && clipEndAngle != null) {
+                clipSector = new SectorBox(
+                    Math.max(startAngle, clipSector.startAngle),
+                    Math.min(endAngle, clipSector.endAngle),
+                    clipSector.innerRadius,
+                    clipSector.outerRadius
+                );
+            }
+
+            const visible = clipSector == null || clipSectorVisibility(startAngle, endAngle, clipSector);
+
+            return { visible, startAngle, endAngle, outerRadius, innerRadius, clipSector };
         },
     };
 
@@ -99,7 +141,34 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean)
         },
     };
 
-    return { node, needle };
+    const target: _ModuleSupport.FromToFns<_Scene.Marker, any, AnimatableTargetDatum> = {
+        fromFn(_targetNode, datum) {
+            const { size } = datum;
+
+            let scalingX = size;
+            let scalingY = size;
+            if (initialLoad) {
+                scalingX = 0;
+                scalingY = 0;
+            }
+
+            return { scalingX, scalingY, phase };
+        },
+        toFn(_targetNode, datum, status) {
+            const { size } = datum;
+
+            let scalingX = size;
+            let scalingY = size;
+            if (status === 'removed') {
+                scalingX = 0;
+                scalingY = 0;
+            }
+
+            return { scalingX, scalingY };
+        },
+    };
+
+    return { node, needle, target };
 }
 
 function getLabelText(

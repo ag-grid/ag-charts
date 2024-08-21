@@ -2,14 +2,8 @@ import { _ModuleSupport, _Theme } from 'ag-charts-community';
 
 import { RadialGaugeSeries } from './radialGaugeSeries';
 
-const {
-    FONT_WEIGHT,
-    DEFAULT_FONT_FAMILY,
-    DEFAULT_HIERARCHY_FILLS,
-    DEFAULT_LABEL_COLOUR,
-    DEFAULT_MUTED_LABEL_COLOUR,
-    singleSeriesPaletteFactory,
-} = _Theme;
+const { FONT_WEIGHT, DEFAULT_FONT_FAMILY, DEFAULT_HIERARCHY_FILLS, DEFAULT_LABEL_COLOUR, DEFAULT_MUTED_LABEL_COLOUR } =
+    _Theme;
 
 export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
     type: 'series',
@@ -22,7 +16,9 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
     tooltipDefaults: { range: 'exact' },
     themeTemplate: {
         series: {
-            foreground: {
+            outerRadiusRatio: 1,
+            innerRadiusRatio: 0.8,
+            bar: {
                 strokeWidth: 0,
             },
             needle: {
@@ -33,30 +29,37 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
             label: {
                 enabled: true,
                 fontWeight: FONT_WEIGHT.NORMAL,
-                fontSize: 14,
+                fontSize: 56,
+                minimumFontSize: 18,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_LABEL_COLOUR,
             },
             secondaryLabel: {
-                enabled: false,
+                enabled: true,
                 fontWeight: FONT_WEIGHT.NORMAL,
-                fontSize: 12,
+                fontSize: 14,
+                minimumFontSize: 12,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_MUTED_LABEL_COLOUR,
             },
         },
     },
     paletteFactory(params) {
-        const { fill, stroke } = singleSeriesPaletteFactory(params);
-        const hierarchyFills = params.themeTemplateParameters.get(DEFAULT_HIERARCHY_FILLS);
+        const { takeColors, colorsCount, userPalette, themeTemplateParameters } = params;
+        const { fills } = takeColors(colorsCount);
+        const defaultColorRange = themeTemplateParameters.get(_Theme.DEFAULT_GAUGE_SERIES_COLOUR_RANGE) as
+            | string[]
+            | undefined;
+        const hierarchyFills = themeTemplateParameters.get(DEFAULT_HIERARCHY_FILLS);
+        const colorRange = userPalette === 'inbuilt' ? defaultColorRange : [fills[0], fills[1]];
         return {
-            foreground: {
-                fill,
-                stroke,
+            bar: {
+                colorRange: colorRange,
             },
             background: {
-                fill: hierarchyFills?.[1],
+                defaultFill: hierarchyFills?.[1],
                 stroke: hierarchyFills?.[2],
+                defaultColorRange: colorRange,
             },
         };
     },

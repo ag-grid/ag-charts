@@ -8,5 +8,5 @@ export interface GradientColorStop {
 export abstract class Gradient {
     constructor(public stops: GradientColorStop[] = []) {}
 
-    abstract createGradient(ctx: CanvasRenderingContext2D, bbox: BBox): CanvasGradient | string;
+    abstract createGradient(ctx: CanvasRenderingContext2D, bbox: BBox): CanvasGradient | string | undefined;
 }

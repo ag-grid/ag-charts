@@ -114,6 +114,11 @@ export class Sector extends Path {
         return sectorBox(this).translate(this.centerX, this.centerY);
     }
 
+    protected override gradientBBox(): BBox {
+        const { centerX, centerY, outerRadius } = this;
+        return new BBox(centerX - outerRadius, centerY - outerRadius, 2 * outerRadius, 2 * outerRadius);
+    }
+
     private normalizedRadii() {
         const { concentricEdgeInset } = this;
         let { innerRadius, outerRadius } = this;

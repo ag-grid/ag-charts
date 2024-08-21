@@ -110,7 +110,7 @@ export class Text extends Shape {
         ctx.textBaseline = this.textBaseline;
 
         if (fill) {
-            ctx.fillStyle = fill;
+            this.applyFill(ctx);
             ctx.globalAlpha *= this.opacity * this.fillOpacity;
 
             const { fillShadow } = this;
