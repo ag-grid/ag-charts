@@ -21,6 +21,7 @@ export class LineScene extends LinearScene<LineTypeProperties> {
     override activeHandle?: 'start' | 'end';
 
     private readonly line = new CollidableLine();
+    private readonly lineClipGroup = new _Scene.Group({ name: 'LineSceneClipGroup' });
     private readonly start = new DivariantHandle();
     private readonly end = new DivariantHandle();
     private text?: _Scene.TransformableText;
@@ -29,7 +30,8 @@ export class LineScene extends LinearScene<LineTypeProperties> {
 
     constructor() {
         super();
-        this.append([this.line, this.start, this.end]);
+        this.lineClipGroup.append(this.line);
+        this.append([this.lineClipGroup, this.start, this.end]);
     }
 
     public update(datum: LineTypeProperties, context: AnnotationContext) {
@@ -107,20 +109,28 @@ export class LineScene extends LinearScene<LineTypeProperties> {
         const [left, right] = start.x <= end.x ? [start, end] : [end, start];
         const angle = Vec2.angle(Vec2.sub(right, left));
 
-        let textAnchor = left;
-        if (datum.text.alignment === 'right') {
-            textAnchor = right;
-        } else if (datum.text.alignment === 'center') {
-            textAnchor = Vec2.rotate(Vec2.from(0, Vec2.distance(left, right) / 2), angle, left);
+        const { alignment, position } = datum.text;
+
+        const inset = (datum.strokeWidth ?? 2) + 13;
+        const offset = (datum.strokeWidth ?? 2) + 3;
+
+        let point = left;
+        if (alignment === 'left' && position === 'center') {
+            point = Vec2.rotate(Vec2.from(0, inset), angle, left);
+        } else if (alignment === 'right' && position === 'center') {
+            point = Vec2.rotate(Vec2.from(0, inset), angle - Math.PI, right);
+        } else if (alignment === 'right') {
+            point = right;
+        } else if (alignment === 'center') {
+            point = Vec2.rotate(Vec2.from(0, Vec2.distance(left, right) / 2), angle, left);
         }
 
-        let point = textAnchor;
         let textBaseline: CanvasTextBaseline = 'middle';
-        if (datum.text.position === 'top') {
-            point = Vec2.rotate(Vec2.from(0, 5), angle - Math.PI / 2, textAnchor);
+        if (position === 'top') {
+            point = Vec2.rotate(Vec2.from(0, offset), angle - Math.PI / 2, point);
             textBaseline = 'bottom';
-        } else if (datum.text.position === 'bottom') {
-            point = Vec2.rotate(Vec2.from(0, 5), angle + Math.PI / 2, textAnchor);
+        } else if (position === 'bottom') {
+            point = Vec2.rotate(Vec2.from(0, offset), angle + Math.PI / 2, point);
             textBaseline = 'top';
         }
 
@@ -133,6 +143,7 @@ export class LineScene extends LinearScene<LineTypeProperties> {
             rotationCenterX: point.x,
             rotationCenterY: point.y,
 
+            fill: datum.text.color,
             fontFamily: datum.text.fontFamily,
             fontSize: datum.text.fontSize,
             fontStyle: datum.text.fontStyle,
@@ -140,6 +151,19 @@ export class LineScene extends LinearScene<LineTypeProperties> {
             textAlign: datum.text.alignment,
             textBaseline: textBaseline,
         });
+
+        if (position === 'center') {
+            const { x, y, width, height } = this.text.getBBox();
+            const diameter = Vec2.distance(Vec2.from(x, y), Vec2.from(x + width, y + height));
+            this.lineClipGroup.setClipMask(
+                {
+                    x: x + width / 2,
+                    y: y + height / 2,
+                    radius: diameter / 2 + offset,
+                },
+                'outside'
+            );
+        }
     }
 
     updateCaps(datum: LineTypeProperties, coords: LineCoords) {

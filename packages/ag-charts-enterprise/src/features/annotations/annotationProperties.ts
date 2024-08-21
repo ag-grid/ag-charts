@@ -57,7 +57,7 @@ export class BackgroundProperties extends Fill(BaseProperties) {}
 
 export class HandleProperties extends Stroke(LineStyle(Fill(BaseProperties))) {}
 
-export class LineText extends Font(BaseProperties) {
+export class LineTextProperties extends Font(BaseProperties) {
     @Validate(STRING)
     label: string = '';
 
