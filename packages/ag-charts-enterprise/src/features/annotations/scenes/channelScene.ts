@@ -7,8 +7,6 @@ import { CollidableLine } from './collidableLineScene';
 import type { Handle } from './handle';
 import { LinearScene } from './linearScene';
 
-const { Vec2 } = _Util;
-
 export abstract class ChannelScene<
     Datum extends {
         background: { fill?: string; fillOpacity?: number };
