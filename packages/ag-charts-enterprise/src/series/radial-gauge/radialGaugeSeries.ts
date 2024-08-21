@@ -372,7 +372,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
 
                 if (background.enabled) {
                     const colorStopColor = !bar.enabled ? colorStop?.color : undefined;
-                    let fill =
+                    const fill =
                         colorStopColor ??
                         background.fill ??
                         backgroundColorScale?.convert(colorScaleValue) ??
