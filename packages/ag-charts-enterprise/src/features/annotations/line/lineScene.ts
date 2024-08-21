@@ -107,30 +107,31 @@ export class LineScene extends LinearScene<LineTypeProperties> {
 
         const [start, end] = Vec2.from(coords);
         const [left, right] = start.x <= end.x ? [start, end] : [end, start];
-        const angle = Vec2.angle(Vec2.sub(right, left));
+        const normal = Vec2.normalized(Vec2.sub(right, left));
+        const angle = Vec2.angle(normal);
 
         const { alignment, position } = datum.text;
 
-        const inset = (datum.strokeWidth ?? 2) + 13;
-        const offset = (datum.strokeWidth ?? 2) + 3;
+        const inset = Vec2.multiply(normal, (datum.strokeWidth ?? 2) + 13);
+        const offset = Vec2.multiply(normal, (datum.strokeWidth ?? 2) + 3);
 
         let point = left;
         if (alignment === 'left' && position === 'center') {
-            point = Vec2.rotate(Vec2.from(0, inset), angle, left);
+            point = Vec2.add(left, inset);
         } else if (alignment === 'right' && position === 'center') {
-            point = Vec2.rotate(Vec2.from(0, inset), angle - Math.PI, right);
+            point = Vec2.sub(right, inset);
         } else if (alignment === 'right') {
             point = right;
         } else if (alignment === 'center') {
-            point = Vec2.rotate(Vec2.from(0, Vec2.distance(left, right) / 2), angle, left);
+            point = Vec2.add(left, Vec2.multiply(normal, Vec2.distance(left, right) / 2));
         }
 
         let textBaseline: CanvasTextBaseline = 'middle';
         if (position === 'top') {
-            point = Vec2.rotate(Vec2.from(0, offset), angle - Math.PI / 2, point);
+            point = Vec2.rotate(offset, angle - Math.PI / 2, point);
             textBaseline = 'bottom';
         } else if (position === 'bottom') {
-            point = Vec2.rotate(Vec2.from(0, offset), angle + Math.PI / 2, point);
+            point = Vec2.rotate(offset, angle + Math.PI / 2, point);
             textBaseline = 'top';
         }
 
@@ -154,12 +155,12 @@ export class LineScene extends LinearScene<LineTypeProperties> {
 
         if (position === 'center') {
             const { x, y, width, height } = this.text.getBBox();
-            const diameter = Vec2.distance(Vec2.from(x, y), Vec2.from(x + width, y + height));
+            const diameter = Vec2.length(Vec2.from(width, height));
             this.lineClipGroup.setClipMask(
                 {
                     x: x + width / 2,
                     y: y + height / 2,
-                    radius: diameter / 2 + offset,
+                    radius: diameter / 2 + Vec2.length(offset),
                 },
                 'outside'
             );
