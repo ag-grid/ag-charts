@@ -48,6 +48,7 @@ export function gauge(opts: AgGaugeOptions): AgGaugeChartOptions {
         needle: opts.needle,
         colorRange: opts.colorRange,
         colorStops: opts.colorStops,
+        targets: opts.targets,
         outerRadiusRatio: opts.outerRadiusRatio,
         innerRadiusRatio: opts.innerRadiusRatio,
         startAngle: opts.startAngle,

@@ -1,7 +1,7 @@
 import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartAutoSizedLabelOptions, AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, PixelSize } from '../../chart/types';
+import type { CssColor, MarkerShape, PixelSize, Ratio } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
@@ -61,6 +61,14 @@ export interface AgRadialGaugeColorStop {
     color?: CssColor;
 }
 
+export interface AgRadialGaugeTarget extends FillOptions, StrokeOptions, LineDashOptions {
+    value: number;
+    shape?: MarkerShape;
+    radiusRatio: Ratio;
+    sizeRatio: Ratio;
+    rotation: number;
+}
+
 export interface AgRadialGaugeSeriesThemeableOptions<TDatum = any>
     extends AgRadialGaugeSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
@@ -75,6 +83,7 @@ export interface AgRadialGaugeSeriesThemeableOptions<TDatum = any>
     /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
     colorRange?: CssColor[];
     colorStops?: AgRadialGaugeColorStop[];
+    targets?: AgRadialGaugeTarget[];
     /** Configuration for the needle. */
     needle?: AgRadialGaugeSeriesNeedleStyle;
     /** Configuration for the foreground. */
