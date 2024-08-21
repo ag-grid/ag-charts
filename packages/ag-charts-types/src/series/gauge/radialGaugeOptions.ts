@@ -17,12 +17,14 @@ export interface AgRadialGaugeSeriesHighlightStyle<_TDatum>
 
 export interface AgRadialGaugeSeriesStyle {}
 
-export interface AgRadialGaugeSeriesForegroundStyle extends FillOptions, StrokeOptions, LineDashOptions {
+export interface AgRadialGaugeSeriesBarStyle extends FillOptions, StrokeOptions, LineDashOptions {
     enabled?: boolean;
+    colorRange?: CssColor[];
 }
 
 export interface AgRadialGaugeSeriesBackgroundStyle extends FillOptions, StrokeOptions, LineDashOptions {
     enabled?: boolean;
+    colorRange?: CssColor[];
 }
 
 export interface AgRadialGaugeSeriesNeedleStyle extends FillOptions, StrokeOptions, LineDashOptions {
@@ -80,14 +82,12 @@ export interface AgRadialGaugeSeriesThemeableOptions<TDatum = any>
     cornerRadius?: number;
     itemMode?: 'continuous' | 'segmented';
     cornerMode?: 'container' | 'item';
-    /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
-    colorRange?: CssColor[];
     colorStops?: AgRadialGaugeColorStop[];
     targets?: AgRadialGaugeTarget[];
     /** Configuration for the needle. */
     needle?: AgRadialGaugeSeriesNeedleStyle;
-    /** Configuration for the foreground. */
-    foreground?: AgRadialGaugeSeriesForegroundStyle;
+    /** Configuration for the bar. */
+    bar?: AgRadialGaugeSeriesBarStyle;
     /** Configuration for the background. */
     background?: AgRadialGaugeSeriesBackgroundStyle;
     /** Configuration for the labels shown inside the shape. */

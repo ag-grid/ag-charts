@@ -24,7 +24,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
         series: {
             outerRadiusRatio: 1,
             innerRadiusRatio: 0.8,
-            foreground: {
+            bar: {
                 strokeWidth: 0,
             },
             needle: {
@@ -61,7 +61,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
             .reverse();
         const hierarchyFills = themeTemplateParameters.get(DEFAULT_HIERARCHY_FILLS);
         return {
-            foreground: {
+            bar: {
                 fill,
                 stroke,
                 colorRange: userPalette === 'inbuilt' ? defaultColorRange : [fills[0], fills[1]],

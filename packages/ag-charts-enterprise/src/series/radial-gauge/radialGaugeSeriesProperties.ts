@@ -138,7 +138,7 @@ export class RadialGaugeStopProperties extends BaseProperties {
     color?: string;
 }
 
-export class RadialGaugeForegroundProperties extends BaseProperties {
+export class RadialGaugeBarProperties extends BaseProperties {
     @Validate(BOOLEAN)
     enabled = true;
 
@@ -279,13 +279,13 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeS
     padding: number = 0;
 
     @Validate(OBJECT)
-    readonly needle = new RadialGaugeNeedleProperties();
-
-    @Validate(OBJECT)
-    readonly foreground = new RadialGaugeForegroundProperties();
-
-    @Validate(OBJECT)
     readonly background = new RadialGaugeBackgroundProperties();
+
+    @Validate(OBJECT)
+    readonly bar = new RadialGaugeBarProperties();
+
+    @Validate(OBJECT)
+    readonly needle = new RadialGaugeNeedleProperties();
 
     @Validate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgRadialGaugeSeriesItemStylerParams<unknown>, AgRadialGaugeSeriesStyle>;

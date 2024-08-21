@@ -196,7 +196,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             cornerMode,
             needle,
             targets,
-            foreground,
+            bar,
             background,
             label,
             secondaryLabel,
@@ -235,11 +235,11 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         const containerStartAngle = scale.convert(domain[0]);
         const containerEndAngle = scale.convert(value);
 
-        let foregroundColorScale: _Scale.ColorScale | undefined;
-        if (foreground.colorRange != null) {
-            foregroundColorScale = new ColorScale();
-            foregroundColorScale.domain = domain;
-            foregroundColorScale.range = foreground.colorRange!;
+        let barColorScale: _Scale.ColorScale | undefined;
+        if (bar.colorRange != null) {
+            barColorScale = new ColorScale();
+            barColorScale.domain = domain;
+            barColorScale.range = bar.colorRange!;
         }
 
         let backgroundColorScale: _Scale.ColorScale | undefined;
@@ -250,8 +250,8 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         }
 
         if (isContinuous) {
-            if (foreground.enabled) {
-                const { fill } = foreground;
+            if (bar.enabled) {
+                const { fill } = bar;
                 const angleParams = cornersOnAllItems
                     ? {
                           startAngle: containerStartAngle - angleInset,
@@ -315,8 +315,8 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                 const itemStartAngle = scale.convert(value0);
                 const itemEndAngle = scale.convert(value1);
 
-                if (foreground.enabled) {
-                    const fill = colorStop?.color ?? foregroundColorScale?.convert(value0) ?? foreground.fill;
+                if (bar.enabled) {
+                    const fill = colorStop?.color ?? barColorScale?.convert(value0) ?? bar.fill;
 
                     nodeData.push({
                         series: this,
@@ -337,7 +337,8 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                 }
 
                 if (background.enabled) {
-                    const fill = backgroundColorScale?.convert(value0) ?? background.fill;
+                    const colorStopColor = !bar.enabled ? colorStop?.color : undefined;
+                    const fill = colorStopColor ?? backgroundColorScale?.convert(value0) ?? background.fill;
 
                     backgroundData.push({
                         series: this,
@@ -414,7 +415,6 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         for (let index = 0; index < targets.length; index += 1) {
             const target = targets[index];
             const {
-                value,
                 shape,
                 sizeRatio,
                 radiusRatio,
@@ -427,7 +427,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                 lineDash,
                 lineDashOffset,
             } = target;
-            const angle = scale.convert(value);
+            const angle = scale.convert(target.value);
             const radius = radiusRatio != null ? radiusRatio * this.radius : (innerRadius + outerRadius) / 2;
             const size = sizeRatio * this.radius;
             targetData.push({
@@ -526,10 +526,10 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
     }) {
         const { datumSelection, isHighlight } = opts;
         const { ctx, properties } = this;
-        const { sectorSpacing, foreground } = properties;
-        const { fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = foreground;
+        const { sectorSpacing, bar } = properties;
+        const { fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = bar;
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
-        const strokeWidth = this.getStrokeWidth(foreground.strokeWidth);
+        const strokeWidth = this.getStrokeWidth(bar.strokeWidth);
         const animationDisabled = ctx.animationManager.isSkipped();
 
         datumSelection.each((sector, datum) => {
