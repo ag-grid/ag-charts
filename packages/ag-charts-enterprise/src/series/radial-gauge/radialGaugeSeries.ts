@@ -22,6 +22,7 @@ const { fromToMotion, resetMotion, SeriesNodePickMode, StateMachine, createDatum
     _ModuleSupport;
 const { Group, PointerEvents, Selection, Sector, Text, ConicGradient, getMarker } = _Scene;
 const { LinearScale, ColorScale } = _Scale;
+const { normalizeAngle360, toDegrees } = _Util;
 
 export type GaugeAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 export type GaugeAnimationEvent =
@@ -243,10 +244,10 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         }
 
         let backgroundColorScale: _Scale.ColorScale | undefined;
-        if (background.colorRange != null) {
+        if (background.colorRange != null || !bar.enabled) {
             backgroundColorScale = new ColorScale();
             backgroundColorScale.domain = domain;
-            backgroundColorScale.range = background.colorRange!;
+            backgroundColorScale.range = background.colorRange ?? background.defaultColorRange!;
         }
 
         if (isContinuous) {
@@ -293,16 +294,17 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
 
             if (background.enabled) {
                 let fill: string | _Scene.Gradient | undefined = background.fill;
-                let backgroundColorRange = background.colorRange;
-                if (!bar.enabled) {
-                    backgroundColorRange ??= background.defaultColorRange;
-                }
-                if (backgroundColorRange != null) {
+                if (backgroundColorScale != null) {
+                    const conicAngle = normalizeAngle360((startAngle + endAngle) / 2 + Math.PI);
+                    const sweepAngle = normalizeAngle360(endAngle - startAngle);
+
                     fill ??= new ConicGradient(
-                        backgroundColorRange.map((color, index, colorRange) => ({
-                            offset: index / (colorRange.length - 1),
-                            color,
-                        }))
+                        backgroundColorScale.range.map((color, index, colorRange) => {
+                            const angle = startAngle + (sweepAngle * index) / (colorRange.length - 1);
+                            const offset = normalizeAngle360(angle - conicAngle) / (2 * Math.PI);
+                            return { offset, color };
+                        }),
+                        toDegrees(conicAngle) - 90
                     );
                 }
                 fill ??= background.defaultFill;
@@ -326,19 +328,29 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             }
         } else {
             const colorRangeStops = colorStops?.length ?? 8;
-            const domainStep = (domain[1] - domain[0]) / colorRangeStops;
+            const domainRange = domain[1] - domain[0];
 
             let value0 = domain[0];
             for (let i = 0; i < colorRangeStops; i += 1) {
                 const colorStop = colorStops?.[i];
                 const isStart = i === 0;
                 const isEnd = i === colorRangeStops - 1;
-                const value1 = colorStop != null ? colorStop.stop ?? domain[1] : value0 + domainStep;
+
+                let value1: number;
+                let colorScaleValue: number;
+                if (colorStop != null) {
+                    value1 = colorStop.stop ?? domain[1];
+                    colorScaleValue = value1;
+                } else {
+                    value1 = domain[0] + (i + 1) * (domainRange / colorRangeStops);
+                    colorScaleValue = domain[0] + i * (domainRange / (colorRangeStops - 1));
+                }
+
                 const itemStartAngle = scale.convert(value0);
                 const itemEndAngle = scale.convert(value1);
 
                 if (bar.enabled) {
-                    const fill = colorStop?.color ?? barColorScale?.convert(value0) ?? bar.fill;
+                    const fill = colorStop?.color ?? barColorScale?.convert(colorScaleValue) ?? bar.fill;
 
                     nodeData.push({
                         series: this,
@@ -360,10 +372,10 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
 
                 if (background.enabled) {
                     const colorStopColor = !bar.enabled ? colorStop?.color : undefined;
-                    const fill =
+                    let fill =
                         colorStopColor ??
-                        backgroundColorScale?.convert(value0) ??
                         background.fill ??
+                        backgroundColorScale?.convert(colorScaleValue) ??
                         background.defaultFill;
 
                     backgroundData.push({
