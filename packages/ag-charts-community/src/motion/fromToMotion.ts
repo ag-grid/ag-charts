@@ -54,11 +54,12 @@ export interface FromToFns<
     N extends Node,
     T extends Record<string, string | number | Interpolating | undefined> & Partial<N>,
     D,
+    I extends Record<string, string | number | Interpolating | undefined> & Partial<N> = T,
 > {
-    fromFn: FromToMotionPropFn<N, T, D>;
-    toFn: FromToMotionPropFn<N, T, D>;
+    fromFn: FromToMotionPropFn<N, I, D>;
+    toFn: FromToMotionPropFn<N, I, D>;
     intermediateFn?: IntermediateFn<N, D>;
-    mapFn?: (value: T, datum: D) => T;
+    mapFn?: (value: I, datum: D) => T;
 }
 
 /**

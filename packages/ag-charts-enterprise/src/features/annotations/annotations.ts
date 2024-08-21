@@ -183,7 +183,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     // State
     private readonly state: AnnotationsStateMachine;
-    private readonly annotationData: AnnotationPropertiesArray = new PropertiesArray(this.createAnnotationDatum);
+    private readonly annotationData: AnnotationPropertiesArray = new PropertiesArray<AnnotationProperties>(
+        this.createAnnotationDatum
+    );
     private readonly defaultColors: Map<
         AnnotationType,
         Map<AnnotationOptionsColorPickerType, [string, string, number] | undefined>
@@ -929,7 +931,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             return;
         }
 
-        annotationManager.updateData(annotationData.toJson());
+        annotationManager.updateData(annotationData.toJson() as any);
 
         annotations
             .update(annotationData ?? [], undefined, (datum) => datum.id)

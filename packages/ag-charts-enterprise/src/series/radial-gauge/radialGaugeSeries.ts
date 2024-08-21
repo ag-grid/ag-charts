@@ -9,6 +9,7 @@ import {
     RadialGaugeSeriesProperties,
 } from './radialGaugeSeriesProperties';
 import {
+    clipSectorVisibility,
     computeClipSector,
     fadeInFns,
     formatRadialGaugeLabels,
@@ -166,7 +167,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
     }
 
     override async createNodeData() {
-        const { id: seriesId } = this;
+        const { id: seriesId, properties } = this;
         const { width, height } = this.chart!.seriesRect!;
         const {
             value,
@@ -183,7 +184,8 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             background,
             label,
             secondaryLabel,
-        } = this.properties;
+        } = properties;
+        const colorStops = properties.colorStops.length !== 0 ? properties.colorStops : undefined;
         const nodeData: RadialGaugeNodeDatum[] = [];
         const labelData: RadialGaugeLabelDatum[] = [];
         const needleData: any[] = [];
@@ -230,7 +232,6 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             backgroundColorScale.range = background.colorRange!;
         }
 
-        // const colorRangeStops = colorRange?.length ?? 1;
         if (isContinuous) {
             if (foreground.enabled) {
                 const { fill } = foreground;
@@ -285,18 +286,20 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                 });
             }
         } else {
-            const colorRangeStops = 8;
+            const colorRangeStops = colorStops?.length ?? 8;
+            const domainStep = (domain[1] - domain[0]) / colorRangeStops;
+
+            let value0 = domain[0];
             for (let i = 0; i < colorRangeStops; i += 1) {
+                const colorStop = colorStops?.[i];
                 const isStart = i === 0;
                 const isEnd = i === colorRangeStops - 1;
-                const domainStep = (domain[1] - domain[0]) / colorRangeStops;
-                const itemStartValue = domain[0] + domainStep * (i + 0);
-                const itemEndValue = domain[0] + domainStep * (i + 1);
-                const itemStartAngle = scale.convert(itemStartValue);
-                const itemEndAngle = scale.convert(itemEndValue);
+                const value1 = colorStop != null ? colorStop.stop ?? domain[1] : value0 + domainStep;
+                const itemStartAngle = scale.convert(value0);
+                const itemEndAngle = scale.convert(value1);
 
                 if (foreground.enabled) {
-                    const fill = foregroundColorScale?.convert(itemStartValue) ?? foreground.fill;
+                    const fill = colorStop?.color ?? foregroundColorScale?.convert(value0) ?? foreground.fill;
 
                     nodeData.push({
                         series: this,
@@ -317,7 +320,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                 }
 
                 if (background.enabled) {
-                    const fill = backgroundColorScale?.convert(itemStartValue) ?? background.fill;
+                    const fill = backgroundColorScale?.convert(value0) ?? background.fill;
 
                     backgroundData.push({
                         series: this,
@@ -336,6 +339,8 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                         fill,
                     });
                 }
+
+                value0 = value1;
             }
         }
 
@@ -413,10 +418,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         this.contentGroup.visible = this.visible;
         this.contentGroup.opacity = this.getOpacity();
 
-        let highlightedDatum: RadialGaugeNodeDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
-        if (highlightedDatum != null && (highlightedDatum.series !== this || highlightedDatum.datum == null)) {
-            highlightedDatum = undefined;
-        }
+        const isHighlight = this.ctx.highlightManager?.getActiveHighlight()?.series === this;
 
         const nodeData = this.contextNodeData?.nodeData ?? [];
         const labelData = this.contextNodeData?.labelData ?? [];
@@ -436,7 +438,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         await this.updateBackgroundNodes({ backgroundSelection });
 
         this.highlightDatumSelection = await this.updateDatumSelection({
-            nodeData: highlightedDatum != null ? [highlightedDatum] : [],
+            nodeData: isHighlight ? nodeData : [],
             datumSelection: highlightDatumSelection,
         });
         await this.updateDatumNodes({ datumSelection: highlightDatumSelection, isHighlight: true });
@@ -478,11 +480,15 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             sector.centerX = centerX;
             sector.centerY = centerY;
             if (animationDisabled || isHighlight) {
+                const clipSector = computeClipSector(datum);
+
                 sector.innerRadius = innerRadius;
                 sector.outerRadius = outerRadius;
                 sector.startAngle = startAngle;
                 sector.endAngle = endAngle;
-                sector.clipSector = computeClipSector(datum);
+                sector.clipSector = clipSector;
+
+                sector.visible = clipSector == null || clipSectorVisibility(startAngle, endAngle, clipSector);
             }
 
             sector.fill = highlightStyle?.fill ?? fill;
@@ -649,9 +655,14 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
     protected resetAllAnimation() {
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
-        resetMotion([this.backgroundSelection, this.datumSelection], resetRadialGaugeSeriesAnimationFunctions);
+        resetMotion(
+            [this.backgroundSelection, this.datumSelection, this.highlightDatumSelection],
+            resetRadialGaugeSeriesAnimationFunctions
+        );
 
+        this.backgroundSelection.cleanup();
         this.datumSelection.cleanup();
+        this.highlightDatumSelection.cleanup();
         this.labelSelection.cleanup();
     }
 
@@ -699,7 +710,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             this.id,
             'node',
             animationManager,
-            [this.backgroundSelection, this.datumSelection],
+            [this.backgroundSelection, this.datumSelection, this.highlightDatumSelection],
             node,
             (_sector, datum) => datum.itemId!
         );

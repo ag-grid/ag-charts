@@ -45,15 +45,20 @@ export interface AgRadialGaugeSeriesOptionsKeys {}
 
 export interface AgRadialGaugeSeriesOptionsNames {}
 
-export interface AgChartRadialGaugeLabelOptions<TDatum>
+export interface AgRadialGaugeLabelOptions<TDatum>
     extends AgChartAutoSizedLabelOptions<TDatum, AgRadialGaugeSeriesLabelFormatterParams> {
     /** Text to always display. */
     text?: string;
 }
-export interface AgChartRadialGaugeSecondaryLabelOptions<TDatum>
+export interface AgRadialGaugeSecondaryLabelOptions<TDatum>
     extends AgChartAutoSizedSecondaryLabelOptions<TDatum, AgRadialGaugeSeriesLabelFormatterParams> {
     /** Text to always display. */
     text?: string;
+}
+
+export interface AgRadialGaugeColorStop {
+    stop?: number;
+    color?: CssColor;
 }
 
 export interface AgRadialGaugeSeriesThemeableOptions<TDatum = any>
@@ -69,6 +74,7 @@ export interface AgRadialGaugeSeriesThemeableOptions<TDatum = any>
     cornerMode?: 'container' | 'item';
     /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
     colorRange?: CssColor[];
+    colorStops?: AgRadialGaugeColorStop[];
     /** Configuration for the needle. */
     needle?: AgRadialGaugeSeriesNeedleStyle;
     /** Configuration for the foreground. */
@@ -76,9 +82,9 @@ export interface AgRadialGaugeSeriesThemeableOptions<TDatum = any>
     /** Configuration for the background. */
     background?: AgRadialGaugeSeriesBackgroundStyle;
     /** Configuration for the labels shown inside the shape. */
-    label?: AgChartAutoSizedLabelOptions<TDatum, AgRadialGaugeSeriesLabelFormatterParams>;
+    label?: AgRadialGaugeLabelOptions<TDatum>;
     /** Configuration for the labels shown inside the shape. */
-    secondaryLabel?: AgChartAutoSizedSecondaryLabelOptions<TDatum, AgRadialGaugeSeriesLabelFormatterParams>;
+    secondaryLabel?: AgRadialGaugeSecondaryLabelOptions<TDatum>;
     /** Distance between the shape edges and the text. */
     padding?: PixelSize;
     /** Series-specific tooltip configuration. */

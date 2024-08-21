@@ -33,6 +33,20 @@ export interface RadialGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     fill: string;
 }
 
+export interface RadialGaugeStopDatum {
+    centerX: number;
+    centerY: number;
+    innerRadius: number;
+    outerRadius: number;
+    startAngle: number;
+    endAngle: number;
+    clipStartAngle: number | undefined;
+    clipEndAngle: number | undefined;
+    startCornerRadius: number;
+    endCornerRadius: number;
+    fill: string;
+}
+
 export type RadialGaugeLabelDatum = {
     label: LabelType;
     centerX: number;
@@ -56,6 +70,8 @@ const {
     BaseProperties,
     SeriesTooltip,
     SeriesProperties,
+    PropertiesArray,
+    Validate,
     BOOLEAN,
     COLOR_STRING,
     COLOR_STRING_ARRAY,
@@ -64,11 +80,19 @@ const {
     NUMBER_ARRAY,
     NUMBER,
     OBJECT,
+    OBJECT_ARRAY,
     POSITIVE_NUMBER,
     RATIO,
     STRING,
-    Validate,
 } = _ModuleSupport;
+
+export class RadialGaugeStop extends BaseProperties {
+    @Validate(NUMBER, { optional: true })
+    stop?: number;
+
+    @Validate(COLOR_STRING, { optional: true })
+    color?: string;
+}
 
 export class RadialGaugeForegroundProperties extends BaseProperties {
     @Validate(BOOLEAN)
@@ -176,6 +200,9 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeS
 
     @Validate(NUMBER_ARRAY)
     range: number[] = [0, 1];
+
+    @Validate(OBJECT_ARRAY)
+    colorStops = new PropertiesArray<RadialGaugeStop>(RadialGaugeStop);
 
     @Validate(NUMBER)
     startAngle: number = 0.75 * Math.PI;

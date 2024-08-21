@@ -51,6 +51,10 @@ export function computeClipSector(datum: AnimatableSectorDatum) {
     );
 }
 
+export function clipSectorVisibility(startAngle: number, endAngle: number, clipSector: _Scene.SectorBox) {
+    return Math.max(startAngle, clipSector.startAngle) <= Math.min(endAngle, clipSector.endAngle);
+}
+
 export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean) {
     const phase = initialLoad ? 'initial' : 'update';
 
@@ -92,8 +96,6 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean)
             const { startAngle, endAngle, outerRadius, innerRadius } = params;
             let { clipSector } = params;
 
-            let visible = true;
-
             if (clipSector != null && clipStartAngle != null && clipEndAngle != null) {
                 clipSector = new SectorBox(
                     Math.max(startAngle, clipSector.startAngle),
@@ -101,9 +103,9 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean)
                     clipSector.innerRadius,
                     clipSector.outerRadius
                 );
-
-                visible &&= Math.max(startAngle, clipSector.startAngle) <= Math.min(endAngle, clipSector.endAngle);
             }
+
+            const visible = clipSector == null || clipSectorVisibility(startAngle, endAngle, clipSector);
 
             return { visible, startAngle, endAngle, outerRadius, innerRadius, clipSector };
         },

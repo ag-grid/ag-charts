@@ -406,7 +406,7 @@ export class ChartTheme {
         params.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_BACKGROUND_FILL);
         params.set(DEFAULT_SHADOW_COLOUR, 'rgba(0, 0, 0, 0.5)');
         params.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
-            DEFAULT_FILLS.ORANGE,
+            DEFAULT_FILLS.RED,
             DEFAULT_FILLS.YELLOW,
             DEFAULT_FILLS.GREEN,
         ]);
