@@ -82,7 +82,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         this.end.toggleDragging(false);
     }
 
-    override getAnchor(): { x: number; y: number; position?: 'right' | 'above' | 'above-left' } {
+    override getAnchor() {
         return this.anchor;
     }
 
@@ -138,7 +138,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         // Shapes should be implemented by the extending annotation type class
     }
 
-    protected updateAnchor(_datum: Datum, bbox: _Scene.BBox, context: AnnotationContext) {
+    protected updateAnchor(_datum: Datum, bbox: _Scene.BBox, context: AnnotationContext): Anchor {
         return {
             x: bbox.x + context.seriesRect.x,
             y: bbox.y + context.seriesRect.y - bbox.height,

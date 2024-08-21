@@ -17,6 +17,10 @@ import type {
     LinePropertiesType,
     TextualPropertiesType,
 } from './annotationsSuperTypes';
+import { ArrowDownProperties } from './arrow-down/arrowDownProperties';
+import { ArrowDownScene } from './arrow-down/arrowDownScene';
+import { ArrowUpProperties } from './arrow-up/arrowUpProperties';
+import { ArrowUpScene } from './arrow-up/arrowUpScene';
 import { CalloutProperties } from './callout/calloutProperties';
 import { CalloutScene } from './callout/calloutScene';
 import { CommentProperties } from './comment/commentProperties';
@@ -54,6 +58,8 @@ export const annotationDatums: Record<AnnotationType, Constructor<AnnotationProp
 
     // Shapes
     [AnnotationType.Arrow]: ArrowProperties,
+    [AnnotationType.ArrowUp]: ArrowUpProperties,
+    [AnnotationType.ArrowDown]: ArrowDownProperties,
 };
 
 export const annotationScenes: Record<AnnotationType, Constructor<AnnotationScene>> = {
@@ -74,6 +80,8 @@ export const annotationScenes: Record<AnnotationType, Constructor<AnnotationScen
 
     // Shapes
     [AnnotationType.Arrow]: LineScene,
+    [AnnotationType.ArrowUp]: ArrowUpScene,
+    [AnnotationType.ArrowDown]: ArrowDownScene,
 };
 
 export function updateAnnotation(node: AnnotationScene, datum: AnnotationProperties, context: AnnotationContext) {
@@ -114,6 +122,14 @@ export function updateAnnotation(node: AnnotationScene, datum: AnnotationPropert
 
     // Shapes
     if (ArrowProperties.is(datum) && LineScene.is(node)) {
+        node.update(datum, context);
+    }
+
+    if (ArrowUpProperties.is(datum) && ArrowUpScene.is(node)) {
+        node.update(datum, context);
+    }
+
+    if (ArrowDownProperties.is(datum) && ArrowDownScene.is(node)) {
         node.update(datum, context);
     }
 }
