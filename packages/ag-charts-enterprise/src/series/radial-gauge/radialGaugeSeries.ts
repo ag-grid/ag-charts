@@ -232,26 +232,21 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
 
         // const colorRangeStops = colorRange?.length ?? 1;
         if (isContinuous) {
-            const { fill } = foreground;
-            if (foreground.enabled && cornersOnAllItems) {
-                nodeData.push({
-                    series: this,
-                    itemId: `value`,
-                    datum: value,
-                    centerX,
-                    centerY,
-                    outerRadius,
-                    innerRadius,
-                    startAngle: containerStartAngle - angleInset,
-                    endAngle: containerEndAngle + angleInset,
-                    clipStartAngle: undefined,
-                    clipEndAngle: undefined,
-                    startCornerRadius: cornerRadius,
-                    endCornerRadius: cornerRadius,
-                    fill,
-                });
-            } else if (foreground.enabled) {
+            if (foreground.enabled) {
                 const { fill } = foreground;
+                const angleParams = cornersOnAllItems
+                    ? {
+                          startAngle: containerStartAngle - angleInset,
+                          endAngle: containerEndAngle + angleInset,
+                          clipStartAngle: undefined,
+                          clipEndAngle: undefined,
+                      }
+                    : {
+                          startAngle: startAngle,
+                          endAngle: endAngle,
+                          clipStartAngle: containerStartAngle,
+                          clipEndAngle: containerEndAngle,
+                      };
                 nodeData.push({
                     series: this,
                     itemId: `value`,
@@ -260,10 +255,10 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                     centerY,
                     outerRadius,
                     innerRadius,
-                    startAngle: startAngle,
-                    endAngle: endAngle,
-                    clipStartAngle: containerStartAngle,
-                    clipEndAngle: containerEndAngle,
+                    startAngle: angleParams.startAngle,
+                    endAngle: angleParams.endAngle,
+                    clipStartAngle: angleParams.clipStartAngle,
+                    clipEndAngle: angleParams.clipEndAngle,
                     startCornerRadius: cornerRadius,
                     endCornerRadius: cornerRadius,
                     fill,
