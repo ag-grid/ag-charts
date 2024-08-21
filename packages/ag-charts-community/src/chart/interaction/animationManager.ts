@@ -86,6 +86,8 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
             defaultDuration: this.defaultDuration,
         });
 
+        console.log(opts.phase, opts.from, opts.to);
+
         if (this.forceTimeJump(animation, this.defaultDuration)) {
             // For tests, just skip animation forward in time.
             return;

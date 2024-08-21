@@ -20,7 +20,7 @@ import {
 
 const { fromToMotion, resetMotion, SeriesNodePickMode, StateMachine, createDatumId, EMPTY_TOOLTIP_CONTENT } =
     _ModuleSupport;
-const { Group, PointerEvents, Selection, Sector, Text, getMarker } = _Scene;
+const { Group, PointerEvents, Selection, Sector, Text, ConicGradient, getMarker } = _Scene;
 const { LinearScale, ColorScale } = _Scale;
 
 export type GaugeAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
@@ -251,7 +251,15 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
 
         if (isContinuous) {
             if (bar.enabled) {
-                const { fill } = bar;
+                let fill: string | _Scene.Gradient | undefined = bar.fill;
+                if (bar.colorRange != null) {
+                    fill ??= new ConicGradient(
+                        bar.colorRange.map((color, index, colorRange) => ({
+                            offset: index / (colorRange.length - 1),
+                            color,
+                        }))
+                    );
+                }
                 const angleParams = cornersOnAllItems
                     ? {
                           startAngle: containerStartAngle - angleInset,
@@ -284,7 +292,21 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             }
 
             if (background.enabled) {
-                const { fill } = background;
+                let fill: string | _Scene.Gradient | undefined = background.fill;
+                let backgroundColorRange = background.colorRange;
+                if (!bar.enabled) {
+                    backgroundColorRange ??= background.defaultColorRange;
+                }
+                if (backgroundColorRange != null) {
+                    fill ??= new ConicGradient(
+                        backgroundColorRange.map((color, index, colorRange) => ({
+                            offset: index / (colorRange.length - 1),
+                            color,
+                        }))
+                    );
+                }
+                fill ??= background.defaultFill;
+
                 backgroundData.push({
                     series: this,
                     itemId: `background`,
@@ -338,7 +360,11 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
 
                 if (background.enabled) {
                     const colorStopColor = !bar.enabled ? colorStop?.color : undefined;
-                    const fill = colorStopColor ?? backgroundColorScale?.convert(value0) ?? background.fill;
+                    const fill =
+                        colorStopColor ??
+                        backgroundColorScale?.convert(value0) ??
+                        background.fill ??
+                        background.defaultFill;
 
                     backgroundData.push({
                         series: this,
@@ -899,20 +925,18 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         }
 
         const { value, tooltip } = properties;
-        const { datum, fill } = nodeDatum;
+        const { datum } = nodeDatum;
 
         const title = '';
         const content = `${this.createDefaultLabelFormatter()(value)}`;
 
-        const color = fill;
-
         return tooltip.toTooltipHtml(
-            { title, content, backgroundColor: color },
+            { title, content },
             {
                 seriesId,
                 datum,
                 title,
-                color,
+                color: undefined,
                 itemId: undefined!,
                 ...this.getModuleTooltipParams(),
             }

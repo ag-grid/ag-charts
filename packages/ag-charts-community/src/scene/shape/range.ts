@@ -66,7 +66,7 @@ export class Range extends Shape {
         if (fillActive) {
             const { fillOpacity } = this;
 
-            ctx.fillStyle = fill;
+            this.applyFill(ctx);
             ctx.globalAlpha = opacity * fillOpacity;
 
             ctx.beginPath();

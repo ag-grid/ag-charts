@@ -31,7 +31,7 @@ export interface RadialGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     clipEndAngle: number | undefined;
     startCornerRadius: number;
     endCornerRadius: number;
-    fill: string;
+    fill: string | _Scene.Gradient | undefined;
 }
 
 export interface RadialGaugeTargetDatum {
@@ -145,8 +145,8 @@ export class RadialGaugeBarProperties extends BaseProperties {
     @Validate(COLOR_STRING_ARRAY, { optional: true })
     colorRange?: string[];
 
-    @Validate(COLOR_STRING)
-    fill: string = 'black';
+    @Validate(COLOR_STRING, { optional: true })
+    fill: string | undefined;
 
     @Validate(RATIO)
     fillOpacity: number = 1;
@@ -174,8 +174,8 @@ export class RadialGaugeBackgroundProperties extends BaseProperties {
     @Validate(COLOR_STRING_ARRAY, { optional: true })
     colorRange?: string[];
 
-    @Validate(COLOR_STRING)
-    fill: string = 'black';
+    @Validate(COLOR_STRING, { optional: true })
+    fill: string | undefined;
 
     @Validate(RATIO)
     fillOpacity: number = 1;
@@ -194,6 +194,12 @@ export class RadialGaugeBackgroundProperties extends BaseProperties {
 
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
+
+    @Validate(COLOR_STRING)
+    defaultFill: string = 'black';
+
+    @Validate(COLOR_STRING_ARRAY, { optional: true })
+    defaultColorRange?: string[];
 }
 
 export class RadialGaugeNeedleProperties extends BaseProperties {
