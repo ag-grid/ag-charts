@@ -105,7 +105,7 @@ export class CrossLineScene extends AnnotationScene {
         middle.toggleLocked(locked ?? false);
     }
 
-    private updateText = LineWithTextScene.updateLineText.bind(this);
+    private readonly updateText = LineWithTextScene.updateLineText.bind(this);
 
     private createAxisLabel(context: AnnotationAxisContext) {
         const axisLabel = new AxisLabelScene();

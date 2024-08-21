@@ -193,7 +193,9 @@ describe('Annotations', () => {
         it('should render line annotations with text', async () => {
             await prepareChart({
                 annotations: annotations.map((annotation, index) => {
-                    const y = index > 5 ? 40 : index > 2 ? 70 : 100;
+                    let y = 100;
+                    if (index > 2) y = 70;
+                    if (index > 5) y = 40;
                     const month = [2, 6, 10][index % 3];
 
                     return {
@@ -235,7 +237,9 @@ describe('Annotations', () => {
         it('should render parallel channel annotations with text', async () => {
             await prepareChart({
                 annotations: annotations.map((annotation, index) => {
-                    const y = index > 5 ? 40 : index > 2 ? 70 : 100;
+                    let y = 100;
+                    if (index > 2) y = 70;
+                    if (index > 5) y = 40;
                     const month = [2, 6, 10][index % 3];
 
                     return {
@@ -259,7 +263,9 @@ describe('Annotations', () => {
         it('should render disjoint channel annotations with text', async () => {
             await prepareChart({
                 annotations: annotations.map((annotation, index) => {
-                    const y = index > 5 ? 40 : index > 2 ? 70 : 100;
+                    let y = 100;
+                    if (index > 2) y = 70;
+                    if (index > 5) y = 40;
                     const month = [2, 6, 10][index % 3];
 
                     return {

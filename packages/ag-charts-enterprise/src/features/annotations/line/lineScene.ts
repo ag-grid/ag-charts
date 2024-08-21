@@ -94,7 +94,7 @@ export class LineScene extends LinearScene<LineTypeProperties> {
         end.toggleLocked(locked);
     }
 
-    private updateText = LineWithTextScene.updateLineText.bind(this);
+    private readonly updateText = LineWithTextScene.updateLineText.bind(this);
 
     updateCaps(datum: LineTypeProperties, coords: LineCoords) {
         if (!datum.startCap && this.startCap) {
