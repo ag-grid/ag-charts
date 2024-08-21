@@ -156,6 +156,22 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                     fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
                 },
             },
+            'arrow-up': {
+                fill: _Theme.PALETTE_UP_FILL,
+                handle: {
+                    fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
+                    stroke: _Theme.DEFAULT_ANNOTATION_COLOR,
+                    strokeWidth: 2,
+                },
+            },
+            'arrow-down': {
+                fill: _Theme.PALETTE_DOWN_FILL,
+                handle: {
+                    fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
+                    stroke: _Theme.DEFAULT_ANNOTATION_COLOR,
+                    strokeWidth: 2,
+                },
+            },
         },
     },
 };

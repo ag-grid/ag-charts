@@ -18,6 +18,10 @@ const { title, description } = Astro.props;
 <style lang="scss">
     @use 'design-system' as *;
 
+    :global(.mainContainer) {
+        --tab-bar-height: 52px;
+    }
+
     .container {
         --horizontal-padding: max(calc((100vw - var(--max-page-width)) / 2), var(--horizontal-margin));
         --menu-width: 14rem;

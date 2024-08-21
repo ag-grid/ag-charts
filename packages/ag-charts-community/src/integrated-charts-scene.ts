@@ -43,6 +43,8 @@ export { Circle } from './chart/marker/circle';
 export { Diamond } from './chart/marker/diamond';
 export { Square } from './chart/marker/square';
 export { Triangle } from './chart/marker/triangle';
+export { ArrowUp } from './chart/marker/arrowUp';
+export { ArrowDown } from './chart/marker/arrowDown';
 export { Tooltip, toTooltipHtml } from './chart/tooltip/tooltip';
 export type { TooltipMeta } from './chart/tooltip/tooltip';
 export { BBox } from './scene/bbox';

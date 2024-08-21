@@ -118,6 +118,10 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarAnnotationsText: 'Text',
     // Text for the annotation toolbar's arrow button
     toolbarAnnotationsArrow: 'Arrow',
+    // Text for the annotation toolbar's arrow mark up button
+    toolbarAnnotationsArrowUp: 'Arrow Mark Up',
+    // Text for the annotation toolbar's arrow mark down button
+    toolbarAnnotationsArrowDown: 'Arrow Mark Down',
     // Text for the range toolbar's 1 month button
     toolbarRange1Month: '1M',
     // Aria label for the range toolbar's 1 month button

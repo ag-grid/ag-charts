@@ -1,6 +1,10 @@
 import type { _Scene, _Util } from 'ag-charts-community';
 
 import { AnnotationType, type Point } from './annotationTypes';
+import type { ArrowDownProperties } from './arrow-down/arrowDownProperties';
+import type { ArrowDownScene } from './arrow-down/arrowDownScene';
+import type { ArrowUpProperties } from './arrow-up/arrowUpProperties';
+import type { ArrowUpScene } from './arrow-up/arrowUpScene';
 import type { CalloutProperties } from './callout/calloutProperties';
 import type { CalloutScene } from './callout/calloutScene';
 import type { CommentProperties } from './comment/commentProperties';
@@ -18,11 +22,16 @@ import type { ParallelChannelScene } from './parallel-channel/parallelChannelSce
 import { TextProperties } from './text/textProperties';
 import type { TextScene } from './text/textScene';
 
+export type ShapePropertyType = ArrowUpProperties | ArrowDownProperties;
 export type TextualPropertiesType = CalloutProperties | CommentProperties | NoteProperties | TextProperties;
 export type LinePropertiesType = LineProperties | HorizontalLineProperties | VerticalLineProperties | ArrowProperties;
 export type ChannelPropertiesType = ParallelChannelProperties | DisjointChannelProperties;
 
-export type AnnotationProperties = LinePropertiesType | ChannelPropertiesType | TextualPropertiesType;
+export type AnnotationProperties =
+    | LinePropertiesType
+    | ChannelPropertiesType
+    | TextualPropertiesType
+    | ShapePropertyType;
 
 export type AnnotationScene =
     // Lines
@@ -32,6 +41,10 @@ export type AnnotationScene =
     // Channels
     | ParallelChannelScene
     | DisjointChannelScene
+
+    // Shapes
+    | ArrowUpScene
+    | ArrowDownScene
 
     // Texts
     | CalloutScene

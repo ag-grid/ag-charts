@@ -18,6 +18,8 @@ export enum AnnotationType {
 
     // Shapes
     Arrow = 'arrow',
+    ArrowUp = 'arrow-up',
+    ArrowDown = 'arrow-down',
 }
 
 export type TextualAnnotationType =
@@ -53,6 +55,8 @@ export const ANNOTATION_BUTTONS = [
 
     // Shapes
     AnnotationType.Arrow,
+    AnnotationType.ArrowUp,
+    AnnotationType.ArrowDown,
 ] as const;
 export const ANNOTATION_BUTTON_GROUPS = ['line-menu', 'text-menu', 'shape-menu'] as const;
 
@@ -63,7 +67,7 @@ export function stringToAnnotationType(value: string) {
 }
 
 export interface Anchor extends Coords {
-    position: 'above' | 'above-left' | 'right';
+    position?: 'above' | 'above-left' | 'right' | 'below';
 }
 
 export interface Coords {

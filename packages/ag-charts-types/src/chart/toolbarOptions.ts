@@ -68,6 +68,8 @@ export interface AgToolbarSwitch extends AgBaseToolbarButton {
 
 export type AgIconName =
     | 'arrow-drawing'
+    | 'arrow-down'
+    | 'arrow-up'
     | 'callout-annotation'
     | 'candlestick-series'
     | 'comment-annotation'

@@ -9,6 +9,12 @@ import {
 } from './annotationTypes';
 import { getTypedDatum, hasLineStyle, isTextType, setColor, setFontSize, setLineStyle } from './annotationsConfig';
 import type { AnnotationProperties, AnnotationsStateMachineContext } from './annotationsSuperTypes';
+import { ArrowDownProperties } from './arrow-down/arrowDownProperties';
+import { ArrowDownScene } from './arrow-down/arrowDownScene';
+import { ArrowDownStateMachine } from './arrow-down/arrowDownState';
+import { ArrowUpProperties } from './arrow-up/arrowUpProperties';
+import { ArrowUpScene } from './arrow-up/arrowUpScene';
+import { ArrowUpStateMachine } from './arrow-up/arrowUpState';
 import { CalloutProperties } from './callout/calloutProperties';
 import { CalloutScene } from './callout/calloutScene';
 import { CalloutStateMachine } from './callout/calloutState';
@@ -429,6 +435,22 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     node: getNode<LineScene>(LineScene.is),
                     guardDragClickDoubleEvent,
                 }),
+                [AnnotationType.ArrowUp]: new ArrowUpStateMachine({
+                    ...ctx,
+                    create: createDatum<ArrowUpProperties>(AnnotationType.ArrowUp),
+                    node: getNode<ArrowUpScene>(ArrowUpScene.is),
+                    showAnnotationOptions: () => {
+                        if (this.active != null) ctx.showAnnotationOptions(this.active);
+                    },
+                }),
+                [AnnotationType.ArrowDown]: new ArrowDownStateMachine({
+                    ...ctx,
+                    create: createDatum<ArrowDownProperties>(AnnotationType.ArrowDown),
+                    node: getNode<ArrowDownScene>(ArrowDownScene.is),
+                    showAnnotationOptions: () => {
+                        if (this.active != null) ctx.showAnnotationOptions(this.active);
+                    },
+                }),
             },
 
             [States.Dragging]: {
@@ -477,6 +499,14 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 // Shapes
                 [AnnotationType.Arrow]: dragStateMachine<ArrowProperties, LineScene>(ArrowProperties.is, LineScene.is),
+                [AnnotationType.ArrowUp]: dragStateMachine<ArrowUpProperties, ArrowUpScene>(
+                    ArrowUpProperties.is,
+                    ArrowUpScene.is
+                ),
+                [AnnotationType.ArrowDown]: dragStateMachine<ArrowDownProperties, ArrowDownScene>(
+                    ArrowDownProperties.is,
+                    ArrowDownScene.is
+                ),
             },
 
             [States.TextInput]: {
