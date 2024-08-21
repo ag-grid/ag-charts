@@ -18,7 +18,7 @@ const {
     Validate,
     LayoutElement,
 } = _ModuleSupport;
-const { Group, Rect, LinearGradientFill, Triangle, Rotatable, TranslatableGroup } = _Scene;
+const { Group, Rect, LinearGradientFill, Triangle, TranslatableGroup } = _Scene;
 const { createId } = _Util;
 
 class GradientBar extends BaseProperties {
@@ -42,8 +42,6 @@ class GradientLegendScale implements AgGradientLegendScaleOptions {
     padding?: _ModuleSupport.AxisTicks['padding'];
 }
 
-class RotatableTriangle extends Rotatable(Triangle) {}
-
 export class GradientLegend {
     static readonly className = 'GradientLegend';
 
@@ -59,7 +57,7 @@ export class GradientLegend {
     });
     private readonly gradientRect = new Rect();
     private readonly gradientFill = new LinearGradientFill();
-    private readonly arrow = new RotatableTriangle();
+    private readonly arrow = new Triangle();
 
     private readonly ticksGroup = new Group({ name: 'legend-axis-group' });
     private readonly destroyFns: Function[] = [];
