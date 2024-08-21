@@ -68,6 +68,17 @@ export class LineTextProperties extends Font(BaseProperties) {
     alignment?: 'left' | 'center' | 'right';
 }
 
+export class ChannelTextProperties extends Font(BaseProperties) {
+    @Validate(STRING)
+    label: string = '';
+
+    @Validate(UNION(['top', 'inside', 'bottom']), { optional: true })
+    position?: 'top' | 'inside' | 'bottom';
+
+    @Validate(UNION(['left', 'center', 'right']), { optional: true })
+    alignment?: 'left' | 'center' | 'right';
+}
+
 export interface AxisLabelFormatterParams {
     readonly value: any;
 }

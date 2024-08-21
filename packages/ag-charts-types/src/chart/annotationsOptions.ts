@@ -152,6 +152,8 @@ export interface AgParallelChannelAnnotation
     middle?: AgChannelAnnotationMiddle;
     /** The fill colour for the middle of the channel. */
     background?: AgChannelAnnotationBackground;
+    /** Configuration for the line text. */
+    text?: AgChannelText;
 }
 
 export interface AgDisjointChannelAnnotation
@@ -264,6 +266,12 @@ export interface AgAnnotationLabelFormatterParams {
 export interface AgLineText extends FontOptions {
     label?: string;
     position?: 'top' | 'center' | 'bottom';
+    alignment?: 'left' | 'center' | 'right';
+}
+
+export interface AgChannelText extends FontOptions {
+    label?: string;
+    position?: 'top' | 'inside' | 'bottom';
     alignment?: 'left' | 'center' | 'right';
 }
 

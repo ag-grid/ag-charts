@@ -91,6 +91,13 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                     fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
                     strokeWidth: 2,
                 },
+                text: {
+                    position: 'top',
+                    alignment: 'left',
+                    color: _Theme.DEFAULT_ANNOTATION_COLOR,
+                    fontSize: 14,
+                    fontFamily: _Theme.DEFAULT_FONT_FAMILY,
+                },
             },
 
             // Texts

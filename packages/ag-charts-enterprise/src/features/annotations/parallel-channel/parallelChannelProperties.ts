@@ -4,6 +4,7 @@ import {
     Annotation,
     Background,
     ChannelAnnotationMiddleProperties,
+    ChannelTextProperties,
     Extendable,
     Handle,
     Line,
@@ -30,6 +31,9 @@ export class ParallelChannelProperties extends Annotation(
 
     @Validate(OBJECT, { optional: true })
     middle = new ChannelAnnotationMiddleProperties();
+
+    @Validate(OBJECT, { optional: true })
+    text = new ChannelTextProperties();
 
     lineCap?: _Scene.ShapeLineCap = undefined;
     computedLineDash?: PixelSize[] = undefined;
