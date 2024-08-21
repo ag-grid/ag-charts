@@ -9,7 +9,6 @@ import type {
 } from '@generate-code-reference-plugin/doc-interfaces/types';
 import { fetchInterfacesReference } from '@utils/client/fetchInterfacesReference';
 import { useToggle } from '@utils/hooks/useToggle';
-import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classnames from 'classnames';
 import type { AllHTMLAttributes, CSSProperties } from 'react';
 import { createContext, useContext, useEffect } from 'react';
@@ -235,9 +234,7 @@ function ApiReferenceRow({
             </div>
             <div className={styles.rightColumn}>
                 <div role="presentation" className={styles.description}>
-                    <Markdown remarkPlugins={[remarkBreaks]} urlTransform={(url: string) => urlWithBaseUrl(url)}>
-                        {member.docs?.join('\n')}
-                    </Markdown>
+                    <Markdown remarkPlugins={[remarkBreaks]}>{member.docs?.join('\n')}</Markdown>
                 </div>
                 {nestedPath ? (
                     <div className={styles.actions}>
