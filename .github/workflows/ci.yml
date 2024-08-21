@@ -84,14 +84,8 @@ jobs:
 
             - name: nx lint
               id: lint
-              if: steps.setup.outputs.type != 'pr' && (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
+              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t lint --parallel=3 --exclude all
-            - name: nx lint (diff)
-              id: lint_diff
-              if: steps.setup.outputs.type == 'pr' && (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
-              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t lint --parallel=3 --exclude all
-              env:
-                  ESLINT_PLUGIN_DIFF_COMMIT: ${{ github.event.pull_request.base.ref }}
 
             - name: nx build
               id: build
