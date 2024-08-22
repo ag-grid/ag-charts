@@ -107,7 +107,7 @@ function getChartsUrl() {
     if (SITE_URL == null) return;
 
     if (SITE_URL?.includes('localhost:4600')) {
-        return 'https://localhost:4600';
+        return 'https://localhost:4600/charts';
     } else if (SITE_URL?.includes(STAGING_SITE_URL)) {
         return 'https://charts-staging.ag-grid.com';
     }
