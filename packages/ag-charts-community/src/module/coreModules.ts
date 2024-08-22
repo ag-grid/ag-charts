@@ -46,11 +46,9 @@ type OptionsSeriesType<T extends AgChartOptions> = NonNullable<T['series']>[numb
 type SeriesDefaultAxes<SeriesType extends RequiredSeriesType> =
     SeriesType extends OptionsSeriesType<AgCartesianChartOptions>
         ? AgCartesianChartOptions['axes']
-        : SeriesType extends OptionsSeriesType<AgPolarChartOptions>
+        : SeriesType extends OptionsSeriesType<AgPolarChartOptions | AgGaugeChartOptions>
           ? AgPolarChartOptions['axes']
-          : SeriesType extends OptionsSeriesType<AgGaugeChartOptions>
-            ? AgPolarChartOptions['axes']
-            : never;
+          : never;
 
 export type SeriesTooltipDefaults = {
     range: 'exact' | 'nearest';

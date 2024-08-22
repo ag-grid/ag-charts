@@ -33,15 +33,16 @@ export class GaugeChart extends Chart {
         angleAxis.translation.y = centerY;
 
         let radius = Math.min(seriesRect.width, seriesRect.height) / 2;
-        angleAxis.gridLength = radius;
-        angleAxis.calculateLayout();
 
         const MAX_ITERATIONS = 8;
         for (let i = 0; i < MAX_ITERATIONS; i += 1) {
-            const bbox: BBox | null | undefined = angleAxis.computeLabelsBBox({ hideWhenNecessary: true }, seriesRect);
+            const isFinalIteration = i === MAX_ITERATIONS - 1;
+            angleAxis.gridLength = radius;
+            angleAxis.calculateLayout();
+            const bbox = angleAxis.computeLabelsBBox({ hideWhenNecessary: isFinalIteration }, seriesRect);
 
             let shrinkDelta = 0;
-            if (bbox != null) {
+            if (!isFinalIteration && bbox != null) {
                 const bboxX0 = bbox.x + centerX;
                 const bboxX1 = bboxX0 + bbox.width;
                 const bboxY0 = bbox.y + centerY;
@@ -58,8 +59,6 @@ export class GaugeChart extends Chart {
 
             if (shrinkDelta > 0) {
                 radius -= shrinkDelta;
-                angleAxis.gridLength = radius;
-                angleAxis.calculateLayout();
             } else {
                 break;
             }

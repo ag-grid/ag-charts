@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { type TextAlign, type VerticalAlign, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { RadialGaugeNeedle } from './radialGaugeNeedle';
 import {
@@ -29,7 +29,7 @@ const {
 } = _ModuleSupport;
 const { Group, PointerEvents, Selection, Sector, Text, ConicGradient, getMarker } = _Scene;
 const { ColorScale } = _Scale;
-const { normalizeAngle360, normalizeAngle360Inclusive, toDegrees } = _Util;
+const { normalizeAngle360, normalizeAngle360Inclusive, toDegrees, toRadians, isBetweenAngles } = _Util;
 
 export type GaugeAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 export type GaugeAnimationEvent =
@@ -256,7 +256,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             innerRadiusRatio,
             outerRadiusRatio,
             cornerRadius,
-            itemMode,
+            appearance,
             cornerMode,
             needle,
             targets,
@@ -285,7 +285,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         const outerRadius = radius * outerRadiusRatio;
         const innerRadius = radius * innerRadiusRatio;
 
-        const isContinuous = itemMode === 'continuous';
+        const isContinuous = appearance === 'continuous';
         const cornersOnAllItems = cornerMode === 'item';
         let angleInset = 0;
         if (isContinuous && cornersOnAllItems) {
@@ -361,12 +361,19 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             });
         } else {
             const { values } = angleAxis.interval;
-            const segments = values != null ? values.length + 1 : 8;
+            let numSegments: number;
+            if (values != null) {
+                numSegments = values.length + 1;
+            } else if (angleAxis.scale.ticks != null) {
+                numSegments = angleAxis.scale.ticks().length - 1;
+            } else {
+                numSegments = 8;
+            }
             const domainRange = domain[1] - domain[0];
 
-            for (let i = 0; i < segments; i += 1) {
+            for (let i = 0; i < numSegments; i += 1) {
                 const isStart = i === 0;
-                const isEnd = i === segments - 1;
+                const isEnd = i === numSegments - 1;
 
                 let value0: number;
                 let value1: number;
@@ -376,9 +383,9 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                     value1 = i < values.length ? values[i] : domain[1];
                     colorScaleValue = value0;
                 } else {
-                    value0 = domain[0] + (i + 0) * (domainRange / segments);
-                    value1 = domain[0] + (i + 1) * (domainRange / segments);
-                    colorScaleValue = domain[0] + i * (domainRange / (segments - 1));
+                    value0 = domain[0] + (i + 0) * (domainRange / numSegments);
+                    value1 = domain[0] + (i + 1) * (domainRange / numSegments);
+                    colorScaleValue = domain[0] + i * (domainRange / (numSegments - 1));
                 }
 
                 const itemStartAngle = angleScale.convert(value0);
@@ -428,7 +435,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             }
         }
 
-        if (label.enabled) {
+        if (!needle.enabled && label.enabled) {
             const { color: fill, fontSize, fontStyle, fontWeight, fontFamily, lineHeight, formatter } = label;
             labelData.push({
                 label: LabelType.Primary,
@@ -446,7 +453,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             });
         }
 
-        if (secondaryLabel.enabled) {
+        if (!needle.enabled && secondaryLabel.enabled) {
             const { color: fill, fontSize, fontStyle, fontWeight, fontFamily, lineHeight, formatter } = secondaryLabel;
             labelData.push({
                 label: LabelType.Secondary,
@@ -484,7 +491,6 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                 shape,
                 sizeRatio,
                 radiusRatio,
-                rotation,
                 fill,
                 fillOpacity,
                 stroke,
@@ -496,6 +502,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             const targetAngle = angleScale.convert(target.value);
             const targetRadius = radiusRatio != null ? radiusRatio * radius : (innerRadius + outerRadius) / 2;
             const targetSize = sizeRatio * radius;
+            const targetRotation = toRadians(target.rotation);
             targetData.push({
                 index,
                 centerX,
@@ -504,7 +511,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                 radius: targetRadius,
                 angle: targetAngle,
                 size: targetSize,
-                rotation,
+                rotation: targetRotation,
                 fill,
                 fillOpacity,
                 stroke,
@@ -785,11 +792,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             label.fill = datum.fill;
             label.fontStyle = datum.fontStyle;
             label.fontWeight = datum.fontWeight;
-            label.fontSize = datum.fontSize;
             label.fontFamily = datum.fontFamily;
-
-            label.textAlign = 'center';
-            label.textBaseline = 'middle';
         });
 
         if (animationDisabled || this.labelsHaveExplicitText()) {
@@ -808,14 +811,44 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
     }
 
     formatLabelText(datum?: { label: number; secondaryLabel: number }) {
+        const angleAxis = this.axes[ChartAxisDirection.X];
+        if (angleAxis == null) return;
+
         const { labelSelection, radius } = this;
         const { label, secondaryLabel, padding, innerRadiusRatio } = this.properties;
+        const [startAngle, endAngle] = angleAxis.range;
+
+        const sweepAngle = normalizeAngle360Inclusive(endAngle - startAngle);
+        const largerThanHalf = sweepAngle > Math.PI;
+        const containsTop = largerThanHalf || isBetweenAngles(1.5 * Math.PI, startAngle, endAngle);
+        const containsRight = largerThanHalf || isBetweenAngles(0.0 * Math.PI, startAngle, endAngle);
+        const containsBottom = largerThanHalf || isBetweenAngles(0.5 * Math.PI, startAngle, endAngle);
+        const containsLeft = largerThanHalf || isBetweenAngles(1.0 * Math.PI, startAngle, endAngle);
+
+        let textAlign: TextAlign;
+        if (containsLeft && !containsRight) {
+            textAlign = 'right';
+        } else if (!containsLeft && containsRight) {
+            textAlign = 'left';
+        } else {
+            textAlign = 'center';
+        }
+
+        let verticalAlign: VerticalAlign;
+        if (containsTop && !containsBottom) {
+            verticalAlign = 'bottom';
+        } else if (!containsTop && containsBottom) {
+            verticalAlign = 'top';
+        } else {
+            verticalAlign = 'middle';
+        }
+
         formatRadialGaugeLabels(
             this,
             labelSelection,
             label,
             secondaryLabel,
-            padding,
+            { padding, textAlign, verticalAlign },
             radius * innerRadiusRatio,
             (value) => this.formatLabel(value),
             datum
