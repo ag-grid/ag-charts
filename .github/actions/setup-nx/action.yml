@@ -136,7 +136,7 @@ runs:
           with:
               path: |
                   ~/.cache/ms-playwright
-              key: playwright-${{ runner.os }}-${{ hashFiles('yarn.lock' }}
+              key: playwright-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
 
         - name: playwright install
           if: inputs.playwright_install == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
