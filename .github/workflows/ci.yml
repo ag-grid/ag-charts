@@ -182,6 +182,7 @@ jobs:
               uses: ./.github/actions/setup-nx
               with:
                   cache_mode: ro
+                  playwright_install: true # Cache playwright Chrome binaries for e2e jobs.
 
             - name: build examples
               run: |
