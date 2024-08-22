@@ -1,4 +1,9 @@
-import type { AgCartesianChartOptions, AgChartThemeOverrides, AgPolarChartOptions } from 'ag-charts-types';
+import type {
+    AgCartesianChartOptions,
+    AgChartThemeOverrides,
+    AgGaugeChartOptions,
+    AgPolarChartOptions,
+} from 'ag-charts-types';
 import type { AgChartOptions } from 'ag-charts-types';
 
 import type { ChartLegend, ChartLegendType } from '../chart/legendDatum';
@@ -43,7 +48,9 @@ type SeriesDefaultAxes<SeriesType extends RequiredSeriesType> =
         ? AgCartesianChartOptions['axes']
         : SeriesType extends OptionsSeriesType<AgPolarChartOptions>
           ? AgPolarChartOptions['axes']
-          : never;
+          : SeriesType extends OptionsSeriesType<AgGaugeChartOptions>
+            ? AgPolarChartOptions['axes']
+            : never;
 
 export type SeriesTooltipDefaults = {
     range: 'exact' | 'nearest';

@@ -52,7 +52,7 @@ export class PolarChart extends Chart {
         const innerRadiusRatio = radiusAxis.innerRadiusRatio;
 
         angleAxis.innerRadiusRatio = innerRadiusRatio;
-        angleAxis.computeRange?.();
+        angleAxis.computeRange();
         angleAxis.gridLength = radius;
 
         radiusAxis.gridAngles = angles;

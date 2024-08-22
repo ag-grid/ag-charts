@@ -13,7 +13,9 @@ export interface AgRadialGaugeSeriesScale {
 export interface AgRadialGaugeSeriesTooltipRendererParams<TDatum>
     extends AgSeriesTooltipRendererParams<TDatum>,
         AgRadialGaugeSeriesOptionsKeys,
-        AgRadialGaugeSeriesOptionsNames {}
+        AgRadialGaugeSeriesOptionsNames {
+    value: number;
+}
 
 export interface AgRadialGaugeSeriesHighlightStyle<_TDatum>
     extends AgSeriesHighlightStyle,

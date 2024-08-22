@@ -1,6 +1,5 @@
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
-import { AngleNumberAxis } from '../../axes/angle-number/angleNumberAxis';
 import { RadialGaugeNeedle } from './radialGaugeNeedle';
 import {
     type AgRadialGaugeColorStopDatum,
@@ -19,11 +18,18 @@ import {
     resetRadialGaugeSeriesAnimationFunctions,
 } from './radialGaugeUtil';
 
-const { fromToMotion, resetMotion, SeriesNodePickMode, StateMachine, createDatumId, EMPTY_TOOLTIP_CONTENT } =
-    _ModuleSupport;
+const {
+    fromToMotion,
+    resetMotion,
+    SeriesNodePickMode,
+    StateMachine,
+    createDatumId,
+    ChartAxisDirection,
+    EMPTY_TOOLTIP_CONTENT,
+} = _ModuleSupport;
 const { Group, PointerEvents, Selection, Sector, Text, ConicGradient, getMarker } = _Scene;
-const { LinearScale, ColorScale } = _Scale;
-const { normalizeAngle360, normalizeAngle360Inclusive, toDegrees, toRadians, clockwiseAngles } = _Util;
+const { ColorScale } = _Scale;
+const { normalizeAngle360, normalizeAngle360Inclusive, toDegrees } = _Util;
 
 export type GaugeAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 export type GaugeAnimationEvent =
@@ -59,10 +65,11 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
     static readonly className = 'RadialGaugeSeries';
     static readonly type = 'radial-gauge' as const;
 
+    override canHaveAxes: boolean = true;
+
     override properties = new RadialGaugeSeriesProperties();
 
     public radius: number = 0;
-    private readonly axis: AngleNumberAxis;
 
     public getNodeData(): RadialGaugeNodeDatum[] | undefined {
         return this.contextNodeData?.nodeData;
@@ -93,10 +100,6 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
     private labelSelection: _Scene.Selection<_Scene.Text, RadialGaugeLabelDatum> = Selection.select(
         this.itemLabelGroup,
         Text
-    );
-    private highlightDatumSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum> = Selection.select(
-        this.highlightNode,
-        () => this.nodeFactory()
     );
 
     private readonly animationState: _ModuleSupport.StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
@@ -147,8 +150,6 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             },
         });
 
-        this.axis = new AngleNumberAxis(moduleCtx);
-
         this.backgroundGroup.pointerEvents = PointerEvents.None;
         this.itemLabelGroup.pointerEvents = PointerEvents.None;
     }
@@ -175,24 +176,19 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         this.animationState.transition('updateData');
     }
 
-    private getAngles() {
-        const { properties } = this;
-        return clockwiseAngles(
-            toRadians(properties.startAngle) - Math.PI / 2,
-            toRadians(properties.endAngle) - Math.PI / 2
-        );
-    }
+    private formatLabel(value: number) {
+        const angleAxis = this.axes[ChartAxisDirection.X];
+        if (angleAxis == null) return '';
 
-    private createDefaultLabelFormatter() {
-        const { min, max } = this.properties.scale;
+        const [min, max] = angleAxis.scale.domain;
         const minLog10 = min !== 0 ? Math.ceil(Math.log10(Math.abs(min))) : 0;
         const maxLog10 = max !== 0 ? Math.ceil(Math.log10(Math.abs(max))) : 0;
         const dp = Math.max(2 - Math.max(minLog10, maxLog10), 0);
-        return (value: number) => value.toFixed(dp);
+        return value.toFixed(dp);
     }
 
-    private getColorStops() {
-        const { scale, colorStops } = this.properties;
+    private getColorStops([min, max]: number[]) {
+        const { colorStops } = this.properties;
         if (colorStops.length === 0) return;
 
         const out: AgRadialGaugeColorStopDatum[] = [];
@@ -215,8 +211,8 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             let stop = colorStop.stop;
             const color = colorStop.color;
             if (stop == null) {
-                const value0 = colorStops[previousDefinedStopIndex].stop ?? scale.min;
-                const value1 = colorStops[nextDefinedStopIndex].stop ?? scale.max;
+                const value0 = colorStops[previousDefinedStopIndex].stop ?? min;
+                const value1 = colorStops[nextDefinedStopIndex].stop ?? max;
                 stop =
                     value0 +
                     ((value1 - value0) * (i - previousDefinedStopIndex)) /
@@ -233,19 +229,18 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
 
     private createConicGradient(
         colorStops: AgRadialGaugeColorStopDatum[] | undefined,
+        [min, max]: number[],
         startAngle: number,
         endAngle: number
     ) {
         if (colorStops == null) return;
-
-        const { scale } = this.properties;
 
         const conicAngle = normalizeAngle360((startAngle + endAngle) / 2 + Math.PI);
         const sweepAngle = normalizeAngle360Inclusive(endAngle - startAngle);
 
         const stops = colorStops.map((colorStop): _Scene.GradientColorStop => {
             const { stop, color } = colorStop;
-            const angle = startAngle + (sweepAngle * stop - scale.min) / (scale.max - scale.min);
+            const angle = startAngle + (sweepAngle * stop - min) / (max - min);
             const offset = (angle - conicAngle) / (2 * Math.PI);
             return { offset, color };
         });
@@ -254,11 +249,10 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
     }
 
     override async createNodeData() {
-        const { id: seriesId, properties } = this;
+        const { id: seriesId, properties, radius } = this;
         const { width, height } = this.chart!.seriesRect!;
         const {
             value,
-            scale,
             innerRadiusRatio,
             outerRadiusRatio,
             cornerRadius,
@@ -271,20 +265,25 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             label,
             secondaryLabel,
         } = properties;
-        const { startAngle, endAngle } = this.getAngles();
-        const colorStops = this.getColorStops();
+
+        const angleAxis = this.axes[ChartAxisDirection.X];
+        if (angleAxis == null) return;
+
+        const { domain } = angleAxis.scale;
+        const colorStops = this.getColorStops(domain);
         const nodeData: RadialGaugeNodeDatum[] = [];
         const targetData: RadialGaugeTargetDatum[] = [];
         const needleData: RadialGaugeNeedleDatum[] = [];
         const labelData: RadialGaugeLabelDatum[] = [];
         const backgroundData: RadialGaugeNodeDatum[] = [];
 
-        this.radius = Math.min(width, height) / 2;
+        const [startAngle, endAngle] = angleAxis.range;
+        const angleScale = angleAxis.scale;
 
         const centerX = width / 2;
         const centerY = height / 2;
-        const outerRadius = this.radius * outerRadiusRatio;
-        const innerRadius = this.radius * innerRadiusRatio;
+        const outerRadius = radius * outerRadiusRatio;
+        const innerRadius = radius * innerRadiusRatio;
 
         const isContinuous = itemMode === 'continuous';
         const cornersOnAllItems = cornerMode === 'item';
@@ -294,16 +293,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             angleInset = appliedCornerRadius / ((innerRadius + outerRadius) / 2);
         }
 
-        const range: [number, number] = [startAngle + angleInset, endAngle - angleInset];
-
-        this.axis.setDomain([scale.min, scale.max]);
-        this.axis.range = range;
-
-        const angleScale = new LinearScale();
-        angleScale.domain = [scale.min, scale.max];
-        angleScale.range = range;
-
-        const containerStartAngle = angleScale.convert(scale.min);
+        const containerStartAngle = angleScale.convert(domain[0]);
         const containerEndAngle = angleScale.convert(value);
 
         let colorScale: _Scale.ColorScale | undefined;
@@ -316,7 +306,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         if (isContinuous) {
             if (bar.enabled) {
                 const barFill: string | _Scene.Gradient | undefined =
-                    bar.fill ?? this.createConicGradient(colorStops, startAngle, endAngle);
+                    bar.fill ?? this.createConicGradient(colorStops, domain, startAngle, endAngle);
                 const angleParams = cornersOnAllItems
                     ? {
                           startAngle: containerStartAngle - angleInset,
@@ -350,7 +340,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
 
             const backgroundFill: string | _Scene.Gradient | undefined =
                 background.fill ??
-                this.createConicGradient(!bar.enabled ? colorStops : undefined, startAngle, endAngle) ??
+                this.createConicGradient(!bar.enabled ? colorStops : undefined, domain, startAngle, endAngle) ??
                 background.defaultFill;
 
             backgroundData.push({
@@ -361,8 +351,8 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                 centerY,
                 outerRadius,
                 innerRadius,
-                startAngle: startAngle,
-                endAngle: endAngle,
+                startAngle: startAngle - angleInset,
+                endAngle: endAngle + angleInset,
                 clipStartAngle: undefined,
                 clipEndAngle: undefined,
                 startCornerRadius: cornerRadius,
@@ -370,9 +360,9 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                 fill: backgroundFill,
             });
         } else {
-            const { values } = scale;
+            const { values } = angleAxis.interval;
             const segments = values != null ? values.length + 1 : 8;
-            const domainRange = scale.max - scale.min;
+            const domainRange = domain[1] - domain[0];
 
             for (let i = 0; i < segments; i += 1) {
                 const isStart = i === 0;
@@ -382,13 +372,13 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                 let value1: number;
                 let colorScaleValue: number;
                 if (values != null) {
-                    value0 = i > 0 ? values[i - 1] : scale.min;
-                    value1 = i < values.length ? values[i] : scale.max;
+                    value0 = i > 0 ? values[i - 1] : domain[0];
+                    value1 = i < values.length ? values[i] : domain[1];
                     colorScaleValue = value0;
                 } else {
-                    value0 = scale.min + (i + 0) * (domainRange / segments);
-                    value1 = scale.min + (i + 1) * (domainRange / segments);
-                    colorScaleValue = scale.min + i * (domainRange / (segments - 1));
+                    value0 = domain[0] + (i + 0) * (domainRange / segments);
+                    value1 = domain[0] + (i + 1) * (domainRange / segments);
+                    colorScaleValue = domain[0] + i * (domainRange / (segments - 1));
                 }
 
                 const itemStartAngle = angleScale.convert(value0);
@@ -476,15 +466,15 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
 
         if (needle.enabled) {
             const { spacing } = needle;
-            let radius = needle.radiusRatio != null ? this.radius * needle.radiusRatio : innerRadius;
-            radius = Math.max(radius - spacing, 0);
-            const angle = angleScale.convert(value);
+            let needleRadius = needle.radiusRatio != null ? radius * needle.radiusRatio : innerRadius;
+            needleRadius = Math.max(needleRadius - spacing, 0);
+            const needleAngle = angleScale.convert(value);
 
             needleData.push({
                 centerX,
                 centerY,
-                radius,
-                angle,
+                radius: needleRadius,
+                angle: needleAngle,
             });
         }
 
@@ -503,17 +493,17 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                 lineDash,
                 lineDashOffset,
             } = target;
-            const angle = angleScale.convert(target.value);
-            const radius = radiusRatio != null ? radiusRatio * this.radius : (innerRadius + outerRadius) / 2;
-            const size = sizeRatio * this.radius;
+            const targetAngle = angleScale.convert(target.value);
+            const targetRadius = radiusRatio != null ? radiusRatio * radius : (innerRadius + outerRadius) / 2;
+            const targetSize = sizeRatio * radius;
             targetData.push({
                 index,
                 centerX,
                 centerY,
                 shape,
-                radius,
-                angle,
-                size,
+                radius: targetRadius,
+                angle: targetAngle,
+                size: targetSize,
                 rotation,
                 fill,
                 fillOpacity,
@@ -524,6 +514,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                 lineDashOffset,
             });
         }
+
         return {
             itemId: seriesId,
             nodeData,
@@ -534,29 +525,21 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         };
     }
 
-    async updateSelections(): Promise<void> {
-        if (this.nodeDataRefresh) {
+    async updateSelections(resize: boolean): Promise<void> {
+        if (this.nodeDataRefresh || resize) {
             this.contextNodeData = await this.createNodeData();
             this.nodeDataRefresh = false;
         }
     }
 
-    override async update(): Promise<void> {
-        const {
-            datumSelection,
-            labelSelection,
-            needleSelection,
-            targetSelection,
-            backgroundSelection,
-            highlightDatumSelection,
-        } = this;
+    override async update({ seriesRect }: { seriesRect?: _Scene.BBox }): Promise<void> {
+        const { datumSelection, labelSelection, needleSelection, targetSelection, backgroundSelection } = this;
 
-        await this.updateSelections();
+        const resize = this.checkResize(seriesRect);
+        await this.updateSelections(resize);
 
         this.contentGroup.visible = this.visible;
         this.contentGroup.opacity = this.getOpacity();
-
-        const isHighlight = this.ctx.highlightManager?.getActiveHighlight()?.series === this;
 
         const nodeData = this.contextNodeData?.nodeData ?? [];
         const labelData = this.contextNodeData?.labelData ?? [];
@@ -574,17 +557,14 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         await this.updateTargetNodes({ targetSelection });
 
         this.datumSelection = await this.updateDatumSelection({ nodeData, datumSelection });
-        await this.updateDatumNodes({ datumSelection, isHighlight: false });
-
-        this.highlightDatumSelection = await this.updateDatumSelection({
-            nodeData: isHighlight ? nodeData : [],
-            datumSelection: highlightDatumSelection,
-        });
-        await this.updateDatumNodes({ datumSelection: highlightDatumSelection, isHighlight: true });
+        await this.updateDatumNodes({ datumSelection });
 
         this.labelSelection = await this.updateLabelSelection({ labelData, labelSelection });
         await this.updateLabelNodes({ labelSelection });
 
+        if (resize) {
+            this.animationState.transition('resize');
+        }
         this.animationState.transition('update');
     }
 
@@ -595,15 +575,11 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => datum.itemId!);
     }
 
-    private async updateDatumNodes(opts: {
-        datumSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum>;
-        isHighlight: boolean;
-    }) {
-        const { datumSelection, isHighlight } = opts;
+    private async updateDatumNodes(opts: { datumSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum> }) {
+        const { datumSelection } = opts;
         const { ctx, properties } = this;
         const { sectorSpacing, bar } = properties;
         const { fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = bar;
-        const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(bar.strokeWidth);
         const animationDisabled = ctx.animationManager.isSkipped();
 
@@ -621,7 +597,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             } = datum;
             sector.centerX = centerX;
             sector.centerY = centerY;
-            if (animationDisabled || isHighlight) {
+            if (animationDisabled) {
                 const clipSector = computeClipSector(datum);
 
                 sector.innerRadius = innerRadius;
@@ -633,13 +609,13 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                 sector.visible = clipSector == null || clipSectorVisibility(startAngle, endAngle, clipSector);
             }
 
-            sector.fill = highlightStyle?.fill ?? fill;
-            sector.fillOpacity = highlightStyle?.fillOpacity ?? fillOpacity;
-            sector.stroke = highlightStyle?.stroke ?? stroke;
-            sector.strokeOpacity = highlightStyle?.strokeOpacity ?? strokeOpacity;
-            sector.strokeWidth = highlightStyle?.strokeWidth ?? strokeWidth;
-            sector.lineDash = highlightStyle?.lineDash ?? lineDash;
-            sector.lineDashOffset = highlightStyle?.lineDashOffset ?? lineDashOffset;
+            sector.fill = fill;
+            sector.fillOpacity = fillOpacity;
+            sector.stroke = stroke;
+            sector.strokeOpacity = strokeOpacity;
+            sector.strokeWidth = strokeWidth;
+            sector.lineDash = lineDash;
+            sector.lineDashOffset = lineDashOffset;
             sector.startOuterCornerRadius = startCornerRadius;
             sector.startInnerCornerRadius = startCornerRadius;
             sector.endOuterCornerRadius = endCornerRadius;
@@ -841,7 +817,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             secondaryLabel,
             padding,
             radius * innerRadiusRatio,
-            this.createDefaultLabelFormatter(),
+            (value) => this.formatLabel(value),
             datum
         );
     }
@@ -849,14 +825,10 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
     protected resetAllAnimation() {
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
-        resetMotion(
-            [this.backgroundSelection, this.datumSelection, this.highlightDatumSelection],
-            resetRadialGaugeSeriesAnimationFunctions
-        );
+        resetMotion([this.backgroundSelection, this.datumSelection], resetRadialGaugeSeriesAnimationFunctions);
 
         this.backgroundSelection.cleanup();
         this.datumSelection.cleanup();
-        this.highlightDatumSelection.cleanup();
         this.labelSelection.cleanup();
     }
 
@@ -876,7 +848,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             this.id,
             'node',
             animationManager,
-            [this.backgroundSelection, this.datumSelection, this.highlightDatumSelection],
+            [this.backgroundSelection, this.datumSelection],
             node,
             (_sector, datum) => datum.itemId!
         );
@@ -905,7 +877,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             this.id,
             'node',
             animationManager,
-            [this.backgroundSelection, this.datumSelection, this.highlightDatumSelection],
+            [this.backgroundSelection, this.datumSelection],
             node,
             (_sector, datum) => datum.itemId!
         );
@@ -968,7 +940,18 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         return [];
     }
 
-    override getTooltipHtml(nodeDatum: _Scene.Sector): _ModuleSupport.TooltipContent {
+    protected override pickNodeExactShape(point: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
+        return this.pickNodeClosestDatum(point);
+    }
+
+    protected override pickNodeClosestDatum(_point: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
+        return {
+            datum: { series: this, datum: this },
+            distance: 0,
+        };
+    }
+
+    override getTooltipHtml(_nodeDatum: _Scene.Sector): _ModuleSupport.TooltipContent {
         const { id: seriesId, properties } = this;
 
         if (!properties.isValid()) {
@@ -976,19 +959,19 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         }
 
         const { value, tooltip } = properties;
-        const { datum } = nodeDatum;
 
         const title = '';
-        const content = `${this.createDefaultLabelFormatter()(value)}`;
+        const content = this.formatLabel(value);
 
         return tooltip.toTooltipHtml(
             { title, content },
             {
                 seriesId,
-                datum,
                 title,
+                datum: undefined!,
                 color: undefined,
                 itemId: undefined!,
+                value,
                 ...this.getModuleTooltipParams(),
             }
         );

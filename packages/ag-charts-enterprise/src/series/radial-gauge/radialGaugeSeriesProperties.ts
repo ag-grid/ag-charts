@@ -87,7 +87,6 @@ const {
     FUNCTION,
     LINE_DASH,
     MARKER_SHAPE,
-    NUMBER_ARRAY,
     NUMBER,
     OBJECT_ARRAY,
     OBJECT,
@@ -95,17 +94,6 @@ const {
     RATIO,
     STRING,
 } = _ModuleSupport;
-
-export class AgRadialGaugeScale extends BaseProperties {
-    @Validate(NUMBER)
-    min: number = 0;
-
-    @Validate(NUMBER)
-    max: number = 1;
-
-    @Validate(NUMBER_ARRAY, { optional: true })
-    values: number[] | undefined;
-}
 
 export class RadialGaugeTargetProperties extends BaseProperties {
     @Validate(NUMBER)
@@ -251,20 +239,11 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeS
     @Validate(NUMBER)
     value: number = 0;
 
-    @Validate(OBJECT)
-    readonly scale = new AgRadialGaugeScale();
-
     @Validate(OBJECT_ARRAY)
     colorStops = new PropertiesArray<RadialGaugeStopProperties>(RadialGaugeStopProperties);
 
     @Validate(OBJECT_ARRAY)
     targets = new PropertiesArray<RadialGaugeTargetProperties>(RadialGaugeTargetProperties);
-
-    @Validate(NUMBER)
-    startAngle: number = -135;
-
-    @Validate(NUMBER)
-    endAngle: number = 135;
 
     @Validate(RATIO)
     outerRadiusRatio: number = 1;
