@@ -2,7 +2,7 @@ import { BBox } from '../../scene/bbox';
 import type { Point } from '../../scene/point';
 import { Path, ScenePathChangeDetection } from '../../scene/shape/path';
 import type { CanvasContext } from '../../scene/shape/shape';
-import { Scalable, Translatable } from '../../scene/transformable';
+import { Rotatable, Scalable, Translatable } from '../../scene/transformable';
 
 export type MarkerPathMove = { x: number; y: number; t?: 'move' };
 
@@ -55,6 +55,6 @@ class InternalMarker extends Path {
 }
 
 // Needed to ensure correct order of operations WRT computeBBox().
-export class Marker extends Scalable(Translatable(InternalMarker)) {
+export class Marker extends Rotatable(Scalable(Translatable(InternalMarker))) {
     public static center: Point = DEFAULT_CENTER_POINT;
 }

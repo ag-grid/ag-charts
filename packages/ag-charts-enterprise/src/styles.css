@@ -2,6 +2,7 @@
 @import url(./license/watermark.css);
 @import url(./components/popover/popover.css);
 @import url(./components/menu/menu.css);
+@import url(./components/dialog/dialog.css);
 @import url(./features/color-picker/colorPickerStyles.css);
 @import url(./features/annotations/annotations.css);
 @import url(./features/context-menu/contextMenuStyles.css);

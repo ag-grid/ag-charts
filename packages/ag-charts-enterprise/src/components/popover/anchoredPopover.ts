@@ -10,7 +10,9 @@ export interface AnchoredPopoverOptions extends PopoverOptions {}
  * A popover that opens at a given anchor point, keeps itself within the bounds of the chart, and can not be directly
  * moved by the user.
  */
-export class AnchoredPopover<Options extends AnchoredPopoverOptions = AnchoredPopoverOptions> extends Popover<Options> {
+export abstract class AnchoredPopover<
+    Options extends AnchoredPopoverOptions = AnchoredPopoverOptions,
+> extends Popover<Options> {
     private anchor?: _Util.Vec2;
     private fallbackAnchor?: Partial<_Util.Vec2>;
 
@@ -22,10 +24,10 @@ export class AnchoredPopover<Options extends AnchoredPopoverOptions = AnchoredPo
         this.repositionWithinBounds();
     }
 
-    public override show(options: Options) {
+    protected override showWithChildren(children: Array<HTMLElement>, options: Options) {
         const { anchor, fallbackAnchor } = this;
 
-        super.show(options);
+        const popover = super.showWithChildren(children, options);
 
         // If an anchor has already been provided, apply it to prevent a flash of the picker in the wrong location
         if (anchor) {
@@ -33,6 +35,8 @@ export class AnchoredPopover<Options extends AnchoredPopoverOptions = AnchoredPo
         }
 
         this.repositionWithinBounds();
+
+        return popover;
     }
 
     protected repositionWithinBounds() {

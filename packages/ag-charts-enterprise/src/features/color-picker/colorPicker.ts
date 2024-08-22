@@ -28,21 +28,20 @@ export class ColorPicker extends AnchoredPopover<ColorPickerOptions> {
         super(ctx, 'color-picker');
     }
 
-    public override show(opts: ColorPickerOptions) {
-        const element = this.createColorPicker(opts);
-        this.setContent(element);
-        super.show({ ...opts, class: 'ag-charts-color-picker', role: 'dialog' });
-        this.menuCloser = { close: () => this.doClose() };
+    public show(options: ColorPickerOptions) {
+        const element = this.createColorPicker(options);
+        const popover = this.showWithChildren([element], options);
+        popover.classList.add('ag-charts-color-picker');
+        popover.setAttribute('role', 'dialog');
     }
 
     private createColorPicker(opts: ColorPickerOptions) {
         let [h, s, v, a] = getHsva(opts.color ?? '#f00') ?? [0, 1, 0.5, 1];
         a = opts.opacity ?? a;
 
-        const colorPicker = createElement('div');
+        const colorPicker = createElement('div', 'ag-charts-color-picker__content');
         colorPicker.innerHTML = colorPickerTemplate;
         colorPicker.ariaLabel = this.ctx.localeManager.t('ariaLabelColorPicker');
-        colorPicker.className = 'ag-charts-color-picker__content';
 
         const paletteInput = colorPicker.querySelector<HTMLDivElement>('.ag-charts-color-picker__palette')!;
         const hueInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__hue-input')!;
@@ -103,7 +102,7 @@ export class ColorPicker extends AnchoredPopover<ColorPickerOptions> {
             switch (e.key) {
                 case 'Enter':
                 case 'Escape':
-                    opts.onClose?.();
+                    this.hide();
                     break;
                 default:
                     return;

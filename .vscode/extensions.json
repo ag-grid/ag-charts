@@ -8,6 +8,7 @@
     "github.vscode-github-actions",
     "eamodio.gitlens",
     "stripe.markdoc-language-support",
-    "firsttris.vscode-jest-runner"
+    "firsttris.vscode-jest-runner",
+    "naumovs.color-highlight"
   ]
 }

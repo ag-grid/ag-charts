@@ -7,8 +7,14 @@ import {
     AnnotationType,
     type GuardDragClickDoubleEvent,
 } from './annotationTypes';
-import { getTypedDatum, hasLineStyle, isTextType, setColor, setFontsize, setLineStyle } from './annotationsConfig';
+import { getTypedDatum, hasLineStyle, isTextType, setColor, setFontSize, setLineStyle } from './annotationsConfig';
 import type { AnnotationProperties, AnnotationsStateMachineContext } from './annotationsSuperTypes';
+import { ArrowDownProperties } from './arrow-down/arrowDownProperties';
+import { ArrowDownScene } from './arrow-down/arrowDownScene';
+import { ArrowDownStateMachine } from './arrow-down/arrowDownState';
+import { ArrowUpProperties } from './arrow-up/arrowUpProperties';
+import { ArrowUpScene } from './arrow-up/arrowUpScene';
+import { ArrowUpStateMachine } from './arrow-up/arrowUpState';
 import { CalloutProperties } from './callout/calloutProperties';
 import { CalloutScene } from './callout/calloutScene';
 import { CalloutStateMachine } from './callout/calloutState';
@@ -25,9 +31,9 @@ import { CrossLineStateMachine } from './cross-line/crossLineState';
 import { DisjointChannelProperties } from './disjoint-channel/disjointChannelProperties';
 import { DisjointChannelScene } from './disjoint-channel/disjointChannelScene';
 import { DisjointChannelStateMachine } from './disjoint-channel/disjointChannelState';
-import { LineProperties } from './line/lineProperties';
+import { ArrowProperties, LineProperties } from './line/lineProperties';
 import { LineScene } from './line/lineScene';
-import { LineStateMachine } from './line/lineState';
+import { ArrowStateMachine, LineStateMachine } from './line/lineState';
 import { NoteProperties } from './note/noteProperties';
 import { NoteScene } from './note/noteScene';
 import { NoteStateMachine } from './note/noteState';
@@ -220,7 +226,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             const node = ctx.node(this.active!);
             if (!datum || !node || !isTextType(datum)) return;
 
-            setFontsize(datum, datum.type, fontSize);
+            setFontSize(datum, datum.type, fontSize);
 
             ctx.updateTextInputFontSize(fontSize);
 
@@ -421,13 +427,29 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 ),
 
                 // Shapes
-                [AnnotationType.Arrow]: new LineStateMachine({
+                [AnnotationType.Arrow]: new ArrowStateMachine({
                     ...ctx,
-                    create: createDatum<LineProperties>(AnnotationType.Arrow),
+                    create: createDatum<ArrowProperties>(AnnotationType.Arrow),
                     delete: deleteDatum,
-                    datum: getDatum<LineProperties>(LineProperties.is),
+                    datum: getDatum<ArrowProperties>(ArrowProperties.is),
                     node: getNode<LineScene>(LineScene.is),
                     guardDragClickDoubleEvent,
+                }),
+                [AnnotationType.ArrowUp]: new ArrowUpStateMachine({
+                    ...ctx,
+                    create: createDatum<ArrowUpProperties>(AnnotationType.ArrowUp),
+                    node: getNode<ArrowUpScene>(ArrowUpScene.is),
+                    showAnnotationOptions: () => {
+                        if (this.active != null) ctx.showAnnotationOptions(this.active);
+                    },
+                }),
+                [AnnotationType.ArrowDown]: new ArrowDownStateMachine({
+                    ...ctx,
+                    create: createDatum<ArrowDownProperties>(AnnotationType.ArrowDown),
+                    node: getNode<ArrowDownScene>(ArrowDownScene.is),
+                    showAnnotationOptions: () => {
+                        if (this.active != null) ctx.showAnnotationOptions(this.active);
+                    },
                 }),
             },
 
@@ -476,7 +498,15 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 [AnnotationType.Note]: dragStateMachine<NoteProperties, NoteScene>(NoteProperties.is, NoteScene.is),
 
                 // Shapes
-                [AnnotationType.Arrow]: dragStateMachine<LineProperties, LineScene>(LineProperties.is, LineScene.is),
+                [AnnotationType.Arrow]: dragStateMachine<ArrowProperties, LineScene>(ArrowProperties.is, LineScene.is),
+                [AnnotationType.ArrowUp]: dragStateMachine<ArrowUpProperties, ArrowUpScene>(
+                    ArrowUpProperties.is,
+                    ArrowUpScene.is
+                ),
+                [AnnotationType.ArrowDown]: dragStateMachine<ArrowDownProperties, ArrowDownScene>(
+                    ArrowDownProperties.is,
+                    ArrowDownScene.is
+                ),
             },
 
             [States.TextInput]: {

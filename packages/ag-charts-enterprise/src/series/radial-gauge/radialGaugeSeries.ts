@@ -1,13 +1,18 @@
 import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
-import type { AgRadialGaugeSeriesStyle } from 'ag-charts-types';
 
+import { AngleNumberAxis } from '../../axes/angle-number/angleNumberAxis';
+import { RadialGaugeNeedle } from './radialGaugeNeedle';
 import {
     LabelType,
     type RadialGaugeLabelDatum,
     type RadialGaugeNodeDatum,
     RadialGaugeSeriesProperties,
+    type RadialGaugeTargetDatum,
 } from './radialGaugeSeriesProperties';
 import {
+    clipSectorVisibility,
+    computeClipSector,
+    fadeInFns,
     formatRadialGaugeLabels,
     prepareRadialGaugeSeriesAnimationFunctions,
     resetRadialGaugeSeriesAnimationFunctions,
@@ -15,8 +20,9 @@ import {
 
 const { fromToMotion, resetMotion, SeriesNodePickMode, StateMachine, createDatumId, EMPTY_TOOLTIP_CONTENT } =
     _ModuleSupport;
-const { Group, PointerEvents, SectorBox, Selection, Sector, Text } = _Scene;
-const { LinearScale } = _Scale;
+const { Group, PointerEvents, Selection, Sector, Text, ConicGradient, getMarker } = _Scene;
+const { LinearScale, ColorScale } = _Scale;
+const { normalizeAngle360, toDegrees } = _Util;
 
 export type GaugeAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 export type GaugeAnimationEvent =
@@ -30,8 +36,16 @@ export type GaugeAnimationEvent =
     | 'skip';
 export type GaugeAnimationData = { duration?: number };
 
-export interface RadialGaugeNodeDataContext
+interface RadialGaugeNeedleDatum {
+    centerX: number;
+    centerY: number;
+    radius: number;
+    angle: number;
+}
+interface RadialGaugeNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<RadialGaugeNodeDatum, RadialGaugeLabelDatum> {
+    needleData: RadialGaugeNeedleDatum[];
+    targetData: RadialGaugeTargetDatum[];
     backgroundData: RadialGaugeNodeDatum[];
 }
 
@@ -47,6 +61,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
     override properties = new RadialGaugeSeriesProperties();
 
     public radius: number = 0;
+    private readonly axis: AngleNumberAxis;
 
     public getNodeData(): RadialGaugeNodeDatum[] | undefined {
         return this.contextNodeData?.nodeData;
@@ -54,6 +69,8 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
 
     private readonly backgroundGroup = this.contentGroup.appendChild(new Group({ name: 'backgroundGroup' }));
     private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
+    private readonly itemNeedleGroup = this.contentGroup.appendChild(new Group({ name: 'itemNeedleGroup' }));
+    private readonly itemTargetGroup = this.contentGroup.appendChild(new Group({ name: 'itemTargetGroup' }));
     private readonly itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
 
     private backgroundSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum> = Selection.select(
@@ -63,6 +80,14 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
     private datumSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum> = Selection.select(
         this.itemGroup,
         () => this.nodeFactory()
+    );
+    private needleSelection: _Scene.Selection<RadialGaugeNeedle, RadialGaugeNeedleDatum> = Selection.select(
+        this.itemNeedleGroup,
+        RadialGaugeNeedle
+    );
+    private targetSelection: _Scene.Selection<_Scene.Marker, RadialGaugeTargetDatum> = Selection.select(
+        this.itemTargetGroup,
+        (datum) => this.markerFactory(datum)
     );
     private labelSelection: _Scene.Selection<_Scene.Text, RadialGaugeLabelDatum> = Selection.select(
         this.itemLabelGroup,
@@ -121,6 +146,8 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             },
         });
 
+        this.axis = new AngleNumberAxis(moduleCtx);
+
         this.backgroundGroup.pointerEvents = PointerEvents.None;
         this.itemLabelGroup.pointerEvents = PointerEvents.None;
     }
@@ -133,27 +160,52 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         return new Sector();
     }
 
+    private markerFactory(datum: RadialGaugeTargetDatum): _Scene.Marker {
+        const { shape = 'circle' } = datum;
+        const MarkerShape = getMarker(shape);
+        const marker = new MarkerShape();
+        marker.size = 1;
+        return marker;
+    }
+
     override async processData(): Promise<void> {
         this.nodeDataRefresh = true;
 
         this.animationState.transition('updateData');
     }
 
+    private createDefaultLabelFormatter() {
+        const [r0, r1] = this.properties.range;
+        const r0Log10 = r0 !== 0 ? Math.ceil(Math.log10(Math.abs(r0))) : 0;
+        const r1Log10 = r1 !== 0 ? Math.ceil(Math.log10(Math.abs(r1))) : 0;
+        const dp = Math.max(2 - Math.max(r0Log10, r1Log10), 0);
+        return (value: number) => value.toFixed(dp);
+    }
+
     override async createNodeData() {
-        const { id: seriesId } = this;
+        const { id: seriesId, properties } = this;
         const { width, height } = this.chart!.seriesRect!;
         const {
             value,
-            range,
+            range: domain,
             innerRadiusRatio,
+            outerRadiusRatio,
             startAngle,
             endAngle,
             cornerRadius,
-            cornerRadiusMode,
+            itemMode,
+            cornerMode,
+            needle,
+            targets,
+            bar,
+            background,
             label,
             secondaryLabel,
-        } = this.properties;
+        } = properties;
+        const colorStops = properties.colorStops.length !== 0 ? properties.colorStops : undefined;
         const nodeData: RadialGaugeNodeDatum[] = [];
+        const targetData: RadialGaugeTargetDatum[] = [];
+        const needleData: RadialGaugeNeedleDatum[] = [];
         const labelData: RadialGaugeLabelDatum[] = [];
         const backgroundData: RadialGaugeNodeDatum[] = [];
 
@@ -161,59 +213,195 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
 
         const centerX = width / 2;
         const centerY = height / 2;
-        const outerRadius = this.radius;
-        const innerRadius = outerRadius * innerRadiusRatio;
+        const outerRadius = this.radius * outerRadiusRatio;
+        const innerRadius = this.radius * innerRadiusRatio;
 
-        if (cornerRadiusMode === 'item') {
+        const isContinuous = itemMode === 'continuous';
+        const cornersOnAllItems = cornerMode === 'item';
+        let angleInset = 0;
+        if (isContinuous && cornersOnAllItems) {
             const appliedCornerRadius = Math.min(cornerRadius, (outerRadius - innerRadius) / 2);
-            const angleInset = appliedCornerRadius / ((innerRadius + outerRadius) / 2);
-            const scale = new LinearScale();
-            scale.domain = range;
-            scale.range = [startAngle + angleInset, endAngle - angleInset];
+            angleInset = appliedCornerRadius / ((innerRadius + outerRadius) / 2);
+        }
 
-            nodeData.push({
-                series: this,
-                itemId: 'value',
-                datum: value,
-                centerX,
-                centerY,
-                outerRadius,
-                innerRadius,
-                startAngle: scale.convert(range[0]) - angleInset,
-                endAngle: scale.convert(value) + angleInset,
-                clipStartAngle: undefined,
-                clipEndAngle: undefined,
-            });
+        const range: [number, number] = [startAngle + angleInset, endAngle - angleInset];
+
+        this.axis.setDomain(domain);
+        this.axis.range = range;
+
+        const scale = new LinearScale();
+        scale.domain = domain;
+        scale.range = range;
+
+        const containerStartAngle = scale.convert(domain[0]);
+        const containerEndAngle = scale.convert(value);
+
+        let barColorScale: _Scale.ColorScale | undefined;
+        if (bar.colorRange != null) {
+            barColorScale = new ColorScale();
+            barColorScale.domain = domain;
+            barColorScale.range = bar.colorRange!;
+        }
+
+        let backgroundColorScale: _Scale.ColorScale | undefined;
+        if (background.colorRange != null || !bar.enabled) {
+            backgroundColorScale = new ColorScale();
+            backgroundColorScale.domain = domain;
+            backgroundColorScale.range = background.colorRange ?? background.defaultColorRange!;
+        }
+
+        if (isContinuous) {
+            if (bar.enabled) {
+                let fill: string | _Scene.Gradient | undefined = bar.fill;
+                if (bar.colorRange != null) {
+                    fill ??= new ConicGradient(
+                        bar.colorRange.map((color, index, colorRange) => ({
+                            offset: index / (colorRange.length - 1),
+                            color,
+                        }))
+                    );
+                }
+                const angleParams = cornersOnAllItems
+                    ? {
+                          startAngle: containerStartAngle - angleInset,
+                          endAngle: containerEndAngle + angleInset,
+                          clipStartAngle: undefined,
+                          clipEndAngle: undefined,
+                      }
+                    : {
+                          startAngle: startAngle,
+                          endAngle: endAngle,
+                          clipStartAngle: containerStartAngle,
+                          clipEndAngle: containerEndAngle,
+                      };
+                nodeData.push({
+                    series: this,
+                    itemId: `value`,
+                    datum: value,
+                    centerX,
+                    centerY,
+                    outerRadius,
+                    innerRadius,
+                    startAngle: angleParams.startAngle,
+                    endAngle: angleParams.endAngle,
+                    clipStartAngle: angleParams.clipStartAngle,
+                    clipEndAngle: angleParams.clipEndAngle,
+                    startCornerRadius: cornerRadius,
+                    endCornerRadius: cornerRadius,
+                    fill,
+                });
+            }
+
+            if (background.enabled) {
+                let fill: string | _Scene.Gradient | undefined = background.fill;
+                if (backgroundColorScale != null) {
+                    const conicAngle = normalizeAngle360((startAngle + endAngle) / 2 + Math.PI);
+                    const sweepAngle = normalizeAngle360(endAngle - startAngle);
+
+                    fill ??= new ConicGradient(
+                        backgroundColorScale.range.map((color, index, colorRange) => {
+                            const angle = startAngle + (sweepAngle * index) / (colorRange.length - 1);
+                            const offset = normalizeAngle360(angle - conicAngle) / (2 * Math.PI);
+                            return { offset, color };
+                        }),
+                        toDegrees(conicAngle) - 90
+                    );
+                }
+                fill ??= background.defaultFill;
+
+                backgroundData.push({
+                    series: this,
+                    itemId: `background`,
+                    datum: value,
+                    centerX,
+                    centerY,
+                    outerRadius,
+                    innerRadius,
+                    startAngle: startAngle,
+                    endAngle: endAngle,
+                    clipStartAngle: undefined,
+                    clipEndAngle: undefined,
+                    startCornerRadius: cornerRadius,
+                    endCornerRadius: cornerRadius,
+                    fill,
+                });
+            }
         } else {
-            const scale = new LinearScale();
-            scale.domain = range;
-            scale.range = [startAngle, endAngle];
+            const colorRangeStops = colorStops?.length ?? 8;
+            const domainRange = domain[1] - domain[0];
 
-            nodeData.push({
-                series: this,
-                itemId: 'value',
-                datum: value,
-                centerX,
-                centerY,
-                outerRadius,
-                innerRadius,
-                startAngle,
-                endAngle,
-                clipStartAngle: startAngle,
-                clipEndAngle: scale.convert(value),
-            });
+            let value0 = domain[0];
+            for (let i = 0; i < colorRangeStops; i += 1) {
+                const colorStop = colorStops?.[i];
+                const isStart = i === 0;
+                const isEnd = i === colorRangeStops - 1;
+
+                let value1: number;
+                let colorScaleValue: number;
+                if (colorStop != null) {
+                    value1 = colorStop.stop ?? domain[1];
+                    colorScaleValue = value1;
+                } else {
+                    value1 = domain[0] + (i + 1) * (domainRange / colorRangeStops);
+                    colorScaleValue = domain[0] + i * (domainRange / (colorRangeStops - 1));
+                }
+
+                const itemStartAngle = scale.convert(value0);
+                const itemEndAngle = scale.convert(value1);
+
+                if (bar.enabled) {
+                    const fill = colorStop?.color ?? barColorScale?.convert(colorScaleValue) ?? bar.fill;
+
+                    nodeData.push({
+                        series: this,
+                        itemId: `value-${i}`,
+                        datum: value,
+                        centerX,
+                        centerY,
+                        outerRadius,
+                        innerRadius,
+                        startAngle: itemStartAngle,
+                        endAngle: itemEndAngle,
+                        clipStartAngle: containerStartAngle,
+                        clipEndAngle: containerEndAngle,
+                        startCornerRadius: cornersOnAllItems || isStart ? cornerRadius : 0,
+                        endCornerRadius: cornersOnAllItems || isEnd ? cornerRadius : 0,
+                        fill,
+                    });
+                }
+
+                if (background.enabled) {
+                    const colorStopColor = !bar.enabled ? colorStop?.color : undefined;
+                    const fill =
+                        colorStopColor ??
+                        background.fill ??
+                        backgroundColorScale?.convert(colorScaleValue) ??
+                        background.defaultFill;
+
+                    backgroundData.push({
+                        series: this,
+                        itemId: `background-${i}`,
+                        datum: value,
+                        centerX,
+                        centerY,
+                        outerRadius,
+                        innerRadius,
+                        startAngle: itemStartAngle,
+                        endAngle: itemEndAngle,
+                        clipStartAngle: undefined,
+                        clipEndAngle: undefined,
+                        startCornerRadius: cornersOnAllItems || isStart ? cornerRadius : 0,
+                        endCornerRadius: cornersOnAllItems || isEnd ? cornerRadius : 0,
+                        fill,
+                    });
+                }
+
+                value0 = value1;
+            }
         }
 
         if (label.enabled) {
-            const {
-                color: fill,
-                fontSize,
-                fontStyle,
-                fontWeight,
-                fontFamily,
-                lineHeight,
-                formatter,
-            } = this.properties.label;
+            const { color: fill, fontSize, fontStyle, fontWeight, fontFamily, lineHeight, formatter } = label;
             labelData.push({
                 label: LabelType.Primary,
                 centerX,
@@ -231,15 +419,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         }
 
         if (secondaryLabel.enabled) {
-            const {
-                color: fill,
-                fontSize,
-                fontStyle,
-                fontWeight,
-                fontFamily,
-                lineHeight,
-                formatter,
-            } = this.properties.secondaryLabel;
+            const { color: fill, fontSize, fontStyle, fontWeight, fontFamily, lineHeight, formatter } = secondaryLabel;
             labelData.push({
                 label: LabelType.Secondary,
                 centerX,
@@ -256,23 +436,62 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             });
         }
 
-        backgroundData.push({
-            series: this,
-            itemId: 'background',
-            datum: value,
-            centerX,
-            centerY,
-            outerRadius,
-            innerRadius,
-            startAngle,
-            endAngle,
-            clipStartAngle: undefined,
-            clipEndAngle: undefined,
-        });
+        if (needle.enabled) {
+            const { spacing } = needle;
+            let radius = needle.radiusRatio != null ? this.radius * needle.radiusRatio : innerRadius;
+            radius = Math.max(radius - spacing, 0);
+            const angle = scale.convert(value);
+
+            needleData.push({
+                centerX,
+                centerY,
+                radius,
+                angle,
+            });
+        }
+
+        for (let index = 0; index < targets.length; index += 1) {
+            const target = targets[index];
+            const {
+                shape,
+                sizeRatio,
+                radiusRatio,
+                rotation,
+                fill,
+                fillOpacity,
+                stroke,
+                strokeOpacity,
+                strokeWidth,
+                lineDash,
+                lineDashOffset,
+            } = target;
+            const angle = scale.convert(target.value);
+            const radius = radiusRatio != null ? radiusRatio * this.radius : (innerRadius + outerRadius) / 2;
+            const size = sizeRatio * this.radius;
+            targetData.push({
+                index,
+                centerX,
+                centerY,
+                shape,
+                radius,
+                angle,
+                size,
+                rotation,
+                fill,
+                fillOpacity,
+                stroke,
+                strokeOpacity,
+                strokeWidth,
+                lineDash,
+                lineDashOffset,
+            });
+        }
 
         return {
             itemId: seriesId,
             nodeData,
+            needleData,
+            targetData,
             labelData,
             backgroundData,
         };
@@ -286,36 +505,48 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
     }
 
     override async update(): Promise<void> {
-        const { datumSelection, labelSelection, backgroundSelection, highlightDatumSelection } = this;
+        const {
+            datumSelection,
+            labelSelection,
+            needleSelection,
+            targetSelection,
+            backgroundSelection,
+            highlightDatumSelection,
+        } = this;
 
         await this.updateSelections();
 
         this.contentGroup.visible = this.visible;
         this.contentGroup.opacity = this.getOpacity();
 
-        let highlightedDatum: RadialGaugeNodeDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
-        if (highlightedDatum != null && (highlightedDatum.series !== this || highlightedDatum.datum == null)) {
-            highlightedDatum = undefined;
-        }
+        const isHighlight = this.ctx.highlightManager?.getActiveHighlight()?.series === this;
 
         const nodeData = this.contextNodeData?.nodeData ?? [];
         const labelData = this.contextNodeData?.labelData ?? [];
+        const needleData = this.contextNodeData?.needleData ?? [];
+        const targetData = this.contextNodeData?.targetData ?? [];
         const backgroundData = this.contextNodeData?.backgroundData ?? [];
-
-        this.datumSelection = await this.updateDatumSelection({ nodeData, datumSelection });
-        await this.updateDatumNodes({ datumSelection, isHighlight: false });
-
-        this.labelSelection = await this.updateLabelSelection({ labelData, labelSelection });
-        await this.updateLabelNodes({ labelSelection });
 
         this.backgroundSelection = await this.updateBackgroundSelection({ backgroundData, backgroundSelection });
         await this.updateBackgroundNodes({ backgroundSelection });
 
+        this.needleSelection = await this.updateNeedleSelection({ needleData, needleSelection });
+        await this.updateNeedleNodes({ needleSelection });
+
+        this.targetSelection = await this.updateTargetSelection({ targetData, targetSelection });
+        await this.updateTargetNodes({ targetSelection });
+
+        this.datumSelection = await this.updateDatumSelection({ nodeData, datumSelection });
+        await this.updateDatumNodes({ datumSelection, isHighlight: false });
+
         this.highlightDatumSelection = await this.updateDatumSelection({
-            nodeData: highlightedDatum != null ? [highlightedDatum] : [],
+            nodeData: isHighlight ? nodeData : [],
             datumSelection: highlightDatumSelection,
         });
         await this.updateDatumNodes({ datumSelection: highlightDatumSelection, isHighlight: true });
+
+        this.labelSelection = await this.updateLabelSelection({ labelData, labelSelection });
+        await this.updateLabelNodes({ labelSelection });
 
         this.animationState.transition('update');
     }
@@ -324,7 +555,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         nodeData: RadialGaugeNodeDatum[];
         datumSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum>;
     }) {
-        return opts.datumSelection.update(opts.nodeData, undefined, () => createDatumId([]));
+        return opts.datumSelection.update(opts.nodeData, undefined, (datum) => datum.itemId!);
     }
 
     private async updateDatumNodes(opts: {
@@ -333,25 +564,36 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
     }) {
         const { datumSelection, isHighlight } = opts;
         const { ctx, properties } = this;
-        const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset, cornerRadius } = properties;
+        const { sectorSpacing, bar } = properties;
+        const { fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = bar;
         const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
-        const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
+        const strokeWidth = this.getStrokeWidth(bar.strokeWidth);
         const animationDisabled = ctx.animationManager.isSkipped();
 
         datumSelection.each((sector, datum) => {
-            const { centerX, centerY, innerRadius, outerRadius, startAngle, endAngle, clipStartAngle, clipEndAngle } =
-                datum;
+            const {
+                centerX,
+                centerY,
+                innerRadius,
+                outerRadius,
+                startAngle,
+                endAngle,
+                startCornerRadius,
+                endCornerRadius,
+                fill,
+            } = datum;
             sector.centerX = centerX;
             sector.centerY = centerY;
             if (animationDisabled || isHighlight) {
+                const clipSector = computeClipSector(datum);
+
                 sector.innerRadius = innerRadius;
                 sector.outerRadius = outerRadius;
                 sector.startAngle = startAngle;
                 sector.endAngle = endAngle;
-                sector.clipSector =
-                    clipStartAngle != null && clipEndAngle != null
-                        ? new SectorBox(clipStartAngle, clipEndAngle, innerRadius, outerRadius)
-                        : undefined;
+                sector.clipSector = clipSector;
+
+                sector.visible = clipSector == null || clipSectorVisibility(startAngle, endAngle, clipSector);
             }
 
             sector.fill = highlightStyle?.fill ?? fill;
@@ -361,9 +603,13 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             sector.strokeWidth = highlightStyle?.strokeWidth ?? strokeWidth;
             sector.lineDash = highlightStyle?.lineDash ?? lineDash;
             sector.lineDashOffset = highlightStyle?.lineDashOffset ?? lineDashOffset;
-            sector.cornerRadius = cornerRadius;
+            sector.startOuterCornerRadius = startCornerRadius;
+            sector.startInnerCornerRadius = startCornerRadius;
+            sector.endOuterCornerRadius = endCornerRadius;
+            sector.endInnerCornerRadius = endCornerRadius;
 
-            sector.inset = sector.strokeWidth / 2;
+            sector.radialEdgeInset = (sectorSpacing + sector.strokeWidth) / 2;
+            sector.concentricEdgeInset = sector.strokeWidth / 2;
         });
     }
 
@@ -371,21 +617,29 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         backgroundData: RadialGaugeNodeDatum[];
         backgroundSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum>;
     }) {
-        return opts.backgroundSelection.update(opts.backgroundData, undefined, () => createDatumId([]));
+        return opts.backgroundSelection.update(opts.backgroundData, undefined, (datum) => datum.itemId!);
     }
 
     private async updateBackgroundNodes(opts: {
         backgroundSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum>;
     }) {
         const { backgroundSelection } = opts;
-        const { cornerRadius } = this.properties;
-        const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
-            this.properties.background;
+        const { sectorSpacing, background } = this.properties;
+        const { fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = background;
         const animationDisabled = this.ctx.animationManager.isSkipped();
 
         backgroundSelection.each((sector, datum) => {
-            const { centerX, centerY, innerRadius, outerRadius, startAngle, endAngle, clipStartAngle, clipEndAngle } =
-                datum;
+            const {
+                centerX,
+                centerY,
+                innerRadius,
+                outerRadius,
+                startAngle,
+                endAngle,
+                startCornerRadius,
+                endCornerRadius,
+                fill,
+            } = datum;
             sector.centerX = centerX;
             sector.centerY = centerY;
             if (animationDisabled) {
@@ -393,10 +647,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                 sector.outerRadius = outerRadius;
                 sector.startAngle = startAngle;
                 sector.endAngle = endAngle;
-                sector.clipSector =
-                    clipStartAngle != null && clipEndAngle != null
-                        ? new SectorBox(clipStartAngle, clipEndAngle, innerRadius, outerRadius)
-                        : undefined;
+                sector.clipSector = computeClipSector(datum);
             }
 
             sector.fill = fill;
@@ -406,9 +657,101 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             sector.strokeWidth = strokeWidth;
             sector.lineDash = lineDash;
             sector.lineDashOffset = lineDashOffset;
-            sector.cornerRadius = cornerRadius;
+            sector.startOuterCornerRadius = startCornerRadius;
+            sector.startInnerCornerRadius = startCornerRadius;
+            sector.endOuterCornerRadius = endCornerRadius;
+            sector.endInnerCornerRadius = endCornerRadius;
 
-            sector.inset = sector.strokeWidth / 2;
+            sector.radialEdgeInset = (sectorSpacing + sector.strokeWidth) / 2;
+            sector.concentricEdgeInset = sector.strokeWidth / 2;
+        });
+    }
+
+    private async updateNeedleSelection(opts: {
+        needleData: RadialGaugeNeedleDatum[];
+        needleSelection: _Scene.Selection<RadialGaugeNeedle, RadialGaugeNeedleDatum>;
+    }) {
+        return opts.needleSelection.update(opts.needleData, undefined, () => createDatumId([]));
+    }
+
+    private async updateNeedleNodes(opts: {
+        needleSelection: _Scene.Selection<RadialGaugeNeedle, RadialGaugeNeedleDatum>;
+    }) {
+        const { needleSelection } = opts;
+        const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
+            this.properties.needle;
+        const animationDisabled = this.ctx.animationManager.isSkipped();
+
+        needleSelection.each((needle, datum) => {
+            const { centerX, centerY, radius, angle } = datum;
+
+            needle.d = RadialGaugeNeedle.defaultPathData;
+
+            needle.fill = fill;
+            needle.fillOpacity = fillOpacity;
+            needle.stroke = stroke;
+            needle.strokeOpacity = strokeOpacity;
+            needle.strokeWidth = strokeWidth;
+            needle.lineDash = lineDash;
+            needle.lineDashOffset = lineDashOffset;
+            needle.translationX = centerX;
+            needle.translationY = centerY;
+            needle.scalingX = radius * 2;
+            needle.scalingY = radius * 2;
+
+            if (animationDisabled) {
+                needle.rotation = angle;
+            }
+        });
+    }
+
+    private async updateTargetSelection(opts: {
+        targetData: RadialGaugeTargetDatum[];
+        targetSelection: _Scene.Selection<_Scene.Marker, RadialGaugeTargetDatum>;
+    }) {
+        return opts.targetSelection.update(opts.targetData, undefined, () => createDatumId([]));
+    }
+
+    private async updateTargetNodes(opts: {
+        targetSelection: _Scene.Selection<_Scene.Marker, RadialGaugeTargetDatum>;
+    }) {
+        const { targetSelection } = opts;
+        const animationDisabled = this.ctx.animationManager.isSkipped();
+
+        targetSelection.each((target, datum) => {
+            const {
+                centerX,
+                centerY,
+                size,
+                angle,
+                radius,
+                rotation,
+                fill,
+                fillOpacity,
+                stroke,
+                strokeOpacity,
+                strokeWidth,
+                lineDash,
+                lineDashOffset,
+            } = datum;
+
+            target.fill = fill;
+            target.fillOpacity = fillOpacity;
+            target.stroke = stroke;
+            target.strokeOpacity = strokeOpacity;
+            target.strokeWidth = strokeWidth;
+            target.lineDash = lineDash;
+            target.lineDashOffset = lineDashOffset;
+            target.translationX = centerX + radius * Math.cos(angle);
+            target.translationY = centerY + radius * Math.sin(angle);
+            target.scalingX = size;
+            target.scalingY = size;
+            target.rotation = angle + Math.PI / 2 + rotation;
+
+            if (animationDisabled) {
+                target.scalingX = size;
+                target.scalingY = size;
+            }
         });
     }
 
@@ -452,15 +795,29 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
     formatLabelText(datum?: { label: number; secondaryLabel: number }) {
         const { labelSelection, radius } = this;
         const { label, secondaryLabel, padding, innerRadiusRatio } = this.properties;
-        formatRadialGaugeLabels(this, labelSelection, label, secondaryLabel, padding, radius * innerRadiusRatio, datum);
+        formatRadialGaugeLabels(
+            this,
+            labelSelection,
+            label,
+            secondaryLabel,
+            padding,
+            radius * innerRadiusRatio,
+            this.createDefaultLabelFormatter(),
+            datum
+        );
     }
 
     protected resetAllAnimation() {
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
-        resetMotion([this.backgroundSelection, this.datumSelection], resetRadialGaugeSeriesAnimationFunctions);
+        resetMotion(
+            [this.backgroundSelection, this.datumSelection, this.highlightDatumSelection],
+            resetRadialGaugeSeriesAnimationFunctions
+        );
 
+        this.backgroundSelection.cleanup();
         this.datumSelection.cleanup();
+        this.highlightDatumSelection.cleanup();
         this.labelSelection.cleanup();
     }
 
@@ -475,29 +832,26 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
     animateEmptyUpdateReady() {
         const { animationManager } = this.ctx;
 
-        const fns = prepareRadialGaugeSeriesAnimationFunctions(true);
+        const { node, needle, target } = prepareRadialGaugeSeriesAnimationFunctions(true);
         fromToMotion(
             this.id,
-            'nodes',
+            'node',
             animationManager,
             [this.backgroundSelection, this.datumSelection, this.highlightDatumSelection],
-            fns,
+            node,
             (_sector, datum) => datum.itemId!
         );
+        fromToMotion(this.id, 'needle', animationManager, [this.needleSelection], needle, () => 'needle');
+        fromToMotion(this.id, 'target', animationManager, [this.targetSelection], target, (_, datum) => `${datum}`);
 
-        this.labelSelection.each((label, datum) => {
-            const animationId = `${this.id}_label_${datum.label}`;
-            animationManager.animate({
-                id: animationId,
-                groupId: 'label',
-                from: 0,
-                to: 1,
-                phase: 'initial',
-                onUpdate(opacity) {
-                    label.opacity = opacity;
-                },
-            });
-        });
+        fromToMotion(
+            this.id,
+            'label',
+            animationManager,
+            [this.labelSelection],
+            fadeInFns,
+            (_label, datum) => datum.label
+        );
 
         if (!this.labelsHaveExplicitText()) {
             this.formatLabelText();
@@ -507,14 +861,23 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
     animateWaitingUpdateReady() {
         const { animationManager } = this.ctx;
 
-        const fns = prepareRadialGaugeSeriesAnimationFunctions(false);
+        const { node, needle, target } = prepareRadialGaugeSeriesAnimationFunctions(false);
         fromToMotion(
             this.id,
-            'nodes',
+            'node',
             animationManager,
-            [this.backgroundSelection, this.datumSelection],
-            fns,
+            [this.backgroundSelection, this.datumSelection, this.highlightDatumSelection],
+            node,
             (_sector, datum) => datum.itemId!
+        );
+        fromToMotion(this.id, 'needle', animationManager, [this.needleSelection], needle, () => 'needle');
+        fromToMotion(
+            this.id,
+            'target',
+            animationManager,
+            [this.targetSelection],
+            target,
+            (_, datum) => `${datum.index}`
         );
 
         let labelFrom = 0;
@@ -573,31 +936,19 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             return EMPTY_TOOLTIP_CONTENT;
         }
 
-        const { tooltip } = properties;
-        const { datum, fill } = nodeDatum;
+        const { value, tooltip } = properties;
+        const { datum } = nodeDatum;
 
         const title = '';
-        const content = '';
-
-        let format: AgRadialGaugeSeriesStyle | undefined;
-
-        // if (itemStyler) {
-        //     format = callbackCache.call(itemStyler, {
-        //         seriesId,
-        //         datum,
-        //         highlighted: false,
-        //     });
-        // }
-
-        const color = format?.fill ?? fill;
+        const content = `${this.createDefaultLabelFormatter()(value)}`;
 
         return tooltip.toTooltipHtml(
-            { title, content, backgroundColor: color },
+            { title, content },
             {
                 seriesId,
                 datum,
                 title,
-                color,
+                color: undefined,
                 itemId: undefined!,
                 ...this.getModuleTooltipParams(),
             }

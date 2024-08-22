@@ -1,11 +1,12 @@
 import type { DOMManager } from '../../dom/domManager';
 import { Debug } from '../../util/debug';
 import { getWindow } from '../../util/dom';
+import type { Listeners } from '../../util/listeners';
 import { Logger } from '../../util/logger';
 import { partialAssign } from '../../util/object';
 import { isFiniteNumber } from '../../util/type-guards';
 import { InteractionState, InteractionStateListener } from './interactionStateListener';
-import { type PreventableEvent, type Unpreventable, dispatchTypedEvent } from './preventableEvent';
+import { type PreventableEvent, type Unpreventable, buildPreventable, dispatchTypedEvent } from './preventableEvent';
 
 export { InteractionState };
 
@@ -271,14 +272,19 @@ export class InteractionManager extends InteractionStateListener<InteractionType
         this.pointerCaptureCanvasElement = pointerCaptureCanvasElement;
 
         if (pointerCapture === PointerCapture.Exclusive) {
-            dispatchTypedEvent(
-                this.listeners,
-                this.buildPointerEvent({ type: isOverCanvasOverlay ? 'leave' : 'enter', event, ...coords })
-            );
+            const pointerEvent = this.buildPointerEvent({
+                type: isOverCanvasOverlay ? 'leave' : 'enter',
+                event,
+                ...coords,
+            });
+            this.debug('Dispatching canvas overlay event', pointerEvent);
+            dispatchTypedEvent(this.listeners, pointerEvent);
         }
     }
 
     private processEvent(event: SupportedEvent) {
+        this.debug('Received raw event', event);
+
         const type = this.decideInteractionEventTypes(event);
 
         // AG-11385 Ignore clicks on focusable & disabled elements.
@@ -303,11 +309,21 @@ export class InteractionManager extends InteractionStateListener<InteractionType
         const { relatedElement, targetElement } = this.extractElements(event);
         if (isFocusEvent(type)) {
             const sourceEvent = event as FocusEvent;
-            dispatchTypedEvent(this.listeners, { type, sourceEvent, relatedElement, targetElement });
+            this.dispatchTypedEvent(this.listeners, { type, sourceEvent, relatedElement, targetElement });
         } else if (isKeyEvent(type)) {
             const sourceEvent = event as KeyboardEvent;
-            dispatchTypedEvent(this.listeners, { type, sourceEvent, relatedElement, targetElement });
+            this.dispatchTypedEvent(this.listeners, { type, sourceEvent, relatedElement, targetElement });
         }
+    }
+
+    private dispatchTypedEvent<
+        T extends string,
+        E extends { type: T },
+        L extends Listeners<T, (event: PreventableEvent & E) => void>,
+    >(listeners: L, event: E) {
+        const preventableEvent = buildPreventable(event);
+        this.debug('Dispatching typed event', preventableEvent);
+        listeners.dispatchWrapHandlers(event.type, (handler, e) => handler(e), preventableEvent);
     }
 
     extractElements(event: SupportedEvent): { relatedElement?: HTMLElement; targetElement?: HTMLElement } {
@@ -328,7 +344,9 @@ export class InteractionManager extends InteractionStateListener<InteractionType
         const coords = this.calculateCoordinates(event);
         if (coords == null) return;
 
-        dispatchTypedEvent(this.listeners, this.buildPointerEvent({ type, event, ...coords }));
+        const pointerEvent = this.buildPointerEvent({ type, event, ...coords });
+        this.debug('Dispatching pointer event', pointerEvent);
+        dispatchTypedEvent(this.listeners, pointerEvent);
     }
 
     private getEventHTMLTarget(event: SupportedEvent): HTMLElement | undefined {

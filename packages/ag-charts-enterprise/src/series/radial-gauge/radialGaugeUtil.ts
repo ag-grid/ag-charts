@@ -1,6 +1,7 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { type LabelFormatting, formatSingleLabel, formatStackedLabels } from '../util/labelFormatter';
+import type { RadialGaugeNeedle } from './radialGaugeNeedle';
 import {
     LabelType,
     type RadialGaugeLabelDatum,
@@ -19,22 +20,56 @@ type AnimatableSectorDatum = {
     clipEndAngle: number | undefined;
 };
 
+type SectorAnimation = {
+    startAngle: number;
+    endAngle: number;
+    innerRadius: number;
+    outerRadius: number;
+    clipSector: _Scene.SectorBox | undefined;
+};
+
+type AnimatableNeedleDatum = {
+    radius: number;
+    angle: number;
+};
+
+type AnimatableTargetDatum = {
+    size: number;
+};
+
+export const fadeInFns: _ModuleSupport.FromToFns<_Scene.Node, any, any> = {
+    fromFn: () => ({ opacity: 0, phase: 'initial' }),
+    toFn: () => ({ opacity: 1 }),
+};
+
+export function computeClipSector(datum: AnimatableSectorDatum) {
+    const { startAngle, endAngle, clipStartAngle, clipEndAngle, innerRadius, outerRadius } = datum;
+
+    if (clipStartAngle == null || clipEndAngle == null) return;
+
+    return new SectorBox(
+        Math.max(clipStartAngle, startAngle),
+        Math.min(clipEndAngle, endAngle),
+        innerRadius,
+        outerRadius
+    );
+}
+
+export function clipSectorVisibility(startAngle: number, endAngle: number, clipSector: _Scene.SectorBox) {
+    return Math.max(startAngle, clipSector.startAngle) <= Math.min(endAngle, clipSector.endAngle);
+}
+
 export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean) {
     const phase = initialLoad ? 'initial' : 'update';
 
-    const fns: _ModuleSupport.FromToFns<_Scene.Sector, any, AnimatableSectorDatum> = {
+    const node: _ModuleSupport.FromToFns<_Scene.Sector, SectorAnimation, AnimatableSectorDatum> = {
         fromFn(sect, datum) {
-            let { startAngle, endAngle, innerRadius, outerRadius } = sect;
-            let clipStartAngle = sect.clipSector?.startAngle;
-            let clipEndAngle = sect.clipSector?.endAngle;
+            const previousDatum: AnimatableSectorDatum = sect.previousDatum ?? datum;
+            const { startAngle, endAngle, clipStartAngle, clipEndAngle, innerRadius } = previousDatum;
+            let { outerRadius } = previousDatum;
 
             if (initialLoad) {
-                startAngle = datum.startAngle;
-                endAngle = datum.endAngle;
-                innerRadius = datum.innerRadius;
-                outerRadius = datum.innerRadius;
-                clipStartAngle = datum.clipStartAngle;
-                clipEndAngle = datum.clipEndAngle;
+                outerRadius = innerRadius;
             }
 
             const clipSector =
@@ -60,19 +95,93 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean)
 
             return { startAngle, endAngle, outerRadius, innerRadius, clipSector };
         },
+        mapFn(params, datum) {
+            const { clipStartAngle, clipEndAngle } = datum;
+            const { startAngle, endAngle, outerRadius, innerRadius } = params;
+            let { clipSector } = params;
+
+            if (clipSector != null && clipStartAngle != null && clipEndAngle != null) {
+                clipSector = new SectorBox(
+                    Math.max(startAngle, clipSector.startAngle),
+                    Math.min(endAngle, clipSector.endAngle),
+                    clipSector.innerRadius,
+                    clipSector.outerRadius
+                );
+            }
+
+            const visible = clipSector == null || clipSectorVisibility(startAngle, endAngle, clipSector);
+
+            return { visible, startAngle, endAngle, outerRadius, innerRadius, clipSector };
+        },
     };
 
-    return fns;
+    const needle: _ModuleSupport.FromToFns<RadialGaugeNeedle, any, AnimatableNeedleDatum> = {
+        fromFn(needleNode, datum) {
+            let { rotation, scalingX, scalingY } = needleNode;
+
+            if (initialLoad) {
+                scalingX = 0;
+                scalingY = 0;
+                rotation = datum.angle;
+            }
+
+            return { rotation, scalingX, scalingY, phase };
+        },
+        toFn(_needleNode, datum, status) {
+            let scalingX = datum.radius * 2;
+            let scalingY = datum.radius * 2;
+            const { angle: rotation } = datum;
+
+            if (status === 'removed') {
+                scalingX = 0;
+                scalingY = 0;
+            }
+
+            return { rotation, scalingX, scalingY };
+        },
+    };
+
+    const target: _ModuleSupport.FromToFns<_Scene.Marker, any, AnimatableTargetDatum> = {
+        fromFn(_targetNode, datum) {
+            const { size } = datum;
+
+            let scalingX = size;
+            let scalingY = size;
+            if (initialLoad) {
+                scalingX = 0;
+                scalingY = 0;
+            }
+
+            return { scalingX, scalingY, phase };
+        },
+        toFn(_targetNode, datum, status) {
+            const { size } = datum;
+
+            let scalingX = size;
+            let scalingY = size;
+            if (status === 'removed') {
+                scalingX = 0;
+                scalingY = 0;
+            }
+
+            return { scalingX, scalingY };
+        },
+    };
+
+    return { node, needle, target };
 }
 
 function getLabelText(
     series: _ModuleSupport.Series<any, any>,
     label: RadialGaugeLabelProperties | RadialGaugeSecondaryLabelProperties,
-    value: number | undefined
+    value: number | undefined,
+    defaultFormatter?: (value: number) => void
 ) {
-    return (
-        label.text ?? (value != null ? label?.formatter?.({ seriesId: series.id, datum: undefined, value }) : undefined)
-    );
+    if (label.text != null) {
+        return label.text;
+    } else if (value != null) {
+        return label?.formatter?.({ seriesId: series.id, datum: undefined, value }) ?? defaultFormatter?.(value);
+    }
 }
 
 export function formatRadialGaugeLabels(
@@ -82,6 +191,7 @@ export function formatRadialGaugeLabels(
     secondaryLabelProps: RadialGaugeSecondaryLabelProperties,
     padding: number,
     innerRadius: number,
+    defaultFormatter: (value: number) => void,
     datumOverrides?: { label: number; secondaryLabel: number }
 ) {
     let labelDatum: RadialGaugeLabelDatum | undefined;
@@ -94,7 +204,7 @@ export function formatRadialGaugeLabels(
         }
     });
 
-    const labelText = getLabelText(series, labelProps, datumOverrides?.label ?? labelDatum?.value);
+    const labelText = getLabelText(series, labelProps, datumOverrides?.label ?? labelDatum?.value, defaultFormatter);
     if (labelText == null) return;
     const secondaryLabelText = getLabelText(
         series,

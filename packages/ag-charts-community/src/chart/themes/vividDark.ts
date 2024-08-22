@@ -3,6 +3,7 @@ import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_ANNOTATION_COLOR,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
+    DEFAULT_GAUGE_SERIES_COLOUR_RANGE,
 } from './symbols';
 
 const VIVID_DARK_FILLS = {
@@ -52,6 +53,11 @@ export class VividDark extends DarkTheme {
             VIVID_DARK_FILLS.ORANGE,
             VIVID_DARK_FILLS.YELLOW,
             VIVID_DARK_FILLS.GREEN,
+        ]);
+        params.set(DEFAULT_GAUGE_SERIES_COLOUR_RANGE, [
+            VIVID_DARK_FILLS.GREEN,
+            VIVID_DARK_FILLS.YELLOW,
+            VIVID_DARK_FILLS.RED,
         ]);
 
         params.set(DEFAULT_ANNOTATION_COLOR, VIVID_DARK_FILLS.BLUE);

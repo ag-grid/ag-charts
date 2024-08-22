@@ -7,11 +7,11 @@ import { ArrowCapScene, type CapScene } from '../scenes/capScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
 import { DivariantHandle } from '../scenes/handle';
 import { LinearScene } from '../scenes/linearScene';
-import type { LineProperties } from './lineProperties';
+import type { LineTypeProperties } from './lineProperties';
 
 const { Vec2 } = _Util;
 
-export class LineScene extends LinearScene<LineProperties> {
+export class LineScene extends LinearScene<LineTypeProperties> {
     static override is(value: unknown): value is LineScene {
         return AnnotationScene.isCheck(value, 'line');
     }
@@ -31,7 +31,7 @@ export class LineScene extends LinearScene<LineProperties> {
         this.append([this.line, this.start, this.end]);
     }
 
-    public update(datum: LineProperties, context: AnnotationContext) {
+    public update(datum: LineTypeProperties, context: AnnotationContext) {
         const locked = datum.locked ?? false;
 
         const coords = convertLine(datum, context);
@@ -49,7 +49,7 @@ export class LineScene extends LinearScene<LineProperties> {
         this.updateCaps(datum, coords);
     }
 
-    updateLine(datum: LineProperties, coords: LineCoords) {
+    updateLine(datum: LineTypeProperties, coords: LineCoords) {
         const { line } = this;
         const { lineDashOffset, stroke, strokeWidth, strokeOpacity, lineCap } = datum;
         const { x1, y1, x2, y2 } = coords;
@@ -70,7 +70,7 @@ export class LineScene extends LinearScene<LineProperties> {
         line.updateCollisionBBox();
     }
 
-    updateHandles(datum: LineProperties, coords: LineCoords, locked: boolean) {
+    updateHandles(datum: LineTypeProperties, coords: LineCoords, locked: boolean) {
         const { start, end } = this;
         const { stroke, strokeWidth, strokeOpacity } = datum;
         const { x1, y1, x2, y2 } = coords;
@@ -89,7 +89,7 @@ export class LineScene extends LinearScene<LineProperties> {
         end.toggleLocked(locked);
     }
 
-    updateCaps(datum: LineProperties, coords: LineCoords) {
+    updateCaps(datum: LineTypeProperties, coords: LineCoords) {
         if (!datum.startCap && this.startCap) {
             this.removeChild(this.startCap);
             this.startCap = undefined;
@@ -103,7 +103,7 @@ export class LineScene extends LinearScene<LineProperties> {
         if (!datum.startCap && !datum.endCap) return;
 
         const { stroke, strokeWidth, strokeOpacity } = datum;
-        const [start, end] = Vec2.fromBox(coords);
+        const [start, end] = Vec2.from(coords);
         const angle = Vec2.angle(Vec2.sub(end, start));
 
         if (datum.startCap) {
@@ -167,7 +167,7 @@ export class LineScene extends LinearScene<LineProperties> {
         this.end.toggleActive(active);
     }
 
-    override dragHandle(datum: LineProperties, target: Coords, context: AnnotationContext) {
+    override dragHandle(datum: LineTypeProperties, target: Coords, context: AnnotationContext) {
         const { activeHandle } = this;
 
         if (!activeHandle) return;

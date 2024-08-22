@@ -1,7 +1,7 @@
 import type { AgFinancialChartPresets } from '../api/presetOptions';
 import type { AgBaseCartesianChartOptions } from '../series/cartesian/cartesianOptions';
 import type { AgBaseFlowProportionChartOptions } from '../series/flow-proportion/flowProportionOptions';
-import type { AgBaseGaugeChartOptions } from '../series/gauge/gaugeOptions';
+import type { AgBaseGaugeChartOptions, AgGaugeSeriesOptions } from '../series/gauge/gaugeOptions';
 import type { AgBaseHierarchyChartOptions } from '../series/hierarchy/hierarchyOptions';
 import type { AgBasePolarChartOptions } from '../series/polar/polarOptions';
 import type { AgBaseTopologyChartOptions } from '../series/topology/topologyOptions';
@@ -44,12 +44,14 @@ export type AgChartOptions =
 
 export type AgBasePresetOptions = Pick<
     AgCartesianChartOptions,
-    'data' | 'container' | 'width' | 'height' | 'minWidth' | 'minHeight' | 'theme' | 'title'
+    'container' | 'animation' | 'width' | 'height' | 'minWidth' | 'minHeight' | 'theme' | 'title'
 >;
 
-export type AgBaseFinancialPresetOptions = AgBasePresetOptions & Pick<AgCartesianChartOptions, 'initialState'>;
+export type AgBaseFinancialPresetOptions = AgBasePresetOptions & Pick<AgCartesianChartOptions, 'initialState' | 'data'>;
 
 export type AgFinancialChartOptions = AgFinancialChartPresets & AgBaseFinancialPresetOptions;
+
+export type AgGaugeOptions = AgBasePresetOptions & AgGaugeSeriesOptions;
 
 export type AgChartInstanceOptions = AgChartOptions | AgFinancialChartOptions;
 

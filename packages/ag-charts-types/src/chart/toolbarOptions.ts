@@ -68,6 +68,8 @@ export interface AgToolbarSwitch extends AgBaseToolbarButton {
 
 export type AgIconName =
     | 'arrow-drawing'
+    | 'arrow-down'
+    | 'arrow-up'
     | 'callout-annotation'
     | 'candlestick-series'
     | 'comment-annotation'
@@ -190,7 +192,7 @@ export type AgToolbarAnnotationsButtonValue =
     | 'note'
     | 'clear';
 
-/* Series Type Options */
+/* Series Type */
 export interface AgToolbarSeriesTypeGroup extends AgToolbarGroup {}
 
 /* Annotation Options */
@@ -213,7 +215,8 @@ export type AgToolbarAnnotationOptionsButtonValue =
     | 'text-color'
     | 'text-size'
     | 'delete'
-    | 'lock';
+    | 'lock'
+    | 'settings';
 
 /* Ranges */
 export interface AgToolbarRangesGroup extends AgToolbarGroup {

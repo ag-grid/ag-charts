@@ -54,10 +54,12 @@ export interface FromToFns<
     N extends Node,
     T extends Record<string, string | number | Interpolating | undefined> & Partial<N>,
     D,
+    I extends Record<string, string | number | Interpolating | undefined> & Partial<N> = T,
 > {
-    fromFn: FromToMotionPropFn<N, T, D>;
-    toFn: FromToMotionPropFn<N, T, D>;
+    fromFn: FromToMotionPropFn<N, I, D>;
+    toFn: FromToMotionPropFn<N, I, D>;
     intermediateFn?: IntermediateFn<N, D>;
+    mapFn?: (value: I, datum: D) => T;
 }
 
 /**
@@ -87,7 +89,7 @@ export function fromToMotion<
     getDatumId?: (node: N, datum: D) => string,
     diff?: FromToDiff
 ) {
-    const { fromFn, toFn, intermediateFn } = fns;
+    const { fromFn, toFn, intermediateFn, mapFn = (value) => value } = fns;
     const { nodes, selections } = deconstructSelectionsOrNodes(selectionsOrNodes);
 
     const processNodes = (liveNodes: N[], subNodes: N[]) => {
@@ -138,23 +140,28 @@ export function fromToMotion<
                 ease: easing.easeOut,
                 collapsable,
                 onPlay: () => {
-                    node.setProperties({ ...start, ...toStart } as unknown as T);
+                    node.setProperties(mapFn({ ...start, ...toStart } as unknown as T, node.datum));
                 },
                 onUpdate(props) {
-                    node.setProperties(props);
+                    node.setProperties(mapFn(props, node.datum));
                     if (intermediateFn) {
                         node.setProperties(intermediateFn(node, node.datum, status, ctx));
                     }
                 },
                 onStop: () => {
-                    node.setProperties({
-                        ...start,
-                        ...toStart,
-                        ...from,
-                        ...to,
-                        ...finish,
-                        ...toFinish,
-                    } as unknown as T);
+                    node.setProperties(
+                        mapFn(
+                            {
+                                ...start,
+                                ...toStart,
+                                ...from,
+                                ...to,
+                                ...finish,
+                                ...toFinish,
+                            } as unknown as T,
+                            node.datum
+                        )
+                    );
                 },
             });
 

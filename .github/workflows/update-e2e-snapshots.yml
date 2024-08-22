@@ -61,7 +61,6 @@ jobs:
               id: setup
               uses: ./.github/actions/setup-nx
               with:
-                  yarn_opts: --ignore-scripts
                   cache_mode: ro
                   playwright_install: true
 

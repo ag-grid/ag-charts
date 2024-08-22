@@ -2,25 +2,29 @@ import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import type { GuardDragClickDoubleEvent, Point } from '../annotationTypes';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
-import { LineProperties } from './lineProperties';
+import { ArrowProperties, LineProperties } from './lineProperties';
 import type { LineScene } from './lineScene';
 
 const { StateMachine } = _ModuleSupport;
 
-interface LineStateMachineContext extends Omit<AnnotationsStateMachineContext, 'create'> {
-    create: (datum: LineProperties) => void;
+interface LineStateMachineContext<Datum extends ArrowProperties | LineProperties>
+    extends Omit<AnnotationsStateMachineContext, 'create'> {
+    create: (datum: Datum) => void;
     delete: () => void;
-    datum: () => LineProperties | undefined;
+    datum: () => Datum | undefined;
     node: () => LineScene | undefined;
     guardDragClickDoubleEvent: GuardDragClickDoubleEvent;
 }
 
-export class LineStateMachine extends StateMachine<'start' | 'end', 'click' | 'hover' | 'drag' | 'reset' | 'cancel'> {
+abstract class LineTypeStateMachine<Datum extends ArrowProperties | LineProperties> extends StateMachine<
+    'start' | 'end',
+    'click' | 'hover' | 'drag' | 'reset' | 'cancel'
+> {
     override debug = _Util.Debug.create(true, 'annotations');
 
-    constructor(ctx: LineStateMachineContext) {
+    constructor(ctx: LineStateMachineContext<Datum>) {
         const actionCreate = ({ point }: { point: Point }) => {
-            const datum = new LineProperties();
+            const datum = this.createDatum();
             datum.set({ start: point, end: point });
             ctx.create(datum);
         };
@@ -71,5 +75,19 @@ export class LineStateMachine extends StateMachine<'start' | 'end', 'click' | 'h
                 onExit: ctx.guardDragClickDoubleEvent.reset,
             },
         });
+    }
+
+    abstract createDatum(): Datum;
+}
+
+export class ArrowStateMachine extends LineTypeStateMachine<ArrowProperties> {
+    override createDatum() {
+        return new ArrowProperties();
+    }
+}
+
+export class LineStateMachine extends LineTypeStateMachine<LineProperties> {
+    override createDatum() {
+        return new LineProperties();
     }
 }

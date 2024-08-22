@@ -14,10 +14,13 @@ import type {
     AnnotationProperties,
     AnnotationScene,
     ChannelPropertiesType,
-    LineOrChannelPropertiesType,
     LinePropertiesType,
     TextualPropertiesType,
 } from './annotationsSuperTypes';
+import { ArrowDownProperties } from './arrow-down/arrowDownProperties';
+import { ArrowDownScene } from './arrow-down/arrowDownScene';
+import { ArrowUpProperties } from './arrow-up/arrowUpProperties';
+import { ArrowUpScene } from './arrow-up/arrowUpScene';
 import { CalloutProperties } from './callout/calloutProperties';
 import { CalloutScene } from './callout/calloutScene';
 import { CommentProperties } from './comment/commentProperties';
@@ -26,12 +29,13 @@ import { HorizontalLineProperties, VerticalLineProperties } from './cross-line/c
 import { CrossLineScene } from './cross-line/crossLineScene';
 import { DisjointChannelProperties } from './disjoint-channel/disjointChannelProperties';
 import { DisjointChannelScene } from './disjoint-channel/disjointChannelScene';
-import { LineProperties } from './line/lineProperties';
+import { ArrowProperties, LineProperties } from './line/lineProperties';
 import { LineScene } from './line/lineScene';
 import { NoteProperties } from './note/noteProperties';
 import { NoteScene } from './note/noteScene';
 import { ParallelChannelProperties } from './parallel-channel/parallelChannelProperties';
 import { ParallelChannelScene } from './parallel-channel/parallelChannelScene';
+import { ShapePointProperties } from './properties/shapePointProperties';
 import { TextProperties } from './text/textProperties';
 import { TextScene } from './text/textScene';
 
@@ -54,7 +58,9 @@ export const annotationDatums: Record<AnnotationType, Constructor<AnnotationProp
     [AnnotationType.Text]: TextProperties,
 
     // Shapes
-    [AnnotationType.Arrow]: LineProperties,
+    [AnnotationType.Arrow]: ArrowProperties,
+    [AnnotationType.ArrowUp]: ArrowUpProperties,
+    [AnnotationType.ArrowDown]: ArrowDownProperties,
 };
 
 export const annotationScenes: Record<AnnotationType, Constructor<AnnotationScene>> = {
@@ -75,6 +81,8 @@ export const annotationScenes: Record<AnnotationType, Constructor<AnnotationScen
 
     // Shapes
     [AnnotationType.Arrow]: LineScene,
+    [AnnotationType.ArrowUp]: ArrowUpScene,
+    [AnnotationType.ArrowDown]: ArrowDownScene,
 };
 
 export function updateAnnotation(node: AnnotationScene, datum: AnnotationProperties, context: AnnotationContext) {
@@ -112,6 +120,19 @@ export function updateAnnotation(node: AnnotationScene, datum: AnnotationPropert
     if (TextProperties.is(datum) && TextScene.is(node)) {
         node.update(datum, context);
     }
+
+    // Shapes
+    if (ArrowProperties.is(datum) && LineScene.is(node)) {
+        node.update(datum, context);
+    }
+
+    if (ArrowUpProperties.is(datum) && ArrowUpScene.is(node)) {
+        node.update(datum, context);
+    }
+
+    if (ArrowDownProperties.is(datum) && ArrowDownScene.is(node)) {
+        node.update(datum, context);
+    }
 }
 
 export function getTypedDatum(datum: unknown) {
@@ -127,14 +148,23 @@ export function getTypedDatum(datum: unknown) {
         CalloutProperties.is(datum) ||
         CommentProperties.is(datum) ||
         NoteProperties.is(datum) ||
-        TextProperties.is(datum)
+        TextProperties.is(datum) ||
+        // Shapes
+        ArrowProperties.is(datum) ||
+        ArrowUpProperties.is(datum) ||
+        ArrowDownProperties.is(datum)
     ) {
         return datum;
     }
 }
 
 export function isLineType(datum: unknown): datum is LinePropertiesType {
-    return LineProperties.is(datum) || HorizontalLineProperties.is(datum) || VerticalLineProperties.is(datum);
+    return (
+        LineProperties.is(datum) ||
+        HorizontalLineProperties.is(datum) ||
+        VerticalLineProperties.is(datum) ||
+        ArrowProperties.is(datum)
+    );
 }
 
 export function isChannelType(datum: unknown): datum is ChannelPropertiesType {
@@ -154,7 +184,7 @@ export function hasFontSize(datum?: AnnotationProperties): datum is TextualPrope
     return isTextType(datum) && !NoteProperties.is(datum);
 }
 
-export function hasLineStyle(datum?: AnnotationProperties): datum is LineOrChannelPropertiesType {
+export function hasLineStyle(datum?: AnnotationProperties): datum is LinePropertiesType | ChannelPropertiesType {
     return isLineType(datum) || isChannelType(datum);
 }
 
@@ -163,7 +193,12 @@ export function hasLineColor(datum?: AnnotationProperties) {
 }
 
 export function hasFillColor(datum?: AnnotationProperties) {
-    return isChannelType(datum) || CalloutProperties.is(datum) || CommentProperties.is(datum);
+    return (
+        isChannelType(datum) ||
+        CalloutProperties.is(datum) ||
+        CommentProperties.is(datum) ||
+        ShapePointProperties.is(datum)
+    );
 }
 
 export function hasTextColor(datum?: AnnotationProperties) {
@@ -176,10 +211,7 @@ export function setDefaults({
     defaultLineStyles,
 }: {
     datum: AnnotationProperties;
-    defaultColors: Map<
-        AnnotationType | TextualAnnotationType | LineAnnotationType | ChannelAnnotationType,
-        Map<AnnotationOptionsColorPickerType, [string, string, number] | undefined>
-    >;
+    defaultColors: Map<AnnotationType, Map<AnnotationOptionsColorPickerType, [string, string, number] | undefined>>;
     defaultFontSizes: Map<TextualAnnotationType, number | undefined>;
     defaultLineStyles: Map<LineAnnotationType | ChannelAnnotationType, AnnotationLineStyle | undefined>;
 }) {
@@ -198,7 +230,7 @@ export function setDefaults({
     if (hasFontSize(datum)) {
         for (const [annotationType, size] of defaultFontSizes) {
             if (size) {
-                setFontsize(datum, annotationType, size);
+                setFontSize(datum, annotationType, size);
             }
         }
     }
@@ -212,14 +244,14 @@ export function setDefaults({
     }
 }
 
-export function setFontsize(datum: TextualPropertiesType, annotationType: TextualAnnotationType, fontSize: number) {
+export function setFontSize(datum: TextualPropertiesType, annotationType: TextualAnnotationType, fontSize: number) {
     if (datum.type === annotationType && 'fontSize' in datum) {
         datum.fontSize = fontSize;
     }
 }
 
 export function setLineStyle(
-    datum: LineOrChannelPropertiesType,
+    datum: LinePropertiesType | ChannelPropertiesType,
     annotationType: LineAnnotationType | ChannelAnnotationType,
     style: AnnotationLineStyle
 ) {

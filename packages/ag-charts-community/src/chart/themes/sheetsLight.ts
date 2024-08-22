@@ -3,6 +3,7 @@ import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_ANNOTATION_COLOR,
     DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
+    DEFAULT_GAUGE_SERIES_COLOUR_RANGE,
 } from './symbols';
 
 const SHEETS_LIGHT_FILLS = {
@@ -52,6 +53,11 @@ export class SheetsLight extends ChartTheme {
             SHEETS_LIGHT_FILLS.ORANGE,
             SHEETS_LIGHT_FILLS.YELLOW,
             SHEETS_LIGHT_FILLS.GREEN,
+        ]);
+        params.set(DEFAULT_GAUGE_SERIES_COLOUR_RANGE, [
+            SHEETS_LIGHT_FILLS.GREEN,
+            SHEETS_LIGHT_FILLS.YELLOW,
+            SHEETS_LIGHT_FILLS.ORANGE,
         ]);
 
         params.set(DEFAULT_ANNOTATION_COLOR, SHEETS_LIGHT_FILLS.BLUE);

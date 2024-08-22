@@ -32,6 +32,8 @@ export interface AgAnnotationsThemeableOptions {
 
     // Shapes
     arrow?: AgLineAnnotationStyles;
+    'arrow-up'?: AgShapeAnnotationStyles;
+    'arrow-down'?: AgShapeAnnotationStyles;
 
     // Other
     axesButtons?: AgAnnotationAxesButtons;
@@ -46,6 +48,11 @@ export interface AgAnnotationHandleStyles extends FillOptions, StrokeOptions, Li
 export interface AgLineAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineDashOptions {
     handle?: AgAnnotationHandleStyles;
 }
+
+export interface AgShapeAnnotationStyles extends Lockable, Visible, StrokeOptions, FillOptions {
+    size?: PixelSize;
+}
+
 export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineDashOptions {
     handle?: AgAnnotationHandleStyles;
     middle?: AgChannelAnnotationMiddle;
@@ -84,7 +91,9 @@ export type AgAnnotation =
     | AgNoteAnnotation
     | AgTextAnnotation
     // Shapes
-    | AgArrowAnnotation;
+    | AgArrowAnnotation
+    | AgArrowUpAnnotation
+    | AgArrowDownAnnotation;
 
 // ********************
 // * Line Annotations *
@@ -211,6 +220,20 @@ export interface AgArrowAnnotation
     /** Configuration for the arrow annotation.*/
     type: 'arrow';
     handle?: AgAnnotationHandle;
+}
+
+export interface AgArrowMarkAnnotation extends AgAnnotationPoint, Lockable, Visible, StrokeOptions, LineDashOptions {
+    /** Configuration for the arrow mark annotation.*/
+    handle?: AgAnnotationHandle;
+}
+
+export interface AgArrowUpAnnotation extends AgArrowMarkAnnotation {
+    /** Configuration for the arrow up annotation.*/
+    type: 'arrow-up';
+}
+export interface AgArrowDownAnnotation extends AgArrowMarkAnnotation {
+    /** Configuration for the arrow down annotation.*/
+    type: 'arrow-down';
 }
 
 // **************

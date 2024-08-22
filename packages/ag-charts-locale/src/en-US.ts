@@ -94,6 +94,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarAnnotationsTextColor: 'Text Color',
     // Text for the annotation toolbar's text size picker annotation button
     toolbarAnnotationsTextSize: 'Text Size',
+    // Text for the annotation toolbar's text options annotation button
+    toolbarAnnotationsTextOptions: 'Text Options',
     // Text for the annotation toolbar's lock annotation button
     toolbarAnnotationsLock: 'Lock',
     // Text for the annotation toolbar's unlock annotation button
@@ -116,6 +118,10 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarAnnotationsText: 'Text',
     // Text for the annotation toolbar's arrow button
     toolbarAnnotationsArrow: 'Arrow',
+    // Text for the annotation toolbar's arrow mark up button
+    toolbarAnnotationsArrowUp: 'Arrow Mark Up',
+    // Text for the annotation toolbar's arrow mark down button
+    toolbarAnnotationsArrowDown: 'Arrow Mark Down',
     // Text for the range toolbar's 1 month button
     toolbarRange1Month: '1M',
     // Aria label for the range toolbar's 1 month button
