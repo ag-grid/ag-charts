@@ -74,6 +74,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             ctx.scene.attachNode(this.crosshairGroup),
             seriesRegion.addListener('hover', (event) => this.onMouseMove(event), mouseMoveStates),
             seriesRegion.addListener('drag', (event) => this.onMouseMove(event), mouseMoveStates),
+            seriesRegion.addListener('wheel', () => this.onMouseOut(), mouseMoveStates),
             seriesRegion.addListener('leave', () => this.onMouseOut(), mouseMoveStates),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
             ctx.layoutManager.addListener('layout:complete', (event) => this.layout(event)),
@@ -195,7 +196,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         const { crosshairGroup, hoverRect } = this;
         const { offsetX, offsetY } = event;
 
-        if (this.visible && hoverRect.containsPoint(offsetX, offsetY)) {
+        if (event.type === 'hover' && this.visible && hoverRect.containsPoint(offsetX, offsetY)) {
             crosshairGroup.visible = true;
 
             const lineData = this.getData(event);
@@ -224,9 +225,8 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.activeHighlight = hasCrosshair ? event.currentHighlight : undefined;
 
         if (this.snap) {
-            this.hideCrosshairs();
-
             if (!this.visible || !this.activeHighlight) {
+                this.hideCrosshairs();
                 return;
             }
 
