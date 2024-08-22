@@ -21,11 +21,11 @@ export class LineWithTextScene {
         datum: Datum,
         coords: LineCoords
     ) {
-        if (!datum.text && this.text) {
+        if (!datum.text?.label && this.text) {
             this.removeChild(this.text);
         }
 
-        if (!datum.text) return;
+        if (!datum.text?.label) return;
 
         if (this.text == null) {
             this.text = new _Scene.TransformableText();
@@ -59,11 +59,11 @@ export class LineWithTextScene {
         top: LineCoords,
         bottom: LineCoords
     ) {
-        if (!datum.text && this.text) {
+        if (!datum.text?.label && this.text) {
             this.removeChild(this.text);
         }
 
-        if (!datum.text) return;
+        if (!datum.text?.label) return;
 
         if (this.text == null) {
             this.text = new _Scene.TransformableText();
