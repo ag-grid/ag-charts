@@ -162,12 +162,14 @@ test.describe('examples', () => {
             const testFn = affected ? test : test.skip;
 
             test.describe(`Framework: ${framework}`, () => {
+                test.skip(!affected, 'unaffected example');
+
                 test.describe(`Example ${pagePath}: ${example}${affected ? '' : ' (!!!SKIPPED!!!)'}`, () => {
                     if (status === 'ok') {
                         testFn(`should load ${url}`, async ({ page }) => {
-                            config.ignoreConsoleWarnings = ignoreConsoleWarnings;
+                            test.slow(framework === 'angular', 'allow more time for Angular load times');
 
-                            test.skip(!affected, 'unaffected example');
+                            config.ignoreConsoleWarnings = ignoreConsoleWarnings;
 
                             // Load example and wait for things to settle.
                             await gotoExample(page, url);
