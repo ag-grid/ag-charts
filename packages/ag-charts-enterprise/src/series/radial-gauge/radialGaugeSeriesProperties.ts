@@ -20,6 +20,11 @@ export enum LabelType {
     Secondary = 'secondary',
 }
 
+export interface AgRadialGaugeColorStopDatum {
+    stop: number;
+    color: string;
+}
+
 export interface RadialGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     centerX: number;
     centerY: number;
@@ -78,7 +83,6 @@ const {
     PropertiesArray,
     Validate,
     BOOLEAN,
-    COLOR_STRING_ARRAY,
     COLOR_STRING,
     FUNCTION,
     LINE_DASH,
@@ -91,6 +95,17 @@ const {
     RATIO,
     STRING,
 } = _ModuleSupport;
+
+export class AgRadialGaugeScale extends BaseProperties {
+    @Validate(NUMBER)
+    min: number = 0;
+
+    @Validate(NUMBER)
+    max: number = 1;
+
+    @Validate(NUMBER_ARRAY, { optional: true })
+    values: number[] | undefined;
+}
 
 export class RadialGaugeTargetProperties extends BaseProperties {
     @Validate(NUMBER)
@@ -134,16 +149,13 @@ export class RadialGaugeStopProperties extends BaseProperties {
     @Validate(NUMBER, { optional: true })
     stop?: number;
 
-    @Validate(COLOR_STRING, { optional: true })
-    color?: string;
+    @Validate(COLOR_STRING)
+    color: string = 'black';
 }
 
 export class RadialGaugeBarProperties extends BaseProperties {
     @Validate(BOOLEAN)
     enabled = true;
-
-    @Validate(COLOR_STRING_ARRAY, { optional: true })
-    colorRange?: string[];
 
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined;
@@ -168,12 +180,6 @@ export class RadialGaugeBarProperties extends BaseProperties {
 }
 
 export class RadialGaugeBackgroundProperties extends BaseProperties {
-    @Validate(BOOLEAN)
-    enabled = true;
-
-    @Validate(COLOR_STRING_ARRAY, { optional: true })
-    colorRange?: string[];
-
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined;
 
@@ -197,9 +203,6 @@ export class RadialGaugeBackgroundProperties extends BaseProperties {
 
     @Validate(COLOR_STRING)
     defaultFill: string = 'black';
-
-    @Validate(COLOR_STRING_ARRAY, { optional: true })
-    defaultColorRange?: string[];
 }
 
 export class RadialGaugeNeedleProperties extends BaseProperties {
@@ -248,8 +251,8 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeS
     @Validate(NUMBER)
     value: number = 0;
 
-    @Validate(NUMBER_ARRAY)
-    range: number[] = [0, 1];
+    @Validate(OBJECT)
+    readonly scale = new AgRadialGaugeScale();
 
     @Validate(OBJECT_ARRAY)
     colorStops = new PropertiesArray<RadialGaugeStopProperties>(RadialGaugeStopProperties);

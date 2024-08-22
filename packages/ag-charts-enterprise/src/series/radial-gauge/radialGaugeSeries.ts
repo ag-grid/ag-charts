@@ -3,6 +3,7 @@ import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 import { AngleNumberAxis } from '../../axes/angle-number/angleNumberAxis';
 import { RadialGaugeNeedle } from './radialGaugeNeedle';
 import {
+    type AgRadialGaugeColorStopDatum,
     LabelType,
     type RadialGaugeLabelDatum,
     type RadialGaugeNodeDatum,
@@ -175,11 +176,73 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
     }
 
     private createDefaultLabelFormatter() {
-        const [r0, r1] = this.properties.range;
-        const r0Log10 = r0 !== 0 ? Math.ceil(Math.log10(Math.abs(r0))) : 0;
-        const r1Log10 = r1 !== 0 ? Math.ceil(Math.log10(Math.abs(r1))) : 0;
-        const dp = Math.max(2 - Math.max(r0Log10, r1Log10), 0);
+        const { min, max } = this.properties.scale;
+        const minLog10 = min !== 0 ? Math.ceil(Math.log10(Math.abs(min))) : 0;
+        const maxLog10 = max !== 0 ? Math.ceil(Math.log10(Math.abs(max))) : 0;
+        const dp = Math.max(2 - Math.max(minLog10, maxLog10), 0);
         return (value: number) => value.toFixed(dp);
+    }
+
+    private getColorStops() {
+        const { scale, colorStops } = this.properties;
+        if (colorStops.length === 0) return;
+
+        const out: AgRadialGaugeColorStopDatum[] = [];
+        let previousDefinedStopIndex = 0;
+        let nextDefinedStopIndex = -1;
+        for (let i = 0; i < colorStops.length; i += 1) {
+            const colorStop = colorStops[i];
+
+            if (i >= nextDefinedStopIndex) {
+                nextDefinedStopIndex = colorStops.length - 1;
+
+                for (let j = i + 1; j < colorStops.length; j += 1) {
+                    if (colorStops[j].stop != null) {
+                        nextDefinedStopIndex = j;
+                        break;
+                    }
+                }
+            }
+
+            let stop = colorStop.stop;
+            const color = colorStop.color;
+            if (stop == null) {
+                const value0 = colorStops[previousDefinedStopIndex].stop ?? scale.min;
+                const value1 = colorStops[nextDefinedStopIndex].stop ?? scale.max;
+                stop =
+                    value0 +
+                    ((value1 - value0) * (i - previousDefinedStopIndex)) /
+                        (nextDefinedStopIndex - previousDefinedStopIndex);
+            } else {
+                previousDefinedStopIndex = i;
+            }
+
+            out.push({ stop, color });
+        }
+
+        return out;
+    }
+
+    private createConicGradient(
+        colorStops: AgRadialGaugeColorStopDatum[] | undefined,
+        startAngle: number,
+        endAngle: number
+    ) {
+        if (colorStops == null) return;
+
+        const { scale } = this.properties;
+
+        const conicAngle = normalizeAngle360((startAngle + endAngle) / 2 + Math.PI);
+        const sweepAngle = normalizeAngle360(endAngle - startAngle);
+
+        const stops = colorStops.map((colorStop): _Scene.GradientColorStop => {
+            const { stop, color } = colorStop;
+            const angle = startAngle + (sweepAngle * stop - scale.min) / (scale.max - scale.min);
+            const offset = normalizeAngle360(angle - conicAngle) / (2 * Math.PI);
+            return { offset, color };
+        });
+
+        return new ConicGradient(stops, toDegrees(conicAngle) - 90);
     }
 
     override async createNodeData() {
@@ -187,7 +250,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         const { width, height } = this.chart!.seriesRect!;
         const {
             value,
-            range: domain,
+            scale,
             innerRadiusRatio,
             outerRadiusRatio,
             startAngle,
@@ -202,7 +265,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             label,
             secondaryLabel,
         } = properties;
-        const colorStops = properties.colorStops.length !== 0 ? properties.colorStops : undefined;
+        const colorStops = this.getColorStops();
         const nodeData: RadialGaugeNodeDatum[] = [];
         const targetData: RadialGaugeTargetDatum[] = [];
         const needleData: RadialGaugeNeedleDatum[] = [];
@@ -226,41 +289,27 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
 
         const range: [number, number] = [startAngle + angleInset, endAngle - angleInset];
 
-        this.axis.setDomain(domain);
+        this.axis.setDomain([scale.min, scale.max]);
         this.axis.range = range;
 
-        const scale = new LinearScale();
-        scale.domain = domain;
-        scale.range = range;
+        const angleScale = new LinearScale();
+        angleScale.domain = [scale.min, scale.max];
+        angleScale.range = range;
 
-        const containerStartAngle = scale.convert(domain[0]);
-        const containerEndAngle = scale.convert(value);
+        const containerStartAngle = angleScale.convert(scale.min);
+        const containerEndAngle = angleScale.convert(value);
 
-        let barColorScale: _Scale.ColorScale | undefined;
-        if (bar.colorRange != null) {
-            barColorScale = new ColorScale();
-            barColorScale.domain = domain;
-            barColorScale.range = bar.colorRange!;
-        }
-
-        let backgroundColorScale: _Scale.ColorScale | undefined;
-        if (background.colorRange != null || !bar.enabled) {
-            backgroundColorScale = new ColorScale();
-            backgroundColorScale.domain = domain;
-            backgroundColorScale.range = background.colorRange ?? background.defaultColorRange!;
+        let colorScale: _Scale.ColorScale | undefined;
+        if (colorStops != null) {
+            colorScale = new ColorScale();
+            colorScale.domain = colorStops.map((cs) => cs.stop);
+            colorScale.range = colorStops.map((cs) => cs.color);
         }
 
         if (isContinuous) {
             if (bar.enabled) {
-                let fill: string | _Scene.Gradient | undefined = bar.fill;
-                if (bar.colorRange != null) {
-                    fill ??= new ConicGradient(
-                        bar.colorRange.map((color, index, colorRange) => ({
-                            offset: index / (colorRange.length - 1),
-                            color,
-                        }))
-                    );
-                }
+                const barFill: string | _Scene.Gradient | undefined =
+                    bar.fill ?? this.createConicGradient(colorStops, startAngle, endAngle);
                 const angleParams = cornersOnAllItems
                     ? {
                           startAngle: containerStartAngle - angleInset,
@@ -288,69 +337,58 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                     clipEndAngle: angleParams.clipEndAngle,
                     startCornerRadius: cornerRadius,
                     endCornerRadius: cornerRadius,
-                    fill,
+                    fill: barFill,
                 });
             }
 
-            if (background.enabled) {
-                let fill: string | _Scene.Gradient | undefined = background.fill;
-                if (backgroundColorScale != null) {
-                    const conicAngle = normalizeAngle360((startAngle + endAngle) / 2 + Math.PI);
-                    const sweepAngle = normalizeAngle360(endAngle - startAngle);
+            const backgroundFill: string | _Scene.Gradient | undefined =
+                background.fill ??
+                this.createConicGradient(!bar.enabled ? colorStops : undefined, startAngle, endAngle) ??
+                background.defaultFill;
 
-                    fill ??= new ConicGradient(
-                        backgroundColorScale.range.map((color, index, colorRange) => {
-                            const angle = startAngle + (sweepAngle * index) / (colorRange.length - 1);
-                            const offset = normalizeAngle360(angle - conicAngle) / (2 * Math.PI);
-                            return { offset, color };
-                        }),
-                        toDegrees(conicAngle) - 90
-                    );
-                }
-                fill ??= background.defaultFill;
-
-                backgroundData.push({
-                    series: this,
-                    itemId: `background`,
-                    datum: value,
-                    centerX,
-                    centerY,
-                    outerRadius,
-                    innerRadius,
-                    startAngle: startAngle,
-                    endAngle: endAngle,
-                    clipStartAngle: undefined,
-                    clipEndAngle: undefined,
-                    startCornerRadius: cornerRadius,
-                    endCornerRadius: cornerRadius,
-                    fill,
-                });
-            }
+            backgroundData.push({
+                series: this,
+                itemId: `background`,
+                datum: value,
+                centerX,
+                centerY,
+                outerRadius,
+                innerRadius,
+                startAngle: startAngle,
+                endAngle: endAngle,
+                clipStartAngle: undefined,
+                clipEndAngle: undefined,
+                startCornerRadius: cornerRadius,
+                endCornerRadius: cornerRadius,
+                fill: backgroundFill,
+            });
         } else {
-            const colorRangeStops = colorStops?.length ?? 8;
-            const domainRange = domain[1] - domain[0];
+            const { values } = scale;
+            const segments = values != null ? values.length + 1 : 8;
+            const domainRange = scale.max - scale.min;
 
-            let value0 = domain[0];
-            for (let i = 0; i < colorRangeStops; i += 1) {
-                const colorStop = colorStops?.[i];
+            for (let i = 0; i < segments; i += 1) {
                 const isStart = i === 0;
-                const isEnd = i === colorRangeStops - 1;
+                const isEnd = i === segments - 1;
 
+                let value0: number;
                 let value1: number;
                 let colorScaleValue: number;
-                if (colorStop != null) {
-                    value1 = colorStop.stop ?? domain[1];
-                    colorScaleValue = value1;
+                if (values != null) {
+                    value0 = i > 0 ? values[i - 1] : scale.min;
+                    value1 = i < values.length ? values[i] : scale.max;
+                    colorScaleValue = value0;
                 } else {
-                    value1 = domain[0] + (i + 1) * (domainRange / colorRangeStops);
-                    colorScaleValue = domain[0] + i * (domainRange / (colorRangeStops - 1));
+                    value0 = scale.min + (i + 0) * (domainRange / segments);
+                    value1 = scale.min + (i + 1) * (domainRange / segments);
+                    colorScaleValue = scale.min + i * (domainRange / (segments - 1));
                 }
 
-                const itemStartAngle = scale.convert(value0);
-                const itemEndAngle = scale.convert(value1);
+                const itemStartAngle = angleScale.convert(value0);
+                const itemEndAngle = angleScale.convert(value1);
 
                 if (bar.enabled) {
-                    const fill = colorStop?.color ?? barColorScale?.convert(colorScaleValue) ?? bar.fill;
+                    const barFill = colorScale?.convert(colorScaleValue) ?? bar.fill;
 
                     nodeData.push({
                         series: this,
@@ -366,37 +404,30 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                         clipEndAngle: containerEndAngle,
                         startCornerRadius: cornersOnAllItems || isStart ? cornerRadius : 0,
                         endCornerRadius: cornersOnAllItems || isEnd ? cornerRadius : 0,
-                        fill,
+                        fill: barFill,
                     });
                 }
 
-                if (background.enabled) {
-                    const colorStopColor = !bar.enabled ? colorStop?.color : undefined;
-                    const fill =
-                        colorStopColor ??
-                        background.fill ??
-                        backgroundColorScale?.convert(colorScaleValue) ??
-                        background.defaultFill;
+                const backgroundColorScale = !bar.enabled ? colorScale : undefined;
+                const backgroundFill =
+                    background.fill ?? backgroundColorScale?.convert(colorScaleValue) ?? background.defaultFill;
 
-                    backgroundData.push({
-                        series: this,
-                        itemId: `background-${i}`,
-                        datum: value,
-                        centerX,
-                        centerY,
-                        outerRadius,
-                        innerRadius,
-                        startAngle: itemStartAngle,
-                        endAngle: itemEndAngle,
-                        clipStartAngle: undefined,
-                        clipEndAngle: undefined,
-                        startCornerRadius: cornersOnAllItems || isStart ? cornerRadius : 0,
-                        endCornerRadius: cornersOnAllItems || isEnd ? cornerRadius : 0,
-                        fill,
-                    });
-                }
-
-                value0 = value1;
+                backgroundData.push({
+                    series: this,
+                    itemId: `background-${i}`,
+                    datum: value,
+                    centerX,
+                    centerY,
+                    outerRadius,
+                    innerRadius,
+                    startAngle: itemStartAngle,
+                    endAngle: itemEndAngle,
+                    clipStartAngle: undefined,
+                    clipEndAngle: undefined,
+                    startCornerRadius: cornersOnAllItems || isStart ? cornerRadius : 0,
+                    endCornerRadius: cornersOnAllItems || isEnd ? cornerRadius : 0,
+                    fill: backgroundFill,
+                });
             }
         }
 
@@ -440,7 +471,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             const { spacing } = needle;
             let radius = needle.radiusRatio != null ? this.radius * needle.radiusRatio : innerRadius;
             radius = Math.max(radius - spacing, 0);
-            const angle = scale.convert(value);
+            const angle = angleScale.convert(value);
 
             needleData.push({
                 centerX,
@@ -465,7 +496,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                 lineDash,
                 lineDashOffset,
             } = target;
-            const angle = scale.convert(target.value);
+            const angle = angleScale.convert(target.value);
             const radius = radiusRatio != null ? radiusRatio * this.radius : (innerRadius + outerRadius) / 2;
             const size = sizeRatio * this.radius;
             targetData.push({
@@ -486,7 +517,6 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                 lineDashOffset,
             });
         }
-
         return {
             itemId: seriesId,
             nodeData,
@@ -685,19 +715,21 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         needleSelection.each((needle, datum) => {
             const { centerX, centerY, radius, angle } = datum;
 
+            const scale = radius * 2;
+
             needle.d = RadialGaugeNeedle.defaultPathData;
 
             needle.fill = fill;
             needle.fillOpacity = fillOpacity;
             needle.stroke = stroke;
             needle.strokeOpacity = strokeOpacity;
-            needle.strokeWidth = strokeWidth;
-            needle.lineDash = lineDash;
-            needle.lineDashOffset = lineDashOffset;
+            needle.strokeWidth = strokeWidth / scale;
+            needle.lineDash = lineDash.map((d) => d / scale);
+            needle.lineDashOffset = lineDashOffset / scale;
             needle.translationX = centerX;
             needle.translationY = centerY;
-            needle.scalingX = radius * 2;
-            needle.scalingY = radius * 2;
+            needle.scalingX = scale;
+            needle.scalingY = scale;
 
             if (animationDisabled) {
                 needle.rotation = angle;
@@ -735,22 +767,22 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
                 lineDashOffset,
             } = datum;
 
+            const scale = size;
+
             target.fill = fill;
             target.fillOpacity = fillOpacity;
             target.stroke = stroke;
             target.strokeOpacity = strokeOpacity;
-            target.strokeWidth = strokeWidth;
-            target.lineDash = lineDash;
-            target.lineDashOffset = lineDashOffset;
+            target.strokeWidth = strokeWidth / scale;
+            target.lineDash = lineDash.map((d) => d / scale);
+            target.lineDashOffset = lineDashOffset / scale;
             target.translationX = centerX + radius * Math.cos(angle);
             target.translationY = centerY + radius * Math.sin(angle);
-            target.scalingX = size;
-            target.scalingY = size;
             target.rotation = angle + Math.PI / 2 + rotation;
 
             if (animationDisabled) {
-                target.scalingX = size;
-                target.scalingY = size;
+                target.scalingX = scale;
+                target.scalingY = scale;
             }
         });
     }

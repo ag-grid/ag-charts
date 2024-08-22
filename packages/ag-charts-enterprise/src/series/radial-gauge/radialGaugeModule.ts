@@ -53,14 +53,11 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
         const hierarchyFills = themeTemplateParameters.get(DEFAULT_HIERARCHY_FILLS);
         const colorRange = userPalette === 'inbuilt' ? defaultColorRange : [fills[0], fills[1]];
         return {
-            bar: {
-                colorRange: colorRange,
-            },
             background: {
                 defaultFill: hierarchyFills?.[1],
                 stroke: hierarchyFills?.[2],
-                defaultColorRange: colorRange,
             },
+            colorStops: colorRange?.map((color) => ({ color })),
         };
     },
 };
