@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { type AgChartOptions, AgCharts, _ModuleSupport } from 'ag-charts-community';
+import { AgCartesianChartOptions, type AgChartOptions, AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
@@ -79,7 +79,30 @@ describe('RangeBarSeries', () => {
             low: -203,
         },
     ];
-    const RANGE_COLUMN_OPTIONS: AgChartOptions = {
+    const CONTINUOUS_DATE_DATA = CONTINUOUS_DATA.map((d) => ({ ...d, date: new Date(d.date) }));
+    const Y_DATE_DATA = [
+        {
+            department: 'Finance',
+            low: new Date(2024, 5, 20), //.getTime(),
+            high: new Date(2024, 6, 21), //.getTime(),
+        },
+        {
+            department: 'Engineering',
+            low: new Date(2024, 3, 20), //.getTime(),
+            high: new Date(2024, 5, 21), //.getTime(),
+        },
+        {
+            department: 'Marketing',
+            low: new Date(2024, 6, 20), //.getTime(),
+            high: new Date(2024, 7, 21), //.getTime(),
+        },
+        {
+            department: 'Sales',
+            low: new Date(2024, 4, 20), //.getTime(),
+            high: new Date(2024, 10, 21), //.getTime(),
+        },
+    ];
+    const RANGE_COLUMN_OPTIONS: AgCartesianChartOptions = {
         data: [
             {
                 date: 'Jan',
@@ -155,6 +178,21 @@ describe('RangeBarSeries', () => {
             },
         ],
     };
+    const RANGE_Y_DATE_OPTIONS: AgCartesianChartOptions = {
+        data: Y_DATE_DATA,
+        series: [
+            {
+                type: 'range-bar',
+                xKey: 'department',
+                yLowKey: 'low',
+                yHighKey: 'high',
+            },
+        ],
+        axes: [
+            { type: 'time', position: 'left' },
+            { type: 'category', position: 'bottom' },
+        ],
+    };
 
     const compare = async () => {
         await waitForChartStability(chart);
@@ -163,14 +201,36 @@ describe('RangeBarSeries', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
-    function switchSeriesType<T extends AgChartOptions>(opts: T, direction: 'horizontal' | 'vertical'): T {
+    function switchSeriesType<T extends AgCartesianChartOptions>(
+        { axes, ...opts }: T,
+        direction: 'horizontal' | 'vertical'
+    ): T {
+        if (axes) {
+            axes.forEach((axis) => {
+                switch (axis.position) {
+                    case 'left':
+                        axis.position = 'bottom';
+                        break;
+                    case 'right':
+                        axis.position = 'top';
+                        break;
+                    case 'bottom':
+                        axis.position = 'left';
+                        break;
+                    case 'top':
+                        axis.position = 'right';
+                        break;
+                }
+            });
+        }
         return {
             ...opts,
+            axes,
             series: opts['series']?.map((s) => ({
                 ...s,
                 direction,
             })),
-        };
+        } as T;
     }
 
     it(`should render a range-bar chart as expected`, async () => {
@@ -183,6 +243,43 @@ describe('RangeBarSeries', () => {
 
     it(`should render a horizontal range-bar chart as expected`, async () => {
         const options: AgChartOptions = { ...switchSeriesType(RANGE_COLUMN_OPTIONS, 'horizontal') };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render a range-bar chart with Date x values as expected`, async () => {
+        const options: AgChartOptions = { ...RANGE_COLUMN_OPTIONS, data: CONTINUOUS_DATE_DATA };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render a horizontal range-bar chart with Date x values as expected`, async () => {
+        const options: AgChartOptions = {
+            ...switchSeriesType(RANGE_COLUMN_OPTIONS, 'horizontal'),
+            data: CONTINUOUS_DATE_DATA,
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render a range-bar chart with Date y values as expected`, async () => {
+        const options: AgChartOptions = { ...RANGE_Y_DATE_OPTIONS };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render a horizontal range-bar chart with Date y values as expected`, async () => {
+        const options: AgChartOptions = {
+            ...switchSeriesType(RANGE_Y_DATE_OPTIONS, 'horizontal'),
+        };
         prepareEnterpriseTestOptions(options as any);
 
         chart = AgCharts.create(options);
