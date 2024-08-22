@@ -23,7 +23,7 @@ const { fromToMotion, resetMotion, SeriesNodePickMode, StateMachine, createDatum
     _ModuleSupport;
 const { Group, PointerEvents, Selection, Sector, Text, ConicGradient, getMarker } = _Scene;
 const { LinearScale, ColorScale } = _Scale;
-const { normalizeAngle360, toDegrees } = _Util;
+const { normalizeAngle360, normalizeAngle360Inclusive, toDegrees, toRadians, clockwiseAngles } = _Util;
 
 export type GaugeAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 export type GaugeAnimationEvent =
@@ -175,6 +175,14 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         this.animationState.transition('updateData');
     }
 
+    private getAngles() {
+        const { properties } = this;
+        return clockwiseAngles(
+            toRadians(properties.startAngle) - Math.PI / 2,
+            toRadians(properties.endAngle) - Math.PI / 2
+        );
+    }
+
     private createDefaultLabelFormatter() {
         const { min, max } = this.properties.scale;
         const minLog10 = min !== 0 ? Math.ceil(Math.log10(Math.abs(min))) : 0;
@@ -233,12 +241,12 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         const { scale } = this.properties;
 
         const conicAngle = normalizeAngle360((startAngle + endAngle) / 2 + Math.PI);
-        const sweepAngle = normalizeAngle360(endAngle - startAngle);
+        const sweepAngle = normalizeAngle360Inclusive(endAngle - startAngle);
 
         const stops = colorStops.map((colorStop): _Scene.GradientColorStop => {
             const { stop, color } = colorStop;
             const angle = startAngle + (sweepAngle * stop - scale.min) / (scale.max - scale.min);
-            const offset = normalizeAngle360(angle - conicAngle) / (2 * Math.PI);
+            const offset = (angle - conicAngle) / (2 * Math.PI);
             return { offset, color };
         });
 
@@ -253,8 +261,6 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             scale,
             innerRadiusRatio,
             outerRadiusRatio,
-            startAngle,
-            endAngle,
             cornerRadius,
             itemMode,
             cornerMode,
@@ -265,6 +271,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
             label,
             secondaryLabel,
         } = properties;
+        const { startAngle, endAngle } = this.getAngles();
         const colorStops = this.getColorStops();
         const nodeData: RadialGaugeNodeDatum[] = [];
         const targetData: RadialGaugeTargetDatum[] = [];

@@ -89,3 +89,21 @@ export function displacePointFromVector(
     const y = centerY + radius * Math.sin(angle);
     return { x, y };
 }
+
+const delta = 1e-6;
+export function clockwiseAngle(angle: number, relativeToStartAngle: number) {
+    if (angleBetween(angle, relativeToStartAngle) < delta) {
+        // Handle floating point errors
+        return relativeToStartAngle;
+    } else {
+        return normalizeAngle360(angle - relativeToStartAngle) + relativeToStartAngle;
+    }
+}
+
+export function clockwiseAngles(startAngle: number, endAngle: number, relativeToStartAngle = 0) {
+    const fullPie = Math.abs(endAngle - startAngle) >= 2 * Math.PI;
+    const sweepAngle = fullPie ? 2 * Math.PI : normalizeAngle360(endAngle - startAngle);
+    startAngle = clockwiseAngle(startAngle, relativeToStartAngle);
+    endAngle = startAngle + sweepAngle;
+    return { startAngle, endAngle };
+}

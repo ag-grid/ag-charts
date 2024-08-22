@@ -261,10 +261,10 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeS
     targets = new PropertiesArray<RadialGaugeTargetProperties>(RadialGaugeTargetProperties);
 
     @Validate(NUMBER)
-    startAngle: number = 0.75 * Math.PI;
+    startAngle: number = -135;
 
     @Validate(NUMBER)
-    endAngle: number = 2.25 * Math.PI;
+    endAngle: number = 135;
 
     @Validate(RATIO)
     outerRadiusRatio: number = 1;
