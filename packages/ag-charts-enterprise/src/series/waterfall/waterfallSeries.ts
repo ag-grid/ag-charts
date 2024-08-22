@@ -196,7 +196,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
-        const { processedData, dataModel, smallestDataInterval } = this;
+        const { processedData, dataModel } = this;
         if (!processedData || !dataModel) return [];
 
         const {
@@ -204,27 +204,14 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             values,
         } = processedData.domain;
 
-        const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
-
         if (direction === this.getCategoryDirection()) {
+            const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
             if (keyDef?.def.type === 'key' && keyDef?.def.valueType === 'category') {
                 return keys;
             }
-
-            const scalePadding = isFiniteNumber(smallestDataInterval) ? smallestDataInterval : 0;
-            const keysExtent = _ModuleSupport.extent(keys) ?? [NaN, NaN];
-
-            const categoryAxis = this.getCategoryAxis();
-            const isReversed = Boolean(categoryAxis?.isReversed());
             const isDirectionY = direction === ChartAxisDirection.Y;
-
-            const padding0 = isReversed === isDirectionY ? 0 : -scalePadding;
-            const padding1 = isReversed === isDirectionY ? scalePadding : 0;
-
-            const d0 = keysExtent[0] + padding0;
-            const d1 = keysExtent[1] + padding1;
-
-            return fixNumericExtent([d0, d1]);
+            const isReversed = this.getCategoryAxis()!.isReversed();
+            return this.padBandExtent(keys, isReversed !== isDirectionY);
         } else {
             const yCurrIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrent');
             const yExtent = values[yCurrIndex];
@@ -265,6 +252,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             scales: this.calculateScaling(),
             visible: this.visible,
         };
+
+        // context.scales[this.getCategoryDirection()].
+
         if (!this.visible) return context;
 
         const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yRaw`);
@@ -397,18 +387,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
             pointData.push(pathPoint);
 
-            const labelText = this.getLabelText(
-                label,
-                {
-                    itemId: seriesItemType === 'subtotal' ? 'total' : seriesItemType,
-                    value,
-                    datum,
-                    xKey,
-                    yKey,
-                    xName,
-                    yName,
-                },
-                (v) => (isFiniteNumber(v) ? v.toFixed(2) : String(v))
+            const itemId = seriesItemType === 'subtotal' ? 'total' : seriesItemType;
+            const labelText = this.getLabelText(label, { itemId, value, datum, xKey, yKey, xName, yName }, (v) =>
+                isFiniteNumber(v) ? v.toFixed(2) : String(v)
             );
 
             const nodeDatum: WaterfallNodeDatum = {
