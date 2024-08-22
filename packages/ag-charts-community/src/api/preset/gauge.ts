@@ -40,7 +40,7 @@ export function gauge(opts: AgGaugeOptions): AgGaugeChartOptions {
         listeners: opts.listeners,
         tooltip: opts.tooltip,
         value: opts.value,
-        range: opts.range,
+        scale: opts.scale,
         itemStyler: opts.itemStyler,
         highlightStyle: opts.highlightStyle,
         bar: opts.bar,

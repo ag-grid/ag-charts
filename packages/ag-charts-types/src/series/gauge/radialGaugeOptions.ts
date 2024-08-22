@@ -5,6 +5,11 @@ import type { CssColor, MarkerShape, PixelSize, Ratio } from '../../chart/types'
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
+export interface AgRadialGaugeSeriesScale {
+    min?: number;
+    max?: number;
+    values?: number[];
+}
 export interface AgRadialGaugeSeriesTooltipRendererParams<TDatum>
     extends AgSeriesTooltipRendererParams<TDatum>,
         AgRadialGaugeSeriesOptionsKeys,
@@ -19,13 +24,9 @@ export interface AgRadialGaugeSeriesStyle {}
 
 export interface AgRadialGaugeSeriesBarStyle extends FillOptions, StrokeOptions, LineDashOptions {
     enabled?: boolean;
-    colorRange?: CssColor[];
 }
 
-export interface AgRadialGaugeSeriesBackgroundStyle extends FillOptions, StrokeOptions, LineDashOptions {
-    enabled?: boolean;
-    colorRange?: CssColor[];
-}
+export interface AgRadialGaugeSeriesBackgroundStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
 export interface AgRadialGaugeSeriesNeedleStyle extends FillOptions, StrokeOptions, LineDashOptions {
     enabled?: boolean;
@@ -60,7 +61,7 @@ export interface AgRadialGaugeSecondaryLabelOptions<TDatum>
 
 export interface AgRadialGaugeColorStop {
     stop?: number;
-    color?: CssColor;
+    color: CssColor;
 }
 
 export interface AgRadialGaugeTarget extends FillOptions, StrokeOptions, LineDashOptions {
@@ -114,5 +115,5 @@ export interface AgRadialGaugeSeriesOptions<TDatum = any>
     /** Value of the series. */
     value: number;
     /** Range of the value. Defaults to [0, 1]. */
-    range?: [number, number];
+    scale?: AgRadialGaugeSeriesScale;
 }
