@@ -1,5 +1,8 @@
+import type { TextAlign, VerticalAlign } from 'ag-charts-types';
+
 import type { LayoutContext } from '../module/baseModule';
 import type { BBox } from '../scene/bbox';
+import { isBetweenAngles, normalizeAngle360Inclusive } from '../util/angle';
 import { PolarAxis } from './axis/polarAxis';
 import { Chart } from './chart';
 import { ChartAxisDirection } from './chartAxisDirection';
@@ -18,25 +21,62 @@ export class GaugeChart extends Chart {
     }
 
     private updateRadialGauge(seriesRect: BBox, series: RadialGaugeSeries) {
+        const angleAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.X);
+        if (!(angleAxis instanceof PolarAxis)) return;
+
+        angleAxis.computeRange();
+
         const seriesRectX0 = seriesRect.x;
         const seriesRectX1 = seriesRectX0 + seriesRect.width;
         const seriesRectY0 = seriesRect.y;
         const seriesRectY1 = seriesRectY0 + seriesRect.height;
 
-        const centerX = seriesRect.x + seriesRect.width / 2;
-        const centerY = seriesRect.y + seriesRect.height / 2;
-        const angleAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.X);
-        if (!(angleAxis instanceof PolarAxis)) return;
+        const [startAngle, endAngle] = angleAxis.range;
+        const sweepAngle = normalizeAngle360Inclusive(endAngle - startAngle);
+        const largerThanHalf = sweepAngle > Math.PI;
+        const containsTop = largerThanHalf || isBetweenAngles(1.5 * Math.PI, startAngle, endAngle);
+        const containsRight = largerThanHalf || isBetweenAngles(0.0 * Math.PI, startAngle, endAngle);
+        const containsBottom = largerThanHalf || isBetweenAngles(0.5 * Math.PI, startAngle, endAngle);
+        const containsLeft = largerThanHalf || isBetweenAngles(1.0 * Math.PI, startAngle, endAngle);
 
-        angleAxis.computeRange();
-        angleAxis.translation.x = centerX;
-        angleAxis.translation.y = centerY;
+        let centerXOffset = 0;
+        let centerYOffset = 0;
 
-        let radius = Math.min(seriesRect.width, seriesRect.height) / 2;
+        let textAlign: TextAlign;
+        if (containsLeft && !containsRight) {
+            textAlign = 'right';
+            centerXOffset = 0.5;
+        } else if (!containsLeft && containsRight) {
+            textAlign = 'left';
+            centerXOffset = -0.5;
+        } else {
+            textAlign = 'center';
+        }
+
+        let verticalAlign: VerticalAlign;
+        if (containsTop && !containsBottom) {
+            verticalAlign = 'bottom';
+            centerYOffset = 0.5;
+        } else if (!containsTop && containsBottom) {
+            verticalAlign = 'top';
+            centerYOffset = -0.5;
+        } else {
+            verticalAlign = 'middle';
+        }
+
+        const radiusFactor = verticalAlign === 'middle' || textAlign === 'center' ? 2 : 1;
+        let radius = Math.min(seriesRect.width, seriesRect.height) / radiusFactor;
 
         const MAX_ITERATIONS = 8;
         for (let i = 0; i < MAX_ITERATIONS; i += 1) {
             const isFinalIteration = i === MAX_ITERATIONS - 1;
+
+            const centerX = seriesRect.x + seriesRect.width / 2 + centerXOffset * radius;
+            const centerY = seriesRect.y + seriesRect.height / 2 + centerYOffset * radius;
+
+            angleAxis.translation.x = centerX;
+            angleAxis.translation.y = centerY;
+
             angleAxis.gridLength = radius;
             angleAxis.calculateLayout();
             const bbox = angleAxis.computeLabelsBBox({ hideWhenNecessary: isFinalIteration }, seriesRect);
@@ -64,7 +104,14 @@ export class GaugeChart extends Chart {
             }
         }
 
+        angleAxis.translation.x = seriesRect.x + seriesRect.width / 2 + centerXOffset * radius;
+        angleAxis.translation.y = seriesRect.y + seriesRect.height / 2 + centerYOffset * radius;
+
+        series.centerX = seriesRect.width / 2 + centerXOffset * radius;
+        series.centerY = seriesRect.height / 2 + centerYOffset * radius;
         series.radius = radius;
+        series.textAlign = textAlign;
+        series.verticalAlign = verticalAlign;
     }
 
     protected performLayout(ctx: LayoutContext) {

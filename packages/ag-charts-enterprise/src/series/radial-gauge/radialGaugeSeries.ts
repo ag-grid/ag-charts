@@ -56,12 +56,15 @@ interface RadialGaugeNodeDataContext
     backgroundData: RadialGaugeNodeDatum[];
 }
 
-export class RadialGaugeSeries extends _ModuleSupport.Series<
-    RadialGaugeNodeDatum,
-    RadialGaugeSeriesProperties,
-    RadialGaugeLabelDatum,
-    RadialGaugeNodeDataContext
-> {
+export class RadialGaugeSeries
+    extends _ModuleSupport.Series<
+        RadialGaugeNodeDatum,
+        RadialGaugeSeriesProperties,
+        RadialGaugeLabelDatum,
+        RadialGaugeNodeDataContext
+    >
+    implements _ModuleSupport.RadialGaugeSeries
+{
     static readonly className = 'RadialGaugeSeries';
     static readonly type = 'radial-gauge' as const;
 
@@ -69,7 +72,11 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
 
     override properties = new RadialGaugeSeriesProperties();
 
+    public centerX: number = 0;
+    public centerY: number = 0;
     public radius: number = 0;
+    public textAlign: TextAlign = 'center';
+    public verticalAlign: VerticalAlign = 'middle';
 
     public getNodeData(): RadialGaugeNodeDatum[] | undefined {
         return this.contextNodeData?.nodeData;
@@ -249,8 +256,7 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
     }
 
     override async createNodeData() {
-        const { id: seriesId, properties, radius } = this;
-        const { width, height } = this.chart!.seriesRect!;
+        const { id: seriesId, properties, radius, centerX, centerY } = this;
         const {
             value,
             innerRadiusRatio,
@@ -280,8 +286,6 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         const [startAngle, endAngle] = angleAxis.range;
         const angleScale = angleAxis.scale;
 
-        const centerX = width / 2;
-        const centerY = height / 2;
         const outerRadius = radius * outerRadiusRatio;
         const innerRadius = radius * innerRadiusRatio;
 
@@ -814,34 +818,8 @@ export class RadialGaugeSeries extends _ModuleSupport.Series<
         const angleAxis = this.axes[ChartAxisDirection.X];
         if (angleAxis == null) return;
 
-        const { labelSelection, radius } = this;
+        const { labelSelection, radius, textAlign, verticalAlign } = this;
         const { label, secondaryLabel, padding, innerRadiusRatio } = this.properties;
-        const [startAngle, endAngle] = angleAxis.range;
-
-        const sweepAngle = normalizeAngle360Inclusive(endAngle - startAngle);
-        const largerThanHalf = sweepAngle > Math.PI;
-        const containsTop = largerThanHalf || isBetweenAngles(1.5 * Math.PI, startAngle, endAngle);
-        const containsRight = largerThanHalf || isBetweenAngles(0.0 * Math.PI, startAngle, endAngle);
-        const containsBottom = largerThanHalf || isBetweenAngles(0.5 * Math.PI, startAngle, endAngle);
-        const containsLeft = largerThanHalf || isBetweenAngles(1.0 * Math.PI, startAngle, endAngle);
-
-        let textAlign: TextAlign;
-        if (containsLeft && !containsRight) {
-            textAlign = 'right';
-        } else if (!containsLeft && containsRight) {
-            textAlign = 'left';
-        } else {
-            textAlign = 'center';
-        }
-
-        let verticalAlign: VerticalAlign;
-        if (containsTop && !containsBottom) {
-            verticalAlign = 'bottom';
-        } else if (!containsTop && containsBottom) {
-            verticalAlign = 'top';
-        } else {
-            verticalAlign = 'middle';
-        }
 
         formatRadialGaugeLabels(
             this,
