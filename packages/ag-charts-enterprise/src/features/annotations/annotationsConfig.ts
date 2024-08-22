@@ -149,7 +149,9 @@ export function getTypedDatum(datum: unknown) {
         NoteProperties.is(datum) ||
         TextProperties.is(datum) ||
         // Shapes
-        ArrowProperties.is(datum)
+        ArrowProperties.is(datum) ||
+        ArrowUpProperties.is(datum) ||
+        ArrowDownProperties.is(datum)
     ) {
         return datum;
     }
