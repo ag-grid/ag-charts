@@ -67,7 +67,8 @@ export const SITE_BASE_URL =
 export const SITE_URL = import.meta.env?.SITE_URL || import.meta.env?.PUBLIC_SITE_URL;
 
 export const STAGING_SITE_URL = 'https://charts-staging.ag-grid.com';
-export const PRODUCTION_SITE_URL = 'https://charts.ag-grid.com';
+// NOTE: no `/charts` folder here, as it is just for comparing hostname
+export const PRODUCTION_SITE_URL = 'https://ag-grid.com';
 export const USE_PUBLISHED_PACKAGES = ['1', 'true'].includes(import.meta.env?.PUBLIC_USE_PUBLISHED_PACKAGES);
 export const FAIL_ON_UNMATCHED_GLOBS = ['1', 'true'].includes(import.meta.env?.FAIL_ON_UNMATCHED_GLOBS) ?? true;
 /**
@@ -110,6 +111,6 @@ function getChartsUrl() {
     } else if (SITE_URL?.includes(STAGING_SITE_URL)) {
         return 'https://charts-staging.ag-grid.com';
     }
-    return 'https://charts.ag-grid.com';
+    return 'https://ag-grid.com/charts';
 }
 export const CHARTS_SITE_URL = getChartsUrl();

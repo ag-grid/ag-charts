@@ -53,7 +53,7 @@
     "not op_mini all",
     "not operamobile >= 0"
   ],
-  "homepage": "https://charts.ag-grid.com/",
+  "homepage": "https://ag-grid.com/charts/",
   "devDependencies": {
     "@babel/types": "7.12.7",
     "@jest/globals": "29.6.1",
