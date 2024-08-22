@@ -22,5 +22,5 @@
 }
 
 .ag-crosshair-label-hidden {
-    top: -10000px !important;
+    visibility: hidden !important;
 }

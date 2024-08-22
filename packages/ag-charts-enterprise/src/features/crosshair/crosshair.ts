@@ -125,7 +125,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     private updateLabels(keys: string[]) {
         const { labels, ctx } = this;
         keys.forEach((key) => {
-            labels[key] ??= new CrosshairLabel(ctx.domManager);
+            labels[key] ??= new CrosshairLabel(ctx.domManager, key, this.axisCtx.axisId);
 
             this.updateLabel(labels[key]);
         });
