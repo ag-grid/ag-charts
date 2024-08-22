@@ -32,7 +32,7 @@ export abstract class PolarAxis<
         return null;
     }
 
-    computeRange?: () => void;
+    computeRange(): void {}
 
     getAxisLinePoints?(): { points: PolarAxisPathPoint[]; closePath: boolean };
 }

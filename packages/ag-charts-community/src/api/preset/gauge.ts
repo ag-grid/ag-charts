@@ -2,6 +2,7 @@ import type {
     AgBasePresetOptions,
     AgGaugeChartOptions,
     AgGaugeOptions,
+    AgPolarAxisOptions,
     AgRadialGaugeSeriesOptions,
 } from 'ag-charts-types';
 
@@ -29,6 +30,7 @@ export function gauge(opts: AgGaugeOptions): AgGaugeChartOptions {
         theme: opts.theme,
         title: opts.title,
     });
+
     const seriesOpts = allProperties<AgRadialGaugeSeriesOptions>(opts, {
         type: opts.type,
         id: opts.id,
@@ -40,7 +42,9 @@ export function gauge(opts: AgGaugeOptions): AgGaugeChartOptions {
         listeners: opts.listeners,
         tooltip: opts.tooltip,
         value: opts.value,
-        scale: opts.scale,
+        scale: undefined,
+        startAngle: undefined,
+        endAngle: undefined,
         itemStyler: opts.itemStyler,
         highlightStyle: opts.highlightStyle,
         bar: opts.bar,
@@ -50,8 +54,6 @@ export function gauge(opts: AgGaugeOptions): AgGaugeChartOptions {
         targets: opts.targets,
         outerRadiusRatio: opts.outerRadiusRatio,
         innerRadiusRatio: opts.innerRadiusRatio,
-        startAngle: opts.startAngle,
-        endAngle: opts.endAngle,
         sectorSpacing: opts.sectorSpacing,
         cornerRadius: opts.cornerRadius,
         itemMode: opts.itemMode,
@@ -60,8 +62,28 @@ export function gauge(opts: AgGaugeOptions): AgGaugeChartOptions {
         secondaryLabel: opts.secondaryLabel,
         padding: opts.padding,
     });
+
+    const axesOpts: AgPolarAxisOptions[] = [
+        {
+            type: 'angle-number',
+            min: opts.scale?.min ?? 0,
+            max: opts.scale?.max ?? 0,
+            startAngle: opts.startAngle ?? 270,
+            endAngle: opts.endAngle ?? 270,
+            interval: {
+                values: opts.scale?.values,
+            },
+            line: {
+                enabled: false,
+            },
+        },
+        {
+            type: 'radius-number',
+        },
+    ];
     return {
         ...baseOpts,
         series: [seriesOpts],
+        axes: axesOpts,
     };
 }
