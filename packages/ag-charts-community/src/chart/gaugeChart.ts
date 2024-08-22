@@ -1,6 +1,6 @@
-import { PolarAxis } from '../module-support';
 import type { LayoutContext } from '../module/baseModule';
 import type { BBox } from '../scene/bbox';
+import { PolarAxis } from './axis/polarAxis';
 import { Chart } from './chart';
 import { ChartAxisDirection } from './chartAxisDirection';
 import type { RadialGaugeSeries } from './series/gaugeSeries';
@@ -36,7 +36,7 @@ export class GaugeChart extends Chart {
         angleAxis.gridLength = radius;
         angleAxis.calculateLayout();
 
-        let MAX_ITERATIONS = 8;
+        const MAX_ITERATIONS = 8;
         for (let i = 0; i < MAX_ITERATIONS; i += 1) {
             const bbox: BBox | null | undefined = angleAxis.computeLabelsBBox({ hideWhenNecessary: true }, seriesRect);
 
