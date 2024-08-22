@@ -201,7 +201,13 @@ jobs:
             - name: calculate matrix
               id: matrix
               run: |
-                  count=$(cd packages/ag-charts-website/ ; npx playwright test --list | grep -v '!!!SKIPPED!!!' | wc -l)
+                  nx_count=$(yarn -s nx show projects --affected --base ${{ steps.setup.outputs.base }} -t test:e2e | wc -l)
+                  if [[ ${nx_count} -gt 0 ]] ; then
+                    count=$(cd packages/ag-charts-website/ ; npx playwright test --list | grep -v '!!!SKIPPED!!!' | wc -l)
+                  else
+                    count=0
+                  fi
+
                   matrix=$(node ./tools/test/calculate-shards.js eval ${count})
                   echo "matrix=${matrix}" >> $GITHUB_OUTPUT
                   echo "E2E matrix determined to be: ${matrix}"
