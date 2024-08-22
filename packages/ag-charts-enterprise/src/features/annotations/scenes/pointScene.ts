@@ -27,8 +27,6 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
         const coords = convertPoint(datum, context);
 
         this.updateHandle(datum, coords);
-        this.updateShape(datum, coords);
-
         this.anchor = this.updateAnchor(datum, coords, context);
     }
 
@@ -92,10 +90,6 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
 
         this.handle.update({ ...styles, x, y });
         this.handle.toggleLocked(datum.locked ?? false);
-    }
-
-    protected updateShape(_datum: Datum, _point: _Util.Vec2) {
-        // Shapes should be implemented by the extending annotation type class
     }
 
     protected updateAnchor(_datum: Datum, point: _Util.Vec2, context: AnnotationContext) {

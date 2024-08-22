@@ -6,7 +6,7 @@ import { ShapePointProperties } from '../properties/shapePointProperties';
 const { STRING, Validate, isObject } = _ModuleSupport;
 
 export class ArrowUpProperties extends ShapePointProperties {
-    static is(value: unknown): value is ArrowUpProperties {
+    static override is(value: unknown): value is ArrowUpProperties {
         return isObject(value) && value.type === AnnotationType.ArrowUp;
     }
 

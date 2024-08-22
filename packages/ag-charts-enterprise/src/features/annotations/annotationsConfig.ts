@@ -35,6 +35,7 @@ import { NoteProperties } from './note/noteProperties';
 import { NoteScene } from './note/noteScene';
 import { ParallelChannelProperties } from './parallel-channel/parallelChannelProperties';
 import { ParallelChannelScene } from './parallel-channel/parallelChannelScene';
+import { ShapePointProperties } from './properties/shapePointProperties';
 import { TextProperties } from './text/textProperties';
 import { TextScene } from './text/textScene';
 
@@ -149,7 +150,9 @@ export function getTypedDatum(datum: unknown) {
         NoteProperties.is(datum) ||
         TextProperties.is(datum) ||
         // Shapes
-        ArrowProperties.is(datum)
+        ArrowProperties.is(datum) ||
+        ArrowUpProperties.is(datum) ||
+        ArrowDownProperties.is(datum)
     ) {
         return datum;
     }
@@ -190,7 +193,12 @@ export function hasLineColor(datum?: AnnotationProperties) {
 }
 
 export function hasFillColor(datum?: AnnotationProperties) {
-    return isChannelType(datum) || CalloutProperties.is(datum) || CommentProperties.is(datum);
+    return (
+        isChannelType(datum) ||
+        CalloutProperties.is(datum) ||
+        CommentProperties.is(datum) ||
+        ShapePointProperties.is(datum)
+    );
 }
 
 export function hasTextColor(datum?: AnnotationProperties) {
