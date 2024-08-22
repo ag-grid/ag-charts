@@ -240,11 +240,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 const xDatum = keys[xIndex];
                 const x = Math.round(xScale.convert(xDatum)) + groupScale.convert(String(groupIndex)) + barOffset;
 
-                const rawLowValue: unknown = value[yLowIndex];
-                const rawHighValue: unknown = value[yHighIndex];
-                if (!_Util.isNumber(rawHighValue) || !_Util.isNumber(rawLowValue)) {
-                    return;
-                }
+                const rawLowValue = value[yLowIndex];
+                const rawHighValue = value[yHighIndex];
 
                 const yLowValue = Math.min(rawLowValue, rawHighValue);
                 const yHighValue = Math.max(rawLowValue, rawHighValue);

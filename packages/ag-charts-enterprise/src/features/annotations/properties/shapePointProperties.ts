@@ -7,6 +7,10 @@ import { PointProperties } from './pointProperties';
 const { Validate, POSITIVE_NUMBER } = _ModuleSupport;
 
 export class ShapePointProperties extends Fill(Stroke(PointProperties)) {
+    static is(value: unknown): value is ShapePointProperties {
+        return value instanceof ShapePointProperties;
+    }
+
     @Validate(POSITIVE_NUMBER)
     size: number = 32;
 
