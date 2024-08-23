@@ -1,4 +1,3 @@
-import { findLast } from '../../../util/array';
 import type { CartesianSeriesNodeDataContext } from './cartesianSeries';
 import { type Span, clipSpanX, rescaleSpan, spanRange } from './lineInterpolation';
 import { scale } from './lineUtil';
@@ -118,7 +117,7 @@ function collapseSpan(
     let xValue: any;
     let yValue: any;
     if (indices.xValue0Index >= range.xValue1Index) {
-        const datumIndex = findLast(axisIndices, (i) => i.xValue1Index <= range.xValue1Index)!.datumIndex;
+        const datumIndex = axisIndices.findLast((i) => i.xValue1Index <= range.xValue1Index)!.datumIndex;
         const datum = data.data[datumIndex];
         xValue = datum.xValue1;
         yValue = datum.yValue1;
