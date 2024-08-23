@@ -21,8 +21,7 @@ export class LineScene extends LinearScene<LineTypeProperties> {
 
     override activeHandle?: 'start' | 'end';
 
-    private readonly line = new CollidableLine();
-    public readonly lineClipGroup = new _Scene.Group({ name: 'LineSceneClipGroup' });
+    public readonly line = new CollidableLine();
     private readonly start = new DivariantHandle();
     private readonly end = new DivariantHandle();
     public text?: _Scene.TransformableText;
@@ -31,8 +30,7 @@ export class LineScene extends LinearScene<LineTypeProperties> {
 
     constructor() {
         super();
-        this.lineClipGroup.append(this.line);
-        this.append([this.lineClipGroup, this.start, this.end]);
+        this.append([this.line, this.start, this.end]);
     }
 
     public update(datum: LineTypeProperties, context: AnnotationContext) {

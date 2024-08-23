@@ -21,8 +21,7 @@ export class CrossLineScene extends AnnotationScene {
 
     override activeHandle?: 'middle';
 
-    private readonly line = new CollidableLine();
-    public readonly lineClipGroup = new _Scene.Group({ name: 'CrossLineSceneClipGroup' });
+    public readonly line = new CollidableLine();
     private readonly middle = new UnivariantHandle();
     private axisLabel?: AxisLabelScene;
     public text?: _Scene.TransformableText;
@@ -36,8 +35,7 @@ export class CrossLineScene extends AnnotationScene {
 
     constructor() {
         super();
-        this.lineClipGroup.append(this.line);
-        this.append([this.lineClipGroup, this.middle]);
+        this.append([this.line, this.middle]);
     }
 
     public update(datum: CrossLineProperties, context: AnnotationContext) {

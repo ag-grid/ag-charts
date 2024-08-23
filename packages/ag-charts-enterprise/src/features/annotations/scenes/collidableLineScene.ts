@@ -2,7 +2,7 @@ import { _Scene, _Util } from 'ag-charts-community';
 
 const { Vec2 } = _Util;
 
-export class CollidableLine extends _Scene.Line {
+export class CollidableLine extends _Scene.ClippableOutside(_Scene.Line) {
     public collisionBBox?: _Scene.BBox;
     private readonly growCollisionBox = 9;
 

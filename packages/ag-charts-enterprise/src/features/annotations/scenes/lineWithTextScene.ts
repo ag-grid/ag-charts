@@ -17,7 +17,7 @@ interface Decomposed {
 
 export class LineWithTextScene {
     static updateLineText<Datum extends { strokeWidth?: number; text?: LineTextProperties }>(
-        this: AnnotationScene & { lineClipGroup: _Scene.Group; text?: _Scene.TransformableText },
+        this: AnnotationScene & { line: _Scene.ClippableOutsideType<_Scene.Node>; text?: _Scene.TransformableText },
         datum: Datum,
         coords: LineCoords
     ) {
@@ -41,14 +41,11 @@ export class LineWithTextScene {
         if (position === 'center') {
             const { x, y, width, height } = this.text.getBBox();
             const diameter = Vec2.length(Vec2.from(width, height));
-            this.lineClipGroup.setClipMask(
-                {
-                    x: x + width / 2,
-                    y: y + height / 2,
-                    radius: diameter / 2 + Vec2.length(decomposed.offset),
-                },
-                'outside'
-            );
+            this.line.setClipMask({
+                x: x + width / 2,
+                y: y + height / 2,
+                radius: diameter / 2 + Vec2.length(decomposed.offset),
+            });
         }
     }
 

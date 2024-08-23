@@ -7,9 +7,6 @@ import type { ChildNodeCounts, RenderContext } from './node';
 import { Node, RedrawType, SceneChangeDetection } from './node';
 import { Rotatable, Scalable, Transformable, Translatable } from './transformable';
 
-type Circle = { x: number; y: number; radius: number };
-type ClipMode = 'inside' | 'outside';
-
 export class Group extends Node {
     static className = 'Group';
 
@@ -17,8 +14,7 @@ export class Group extends Node {
         return value instanceof Group;
     }
 
-    private clipShape?: BBox | Circle;
-    private clipMode?: ClipMode;
+    private clipRect?: BBox;
     protected layer?: HdpiCanvas;
 
     @SceneChangeDetection({
@@ -172,7 +168,7 @@ export class Group extends Node {
 
     override render(renderCtx: RenderContext) {
         const { opts: { name = undefined } = {}, _debug: debug } = this;
-        const { dirty, dirtyZIndex, layer, children, clipShape, clipMode } = this;
+        const { dirty, dirtyZIndex, layer, children, clipRect } = this;
         let { ctx, forceRender, clipBBox } = renderCtx;
         const { resized, stats } = renderCtx;
 
@@ -254,19 +250,19 @@ export class Group extends Node {
             ctx.globalAlpha *= this.opacity;
         }
 
-        if (clipShape && clipShape instanceof BBox && clipMode === 'inside') {
-            // clipShape is in the group's coordinate space
-            const { x, y, width, height } = clipShape;
+        if (clipRect) {
+            // clipRect is in the group's coordinate space
+            const { x, y, width, height } = clipRect;
             ctx.save();
 
-            debug?.(() => ({ name, clipShape, ctxTransform: ctx.getTransform(), renderCtx, group: this }));
+            debug?.(() => ({ name, clipRect, ctxTransform: ctx.getTransform(), renderCtx, group: this }));
 
             ctx.beginPath();
             ctx.rect(x, y, width, height);
             ctx.clip();
 
             // clipBBox is in the canvas coordinate space, when we hit a layer we apply the new clipping at which point there are no transforms in play
-            clipBBox = Transformable.toCanvas(this, clipShape);
+            clipBBox = Transformable.toCanvas(this, clipRect);
         }
 
         const hasVirtualChildren = this.hasVirtualChildren();
@@ -305,26 +301,10 @@ export class Group extends Node {
         }
         if (stats) stats.nodesSkipped += skipped;
 
-        if (clipShape && clipMode === 'outside') {
-            const prevOperation = ctx.globalCompositeOperation;
-            // Erase the current canvas with the following shape
-            ctx.globalCompositeOperation = 'destination-out';
-            ctx.beginPath();
-            if (clipShape instanceof BBox) {
-                const { x, y, width, height } = clipShape;
-                ctx.rect(x, y, width, height);
-            } else {
-                const { x, y, radius } = clipShape;
-                ctx.arc(x, y, radius, 0, Math.PI * 2);
-            }
-            ctx.fill();
-            ctx.globalCompositeOperation = prevOperation;
-        }
-
         // Render marks this node as clean - no need to explicitly markClean().
         super.render(renderCtx);
 
-        if (clipShape && clipMode === 'inside') {
+        if (clipRect) {
             ctx.restore();
         }
 
@@ -395,19 +375,17 @@ export class Group extends Node {
         return new BBox(left, top, right - left, bottom - top);
     }
 
-    setClipMask(shape?: BBox | Circle, mode: ClipMode = 'inside') {
-        this.clipShape = shape;
-        this.clipMode = mode;
+    setClipRect(bbox?: BBox) {
+        this.clipRect = bbox;
     }
 
     /**
      * Transforms bbox given in the canvas coordinate space to bbox in this group's coordinate space and
-     * sets this group's clipShape to the transformed bbox.
-     * @param bbox clipShape bbox in the canvas coordinate space.
+     * sets this group's clipRect to the transformed bbox.
+     * @param bbox clipRect bbox in the canvas coordinate space.
      */
     setClipRectInGroupCoordinateSpace(bbox?: BBox) {
-        this.clipShape = bbox ? Transformable.fromCanvas(this, bbox) : undefined;
-        this.clipMode = 'inside';
+        this.clipRect = bbox ? Transformable.fromCanvas(this, bbox) : undefined;
     }
 }
 
