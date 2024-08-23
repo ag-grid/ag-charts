@@ -1,3 +1,4 @@
+import type { AgBaseAxisLabelOptions } from '../../chart/axisOptions';
 import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartAutoSizedLabelOptions, AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
@@ -28,6 +29,8 @@ export interface AgRadialGaugeSeriesScale {
     values?: number[];
     /** The axis interval. Expressed in the units of the axis. If the configured interval results in too many items given the chart size, it will be ignored. */
     step?: number;
+    /** Configuration for the axis labels, shown next to the ticks. */
+    label?: AgBaseAxisLabelOptions;
 }
 
 export interface AgRadialGaugeSeriesTooltipRendererParams<TDatum>
@@ -66,10 +69,12 @@ export interface AgRadialGaugeTarget extends FillOptions, StrokeOptions, LineDas
     value: number;
     /** The shape to use for the target. You can also supply a custom marker by providing a `Marker` subclass. */
     shape?: MarkerShape;
-    /** Ratio of the radius in which to centre the target. */
-    radiusRatio?: Ratio;
-    /** Ratio of the size of the target. */
-    sizeRatio?: Ratio;
+    /** Placement of target. */
+    placement?: 'inside' | 'outside' | 'middle';
+    /** Spacing of the target. Ignored when placement is 'middle'. */
+    spacing?: PixelSize;
+    /** Size of the target. */
+    size?: Ratio;
     /** Rotation of the target, in degrees. */
     rotation?: Degree;
 }

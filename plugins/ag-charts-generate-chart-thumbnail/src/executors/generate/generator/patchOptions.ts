@@ -12,6 +12,7 @@ export function patchOptions(
     delete options.gradientLegend;
     if (api === 'createGauge') {
         delete options.title;
+        delete (options as any).targets;
         (options as any).label = {
             ...(options as any).label,
             fontSize: 36,

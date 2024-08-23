@@ -102,11 +102,14 @@ export class RadialGaugeTargetProperties extends BaseProperties {
     @Validate(MARKER_SHAPE, { optional: true })
     shape: MarkerShape | undefined;
 
-    @Validate(RATIO, { optional: true })
-    radiusRatio: number | undefined;
+    @Validate(STRING)
+    placement: 'inside' | 'outside' | 'middle' = 'middle';
 
-    @Validate(RATIO)
-    sizeRatio: number = 0.2;
+    @Validate(NUMBER)
+    spacing: number = 0;
+
+    @Validate(POSITIVE_NUMBER)
+    size: number = 10;
 
     @Validate(NUMBER)
     rotation: number = 0;

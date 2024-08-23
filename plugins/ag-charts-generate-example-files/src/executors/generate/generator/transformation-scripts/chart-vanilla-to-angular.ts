@@ -1,7 +1,19 @@
 import { convertTemplate, getImport } from './angular-utils';
 import { wrapOptionsUpdateCode } from './chart-utils';
-import { addBindingImports, convertFunctionToProperty, isFinancialCharts, isInstanceMethod } from './parser-utils';
+import { ChartAPI, addBindingImports, chartApi, convertFunctionToProperty, isInstanceMethod } from './parser-utils';
 import { toKebabCase, toTitleCase } from './string-utils';
+
+const components: Record<ChartAPI, string> = {
+    gauge: 'AgGauge',
+    financial: 'AgFinancialCharts',
+    vanilla: 'AgCharts',
+};
+
+const tags: Record<ChartAPI, string> = {
+    gauge: 'ag-gauge',
+    financial: 'ag-financial-charts',
+    vanilla: 'ag-charts',
+};
 
 export function processFunction(code: string): string {
     return wrapOptionsUpdateCode(convertFunctionToProperty(code));
@@ -12,7 +24,7 @@ function getImports(bindings, componentFileNames: string[], { typeParts }): stri
         chartSettings: { enterprise = false },
     } = bindings;
 
-    const type = isFinancialCharts(bindings) ? 'AgFinancialCharts' : 'AgCharts';
+    const type = components[chartApi(bindings)];
     const bImports = bindings.imports.map((i) => ({
         ...i,
         imports: i.imports.filter((imp) => imp !== 'AgCharts'),
@@ -54,7 +66,7 @@ function getComponentMetadata(bindings: any, property: any) {
 }
 
 function getAngularTag(bindings: any, attributes: string[]) {
-    const tag = isFinancialCharts(bindings) ? 'ag-financial-charts' : 'ag-charts';
+    const tag = tags[chartApi(bindings)];
     return `<${tag}
         ${attributes.join(`
         `)}
@@ -86,7 +98,7 @@ function getTemplate(bindings: any, id: string, attributes: string[]): string {
 
 export async function vanillaToAngular(bindings: any, componentFileNames: string[]): Promise<string> {
     const { properties, declarations, optionsTypeInfo } = bindings;
-    const type = isFinancialCharts(bindings) ? 'AgFinancialCharts' : 'AgCharts';
+    const type = components[chartApi(bindings)];
     const opsTypeInfo = optionsTypeInfo;
     const imports = getImports(bindings, componentFileNames, opsTypeInfo);
     const placeholders = Object.keys(bindings.placeholders);

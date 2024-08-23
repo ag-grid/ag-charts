@@ -119,7 +119,7 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean)
         fromFn(needleNode, datum) {
             let { rotation, scalingX, scalingY } = needleNode;
 
-            if (initialLoad) {
+            if (needleNode.previousDatum == null || initialLoad) {
                 scalingX = 0;
                 scalingY = 0;
                 rotation = datum.angle;
@@ -142,12 +142,12 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean)
     };
 
     const target: _ModuleSupport.FromToFns<_Scene.Marker, any, AnimatableTargetDatum> = {
-        fromFn(_targetNode, datum) {
+        fromFn(targetNode, datum) {
             const { size } = datum;
 
             let scalingX = size;
             let scalingY = size;
-            if (initialLoad) {
+            if (targetNode.previousDatum == null || initialLoad) {
                 scalingX = 0;
                 scalingY = 0;
             }

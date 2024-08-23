@@ -121,14 +121,14 @@ export class GaugeChart extends Chart {
         const { layoutBox } = ctx;
         const seriesRect = layoutBox.clone();
 
+        layoutBox.shrink(seriesArea.padding.toJson());
+
         const radialGaugeSeries = this.series.find(isRadialGaugeSeries);
         if (radialGaugeSeries != null) {
-            this.updateRadialGauge(seriesRect, radialGaugeSeries);
+            this.updateRadialGauge(layoutBox, radialGaugeSeries);
         }
 
         this.axes.forEach((axis) => axis.update());
-
-        layoutBox.shrink(seriesArea.padding.toJson());
 
         this.seriesRect = layoutBox;
         this.animationRect = layoutBox;

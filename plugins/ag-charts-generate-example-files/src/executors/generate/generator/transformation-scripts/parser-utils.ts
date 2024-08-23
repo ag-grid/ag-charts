@@ -725,6 +725,13 @@ export function addGenericInterfaceImport(imports: string[], tData: string, bind
     }
 }
 
-export function isFinancialCharts(bindings: any) {
-    return bindings.optionsTypeInfo?.typeStr === 'AgFinancialChartOptions';
+export type ChartAPI = 'financial' | 'gauge' | 'vanilla';
+
+export function chartApi(bindings: any): ChartAPI {
+    if (bindings.optionsTypeInfo?.typeStr === 'AgFinancialChartOptions') {
+        return 'financial';
+    } else if (bindings.optionsTypeInfo?.typeStr === 'AgGaugeOptions') {
+        return 'gauge';
+    }
+    return 'vanilla';
 }

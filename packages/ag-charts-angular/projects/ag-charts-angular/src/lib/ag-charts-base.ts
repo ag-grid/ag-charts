@@ -1,4 +1,4 @@
-import { AfterViewInit, ElementRef, EventEmitter, Input, NgZone, OnChanges, OnDestroy, Output } from '@angular/core';
+import { AfterViewInit, EventEmitter, NgZone, OnChanges, OnDestroy } from '@angular/core';
 
 import { AgBaseChartListeners, AgChartInstance, AgChartLegendListeners, AgSeriesListeners } from 'ag-charts-community';
 

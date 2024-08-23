@@ -476,9 +476,8 @@ export class RadialGaugeSeries
         }
 
         if (needle.enabled) {
-            const { spacing } = needle;
             let needleRadius = needle.radiusRatio != null ? radius * needle.radiusRatio : innerRadius;
-            needleRadius = Math.max(needleRadius - spacing, 0);
+            needleRadius = Math.max(needleRadius - needle.spacing, 0);
             const needleAngle = angleScale.convert(value);
 
             needleData.push({
@@ -493,8 +492,9 @@ export class RadialGaugeSeries
             const target = targets[index];
             const {
                 shape,
-                sizeRatio,
-                radiusRatio,
+                size,
+                placement,
+                spacing,
                 fill,
                 fillOpacity,
                 stroke,
@@ -503,9 +503,19 @@ export class RadialGaugeSeries
                 lineDash,
                 lineDashOffset,
             } = target;
+            let targetRadius: number;
+            switch (placement) {
+                case 'middle':
+                    targetRadius = (innerRadius + outerRadius) / 2;
+                    break;
+                case 'inside':
+                    targetRadius = Math.max(innerRadius - spacing - size / 2, 0);
+                    break;
+                case 'outside':
+                    targetRadius = outerRadius + spacing + size / 2;
+                    break;
+            }
             const targetAngle = angleScale.convert(target.value);
-            const targetRadius = radiusRatio != null ? radiusRatio * radius : (innerRadius + outerRadius) / 2;
-            const targetSize = sizeRatio * radius;
             const targetRotation = toRadians(target.rotation);
             targetData.push({
                 index,
@@ -514,7 +524,7 @@ export class RadialGaugeSeries
                 shape,
                 radius: targetRadius,
                 angle: targetAngle,
-                size: targetSize,
+                size,
                 rotation: targetRotation,
                 fill,
                 fillOpacity,
@@ -583,7 +593,9 @@ export class RadialGaugeSeries
         nodeData: RadialGaugeNodeDatum[];
         datumSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum>;
     }) {
-        return opts.datumSelection.update(opts.nodeData, undefined, (datum) => datum.itemId!);
+        return opts.datumSelection.update(opts.nodeData, undefined, (datum) => {
+            return createDatumId(opts.nodeData.length, datum.itemId!);
+        });
     }
 
     private async updateDatumNodes(opts: { datumSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum> }) {
@@ -641,7 +653,9 @@ export class RadialGaugeSeries
         backgroundData: RadialGaugeNodeDatum[];
         backgroundSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum>;
     }) {
-        return opts.backgroundSelection.update(opts.backgroundData, undefined, (datum) => datum.itemId!);
+        return opts.backgroundSelection.update(opts.backgroundData, undefined, (datum) => {
+            return createDatumId(opts.backgroundData.length, datum.itemId!);
+        });
     }
 
     private async updateBackgroundNodes(opts: {
@@ -735,7 +749,7 @@ export class RadialGaugeSeries
         targetData: RadialGaugeTargetDatum[];
         targetSelection: _Scene.Selection<_Scene.Marker, RadialGaugeTargetDatum>;
     }) {
-        return opts.targetSelection.update(opts.targetData, undefined, () => createDatumId([]));
+        return opts.targetSelection.update(opts.targetData, undefined, (target) => `${target.index}`);
     }
 
     private async updateTargetNodes(opts: {
@@ -911,15 +925,19 @@ export class RadialGaugeSeries
             label.opacity = 1;
 
             if (datum.label === LabelType.Primary) {
-                labelFrom = label.previousDatum?.value ?? 0;
+                labelFrom = label.previousDatum?.value ?? datum.value;
                 labelTo = datum.value;
             } else if (datum.label === LabelType.Secondary) {
-                secondaryLabelFrom = label.previousDatum?.value ?? 0;
+                secondaryLabelFrom = label.previousDatum?.value ?? datum.value;
                 secondaryLabelTo = datum.value;
             }
         });
 
-        if (!this.labelsHaveExplicitText()) {
+        if (this.labelsHaveExplicitText()) {
+            // Ignore
+        } else if (labelFrom === labelTo && secondaryLabelFrom === secondaryLabelTo) {
+            this.formatLabelText({ label: labelTo, secondaryLabel: secondaryLabelTo });
+        } else if (!this.labelsHaveExplicitText()) {
             const animationId = `${this.id}_labels`;
 
             animationManager.animate({
