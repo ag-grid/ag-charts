@@ -32,9 +32,10 @@ export function ClippableOutside<N extends Node>(Parent: Constructor<N>): Constr
                 return;
             }
 
-            const prevOperation = ctx.globalCompositeOperation;
-            ctx.beginPath();
+            ctx.save();
             ctx.globalCompositeOperation = 'destination-out';
+
+            ctx.beginPath();
             if (clipShape instanceof BBox) {
                 const { x, y, width, height } = clipShape;
                 ctx.rect(x, y, width, height);
@@ -43,7 +44,8 @@ export function ClippableOutside<N extends Node>(Parent: Constructor<N>): Constr
                 ctx.arc(x, y, radius, 0, Math.PI * 2);
             }
             ctx.fill();
-            ctx.globalCompositeOperation = prevOperation;
+
+            ctx.restore();
 
             super.postRender(renderCtx);
         }
