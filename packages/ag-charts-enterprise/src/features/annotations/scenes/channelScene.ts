@@ -1,6 +1,6 @@
-import { _Scene } from 'ag-charts-community';
+import { _Scene, _Util } from 'ag-charts-community';
 
-import type { PointProperties } from '../annotationProperties';
+import type { ChannelTextProperties, PointProperties } from '../annotationProperties';
 import type { AnnotationContext, LineCoords } from '../annotationTypes';
 import { convertLine } from '../annotationUtils';
 import { CollidableLine } from './collidableLineScene';
@@ -15,6 +15,8 @@ export abstract class ChannelScene<
         start: Pick<PointProperties, 'x' | 'y'>;
         end: Pick<PointProperties, 'x' | 'y'>;
         bottom: { start: Pick<PointProperties, 'x' | 'y'>; end: Pick<PointProperties, 'x' | 'y'> };
+        strokeWidth?: number;
+        text?: ChannelTextProperties;
     },
 > extends LinearScene<Datum> {
     protected handles: { [key: string]: Handle } = {};
@@ -22,6 +24,7 @@ export abstract class ChannelScene<
     protected topLine = new CollidableLine();
     protected bottomLine = new CollidableLine();
     protected background = new _Scene.Path({ zIndex: -1 });
+    public text?: _Scene.TransformableText;
 
     public update(datum: Datum, context: AnnotationContext) {
         const { locked, visible } = datum;
@@ -38,6 +41,7 @@ export abstract class ChannelScene<
 
         this.updateLines(datum, top, bottom);
         this.updateHandles(datum, top, bottom);
+        this.updateText(datum, top, bottom);
         this.updateBackground(datum, top, bottom);
 
         for (const handle of Object.values(this.handles)) {
@@ -87,6 +91,8 @@ export abstract class ChannelScene<
     protected abstract updateLines(datum: Datum, top: LineCoords, bottom: LineCoords): void;
 
     protected abstract updateHandles(datum: Datum, top: LineCoords, bottom: LineCoords): void;
+
+    protected abstract updateText(datum: Datum, top: LineCoords, bottom: LineCoords): void;
 
     protected updateBackground(datum: Datum, top: LineCoords, bottom: LineCoords) {
         const { background } = this;

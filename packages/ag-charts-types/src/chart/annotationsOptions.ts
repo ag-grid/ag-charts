@@ -110,16 +110,22 @@ export interface AgLineAnnotation
     /** Configuration for the trend line annotation.*/
     type: 'line';
     handle?: AgAnnotationHandle;
+    /** Configuration for the line text. */
+    text?: AgLineText;
 }
 
 export interface AgHorizontalLineAnnotation extends AgCrossLineAnnotation {
     /** Configuration for the horizontal-line annotation.*/
     type: 'horizontal-line';
+    /** Configuration for the line text. */
+    text?: AgLineText;
 }
 
 export interface AgVerticalLineAnnotation extends AgCrossLineAnnotation {
     /** Configuration for the vertical-line annotation.*/
     type: 'vertical-line';
+    /** Configuration for the line text. */
+    text?: AgLineText;
 }
 
 export interface AgCrossLineAnnotation extends Lockable, Visible, StrokeOptions, LineDashOptions {
@@ -150,6 +156,8 @@ export interface AgParallelChannelAnnotation
     middle?: AgChannelAnnotationMiddle;
     /** The fill colour for the middle of the channel. */
     background?: AgChannelAnnotationBackground;
+    /** Configuration for the channel text. */
+    text?: AgChannelText;
 }
 
 export interface AgDisjointChannelAnnotation
@@ -168,6 +176,8 @@ export interface AgDisjointChannelAnnotation
     handle?: AgAnnotationHandle;
     /** The fill colour for the middle of the channel. */
     background?: AgChannelAnnotationBackground;
+    /** Configuration for the channel text. */
+    text?: AgChannelText;
 }
 
 // ********************
@@ -257,6 +267,18 @@ export interface AgAnnotationAxisLabel
 export interface AgAnnotationLabelFormatterParams {
     /** The default label value that would have been used without a formatter. */
     value: any;
+}
+
+export interface AgLineText extends FontOptions {
+    label?: string;
+    position?: 'top' | 'center' | 'bottom';
+    alignment?: 'left' | 'center' | 'right';
+}
+
+export interface AgChannelText extends FontOptions {
+    label?: string;
+    position?: 'top' | 'inside' | 'bottom';
+    alignment?: 'left' | 'center' | 'right';
 }
 
 interface AnnotationLinePoints {
