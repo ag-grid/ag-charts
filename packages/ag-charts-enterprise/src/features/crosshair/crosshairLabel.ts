@@ -61,12 +61,18 @@ export class CrosshairLabel extends BaseProperties {
 
     private readonly element: HTMLElement;
 
-    constructor(private readonly domManager: _ModuleSupport.DOMManager) {
+    constructor(
+        private readonly domManager: _ModuleSupport.DOMManager,
+        key: string,
+        axisId: string
+    ) {
         super();
 
         this.element = domManager.addChild('canvas-overlay', `crosshair-label-${this.id}`);
         this.element.classList.add(DEFAULT_LABEL_CLASS);
         setAttribute(this.element, 'aria-hidden', true);
+        this.element.setAttribute('data-key', key);
+        this.element.setAttribute('data-axis-id', axisId);
     }
 
     show(meta: _Scene.Point) {
