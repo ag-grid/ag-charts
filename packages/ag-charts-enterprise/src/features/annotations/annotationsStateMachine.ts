@@ -573,6 +573,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 onExit: () => {
                     ctx.stopInteracting();
                     ctx.hideTextInput();
+                    ctx.updateTextInputBBox(undefined);
 
                     const wasActive = this.active;
                     const prevActive = this.active;
@@ -586,8 +587,6 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     if (!datum || !node) return;
 
                     datum.visible = true;
-
-                    ctx.updateTextInputBBox(undefined);
                 },
             },
         });
