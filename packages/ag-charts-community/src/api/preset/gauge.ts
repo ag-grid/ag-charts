@@ -27,7 +27,7 @@ export function gauge(opts: AgGaugeOptions): AgGaugeChartOptions {
         minHeight: true,
         theme: true,
         title: true,
-        padding: true,
+        seriesArea: true,
     });
 
     const seriesOpts = allProperties<AgRadialGaugeSeriesOptions>(opts, {
@@ -69,11 +69,12 @@ export function gauge(opts: AgGaugeOptions): AgGaugeChartOptions {
             max: opts.scale?.max ?? 1,
             startAngle: opts.startAngle ?? 270,
             endAngle: opts.endAngle ?? 270 + 180,
-            nice: false,
             interval: {
                 values: opts.scale?.values,
                 step: opts.scale?.step,
             },
+            label: opts.scale?.label,
+            nice: false,
             line: {
                 enabled: false,
             },

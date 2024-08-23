@@ -335,6 +335,12 @@
                         "isEnterprise": true
                     },
                     {
+                        "title": "Radial Gauge",
+                        "icon": "chartsRadialGauge",
+                        "path": "radial-gauge",
+                        "isEnterprise": true
+                    },
+                    {
                         "title": "Bullet",
                         "icon": "chartsBullet",
                         "path": "bullet-series",

@@ -121,6 +121,16 @@
             },
             {
                 "label": {
+                    "name": "Radial Gauge",
+                    "icon": "chartsRadialGauge",
+                    "link": "https://charts.ag-grid.com/react/radial-gague/"
+                },
+                "community": false,
+                "enterprise": true,
+                "chartsGrid": true
+            },
+            {
+                "label": {
                     "name": "Bullet",
                     "icon": "chartsBullet",
                     "link": "https://charts.ag-grid.com/react/bullet-series/"
