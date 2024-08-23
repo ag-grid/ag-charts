@@ -17,7 +17,7 @@ const firstOptions: AgGaugeOptions = {
     secondaryLabel: {
         text: 'mph',
     },
-    targets: [{ value: 70, shape: 'triangle', radiusRatio: 0.7, sizeRatio: 0.1, fill: '#8883' }],
+    targets: [{ value: 70, shape: 'triangle', placement: 'inside', spacing: 5, fill: '#8883' }],
     colorStops: [{ color: '#4cd137' }, { color: '#fbc531' }, { color: '#e84118' }],
 };
 

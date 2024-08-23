@@ -70,7 +70,7 @@ export interface AgRadialGaugeTarget extends FillOptions, StrokeOptions, LineDas
     /** The shape to use for the target. You can also supply a custom marker by providing a `Marker` subclass. */
     shape?: MarkerShape;
     /** Placement of target. */
-    placement?: 'inner' | 'outer' | 'middle';
+    placement?: 'inside' | 'outside' | 'middle';
     /** Spacing of the target. Ignored when placement is 'middle'. */
     spacing?: PixelSize;
     /** Size of the target. */

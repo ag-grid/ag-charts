@@ -508,10 +508,10 @@ export class RadialGaugeSeries
                 case 'middle':
                     targetRadius = (innerRadius + outerRadius) / 2;
                     break;
-                case 'inner':
+                case 'inside':
                     targetRadius = Math.max(innerRadius - spacing - size / 2, 0);
                     break;
-                case 'outer':
+                case 'outside':
                     targetRadius = outerRadius + spacing + size / 2;
                     break;
             }

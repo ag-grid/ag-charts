@@ -103,7 +103,7 @@ export class RadialGaugeTargetProperties extends BaseProperties {
     shape: MarkerShape | undefined;
 
     @Validate(STRING)
-    placement: 'inner' | 'outer' | 'middle' = 'middle';
+    placement: 'inside' | 'outside' | 'middle' = 'middle';
 
     @Validate(NUMBER)
     spacing: number = 0;
