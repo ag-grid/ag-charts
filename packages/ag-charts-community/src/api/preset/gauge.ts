@@ -6,72 +6,73 @@ import type {
     AgRadialGaugeSeriesOptions,
 } from 'ag-charts-types';
 
-import type { RequireOptional } from '../../util/types';
-
-function allProperties<T>(opts: AgGaugeOptions, typeCheckedOpts: RequireOptional<T>): T {
+function allProperties<T extends {}>(opts: AgGaugeOptions, typeCheckedOpts: Record<keyof T, boolean>): T {
     const out: T = {} as any;
-    Object.keys(typeCheckedOpts).forEach((key) => {
-        if (Object.hasOwn(opts, key)) {
+    for (const key in typeCheckedOpts) {
+        if (typeCheckedOpts[key] && Object.hasOwn(opts, key)) {
             // @ts-expect-error
             out[key] = opts[key];
         }
-    });
+    }
     return out;
 }
 
 export function gauge(opts: AgGaugeOptions): AgGaugeChartOptions {
     const baseOpts = allProperties<AgBasePresetOptions>(opts, {
-        container: opts.container,
-        animation: opts.animation,
-        width: opts.width,
-        height: opts.height,
-        minWidth: opts.minWidth,
-        minHeight: opts.minHeight,
-        theme: opts.theme,
-        title: opts.title,
+        container: true,
+        animation: true,
+        width: true,
+        height: true,
+        minWidth: true,
+        minHeight: true,
+        theme: true,
+        title: true,
+        padding: true,
     });
 
     const seriesOpts = allProperties<AgRadialGaugeSeriesOptions>(opts, {
-        type: opts.type,
-        id: opts.id,
-        data: opts.data,
-        visible: opts.visible,
-        cursor: opts.cursor,
-        nodeClickRange: opts.nodeClickRange,
-        showInLegend: opts.showInLegend,
-        listeners: opts.listeners,
-        tooltip: opts.tooltip,
-        value: opts.value,
-        scale: undefined,
-        startAngle: undefined,
-        endAngle: undefined,
-        itemStyler: opts.itemStyler,
-        highlightStyle: opts.highlightStyle,
-        bar: opts.bar,
-        background: opts.background,
-        needle: opts.needle,
-        colorStops: opts.colorStops,
-        targets: opts.targets,
-        outerRadiusRatio: opts.outerRadiusRatio,
-        innerRadiusRatio: opts.innerRadiusRatio,
-        sectorSpacing: opts.sectorSpacing,
-        cornerRadius: opts.cornerRadius,
-        itemMode: opts.itemMode,
-        cornerMode: opts.cornerMode,
-        label: opts.label,
-        secondaryLabel: opts.secondaryLabel,
-        padding: opts.padding,
+        type: true,
+        id: true,
+        data: true,
+        visible: true,
+        cursor: true,
+        nodeClickRange: true,
+        showInLegend: true,
+        listeners: true,
+        tooltip: true,
+        value: true,
+        scale: false,
+        startAngle: false,
+        endAngle: false,
+        itemStyler: true,
+        highlightStyle: true,
+        bar: true,
+        background: true,
+        needle: true,
+        colorStops: true,
+        targets: true,
+        outerRadiusRatio: true,
+        innerRadiusRatio: true,
+        sectorSpacing: true,
+        cornerRadius: true,
+        appearance: true,
+        cornerMode: true,
+        label: true,
+        secondaryLabel: true,
+        margin: true,
     });
 
     const axesOpts: AgPolarAxisOptions[] = [
         {
             type: 'angle-number',
             min: opts.scale?.min ?? 0,
-            max: opts.scale?.max ?? 0,
+            max: opts.scale?.max ?? 1,
             startAngle: opts.startAngle ?? 270,
-            endAngle: opts.endAngle ?? 270,
+            endAngle: opts.endAngle ?? 270 + 180,
+            nice: false,
             interval: {
                 values: opts.scale?.values,
+                step: opts.scale?.step,
             },
             line: {
                 enabled: false,

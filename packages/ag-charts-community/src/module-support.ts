@@ -85,6 +85,7 @@ export * from './chart/series/flowProportionSeries';
 export * from './chart/series/topology/geojson';
 export * from './chart/series/topology/lonLatBbox';
 export * from './chart/series/topology/mercatorScale';
+export * from './chart/series/gaugeSeries';
 export * from './chart/axis/axis';
 export * from './chart/axis/axisInterval';
 export * from './chart/axis/axisLabel';

@@ -17,7 +17,7 @@ const isAgThemeOrUndefined = (theme) => {
 };
 
 const getDarkmodeTheme = (theme = 'ag-default', preset) => {
-    const baseTheme = preset ? 'ag-financial' : theme.replace(/-dark$/, '');
+    const baseTheme = preset === 'price-volume' ? 'ag-financial' : theme.replace(/-dark$/, '');
     return darkmode ? baseTheme + '-dark' : baseTheme;
 };
 

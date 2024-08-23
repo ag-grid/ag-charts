@@ -258,13 +258,13 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeS
     cornerRadius: number = 0;
 
     @Validate(STRING) // FIXME
-    itemMode: 'continuous' | 'segmented' = 'continuous';
+    appearance: 'continuous' | 'segmented' = 'continuous';
 
     @Validate(STRING) // FIXME
     cornerMode: 'container' | 'item' = 'container';
 
     @Validate(NUMBER)
-    padding: number = 0;
+    margin: number = 0;
 
     @Validate(OBJECT)
     readonly background = new RadialGaugeBackgroundProperties();
