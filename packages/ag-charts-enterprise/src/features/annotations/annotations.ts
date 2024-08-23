@@ -935,6 +935,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         annotationManager.updateData(annotationData.toJson() as any);
 
+        const clearAllEnabled = annotationData.length > 0;
+        toolbarManager.toggleButton('annotations', 'clear', { enabled: clearAllEnabled });
+
         annotations
             .update(annotationData ?? [], undefined, (datum) => datum.id)
             .each((node, datum, index) => {
