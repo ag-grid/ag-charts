@@ -167,13 +167,12 @@ test.describe('examples', () => {
                 test.describe(`Example ${pagePath}: ${example}${affected ? '' : ' (!!!SKIPPED!!!)'}`, () => {
                     if (status === 'ok') {
                         testFn(`should load ${url}`, async ({ page }) => {
-                            const slow = framework === 'angular';
-                            test.slow(slow, 'allow more time for Angular load times');
+                            test.slow(framework === 'angular', 'allow more time for Angular load times');
 
                             config.ignoreConsoleWarnings = ignoreConsoleWarnings;
 
                             // Load example and wait for things to settle.
-                            await gotoExample(page, url, slow);
+                            await gotoExample(page, url);
 
                             // Check we're dealing with a single canvas, otherwise things get tricky!
                             const canvases = await page.locator('.ag-charts-wrapper').all();

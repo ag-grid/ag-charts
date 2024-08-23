@@ -85,7 +85,7 @@ export function setupIntrinsicAssertions() {
     return config;
 }
 
-export async function gotoExample(page: Page, url: string, slow = false) {
+export async function gotoExample(page: Page, url: string) {
     await page.goto(url);
     await page.waitForLoadState('networkidle');
 
@@ -94,8 +94,7 @@ export async function gotoExample(page: Page, url: string, slow = false) {
     // Wait for synchronous JS execution to complete before we start waiting
     // for <canvas/> to appear.
     await page.evaluate(() => 1);
-    const timeout = slow ? 30_000 : 10_000;
-    await expect(page.locator('canvas').first()).toBeVisible({ timeout });
+    await expect(page.locator('canvas').first()).toBeVisible();
     for (const elements of await page.locator('canvas').all()) {
         await expect(elements).toBeVisible();
     }
