@@ -349,10 +349,9 @@ export class CartesianChart extends Chart {
 
     private applySeriesPadding(bounds: BBox) {
         const paddedRect = bounds.clone();
-        const reversedAxes = this.axes.slice().reverse();
         directions.forEach((dir) => {
             const padding = this.seriesArea.padding[dir];
-            const axis = reversedAxes.find((a) => a.position === dir);
+            const axis = this.axes.findLast((a) => a.position === dir);
             if (axis) {
                 axis.seriesAreaPadding = padding;
             } else {
