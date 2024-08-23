@@ -29,7 +29,7 @@ const {
 } = _ModuleSupport;
 const { Group, PointerEvents, Selection, Sector, Text, ConicGradient, getMarker } = _Scene;
 const { ColorScale } = _Scale;
-const { normalizeAngle360, normalizeAngle360Inclusive, toDegrees, toRadians, isBetweenAngles } = _Util;
+const { normalizeAngle360, normalizeAngle360Inclusive, toDegrees, toRadians } = _Util;
 
 export type GaugeAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 export type GaugeAnimationEvent =

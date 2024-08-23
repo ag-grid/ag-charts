@@ -64,8 +64,10 @@ export class GaugeChart extends Chart {
             verticalAlign = 'middle';
         }
 
-        const radiusFactor = verticalAlign === 'middle' || textAlign === 'center' ? 2 : 1;
-        let radius = Math.min(seriesRect.width, seriesRect.height) / radiusFactor;
+        let radius = Math.min(
+            seriesRect.width / (textAlign === 'center' ? 2 : 1),
+            seriesRect.height / (verticalAlign === 'middle' ? 2 : 1)
+        );
 
         const MAX_ITERATIONS = 8;
         for (let i = 0; i < MAX_ITERATIONS; i += 1) {
