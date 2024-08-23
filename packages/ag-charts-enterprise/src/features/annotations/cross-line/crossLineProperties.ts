@@ -1,10 +1,10 @@
 import { type PixelSize, _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import { Annotation, AxisLabel, Handle, LineStyle, Stroke, Value } from '../annotationProperties';
+import { Annotation, AxisLabel, Handle, LineStyle, LineTextProperties, Stroke, Value } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
 import { validateDatumValue } from '../annotationUtils';
 
-const { STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
+const { OBJECT, STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
 
 export class HorizontalLineProperties extends Annotation(Value(Handle(AxisLabel(Stroke(LineStyle(BaseProperties)))))) {
     readonly direction = 'horizontal';
@@ -15,6 +15,9 @@ export class HorizontalLineProperties extends Annotation(Value(Handle(AxisLabel(
 
     @Validate(STRING)
     type = AnnotationType.HorizontalLine as const;
+
+    @Validate(OBJECT, { optional: true })
+    text = new LineTextProperties();
 
     lineCap?: _Scene.ShapeLineCap = undefined;
     computedLineDash?: PixelSize[] = undefined;
@@ -45,6 +48,9 @@ export class VerticalLineProperties extends Annotation(Value(Handle(AxisLabel(St
 
     @Validate(STRING)
     type = AnnotationType.VerticalLine as const;
+
+    @Validate(OBJECT, { optional: true })
+    text = new LineTextProperties();
 
     lineCap?: _Scene.ShapeLineCap = undefined;
     computedLineDash?: PixelSize[] = undefined;

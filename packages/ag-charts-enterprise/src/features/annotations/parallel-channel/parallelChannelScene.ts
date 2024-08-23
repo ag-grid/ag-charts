@@ -6,6 +6,7 @@ import { AnnotationScene } from '../scenes/annotationScene';
 import { ChannelScene } from '../scenes/channelScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
+import { LineWithTextScene } from '../scenes/lineWithTextScene';
 import type { ParallelChannelProperties } from './parallelChannelProperties';
 
 const { Vec2 } = _Util;
@@ -227,4 +228,6 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
             y: bottom.y1 + (bottom.y2 - bottom.y1) / 2 - bottomMiddle.handle.height / 2,
         });
     }
+
+    override updateText = LineWithTextScene.updateChannelText.bind(this, true);
 }

@@ -8,6 +8,8 @@ export const Vec2 = {
     from,
     length,
     lengthSquared,
+    multiply,
+    normalized,
     origin,
     required,
     rotate,
@@ -44,6 +46,16 @@ function sub(a: Vec2, b: Vec2 | number): Vec2 {
 }
 
 /**
+ * Multiply the components of `a` and `b`.
+ */
+function multiply(a: Vec2, b: Vec2 | number): Vec2 {
+    if (typeof b === 'number') {
+        return { x: a.x * b, y: a.y * b };
+    }
+    return { x: a.x * b.x, y: a.y * b.y };
+}
+
+/**
  * Get the length of a vector.
  */
 function length(a: Vec2) {
@@ -76,6 +88,14 @@ function distanceSquared(a: Vec2, b: Vec2) {
 }
 
 /**
+ * Normalize a vector so that each component is a value between 0 and 1 and the length of the vector is always 1.
+ */
+function normalized(a: Vec2): Vec2 {
+    const l = length(a);
+    return { x: a.x / l, y: a.y / l };
+}
+
+/**
  * Find the angle between two vectors.
  */
 function angle(a: Vec2, b: Vec2 = origin()) {
@@ -83,7 +103,8 @@ function angle(a: Vec2, b: Vec2 = origin()) {
 }
 
 /**
- * Rotate vector `a` by the angle `theta around the origin `b`.
+ * Rotate vector `a` by the angle `theta` around the origin `b`.
+ * This rotation is not cumulative, i.e. `rotate(rotate(a, Math.PI), Math.PI) !== a`.
  */
 function rotate(a: Vec2, theta: number, b: Vec2 = origin()) {
     const l = length(a);

@@ -33,7 +33,7 @@
   "bugs": {
     "url": "https://github.com/ag-grid/ag-charts/issues"
   },
-  "homepage": "https://charts.ag-grid.com/",
+  "homepage": "https://ag-grid.com/charts/",
   "devDependencies": {
     "ag-charts-community": "10.1.0-beta.20240818",
     "@types/react": "^18",

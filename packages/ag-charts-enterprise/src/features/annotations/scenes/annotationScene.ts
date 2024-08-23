@@ -10,6 +10,7 @@ export abstract class AnnotationScene extends _Scene.Group {
         return isObject(value) && Object.hasOwn(value, 'type') && value.type === type;
     }
 
+    override name = 'AnnotationScene';
     override zIndex = Layers.CHART_ANNOTATION_ZINDEX;
 
     public abstract type: string;

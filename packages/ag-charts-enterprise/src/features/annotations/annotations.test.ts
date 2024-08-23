@@ -122,4 +122,169 @@ describe('Annotations', () => {
             await compare();
         });
     });
+
+    describe('lines with text', () => {
+        const annotations = [
+            {
+                text: {
+                    label: 'Lorem ipsum',
+                    position: 'top',
+                    alignment: 'left',
+                },
+            },
+            {
+                text: {
+                    label: 'Lorem ipsum',
+                    position: 'top',
+                    alignment: 'center',
+                },
+            },
+            {
+                text: {
+                    label: 'Lorem ipsum',
+                    position: 'top',
+                    alignment: 'right',
+                },
+            },
+            {
+                text: {
+                    label: 'Lorem ipsum',
+                    position: 'center',
+                    alignment: 'left',
+                },
+            },
+            {
+                text: {
+                    label: 'Lorem ipsum',
+                    position: 'center',
+                    alignment: 'center',
+                },
+            },
+            {
+                text: {
+                    label: 'Lorem ipsum',
+                    position: 'center',
+                    alignment: 'right',
+                },
+            },
+            {
+                text: {
+                    label: 'Lorem ipsum',
+                    position: 'bottom',
+                    alignment: 'left',
+                },
+            },
+            {
+                text: {
+                    label: 'Lorem ipsum',
+                    position: 'bottom',
+                    alignment: 'center',
+                },
+            },
+            {
+                text: {
+                    label: 'Lorem ipsum',
+                    position: 'bottom',
+                    alignment: 'right',
+                },
+            },
+        ];
+
+        it('should render line annotations with text', async () => {
+            await prepareChart({
+                annotations: annotations.map((annotation, index) => {
+                    let y = 100;
+                    if (index > 2) y = 70;
+                    if (index > 5) y = 40;
+                    const month = [2, 6, 10][index % 3];
+
+                    return {
+                        ...(annotation as any),
+                        type: 'line',
+                        start: { x: { __type: 'date', value: `2024-${String(month).padStart(2, '0')}-01` }, y: y },
+                        end: {
+                            x: { __type: 'date', value: `2024-${String(month + 2).padStart(2, '0')}-01` },
+                            y: y - 30,
+                        },
+                    };
+                }),
+            });
+            await compare();
+        });
+
+        it('should render horizontal line annotations with text', async () => {
+            await prepareChart({
+                annotations: annotations.map((annotation, index) => ({
+                    ...(annotation as any),
+                    type: 'horizontal-line',
+                    value: 90 - index * 10,
+                })),
+            });
+            await compare();
+        });
+
+        it('should render vertical line annotations with text', async () => {
+            await prepareChart({
+                annotations: annotations.map((annotation, index) => ({
+                    ...(annotation as any),
+                    type: 'vertical-line',
+                    value: { __type: 'date', value: `2024-${String(2 + index).padStart(2, '0')}-01` },
+                })),
+            });
+            await compare();
+        });
+
+        it('should render parallel channel annotations with text', async () => {
+            await prepareChart({
+                annotations: annotations.map((annotation, index) => {
+                    let y = 100;
+                    if (index > 2) y = 70;
+                    if (index > 5) y = 40;
+                    const month = [2, 6, 10][index % 3];
+
+                    return {
+                        text: {
+                            ...annotation.text,
+                            position: annotation.text.position === 'center' ? 'inside' : annotation.text.position,
+                        },
+                        type: 'parallel-channel',
+                        start: { x: { __type: 'date', value: `2024-${String(month).padStart(2, '0')}-01` }, y: y },
+                        end: {
+                            x: { __type: 'date', value: `2024-${String(month + 2).padStart(2, '0')}-01` },
+                            y: y - 20,
+                        },
+                        height: 15,
+                    } as any;
+                }),
+            });
+            await compare();
+        });
+
+        it('should render disjoint channel annotations with text', async () => {
+            await prepareChart({
+                annotations: annotations.map((annotation, index) => {
+                    let y = 100;
+                    if (index > 2) y = 70;
+                    if (index > 5) y = 40;
+                    const month = [2, 6, 10][index % 3];
+
+                    return {
+                        text: {
+                            ...annotation.text,
+                            position: annotation.text.position === 'center' ? 'inside' : annotation.text.position,
+                        },
+                        type: 'disjoint-channel',
+                        start: { x: { __type: 'date', value: `2024-${String(month).padStart(2, '0')}-01` }, y: y },
+                        end: {
+                            x: { __type: 'date', value: `2024-${String(month + 2).padStart(2, '0')}-01` },
+                            y: y - 20,
+                        },
+                        startHeight: 10,
+                        endHeight: 20,
+                    } as any;
+                }),
+            });
+            await compare();
+        });
+    });
 });

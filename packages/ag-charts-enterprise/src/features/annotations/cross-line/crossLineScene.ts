@@ -1,4 +1,4 @@
-import { _ModuleSupport, type _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { AnnotationAxisContext, AnnotationContext, Coords, LineCoords } from '../annotationTypes';
 import { convert, invertCoords } from '../annotationUtils';
@@ -6,6 +6,7 @@ import { AnnotationScene } from '../scenes/annotationScene';
 import { AxisLabelScene } from '../scenes/axisLabelScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
 import { UnivariantHandle } from '../scenes/handle';
+import { LineWithTextScene } from '../scenes/lineWithTextScene';
 import { type CrossLineProperties, HorizontalLineProperties } from './crossLineProperties';
 
 const { Vec2 } = _Util;
@@ -20,9 +21,10 @@ export class CrossLineScene extends AnnotationScene {
 
     override activeHandle?: 'middle';
 
-    private readonly line = new CollidableLine();
+    public readonly line = new CollidableLine();
     private readonly middle = new UnivariantHandle();
     private axisLabel?: AxisLabelScene;
+    public text?: _Scene.TransformableText;
 
     private seriesRect?: _Scene.BBox;
     private dragState?: {
@@ -37,10 +39,7 @@ export class CrossLineScene extends AnnotationScene {
     }
 
     public update(datum: CrossLineProperties, context: AnnotationContext) {
-        const { line, middle } = this;
-        const { locked, visible, lineDashOffset, stroke, strokeWidth, strokeOpacity, lineCap } = datum;
         const { seriesRect } = context;
-
         this.seriesRect = seriesRect;
 
         this.isHorizontal = HorizontalLineProperties.is(datum);
@@ -51,10 +50,20 @@ export class CrossLineScene extends AnnotationScene {
         if (coords == null) {
             this.visible = false;
             return;
-        } else {
-            this.visible = visible ?? true;
         }
 
+        this.visible = datum.visible ?? true;
+        if (!this.visible) return;
+
+        this.updateLine(datum, coords);
+        this.updateHandle(datum, coords);
+        this.updateText(datum, coords);
+        this.updateAxisLabel(datum, axisContext, coords);
+    }
+
+    private updateLine(datum: CrossLineProperties, coords: LineCoords) {
+        const { line } = this;
+        const { lineDashOffset, stroke, strokeWidth, strokeOpacity, lineCap } = datum;
         const { x1, y1, x2, y2 } = coords;
 
         line.setProperties({
@@ -71,6 +80,12 @@ export class CrossLineScene extends AnnotationScene {
             lineCap,
         });
         line.updateCollisionBBox();
+    }
+
+    private updateHandle(datum: CrossLineProperties, coords: LineCoords) {
+        const { middle } = this;
+        const { locked, stroke, strokeWidth, strokeOpacity } = datum;
+        const { x1, y1, x2, y2 } = coords;
 
         const handleStyles = {
             fill: datum.handle.fill,
@@ -86,9 +101,9 @@ export class CrossLineScene extends AnnotationScene {
         middle.update({ ...handleStyles, x: x - handleWidth / 2, y: y - handleHeight / 2 });
 
         middle.toggleLocked(locked ?? false);
-
-        this.updateAxisLabel(datum, axisContext, coords);
     }
+
+    private readonly updateText = LineWithTextScene.updateLineText.bind(this);
 
     private createAxisLabel(context: AnnotationAxisContext) {
         const axisLabel = new AxisLabelScene();
