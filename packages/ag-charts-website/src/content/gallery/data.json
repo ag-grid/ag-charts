@@ -729,6 +729,26 @@
         ],
         [
             {
+                "title": "Radial Gauge",
+                "seriesName": "radial-gauge",
+                "icon": "chartsRadialGauge",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Simple Radial Gauge",
+                        "description": "",
+                        "name": "simple-radial-gauge"
+                    },
+                    {
+                        "title": "Customised Radial Gauges",
+                        "description": "",
+                        "name": "customised-radial-gauge"
+                    }
+                ]
+            }
+        ],
+        [
+            {
                 "title": "Combination",
                 "seriesName": "combination",
                 "icon": "chartsCombination",
