@@ -12,14 +12,14 @@ const options: AgGaugeOptions = {
         {
             value: 25,
             shape: 'triangle',
-            placement: 'inner',
+            placement: 'inside',
             spacing: 5,
             size: 20,
         },
         {
             value: 75,
             shape: 'triangle',
-            placement: 'outer',
+            placement: 'outside',
             spacing: 5,
             size: 20,
             rotation: 180,
