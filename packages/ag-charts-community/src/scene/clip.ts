@@ -17,7 +17,7 @@ export function ClippableOutside<N extends Node>(Parent: Constructor<N>): Constr
 
         setClipMask(shape?: BBox | Circle) {
             if (jsonDiff(this.clipShape, shape) != null) {
-                this.markDirty(this, RedrawType.MINOR);
+                this.markDirty(this, RedrawType.MAJOR);
             }
 
             this.clipShape = shape;
