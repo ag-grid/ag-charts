@@ -94,7 +94,7 @@ export async function gotoExample(page: Page, url: string) {
     // Wait for synchronous JS execution to complete before we start waiting
     // for <canvas/> to appear.
     await page.evaluate(() => 1);
-    await expect(page.locator('canvas').first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('canvas').first()).toBeVisible();
     for (const elements of await page.locator('canvas').all()) {
         await expect(elements).toBeVisible();
     }
