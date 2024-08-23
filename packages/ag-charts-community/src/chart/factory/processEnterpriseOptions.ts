@@ -60,7 +60,7 @@ export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(o
     }
     if (usedOptions.length && !silent) {
         let enterprisePackageName = 'ag-charts-enterprise';
-        let enterpriseReferenceUrl = 'https://charts.ag-grid.com/javascript/installation/';
+        let enterpriseReferenceUrl = 'https://ag-grid.com/charts/javascript/installation/';
 
         if ((options as any).mode === 'integrated') {
             enterprisePackageName = "ag-grid-charts-enterprise' or 'ag-grid-enterprise/charts-enterprise";

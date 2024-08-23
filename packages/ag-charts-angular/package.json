@@ -28,7 +28,7 @@
   "bugs": {
     "url": "https://github.com/ag-grid/ag-charts/issues"
   },
-  "homepage": "https://charts.ag-grid.com/",
+  "homepage": "https://ag-grid.com/charts/",
   "private": false,
   "module": "./dist/ag-charts-angular/fesm2022/ag-charts-angular.mjs",
   "typings": "./dist/ag-charts-angular/index.d.ts",
