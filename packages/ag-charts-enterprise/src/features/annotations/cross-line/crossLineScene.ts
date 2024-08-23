@@ -34,7 +34,7 @@ export class CrossLineScene extends AnnotationScene {
     private isHorizontal = false;
 
     constructor() {
-        super();
+        super({ layer: true });
         this.append([this.line, this.middle]);
     }
 

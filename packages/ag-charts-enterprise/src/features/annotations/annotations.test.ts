@@ -286,5 +286,37 @@ describe('Annotations', () => {
             });
             await compare();
         });
+
+        it('should render stacked annotations with text', async () => {
+            await prepareChart({
+                annotations: [
+                    {
+                        type: 'vertical-line',
+                        value: { __type: 'date', value: '2024-05-01' },
+                        text: {
+                            label: 'Lorem ipsum',
+                            position: 'center',
+                            alignment: 'center',
+                        },
+                    },
+                    {
+                        type: 'parallel-channel',
+                        start: { x: { __type: 'date', value: '2024-03-01' }, y: 40 },
+                        end: { x: { __type: 'date', value: '2024-09-01' }, y: 90 },
+                        height: 30,
+                    },
+                    {
+                        type: 'vertical-line',
+                        value: { __type: 'date', value: '2024-07-01' },
+                        text: {
+                            label: 'Lorem ipsum',
+                            position: 'center',
+                            alignment: 'center',
+                        },
+                    },
+                ],
+            });
+            await compare();
+        });
     });
 });
