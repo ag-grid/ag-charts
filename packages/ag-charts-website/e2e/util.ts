@@ -85,16 +85,17 @@ export function setupIntrinsicAssertions() {
     return config;
 }
 
-export async function gotoExample(page: Page, url: string) {
+export async function gotoExample(page: Page, url: string, slow = false) {
     await page.goto(url);
-    await page.waitForLoadState('domcontentloaded');
+    await page.waitForLoadState('networkidle');
 
     expect(await page.title()).not.toMatch(/Page Not Found/);
 
     // Wait for synchronous JS execution to complete before we start waiting
     // for <canvas/> to appear.
     await page.evaluate(() => 1);
-    await expect(page.locator('canvas').first()).toBeVisible();
+    const timeout = slow ? 30_000 : 10_000;
+    await expect(page.locator('canvas').first()).toBeVisible({ timeout });
     for (const elements of await page.locator('canvas').all()) {
         await expect(elements).toBeVisible();
     }
