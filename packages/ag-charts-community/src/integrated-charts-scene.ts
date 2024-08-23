@@ -18,7 +18,6 @@ export { Line } from './scene/shape/line';
 export { Gradient, type GradientColorStop } from './scene/gradient/gradient';
 export { LinearGradient } from './scene/gradient/linearGradient';
 export { ConicGradient } from './scene/gradient/conicGradient';
-export { LinearGradientFill } from './scene/shape/linearGradientFill';
 export { Path, ScenePathChangeDetection } from './scene/shape/path';
 export { Rect } from './scene/shape/rect';
 export { Sector } from './scene/shape/sector';

@@ -72,6 +72,7 @@ export abstract class Shape extends Node {
                 colors.push(c[0]);
             }
             this.gradient = new LinearGradient(
+                'rgb',
                 colors.map((color, index) => ({ color, offset: index / (colors.length - 1) })),
                 angle
             );

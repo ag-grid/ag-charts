@@ -18,7 +18,7 @@ const {
     Validate,
     LayoutElement,
 } = _ModuleSupport;
-const { Group, Rect, LinearGradientFill, Triangle, TranslatableGroup } = _Scene;
+const { Group, Rect, Triangle, TranslatableGroup, LinearGradient } = _Scene;
 const { createId } = _Util;
 
 class GradientBar extends BaseProperties {
@@ -56,7 +56,6 @@ export class GradientLegend {
         zIndex: Layers.LEGEND_ZINDEX,
     });
     private readonly gradientRect = new Rect();
-    private readonly gradientFill = new LinearGradientFill();
     private readonly arrow = new Triangle();
 
     private readonly ticksGroup = new Group({ name: 'legend-axis-group' });
@@ -91,14 +90,12 @@ export class GradientLegend {
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         this.highlightManager = ctx.highlightManager;
 
-        this.gradientFill.mask = this.gradientRect;
-
         this.axisTicks = new AxisTicks();
         this.axisTicks.attachAxis(this.ticksGroup);
 
         this.scale = new GradientLegendScale(this.axisTicks);
 
-        this.legendGroup.append([this.gradientFill, this.arrow, this.ticksGroup]);
+        this.legendGroup.append([this.gradientRect, this.arrow, this.ticksGroup]);
 
         this.destroyFns.push(
             ctx.highlightManager.addListener('highlight-change', () => this.onChartHoverChange()),
@@ -164,22 +161,29 @@ export class GradientLegend {
     }
 
     private updateGradientRect(shrinkRect: _Scene.BBox, colorRange: string[]) {
-        const { reverseOrder, gradientFill, gradientRect } = this;
+        const { gradientRect } = this;
         const { preferredLength, thickness } = this.gradient;
 
-        gradientFill.stops = colorRange;
-
+        let angle: number;
         if (this.isVertical()) {
+            angle = 180;
             gradientRect.width = thickness;
             gradientRect.height = Math.min(shrinkRect.height, preferredLength);
-            gradientFill.direction = reverseOrder ? 'to-bottom' : 'to-top';
         } else {
+            angle = 90;
             gradientRect.width = Math.min(shrinkRect.width, preferredLength);
             gradientRect.height = thickness;
-            gradientFill.direction = reverseOrder ? 'to-left' : 'to-right';
         }
 
-        gradientRect.markDirty(gradientRect);
+        const linearGradient = new LinearGradient(
+            'oklch',
+            colorRange.map((color, i) => ({
+                offset: i / (colorRange.length - 1),
+                color,
+            })),
+            angle
+        );
+        gradientRect.fill = linearGradient;
     }
 
     private updateAxis(data: _ModuleSupport.GradientLegendDatum) {

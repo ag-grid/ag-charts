@@ -252,7 +252,7 @@ export class RadialGaugeSeries
             return { offset, color };
         });
 
-        return new ConicGradient(stops, toDegrees(conicAngle) - 90);
+        return new ConicGradient('oklch', stops, toDegrees(conicAngle) - 90);
     }
 
     override async createNodeData() {
