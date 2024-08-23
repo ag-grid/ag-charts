@@ -37,7 +37,7 @@ export abstract class Gradient {
                 const scale = new ColorScale();
                 scale.domain = [c0.offset, c1.offset];
                 scale.range = [c0.color, c1.color];
-                for (let offset = c0.offset + step; offset < c1.offset; offset += 1) {
+                for (let offset = c0.offset + step; offset < c1.offset; offset += step) {
                     gradient.addColorStop(offset, scale.convert(offset));
                 }
             }
