@@ -95,8 +95,7 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
 
         if (isDenseInterval((stop - start) / absInterval, availableRange)) return;
 
-        const reversedInterval = [...TickIntervals].reverse();
-        const timeInterval = reversedInterval.find((tickInterval) => absInterval % tickInterval.duration === 0);
+        const timeInterval = TickIntervals.findLast((tickInterval) => absInterval % tickInterval.duration === 0);
 
         if (timeInterval) {
             const i = timeInterval.timeInterval.every(absInterval / (timeInterval.duration / timeInterval.step));

@@ -2,8 +2,14 @@ import { _ModuleSupport, _Theme } from 'ag-charts-community';
 
 import { RadialGaugeSeries } from './radialGaugeSeries';
 
-const { FONT_WEIGHT, DEFAULT_FONT_FAMILY, DEFAULT_HIERARCHY_FILLS, DEFAULT_LABEL_COLOUR, DEFAULT_MUTED_LABEL_COLOUR } =
-    _Theme;
+const {
+    FONT_WEIGHT,
+    DEFAULT_FONT_FAMILY,
+    DEFAULT_HIERARCHY_FILLS,
+    DEFAULT_LABEL_COLOUR,
+    DEFAULT_MUTED_LABEL_COLOUR,
+    POLAR_AXIS_TYPE,
+} = _Theme;
 
 export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
     type: 'series',
@@ -14,6 +20,10 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
     identifier: 'radial-gauge',
     moduleFactory: (ctx) => new RadialGaugeSeries(ctx),
     tooltipDefaults: { range: 'exact' },
+    defaultAxes: [
+        { type: POLAR_AXIS_TYPE.ANGLE_NUMBER, line: { enabled: false } },
+        { type: POLAR_AXIS_TYPE.RADIUS_NUMBER, line: { enabled: false } },
+    ],
     themeTemplate: {
         series: {
             outerRadiusRatio: 1,
@@ -53,14 +63,11 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
         const hierarchyFills = themeTemplateParameters.get(DEFAULT_HIERARCHY_FILLS);
         const colorRange = userPalette === 'inbuilt' ? defaultColorRange : [fills[0], fills[1]];
         return {
-            bar: {
-                colorRange: colorRange,
-            },
             background: {
                 defaultFill: hierarchyFills?.[1],
                 stroke: hierarchyFills?.[2],
-                defaultColorRange: colorRange,
             },
+            colorStops: colorRange?.map((color) => ({ color })),
         };
     },
 };
