@@ -22,16 +22,16 @@ export class AnnotationSettingsDialog extends Dialog {
             onChange: (label) => options.onChange({ label }),
         });
 
-        const fontSize = this.createFontSizeSelect(datum.text.fontSize, (fontSize: number) =>
-            options.onChange({ fontSize })
+        const fontSize = this.createFontSizeSelect(datum.text.fontSize, (value: number) =>
+            options.onChange({ fontSize: value })
         );
 
         const textPosition = datum.text.position === 'inside' ? 'center' : datum.text.position;
-        const position = this.createPositionButtonGroup(textPosition!, (position: string) =>
-            options.onChange({ position })
+        const position = this.createPositionButtonGroup(textPosition!, (value: string) =>
+            options.onChange({ position: value })
         );
-        const alignment = this.createAlignmentButtonGroup(datum.text.alignment!, (alignment: string) =>
-            options.onChange({ alignment })
+        const alignment = this.createAlignmentButtonGroup(datum.text.alignment!, (value: string) =>
+            options.onChange({ alignment: value })
         );
 
         textTabContent.append(textArea, fontSize, position, alignment);

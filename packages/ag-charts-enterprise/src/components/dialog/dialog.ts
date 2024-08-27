@@ -66,8 +66,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     }
 
     protected createTabContent() {
-        const content = createElement('div', 'ag-charts-dialog__tab-content');
-        return content;
+        return createElement('div', 'ag-charts-dialog__tab-content');
     }
 
     /**********
@@ -76,18 +75,20 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     protected createButtonGroup({ label, options, value, onChange }: ButtonGroupOptions) {
         const group = this.createInputGroup(label);
 
+        const activeClass = 'ag-charts-dialog__button--active';
+
         for (const button of options) {
             const buttonEl = createElement('button', `ag-charts-dialog__button`);
             const iconEl = createElement('span', this.ctx.domManager.getIconClassNames(button.icon));
             if (button.value === value) {
-                buttonEl.classList.add('ag-charts-dialog__button--active');
+                buttonEl.classList.add(activeClass);
             }
             buttonEl.appendChild(iconEl);
             buttonEl.addEventListener('click', () => {
                 for (const b of Array.from(group.children)) {
-                    b.classList.remove('ag-charts-dialog__button--active');
+                    b.classList.remove(activeClass);
                 }
-                buttonEl.classList.add('ag-charts-dialog__button--active');
+                buttonEl.classList.add(activeClass);
                 onChange(button.value);
             });
             group.appendChild(buttonEl);
