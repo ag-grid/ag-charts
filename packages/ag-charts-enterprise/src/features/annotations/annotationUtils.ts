@@ -1,4 +1,4 @@
-import { type Direction, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { type Direction, type _ModuleSupport, _Util } from 'ag-charts-community';
 
 import type { PointProperties } from './annotationProperties';
 import type { AnnotationAxisContext, AnnotationContext, Coords, Point } from './annotationTypes';

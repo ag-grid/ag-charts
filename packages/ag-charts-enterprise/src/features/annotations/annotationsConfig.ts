@@ -41,7 +41,7 @@ import { TextScene } from './text/textScene';
 
 const { isObject } = _ModuleSupport;
 
-type Constructor<T = {}> = new (...args: any[]) => T;
+type Constructor<T = object> = new (...args: any[]) => T;
 
 export const annotationDatums: Record<AnnotationType, Constructor<AnnotationProperties>> = {
     // Lines

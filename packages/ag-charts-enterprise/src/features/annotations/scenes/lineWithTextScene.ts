@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _Scene, _Util } from 'ag-charts-community';
 
 import type { ChannelTextProperties, LineTextProperties } from '../annotationProperties';
 import type { LineCoords } from '../annotationTypes';

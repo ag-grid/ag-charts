@@ -1,4 +1,4 @@
-import { type AgAnnotationHandleStyles, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { type AgAnnotationHandleStyles, _Scene, _Util } from 'ag-charts-community';
 
 import { type Anchor, type AnnotationContext, type Coords, type LineCoords } from '../annotationTypes';
 import { convertLine, invertCoords, validateDatumPoint } from '../annotationUtils';

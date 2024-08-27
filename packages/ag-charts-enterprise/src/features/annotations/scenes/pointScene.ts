@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _Util } from 'ag-charts-community';
 
 import type { Anchor, AnnotationContext, Coords } from '../annotationTypes';
 import { convertPoint, invertCoords } from '../annotationUtils';

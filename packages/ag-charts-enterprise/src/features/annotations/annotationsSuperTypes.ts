@@ -1,6 +1,6 @@
 import type { _Scene, _Util } from 'ag-charts-community';
 
-import { AnnotationType, type Point } from './annotationTypes';
+import type { AnnotationType, Point } from './annotationTypes';
 import type { ArrowDownProperties } from './arrow-down/arrowDownProperties';
 import type { ArrowDownScene } from './arrow-down/arrowDownScene';
 import type { ArrowUpProperties } from './arrow-up/arrowUpProperties';
@@ -9,17 +9,17 @@ import type { CalloutProperties } from './callout/calloutProperties';
 import type { CalloutScene } from './callout/calloutScene';
 import type { CommentProperties } from './comment/commentProperties';
 import type { CommentScene } from './comment/commentScene';
-import { HorizontalLineProperties, VerticalLineProperties } from './cross-line/crossLineProperties';
+import type { HorizontalLineProperties, VerticalLineProperties } from './cross-line/crossLineProperties';
 import type { CrossLineScene } from './cross-line/crossLineScene';
-import { DisjointChannelProperties } from './disjoint-channel/disjointChannelProperties';
+import type { DisjointChannelProperties } from './disjoint-channel/disjointChannelProperties';
 import type { DisjointChannelScene } from './disjoint-channel/disjointChannelScene';
-import { ArrowProperties, LineProperties } from './line/lineProperties';
+import type { ArrowProperties, LineProperties } from './line/lineProperties';
 import type { LineScene } from './line/lineScene';
 import type { NoteProperties } from './note/noteProperties';
 import type { NoteScene } from './note/noteScene';
-import { ParallelChannelProperties } from './parallel-channel/parallelChannelProperties';
+import type { ParallelChannelProperties } from './parallel-channel/parallelChannelProperties';
 import type { ParallelChannelScene } from './parallel-channel/parallelChannelScene';
-import { TextProperties } from './text/textProperties';
+import type { TextProperties } from './text/textProperties';
 import type { TextScene } from './text/textScene';
 
 export type ShapePropertyType = ArrowUpProperties | ArrowDownProperties;

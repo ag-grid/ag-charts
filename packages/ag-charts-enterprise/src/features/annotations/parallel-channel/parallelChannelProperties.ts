@@ -1,4 +1,4 @@
-import { type PixelSize, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { type PixelSize, _ModuleSupport, type _Scene, _Util } from 'ag-charts-community';
 
 import {
     Annotation,

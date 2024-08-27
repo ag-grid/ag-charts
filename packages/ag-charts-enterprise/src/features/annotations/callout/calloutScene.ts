@@ -1,4 +1,4 @@
-import { _Scene, _Util } from 'ag-charts-community';
+import { _Scene, type _Util } from 'ag-charts-community';
 
 import { type AnnotationContext, AnnotationType, type Bounds, type Coords, type LineCoords } from '../annotationTypes';
 import { convertLine } from '../annotationUtils';

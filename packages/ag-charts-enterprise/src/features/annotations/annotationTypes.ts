@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import type { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 export enum AnnotationType {
     // Lines

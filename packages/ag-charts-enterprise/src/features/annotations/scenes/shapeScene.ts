@@ -1,4 +1,4 @@
-import { _Scene, _Util } from 'ag-charts-community';
+import type { _Scene, _Util } from 'ag-charts-community';
 
 import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { convertPoint } from '../annotationUtils';

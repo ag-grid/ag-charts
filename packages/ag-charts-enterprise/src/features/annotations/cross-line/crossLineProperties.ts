@@ -1,4 +1,4 @@
-import { type PixelSize, _ModuleSupport, _Scene } from 'ag-charts-community';
+import { type PixelSize, _ModuleSupport, type _Scene } from 'ag-charts-community';
 
 import { Annotation, AxisLabel, Handle, LineStyle, LineTextProperties, Stroke, Value } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';

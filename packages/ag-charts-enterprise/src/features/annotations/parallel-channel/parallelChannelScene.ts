@@ -1,4 +1,4 @@
-import { _Scene, _Util } from 'ag-charts-community';
+import { _Util } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
 import { convertPoint, invertCoords, validateDatumPoint } from '../annotationUtils';

@@ -1,5 +1,3 @@
-import { _ModuleSupport, _Util } from 'ag-charts-community';
-
 import { PointStateMachine } from '../states/pointState';
 import { ArrowDownProperties } from './arrowDownProperties';
 import type { ArrowDownScene } from './arrowDownScene';

@@ -1,8 +1,8 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import type { Point } from '../annotationTypes';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
-import { PointProperties } from '../properties/pointProperties';
+import type { PointProperties } from '../properties/pointProperties';
 import type { PointScene } from '../scenes/pointScene';
 
 const { StateMachine } = _ModuleSupport;

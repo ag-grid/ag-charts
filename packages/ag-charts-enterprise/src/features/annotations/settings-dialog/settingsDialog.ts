@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import type { _ModuleSupport } from 'ag-charts-community';
 
 import { Dialog, type DialogOptions } from '../../../components/dialog/dialog';
 import type { ChannelPropertiesType, LinePropertiesType } from '../annotationsSuperTypes';

@@ -1,5 +1,3 @@
-import { _ModuleSupport, _Util } from 'ag-charts-community';
-
 import { TextualPointStateMachine } from '../states/textualPointState';
 import { CommentProperties } from './commentProperties';
 import type { CommentScene } from './commentScene';
