@@ -1,7 +1,18 @@
 import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport, _Scene } from 'ag-charts-community';
 
-const { CachedTextMeasurerPool, LayoutElement, Validate, OBJECT, BOOLEAN, STRING, valueProperty } = _ModuleSupport;
-const { Label, Text } = _Scene;
+const {
+    CachedTextMeasurerPool,
+    LayoutElement,
+    Validate,
+    BaseProperties,
+    OBJECT,
+    BOOLEAN,
+    STRING,
+    COLOR_STRING,
+    RATIO,
+    valueProperty,
+} = _ModuleSupport;
+const { Label, Rect, Text } = _Scene;
 
 enum LabelConfiguration {
     Open = 1 << 1,
@@ -50,6 +61,14 @@ const neutralColourMap: Partial<Record<AgPriceVolumeChartType, 'neutral' | 'altN
     hlc: 'altNeutral',
 };
 
+class StatusBarBackground extends BaseProperties {
+    @Validate(COLOR_STRING)
+    fill: string = 'black';
+
+    @Validate(RATIO)
+    fillOpacity: number = 1;
+}
+
 export class StatusBar
     extends _ModuleSupport.BaseModuleInstance
     implements _ModuleSupport.ModuleInstance, _ModuleSupport.ScopeProvider
@@ -87,6 +106,9 @@ export class StatusBar
     @Validate(OBJECT)
     readonly altNeutral = new Label();
 
+    @Validate(OBJECT)
+    readonly background = new StatusBarBackground();
+
     @Validate(STRING)
     layoutStyle: 'block' | 'overlay' = 'block';
 
@@ -95,6 +117,7 @@ export class StatusBar
 
     private readonly highlightManager: _ModuleSupport.HighlightManager;
     private readonly labelGroup = new _Scene.TranslatableGroup({ name: 'StatusBar' });
+    private readonly backgroundNode = this.labelGroup.appendChild(new Rect());
     private readonly labels = [
         {
             label: 'O',
@@ -353,6 +376,13 @@ export class StatusBar
 
             left += maxValueWidth + outerSpacing;
         }
+
+        this.backgroundNode.x = 0;
+        this.backgroundNode.y = 0;
+        this.backgroundNode.width = left - outerSpacing;
+        this.backgroundNode.height = lineHeight + spacingAbove + spacingBelow;
+        this.backgroundNode.fill = this.background.fill;
+        this.backgroundNode.fillOpacity = this.background.fillOpacity;
     }
 
     private onLayoutComplete(opts: _ModuleSupport.LayoutCompleteEvent) {
