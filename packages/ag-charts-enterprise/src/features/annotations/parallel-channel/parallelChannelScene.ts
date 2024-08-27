@@ -195,10 +195,6 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
             strokeWidth: datum.middle.strokeWidth ?? strokeWidth,
             visible: datum.middle.visible ?? true,
         });
-
-        topLine.updateCollisionBBox();
-        bottomLine.updateCollisionBBox();
-        middleLine.updateCollisionBBox();
     }
 
     override updateHandles(datum: ParallelChannelProperties, top: LineCoords, bottom: LineCoords) {
