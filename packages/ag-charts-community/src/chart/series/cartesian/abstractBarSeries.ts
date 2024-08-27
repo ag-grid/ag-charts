@@ -81,19 +81,18 @@ export abstract class AbstractBarSeries<
         return this.axes[direction];
     }
 
+    protected getBandwidth(xAxis: ChartAxis) {
+        return ContinuousScale.is(xAxis.scale)
+            ? xAxis.scale.calcBandwidth(this.smallestDataInterval)
+            : xAxis.scale.bandwidth;
+    }
+
     protected updateGroupScale(xAxis: ChartAxis) {
-        const {
-            groupScale,
-            smallestDataInterval,
-            ctx: { seriesStateManager },
-        } = this;
-
-        const xScale = xAxis.scale;
-
-        const xBandWidth = ContinuousScale.is(xScale) ? xScale.calcBandwidth(smallestDataInterval) : xScale.bandwidth;
-
         const domain = [];
-        const { index: groupIndex, visibleGroupCount } = seriesStateManager.getVisiblePeerGroupIndex(this);
+        const { groupScale } = this;
+        const xBandWidth = this.getBandwidth(xAxis);
+        const { index: groupIndex, visibleGroupCount } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
+
         for (let groupIdx = 0; groupIdx < visibleGroupCount; groupIdx++) {
             domain.push(String(groupIdx));
         }

@@ -1,5 +1,5 @@
 import type { AgWaterfallSeriesItemType } from 'ag-charts-community';
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { WaterfallSeriesItem, WaterfallSeriesTotal } from './waterfallSeriesProperties';
 import { WaterfallSeriesProperties } from './waterfallSeriesProperties';
@@ -30,7 +30,6 @@ const {
 } = _ModuleSupport;
 const { Rect, motion } = _Scene;
 const { sanitizeHtml, isContinuous } = _Util;
-const { ContinuousScale } = _Scale;
 
 type WaterfallNodeLabelDatum = Readonly<_Scene.Point> & {
     readonly text: string;
@@ -104,24 +103,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (!this.properties.isValid() || !this.visible) return;
 
-        const positiveNumber = (v: any) => {
-            return isContinuous(v) && Number(v) >= 0;
-        };
-
-        const negativeNumber = (v: any) => {
-            return isContinuous(v) && Number(v) < 0;
-        };
-
-        const totalTypeValue = (v: any) => {
-            return v === 'total' || v === 'subtotal';
-        };
-
-        const propertyDefinition = {
-            missingValue: undefined,
-            invalidValue: undefined,
-        };
-
-        const dataWithTotals: any[] = [];
+        const positiveNumber = (v: unknown) => isContinuous(v) && Number(v) >= 0;
+        const negativeNumber = (v: unknown) => isContinuous(v) && Number(v) >= 0;
+        const totalTypeValue = (v: unknown) => v === 'total' || v === 'subtotal';
+        const propertyDefinition = { missingValue: undefined, invalidValue: undefined };
+        const dataWithTotals: unknown[] = [];
 
         const totalsMap = totals.reduce<Map<number, WaterfallSeriesTotal[]>>((result, total) => {
             const totalsAtIndex = result.get(total.index);
@@ -221,28 +207,20 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     async createNodeData() {
-        const { data, dataModel, smallestDataInterval } = this;
-        const { line } = this.properties;
+        const { data, dataModel } = this;
         const categoryAxis = this.getCategoryAxis();
         const valueAxis = this.getValueAxis();
 
-        if (!(data && categoryAxis && valueAxis && dataModel)) {
-            return;
-        }
+        if (!data || !categoryAxis || !valueAxis || !dataModel) return;
 
+        const { line } = this.properties;
         const xScale = categoryAxis.scale;
         const yScale = valueAxis.scale;
-
+        const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
+        const barWidth = this.getBandwidth(categoryAxis) ?? 10;
         const categoryAxisReversed = categoryAxis.isReversed();
 
-        const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
-
-        const barWidth =
-            (ContinuousScale.is(xScale) ? xScale.calcBandwidth(smallestDataInterval) : xScale.bandwidth) ?? 10;
-
-        if (this.processedData?.type !== 'ungrouped') {
-            return;
-        }
+        if (this.processedData?.type !== 'ungrouped') return;
 
         const context: WaterfallContext = {
             itemId: this.properties.yKey,
@@ -252,8 +230,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             scales: this.calculateScaling(),
             visible: this.visible,
         };
-
-        // context.scales[this.getCategoryDirection()].
 
         if (!this.visible) return context;
 

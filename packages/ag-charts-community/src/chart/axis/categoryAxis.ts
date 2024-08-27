@@ -1,6 +1,7 @@
 import type { ModuleContext } from '../../module/moduleContext';
 import { BandScale } from '../../scale/bandScale';
 import type { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
+import { isFiniteNumber } from '../../util/type-guards';
 import { RATIO, Validate } from '../../util/validation';
 import { CartesianAxis } from './cartesianAxis';
 
@@ -14,8 +15,6 @@ export class CategoryAxis<
     static readonly className: string = 'CategoryAxis';
     static readonly type: 'category' | 'ordinal-time' = 'category';
 
-    private _paddingOverrideEnabled = false;
-
     constructor(moduleCtx: ModuleContext, scale = new BandScale<string | object>() as S) {
         super(moduleCtx, scale);
 
@@ -25,21 +24,11 @@ export class CategoryAxis<
     @Validate(RATIO)
     groupPaddingInner: number = 0.1;
 
-    set paddingInner(value: number) {
-        this._paddingOverrideEnabled = true;
-        this.scale.paddingInner = value;
-    }
-    get paddingInner(): number {
-        this._paddingOverrideEnabled = true;
-        return this.scale.paddingInner;
-    }
+    @Validate(RATIO, { optional: true })
+    paddingInner?: number;
 
-    set paddingOuter(value: number) {
-        this.scale.paddingOuter = value;
-    }
-    get paddingOuter(): number {
-        return this.scale.paddingOuter;
-    }
+    @Validate(RATIO, { optional: true })
+    paddingOuter?: number;
 
     override normaliseDataDomain(d: Array<string | object>) {
         const domain = [];
@@ -56,19 +45,33 @@ export class CategoryAxis<
     }
 
     protected override calculateDomain() {
-        if (!this._paddingOverrideEnabled) {
-            let paddingInner = Infinity;
-            let paddingOuter = -Infinity;
-            for (const s of this.boundSeries) {
-                const padding = s.getBandScalePadding?.();
-                if (padding == null) continue;
-                paddingInner = Math.min(paddingInner, padding.inner);
-                paddingOuter = Math.max(paddingOuter, padding.outer);
-            }
-            this.scale.paddingInner = Number.isFinite(paddingInner) ? paddingInner : 0;
-            this.scale.paddingOuter = Number.isFinite(paddingOuter) ? paddingOuter : 0;
+        let { paddingInner, paddingOuter } = this;
+        if (!isFiniteNumber(paddingInner) || !isFiniteNumber(paddingOuter)) {
+            const padding = this.reduceBandScalePadding();
+            paddingInner ??= padding.inner;
+            paddingOuter ??= padding.outer;
         }
+        this.scale.paddingInner = paddingInner ?? 0;
+        this.scale.paddingOuter = paddingOuter ?? 0;
 
         return super.calculateDomain();
+    }
+
+    private reduceBandScalePadding() {
+        return this.boundSeries.reduce(
+            (result, series) => {
+                const padding = series.getBandScalePadding?.();
+                if (padding) {
+                    if (result.inner > padding.inner) {
+                        result.inner = padding.inner;
+                    }
+                    if (result.outer < padding.outer) {
+                        result.outer = padding.outer;
+                    }
+                }
+                return result;
+            },
+            { inner: Infinity, outer: -Infinity }
+        );
     }
 }
