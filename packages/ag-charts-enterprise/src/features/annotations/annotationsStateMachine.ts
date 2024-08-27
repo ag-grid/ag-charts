@@ -284,7 +284,6 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                         target: States.TextInput,
                     },
                     {
-                        target: States.Idle,
                         action: () => {
                             const prevActive = this.active;
                             this.active = this.hovered;
@@ -296,7 +295,6 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 drag: {
                     guard: guardHovered,
-                    target: States.Idle,
                     action: () => {
                         const prevActive = this.active;
                         this.active = this.hovered;
@@ -318,19 +316,16 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 color: {
                     guard: guardActive,
-                    target: States.Idle,
                     action: actionColor,
                 },
 
                 fontSize: {
                     guard: guardActive,
-                    target: States.Idle,
                     action: actionFontSize,
                 },
 
                 lineStyle: {
                     guard: guardActive,
-                    target: States.Idle,
                     action: actionLineStyle,
                 },
 
@@ -349,7 +344,6 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 updateTextInputBBox: {
                     guard: guardActive,
-                    target: States.Idle,
                     action: actionUpdateTextInputBBox,
                 },
 
@@ -547,7 +541,6 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 updateTextInputBBox: {
                     guard: guardActive,
-                    target: States.TextInput,
                     action: actionUpdateTextInputBBox,
                 },
 
@@ -580,13 +573,11 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 color: {
                     guard: guardActive,
-                    target: States.TextInput,
                     action: actionColor,
                 },
 
                 fontSize: {
                     guard: guardActive,
-                    target: States.TextInput,
                     action: actionFontSize,
                 },
 
