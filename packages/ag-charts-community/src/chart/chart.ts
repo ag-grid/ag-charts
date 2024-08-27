@@ -1169,7 +1169,7 @@ export abstract class Chart extends Observable {
         });
         this.update(updateType, { forceNodeDataRefresh, newAnimationBatch: true });
 
-        if (deltaOptions.initialState) {
+        if (deltaOptions.initialState || deltaOptions.theme) {
             this.applyInitialState(newChartOptions.userOptions.initialState);
         }
     }
