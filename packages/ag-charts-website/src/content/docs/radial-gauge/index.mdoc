@@ -6,7 +6,7 @@ A Radial Gauge presents a single data point within a predefined range. It employ
 
 ## Simple Radial Gauge
 
-{% chartExampleRunner title="Simple Radial Gauge" name="simple-radial-gauge" type="generated" options={ "exampleWidth": 400, "exampleHeight": 300 } /%}
+{% chartExampleRunner title="Simple Radial Gauge" name="simple-radial-gauge" type="generated" options={ "exampleHeight": 250 } /%}
 
 To create a Radial Gauge, use the `createGauge` API using the type `radial-gauge`.
 
@@ -32,7 +32,7 @@ In this configuration:
 
 The bar is coloured using a scale.
 
-{% chartExampleRunner title="Colour Scales" name="color-scales" type="generated" options={ "exampleWidth": 400, "exampleHeight": 300 } /%}
+{% chartExampleRunner title="Colour Scales" name="color-scales" type="generated" options={ "exampleHeight": 250 } /%}
 
 The colour scale can be customised using the `colorStops` property.
 
@@ -59,7 +59,7 @@ It is possible to omit stop values. In this case, the stop value will be inferre
 
 Labels are used to show the current value of the gauge, or any other information to provide context.
 
-{% chartExampleRunner title="Labels" name="labels" type="generated" options={ "exampleWidth": 400, "exampleHeight": 300 } /%}
+{% chartExampleRunner title="Labels" name="labels" type="generated" options={ "exampleHeight": 250 } /%}
 
 The scale labels can be configured with the `label` property within the `scale` configuration. Additionally. up to two inner labels can be configured with the `label` and `secondaryLabel` properties.
 
@@ -89,7 +89,7 @@ In this configuration:
 
 ## Radial Angles
 
-{% chartExampleRunner title="Angles" name="angles" type="generated" options={ "exampleWidth": 400, "exampleHeight": 300 } /%}
+{% chartExampleRunner title="Angles" name="angles" type="generated" options={ "exampleHeight": 300 } /%}
 
 The `startAngle` and `endAngle` properties can be used to customise the position of the start and end of the gauge.
 
@@ -109,7 +109,7 @@ In this configuration:-
 
 Needles can be used to indicate the value instead of the bar.
 
-{% chartExampleRunner title="Needle" name="needle" type="generated" options={ "exampleWidth": 400, "exampleHeight": 300 } /%}
+{% chartExampleRunner title="Needle" name="needle" type="generated" options={ "exampleHeight": 350 } /%}
 
 A needle can be added to the gauge with the `needle` configuration.
 
@@ -130,7 +130,7 @@ When adding needles, it is common to disable the bar. This can be done with the 
 
 Targets indicate points on the gauge other than the current value.
 
-{% chartExampleRunner title="Targets" name="targets" type="generated" options={ "exampleWidth": 400, "exampleHeight": 300 } /%}
+{% chartExampleRunner title="Targets" name="targets" type="generated" options={ "exampleHeight": 250 } /%}
 
 Targets can be added using the `targets` configuration array.
 
@@ -158,9 +158,9 @@ In this configuration:
 -   `spacing` is spacing from the edge of the gauge to the marker. Ignored when `placement` is `middle.
 -   `rotation` is the rotation of the marker, in degrees
 
-## Appearance
+## Customisation
 
-{% chartExampleRunner title="Appearance" name="appearance" type="generated" options={ "exampleWidth": 400, "exampleHeight": 300 } /%}
+{% chartExampleRunner title="Appearance" name="appearance" type="generated" options={ "exampleHeight": 350 } /%}
 
 The appearance can be customised with the `appearance` property.
 
@@ -176,11 +176,11 @@ In this configuration:
 -   `appearance` can be set to `continuous` to render a single gradient, or `segmented` to render multiple segments.
 -   `sectorSpacing` defines the spacing between sectors for the `segmented` appearance.
 
-### Controlling Number of Sectors
+### Number of Sectors
 
 The `scale.step` can be used to increase or decrease the number of sectors in a `segmented` appearance.
 
-{% chartExampleRunner title="Scale Step" name="scale-step" type="generated" options={ "exampleWidth": 400, "exampleHeight": 300 } /%}
+{% chartExampleRunner title="Scale Step" name="scale-step" type="generated" options={ "exampleHeight": 300 } /%}
 
 ```js
 {
@@ -197,9 +197,9 @@ In this configuration:
 
 -   `step` defines the increment for each sector, starting at `min` and finishing at `max`
 
-### Controlling Sector Values
+### Sector Values
 
-{% chartExampleRunner title="Scale Values" name="scale-values" type="generated" options={ "exampleWidth": 400, "exampleHeight": 300 } /%}
+{% chartExampleRunner title="Scale Values" name="scale-values" type="generated" options={ "exampleHeight": 250 } /%}
 
 To show explicit colour stops, use the `scale.values` property in combination with the `colorStops` property.
 
@@ -225,3 +225,21 @@ To show explicit colour stops, use the `scale.values` property in combination wi
 {% note %}
 Each value in the `scale` should correspond to a stop in the `colorStops` configuration.
 {% /note %}
+
+### Corner Radius
+
+{% chartExampleRunner title="Corner Radius" name="corner-radius" type="generated" options={ "exampleHeight": 350 } /%}
+
+The corner radius can be customised with the `cornerRadius` property. This can be used in conjunction with `cornerMode` property to specify which elements have corner radii.
+
+```js
+{
+    cornerRadius: 99,
+    cornerMode: 'container',
+}
+```
+
+In this configuration:
+
+-   `cornerRadius` specifies the amount of curvature on each corner. It is clamped to the maximum value that will fit.
+-   `cornerMode` can be set to `container` to apply rounded corners only to the start and end of the gauge, or `item` for all visual items within the gauge.

@@ -928,14 +928,8 @@ export class RadialGaugeSeries
         const { animationManager } = this.ctx;
 
         const { node, needle, target } = prepareRadialGaugeSeriesAnimationFunctions(false);
-        fromToMotion(
-            this.id,
-            'node',
-            animationManager,
-            [this.backgroundSelection, this.datumSelection],
-            node,
-            (_sector, datum) => datum.itemId!
-        );
+        fromToMotion(this.id, 'node', animationManager, [this.datumSelection], node, (_sector, datum) => datum.itemId!);
+        resetMotion([this.backgroundSelection], resetRadialGaugeSeriesAnimationFunctions);
         fromToMotion(this.id, 'needle', animationManager, [this.needleSelection], needle, () => 'needle');
         fromToMotion(
             this.id,
