@@ -1,0 +1,227 @@
+---
+title: 'Radial Gauge'
+---
+
+A Radial Gauge presents a single data point within a predefined range. It employs a segment overlaid with either a bar or needle.
+
+## Simple Radial Gauge
+
+{% chartExampleRunner title="Simple Radial Gauge" name="simple-radial-gauge" type="generated" /%}
+
+To create a Radial Gauge, use the `createGauge` API using the type `radial-gauge`.
+
+```js
+const radialGauge = createGauge({
+    type: 'radial-gauge',
+    container: document.getElementById('myChart'),
+    value: 80,
+    scale: {
+        min: 0,
+        max: 100,
+    },
+});
+```
+
+In this configuration:
+
+-   `value` is the value displayed by the gauge.
+-   `scale.min` defines the minimum value displayable by the gauge.
+-   `scale.max` defines the minimum value displayable by the gauge.
+
+## Colour Scales
+
+The bar is coloured using a scale.
+
+{% chartExampleRunner title="Colour Scales" name="color-scales" type="generated" /%}
+
+The colour scale can be customised using the `colorStops` property.
+
+```js
+{
+    colorStops: [
+        { color: '#FFBA7D', stop: 50 },
+        { color: '#FFA04C', stop: 60 },
+        { color: '#FE871E', stop: 70 },
+        { color: '#E96F03', stop: 80 },
+        { color: '#D76500', stop: 90 },
+    ];
+}
+```
+
+In this configuration:
+
+-   `color` is the colour used colour stop.
+-   `stop` is the value at which the colour should appear in the gauge.
+
+It is possible to omit stop values. In this case, the stop value will be inferred by a proportion between the adjacent stop values with defined stop values, or the scale `min` and `max` if there are none.
+
+## Labels
+
+Labels are used to show the current value of the gauge, or any other information to provide context.
+
+{% chartExampleRunner title="Labels" name="labels" type="generated" /%}
+
+The scale labels can be configured with the `label` property within the `scale` configuration. Additionally. up to two inner labels can be configured with the `label` and `secondaryLabel` properties.
+
+```js
+{
+    scale: {
+        label: {
+            enabled: false,
+        },
+    },
+    label: {
+        formatter({ value }) {
+            return `${value.toFixed(0)}%`;
+        },
+    },
+    secondaryLabel: {
+        text: 'Test Score',
+    },
+}
+```
+
+In this configuration:
+
+-   `enabled` provides the ability to remove labels.
+-   `formatter` takes the current value as a number and returns a formatted value as a string.
+-   `text` provides an explicit value for the label. Only available for inner labels.
+
+## Radial Angles
+
+{% chartExampleRunner title="Angles" name="angles" type="generated" /%}
+
+The `startAngle` and `endAngle` properties can be used to customise the position of the start and end of the gauge.
+
+```js
+{
+    startAngle: 225,
+    endAngle: 495,
+}
+```
+
+In this configuration:-
+
+-   `startAngle` is the number of degrees from 12 o'clock to start the gauge.
+-   `endAngle` must be greater than `startAngle`.
+
+## Needle
+
+Needles can be used to indicate the value instead of the bar.
+
+{% chartExampleRunner title="Needle" name="needle" type="generated" /%}
+
+A needle can be added to the gauge with the `needle` configuration.
+
+When adding needles, it is common to disable the bar. This can be done with the `bar` configuration. When the bar is hidden, the colour stops are applied to the full range.
+
+```js
+{
+    needle: {
+        enabled: true,
+    },
+    bar: {
+        enabled: false,
+    },
+}
+```
+
+## Targets
+
+Targets indicate points on the gauge other than the current value.
+
+{% chartExampleRunner title="Targets" name="targets" type="generated" /%}
+
+Targets can be added using the `targets` configuration array.
+
+```js
+{
+    targets: [
+        {
+            value: 75,
+            shape: 'triangle',
+            placement: 'outer',
+            size: 20,
+            spacing: 5,
+            rotation: 180,
+        },
+    ];
+}
+```
+
+In this configuration:
+
+-   `value` is the position for the marker.
+-   `shape` is a marker shape.
+-   `placement` indicates the relative placement to the gauge - either `inside`, `outside`, or `middle`.
+-   `size` is the size of the marker, in pixels
+-   `spacing` is spacing from the edge of the gauge to the marker. Ignored when `placement` is `middle.
+-   `rotation` is the rotation of the marker, in degrees
+
+## Appearance
+
+{% chartExampleRunner title="Appearance" name="appearance" type="generated" /%}
+
+The appearance can be customised with the `appearance` property.
+
+```js
+{
+    appearance: 'segmented',
+    sectorSpacing: 2,
+}
+```
+
+In this configuration:
+
+-   `appearance` can be set to `continuous` to render a single gradient, or `segmented` to render multiple segments.
+-   `sectorSpacing` defines the spacing between sectors for the `segmented` appearance.
+
+### Controlling Number of Sectors
+
+The `scale.step` can be used to increase or decrease the number of sectors in a `segmented` appearance.
+
+{% chartExampleRunner title="Scale Step" name="scale-step" type="generated" /%}
+
+```js
+{
+    appearance: 'segmented',
+    scale: {
+        min: 0,
+        max: 100,
+        step: 10,
+    },
+}
+```
+
+In this configuration:
+
+-   `step` defines the increment for each sector, starting at `min` and finishing at `max`
+
+### Controlling Sector Values
+
+{% chartExampleRunner title="Scale Values" name="scale-values" type="generated" /%}
+
+To show explicit colour stops, use the `scale.values` property in combination with the `colorStops` property.
+
+```js
+{
+    appearance: 'segmented',
+    scale: {
+        min: 0,
+        max: 100,
+        values: [50, 60, 70, 80, 90],
+    },
+    colorStops: [
+        { color: '#fc5c65' },
+        { color: '#fd9644', stop: 50 },
+        { color: '#fed330', stop: 60 },
+        { color: '#26de81', stop: 70 },
+        { color: '#fed330', stop: 80 },
+        { color: '#fd9644', stop: 90 },
+    ],
+}
+```
+
+{% note %}
+Each value in the `scale` should correspond to a stop in the `colorStops` configuration.
+{% /note %}

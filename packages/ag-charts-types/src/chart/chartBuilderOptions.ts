@@ -15,7 +15,7 @@ export interface AgCartesianChartOptions extends AgBaseCartesianChartOptions, Ag
     /**
      * A predefined theme name or an object containing theme overrides.
      *
-     * See: [Themes Reference](../themes-api/)
+     * See: [Themes Reference](/themes-api/)
      */
     theme?: AgChartTheme | AgChartThemeName;
 }
@@ -44,7 +44,7 @@ export type AgChartOptions =
 
 export type AgBasePresetOptions = Pick<
     AgCartesianChartOptions,
-    'container' | 'animation' | 'width' | 'height' | 'minWidth' | 'minHeight' | 'theme' | 'title'
+    'container' | 'animation' | 'width' | 'height' | 'minWidth' | 'minHeight' | 'theme' | 'title' | 'seriesArea'
 >;
 
 export type AgBaseFinancialPresetOptions = AgBasePresetOptions & Pick<AgCartesianChartOptions, 'initialState' | 'data'>;

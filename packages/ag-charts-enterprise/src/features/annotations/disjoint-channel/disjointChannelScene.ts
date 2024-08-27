@@ -1,10 +1,11 @@
-import { _Util } from 'ag-charts-community';
+import { _Scene, _Util } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
 import { convertPoint, invertCoords } from '../annotationUtils';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { ChannelScene } from '../scenes/channelScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
+import { LineWithTextScene } from '../scenes/lineWithTextScene';
 import type { DisjointChannelProperties } from './disjointChannelProperties';
 
 const { Vec2 } = _Util;
@@ -202,4 +203,6 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
             y: bottom.y2 - bottomRight.handle.height / 2,
         });
     }
+
+    override updateText = LineWithTextScene.updateChannelText.bind(this, false);
 }

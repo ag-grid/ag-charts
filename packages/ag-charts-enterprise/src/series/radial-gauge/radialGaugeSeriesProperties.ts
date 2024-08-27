@@ -102,11 +102,14 @@ export class RadialGaugeTargetProperties extends BaseProperties {
     @Validate(MARKER_SHAPE, { optional: true })
     shape: MarkerShape | undefined;
 
-    @Validate(RATIO, { optional: true })
-    radiusRatio: number | undefined;
+    @Validate(STRING)
+    placement: 'inside' | 'outside' | 'middle' = 'middle';
 
-    @Validate(RATIO)
-    sizeRatio: number = 0.2;
+    @Validate(NUMBER)
+    spacing: number = 0;
+
+    @Validate(POSITIVE_NUMBER)
+    size: number = 10;
 
     @Validate(NUMBER)
     rotation: number = 0;
@@ -258,13 +261,13 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeS
     cornerRadius: number = 0;
 
     @Validate(STRING) // FIXME
-    itemMode: 'continuous' | 'segmented' = 'continuous';
+    appearance: 'continuous' | 'segmented' = 'continuous';
 
     @Validate(STRING) // FIXME
     cornerMode: 'container' | 'item' = 'container';
 
     @Validate(NUMBER)
-    padding: number = 0;
+    margin: number = 0;
 
     @Validate(OBJECT)
     readonly background = new RadialGaugeBackgroundProperties();

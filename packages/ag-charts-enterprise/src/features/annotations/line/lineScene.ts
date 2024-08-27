@@ -6,6 +6,7 @@ import { AnnotationScene } from '../scenes/annotationScene';
 import { ArrowCapScene, type CapScene } from '../scenes/capScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
 import { DivariantHandle } from '../scenes/handle';
+import { LineWithTextScene } from '../scenes/lineWithTextScene';
 import { LinearScene } from '../scenes/linearScene';
 import type { LineTypeProperties } from './lineProperties';
 
@@ -20,9 +21,10 @@ export class LineScene extends LinearScene<LineTypeProperties> {
 
     override activeHandle?: 'start' | 'end';
 
-    private readonly line = new CollidableLine();
+    public readonly line = new CollidableLine();
     private readonly start = new DivariantHandle();
     private readonly end = new DivariantHandle();
+    public text?: _Scene.TransformableText;
     private startCap?: CapScene;
     private endCap?: CapScene;
 
@@ -46,6 +48,7 @@ export class LineScene extends LinearScene<LineTypeProperties> {
 
         this.updateLine(datum, coords);
         this.updateHandles(datum, coords, locked);
+        this.updateText(datum, coords);
         this.updateCaps(datum, coords);
     }
 
@@ -88,6 +91,8 @@ export class LineScene extends LinearScene<LineTypeProperties> {
         start.toggleLocked(locked);
         end.toggleLocked(locked);
     }
+
+    private readonly updateText = LineWithTextScene.updateLineText.bind(this);
 
     updateCaps(datum: LineTypeProperties, coords: LineCoords) {
         if (!datum.startCap && this.startCap) {

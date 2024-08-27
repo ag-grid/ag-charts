@@ -91,9 +91,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private readonly debug = Debug.create(true, 'opts');
 
     constructor(userOptions: T, specialOverrides?: Partial<ChartSpecialOverrides>) {
+        this.presetType = specialOverrides?.presetType;
+
         const cloneOptions = { shallow: ['data'] };
         userOptions = deepClone(userOptions, cloneOptions);
-        const chartType = this.optionsType(userOptions);
 
         if (!enterpriseModule.isEnterprise) {
             removeUsedEnterpriseOptions(userOptions);
@@ -101,7 +102,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         let options = deepClone(userOptions, cloneOptions);
 
-        this.presetType = specialOverrides?.presetType;
         if (this.presetType != null) {
             const presetOptions = (PRESETS as any)[this.presetType]?.(options, () => this.activeTheme) ?? options;
             this.debug('>>> AgCharts.createOrUpdate() - applying preset', options, presetOptions);
@@ -117,6 +117,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.defaultAxes = this.getDefaultAxes(options);
         this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
 
+        const chartType = this.optionsType(options);
         const {
             axes: axesThemes = {},
             annotations: { axesButtons = null, ...annotationsThemes } = {},

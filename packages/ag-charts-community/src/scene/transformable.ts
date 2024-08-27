@@ -227,7 +227,7 @@ export type TranslatableType<T> = MatrixTransformType<
 export function Translatable<N extends Node>(Parent: Constructor<N>): Constructor<TranslatableType<N>> {
     const ParentNode = Parent as Constructor<Node>;
     const TRANSLATABLE_MATRIX = Symbol('matrix_translation');
-    class ScalableInternal extends MatrixTransform(ParentNode) {
+    class TranslatableInternal extends MatrixTransform(ParentNode) {
         [TRANSLATABLE_MATRIX] = new Matrix();
 
         @SceneChangeDetection({ type: 'transform' })
@@ -246,7 +246,7 @@ export function Translatable<N extends Node>(Parent: Constructor<N>): Constructo
             matrix.multiplySelf(this[TRANSLATABLE_MATRIX]);
         }
     }
-    return ScalableInternal as unknown as Constructor<TranslatableType<N>>;
+    return TranslatableInternal as unknown as Constructor<TranslatableType<N>>;
 }
 
 /** Utility class for operations relating to matrix-transformable mixin types. */

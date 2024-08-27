@@ -9,6 +9,7 @@ export { Group, ScalableGroup, RotatableGroup, TranslatableGroup } from './scene
 export { Scene } from './scene/scene';
 export { Node, PointerEvents, RedrawType, SceneChangeDetection } from './scene/node';
 export type { RenderContext } from './scene/node';
+export { ClippableOutside, type ClippableOutsideType } from './scene/clip';
 export { Rotatable, Translatable, Transformable, Scalable } from './scene/transformable';
 export { Selection } from './scene/selection';
 export type { Point, SizedPoint } from './scene/point';
@@ -17,7 +18,6 @@ export { Line } from './scene/shape/line';
 export { Gradient, type GradientColorStop } from './scene/gradient/gradient';
 export { LinearGradient } from './scene/gradient/linearGradient';
 export { ConicGradient } from './scene/gradient/conicGradient';
-export { LinearGradientFill } from './scene/shape/linearGradientFill';
 export { Path, ScenePathChangeDetection } from './scene/shape/path';
 export { Rect } from './scene/shape/rect';
 export { Sector } from './scene/shape/sector';

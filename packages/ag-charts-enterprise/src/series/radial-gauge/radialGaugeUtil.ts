@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { type TextAlign, type VerticalAlign, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { type LabelFormatting, formatSingleLabel, formatStackedLabels } from '../util/labelFormatter';
 import type { RadialGaugeNeedle } from './radialGaugeNeedle';
@@ -119,7 +119,7 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean)
         fromFn(needleNode, datum) {
             let { rotation, scalingX, scalingY } = needleNode;
 
-            if (initialLoad) {
+            if (needleNode.previousDatum == null || initialLoad) {
                 scalingX = 0;
                 scalingY = 0;
                 rotation = datum.angle;
@@ -142,12 +142,12 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean)
     };
 
     const target: _ModuleSupport.FromToFns<_Scene.Marker, any, AnimatableTargetDatum> = {
-        fromFn(_targetNode, datum) {
+        fromFn(targetNode, datum) {
             const { size } = datum;
 
             let scalingX = size;
             let scalingY = size;
-            if (initialLoad) {
+            if (targetNode.previousDatum == null || initialLoad) {
                 scalingX = 0;
                 scalingY = 0;
             }
@@ -184,16 +184,24 @@ function getLabelText(
     }
 }
 
+const verticalAlignFactors: Record<VerticalAlign, number> = {
+    top: 0,
+    middle: 0.5,
+    bottom: 1,
+};
+
 export function formatRadialGaugeLabels(
     series: _ModuleSupport.Series<any, any>,
     selection: _Scene.Selection<_Scene.Text, RadialGaugeLabelDatum>,
     labelProps: RadialGaugeLabelProperties,
     secondaryLabelProps: RadialGaugeSecondaryLabelProperties,
-    padding: number,
+    opts: { padding: number; textAlign: TextAlign; verticalAlign: VerticalAlign },
     innerRadius: number,
     defaultFormatter: (value: number) => void,
     datumOverrides?: { label: number; secondaryLabel: number }
 ) {
+    const { padding, textAlign, verticalAlign } = opts;
+
     let labelDatum: RadialGaugeLabelDatum | undefined;
     let secondaryLabelDatum: RadialGaugeLabelDatum | undefined;
     selection.each((_node, datum) => {
@@ -213,9 +221,11 @@ export function formatRadialGaugeLabels(
     );
 
     const params = { padding };
+    const horizontalFactor = textAlign === 'center' ? 2 : 1;
+    const verticalFactor = verticalAlign === 'middle' ? 2 : 1;
     const sizeFittingHeight = (height: number) => ({
-        width: 2 * Math.sqrt(innerRadius ** 2 - (height / 2) ** 2),
-        height: Math.min(height, 2 * innerRadius),
+        width: Math.sqrt(Math.max(innerRadius ** 2 - (height / verticalFactor) ** 2, 0)) * horizontalFactor,
+        height: Math.min(height, verticalFactor * innerRadius),
         meta: null,
     });
 
@@ -243,6 +253,7 @@ export function formatRadialGaugeLabels(
         height = layout?.[0].height ?? 0;
     }
 
+    const rectYOffset = height * verticalAlignFactors[verticalAlign];
     selection.each((label, datum) => {
         let layout: LabelFormatting | undefined;
         if (datum.label === LabelType.Primary) {
@@ -260,10 +271,12 @@ export function formatRadialGaugeLabels(
         label.text = layout.text;
         label.fontSize = layout.fontSize;
         label.lineHeight = layout.lineHeight;
+        label.textAlign = textAlign;
+        label.textBaseline = 'middle';
 
         const rectOriginInLabelRect =
             datum.label === LabelType.Primary ? layout.height / 2 : height - layout.height / 2;
-        label.y = datum.centerY + rectOriginInLabelRect - height / 2;
+        label.y = datum.centerY + rectOriginInLabelRect - rectYOffset;
         label.x = datum.centerX;
     });
 }
