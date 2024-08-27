@@ -12,6 +12,7 @@ export * from './chart/dropShadowOptions';
 export * from './chart/errorBarOptions';
 export * from './chart/eventOptions';
 export * from './chart/gradientLegendOptions';
+export * from './chart/icons';
 export * from './chart/labelOptions';
 export * from './chart/legendOptions';
 export * from './chart/localeOptions';
