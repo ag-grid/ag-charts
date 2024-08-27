@@ -178,8 +178,6 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
             y2: bottom.y2,
             ...lineStyles,
         });
-        topLine.updateCollisionBBox();
-        bottomLine.updateCollisionBBox();
     }
 
     override updateHandles(datum: DisjointChannelProperties, top: LineCoords, bottom: LineCoords) {

@@ -79,7 +79,6 @@ export class CrossLineScene extends AnnotationScene {
             fillOpacity: 0,
             lineCap,
         });
-        line.updateCollisionBBox();
     }
 
     private updateHandle(datum: CrossLineProperties, coords: LineCoords) {

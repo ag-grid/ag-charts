@@ -70,7 +70,6 @@ export class LineScene extends LinearScene<LineTypeProperties> {
             fillOpacity: 0,
             lineCap,
         });
-        line.updateCollisionBBox();
     }
 
     updateHandles(datum: LineTypeProperties, coords: LineCoords, locked: boolean) {
@@ -201,7 +200,7 @@ export class LineScene extends LinearScene<LineTypeProperties> {
     }
 
     override containsPoint(x: number, y: number) {
-        const { start, end, line } = this;
+        const { start, end, line, text } = this;
 
         this.activeHandle = undefined;
 
@@ -215,6 +214,6 @@ export class LineScene extends LinearScene<LineTypeProperties> {
             return true;
         }
 
-        return line.isPointInPath(x, y);
+        return line.isPointInPath(x, y) || Boolean(text?.containsPoint(x, y));
     }
 }

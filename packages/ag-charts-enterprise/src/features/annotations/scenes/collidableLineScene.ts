@@ -6,7 +6,13 @@ export class CollidableLine extends _Scene.ClippableOutside(_Scene.Line) {
     public collisionBBox?: _Scene.BBox;
     private readonly growCollisionBox = 9;
 
-    updateCollisionBBox() {
+    override setProperties<T>(styles: { [K in keyof T]?: T[K] | undefined }, pickKeys?: (keyof T)[] | undefined): T {
+        super.setProperties(styles, pickKeys);
+        this.updateCollisionBBox();
+        return this as unknown as T;
+    }
+
+    private updateCollisionBBox() {
         const { growCollisionBox, strokeWidth, x1, y1, x2, y2 } = this;
 
         // Update the collision bbox such that it is a horizontal representation of the line, with some extra height
