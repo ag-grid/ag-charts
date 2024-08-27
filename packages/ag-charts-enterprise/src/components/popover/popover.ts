@@ -6,7 +6,6 @@ const canvasOverlay = 'canvas-overlay';
 export interface PopoverOptions {
     ariaLabel?: string;
     class?: string;
-    role?: string;
     onHide?: () => void;
 }
 
@@ -31,7 +30,7 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         this.moduleId = `popover-${id}`;
 
         this.element = ctx.domManager.addChild(canvasOverlay, this.moduleId);
-        this.element.role = 'presentation';
+        this.element.setAttribute('role', 'presentation');
 
         this.destroyFns.push(() => ctx.domManager.removeChild(canvasOverlay, this.moduleId));
     }

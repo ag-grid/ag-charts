@@ -1,4 +1,5 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
+import type { AgIconName } from 'ag-charts-types';
 
 import { Popover, type PopoverOptions } from '../popover/popover';
 
@@ -6,6 +7,20 @@ const { createElement } = _ModuleSupport;
 const { Vec2 } = _Util;
 
 export interface DialogOptions extends PopoverOptions {}
+
+interface ButtonGroupOptions {
+    label: string;
+    options: Array<{ icon: AgIconName; value: string }>;
+    value: string;
+    onChange: (value: string) => void;
+}
+
+interface SelectOptions {
+    label: string;
+    options: Array<{ label: string; value: string }>;
+    value: string;
+    onChange: (value: string) => void;
+}
 
 interface TextAreaOptions {
     placeholder?: string;
@@ -47,6 +62,56 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return header;
     }
 
+    protected createTabContent() {
+        const content = createElement('div', 'ag-charts-dialog__tab-content');
+        return content;
+    }
+
+    protected createButtonGroup({ label, options, value, onChange }: ButtonGroupOptions) {
+        const group = this.createInputGroup(label);
+
+        for (const button of options) {
+            const buttonEl = createElement('button', `ag-charts-dialog__button`);
+            const iconEl = createElement('span', this.ctx.domManager.getIconClassNames(button.icon));
+            if (button.value === value) {
+                buttonEl.classList.add('ag-charts-dialog__button--active');
+            }
+            buttonEl.appendChild(iconEl);
+            buttonEl.addEventListener('click', () => {
+                for (const b of Array.from(group.children)) {
+                    b.classList.remove('ag-charts-dialog__button--active');
+                }
+                buttonEl.classList.add('ag-charts-dialog__button--active');
+                onChange(button.value);
+            });
+            group.appendChild(buttonEl);
+        }
+
+        return group;
+    }
+
+    protected createSelect({ label, options, value, onChange }: SelectOptions) {
+        const group = this.createInputGroup(label);
+
+        const select = createElement('select', 'ag-charts-dialog__select');
+        for (const option of options) {
+            const optionEl = createElement('option');
+            optionEl.value = option.value;
+            optionEl.label = option.label;
+            select.append(optionEl);
+        }
+
+        select.value = value;
+
+        select.addEventListener('change', () => {
+            onChange(select.value);
+        });
+
+        group.append(select);
+
+        return group;
+    }
+
     protected createTextArea(options: TextAreaOptions) {
         const textArea = createElement('div', 'ag-charts-dialog__textarea');
 
@@ -61,6 +126,10 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             textArea.setAttribute('placeholder', options.placeholder);
         }
 
+        if (options.value != null) {
+            textArea.innerText = options.value;
+        }
+
         if (options.onChange != null) {
             textArea.addEventListener('input', () => {
                 options.onChange?.(textArea.innerText.trim());
@@ -72,7 +141,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 
     private createHeaderDragHandle() {
         const dragHandle = createElement('div', 'ag-charts-dialog__drag-handle');
-        const dragHandleIcon = createElement('span', this.ctx.domManager.getIconClassNames('reset'));
+        const dragHandleIcon = createElement('span', this.ctx.domManager.getIconClassNames('drag-handle'));
         dragHandle.append(dragHandleIcon);
         dragHandle.addEventListener('mousedown', this.onDragStart.bind(this));
 
@@ -88,13 +157,23 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 
     private createHeaderCloseButton() {
         const closeButton = createElement('button', 'ag-charts-dialog__close-button');
-        const closeButtonIcon = createElement('span', this.ctx.domManager.getIconClassNames('delete'));
+        const closeButtonIcon = createElement('span', this.ctx.domManager.getIconClassNames('close'));
         closeButton.append(closeButtonIcon);
         closeButton.addEventListener('click', () => {
             this.hide();
         });
 
         return closeButton;
+    }
+
+    private createInputGroup(label: string) {
+        const group = createElement('div', 'ag-charts-dialog__input-group');
+
+        const labelEl = createElement('div', 'ag-charts-dialog__input-group-label');
+        labelEl.innerText = label;
+        group.appendChild(labelEl);
+
+        return group;
     }
 
     private onDragStart(event: MouseEvent) {

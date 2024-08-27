@@ -23,6 +23,8 @@ export class LineWithTextScene {
     ) {
         if (!datum.text?.label && this.text) {
             this.removeChild(this.text);
+            this.line.setClipMask();
+            this.text = undefined;
         }
 
         if (!datum.text?.label) return;
@@ -46,6 +48,8 @@ export class LineWithTextScene {
                 y: y + height / 2,
                 radius: diameter / 2 + Vec2.length(decomposed.offset),
             });
+        } else {
+            this.line.setClipMask();
         }
     }
 
@@ -58,6 +62,7 @@ export class LineWithTextScene {
     ) {
         if (!datum.text?.label && this.text) {
             this.removeChild(this.text);
+            this.text = undefined;
         }
 
         if (!datum.text?.label) return;

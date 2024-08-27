@@ -66,9 +66,11 @@
     --ag-charts-popover-background-color: var(--ag-charts-toolbar-background-color);
     --ag-charts-popover-foreground-color: var(--ag-charts-toolbar-foreground-color);
     --ag-charts-popover-border: var(--ag-charts-toolbar-border);
+    --ag-charts-popover-border-radius: var(--ag-border-radius, 4px);
     --ag-charts-popover-active-color: var(--ag-charts-toolbar-active-color);
     --ag-charts-popover-hover-color: var(--ag-charts-toolbar-hover-color);
     --ag-charts-popover-active-background-color: var(--ag-charts-toolbar-active-background-color);
+    --ag-charts-popover-font-size: 14px;
     --ag-charts-popover-font-size-small: var(--ag-charts-toolbar-font-size-small);
 
     /* Buttons */

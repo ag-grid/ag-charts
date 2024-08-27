@@ -3,7 +3,7 @@
     grid: auto-flow auto / 1fr;
     column-gap: 12px;
     min-width: 200px;
-    font: var(--ag-charts-popover-font-size-small) var(--ag-charts-font-family);
+    font-size: var(--ag-charts-popover-font-size-small);
 
     --item-padding: 6px 12px;
     --icon-color: var(--ag-charts-popover-foreground-color);

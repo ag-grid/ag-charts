@@ -7,7 +7,16 @@ import {
     AnnotationType,
     type GuardDragClickDoubleEvent,
 } from './annotationTypes';
-import { getTypedDatum, hasLineStyle, isTextType, setColor, setFontSize, setLineStyle } from './annotationsConfig';
+import {
+    getTypedDatum,
+    hasLineStyle,
+    hasLineText,
+    isChannelType,
+    isTextType,
+    setColor,
+    setFontSize,
+    setLineStyle,
+} from './annotationsConfig';
 import type { AnnotationProperties, AnnotationsStateMachineContext } from './annotationsSuperTypes';
 import { ArrowDownProperties } from './arrow-down/arrowDownProperties';
 import { ArrowDownScene } from './arrow-down/arrowDownScene';
@@ -58,7 +67,6 @@ type AnnotationEvent =
     | 'drag'
     | 'dragStart'
     | 'dragEnd'
-    | 'input'
     | 'cancel'
     | 'reset'
     | 'delete'
@@ -68,6 +76,7 @@ type AnnotationEvent =
     | 'lineStyle'
     | 'keyDown'
     | 'updateTextInputBBox'
+    | 'lineTextProperties'
     | 'render';
 
 export class AnnotationsStateMachine extends StateMachine<States, AnnotationType | AnnotationEvent> {
@@ -323,6 +332,19 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     guard: guardActive,
                     target: States.Idle,
                     action: actionLineStyle,
+                },
+
+                lineTextProperties: {
+                    guard: guardActive,
+                    action: (props: { alignment?: string; fontSize?: number; label?: string; position?: string }) => {
+                        const datum = getTypedDatum(ctx.datum(this.active!));
+                        if (!hasLineText(datum)) return;
+                        if (isChannelType(datum) && props.position === 'center') {
+                            props.position = 'inside';
+                        }
+                        datum.text.set(props);
+                        ctx.update();
+                    },
                 },
 
                 updateTextInputBBox: {
