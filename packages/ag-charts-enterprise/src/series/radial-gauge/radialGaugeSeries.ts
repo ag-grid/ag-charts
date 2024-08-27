@@ -396,7 +396,7 @@ export class RadialGaugeSeries
                 const itemEndAngle = angleScale.convert(value1);
 
                 if (bar.enabled) {
-                    const barFill = colorScale?.convert(colorScaleValue) ?? bar.fill;
+                    const barFill = bar.fill ?? colorScale?.convert(colorScaleValue);
 
                     nodeData.push({
                         series: this,
