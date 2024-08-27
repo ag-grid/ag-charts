@@ -26,6 +26,9 @@ const domElementConfig: Map<DOMElementClass, DOMElementConfig> = new Map([
     [CANVAS_CENTER_CLASS, { childElementType: 'div' }],
 ]);
 
+const overlayNonBubblingEvents = ['keydown', 'keyup', 'mousedown', 'mouseup', 'click'];
+const overlayStopPropagation = (ev: Event) => ev.stopPropagation();
+
 function setupObserver(element: HTMLElement, cb: (intersectionRatio: number) => void) {
     // Detect when the chart becomes invisible and hide the tooltip as well.
     if (typeof IntersectionObserver === 'undefined') return;
@@ -112,10 +115,23 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         if (container) {
             this.setContainer(container);
         }
+
+        const overlay = this.element.querySelector('.ag-charts-canvas-overlay');
+        if (overlay instanceof HTMLElement) {
+            for (const type of overlayNonBubblingEvents) {
+                overlay.addEventListener(type, overlayStopPropagation);
+            }
+        }
     }
 
     override destroy() {
         super.destroy();
+        const overlay = this.element.querySelector('.ag-charts-canvas-overlay');
+        if (overlay instanceof HTMLElement) {
+            for (const type of overlayNonBubblingEvents) {
+                overlay.removeEventListener(type, overlayStopPropagation);
+            }
+        }
 
         this.observer?.unobserve(this.element);
         if (this.container) {
