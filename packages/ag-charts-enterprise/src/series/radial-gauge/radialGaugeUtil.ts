@@ -65,11 +65,11 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean)
     const node: _ModuleSupport.FromToFns<_Scene.Sector, SectorAnimation, AnimatableSectorDatum> = {
         fromFn(sect, datum) {
             const previousDatum: AnimatableSectorDatum = sect.previousDatum ?? datum;
-            const { startAngle, endAngle, clipStartAngle, clipEndAngle, innerRadius } = previousDatum;
-            let { outerRadius } = previousDatum;
+            const { startAngle, endAngle, clipStartAngle, innerRadius, outerRadius } = previousDatum;
+            let { clipEndAngle } = previousDatum;
 
             if (initialLoad) {
-                outerRadius = innerRadius;
+                clipEndAngle = clipStartAngle;
             }
 
             const clipSector =
@@ -80,12 +80,11 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean)
             return { startAngle, endAngle, innerRadius, outerRadius, clipSector, phase };
         },
         toFn(_sect, datum, status) {
-            const { startAngle, endAngle, clipStartAngle, clipEndAngle } = datum;
-            let { innerRadius, outerRadius } = datum;
+            const { startAngle, clipStartAngle, clipEndAngle, innerRadius, outerRadius } = datum;
+            let { endAngle } = datum;
 
             if (status === 'removed') {
-                innerRadius = datum.innerRadius;
-                outerRadius = datum.innerRadius;
+                endAngle = startAngle;
             }
 
             const clipSector =

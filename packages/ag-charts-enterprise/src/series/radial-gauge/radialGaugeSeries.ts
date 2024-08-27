@@ -865,18 +865,50 @@ export class RadialGaugeSeries
         }
     }
 
+    private animateLabelText(params: { from?: number; phase?: _ModuleSupport.AnimationPhase } = {}) {
+        const { animationManager } = this.ctx;
+
+        let labelFrom = 0;
+        let labelTo = 0;
+        let secondaryLabelFrom = 0;
+        let secondaryLabelTo = 0;
+        this.labelSelection.each((label, datum) => {
+            // Reset animation
+            label.opacity = 1;
+
+            if (datum.label === LabelType.Primary) {
+                labelFrom = label.previousDatum?.value ?? params.from ?? datum.value;
+                labelTo = datum.value;
+            } else if (datum.label === LabelType.Secondary) {
+                secondaryLabelFrom = label.previousDatum?.value ?? params.from ?? datum.value;
+                secondaryLabelTo = datum.value;
+            }
+        });
+
+        if (this.labelsHaveExplicitText()) {
+            // Ignore
+        } else if (labelFrom === labelTo && secondaryLabelFrom === secondaryLabelTo) {
+            this.formatLabelText({ label: labelTo, secondaryLabel: secondaryLabelTo });
+        } else if (!this.labelsHaveExplicitText()) {
+            const animationId = `${this.id}_labels`;
+
+            animationManager.animate({
+                id: animationId,
+                groupId: 'label',
+                from: { label: labelFrom, secondaryLabel: secondaryLabelFrom },
+                to: { label: labelTo, secondaryLabel: secondaryLabelTo },
+                phase: params.phase ?? 'update',
+                onUpdate: (datum) => this.formatLabelText(datum),
+            });
+        }
+    }
+
     animateEmptyUpdateReady() {
         const { animationManager } = this.ctx;
 
         const { node, needle, target } = prepareRadialGaugeSeriesAnimationFunctions(true);
-        fromToMotion(
-            this.id,
-            'node',
-            animationManager,
-            [this.backgroundSelection, this.datumSelection],
-            node,
-            (_sector, datum) => datum.itemId!
-        );
+        fromToMotion(this.id, 'node', animationManager, [this.datumSelection], node, (_sector, datum) => datum.itemId!);
+        resetMotion([this.backgroundSelection], resetRadialGaugeSeriesAnimationFunctions);
         fromToMotion(this.id, 'needle', animationManager, [this.needleSelection], needle, () => 'needle');
         fromToMotion(this.id, 'target', animationManager, [this.targetSelection], target, (_, datum) => `${datum}`);
 
@@ -889,9 +921,7 @@ export class RadialGaugeSeries
             (_label, datum) => datum.label
         );
 
-        if (!this.labelsHaveExplicitText()) {
-            this.formatLabelText();
-        }
+        this.animateLabelText({ from: 0, phase: 'initial' });
     }
 
     animateWaitingUpdateReady() {
@@ -916,39 +946,7 @@ export class RadialGaugeSeries
             (_, datum) => `${datum.index}`
         );
 
-        let labelFrom = 0;
-        let labelTo = 0;
-        let secondaryLabelFrom = 0;
-        let secondaryLabelTo = 0;
-        this.labelSelection.each((label, datum) => {
-            // Reset animation
-            label.opacity = 1;
-
-            if (datum.label === LabelType.Primary) {
-                labelFrom = label.previousDatum?.value ?? datum.value;
-                labelTo = datum.value;
-            } else if (datum.label === LabelType.Secondary) {
-                secondaryLabelFrom = label.previousDatum?.value ?? datum.value;
-                secondaryLabelTo = datum.value;
-            }
-        });
-
-        if (this.labelsHaveExplicitText()) {
-            // Ignore
-        } else if (labelFrom === labelTo && secondaryLabelFrom === secondaryLabelTo) {
-            this.formatLabelText({ label: labelTo, secondaryLabel: secondaryLabelTo });
-        } else if (!this.labelsHaveExplicitText()) {
-            const animationId = `${this.id}_labels`;
-
-            animationManager.animate({
-                id: animationId,
-                groupId: 'label',
-                from: { label: labelFrom, secondaryLabel: secondaryLabelFrom },
-                to: { label: labelTo, secondaryLabel: secondaryLabelTo },
-                phase: 'update',
-                onUpdate: (datum) => this.formatLabelText(datum),
-            });
-        }
+        this.animateLabelText();
     }
 
     protected animateReadyResize() {

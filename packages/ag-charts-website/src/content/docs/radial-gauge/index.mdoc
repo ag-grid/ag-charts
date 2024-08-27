@@ -6,7 +6,7 @@ A Radial Gauge presents a single data point within a predefined range. It employ
 
 ## Simple Radial Gauge
 
-{% chartExampleRunner title="Simple Radial Gauge" name="simple-radial-gauge" type="generated" /%}
+{% chartExampleRunner title="Simple Radial Gauge" name="simple-radial-gauge" type="generated" options={ "exampleWidth": 400, "exampleHeight": 300 } /%}
 
 To create a Radial Gauge, use the `createGauge` API using the type `radial-gauge`.
 
@@ -32,7 +32,7 @@ In this configuration:
 
 The bar is coloured using a scale.
 
-{% chartExampleRunner title="Colour Scales" name="color-scales" type="generated" /%}
+{% chartExampleRunner title="Colour Scales" name="color-scales" type="generated" options={ "exampleWidth": 400, "exampleHeight": 300 } /%}
 
 The colour scale can be customised using the `colorStops` property.
 
@@ -59,7 +59,7 @@ It is possible to omit stop values. In this case, the stop value will be inferre
 
 Labels are used to show the current value of the gauge, or any other information to provide context.
 
-{% chartExampleRunner title="Labels" name="labels" type="generated" /%}
+{% chartExampleRunner title="Labels" name="labels" type="generated" options={ "exampleWidth": 400, "exampleHeight": 300 } /%}
 
 The scale labels can be configured with the `label` property within the `scale` configuration. Additionally. up to two inner labels can be configured with the `label` and `secondaryLabel` properties.
 
@@ -89,7 +89,7 @@ In this configuration:
 
 ## Radial Angles
 
-{% chartExampleRunner title="Angles" name="angles" type="generated" /%}
+{% chartExampleRunner title="Angles" name="angles" type="generated" options={ "exampleWidth": 400, "exampleHeight": 300 } /%}
 
 The `startAngle` and `endAngle` properties can be used to customise the position of the start and end of the gauge.
 
@@ -109,7 +109,7 @@ In this configuration:-
 
 Needles can be used to indicate the value instead of the bar.
 
-{% chartExampleRunner title="Needle" name="needle" type="generated" /%}
+{% chartExampleRunner title="Needle" name="needle" type="generated" options={ "exampleWidth": 400, "exampleHeight": 300 } /%}
 
 A needle can be added to the gauge with the `needle` configuration.
 
@@ -130,7 +130,7 @@ When adding needles, it is common to disable the bar. This can be done with the 
 
 Targets indicate points on the gauge other than the current value.
 
-{% chartExampleRunner title="Targets" name="targets" type="generated" /%}
+{% chartExampleRunner title="Targets" name="targets" type="generated" options={ "exampleWidth": 400, "exampleHeight": 300 } /%}
 
 Targets can be added using the `targets` configuration array.
 
@@ -160,7 +160,7 @@ In this configuration:
 
 ## Appearance
 
-{% chartExampleRunner title="Appearance" name="appearance" type="generated" /%}
+{% chartExampleRunner title="Appearance" name="appearance" type="generated" options={ "exampleWidth": 400, "exampleHeight": 300 } /%}
 
 The appearance can be customised with the `appearance` property.
 
@@ -180,7 +180,7 @@ In this configuration:
 
 The `scale.step` can be used to increase or decrease the number of sectors in a `segmented` appearance.
 
-{% chartExampleRunner title="Scale Step" name="scale-step" type="generated" /%}
+{% chartExampleRunner title="Scale Step" name="scale-step" type="generated" options={ "exampleWidth": 400, "exampleHeight": 300 } /%}
 
 ```js
 {
@@ -199,7 +199,7 @@ In this configuration:
 
 ### Controlling Sector Values
 
-{% chartExampleRunner title="Scale Values" name="scale-values" type="generated" /%}
+{% chartExampleRunner title="Scale Values" name="scale-values" type="generated" options={ "exampleWidth": 400, "exampleHeight": 300 } /%}
 
 To show explicit colour stops, use the `scale.values` property in combination with the `colorStops` property.
 

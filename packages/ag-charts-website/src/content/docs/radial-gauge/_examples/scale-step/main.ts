@@ -3,7 +3,7 @@ import { AgCharts, AgGaugeOptions } from 'ag-charts-enterprise';
 const options: AgGaugeOptions = {
     type: 'radial-gauge',
     container: document.getElementById('myChart'),
-    value: 80,
+    value: 85,
     appearance: 'segmented',
     scale: {
         min: 0,

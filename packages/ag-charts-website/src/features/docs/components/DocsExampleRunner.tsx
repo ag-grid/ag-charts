@@ -163,6 +163,7 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
             exampleRunnerExampleUrl={exampleRunnerExampleUrl}
             exampleType={exampleType}
             exampleHeight={options?.exampleHeight}
+            exampleWidth={options?.exampleWidth}
             exampleFiles={exampleFiles}
             initialShowCode={options?.showCode}
             initialSelectedFile={initialSelectedFile}
