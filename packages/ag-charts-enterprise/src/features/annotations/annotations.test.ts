@@ -121,6 +121,62 @@ describe('Annotations', () => {
             });
             await compare();
         });
+
+        it('should render a text annotation', async () => {
+            await prepareChart({
+                annotations: [
+                    {
+                        type: 'text',
+                        text: 'Hello',
+                        x: { __type: 'date', value: '2024-07-01' },
+                        y: 75,
+                    },
+                ],
+            });
+            await compare();
+        });
+
+        it('should render a comment annotation', async () => {
+            await prepareChart({
+                annotations: [
+                    {
+                        type: 'comment',
+                        text: 'Hello',
+                        x: { __type: 'date', value: '2024-07-01' },
+                        y: 75,
+                    },
+                ],
+            });
+            await compare();
+        });
+
+        it('should render a note annotation', async () => {
+            await prepareChart({
+                annotations: [
+                    {
+                        type: 'note',
+                        text: 'Hello',
+                        x: { __type: 'date', value: '2024-07-01' },
+                        y: 75,
+                    },
+                ],
+            });
+            await compare();
+        });
+
+        it('should render a callout annotation', async () => {
+            await prepareChart({
+                annotations: [
+                    {
+                        type: 'callout',
+                        text: 'Hello',
+                        start: { x: { __type: 'date', value: '2024-05-01' }, y: 50 },
+                        end: { x: { __type: 'date', value: '2024-07-01' }, y: 75 },
+                    },
+                ],
+            });
+            await compare();
+        });
     });
 
     describe('lines with text', () => {
