@@ -51,6 +51,9 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return popover;
     }
 
+    /**************
+     * Containers *
+     **************/
     protected createHeader(label: string) {
         const header = createElement('div', 'ag-charts-dialog__header');
         const dragHandle = this.createHeaderDragHandle();
@@ -67,6 +70,9 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return content;
     }
 
+    /**********
+     * Inputs *
+     **********/
     protected createButtonGroup({ label, options, value, onChange }: ButtonGroupOptions) {
         const group = this.createInputGroup(label);
 
@@ -139,6 +145,9 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return textArea;
     }
 
+    /***********
+     * Private *
+     ***********/
     private createHeaderDragHandle() {
         const dragHandle = createElement('div', 'ag-charts-dialog__drag-handle');
         const dragHandleIcon = createElement('span', this.ctx.domManager.getIconClassNames('drag-handle'));
