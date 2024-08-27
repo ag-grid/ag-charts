@@ -2,6 +2,7 @@ import type { TextAlign, VerticalAlign } from 'ag-charts-types';
 
 import type { LayoutContext } from '../module/baseModule';
 import type { BBox } from '../scene/bbox';
+import { sectorBox } from '../scene/util/sector';
 import { isBetweenAngles, normalizeAngle360Inclusive } from '../util/angle';
 import { PolarAxis } from './axis/polarAxis';
 import { Chart } from './chart';
@@ -39,16 +40,11 @@ export class GaugeChart extends Chart {
         const containsBottom = largerThanHalf || isBetweenAngles(0.5 * Math.PI, startAngle, endAngle);
         const containsLeft = largerThanHalf || isBetweenAngles(1.0 * Math.PI, startAngle, endAngle);
 
-        let centerXOffset = 0;
-        let centerYOffset = 0;
-
         let textAlign: TextAlign;
         if (containsLeft && !containsRight) {
             textAlign = 'right';
-            centerXOffset = 0.5;
         } else if (!containsLeft && containsRight) {
             textAlign = 'left';
-            centerXOffset = -0.5;
         } else {
             textAlign = 'center';
         }
@@ -56,18 +52,21 @@ export class GaugeChart extends Chart {
         let verticalAlign: VerticalAlign;
         if (containsTop && !containsBottom) {
             verticalAlign = 'bottom';
-            centerYOffset = 0.5;
         } else if (!containsTop && containsBottom) {
             verticalAlign = 'top';
-            centerYOffset = -0.5;
         } else {
             verticalAlign = 'middle';
         }
 
-        let radius = Math.min(
-            seriesRect.width / (textAlign === 'center' ? 2 : 1),
-            seriesRect.height / (verticalAlign === 'middle' ? 2 : 1)
-        );
+        const unitBox = sectorBox({
+            startAngle,
+            endAngle,
+            innerRadius: 0,
+            outerRadius: 0.5,
+        });
+        const centerXOffset = -(unitBox.x + unitBox.width / 2) * 2;
+        const centerYOffset = -(unitBox.y + unitBox.height / 2) * 2;
+        let radius = 0.5 * Math.min(seriesRect.width / unitBox.width, seriesRect.height / unitBox.height);
 
         const MAX_ITERATIONS = 8;
         for (let i = 0; i < MAX_ITERATIONS; i += 1) {
