@@ -39,7 +39,6 @@ export const ExampleRunner: FunctionComponent<Props> = ({
     initialShowCode,
     externalLinks,
     exampleHeight = DEFAULT_HEIGHT,
-    exampleWidth,
     exampleFiles,
     initialSelectedFile,
     internalFramework,
@@ -55,7 +54,7 @@ export const ExampleRunner: FunctionComponent<Props> = ({
                     className={classnames(chartsStyles.content, styles.content)}
                     role="tabpanel"
                     aria-labelledby={`${showCode ? 'Preview' : 'Code'} tab`}
-                    style={{ height: exampleHeight, width: '100%', maxWidth: exampleWidth }}
+                    style={{ height: exampleHeight }}
                 >
                     <ExampleIFrame
                         title={title}
