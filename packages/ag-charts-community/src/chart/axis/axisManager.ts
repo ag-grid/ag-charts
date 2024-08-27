@@ -49,7 +49,7 @@ export class AxisManager {
     }
 
     getAxisContext(direction: ChartAxisDirection) {
-        return [...(this.axes.get(direction) ?? [])];
+        return this.axes.get(direction) ?? [];
     }
 
     destroy() {

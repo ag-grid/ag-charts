@@ -4,14 +4,14 @@ import { Invalidating } from './invalidating';
 import type { Scale, ScaleConvertParams } from './scale';
 
 export abstract class ContinuousScale<D extends number | Date, I = number> implements Scale<D, number, I> {
+    static is(value: unknown): value is ContinuousScale<any, any> {
+        return value instanceof ContinuousScale;
+    }
+
     static readonly defaultTickCount = 5;
     static readonly defaultMaxTickCount = 6;
 
     abstract type: Scale<D, number, I>['type'];
-
-    static is(value: any): value is ContinuousScale<any, any> {
-        return value instanceof ContinuousScale;
-    }
 
     protected invalid = true;
 

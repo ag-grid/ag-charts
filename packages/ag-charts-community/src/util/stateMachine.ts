@@ -115,7 +115,7 @@ export class StateMachine<State extends string, Event extends string> {
         }
     }
 
-    protected is(value: any): boolean {
+    protected is(value: unknown): boolean {
         if (this.state === StateMachine.child && this.childState) {
             return this.childState.is(value);
         }

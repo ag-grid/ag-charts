@@ -272,9 +272,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.range = this.scale.range.slice() as [number, number];
         this.crossLines.forEach((crossLine) => this.initCrossLine(crossLine));
 
-        this.destroyFns.push(this._titleCaption.registerInteraction(this.moduleCtx));
-        this._titleCaption.node.rotation = -Math.PI / 2;
-        this.axisGroup.appendChild(this._titleCaption.node);
+        this.destroyFns.push(this.title.caption.registerInteraction(this.moduleCtx));
+        this.title.caption.node.rotation = -Math.PI / 2;
+        this.axisGroup.appendChild(this.title.caption.node);
 
         this.animationManager = moduleCtx.animationManager;
         this.animationState = new StateMachine<AxisAnimationState, AxisAnimationEvent>('empty', {
@@ -362,10 +362,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         axisNode.removeChild(this.labelGroup);
     }
 
-    getAxisGroup(): Group {
-        return this.axisGroup;
-    }
-
     range: [number, number] = [0, 1];
     visibleRange: [number, number] = [0, 1];
 
@@ -406,9 +402,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
     }
 
-    @Validate(OBJECT, { optional: true })
-    title = new AxisTitle();
-    protected _titleCaption = new Caption();
+    @Validate(OBJECT)
+    readonly title = new AxisTitle();
 
     private setTickInterval(interval?: TickInterval<S>) {
         this.scale.interval = this.interval?.step ?? interval;
@@ -432,7 +427,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     protected onGridLengthChange(value: number, prevValue: number) {
         // Was visible and now invisible, or was invisible and now visible.
-        if ((prevValue && !value) || (!prevValue && value)) {
+        if (prevValue ^ value) {
             this.onGridVisibilityChange();
         }
         this.crossLines.forEach((crossLine) => this.initCrossLine(crossLine));
@@ -1313,14 +1308,14 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     protected updateTitle(params: { anyTickVisible: boolean }): void {
-        const { title, _titleCaption, lineNode, tickLineGroup, tickLabelGroup } = this;
+        const { title, lineNode, tickLineGroup, tickLabelGroup } = this;
 
         let spacing = 0;
         if (title.enabled && params.anyTickVisible) {
             const tickBBox = Group.computeChildrenBBox([tickLineGroup, tickLabelGroup, lineNode]);
             spacing += tickBBox.width + (this.tickLabelGroup.visible ? 0 : this.seriesAreaPadding);
         }
-        this.setTitleProps(_titleCaption, { spacing });
+        this.setTitleProps(title.caption, { spacing });
     }
 
     // For formatting (nice rounded) tick values.
@@ -1423,7 +1418,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return { ...this.moduleCtx, parent: this.axisContext };
     }
 
-    public createAxisContext(): AxisContext {
+    createAxisContext(): AxisContext {
         const { scale } = this;
         return {
             axisId: this.id,

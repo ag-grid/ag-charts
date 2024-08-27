@@ -9,7 +9,6 @@ import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
-import { extent } from '../../../util/array';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { isFiniteNumber } from '../../../util/type-guards';
 import type { RequireOptional } from '../../../util/types';
@@ -38,10 +37,11 @@ import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { AbstractBarSeries } from './abstractBarSeries';
 import { BarSeriesProperties } from './barSeriesProperties';
-import { type RectConfig, computeBarFocusBounds } from './barUtil';
 import {
+    type RectConfig,
     checkCrisp,
     collapsedStartingBarPosition,
+    computeBarFocusBounds,
     getRectConfig,
     prepareBarAnimationFunctions,
     resetBarSelectionsFn,
@@ -206,8 +206,8 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
-        const { processedData, dataModel, smallestDataInterval } = this;
-        if (!processedData || !dataModel || processedData.data.length === 0) return [];
+        const { processedData, dataModel } = this;
+        if (!dataModel || !processedData?.data.length) return [];
 
         const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const keys = dataModel.getDomain(this, `xValue`, 'key', processedData);
@@ -224,13 +224,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             if (keyDef?.def.type === 'key' && keyDef.def.valueType === 'category') {
                 return keys;
             }
-
-            const scalePadding = isFiniteNumber(smallestDataInterval) ? smallestDataInterval * 0.5 : 0;
-            const keysExtent = extent(keys) ?? [NaN, NaN];
-
-            const d0 = keysExtent[0] + -scalePadding;
-            const d1 = keysExtent[1] + scalePadding;
-            return fixNumericExtent([d0, d1]);
+            return this.padBandExtent(keys);
         } else if (this.getValueAxis() instanceof LogAxis) {
             return fixNumericExtent(yExtent);
         } else {

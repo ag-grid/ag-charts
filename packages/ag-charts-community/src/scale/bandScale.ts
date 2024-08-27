@@ -8,7 +8,7 @@ import type { Scale } from './scale';
  * Maps a discrete domain to a continuous numeric range.
  */
 export class BandScale<D, I = number> implements Scale<D, number, I> {
-    static is(value: any): value is BandScale<any, any> {
+    static is(value: unknown): value is BandScale<any, any> {
         return value instanceof BandScale;
     }
 

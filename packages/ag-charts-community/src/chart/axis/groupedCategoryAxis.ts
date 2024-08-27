@@ -175,8 +175,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
     private updateTitleCaption() {
         // The Text `node` of the Caption is not used to render the title of the grouped category axis.
         // The phantom root of the tree layout is used instead.
-        const { _titleCaption } = this;
-        _titleCaption.node.visible = false;
+        this.title.caption.node.visible = false;
     }
 
     private updateCategoryLabels() {

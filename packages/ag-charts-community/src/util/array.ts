@@ -6,9 +6,9 @@ export function times<T>(n: number, callback: (index: number) => T): T[] {
     return results;
 }
 
-export function extent(values: Array<number | Date>): [number, number] | undefined {
+export function extent(values: Array<Date | number | unknown>): [number, number] | null {
     if (values.length === 0) {
-        return;
+        return null;
     }
 
     let min = Infinity;
@@ -28,10 +28,9 @@ export function extent(values: Array<number | Date>): [number, number] | undefin
             max = n;
         }
     }
-    const result = [min, max];
-    if (result.every(isFinite)) {
-        return result as [number, number];
-    }
+
+    const result: [number, number] = [min, max];
+    return result.every(isFinite) ? result : null;
 }
 
 export function normalisedExtentWithMetadata(

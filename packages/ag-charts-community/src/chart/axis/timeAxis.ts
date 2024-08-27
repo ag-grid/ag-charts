@@ -30,7 +30,7 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         }
 
         if (d.length > 2) {
-            d = (extent(d) ?? [0, 1000]).map((x) => new Date(x));
+            d = extent(d)?.map((x) => new Date(x)) ?? [];
         }
         if (min instanceof Date) {
             clipped ||= min > d[0];
