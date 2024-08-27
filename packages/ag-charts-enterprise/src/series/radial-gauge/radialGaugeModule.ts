@@ -25,6 +25,8 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
         { type: POLAR_AXIS_TYPE.RADIUS_NUMBER, line: { enabled: false } },
     ],
     themeTemplate: {
+        minWidth: 200,
+        minHeight: 200,
         series: {
             outerRadiusRatio: 1,
             innerRadiusRatio: 0.8,
@@ -51,6 +53,9 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 minimumFontSize: 12,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_MUTED_LABEL_COLOUR,
+            },
+            tooltip: {
+                enabled: false,
             },
         },
     },
