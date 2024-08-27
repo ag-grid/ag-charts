@@ -1,4 +1,5 @@
 import type { Toggleable } from '../series/cartesian/commonOptions';
+import type { AgIconName } from './icons';
 
 export interface AgToolbarOptions extends Toggleable {
     seriesType?: AgToolbarSeriesTypeGroup;
@@ -65,105 +66,6 @@ export interface AgToolbarSwitch extends AgBaseToolbarButton {
     /** Overrides for the switch-button when checked. */
     checkedOverrides?: AgToolbarButtonConfig;
 }
-
-export type AgIconName =
-    | 'arrow-drawing'
-    | 'arrow-down'
-    | 'arrow-up'
-    | 'callout-annotation'
-    | 'candlestick-series'
-    | 'comment-annotation'
-    | 'delete'
-    | 'disjoint-channel-drawing'
-    | 'fill-color'
-    | 'line-style-solid'
-    | 'line-style-dashed'
-    | 'line-style-dotted'
-    | 'high-low-series'
-    | 'hlc-series'
-    | 'hollow-candlestick-series'
-    | 'horizontal-line-drawing'
-    | 'line-color'
-    | 'line-series'
-    | 'line-with-markers-series'
-    | 'locked'
-    | 'note-annotation'
-    | 'ohlc-series'
-    | 'pan-end'
-    | 'pan-left'
-    | 'pan-right'
-    | 'pan-start'
-    | 'parallel-channel-drawing'
-    | 'price-label-annotation'
-    | 'reset'
-    | 'step-line-series'
-    | 'text-annotation'
-    | 'trend-line-drawing'
-    | 'unlocked'
-    | 'vertical-line-drawing'
-    | 'zoom-in'
-    | 'zoom-out'
-    | AgIconLegacyName;
-
-/** @deprecated */
-export type AgIconLegacyName =
-    | 'delete-legacy'
-    | 'disjoint-channel'
-    | 'disjoint-channel-legacy'
-    | 'horizontal-line'
-    | 'horizontal-line-legacy'
-    | 'line-color-legacy'
-    | 'lock'
-    | 'lock-legacy'
-    | 'pan-end-legacy'
-    | 'pan-left-legacy'
-    | 'pan-right-legacy'
-    | 'pan-start-legacy'
-    | 'parallel-channel'
-    | 'parallel-channel-legacy'
-    | 'reset-legacy'
-    | 'trend-line'
-    | 'trend-line-legacy'
-    | 'unlock'
-    | 'unlock-legacy'
-    | 'vertical-line'
-    | 'vertical-line-legacy'
-    | 'zoom-in-legacy'
-    | 'zoom-in-alt'
-    | 'zoom-in-alt-legacy'
-    | 'zoom-out-legacy'
-    | 'zoom-out-alt'
-    | 'zoom-out-alt-legacy';
-
-// Duplicated as docs can not handle `type AgIconLegacyName = typeof ICONS_LEGACY`, but need the array for validation.
-export const ICONS_LEGACY = [
-    'delete-legacy',
-    'disjoint-channel',
-    'disjoint-channel-legacy',
-    'horizontal-line-legacy',
-    'line-color-legacy',
-    'lock',
-    'lock-legacy',
-    'pan-end-legacy',
-    'pan-left-legacy',
-    'pan-right-legacy',
-    'pan-start-legacy',
-    'parallel-channel',
-    'parallel-channel-legacy',
-    'reset-legacy',
-    'trend-line',
-    'trend-line-legacy',
-    'unlock',
-    'unlock-legacy',
-    'vertical-line',
-    'vertical-line-legacy',
-    'zoom-in-legacy',
-    'zoom-in-alt',
-    'zoom-in-alt-legacy',
-    'zoom-out-legacy',
-    'zoom-out-alt',
-    'zoom-out-alt-legacy',
-] as Array<AgIconLegacyName>;
 
 /* Annotations */
 export interface AgToolbarAnnotationsGroup extends AgToolbarGroup {

@@ -22,7 +22,7 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                 },
                 text: {
                     position: 'top',
-                    alignment: 'left',
+                    alignment: 'center',
                     color: _Theme.DEFAULT_ANNOTATION_COLOR,
                     fontSize: 14,
                     fontFamily: _Theme.DEFAULT_FONT_FAMILY,
@@ -45,7 +45,7 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                 },
                 text: {
                     position: 'top',
-                    alignment: 'left',
+                    alignment: 'center',
                     color: _Theme.DEFAULT_ANNOTATION_COLOR,
                     fontSize: 14,
                     fontFamily: _Theme.DEFAULT_FONT_FAMILY,
@@ -68,7 +68,7 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                 },
                 text: {
                     position: 'top',
-                    alignment: 'left',
+                    alignment: 'center',
                     color: _Theme.DEFAULT_ANNOTATION_COLOR,
                     fontSize: 14,
                     fontFamily: _Theme.DEFAULT_FONT_FAMILY,
@@ -90,7 +90,7 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                 },
                 text: {
                     position: 'top',
-                    alignment: 'left',
+                    alignment: 'center',
                     color: _Theme.DEFAULT_ANNOTATION_COLOR,
                     fontSize: 14,
                     fontFamily: _Theme.DEFAULT_FONT_FAMILY,
@@ -114,7 +114,7 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                 },
                 text: {
                     position: 'top',
-                    alignment: 'left',
+                    alignment: 'center',
                     color: _Theme.DEFAULT_ANNOTATION_COLOR,
                     fontSize: 14,
                     fontFamily: _Theme.DEFAULT_FONT_FAMILY,

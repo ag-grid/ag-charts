@@ -37,6 +37,7 @@ import {
     hasFontSize,
     hasLineColor,
     hasLineStyle,
+    hasLineText,
     hasTextColor,
     isTextType,
     setDefaults,
@@ -45,7 +46,6 @@ import {
 import { AnnotationsStateMachine } from './annotationsStateMachine';
 import type { AnnotationProperties, AnnotationScene } from './annotationsSuperTypes';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
-import { LineProperties } from './line/lineProperties';
 import { AnnotationSettingsDialog } from './settings-dialog/settingsDialog';
 
 const {
@@ -622,10 +622,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             }
 
             case AnnotationOptions.Settings: {
-                if (!LineProperties.is(datum)) break;
+                if (!hasLineText(datum)) break;
                 this.settingsDialog.showLine(datum, {
-                    onChangeText: (_text: string) => {
-                        // TODO: AG-12600
+                    onChange: (props) => {
+                        state.transition('lineTextProperties', props);
                     },
                 });
             }
@@ -1138,7 +1138,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         });
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Settings, {
             enabled: !locked,
-            visible: LineProperties.is(datum),
+            visible: hasLineText(datum),
         });
 
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Delete, { enabled: !locked });

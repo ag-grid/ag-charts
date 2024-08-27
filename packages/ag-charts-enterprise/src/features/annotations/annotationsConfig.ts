@@ -39,6 +39,8 @@ import { ShapePointProperties } from './properties/shapePointProperties';
 import { TextProperties } from './text/textProperties';
 import { TextScene } from './text/textScene';
 
+const { isObject } = _ModuleSupport;
+
 type Constructor<T = {}> = new (...args: any[]) => T;
 
 export const annotationDatums: Record<AnnotationType, Constructor<AnnotationProperties>> = {
@@ -203,6 +205,10 @@ export function hasFillColor(datum?: AnnotationProperties) {
 
 export function hasTextColor(datum?: AnnotationProperties) {
     return isTextType(datum) && !NoteProperties.is(datum);
+}
+
+export function hasLineText(datum?: AnnotationProperties): datum is LinePropertiesType | ChannelPropertiesType {
+    return (isLineType(datum) || isChannelType(datum)) && isObject(datum.text);
 }
 
 export function setDefaults({

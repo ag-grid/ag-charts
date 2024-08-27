@@ -7,7 +7,16 @@ import {
     AnnotationType,
     type GuardDragClickDoubleEvent,
 } from './annotationTypes';
-import { getTypedDatum, hasLineStyle, isTextType, setColor, setFontSize, setLineStyle } from './annotationsConfig';
+import {
+    getTypedDatum,
+    hasLineStyle,
+    hasLineText,
+    isChannelType,
+    isTextType,
+    setColor,
+    setFontSize,
+    setLineStyle,
+} from './annotationsConfig';
 import type { AnnotationProperties, AnnotationsStateMachineContext } from './annotationsSuperTypes';
 import { ArrowDownProperties } from './arrow-down/arrowDownProperties';
 import { ArrowDownScene } from './arrow-down/arrowDownScene';
@@ -58,7 +67,6 @@ type AnnotationEvent =
     | 'drag'
     | 'dragStart'
     | 'dragEnd'
-    | 'input'
     | 'cancel'
     | 'reset'
     | 'delete'
@@ -68,6 +76,7 @@ type AnnotationEvent =
     | 'lineStyle'
     | 'keyDown'
     | 'updateTextInputBBox'
+    | 'lineTextProperties'
     | 'render';
 
 export class AnnotationsStateMachine extends StateMachine<States, AnnotationType | AnnotationEvent> {
@@ -275,7 +284,6 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                         target: States.TextInput,
                     },
                     {
-                        target: States.Idle,
                         action: () => {
                             const prevActive = this.active;
                             this.active = this.hovered;
@@ -287,7 +295,6 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 drag: {
                     guard: guardHovered,
-                    target: States.Idle,
                     action: () => {
                         const prevActive = this.active;
                         this.active = this.hovered;
@@ -309,25 +316,34 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 color: {
                     guard: guardActive,
-                    target: States.Idle,
                     action: actionColor,
                 },
 
                 fontSize: {
                     guard: guardActive,
-                    target: States.Idle,
                     action: actionFontSize,
                 },
 
                 lineStyle: {
                     guard: guardActive,
-                    target: States.Idle,
                     action: actionLineStyle,
+                },
+
+                lineTextProperties: {
+                    guard: guardActive,
+                    action: (props: { alignment?: string; fontSize?: number; label?: string; position?: string }) => {
+                        const datum = getTypedDatum(ctx.datum(this.active!));
+                        if (!hasLineText(datum)) return;
+                        if (isChannelType(datum) && props.position === 'center') {
+                            props.position = 'inside';
+                        }
+                        datum.text.set(props);
+                        ctx.update();
+                    },
                 },
 
                 updateTextInputBBox: {
                     guard: guardActive,
-                    target: States.Idle,
                     action: actionUpdateTextInputBBox,
                 },
 
@@ -525,7 +541,6 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 updateTextInputBBox: {
                     guard: guardActive,
-                    target: States.TextInput,
                     action: actionUpdateTextInputBBox,
                 },
 
@@ -558,13 +573,11 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 color: {
                     guard: guardActive,
-                    target: States.TextInput,
                     action: actionColor,
                 },
 
                 fontSize: {
                     guard: guardActive,
-                    target: States.TextInput,
                     action: actionFontSize,
                 },
 

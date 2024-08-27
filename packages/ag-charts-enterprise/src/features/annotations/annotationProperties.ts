@@ -62,10 +62,10 @@ export class LineTextProperties extends Font(BaseProperties) {
     label: string = '';
 
     @Validate(UNION(['top', 'center', 'bottom']), { optional: true })
-    position?: 'top' | 'center' | 'bottom';
+    position?: 'top' | 'center' | 'bottom' = 'top';
 
     @Validate(UNION(['left', 'center', 'right']), { optional: true })
-    alignment?: 'left' | 'center' | 'right';
+    alignment?: 'left' | 'center' | 'right' = 'left';
 }
 
 export class ChannelTextProperties extends Font(BaseProperties) {
