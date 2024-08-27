@@ -11,14 +11,19 @@ import {
 
 const { SectorBox } = _Scene;
 
-type AnimatableSectorDatum = {
+export interface AnimatableSectorDatum {
     innerRadius: number;
     outerRadius: number;
     startAngle: number;
     endAngle: number;
     clipStartAngle: number | undefined;
     clipEndAngle: number | undefined;
-};
+}
+
+interface DefinedClipSector {
+    clipStartAngle: number;
+    clipEndAngle: number;
+}
 
 type SectorAnimation = {
     startAngle: number;
@@ -59,47 +64,72 @@ export function clipSectorVisibility(startAngle: number, endAngle: number, clipS
     return Math.max(startAngle, clipSector.startAngle) <= Math.min(endAngle, clipSector.endAngle);
 }
 
+function hasClipSector(datum: AnimatableSectorDatum): datum is AnimatableSectorDatum & DefinedClipSector {
+    return datum.clipStartAngle != null && datum.clipEndAngle != null;
+}
+
+function datumClipSector(datum: AnimatableSectorDatum & DefinedClipSector, zero: boolean) {
+    const { clipStartAngle, clipEndAngle, innerRadius, outerRadius } = datum;
+
+    return new SectorBox(clipStartAngle, zero ? clipStartAngle : clipEndAngle, innerRadius, outerRadius);
+}
+
 export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean) {
     const phase = initialLoad ? 'initial' : 'update';
 
     const node: _ModuleSupport.FromToFns<_Scene.Sector, SectorAnimation, AnimatableSectorDatum> = {
         fromFn(sect, datum) {
-            const previousDatum: AnimatableSectorDatum = sect.previousDatum ?? datum;
-            const { startAngle, endAngle, clipStartAngle, innerRadius, outerRadius } = previousDatum;
-            let { clipEndAngle } = previousDatum;
+            const previousDatum: AnimatableSectorDatum | undefined = sect.previousDatum;
+            const { innerRadius, outerRadius } = previousDatum ?? datum;
+            let { startAngle, endAngle } = previousDatum ?? datum;
 
-            if (initialLoad) {
-                clipEndAngle = clipStartAngle;
-            }
-
-            const clipSector =
-                clipStartAngle != null && clipEndAngle != null
-                    ? new SectorBox(clipStartAngle, clipEndAngle, innerRadius, outerRadius)
+            const previousClipSector =
+                previousDatum != null && hasClipSector(previousDatum)
+                    ? datumClipSector(previousDatum, initialLoad)
                     : undefined;
+            const nextClipSector = hasClipSector(datum) ? datumClipSector(datum, initialLoad) : undefined;
+
+            let clipSector: _Scene.SectorBox | undefined;
+            if (previousClipSector != null && nextClipSector != null) {
+                // Clip sector updated
+                clipSector = previousClipSector;
+            } else if (previousClipSector == null && nextClipSector != null) {
+                // Clip sector added
+                clipSector = nextClipSector;
+                startAngle = datum.startAngle;
+                endAngle = datum.endAngle;
+            } else if (previousClipSector != null && nextClipSector == null) {
+                // Clip sector removed
+                clipSector = undefined;
+                startAngle = datum.startAngle;
+                endAngle = datum.endAngle;
+            } else if (initialLoad) {
+                // No clip sector - initial load
+                endAngle = startAngle;
+            }
 
             return { startAngle, endAngle, innerRadius, outerRadius, clipSector, phase };
         },
         toFn(_sect, datum, status) {
-            const { startAngle, clipStartAngle, clipEndAngle, innerRadius, outerRadius } = datum;
+            const removed = status === 'removed';
+
+            const { startAngle, innerRadius, outerRadius } = datum;
             let { endAngle } = datum;
 
-            if (status === 'removed') {
+            let clipSector: _Scene.SectorBox | undefined;
+            if (hasClipSector(datum)) {
+                clipSector = datumClipSector(datum, removed);
+            } else if (removed) {
                 endAngle = startAngle;
             }
 
-            const clipSector =
-                clipStartAngle != null && clipEndAngle != null
-                    ? new SectorBox(clipStartAngle, clipEndAngle, innerRadius, outerRadius)
-                    : undefined;
-
             return { startAngle, endAngle, outerRadius, innerRadius, clipSector };
         },
-        mapFn(params, datum) {
-            const { clipStartAngle, clipEndAngle } = datum;
+        mapFn(params) {
             const { startAngle, endAngle, outerRadius, innerRadius } = params;
             let { clipSector } = params;
 
-            if (clipSector != null && clipStartAngle != null && clipEndAngle != null) {
+            if (clipSector != null) {
                 clipSector = new SectorBox(
                     Math.max(startAngle, clipSector.startAngle),
                     Math.min(endAngle, clipSector.endAngle),

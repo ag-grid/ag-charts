@@ -59,7 +59,7 @@ export interface FromToFns<
     fromFn: FromToMotionPropFn<N, I, D>;
     toFn: FromToMotionPropFn<N, I, D>;
     intermediateFn?: IntermediateFn<N, D>;
-    mapFn?: (value: I, datum: D) => T;
+    mapFn?: (value: I, datum: D, previousDatum: D | undefined) => T;
 }
 
 /**
@@ -140,10 +140,10 @@ export function fromToMotion<
                 ease: easing.easeOut,
                 collapsable,
                 onPlay: () => {
-                    node.setProperties(mapFn({ ...start, ...toStart } as unknown as T, node.datum));
+                    node.setProperties(mapFn({ ...start, ...toStart } as unknown as T, node.datum, node.previousDatum));
                 },
                 onUpdate(props) {
-                    node.setProperties(mapFn(props, node.datum));
+                    node.setProperties(mapFn(props, node.datum, node.previousDatum));
                     if (intermediateFn) {
                         node.setProperties(intermediateFn(node, node.datum, status, ctx));
                     }
@@ -159,7 +159,8 @@ export function fromToMotion<
                                 ...finish,
                                 ...toFinish,
                             } as unknown as T,
-                            node.datum
+                            node.datum,
+                            node.previousDatum
                         )
                     );
                 },
