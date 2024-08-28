@@ -17,7 +17,7 @@ fi
 TIMESTAMP=$1
 
 PUBLIC_HTML_PATH="@CHARTS_PUBLIC_HTML_PATH@"
-WORKING_DIR_ROOT="@WORKING_DIR_ROOT@"
+WWW_ROOT_DIR="@WWW_ROOT_DIR@"
 
 # create a backup of the charts folder ONLY if it doesn't already exist - this handles the situation where multiple deployments are done on the same day
 # in that case we only want to backup the original chart folder, not the subsequent attempts (for rollback)

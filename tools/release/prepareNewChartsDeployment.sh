@@ -29,7 +29,7 @@ checkFileExists $SSH_LOCATION
 VERSION=$1
 
 # replace tokens in prepareNewChartsDeploymentRemote.sh with env variables - we'll transfer the newly tokenised file to prod
-sed "s#\@CHARTS_HTML_FOLDER_NAME\@#$CHARTS_HTML_FOLDER_NAME#g" ./tools/release/prepareNewChartsDeploymentRemote.sh | sed "s#\@WORKING_DIR_ROOT\@#$WORKING_DIR_ROOT#g" > /tmp/prepareNewChartsDeploymentRemote.sh
+sed "s#\@CHARTS_HTML_FOLDER_NAME\@#$CHARTS_HTML_FOLDER_NAME#g" ./tools/release/prepareNewChartsDeploymentRemote.sh | sed "s#\@WWW_ROOT_DIR\@#$WORKING_DIR_ROOT#g" > /tmp/prepareNewChartsDeploymentRemote.sh
 
 scp -i $SSH_LOCATION -P $SSH_PORT "/tmp/prepareNewChartsDeploymentRemote.sh" $HOST:$WORKING_DIR_ROOT/prepareNewChartsDeploymentRemote.sh
 ssh -i $SSH_LOCATION -p $SSH_PORT $HOST "chmod +x $WORKING_DIR_ROOT/prepareNewChartsDeploymentRemote.sh"

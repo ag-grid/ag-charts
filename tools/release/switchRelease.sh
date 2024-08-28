@@ -38,7 +38,7 @@ if [ "$1" != "skipWarning" ]; then
 fi
 
 # replace tokens in switchChartsReleaseRemote.sh with env variables - we'll transfer the newly tokenised file to prod
-sed "s#\@CHARTS_PUBLIC_HTML_PATH\@#$CHARTS_PUBLIC_HTML_PATH#g" ./tools/release/switchChartsReleaseRemote.sh | sed "s#\@WORKING_DIR_ROOT\@#$WORKING_DIR_ROOT#g" > /tmp/switchChartsReleaseRemote.sh
+sed "s#\@CHARTS_PUBLIC_HTML_PATH\@#$CHARTS_PUBLIC_HTML_PATH#g" ./tools/release/switchChartsReleaseRemote.sh | sed "s#\@WWW_ROOT_DIR\@#$WORKING_DIR_ROOT#g" > /tmp/switchChartsReleaseRemote.sh
 
 # copy the remote script that will create tmp dirs, unzip the new deployment etc to the upload dir (archives)
 scp -i $SSH_LOCATION -P $SSH_PORT "/tmp/switchChartsReleaseRemote.sh" $HOST:$WORKING_DIR_ROOT
