@@ -1,11 +1,11 @@
 import { _Util } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
-import { convertPoint, invertCoords } from '../annotationUtils';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { ChannelScene } from '../scenes/channelScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
 import { LineWithTextScene } from '../scenes/lineWithTextScene';
+import { convertPoint, invertCoords } from '../utils/values';
 import type { DisjointChannelProperties } from './disjointChannelProperties';
 
 const { Vec2 } = _Util;

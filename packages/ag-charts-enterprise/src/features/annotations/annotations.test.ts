@@ -121,6 +121,62 @@ describe('Annotations', () => {
             });
             await compare();
         });
+
+        it('should render a text annotation', async () => {
+            await prepareChart({
+                annotations: [
+                    {
+                        type: 'text',
+                        text: 'Hello',
+                        x: { __type: 'date', value: '2024-07-01' },
+                        y: 75,
+                    },
+                ],
+            });
+            await compare();
+        });
+
+        it('should render a comment annotation', async () => {
+            await prepareChart({
+                annotations: [
+                    {
+                        type: 'comment',
+                        text: 'Hello',
+                        x: { __type: 'date', value: '2024-07-01' },
+                        y: 75,
+                    },
+                ],
+            });
+            await compare();
+        });
+
+        it('should render a note annotation', async () => {
+            await prepareChart({
+                annotations: [
+                    {
+                        type: 'note',
+                        text: 'Hello',
+                        x: { __type: 'date', value: '2024-07-01' },
+                        y: 75,
+                    },
+                ],
+            });
+            await compare();
+        });
+
+        it('should render a callout annotation', async () => {
+            await prepareChart({
+                annotations: [
+                    {
+                        type: 'callout',
+                        text: 'Hello',
+                        start: { x: { __type: 'date', value: '2024-05-01' }, y: 50 },
+                        end: { x: { __type: 'date', value: '2024-07-01' }, y: 75 },
+                    },
+                ],
+            });
+            await compare();
+        });
     });
 
     describe('lines with text', () => {
@@ -283,6 +339,39 @@ describe('Annotations', () => {
                         endHeight: 20,
                     } as any;
                 }),
+            });
+            await compare();
+        });
+
+        // TODO: this test is failing
+        it('should render stacked annotations with text', async () => {
+            await prepareChart({
+                annotations: [
+                    {
+                        type: 'vertical-line',
+                        value: { __type: 'date', value: '2024-05-01' },
+                        text: {
+                            label: 'Lorem ipsum',
+                            position: 'center',
+                            alignment: 'center',
+                        },
+                    },
+                    {
+                        type: 'parallel-channel',
+                        start: { x: { __type: 'date', value: '2024-03-01' }, y: 40 },
+                        end: { x: { __type: 'date', value: '2024-09-01' }, y: 90 },
+                        height: 30,
+                    },
+                    {
+                        type: 'vertical-line',
+                        value: { __type: 'date', value: '2024-07-01' },
+                        text: {
+                            label: 'Lorem ipsum',
+                            position: 'center',
+                            alignment: 'center',
+                        },
+                    },
+                ],
             });
             await compare();
         });

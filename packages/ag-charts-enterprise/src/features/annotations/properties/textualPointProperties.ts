@@ -2,8 +2,8 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { Annotation, Font, Handle, Label, Point } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, type Padding } from '../annotationTypes';
-import { convertPoint } from '../annotationUtils';
 import type { AnnotationTextAlignment, AnnotationTextPosition } from '../text/util';
+import { convertPoint } from '../utils/values';
 
 const { STRING, BaseProperties, Validate } = _ModuleSupport;
 

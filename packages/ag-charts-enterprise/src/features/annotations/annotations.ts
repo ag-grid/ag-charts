@@ -27,26 +27,18 @@ import {
     AnnotationType,
     stringToAnnotationType,
 } from './annotationTypes';
-import { calculateAxisLabelPadding, invertCoords, validateDatumPoint } from './annotationUtils';
-import {
-    annotationDatums,
-    annotationScenes,
-    getLineStyle,
-    getTypedDatum,
-    hasFillColor,
-    hasFontSize,
-    hasLineColor,
-    hasLineStyle,
-    hasLineText,
-    hasTextColor,
-    isTextType,
-    setDefaults,
-    updateAnnotation,
-} from './annotationsConfig';
+import { annotationConfigs, getTypedDatum } from './annotationsConfig';
 import { AnnotationsStateMachine } from './annotationsStateMachine';
 import type { AnnotationProperties, AnnotationScene } from './annotationsSuperTypes';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
 import { AnnotationSettingsDialog } from './settings-dialog/settingsDialog';
+import { calculateAxisLabelPadding } from './utils/axis';
+import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasLineText, hasTextColor } from './utils/has';
+import { getLineStyle, setDefaults } from './utils/styles';
+import { isTextType } from './utils/types';
+import { updateAnnotation } from './utils/update';
+import { validateDatumPoint } from './utils/validation';
+import { invertCoords } from './utils/values';
 
 const {
     BOOLEAN,
@@ -440,6 +432,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.toggleAnnotationOptionsButtons();
                 ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: true });
             },
+
+            showAnnotationSettings: (active: number) => {
+                const datum = this.annotationData.at(active);
+                if (!hasLineText(datum)) return;
+                this.settingsDialog.showLine(datum, {
+                    onChange: (props) => {
+                        this.state.transition('lineText', props);
+                    },
+                });
+            },
         });
     }
 
@@ -465,8 +467,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.destroyFns.push(
             // Interactions
-            seriesRegion.addListener('hover', (event) => this.onHover(event), All),
-            seriesRegion.addListener('click', (event) => this.onClick(event), All),
+            seriesRegion.addListener('hover', this.onHover.bind(this), All),
+            seriesRegion.addListener('click', this.onClick.bind(this), All),
+            seriesRegion.addListener('dblclick', this.onDoubleClick.bind(this), All),
             seriesRegion.addListener('drag-start', this.onDragStart.bind(this), Default | ZoomDrag | AnnotationsState),
             seriesRegion.addListener('drag', this.onDrag.bind(this), Default | ZoomDrag | AnnotationsState),
             seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
@@ -497,15 +500,15 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private createAnnotationScene(datum: AnnotationProperties) {
-        return new annotationScenes[datum.type]();
+        return new annotationConfigs[datum.type].scene();
     }
 
     private createAnnotationDatum(params: { type: AnnotationType }) {
-        if (params.type in annotationDatums) {
-            return new annotationDatums[params.type]().set(params);
+        if (params.type in annotationConfigs) {
+            return new annotationConfigs[params.type].datum().set(params);
         }
         throw new Error(
-            `AG Charts - Cannot set property of unknown type [${params.type}], expected one of [${Object.keys(annotationDatums)}], ignoring.`
+            `AG Charts - Cannot set property of unknown type [${params.type}], expected one of [${Object.keys(annotationConfigs)}], ignoring.`
         );
     }
 
@@ -592,6 +595,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.colorPicker.show({
                     color: datum?.getDefaultColor(event.value),
                     opacity: datum?.getDefaultOpacity(event.value),
+                    sourceEvent: event.sourceEvent,
                     onChange: datum != null ? this.onColorPickerChange.bind(this, event.value, datum) : undefined,
                 });
                 break;
@@ -622,12 +626,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             }
 
             case AnnotationOptions.Settings: {
-                if (!hasLineText(datum)) break;
-                this.settingsDialog.showLine(datum, {
-                    onChange: (props) => {
-                        state.transition('lineTextProperties', props);
-                    },
-                });
+                state.transition('toolbarPressSettings');
             }
         }
 
@@ -1007,6 +1006,15 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         state.transition('click', { offset, point, textInputValue });
     }
 
+    private onDoubleClick() {
+        const { state } = this;
+
+        const context = this.getAnnotationContext();
+        if (!context) return;
+
+        state.transition('dblclick');
+    }
+
     private onAxisButtonClick(coords?: Coords, direction?: Direction) {
         this.cancel();
         this.reset();
@@ -1062,7 +1070,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         state.transition('drag', { context, offset, point });
     }
 
-    private onDragEnd(_event: _ModuleSupport.RegionEvent<'drag-end'>) {
+    private onDragEnd() {
         this.state.transition('dragEnd');
     }
 

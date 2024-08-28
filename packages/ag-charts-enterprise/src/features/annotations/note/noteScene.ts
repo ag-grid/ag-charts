@@ -1,10 +1,10 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { type AnnotationContext, AnnotationType } from '../annotationTypes';
-import { convertPoint } from '../annotationUtils';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { DivariantHandle } from '../scenes/handle';
 import { TextualPointScene } from '../scenes/textualPointScene';
+import { convertPoint } from '../utils/values';
 import type { NoteProperties } from './noteProperties';
 
 const ICON_HEIGHT = 20;

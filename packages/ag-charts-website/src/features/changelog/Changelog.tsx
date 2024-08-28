@@ -72,10 +72,13 @@ export const Changelog = () => {
 
     const applyFixVersionFilter = useCallback(() => {
         if (gridApi && fixVersion) {
-            const versionsFilterComponent = gridApi.getFilterInstance('versions');
-            const newModel = { values: fixVersion === ALL_FIX_VERSIONS ? versions : [fixVersion], filterType: 'set' };
-            versionsFilterComponent.setModel(newModel);
-            gridApi.onFilterChanged();
+            const newModel = fixVersion === ALL_FIX_VERSIONS ? null : { values: [fixVersion], filterType: 'set' };
+            if (gridApi.getColumnFilterModel('versions') === newModel) {
+                return;
+            }
+            gridApi.setColumnFilterModel('versions', newModel).then(() => {
+                gridApi.onFilterChanged();
+            });
         }
     }, [gridApi, fixVersion, versions]);
 
@@ -193,7 +196,7 @@ export const Changelog = () => {
             headerClass: styles.fontClass,
             autoHeaderHeight: true,
             wrapHeaderText: true,
-            suppressMenu: true,
+            suppressHeaderMenuButton: true,
             filter: true,
             floatingFilter: true,
             suppressKeyboardEvent: (params: any) => {

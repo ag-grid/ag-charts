@@ -1,9 +1,9 @@
 import { _Scene, _Util } from 'ag-charts-community';
 
 import type { Anchor, AnnotationContext, Coords } from '../annotationTypes';
-import { convertPoint, invertCoords } from '../annotationUtils';
 import type { TextualPointProperties } from '../properties/textualPointProperties';
 import { getBBox, updateTextNode, wrapText } from '../text/util';
+import { convertPoint, invertCoords } from '../utils/values';
 import { AnnotationScene } from './annotationScene';
 import { DivariantHandle } from './handle';
 
