@@ -116,8 +116,8 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             this.setContainer(container);
         }
 
-        const overlay = this.element.querySelector('.ag-charts-canvas-overlay');
-        if (overlay instanceof HTMLElement) {
+        const overlay = this.element.querySelector('.ag-charts-canvas-overlay') as HTMLElement | null;
+        if (overlay != null) {
             for (const type of overlayNonBubblingEvents) {
                 overlay.addEventListener(type, overlayStopPropagation);
             }
@@ -126,8 +126,8 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
     override destroy() {
         super.destroy();
-        const overlay = this.element.querySelector('.ag-charts-canvas-overlay');
-        if (overlay instanceof HTMLElement) {
+        const overlay = this.element.querySelector('.ag-charts-canvas-overlay') as HTMLElement | null;
+        if (overlay != null) {
             for (const type of overlayNonBubblingEvents) {
                 overlay.removeEventListener(type, overlayStopPropagation);
             }
