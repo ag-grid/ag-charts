@@ -37,8 +37,8 @@ cd charts_tmp/ && unzip $FILENAME
 cd ..
 
 # copy non versioned files & directories over
-echo "Copying non-versioned directories"
-cp -R ./$CHARTS_ROOT_DIR/robots.txt charts_tmp/
+#echo "Copying non-versioned directories"
+#cp -R ./$CHARTS_ROOT_DIR/robots.txt charts_tmp/
 
 #update folder permissions (default is 777 - change to 755)
 echo "Updating folder permissions"
