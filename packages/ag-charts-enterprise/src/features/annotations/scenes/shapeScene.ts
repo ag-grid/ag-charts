@@ -1,8 +1,8 @@
 import type { _Scene, _Util } from 'ag-charts-community';
 
 import { type AnnotationContext, AnnotationType } from '../annotationTypes';
-import { convertPoint } from '../annotationUtils';
 import type { ShapePointProperties } from '../properties/shapePointProperties';
+import { convertPoint } from '../utils/values';
 import { PointScene } from './pointScene';
 
 export abstract class ShapeScene<Datum extends ShapePointProperties> extends PointScene<Datum> {

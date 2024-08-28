@@ -2,7 +2,7 @@ import { _Scene, _Util } from 'ag-charts-community';
 
 import type { ChannelTextProperties, PointProperties } from '../annotationProperties';
 import type { AnnotationContext, LineCoords } from '../annotationTypes';
-import { convertLine } from '../annotationUtils';
+import { convertLine } from '../utils/values';
 import { CollidableLine } from './collidableLineScene';
 import type { Handle } from './handle';
 import { LinearScene } from './linearScene';

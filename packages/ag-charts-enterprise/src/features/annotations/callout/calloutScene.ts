@@ -1,9 +1,9 @@
 import { _Scene, type _Util } from 'ag-charts-community';
 
 import { type AnnotationContext, AnnotationType, type Bounds, type Coords, type LineCoords } from '../annotationTypes';
-import { convertLine } from '../annotationUtils';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { TextualStartEndScene } from '../scenes/textualStartEndScene';
+import { convertLine } from '../utils/values';
 import type { CalloutProperties } from './calloutProperties';
 
 const { drawCorner } = _Scene;
