@@ -366,16 +366,16 @@ export class RadialGaugeSeries
             const domainRange = domain[1] - domain[0];
             if (this.properties.colorStops.some((colorStop) => colorStop.stop != null)) {
                 // Explicitly defined colour stops
-                stops = colorStops.map(({ color, stop }, index, colorStops) => {
+                stops = colorStops.map(({ color, stop }, i) => {
                     const startValue = stop;
-                    const endValue = index < colorStops.length - 1 ? colorStops[index + 1].stop : domain[1];
+                    const endValue = i < colorStops.length - 1 ? colorStops[i + 1].stop : domain[1];
                     return { startValue, endValue, color };
                 });
             } else if (this.properties.colorStops.length !== 0) {
-                // Only defined colours - the inferred `stop`s will be incorrect
-                stops = this.properties.colorStops.map(({ color }, i, colorStops) => {
-                    const startValue = domain[0] + (i + 0) * (domainRange / colorStops.length);
-                    const endValue = domain[0] + (i + 1) * (domainRange / colorStops.length);
+                // Only defined colours - evenly size the sectors (the inferred `stop`s will be incorrect)
+                stops = this.properties.colorStops.map(({ color }, i, { length }) => {
+                    const startValue = domain[0] + (i + 0) * (domainRange / length);
+                    const endValue = domain[0] + (i + 1) * (domainRange / length);
                     return { startValue, endValue, color };
                 });
             } else {
