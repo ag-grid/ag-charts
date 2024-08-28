@@ -17,6 +17,7 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
     implements _ModuleSupport.ModuleInstance
 {
     protected readonly hideFns: Array<() => void> = [];
+    protected menuCloser?: _ModuleSupport.MenuCloser;
 
     private readonly moduleId: string;
     private readonly element: HTMLElement;
@@ -36,6 +37,8 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
     }
 
     public hide() {
+        this.menuCloser?.finishClosing();
+        this.menuCloser = undefined;
         this.hideFns.forEach((fn) => fn());
     }
 

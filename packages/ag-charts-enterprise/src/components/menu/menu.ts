@@ -31,7 +31,7 @@ export class Menu extends AnchoredPopover {
         popover.classList.add('ag-charts-menu');
         popover.setAttribute('role', 'menu');
 
-        initMenuKeyNav({
+        this.menuCloser = initMenuKeyNav({
             orientation: 'vertical',
             menu: popover,
             buttons: rows,

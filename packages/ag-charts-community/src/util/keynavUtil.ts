@@ -140,6 +140,7 @@ export function initToolbarKeyNav(opts: {
 
 export interface MenuCloser {
     close(): void;
+    finishClosing(): void;
 }
 
 export type MenuDevice = { type: 'keyboard'; lastFocus: HTMLElement } | { type: 'mouse'; lastFocus?: undefined };
@@ -157,6 +158,10 @@ class MenuCloserImp implements MenuCloser {
 
     close() {
         this.closeCallback();
+        this.finishClosing();
+    }
+
+    finishClosing() {
         this.destroyFns.forEach((d) => d());
         this.lastFocus?.focus();
     }
