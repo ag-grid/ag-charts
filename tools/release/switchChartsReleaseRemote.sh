@@ -16,28 +16,28 @@ fi
 
 TIMESTAMP=$1
 
-PUBLIC_HTML_PATH="@CHARTS_PUBLIC_HTML_PATH@"
+CHARTS_ROOT_DIR="@CHARTS_ROOT_DIR@"
 WWW_ROOT_DIR="@WWW_ROOT_DIR@"
 
 # create a backup of the charts folder ONLY if it doesn't already exist - this handles the situation where multiple deployments are done on the same day
 # in that case we only want to backup the original chart folder, not the subsequent attempts (for rollback)
-if [ -d "$WORKING_DIR_ROOT/charts_$TIMESTAMP" ];
+if [ -d "$WWW_ROOT_DIR/charts_$TIMESTAMP" ];
 then
   # if this block is run then it means that this is not the first deployment done today
-  echo "$WORKING_DIR_ROOT/charts_$TIMESTAMP already exists - not backing up existing html folder"
+  echo "$WWW_ROOT_DIR/charts_$TIMESTAMP already exists - not backing up existing html folder"
 
   # move archives from the previous "live" to the original html backup: charts_$TIMESTAMP
   # this will in turn be moved to the new html folder down below
-  mv $PUBLIC_HTML_PATH/archive $WORKING_DIR_ROOT/charts_$TIMESTAMP/archive
+  mv $CHARTS_ROOT_DIR/archive $WWW_ROOT_DIR/charts_$TIMESTAMP/archive
 
   # it's unlikely we'd need the version we're replacing, but just in case
   CURRENT_BACKUP_DIR="charts_`date '+%Y%m%d_%H%M'`"
-  mv $PUBLIC_HTML_PATH $WORKING_DIR_ROOT/$CURRENT_BACKUP_DIR
+  mv $CHARTS_ROOT_DIR $WWW_ROOT_DIR/$CURRENT_BACKUP_DIR
 else
-  mv $PUBLIC_HTML_PATH $WORKING_DIR_ROOT/charts_$TIMESTAMP
+  mv $CHARTS_ROOT_DIR $WWW_ROOT_DIR/charts_$TIMESTAMP
 fi
 
-mv $WORKING_DIR_ROOT/charts_tmp $PUBLIC_HTML_PATH
+mv $WWW_ROOT_DIR/charts_tmp $CHARTS_ROOT_DIR
 
 # we don't copy the archives - it's too big
-mv $WORKING_DIR_ROOT/charts_$TIMESTAMP/archive $PUBLIC_HTML_PATH/
+mv $WWW_ROOT_DIR/charts_$TIMESTAMP/archive $CHARTS_ROOT_DIR/
