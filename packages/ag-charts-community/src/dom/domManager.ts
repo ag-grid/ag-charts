@@ -26,7 +26,7 @@ const domElementConfig: Map<DOMElementClass, DOMElementConfig> = new Map([
     [CANVAS_CENTER_CLASS, { childElementType: 'div' }],
 ]);
 
-const overlayNonBubblingEvents = ['keydown', 'keyup', 'mousedown', 'mouseup', 'click'];
+const overlayNonBubblingEvents = ['keyup', 'mousedown', 'mouseup', 'click'];
 const overlayStopPropagation = (ev: Event) => ev.stopPropagation();
 
 function setupObserver(element: HTMLElement, cb: (intersectionRatio: number) => void) {
