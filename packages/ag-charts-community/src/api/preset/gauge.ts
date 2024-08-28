@@ -82,6 +82,7 @@ export function gauge(opts: AgGaugeOptions): AgGaugeChartOptions {
         }
     );
 
+    const { values, step, ...label } = opts.scale?.label ?? {};
     const axesOpts: AgPolarAxisOptions[] = [
         {
             type: 'angle-number',
@@ -90,10 +91,10 @@ export function gauge(opts: AgGaugeOptions): AgGaugeChartOptions {
             startAngle: opts.startAngle ?? 270,
             endAngle: opts.endAngle ?? 270 + 180,
             interval: {
-                values: opts.scale?.label?.values,
-                step: opts.scale?.label?.step,
+                values,
+                step,
             },
-            label: opts.scale?.label,
+            label,
             nice: false,
             line: {
                 enabled: false,
