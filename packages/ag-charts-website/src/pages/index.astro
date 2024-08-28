@@ -9,9 +9,6 @@ import GridLogoMark from '@ag-website-shared/images/inline-svgs/ag-grid-logomark
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { AutomatedIntegratedChartsWrapper } from '@ag-website-shared/components/automated-examples/AutomatedIntegratedChartsWrapper';
 
-import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-quartz.css';
-
 const frameworksData = [
     {
         name: 'react',
@@ -42,7 +39,17 @@ const frameworksData = [
         }),
     },
 ];
+
+/**
+ * Version of `ag-grid-charts-enterprise` to use
+ *
+ * NOTE: Fix version so we can upgrade outside of grid/charts releases
+ */
+const AG_GRID_CHARTS_VERSION = '32.1.0';
+const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-enterprise@${AG_GRID_CHARTS_VERSION}/dist/ag-grid-charts-enterprise.min.js`;
 ---
+
+<script is:inline src={AG_GRID_CHARTS_CDN_URL}></script>
 
 <Layout>
     <div class={styles.homepageHero}>

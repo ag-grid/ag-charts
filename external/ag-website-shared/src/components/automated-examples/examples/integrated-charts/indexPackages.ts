@@ -1,9 +1,6 @@
 /**
  * Automated Integrated Charts demo
  */
-import { createGrid } from 'ag-grid-community';
-import 'ag-grid-enterprise';
-
 import { type AutomatedExample } from '../../types.d';
 import {
     type CreateAutomatedIntegratedChartsParams,
@@ -12,10 +9,12 @@ import {
 
 /**
  * Create automated integrated charts example using packages
+ *
+ * NOTE: Assumes `ag-grid-charts-enterprise` is loaded on the page before this component is loaded
  */
 export function createAutomatedIntegratedCharts(params: CreateAutomatedIntegratedChartsParams): AutomatedExample {
     return createAutomatedIntegratedChartsWithCreateGrid({
-        createGrid,
+        createGrid: globalThis.agGrid.createGrid,
         ...params,
     });
 }
