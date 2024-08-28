@@ -62,21 +62,28 @@ enum States {
     TextInput = 'text-input',
 }
 type AnnotationEvent =
-    | 'click'
+    // Interaction events
     | 'hover'
+    | 'click'
+    | 'dblclick'
     | 'drag'
     | 'dragStart'
     | 'dragEnd'
+    | 'keyDown'
+    // Data events
     | 'cancel'
     | 'reset'
     | 'delete'
     | 'deleteAll'
+    // Annotation properties events
     | 'color'
     | 'fontSize'
     | 'lineStyle'
-    | 'keyDown'
+    | 'lineText'
     | 'updateTextInputBBox'
-    | 'lineTextProperties'
+    // Toolbar events
+    | 'toolbarPressSettings'
+    // Process events
     | 'render';
 
 export class AnnotationsStateMachine extends StateMachine<States, AnnotationType | AnnotationEvent> {
@@ -260,6 +267,12 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
         };
 
         const guardActive = () => this.active != null;
+        const guardActiveHasLineText = () => {
+            if (this.active == null) return false;
+            const datum = ctx.datum(this.active);
+            if (!datum) return false;
+            return hasLineText(datum) && !datum.locked;
+        };
         const guardHovered = () => this.hovered != null;
 
         super(States.Idle, {
@@ -292,6 +305,13 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                         },
                     },
                 ],
+
+                dblclick: {
+                    guard: guardActiveHasLineText,
+                    action: () => {
+                        ctx.showAnnotationSettings(this.active!);
+                    },
+                },
 
                 drag: {
                     guard: guardHovered,
@@ -329,7 +349,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     action: actionLineStyle,
                 },
 
-                lineTextProperties: {
+                lineText: {
                     guard: guardActive,
                     action: (props: { alignment?: string; fontSize?: number; label?: string; position?: string }) => {
                         const datum = getTypedDatum(ctx.datum(this.active!));
@@ -345,6 +365,13 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 updateTextInputBBox: {
                     guard: guardActive,
                     action: actionUpdateTextInputBBox,
+                },
+
+                toolbarPressSettings: {
+                    guard: guardActiveHasLineText,
+                    action: () => {
+                        ctx.showAnnotationSettings(this.active!);
+                    },
                 },
 
                 reset: () => {

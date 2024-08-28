@@ -202,7 +202,7 @@ export class CrossLineScene extends AnnotationScene {
     }
 
     override containsPoint(x: number, y: number) {
-        const { middle, line } = this;
+        const { middle, line, text } = this;
 
         this.activeHandle = undefined;
 
@@ -211,7 +211,7 @@ export class CrossLineScene extends AnnotationScene {
             return true;
         }
 
-        return line.isPointInPath(x, y);
+        return line.isPointInPath(x, y) || Boolean(text?.containsPoint(x, y));
     }
 
     override getAnchor() {
