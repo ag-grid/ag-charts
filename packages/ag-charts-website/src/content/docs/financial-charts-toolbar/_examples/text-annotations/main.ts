@@ -31,12 +31,6 @@ const options: AgFinancialChartOptions = {
             {
                 type: 'callout',
                 text: 'Callout',
-                color: '#040404',
-                fill: '#6baaf3',
-                fillOpacity: 0.6,
-                stroke: '#2395ff',
-                strokeOpacity: 1,
-                strokeWidth: 2,
                 start: {
                     x: {
                         __type: 'date',
