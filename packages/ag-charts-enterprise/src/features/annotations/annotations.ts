@@ -820,9 +820,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         event: _ModuleSupport.ToolbarButtonPressedEvent<AgToolbarAnnotationsButtonValue>,
         item: MenuItem<AnnotationType>
     ) {
-        const { toolbarManager, domManager } = this.ctx;
-
-        domManager.focus();
+        const { toolbarManager } = this.ctx;
 
         toolbarManager.toggleButton('annotations', event.id, {
             active: true,
