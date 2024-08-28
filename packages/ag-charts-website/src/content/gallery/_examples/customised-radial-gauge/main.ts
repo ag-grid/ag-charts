@@ -20,7 +20,24 @@ const firstOptions: AgGaugeOptions = {
     secondaryLabel: {
         text: 'mph',
     },
-    targets: [{ value: 70, shape: 'triangle', placement: 'inside', spacing: 5, fill: '#8883' }],
+    targets: [
+        {
+            value: 70,
+            shape: 'triangle',
+            placement: 'inside',
+            spacing: 5,
+            fill: '#8883',
+            text: 'LIMIT',
+        },
+    ],
+    target: {
+        label: {
+            color: '#8884',
+            fontSize: 8,
+            fontWeight: 'bold',
+            spacing: 2,
+        },
+    },
 };
 
 AgCharts.createGauge(firstOptions);

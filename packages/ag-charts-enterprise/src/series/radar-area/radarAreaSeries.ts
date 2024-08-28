@@ -70,7 +70,7 @@ export class RadarAreaSeries extends RadarSeries {
             return points;
         }
 
-        const { points: zeroLinePoints = [] } = angleAxis?.getAxisLinePoints?.() ?? {};
+        const { points: zeroLinePoints = [] } = angleAxis?.getAxisLinePoints() ?? {};
 
         return points.concat(...zeroLinePoints);
     }

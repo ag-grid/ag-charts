@@ -15,6 +15,27 @@ import type {
 
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
+const {
+    BaseProperties,
+    SeriesTooltip,
+    SeriesProperties,
+    PropertiesArray,
+    Validate,
+    BOOLEAN,
+    COLOR_STRING,
+    FUNCTION,
+    LINE_DASH,
+    MARKER_SHAPE,
+    NUMBER,
+    OBJECT_ARRAY,
+    OBJECT,
+    POSITIVE_NUMBER,
+    RATIO,
+    STRING,
+    UNION,
+} = _ModuleSupport;
+const { Label } = _Scene;
+
 export enum LabelType {
     Primary = 'primary',
     Secondary = 'secondary',
@@ -76,26 +97,20 @@ export type RadialGaugeLabelDatum = {
         | undefined;
 };
 
-const {
-    BaseProperties,
-    SeriesTooltip,
-    SeriesProperties,
-    PropertiesArray,
-    Validate,
-    BOOLEAN,
-    COLOR_STRING,
-    FUNCTION,
-    LINE_DASH,
-    MARKER_SHAPE,
-    NUMBER,
-    OBJECT_ARRAY,
-    OBJECT,
-    POSITIVE_NUMBER,
-    RATIO,
-    STRING,
-} = _ModuleSupport;
+class RadialGaugeDefaultTargetLabelProperties extends Label<never> {
+    @Validate(NUMBER)
+    spacing: number = 0;
+}
+
+class RadialGaugeDefaultTargetProperties extends BaseProperties {
+    @Validate(OBJECT)
+    readonly label = new RadialGaugeDefaultTargetLabelProperties();
+}
 
 export class RadialGaugeTargetProperties extends BaseProperties {
+    @Validate(STRING, { optional: true })
+    text: string | undefined;
+
     @Validate(NUMBER)
     value: number = 0;
 
@@ -114,8 +129,8 @@ export class RadialGaugeTargetProperties extends BaseProperties {
     @Validate(NUMBER)
     rotation: number = 0;
 
-    @Validate(COLOR_STRING)
-    fill: string = 'black';
+    @Validate(COLOR_STRING, { optional: true })
+    fill: string | undefined;
 
     @Validate(RATIO)
     fillOpacity: number = 1;
@@ -251,6 +266,9 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeS
     @Validate(OBJECT_ARRAY)
     targets = new PropertiesArray<RadialGaugeTargetProperties>(RadialGaugeTargetProperties);
 
+    @Validate(OBJECT)
+    target = new RadialGaugeDefaultTargetProperties();
+
     @Validate(RATIO)
     outerRadiusRatio: number = 1;
 
@@ -263,10 +281,10 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeS
     @Validate(POSITIVE_NUMBER)
     cornerRadius: number = 0;
 
-    @Validate(STRING) // FIXME
+    @Validate(UNION(['continuous', 'segmented'], 'an appearance'))
     appearance: 'continuous' | 'segmented' = 'continuous';
 
-    @Validate(STRING) // FIXME
+    @Validate(UNION(['container', 'item'], 'a corner mode'))
     cornerMode: 'container' | 'item' = 'container';
 
     @Validate(NUMBER)

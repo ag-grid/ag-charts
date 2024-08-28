@@ -34,5 +34,7 @@ export abstract class PolarAxis<
 
     computeRange(): void {}
 
-    getAxisLinePoints?(): { points: PolarAxisPathPoint[]; closePath: boolean };
+    getAxisLinePoints(): { points: PolarAxisPathPoint[]; closePath: boolean } | undefined {
+        return undefined;
+    }
 }

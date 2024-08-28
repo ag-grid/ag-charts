@@ -33,6 +33,16 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
             bar: {
                 strokeWidth: 0,
             },
+            target: {
+                label: {
+                    enabled: true,
+                    fontWeight: FONT_WEIGHT.NORMAL,
+                    fontSize: 14,
+                    fontFamily: DEFAULT_FONT_FAMILY,
+                    color: DEFAULT_LABEL_COLOUR,
+                    spacing: 5,
+                },
+            },
             needle: {
                 enabled: false,
                 fill: DEFAULT_LABEL_COLOUR,

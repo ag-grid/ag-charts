@@ -1,14 +1,15 @@
 import type { TextAlign, VerticalAlign } from 'ag-charts-types';
 
 import type { LayoutContext } from '../module/baseModule';
-import type { BBox } from '../scene/bbox';
+import { BBox } from '../scene/bbox';
+import type { PlacedLabel, PointLabelDatum } from '../scene/util/labelPlacement';
 import { sectorBox } from '../scene/util/sector';
 import { isBetweenAngles, normalizeAngle360Inclusive } from '../util/angle';
 import { PolarAxis } from './axis/polarAxis';
 import { Chart } from './chart';
 import { ChartAxisDirection } from './chartAxisDirection';
 import type { RadialGaugeSeries } from './series/gaugeSeries';
-import type { Series } from './series/series';
+import type { Series, SeriesNodeDataContext } from './series/series';
 
 function isRadialGaugeSeries(series: Series<any, any>): series is RadialGaugeSeries {
     return series.type === 'radial-gauge';
@@ -142,5 +143,27 @@ export class GaugeChart extends Chart {
         this.ctx.layoutManager.emitLayoutComplete(ctx, {
             series: { visible: seriesRoot.visible, rect: seriesRect, paddedRect: layoutBox },
         });
+    }
+
+    override placeLabels(
+        padding?: number
+    ): Map<Series<any, any, any, SeriesNodeDataContext<any, any>>, PlacedLabel<PointLabelDatum>[]> {
+        const out = new Map<Series<any, any, any, SeriesNodeDataContext<any, any>>, PlacedLabel<PointLabelDatum>[]>();
+
+        for (const [series, labels] of super.placeLabels(padding)) {
+            const labelsNotCollidingWithAxis = labels.filter((label) => {
+                const bbox = new BBox(label.x, label.y, label.width, label.height);
+                for (const axis of this.axes) {
+                    if (axis.collidesLabel(bbox)) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+
+            out.set(series, labelsNotCollidingWithAxis);
+        }
+
+        return out;
     }
 }

@@ -67,6 +67,7 @@ export function gauge(opts: AgGaugeOptions): AgGaugeChartOptions {
             background: true,
             needle: true,
             targets: true,
+            target: true,
             outerRadiusRatio: true,
             innerRadiusRatio: true,
             sectorSpacing: true,
