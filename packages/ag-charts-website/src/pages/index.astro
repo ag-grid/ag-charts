@@ -1,44 +1,8 @@
 ---
 import Layout from '@layouts/Layout.astro';
-import { FrameworkSelector } from '../components/framework-selector/FrameworkSelector';
-import { Icon } from '@ag-website-shared/components/icon/Icon';
-import { urlWithPrefix } from '@utils/urlWithPrefix';
 import styles from '@pages-styles/homepage.module.scss';
-import GridLogoType from '@ag-website-shared/images/inline-svgs/ag-grid-logotype.svg?react';
-import GridLogoMark from '@ag-website-shared/images/inline-svgs/ag-grid-logomark.svg?react';
-import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
-import { AutomatedIntegratedChartsWrapper } from '@ag-website-shared/components/automated-examples/AutomatedIntegratedChartsWrapper';
 
-const frameworksData = [
-    {
-        name: 'react',
-        url: urlWithPrefix({
-            framework: 'react',
-            url: './quick-start',
-        }),
-    },
-    {
-        name: 'angular',
-        url: urlWithPrefix({
-            framework: 'angular',
-            url: './quick-start',
-        }),
-    },
-    {
-        name: 'vue',
-        url: urlWithPrefix({
-            framework: 'vue',
-            url: './quick-start',
-        }),
-    },
-    {
-        name: 'javascript',
-        url: urlWithPrefix({
-            framework: 'javascript',
-            url: './quick-start',
-        }),
-    },
-];
+import { Icon } from '@ag-website-shared/components/icon/Icon';
 
 /**
  * Version of `ag-grid-charts-enterprise` to use
@@ -52,73 +16,46 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
 <script is:inline src={AG_GRID_CHARTS_CDN_URL}></script>
 
 <Layout>
-    <div class={styles.homepageHero}>
-        <div class:list={[styles.heroInner, 'layout-max-width-small']}>
-            <div class={styles.heroHeadings}>
-                <h1>The Best JavaScript Charts in the World</h1>
-                <h2>The professional choice for developers building enterprise applications</h2>
-                <a href={urlWithBaseUrl('/gallery')} class="button-secondary"
-                    >See the charts <Icon name="chevronRight" /></a
-                >
-            </div>
-
-            <div class={styles.galleryScroller}></div>
-        </div>
-    </div>
-
-    <div class={styles.homepageFrameworks}>
-        <div class:list={[styles.frameworksInner, 'layout-max-width-small']}>
-            <span class:list={[styles.frameworksLabel, 'text-secondary']}>Get&nbsp;started</span>
-            <FrameworkSelector data={frameworksData} isFullWidth />
-        </div>
-    </div>
-
-    <div class={styles.homepageBenefits}>
-        <div class:list={[styles.benefitsInner, 'layout-max-width-small']}>
-            <video
-                class={styles.videoLight}
-                src={urlWithBaseUrl('/videos/chart-features-light.mp4')}
-                muted
-                autoplay
-                loop></video>
-            <video class={styles.videoDark} src={urlWithBaseUrl('videos/chart-features-dark.mp4')} muted autoplay loop
-            ></video>
-            <div class={styles.benefitsCopy}>
-                <h2>Data Visualisation, made easy</h2>
-                <p class="text-lg">
-                    Create interactive, animated, high-performance charts & graphs with <b>AG Charts</b> JavaScript
-                    Charting library, from the makers of <a href="https://ag-grid.com/">AG Grid</a>.
-                </p>
-
-                <p class="text-lg">
-                    Built for <a href="/javascript/quick-start/">JavaScript</a>, <a href="/react/quick-start">React</a>,
-
-
-                    <a href="/angular/quick-start">Angular</a> & <a href="/vue/quick-start/">Vue</a> with support for
-                    over 20 chart types, including <a href="/javascript/pie-series/">Pie</a>, <a
-                        href="/javascript/bar-series/">Stacked Bar</a
-                    >, <a href="/javascript/donut-series/">Donut</a>, <a href="/javascript/waterfall-series/"
-                        >Waterfall</a
-                    > and more.
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <div class={styles.homepageGrid}>
-        <AutomatedIntegratedChartsWrapper client:visible>
-            <div class={styles.gridCopy}>
-                <div class={styles.agGridLogo}>
-                    <GridLogoType />
-                    <GridLogoMark />
+    <div class:list={[styles.container]}>
+        <div class={styles.section}>
+            <div class:list={[styles.heroSectionInner, 'layout-max-width-small']}>
+                <div class={styles.whatsNewTagContainer}>
+                    <span class={styles.whatsNewVersion}>v10.1.0</span>
+                    <span class={styles.whatsNewText}>
+                        New Financial Charts <Icon svgClasses={[styles.whatsNewArrow]} name="arrowRight" />
+                    </span>
                 </div>
-                <p class="text-lg">
-                    See how <a href="https://ag-grid.com/"><b>AG Grid</b></a> uses <b>AG Charts</b> to provide a
-                    seamless
-                    <a href="https://ag-grid.com/javascript-data-grid/integrated-charts/">Integrated Charting</a>
-                     experience from within the grid.
-                </p>
+                <div class={styles.headingContainer}>
+                    <h1>JavaScript Charts</h1>
+                    <h2>High Performance, Feature Rich JavaScript Charting Library</h2>
+                    <h3>
+                        Create beautiful JavaScript Charts in minutes, for free. Upgrade to enterprise for advanced
+                        features, even more series types, and dedicated Enterprise support
+                    </h3>
+                </div>
+                <div class={styles.ctaContainer}>
+                    <button>Get Started</button>
+                    <button>Gallery</button>
+                    <button>Install</button>
+                </div>
+                <img
+                    class={styles.heroImage}
+                    src="charts/images/readme-assets/gallery.gif"
+                    alt="JavaScript Chart Examples: Bar, Line, Pie, Map, etc..."
+                />
             </div>
-        </AutomatedIntegratedChartsWrapper>
+        </div>
+        <div class={styles.section}>
+            <div class:list={[styles.featuresSectionInner, 'layout-max-width-small']}>
+                <h2>Financial JavaScript Charts</h2>
+                <h3>
+                    Build interactive JavaScript financial charts featuring advanced annotations with minimal
+                    configuration.
+                </h3>
+                <hr />
+                <h2>JavaScript Map Charts</h2>
+                <h3>Visualise geographic data...</h3>
+            </div>
+        </div>
     </div>
 </Layout>
