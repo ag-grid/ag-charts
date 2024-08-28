@@ -1,8 +1,11 @@
 ---
 import Layout from '@layouts/Layout.astro';
 import styles from '@pages-styles/homepage.module.scss';
-
+import { getEntry } from 'astro:content';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
+import { Snippet } from '@ag-website-shared/components/snippet/Snippet';
+import GalleryExampleRunner from '@features/gallery/components/GalleryExampleRunner.astro';
+const { data: whatsNewData } = await getEntry('versions', 'ag-charts-versions');
 
 /**
  * Version of `ag-grid-charts-enterprise` to use
@@ -22,7 +25,8 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                 <div class={styles.whatsNewTagContainer}>
                     <span class={styles.whatsNewVersion}>v10.1.0</span>
                     <span class={styles.whatsNewText}>
-                        New Financial Charts <Icon svgClasses={[styles.whatsNewArrow]} name="arrowRight" />
+                        {whatsNewData[0].highlightSummary}
+                        <Icon svgClasses={[styles.whatsNewArrow]} name="arrowRight" />
                     </span>
                 </div>
                 <div class={styles.headingContainer}>
@@ -50,19 +54,24 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
         <div class={styles.section}>
             <div class:list={[styles.featuresSectionInner, 'layout-max-width-small']}>
                 <h2>Free JavaScript charts</h2>
+                <h3>Free version comes with .. and .. blah blah blah</h3>
                 <span>Bar | Line | Area | Scatter | Bubble | Pie | Donut</span>
+                <div>
+                    <GalleryExampleRunner client:visible title={'simple-bar'} name={'simple-bar'} />
+                </div>
             </div>
         </div>
         <div class={styles.section}>
             <div class:list={[styles.featuresSectionInner, 'layout-max-width-small']}>
                 <h2>Enterprise JavaScript charts</h2>
+                <h3>Upgrade to enterprise to access...</h3>
                 <div class={styles.twoColumnContainer}>
                     <div class={styles.column}>
-                        <h2>Financial JavaScript Charts</h2>
-                        <h3>
+                        <h4>Financial JavaScript Charts</h4>
+                        <h5>
                             Build interactive financial charts featuring advanced annotations with minimal
                             configuration.
-                        </h3>
+                        </h5>
                     </div>
                     <div class={styles.column}>
                         <span>TODO: Demo</span>
@@ -73,8 +82,8 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                         <span>TODO: Demo</span>
                     </div>
                     <div class={styles.column}>
-                        <h2>JavaScript Map Charts</h2>
-                        <h3>Visualise geographic data...</h3>
+                        <h4>JavaScript Map Charts</h4>
+                        <h5>Visualise geographic data...</h5>
                     </div>
                 </div>
             </div>
@@ -82,11 +91,15 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
         <div class={styles.section}>
             <div class:list={[styles.benchmarkSectionInner, 'layout-max-width-small']}>
                 <h2>Benchmarks</h2>
+                <h3>AG Charts is the fastest, ... compared to competitors:</h3>
+                <span>TODO: Benchmark charts w/ Highcharts, etc...</span>
             </div>
         </div>
         <div class={styles.section}>
             <div class:list={[styles.benchmarkSectionInner, 'layout-max-width-small']}>
                 <h2>AG Grid Integrated Charts, powered by AG Charts</h2>
+                <h3>AG Charts powers integrated charts...</h3>
+                <span>integrated charts demo</span>
             </div>
         </div>
     </div>
