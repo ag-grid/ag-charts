@@ -193,7 +193,7 @@ export const Changelog = () => {
             headerClass: styles.fontClass,
             autoHeaderHeight: true,
             wrapHeaderText: true,
-            suppressMenu: true,
+            suppressHeaderMenuButton: true,
             filter: true,
             floatingFilter: true,
             suppressKeyboardEvent: (params: any) => {
