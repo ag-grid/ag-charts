@@ -6,7 +6,11 @@ import type {
     AgRadialGaugeSeriesOptions,
 } from 'ag-charts-types';
 
-function allProperties<T extends {}>(opts: AgGaugeOptions, typeCheckedOpts: Record<keyof T, boolean>): T {
+function allProperties<T extends {}>(
+    opts: AgGaugeOptions,
+    typeCheckedOpts: Record<keyof T, boolean>,
+    overrides?: Record<string, any>
+): T {
     const out: T = {} as any;
     for (const key in typeCheckedOpts) {
         if (typeCheckedOpts[key] && Object.hasOwn(opts, key)) {
@@ -14,6 +18,17 @@ function allProperties<T extends {}>(opts: AgGaugeOptions, typeCheckedOpts: Reco
             out[key] = opts[key];
         }
     }
+
+    if (overrides != null) {
+        for (const key in overrides) {
+            const value = overrides[key];
+            if (value != null) {
+                // @ts-expect-error
+                out[key] = value;
+            }
+        }
+    }
+
     return out;
 }
 
@@ -30,37 +45,42 @@ export function gauge(opts: AgGaugeOptions): AgGaugeChartOptions {
         seriesArea: true,
     });
 
-    const seriesOpts = allProperties<AgRadialGaugeSeriesOptions>(opts, {
-        type: true,
-        id: true,
-        data: true,
-        visible: true,
-        cursor: true,
-        nodeClickRange: true,
-        showInLegend: true,
-        listeners: true,
-        tooltip: true,
-        value: true,
-        scale: false,
-        startAngle: false,
-        endAngle: false,
-        itemStyler: true,
-        highlightStyle: true,
-        bar: true,
-        background: true,
-        needle: true,
-        colorStops: true,
-        targets: true,
-        outerRadiusRatio: true,
-        innerRadiusRatio: true,
-        sectorSpacing: true,
-        cornerRadius: true,
-        appearance: true,
-        cornerMode: true,
-        label: true,
-        secondaryLabel: true,
-        margin: true,
-    });
+    const seriesOpts = allProperties<AgRadialGaugeSeriesOptions>(
+        opts,
+        {
+            type: true,
+            id: true,
+            data: true,
+            visible: true,
+            cursor: true,
+            nodeClickRange: true,
+            showInLegend: true,
+            listeners: true,
+            tooltip: true,
+            value: true,
+            scale: false,
+            startAngle: false,
+            endAngle: false,
+            itemStyler: true,
+            highlightStyle: true,
+            bar: true,
+            background: true,
+            needle: true,
+            targets: true,
+            outerRadiusRatio: true,
+            innerRadiusRatio: true,
+            sectorSpacing: true,
+            cornerRadius: true,
+            appearance: true,
+            cornerMode: true,
+            label: true,
+            secondaryLabel: true,
+            margin: true,
+        },
+        {
+            colorStops: opts.scale?.fills,
+        }
+    );
 
     const axesOpts: AgPolarAxisOptions[] = [
         {
@@ -70,8 +90,8 @@ export function gauge(opts: AgGaugeOptions): AgGaugeChartOptions {
             startAngle: opts.startAngle ?? 270,
             endAngle: opts.endAngle ?? 270 + 180,
             interval: {
-                values: opts.scale?.values,
-                step: opts.scale?.step,
+                values: opts.scale?.label?.values,
+                step: opts.scale?.label?.step,
             },
             label: opts.scale?.label,
             nice: false,

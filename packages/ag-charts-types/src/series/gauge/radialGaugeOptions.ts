@@ -20,17 +20,22 @@ export interface AgRadialGaugeSeriesHighlightStyle<_TDatum> extends AgSeriesHigh
 export interface AgRadialGaugeSeriesOptionsKeys {}
 
 export interface AgRadialGaugeSeriesOptionsNames {}
+
+export interface AgRadialGaugeSeriesScaleLabel extends AgBaseAxisLabelOptions {
+    /** Array of values in axis units for specified intervals along the axis. The values in this array must be compatible with the axis type. */
+    values?: number[];
+    /** The axis interval. Expressed in the units of the axis. If the configured interval results in too many items given the chart size, it will be ignored. */
+    step?: number;
+}
 export interface AgRadialGaugeSeriesScale {
     /** Maximum value of the scale. Any values exceeding this number will be clipped to this maximum. */
     min?: number;
     /** Minimum value of the scale. Any values exceeding this number will be clipped to this minimum. */
     max?: number;
-    /** Array of values in axis units for specified intervals along the axis. The values in this array must be compatible with the axis type. */
-    values?: number[];
-    /** The axis interval. Expressed in the units of the axis. If the configured interval results in too many items given the chart size, it will be ignored. */
-    step?: number;
     /** Configuration for the axis labels, shown next to the ticks. */
-    label?: AgBaseAxisLabelOptions;
+    label?: AgRadialGaugeSeriesScaleLabel;
+    /** Configuration the colours. */
+    fills?: AgRadialGaugeColorStop[];
 }
 
 export interface AgRadialGaugeSeriesTooltipRendererParams<TDatum>
@@ -114,8 +119,6 @@ export interface AgRadialGaugeSeriesThemeableOptions<TDatum = any>
     appearance?: 'continuous' | 'segmented';
     /** Configuration on whether to apply `cornerRadius` only to the ends of the gauge, or each individual item within the gauge. */
     cornerMode?: 'container' | 'item';
-    /** Configuration the colours. */
-    colorStops?: AgRadialGaugeColorStop[];
     /** Configuration for the targets. */
     targets?: AgRadialGaugeTarget[];
     /** Configuration for the needle. */

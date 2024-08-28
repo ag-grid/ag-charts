@@ -7,14 +7,14 @@ const options: AgGaugeOptions = {
     scale: {
         min: 0,
         max: 100,
+        fills: [{ color: '#E84118' }, { color: '#9C88FF' }, { color: '#00A8FF' }],
     },
-    colorStops: [
-        { color: '#FFBA7D', stop: 50 },
-        { color: '#FFA04C', stop: 60 },
-        { color: '#FE871E', stop: 70 },
-        { color: '#E96F03', stop: 80 },
-        { color: '#D76500', stop: 90 },
-    ],
+    sectorSpacing: 2,
 };
 
-AgCharts.createGauge(options);
+const chart = AgCharts.createGauge(options);
+
+function setAppearance(appearance: 'segmented' | 'continuous') {
+    options.appearance = appearance;
+    chart.update(options);
+}

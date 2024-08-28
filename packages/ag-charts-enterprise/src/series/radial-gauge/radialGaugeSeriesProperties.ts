@@ -246,6 +246,9 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeS
     colorStops = new PropertiesArray<RadialGaugeStopProperties>(RadialGaugeStopProperties);
 
     @Validate(OBJECT_ARRAY)
+    defaultColorStops = new PropertiesArray<RadialGaugeStopProperties>(RadialGaugeStopProperties);
+
+    @Validate(OBJECT_ARRAY)
     targets = new PropertiesArray<RadialGaugeTargetProperties>(RadialGaugeTargetProperties);
 
     @Validate(RATIO)
