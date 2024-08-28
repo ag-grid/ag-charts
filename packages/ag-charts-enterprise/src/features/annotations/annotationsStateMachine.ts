@@ -1,13 +1,13 @@
 import { _ModuleSupport, type _Scene, _Util } from 'ag-charts-community';
 
 import {
-    type AnnotationContext,
     type AnnotationLineStyle,
     type AnnotationOptionsColorPickerType,
     AnnotationType,
     type GuardDragClickDoubleEvent,
 } from './annotationTypes';
 import {
+    annotationConfigs,
     getTypedDatum,
     hasLineStyle,
     hasLineText,
@@ -17,42 +17,12 @@ import {
     setFontSize,
     setLineStyle,
 } from './annotationsConfig';
-import type { AnnotationProperties, AnnotationsStateMachineContext } from './annotationsSuperTypes';
-import { ArrowDownProperties } from './arrow-down/arrowDownProperties';
-import { ArrowDownScene } from './arrow-down/arrowDownScene';
-import { ArrowDownStateMachine } from './arrow-down/arrowDownState';
-import { ArrowUpProperties } from './arrow-up/arrowUpProperties';
-import { ArrowUpScene } from './arrow-up/arrowUpScene';
-import { ArrowUpStateMachine } from './arrow-up/arrowUpState';
-import { CalloutProperties } from './callout/calloutProperties';
-import { CalloutScene } from './callout/calloutScene';
-import { CalloutStateMachine } from './callout/calloutState';
-import { CommentProperties } from './comment/commentProperties';
-import { CommentScene } from './comment/commentScene';
-import { CommentStateMachine } from './comment/commentState';
-import {
-    type CrossLineProperties,
-    HorizontalLineProperties,
-    VerticalLineProperties,
-} from './cross-line/crossLineProperties';
-import { CrossLineScene } from './cross-line/crossLineScene';
-import { CrossLineStateMachine } from './cross-line/crossLineState';
-import { DisjointChannelProperties } from './disjoint-channel/disjointChannelProperties';
-import { DisjointChannelScene } from './disjoint-channel/disjointChannelScene';
-import { DisjointChannelStateMachine } from './disjoint-channel/disjointChannelState';
-import { ArrowProperties, LineProperties } from './line/lineProperties';
-import { LineScene } from './line/lineScene';
-import { ArrowStateMachine, LineStateMachine } from './line/lineState';
-import { NoteProperties } from './note/noteProperties';
-import { NoteScene } from './note/noteScene';
-import { NoteStateMachine } from './note/noteState';
-import { ParallelChannelProperties } from './parallel-channel/parallelChannelProperties';
-import { ParallelChannelScene } from './parallel-channel/parallelChannelScene';
-import { ParallelChannelStateMachine } from './parallel-channel/parallelChannelState';
+import type {
+    AnnotationProperties,
+    AnnotationsStateMachineContext,
+    AnnotationsStateMachineHelperFns,
+} from './annotationsSuperTypes';
 import { guardCancelAndExit, guardSaveAndExit } from './states/textualStateUtils';
-import { TextProperties } from './text/textProperties';
-import { TextScene } from './text/textScene';
-import { TextStateMachine } from './text/textState';
 
 const { StateMachine } = _ModuleSupport;
 
@@ -142,66 +112,16 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             ctx.select();
         };
 
-        const dragStateMachine = <
-            D extends AnnotationProperties,
-            N extends {
-                dragStart: (datum: D, offset: _Util.Vec2, context: AnnotationContext) => void;
-                drag: (datum: D, offset: _Util.Vec2, context: AnnotationContext) => void;
-                stopDragging: () => void;
-            },
-        >(
-            isDatum: (value: unknown) => value is D,
-            isNode: (value: unknown) => value is N
-        ) => {
-            const node = getNode(isNode);
-            const datum = getDatum(isDatum);
-
-            return new (class DragStateMachine extends StateMachine<
-                'idle' | 'dragging',
-                'drag' | 'dragStart' | 'dragEnd'
-            > {
-                override debug = _Util.Debug.create(true, 'annotations');
-                constructor() {
-                    super('idle', {
-                        idle: {
-                            dragStart: {
-                                target: 'dragging',
-                                action: ({ offset, context }) => {
-                                    node()?.dragStart(datum()!, offset, context);
-                                },
-                            },
-                        },
-
-                        dragging: {
-                            drag: ({ offset, context }) => {
-                                selectedWithDrag = true;
-                                node()?.drag(datum()!, offset, context);
-                                ctx.update();
-                            },
-
-                            dragEnd: {
-                                target: StateMachine.parent,
-                                action: () => {
-                                    node()?.stopDragging();
-                                    ctx.stopInteracting();
-                                },
-                            },
-                        },
-                    });
-                }
-            })();
+        const stateMachineHelpers: AnnotationsStateMachineHelperFns = {
+            createDatum,
+            getDatum: getDatum as any, // TODO
+            getNode: getNode as any, // TODO
         };
 
-        const textStateMachineContext = <T, U>(
-            type: AnnotationType,
-            isDatum: (value: unknown) => value is T,
-            isNode: (value: unknown) => value is U
-        ) => ({
+        const createStateMachineContext = {
             ...ctx,
-            create: createDatum(type),
             delete: deleteDatum,
-            datum: getDatum<T>(isDatum),
-            node: getNode<U>(isNode),
+            guardDragClickDoubleEvent,
             showTextInput: () => {
                 if (this.active != null) ctx.showTextInput(this.active);
             },
@@ -214,7 +134,26 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             showAnnotationOptions: () => {
                 if (this.active != null) ctx.showAnnotationOptions(this.active);
             },
-        });
+        };
+        const createStateMachines = Object.fromEntries(
+            Object.entries(annotationConfigs).map(([type, config]) => [
+                type,
+                config.createState(createStateMachineContext, stateMachineHelpers),
+            ])
+        ) as Record<AnnotationType, _ModuleSupport.StateMachine<any, any>>;
+
+        const dragStateMachineContext = {
+            ...ctx,
+            setSelectedWithDrag: () => {
+                selectedWithDrag = true;
+            },
+        };
+        const dragStateMachines = Object.fromEntries(
+            Object.entries(annotationConfigs).map(([type, config]) => [
+                type,
+                config.dragState(dragStateMachineContext, stateMachineHelpers),
+            ])
+        ) as Record<Partial<AnnotationType>, _ModuleSupport.StateMachine<any, any>>;
 
         const actionColor = ({
             colorPickerType,
@@ -395,105 +334,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     ctx.deleteAll();
                 },
 
-                // Lines
-                [AnnotationType.Line]: new LineStateMachine({
-                    ...ctx,
-                    create: createDatum<LineProperties>(AnnotationType.Line),
-                    delete: deleteDatum,
-                    datum: getDatum<LineProperties>(LineProperties.is),
-                    node: getNode<LineScene>(LineScene.is),
-                    guardDragClickDoubleEvent,
-                }),
-                [AnnotationType.HorizontalLine]: new CrossLineStateMachine('horizontal', {
-                    ...ctx,
-                    create: createDatum<CrossLineProperties>(AnnotationType.HorizontalLine),
-                    node: getNode<CrossLineScene>(CrossLineScene.is),
-                    showAnnotationOptions: () => {
-                        if (this.active != null) ctx.showAnnotationOptions(this.active);
-                    },
-                }),
-                [AnnotationType.VerticalLine]: new CrossLineStateMachine('vertical', {
-                    ...ctx,
-                    create: createDatum<CrossLineProperties>(AnnotationType.VerticalLine),
-                    node: getNode<CrossLineScene>(CrossLineScene.is),
-                    showAnnotationOptions: () => {
-                        if (this.active != null) ctx.showAnnotationOptions(this.active);
-                    },
-                }),
-
-                // Channels
-                [AnnotationType.DisjointChannel]: new DisjointChannelStateMachine({
-                    ...ctx,
-                    create: createDatum<DisjointChannelProperties>(AnnotationType.DisjointChannel),
-                    delete: deleteDatum,
-                    datum: getDatum<DisjointChannelProperties>(DisjointChannelProperties.is),
-                    node: getNode<DisjointChannelScene>(DisjointChannelScene.is),
-                    guardDragClickDoubleEvent,
-                }),
-                [AnnotationType.ParallelChannel]: new ParallelChannelStateMachine({
-                    ...ctx,
-                    create: createDatum<ParallelChannelProperties>(AnnotationType.ParallelChannel),
-                    delete: deleteDatum,
-                    datum: getDatum<ParallelChannelProperties>(ParallelChannelProperties.is),
-                    node: getNode<ParallelChannelScene>(ParallelChannelScene.is),
-                    guardDragClickDoubleEvent,
-                }),
-
-                // Texts
-                [AnnotationType.Text]: new TextStateMachine(
-                    textStateMachineContext<TextProperties, TextScene>(
-                        AnnotationType.Text,
-                        TextProperties.is,
-                        TextScene.is
-                    )
-                ),
-                [AnnotationType.Comment]: new CommentStateMachine(
-                    textStateMachineContext<CommentProperties, CommentScene>(
-                        AnnotationType.Comment,
-                        CommentProperties.is,
-                        CommentScene.is
-                    )
-                ),
-                [AnnotationType.Callout]: new CalloutStateMachine(
-                    textStateMachineContext<CalloutProperties, CalloutScene>(
-                        AnnotationType.Callout,
-                        CalloutProperties.is,
-                        CalloutScene.is
-                    )
-                ),
-                [AnnotationType.Note]: new NoteStateMachine(
-                    textStateMachineContext<NoteProperties, NoteScene>(
-                        AnnotationType.Note,
-                        NoteProperties.is,
-                        NoteScene.is
-                    )
-                ),
-
-                // Shapes
-                [AnnotationType.Arrow]: new ArrowStateMachine({
-                    ...ctx,
-                    create: createDatum<ArrowProperties>(AnnotationType.Arrow),
-                    delete: deleteDatum,
-                    datum: getDatum<ArrowProperties>(ArrowProperties.is),
-                    node: getNode<LineScene>(LineScene.is),
-                    guardDragClickDoubleEvent,
-                }),
-                [AnnotationType.ArrowUp]: new ArrowUpStateMachine({
-                    ...ctx,
-                    create: createDatum<ArrowUpProperties>(AnnotationType.ArrowUp),
-                    node: getNode<ArrowUpScene>(ArrowUpScene.is),
-                    showAnnotationOptions: () => {
-                        if (this.active != null) ctx.showAnnotationOptions(this.active);
-                    },
-                }),
-                [AnnotationType.ArrowDown]: new ArrowDownStateMachine({
-                    ...ctx,
-                    create: createDatum<ArrowDownProperties>(AnnotationType.ArrowDown),
-                    node: getNode<ArrowDownScene>(ArrowDownScene.is),
-                    showAnnotationOptions: () => {
-                        if (this.active != null) ctx.showAnnotationOptions(this.active);
-                    },
-                }),
+                ...createStateMachines,
             },
 
             [States.Dragging]: {
@@ -507,49 +348,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     this.transition('dragStart', data);
                 },
 
-                // Lines
-                [AnnotationType.Line]: dragStateMachine<LineProperties, LineScene>(LineProperties.is, LineScene.is),
-                [AnnotationType.HorizontalLine]: dragStateMachine<HorizontalLineProperties, CrossLineScene>(
-                    HorizontalLineProperties.is,
-                    CrossLineScene.is
-                ),
-                [AnnotationType.VerticalLine]: dragStateMachine<VerticalLineProperties, CrossLineScene>(
-                    VerticalLineProperties.is,
-                    CrossLineScene.is
-                ),
-
-                // Channels
-                [AnnotationType.ParallelChannel]: dragStateMachine<ParallelChannelProperties, ParallelChannelScene>(
-                    ParallelChannelProperties.is,
-                    ParallelChannelScene.is
-                ),
-                [AnnotationType.DisjointChannel]: dragStateMachine<DisjointChannelProperties, DisjointChannelScene>(
-                    DisjointChannelProperties.is,
-                    DisjointChannelScene.is
-                ),
-
-                // Texts
-                [AnnotationType.Text]: dragStateMachine<TextProperties, TextScene>(TextProperties.is, TextScene.is),
-                [AnnotationType.Comment]: dragStateMachine<CommentProperties, CommentScene>(
-                    CommentProperties.is,
-                    CommentScene.is
-                ),
-                [AnnotationType.Callout]: dragStateMachine<CalloutProperties, CalloutScene>(
-                    CalloutProperties.is,
-                    CalloutScene.is
-                ),
-                [AnnotationType.Note]: dragStateMachine<NoteProperties, NoteScene>(NoteProperties.is, NoteScene.is),
-
-                // Shapes
-                [AnnotationType.Arrow]: dragStateMachine<ArrowProperties, LineScene>(ArrowProperties.is, LineScene.is),
-                [AnnotationType.ArrowUp]: dragStateMachine<ArrowUpProperties, ArrowUpScene>(
-                    ArrowUpProperties.is,
-                    ArrowUpScene.is
-                ),
-                [AnnotationType.ArrowDown]: dragStateMachine<ArrowDownProperties, ArrowDownScene>(
-                    ArrowDownProperties.is,
-                    ArrowDownScene.is
-                ),
+                ...dragStateMachines,
             },
 
             [States.TextInput]: {

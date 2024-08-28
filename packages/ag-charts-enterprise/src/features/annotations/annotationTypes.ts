@@ -1,5 +1,7 @@
 import type { _ModuleSupport, _Scene } from 'ag-charts-community';
 
+export type Constructor<T = object> = new (...args: any[]) => T;
+
 export enum AnnotationType {
     // Lines
     Line = 'line',

@@ -29,8 +29,7 @@ import {
 } from './annotationTypes';
 import { calculateAxisLabelPadding, invertCoords, validateDatumPoint } from './annotationUtils';
 import {
-    annotationDatums,
-    annotationScenes,
+    annotationConfigs,
     getLineStyle,
     getTypedDatum,
     hasFillColor,
@@ -508,15 +507,15 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private createAnnotationScene(datum: AnnotationProperties) {
-        return new annotationScenes[datum.type]();
+        return new annotationConfigs[datum.type].scene();
     }
 
     private createAnnotationDatum(params: { type: AnnotationType }) {
-        if (params.type in annotationDatums) {
-            return new annotationDatums[params.type]().set(params);
+        if (params.type in annotationConfigs) {
+            return new annotationConfigs[params.type].datum().set(params);
         }
         throw new Error(
-            `AG Charts - Cannot set property of unknown type [${params.type}], expected one of [${Object.keys(annotationDatums)}], ignoring.`
+            `AG Charts - Cannot set property of unknown type [${params.type}], expected one of [${Object.keys(annotationConfigs)}], ignoring.`
         );
     }
 

@@ -17,146 +17,61 @@ import type {
     LinePropertiesType,
     TextualPropertiesType,
 } from './annotationsSuperTypes';
-import { ArrowDownProperties } from './arrow-down/arrowDownProperties';
-import { ArrowDownScene } from './arrow-down/arrowDownScene';
-import { ArrowUpProperties } from './arrow-up/arrowUpProperties';
-import { ArrowUpScene } from './arrow-up/arrowUpScene';
+import { arrowDownConfig } from './arrow-down/arrowDownConfig';
+import { arrowUpConfig } from './arrow-up/arrowUpConfig';
+import { calloutConfig } from './callout/calloutConfig';
 import { CalloutProperties } from './callout/calloutProperties';
-import { CalloutScene } from './callout/calloutScene';
+import { commentConfig } from './comment/commentConfig';
 import { CommentProperties } from './comment/commentProperties';
-import { CommentScene } from './comment/commentScene';
+import { horizontalLineConfig, verticalLineConfig } from './cross-line/crossLineConfig';
 import { HorizontalLineProperties, VerticalLineProperties } from './cross-line/crossLineProperties';
-import { CrossLineScene } from './cross-line/crossLineScene';
+import { disjointChannelConfig } from './disjoint-channel/disjointChannelConfig';
 import { DisjointChannelProperties } from './disjoint-channel/disjointChannelProperties';
-import { DisjointChannelScene } from './disjoint-channel/disjointChannelScene';
+import { arrowConfig, lineConfig } from './line/lineConfig';
 import { ArrowProperties, LineProperties } from './line/lineProperties';
-import { LineScene } from './line/lineScene';
+import { noteConfig } from './note/noteConfig';
 import { NoteProperties } from './note/noteProperties';
-import { NoteScene } from './note/noteScene';
+import { parallelChannelConfig } from './parallel-channel/parallelChannelConfig';
 import { ParallelChannelProperties } from './parallel-channel/parallelChannelProperties';
-import { ParallelChannelScene } from './parallel-channel/parallelChannelScene';
 import { ShapePointProperties } from './properties/shapePointProperties';
+import { textConfig } from './text/textConfig';
 import { TextProperties } from './text/textProperties';
-import { TextScene } from './text/textScene';
 
 const { isObject } = _ModuleSupport;
 
-type Constructor<T = object> = new (...args: any[]) => T;
-
-export const annotationDatums: Record<AnnotationType, Constructor<AnnotationProperties>> = {
+export const annotationConfigs = {
     // Lines
-    [AnnotationType.Line]: LineProperties,
-    [AnnotationType.HorizontalLine]: HorizontalLineProperties,
-    [AnnotationType.VerticalLine]: VerticalLineProperties,
+    [lineConfig.type]: lineConfig,
+    [horizontalLineConfig.type]: horizontalLineConfig,
+    [verticalLineConfig.type]: verticalLineConfig,
 
     // Channels
-    [AnnotationType.ParallelChannel]: ParallelChannelProperties,
-    [AnnotationType.DisjointChannel]: DisjointChannelProperties,
+    [parallelChannelConfig.type]: parallelChannelConfig,
+    [disjointChannelConfig.type]: disjointChannelConfig,
 
     // Texts
-    [AnnotationType.Callout]: CalloutProperties,
-    [AnnotationType.Comment]: CommentProperties,
-    [AnnotationType.Note]: NoteProperties,
-    [AnnotationType.Text]: TextProperties,
+    [calloutConfig.type]: calloutConfig,
+    [commentConfig.type]: commentConfig,
+    [noteConfig.type]: noteConfig,
+    [textConfig.type]: textConfig,
 
     // Shapes
-    [AnnotationType.Arrow]: ArrowProperties,
-    [AnnotationType.ArrowUp]: ArrowUpProperties,
-    [AnnotationType.ArrowDown]: ArrowDownProperties,
-};
-
-export const annotationScenes: Record<AnnotationType, Constructor<AnnotationScene>> = {
-    // Lines
-    [AnnotationType.Line]: LineScene,
-    [AnnotationType.HorizontalLine]: CrossLineScene,
-    [AnnotationType.VerticalLine]: CrossLineScene,
-
-    // Channels
-    [AnnotationType.DisjointChannel]: DisjointChannelScene,
-    [AnnotationType.ParallelChannel]: ParallelChannelScene,
-
-    // Texts
-    [AnnotationType.Callout]: CalloutScene,
-    [AnnotationType.Comment]: CommentScene,
-    [AnnotationType.Note]: NoteScene,
-    [AnnotationType.Text]: TextScene,
-
-    // Shapes
-    [AnnotationType.Arrow]: LineScene,
-    [AnnotationType.ArrowUp]: ArrowUpScene,
-    [AnnotationType.ArrowDown]: ArrowDownScene,
+    [arrowConfig.type]: arrowConfig,
+    [arrowUpConfig.type]: arrowUpConfig,
+    [arrowDownConfig.type]: arrowDownConfig,
 };
 
 export function updateAnnotation(node: AnnotationScene, datum: AnnotationProperties, context: AnnotationContext) {
-    // Lines
-    if (LineProperties.is(datum) && LineScene.is(node)) {
-        node.update(datum, context);
-    }
-
-    if ((HorizontalLineProperties.is(datum) || VerticalLineProperties.is(datum)) && CrossLineScene.is(node)) {
-        node.update(datum, context);
-    }
-
-    // Channels
-    if (DisjointChannelProperties.is(datum) && DisjointChannelScene.is(node)) {
-        node.update(datum, context);
-    }
-
-    if (ParallelChannelProperties.is(datum) && ParallelChannelScene.is(node)) {
-        node.update(datum, context);
-    }
-
-    // Texts
-    if (CalloutProperties.is(datum) && CalloutScene.is(node)) {
-        node.update(datum, context);
-    }
-
-    if (CommentProperties.is(datum) && CommentScene.is(node)) {
-        node.update(datum, context);
-    }
-
-    if (NoteProperties.is(datum) && NoteScene.is(node)) {
-        node.update(datum, context);
-    }
-
-    if (TextProperties.is(datum) && TextScene.is(node)) {
-        node.update(datum, context);
-    }
-
-    // Shapes
-    if (ArrowProperties.is(datum) && LineScene.is(node)) {
-        node.update(datum, context);
-    }
-
-    if (ArrowUpProperties.is(datum) && ArrowUpScene.is(node)) {
-        node.update(datum, context);
-    }
-
-    if (ArrowDownProperties.is(datum) && ArrowDownScene.is(node)) {
-        node.update(datum, context);
+    for (const { update } of Object.values(annotationConfigs)) {
+        update(node, datum, context);
     }
 }
 
 export function getTypedDatum(datum: unknown) {
-    if (
-        // Lines
-        LineProperties.is(datum) ||
-        HorizontalLineProperties.is(datum) ||
-        VerticalLineProperties.is(datum) ||
-        // Channels
-        DisjointChannelProperties.is(datum) ||
-        ParallelChannelProperties.is(datum) ||
-        // Texts
-        CalloutProperties.is(datum) ||
-        CommentProperties.is(datum) ||
-        NoteProperties.is(datum) ||
-        TextProperties.is(datum) ||
-        // Shapes
-        ArrowProperties.is(datum) ||
-        ArrowUpProperties.is(datum) ||
-        ArrowDownProperties.is(datum)
-    ) {
-        return datum;
+    for (const { isDatum } of Object.values(annotationConfigs)) {
+        if (isDatum(datum)) {
+            return datum;
+        }
     }
 }
 

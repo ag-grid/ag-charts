@@ -7,7 +7,12 @@ import {
     _Util,
 } from 'ag-charts-community';
 
-import type { AnnotationContext, AnnotationLineStyleType, AnnotationOptionsColorPickerType } from './annotationTypes';
+import type {
+    AnnotationContext,
+    AnnotationLineStyleType,
+    AnnotationOptionsColorPickerType,
+    Constructor,
+} from './annotationTypes';
 
 const {
     BOOLEAN,
@@ -29,8 +34,6 @@ const {
     BaseProperties,
     Validate,
 } = _ModuleSupport;
-
-type Constructor<T = object> = new (...args: any[]) => T;
 
 /**************
  * Components *
