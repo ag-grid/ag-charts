@@ -19,15 +19,15 @@ VERSION=""${RAW_VERSION//./}""
 TIMESTAMP=`date +%Y%m%d`
 FILENAME=charts-release_"$TIMESTAMP"_v"$VERSION".zip
 
-PUBLIC_HTML_FOLDER="@CHARTS_HTML_FOLDER_NAME@"
+CHARTS_ROOT_DIR="@CHARTS_ROOT_DIR@"
 WWW_ROOT_DIR="@WWW_ROOT_DIR@"
 
-cd $WORKING_DIR_ROOT
+cd $WWW_ROOT_DIR
 
 # delete old temp folder if it exists
 rm -rf charts_tmp > /dev/null
 
-# create a new folder - this will become $CHARTS_HTML_FOLDER_NAME
+# create a new folder - this will become $CHARTS_ROOT_DIR
 mkdir charts_tmp
 
 # unzip release
@@ -38,7 +38,7 @@ cd ..
 
 # copy non versioned files & directories over
 echo "Copying non-versioned directories"
-cp -R ./$PUBLIC_HTML_FOLDER/robots.txt charts_tmp/
+cp -R ./$CHARTS_ROOT_DIR/robots.txt charts_tmp/
 
 #update folder permissions (default is 777 - change to 755)
 echo "Updating folder permissions"
