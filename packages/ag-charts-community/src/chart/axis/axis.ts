@@ -134,6 +134,7 @@ interface TickGenerationResult {
     combinedRotation: number;
     textBaseline: CanvasTextBaseline;
     textAlign: CanvasTextAlign;
+    labelData: PlacedLabelDatum[];
 }
 
 type AxisAnimationState = 'empty' | 'ready';
@@ -263,7 +264,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     protected animationManager: AnimationManager;
     private readonly animationState: StateMachine<AxisAnimationState, AxisAnimationEvent>;
 
-    private readonly destroyFns: Function[] = [];
+    private readonly destroyFns: Array<() => void> = [];
 
     constructor(
         protected readonly moduleCtx: ModuleContext,
@@ -787,6 +788,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         let index = 0;
         let autoRotation = 0;
         let labelOverlap = true;
+        let labelData: PlacedLabelDatum[] = [];
         let terminate = false;
         while (labelOverlap && index <= maxIterations) {
             if (terminate) {
@@ -809,10 +811,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
                 const rotated = configuredRotation !== 0 || autoRotation !== 0;
                 const labelRotation = initialRotation + autoRotation;
+                const labelSpacing = getLabelSpacing(this.label.minSpacing, rotated);
+                Matrix.updateTransformMatrix(labelMatrix, 1, 1, labelRotation, 0, 0);
+
                 textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
-                labelOverlap = this.label.avoidCollisions
-                    ? this.checkLabelOverlap(labelRotation, rotated, labelMatrix, tickData.ticks, labelX, textMeasurer)
-                    : false;
+                labelData = this.createLabelData(tickData.ticks, labelX, labelMatrix, textMeasurer);
+                labelOverlap = this.label.avoidCollisions ? axisLabelsOverlap(labelData, labelSpacing) : false;
             }
         }
 
@@ -822,7 +826,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             primaryTickCount = tickData.rawTicks.length;
         }
 
-        return { tickData, primaryTickCount, combinedRotation, textBaseline, textAlign };
+        return { tickData, primaryTickCount, combinedRotation, textBaseline, textAlign, labelData };
     }
 
     private getTickStrategies({
@@ -930,22 +934,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         terminate ||= shouldTerminate;
 
         return { tickData, index, autoRotation: 0, terminate };
-    }
-
-    private checkLabelOverlap(
-        rotation: number,
-        rotated: boolean,
-        labelMatrix: Matrix,
-        tickData: TickDatum[],
-        labelX: number,
-        textMeasurer: TextMeasurer
-    ): boolean {
-        Matrix.updateTransformMatrix(labelMatrix, 1, 1, rotation, 0, 0);
-
-        const labelData: PlacedLabelDatum[] = this.createLabelData(tickData, labelX, labelMatrix, textMeasurer);
-        const labelSpacing = getLabelSpacing(this.label.minSpacing, rotated);
-
-        return axisLabelsOverlap(labelData, labelSpacing);
     }
 
     private createLabelData(
@@ -1537,5 +1525,22 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     isReversed() {
         return this.reverse;
+    }
+
+    collidesLabel(bbox: BBox, padding: number = 0) {
+        const labelData = this.tickGenerationResult?.labelData ?? [];
+
+        for (const datum of labelData) {
+            const {
+                point: { x, y },
+                label: { width, height },
+            } = datum;
+
+            if (bbox.collidesBBox(new BBox(x - padding, y - padding, width + 2 * padding, height + 2 * padding))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

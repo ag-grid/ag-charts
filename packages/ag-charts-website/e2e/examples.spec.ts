@@ -86,6 +86,7 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
     },
     'radial-gauge': {
         'corner-radius': { skipCanvasUpdateCheck: true },
+        needle: { skipCanvasUpdateCheck: true },
     },
     'range-bar-series': {
         // Warns for missing data

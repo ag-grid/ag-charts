@@ -738,8 +738,8 @@ export abstract class Chart extends Observable {
                 get seriesRect() {
                     return chart.seriesRect;
                 },
-                placeLabels() {
-                    return chart.placeLabels();
+                placeLabels(padding?: number) {
+                    return chart.placeLabels(padding);
                 },
             };
 
@@ -892,7 +892,7 @@ export abstract class Chart extends Observable {
         this.dataProcessListeners.clear();
     }
 
-    placeLabels(): Map<Series<any, any>, PlacedLabel[]> {
+    placeLabels(padding?: number): Map<Series<any, any>, PlacedLabel[]> {
         const visibleSeries: Series<any, any>[] = [];
         const data: PointLabelDatum[][] = [];
         for (const series of this.series) {
@@ -910,12 +910,16 @@ export abstract class Chart extends Observable {
         const { top, right, bottom, left } = this.seriesArea.padding;
         const labels: PlacedLabel[][] =
             seriesRect && data.length > 0
-                ? placeLabels(data, {
-                      x: -left,
-                      y: -top,
-                      width: seriesRect.width + left + right,
-                      height: seriesRect.height + top + bottom,
-                  })
+                ? placeLabels(
+                      data,
+                      {
+                          x: -left,
+                          y: -top,
+                          width: seriesRect.width + left + right,
+                          height: seriesRect.height + top + bottom,
+                      },
+                      padding
+                  )
                 : [];
         return new Map(labels.map((l, i) => [visibleSeries[i], l]));
     }
