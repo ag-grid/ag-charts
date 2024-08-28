@@ -440,6 +440,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.toggleAnnotationOptionsButtons();
                 ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: true });
             },
+
+            showAnnotationSettings: (active: number) => {
+                const datum = this.annotationData.at(active);
+                if (!hasLineText(datum)) return;
+                this.settingsDialog.showLine(datum, {
+                    onChange: (props) => {
+                        this.state.transition('lineText', props);
+                    },
+                });
+            },
         });
     }
 
@@ -465,8 +475,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.destroyFns.push(
             // Interactions
-            seriesRegion.addListener('hover', (event) => this.onHover(event), All),
-            seriesRegion.addListener('click', (event) => this.onClick(event), All),
+            seriesRegion.addListener('hover', this.onHover.bind(this), All),
+            seriesRegion.addListener('click', this.onClick.bind(this), All),
+            seriesRegion.addListener('dblclick', this.onDoubleClick.bind(this), All),
             seriesRegion.addListener('drag-start', this.onDragStart.bind(this), Default | ZoomDrag | AnnotationsState),
             seriesRegion.addListener('drag', this.onDrag.bind(this), Default | ZoomDrag | AnnotationsState),
             seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
@@ -622,12 +633,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             }
 
             case AnnotationOptions.Settings: {
-                if (!hasLineText(datum)) break;
-                this.settingsDialog.showLine(datum, {
-                    onChange: (props) => {
-                        state.transition('lineTextProperties', props);
-                    },
-                });
+                state.transition('toolbarPressSettings');
             }
         }
 
@@ -1007,6 +1013,15 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         state.transition('click', { offset, point, textInputValue });
     }
 
+    private onDoubleClick() {
+        const { state } = this;
+
+        const context = this.getAnnotationContext();
+        if (!context) return;
+
+        state.transition('dblclick');
+    }
+
     private onAxisButtonClick(coords?: Coords, direction?: Direction) {
         this.cancel();
         this.reset();
@@ -1062,7 +1077,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         state.transition('drag', { context, offset, point });
     }
 
-    private onDragEnd(_event: _ModuleSupport.RegionEvent<'drag-end'>) {
+    private onDragEnd() {
         this.state.transition('dragEnd');
     }
 
