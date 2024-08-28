@@ -6,23 +6,16 @@ import {
     AnnotationType,
     type GuardDragClickDoubleEvent,
 } from './annotationTypes';
-import {
-    annotationConfigs,
-    getTypedDatum,
-    hasLineStyle,
-    hasLineText,
-    isChannelType,
-    isTextType,
-    setColor,
-    setFontSize,
-    setLineStyle,
-} from './annotationsConfig';
+import { annotationConfigs, getTypedDatum } from './annotationsConfig';
 import type {
     AnnotationProperties,
     AnnotationsStateMachineContext,
     AnnotationsStateMachineHelperFns,
 } from './annotationsSuperTypes';
 import { guardCancelAndExit, guardSaveAndExit } from './states/textualStateUtils';
+import { hasLineStyle, hasLineText } from './utils/has';
+import { setColor, setFontSize, setLineStyle } from './utils/styles';
+import { isChannelType, isTextType } from './utils/types';
 
 const { StateMachine } = _ModuleSupport;
 

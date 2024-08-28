@@ -1,10 +1,11 @@
 import { _ModuleSupport, type _Scene, _Util } from 'ag-charts-community';
 
 import type { AnnotationOptionsColorPickerType, Point } from '../annotationTypes';
-import { getTypedDatum, isTextType, setColor, setFontSize } from '../annotationsConfig';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
 import type { TextualStartEndScene } from '../scenes/textualStartEndScene';
+import { setColor, setFontSize } from '../utils/styles';
+import { isTextType } from '../utils/types';
 import { guardCancelAndExit, guardSaveAndExit } from './textualStateUtils';
 
 const { StateMachine } = _ModuleSupport;
@@ -92,13 +93,13 @@ export abstract class TextualStartEndStateMachine<
             color: string;
             opacity: number;
         }) => {
-            const datum = getTypedDatum(ctx.datum());
+            const datum = ctx.datum();
             if (!datum) return;
 
             if (colorPickerType === 'text-color') {
                 ctx.updateTextInputColor(color);
             }
-            setColor(datum, colorPickerType, colorOpacity, color, opacity);
+            setColor(datum as any, colorPickerType, colorOpacity, color, opacity);
             ctx.update();
         };
 

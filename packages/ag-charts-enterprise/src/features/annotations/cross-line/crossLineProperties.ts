@@ -2,7 +2,7 @@ import { type PixelSize, _ModuleSupport, type _Scene } from 'ag-charts-community
 
 import { Annotation, AxisLabel, Handle, LineStyle, LineTextProperties, Stroke, Value } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
-import { validateDatumValue } from '../annotationUtils';
+import { validateDatumValue } from '../utils/validation';
 
 const { OBJECT, STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
 

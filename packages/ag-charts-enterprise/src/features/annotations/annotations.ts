@@ -27,25 +27,18 @@ import {
     AnnotationType,
     stringToAnnotationType,
 } from './annotationTypes';
-import { calculateAxisLabelPadding, invertCoords, validateDatumPoint } from './annotationUtils';
-import {
-    annotationConfigs,
-    getLineStyle,
-    getTypedDatum,
-    hasFillColor,
-    hasFontSize,
-    hasLineColor,
-    hasLineStyle,
-    hasLineText,
-    hasTextColor,
-    isTextType,
-    setDefaults,
-    updateAnnotation,
-} from './annotationsConfig';
+import { annotationConfigs, getTypedDatum } from './annotationsConfig';
 import { AnnotationsStateMachine } from './annotationsStateMachine';
 import type { AnnotationProperties, AnnotationScene } from './annotationsSuperTypes';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
 import { AnnotationSettingsDialog } from './settings-dialog/settingsDialog';
+import { calculateAxisLabelPadding } from './utils/axis';
+import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasLineText, hasTextColor } from './utils/has';
+import { getLineStyle, setDefaults } from './utils/styles';
+import { isTextType } from './utils/types';
+import { updateAnnotation } from './utils/update';
+import { validateDatumPoint } from './utils/validation';
+import { invertCoords } from './utils/values';
 
 const {
     BOOLEAN,

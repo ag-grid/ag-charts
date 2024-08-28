@@ -1,13 +1,14 @@
 import { type _Scene, _Util } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
-import { convertLine, invertCoords, validateDatumPoint } from '../annotationUtils';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { ArrowCapScene, type CapScene } from '../scenes/capScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
 import { DivariantHandle } from '../scenes/handle';
 import { LineWithTextScene } from '../scenes/lineWithTextScene';
 import { LinearScene } from '../scenes/linearScene';
+import { validateDatumPoint } from '../utils/validation';
+import { convertLine, invertCoords } from '../utils/values';
 import type { LineTypeProperties } from './lineProperties';
 
 const { Vec2 } = _Util;

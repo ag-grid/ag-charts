@@ -12,7 +12,7 @@ import {
     Stroke,
 } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
-import { validateDatumLine } from '../annotationUtils';
+import { validateDatumLine } from '../utils/validation';
 
 const { NUMBER, STRING, OBJECT, BaseProperties, Validate, isObject } = _ModuleSupport;
 

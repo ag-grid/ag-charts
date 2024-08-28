@@ -1,8 +1,8 @@
 import { _Util } from 'ag-charts-community';
 
 import type { Anchor, AnnotationContext, Coords } from '../annotationTypes';
-import { convertPoint, invertCoords } from '../annotationUtils';
 import type { PointProperties } from '../properties/pointProperties';
+import { convertPoint, invertCoords } from '../utils/values';
 import { AnnotationScene } from './annotationScene';
 import { DivariantHandle } from './handle';
 

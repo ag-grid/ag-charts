@@ -2,7 +2,7 @@ import { _Util } from 'ag-charts-community';
 
 import type { PointProperties } from '../annotationProperties';
 import type { AnnotationContext, Coords } from '../annotationTypes';
-import { convertPoint, invertCoords } from '../annotationUtils';
+import { convertPoint, invertCoords } from '../utils/values';
 import { AnnotationScene } from './annotationScene';
 
 const { Vec2 } = _Util;
