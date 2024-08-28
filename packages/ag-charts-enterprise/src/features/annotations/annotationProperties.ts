@@ -89,6 +89,11 @@ export interface AxisLabelFormatterParams {
 /*******************************
  * Annotations specific mixins *
  *******************************/
+export interface AnnotationPropertiesType {
+    isValidWithContext(context: AnnotationContext, warningPrefix: string): boolean;
+    getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType): string | undefined;
+}
+
 export function Annotation<U extends Constructor<_ModuleSupport.BaseProperties>>(Parent: U) {
     abstract class AnnotationInternal extends Lockable(Visible(Parent)) {
         // A uuid is required, over the usual incrementing index, as annotations can be restored from external databases
@@ -103,6 +108,10 @@ export function Annotation<U extends Constructor<_ModuleSupport.BaseProperties>>
     return AnnotationInternal;
 }
 
+export interface LinePropertiesType {
+    start: PointProperties;
+    end: PointProperties;
+}
 export function Line<T extends Constructor>(Parent: T) {
     class LineInternal extends Parent {
         @Validate(OBJECT)
@@ -133,6 +142,9 @@ export function Value<T extends Constructor>(Parent: T) {
     return ValueInternal;
 }
 
+export interface BackgroundPropertiesType {
+    background: BackgroundProperties;
+}
 export function Background<T extends Constructor>(Parent: T) {
     class BackgroundInternal extends Parent {
         @Validate(OBJECT, { optional: true })
