@@ -603,6 +603,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.colorPicker.show({
                     color: datum?.getDefaultColor(event.value),
                     opacity: datum?.getDefaultOpacity(event.value),
+                    sourceEvent: event.sourceEvent,
                     onChange: datum != null ? this.onColorPickerChange.bind(this, event.value, datum) : undefined,
                 });
                 break;

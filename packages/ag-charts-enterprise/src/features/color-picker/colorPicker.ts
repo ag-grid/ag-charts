@@ -10,6 +10,7 @@ const { Color } = _Util;
 export interface ColorPickerOptions extends AnchoredPopoverOptions {
     color?: string;
     opacity?: number;
+    sourceEvent: Event;
     onChange?: (colorOpacity: string, color: string, opacity: number) => void;
 }
 
@@ -24,15 +25,27 @@ const getHsva = (input: string) => {
 };
 
 export class ColorPicker extends AnchoredPopover<ColorPickerOptions> {
+    private lastFocus?: HTMLElement;
+
     constructor(ctx: _ModuleSupport.ModuleContext) {
         super(ctx, 'color-picker');
+        this.hideFns.push(() => {
+            this.lastFocus?.focus();
+            this.lastFocus = undefined;
+        });
     }
 
     public show(options: ColorPickerOptions) {
-        const element = this.createColorPicker(options);
+        const { element, initialFocus } = this.createColorPicker(options);
         const popover = this.showWithChildren([element], options);
         popover.classList.add('ag-charts-color-picker');
         popover.setAttribute('role', 'dialog');
+
+        const { lastFocus } = this.ctx.focusIndicator.guessDevice(options.sourceEvent);
+        if (lastFocus !== undefined) {
+            initialFocus.focus();
+            this.lastFocus = lastFocus;
+        }
     }
 
     private createColorPicker(opts: ColorPickerOptions) {
@@ -147,6 +160,6 @@ export class ColorPicker extends AnchoredPopover<ColorPickerOptions> {
             }
         });
 
-        return colorPicker;
+        return { element: colorPicker, initialFocus: paletteInput };
     }
 }
