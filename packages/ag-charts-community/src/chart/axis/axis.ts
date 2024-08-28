@@ -811,11 +811,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
                 const rotated = configuredRotation !== 0 || autoRotation !== 0;
                 const labelRotation = initialRotation + autoRotation;
+                const labelSpacing = getLabelSpacing(this.label.minSpacing, rotated);
+                Matrix.updateTransformMatrix(labelMatrix, 1, 1, labelRotation, 0, 0);
+
                 textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
                 labelData = this.createLabelData(tickData.ticks, labelX, labelMatrix, textMeasurer);
-                labelOverlap = this.label.avoidCollisions
-                    ? this.checkLabelOverlap(labelRotation, rotated, labelMatrix, labelData)
-                    : false;
+                labelOverlap = this.label.avoidCollisions ? axisLabelsOverlap(labelData, labelSpacing) : false;
             }
         }
 
@@ -933,19 +934,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         terminate ||= shouldTerminate;
 
         return { tickData, index, autoRotation: 0, terminate };
-    }
-
-    private checkLabelOverlap(
-        rotation: number,
-        rotated: boolean,
-        labelMatrix: Matrix,
-        labelData: PlacedLabelDatum[]
-    ): boolean {
-        Matrix.updateTransformMatrix(labelMatrix, 1, 1, rotation, 0, 0);
-
-        const labelSpacing = getLabelSpacing(this.label.minSpacing, rotated);
-
-        return axisLabelsOverlap(labelData, labelSpacing);
     }
 
     private createLabelData(
