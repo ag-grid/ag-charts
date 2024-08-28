@@ -72,7 +72,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 defaultFill: hierarchyFills?.[1],
                 stroke: hierarchyFills?.[2],
             },
-            colorStops: colorRange?.map((color) => ({ color })),
+            defaultColorStops: colorRange?.map((color) => ({ color })),
         };
     },
 };

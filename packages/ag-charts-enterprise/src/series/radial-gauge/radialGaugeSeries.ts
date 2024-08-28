@@ -195,8 +195,13 @@ export class RadialGaugeSeries
     }
 
     private getColorStops([min, max]: number[]) {
-        const { colorStops } = this.properties;
-        if (colorStops.length === 0) return;
+        let { colorStops } = this.properties;
+        if (colorStops.length === 0) {
+            colorStops = this.properties.defaultColorStops;
+        }
+        if (colorStops.length === 0) {
+            return [];
+        }
 
         const out: AgRadialGaugeColorStopDatum[] = [];
         let previousDefinedStopIndex = 0;
@@ -300,13 +305,6 @@ export class RadialGaugeSeries
         const containerStartAngle = angleScale.convert(domain[0]);
         const containerEndAngle = angleScale.convert(value);
 
-        let colorScale: _Scale.ColorScale | undefined;
-        if (colorStops != null) {
-            colorScale = new ColorScale();
-            colorScale.domain = colorStops.map((cs) => cs.stop);
-            colorScale.range = colorStops.map((cs) => cs.color);
-        }
-
         if (isContinuous) {
             if (bar.enabled) {
                 const barFill: string | _Scene.Gradient | undefined =
@@ -364,39 +362,50 @@ export class RadialGaugeSeries
                 fill: backgroundFill,
             });
         } else {
-            const { values } = angleAxis.interval;
-            let numSegments: number;
-            if (values != null) {
-                numSegments = values.length + 1;
-            } else if (angleAxis.scale.ticks != null) {
-                numSegments = angleAxis.scale.ticks().length - 1;
-            } else {
-                numSegments = 8;
-            }
+            let stops: Array<{ startValue: number; endValue: number; color: string | undefined }>;
             const domainRange = domain[1] - domain[0];
+            if (this.properties.colorStops.some((colorStop) => colorStop.stop != null)) {
+                // Explicitly defined colour stops
+                stops = colorStops.map(({ color, stop }, i) => {
+                    const startValue = stop;
+                    const endValue = i < colorStops.length - 1 ? colorStops[i + 1].stop : domain[1];
+                    return { startValue, endValue, color };
+                });
+            } else if (this.properties.colorStops.length !== 0) {
+                // Only defined colours - evenly size the sectors (the inferred `stop`s will be incorrect)
+                stops = this.properties.colorStops.map(({ color }, i, { length }) => {
+                    const startValue = domain[0] + (i + 0) * (domainRange / length);
+                    const endValue = domain[0] + (i + 1) * (domainRange / length);
+                    return { startValue, endValue, color };
+                });
+            } else {
+                // No colour stops defined, use the theme
+                const colorScale = new ColorScale();
+                colorScale.domain = colorStops.map((cs) => cs.stop);
+                colorScale.range = colorStops.map((cs) => cs.color);
 
-            for (let i = 0; i < numSegments; i += 1) {
+                const ticks = angleAxis.scale.ticks?.().length;
+                const numSegments = ticks != null ? ticks - 1 : 8;
+
+                stops = Array.from({ length: numSegments }, (_, i) => {
+                    const startValue = domain[0] + (i + 0) * (domainRange / numSegments);
+                    const endValue = domain[0] + (i + 1) * (domainRange / numSegments);
+                    const colorScaleValue = domain[0] + i * (domainRange / (numSegments - 1));
+                    const color = colorScale?.convert(colorScaleValue);
+                    return { startValue, endValue, color };
+                });
+            }
+
+            for (let i = 0; i < stops.length; i += 1) {
+                const { startValue, endValue, color } = stops[i];
                 const isStart = i === 0;
-                const isEnd = i === numSegments - 1;
+                const isEnd = i === stops.length - 1;
 
-                let value0: number;
-                let value1: number;
-                let colorScaleValue: number;
-                if (values != null) {
-                    value0 = i > 0 ? values[i - 1] : domain[0];
-                    value1 = i < values.length ? values[i] : domain[1];
-                    colorScaleValue = value0;
-                } else {
-                    value0 = domain[0] + (i + 0) * (domainRange / numSegments);
-                    value1 = domain[0] + (i + 1) * (domainRange / numSegments);
-                    colorScaleValue = domain[0] + i * (domainRange / (numSegments - 1));
-                }
-
-                const itemStartAngle = angleScale.convert(value0);
-                const itemEndAngle = angleScale.convert(value1);
+                const itemStartAngle = angleScale.convert(startValue);
+                const itemEndAngle = angleScale.convert(endValue);
 
                 if (bar.enabled) {
-                    const barFill = bar.fill ?? colorScale?.convert(colorScaleValue);
+                    const barFill = bar.fill ?? color;
 
                     nodeData.push({
                         series: this,
@@ -416,9 +425,8 @@ export class RadialGaugeSeries
                     });
                 }
 
-                const backgroundColorScale = !bar.enabled ? colorScale : undefined;
-                const backgroundFill =
-                    background.fill ?? backgroundColorScale?.convert(colorScaleValue) ?? background.defaultFill;
+                const backgroundBarFill = !bar.enabled ? color : undefined;
+                const backgroundFill = background.fill ?? backgroundBarFill ?? background.defaultFill;
 
                 backgroundData.push({
                     series: this,
