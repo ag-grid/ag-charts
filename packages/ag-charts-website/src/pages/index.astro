@@ -15,7 +15,7 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
 
 <script is:inline src={AG_GRID_CHARTS_CDN_URL}></script>
 
-<Layout>
+<Layout title="JavaScript Charts: AG Charts" description="">
     <div class:list={[styles.container]}>
         <div class={styles.section}>
             <div class:list={[styles.heroSectionInner, 'layout-max-width-small']}>
@@ -35,7 +35,6 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                 </div>
                 <div class={styles.ctaContainer}>
                     <button>Get Started</button>
-                    <button>Gallery</button>
                     <button>Install</button>
                 </div>
                 <img
@@ -43,18 +42,51 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                     src="charts/images/readme-assets/gallery.gif"
                     alt="JavaScript Chart Examples: Bar, Line, Pie, Map, etc..."
                 />
+                <a href="./gallery" class={styles.galleryCta}
+                    >JavaScript Charts Gallery <Icon svgClasses={[styles.whatsNewArrow]} name="arrowRight" />
+                </a>
             </div>
         </div>
         <div class={styles.section}>
             <div class:list={[styles.featuresSectionInner, 'layout-max-width-small']}>
-                <h2>Financial JavaScript Charts</h2>
-                <h3>
-                    Build interactive JavaScript financial charts featuring advanced annotations with minimal
-                    configuration.
-                </h3>
-                <hr />
-                <h2>JavaScript Map Charts</h2>
-                <h3>Visualise geographic data...</h3>
+                <h2>Free JavaScript charts</h2>
+                <span>Bar | Line | Area | Scatter | Bubble | Pie | Donut</span>
+            </div>
+        </div>
+        <div class={styles.section}>
+            <div class:list={[styles.featuresSectionInner, 'layout-max-width-small']}>
+                <h2>Enterprise JavaScript charts</h2>
+                <div class={styles.twoColumnContainer}>
+                    <div class={styles.column}>
+                        <h2>Financial JavaScript Charts</h2>
+                        <h3>
+                            Build interactive financial charts featuring advanced annotations with minimal
+                            configuration.
+                        </h3>
+                    </div>
+                    <div class={styles.column}>
+                        <span>TODO: Demo</span>
+                    </div>
+                </div>
+                <div class={styles.twoColumnContainer}>
+                    <div class={styles.column}>
+                        <span>TODO: Demo</span>
+                    </div>
+                    <div class={styles.column}>
+                        <h2>JavaScript Map Charts</h2>
+                        <h3>Visualise geographic data...</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class={styles.section}>
+            <div class:list={[styles.benchmarkSectionInner, 'layout-max-width-small']}>
+                <h2>Benchmarks</h2>
+            </div>
+        </div>
+        <div class={styles.section}>
+            <div class:list={[styles.benchmarkSectionInner, 'layout-max-width-small']}>
+                <h2>AG Grid Integrated Charts, powered by AG Charts</h2>
             </div>
         </div>
     </div>
