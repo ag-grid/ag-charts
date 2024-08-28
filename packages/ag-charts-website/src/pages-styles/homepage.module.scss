@@ -104,3 +104,29 @@
         }
     }
 }
+
+.sectionHeaderContainer {
+    text-align: center;
+
+    h2 {
+        margin-bottom: 0;
+        font-size: 22px;
+        color: var(--color-brand-400);
+    }
+
+    h3 {
+        font-size: 48px;
+        line-height: 77px;
+        padding: 0 64px;
+        font-weight: var(--text-bold);
+    }
+
+    h4 {
+        margin: $spacing-size-2;
+        font-family: var(--text-font-family);
+        font-size: var(--text-fs-lg);
+        line-height: var(--text-lh-base);
+        font-weight: var(--text-regular);
+        color: var(--color-text-primary);
+    }
+}
