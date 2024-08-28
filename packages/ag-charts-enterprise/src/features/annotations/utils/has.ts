@@ -6,10 +6,11 @@ import type {
     LinePropertiesType,
     TextualPropertiesType,
 } from '../annotationsSuperTypes';
+import { ArrowDownProperties } from '../arrow-down/arrowDownProperties';
+import { ArrowUpProperties } from '../arrow-up/arrowUpProperties';
 import { CalloutProperties } from '../callout/calloutProperties';
 import { CommentProperties } from '../comment/commentProperties';
 import { NoteProperties } from '../note/noteProperties';
-import { ShapePointProperties } from '../properties/shapePointProperties';
 import { isChannelType, isLineType, isTextType } from './types';
 
 const { isObject } = _ModuleSupport;
@@ -31,7 +32,8 @@ export function hasFillColor(datum?: AnnotationProperties) {
         isChannelType(datum) ||
         CalloutProperties.is(datum) ||
         CommentProperties.is(datum) ||
-        ShapePointProperties.is(datum)
+        ArrowUpProperties.is(datum) ||
+        ArrowDownProperties.is(datum)
     );
 }
 

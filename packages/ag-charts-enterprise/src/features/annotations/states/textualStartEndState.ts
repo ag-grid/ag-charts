@@ -1,8 +1,10 @@
-import { _ModuleSupport, type _Scene, _Util } from 'ag-charts-community';
+import { type FontOptions, _ModuleSupport, type _Scene, _Util } from 'ag-charts-community';
 
+import type { HandleInterface, LockableInterface, VisibleInterface } from '../annotationProperties';
 import type { AnnotationOptionsColorPickerType, Point } from '../annotationTypes';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
-import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
+import type { PlaceholderTextInterface } from '../properties/mixins';
+import type { TextualStartEndInterface } from '../properties/textualStartEndProperties';
 import type { TextualStartEndScene } from '../scenes/textualStartEndScene';
 import { setColor, setFontSize } from '../utils/styles';
 import { isTextType } from '../utils/types';
@@ -11,7 +13,11 @@ import { guardCancelAndExit, guardSaveAndExit } from './textualStateUtils';
 const { StateMachine } = _ModuleSupport;
 
 interface TextualStartEndStateMachineContext<
-    Datum extends TextualStartEndProperties,
+    Datum extends TextualStartEndInterface &
+        HandleInterface &
+        FontOptions &
+        PlaceholderTextInterface &
+        LockableInterface,
     Node extends TextualStartEndScene<Datum>,
 > extends Omit<AnnotationsStateMachineContext, 'create' | 'delete' | 'datum' | 'node' | 'showTextInput'> {
     create: (datum: Datum) => void;
@@ -24,7 +30,13 @@ interface TextualStartEndStateMachineContext<
 }
 
 export abstract class TextualStartEndStateMachine<
-    Datum extends TextualStartEndProperties,
+    Datum extends _ModuleSupport.BaseProperties &
+        TextualStartEndInterface &
+        HandleInterface &
+        FontOptions &
+        PlaceholderTextInterface &
+        LockableInterface &
+        VisibleInterface,
     Node extends TextualStartEndScene<Datum>,
 > extends StateMachine<
     'start' | 'waiting-first-render' | 'edit' | 'end',

@@ -89,7 +89,7 @@ export interface AxisLabelFormatterParams {
 /*******************************
  * Annotations specific mixins *
  *******************************/
-export interface AnnotationPropertiesType {
+export interface AnnotationInterface {
     isValidWithContext(context: AnnotationContext, warningPrefix: string): boolean;
     getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType): string | undefined;
 }
@@ -108,7 +108,7 @@ export function Annotation<U extends Constructor<_ModuleSupport.BaseProperties>>
     return AnnotationInternal;
 }
 
-export interface LinePropertiesType {
+export interface LineInterface {
     start: PointProperties;
     end: PointProperties;
 }
@@ -142,7 +142,7 @@ export function Value<T extends Constructor>(Parent: T) {
     return ValueInternal;
 }
 
-export interface BackgroundPropertiesType {
+export interface BackgroundInterface {
     background: BackgroundProperties;
 }
 export function Background<T extends Constructor>(Parent: T) {
@@ -153,6 +153,9 @@ export function Background<T extends Constructor>(Parent: T) {
     return BackgroundInternal;
 }
 
+export interface HandleInterface {
+    handle: HandleProperties;
+}
 export function Handle<T extends Constructor>(Parent: T) {
     class HandleInternal extends Parent {
         @Validate(OBJECT, { optional: true })
@@ -202,6 +205,9 @@ export function Extendable<T extends Constructor>(Parent: T) {
     return ExtendableInternal;
 }
 
+export interface LockableInterface {
+    locked?: boolean;
+}
 function Lockable<T extends Constructor>(Parent: T) {
     class LockableInternal extends Parent {
         @Validate(BOOLEAN, { optional: true })
@@ -213,6 +219,9 @@ function Lockable<T extends Constructor>(Parent: T) {
 /******************
  * Generic mixins *
  ******************/
+export interface VisibleInterface {
+    visible?: boolean;
+}
 export function Visible<T extends Constructor>(Parent: T) {
     class VisibleInternal extends Parent {
         @Validate(BOOLEAN, { optional: true })

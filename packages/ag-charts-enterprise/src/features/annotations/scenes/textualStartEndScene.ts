@@ -1,7 +1,9 @@
-import { type AgAnnotationHandleStyles, _Scene, _Util } from 'ag-charts-community';
+import { type AgAnnotationHandleStyles, type FontOptions, _Scene, _Util } from 'ag-charts-community';
 
+import type { HandleInterface, LockableInterface } from '../annotationProperties';
 import { type Anchor, type AnnotationContext, type Coords, type LineCoords } from '../annotationTypes';
-import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
+import type { PlaceholderTextInterface } from '../properties/mixins';
+import type { TextualStartEndInterface } from '../properties/textualStartEndProperties';
 import { DivariantHandle } from '../scenes/handle';
 import { LinearScene } from '../scenes/linearScene';
 import { getBBox, updateTextNode, wrapText } from '../text/util';
@@ -10,7 +12,13 @@ import { convertLine, invertCoords } from '../utils/values';
 
 const { Vec2 } = _Util;
 
-export abstract class TextualStartEndScene<Datum extends TextualStartEndProperties> extends LinearScene<Datum> {
+export abstract class TextualStartEndScene<
+    Datum extends TextualStartEndInterface &
+        HandleInterface &
+        FontOptions &
+        PlaceholderTextInterface &
+        LockableInterface,
+> extends LinearScene<Datum> {
     override activeHandle?: 'start' | 'end';
 
     protected readonly label = new _Scene.Text({ zIndex: 1 });

@@ -1,16 +1,11 @@
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
-import { Fill, Stroke } from '../annotationProperties';
-import {
-    type AnnotationContext,
-    type AnnotationOptionsColorPickerType,
-    AnnotationType,
-    type Padding,
-} from '../annotationTypes';
-import { TextualStartEndProperties } from '../properties/textualStartEndProperties';
+import { Annotation, Fill, Font, Handle, Label, Line, Stroke } from '../annotationProperties';
+import { type AnnotationContext, AnnotationType, type Padding } from '../annotationTypes';
+import { DefaultColorFillLineText, PlaceholderText } from '../properties/mixins';
+import { TextualStartEnd } from '../properties/textualStartEndProperties';
 
-const { STRING, Validate, isObject } = _ModuleSupport;
-const { Color } = _Util;
+const { STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
 
 const DEFAULT_CALLOUT_PADDING = {
     top: 6,
@@ -19,7 +14,9 @@ const DEFAULT_CALLOUT_PADDING = {
     left: 12,
 };
 
-export class CalloutProperties extends Fill(Stroke(TextualStartEndProperties)) {
+export class CalloutProperties extends DefaultColorFillLineText(
+    PlaceholderText(TextualStartEnd(Annotation(Fill(Stroke(Line(Handle(Label(Font(BaseProperties)))))))))
+) {
     static is(value: unknown): value is CalloutProperties {
         return isObject(value) && value.type === AnnotationType.Callout;
     }
@@ -30,36 +27,7 @@ export class CalloutProperties extends Fill(Stroke(TextualStartEndProperties)) {
     override position = 'bottom' as const;
     override alignment = 'left' as const;
 
-    override getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType) {
-        switch (colorPickerType) {
-            case `fill-color`:
-                return this.fill;
-            case `line-color`:
-                return this.stroke;
-            case `text-color`:
-            default:
-                return this.color;
-        }
-    }
-
-    override getDefaultOpacity(colorPickerType: AnnotationOptionsColorPickerType) {
-        switch (colorPickerType) {
-            case `fill-color`:
-                return this.fillOpacity;
-            case `line-color`:
-                return this.strokeOpacity;
-            case `text-color`:
-            default:
-                return undefined;
-        }
-    }
-
-    override getPlaceholderColor() {
-        const { r, g, b } = Color.fromString(this.color ?? '#888888');
-        return new Color(r, g, b, 0.66).toString();
-    }
-
-    override getPadding(): Padding {
+    getPadding(): Padding {
         const { padding } = this;
         if (padding == null) {
             return { ...DEFAULT_CALLOUT_PADDING };
@@ -70,6 +38,15 @@ export class CalloutProperties extends Fill(Stroke(TextualStartEndProperties)) {
             right: padding,
             bottom: padding,
             left: padding,
+        };
+    }
+
+    getText() {
+        const isPlaceholder = this.text.length == 0;
+        const text = !isPlaceholder ? this.text : this.placeholderText ?? '';
+        return {
+            text,
+            isPlaceholder,
         };
     }
 

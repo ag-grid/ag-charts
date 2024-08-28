@@ -1,15 +1,15 @@
 import type { LineDashOptions, PixelSize, StrokeOptions, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import type { AnnotationPropertiesType, BackgroundPropertiesType, LinePropertiesType } from '../annotationProperties';
+import type { AnnotationInterface, BackgroundInterface, LineInterface } from '../annotationProperties';
 import type { AnnotationContext, AnnotationOptionsColorPickerType, Constructor, Point } from '../annotationTypes';
 import { validateDatumLine } from '../utils/validation';
 
 export function Channel<
     T extends Constructor<
         _ModuleSupport.BaseProperties &
-            AnnotationPropertiesType &
-            LinePropertiesType &
-            BackgroundPropertiesType &
+            AnnotationInterface &
+            LineInterface &
+            BackgroundInterface &
             StrokeOptions &
             LineDashOptions
     >,

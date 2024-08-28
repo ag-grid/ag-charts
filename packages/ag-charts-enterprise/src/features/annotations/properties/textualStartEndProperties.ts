@@ -1,58 +1,34 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type TextAlign, _ModuleSupport } from 'ag-charts-community';
 
-import { Annotation, Font, Handle, Label, Line } from '../annotationProperties';
-import { type AnnotationContext, type AnnotationOptionsColorPickerType, type Padding } from '../annotationTypes';
+import type { AnnotationInterface, LineInterface } from '../annotationProperties';
+import type { AnnotationContext, Constructor } from '../annotationTypes';
 import type { AnnotationTextAlignment, AnnotationTextPosition } from '../text/util';
 import { convertPoint } from '../utils/values';
 
-const { STRING, BaseProperties, Validate } = _ModuleSupport;
+const { STRING, Validate } = _ModuleSupport;
 
-export class TextualStartEndProperties extends Annotation(Line(Handle(Label(Font(BaseProperties))))) {
-    @Validate(STRING)
-    text: string = '';
-
-    position: AnnotationTextPosition = 'top';
-    alignment: AnnotationTextAlignment = 'left';
-    placement: 'inside' | 'outside' = 'inside';
+export interface TextualStartEndInterface extends AnnotationInterface, LineInterface {
+    position: AnnotationTextPosition;
+    alignment: AnnotationTextAlignment;
+    textAlign: TextAlign;
     width?: number;
-    placeholderText?: string = undefined;
+}
 
-    override isValidWithContext(_context: AnnotationContext, warningPrefix?: string) {
-        return super.isValid(warningPrefix);
-    }
+export function TextualStartEnd<
+    T extends Constructor<_ModuleSupport.BaseProperties & AnnotationInterface & LineInterface>,
+>(Parent: T) {
+    abstract class TextualStartEndInternal extends Parent {
+        @Validate(STRING)
+        text: string = '';
 
-    getDefaultColor(_colorPickerType: AnnotationOptionsColorPickerType) {
-        return this.color;
-    }
+        position: AnnotationTextPosition = 'top';
+        alignment: AnnotationTextAlignment = 'left';
+        textAlign: TextAlign = 'left';
+        width?: number;
 
-    getDefaultOpacity(_colorPickerType: AnnotationOptionsColorPickerType): number | undefined {
-        return undefined;
+        public getTextInputCoords(context: AnnotationContext): { x: number; y: number } {
+            return convertPoint(this.end, context);
+        }
     }
-
-    getPlaceholderColor(): string | undefined {
-        return undefined;
-    }
-
-    getPadding(): Padding {
-        const { padding = 0 } = this;
-        return {
-            top: padding,
-            right: padding,
-            bottom: padding,
-            left: padding,
-        };
-    }
-
-    getText() {
-        const isPlaceholder = this.text.length == 0;
-        const text = !isPlaceholder ? this.text : this.placeholderText ?? '';
-        return {
-            text,
-            isPlaceholder,
-        };
-    }
-
-    public getTextInputCoords(context: AnnotationContext): { x: number; y: number } {
-        return convertPoint(this.end, context);
-    }
+    return TextualStartEndInternal;
 }
