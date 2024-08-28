@@ -18,7 +18,10 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
 
 <script is:inline src={AG_GRID_CHARTS_CDN_URL}></script>
 
-<Layout title="JavaScript Charts: AG Charts" description="">
+<Layout
+    title="JavaScript Charts | High-Performance & Feature-Rich Charting Library - AG Charts"
+    description="Create beautiful, high-performance JavaScript charts quickly with AG Charts. Free forever; upgrade to enterprise for advanced features and dedicated support."
+>
     <div class:list={[styles.container]}>
         <div class={styles.section}>
             <div class:list={[styles.heroSectionInner, 'layout-max-width-small']}>
@@ -33,18 +36,20 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                     <h1>JavaScript Charts</h1>
                     <h2>High Performance, Feature Rich JavaScript Charting Library</h2>
                     <h3>
-                        Create beautiful JavaScript Charts in minutes, for free. Upgrade to enterprise for advanced
-                        features, even more series types, and dedicated Enterprise support
+                        AG Charts is a high-performance JavaScript charting library that lets you create stunning
+                        visualizations, including bar, line, pie, and map charts, within minutes. Get started for free
+                        with essential features or <a>upgrade to Enterprise</a> for advanced features, series types and
+                        dedicated support.
                     </h3>
                 </div>
                 <div class={styles.ctaContainer}>
-                    <button>Get Started</button>
-                    <button>Install</button>
+                    <button aria-label="Get Started with Free JavaScript Charts">Get Started</button>
+                    <button aria-label="Install AG Charts JavaScript Library">Install</button>
                 </div>
                 <img
                     class={styles.heroImage}
                     src="charts/images/readme-assets/gallery.gif"
-                    alt="JavaScript Chart Examples: Bar, Line, Pie, Map, etc..."
+                    alt="AG Charts Examples - JavaScript Bar, Line, Pie, and Map Charts"
                 />
                 <a href="./gallery" class={styles.galleryCta}
                     >JavaScript Charts Gallery <Icon svgClasses={[styles.whatsNewArrow]} name="arrowRight" />
@@ -54,9 +59,13 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
         <div class={styles.section}>
             <div class:list={[styles.featuresSectionInner, 'layout-max-width-small']}>
                 <div class={styles.sectionHeaderContainer}>
-                    <h2>Free JavaScript Charts</h2>
+                    <h2>Free JavaScript Charting Library - Quick & Easy Setup</h2>
                     <h3>Build Beautiful Charts in Minutes, for Free</h3>
-                    <h4>Free version comes with .. and .. blah blah blah</h4>
+                    <h4>
+                        AG Charts supports multiple series types, customizable axes, real-time updates, and
+                        accessibility features. Use it to create dynamic visualizations for data analysis, financial
+                        reporting, and interactive dashboards.
+                    </h4>
                 </div>
                 <span>Bar | Line | Area | Scatter | Bubble | Pie | Donut</span>
                 <div>
@@ -67,9 +76,13 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
         <div class={styles.section}>
             <div class:list={[styles.featuresSectionInner, 'layout-max-width-small']}>
                 <div class={styles.sectionHeaderContainer}>
-                    <h2>Enterprise JavaScript charts</h2>
+                    <h2>Enterprise JavaScript Charts - Advanced Features & Support</h2>
                     <h3>Upgrade for Advanced Features, Series Types and Dedicated Enterprise Support</h3>
-                    <h4>Upgrade to enterprise to access...</h4>
+                    <h4>
+                        Enterprise features include advanced chart types such as candlestick and OHLC for financial
+                        data, multi-layered map visualizations, and integrated cross-chart interactions. Enjoy dedicated
+                        enterprise support and continuous updates.
+                    </h4>
                 </div>
                 <div class={styles.twoColumnContainer}>
                     <div class={styles.column}>
@@ -96,15 +109,24 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
         </div>
         <div class={styles.section}>
             <div class:list={[styles.benchmarkSectionInner, 'layout-max-width-small']}>
-                <h2>JavaScript Charts Benchmarks</h2>
-                <h3>AG Charts is the fastest, ... compared to competitors:</h3>
+                <div class={styles.sectionHeaderContainer}>
+                    <h2>JavaScript Chart Performance Benchmarks - AG Charts vs. Competitors</h2>
+                    <h3>Unbeatable Features, Uncompromised Performance</h3>
+                    <h4>
+                        AG Charts delivers unbeatable performance and unmatched features, outperforming competitors in
+                        speed, efficiency & reliability.
+                    </h4>
+                </div>
                 <span>TODO: Benchmark charts w/ Highcharts, etc...</span>
             </div>
         </div>
         <div class={styles.section}>
             <div class:list={[styles.benchmarkSectionInner, 'layout-max-width-small']}>
-                <h2>AG Grid Integrated Charts, powered by AG Charts</h2>
-                <h3>AG Charts powers integrated charts...</h3>
+                <div class={styles.sectionHeaderContainer}>
+                    <h2>Integrated JavaScript Charts</h2>
+                    <h3>AG Grid Integrated Charts, powered by AG Charts</h3>
+                    <h4>AG Charts powers integrated charts...</h4>
+                </div>
                 <span>integrated charts demo</span>
             </div>
         </div>
