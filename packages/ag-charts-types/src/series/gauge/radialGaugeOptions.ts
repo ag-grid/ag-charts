@@ -87,6 +87,8 @@ export interface AgRadialGaugeTarget extends FillOptions, StrokeOptions, LineDas
     size?: Ratio;
     /** Rotation of the target, in degrees. */
     rotation?: Degree;
+    /** Text to use for the target label. */
+    text?: string;
 }
 
 export interface AgRadialGaugeTargetLabelOptions extends AgChartLabelOptions<never, never> {
