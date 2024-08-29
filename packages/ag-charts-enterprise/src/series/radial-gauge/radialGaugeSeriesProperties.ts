@@ -1,6 +1,7 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 import type {
     AgChartLabelFormatterParams,
+    AgRadialGaugeMarkerShape,
     AgRadialGaugeSeriesItemStylerParams,
     AgRadialGaugeSeriesLabelFormatterParams,
     AgRadialGaugeSeriesOptions,
@@ -35,9 +36,11 @@ const {
     RATIO,
     STRING,
     UNION,
+    OR,
 } = _ModuleSupport;
 const { Label } = _Scene;
 
+const TARGET_MARKER_SHAPE = OR(MARKER_SHAPE, UNION(['line'], 'a marker shape'));
 const TARGET_PLACEMENT = UNION(['inside', 'outside', 'middle'], 'a placement');
 
 export enum NodeDataType {
@@ -115,8 +118,8 @@ class RadialGaugeDefaultTargetLabelProperties extends Label<never> {
 }
 
 class RadialGaugeDefaultTargetProperties extends BaseProperties {
-    @Validate(MARKER_SHAPE, { optional: true })
-    shape: MarkerShape | undefined;
+    @Validate(TARGET_MARKER_SHAPE, { optional: true })
+    shape: AgRadialGaugeMarkerShape | undefined;
 
     @Validate(TARGET_PLACEMENT)
     placement: AgRadialGaugeTargetPlacement = 'middle';
@@ -139,8 +142,8 @@ class RadialGaugeDefaultTargetProperties extends BaseProperties {
     @Validate(COLOR_STRING)
     stroke: string = 'black';
 
-    @Validate(POSITIVE_NUMBER)
-    strokeWidth: number = 0;
+    @Validate(POSITIVE_NUMBER, { optional: true })
+    strokeWidth: number | undefined;
 
     @Validate(RATIO)
     strokeOpacity: number = 1;
@@ -162,8 +165,8 @@ export class RadialGaugeTargetProperties extends BaseProperties {
     @Validate(NUMBER)
     value: number = 0;
 
-    @Validate(MARKER_SHAPE, { optional: true })
-    shape: MarkerShape | undefined;
+    @Validate(TARGET_MARKER_SHAPE, { optional: true })
+    shape: AgRadialGaugeMarkerShape | undefined;
 
     @Validate(TARGET_PLACEMENT, { optional: true })
     placement: AgRadialGaugeTargetPlacement | undefined;

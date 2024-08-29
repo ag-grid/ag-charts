@@ -1,5 +1,6 @@
 import { type TextAlign, type VerticalAlign, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
+import { LineMarker } from './lineMarker';
 import { RadialGaugeNeedle } from './radialGaugeNeedle';
 import {
     type AgRadialGaugeColorStopDatum,
@@ -186,8 +187,8 @@ export class RadialGaugeSeries
         return new Sector();
     }
 
-    private markerFactory(datum: RadialGaugeTargetDatum): _Scene.Marker {
-        const MarkerShape = getMarker(datum.shape);
+    private markerFactory({ shape }: RadialGaugeTargetDatum): _Scene.Marker {
+        const MarkerShape = shape !== 'line' ? getMarker(shape) : LineMarker;
         const marker = new MarkerShape();
         marker.size = 1;
         return marker;
@@ -572,7 +573,6 @@ export class RadialGaugeSeries
                 fillOpacity = target.fillOpacity,
                 stroke = target.stroke,
                 strokeOpacity = target.strokeOpacity,
-                strokeWidth = target.strokeWidth,
                 lineDash = target.lineDash,
                 lineDashOffset = target.lineDashOffset,
             } = t;
@@ -595,6 +595,8 @@ export class RadialGaugeSeries
                     rotation ??= 0;
             }
             rotation = toRadians(rotation);
+
+            const strokeWidth = t.strokeWidth ?? target.strokeWidth ?? (shape === 'line' ? 2 : 0);
 
             targetData.push({
                 series: this,
@@ -1078,10 +1080,12 @@ export class RadialGaugeSeries
         const angleAxis = this.axes[ChartAxisDirection.X];
         if (angleAxis == null) return [];
 
-        const { centerX, centerY, properties } = this;
-        const { target } = properties;
+        const { radius, centerX, centerY, properties } = this;
+        const { innerRadiusRatio, outerRadiusRatio, target } = properties;
         const { label } = target;
         const angleScale = angleAxis.scale;
+
+        const gaugeThickness = radius * (outerRadiusRatio - innerRadiusRatio);
 
         const font = label.getFont();
         const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font });
@@ -1089,7 +1093,7 @@ export class RadialGaugeSeries
         return this.properties.targets
             .filter((t) => t.text != null)
             .map((t) => {
-                const { text = '', value, size = target.size, placement = target.placement } = t;
+                const { text = '', value, shape = target.shape, size = target.size, placement = target.placement } = t;
                 const { width, height } = textMeasurer.measureText(text);
                 const angle = angleScale.convert(value);
 
@@ -1113,11 +1117,24 @@ export class RadialGaugeSeries
                 }
 
                 const targetRadius = this.getTargetRadius(t) - radiusOffset;
-                const x = targetRadius * Math.cos(angle) + centerX;
-                const y = targetRadius * Math.sin(angle) + centerY;
+
+                let point: _Scene.SizedPoint;
+                if (shape === 'line' && placement === 'middle' && size >= gaugeThickness) {
+                    point = {
+                        x: (targetRadius + size / 2) * Math.cos(angle) + centerX,
+                        y: (targetRadius + size / 2) * Math.sin(angle) + centerY,
+                        size: 1,
+                    };
+                } else {
+                    point = {
+                        x: targetRadius * Math.cos(angle) + centerX,
+                        y: targetRadius * Math.sin(angle) + centerY,
+                        size,
+                    };
+                }
 
                 return {
-                    point: { x, y, size },
+                    point,
                     marker: undefined,
                     label: { text, width, height },
                     placement: labelPlacement,
