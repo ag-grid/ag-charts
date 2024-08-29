@@ -6,6 +6,7 @@ import type {
     AgRadialGaugeSeriesOptions,
     AgRadialGaugeSeriesStyle,
     AgRadialGaugeSeriesTooltipRendererParams,
+    AgRadialGaugeTargetPlacement,
     FontStyle,
     FontWeight,
     Formatter,
@@ -35,6 +36,8 @@ const {
     UNION,
 } = _ModuleSupport;
 const { Label } = _Scene;
+
+const TARGET_PLACEMENT = UNION(['inside', 'outside', 'middle'], 'a placement');
 
 export enum LabelType {
     Primary = 'primary',
@@ -103,34 +106,23 @@ class RadialGaugeDefaultTargetLabelProperties extends Label<never> {
 }
 
 class RadialGaugeDefaultTargetProperties extends BaseProperties {
-    @Validate(OBJECT)
-    readonly label = new RadialGaugeDefaultTargetLabelProperties();
-}
-
-export class RadialGaugeTargetProperties extends BaseProperties {
-    @Validate(STRING, { optional: true })
-    text: string | undefined;
-
-    @Validate(NUMBER)
-    value: number = 0;
-
     @Validate(MARKER_SHAPE, { optional: true })
     shape: MarkerShape | undefined;
 
-    @Validate(STRING)
-    placement: 'inside' | 'outside' | 'middle' = 'middle';
+    @Validate(TARGET_PLACEMENT)
+    placement: AgRadialGaugeTargetPlacement = 'middle';
 
     @Validate(NUMBER)
     spacing: number = 0;
 
     @Validate(POSITIVE_NUMBER)
-    size: number = 10;
+    size: number = 0;
 
-    @Validate(NUMBER)
-    rotation: number = 0;
+    @Validate(NUMBER, { optional: true })
+    rotation: number | undefined;
 
-    @Validate(COLOR_STRING, { optional: true })
-    fill: string | undefined;
+    @Validate(COLOR_STRING)
+    fill: string = 'black';
 
     @Validate(RATIO)
     fillOpacity: number = 1;
@@ -149,6 +141,53 @@ export class RadialGaugeTargetProperties extends BaseProperties {
 
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
+
+    @Validate(OBJECT)
+    readonly label = new RadialGaugeDefaultTargetLabelProperties();
+}
+
+export class RadialGaugeTargetProperties extends BaseProperties {
+    @Validate(STRING, { optional: true })
+    text: string | undefined;
+
+    @Validate(NUMBER)
+    value: number = 0;
+
+    @Validate(MARKER_SHAPE, { optional: true })
+    shape: MarkerShape | undefined;
+
+    @Validate(TARGET_PLACEMENT, { optional: true })
+    placement: AgRadialGaugeTargetPlacement | undefined;
+
+    @Validate(NUMBER, { optional: true })
+    spacing: number | undefined;
+
+    @Validate(POSITIVE_NUMBER, { optional: true })
+    size: number | undefined;
+
+    @Validate(NUMBER, { optional: true })
+    rotation: number | undefined;
+
+    @Validate(COLOR_STRING, { optional: true })
+    fill: string | undefined;
+
+    @Validate(RATIO, { optional: true })
+    fillOpacity: number | undefined;
+
+    @Validate(COLOR_STRING, { optional: true })
+    stroke: string | undefined;
+
+    @Validate(POSITIVE_NUMBER, { optional: true })
+    strokeWidth: number | undefined;
+
+    @Validate(RATIO, { optional: true })
+    strokeOpacity: number | undefined;
+
+    @Validate(LINE_DASH, { optional: true })
+    lineDash: number[] | undefined;
+
+    @Validate(POSITIVE_NUMBER, { optional: true })
+    lineDashOffset: number | undefined;
 }
 
 export class RadialGaugeStopProperties extends BaseProperties {

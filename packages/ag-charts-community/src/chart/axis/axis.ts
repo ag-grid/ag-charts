@@ -1526,21 +1526,4 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     isReversed() {
         return this.reverse;
     }
-
-    collidesLabel(bbox: BBox, padding: number = 0) {
-        const labelData = this.tickGenerationResult?.labelData ?? [];
-
-        for (const datum of labelData) {
-            const {
-                point: { x, y },
-                label: { width, height },
-            } = datum;
-
-            if (bbox.collidesBBox(new BBox(x - padding, y - padding, width + 2 * padding, height + 2 * padding))) {
-                return true;
-            }
-        }
-
-        return false;
-    }
 }

@@ -10,25 +10,8 @@ const options: AgGaugeOptions = {
     },
     targets: [
         {
-            value: 25,
-            shape: 'triangle',
-            placement: 'inside',
-            spacing: 5,
-            size: 10,
-        },
-        {
-            value: 75,
-            shape: 'triangle',
-            placement: 'outside',
-            spacing: 5,
-            size: 10,
-            rotation: 180,
-        },
-        {
-            value: 90,
-            shape: 'circle',
-            placement: 'middle',
-            size: 10,
+            value: 70,
+            text: 'Average',
         },
     ],
 };

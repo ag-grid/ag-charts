@@ -111,27 +111,57 @@ Targets can be added using the `targets` configuration array.
 {
     targets: [
         {
-            value: 75,
-            shape: 'triangle',
-            placement: 'outer',
-            size: 10,
-            spacing: 5,
-            rotation: 180,
+            value: 70,
+            text: 'Average',
         },
-    ];
+    ],
 }
 ```
 
 In this configuration:
 
 -   `value` is the position for the marker.
+-   `text` is an optional string of some text accompanying the marker.
+
+### Customisation
+
+{% chartExampleRunner title="Target Customisation" name="custom-targets" type="generated" options={ "exampleHeight": 250 } /%}
+
+The `target` property is used to apply common styles to all targets. Some properties can be overridden on a per-case basis in the objects within the `targets` array.
+
+```js
+{
+    target: {
+        shape: 'triangle',
+        placement: 'outside',
+        size: 12,
+        spacing: 8,
+        fill: 'white',
+        strokeWidth: 2,
+    },
+    targets: [
+        {
+            value: 30,
+        },
+        {
+            value: 75,
+            placement: 'inside',
+        },
+        {
+            value: 90,
+            placement: 'middle',
+            shape: 'circle',
+        },
+    ],
+}
+```
+
 -   `shape` is a marker shape.
 -   `placement` indicates the relative placement to the gauge - either `inside`, `outside`, or `middle`.
 -   `size` is the size of the marker, in pixels
--   `spacing` is spacing from the edge of the gauge to the marker. Ignored when `placement` is `middle.
--   `rotation` is the rotation of the marker, in degrees
+-   `spacing` is spacing from the edge of the gauge to the marker. Ignored when `placement` is `middle`.
 
-## Customisation
+## Appearance
 
 {% chartExampleRunner title="Appearance" name="appearance" type="generated" options={ "exampleHeight": 350 } /%}
 

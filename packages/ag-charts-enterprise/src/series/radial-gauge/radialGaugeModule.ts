@@ -34,10 +34,15 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 strokeWidth: 0,
             },
             target: {
+                fill: DEFAULT_LABEL_COLOUR,
+                stroke: DEFAULT_LABEL_COLOUR,
+                size: 10,
+                placement: 'outside',
+                spacing: 5,
                 label: {
                     enabled: true,
                     fontWeight: FONT_WEIGHT.NORMAL,
-                    fontSize: 14,
+                    fontSize: 12,
                     fontFamily: DEFAULT_FONT_FAMILY,
                     color: DEFAULT_LABEL_COLOUR,
                     spacing: 5,
