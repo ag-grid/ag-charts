@@ -11,6 +11,7 @@ import {
     getExampleRunnerExampleUrl,
     getExampleUrl,
 } from '../utils/urlPaths';
+import styles from './FreeChartsExamples.module.scss';
 
 interface Props {
     examples: Array<{
@@ -146,15 +147,12 @@ const GalleryExampleRunnerInner = ({ examples, loadingIFrameId }: Props) => {
 
     return (
         <>
-            <div>
+            <div className={styles.tabContainer}>
                 {examples.map((example, index) => (
                     <button
                         key={example.exampleName}
+                        className={`${styles.tabButton} ${index === currentExampleIndex ? styles.activeTabButton : ''}`}
                         onClick={() => handleExampleSelect(index)}
-                        style={{
-                            fontWeight: index === currentExampleIndex ? 'bold' : 'normal',
-                            margin: '0 5px 10px 0',
-                        }}
                     >
                         {example.title}
                     </button>
