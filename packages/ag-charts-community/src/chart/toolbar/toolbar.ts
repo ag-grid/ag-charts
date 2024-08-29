@@ -842,7 +842,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             detached: true,
         };
 
-        const onDrag = (event: MouseEvent) => this.onDrag(event, group);
+        const onDrag = (e: MouseEvent) => this.onDrag(e, group);
         const window = getWindow();
         window.addEventListener('mousemove', onDrag);
         window.addEventListener('mouseup', () => window.removeEventListener('mousemove', onDrag), {
