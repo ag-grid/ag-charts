@@ -58,7 +58,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         textArea.setAttribute('placeholder', 'Add Text');
 
         if (opts.styles?.placeholderColor) {
-            textArea.style.setProperty('--ag-charts-text-annotations-placeholder', opts.styles?.placeholderColor);
+            textArea.style.setProperty('--ag-charts-input-placeholder', opts.styles?.placeholderColor);
         }
 
         textArea.innerText = opts.text ?? '';
