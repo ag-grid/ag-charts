@@ -178,7 +178,7 @@ export class InteractionManager extends InteractionStateListener<InteractionType
     ) {
         super();
 
-        this.rootElement = this.domManager.getDocumentRoot();
+        this.rootElement = this.domManager.getShadowDocumentRoot();
 
         for (const type of EVENT_HANDLERS) {
             if (type.startsWith('touch') || type === 'wheel') {
@@ -202,7 +202,7 @@ export class InteractionManager extends InteractionStateListener<InteractionType
     }
 
     private containerChanged(force = false) {
-        const newRoot = this.domManager.getDocumentRoot();
+        const newRoot = this.domManager.getShadowDocumentRoot();
         if (!force && newRoot === this.rootElement) return;
 
         for (const type of SHADOW_DOM_HANDLERS) {
