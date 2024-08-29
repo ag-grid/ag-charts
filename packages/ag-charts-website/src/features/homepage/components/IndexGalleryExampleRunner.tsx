@@ -149,16 +149,18 @@ const GalleryExampleRunnerInner = ({ examples, loadingIFrameId }: Props) => {
 
     return (
         <>
-            <div className={styles.tabContainer}>
-                {examples.map((example) => (
-                    <button
-                        key={example.exampleName}
-                        className={`${styles.tabButton} ${example.exampleName === currentExampleName ? styles.activeTabButton : ''}`}
-                        onClick={() => handleExampleSelect(example.exampleName)}
-                    >
-                        {example.buttonText}
-                    </button>
-                ))}
+            <div className={styles.container}>
+                <div className={styles.tabContainer}>
+                    {examples.map((example) => (
+                        <button
+                            key={example.exampleName}
+                            className={`${styles.tabButton} ${example.exampleName === currentExampleName ? styles.activeTabButton : ''}`}
+                            onClick={() => handleExampleSelect(example.exampleName)}
+                        >
+                            {example.buttonText}
+                        </button>
+                    ))}
+                </div>
             </div>
             <ExampleRunner
                 id={id}

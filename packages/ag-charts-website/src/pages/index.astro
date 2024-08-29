@@ -19,13 +19,28 @@ const galleryEntry = await getEntry('gallery', 'data');
 const galleryExamples = getGalleryExamples({ galleryData: galleryEntry.data });
 
 // Prepare examples data for IndexGalleryExampleRunner
-const exampleData = galleryExamples
-    .filter((example) => ['simple-bar', 'simple-area'].includes(example.exampleName))
-    .map((example) => ({
-        title: example.page.name,
-        exampleName: example.exampleName,
-        buttonText: example.exampleName === 'simple-bar' ? 'Bar' : 'Area',
-    }));
+const seriesExampleMap = {
+    bar: 'stacked-horizontal-bar',
+    line: 'multiple-line-series-large-data',
+    area: 'stacked-area',
+    scatter: 'scatter-with-large-data',
+    bubble: 'bubble-with-categories',
+    pie: 'pie-with-variable-radius',
+    donut: 'donut-with-variable-radius',
+};
+
+const exampleData = galleryEntry.data.series
+    .flatMap((seriesGroup) => seriesGroup)
+    .filter((series) => series.seriesName in seriesExampleMap)
+    .map((series) => {
+        const exampleName = seriesExampleMap[series.seriesName];
+        const example = series.examples.find((ex) => ex.name === exampleName);
+        return {
+            title: example.title,
+            exampleName: example.name,
+            buttonText: series.title,
+        };
+    });
 ---
 
 <Layout
