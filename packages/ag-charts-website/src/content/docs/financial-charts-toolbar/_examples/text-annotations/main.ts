@@ -8,6 +8,7 @@ const options: AgFinancialChartOptions = {
     title: {
         text: 'Text Annotations',
     },
+    rangeButtons: false,
     initialState: {
         annotations: [
             {
