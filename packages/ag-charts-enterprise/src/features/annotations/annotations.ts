@@ -428,7 +428,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 const node = this.annotations.at(active);
                 if (!node) return;
 
-                ctx.toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
+                ctx.toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor(), active);
                 this.toggleAnnotationOptionsButtons();
                 ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: true });
             },
@@ -948,7 +948,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 updateAnnotation(node, datum, context);
 
                 if (state.isActive(index)) {
-                    toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
+                    toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor(), index);
                 }
             });
     }

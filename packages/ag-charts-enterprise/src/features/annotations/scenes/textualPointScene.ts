@@ -1,6 +1,6 @@
-import { _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import type { Anchor, AnnotationContext, Coords } from '../annotationTypes';
+import type { AnnotationContext, Coords } from '../annotationTypes';
 import type { TextualPointProperties } from '../properties/textualPointProperties';
 import { getBBox, updateTextNode, wrapText } from '../text/util';
 import { convertPoint, invertCoords } from '../utils/values';
@@ -20,7 +20,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         handle: Coords;
     };
 
-    private anchor: Anchor = {
+    private anchor: _ModuleSupport.Anchor = {
         x: 0,
         y: 0,
         position: 'above-left',
@@ -76,7 +76,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         this.handle.toggleDragging(false);
     }
 
-    override getAnchor(): Anchor {
+    override getAnchor(): _ModuleSupport.Anchor {
         return this.anchor;
     }
 

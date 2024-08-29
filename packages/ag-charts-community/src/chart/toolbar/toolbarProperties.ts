@@ -36,6 +36,9 @@ export class ToolbarGroupProperties extends BaseProperties {
     @Validate(UNION(TOOLBAR_POSITIONS), { optional: true })
     position: ToolbarPosition = ToolbarPosition.Top;
 
+    @Validate(BOOLEAN)
+    draggable?: boolean;
+
     @ObserveChanges<ToolbarGroupProperties>((target) => {
         target.onChange(target.enabled);
     })

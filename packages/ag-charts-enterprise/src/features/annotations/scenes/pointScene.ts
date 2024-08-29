@@ -1,6 +1,6 @@
-import { _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import type { Anchor, AnnotationContext, Coords } from '../annotationTypes';
+import type { AnnotationContext, Coords } from '../annotationTypes';
 import type { PointProperties } from '../properties/pointProperties';
 import { convertPoint, invertCoords } from '../utils/values';
 import { AnnotationScene } from './annotationScene';
@@ -17,7 +17,7 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
         handle: Coords;
     };
 
-    protected anchor: Anchor = {
+    protected anchor: _ModuleSupport.Anchor = {
         x: 0,
         y: 0,
         position: 'above',
@@ -63,7 +63,7 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
         this.handle.toggleDragging(false);
     }
 
-    override getAnchor(): Anchor {
+    override getAnchor(): _ModuleSupport.Anchor {
         return this.anchor;
     }
 

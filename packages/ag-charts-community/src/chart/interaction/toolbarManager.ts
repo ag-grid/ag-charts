@@ -3,7 +3,7 @@ import type { AgIconName, AgToolbarOptions } from 'ag-charts-types';
 import type { DOMManager } from '../../dom/domManager';
 import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../baseManager';
-import { TOOLBAR_POSITIONS, type ToolbarGroup } from '../toolbar/toolbarTypes';
+import { type Anchor, TOOLBAR_POSITIONS, type ToolbarGroup } from '../toolbar/toolbarTypes';
 
 type EventTypes =
     | 'button-pressed'
@@ -45,7 +45,8 @@ export interface ToolbarGroupUpdatedEvent extends ToolbarBaseEvent<'group-update
 export interface ToolbarCancelledEvent extends ToolbarBaseEvent<'cancelled'> {}
 
 export interface ToolbarFloatingAnchorChangedEvent extends ToolbarBaseEvent<'floating-anchor-changed'> {
-    anchor: { x: number; y: number; position?: 'right' | 'above' | 'above-left' | 'below' };
+    anchor: Anchor;
+    index?: number;
 }
 
 export interface ToolbarButtonPressedEvent<T = any> extends ToolbarBaseEvent<'button-pressed'> {
@@ -140,11 +141,8 @@ export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
         this.listeners.dispatch('group-updated', { type: 'group-updated', group });
     }
 
-    changeFloatingAnchor(
-        group: ToolbarGroup,
-        anchor: { x: number; y: number; position?: 'right' | 'above' | 'above-left' }
-    ) {
-        this.listeners.dispatch('floating-anchor-changed', { type: 'floating-anchor-changed', group, anchor });
+    changeFloatingAnchor(group: ToolbarGroup, anchor: Anchor, index?: number) {
+        this.listeners.dispatch('floating-anchor-changed', { type: 'floating-anchor-changed', group, anchor, index });
     }
 
     buttonMoved(group: ToolbarGroup, value: any, rect: BBox, groupRect: BBox) {
