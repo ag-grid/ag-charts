@@ -8,6 +8,7 @@ const options: AgFinancialChartOptions = {
     title: {
         text: 'Line Drawings',
     },
+    rangeButtons: false,
     initialState: {
         annotations: [
             {
@@ -31,10 +32,6 @@ const options: AgFinancialChartOptions = {
                     position: 'center',
                     alignment: 'center',
                 },
-
-                stroke: '#5090dc',
-                strokeOpacity: 1,
-                strokeWidth: 2,
             },
             {
                 type: 'parallel-channel',
@@ -66,19 +63,11 @@ const options: AgFinancialChartOptions = {
                     position: 'top',
                     alignment: 'left',
                 },
-
-                stroke: '#5090dc',
-                strokeOpacity: 1,
-                strokeWidth: 2,
             },
             {
                 type: 'disjoint-channel',
                 startHeight: 16.872238586154708,
                 endHeight: 4.666789396178501,
-                background: {
-                    fill: '#5090dc',
-                    fillOpacity: 0.2,
-                },
                 start: {
                     x: {
                         __type: 'date',
@@ -98,10 +87,6 @@ const options: AgFinancialChartOptions = {
                     position: 'bottom',
                     alignment: 'right',
                 },
-
-                stroke: '#5090dc',
-                strokeOpacity: 1,
-                strokeWidth: 2,
             },
             {
                 type: 'vertical-line',
@@ -117,9 +102,6 @@ const options: AgFinancialChartOptions = {
                 axisLabel: {
                     enabled: true,
                 },
-                stroke: '#5090dc',
-                strokeOpacity: 1,
-                strokeWidth: 2,
             },
             {
                 type: 'horizontal-line',
@@ -132,9 +114,6 @@ const options: AgFinancialChartOptions = {
                 axisLabel: {
                     enabled: true,
                 },
-                stroke: '#5090dc',
-                strokeOpacity: 1,
-                strokeWidth: 2,
             },
         ],
     },

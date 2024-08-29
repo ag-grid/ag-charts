@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Theme } from 'ag-charts-community';
+import { type _ModuleSupport, _Theme } from 'ag-charts-community';
 
 import { RadialGaugeSeries } from './radialGaugeSeries';
 
@@ -32,6 +32,21 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
             innerRadiusRatio: 0.8,
             bar: {
                 strokeWidth: 0,
+            },
+            target: {
+                fill: DEFAULT_LABEL_COLOUR,
+                stroke: DEFAULT_LABEL_COLOUR,
+                size: 10,
+                placement: 'outside',
+                spacing: 5,
+                label: {
+                    enabled: true,
+                    fontWeight: FONT_WEIGHT.NORMAL,
+                    fontSize: 12,
+                    fontFamily: DEFAULT_FONT_FAMILY,
+                    color: DEFAULT_LABEL_COLOUR,
+                    spacing: 5,
+                },
             },
             needle: {
                 enabled: false,
@@ -72,7 +87,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 defaultFill: hierarchyFills?.[1],
                 stroke: hierarchyFills?.[2],
             },
-            colorStops: colorRange?.map((color) => ({ color })),
+            defaultColorStops: colorRange,
         };
     },
 };

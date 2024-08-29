@@ -335,18 +335,6 @@
                         "isEnterprise": true
                     },
                     {
-                        "title": "Radial Gauge",
-                        "icon": "chartsRadialGauge",
-                        "path": "radial-gauge",
-                        "isEnterprise": true
-                    },
-                    {
-                        "title": "Bullet",
-                        "icon": "chartsBullet",
-                        "path": "bullet-series",
-                        "isEnterprise": true
-                    },
-                    {
                         "title": "Candlestick",
                         "icon": "chartsCandlestick",
                         "path": "candlestick-series",
@@ -441,6 +429,18 @@
                         "icon": "chartsChord",
                         "path": "chord-series",
                         "isEnterprise": true
+                    },
+                    {
+                        "title": "Bullet",
+                        "icon": "chartsBullet",
+                        "path": "bullet-series",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Radial Gauge",
+                        "icon": "chartsRadialGauge",
+                        "path": "radial-gauge",
+                        "isEnterprise": true
                     }
                 ]
             }
@@ -452,6 +452,10 @@
                 "title": "Migration",
                 "feature": false,
                 "items": [
+                    {
+                        "title": "Upgrade to AG Charts 10.2",
+                        "path": "upgrade-to-ag-charts-10-2"
+                    },
                     {
                         "title": "Upgrade to AG Charts 10.1",
                         "path": "upgrade-to-ag-charts-10-1"

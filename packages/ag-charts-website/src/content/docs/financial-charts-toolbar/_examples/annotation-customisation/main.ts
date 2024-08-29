@@ -8,6 +8,7 @@ const options: AgFinancialChartOptions = {
     title: {
         text: 'Customisation',
     },
+    rangeButtons: false,
     theme: {
         overrides: {
             common: {

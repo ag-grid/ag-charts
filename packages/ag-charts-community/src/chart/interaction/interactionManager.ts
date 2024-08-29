@@ -178,7 +178,7 @@ export class InteractionManager extends InteractionStateListener<InteractionType
     ) {
         super();
 
-        this.rootElement = this.domManager.getDocumentRoot();
+        this.rootElement = this.domManager.getShadowDocumentRoot();
 
         for (const type of EVENT_HANDLERS) {
             if (type.startsWith('touch') || type === 'wheel') {
@@ -202,7 +202,7 @@ export class InteractionManager extends InteractionStateListener<InteractionType
     }
 
     private containerChanged(force = false) {
-        const newRoot = this.domManager.getDocumentRoot();
+        const newRoot = this.domManager.getShadowDocumentRoot();
         if (!force && newRoot === this.rootElement) return;
 
         for (const type of SHADOW_DOM_HANDLERS) {
@@ -286,13 +286,6 @@ export class InteractionManager extends InteractionStateListener<InteractionType
         this.debug('Received raw event', event);
 
         const type = this.decideInteractionEventTypes(event);
-
-        // AG-11385 Ignore clicks on focusable & disabled elements.
-        const target: (EventTarget & { ariaDisabled?: string }) | null = event.target;
-        if (event.type === 'click' && target?.ariaDisabled === 'true') {
-            event.preventDefault();
-            return;
-        }
 
         if (type != null) {
             // Async dispatch to avoid blocking the event-processing thread.

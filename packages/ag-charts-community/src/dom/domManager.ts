@@ -26,6 +26,9 @@ const domElementConfig: Map<DOMElementClass, DOMElementConfig> = new Map([
     [CANVAS_CENTER_CLASS, { childElementType: 'div' }],
 ]);
 
+const overlayNonBubblingEvents = ['keyup', 'mousedown', 'mouseup', 'click'];
+const overlayStopPropagation = (ev: Event) => ev.stopPropagation();
+
 function setupObserver(element: HTMLElement, cb: (intersectionRatio: number) => void) {
     // Detect when the chart becomes invisible and hide the tooltip as well.
     if (typeof IntersectionObserver === 'undefined') return;
@@ -112,10 +115,23 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         if (container) {
             this.setContainer(container);
         }
+
+        const overlay = this.element.querySelector('.ag-charts-canvas-overlay') as HTMLElement | null;
+        if (overlay != null) {
+            for (const type of overlayNonBubblingEvents) {
+                overlay.addEventListener(type, overlayStopPropagation);
+            }
+        }
     }
 
     override destroy() {
         super.destroy();
+        const overlay = this.element.querySelector('.ag-charts-canvas-overlay') as HTMLElement | null;
+        if (overlay != null) {
+            for (const type of overlayNonBubblingEvents) {
+                overlay.removeEventListener(type, overlayStopPropagation);
+            }
+        }
 
         this.observer?.unobserve(this.element);
         if (this.container) {
@@ -152,7 +168,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             this.sizeMonitor.unobserve(this.container);
         }
 
-        const isShadowDom = this.getDocumentRoot(newContainer) != null;
+        const isShadowDom = this.getShadowDocumentRoot(newContainer) != null;
 
         // If the container was inside a shadow DOM, the styles are added to the container rather than the head
         //
@@ -293,13 +309,13 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
         // If in a shadow-DOM case, use the shadow-DOMs bounding-box, intersected with the window
         // viewport.
-        const docRoot = this.getDocumentRoot();
+        const docRoot = this.getShadowDocumentRoot();
         if (docRoot) {
             return docRoot.getBoundingClientRect();
         }
     }
 
-    getDocumentRoot(current = this.container) {
+    getShadowDocumentRoot(current = this.container) {
         const docRoot = current?.ownerDocument?.body ?? getDocument('body');
 
         // For shadow-DOM cases, the root node of the shadow-DOM has no parent - we need
@@ -360,7 +376,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         if (this.container == null) return;
 
         const dataAttribute = 'data-ag-charts';
-        const documentRoot = this.getDocumentRoot();
+        const documentRoot = this.getShadowDocumentRoot();
         let styleElement: HTMLElement;
         if (documentRoot != null) {
             styleElement = this.addChild('styles', id);

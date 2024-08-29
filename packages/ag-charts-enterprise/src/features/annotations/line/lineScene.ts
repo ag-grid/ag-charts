@@ -1,13 +1,14 @@
 import { type _Scene, _Util } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
-import { convertLine, invertCoords, validateDatumPoint } from '../annotationUtils';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { ArrowCapScene, type CapScene } from '../scenes/capScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
 import { DivariantHandle } from '../scenes/handle';
 import { LineWithTextScene } from '../scenes/lineWithTextScene';
 import { LinearScene } from '../scenes/linearScene';
+import { validateDatumPoint } from '../utils/validation';
+import { convertLine, invertCoords } from '../utils/values';
 import type { LineTypeProperties } from './lineProperties';
 
 const { Vec2 } = _Util;
@@ -73,9 +74,9 @@ export class LineScene extends LinearScene<LineTypeProperties> {
     }
 
     updateHandles(datum: LineTypeProperties, coords: LineCoords, locked: boolean) {
-        const { start, end } = this;
+        const { start, end, startCap, endCap } = this;
         const { stroke, strokeWidth, strokeOpacity } = datum;
-        const { x1, y1, x2, y2 } = coords;
+        let [startPoint, endPoint] = Vec2.from(coords);
 
         const handleStyles = {
             fill: datum.handle.fill,
@@ -84,8 +85,17 @@ export class LineScene extends LinearScene<LineTypeProperties> {
             strokeWidth: datum.handle.strokeWidth ?? strokeWidth,
         };
 
-        start.update({ ...handleStyles, x: x1, y: y1 });
-        end.update({ ...handleStyles, x: x2, y: y2 });
+        // Offset the handles so they do not cover the caps
+        const angle = Vec2.angle(Vec2.sub(endPoint, startPoint));
+        if (startCap) {
+            startPoint = Vec2.rotate(Vec2.from(0, -DivariantHandle.HANDLE_SIZE / 2), angle, startPoint);
+        }
+        if (endCap) {
+            endPoint = Vec2.rotate(Vec2.from(0, DivariantHandle.HANDLE_SIZE / 2), angle, endPoint);
+        }
+
+        start.update({ ...handleStyles, ...startPoint });
+        end.update({ ...handleStyles, ...endPoint });
 
         start.toggleLocked(locked);
         end.toggleLocked(locked);

@@ -140,6 +140,7 @@ export function initToolbarKeyNav(opts: {
 
 export interface MenuCloser {
     close(): void;
+    finishClosing(): void;
 }
 
 export type MenuDevice = { type: 'keyboard'; lastFocus: HTMLElement } | { type: 'mouse'; lastFocus?: undefined };
@@ -149,7 +150,7 @@ class MenuCloserImp implements MenuCloser {
 
     constructor(
         menu: HTMLElement,
-        private readonly lastFocus: HTMLElement | undefined,
+        private lastFocus: HTMLElement | undefined,
         public readonly closeCallback: () => void
     ) {
         this.destroyFns.push(addMouseCloseListener(this.destroyFns, menu, () => this.close()));
@@ -157,8 +158,14 @@ class MenuCloserImp implements MenuCloser {
 
     close() {
         this.closeCallback();
+        this.finishClosing();
+    }
+
+    finishClosing() {
         this.destroyFns.forEach((d) => d());
+        this.destroyFns.length = 0;
         this.lastFocus?.focus();
+        this.lastFocus = undefined;
     }
 }
 

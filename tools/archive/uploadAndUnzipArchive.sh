@@ -50,22 +50,22 @@ if [ "$2" != "skipWarning" ]; then
 fi
 
 # delete dir if it exists - can ignore dir not found error
-echo "ssh -i $SSH_LOCATION -p $SSH_PORT $HOST \"cd $CHARTS_PUBLIC_HTML_PATH/archive/ && [[ -d $VERSION ]] && rm -r $VERSION\""
-ssh -i $SSH_LOCATION -p $SSH_PORT $HOST "cd $CHARTS_PUBLIC_HTML_PATH/archive/ && [[ -d $VERSION ]] && rm -r $VERSION"
+echo "ssh -i $SSH_LOCATION -p $SSH_PORT $HOST \"cd $CHARTS_ROOT_DIR/archive/ && [[ -d $VERSION ]] && rm -r $VERSION\""
+ssh -i $SSH_LOCATION -p $SSH_PORT $HOST "cd $CHARTS_ROOT_DIR/archive/ && [[ -d $VERSION ]] && rm -r $VERSION"
 
 # upload file
-echo "ssh -i $SSH_LOCATION -p $SSH_PORT $HOST \"mkdir -p $CHARTS_PUBLIC_HTML_PATH/archive/$VERSION\""
-ssh -i $SSH_LOCATION -p $SSH_PORT $HOST "mkdir -p $CHARTS_PUBLIC_HTML_PATH/archive/$VERSION"
-echo "scp -i $SSH_LOCATION -P $SSH_PORT $ARCHIVE $HOST:$CHARTS_PUBLIC_HTML_PATH/archive/$VERSION/"
-scp -i $SSH_LOCATION -P $SSH_PORT $ARCHIVE $HOST:$CHARTS_PUBLIC_HTML_PATH/archive/$VERSION/
+echo "ssh -i $SSH_LOCATION -p $SSH_PORT $HOST \"mkdir -p $CHARTS_ROOT_DIR/archive/$VERSION\""
+ssh -i $SSH_LOCATION -p $SSH_PORT $HOST "mkdir -p $CHARTS_ROOT_DIR/archive/$VERSION"
+echo "scp -i $SSH_LOCATION -P $SSH_PORT $ARCHIVE $HOST:$CHARTS_ROOT_DIR/archive/$VERSION/"
+scp -i $SSH_LOCATION -P $SSH_PORT $ARCHIVE $HOST:$CHARTS_ROOT_DIR/archive/$VERSION/
 
 # unzip archive
-echo "ssh -i $SSH_LOCATION -p $SSH_PORT $HOST \"cd $CHARTS_PUBLIC_HTML_PATH/archive/$VERSION && tar -m -xf $ARCHIVE\""
-ssh -i $SSH_LOCATION -p $SSH_PORT $HOST "cd $CHARTS_PUBLIC_HTML_PATH/archive/$VERSION && unzip $ARCHIVE"
+echo "ssh -i $SSH_LOCATION -p $SSH_PORT $HOST \"cd $CHARTS_ROOT_DIR/archive/$VERSION && tar -m -xf $ARCHIVE\""
+ssh -i $SSH_LOCATION -p $SSH_PORT $HOST "cd $CHARTS_ROOT_DIR/archive/$VERSION && unzip $ARCHIVE"
 
 #update folder permissions (default is 777 - change to 755)
-echo "ssh -i $SSH_LOCATION -p $SSH_PORT $HOST \"chmod -R 755 $CHARTS_PUBLIC_HTML_PATH/archive/$VERSION\""
-ssh -i $SSH_LOCATION -p $SSH_PORT $HOST "chmod -R 755 $CHARTS_PUBLIC_HTML_PATH/archive/$VERSION"
+echo "ssh -i $SSH_LOCATION -p $SSH_PORT $HOST \"chmod -R 755 $CHARTS_ROOT_DIR/archive/$VERSION\""
+ssh -i $SSH_LOCATION -p $SSH_PORT $HOST "chmod -R 755 $CHARTS_ROOT_DIR/archive/$VERSION"
 
 
 

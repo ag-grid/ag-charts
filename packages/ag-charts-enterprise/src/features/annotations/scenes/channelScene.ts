@@ -2,7 +2,7 @@ import { _Scene, _Util } from 'ag-charts-community';
 
 import type { ChannelTextProperties, PointProperties } from '../annotationProperties';
 import type { AnnotationContext, LineCoords } from '../annotationTypes';
-import { convertLine } from '../annotationUtils';
+import { convertLine } from '../utils/values';
 import { CollidableLine } from './collidableLineScene';
 import type { Handle } from './handle';
 import { LinearScene } from './linearScene';
@@ -74,7 +74,7 @@ export abstract class ChannelScene<
     }
 
     override containsPoint(x: number, y: number) {
-        const { handles, topLine, bottomLine } = this;
+        const { handles, topLine, bottomLine, text } = this;
 
         this.activeHandle = undefined;
 
@@ -85,7 +85,7 @@ export abstract class ChannelScene<
             }
         }
 
-        return topLine.containsPoint(x, y) || bottomLine.containsPoint(x, y);
+        return topLine.containsPoint(x, y) || bottomLine.containsPoint(x, y) || Boolean(text?.containsPoint(x, y));
     }
 
     protected abstract updateLines(datum: Datum, top: LineCoords, bottom: LineCoords): void;

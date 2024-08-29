@@ -1,11 +1,12 @@
 import { type AgAnnotationHandleStyles, _Scene, _Util } from 'ag-charts-community';
 
 import { type Anchor, type AnnotationContext, type Coords, type LineCoords } from '../annotationTypes';
-import { convertLine, invertCoords, validateDatumPoint } from '../annotationUtils';
 import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
 import { DivariantHandle } from '../scenes/handle';
 import { LinearScene } from '../scenes/linearScene';
 import { getBBox, updateTextNode, wrapText } from '../text/util';
+import { validateDatumPoint } from '../utils/validation';
+import { convertLine, invertCoords } from '../utils/values';
 
 const { Vec2 } = _Util;
 

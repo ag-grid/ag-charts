@@ -1,7 +1,9 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { Dialog, type DialogOptions } from '../../../components/dialog/dialog';
 import type { ChannelPropertiesType, LinePropertiesType } from '../annotationsSuperTypes';
+
+const { focusCursorAtEnd } = _ModuleSupport;
 
 interface LineSettingsDialogOptions extends DialogOptions {
     onChange: (props: { alignment?: string; fontSize?: number; position?: string; label?: string }) => void;
@@ -38,6 +40,8 @@ export class AnnotationSettingsDialog extends Dialog {
 
         const popover = this.showWithChildren([header, textTabContent], options);
         popover.classList.add('ag-charts-dialog--annotation-settings');
+
+        focusCursorAtEnd(textArea);
     }
 
     private createFontSizeSelect(fontSize: number, onChangeFontSize: (fontSize: number) => void) {

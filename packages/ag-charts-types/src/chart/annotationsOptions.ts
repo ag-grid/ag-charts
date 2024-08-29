@@ -230,6 +230,8 @@ export interface AgArrowAnnotation
     /** Configuration for the arrow annotation.*/
     type: 'arrow';
     handle?: AgAnnotationHandle;
+    /** Configuration for the line text. */
+    text?: AgLineText;
 }
 
 export interface AgArrowMarkAnnotation extends AgAnnotationPoint, Lockable, Visible, StrokeOptions, LineDashOptions {

@@ -1,4 +1,4 @@
-import { type TextAlign, type VerticalAlign, _ModuleSupport, _Scene } from 'ag-charts-community';
+import { type TextAlign, type VerticalAlign, type _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { type LabelFormatting, formatSingleLabel, formatStackedLabels } from '../util/labelFormatter';
 import type { RadialGaugeNeedle } from './radialGaugeNeedle';
@@ -38,10 +38,6 @@ type AnimatableNeedleDatum = {
     angle: number;
 };
 
-type AnimatableTargetDatum = {
-    size: number;
-};
-
 export const fadeInFns: _ModuleSupport.FromToFns<_Scene.Node, any, any> = {
     fromFn: () => ({ opacity: 0, phase: 'initial' }),
     toFn: () => ({ opacity: 1 }),
@@ -74,7 +70,7 @@ function datumClipSector(datum: AnimatableSectorDatum & DefinedClipSector, zero:
     return new SectorBox(clipStartAngle, zero ? clipStartAngle : clipEndAngle, innerRadius, outerRadius);
 }
 
-export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean) {
+export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean, initialStartAngle: number) {
     const phase = initialLoad ? 'initial' : 'update';
 
     const node: _ModuleSupport.FromToFns<_Scene.Sector, SectorAnimation, AnimatableSectorDatum> = {
@@ -110,17 +106,12 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean)
 
             return { startAngle, endAngle, innerRadius, outerRadius, clipSector, phase };
         },
-        toFn(_sect, datum, status) {
-            const removed = status === 'removed';
-
-            const { startAngle, innerRadius, outerRadius } = datum;
-            let { endAngle } = datum;
+        toFn(_sect, datum) {
+            const { startAngle, endAngle, innerRadius, outerRadius } = datum;
 
             let clipSector: _Scene.SectorBox | undefined;
             if (hasClipSector(datum)) {
-                clipSector = datumClipSector(datum, removed);
-            } else if (removed) {
-                endAngle = startAngle;
+                clipSector = datumClipSector(datum, false);
             }
 
             return { startAngle, endAngle, outerRadius, innerRadius, clipSector };
@@ -145,62 +136,26 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean)
     };
 
     const needle: _ModuleSupport.FromToFns<RadialGaugeNeedle, any, AnimatableNeedleDatum> = {
-        fromFn(needleNode, datum) {
-            let { rotation, scalingX, scalingY } = needleNode;
+        fromFn(needleNode) {
+            let { angle: rotation } = needleNode.previousDatum ?? needleNode.datum;
 
-            if (needleNode.previousDatum == null || initialLoad) {
-                scalingX = 0;
-                scalingY = 0;
-                rotation = datum.angle;
+            if (initialLoad) {
+                rotation = initialStartAngle;
             }
 
-            return { rotation, scalingX, scalingY, phase };
+            return { rotation, phase };
         },
-        toFn(_needleNode, datum, status) {
-            let scalingX = datum.radius * 2;
-            let scalingY = datum.radius * 2;
+        toFn(_needleNode, datum) {
             const { angle: rotation } = datum;
 
-            if (status === 'removed') {
-                scalingX = 0;
-                scalingY = 0;
-            }
-
-            return { rotation, scalingX, scalingY };
+            return { rotation };
         },
     };
 
-    const target: _ModuleSupport.FromToFns<_Scene.Marker, any, AnimatableTargetDatum> = {
-        fromFn(targetNode, datum) {
-            const { size } = datum;
-
-            let scalingX = size;
-            let scalingY = size;
-            if (targetNode.previousDatum == null || initialLoad) {
-                scalingX = 0;
-                scalingY = 0;
-            }
-
-            return { scalingX, scalingY, phase };
-        },
-        toFn(_targetNode, datum, status) {
-            const { size } = datum;
-
-            let scalingX = size;
-            let scalingY = size;
-            if (status === 'removed') {
-                scalingX = 0;
-                scalingY = 0;
-            }
-
-            return { scalingX, scalingY };
-        },
-    };
-
-    return { node, needle, target };
+    return { node, needle };
 }
 
-function getLabelText(
+export function getLabelText(
     series: _ModuleSupport.Series<any, any>,
     label: RadialGaugeLabelProperties | RadialGaugeSecondaryLabelProperties,
     value: number | undefined,

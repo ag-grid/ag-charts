@@ -39,7 +39,7 @@ export class HierarchyChart extends Chart {
     }
 
     protected override getAriaLabel(): string {
-        const captionText = this.getCaptionText();
-        return `hierarchical chart, ${captionText}`;
+        const caption = this.getCaptionText();
+        return this.ctx.localeManager.t('ariaAnnounceHierarchyChart', { caption });
     }
 }

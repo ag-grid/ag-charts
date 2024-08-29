@@ -1,6 +1,12 @@
-import type { _Scene, _Util } from 'ag-charts-community';
+import type { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import type { AnnotationType, Point } from './annotationTypes';
+import type {
+    AnnotationContext,
+    AnnotationType,
+    Constructor,
+    GuardDragClickDoubleEvent,
+    Point,
+} from './annotationTypes';
 import type { ArrowDownProperties } from './arrow-down/arrowDownProperties';
 import type { ArrowDownScene } from './arrow-down/arrowDownScene';
 import type { ArrowUpProperties } from './arrow-up/arrowUpProperties';
@@ -19,6 +25,7 @@ import type { NoteProperties } from './note/noteProperties';
 import type { NoteScene } from './note/noteScene';
 import type { ParallelChannelProperties } from './parallel-channel/parallelChannelProperties';
 import type { ParallelChannelScene } from './parallel-channel/parallelChannelScene';
+import type { AnnotationScene as AnnotationSceneNode } from './scenes/annotationScene';
 import type { TextProperties } from './text/textProperties';
 import type { TextScene } from './text/textScene';
 
@@ -78,6 +85,35 @@ export interface AnnotationsStateMachineContext {
     updateTextInputBBox: (bbox?: _Scene.BBox) => void;
 
     showAnnotationOptions: (index: number) => void;
+    showAnnotationSettings: (index: number) => void;
 
     update: () => void;
+}
+
+export interface AnnotationTypeConfig<Datum extends _ModuleSupport.BaseProperties, Scene extends AnnotationSceneNode> {
+    type: AnnotationType;
+    isDatum: (value: unknown) => value is Datum;
+    datum: Constructor<Datum>;
+    scene: Constructor<Scene>;
+    update: (node: AnnotationSceneNode, datum: _ModuleSupport.BaseProperties, context: AnnotationContext) => void;
+    createState: (
+        ctx: AnnotationsStateMachineContext & {
+            delete: () => void;
+            guardDragClickDoubleEvent: GuardDragClickDoubleEvent;
+            deselect: () => void;
+            showAnnotationOptions: () => void;
+            showTextInput: () => void;
+        },
+        helpers: AnnotationsStateMachineHelperFns
+    ) => _ModuleSupport.StateMachine<any, any>;
+    dragState: (
+        ctx: AnnotationsStateMachineContext & { setSelectedWithDrag: () => void },
+        helpers: AnnotationsStateMachineHelperFns
+    ) => _ModuleSupport.StateMachine<any, any>;
+}
+
+export interface AnnotationsStateMachineHelperFns {
+    createDatum: <T extends AnnotationProperties>(type: AnnotationType) => (datum: T) => void;
+    getDatum: <T>(is: (value: unknown) => value is T) => () => T;
+    getNode: <T>(is: (value: unknown) => value is T) => () => T;
 }

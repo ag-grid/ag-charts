@@ -12,13 +12,32 @@ const firstOptions: AgGaugeOptions = {
     scale: {
         min: 0,
         max: 120,
-        step: 10,
+        label: {
+            step: 10,
+        },
+        fills: [{ color: '#4cd137' }, { color: '#fbc531', stop: 65 }, { color: '#e84118', stop: 75 }],
     },
     secondaryLabel: {
         text: 'mph',
     },
-    targets: [{ value: 70, shape: 'triangle', placement: 'inside', spacing: 5, fill: '#8883' }],
-    colorStops: [{ color: '#4cd137' }, { color: '#fbc531' }, { color: '#e84118' }],
+    targets: [
+        {
+            value: 70,
+            shape: 'triangle',
+            placement: 'inside',
+            spacing: 5,
+            fill: '#8884',
+            text: 'LIMIT',
+        },
+    ],
+    target: {
+        label: {
+            color: '#8888',
+            fontSize: 8,
+            fontWeight: 'bold',
+            spacing: 2,
+        },
+    },
 };
 
 AgCharts.createGauge(firstOptions);
@@ -35,6 +54,7 @@ const secondOptions: AgGaugeOptions = {
     scale: {
         min: 0,
         max: 8,
+        fills: [{ color: '#7f8fa6' }, { color: '#e84118', stop: 6 }],
     },
     bar: {
         enabled: false,
@@ -42,10 +62,6 @@ const secondOptions: AgGaugeOptions = {
     needle: {
         enabled: true,
     },
-    colorStops: [
-        { color: '#7f8fa6', stop: 6 },
-        { color: '#e84118', stop: 6.001 },
-    ],
 };
 
 AgCharts.createGauge(secondOptions);
@@ -62,7 +78,13 @@ const thirdOptions: AgGaugeOptions = {
     scale: {
         min: 0,
         max: 100,
-        values: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+        fills: [
+            { color: '#e84118' },
+            { color: '#fbc531', stop: 50 },
+            { color: '#4cd137', stop: 60 },
+            { color: '#fbc531', stop: 70 },
+            { color: '#e84118', stop: 80 },
+        ],
     },
     bar: {
         enabled: false,
@@ -70,13 +92,6 @@ const thirdOptions: AgGaugeOptions = {
     needle: {
         enabled: true,
     },
-    colorStops: [
-        { color: '#e84118', stop: 40 },
-        { color: '#fbc531', stop: 50 },
-        { color: '#4cd137', stop: 60 },
-        { color: '#fbc531', stop: 70 },
-        { color: '#e84118', stop: 80 },
-    ],
 };
 
 AgCharts.createGauge(thirdOptions);
@@ -92,12 +107,14 @@ const fourthOptions: AgGaugeOptions = {
     scale: {
         min: 0,
         max: 50,
-        step: 5,
+        label: {
+            step: 5,
+        },
+        fills: [{ color: '#e84118' }, { color: '#fbc531' }, { color: '#4cd137' }],
     },
     secondaryLabel: {
         text: 'litres',
     },
-    colorStops: [{ color: '#e84118' }, { color: '#fbc531' }, { color: '#4cd137' }],
 };
 
 AgCharts.createGauge(fourthOptions);
