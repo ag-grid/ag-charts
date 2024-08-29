@@ -76,13 +76,15 @@ export interface AgRadialGaugeSeriesNeedleStyle extends FillOptions, StrokeOptio
     spacing?: number;
 }
 
+export type AgRadialGaugeMarkerShape = MarkerShape | 'line';
+
 export interface AgRadialGaugeTarget extends FillOptions, StrokeOptions, LineDashOptions {
     /** Value to use to position the target */
     value: number;
     /** Text to use for the target label. */
     text?: string;
     /** The shape to use for the target. You can also supply a custom marker by providing a `Marker` subclass. */
-    shape?: MarkerShape;
+    shape?: AgRadialGaugeMarkerShape;
     /** Placement of target. */
     placement?: AgRadialGaugeTargetPlacement;
     /** Spacing of the target. Ignored when placement is 'middle'. */
