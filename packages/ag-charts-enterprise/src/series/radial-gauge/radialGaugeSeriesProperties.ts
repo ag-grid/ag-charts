@@ -24,6 +24,7 @@ const {
     Validate,
     BOOLEAN,
     COLOR_STRING,
+    COLOR_STRING_ARRAY,
     FUNCTION,
     LINE_DASH,
     MARKER_SHAPE,
@@ -194,8 +195,8 @@ export class RadialGaugeStopProperties extends BaseProperties {
     @Validate(NUMBER, { optional: true })
     stop?: number;
 
-    @Validate(COLOR_STRING)
-    color: string = 'black';
+    @Validate(COLOR_STRING, { optional: true })
+    color?: string;
 }
 
 export class RadialGaugeBarProperties extends BaseProperties {
@@ -299,8 +300,8 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeS
     @Validate(OBJECT_ARRAY)
     colorStops = new PropertiesArray<RadialGaugeStopProperties>(RadialGaugeStopProperties);
 
-    @Validate(OBJECT_ARRAY)
-    defaultColorStops = new PropertiesArray<RadialGaugeStopProperties>(RadialGaugeStopProperties);
+    @Validate(COLOR_STRING_ARRAY)
+    defaultColorStops: string[] = [];
 
     @Validate(OBJECT_ARRAY)
     targets = new PropertiesArray<RadialGaugeTargetProperties>(RadialGaugeTargetProperties);
