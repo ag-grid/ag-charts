@@ -59,7 +59,12 @@ export default defineConfig({
         enabled: false,
     },
     vite: {
-        plugins: [mkcert(), svgr(), agHotModuleReload(Boolean(WATCH_INTEGRATION)), agAutoRedirect()],
+        plugins: [
+            mkcert(),
+            svgr(),
+            agHotModuleReload(Boolean(WATCH_INTEGRATION)),
+            agAutoRedirect(['/javascript', '/react', '/vue', '/angular', '/gallery']),
+        ],
         resolve: {
             conditions: ['require'],
         },
