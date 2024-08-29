@@ -94,14 +94,15 @@
     }
 }
 
-.featuresSectionInner {
-    .twoColumnContainer {
-        display: flex;
-        .column {
-            flex: 1;
-            padding: 10px;
-            box-sizing: border-box;
-        }
+.enterpriseFeaturesSectionInner {
+}
+
+.twoColumnContainer {
+    display: flex;
+    .column {
+        flex: 1;
+        padding: 10px;
+        box-sizing: border-box;
     }
 }
 

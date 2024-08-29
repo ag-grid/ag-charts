@@ -1,0 +1,53 @@
+@use 'design-system' as *;
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-size-4;
+    margin-top: $spacing-size-8;
+    align-items: center;
+}
+
+.tabContainer {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    background: var(--color-brand-200);
+    border-radius: var(--radius-4xl);
+    padding: $spacing-size-1;
+    max-width: 75%;
+}
+
+.tabButton {
+    width: 150px;
+    height: 50px;
+    color: var(--color-fg-primary);
+    border-radius: var(--radius-4xl);
+    border: none;
+    appearance: none;
+    background-color: transparent;
+    box-shadow: none;
+    font-weight: var(--text-regular);
+
+    &:hover {
+        border-radius: var(--radius-4xl);
+        background: #fff;
+        color: var(--color-brand-600);
+        border: none;
+        box-shadow: var(--shadow-lg);
+    }
+}
+
+.activeTabButton {
+    width: 150px;
+    height: 50px;
+    border-radius: var(--radius-4xl);
+    background: #fff;
+    color: var(--color-brand-600);
+    border: none;
+    box-shadow: var(--shadow-lg);
+}
+
+.exampleContainer {
+    width: 100%;
+}

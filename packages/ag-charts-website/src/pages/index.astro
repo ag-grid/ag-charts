@@ -3,8 +3,9 @@ import Layout from '@layouts/Layout.astro';
 import styles from '@pages-styles/homepage.module.scss';
 import { getEntry } from 'astro:content';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
-import { Snippet } from '@ag-website-shared/components/snippet/Snippet';
-import GalleryExampleRunner from '@features/gallery/components/GalleryExampleRunner.astro';
+import { FreeChartsExamples } from '@features/homepage/components/FreeChartsExamples';
+import { ExampleRunnerContainer } from '@features/example-runner/components/ExampleRunnerContainer.astro';
+import { DocsExampleRunner } from '@features/docs/components/DocsExampleRunner';
 const { data: whatsNewData } = await getEntry('versions', 'ag-charts-versions');
 
 /**
@@ -37,9 +38,9 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                     <h2>High Performance, Feature Rich JavaScript Charting Library</h2>
                     <h3>
                         AG Charts is a high-performance JavaScript charting library that lets you create stunning
-                        visualizations, including bar, line, pie, and map charts, within minutes. Get started for free
-                        with essential features or <a>upgrade to Enterprise</a> for advanced features, series types and
-                        dedicated support.
+                        visualizations, including <a>bar</a>, <a>line</a>, <a>pie</a>, and <a>map</a> charts, within
+                        minutes. <a>Get started</a> for free with essential features or <a>upgrade to Enterprise</a> for
+                        advanced features, series types and dedicated support.
                     </h3>
                 </div>
                 <div class={styles.ctaContainer}>
@@ -57,24 +58,21 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
             </div>
         </div>
         <div class={styles.section}>
-            <div class:list={[styles.featuresSectionInner, 'layout-max-width-small']}>
+            <div class:list={[styles.communityFeaturesSectionInner, 'layout-max-width-small']}>
                 <div class={styles.sectionHeaderContainer}>
                     <h2>Free JavaScript Charting Library - Quick & Easy Setup</h2>
                     <h3>Build Beautiful Charts in Minutes, for Free</h3>
                     <h4>
-                        AG Charts supports multiple series types, customizable axes, real-time updates, and
+                        AG Charts Community supports multiple series types, customizable axes, real-time updates, and
                         accessibility features. Use it to create dynamic visualizations for data analysis, financial
                         reporting, and interactive dashboards.
                     </h4>
                 </div>
-                <span>Bar | Line | Area | Scatter | Bubble | Pie | Donut</span>
-                <div>
-                    <GalleryExampleRunner client:visible title={'simple-bar'} name={'simple-bar'} />
-                </div>
+                <FreeChartsExamples client:only="react" />
             </div>
         </div>
         <div class={styles.section}>
-            <div class:list={[styles.featuresSectionInner, 'layout-max-width-small']}>
+            <div class:list={[styles.enterpriseFeaturesSectionInner, 'layout-max-width-small']}>
                 <div class={styles.sectionHeaderContainer}>
                     <h2>Enterprise JavaScript Charts - Advanced Features & Support</h2>
                     <h3>Upgrade for Advanced Features, Series Types and Dedicated Enterprise Support</h3>
@@ -93,12 +91,26 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                         </h5>
                     </div>
                     <div class={styles.column}>
-                        <span>TODO: Demo</span>
+                        <DocsExampleRunner
+                            client:only="react"
+                            title={'Financial Charts Showcase'}
+                            name={'financial-charts-showcase'}
+                            exampleType={'generated'}
+                            framework={'react'}
+                            pageName={'financial-charts'}
+                        />
                     </div>
                 </div>
                 <div class={styles.twoColumnContainer}>
                     <div class={styles.column}>
-                        <span>TODO: Demo</span>
+                        <DocsExampleRunner
+                            client:only="react"
+                            title={'World Map with Colour Scale'}
+                            name={'world-colour-map'}
+                            exampleType={'generated'}
+                            framework={'react'}
+                            pageName={'maps'}
+                        />
                     </div>
                     <div class={styles.column}>
                         <h4>JavaScript Map Charts</h4>
