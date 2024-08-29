@@ -514,7 +514,11 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             const buttons = ariaToolbar.groups
                 .map((g) => this.groupButtons[g])
                 .flat()
-                .filter((b) => !b.classList.contains(styles.modifiers.button.hiddenToggled));
+                .filter(
+                    (b) =>
+                        !b.classList.contains(styles.modifiers.button.hiddenToggled) &&
+                        !b.classList.contains(styles.modifiers.button.grabHandle)
+                );
             ariaToolbar.destroyFns.forEach((d) => d());
             ariaToolbar.destroyFns = initToolbarKeyNav({ orientation, toolbar, buttons, onEscape, onFocus, onBlur });
         };
