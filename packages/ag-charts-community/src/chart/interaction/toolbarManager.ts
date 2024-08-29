@@ -14,6 +14,7 @@ type EventTypes =
     | 'floating-anchor-changed'
     | 'group-toggled'
     | 'group-updated'
+    | 'group-moved'
     | 'proxy-group-options';
 type ToolbarEvent =
     | ToolbarButtonPressedEvent
@@ -24,6 +25,7 @@ type ToolbarEvent =
     | ToolbarFloatingAnchorChangedEvent
     | ToolbarGroupToggledEvent
     | ToolbarGroupUpdatedEvent
+    | ToolbarGroupMovedEvent
     | ToolbarProxyGroupOptionsEvent;
 type ToolbarEventButtonValue<T extends ToolbarGroup> = NonNullable<
     NonNullable<AgToolbarOptions[T]>['buttons']
@@ -41,6 +43,7 @@ export interface ToolbarGroupToggledEvent extends ToolbarBaseEvent<'group-toggle
 }
 
 export interface ToolbarGroupUpdatedEvent extends ToolbarBaseEvent<'group-updated'> {}
+export interface ToolbarGroupMovedEvent extends ToolbarBaseEvent<'group-moved'> {}
 
 export interface ToolbarCancelledEvent extends ToolbarBaseEvent<'cancelled'> {}
 
@@ -139,6 +142,10 @@ export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
 
     updateGroup<T extends ToolbarGroup>(group: T) {
         this.listeners.dispatch('group-updated', { type: 'group-updated', group });
+    }
+
+    groupMoved<T extends ToolbarGroup>(group: T) {
+        this.listeners.dispatch('group-moved', { type: 'group-moved', group });
     }
 
     changeFloatingAnchor(group: ToolbarGroup, anchor: Anchor, index?: number) {

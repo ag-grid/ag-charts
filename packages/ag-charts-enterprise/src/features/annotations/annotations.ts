@@ -482,6 +482,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             ctx.annotationManager.addListener('restore-annotations', this.onRestoreAnnotations.bind(this)),
             ctx.toolbarManager.addListener('button-pressed', this.onToolbarButtonPress.bind(this)),
             ctx.toolbarManager.addListener('button-moved', this.onToolbarButtonMoved.bind(this)),
+            ctx.toolbarManager.addListener('group-moved', this.onToolbarGroupMoved.bind(this)),
             ctx.toolbarManager.addListener('cancelled', this.onToolbarCancelled.bind(this)),
             ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
             ctx.updateService.addListener('pre-scene-render', this.onPreRender.bind(this)),
@@ -695,6 +696,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             default:
                 break;
         }
+    }
+
+    private onToolbarGroupMoved(_event: _ModuleSupport.ToolbarGroupMovedEvent) {
+        this.hideOverlays();
     }
 
     private onColorPickerChange(

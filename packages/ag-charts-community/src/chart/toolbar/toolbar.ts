@@ -851,6 +851,8 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         element.addEventListener('mouseup', () => window.removeEventListener('mousemove', onDrag), {
             once: true,
         });
+
+        this.ctx.toolbarManager.groupMoved(group);
     }
 
     private onDrag(event: MouseEvent, group: ToolbarGroup) {
