@@ -567,6 +567,8 @@ export abstract class Chart extends Observable {
                 await Promise.all(seriesToUpdate.map((series) => series.update({ seriesRect })));
 
                 updateSplits('🤔');
+
+                this.updateAriaLabels();
             // fallthrough
 
             case ChartUpdateType.PRE_SCENE_RENDER:
@@ -644,6 +646,9 @@ export abstract class Chart extends Observable {
 
         const { enabled, tabIndex } = this.keyboard;
         this.ctx.domManager.setTabIndex(enabled ? tabIndex ?? 0 : -1);
+    }
+
+    private updateAriaLabels() {
         setAttribute(this.ctx.scene.canvas.element, 'role', 'img');
         setAttribute(this.ctx.scene.canvas.element, 'aria-label', this.getAriaLabel());
     }

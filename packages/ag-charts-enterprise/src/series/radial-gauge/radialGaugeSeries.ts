@@ -17,6 +17,7 @@ import {
     computeClipSector,
     fadeInFns,
     formatRadialGaugeLabels,
+    getLabelText,
     prepareRadialGaugeSeriesAnimationFunctions,
     resetRadialGaugeSeriesAnimationFunctions,
 } from './radialGaugeUtil';
@@ -1211,5 +1212,25 @@ export class RadialGaugeSeries
 
     computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): _Scene.Path | undefined {
         return;
+    }
+
+    getCaptionText(): string {
+        const { value, label, secondaryLabel } = this.properties;
+
+        const description: string[] = [];
+
+        description.push(this.formatLabel(value));
+
+        const labelText = getLabelText(this, label, value);
+        if (labelText != null) {
+            description.push(labelText);
+        }
+
+        const secondaryLabelText = getLabelText(this, secondaryLabel, value);
+        if (secondaryLabelText != null) {
+            description.push(secondaryLabelText);
+        }
+
+        return description.join('. ');
     }
 }
