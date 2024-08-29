@@ -1331,11 +1331,12 @@ export abstract class Chart extends Observable {
             isUpdated ||= change.status !== 'no-op';
 
             switch (change.status) {
-                case 'add':
+                case 'add': {
                     const newSeries = this.createSeries(change.opts);
                     seriesInstances.push(newSeries);
                     debug(`Chart.applySeries() - created new series`, newSeries);
                     break;
+                }
 
                 case 'remove':
                     debug(`Chart.applySeries() - removing series at previous idx ${change.idx}`, change.series);
@@ -1348,12 +1349,13 @@ export abstract class Chart extends Observable {
 
                 case 'series-grouping':
                 case 'update':
-                default:
+                default: {
                     const { series, diff, idx } = change;
                     debug(`Chart.applySeries() - applying series diff previous idx ${idx}`, diff, series);
                     this.applySeriesValues(series, diff);
                     series.markNodeDataDirty();
                     seriesInstances.push(series);
+                }
             }
         }
         // Ensure declaration order is set, this is used for correct z-index behavior for combo charts.

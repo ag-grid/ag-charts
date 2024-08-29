@@ -40,6 +40,11 @@ const { Label } = _Scene;
 
 const TARGET_PLACEMENT = UNION(['inside', 'outside', 'middle'], 'a placement');
 
+export enum NodeDataType {
+    Node,
+    Target,
+}
+
 export enum LabelType {
     Primary = 'primary',
     Secondary = 'secondary',
@@ -51,6 +56,7 @@ export interface AgRadialGaugeColorStopDatum {
 }
 
 export interface RadialGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
+    type: NodeDataType.Node;
     centerX: number;
     centerY: number;
     innerRadius: number;
@@ -64,8 +70,10 @@ export interface RadialGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     fill: string | _Scene.Gradient | undefined;
 }
 
-export interface RadialGaugeTargetDatum {
-    index: number;
+export interface RadialGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum {
+    type: NodeDataType.Target;
+    value: number;
+    text: string | undefined;
     centerX: number;
     centerY: number;
     shape: MarkerShape;

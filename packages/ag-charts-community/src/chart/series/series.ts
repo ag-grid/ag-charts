@@ -84,7 +84,7 @@ export type PickFocusOutputs = {
     showFocusBox: boolean;
 };
 
-type PickResult = { pickMode: SeriesNodePickMode; match: SeriesNodeDatum; distance: number };
+export type PickResult = { pickMode: SeriesNodePickMode; match: SeriesNodeDatum; distance: number };
 
 export function basicContinuousCheckDatumValidation(value: any) {
     return value != null && isContinuous(value);

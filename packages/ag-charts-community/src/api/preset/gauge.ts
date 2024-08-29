@@ -43,6 +43,7 @@ export function gauge(opts: AgGaugeOptions): AgGaugeChartOptions {
         theme: true,
         title: true,
         seriesArea: true,
+        listeners: true,
     });
 
     const seriesOpts = allProperties<AgRadialGaugeSeriesOptions>(
