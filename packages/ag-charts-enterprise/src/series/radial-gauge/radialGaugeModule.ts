@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Theme } from 'ag-charts-community';
+import { type _ModuleSupport, _Theme } from 'ag-charts-community';
 
 import { RadialGaugeSeries } from './radialGaugeSeries';
 
@@ -87,7 +87,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 defaultFill: hierarchyFills?.[1],
                 stroke: hierarchyFills?.[2],
             },
-            defaultColorStops: colorRange?.map((color) => ({ color })),
+            defaultColorStops: colorRange,
         };
     },
 };
