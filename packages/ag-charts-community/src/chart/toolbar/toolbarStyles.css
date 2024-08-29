@@ -189,7 +189,7 @@
     display: none;
 }
 
-.ag-charts-toolbar__button:hover {
+.ag-charts-toolbar__button:hover:not([aria-disabled='true'], .ag-charts-toolbar__button--grab-handle) {
     background: var(--ag-charts-toolbar-hover-color);
     z-index: 1;
 }
