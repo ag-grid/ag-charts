@@ -13,8 +13,10 @@ import {
 } from '../utils/urlPaths';
 
 interface Props {
-    title: string;
-    exampleName: string;
+    examples: Array<{
+        title: string;
+        exampleName: string;
+    }>;
     loadingIFrameId: string;
 }
 
@@ -29,7 +31,10 @@ const queryOptions = {
     refetchOnReconnect: false,
 };
 
-const GalleryExampleRunnerInner = ({ title, exampleName, loadingIFrameId }: Props) => {
+const GalleryExampleRunnerInner = ({ examples, loadingIFrameId }: Props) => {
+    const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
+    const { title, exampleName } = examples[currentExampleIndex];
+
     const [initialSelectedFile, setInitialSelectedFile] = useState();
     const [exampleUrl, setExampleUrl] = useState<string>();
     const [exampleRunnerExampleUrl, setExampleRunnerExampleUrl] = useState<string>();
@@ -135,21 +140,41 @@ const GalleryExampleRunnerInner = ({ title, exampleName, loadingIFrameId }: Prop
         />
     );
 
+    const handleExampleSelect = (index: number) => {
+        setCurrentExampleIndex(index);
+    };
+
     return (
-        <ExampleRunner
-            id={id}
-            title={title}
-            exampleUrl={exampleUrl}
-            exampleRunnerExampleUrl={exampleRunnerExampleUrl}
-            exampleType={exampleType}
-            exampleFiles={exampleFiles}
-            initialSelectedFile={initialSelectedFile}
-            internalFramework={internalFramework}
-            externalLinks={externalLinks}
-            hideInternalFrameworkSelection={true}
-            exampleHeight={620}
-            loadingIFrameId={loadingIFrameId}
-        />
+        <>
+            <div>
+                {examples.map((example, index) => (
+                    <button
+                        key={example.exampleName}
+                        onClick={() => handleExampleSelect(index)}
+                        style={{
+                            fontWeight: index === currentExampleIndex ? 'bold' : 'normal',
+                            margin: '0 5px 10px 0',
+                        }}
+                    >
+                        {example.title}
+                    </button>
+                ))}
+            </div>
+            <ExampleRunner
+                id={id}
+                title={title}
+                exampleUrl={exampleUrl}
+                exampleRunnerExampleUrl={exampleRunnerExampleUrl}
+                exampleType={exampleType}
+                exampleFiles={exampleFiles}
+                initialSelectedFile={initialSelectedFile}
+                internalFramework={internalFramework}
+                externalLinks={externalLinks}
+                hideInternalFrameworkSelection={true}
+                exampleHeight={620}
+                loadingIFrameId={loadingIFrameId}
+            />
+        </>
     );
 };
 

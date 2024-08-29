@@ -18,6 +18,12 @@ const { data: whatsNewData } = await getEntry('versions', 'ag-charts-versions');
 const galleryEntry = await getEntry('gallery', 'data');
 const galleryExamples = getGalleryExamples({ galleryData: galleryEntry.data });
 
+// Prepare examples data for IndexGalleryExampleRunner
+const exampleData = galleryExamples.map((example) => ({
+    title: example.page.name,
+    exampleName: example.exampleName,
+}));
+
 // Choose an example to display, e.g., the first one
 const exampleToShow = galleryExamples[0];
 ---
@@ -73,11 +79,7 @@ const exampleToShow = galleryExamples[0];
                         reporting, and interactive dashboards.
                     </h4>
                 </div>
-                <IndexGalleryExampleRunner
-                    title={exampleToShow.page.name}
-                    exampleName={exampleToShow.exampleName}
-                    pageName={exampleToShow.page.chartSeriesName}
-                />
+                <IndexGalleryExampleRunner examples={exampleData} pageName={galleryExamples[0].page.chartSeriesName} />
                 <FreeChartsExamples client:only="react" />
             </div>
         </div>
