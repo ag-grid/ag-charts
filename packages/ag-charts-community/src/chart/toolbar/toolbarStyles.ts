@@ -33,6 +33,6 @@ export const modifiers = {
         fillVisible: 'ag-charts-toolbar__button--fill-visible',
         strokeWidthVisible: 'ag-charts-toolbar__button--stroke-width-visible',
         withTransition: 'ag-charts-toolbar__button--with-transition',
-        grabHandle: 'ag-charts-toolbar__button--grab-handle',
+        dragHandle: 'ag-charts-toolbar__button--drag-handle',
     },
 };

@@ -517,7 +517,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
                 .filter(
                     (b) =>
                         !b.classList.contains(styles.modifiers.button.hiddenToggled) &&
-                        !b.classList.contains(styles.modifiers.button.grabHandle)
+                        !b.classList.contains(styles.modifiers.button.dragHandle)
                 );
             ariaToolbar.destroyFns.forEach((d) => d());
             ariaToolbar.destroyFns = initToolbarKeyNav({ orientation, toolbar, buttons, onEscape, onFocus, onBlur });
@@ -730,7 +730,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         if (options.value === 'drag') {
             button.onmousedown = makeAccessibleClickListener(button, (event) => this.onDragStart(event, group));
-            button.classList.add(styles.modifiers.button.grabHandle);
+            button.classList.add(styles.modifiers.button.dragHandle);
         }
 
         if (options.role === 'switch') {

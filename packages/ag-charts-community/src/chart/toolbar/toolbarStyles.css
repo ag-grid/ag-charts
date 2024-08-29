@@ -133,6 +133,10 @@
     --stroke-width-color: var(--ag-charts-toolbar-foreground-color);
 }
 
+.ag-charts-toolbar__button--drag-handle {
+    min-width: 24px;
+}
+
 /* Applying this class just after the element is created prevents the flash of the default border color on initial
    render. The border color variable is evaluated after the transition and a fallback value can not be provided as it
    differs per theme. */
@@ -189,7 +193,7 @@
     display: none;
 }
 
-.ag-charts-toolbar__button:hover:not([aria-disabled='true'], .ag-charts-toolbar__button--grab-handle) {
+.ag-charts-toolbar__button:hover:not([aria-disabled='true'], .ag-charts-toolbar__button--drag-handle) {
     background: var(--ag-charts-toolbar-hover-color);
     z-index: 1;
 }
@@ -217,7 +221,7 @@
     cursor: pointer;
 }
 
-.ag-charts-toolbar__button.ag-charts-toolbar__button--grab-handle {
+.ag-charts-toolbar__button.ag-charts-toolbar__button--drag-handle {
     cursor: grab;
 }
 
@@ -254,6 +258,10 @@
 
 .ag-charts-toolbar__icon + .ag-charts-toolbar__label {
     margin-left: var(--ag-charts-toolbar-gap);
+}
+
+.ag-charts-toolbar__icon.ag-charts-icon-drag-handle {
+    width: 10px;
 }
 
 .ag-charts-toolbar__icon,
