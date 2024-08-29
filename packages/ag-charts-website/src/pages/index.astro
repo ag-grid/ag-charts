@@ -6,6 +6,7 @@ import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { FreeChartsExamples } from '@features/homepage/components/FreeChartsExamples';
 import { ExampleRunnerContainer } from '@features/example-runner/components/ExampleRunnerContainer.astro';
 import { DocsExampleRunner } from '@features/docs/components/DocsExampleRunner';
+import InstallText from '@features/homepage/components/InstallText';
 const { data: whatsNewData } = await getEntry('versions', 'ag-charts-versions');
 
 /**
@@ -30,8 +31,8 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                     <span class={styles.whatsNewVersion}>v10.1.0</span>
                     <span class={styles.whatsNewText}>
                         {whatsNewData[0].highlightSummary}
-                        <Icon svgClasses={[styles.whatsNewArrow]} name="arrowRight" />
                     </span>
+                    <Icon svgClasses={[styles.whatsNewArrow]} name="arrowRight" />
                 </div>
                 <div class={styles.headingContainer}>
                     <h1>JavaScript Charts</h1>
@@ -45,7 +46,9 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                 </div>
                 <div class={styles.ctaContainer}>
                     <button aria-label="Get Started with Free JavaScript Charts">Get Started</button>
-                    <button aria-label="Install AG Charts JavaScript Library">Install</button>
+                    <div class={styles.installCta}>
+                        <InstallText client:load />
+                    </div>
                 </div>
                 <img
                     class={styles.heroImage}

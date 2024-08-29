@@ -44,6 +44,7 @@
             font-size: var(--text-fs-sm);
             font-weight: var(--text-base);
             color: var(--color-brand-500);
+            line-height: 100%;
         }
 
         .whatsNewArrow {
@@ -79,7 +80,22 @@
     }
 
     .ctaContainer {
+        display: flex;
+        gap: $spacing-size-2;
         margin-bottom: $spacing-size-8;
+
+        .installCta {
+            display: flex;
+            min-width: 315px;
+            align-items: center;
+            gap: $spacing-size-2;
+            padding: $spacing-size-2;
+            border-radius: var(--radius-md);
+            background-color: var(--color-brand-200);
+            color: var(--color-gray-900);
+            font-family: 'SF Mono', Courier, monospace;
+            justify-content: center;
+        }
     }
 
     .heroImage {
