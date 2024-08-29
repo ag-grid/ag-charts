@@ -1,6 +1,6 @@
 ---
 import ExampleRunnerContainer from '@features/example-runner/components/ExampleRunnerContainer.astro';
-import { GalleryExampleRunner } from '../../../features/gallery/components/GalleryExampleRunner.tsx';
+import { IndexGalleryExampleRunner } from './IndexGalleryExampleRunner.tsx';
 import { getLoadingIFrameId } from '@features/example-runner/utils/getLoadingLogoId';
 
 const { title, exampleName, pageName } = Astro.props;
@@ -9,5 +9,5 @@ const loadingIFrameId = getLoadingIFrameId({ pageName, exampleName });
 ---
 
 <ExampleRunnerContainer pageName={pageName} exampleName={exampleName}>
-    <GalleryExampleRunner client:load title={title} exampleName={exampleName} loadingIFrameId={loadingIFrameId} />
+    <IndexGalleryExampleRunner client:load title={title} exampleName={exampleName} loadingIFrameId={loadingIFrameId} />
 </ExampleRunnerContainer>
