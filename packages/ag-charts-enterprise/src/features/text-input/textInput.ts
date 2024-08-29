@@ -4,7 +4,7 @@ import type { FontOptions, TextAlign } from 'ag-charts-types';
 import type { AnnotationTextPosition } from '../annotations/text/util';
 import textInputTemplate from './textInputTemplate.html';
 
-const { getDocument, getWindow } = _ModuleSupport;
+const { focusCursorAtEnd } = _ModuleSupport;
 
 const moduleId = 'text-input';
 const canvasOverlay = 'canvas-overlay';
@@ -58,7 +58,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         textArea.setAttribute('placeholder', 'Add Text');
 
         if (opts.styles?.placeholderColor) {
-            textArea.style.setProperty('--ag-charts-text-annotations-placeholder', opts.styles?.placeholderColor);
+            textArea.style.setProperty('--ag-charts-input-placeholder', opts.styles?.placeholderColor);
         }
 
         textArea.innerText = opts.text ?? '';
@@ -71,18 +71,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
                 ? `${opts.styles.fontWeight}`
                 : opts.styles?.fontWeight ?? 'inherit';
 
-        textArea.focus();
-
-        // Set the cursor to the end of the text
-        if (textArea.lastChild?.textContent != null) {
-            const range = getDocument().createRange();
-            range.setStart(textArea.lastChild, textArea.lastChild.textContent.length);
-            range.setEnd(textArea.lastChild, textArea.lastChild.textContent.length);
-
-            const selection = getWindow().getSelection();
-            selection?.removeAllRanges();
-            selection?.addRange(range);
-        }
+        focusCursorAtEnd(textArea);
 
         textArea.addEventListener('input', () => {
             this.updatePosition();

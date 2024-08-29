@@ -20,6 +20,7 @@
 
 .ag-charts-dialog__drag-handle {
     align-items: center;
+    color: inherit;
     cursor: grab;
     display: flex;
     padding: 1px 6px;
@@ -33,6 +34,7 @@
 .ag-charts-dialog__close-button {
     background: none;
     border: 0;
+    color: inherit;
     cursor: pointer;
     margin-left: auto;
     padding: 1px 6px;
@@ -58,14 +60,15 @@
 }
 
 .ag-charts-dialog__input-group-label {
-    color: #6c6e6f;
+    color: var(--ag-charts-dialog-input-group-label-color);
     margin-right: 5px;
 }
 
 /* Button group */
 .ag-charts-dialog__button {
-    background: white;
+    background: var(--ag-charts-dialog-input-background);
     border: 1px solid var(--ag-charts-border-color);
+    color: inherit;
     cursor: pointer;
     margin-right: -1px;
     padding: 4px;
@@ -94,8 +97,10 @@
 
 /* Select */
 .ag-charts-dialog__select {
+    background: var(--ag-charts-dialog-input-background);
     border: 1px solid var(--ag-charts-border-color);
     border-radius: var(--ag-charts-popover-border-radius);
+    color: inherit;
     height: 30px;
     padding: 0 2px;
 }
@@ -103,7 +108,7 @@
 /* Textarea */
 .ag-charts-dialog__textarea {
     --line-height: 1.38;
-    background: white;
+    background: var(--ag-charts-dialog-input-background);
     border: 1px solid var(--ag-charts-border-color);
     border-radius: var(--ag-charts-popover-border-radius);
     cursor: text;
@@ -114,6 +119,6 @@
 }
 
 .ag-charts-dialog__textarea:empty::before {
-    color: var(--ag-charts-text-annotations-placeholder);
+    color: var(--ag-charts-input-placeholder);
     content: attr(placeholder);
 }

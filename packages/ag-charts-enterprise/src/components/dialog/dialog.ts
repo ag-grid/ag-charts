@@ -190,6 +190,13 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const popover = this.getPopoverElement();
         if (!popover) return;
 
+        const {
+            ctx: { domManager },
+        } = this;
+
+        // Prevent text selection while dragging
+        event.preventDefault();
+
         this.dragStartState = {
             client: Vec2.from(event.clientX, event.clientY),
             position: Vec2.from(
@@ -199,8 +206,13 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         };
 
         const onDrag = this.onDrag.bind(this);
-        window.addEventListener('mousemove', onDrag);
-        window.addEventListener('mouseup', () => window.removeEventListener('mousemove', onDrag), {
+        domManager.addEventListener('mousemove', onDrag);
+        domManager.addEventListener('mouseup', () => domManager.removeEventListener('mousemove', onDrag), {
+            once: true,
+        });
+
+        // Catch `mouseup` events that do not propagate beyond the overlay
+        popover.addEventListener('mouseup', () => domManager.removeEventListener('mousemove', onDrag), {
             once: true,
         });
     }

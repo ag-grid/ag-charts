@@ -24,6 +24,8 @@ export interface MenuItem<Value = any> {
  * An anchored popover containing a list of pressable items.
  */
 export class Menu extends AnchoredPopover {
+    protected menuCloser?: _ModuleSupport.MenuCloser;
+
     public show<Value = any>(options: MenuOptions<Value>): void {
         const rows = options.items.map((item) => this.createRow(options, item));
 
@@ -37,6 +39,10 @@ export class Menu extends AnchoredPopover {
             buttons: rows,
             device: this.ctx.focusIndicator.guessDevice(options.sourceEvent),
             closeCallback: () => this.hide(),
+        });
+        this.hideFns.push(() => {
+            this.menuCloser?.finishClosing();
+            this.menuCloser = undefined;
         });
     }
 

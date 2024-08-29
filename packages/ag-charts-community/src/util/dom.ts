@@ -91,3 +91,17 @@ export function setElementBBox(element: HTMLElement | undefined, bbox: BBoxValue
         element.style.top = `${bbox.y}px`;
     }
 }
+
+export function focusCursorAtEnd(element: HTMLElement) {
+    element.focus();
+
+    if (element.lastChild?.textContent == null) return;
+
+    const range = getDocument().createRange();
+    range.setStart(element.lastChild, element.lastChild.textContent.length);
+    range.setEnd(element.lastChild, element.lastChild.textContent.length);
+
+    const selection = getWindow().getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+}
