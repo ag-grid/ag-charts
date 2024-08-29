@@ -41,8 +41,8 @@ export class ColorPicker extends AnchoredPopover<ColorPickerOptions> {
         popover.classList.add('ag-charts-color-picker');
         popover.setAttribute('role', 'dialog');
 
-        const { lastFocus } = this.ctx.focusIndicator.guessDevice(options.sourceEvent);
-        if (lastFocus !== undefined) {
+        const { type, lastFocus } = this.ctx.focusIndicator.guessDevice(options.sourceEvent);
+        if (type === 'keyboard' && lastFocus !== undefined) {
             initialFocus.focus();
             this.lastFocus = lastFocus;
         }
