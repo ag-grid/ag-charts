@@ -4,6 +4,7 @@ import { RadialGaugeNeedle } from './radialGaugeNeedle';
 import {
     type AgRadialGaugeColorStopDatum,
     LabelType,
+    NodeDataType,
     type RadialGaugeLabelDatum,
     type RadialGaugeNodeDatum,
     RadialGaugeSeriesProperties,
@@ -93,6 +94,9 @@ export class RadialGaugeSeries
     private readonly itemTargetGroup = this.contentGroup.appendChild(new Group({ name: 'itemTargetGroup' }));
     private readonly itemTargetLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemTargetLabelGroup' }));
     private readonly itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
+    private readonly highlightTargetGroup = this.highlightGroup.appendChild(
+        new Group({ name: 'itemTargetLabelGroup' })
+    );
 
     private backgroundSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum> = Selection.select(
         this.backgroundGroup,
@@ -115,6 +119,10 @@ export class RadialGaugeSeries
     private labelSelection: _Scene.Selection<_Scene.Text, RadialGaugeLabelDatum> = Selection.select(
         this.itemLabelGroup,
         Text
+    );
+    private highlightTargetSelection: _Scene.Selection<_Scene.Marker, RadialGaugeTargetDatum> = Selection.select(
+        this.highlightTargetGroup,
+        (datum) => this.markerFactory(datum)
     );
 
     private readonly animationState: _ModuleSupport.StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
@@ -385,6 +393,7 @@ export class RadialGaugeSeries
                     series: this,
                     itemId: `value`,
                     datum: value,
+                    type: NodeDataType.Node,
                     centerX,
                     centerY,
                     outerRadius,
@@ -408,6 +417,7 @@ export class RadialGaugeSeries
                 series: this,
                 itemId: `background`,
                 datum: value,
+                type: NodeDataType.Node,
                 centerX,
                 centerY,
                 outerRadius,
@@ -463,6 +473,7 @@ export class RadialGaugeSeries
                         series: this,
                         itemId: `value-${i}`,
                         datum: value,
+                        type: NodeDataType.Node,
                         centerX,
                         centerY,
                         outerRadius,
@@ -484,6 +495,7 @@ export class RadialGaugeSeries
                     series: this,
                     itemId: `background-${i}`,
                     datum: value,
+                    type: NodeDataType.Node,
                     centerX,
                     centerY,
                     outerRadius,
@@ -549,9 +561,11 @@ export class RadialGaugeSeries
         }
 
         const { target } = properties;
-        for (let index = 0; index < targets.length; index += 1) {
-            const t = targets[index];
+        for (let i = 0; i < targets.length; i += 1) {
+            const t = targets[i];
             const {
+                value: targetValue,
+                text,
                 placement = target.placement,
                 size = target.size,
                 fill = target.fill,
@@ -564,7 +578,7 @@ export class RadialGaugeSeries
             } = t;
 
             const targetRadius = this.getTargetRadius(t);
-            const targetAngle = angleScale.convert(t.value);
+            const targetAngle = angleScale.convert(targetValue);
 
             let { shape = target.shape, rotation = target.rotation } = t;
             switch (placement) {
@@ -583,7 +597,16 @@ export class RadialGaugeSeries
             rotation = toRadians(rotation);
 
             targetData.push({
-                index,
+                series: this,
+                itemId: `target-${i}`,
+                midPoint: {
+                    x: targetRadius * Math.cos(targetAngle) + centerX,
+                    y: targetRadius * Math.sin(targetAngle) + centerY,
+                },
+                datum: targetValue,
+                type: NodeDataType.Target,
+                value: targetValue,
+                text,
                 centerX,
                 centerY,
                 shape,
@@ -618,6 +641,12 @@ export class RadialGaugeSeries
         }
     }
 
+    private highlightDatum(node: _ModuleSupport.HighlightNodeDatum | undefined): RadialGaugeTargetDatum | undefined {
+        if (node != null && node.series === this && (node as RadialGaugeTargetDatum).type === NodeDataType.Target) {
+            return node as RadialGaugeTargetDatum;
+        }
+    }
+
     override async update({ seriesRect }: { seriesRect?: _Scene.BBox }): Promise<void> {
         const {
             datumSelection,
@@ -626,6 +655,7 @@ export class RadialGaugeSeries
             targetSelection,
             targetLabelSelection,
             backgroundSelection,
+            highlightTargetSelection,
         } = this;
 
         const resize = this.checkResize(seriesRect);
@@ -640,6 +670,8 @@ export class RadialGaugeSeries
         const targetData = this.contextNodeData?.targetData ?? [];
         const backgroundData = this.contextNodeData?.backgroundData ?? [];
 
+        const highlightTargetDatum = this.highlightDatum(this.ctx.highlightManager.getActiveHighlight());
+
         this.backgroundSelection = await this.updateBackgroundSelection({ backgroundData, backgroundSelection });
         await this.updateBackgroundNodes({ backgroundSelection });
 
@@ -647,7 +679,7 @@ export class RadialGaugeSeries
         await this.updateNeedleNodes({ needleSelection });
 
         this.targetSelection = await this.updateTargetSelection({ targetData, targetSelection });
-        await this.updateTargetNodes({ targetSelection });
+        await this.updateTargetNodes({ targetSelection, isHighlight: false });
 
         this.targetLabelSelection = await this.updateTargetLabelSelection({ targetLabelSelection });
         await this.updateTargetLabelNodes({ targetLabelSelection });
@@ -657,6 +689,12 @@ export class RadialGaugeSeries
 
         this.labelSelection = await this.updateLabelSelection({ labelData, labelSelection });
         await this.updateLabelNodes({ labelSelection });
+
+        this.highlightTargetSelection = await this.updateTargetSelection({
+            targetData: highlightTargetDatum != null ? [highlightTargetDatum] : [],
+            targetSelection: highlightTargetSelection,
+        });
+        await this.updateTargetNodes({ targetSelection: highlightTargetSelection, isHighlight: true });
 
         if (resize) {
             this.animationState.transition('resize');
@@ -821,13 +859,15 @@ export class RadialGaugeSeries
         targetData: RadialGaugeTargetDatum[];
         targetSelection: _Scene.Selection<_Scene.Marker, RadialGaugeTargetDatum>;
     }) {
-        return opts.targetSelection.update(opts.targetData, undefined, (target) => `${target.index}`);
+        return opts.targetSelection.update(opts.targetData, undefined, (target) => target.itemId);
     }
 
     private async updateTargetNodes(opts: {
         targetSelection: _Scene.Selection<_Scene.Marker, RadialGaugeTargetDatum>;
+        isHighlight: boolean;
     }) {
-        const { targetSelection } = opts;
+        const { targetSelection, isHighlight } = opts;
+        const highlightStyle = isHighlight ? this.properties.highlightStyle.item : undefined;
 
         targetSelection.each((target, datum) => {
             const {
@@ -848,13 +888,13 @@ export class RadialGaugeSeries
 
             const scale = size;
 
-            target.fill = fill;
-            target.fillOpacity = fillOpacity;
-            target.stroke = stroke;
-            target.strokeOpacity = strokeOpacity;
-            target.strokeWidth = strokeWidth / scale;
-            target.lineDash = lineDash.map((d) => d / scale);
-            target.lineDashOffset = lineDashOffset / scale;
+            target.fill = highlightStyle?.fill ?? fill;
+            target.fillOpacity = highlightStyle?.fillOpacity ?? fillOpacity;
+            target.stroke = highlightStyle?.stroke ?? stroke;
+            target.strokeOpacity = highlightStyle?.strokeOpacity ?? strokeOpacity;
+            target.strokeWidth = (highlightStyle?.strokeWidth ?? strokeWidth) / scale;
+            target.lineDash = (highlightStyle?.lineDash ?? lineDash).map((d) => d / scale);
+            target.lineDashOffset = (highlightStyle?.lineDashOffset ?? lineDashOffset) / scale;
             target.translationX = centerX + radius * Math.cos(angle);
             target.translationY = centerY + radius * Math.sin(angle);
             target.rotation = angle + Math.PI / 2 + rotation;
@@ -1095,37 +1135,57 @@ export class RadialGaugeSeries
         return [];
     }
 
-    protected override pickNodeExactShape(point: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
-        return this.pickNodeClosestDatum(point);
+    private readonly nodeDatum: any = { series: this, datum: this };
+    override pickNode(
+        point: _Scene.Point,
+        intent: _ModuleSupport.SeriesNodePickIntent
+    ): _ModuleSupport.PickResult | undefined {
+        switch (intent) {
+            case 'event':
+            case 'context-menu':
+                return undefined;
+            case 'tooltip':
+            case 'highlight':
+            case 'highlight-tooltip': {
+                const highlightedTarget = this.itemTargetGroup.pickNode(point.x, point.y);
+                return highlightedTarget != null
+                    ? {
+                          pickMode: _ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH,
+                          match: highlightedTarget.datum,
+                          distance: 0,
+                      }
+                    : { pickMode: _ModuleSupport.SeriesNodePickMode.NEAREST_NODE, match: this.nodeDatum, distance: 0 };
+            }
+        }
     }
 
-    protected override pickNodeClosestDatum(_point: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
-        return {
-            datum: { series: this, datum: this },
-            distance: 0,
-        };
-    }
-
-    override getTooltipHtml(_nodeDatum: _Scene.Sector): _ModuleSupport.TooltipContent {
+    override getTooltipHtml(nodeDatum: _ModuleSupport.SeriesNodeDatum): _ModuleSupport.TooltipContent {
         const { id: seriesId, properties } = this;
 
         if (!properties.isValid()) {
             return EMPTY_TOOLTIP_CONTENT;
         }
 
-        const { value, tooltip } = properties;
+        const datum = this.highlightDatum(nodeDatum);
 
-        const title = '';
+        const value = datum?.value ?? properties.value;
+        const text = datum?.text;
+        const { tooltip } = properties;
+
+        const title = text ?? '';
         const content = this.formatLabel(value);
 
+        const itemId = datum?.itemId;
+        const color = datum?.fill;
+
         return tooltip.toTooltipHtml(
-            { title, content },
+            { title, content, backgroundColor: color },
             {
                 seriesId,
+                itemId,
                 title,
-                datum: undefined!,
-                color: undefined,
-                itemId: undefined!,
+                datum,
+                color,
                 value,
                 ...this.getModuleTooltipParams(),
             }
