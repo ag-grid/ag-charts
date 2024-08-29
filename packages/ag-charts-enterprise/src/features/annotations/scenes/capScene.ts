@@ -13,7 +13,7 @@ export class ArrowCapScene extends CapScene {
     override type = 'arrow' as const;
 
     private readonly path = new _Scene.Path();
-    private readonly armLength = 10;
+    private readonly armLength = 6;
 
     constructor() {
         super();
@@ -21,11 +21,12 @@ export class ArrowCapScene extends CapScene {
     }
 
     update(options: { x: number; y: number; angle: number } & StrokeOptions) {
-        const { armLength, path } = this;
+        const { path } = this;
         const { x, y, angle, ...rest } = options;
 
         const origin = Vec2.from(x, y);
         const offsetAngle = (3 * Math.PI) / 4;
+        const armLength = this.armLength + (options.strokeWidth ?? 0) * 2;
 
         const leftEnd = Vec2.rotate(Vec2.from(0, armLength), angle + offsetAngle, origin);
         const rightEnd = Vec2.rotate(Vec2.from(armLength, 0), angle - offsetAngle, origin);
@@ -35,7 +36,7 @@ export class ArrowCapScene extends CapScene {
 
         path.path.clear();
         path.path.moveTo(leftEnd.x, leftEnd.y);
-        path.path.lineTo(x, y);
+        path.path.lineTo(origin.x, origin.y);
         path.path.lineTo(rightEnd.x, rightEnd.y);
     }
 }
