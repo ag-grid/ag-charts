@@ -51,7 +51,6 @@ export interface ChartAxis {
     setCrossLinesVisible(visible: boolean): void;
     update(animated?: boolean): number | undefined;
     updatePosition(): void;
-    collidesLabel(bbox: BBox): boolean;
     boundSeries: ISeries<unknown, unknown>[];
     crossLines?: CrossLine[];
     dataDomain: { domain: any[]; clipped: boolean };

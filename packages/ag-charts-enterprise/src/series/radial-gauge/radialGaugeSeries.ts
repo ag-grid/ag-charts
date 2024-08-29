@@ -166,6 +166,7 @@ export class RadialGaugeSeries
         });
 
         this.backgroundGroup.pointerEvents = PointerEvents.None;
+        this.itemTargetLabelGroup.pointerEvents = PointerEvents.None;
         this.itemLabelGroup.pointerEvents = PointerEvents.None;
     }
 
@@ -178,8 +179,7 @@ export class RadialGaugeSeries
     }
 
     private markerFactory(datum: RadialGaugeTargetDatum): _Scene.Marker {
-        const { shape = 'circle' } = datum;
-        const MarkerShape = getMarker(shape);
+        const MarkerShape = getMarker(datum.shape);
         const marker = new MarkerShape();
         marker.size = 1;
         return marker;
@@ -270,32 +270,29 @@ export class RadialGaugeSeries
         return new ConicGradient('oklch', stops, toDegrees(conicAngle) - 90);
     }
 
-    private getTargetRadius({ placement, spacing, size }: RadialGaugeTargetProperties) {
+    private getTargetRadius(targetProperties: RadialGaugeTargetProperties) {
         const { radius, properties } = this;
-        const { innerRadiusRatio, outerRadiusRatio } = properties;
+        const { innerRadiusRatio, outerRadiusRatio, target } = properties;
+        const { placement = target.placement, spacing = target.spacing, size = target.size } = targetProperties;
 
         const outerRadius = radius * outerRadiusRatio;
         const innerRadius = radius * innerRadiusRatio;
 
         switch (placement) {
-            case 'middle':
-                return (innerRadius + outerRadius) / 2;
-                break;
             case 'inside':
                 return Math.max(innerRadius - spacing - size / 2, 0);
-                break;
             case 'outside':
                 return outerRadius + spacing + size / 2;
-                break;
+            default:
+                return (innerRadius + outerRadius) / 2;
         }
     }
 
     override async createNodeData() {
-        const { id: seriesId, properties, radius, centerX, centerY } = this;
-
         const angleAxis = this.axes[ChartAxisDirection.X];
         if (angleAxis == null) return;
 
+        const { id: seriesId, properties, radius, centerX, centerY } = this;
         const {
             value,
             innerRadiusRatio,
@@ -520,23 +517,40 @@ export class RadialGaugeSeries
             });
         }
 
-        const defaultTargetFill = properties.target.label.color ?? 'black';
+        const { target } = properties;
         for (let index = 0; index < targets.length; index += 1) {
-            const target = targets[index];
+            const t = targets[index];
             const {
-                shape,
-                size,
-                fill = defaultTargetFill,
-                fillOpacity,
-                stroke,
-                strokeOpacity,
-                strokeWidth,
-                lineDash,
-                lineDashOffset,
-            } = target;
-            const targetRadius = this.getTargetRadius(target);
-            const targetAngle = angleScale.convert(target.value);
-            const targetRotation = toRadians(target.rotation);
+                placement = target.placement,
+                size = target.size,
+                fill = target.fill,
+                fillOpacity = target.fillOpacity,
+                stroke = target.stroke,
+                strokeOpacity = target.strokeOpacity,
+                strokeWidth = target.strokeWidth,
+                lineDash = target.lineDash,
+                lineDashOffset = target.lineDashOffset,
+            } = t;
+
+            const targetRadius = this.getTargetRadius(t);
+            const targetAngle = angleScale.convert(t.value);
+
+            let { shape = target.shape, rotation = target.rotation } = t;
+            switch (placement) {
+                case 'outside':
+                    shape ??= 'triangle';
+                    rotation ??= 180;
+                    break;
+                case 'inside':
+                    shape ??= 'triangle';
+                    rotation ??= 0;
+                    break;
+                default:
+                    shape ??= 'circle';
+                    rotation ??= 0;
+            }
+            rotation = toRadians(rotation);
+
             targetData.push({
                 index,
                 centerX,
@@ -545,7 +559,7 @@ export class RadialGaugeSeries
                 radius: targetRadius,
                 angle: targetAngle,
                 size,
-                rotation: targetRotation,
+                rotation,
                 fill,
                 fillOpacity,
                 stroke,
@@ -788,9 +802,9 @@ export class RadialGaugeSeries
             const {
                 centerX,
                 centerY,
-                size,
                 angle,
                 radius,
+                size,
                 rotation,
                 fill,
                 fillOpacity,
@@ -994,16 +1008,17 @@ export class RadialGaugeSeries
         if (angleAxis == null) return [];
 
         const { centerX, centerY, properties } = this;
+        const { target } = properties;
+        const { label } = target;
         const angleScale = angleAxis.scale;
 
-        const label = properties.target.label;
         const font = label.getFont();
         const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font });
 
         return this.properties.targets
             .filter((t) => t.text != null)
-            .map((target) => {
-                const { text = '', value, size, placement } = target;
+            .map((t) => {
+                const { text = '', value, size = target.size, placement = target.placement } = t;
                 const { width, height } = textMeasurer.measureText(text);
                 const angle = angleScale.convert(value);
 
@@ -1013,9 +1028,6 @@ export class RadialGaugeSeries
                 let labelPlacement: _Util.LabelPlacement;
                 let radiusOffset = 0;
                 switch (placement) {
-                    case 'middle':
-                        labelPlacement = 'top';
-                        break;
                     case 'outside':
                         labelPlacement = outsideLabelPlacements[quadrant];
                         radiusOffset = sizeOffset;
@@ -1024,9 +1036,12 @@ export class RadialGaugeSeries
                         labelPlacement = insideLabelPlacements[quadrant];
                         radiusOffset = -sizeOffset;
                         break;
+                    default:
+                        labelPlacement = 'top';
+                        break;
                 }
 
-                const targetRadius = this.getTargetRadius(target) - radiusOffset;
+                const targetRadius = this.getTargetRadius(t) - radiusOffset;
                 const x = targetRadius * Math.cos(angle) + centerX;
                 const y = targetRadius * Math.sin(angle) + centerY;
 

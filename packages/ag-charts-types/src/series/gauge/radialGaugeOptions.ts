@@ -10,6 +10,8 @@ import type { CssColor, Degree, MarkerShape, PixelSize, Ratio } from '../../char
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
+export type AgRadialGaugeTargetPlacement = 'inside' | 'outside' | 'middle';
+
 export interface AgRadialGaugeSeriesLabelFormatterParams
     extends AgRadialGaugeSeriesOptionsKeys,
         AgRadialGaugeSeriesOptionsNames {}
@@ -77,18 +79,18 @@ export interface AgRadialGaugeSeriesNeedleStyle extends FillOptions, StrokeOptio
 export interface AgRadialGaugeTarget extends FillOptions, StrokeOptions, LineDashOptions {
     /** Value to use to position the target */
     value: number;
+    /** Text to use for the target label. */
+    text?: string;
     /** The shape to use for the target. You can also supply a custom marker by providing a `Marker` subclass. */
     shape?: MarkerShape;
     /** Placement of target. */
-    placement?: 'inside' | 'outside' | 'middle';
+    placement?: AgRadialGaugeTargetPlacement;
     /** Spacing of the target. Ignored when placement is 'middle'. */
     spacing?: PixelSize;
     /** Size of the target. */
-    size?: Ratio;
+    size?: PixelSize;
     /** Rotation of the target, in degrees. */
     rotation?: Degree;
-    /** Text to use for the target label. */
-    text?: string;
 }
 
 export interface AgRadialGaugeTargetLabelOptions extends AgChartLabelOptions<never, never> {
@@ -96,7 +98,17 @@ export interface AgRadialGaugeTargetLabelOptions extends AgChartLabelOptions<nev
     spacing?: PixelSize;
 }
 
-export interface AgRadialGaugeTargetOptions {
+export interface AgRadialGaugeTargetOptions extends FillOptions, StrokeOptions, LineDashOptions {
+    /** The shape to use for the target. You can also supply a custom marker by providing a `Marker` subclass. */
+    shape?: MarkerShape;
+    /** Placement of target. */
+    placement?: AgRadialGaugeTargetPlacement;
+    /** Spacing of the target. Ignored when placement is 'middle'. */
+    spacing?: PixelSize;
+    /** Size of the target. */
+    size?: PixelSize;
+    /** Rotation of the target, in degrees. */
+    rotation?: Degree;
     /** Label options for all targets. */
     label?: AgRadialGaugeTargetLabelOptions;
 }
