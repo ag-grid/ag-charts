@@ -132,6 +132,7 @@ export const AnnotationsModule: _ModuleSupport.Module = {
             arrow: {
                 ...stroke,
                 handle: { ...handle },
+                text: { ...lineText },
             },
             'arrow-up': {
                 fill: _Theme.PALETTE_UP_FILL,
