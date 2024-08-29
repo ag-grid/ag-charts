@@ -2,7 +2,11 @@ import type { TextAlign, VerticalAlign } from 'ag-charts-types';
 
 import type { Series } from './series';
 
-export interface RadialGaugeSeries extends Series<any, any> {
+export interface GaugeSeries extends Series<any, any> {
+    getCaptionText(): string;
+}
+
+export interface RadialGaugeSeries extends GaugeSeries {
     centerX: number;
     centerY: number;
     radius: number;

@@ -155,7 +155,7 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean,
     return { node, needle };
 }
 
-function getLabelText(
+export function getLabelText(
     series: _ModuleSupport.Series<any, any>,
     label: RadialGaugeLabelProperties | RadialGaugeSecondaryLabelProperties,
     value: number | undefined,

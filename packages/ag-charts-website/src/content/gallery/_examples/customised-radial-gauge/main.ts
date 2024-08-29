@@ -26,13 +26,13 @@ const firstOptions: AgGaugeOptions = {
             shape: 'triangle',
             placement: 'inside',
             spacing: 5,
-            fill: '#8883',
+            fill: '#8884',
             text: 'LIMIT',
         },
     ],
     target: {
         label: {
-            color: '#8884',
+            color: '#8888',
             fontSize: 8,
             fontWeight: 'bold',
             spacing: 2,

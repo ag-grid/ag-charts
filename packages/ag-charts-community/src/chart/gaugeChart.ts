@@ -7,12 +7,13 @@ import { isBetweenAngles, normalizeAngle360Inclusive } from '../util/angle';
 import { PolarAxis } from './axis/polarAxis';
 import { Chart } from './chart';
 import { ChartAxisDirection } from './chartAxisDirection';
-import type { RadialGaugeSeries } from './series/gaugeSeries';
+import type { GaugeSeries, RadialGaugeSeries } from './series/gaugeSeries';
 import type { Series } from './series/series';
 
 function isRadialGaugeSeries(series: Series<any, any>): series is RadialGaugeSeries {
     return series.type === 'radial-gauge';
 }
+
 export class GaugeChart extends Chart {
     static readonly className = 'GaugeChart';
     static readonly type = 'gauge' as const;
@@ -142,5 +143,22 @@ export class GaugeChart extends Chart {
         this.ctx.layoutManager.emitLayoutComplete(ctx, {
             series: { visible: seriesRoot.visible, rect: seriesRect, paddedRect: layoutBox },
         });
+    }
+
+    protected override getAriaLabel(): string {
+        const captions: string[] = [];
+
+        const chartCaption = this.getCaptionText();
+        if (chartCaption.length !== 0) {
+            captions.push(chartCaption);
+        }
+
+        for (const series of this.series) {
+            captions.push((series as GaugeSeries).getCaptionText());
+        }
+
+        const caption = captions.join('. ');
+
+        return this.ctx.localeManager.t('ariaAnnounceGaugeChart', { caption });
     }
 }
