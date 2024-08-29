@@ -1,24 +1,26 @@
 ---
 import Layout from '@layouts/Layout.astro';
 import styles from '@pages-styles/homepage.module.scss';
+
+import InstallText from '@features/homepage/components/InstallText';
+import IndexGalleryExampleRunner from '@features/homepage/components/IndexGalleryExampleRunner.astro';
+
+import GalleryExampleRunner from '@features/gallery/components/GalleryExampleRunner.astro';
+import { getGalleryExamples } from '@features/gallery/utils/filesData';
 import { getEntry } from 'astro:content';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
+
 import { FreeChartsExamples } from '@features/homepage/components/FreeChartsExamples';
-import { ExampleRunnerContainer } from '@features/example-runner/components/ExampleRunnerContainer.astro';
 import { DocsExampleRunner } from '@features/docs/components/DocsExampleRunner';
-import InstallText from '@features/homepage/components/InstallText';
 const { data: whatsNewData } = await getEntry('versions', 'ag-charts-versions');
 
-/**
- * Version of `ag-grid-charts-enterprise` to use
- *
- * NOTE: Fix version so we can upgrade outside of grid/charts releases
- */
-const AG_GRID_CHARTS_VERSION = '32.1.0';
-const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-enterprise@${AG_GRID_CHARTS_VERSION}/dist/ag-grid-charts-enterprise.min.js`;
----
+// Fetch gallery data
+const galleryEntry = await getEntry('gallery', 'data');
+const galleryExamples = getGalleryExamples({ galleryData: galleryEntry.data });
 
-<script is:inline src={AG_GRID_CHARTS_CDN_URL}></script>
+// Choose an example to display, e.g., the first one
+const exampleToShow = galleryExamples[0];
+---
 
 <Layout
     title="JavaScript Charts | High-Performance & Feature-Rich Charting Library - AG Charts"
@@ -71,6 +73,11 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                         reporting, and interactive dashboards.
                     </h4>
                 </div>
+                <IndexGalleryExampleRunner
+                    title={exampleToShow.page.name}
+                    exampleName={exampleToShow.exampleName}
+                    pageName={exampleToShow.page.chartSeriesName}
+                />
                 <FreeChartsExamples client:only="react" />
             </div>
         </div>
