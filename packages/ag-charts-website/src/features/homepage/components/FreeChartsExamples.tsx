@@ -1,7 +1,7 @@
 import { GalleryExampleRunner } from '@features/gallery/components/GalleryExampleRunner';
 import React, { useState } from 'react';
 
-import styles from './FreeChartsExamples.module.scss';
+import styles from './IndexGalleryExampleRunner.module.scss';
 
 const examples = [
     {

@@ -11,12 +11,13 @@ import {
     getExampleRunnerExampleUrl,
     getExampleUrl,
 } from '../utils/urlPaths';
-import styles from './FreeChartsExamples.module.scss';
+import styles from './IndexGalleryExampleRunner.module.scss';
 
 interface Props {
     examples: Array<{
         title: string;
         exampleName: string;
+        buttonText: string;
     }>;
     loadingIFrameId: string;
 }
@@ -33,8 +34,9 @@ const queryOptions = {
 };
 
 const GalleryExampleRunnerInner = ({ examples, loadingIFrameId }: Props) => {
-    const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
-    const { title, exampleName } = examples[currentExampleIndex];
+    const [currentExampleName, setCurrentExampleName] = useState(examples[0].exampleName);
+    const currentExample = examples.find((example) => example.exampleName === currentExampleName) || examples[0];
+    const { title, exampleName } = currentExample;
 
     const [initialSelectedFile, setInitialSelectedFile] = useState();
     const [exampleUrl, setExampleUrl] = useState<string>();
@@ -47,7 +49,7 @@ const GalleryExampleRunnerInner = ({ examples, loadingIFrameId }: Props) => {
 
     const internalFramework = GALLERY_INTERNAL_FRAMEWORK;
     const exampleType = GALLERY_EXAMPLE_TYPE;
-    const id = `example-${exampleName}`;
+    const id = `example-${currentExampleName}`;
 
     const {
         isLoading: exampleFilesIsLoading,
@@ -141,20 +143,20 @@ const GalleryExampleRunnerInner = ({ examples, loadingIFrameId }: Props) => {
         />
     );
 
-    const handleExampleSelect = (index: number) => {
-        setCurrentExampleIndex(index);
+    const handleExampleSelect = (exampleName: string) => {
+        setCurrentExampleName(exampleName);
     };
 
     return (
         <>
             <div className={styles.tabContainer}>
-                {examples.map((example, index) => (
+                {examples.map((example) => (
                     <button
                         key={example.exampleName}
-                        className={`${styles.tabButton} ${index === currentExampleIndex ? styles.activeTabButton : ''}`}
-                        onClick={() => handleExampleSelect(index)}
+                        className={`${styles.tabButton} ${example.exampleName === currentExampleName ? styles.activeTabButton : ''}`}
+                        onClick={() => handleExampleSelect(example.exampleName)}
                     >
-                        {example.title}
+                        {example.buttonText}
                     </button>
                 ))}
             </div>

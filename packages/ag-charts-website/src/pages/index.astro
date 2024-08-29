@@ -24,6 +24,7 @@ const exampleData = galleryExamples
     .map((example) => ({
         title: example.page.name,
         exampleName: example.exampleName,
+        buttonText: example.exampleName === 'simple-bar' ? 'Bar' : 'Area',
     }));
 ---
 
@@ -79,7 +80,6 @@ const exampleData = galleryExamples
                     </h4>
                 </div>
                 <IndexGalleryExampleRunner examples={exampleData} pageName={galleryExamples[0].page.chartSeriesName} />
-                <FreeChartsExamples client:only="react" />
             </div>
         </div>
         <div class={styles.section}>
