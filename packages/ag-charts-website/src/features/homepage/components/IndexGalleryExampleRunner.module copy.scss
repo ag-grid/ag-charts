@@ -52,33 +52,3 @@
 .exampleContainer {
     width: 100%;
 }
-
-.sideContainer {
-    display: flex;
-    flex-direction: row;
-    gap: $spacing-size-4;
-    width: 100%;
-}
-
-.verticalTabContainer {
-    max-height: 625px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 16px;
-    background: var(--color-brand-200);
-    border-radius: var(--radius-4xl);
-    padding: $spacing-size-1;
-    min-width: 160px;
-    overflow-y: auto;
-    overflow-x: hidden;
-
-    // Add padding to the first and last buttons
-    & > :first-child {
-        margin-top: $spacing-size-20;
-    }
-
-    & > :last-child {
-        padding-bottom: $spacing-size-4;
-    }
-}

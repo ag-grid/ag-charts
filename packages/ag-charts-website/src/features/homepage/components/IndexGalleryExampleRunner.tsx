@@ -20,6 +20,7 @@ interface Props {
         buttonText: string;
     }>;
     loadingIFrameId: string;
+    format: string;
 }
 
 // NOTE: Not on the layout level, as that is generated at build time, and queryClient needs to be
@@ -33,7 +34,7 @@ const queryOptions = {
     refetchOnReconnect: false,
 };
 
-const GalleryExampleRunnerInner = ({ examples, loadingIFrameId }: Props) => {
+const GalleryExampleRunnerInner = ({ examples, loadingIFrameId, format }: Props) => {
     const [currentExampleName, setCurrentExampleName] = useState(examples[0].exampleName);
     const currentExample = examples.find((example) => example.exampleName === currentExampleName) || examples[0];
     const { title, exampleName } = currentExample;
@@ -148,35 +149,35 @@ const GalleryExampleRunnerInner = ({ examples, loadingIFrameId }: Props) => {
     };
 
     return (
-        <>
-            <div className={styles.container}>
-                <div className={styles.tabContainer}>
-                    {examples.map((example) => (
-                        <button
-                            key={example.exampleName}
-                            className={`${styles.tabButton} ${example.exampleName === currentExampleName ? styles.activeTabButton : ''}`}
-                            onClick={() => handleExampleSelect(example.exampleName)}
-                        >
-                            {example.buttonText}
-                        </button>
-                    ))}
-                </div>
+        <div className={format === 'side' ? styles.sideContainer : styles.container}>
+            <div className={format === 'side' ? styles.verticalTabContainer : styles.tabContainer}>
+                {examples.map((example) => (
+                    <button
+                        key={example.exampleName}
+                        className={`${styles.tabButton} ${example.exampleName === currentExampleName ? styles.activeTabButton : ''}`}
+                        onClick={() => handleExampleSelect(example.exampleName)}
+                    >
+                        {example.buttonText}
+                    </button>
+                ))}
             </div>
-            <ExampleRunner
-                id={id}
-                title={title}
-                exampleUrl={exampleUrl}
-                exampleRunnerExampleUrl={exampleRunnerExampleUrl}
-                exampleType={exampleType}
-                exampleFiles={exampleFiles}
-                initialSelectedFile={initialSelectedFile}
-                internalFramework={internalFramework}
-                externalLinks={externalLinks}
-                hideInternalFrameworkSelection={true}
-                exampleHeight={620}
-                loadingIFrameId={loadingIFrameId}
-            />
-        </>
+            <div className={styles.exampleContainer}>
+                <ExampleRunner
+                    id={id}
+                    title={title}
+                    exampleUrl={exampleUrl}
+                    exampleRunnerExampleUrl={exampleRunnerExampleUrl}
+                    exampleType={exampleType}
+                    exampleFiles={exampleFiles}
+                    initialSelectedFile={initialSelectedFile}
+                    internalFramework={internalFramework}
+                    externalLinks={externalLinks}
+                    hideInternalFrameworkSelection={true}
+                    exampleHeight={620}
+                    loadingIFrameId={loadingIFrameId}
+                />
+            </div>
+        </div>
     );
 };
 

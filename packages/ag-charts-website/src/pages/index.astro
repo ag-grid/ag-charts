@@ -6,6 +6,7 @@ import InstallText from '@features/homepage/components/InstallText';
 import IndexGalleryExampleRunner from '@features/homepage/components/IndexGalleryExampleRunner.astro';
 import { Snippet } from '@ag-website-shared/components/snippet/Snippet';
 
+import { TabControl } from '@features/homepage/components/TabControl';
 import { getGalleryExamples } from '@features/gallery/utils/filesData';
 import { getEntry } from 'astro:content';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
@@ -29,11 +30,41 @@ const seriesExampleMap = {
     donut: 'donut-with-variable-radius',
 };
 
+// Prepare examples data for IndexGalleryExampleRunner
+const enterpriseSeriesExampleMap = {
+    bar: 'stacked-horizontal-bar',
+    histogram: 'simple-histogram',
+    maps: 'map-kitchen-sink',
+    'range-bar': 'horizontal-range-bar-with-labels',
+    'range-area': 'range-area-with-labels',
+    waterfall: 'customised-waterfall',
+    'box-plot': 'multiple-box-plots',
+    candlestick: 'ohlc',
+    'radar-line': 'reversed-radar-with-markers',
+    nightingale: 'reversed-nightingale',
+    'radial-column': 'reversed-radial-column',
+    'radial-bar': 'reversed-radial-bar',
+    sunburst: 'sunburst-with-nesting',
+};
+
 const exampleData = galleryEntry.data.series
     .flatMap((seriesGroup) => seriesGroup)
     .filter((series) => series.seriesName in seriesExampleMap)
     .map((series) => {
         const exampleName = seriesExampleMap[series.seriesName];
+        const example = series.examples.find((ex) => ex.name === exampleName);
+        return {
+            title: example.title,
+            exampleName: example.name,
+            buttonText: series.title,
+        };
+    });
+
+const enterpriseExampleData = galleryEntry.data.series
+    .flatMap((seriesGroup) => seriesGroup)
+    .filter((series) => series.seriesName in enterpriseSeriesExampleMap)
+    .map((series) => {
+        const exampleName = enterpriseSeriesExampleMap[series.seriesName];
         const example = series.examples.find((ex) => ex.name === exampleName);
         return {
             title: example.title,
@@ -118,6 +149,26 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                         enterprise support and continuous updates.
                     </h4>
                 </div>
+                <div class="tabs">
+                    <div class="tab active" data-tab="content1">Additional Series Types</div>
+                    <div class="tab" data-tab="content2">Advanced Features</div>
+                </div>
+
+                <div id="content1" class="tab-content">
+                    <IndexGalleryExampleRunner
+                        examples={enterpriseExampleData}
+                        pageName={galleryExamples[0].page.chartSeriesName}
+                        format="side"
+                    />
+                </div>
+
+                <div id="content2" class="tab-content hidden">
+                    <IndexDocsExampleRunner
+                        name={'../../vanilla/financial-charts/examples/financial-charts-showcase'}
+                    />
+                </div>
+
+                <!-- <TabControl client:load />
                 <div class={styles.cardContainer}>
                     <div class={styles.card}>
                         <h4>Advanced Features</h4>
@@ -143,7 +194,7 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                         </p>
                         <button class={styles.learnMoreBtn}>Learn More</button>
                     </div>
-                </div>
+                </div> -->
                 <button>View Pricing</button>
             </div>
         </div>
@@ -234,3 +285,54 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
         </div>
     </div>
 </Layout>
+
+<script>
+    function switchTab(event, tabId) {
+        const tabs = document.querySelectorAll('.tab');
+        const contents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach((tab) => tab.classList.remove('active'));
+        contents.forEach((content) => content.classList.add('hidden'));
+
+        event.target.classList.add('active');
+        document.getElementById(tabId).classList.remove('hidden');
+    }
+
+    document.querySelectorAll('.tab').forEach((tab) => {
+        tab.addEventListener('click', (event) => {
+            switchTab(event, event.target.dataset.tab);
+        });
+    });
+</script>
+
+<style>
+    .tabs {
+        display: flex;
+        cursor: pointer;
+        margin-bottom: 1rem;
+    }
+
+    .tab {
+        padding: 10px 20px;
+        border: 1px solid #ddd;
+        border-bottom: none;
+        background-color: #f0f0f0;
+        transition: background-color 0.3s;
+    }
+
+    .tab.active {
+        background-color: white;
+        border-bottom: 1px solid white;
+        font-weight: bold;
+    }
+
+    .tab-content {
+        border: 1px solid #ddd;
+        padding: 20px;
+        background-color: white;
+    }
+
+    .hidden {
+        display: none;
+    }
+</style>

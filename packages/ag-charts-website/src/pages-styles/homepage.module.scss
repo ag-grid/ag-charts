@@ -115,6 +115,7 @@
 
 .twoColumnContainer {
     display: flex;
+
     .columnSmall {
         flex: 1;
         padding: 10px;
@@ -122,6 +123,12 @@
     }
     .columnLarge {
         flex: 2;
+        padding: 10px;
+        box-sizing: border-box;
+    }
+
+    .columnEqual {
+        flex: 1;
         padding: 10px;
         box-sizing: border-box;
     }
