@@ -46,7 +46,7 @@ export interface ToolbarButton extends ToolbarButtonConfig {
     checkedOverrides?: ToolbarButtonConfig;
 }
 
-export interface Anchor {
+export interface ToolbarAnchor {
     x: number;
     y: number;
     position?: 'above' | 'above-left' | 'right' | 'below';

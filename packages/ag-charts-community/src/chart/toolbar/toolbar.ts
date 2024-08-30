@@ -24,12 +24,12 @@ import { type LayoutCompleteEvent, LayoutElement } from '../layout/layoutManager
 import { type ButtonConfiguration, ToolbarGroupProperties } from './toolbarProperties';
 import * as styles from './toolbarStyles';
 import {
-    type Anchor,
     TOOLBAR_ALIGNMENTS,
     TOOLBAR_GROUPS,
     TOOLBAR_GROUP_ORDERING,
     TOOLBAR_POSITIONS,
     type ToolbarAlignment,
+    type ToolbarAnchor,
     type ToolbarButtonConfig,
     type ToolbarGroup,
     ToolbarPosition,
@@ -67,7 +67,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
     private dragState: {
         client: { x: number; y: number };
-        position: Anchor;
+        position: ToolbarAnchor;
         detached: boolean;
     } = {
         client: { x: 0, y: 0 },
@@ -78,7 +78,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         detached: false,
     };
 
-    private index?: number;
+    private floatingToolbarId?: number;
 
     private readonly horizontalSpacing = 10;
     private readonly verticalSpacing = 10;
@@ -304,13 +304,13 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     private onFloatingAnchorChanged(event: ToolbarFloatingAnchorChangedEvent) {
         const { elements, positions, horizontalSpacing, verticalSpacing } = this;
 
-        const { group, anchor, index } = event;
+        const { group, anchor, floatingToolbarId } = event;
 
-        if (this.index == index && this.dragState.detached) {
+        if (this.floatingToolbarId === floatingToolbarId && this.dragState.detached) {
             return;
         }
 
-        this.index = index;
+        this.floatingToolbarId = floatingToolbarId;
         this.dragState.detached = false;
 
         if (!positions[ToolbarPosition.Floating].has(group)) return;
@@ -423,15 +423,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.groupButtons[group] = [];
         if (buttons.length === 0) return;
 
-        const { align, position, draggable } = this[group];
-
-        if (draggable) {
-            buttons.unshift({
-                icon: 'drag-handle',
-                tooltip: 'toolbarAnnotationsDragHandle',
-                value: 'drag',
-            });
-        }
+        const { align, position } = this[group];
 
         const alignElement = this.positionAlignments[position][align];
 
@@ -557,12 +549,6 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
                 this.setButtonActive(button, active);
             }
         }
-
-        if (this[group].draggable) {
-            this.ctx.toolbarManager.toggleButton(group, 'drag', {
-                enabled,
-            });
-        }
     }
 
     private processPendingEvents() {
@@ -673,7 +659,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             if (this[group] == null) continue;
             const groupVisible = isGroupVisible(group);
             for (const button of this.groupButtons[group]) {
-                const buttonVisible = groupVisible && isButtonVisible(button);
+                const buttonVisible = groupVisible && this[group].buttonConfigurations().some(isButtonVisible(button));
                 button.classList.toggle(styles.modifiers.button.hiddenValue, !buttonVisible);
             }
         }
@@ -724,12 +710,18 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         button.tabIndex = -1;
 
         button.dataset.toolbarId = this.buttonId(options);
-        button.onclick = makeAccessibleClickListener(button, (event) =>
-            this.onButtonPress(event, button, group, options.id, options.value)
+        button.addEventListener(
+            'click',
+            makeAccessibleClickListener(button, (event) =>
+                this.onButtonPress(event, button, group, options.id, options.value)
+            )
         );
 
         if (options.value === 'drag') {
-            button.onmousedown = makeAccessibleClickListener(button, (event) => this.onDragStart(event, group));
+            button.addEventListener(
+                'mousedown',
+                makeAccessibleClickListener(button, (event) => this.onDragStart(event, group))
+            );
             button.classList.add(styles.modifiers.button.dragHandle);
         }
 

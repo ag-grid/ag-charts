@@ -17,7 +17,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
     protected readonly start = new DivariantHandle();
     protected readonly end = new DivariantHandle();
 
-    protected anchor: _ModuleSupport.Anchor = {
+    protected anchor: _ModuleSupport.ToolbarAnchor = {
         x: 0,
         y: 0,
         position: 'above-left',
@@ -139,7 +139,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         // Shapes should be implemented by the extending annotation type class
     }
 
-    protected updateAnchor(_datum: Datum, bbox: _Scene.BBox, context: AnnotationContext): _ModuleSupport.Anchor {
+    protected updateAnchor(_datum: Datum, bbox: _Scene.BBox, context: AnnotationContext): _ModuleSupport.ToolbarAnchor {
         return {
             x: bbox.x + context.seriesRect.x,
             y: bbox.y + context.seriesRect.y - bbox.height,

@@ -20,7 +20,7 @@ export abstract class AnnotationScene extends _Scene.Group {
     public abstract toggleHandles(show: boolean | Record<string, boolean>): void;
     public abstract toggleActive(active: boolean): void;
     public abstract stopDragging(): void;
-    public abstract getAnchor(): _ModuleSupport.Anchor;
+    public abstract getAnchor(): _ModuleSupport.ToolbarAnchor;
     public abstract getCursor(): string | undefined;
 
     public toggleHovered(hovered: boolean) {

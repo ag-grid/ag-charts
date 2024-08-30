@@ -20,7 +20,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         handle: Coords;
     };
 
-    private anchor: _ModuleSupport.Anchor = {
+    private anchor: _ModuleSupport.ToolbarAnchor = {
         x: 0,
         y: 0,
         position: 'above-left',
@@ -76,7 +76,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         this.handle.toggleDragging(false);
     }
 
-    override getAnchor(): _ModuleSupport.Anchor {
+    override getAnchor(): _ModuleSupport.ToolbarAnchor {
         return this.anchor;
     }
 

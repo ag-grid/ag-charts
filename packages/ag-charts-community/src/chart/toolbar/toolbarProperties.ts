@@ -77,8 +77,17 @@ export class ToolbarGroupProperties extends BaseProperties {
     }
 
     buttonConfigurations() {
+        const buttons = [...(this.buttons ?? [])];
+        if (this.draggable) {
+            buttons.unshift({
+                icon: 'drag-handle',
+                tooltip: 'toolbarAnnotationsDragHandle',
+                value: 'drag',
+                id: 'drag',
+            });
+        }
         return (
-            this.buttons?.map((button) => {
+            buttons?.map((button) => {
                 const id = button.id ?? button.value;
                 const overrides = this.buttonOverrides.get(id);
                 return overrides != null ? { ...button, ...overrides } : button;

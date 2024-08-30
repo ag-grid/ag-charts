@@ -17,7 +17,7 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
         handle: Coords;
     };
 
-    protected anchor: _ModuleSupport.Anchor = {
+    protected anchor: _ModuleSupport.ToolbarAnchor = {
         x: 0,
         y: 0,
         position: 'above',
@@ -63,7 +63,7 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
         this.handle.toggleDragging(false);
     }
 
-    override getAnchor(): _ModuleSupport.Anchor {
+    override getAnchor(): _ModuleSupport.ToolbarAnchor {
         return this.anchor;
     }
 

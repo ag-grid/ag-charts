@@ -12,7 +12,7 @@ export class ArrowDownScene extends ShapeScene<ArrowDownProperties> {
 
     override type = AnnotationType.ArrowDown;
 
-    override anchor: _ModuleSupport.Anchor = {
+    override anchor: _ModuleSupport.ToolbarAnchor = {
         x: 0,
         y: 0,
         position: 'below',
