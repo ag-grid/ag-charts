@@ -5,7 +5,7 @@ import colorPickerTemplate from './colorPickerTemplate.html';
 
 const { createElement } = _ModuleSupport;
 
-const { Color } = _Util;
+const { Color, clamp } = _Util;
 
 export interface ColorPickerOptions extends AnchoredPopoverOptions {
     color?: string;
@@ -125,13 +125,13 @@ export class ColorPicker extends AnchoredPopover<ColorPickerOptions> {
         paletteInput.addEventListener('mousedown', beginPaletteInteraction);
         paletteInput.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft') {
-                s = Math.min(Math.max(s - 0.01), 1);
+                s = clamp(0, s - 0.01, 1);
             } else if (e.key === 'ArrowRight') {
-                s = Math.min(Math.max(s + 0.01), 1);
+                s = clamp(0, s + 0.01, 1);
             } else if (e.key === 'ArrowUp') {
-                v = Math.min(Math.max(v + 0.01), 1);
+                v = clamp(0, v + 0.01, 1);
             } else if (e.key === 'ArrowDown') {
-                v = Math.min(Math.max(v - 0.01), 1);
+                v = clamp(0, v - 0.01, 1);
             } else {
                 return;
             }
