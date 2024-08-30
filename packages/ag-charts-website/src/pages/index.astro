@@ -5,14 +5,12 @@ import styles from '@pages-styles/homepage.module.scss';
 import InstallText from '@features/homepage/components/InstallText';
 import IndexGalleryExampleRunner from '@features/homepage/components/IndexGalleryExampleRunner.astro';
 
-import GalleryExampleRunner from '@features/gallery/components/GalleryExampleRunner.astro';
 import { getGalleryExamples } from '@features/gallery/utils/filesData';
 import { getEntry } from 'astro:content';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { AutomatedIntegratedChartsWrapper } from '@ag-website-shared/components/automated-examples/AutomatedIntegratedChartsWrapper';
 
-import { FreeChartsExamples } from '@features/homepage/components/FreeChartsExamples';
-import { DocsExampleRunner } from '@features/docs/components/DocsExampleRunner';
+import IndexDocsExampleRunner from '@features/homepage/components/IndexDocsExampleRunner.astro';
 const { data: whatsNewData } = await getEntry('versions', 'ag-charts-versions');
 
 // Fetch gallery data
@@ -128,26 +126,20 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                         </h5>
                     </div>
                     <div class={styles.column}>
-                        <DocsExampleRunner
-                            client:only="react"
-                            title={'Financial Charts Showcase'}
-                            name={'financial-charts-showcase'}
-                            exampleType={'generated'}
-                            framework={'react'}
-                            pageName={'financial-charts'}
+                        <IndexDocsExampleRunner
+                            name={'../../vanilla/financial-charts/examples/financial-charts-showcase'}
                         />
                     </div>
                 </div>
                 <div class={styles.twoColumnContainer}>
                     <div class={styles.column}>
-                        <DocsExampleRunner
-                            client:only="react"
+                        <!-- <IndexDocsExampleRunner
                             title={'World Map with Colour Scale'}
                             name={'world-colour-map'}
                             exampleType={'generated'}
                             framework={'react'}
                             pageName={'maps'}
-                        />
+                        /> -->
                     </div>
                     <div class={styles.column}>
                         <h4>JavaScript Map Charts</h4>
