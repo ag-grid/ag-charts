@@ -1,7 +1,8 @@
+import { Icon, type IconName } from '@ag-website-shared/components/icon/Icon';
 import { LinkIcon } from '@ag-website-shared/components/link-icon/LinkIcon';
 import { navigate, scrollIntoViewById } from '@ag-website-shared/utils/navigation';
 import classnames from 'classnames';
-import type { AllHTMLAttributes, FunctionComponent, MouseEventHandler, ReactNode } from 'react';
+import { type AllHTMLAttributes, type FunctionComponent, type MouseEventHandler, type ReactNode } from 'react';
 
 import { cleanupName } from '../apiReferenceHelpers';
 import styles from './ApiReference.module.scss';
@@ -12,6 +13,8 @@ interface PropertyTitleOptions {
     prefixPath?: string[];
     required?: boolean;
 }
+
+export type CollapsibleType = 'childrenProperties' | 'code' | 'none';
 
 export function PropertyTitle({ name, anchorId, prefixPath, required }: PropertyTitleOptions) {
     const handleClick: MouseEventHandler<HTMLAnchorElement> = (event) => {
@@ -48,19 +51,108 @@ export function PropertyNamePrefix({
     );
 }
 
-export function PropertyType({ type, defaultValue }: { type: string; defaultValue?: string }) {
+function CollapsibleButton({
+    name,
+    isExpanded,
+    onClick,
+    collapsibleType,
+}: {
+    name: string;
+    isExpanded?: boolean;
+    onClick?: () => void;
+    collapsibleType?: CollapsibleType;
+}) {
+    const isCollapsible = collapsibleType === 'childrenProperties' || collapsibleType === 'code';
+
+    if (!isCollapsible) {
+        return;
+    }
+
+    const iconName: IconName = collapsibleType === 'childrenProperties' ? 'arrowDown' : 'chevronDown';
+
     return (
-        <div className={styles.metaList}>
-            <div className={styles.metaItem}>
-                <span className={styles.metaLabel}>Type</span>
-                <PropertyName className={styles.metaValue}>{type}</PropertyName>
+        <button
+            className={classnames(styles.seeMore, 'button-style-none', {
+                [styles.isExpanded]: isExpanded,
+            })}
+            onClick={onClick}
+            aria-label={`See more details about ${name}`}
+        >
+            <Icon className={`${styles.chevron} ${isExpanded ? 'expandedIcon' : ''}`} name={iconName} />
+        </button>
+    );
+}
+
+export function PropertyType({
+    name,
+    type,
+    typeUrl,
+    defaultValue,
+    collapsibleType,
+    isExpanded,
+    onCollapseClick,
+}: {
+    name: string;
+    type: string;
+    typeUrl?: string;
+    defaultValue?: string;
+    collapsibleType?: CollapsibleType;
+    isExpanded?: boolean;
+    onCollapseClick?: () => void;
+}) {
+    const isCollapsibleCode = collapsibleType === 'code';
+
+    return (
+        <div className={styles.metaItem}>
+            <div className={styles.metaRow}>
+                <CollapsibleButton
+                    name={name}
+                    isExpanded={isExpanded}
+                    onClick={onCollapseClick!}
+                    collapsibleType={collapsibleType}
+                />
+                {typeUrl && isCollapsibleCode ? (
+                    <a
+                        className={styles.metaValue}
+                        href={typeUrl}
+                        target={typeUrl.startsWith('http') ? '_blank' : '_self'}
+                        rel="noreferrer"
+                    >
+                        {type}
+                    </a>
+                ) : (
+                    <span
+                        onClick={onCollapseClick}
+                        className={classnames(styles.metaValue, {
+                            [styles.isExpandable]: isCollapsibleCode,
+                        })}
+                    >
+                        {type}
+                    </span>
+                )}
             </div>
-            {defaultValue && (
+            {defaultValue != null && (
                 <div className={styles.metaItem}>
-                    <span className={styles.metaLabel}>Default</span>
-                    <span className={styles.metaValue}>{defaultValue}</span>
+                    <span className={classnames(styles.metaValue, styles.defaultValue)}>
+                        <span>default: </span>
+                        {defaultValue}
+                    </span>
                 </div>
             )}
+
+            {/* {isInitial && (
+                <div className={classnames(styles.metaItem, styles.initialItem)}>
+                    <a
+                        className={styles.initialLabel}
+                        href={urlWithPrefix({
+                            url: './grid-interface/#initial-grid-options',
+                            framework,
+                        })}
+                    >
+                        Initial
+                    </a>
+                </div>
+            )} */}
         </div>
     );
 }
@@ -80,11 +172,7 @@ function PropertyName({
     return (
         <Component {...props}>
             {wbrInject(children, splitRegex)}
-            {isRequired && (
-                <span title="Required" className={styles.required}>
-                    *
-                </span>
-            )}
+            {isRequired && <span className={styles.required}>required</span>}
         </Component>
     );
 }

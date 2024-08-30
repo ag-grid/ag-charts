@@ -28,7 +28,7 @@ import {
 } from '../apiReferenceHelpers';
 import styles from './ApiReference.module.scss';
 import { SelectionContext } from './OptionsNavigation';
-import { PropertyTitle, PropertyType } from './Properies';
+import { type CollapsibleType, PropertyTitle, PropertyType } from './Properies';
 
 export const ApiReferenceContext = createContext<ApiReferenceType | undefined>(undefined);
 export const ApiReferenceConfigContext = createContext<ApiReferenceConfig>({});
@@ -217,6 +217,8 @@ function ApiReferenceRow({
     const selection = useContext(SelectionContext);
     const memberName = cleanupName(member.name);
     const memberType = normalizeType(member.type);
+    const additionalDetails = useMemberAdditionalDetails(member);
+    const collapsibleType = getCollapsibleType({ additionalDetails, nestedPath });
 
     return (
         <div
@@ -231,7 +233,14 @@ function ApiReferenceRow({
                     prefixPath={prefixPath}
                     required={!config.hideRequired && !member.optional}
                 />
-                <PropertyType type={memberType} defaultValue={member.defaultValue} />
+                <PropertyType
+                    name={memberName}
+                    type={memberType}
+                    defaultValue={member.defaultValue}
+                    collapsibleType={collapsibleType}
+                    isExpanded={isExpanded}
+                    onCollapseClick={onDetailsToggle}
+                />
             </div>
             <div className={styles.rightColumn}>
                 <div role="presentation" className={styles.description}>
@@ -239,7 +248,7 @@ function ApiReferenceRow({
                         {member.docs?.join('\n')}
                     </Markdown>
                 </div>
-                {nestedPath ? (
+                {nestedPath && (
                     <div className={styles.actions}>
                         <a
                             href={nestedPath}
@@ -258,42 +267,14 @@ function ApiReferenceRow({
                             See property details <Icon name="arrowRight" />
                         </a>
                     </div>
-                ) : (
-                    <MemberActions member={member} isExpanded={isExpanded} onDetailsToggle={onDetailsToggle} />
                 )}
             </div>
-        </div>
-    );
-}
 
-function MemberActions({
-    member,
-    isExpanded,
-    onDetailsToggle,
-}: {
-    member: MemberNode;
-    isExpanded?: boolean;
-    onDetailsToggle?: () => void;
-}) {
-    const additionalDetails = useMemberAdditionalDetails(member);
-    const hasMembers = additionalDetails && 'members' in additionalDetails;
-    const shouldExpand = isExpanded && additionalDetails && !hasMembers;
-
-    if (additionalDetails == null) {
-        return null;
-    }
-
-    return (
-        <div className={styles.actions}>
-            {additionalDetails && (
-                <ToggleDetails
-                    isOpen={isExpanded}
-                    moreText={hasMembers ? 'See child properties' : 'More details'}
-                    lessText={hasMembers ? 'Hide child properties' : 'Hide details'}
-                    onToggle={onDetailsToggle}
-                />
+            {collapsibleType === 'code' && isExpanded && (
+                <div id={getDetailsId(anchorId)} className={classnames(styles.expandedContent)}>
+                    <TypeCodeBlock apiNode={additionalDetails!} member={member} />
+                </div>
             )}
-            {shouldExpand && <TypeCodeBlock apiNode={additionalDetails} member={member} />}
         </div>
     );
 }
@@ -320,22 +301,20 @@ export function TypeCodeBlock({ apiNode, member }: { apiNode: ApiNode | ApiNode[
     return <Code code={codeSample} />;
 }
 
-function ToggleDetails({
-    isOpen,
-    moreText = 'More details',
-    lessText = 'Hide details',
-    onToggle,
-}: {
-    isOpen?: boolean;
-    moreText?: string;
-    lessText?: string;
-    onToggle?: () => void;
-}) {
-    return (
-        <button className={classnames(styles.seeMore, 'button-as-link')} onClick={onToggle}>
-            {!isOpen ? moreText : lessText} <Icon name={isOpen ? 'chevronUp' : 'chevronDown'} />
-        </button>
-    );
+function getCollapsibleType({ additionalDetails, nestedPath }): CollapsibleType {
+    const hasMembers = additionalDetails && 'members' in additionalDetails;
+    let collapsibleType: CollapsibleType = 'none';
+    if (hasMembers) {
+        collapsibleType = 'childrenProperties';
+    } else if (Boolean(additionalDetails) && !nestedPath) {
+        collapsibleType = 'code';
+    }
+
+    return collapsibleType;
+}
+
+function getDetailsId(id: string) {
+    return `${id}-details`;
 }
 
 function useMemberAdditionalDetails(member: MemberNode) {
