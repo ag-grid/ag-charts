@@ -143,7 +143,9 @@ export interface MenuCloser {
     finishClosing(): void;
 }
 
-export type MenuDevice = { type: 'keyboard'; lastFocus: HTMLElement } | { type: 'mouse'; lastFocus?: undefined };
+export type MenuDevice =
+    | { type: 'keyboard'; lastFocus: HTMLElement }
+    | { type: 'mouse'; lastFocus: HTMLElement | undefined };
 
 class MenuCloserImp implements MenuCloser {
     public readonly destroyFns: (() => void)[] = [];

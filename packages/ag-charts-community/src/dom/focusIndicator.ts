@@ -75,6 +75,6 @@ export class FocusIndicator {
                 return { type: 'keyboard', lastFocus };
             }
         }
-        return { type: 'mouse' };
+        return { type: 'mouse', lastFocus };
     }
 }
