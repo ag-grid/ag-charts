@@ -5,11 +5,12 @@ import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import { setAttribute } from '../../util/attributeUtil';
-import { createElement } from '../../util/dom';
+import { createElement, getWindow } from '../../util/dom';
 import { initToolbarKeyNav, makeAccessibleClickListener } from '../../util/keynavUtil';
 import { clamp } from '../../util/number';
 import { ObserveChanges } from '../../util/proxy';
 import { BOOLEAN, Validate } from '../../util/validation';
+import { Vec2 } from '../../util/vector';
 import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
 import type {
     ToolbarButtonToggledEvent,
@@ -28,6 +29,7 @@ import {
     TOOLBAR_GROUP_ORDERING,
     TOOLBAR_POSITIONS,
     type ToolbarAlignment,
+    type ToolbarAnchor,
     type ToolbarButtonConfig,
     type ToolbarGroup,
     ToolbarPosition,
@@ -62,6 +64,21 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.onGroupChanged.bind(this, 'zoom'),
         this.onGroupButtonsChanged.bind(this, 'zoom')
     );
+
+    private dragState: {
+        client: { x: number; y: number };
+        position: ToolbarAnchor;
+        detached: boolean;
+    } = {
+        client: { x: 0, y: 0 },
+        position: {
+            x: 0,
+            y: 0,
+        },
+        detached: false,
+    };
+
+    private floatingToolbarId?: number;
 
     private readonly horizontalSpacing = 10;
     private readonly verticalSpacing = 10;
@@ -285,16 +302,16 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     private onFloatingAnchorChanged(event: ToolbarFloatingAnchorChangedEvent) {
-        const {
-            elements,
-            groupButtons,
-            positions,
-            horizontalSpacing,
-            verticalSpacing,
-            ctx: { domManager, toolbarManager },
-        } = this;
+        const { elements, positions, horizontalSpacing, verticalSpacing } = this;
 
-        const { group, anchor } = event;
+        const { group, anchor, floatingToolbarId } = event;
+
+        if (this.floatingToolbarId === floatingToolbarId && this.dragState.detached) {
+            return;
+        }
+
+        this.floatingToolbarId = floatingToolbarId;
+        this.dragState.detached = false;
 
         if (!positions[ToolbarPosition.Floating].has(group)) return;
 
@@ -317,15 +334,30 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             left = anchor.x;
         }
 
-        const canvasRect = domManager.getBoundingClientRect();
-        top = clamp(0, top, canvasRect.height - height);
-        left = clamp(0, left, canvasRect.width - width);
-
-        element.style.top = `${top}px`;
-        element.style.left = `${left}px`;
-
         const groupBBox = new BBox(left, top, width, height);
+        this.positionGroup(element, group, groupBBox);
+    }
 
+    private positionGroup(element: HTMLElement, group: ToolbarGroup, bbox: BBox) {
+        const {
+            ctx: { domManager },
+        } = this;
+
+        const canvasRect = domManager.getBoundingClientRect();
+        bbox.x = clamp(0, bbox.x, canvasRect.width - bbox.width);
+        bbox.y = clamp(0, bbox.y, canvasRect.height - bbox.height);
+
+        element.style.setProperty('left', `${bbox.x}px`);
+        element.style.setProperty('top', `${bbox.y}px`);
+
+        this.onGroupMoved(group, bbox);
+    }
+
+    private onGroupMoved(group: ToolbarGroup, bbox: BBox) {
+        const {
+            groupButtons,
+            ctx: { toolbarManager },
+        } = this;
         for (const button of groupButtons[group]) {
             if (button.classList.contains(styles.modifiers.button.hiddenToggled)) continue;
 
@@ -339,7 +371,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
                     button.offsetWidth,
                     button.offsetHeight
                 ),
-                groupBBox
+                bbox
             );
         }
     }
@@ -392,6 +424,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         if (buttons.length === 0) return;
 
         const { align, position } = this[group];
+
         const alignElement = this.positionAlignments[position][align];
 
         if (!alignElement) return;
@@ -473,7 +506,11 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             const buttons = ariaToolbar.groups
                 .map((g) => this.groupButtons[g])
                 .flat()
-                .filter((b) => !b.classList.contains(styles.modifiers.button.hiddenToggled));
+                .filter(
+                    (b) =>
+                        !b.classList.contains(styles.modifiers.button.hiddenToggled) &&
+                        !b.classList.contains(styles.modifiers.button.dragHandle)
+                );
             ariaToolbar.destroyFns.forEach((d) => d());
             ariaToolbar.destroyFns = initToolbarKeyNav({ orientation, toolbar, buttons, onEscape, onFocus, onBlur });
         };
@@ -673,9 +710,21 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         button.tabIndex = -1;
 
         button.dataset.toolbarId = this.buttonId(options);
-        button.onclick = makeAccessibleClickListener(button, (event) =>
-            this.onButtonPress(event, button, group, options.id, options.value)
+        button.addEventListener(
+            'click',
+            makeAccessibleClickListener(button, (event) =>
+                this.onButtonPress(event, button, group, options.id, options.value)
+            )
         );
+
+        if (options.value === 'drag') {
+            button.addEventListener(
+                'mousedown',
+                makeAccessibleClickListener(button, (event) => this.onDragStart(event, group))
+            );
+            button.classList.add(styles.modifiers.button.dragHandle);
+        }
+
         if (options.role === 'switch') {
             button.role = options.role;
             button.ariaChecked = false.toString();
@@ -768,6 +817,46 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         value: any
     ) {
         this.ctx.toolbarManager.pressButton(group, this.buttonId({ id, value }), value, this.buttonRect(button), event);
+    }
+
+    private onDragStart(event: MouseEvent, group: ToolbarGroup) {
+        const element = this.elements[ToolbarPosition.Floating];
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        this.dragState = {
+            client: Vec2.from(event.clientX, event.clientY),
+            position: Vec2.from(
+                Number(element.style.getPropertyValue('left').replace('px', '')),
+                Number(element.style.getPropertyValue('top').replace('px', ''))
+            ),
+            detached: true,
+        };
+
+        const onDrag = (e: MouseEvent) => this.onDrag(e, group);
+        const window = getWindow();
+        window.addEventListener('mousemove', onDrag);
+        window.addEventListener('mouseup', () => window.removeEventListener('mousemove', onDrag), {
+            once: true,
+        });
+        element.addEventListener('mouseup', () => window.removeEventListener('mousemove', onDrag), {
+            once: true,
+        });
+
+        this.ctx.toolbarManager.groupMoved(group);
+    }
+
+    private onDrag(event: MouseEvent, group: ToolbarGroup) {
+        const { elements, dragState } = this;
+        const element = elements[ToolbarPosition.Floating];
+        const { offsetWidth: width, offsetHeight: height } = element;
+
+        const offset = Vec2.sub(Vec2.from(event.clientX, event.clientY), dragState.client);
+        const position = Vec2.add(dragState.position, offset);
+
+        const groupBBox = new BBox(position.x, position.y, width, height);
+        this.positionGroup(element, group, groupBBox);
     }
 
     private buttonId(button: ButtonConfiguration) {

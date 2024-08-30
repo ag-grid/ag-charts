@@ -68,10 +68,6 @@ export function stringToAnnotationType(value: string) {
     }
 }
 
-export interface Anchor extends Coords {
-    position?: 'above' | 'above-left' | 'right' | 'below';
-}
-
 export interface Coords {
     x: number;
     y: number;

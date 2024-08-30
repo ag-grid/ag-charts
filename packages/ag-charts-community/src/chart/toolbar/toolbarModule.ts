@@ -57,6 +57,7 @@ const annotationOptions: AgToolbarOptions['annotationOptions'] = {
     enabled: true,
     position: 'floating',
     align: 'start',
+    draggable: true,
     buttons: [
         {
             icon: 'text-annotation',

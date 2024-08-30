@@ -14,6 +14,8 @@ export interface AgToolbarGroup extends Toggleable {
     align?: AgToolbarGroupAlignment;
     /** Position of the toolbar group on the outside of the chart. */
     position?: AgToolbarGroupPosition;
+    /** whether the toolbar can be dragged */
+    draggable?: boolean;
     /** Size of the toolbar group buttons, defaults to 'normal'. */
     size?: AgToolbarGroupSize;
     buttons?: (AgToolbarButton | AgToolbarSwitch)[];
