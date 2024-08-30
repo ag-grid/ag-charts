@@ -316,13 +316,14 @@ interface Extendable {
     // extendRight?: boolean;
 }
 
+// TODO: Add these options back when we have another cap type.
 interface Cappable {
     /** The cap to show at the start of the line. */
-    startCap?: Cap;
+    // startCap?: Cap;
     /** The cap to show at the end of the line. */
-    endCap?: Cap;
+    // endCap?: Cap;
 }
 
-type Cap = 'arrow';
+// type Cap = 'arrow';
 
 export type AgAnnotationValue = string | number | AgStateSerializableDate;
