@@ -39,6 +39,7 @@ type ContainerParams<T extends ProxyContainerType> = {
 };
 
 type ProxyMeta = {
+    // Elements
     button: {
         params: InteractParams<'button'> & { readonly textContent: string | TranslationKey };
         result: HTMLButtonElement;
@@ -51,6 +52,12 @@ type ProxyMeta = {
         params: ElemParams<'text'>;
         result: BoundedText;
     };
+    listbutton: {
+        params: InteractParams<'listbutton'> & { readonly textContent: string | TranslationKey };
+        result: { button: HTMLButtonElement; listitem: HTMLElement };
+    };
+
+    // Containers
     toolbar: {
         params: ContainerParams<'toolbar'>;
         result: HTMLDivElement;
@@ -59,10 +66,14 @@ type ProxyMeta = {
         params: ContainerParams<'group'>;
         result: HTMLDivElement;
     };
+    list: {
+        params: Omit<ContainerParams<'list'>, 'ariaOrientation'>;
+        result: HTMLDivElement;
+    };
 };
 
-type ProxyElementType = 'button' | 'slider' | 'text';
-type ProxyContainerType = 'toolbar' | 'group';
+type ProxyElementType = 'button' | 'slider' | 'text' | 'listbutton';
+type ProxyContainerType = 'toolbar' | 'group' | 'list';
 
 function checkType<T extends keyof ProxyMeta>(type: T, meta: ProxyMeta[keyof ProxyMeta]): meta is ProxyMeta[T] {
     return meta.params?.type === type;
@@ -73,10 +84,12 @@ function allocateResult<T extends keyof ProxyMeta>(type: T): ProxyMeta[T]['resul
         return createElement('button');
     } else if ('slider' === type) {
         return createElement('input');
-    } else if ('toolbar' === type || 'group' === type) {
+    } else if (['toolbar', 'group', 'list'].includes(type)) {
         return createElement('div');
     } else if ('text' === type) {
         return new BoundedText();
+    } else if ('listbutton' === type) {
+        return { button: createElement('button'), listitem: createElement('div') };
     } else {
         throw Error('AG Charts - error allocating meta');
     }
@@ -129,7 +142,9 @@ export class ProxyInteractionService {
         div.classList.add(...params.classList);
         div.style.pointerEvents = 'none';
         div.role = params.type;
-        div.ariaOrientation = params.ariaOrientation;
+        if ('ariaOrientation' in params) {
+            div.ariaOrientation = params.ariaOrientation;
+        }
 
         if (typeof params.ariaHidden === 'boolean') {
             div.ariaHidden = params.ariaHidden.toString();
@@ -175,6 +190,27 @@ export class ProxyInteractionService {
         if (checkType('text', meta)) {
             const { params, result: text } = meta;
             this.initElement(params, text.getContainer());
+        }
+
+        if (checkType('listbutton', meta)) {
+            const {
+                params,
+                result: { button, listitem },
+            } = meta;
+            this.initInteract(params, button);
+            button.style.width = '100%';
+            button.style.height = '100%';
+            if (typeof params.textContent === 'string') {
+                button.textContent = params.textContent;
+            } else {
+                const { textContent } = params;
+                this.addLocalisation(() => {
+                    button.textContent = this.localeManager.t(textContent.id, textContent.params);
+                });
+            }
+
+            listitem.role = 'listitem';
+            listitem.replaceChildren(button);
         }
 
         return meta.result;
