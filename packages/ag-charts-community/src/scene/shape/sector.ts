@@ -114,6 +114,11 @@ export class Sector extends Path {
         return sectorBox(this).translate(this.centerX, this.centerY);
     }
 
+    protected override gradientBBox(): BBox {
+        const { centerX, centerY, outerRadius } = this;
+        return new BBox(centerX - outerRadius, centerY - outerRadius, 2 * outerRadius, 2 * outerRadius);
+    }
+
     private normalizedRadii() {
         const { concentricEdgeInset } = this;
         let { innerRadius, outerRadius } = this;
@@ -160,9 +165,6 @@ export class Sector extends Path {
 
         if (inner && innerRadius <= 0) return;
 
-        const innerAngleOffset = this.getAngleOffset(innerRadius);
-        const outerAngleOffset = this.getAngleOffset(outerRadius);
-
         const angleOffset = inner ? this.getAngleOffset(innerRadius + r) : this.getAngleOffset(outerRadius - r);
         const angle = start ? startAngle + angleOffset + angleSweep : endAngle - angleOffset - angleSweep;
 
@@ -182,17 +184,11 @@ export class Sector extends Path {
 
         if (clipSector != null) {
             if (inner) {
-                arc.clipStart(
-                    arcRadialLineIntersectionAngle(cx, cy, r, a0, a1, clipSector.endAngle - innerAngleOffset)
-                );
-                arc.clipEnd(
-                    arcRadialLineIntersectionAngle(cx, cy, r, a0, a1, clipSector.startAngle + innerAngleOffset)
-                );
+                arc.clipStart(arcRadialLineIntersectionAngle(cx, cy, r, a0, a1, clipSector.endAngle));
+                arc.clipEnd(arcRadialLineIntersectionAngle(cx, cy, r, a0, a1, clipSector.startAngle));
             } else {
-                arc.clipStart(
-                    arcRadialLineIntersectionAngle(cx, cy, r, a0, a1, clipSector.startAngle + outerAngleOffset)
-                );
-                arc.clipEnd(arcRadialLineIntersectionAngle(cx, cy, r, a0, a1, clipSector.endAngle - outerAngleOffset));
+                arc.clipStart(arcRadialLineIntersectionAngle(cx, cy, r, a0, a1, clipSector.startAngle));
+                arc.clipEnd(arcRadialLineIntersectionAngle(cx, cy, r, a0, a1, clipSector.endAngle));
             }
 
             let circleClipStart: number | undefined;

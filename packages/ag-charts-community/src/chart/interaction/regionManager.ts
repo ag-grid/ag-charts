@@ -1,6 +1,7 @@
 import type { FocusIndicator } from '../../dom/focusIndicator';
 import { Node } from '../../scene/node';
 import type { BBoxProvider } from '../../util/bboxinterface';
+import { Debug } from '../../util/debug';
 import { Listeners } from '../../util/listeners';
 import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
 import { InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
@@ -62,6 +63,8 @@ function nodeToBBoxProvider(node: RegionNodeType) {
 }
 
 export class RegionManager {
+    private readonly debug = Debug.create(true, 'region');
+
     private current?: { region: Region; bboxProvider?: BBoxProvider };
     private isDragging = false;
     private leftCanvas = false;
@@ -180,6 +183,7 @@ export class RegionManager {
             regionOffsetX,
             regionOffsetY,
         });
+        this.debug('Dispatching region event: ', event);
         this.allRegionsListeners.dispatch(event.type, event);
         current.region.listeners.dispatch(event.type, event);
     }

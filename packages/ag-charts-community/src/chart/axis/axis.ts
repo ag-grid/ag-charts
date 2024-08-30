@@ -134,6 +134,7 @@ interface TickGenerationResult {
     combinedRotation: number;
     textBaseline: CanvasTextBaseline;
     textAlign: CanvasTextAlign;
+    labelData: PlacedLabelDatum[];
 }
 
 type AxisAnimationState = 'empty' | 'ready';
@@ -263,7 +264,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     protected animationManager: AnimationManager;
     private readonly animationState: StateMachine<AxisAnimationState, AxisAnimationEvent>;
 
-    private readonly destroyFns: Function[] = [];
+    private readonly destroyFns: Array<() => void> = [];
 
     constructor(
         protected readonly moduleCtx: ModuleContext,
@@ -272,9 +273,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.range = this.scale.range.slice() as [number, number];
         this.crossLines.forEach((crossLine) => this.initCrossLine(crossLine));
 
-        this.destroyFns.push(this._titleCaption.registerInteraction(this.moduleCtx));
-        this._titleCaption.node.rotation = -Math.PI / 2;
-        this.axisGroup.appendChild(this._titleCaption.node);
+        this.destroyFns.push(this.title.caption.registerInteraction(this.moduleCtx));
+        this.title.caption.node.rotation = -Math.PI / 2;
+        this.axisGroup.appendChild(this.title.caption.node);
 
         this.animationManager = moduleCtx.animationManager;
         this.animationState = new StateMachine<AxisAnimationState, AxisAnimationEvent>('empty', {
@@ -362,10 +363,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         axisNode.removeChild(this.labelGroup);
     }
 
-    getAxisGroup(): Group {
-        return this.axisGroup;
-    }
-
     range: [number, number] = [0, 1];
     visibleRange: [number, number] = [0, 1];
 
@@ -406,9 +403,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
     }
 
-    @Validate(OBJECT, { optional: true })
-    title = new AxisTitle();
-    protected _titleCaption = new Caption();
+    @Validate(OBJECT)
+    readonly title = new AxisTitle();
 
     private setTickInterval(interval?: TickInterval<S>) {
         this.scale.interval = this.interval?.step ?? interval;
@@ -432,7 +428,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     protected onGridLengthChange(value: number, prevValue: number) {
         // Was visible and now invisible, or was invisible and now visible.
-        if ((prevValue && !value) || (!prevValue && value)) {
+        if (prevValue ^ value) {
             this.onGridVisibilityChange();
         }
         this.crossLines.forEach((crossLine) => this.initCrossLine(crossLine));
@@ -792,6 +788,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         let index = 0;
         let autoRotation = 0;
         let labelOverlap = true;
+        let labelData: PlacedLabelDatum[] = [];
         let terminate = false;
         while (labelOverlap && index <= maxIterations) {
             if (terminate) {
@@ -814,10 +811,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
                 const rotated = configuredRotation !== 0 || autoRotation !== 0;
                 const labelRotation = initialRotation + autoRotation;
+                const labelSpacing = getLabelSpacing(this.label.minSpacing, rotated);
+                Matrix.updateTransformMatrix(labelMatrix, 1, 1, labelRotation, 0, 0);
+
                 textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
-                labelOverlap = this.label.avoidCollisions
-                    ? this.checkLabelOverlap(labelRotation, rotated, labelMatrix, tickData.ticks, labelX, textMeasurer)
-                    : false;
+                labelData = this.createLabelData(tickData.ticks, labelX, labelMatrix, textMeasurer);
+                labelOverlap = this.label.avoidCollisions ? axisLabelsOverlap(labelData, labelSpacing) : false;
             }
         }
 
@@ -827,7 +826,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             primaryTickCount = tickData.rawTicks.length;
         }
 
-        return { tickData, primaryTickCount, combinedRotation, textBaseline, textAlign };
+        return { tickData, primaryTickCount, combinedRotation, textBaseline, textAlign, labelData };
     }
 
     private getTickStrategies({
@@ -935,22 +934,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         terminate ||= shouldTerminate;
 
         return { tickData, index, autoRotation: 0, terminate };
-    }
-
-    private checkLabelOverlap(
-        rotation: number,
-        rotated: boolean,
-        labelMatrix: Matrix,
-        tickData: TickDatum[],
-        labelX: number,
-        textMeasurer: TextMeasurer
-    ): boolean {
-        Matrix.updateTransformMatrix(labelMatrix, 1, 1, rotation, 0, 0);
-
-        const labelData: PlacedLabelDatum[] = this.createLabelData(tickData, labelX, labelMatrix, textMeasurer);
-        const labelSpacing = getLabelSpacing(this.label.minSpacing, rotated);
-
-        return axisLabelsOverlap(labelData, labelSpacing);
     }
 
     private createLabelData(
@@ -1313,14 +1296,14 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     protected updateTitle(params: { anyTickVisible: boolean }): void {
-        const { title, _titleCaption, lineNode, tickLineGroup, tickLabelGroup } = this;
+        const { title, lineNode, tickLineGroup, tickLabelGroup } = this;
 
         let spacing = 0;
         if (title.enabled && params.anyTickVisible) {
             const tickBBox = Group.computeChildrenBBox([tickLineGroup, tickLabelGroup, lineNode]);
             spacing += tickBBox.width + (this.tickLabelGroup.visible ? 0 : this.seriesAreaPadding);
         }
-        this.setTitleProps(_titleCaption, { spacing });
+        this.setTitleProps(title.caption, { spacing });
     }
 
     // For formatting (nice rounded) tick values.
@@ -1423,7 +1406,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return { ...this.moduleCtx, parent: this.axisContext };
     }
 
-    public createAxisContext(): AxisContext {
+    createAxisContext(): AxisContext {
         const { scale } = this;
         return {
             axisId: this.id,

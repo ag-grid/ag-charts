@@ -22,6 +22,8 @@ import {
 import { Caption } from '../caption';
 
 export class AxisTitle extends BaseProperties implements AgAxisCaptionOptions {
+    readonly caption = new Caption();
+
     @Validate(BOOLEAN)
     enabled: boolean = false;
 

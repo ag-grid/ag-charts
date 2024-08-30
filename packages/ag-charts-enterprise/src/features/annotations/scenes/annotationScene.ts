@@ -1,5 +1,6 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
+import type { Anchor } from '../annotationTypes';
 import { Handle } from './handle';
 
 const { Layers, isObject } = _ModuleSupport;
@@ -9,6 +10,7 @@ export abstract class AnnotationScene extends _Scene.Group {
         return isObject(value) && Object.hasOwn(value, 'type') && value.type === type;
     }
 
+    override name = 'AnnotationScene';
     override zIndex = Layers.CHART_ANNOTATION_ZINDEX;
 
     public abstract type: string;
@@ -19,7 +21,7 @@ export abstract class AnnotationScene extends _Scene.Group {
     public abstract toggleHandles(show: boolean | Record<string, boolean>): void;
     public abstract toggleActive(active: boolean): void;
     public abstract stopDragging(): void;
-    public abstract getAnchor(): { x: number; y: number; position?: 'right' | 'above' | 'above-left' };
+    public abstract getAnchor(): Anchor;
     public abstract getCursor(): string | undefined;
 
     public toggleHovered(hovered: boolean) {

@@ -8,6 +8,7 @@ const options: AgFinancialChartOptions = {
     title: {
         text: 'Dow Jones Industrial Average',
     },
+    rangeButtons: false,
 };
 
 const chart = AgCharts.createFinancialChart(options);

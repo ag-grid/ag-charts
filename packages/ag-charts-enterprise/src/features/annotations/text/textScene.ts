@@ -1,4 +1,4 @@
-import { _Scene, _Util } from 'ag-charts-community';
+import type { _Util } from 'ag-charts-community';
 
 import { AnnotationType } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';

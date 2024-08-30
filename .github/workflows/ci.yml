@@ -56,7 +56,8 @@ jobs:
             build: ${{ steps.build.outcome || '' }}
             lint: ${{ steps.lint.outcome || '' }}
             format: ${{ steps.format.outcome || '' }}
-            test_count: ${{ steps.test_count.outputs.test_count }}
+            test_count: ${{ steps.matrix.outputs.test_count }}
+            test_matrix: ${{ steps.matrix.outputs.test_matrix }}
         steps:
             - name: Checkout
               id: checkout
@@ -70,7 +71,7 @@ jobs:
               id: setup
               uses: ./.github/actions/setup-nx
               with:
-                  cache_mode: ${{ github.event.inputs.clean_checkout == 'true' && 'none' || 'rw' }}
+                  cache_mode: ${{ github.event.inputs.clean_checkout == 'true' && 'off' || 'rw' }}
 
             - name: nx format:check
               id: format
@@ -84,14 +85,8 @@ jobs:
 
             - name: nx lint
               id: lint
-              if: steps.setup.outputs.type != 'pr' && (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
+              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t lint --parallel=3 --exclude all
-            - name: nx lint (diff)
-              id: lint_diff
-              if: steps.setup.outputs.type == 'pr' && (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
-              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t lint --parallel=3 --exclude all
-              env:
-                  ESLINT_PLUGIN_DIFF_COMMIT: ${{ github.event.pull_request.base.ref }}
 
             - name: nx build
               id: build
@@ -110,14 +105,19 @@ jobs:
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t validate-examples --parallel=3 --exclude all
 
-            - name: Count test targets to run
-              id: test_count
+            - name: calculate matrix
+              id: matrix
               run: |
                   if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
-                    echo "test_count=1000" >> $GITHUB_OUTPUT
+                    count=10
                   else
-                    echo "test_count=$(yarn -s nx show projects --affected --base ${{ steps.setup.outputs.base }} -t test | wc -l)" >> $GITHUB_OUTPUT
+                    count=$(yarn -s nx show projects --affected --base ${{ steps.setup.outputs.base }} -t test | wc -l)
                   fi
+
+                  matrix=$(node ./tools/test/calculate-shards.js eval --ratio 1 --zero ${count})
+                  echo "test_matrix=${matrix}" >> $GITHUB_OUTPUT
+                  echo "test_count=${count}" >> $GITHUB_OUTPUT
+                  echo "Test matrix determined to be: ${matrix}"
 
     test:
         runs-on: ubuntu-24.04
@@ -125,8 +125,7 @@ jobs:
         needs: build_lint
         if: needs.build_lint.outputs.test_count > 0
         strategy:
-            matrix:
-                shard: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+            matrix: ${{ fromJson(needs.build_lint.outputs.test_matrix )}}
         env:
             NX_PARALLEL: 1
             NX_BASE: ${{ needs.build_lint.outputs.nx_base }}
@@ -188,6 +187,7 @@ jobs:
               uses: ./.github/actions/setup-nx
               with:
                   cache_mode: ro
+                  playwright_install: true # Cache playwright Chrome binaries for e2e jobs.
 
             - name: build examples
               run: |
@@ -201,7 +201,13 @@ jobs:
             - name: calculate matrix
               id: matrix
               run: |
-                  count=$(cd packages/ag-charts-website/ ; npx playwright test --list | grep -v '!!!SKIPPED!!!' | wc -l)
+                  nx_count=$(yarn -s nx show projects --affected --base ${{ steps.setup.outputs.base }} -t test:e2e | wc -l)
+                  if [[ ${nx_count} -gt 0 ]] ; then
+                    count=$(cd packages/ag-charts-website/ ; npx playwright test --list | grep -v '!!!SKIPPED!!!' | wc -l)
+                  else
+                    count=0
+                  fi
+
                   matrix=$(node ./tools/test/calculate-shards.js eval ${count})
                   echo "matrix=${matrix}" >> $GITHUB_OUTPUT
                   echo "E2E matrix determined to be: ${matrix}"
@@ -241,7 +247,6 @@ jobs:
               id: setup
               uses: ./.github/actions/setup-nx
               with:
-                  yarn_opts: --ignore-scripts
                   yarn_postinstall: false
                   nx_restore: false # Restored in previous step.
                   cache_mode: ro
@@ -306,6 +311,8 @@ jobs:
                     WORKFLOW_STATUS="failure"
                   elif [ "${{ needs.test.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="failure"
+                  elif [ "${{ needs.e2e.result }}" == "failure" ] ; then
+                    WORKFLOW_STATUS="failure"
                   elif [ "${{ needs.sonarqube.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="partial"
                   fi
@@ -367,7 +374,7 @@ jobs:
     sonarqube:
         runs-on: ubuntu-24.04
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v4
               with:
                   # Disabling shallow clones is recommended for improving the relevancy of reporting
                   fetch-depth: 0

@@ -1,5 +1,24 @@
 [
     {
+        "version": "10.2.0",
+        "date": "September 17th 2024",
+        "highlights": [
+            {
+                "text": "Radial Gauge",
+                "path": "./radial-gauge/"
+            },
+            {
+                "text": "Trend Line Labels",
+                "path": "./financial-charts-toolbar#lines"
+            },
+            {
+                "text": "Arrow Drawings",
+                "path": "./financial-charts-toolbar#arrows"
+            }
+        ],
+        "notesPath": "./upgrade-to-ag-charts-10-2"
+    },
+    {
         "version": "10.1.0",
         "date": "August 8th 2024",
         "highlights": [
@@ -44,7 +63,7 @@
             },
             {
                 "text": "Annotations",
-                "path": "./financial-charts-toolbar#annotations"
+                "path": "./financial-charts-toolbar#lines"
             },
             {
                 "text": "Sankey Series",

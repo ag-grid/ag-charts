@@ -27,24 +27,18 @@ import {
     AnnotationType,
     stringToAnnotationType,
 } from './annotationTypes';
-import { calculateAxisLabelPadding, invertCoords, validateDatumPoint } from './annotationUtils';
-import {
-    annotationDatums,
-    annotationScenes,
-    getLineStyle,
-    getTypedDatum,
-    hasFillColor,
-    hasFontSize,
-    hasLineColor,
-    hasLineStyle,
-    hasTextColor,
-    isTextType,
-    setDefaults,
-    updateAnnotation,
-} from './annotationsConfig';
+import { annotationConfigs, getTypedDatum } from './annotationsConfig';
 import { AnnotationsStateMachine } from './annotationsStateMachine';
 import type { AnnotationProperties, AnnotationScene } from './annotationsSuperTypes';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
+import { AnnotationSettingsDialog } from './settings-dialog/settingsDialog';
+import { calculateAxisLabelPadding } from './utils/axis';
+import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasLineText, hasTextColor } from './utils/has';
+import { getLineStyle, setDefaults } from './utils/styles';
+import { isTextType } from './utils/types';
+import { updateAnnotation } from './utils/update';
+import { validateDatumPoint } from './utils/validation';
+import { invertCoords } from './utils/values';
 
 const {
     BOOLEAN,
@@ -135,6 +129,8 @@ const TEXT_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
 
 const SHAPE_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
     { label: 'toolbarAnnotationsArrow', icon: 'arrow-drawing', value: AnnotationType.Arrow },
+    { label: 'toolbarAnnotationsArrowUp', icon: 'arrow-up', value: AnnotationType.ArrowUp },
+    { label: 'toolbarAnnotationsArrowDown', icon: 'arrow-down', value: AnnotationType.ArrowDown },
 ];
 
 enum AnnotationOptions {
@@ -146,6 +142,7 @@ enum AnnotationOptions {
     Lock = 'lock',
     TextColor = 'text-color',
     TextSize = 'text-size',
+    Settings = 'settings',
 }
 
 class AxesButtons {
@@ -180,9 +177,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     // State
     private readonly state: AnnotationsStateMachine;
-    private readonly annotationData: AnnotationPropertiesArray = new PropertiesArray(this.createAnnotationDatum);
+    private readonly annotationData: AnnotationPropertiesArray = new PropertiesArray<AnnotationProperties>(
+        this.createAnnotationDatum
+    );
     private readonly defaultColors: Map<
-        AnnotationType | TextualAnnotationType | LineAnnotationType | ChannelAnnotationType,
+        AnnotationType,
         Map<AnnotationOptionsColorPickerType, [string, string, number] | undefined>
     > = new Map(
         Object.values(AnnotationType).map((type) => [
@@ -210,6 +209,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         [AnnotationType.VerticalLine, undefined],
         [AnnotationType.DisjointChannel, undefined],
         [AnnotationType.ParallelChannel, undefined],
+        [AnnotationType.Arrow, undefined],
     ]);
 
     // Elements
@@ -224,7 +224,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private readonly lineStyleTypeMenu = new Menu(this.ctx, 'annotations-line-style-type');
     private readonly lineStrokeWidthMenu = new Menu(this.ctx, 'annotations-line-stroke-width');
     private readonly annotationMenu = new Menu(this.ctx, 'annotations');
-
+    private readonly settingsDialog = new AnnotationSettingsDialog(this.ctx);
     private readonly textInput = new TextInput(this.ctx);
 
     private xAxis?: AnnotationAxis;
@@ -432,6 +432,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.toggleAnnotationOptionsButtons();
                 ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: true });
             },
+
+            showAnnotationSettings: (active: number) => {
+                const datum = this.annotationData.at(active);
+                if (!hasLineText(datum)) return;
+                this.settingsDialog.showLine(datum, {
+                    onChange: (props) => {
+                        this.state.transition('lineText', props);
+                    },
+                });
+            },
         });
     }
 
@@ -457,8 +467,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.destroyFns.push(
             // Interactions
-            seriesRegion.addListener('hover', (event) => this.onHover(event), All),
-            seriesRegion.addListener('click', (event) => this.onClick(event), All),
+            seriesRegion.addListener('hover', this.onHover.bind(this), All),
+            seriesRegion.addListener('click', this.onClick.bind(this), All),
+            seriesRegion.addListener('dblclick', this.onDoubleClick.bind(this), All),
             seriesRegion.addListener('drag-start', this.onDragStart.bind(this), Default | ZoomDrag | AnnotationsState),
             seriesRegion.addListener('drag', this.onDrag.bind(this), Default | ZoomDrag | AnnotationsState),
             seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
@@ -489,15 +500,15 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private createAnnotationScene(datum: AnnotationProperties) {
-        return new annotationScenes[datum.type]();
+        return new annotationConfigs[datum.type].scene();
     }
 
     private createAnnotationDatum(params: { type: AnnotationType }) {
-        if (params.type in annotationDatums) {
-            return new annotationDatums[params.type]().set(params);
+        if (params.type in annotationConfigs) {
+            return new annotationConfigs[params.type].datum().set(params);
         }
         throw new Error(
-            `AG Charts - Cannot set property of unknown type [${params.type}], expected one of [${Object.keys(annotationDatums)}], ignoring.`
+            `AG Charts - Cannot set property of unknown type [${params.type}], expected one of [${Object.keys(annotationConfigs)}], ignoring.`
         );
     }
 
@@ -564,7 +575,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     value: lineStyle,
                     sourceEvent: event.sourceEvent,
                     onPress: (item) => this.onLineStyleTypeMenuPress(item, datum),
-                    onClose: this.onLineStyleTypeMenuClose.bind(this),
                     class: 'annotations__line-style-type',
                 });
                 break;
@@ -576,7 +586,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     value: strokeWidth,
                     sourceEvent: event.sourceEvent,
                     onPress: (item) => this.onLineStrokeWidthMenuPress(item, datum),
-                    onClose: this.onLineStrokeWidthMenuClose.bind(this),
                     class: 'annotations__line-stroke-width',
                 });
                 break;
@@ -586,8 +595,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.colorPicker.show({
                     color: datum?.getDefaultColor(event.value),
                     opacity: datum?.getDefaultOpacity(event.value),
+                    sourceEvent: event.sourceEvent,
                     onChange: datum != null ? this.onColorPickerChange.bind(this, event.value, datum) : undefined,
-                    onClose: this.onColorPickerClose.bind(this),
                 });
                 break;
 
@@ -599,7 +608,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     value: fontSize,
                     sourceEvent: event.sourceEvent,
                     onPress: (item) => this.onTextSizeMenuPress(item, datum),
-                    onClose: this.onTextSizeMenuClose.bind(this),
                     class: 'ag-charts-annotations-text-size-menu',
                 });
                 break;
@@ -615,6 +623,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 annotationData[active].locked = !annotationData[active].locked;
                 this.toggleAnnotationOptionsButtons();
                 break;
+            }
+
+            case AnnotationOptions.Settings: {
+                state.transition('toolbarPressSettings');
             }
         }
 
@@ -637,7 +649,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             ariaLabel: this.ctx.localeManager.t(ariaLabel),
             sourceEvent: event.sourceEvent,
             onPress: this.onAnnotationsMenuPress.bind(this, event),
-            onClose: this.onAnnotationsMenuClose.bind(this),
         });
     }
 
@@ -734,10 +745,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         );
     }
 
-    private onColorPickerClose() {
-        this.colorPicker.hide();
-    }
-
     private updateToolbarFontSize(fontSize: number | undefined) {
         this.ctx.toolbarManager.updateButton('annotationOptions', AnnotationOptions.TextSize, {
             label: fontSize != null ? String(fontSize) : undefined,
@@ -764,6 +771,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         this.state.transition('fontSize', fontSize);
+        this.textSizeMenu.hide();
 
         this.updateToolbarFontSize(fontSize);
     }
@@ -783,6 +791,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         this.state.transition('lineStyle', { type });
+        this.lineStyleTypeMenu.hide();
 
         this.updateToolbarLineStyleType(item);
     }
@@ -802,29 +811,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         this.state.transition('lineStyle', { strokeWidth });
+        this.lineStrokeWidthMenu.hide();
 
         this.updateToolbarStrokeWidth(item);
-    }
-
-    private onTextSizeMenuClose() {
-        this.textSizeMenu.hide();
-    }
-
-    private onLineStyleTypeMenuClose() {
-        this.lineStyleTypeMenu.hide();
-    }
-
-    private onLineStrokeWidthMenuClose() {
-        this.lineStrokeWidthMenu.hide();
     }
 
     private onAnnotationsMenuPress(
         event: _ModuleSupport.ToolbarButtonPressedEvent<AgToolbarAnnotationsButtonValue>,
         item: MenuItem<AnnotationType>
     ) {
-        const { toolbarManager, domManager } = this.ctx;
-
-        domManager.focus();
+        const { toolbarManager } = this.ctx;
 
         toolbarManager.toggleButton('annotations', event.id, {
             active: true,
@@ -834,7 +830,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         });
 
         this.beginAnnotationPlacement(item.value);
-        this.onAnnotationsMenuClose();
+        this.annotationMenu.hide();
 
         this.removeAmbientKeyboardListener?.();
         this.removeAmbientKeyboardListener = this.ctx.interactionManager.addListener(
@@ -842,10 +838,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             (e) => this.handleAmbientKeyboardEvent(e),
             InteractionState.All
         );
-    }
-
-    private onAnnotationsMenuClose() {
-        this.annotationMenu.hide();
     }
 
     private handleAmbientKeyboardEvent(e: _ModuleSupport.KeyInteractionEvent<'keydown'>) {
@@ -938,7 +930,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             return;
         }
 
-        annotationManager.updateData(annotationData.toJson());
+        annotationManager.updateData(annotationData.toJson() as any);
+
+        const clearAllEnabled = annotationData.length > 0;
+        toolbarManager.toggleButton('annotations', 'clear', { enabled: clearAllEnabled });
 
         annotations
             .update(annotationData ?? [], undefined, (datum) => datum.id)
@@ -990,7 +985,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const context = this.getAnnotationContext();
         if (!context) return;
 
-        const offset = { x: event.regionOffsetX, y: event.regionOffsetY };
+        const offset = Vec2.from(event);
         const point = invertCoords(offset, context);
 
         state.transition('hover', { offset, point });
@@ -1002,11 +997,20 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const context = this.getAnnotationContext();
         if (!context) return;
 
-        const offset = { x: event.regionOffsetX, y: event.regionOffsetY };
+        const offset = Vec2.from(event);
         const point = invertCoords(offset, context);
         const textInputValue = this.textInput.getValue();
 
         state.transition('click', { offset, point, textInputValue });
+    }
+
+    private onDoubleClick() {
+        const { state } = this;
+
+        const context = this.getAnnotationContext();
+        if (!context) return;
+
+        state.transition('dblclick');
     }
 
     private onAxisButtonClick(coords?: Coords, direction?: Direction) {
@@ -1049,7 +1053,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const context = this.getAnnotationContext();
         if (!context) return;
 
-        const offset = { x: event.regionOffsetX, y: event.regionOffsetY };
+        const offset = Vec2.from(event);
         state.transition('dragStart', { context, offset });
     }
 
@@ -1059,12 +1063,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const context = this.getAnnotationContext();
         if (!context) return;
 
-        const offset = { x: event.regionOffsetX, y: event.regionOffsetY };
+        const offset = Vec2.from(event);
         const point = invertCoords(offset, context);
         state.transition('drag', { context, offset, point });
     }
 
-    private onDragEnd(_event: _ModuleSupport.RegionEvent<'drag-end'>) {
+    private onDragEnd() {
         this.state.transition('dragEnd');
     }
 
@@ -1138,6 +1142,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             enabled: !locked,
             visible: hasFontSize(datum),
         });
+        toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Settings, {
+            enabled: !locked,
+            visible: hasLineText(datum),
+        });
 
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Delete, { enabled: !locked });
         toolbarManager.toggleButton('annotationOptions', AnnotationOptions.Lock, { checked: locked });
@@ -1195,6 +1203,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.lineStyleTypeMenu.hide();
         this.lineStrokeWidthMenu.hide();
         this.annotationMenu.hide();
+        this.settingsDialog.hide();
     }
 
     private resetToolbarButtonStates() {

@@ -567,6 +567,8 @@ export abstract class Chart extends Observable {
                 await Promise.all(seriesToUpdate.map((series) => series.update({ seriesRect })));
 
                 updateSplits('🤔');
+
+                this.updateAriaLabels();
             // fallthrough
 
             case ChartUpdateType.PRE_SCENE_RENDER:
@@ -644,6 +646,9 @@ export abstract class Chart extends Observable {
 
         const { enabled, tabIndex } = this.keyboard;
         this.ctx.domManager.setTabIndex(enabled ? tabIndex ?? 0 : -1);
+    }
+
+    private updateAriaLabels() {
         setAttribute(this.ctx.scene.canvas.element, 'role', 'img');
         setAttribute(this.ctx.scene.canvas.element, 'aria-label', this.getAriaLabel());
     }
@@ -738,8 +743,8 @@ export abstract class Chart extends Observable {
                 get seriesRect() {
                     return chart.seriesRect;
                 },
-                placeLabels() {
-                    return chart.placeLabels();
+                placeLabels(padding?: number) {
+                    return chart.placeLabels(padding);
                 },
             };
 
@@ -892,7 +897,7 @@ export abstract class Chart extends Observable {
         this.dataProcessListeners.clear();
     }
 
-    placeLabels(): Map<Series<any, any>, PlacedLabel[]> {
+    placeLabels(padding?: number): Map<Series<any, any>, PlacedLabel[]> {
         const visibleSeries: Series<any, any>[] = [];
         const data: PointLabelDatum[][] = [];
         for (const series of this.series) {
@@ -910,12 +915,16 @@ export abstract class Chart extends Observable {
         const { top, right, bottom, left } = this.seriesArea.padding;
         const labels: PlacedLabel[][] =
             seriesRect && data.length > 0
-                ? placeLabels(data, {
-                      x: -left,
-                      y: -top,
-                      width: seriesRect.width + left + right,
-                      height: seriesRect.height + top + bottom,
-                  })
+                ? placeLabels(
+                      data,
+                      {
+                          x: -left,
+                          y: -top,
+                          width: seriesRect.width + left + right,
+                          height: seriesRect.height + top + bottom,
+                      },
+                      padding
+                  )
                 : [];
         return new Map(labels.map((l, i) => [visibleSeries[i], l]));
     }
@@ -1169,7 +1178,7 @@ export abstract class Chart extends Observable {
         });
         this.update(updateType, { forceNodeDataRefresh, newAnimationBatch: true });
 
-        if (deltaOptions.initialState) {
+        if (deltaOptions.initialState || deltaOptions.theme) {
             this.applyInitialState(newChartOptions.userOptions.initialState);
         }
     }
@@ -1327,11 +1336,12 @@ export abstract class Chart extends Observable {
             isUpdated ||= change.status !== 'no-op';
 
             switch (change.status) {
-                case 'add':
+                case 'add': {
                     const newSeries = this.createSeries(change.opts);
                     seriesInstances.push(newSeries);
                     debug(`Chart.applySeries() - created new series`, newSeries);
                     break;
+                }
 
                 case 'remove':
                     debug(`Chart.applySeries() - removing series at previous idx ${change.idx}`, change.series);
@@ -1344,12 +1354,13 @@ export abstract class Chart extends Observable {
 
                 case 'series-grouping':
                 case 'update':
-                default:
+                default: {
                     const { series, diff, idx } = change;
                     debug(`Chart.applySeries() - applying series diff previous idx ${idx}`, diff, series);
                     this.applySeriesValues(series, diff);
                     series.markNodeDataDirty();
                     seriesInstances.push(series);
+                }
             }
         }
         // Ensure declaration order is set, this is used for correct z-index behavior for combo charts.

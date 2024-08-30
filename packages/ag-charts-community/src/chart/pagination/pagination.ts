@@ -86,8 +86,6 @@ class PaginationMarker extends BaseProperties {
     }
 }
 
-class RotatableTriangle extends Rotatable(Triangle) {}
-
 export class Pagination extends BaseProperties {
     static readonly className = 'Pagination';
 
@@ -196,7 +194,7 @@ export class Pagination extends BaseProperties {
         return this._orientation;
     }
 
-    private _nextButton: RotatableType<Marker> = new RotatableTriangle();
+    private _nextButton: RotatableType<Marker> = new Triangle();
     set nextButton(value: RotatableType<Marker>) {
         if (this._nextButton !== value) {
             this.group.removeChild(this._nextButton);
@@ -208,7 +206,7 @@ export class Pagination extends BaseProperties {
         return this._nextButton;
     }
 
-    private _previousButton: RotatableType<Marker> = new RotatableTriangle();
+    private _previousButton: RotatableType<Marker> = new Triangle();
     set previousButton(value: RotatableType<Marker>) {
         if (this._previousButton !== value) {
             this.group.removeChild(this._previousButton);

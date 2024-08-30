@@ -4,11 +4,14 @@ import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import type { Point } from '../../../scene/point';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
+import { extent } from '../../../util/array';
+import { isFiniteNumber } from '../../../util/type-guards';
 import { DIRECTION, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
+import { fixNumericExtent } from '../../data/dataModel';
 import type { SeriesNodePickMatch } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
@@ -34,6 +37,19 @@ export abstract class AbstractBarSeries<
 
     protected smallestDataInterval?: number = undefined;
     protected largestDataInterval?: number = undefined;
+
+    protected padBandExtent(keys: any[], alignStart?: boolean) {
+        const ratio = typeof alignStart === 'boolean' ? 1 : 0.5;
+        const scalePadding = isFiniteNumber(this.smallestDataInterval) ? this.smallestDataInterval * ratio : 0;
+        const keysExtent = extent(keys) ?? [NaN, NaN];
+        if (typeof alignStart === 'boolean') {
+            keysExtent[alignStart ? 0 : 1] -= (alignStart ? 1 : -1) * scalePadding;
+        } else {
+            keysExtent[0] -= scalePadding;
+            keysExtent[1] += scalePadding;
+        }
+        return fixNumericExtent(keysExtent);
+    }
 
     override getBandScalePadding() {
         return { inner: 0.3, outer: 0.15 };
@@ -65,19 +81,18 @@ export abstract class AbstractBarSeries<
         return this.axes[direction];
     }
 
+    protected getBandwidth(xAxis: ChartAxis) {
+        return ContinuousScale.is(xAxis.scale)
+            ? xAxis.scale.calcBandwidth(this.smallestDataInterval)
+            : xAxis.scale.bandwidth;
+    }
+
     protected updateGroupScale(xAxis: ChartAxis) {
-        const {
-            groupScale,
-            smallestDataInterval,
-            ctx: { seriesStateManager },
-        } = this;
-
-        const xScale = xAxis.scale;
-
-        const xBandWidth = ContinuousScale.is(xScale) ? xScale.calcBandwidth(smallestDataInterval) : xScale.bandwidth;
-
         const domain = [];
-        const { index: groupIndex, visibleGroupCount } = seriesStateManager.getVisiblePeerGroupIndex(this);
+        const { groupScale } = this;
+        const xBandWidth = this.getBandwidth(xAxis);
+        const { index: groupIndex, visibleGroupCount } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
+
         for (let groupIdx = 0; groupIdx < visibleGroupCount; groupIdx++) {
             domain.push(String(groupIdx));
         }

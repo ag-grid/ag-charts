@@ -7,30 +7,33 @@ import {
     _Util,
 } from 'ag-charts-community';
 
-import type { AnnotationContext, AnnotationLineStyleType, AnnotationOptionsColorPickerType } from './annotationTypes';
+import type {
+    AnnotationContext,
+    AnnotationLineStyleType,
+    AnnotationOptionsColorPickerType,
+    Constructor,
+} from './annotationTypes';
 
 const {
     BOOLEAN,
     COLOR_STRING,
     DATE,
-    LINE_DASH,
-    NUMBER,
-    RATIO,
-    STRING,
-    OBJECT,
-    FUNCTION,
-    TEXT_ALIGN,
     FONT_STYLE,
     FONT_WEIGHT,
-    POSITIVE_NUMBER,
+    FUNCTION,
+    LINE_DASH,
+    LINE_STYLE,
+    NUMBER,
+    OBJECT,
     OR,
+    POSITIVE_NUMBER,
+    RATIO,
+    STRING,
+    TEXT_ALIGN,
     UNION,
     BaseProperties,
     Validate,
-    LINE_STYLE,
 } = _ModuleSupport;
-
-type Constructor<T = {}> = new (...args: any[]) => T;
 
 /**************
  * Components *
@@ -43,9 +46,9 @@ export class PointProperties extends BaseProperties {
     y?: number;
 }
 
-export class ChannelAnnotationMiddleProperties extends Stroke(LineDash(Visible(BaseProperties))) {}
+export class ChannelAnnotationMiddleProperties extends Stroke(LineStyle(Visible(BaseProperties))) {}
 
-export class AxisLabelProperties extends Stroke(LineDash(Fill(Label(Font(BaseProperties))))) {
+export class AxisLabelProperties extends Stroke(LineStyle(Fill(Label(Font(BaseProperties))))) {
     @Validate(BOOLEAN)
     enabled?: boolean;
 
@@ -55,7 +58,29 @@ export class AxisLabelProperties extends Stroke(LineDash(Fill(Label(Font(BasePro
 
 export class BackgroundProperties extends Fill(BaseProperties) {}
 
-export class HandleProperties extends Stroke(LineDash(Fill(BaseProperties))) {}
+export class HandleProperties extends Stroke(LineStyle(Fill(BaseProperties))) {}
+
+export class LineTextProperties extends Font(BaseProperties) {
+    @Validate(STRING)
+    label: string = '';
+
+    @Validate(UNION(['top', 'center', 'bottom']), { optional: true })
+    position?: 'top' | 'center' | 'bottom' = 'top';
+
+    @Validate(UNION(['left', 'center', 'right']), { optional: true })
+    alignment?: 'left' | 'center' | 'right' = 'left';
+}
+
+export class ChannelTextProperties extends Font(BaseProperties) {
+    @Validate(STRING)
+    label: string = '';
+
+    @Validate(UNION(['top', 'inside', 'bottom']), { optional: true })
+    position?: 'top' | 'inside' | 'bottom';
+
+    @Validate(UNION(['left', 'center', 'right']), { optional: true })
+    alignment?: 'left' | 'center' | 'right';
+}
 
 export interface AxisLabelFormatterParams {
     readonly value: any;
@@ -148,10 +173,7 @@ export function Label<T extends Constructor>(Parent: T) {
 
 export function Cappable<T extends Constructor>(Parent: T) {
     class CappableInternal extends Parent {
-        @Validate(UNION(['arrow']), { optional: true })
         startCap?: 'arrow';
-
-        @Validate(UNION(['arrow']), { optional: true })
         endCap?: 'arrow';
     }
     return CappableInternal;
@@ -212,7 +234,7 @@ export function Stroke<T extends Constructor>(Parent: T) {
     return StrokeInternal;
 }
 
-export function LineDash<T extends Constructor>(Parent: T) {
+export function LineStyle<T extends Constructor>(Parent: T) {
     class LineDashInternal extends Parent {
         @Validate(LINE_DASH, { optional: true })
         lineDash?: number[];

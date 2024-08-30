@@ -45,7 +45,7 @@ export interface ToolbarGroupUpdatedEvent extends ToolbarBaseEvent<'group-update
 export interface ToolbarCancelledEvent extends ToolbarBaseEvent<'cancelled'> {}
 
 export interface ToolbarFloatingAnchorChangedEvent extends ToolbarBaseEvent<'floating-anchor-changed'> {
-    anchor: { x: number; y: number; position?: 'right' | 'above' | 'above-left' };
+    anchor: { x: number; y: number; position?: 'right' | 'above' | 'above-left' | 'below' };
 }
 
 export interface ToolbarButtonPressedEvent<T = any> extends ToolbarBaseEvent<'button-pressed'> {

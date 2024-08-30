@@ -9,7 +9,6 @@ const { createElement, initMenuKeyNav, isButtonClickEvent } = _ModuleSupport;
 export interface MenuOptions<Value = any> extends PopoverOptions {
     items: Array<MenuItem<Value>>;
     sourceEvent: Event;
-    class?: string;
     value?: Value;
     onPress?: (item: MenuItem<Value>) => void;
 }
@@ -25,23 +24,25 @@ export interface MenuItem<Value = any> {
  * An anchored popover containing a list of pressable items.
  */
 export class Menu extends AnchoredPopover {
-    public override show<Value = any>(options: MenuOptions<Value>): void {
+    protected menuCloser?: _ModuleSupport.MenuCloser;
+
+    public show<Value = any>(options: MenuOptions<Value>): void {
         const rows = options.items.map((item) => this.createRow(options, item));
-        this.setContent(rows);
 
-        let classes: PopoverOptions['class'] = 'ag-charts-menu';
-        if (options.class != null) {
-            classes = ['ag-charts-menu', options.class];
-        }
-
-        super.show({ ...options, class: classes, role: 'menu' });
+        const popover = this.showWithChildren(rows, options);
+        popover.classList.add('ag-charts-menu');
+        popover.setAttribute('role', 'menu');
 
         this.menuCloser = initMenuKeyNav({
             orientation: 'vertical',
-            menu: this.getPopoverElement()!,
+            menu: popover,
             buttons: rows,
             device: this.ctx.focusIndicator.guessDevice(options.sourceEvent),
-            closeCallback: () => this.doClose(),
+            closeCallback: () => this.hide(),
+        });
+        this.hideFns.push(() => {
+            this.menuCloser?.finishClosing();
+            this.menuCloser = undefined;
         });
     }
 
@@ -49,17 +50,15 @@ export class Menu extends AnchoredPopover {
         const { domManager } = this.ctx;
 
         const active = item.value === options.value;
-        const row = createElement('div');
+        const row = createElement('div', 'ag-charts-menu__row');
         row.setAttribute('role', 'menuitem');
         if (typeof item.value === 'string') {
             row.dataset.popoverId = item.value;
         }
-        row.className = `ag-charts-menu__row`;
         row.classList.toggle(`ag-charts-menu__row--active`, active);
 
         if (item.icon != null) {
-            const icon = createElement('span');
-            icon.className = `ag-charts-menu__icon ${domManager.getIconClassNames(item.icon)}`;
+            const icon = createElement('span', `ag-charts-menu__icon ${domManager.getIconClassNames(item.icon)}`);
             row.appendChild(icon);
         }
 
@@ -69,13 +68,13 @@ export class Menu extends AnchoredPopover {
             row.style.setProperty('--strokeWidth', strokeWidthVisible ? `${item.strokeWidth}px` : null);
         }
 
-        const title = createElement('span');
-        title.textContent = this.ctx.localeManager.t(item.label ?? '');
-        title.className = `ag-charts-menu__label`;
-        row.appendChild(title);
+        if (item.label != null) {
+            const label = createElement('span', 'ag-charts-menu__label');
+            label.textContent = this.ctx.localeManager.t(item.label);
+            row.appendChild(label);
+        }
 
         const select = () => {
-            options.onClose?.();
             options.onPress?.(item);
         };
 

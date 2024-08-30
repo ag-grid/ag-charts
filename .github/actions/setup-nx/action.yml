@@ -1,10 +1,6 @@
 name: setup-nx
 
 inputs:
-    yarn_opts:
-        description: 'Additional yarn install opts.'
-        required: false
-        default: ''
     yarn_postinstall:
         description: 'Always ensure yarn postinstall is run.'
         required: false
@@ -70,7 +66,8 @@ runs:
                   packages/*/node_modules/
                   plugins/*/node_modules/
                   libraries/*/node_modules/
-              key: node_modules-${{ runner.os }}-${{hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json')}}
+                  external/*/node_modules/
+              key: node_modules-${{ runner.os }}-${{hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json', 'libraries/*/package.json', 'external/*/package.json')}}
               restore-keys: node_modules-${{ runner.os }}- # Take any latest cache if failed to find it for current yarn.lock
 
         - name: Cache node_modules
@@ -83,7 +80,8 @@ runs:
                   packages/*/node_modules/
                   plugins/*/node_modules/
                   libraries/*/node_modules/
-              key: node_modules-${{ runner.os }}-${{hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json')}}
+                  external/*/node_modules/
+              key: node_modules-${{ runner.os }}-${{hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json', 'libraries/*/package.json', 'external/*/package.json')}}
               restore-keys: node_modules-${{ runner.os }}- # Take any latest cache if failed to find it for current yarn.lock
 
         - name: Cache Nx
@@ -116,21 +114,31 @@ runs:
           uses: actions/setup-node@v4
           with:
               node-version: '20'
-              cache: ${{ inputs.cache_mode != 'none' && !(steps.cache_rw.outputs.cache-hit == 'true' || steps.cache_ro.outputs.cache-hit == 'true') && 'yarn' || '' }}
 
         - name: yarn install
-          # if: steps.cache_rw.outputs.cache-hit == 'false' || steps.cache_ro.outputs.cache-hit == 'false'
-          id: yarn_install
+          if: inputs.yarn_postinstall == 'true'
+          id: yarn_install_slow
           shell: bash
           run: |
-              (yarn check --integrity && yarn postinstall) || yarn install --ci ${{ inputs.yarn_opts }}
+              (yarn check --integrity && yarn postinstall) || yarn install --ci
 
-        - name: yarn postinstall
-          # if: (steps.cache_rw.outputs.cache-hit == 'true' || steps.cache_ro.outputs.cache-hit == 'true') && inputs.yarn_postinstall == 'true'
+        - name: yarn install (skipping postinstall)
+          if: inputs.yarn_postinstall != 'true'
+          id: yarn_install_fast
           shell: bash
-          run: yarn postinstall
+          run: |
+              yarn check --integrity || yarn install --ci
+
+        - name: Cache playwright binaries
+          uses: actions/cache@v4
+          if: inputs.playwright_install == 'true'
+          id: playwright-cache
+          with:
+              path: |
+                  ~/.cache/ms-playwright
+              key: playwright-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
 
         - name: playwright install
-          if: inputs.playwright_install == 'true'
+          if: inputs.playwright_install == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
           shell: bash
           run: npx playwright install chromium --with-deps

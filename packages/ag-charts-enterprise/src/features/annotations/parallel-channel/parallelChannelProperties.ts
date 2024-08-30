@@ -1,22 +1,23 @@
-import { type PixelSize, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { type PixelSize, _ModuleSupport, type _Scene, _Util } from 'ag-charts-community';
 
 import {
     Annotation,
     Background,
     ChannelAnnotationMiddleProperties,
+    ChannelTextProperties,
     Extendable,
     Handle,
     Line,
-    LineDash,
+    LineStyle,
     Stroke,
 } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
-import { validateDatumLine } from '../annotationUtils';
+import { validateDatumLine } from '../utils/validation';
 
 const { NUMBER, STRING, OBJECT, BaseProperties, Validate, isObject } = _ModuleSupport;
 
 export class ParallelChannelProperties extends Annotation(
-    Background(Line(Handle(Extendable(Stroke(LineDash(BaseProperties))))))
+    Background(Line(Handle(Extendable(Stroke(LineStyle(BaseProperties))))))
 ) {
     static is(value: unknown): value is ParallelChannelProperties {
         return isObject(value) && value.type === AnnotationType.ParallelChannel;
@@ -30,6 +31,9 @@ export class ParallelChannelProperties extends Annotation(
 
     @Validate(OBJECT, { optional: true })
     middle = new ChannelAnnotationMiddleProperties();
+
+    @Validate(OBJECT, { optional: true })
+    text = new ChannelTextProperties();
 
     lineCap?: _Scene.ShapeLineCap = undefined;
     computedLineDash?: PixelSize[] = undefined;

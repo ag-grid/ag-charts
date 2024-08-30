@@ -84,7 +84,7 @@ export type PickFocusOutputs = {
     showFocusBox: boolean;
 };
 
-type PickResult = { pickMode: SeriesNodePickMode; match: SeriesNodeDatum; distance: number };
+export type PickResult = { pickMode: SeriesNodePickMode; match: SeriesNodeDatum; distance: number };
 
 export function basicContinuousCheckDatumValidation(value: any) {
     return value != null && isContinuous(value);
@@ -334,7 +334,7 @@ export abstract class Series<
     chart?: {
         mode: ChartMode;
         isMiniChart: boolean;
-        placeLabels(): Map<Series<any, any>, PlacedLabel[]>;
+        placeLabels(padding?: number): Map<Series<any, any>, PlacedLabel[]>;
         seriesRect?: BBox;
     };
 

@@ -308,7 +308,9 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         let top = anchor.y - height - verticalSpacing;
         let left = anchor.x - width / 2;
 
-        if (position === 'right') {
+        if (position === 'below') {
+            top = anchor.y + verticalSpacing;
+        } else if (position === 'right') {
             top = anchor.y - height / 2;
             left = anchor.x + horizontalSpacing;
         } else if (position === 'above-left') {

@@ -6,9 +6,9 @@ export function times<T>(n: number, callback: (index: number) => T): T[] {
     return results;
 }
 
-export function extent(values: Array<number | Date>): [number, number] | undefined {
+export function extent(values: Array<Date | number | unknown>): [number, number] | null {
     if (values.length === 0) {
-        return;
+        return null;
     }
 
     let min = Infinity;
@@ -28,14 +28,9 @@ export function extent(values: Array<number | Date>): [number, number] | undefin
             max = n;
         }
     }
-    const result = [min, max];
-    if (result.every(isFinite)) {
-        return result as [number, number];
-    }
-}
 
-export function normalisedExtent(d: number[], min: number, max: number): number[] {
-    return normalisedExtentWithMetadata(d, min, max).extent;
+    const result: [number, number] = [min, max];
+    return result.every(isFinite) ? result : null;
 }
 
 export function normalisedExtentWithMetadata(
@@ -109,38 +104,4 @@ export function circularSliceArray<T>(data: T[], size: number, offset = 0): T[] 
         result.push(data.at((i + offset) % data.length)!);
     }
     return result;
-}
-
-export function* mapIterable<Src, Dst>(src: Iterable<Src>, predicate: (e: Src) => Dst): Iterable<Dst> {
-    for (const e of src) {
-        yield predicate(e);
-    }
-}
-
-function constStringsIncludes<T extends string>(array: readonly T[], value: string): boolean {
-    const casting: readonly string[] = array;
-    return casting.includes(value);
-}
-
-function isInStringUnion<T extends string>(unionValues: readonly T[], value: string): value is T {
-    return constStringsIncludes(unionValues, value);
-}
-
-export function allInStringUnion<T extends string>(unionValues: readonly T[], values: string[]): values is T[] {
-    return !values.some((v: string) => !isInStringUnion(unionValues, v));
-}
-
-export function findLastIndex<T>(array: T[], predicate: (value: T, index: number, array: T[]) => boolean): number {
-    for (let i = array.length - 1; i >= 0; i -= 1) {
-        const value = array[i];
-        if (predicate(value, i, array)) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-export function findLast<T>(array: T[], predicate: (value: T, index: number, array: T[]) => boolean): T | undefined {
-    const index = findLastIndex(array, predicate);
-    return index !== -1 ? array[index] : undefined;
 }

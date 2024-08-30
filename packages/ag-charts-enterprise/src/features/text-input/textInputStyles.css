@@ -17,7 +17,7 @@
 
 .ag-charts-text-input__textarea[placeholder]:empty:before {
     content: attr(placeholder);
-    color: var(--ag-charts-text-annotations-placeholder);
+    color: var(--ag-charts-input-placeholder);
     font-weight: 400;
 }
 

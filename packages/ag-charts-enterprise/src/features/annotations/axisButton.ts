@@ -1,7 +1,7 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport, type _Scene } from 'ag-charts-community';
 
 import type { Coords } from './annotationTypes';
-import { convert, invert } from './annotationUtils';
+import { convert, invert } from './utils/values';
 
 const { BaseModuleInstance, InteractionState, Validate, BOOLEAN, createElement, REGIONS, ChartAxisDirection } =
     _ModuleSupport;

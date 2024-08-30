@@ -67,7 +67,7 @@ export function preparePieSeriesAnimationFunctions(
         }
 
         if (status === 'updated') {
-            fill = sect.fill ?? fill;
+            fill = (sect.fill as any) ?? fill;
             stroke = sect.stroke ?? stroke;
         }
 

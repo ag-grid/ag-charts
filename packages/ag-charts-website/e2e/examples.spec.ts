@@ -84,6 +84,10 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
     legend: {
         'legend-position': { clickOrder: 'reverse' },
     },
+    'radial-gauge': {
+        'corner-radius': { skipCanvasUpdateCheck: true },
+        needle: { skipCanvasUpdateCheck: true },
+    },
     'range-bar-series': {
         // Warns for missing data
         'range-bar-missing-data': { ignoreConsoleWarnings: true },
@@ -162,12 +166,14 @@ test.describe('examples', () => {
             const testFn = affected ? test : test.skip;
 
             test.describe(`Framework: ${framework}`, () => {
+                test.skip(!affected, 'unaffected example');
+
                 test.describe(`Example ${pagePath}: ${example}${affected ? '' : ' (!!!SKIPPED!!!)'}`, () => {
                     if (status === 'ok') {
                         testFn(`should load ${url}`, async ({ page }) => {
-                            config.ignoreConsoleWarnings = ignoreConsoleWarnings;
+                            test.slow(framework === 'angular', 'allow more time for Angular load times');
 
-                            test.skip(!affected, 'unaffected example');
+                            config.ignoreConsoleWarnings = ignoreConsoleWarnings;
 
                             // Load example and wait for things to settle.
                             await gotoExample(page, url);

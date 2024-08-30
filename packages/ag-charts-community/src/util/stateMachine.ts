@@ -20,7 +20,7 @@ type StateTransition<State> = {
      * guard or does not have one.
      */
     guard?: (data?: any) => boolean;
-    target: State | HierarchyState | StateMachine<any, any>;
+    target?: State | HierarchyState | StateMachine<any, any>;
     action?: StateTransitionAction;
 };
 type StateTransitionAction = (data?: any) => void;
@@ -115,7 +115,7 @@ export class StateMachine<State extends string, Event extends string> {
         }
     }
 
-    protected is(value: any): boolean {
+    protected is(value: unknown): boolean {
         if (this.state === StateMachine.child && this.childState) {
             return this.childState.is(value);
         }
@@ -159,7 +159,7 @@ export class StateMachine<State extends string, Event extends string> {
             if (destination.target instanceof StateMachine) {
                 this.childState = destination.target;
                 state = StateMachine.child;
-            } else {
+            } else if (destination.target != null) {
                 state = destination.target;
             }
         }

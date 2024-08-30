@@ -1,25 +1,65 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 import type {
     AgChartLabelFormatterParams,
+    AgRadialGaugeMarkerShape,
     AgRadialGaugeSeriesItemStylerParams,
     AgRadialGaugeSeriesLabelFormatterParams,
     AgRadialGaugeSeriesOptions,
     AgRadialGaugeSeriesStyle,
     AgRadialGaugeSeriesTooltipRendererParams,
+    AgRadialGaugeTargetPlacement,
     FontStyle,
     FontWeight,
     Formatter,
+    MarkerShape,
     Styler,
 } from 'ag-charts-types';
 
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
+
+const {
+    BaseProperties,
+    SeriesTooltip,
+    SeriesProperties,
+    PropertiesArray,
+    Validate,
+    BOOLEAN,
+    COLOR_STRING,
+    COLOR_STRING_ARRAY,
+    FUNCTION,
+    LINE_DASH,
+    MARKER_SHAPE,
+    NUMBER,
+    OBJECT_ARRAY,
+    OBJECT,
+    POSITIVE_NUMBER,
+    RATIO,
+    STRING,
+    UNION,
+    OR,
+} = _ModuleSupport;
+const { Label } = _Scene;
+
+const TARGET_MARKER_SHAPE = OR(MARKER_SHAPE, UNION(['line'], 'a marker shape'));
+const TARGET_PLACEMENT = UNION(['inside', 'outside', 'middle'], 'a placement');
+
+export enum NodeDataType {
+    Node,
+    Target,
+}
 
 export enum LabelType {
     Primary = 'primary',
     Secondary = 'secondary',
 }
 
+export interface AgRadialGaugeColorStopDatum {
+    stop: number;
+    color: string;
+}
+
 export interface RadialGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
+    type: NodeDataType.Node;
     centerX: number;
     centerY: number;
     innerRadius: number;
@@ -28,6 +68,29 @@ export interface RadialGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     endAngle: number;
     clipStartAngle: number | undefined;
     clipEndAngle: number | undefined;
+    startCornerRadius: number;
+    endCornerRadius: number;
+    fill: string | _Scene.Gradient | undefined;
+}
+
+export interface RadialGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum {
+    type: NodeDataType.Target;
+    value: number;
+    text: string | undefined;
+    centerX: number;
+    centerY: number;
+    shape: MarkerShape;
+    radius: number;
+    angle: number;
+    size: number;
+    rotation: number;
+    fill: string;
+    fillOpacity: number;
+    stroke: string;
+    strokeOpacity: number;
+    strokeWidth: number;
+    lineDash: number[];
+    lineDashOffset: number;
 }
 
 export type RadialGaugeLabelDatum = {
@@ -49,23 +112,166 @@ export type RadialGaugeLabelDatum = {
         | undefined;
 };
 
-const {
-    BaseProperties,
-    SeriesTooltip,
-    SeriesProperties,
-    COLOR_STRING,
-    FUNCTION,
-    LINE_DASH,
-    NUMBER,
-    NUMBER_ARRAY,
-    OBJECT,
-    POSITIVE_NUMBER,
-    RATIO,
-    STRING,
-    Validate,
-} = _ModuleSupport;
+class RadialGaugeDefaultTargetLabelProperties extends Label<never> {
+    @Validate(NUMBER)
+    spacing: number = 0;
+}
+
+class RadialGaugeDefaultTargetProperties extends BaseProperties {
+    @Validate(TARGET_MARKER_SHAPE, { optional: true })
+    shape: AgRadialGaugeMarkerShape | undefined;
+
+    @Validate(TARGET_PLACEMENT)
+    placement: AgRadialGaugeTargetPlacement = 'middle';
+
+    @Validate(NUMBER)
+    spacing: number = 0;
+
+    @Validate(POSITIVE_NUMBER)
+    size: number = 0;
+
+    @Validate(NUMBER, { optional: true })
+    rotation: number | undefined;
+
+    @Validate(COLOR_STRING)
+    fill: string = 'black';
+
+    @Validate(RATIO)
+    fillOpacity: number = 1;
+
+    @Validate(COLOR_STRING)
+    stroke: string = 'black';
+
+    @Validate(POSITIVE_NUMBER, { optional: true })
+    strokeWidth: number | undefined;
+
+    @Validate(RATIO)
+    strokeOpacity: number = 1;
+
+    @Validate(LINE_DASH)
+    lineDash: number[] = [0];
+
+    @Validate(POSITIVE_NUMBER)
+    lineDashOffset: number = 0;
+
+    @Validate(OBJECT)
+    readonly label = new RadialGaugeDefaultTargetLabelProperties();
+}
+
+export class RadialGaugeTargetProperties extends BaseProperties {
+    @Validate(STRING, { optional: true })
+    text: string | undefined;
+
+    @Validate(NUMBER)
+    value: number = 0;
+
+    @Validate(TARGET_MARKER_SHAPE, { optional: true })
+    shape: AgRadialGaugeMarkerShape | undefined;
+
+    @Validate(TARGET_PLACEMENT, { optional: true })
+    placement: AgRadialGaugeTargetPlacement | undefined;
+
+    @Validate(NUMBER, { optional: true })
+    spacing: number | undefined;
+
+    @Validate(POSITIVE_NUMBER, { optional: true })
+    size: number | undefined;
+
+    @Validate(NUMBER, { optional: true })
+    rotation: number | undefined;
+
+    @Validate(COLOR_STRING, { optional: true })
+    fill: string | undefined;
+
+    @Validate(RATIO, { optional: true })
+    fillOpacity: number | undefined;
+
+    @Validate(COLOR_STRING, { optional: true })
+    stroke: string | undefined;
+
+    @Validate(POSITIVE_NUMBER, { optional: true })
+    strokeWidth: number | undefined;
+
+    @Validate(RATIO, { optional: true })
+    strokeOpacity: number | undefined;
+
+    @Validate(LINE_DASH, { optional: true })
+    lineDash: number[] | undefined;
+
+    @Validate(POSITIVE_NUMBER, { optional: true })
+    lineDashOffset: number | undefined;
+}
+
+export class RadialGaugeStopProperties extends BaseProperties {
+    @Validate(NUMBER, { optional: true })
+    stop?: number;
+
+    @Validate(COLOR_STRING, { optional: true })
+    color?: string;
+}
+
+export class RadialGaugeBarProperties extends BaseProperties {
+    @Validate(BOOLEAN)
+    enabled = true;
+
+    @Validate(COLOR_STRING, { optional: true })
+    fill: string | undefined;
+
+    @Validate(RATIO)
+    fillOpacity: number = 1;
+
+    @Validate(COLOR_STRING)
+    stroke: string = 'black';
+
+    @Validate(POSITIVE_NUMBER)
+    strokeWidth: number = 0;
+
+    @Validate(RATIO)
+    strokeOpacity: number = 1;
+
+    @Validate(LINE_DASH)
+    lineDash: number[] = [0];
+
+    @Validate(POSITIVE_NUMBER)
+    lineDashOffset: number = 0;
+}
 
 export class RadialGaugeBackgroundProperties extends BaseProperties {
+    @Validate(COLOR_STRING, { optional: true })
+    fill: string | undefined;
+
+    @Validate(RATIO)
+    fillOpacity: number = 1;
+
+    @Validate(COLOR_STRING)
+    stroke: string = 'black';
+
+    @Validate(POSITIVE_NUMBER)
+    strokeWidth: number = 0;
+
+    @Validate(RATIO)
+    strokeOpacity: number = 1;
+
+    @Validate(LINE_DASH)
+    lineDash: number[] = [0];
+
+    @Validate(POSITIVE_NUMBER)
+    lineDashOffset: number = 0;
+
+    @Validate(COLOR_STRING)
+    defaultFill: string = 'black';
+}
+
+export class RadialGaugeNeedleProperties extends BaseProperties {
+    @Validate(BOOLEAN)
+    enabled = true;
+
+    @Validate(RATIO, { optional: true })
+    radiusRatio?: number | undefined;
+
+    @Validate(NUMBER)
+    spacing: number = 0;
+
     @Validate(COLOR_STRING)
     fill: string = 'black';
 
@@ -102,50 +308,47 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeS
     @Validate(NUMBER)
     value: number = 0;
 
-    @Validate(NUMBER_ARRAY)
-    range: number[] = [0, 1];
+    @Validate(OBJECT_ARRAY)
+    colorStops = new PropertiesArray<RadialGaugeStopProperties>(RadialGaugeStopProperties);
 
-    @Validate(NUMBER)
-    startAngle: number = 0.75 * Math.PI;
+    @Validate(COLOR_STRING_ARRAY)
+    defaultColorStops: string[] = [];
 
-    @Validate(NUMBER)
-    endAngle: number = 2.25 * Math.PI;
+    @Validate(OBJECT_ARRAY)
+    targets = new PropertiesArray<RadialGaugeTargetProperties>(RadialGaugeTargetProperties);
 
-    @Validate(RATIO)
-    innerRadiusRatio: number = 0.8;
-
-    @Validate(COLOR_STRING)
-    fill: string = 'black';
+    @Validate(OBJECT)
+    target = new RadialGaugeDefaultTargetProperties();
 
     @Validate(RATIO)
-    fillOpacity: number = 1;
+    outerRadiusRatio: number = 1;
 
-    @Validate(COLOR_STRING)
-    stroke: string = 'black';
+    @Validate(RATIO)
+    innerRadiusRatio: number = 1;
 
     @Validate(POSITIVE_NUMBER)
-    strokeWidth: number = 0;
-
-    @Validate(RATIO)
-    strokeOpacity: number = 1;
-
-    @Validate(LINE_DASH)
-    lineDash: number[] = [0];
-
-    @Validate(POSITIVE_NUMBER)
-    lineDashOffset: number = 0;
+    sectorSpacing: number = 0;
 
     @Validate(POSITIVE_NUMBER)
     cornerRadius: number = 0;
 
-    @Validate(STRING) // FIXME
-    cornerRadiusMode: 'container' | 'item' = 'container';
+    @Validate(UNION(['continuous', 'segmented'], 'an appearance'))
+    appearance: 'continuous' | 'segmented' = 'continuous';
+
+    @Validate(UNION(['container', 'item'], 'a corner mode'))
+    cornerMode: 'container' | 'item' = 'container';
 
     @Validate(NUMBER)
-    padding: number = 0;
+    margin: number = 0;
 
     @Validate(OBJECT)
     readonly background = new RadialGaugeBackgroundProperties();
+
+    @Validate(OBJECT)
+    readonly bar = new RadialGaugeBarProperties();
+
+    @Validate(OBJECT)
+    readonly needle = new RadialGaugeNeedleProperties();
 
     @Validate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgRadialGaugeSeriesItemStylerParams<unknown>, AgRadialGaugeSeriesStyle>;

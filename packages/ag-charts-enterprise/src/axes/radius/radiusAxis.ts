@@ -152,27 +152,21 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
         const identityFormatter = (params: AgAxisCaptionFormatterParams) => params.defaultValue;
         const {
             title,
-            _titleCaption,
             range: requestedRange,
             moduleCtx: { callbackCache },
         } = this;
-        const { formatter = identityFormatter } = this.title ?? {};
+        const { formatter = identityFormatter } = this.title;
 
-        if (!title) {
-            _titleCaption.enabled = false;
-            return;
-        }
-
-        _titleCaption.enabled = title.enabled;
-        _titleCaption.fontFamily = title.fontFamily;
-        _titleCaption.fontSize = title.fontSize;
-        _titleCaption.fontStyle = title.fontStyle;
-        _titleCaption.fontWeight = title.fontWeight;
-        _titleCaption.color = title.color;
-        _titleCaption.wrapping = title.wrapping;
+        title.caption.enabled = title.enabled;
+        title.caption.fontFamily = title.fontFamily;
+        title.caption.fontSize = title.fontSize;
+        title.caption.fontStyle = title.fontStyle;
+        title.caption.fontWeight = title.fontWeight;
+        title.caption.color = title.color;
+        title.caption.wrapping = title.wrapping;
 
         let titleVisible = false;
-        const titleNode = _titleCaption.node;
+        const titleNode = title.caption.node;
         if (title.enabled) {
             titleVisible = true;
 

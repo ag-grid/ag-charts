@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 import type { AgToolbarGroupPosition, AgToolbarOptions } from 'ag-charts-types';
 
 import type { Module } from '../../module/module';
@@ -85,7 +86,11 @@ const annotationOptions: AgToolbarOptions['annotationOptions'] = {
             tooltip: 'toolbarAnnotationsLineStyle=',
             value: 'line-style-type',
         },
-
+        {
+            icon: 'text-annotation',
+            tooltip: 'toolbarAnnotationsTextOptions',
+            value: 'settings',
+        },
         {
             role: 'switch',
             icon: 'unlocked',

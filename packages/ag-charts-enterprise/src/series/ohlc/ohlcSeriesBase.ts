@@ -15,7 +15,6 @@ import { prepareCandlestickAnimationFunctions } from '../candlestick/candlestick
 const { motion } = _Scene;
 
 const {
-    extent,
     fixNumericExtent,
     keyProperty,
     SeriesNodePickMode,
@@ -24,7 +23,6 @@ const {
     diff,
     animationValidation,
     convertValuesToScaleByDefs,
-    isFiniteNumber,
 } = _ModuleSupport;
 
 const { sanitizeHtml, Logger } = _Util;
@@ -158,7 +156,7 @@ export abstract class OhlcSeriesBase<
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection) {
-        const { processedData, dataModel, smallestDataInterval } = this;
+        const { processedData, dataModel } = this;
         if (!(processedData && dataModel)) return [];
 
         const { openKey } = this.properties;
@@ -180,13 +178,7 @@ export abstract class OhlcSeriesBase<
         if (def.type === 'key' && def.valueType === 'category') {
             return keys;
         }
-
-        const keysExtent = extent(keys) ?? [NaN, NaN];
-        const scalePadding = isFiniteNumber(smallestDataInterval) ? smallestDataInterval : 0;
-
-        const d0 = keysExtent[0] + -scalePadding;
-        const d1 = keysExtent[1] + scalePadding;
-        return fixNumericExtent([d0, d1]);
+        return this.padBandExtent(keys);
     }
 
     createBaseNodeData() {

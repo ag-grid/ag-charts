@@ -14,7 +14,7 @@ function compareNumbers(a: number, b: number) {
 export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
     override readonly type = 'ordinal-time';
 
-    static override is(value: any): value is OrdinalTimeScale {
+    static override is(value: unknown): value is OrdinalTimeScale {
         return value instanceof OrdinalTimeScale;
     }
 

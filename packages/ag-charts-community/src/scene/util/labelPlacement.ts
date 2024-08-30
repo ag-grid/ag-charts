@@ -1,6 +1,14 @@
 import type { Point, SizedPoint } from '../point';
 
-export type LabelPlacement = 'top' | 'bottom' | 'left' | 'right';
+export type LabelPlacement =
+    | 'top'
+    | 'bottom'
+    | 'left'
+    | 'right'
+    | 'top-left'
+    | 'top-right'
+    | 'bottom-left'
+    | 'bottom-right';
 
 export interface MeasuredLabel {
     readonly text: string;
@@ -89,6 +97,10 @@ const labelPlacements: Record<LabelPlacement, { x: -1 | 0 | 1; y: -1 | 0 | 1 }> 
     bottom: { x: 0, y: 1 },
     left: { x: -1, y: 0 },
     right: { x: 1, y: 0 },
+    'top-left': { x: -1, y: -1 },
+    'top-right': { x: 1, y: -1 },
+    'bottom-left': { x: -1, y: 1 },
+    'bottom-right': { x: 1, y: 1 },
 };
 
 /**
@@ -148,7 +160,7 @@ export function placeLabels(data: PointLabelDatum[][], bounds?: Bounds, padding 
     return result;
 }
 
-export function axisLabelsOverlap(data: readonly PlacedLabelDatum[], padding?: number): boolean {
+export function axisLabelsOverlap(data: readonly PlacedLabelDatum[], padding: number = 0): boolean {
     const result: PlacedLabel<PlacedLabelDatum>[] = [];
 
     for (let index = 0; index < data.length; index++) {
@@ -159,8 +171,8 @@ export function axisLabelsOverlap(data: readonly PlacedLabelDatum[], padding?: n
         } = datum;
         let { width, height } = datum.label;
 
-        width += padding ?? 0;
-        height += padding ?? 0;
+        width += padding;
+        height += padding;
 
         if (result.some((l) => rectRectOverlap(l, x, y, width, height))) {
             return true;

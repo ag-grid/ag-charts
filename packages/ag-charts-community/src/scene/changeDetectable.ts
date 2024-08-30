@@ -14,7 +14,7 @@ export enum RedrawType {
 
 type SceneChangeDetectionOptions<T = any> = {
     redraw?: RedrawType;
-    type?: 'normal' | 'transform' | 'path' | 'font';
+    type?: 'normal' | 'transform' | 'path';
     convertor?: (o: any) => any;
     changeCb?: (o: T) => any;
     checkDirtyOnAssignment?: boolean;
@@ -55,9 +55,6 @@ function prepareGetSet(target: any, key: string, privateKey: string, opts?: Scen
             break;
         case 'path':
             setter = buildPathSetter(privateKey, requiredOpts);
-            break;
-        case 'font':
-            setter = buildFontSetter(privateKey, requiredOpts);
             break;
     }
     setter = buildCheckDirtyChain(
@@ -162,24 +159,6 @@ function buildPathSetter(privateKey: string, opts: SceneChangeDetectionOptions) 
             this[privateKey] = value;
             if (!this._dirtyPath) {
                 this._dirtyPath = true;
-                this.markDirty(this, redraw);
-            }
-            return value;
-        }
-
-        return NO_CHANGE;
-    };
-}
-
-function buildFontSetter(privateKey: string, opts: SceneChangeDetectionOptions) {
-    const { redraw = RedrawType.TRIVIAL } = opts;
-
-    return function (this: any, value: any) {
-        const oldValue = this[privateKey];
-        if (value !== oldValue) {
-            this[privateKey] = value;
-            if (!this._dirtyFont) {
-                this._dirtyFont = true;
                 this.markDirty(this, redraw);
             }
             return value;

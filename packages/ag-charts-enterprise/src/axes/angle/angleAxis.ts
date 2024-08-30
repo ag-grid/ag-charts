@@ -70,14 +70,14 @@ export abstract class AngleAxis<
         return this.tickData.length;
     }
 
-    override computeRange = () => {
+    override computeRange() {
         const startAngle = normalizeAngle360(-Math.PI / 2 + toRadians(this.startAngle));
         let endAngle = this.endAngle == null ? startAngle + Math.PI * 2 : -Math.PI / 2 + toRadians(this.endAngle);
         if (endAngle < startAngle) {
             endAngle += 2 * Math.PI;
         }
         this.range = [startAngle, endAngle];
-    };
+    }
 
     protected override calculateAvailableRange(): number {
         const { range, gridLength: radius } = this;

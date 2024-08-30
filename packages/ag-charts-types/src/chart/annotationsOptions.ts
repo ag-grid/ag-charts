@@ -32,6 +32,8 @@ export interface AgAnnotationsThemeableOptions {
 
     // Shapes
     arrow?: AgLineAnnotationStyles;
+    'arrow-up'?: AgShapeAnnotationStyles;
+    'arrow-down'?: AgShapeAnnotationStyles;
 
     // Other
     axesButtons?: AgAnnotationAxesButtons;
@@ -46,6 +48,11 @@ export interface AgAnnotationHandleStyles extends FillOptions, StrokeOptions, Li
 export interface AgLineAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineDashOptions {
     handle?: AgAnnotationHandleStyles;
 }
+
+export interface AgShapeAnnotationStyles extends Lockable, Visible, StrokeOptions, FillOptions {
+    size?: PixelSize;
+}
+
 export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineDashOptions {
     handle?: AgAnnotationHandleStyles;
     middle?: AgChannelAnnotationMiddle;
@@ -84,7 +91,9 @@ export type AgAnnotation =
     | AgNoteAnnotation
     | AgTextAnnotation
     // Shapes
-    | AgArrowAnnotation;
+    | AgArrowAnnotation
+    | AgArrowUpAnnotation
+    | AgArrowDownAnnotation;
 
 // ********************
 // * Line Annotations *
@@ -101,16 +110,22 @@ export interface AgLineAnnotation
     /** Configuration for the trend line annotation.*/
     type: 'line';
     handle?: AgAnnotationHandle;
+    /** Configuration for the line text. */
+    text?: AgLineText;
 }
 
 export interface AgHorizontalLineAnnotation extends AgCrossLineAnnotation {
     /** Configuration for the horizontal-line annotation.*/
     type: 'horizontal-line';
+    /** Configuration for the line text. */
+    text?: AgLineText;
 }
 
 export interface AgVerticalLineAnnotation extends AgCrossLineAnnotation {
     /** Configuration for the vertical-line annotation.*/
     type: 'vertical-line';
+    /** Configuration for the line text. */
+    text?: AgLineText;
 }
 
 export interface AgCrossLineAnnotation extends Lockable, Visible, StrokeOptions, LineDashOptions {
@@ -141,6 +156,8 @@ export interface AgParallelChannelAnnotation
     middle?: AgChannelAnnotationMiddle;
     /** The fill colour for the middle of the channel. */
     background?: AgChannelAnnotationBackground;
+    /** Configuration for the channel text. */
+    text?: AgChannelText;
 }
 
 export interface AgDisjointChannelAnnotation
@@ -159,6 +176,8 @@ export interface AgDisjointChannelAnnotation
     handle?: AgAnnotationHandle;
     /** The fill colour for the middle of the channel. */
     background?: AgChannelAnnotationBackground;
+    /** Configuration for the channel text. */
+    text?: AgChannelText;
 }
 
 // ********************
@@ -211,6 +230,22 @@ export interface AgArrowAnnotation
     /** Configuration for the arrow annotation.*/
     type: 'arrow';
     handle?: AgAnnotationHandle;
+    /** Configuration for the line text. */
+    text?: AgLineText;
+}
+
+export interface AgArrowMarkAnnotation extends AgAnnotationPoint, Lockable, Visible, StrokeOptions, LineDashOptions {
+    /** Configuration for the arrow mark annotation.*/
+    handle?: AgAnnotationHandle;
+}
+
+export interface AgArrowUpAnnotation extends AgArrowMarkAnnotation {
+    /** Configuration for the arrow up annotation.*/
+    type: 'arrow-up';
+}
+export interface AgArrowDownAnnotation extends AgArrowMarkAnnotation {
+    /** Configuration for the arrow down annotation.*/
+    type: 'arrow-down';
 }
 
 // **************
@@ -234,6 +269,18 @@ export interface AgAnnotationAxisLabel
 export interface AgAnnotationLabelFormatterParams {
     /** The default label value that would have been used without a formatter. */
     value: any;
+}
+
+export interface AgLineText extends FontOptions {
+    label?: string;
+    position?: 'top' | 'center' | 'bottom';
+    alignment?: 'left' | 'center' | 'right';
+}
+
+export interface AgChannelText extends FontOptions {
+    label?: string;
+    position?: 'top' | 'inside' | 'bottom';
+    alignment?: 'left' | 'center' | 'right';
 }
 
 interface AnnotationLinePoints {

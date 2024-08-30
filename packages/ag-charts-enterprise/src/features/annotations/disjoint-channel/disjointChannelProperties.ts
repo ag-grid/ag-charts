@@ -1,12 +1,20 @@
-import { type PixelSize, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { type PixelSize, _ModuleSupport, type _Scene, _Util } from 'ag-charts-community';
 
-import { Annotation, Background, Handle, Line, LineDash, Stroke } from '../annotationProperties';
+import {
+    Annotation,
+    Background,
+    ChannelTextProperties,
+    Handle,
+    Line,
+    LineStyle,
+    Stroke,
+} from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
-import { validateDatumLine } from '../annotationUtils';
+import { validateDatumLine } from '../utils/validation';
 
-const { NUMBER, STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
+const { NUMBER, OBJECT, STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
 
-export class DisjointChannelProperties extends Annotation(Background(Line(Handle(Stroke(LineDash(BaseProperties)))))) {
+export class DisjointChannelProperties extends Annotation(Background(Line(Handle(Stroke(LineStyle(BaseProperties)))))) {
     static is(value: unknown): value is DisjointChannelProperties {
         return isObject(value) && value.type === AnnotationType.DisjointChannel;
     }
@@ -19,6 +27,9 @@ export class DisjointChannelProperties extends Annotation(Background(Line(Handle
 
     @Validate(NUMBER)
     endHeight!: number;
+
+    @Validate(OBJECT, { optional: true })
+    text = new ChannelTextProperties();
 
     lineCap?: _Scene.ShapeLineCap = undefined;
     computedLineDash?: PixelSize[] = undefined;

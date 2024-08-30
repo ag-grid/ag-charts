@@ -6,7 +6,7 @@ export function getData() {
             actualRevenue: 3300000,
         },
         {
-            industry: 'Govornment',
+            industry: 'Government',
             targetRevenue: 4540000,
             actualRevenue: 1820000,
         },

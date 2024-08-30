@@ -19,8 +19,8 @@ enum DefaultTimeFormats {
     YEAR,
 }
 
-export function dateToNumber(x: any) {
-    return x instanceof Date ? x.getTime() : x;
+export function dateToNumber(value: any) {
+    return value instanceof Date ? value.getTime() : value;
 }
 
 export function defaultTimeTickFormat(ticks?: any[], domain?: any[], formatOffset?: number) {

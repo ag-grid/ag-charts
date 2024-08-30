@@ -90,28 +90,15 @@ function round(val: number): number {
     return Math.round(val * accuracy) / accuracy;
 }
 
-export function fixNumericExtent(extent?: (number | Date)[]): [] | [number, number] {
+export function fixNumericExtent(extent: Array<number | Date> | null): [] | [number, number] {
     if (extent == null) {
-        // Don't return a range, there is no range.
         return [];
     }
-
-    let [min, max] = extent.map(Number);
-
+    const [min, max] = extent.map(Number);
+    // If domain has a single valid value, 0, use the default extent of [0, 1].
     if (min === 0 && max === 0) {
-        // domain has zero length and the single valid value is 0. Use the default of [0, 1].
         return [0, 1];
     }
-
-    if (min === Infinity && max === -Infinity) {
-        // There's no data in the domain.
-        return [];
-    } else if (min === Infinity) {
-        min = 0;
-    } else if (max === -Infinity) {
-        max = 0;
-    }
-
     return isFiniteNumber(min) && isFiniteNumber(max) ? [min, max] : [];
 }
 

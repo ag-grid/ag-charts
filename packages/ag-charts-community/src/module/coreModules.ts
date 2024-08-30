@@ -1,4 +1,9 @@
-import type { AgCartesianChartOptions, AgChartThemeOverrides, AgPolarChartOptions } from 'ag-charts-types';
+import type {
+    AgCartesianChartOptions,
+    AgChartThemeOverrides,
+    AgGaugeChartOptions,
+    AgPolarChartOptions,
+} from 'ag-charts-types';
 import type { AgChartOptions } from 'ag-charts-types';
 
 import type { ChartLegend, ChartLegendType } from '../chart/legendDatum';
@@ -41,7 +46,7 @@ type OptionsSeriesType<T extends AgChartOptions> = NonNullable<T['series']>[numb
 type SeriesDefaultAxes<SeriesType extends RequiredSeriesType> =
     SeriesType extends OptionsSeriesType<AgCartesianChartOptions>
         ? AgCartesianChartOptions['axes']
-        : SeriesType extends OptionsSeriesType<AgPolarChartOptions>
+        : SeriesType extends OptionsSeriesType<AgPolarChartOptions | AgGaugeChartOptions>
           ? AgPolarChartOptions['axes']
           : never;
 

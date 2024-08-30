@@ -5,11 +5,12 @@ import colorPickerTemplate from './colorPickerTemplate.html';
 
 const { createElement } = _ModuleSupport;
 
-const { Color } = _Util;
+const { Color, clamp } = _Util;
 
 export interface ColorPickerOptions extends AnchoredPopoverOptions {
     color?: string;
     opacity?: number;
+    sourceEvent: Event;
     onChange?: (colorOpacity: string, color: string, opacity: number) => void;
 }
 
@@ -24,25 +25,36 @@ const getHsva = (input: string) => {
 };
 
 export class ColorPicker extends AnchoredPopover<ColorPickerOptions> {
+    private lastFocus?: HTMLElement;
+
     constructor(ctx: _ModuleSupport.ModuleContext) {
         super(ctx, 'color-picker');
+        this.hideFns.push(() => {
+            this.lastFocus?.focus();
+            this.lastFocus = undefined;
+        });
     }
 
-    public override show(opts: ColorPickerOptions) {
-        const element = this.createColorPicker(opts);
-        this.setContent(element);
-        super.show({ ...opts, class: 'ag-charts-color-picker', role: 'dialog' });
-        this.menuCloser = { close: () => this.doClose() };
+    public show(options: ColorPickerOptions) {
+        const { element, initialFocus } = this.createColorPicker(options);
+        const popover = this.showWithChildren([element], options);
+        popover.classList.add('ag-charts-color-picker');
+        popover.setAttribute('role', 'dialog');
+
+        const { type, lastFocus } = this.ctx.focusIndicator.guessDevice(options.sourceEvent);
+        if (type === 'keyboard' && lastFocus !== undefined) {
+            initialFocus.focus();
+            this.lastFocus = lastFocus;
+        }
     }
 
     private createColorPicker(opts: ColorPickerOptions) {
         let [h, s, v, a] = getHsva(opts.color ?? '#f00') ?? [0, 1, 0.5, 1];
         a = opts.opacity ?? a;
 
-        const colorPicker = createElement('div');
+        const colorPicker = createElement('div', 'ag-charts-color-picker__content');
         colorPicker.innerHTML = colorPickerTemplate;
         colorPicker.ariaLabel = this.ctx.localeManager.t('ariaLabelColorPicker');
-        colorPicker.className = 'ag-charts-color-picker__content';
 
         const paletteInput = colorPicker.querySelector<HTMLDivElement>('.ag-charts-color-picker__palette')!;
         const hueInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__hue-input')!;
@@ -103,7 +115,7 @@ export class ColorPicker extends AnchoredPopover<ColorPickerOptions> {
             switch (e.key) {
                 case 'Enter':
                 case 'Escape':
-                    opts.onClose?.();
+                    this.hide();
                     break;
                 default:
                     return;
@@ -113,13 +125,13 @@ export class ColorPicker extends AnchoredPopover<ColorPickerOptions> {
         paletteInput.addEventListener('mousedown', beginPaletteInteraction);
         paletteInput.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft') {
-                s = Math.min(Math.max(s - 0.01), 1);
+                s = clamp(0, s - 0.01, 1);
             } else if (e.key === 'ArrowRight') {
-                s = Math.min(Math.max(s + 0.01), 1);
+                s = clamp(0, s + 0.01, 1);
             } else if (e.key === 'ArrowUp') {
-                v = Math.min(Math.max(v + 0.01), 1);
+                v = clamp(0, v + 0.01, 1);
             } else if (e.key === 'ArrowDown') {
-                v = Math.min(Math.max(v - 0.01), 1);
+                v = clamp(0, v - 0.01, 1);
             } else {
                 return;
             }
@@ -148,6 +160,6 @@ export class ColorPicker extends AnchoredPopover<ColorPickerOptions> {
             }
         });
 
-        return colorPicker;
+        return { element: colorPicker, initialFocus: paletteInput };
     }
 }

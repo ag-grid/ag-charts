@@ -1,17 +1,19 @@
-import { _Scene, _Util } from 'ag-charts-community';
+import { type _Scene, _Util } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
-import { convertLine, invertCoords, validateDatumPoint } from '../annotationUtils';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { ArrowCapScene, type CapScene } from '../scenes/capScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
 import { DivariantHandle } from '../scenes/handle';
+import { LineWithTextScene } from '../scenes/lineWithTextScene';
 import { LinearScene } from '../scenes/linearScene';
-import type { LineProperties } from './lineProperties';
+import { validateDatumPoint } from '../utils/validation';
+import { convertLine, invertCoords } from '../utils/values';
+import type { LineTypeProperties } from './lineProperties';
 
 const { Vec2 } = _Util;
 
-export class LineScene extends LinearScene<LineProperties> {
+export class LineScene extends LinearScene<LineTypeProperties> {
     static override is(value: unknown): value is LineScene {
         return AnnotationScene.isCheck(value, 'line');
     }
@@ -20,9 +22,10 @@ export class LineScene extends LinearScene<LineProperties> {
 
     override activeHandle?: 'start' | 'end';
 
-    private readonly line = new CollidableLine();
+    public readonly line = new CollidableLine();
     private readonly start = new DivariantHandle();
     private readonly end = new DivariantHandle();
+    public text?: _Scene.TransformableText;
     private startCap?: CapScene;
     private endCap?: CapScene;
 
@@ -31,7 +34,7 @@ export class LineScene extends LinearScene<LineProperties> {
         this.append([this.line, this.start, this.end]);
     }
 
-    public update(datum: LineProperties, context: AnnotationContext) {
+    public update(datum: LineTypeProperties, context: AnnotationContext) {
         const locked = datum.locked ?? false;
 
         const coords = convertLine(datum, context);
@@ -46,10 +49,11 @@ export class LineScene extends LinearScene<LineProperties> {
 
         this.updateLine(datum, coords);
         this.updateHandles(datum, coords, locked);
+        this.updateText(datum, coords);
         this.updateCaps(datum, coords);
     }
 
-    updateLine(datum: LineProperties, coords: LineCoords) {
+    updateLine(datum: LineTypeProperties, coords: LineCoords) {
         const { line } = this;
         const { lineDashOffset, stroke, strokeWidth, strokeOpacity, lineCap } = datum;
         const { x1, y1, x2, y2 } = coords;
@@ -67,13 +71,12 @@ export class LineScene extends LinearScene<LineProperties> {
             fillOpacity: 0,
             lineCap,
         });
-        line.updateCollisionBBox();
     }
 
-    updateHandles(datum: LineProperties, coords: LineCoords, locked: boolean) {
-        const { start, end } = this;
+    updateHandles(datum: LineTypeProperties, coords: LineCoords, locked: boolean) {
+        const { start, end, startCap, endCap } = this;
         const { stroke, strokeWidth, strokeOpacity } = datum;
-        const { x1, y1, x2, y2 } = coords;
+        let [startPoint, endPoint] = Vec2.from(coords);
 
         const handleStyles = {
             fill: datum.handle.fill,
@@ -82,14 +85,25 @@ export class LineScene extends LinearScene<LineProperties> {
             strokeWidth: datum.handle.strokeWidth ?? strokeWidth,
         };
 
-        start.update({ ...handleStyles, x: x1, y: y1 });
-        end.update({ ...handleStyles, x: x2, y: y2 });
+        // Offset the handles so they do not cover the caps
+        const angle = Vec2.angle(Vec2.sub(endPoint, startPoint));
+        if (startCap) {
+            startPoint = Vec2.rotate(Vec2.from(0, -DivariantHandle.HANDLE_SIZE / 2), angle, startPoint);
+        }
+        if (endCap) {
+            endPoint = Vec2.rotate(Vec2.from(0, DivariantHandle.HANDLE_SIZE / 2), angle, endPoint);
+        }
+
+        start.update({ ...handleStyles, ...startPoint });
+        end.update({ ...handleStyles, ...endPoint });
 
         start.toggleLocked(locked);
         end.toggleLocked(locked);
     }
 
-    updateCaps(datum: LineProperties, coords: LineCoords) {
+    private readonly updateText = LineWithTextScene.updateLineText.bind(this);
+
+    updateCaps(datum: LineTypeProperties, coords: LineCoords) {
         if (!datum.startCap && this.startCap) {
             this.removeChild(this.startCap);
             this.startCap = undefined;
@@ -103,7 +117,7 @@ export class LineScene extends LinearScene<LineProperties> {
         if (!datum.startCap && !datum.endCap) return;
 
         const { stroke, strokeWidth, strokeOpacity } = datum;
-        const [start, end] = Vec2.fromBox(coords);
+        const [start, end] = Vec2.from(coords);
         const angle = Vec2.angle(Vec2.sub(end, start));
 
         if (datum.startCap) {
@@ -167,7 +181,7 @@ export class LineScene extends LinearScene<LineProperties> {
         this.end.toggleActive(active);
     }
 
-    override dragHandle(datum: LineProperties, target: Coords, context: AnnotationContext) {
+    override dragHandle(datum: LineTypeProperties, target: Coords, context: AnnotationContext) {
         const { activeHandle } = this;
 
         if (!activeHandle) return;
@@ -196,7 +210,7 @@ export class LineScene extends LinearScene<LineProperties> {
     }
 
     override containsPoint(x: number, y: number) {
-        const { start, end, line } = this;
+        const { start, end, line, text } = this;
 
         this.activeHandle = undefined;
 
@@ -210,6 +224,6 @@ export class LineScene extends LinearScene<LineProperties> {
             return true;
         }
 
-        return line.isPointInPath(x, y);
+        return line.isPointInPath(x, y) || Boolean(text?.containsPoint(x, y));
     }
 }

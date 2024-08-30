@@ -8,6 +8,7 @@ const options: AgFinancialChartOptions = {
     title: {
         text: 'Line Drawings',
     },
+    rangeButtons: false,
     initialState: {
         annotations: [
             {
@@ -26,14 +27,15 @@ const options: AgFinancialChartOptions = {
                     },
                     y: 39844.70176730486,
                 },
-
-                stroke: '#5090dc',
-                strokeOpacity: 1,
-                strokeWidth: 2,
+                text: {
+                    label: 'Trend line',
+                    position: 'center',
+                    alignment: 'center',
+                },
             },
             {
                 type: 'parallel-channel',
-                height: 13.282400589101599,
+                height: 15.282400589101599,
                 middle: {
                     strokeWidth: 1,
                     lineDash: [6, 5],
@@ -56,19 +58,16 @@ const options: AgFinancialChartOptions = {
                     },
                     y: 39842.30854197349,
                 },
-
-                stroke: '#5090dc',
-                strokeOpacity: 1,
-                strokeWidth: 2,
+                text: {
+                    label: 'Parallel channel',
+                    position: 'top',
+                    alignment: 'left',
+                },
             },
             {
                 type: 'disjoint-channel',
                 startHeight: 16.872238586154708,
                 endHeight: 4.666789396178501,
-                background: {
-                    fill: '#5090dc',
-                    fillOpacity: 0.2,
-                },
                 start: {
                     x: {
                         __type: 'date',
@@ -83,10 +82,11 @@ const options: AgFinancialChartOptions = {
                     },
                     y: 39845.30007363771,
                 },
-
-                stroke: '#5090dc',
-                strokeOpacity: 1,
-                strokeWidth: 2,
+                text: {
+                    label: 'Disjoint channel',
+                    position: 'bottom',
+                    alignment: 'right',
+                },
             },
             {
                 type: 'vertical-line',
@@ -94,23 +94,26 @@ const options: AgFinancialChartOptions = {
                     __type: 'date',
                     value: 'Thu Mar 21 2024 19:08:00 GMT+0000 (Greenwich Mean Time)',
                 },
-
+                text: {
+                    label: 'Vertical line',
+                    position: 'top',
+                    alignment: 'center',
+                },
                 axisLabel: {
                     enabled: true,
                 },
-                stroke: '#5090dc',
-                strokeOpacity: 1,
-                strokeWidth: 2,
             },
             {
                 type: 'horizontal-line',
                 value: 39863.48858615611,
+                text: {
+                    label: 'Horizontal line',
+                    position: 'center',
+                    alignment: 'right',
+                },
                 axisLabel: {
                     enabled: true,
                 },
-                stroke: '#5090dc',
-                strokeOpacity: 1,
-                strokeWidth: 2,
             },
         ],
     },

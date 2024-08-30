@@ -17,11 +17,6 @@ export interface TextSizeProperties {
     textAlign?: CanvasTextAlign;
 }
 
-function SceneFontChangeDetection(opts?: { redraw?: RedrawType; changeCb?: (t: any) => any }) {
-    const { redraw = RedrawType.MAJOR, changeCb } = opts ?? {};
-    return SceneChangeDetection({ redraw, type: 'font', changeCb });
-}
-
 export class Text extends Shape {
     static readonly className = 'Text';
 
@@ -51,16 +46,16 @@ export class Text extends Shape {
     @SceneChangeDetection({ redraw: RedrawType.MAJOR, changeCb: (o: Text) => o.onTextChange() })
     text?: string = undefined;
 
-    @SceneFontChangeDetection()
+    @SceneChangeDetection()
     fontStyle?: FontStyle;
 
-    @SceneFontChangeDetection()
+    @SceneChangeDetection()
     fontWeight?: FontWeight;
 
-    @SceneFontChangeDetection()
+    @SceneChangeDetection()
     fontSize?: number = 10;
 
-    @SceneFontChangeDetection()
+    @SceneChangeDetection()
     fontFamily?: string = 'sans-serif';
 
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
@@ -110,7 +105,7 @@ export class Text extends Shape {
         ctx.textBaseline = this.textBaseline;
 
         if (fill) {
-            ctx.fillStyle = fill;
+            this.applyFill(ctx);
             ctx.globalAlpha *= this.opacity * this.fillOpacity;
 
             const { fillShadow } = this;

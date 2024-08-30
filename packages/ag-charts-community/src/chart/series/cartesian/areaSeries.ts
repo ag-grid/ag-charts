@@ -551,8 +551,19 @@ export class AreaSeries extends CartesianSeries<
     }
 
     private updateAreaPaths(paths: Path[], contextData: AreaSeriesNodeDataContext) {
-        this.updateFillPath(paths, contextData);
-        this.updateStrokePath(paths, contextData);
+        for (const path of paths) {
+            path.visible = contextData.visible;
+        }
+
+        if (contextData.visible) {
+            this.updateFillPath(paths, contextData);
+            this.updateStrokePath(paths, contextData);
+        } else {
+            for (const path of paths) {
+                path.path.clear();
+                path.checkPathDirty();
+            }
+        }
     }
 
     private updateFillPath(paths: Path[], contextData: AreaSeriesNodeDataContext) {
@@ -788,7 +799,6 @@ export class AreaSeries extends CartesianSeries<
         const update = () => {
             this.resetPathAnimation(animationData);
             this.updateAreaPaths(paths, contextData);
-            this.updateStrokePath(paths, contextData);
         };
         const skip = () => {
             animationManager.skipCurrentBatch();
@@ -835,10 +845,7 @@ export class AreaSeries extends CartesianSeries<
             phase: 'trailing',
             from: {},
             to: {},
-            onComplete: () => {
-                this.updateAreaPaths(paths, contextData);
-                this.updateStrokePath(paths, contextData);
-            },
+            onComplete: () => this.updateAreaPaths(paths, contextData),
         });
     }
 

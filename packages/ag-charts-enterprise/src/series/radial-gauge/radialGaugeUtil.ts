@@ -1,6 +1,7 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { type TextAlign, type VerticalAlign, type _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { type LabelFormatting, formatSingleLabel, formatStackedLabels } from '../util/labelFormatter';
+import type { RadialGaugeNeedle } from './radialGaugeNeedle';
 import {
     LabelType,
     type RadialGaugeLabelDatum,
@@ -10,80 +11,181 @@ import {
 
 const { SectorBox } = _Scene;
 
-type AnimatableSectorDatum = {
+export interface AnimatableSectorDatum {
     innerRadius: number;
     outerRadius: number;
     startAngle: number;
     endAngle: number;
     clipStartAngle: number | undefined;
     clipEndAngle: number | undefined;
+}
+
+interface DefinedClipSector {
+    clipStartAngle: number;
+    clipEndAngle: number;
+}
+
+type SectorAnimation = {
+    startAngle: number;
+    endAngle: number;
+    innerRadius: number;
+    outerRadius: number;
+    clipSector: _Scene.SectorBox | undefined;
 };
 
-export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean) {
+type AnimatableNeedleDatum = {
+    radius: number;
+    angle: number;
+};
+
+export const fadeInFns: _ModuleSupport.FromToFns<_Scene.Node, any, any> = {
+    fromFn: () => ({ opacity: 0, phase: 'initial' }),
+    toFn: () => ({ opacity: 1 }),
+};
+
+export function computeClipSector(datum: AnimatableSectorDatum) {
+    const { startAngle, endAngle, clipStartAngle, clipEndAngle, innerRadius, outerRadius } = datum;
+
+    if (clipStartAngle == null || clipEndAngle == null) return;
+
+    return new SectorBox(
+        Math.max(clipStartAngle, startAngle),
+        Math.min(clipEndAngle, endAngle),
+        innerRadius,
+        outerRadius
+    );
+}
+
+export function clipSectorVisibility(startAngle: number, endAngle: number, clipSector: _Scene.SectorBox) {
+    return Math.max(startAngle, clipSector.startAngle) <= Math.min(endAngle, clipSector.endAngle);
+}
+
+function hasClipSector(datum: AnimatableSectorDatum): datum is AnimatableSectorDatum & DefinedClipSector {
+    return datum.clipStartAngle != null && datum.clipEndAngle != null;
+}
+
+function datumClipSector(datum: AnimatableSectorDatum & DefinedClipSector, zero: boolean) {
+    const { clipStartAngle, clipEndAngle, innerRadius, outerRadius } = datum;
+
+    return new SectorBox(clipStartAngle, zero ? clipStartAngle : clipEndAngle, innerRadius, outerRadius);
+}
+
+export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean, initialStartAngle: number) {
     const phase = initialLoad ? 'initial' : 'update';
 
-    const fns: _ModuleSupport.FromToFns<_Scene.Sector, any, AnimatableSectorDatum> = {
+    const node: _ModuleSupport.FromToFns<_Scene.Sector, SectorAnimation, AnimatableSectorDatum> = {
         fromFn(sect, datum) {
-            let { startAngle, endAngle, innerRadius, outerRadius } = sect;
-            let clipStartAngle = sect.clipSector?.startAngle;
-            let clipEndAngle = sect.clipSector?.endAngle;
+            const previousDatum: AnimatableSectorDatum | undefined = sect.previousDatum;
+            const { innerRadius, outerRadius } = previousDatum ?? datum;
+            let { startAngle, endAngle } = previousDatum ?? datum;
 
-            if (initialLoad) {
+            const previousClipSector =
+                previousDatum != null && hasClipSector(previousDatum)
+                    ? datumClipSector(previousDatum, initialLoad)
+                    : undefined;
+            const nextClipSector = hasClipSector(datum) ? datumClipSector(datum, initialLoad) : undefined;
+
+            let clipSector: _Scene.SectorBox | undefined;
+            if (previousClipSector != null && nextClipSector != null) {
+                // Clip sector updated
+                clipSector = previousClipSector;
+            } else if (previousClipSector == null && nextClipSector != null) {
+                // Clip sector added
+                clipSector = nextClipSector;
                 startAngle = datum.startAngle;
                 endAngle = datum.endAngle;
-                innerRadius = datum.innerRadius;
-                outerRadius = datum.innerRadius;
-                clipStartAngle = datum.clipStartAngle;
-                clipEndAngle = datum.clipEndAngle;
+            } else if (previousClipSector != null && nextClipSector == null) {
+                // Clip sector removed
+                clipSector = undefined;
+                startAngle = datum.startAngle;
+                endAngle = datum.endAngle;
+            } else if (initialLoad) {
+                // No clip sector - initial load
+                endAngle = startAngle;
             }
-
-            const clipSector =
-                clipStartAngle != null && clipEndAngle != null
-                    ? new SectorBox(clipStartAngle, clipEndAngle, innerRadius, outerRadius)
-                    : undefined;
 
             return { startAngle, endAngle, innerRadius, outerRadius, clipSector, phase };
         },
-        toFn(_sect, datum, status) {
-            const { startAngle, endAngle, clipStartAngle, clipEndAngle } = datum;
-            let { innerRadius, outerRadius } = datum;
+        toFn(_sect, datum) {
+            const { startAngle, endAngle, innerRadius, outerRadius } = datum;
 
-            if (status === 'removed') {
-                innerRadius = datum.innerRadius;
-                outerRadius = datum.innerRadius;
+            let clipSector: _Scene.SectorBox | undefined;
+            if (hasClipSector(datum)) {
+                clipSector = datumClipSector(datum, false);
             }
-
-            const clipSector =
-                clipStartAngle != null && clipEndAngle != null
-                    ? new SectorBox(clipStartAngle, clipEndAngle, innerRadius, outerRadius)
-                    : undefined;
 
             return { startAngle, endAngle, outerRadius, innerRadius, clipSector };
         },
+        mapFn(params) {
+            const { startAngle, endAngle, outerRadius, innerRadius } = params;
+            let { clipSector } = params;
+
+            if (clipSector != null) {
+                clipSector = new SectorBox(
+                    Math.max(startAngle, clipSector.startAngle),
+                    Math.min(endAngle, clipSector.endAngle),
+                    clipSector.innerRadius,
+                    clipSector.outerRadius
+                );
+            }
+
+            const visible = clipSector == null || clipSectorVisibility(startAngle, endAngle, clipSector);
+
+            return { visible, startAngle, endAngle, outerRadius, innerRadius, clipSector };
+        },
     };
 
-    return fns;
+    const needle: _ModuleSupport.FromToFns<RadialGaugeNeedle, any, AnimatableNeedleDatum> = {
+        fromFn(needleNode) {
+            let { angle: rotation } = needleNode.previousDatum ?? needleNode.datum;
+
+            if (initialLoad) {
+                rotation = initialStartAngle;
+            }
+
+            return { rotation, phase };
+        },
+        toFn(_needleNode, datum) {
+            const { angle: rotation } = datum;
+
+            return { rotation };
+        },
+    };
+
+    return { node, needle };
 }
 
-function getLabelText(
+export function getLabelText(
     series: _ModuleSupport.Series<any, any>,
     label: RadialGaugeLabelProperties | RadialGaugeSecondaryLabelProperties,
-    value: number | undefined
+    value: number | undefined,
+    defaultFormatter?: (value: number) => void
 ) {
-    return (
-        label.text ?? (value != null ? label?.formatter?.({ seriesId: series.id, datum: undefined, value }) : undefined)
-    );
+    if (label.text != null) {
+        return label.text;
+    } else if (value != null) {
+        return label?.formatter?.({ seriesId: series.id, datum: undefined, value }) ?? defaultFormatter?.(value);
+    }
 }
+
+const verticalAlignFactors: Record<VerticalAlign, number> = {
+    top: 0,
+    middle: 0.5,
+    bottom: 1,
+};
 
 export function formatRadialGaugeLabels(
     series: _ModuleSupport.Series<any, any>,
     selection: _Scene.Selection<_Scene.Text, RadialGaugeLabelDatum>,
     labelProps: RadialGaugeLabelProperties,
     secondaryLabelProps: RadialGaugeSecondaryLabelProperties,
-    padding: number,
+    opts: { padding: number; textAlign: TextAlign; verticalAlign: VerticalAlign },
     innerRadius: number,
+    defaultFormatter: (value: number) => void,
     datumOverrides?: { label: number; secondaryLabel: number }
 ) {
+    const { padding, textAlign, verticalAlign } = opts;
+
     let labelDatum: RadialGaugeLabelDatum | undefined;
     let secondaryLabelDatum: RadialGaugeLabelDatum | undefined;
     selection.each((_node, datum) => {
@@ -94,7 +196,7 @@ export function formatRadialGaugeLabels(
         }
     });
 
-    const labelText = getLabelText(series, labelProps, datumOverrides?.label ?? labelDatum?.value);
+    const labelText = getLabelText(series, labelProps, datumOverrides?.label ?? labelDatum?.value, defaultFormatter);
     if (labelText == null) return;
     const secondaryLabelText = getLabelText(
         series,
@@ -103,9 +205,11 @@ export function formatRadialGaugeLabels(
     );
 
     const params = { padding };
+    const horizontalFactor = textAlign === 'center' ? 2 : 1;
+    const verticalFactor = verticalAlign === 'middle' ? 2 : 1;
     const sizeFittingHeight = (height: number) => ({
-        width: 2 * Math.sqrt(innerRadius ** 2 - (height / 2) ** 2),
-        height: Math.min(height, 2 * innerRadius),
+        width: Math.sqrt(Math.max(innerRadius ** 2 - (height / verticalFactor) ** 2, 0)) * horizontalFactor,
+        height: Math.min(height, verticalFactor * innerRadius),
         meta: null,
     });
 
@@ -133,6 +237,7 @@ export function formatRadialGaugeLabels(
         height = layout?.[0].height ?? 0;
     }
 
+    const rectYOffset = height * verticalAlignFactors[verticalAlign];
     selection.each((label, datum) => {
         let layout: LabelFormatting | undefined;
         if (datum.label === LabelType.Primary) {
@@ -150,10 +255,12 @@ export function formatRadialGaugeLabels(
         label.text = layout.text;
         label.fontSize = layout.fontSize;
         label.lineHeight = layout.lineHeight;
+        label.textAlign = textAlign;
+        label.textBaseline = 'middle';
 
         const rectOriginInLabelRect =
             datum.label === LabelType.Primary ? layout.height / 2 : height - layout.height / 2;
-        label.y = datum.centerY + rectOriginInLabelRect - height / 2;
+        label.y = datum.centerY + rectOriginInLabelRect - rectYOffset;
         label.x = datum.centerX;
     });
 }

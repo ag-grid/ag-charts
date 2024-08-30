@@ -343,7 +343,7 @@ export function getTypes(node: ts.Node) {
     return typesToInclude;
 }
 
-const CHART_API_EXPRESSIONS = [/AgCharts\.(?!create|createFinancialChart)/, /chart\.(?!update)/];
+const CHART_API_EXPRESSIONS = [/AgCharts\.(?!create|createFinancialChart|createGauge)/, /chart\.(?!update)/];
 export function usesChartApi(node: ts.Node) {
     if (ts.isCallExpression(node)) {
         const nodeText = node.getText();
@@ -725,6 +725,13 @@ export function addGenericInterfaceImport(imports: string[], tData: string, bind
     }
 }
 
-export function isFinancialCharts(bindings: any) {
-    return bindings.optionsTypeInfo?.typeStr === 'AgFinancialChartOptions';
+export type ChartAPI = 'financial' | 'gauge' | 'vanilla';
+
+export function chartApi(bindings: any): ChartAPI {
+    if (bindings.optionsTypeInfo?.typeStr === 'AgFinancialChartOptions') {
+        return 'financial';
+    } else if (bindings.optionsTypeInfo?.typeStr === 'AgGaugeOptions') {
+        return 'gauge';
+    }
+    return 'vanilla';
 }

@@ -19,7 +19,6 @@
 .ag-charts-color-picker__content {
     display: flex;
     flex-direction: column;
-    color: var(--ag-charts-toolbar-foreground-color);
 }
 
 .ag-charts-color-picker__palette {

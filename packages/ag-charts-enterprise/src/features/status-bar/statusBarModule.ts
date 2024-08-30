@@ -30,6 +30,10 @@ export const StatusBarModule: _ModuleSupport.RootModule = {
             neutral: {
                 color: _Theme.PALETTE_NEUTRAL_STROKE,
             },
+            background: {
+                fill: _Theme.DEFAULT_BACKGROUND_COLOUR,
+                fillOpacity: 0.5,
+            },
             altNeutral: {
                 color: 'gray',
             },

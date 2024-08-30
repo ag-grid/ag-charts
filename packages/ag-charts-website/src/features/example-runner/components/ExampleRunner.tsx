@@ -20,6 +20,7 @@ interface Props {
     initialShowCode?: boolean;
     externalLinks?: ReactElement;
     exampleHeight?: number;
+    exampleWidth?: number;
     exampleFiles?: FileContents;
     initialSelectedFile?: string;
     internalFramework: InternalFramework;
@@ -37,7 +38,7 @@ export const ExampleRunner: FunctionComponent<Props> = ({
     exampleType,
     initialShowCode,
     externalLinks,
-    exampleHeight: initialExampleHeight,
+    exampleHeight = DEFAULT_HEIGHT,
     exampleFiles,
     initialSelectedFile,
     internalFramework,
@@ -46,8 +47,6 @@ export const ExampleRunner: FunctionComponent<Props> = ({
 }) => {
     const [showCode, setShowCode] = useState(initialShowCode);
 
-    const exampleHeight = initialExampleHeight || DEFAULT_HEIGHT;
-
     return (
         <div id={id} className={styles.exampleOuter}>
             <div className={styles.tabsContainer}>
@@ -55,7 +54,7 @@ export const ExampleRunner: FunctionComponent<Props> = ({
                     className={classnames(chartsStyles.content, styles.content)}
                     role="tabpanel"
                     aria-labelledby={`${showCode ? 'Preview' : 'Code'} tab`}
-                    style={{ height: exampleHeight, width: '100%' }}
+                    style={{ height: exampleHeight }}
                 >
                     <ExampleIFrame
                         title={title}

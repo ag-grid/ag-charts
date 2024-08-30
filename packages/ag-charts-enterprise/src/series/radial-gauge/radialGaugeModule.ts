@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Theme } from 'ag-charts-community';
+import { type _ModuleSupport, _Theme } from 'ag-charts-community';
 
 import { RadialGaugeSeries } from './radialGaugeSeries';
 
@@ -8,7 +8,7 @@ const {
     DEFAULT_HIERARCHY_FILLS,
     DEFAULT_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
-    singleSeriesPaletteFactory,
+    POLAR_AXIS_TYPE,
 } = _Theme;
 
 export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
@@ -20,35 +20,74 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
     identifier: 'radial-gauge',
     moduleFactory: (ctx) => new RadialGaugeSeries(ctx),
     tooltipDefaults: { range: 'exact' },
+    defaultAxes: [
+        { type: POLAR_AXIS_TYPE.ANGLE_NUMBER, line: { enabled: false } },
+        { type: POLAR_AXIS_TYPE.RADIUS_NUMBER, line: { enabled: false } },
+    ],
     themeTemplate: {
+        minWidth: 200,
+        minHeight: 200,
         series: {
-            strokeWidth: 0,
+            outerRadiusRatio: 1,
+            innerRadiusRatio: 0.8,
+            bar: {
+                strokeWidth: 0,
+            },
+            target: {
+                fill: DEFAULT_LABEL_COLOUR,
+                stroke: DEFAULT_LABEL_COLOUR,
+                size: 10,
+                placement: 'outside',
+                spacing: 5,
+                label: {
+                    enabled: true,
+                    fontWeight: FONT_WEIGHT.NORMAL,
+                    fontSize: 12,
+                    fontFamily: DEFAULT_FONT_FAMILY,
+                    color: DEFAULT_LABEL_COLOUR,
+                    spacing: 5,
+                },
+            },
+            needle: {
+                enabled: false,
+                fill: DEFAULT_LABEL_COLOUR,
+                spacing: 10,
+            },
             label: {
                 enabled: true,
                 fontWeight: FONT_WEIGHT.NORMAL,
-                fontSize: 14,
+                fontSize: 56,
+                minimumFontSize: 18,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_LABEL_COLOUR,
             },
             secondaryLabel: {
-                enabled: false,
+                enabled: true,
                 fontWeight: FONT_WEIGHT.NORMAL,
-                fontSize: 12,
+                fontSize: 14,
+                minimumFontSize: 12,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_MUTED_LABEL_COLOUR,
+            },
+            tooltip: {
+                enabled: false,
             },
         },
     },
     paletteFactory(params) {
-        const { fill, stroke } = singleSeriesPaletteFactory(params);
-        const hierarchyFills = params.themeTemplateParameters.get(DEFAULT_HIERARCHY_FILLS);
+        const { takeColors, colorsCount, userPalette, themeTemplateParameters } = params;
+        const { fills } = takeColors(colorsCount);
+        const defaultColorRange = themeTemplateParameters.get(_Theme.DEFAULT_GAUGE_SERIES_COLOUR_RANGE) as
+            | string[]
+            | undefined;
+        const hierarchyFills = themeTemplateParameters.get(DEFAULT_HIERARCHY_FILLS);
+        const colorRange = userPalette === 'inbuilt' ? defaultColorRange : [fills[0], fills[1]];
         return {
-            fill,
-            stroke,
             background: {
-                fill: hierarchyFills?.[1],
+                defaultFill: hierarchyFills?.[1],
                 stroke: hierarchyFills?.[2],
             },
+            defaultColorStops: colorRange,
         };
     },
 };

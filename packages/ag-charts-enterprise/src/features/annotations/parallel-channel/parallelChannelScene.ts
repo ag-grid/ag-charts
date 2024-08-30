@@ -1,10 +1,13 @@
-import { _Scene, _Util } from 'ag-charts-community';
+import { _Util } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
-import { convertPoint, invertCoords, validateDatumPoint } from '../annotationUtils';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { ChannelScene } from '../scenes/channelScene';
+import { CollidableLine } from '../scenes/collidableLineScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
+import { LineWithTextScene } from '../scenes/lineWithTextScene';
+import { validateDatumPoint } from '../utils/validation';
+import { convertPoint, invertCoords } from '../utils/values';
 import type { ParallelChannelProperties } from './parallelChannelProperties';
 
 const { Vec2 } = _Util;
@@ -28,7 +31,7 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         bottomRight: new DivariantHandle(),
     };
 
-    private readonly middleLine = new _Scene.Line();
+    private readonly middleLine = new CollidableLine();
 
     constructor() {
         super();
@@ -147,6 +150,10 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         return [bottomLeft, bottomRight];
     }
 
+    override containsPoint(x: number, y: number) {
+        return super.containsPoint(x, y) || this.middleLine.containsPoint(x, y);
+    }
+
     override updateLines(datum: ParallelChannelProperties, top: LineCoords, bottom: LineCoords) {
         const { topLine, middleLine, bottomLine } = this;
         const { lineDashOffset, stroke, strokeOpacity, strokeWidth, lineCap } = datum;
@@ -176,8 +183,6 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
             y2: bottom.y2,
             ...lineStyles,
         });
-        topLine.updateCollisionBBox();
-        bottomLine.updateCollisionBBox();
 
         middleLine.setProperties({
             x1: top.x1,
@@ -220,4 +225,6 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
             y: bottom.y1 + (bottom.y2 - bottom.y1) / 2 - bottomMiddle.handle.height / 2,
         });
     }
+
+    override updateText = LineWithTextScene.updateChannelText.bind(this, true);
 }

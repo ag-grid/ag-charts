@@ -1,4 +1,6 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import type { _ModuleSupport, _Scene } from 'ag-charts-community';
+
+export type Constructor<T = object> = new (...args: any[]) => T;
 
 export enum AnnotationType {
     // Lines
@@ -18,6 +20,8 @@ export enum AnnotationType {
 
     // Shapes
     Arrow = 'arrow',
+    ArrowUp = 'arrow-up',
+    ArrowDown = 'arrow-down',
 }
 
 export type TextualAnnotationType =
@@ -26,7 +30,11 @@ export type TextualAnnotationType =
     | AnnotationType.Note
     | AnnotationType.Text;
 
-export type LineAnnotationType = AnnotationType.Line | AnnotationType.HorizontalLine | AnnotationType.VerticalLine;
+export type LineAnnotationType =
+    | AnnotationType.Line
+    | AnnotationType.HorizontalLine
+    | AnnotationType.VerticalLine
+    | AnnotationType.Arrow;
 
 export type ChannelAnnotationType = AnnotationType.DisjointChannel | AnnotationType.ParallelChannel;
 
@@ -49,6 +57,8 @@ export const ANNOTATION_BUTTONS = [
 
     // Shapes
     AnnotationType.Arrow,
+    AnnotationType.ArrowUp,
+    AnnotationType.ArrowDown,
 ] as const;
 export const ANNOTATION_BUTTON_GROUPS = ['line-menu', 'text-menu', 'shape-menu'] as const;
 
@@ -59,7 +69,7 @@ export function stringToAnnotationType(value: string) {
 }
 
 export interface Anchor extends Coords {
-    position: 'above' | 'above-left' | 'right';
+    position?: 'above' | 'above-left' | 'right' | 'below';
 }
 
 export interface Coords {

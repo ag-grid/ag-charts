@@ -1,12 +1,19 @@
 import { getChartImports, wrapOptionsUpdateCode } from './chart-utils';
 import {
+    type ChartAPI,
     addBindingImports,
+    chartApi,
     convertFunctionToConstProperty,
     convertFunctionToProperty,
-    isFinancialCharts,
 } from './parser-utils';
 import { convertFunctionalTemplate, getImport, styleAsObject } from './react-utils';
 import { toTitleCase } from './string-utils';
+
+const components: Record<ChartAPI, string> = {
+    gauge: 'AgGauge',
+    financial: 'AgFinancialCharts',
+    vanilla: 'AgCharts',
+};
 
 export function processFunction(code: string): string {
     return wrapOptionsUpdateCode(
@@ -25,7 +32,7 @@ function needsWrappingInFragment(bindings: any) {
 }
 
 function getImports(componentFilenames: string[], bindings): string[] {
-    const type = isFinancialCharts(bindings) ? 'AgFinancialCharts' : 'AgCharts';
+    const type = components[chartApi(bindings)];
     const reactImports = ['useState'];
     if (bindings.usesChartApi) reactImports.push('useRef');
     if (needsWrappingInFragment(bindings)) reactImports.push('Fragment');
@@ -67,7 +74,7 @@ function getImports(componentFilenames: string[], bindings): string[] {
 }
 
 function getAgChartTag(bindings: any, componentAttributes: string[]): string {
-    const tag = isFinancialCharts(bindings) ? 'AgFinancialCharts' : 'AgCharts';
+    const tag = components[chartApi(bindings)];
     return `<${tag}
         ${bindings.usesChartApi ? 'ref={chartRef}' : ''}
         ${componentAttributes.join(`

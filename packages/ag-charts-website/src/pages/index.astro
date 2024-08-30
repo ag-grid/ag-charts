@@ -7,7 +7,7 @@ import styles from '@pages-styles/homepage.module.scss';
 import GridLogoType from '@ag-website-shared/images/inline-svgs/ag-grid-logotype.svg?react';
 import GridLogoMark from '@ag-website-shared/images/inline-svgs/ag-grid-logomark.svg?react';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
-import { Image } from 'astro:assets';
+import { AutomatedIntegratedChartsWrapper } from '@ag-website-shared/components/automated-examples/AutomatedIntegratedChartsWrapper';
 
 const frameworksData = [
     {
@@ -39,7 +39,17 @@ const frameworksData = [
         }),
     },
 ];
+
+/**
+ * Version of `ag-grid-charts-enterprise` to use
+ *
+ * NOTE: Fix version so we can upgrade outside of grid/charts releases
+ */
+const AG_GRID_CHARTS_VERSION = '32.1.0';
+const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-enterprise@${AG_GRID_CHARTS_VERSION}/dist/ag-grid-charts-enterprise.min.js`;
 ---
+
+<script is:inline src={AG_GRID_CHARTS_CDN_URL}></script>
 
 <Layout>
     <div class={styles.homepageHero}>
@@ -65,8 +75,14 @@ const frameworksData = [
 
     <div class={styles.homepageBenefits}>
         <div class:list={[styles.benefitsInner, 'layout-max-width-small']}>
-            <video class={styles.videoLight} src="videos/chart-features-light.mp4" muted autoplay loop></video>
-            <video class={styles.videoDark} src="videos/chart-features-dark.mp4" muted autoplay loop></video>
+            <video
+                class={styles.videoLight}
+                src={urlWithBaseUrl('/videos/chart-features-light.mp4')}
+                muted
+                autoplay
+                loop></video>
+            <video class={styles.videoDark} src={urlWithBaseUrl('videos/chart-features-dark.mp4')} muted autoplay loop
+            ></video>
             <div class={styles.benefitsCopy}>
                 <h2>Data Visualisation, made easy</h2>
                 <p class="text-lg">
@@ -90,7 +106,7 @@ const frameworksData = [
     </div>
 
     <div class={styles.homepageGrid}>
-        <div class:list={[styles.gridInner, 'layout-max-width-small']}>
+        <AutomatedIntegratedChartsWrapper client:visible>
             <div class={styles.gridCopy}>
                 <div class={styles.agGridLogo}>
                     <GridLogoType />
@@ -103,22 +119,6 @@ const frameworksData = [
                      experience from within the grid.
                 </p>
             </div>
-            <div class={styles.gridExample}>
-                <Image
-                    width={640}
-                    height={380}
-                    class={styles.gridExampleLight}
-                    src={urlWithBaseUrl('/images/integrated-charts-light.png')}
-                    alt="AG Charts & AG Grid - integrated charts"
-                />
-                <Image
-                    width={640}
-                    height={380}
-                    class={styles.gridExampleDark}
-                    src={urlWithBaseUrl('/images/integrated-charts-dark.png')}
-                    alt="AG Charts & AG Grid - integrated charts"
-                />
-            </div>
-        </div>
+        </AutomatedIntegratedChartsWrapper>
     </div>
 </Layout>
