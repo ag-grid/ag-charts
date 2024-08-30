@@ -7,6 +7,9 @@ import { createElement } from '../util/dom';
 import { BoundedText } from './boundedText';
 import type { DOMElementClass, DOMManager } from './domManager';
 import type { FocusIndicator } from './focusIndicator';
+import { elements } from './focusStyles';
+
+export type ListButton = { button: HTMLButtonElement; listitem: HTMLElement };
 
 type UpdateServiceLike = {
     addListener(type: 'update-complete', handler: () => unknown): () => void;
@@ -54,7 +57,7 @@ type ProxyMeta = {
     };
     listbutton: {
         params: InteractParams<'listbutton'> & { readonly textContent: string | TranslationKey };
-        result: { button: HTMLButtonElement; listitem: HTMLElement };
+        result: ListButton;
     };
 
     // Containers
@@ -172,6 +175,7 @@ export class ProxyInteractionService {
                     button.textContent = this.localeManager.t(textContent.id, textContent.params);
                 });
             }
+            this.setParent(params, button);
         }
 
         if (checkType('slider', meta)) {
@@ -185,11 +189,13 @@ export class ProxyInteractionService {
             this.addLocalisation(() => {
                 slider.ariaLabel = this.localeManager.t(params.ariaLabel.id, params.ariaLabel.params);
             });
+            this.setParent(params, slider);
         }
 
         if (checkType('text', meta)) {
             const { params, result: text } = meta;
             this.initElement(params, text.getContainer());
+            this.setParent(params, text.getContainer());
         }
 
         if (checkType('listbutton', meta)) {
@@ -211,24 +217,19 @@ export class ProxyInteractionService {
 
             listitem.role = 'listitem';
             listitem.replaceChildren(button);
+            this.setParent(params, listitem);
         }
 
         return meta.result;
     }
 
     private initElement<T extends ProxyElementType, TElem extends HTMLElement>(params: ElemParams<T>, element: TElem) {
-        const { id, parent } = params;
+        const { id } = params;
         element.id = id;
         element.style.pointerEvents = 'none';
         element.style.opacity = this.debugShowDOMProxies ? '0.25' : '0';
         element.style.position = 'absolute';
         element.style.overflow = 'hidden';
-
-        if (typeof parent === 'string') {
-            this.domManager.addChild(parent, id, element);
-        } else {
-            parent.appendChild(element);
-        }
     }
 
     private initInteract<T extends ProxyElementType, TElem extends HTMLElement>(
@@ -263,6 +264,15 @@ export class ProxyInteractionService {
         }
         if (onchange) {
             element.addEventListener('change', onchange);
+        }
+    }
+
+    private setParent<T extends ProxyElementType, TElem extends HTMLElement>(params: ElemParams<T>, element: TElem) {
+        const { id, parent } = params;
+        if (typeof parent === 'string') {
+            this.domManager.addChild(parent, id, element);
+        } else {
+            parent.appendChild(element);
         }
     }
 }
