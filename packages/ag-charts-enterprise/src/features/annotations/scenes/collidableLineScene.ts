@@ -1,10 +1,14 @@
-import { _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 const { Vec2 } = _Util;
 
-export class CollidableLine extends _Scene.ClippableOutside(_Scene.Line) {
+export type ShapeClipMask = { x: number; y: number; radius: number };
+
+export class CollidableLine extends _Scene.Line {
     public collisionBBox?: _Scene.BBox;
     private readonly growCollisionBox = 9;
+
+    protected clipMask?: ShapeClipMask;
 
     override setProperties<T>(styles: { [K in keyof T]?: T[K] | undefined }, pickKeys?: (keyof T)[] | undefined): T {
         super.setProperties(styles, pickKeys);
@@ -44,5 +48,44 @@ export class CollidableLine extends _Scene.ClippableOutside(_Scene.Line) {
         const rotated = Vec2.rotate(point, Vec2.angle(point, end), v1);
 
         return collisionBBox.containsPoint(rotated.x, rotated.y) ?? false;
+    }
+
+    override render(renderCtx: _Scene.RenderContext): void {
+        this.applyClipMask(renderCtx.ctx);
+        super.render(renderCtx);
+        this.closeClipMask(renderCtx.ctx);
+    }
+
+    public setClipMask(mask?: ShapeClipMask) {
+        if (_ModuleSupport.jsonDiff(this.clipMask, mask) != null) {
+            this.markDirty(this, _Scene.RedrawType.MAJOR);
+        }
+
+        this.clipMask = mask;
+    }
+
+    /**
+     * Apply a clipping mask to the shape, this must be called before the shape calls `ctx.beginPath()`.
+     */
+    protected applyClipMask(ctx: any) {
+        const { clipMask } = this;
+        if (!clipMask) return;
+
+        const { x, y, radius } = clipMask;
+
+        ctx.save();
+
+        // Draw a blank rect clockwise across the whole canvas, then negate it with an ellipse drawn counter-clockwise.
+        // This clips any subsequent paths within the ellipse.
+        ctx.beginPath();
+        ctx.rect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        ctx.ellipse(x, y, radius, radius, 0, Math.PI * 2, 0, true);
+
+        ctx.clip();
+    }
+
+    protected closeClipMask(ctx: any) {
+        if (!this.clipMask) return;
+        ctx.restore();
     }
 }
