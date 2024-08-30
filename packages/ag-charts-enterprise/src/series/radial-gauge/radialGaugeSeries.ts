@@ -86,10 +86,6 @@ export class RadialGaugeSeries
     public textAlign: TextAlign = 'center';
     public verticalAlign: VerticalAlign = 'middle';
 
-    public getNodeData(): RadialGaugeNodeDatum[] | undefined {
-        return this.contextNodeData?.nodeData;
-    }
-
     private readonly backgroundGroup = this.contentGroup.appendChild(new Group({ name: 'backgroundGroup' }));
     private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
     private readonly itemNeedleGroup = this.contentGroup.appendChild(new Group({ name: 'itemNeedleGroup' }));
@@ -1210,8 +1206,21 @@ export class RadialGaugeSeries
         );
     }
 
-    computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): _Scene.Path | undefined {
-        return;
+    override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
+        const targetData = this.contextNodeData?.targetData;
+        if (targetData == null || targetData.length === 0) return;
+
+        const datumIndex = opts.datumIndex + opts.datumIndexDelta;
+        if (datumIndex < 0 || datumIndex > targetData.length) return;
+
+        const datum = targetData[datumIndex];
+
+        for (const node of this.targetSelection) {
+            if (node.datum === datum) {
+                const bounds = node.node;
+                return { bounds, showFocusBox: true, datum, datumIndex };
+            }
+        }
     }
 
     getCaptionText(): string {
