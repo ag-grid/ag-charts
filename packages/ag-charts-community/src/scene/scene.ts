@@ -44,6 +44,14 @@ export class Scene {
         return this.pendingSize?.[1] ?? this.canvas.height;
     }
 
+    /** @deprecated v10.2.0 Only used by AG Grid Sparklines */
+    setContainer(value: HTMLElement) {
+        const { element } = this.canvas;
+        element.parentElement?.removeChild(element);
+        value.appendChild(element);
+        return this;
+    }
+
     setRoot(node: Node | null) {
         if (this.root === node) {
             return this;
