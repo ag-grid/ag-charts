@@ -1,5 +1,5 @@
 ---
-import { IndexDocsExampleRunner } from './IndexDocsExampleRunner';
+import { DocsExampleRunner } from './DocsExampleRunner';
 import type { ExampleType } from '@features/example-generator/types';
 import ExampleRunnerContainer from '@features/example-runner/components/ExampleRunnerContainer.astro';
 import { DOCS_FRAMEWORK_PATH_INDEX, DOCS_PAGE_NAME_PATH_INDEX } from '../constants';
@@ -25,7 +25,7 @@ const pageName = pathSegments[DOCS_PAGE_NAME_PATH_INDEX];
     pageName={pageName}
     exampleName={name}
 >
-    <IndexDocsExampleRunner
+    <DocsExampleRunner
         client:only="react"
         title={title}
         name={name}

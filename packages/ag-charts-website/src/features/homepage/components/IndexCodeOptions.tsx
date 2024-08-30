@@ -3,7 +3,7 @@ import { setInternalFramework } from '@stores/frameworkStore';
 import { isReactInternalFramework } from '@utils/framework';
 
 import { type ExampleType, isGeneratedExample } from '../../example-generator/types';
-import styles from './CodeOptions.module.scss';
+import styles from './IndexCodeOptions.module.scss';
 
 type SelectorType = 'typescript' | 'react';
 interface SelectorConfig {

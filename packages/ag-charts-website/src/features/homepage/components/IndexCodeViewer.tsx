@@ -6,8 +6,8 @@ import { doOnEnter } from '@utils/doOnEnter';
 import classnames from 'classnames';
 import { useEffect, useState } from 'react';
 
-import { CodeOptions } from './CodeOptions';
-import styles from './CodeViewer.module.scss';
+import { CodeOptions } from './IndexCodeOptions';
+import styles from './IndexCodeViewer.module.scss';
 
 export const DARK_MODE_START = '/** DARK MODE START **/';
 export const DARK_MODE_END = '/** DARK MODE END **/';

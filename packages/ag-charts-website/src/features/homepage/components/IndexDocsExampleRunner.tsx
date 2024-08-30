@@ -15,7 +15,7 @@ import {
     getExampleRunnerExampleUrl,
     getExampleUrl,
 } from '../utils/urlPaths';
-import { ExampleRunner } from './ExampleRunner';
+import { ExampleRunner } from './IndexExampleRunner';
 
 interface Props {
     name: string;

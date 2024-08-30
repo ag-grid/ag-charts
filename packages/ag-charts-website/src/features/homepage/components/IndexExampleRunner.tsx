@@ -5,11 +5,11 @@ import type { ExampleType, FileContents } from '@features/example-generator/type
 import classnames from 'classnames';
 import { type FunctionComponent, type ReactElement, useState } from 'react';
 
-import { CodeViewer } from './CodeViewer';
-import { ExampleIFrame } from './ExampleIFrame';
-import styles from './ExampleRunner.module.scss';
+import { CodeViewer } from './IndexCodeViewer';
+import { ExampleIFrame } from './IndexExampleIFrame';
+import styles from './IndexExampleRunner.module.scss';
 // Charts specific example runner styles
-import chartsStyles from './LegacyExampleRunner.module.scss';
+import chartsStyles from './IndexLegacyExampleRunner.module.scss';
 
 interface Props {
     id: string;
