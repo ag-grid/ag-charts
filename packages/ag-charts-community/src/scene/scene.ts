@@ -1,7 +1,6 @@
 import { Debug } from '../util/debug';
 import { downloadUrl } from '../util/dom';
 import { createId } from '../util/id';
-import { isHtmlElement } from '../util/type-guards';
 import type { BBox } from './bbox';
 import { type CanvasOptions, HdpiCanvas } from './canvas/hdpiCanvas';
 import { Group } from './group';
@@ -45,15 +44,6 @@ export class Scene {
         return this.pendingSize?.[1] ?? this.canvas.height;
     }
 
-    setContainer(value: HTMLElement) {
-        if (isHtmlElement(value)) {
-            const { element } = this.canvas;
-            element.parentElement?.removeChild(element);
-            value.appendChild(element);
-        }
-        return this;
-    }
-
     setRoot(node: Node | null) {
         if (this.root === node) {
             return this;
@@ -73,7 +63,7 @@ export class Scene {
 
     attachNode<T extends Node>(node: T, rootGroupName?: string) {
         if (!rootGroupName) {
-            this.root?.appendChild(node);
+            this.appendChild(node);
             return () => this.removeChild(node);
         }
 
