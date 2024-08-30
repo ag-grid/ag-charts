@@ -63,6 +63,6 @@ export function applyContextOptions(ctx: CanvasRenderingContext2D, options: Canv
 }
 
 export function toFont(fontProps: FontOptions): string {
-    const { fontStyle, fontWeight, fontSize, fontFamily } = fontProps;
+    const { fontStyle, fontWeight, fontSize = 10, fontFamily } = fontProps;
     return [fontStyle, fontWeight, fontSize + 'px', fontFamily].filter(Boolean).join(' ').trim();
 }

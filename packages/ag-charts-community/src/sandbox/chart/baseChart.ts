@@ -5,6 +5,7 @@ import { CategoryProcessor, NumberProcessor } from '../data/dataProcessor';
 import type { IStage } from '../drawing/drawingTypes';
 import { moduleRegistry } from '../modules/moduleRegistry';
 import type { SeriesModule } from '../modules/modulesTypes';
+import type { ISeries } from '../series/seriesTypes';
 import { PipelinePhase, PipelineQueue } from '../util/pipelineQueue';
 import { SizeObserver } from '../util/resizeObserver';
 import type { ChartOptions } from './chartOptions';
@@ -123,7 +124,7 @@ export abstract class BaseChart<T extends AgChartOptions> implements IChart<T> {
             this.setContainer(fullOptions.container);
         }
 
-        if (!optionsDiff || optionsDiff.data) {
+        if (!optionsDiff || optionsDiff.data || optionsDiff.series?.some((s: ISeries) => s.data)) {
             this.processData();
         }
 

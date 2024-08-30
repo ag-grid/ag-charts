@@ -1,4 +1,5 @@
-import type { FontSize, FontWeight, TextWrap } from '../../../options/chart/types';
+import type { FontSize, FontWeight, TextWrap } from 'ag-charts-types';
+
 import type { LineMetrics } from '../../../util/textMeasurer';
 import type { CssColor, FontOptions, TextOptions } from '../../types/commonTypes';
 import { SpatialNode } from './spatialNode';

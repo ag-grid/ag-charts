@@ -12,6 +12,12 @@ describe('Sandbox tests', () => {
             title: {
                 text: 'Mean Sea Level (mm)',
             },
+            // subtitle: {
+            //     text: 'Mean Sea Level (mm)',
+            // },
+            // footnote: {
+            //     text: 'Mean Sea Level (mm)',
+            // },
             data: DATA_MEAN_SEA_LEVEL,
             series: [
                 {
@@ -22,13 +28,15 @@ describe('Sandbox tests', () => {
                 },
             ],
             axes: [
-                { type: 'category', position: 'bottom', nice: false },
+                { type: 'category', position: 'bottom' },
                 { type: 'number', position: 'left' },
             ],
         });
         await chartInstance.chart.waitForUpdate();
+
         chartInstance.update({ title: { text: 'Changed text' } });
         await chartInstance.chart.waitForUpdate();
+
         expect(chartInstance.options.fullOptions.title.text).toBe('Changed text');
         expectCanvasToMatchImageSnapshot(canvasContext);
     });

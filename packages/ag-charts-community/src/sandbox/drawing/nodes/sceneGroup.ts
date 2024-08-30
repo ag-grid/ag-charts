@@ -1,4 +1,5 @@
-import type { FontWeight } from '../../../options/chart/types';
+import type { FontWeight } from 'ag-charts-types';
+
 import { applyContextOptions } from '../../../util/canvas.util';
 import type {
     CssColor,

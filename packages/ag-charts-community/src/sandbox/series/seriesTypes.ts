@@ -1,7 +1,9 @@
 import type { IModule } from '../modules/modulesTypes';
 import type { DirectionType } from '../types/enums';
 
-export interface ISeries extends IModule {}
+export interface ISeries<TDatum = any> extends IModule {
+    data?: TDatum;
+}
 
 export interface ChartSeries<T extends string> extends CommonSeriesOptions {
     type: T;

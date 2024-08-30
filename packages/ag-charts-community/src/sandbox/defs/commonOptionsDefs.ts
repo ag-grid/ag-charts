@@ -1,4 +1,5 @@
-import type { AgChartCaptionOptions } from '../../options/chart/chartOptions';
+import type { AgChartCaptionOptions } from 'ag-charts-types';
+
 import {
     type OptionsDefs,
     boolean,

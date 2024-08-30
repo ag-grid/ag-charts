@@ -1,4 +1,5 @@
-import type { FontWeight } from '../../options/chart/types';
+import type { FontWeight } from 'ag-charts-types';
+
 import type { Direction } from './enums';
 
 /** Alias to denote that a value should be a CSS-compliant color string, such as `#FFFFFF` or `rgb(255, 255, 255)` or `white`. */
