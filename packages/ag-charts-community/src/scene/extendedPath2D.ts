@@ -1,7 +1,7 @@
-import { angleDiff } from '../util/angle';
 import { arcDistanceSquared, lineDistanceSquared } from '../util/distance';
 import { Logger } from '../util/logger';
 import { arcIntersections, cubicSegmentIntersections, segmentIntersection } from './intersection';
+import type { Matrix } from './matrix';
 
 enum Command {
     Move,
@@ -181,7 +181,7 @@ export class ExtendedPath2D {
                     px = params[pi - 2];
                     py = params[pi - 1];
                     break;
-                case Command.Arc:
+                case Command.Arc: {
                     const cx = params[pi++];
                     const cy = params[pi++];
                     const r = params[pi++];
@@ -210,6 +210,7 @@ export class ExtendedPath2D {
                     px = cx + Math.cos(endAngle) * r;
                     py = cy + Math.sin(endAngle) * r;
                     break;
+                }
                 case Command.ClosePath:
                     intersectionCount += segmentIntersection(sx, sy, px, py, ox, oy, x, y);
                     break;
@@ -299,48 +300,72 @@ export class ExtendedPath2D {
     }
 
     // https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d
-    computeSVGDataPath(ox: number, oy: number): string {
+    computeSVGDataPath(matrix: Matrix): string {
         const buffer: (string | number)[] = [];
         const { commands, params } = this;
+
+        const addCommand = (command: string, ...points: number[]) => {
+            buffer.push(command);
+            for (let i = 0; i < points.length; i += 2) {
+                const { x, y } = matrix.transformPoint(points[i], points[i + 1]);
+                buffer.push(x, y);
+            }
+        };
 
         let pi = 0;
         for (let ci = 0; ci < commands.length; ci++) {
             switch (commands[ci]) {
                 case Command.Move:
-                    buffer.push('M', ox + params[pi++], oy + params[pi++]);
+                    addCommand('M', params[pi++], params[pi++]);
                     break;
                 case Command.Line:
-                    buffer.push('L', ox + params[pi++], oy + params[pi++]);
+                    addCommand('L', params[pi++], params[pi++]);
                     break;
                 case Command.Curve:
-                    buffer.push(
-                        'C',
-                        ox + params[pi++],
-                        oy + params[pi++],
-                        ox + params[pi++],
-                        oy + params[pi++],
-                        ox + params[pi++],
-                        oy + params[pi++]
-                    );
+                    addCommand('C', params[pi++], params[pi++], params[pi++], params[pi++], params[pi++], params[pi++]);
                     break;
-                case Command.Arc:
-                    const [cx, cy, r, a0, a1, ccw] = [
-                        params[pi++],
-                        params[pi++],
-                        params[pi++],
-                        params[pi++],
-                        params[pi++],
-                        params[pi++],
-                    ];
-                    const x0 = ox + cx + Math.cos(a0) * r;
-                    const y0 = oy + cy + Math.sin(a0) * r;
-                    const x1 = ox + cx + Math.cos(a1) * r;
-                    const y1 = oy + cy + Math.sin(a1) * r;
-                    const largeArcFlag = angleDiff(a0, a1, !!ccw) > Math.PI ? 1 : 0;
-                    const sweepFlag = (ccw + 1) % 2;
+                case Command.Arc: {
+                    // The SVG arc command is terrible, and it's not possible to apply a matrix transformation to it
+                    // Convert the arc into a series of bezier curves, which can be transformed
+                    const cx = params[pi++];
+                    const cy = params[pi++];
+                    const r = params[pi++];
+                    const A0 = params[pi++];
+                    const A1 = params[pi++];
+                    const ccw = params[pi++];
+
                     const move = buffer.length === 0 ? 'M' : 'L';
-                    buffer.push(move, x0, y0, 'A', r, r, 0, largeArcFlag, sweepFlag, x1, y1);
+                    addCommand(move, cx + Math.cos(A0) * r, cy + Math.sin(A0) * r);
+
+                    // A bezier curve can handle at most one quarter turn
+                    const arcSections = Math.max((Math.abs(A1 - A0) / (Math.PI / 2)) | 0, 1);
+
+                    const step = (A1 - A0) * (ccw ? -1 : 1);
+                    for (let i = 0; i < arcSections; i += 1) {
+                        const a0 = A0 + (step * (i + 0)) / arcSections;
+                        const a1 = A0 + (step * (i + 1)) / arcSections;
+
+                        // "Approximation of circular arcs by cubic polynomials",
+                        // Michael Goldapp, Computer Aided Geometric Design 8 (1991) 227-238
+                        const rSinStart = r * Math.sin(a0);
+                        const rCosStart = r * Math.cos(a0);
+                        const rSinEnd = r * Math.sin(a1);
+                        const rCosEnd = r * Math.cos(a1);
+
+                        const h = (4 / 3) * Math.tan((a1 - a0) / 4);
+
+                        addCommand(
+                            'C',
+                            cx + rCosStart - h * rSinStart,
+                            cy + rSinStart + h * rCosStart,
+                            cx + rCosEnd + h * rSinEnd,
+                            cy + rSinEnd - h * rCosEnd,
+                            cx + rCosEnd,
+                            cy + rSinEnd
+                        );
+                    }
                     break;
+                }
                 case Command.ClosePath:
                     buffer.push('Z');
                     break;

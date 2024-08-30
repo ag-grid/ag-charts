@@ -21,10 +21,11 @@ interface ParentToLocalCoordinateSpaceTransforms {
 type MatrixTransformType<T> = T &
     LocalToParentCoordinateSpaceTransforms &
     ParentToLocalCoordinateSpaceTransforms & {
+        getMatrix(): Matrix;
         updateMatrix(matrix: Matrix): void;
     };
 
-function isMatrixTransform<N extends Node>(node: N): node is MatrixTransformType<N> {
+export function isMatrixTransform<N extends Node>(node: N): node is MatrixTransformType<N> {
     return isMatrixTransformType(node.constructor as any);
 }
 
@@ -55,6 +56,10 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
         markDirtyTransform() {
             this._dirtyTransform = true;
             super.markDirty(this, RedrawType.MAJOR);
+        }
+
+        getMatrix() {
+            return new Matrix(this[TRANSFORM_MATRIX].e);
         }
 
         updateMatrix(_matrix: Matrix) {
@@ -251,6 +256,21 @@ export function Translatable<N extends Node>(Parent: Constructor<N>): Constructo
 
 /** Utility class for operations relating to matrix-transformable mixin types. */
 export class Transformable {
+    static toCanvasTransform(node: Node, matrix?: Matrix): Matrix {
+        if (isMatrixTransform(node)) {
+            matrix = node.getMatrix();
+        } else {
+            matrix = new Matrix([1, 0, 0, 1, 0, 0]);
+        }
+
+        for (const parent of node.ancestors()) {
+            if (isMatrixTransform(parent)) {
+                matrix.preMultiplySelf(parent.getMatrix());
+            }
+        }
+        return matrix;
+    }
+
     /**
      * Converts a BBox from canvas coordinate space into the coordinate space of the given Node.
      */
