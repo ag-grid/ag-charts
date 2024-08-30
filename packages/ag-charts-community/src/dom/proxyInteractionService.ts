@@ -216,6 +216,7 @@ export class ProxyInteractionService {
             }
 
             listitem.role = 'listitem';
+            listitem.style.position = 'absolute';
             listitem.replaceChildren(button);
             this.setParent(params, listitem);
         }

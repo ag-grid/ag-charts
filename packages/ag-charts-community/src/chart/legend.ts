@@ -288,11 +288,10 @@ export class Legend extends BaseProperties {
         );
 
         this.proxyLegendToolbar = this.ctx.proxyInteractionService.createProxyContainer({
-            type: 'toolbar',
+            type: 'list',
             id: `${this.id}-toolbar`,
             classList: ['ag-charts-proxy-legend-toolbar'],
             ariaLabel: { id: 'ariaLabelLegend' },
-            ariaOrientation: 'horizontal',
             ariaHidden: true,
         });
         this.proxyLegendPagination = this.ctx.proxyInteractionService.createProxyContainer({
@@ -318,7 +317,7 @@ export class Legend extends BaseProperties {
         this.itemSelection.each((markerLabel, _, i) => {
             // Create the hidden CSS button.
             markerLabel.proxyButton ??= this.ctx.proxyInteractionService.createProxyElement({
-                type: 'button',
+                type: 'listbutton',
                 id: `ag-charts-legend-item-${i}`,
                 textContent: this.getItemAriaText(i),
                 parent: this.proxyLegendToolbar,
@@ -328,7 +327,7 @@ export class Legend extends BaseProperties {
                 // using Series.getLegendData(). But the scene node will stay the same.
                 onclick: () => {
                     this.doClick(markerLabel.datum);
-                    markerLabel.proxyButton!.textContent = this.getItemAriaText(i, !markerLabel.datum.enabled);
+                    markerLabel.proxyButton!.button.textContent = this.getItemAriaText(i, !markerLabel.datum.enabled);
                 },
                 onblur: () => this.handleLegendMouseExit(),
                 onfocus: () => {
@@ -342,9 +341,10 @@ export class Legend extends BaseProperties {
 
         const buttons: HTMLButtonElement[] = this.itemSelection
             .nodes()
-            .map((markerLabel) => markerLabel.proxyButton)
+            .map((markerLabel) => markerLabel.proxyButton?.button)
             .filter((button): button is HTMLButtonElement => !!button);
         initToolbarKeyNav({
+            role: 'list',
             orientation: this.getOrientation(),
             buttons,
             toolbar: this.proxyLegendToolbar,
@@ -697,7 +697,7 @@ export class Legend extends BaseProperties {
     }
 
     private updateItemProxyButtons() {
-        this.itemSelection.each((l) => setElementBBox(l.proxyButton, Transformable.toCanvas(l)));
+        this.itemSelection.each((l) => setElementBBox(l.proxyButton?.listitem, Transformable.toCanvas(l)));
     }
 
     private updatePaginationProxyButtons(oldPages: Page[] | undefined) {
@@ -1191,8 +1191,8 @@ export class Legend extends BaseProperties {
 
     private onLocaleChanged() {
         this.itemSelection.each(({ proxyButton }, _, i) => {
-            if (proxyButton != null) {
-                proxyButton.textContent = this.getItemAriaText(i);
+            if (proxyButton?.button != null) {
+                proxyButton.button.textContent = this.getItemAriaText(i);
             }
         });
     }
