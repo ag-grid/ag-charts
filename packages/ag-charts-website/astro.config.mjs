@@ -8,6 +8,7 @@ import { loadEnv } from 'vite';
 import mkcert from 'vite-plugin-mkcert';
 import svgr from 'vite-plugin-svgr';
 
+import agAutoRedirect from './plugins/agAutoRedirect';
 import agHotModuleReload from './plugins/agHotModuleReload';
 import agHtaccessGen from './plugins/agHtaccessGen';
 import { getSitemapConfig } from './src/utils/sitemap';
@@ -58,7 +59,12 @@ export default defineConfig({
         enabled: false,
     },
     vite: {
-        plugins: [mkcert(), svgr(), agHotModuleReload(Boolean(WATCH_INTEGRATION))],
+        plugins: [
+            mkcert(),
+            svgr(),
+            agHotModuleReload(Boolean(WATCH_INTEGRATION)),
+            agAutoRedirect(['/javascript', '/react', '/vue', '/angular', '/gallery']),
+        ],
         resolve: {
             conditions: ['require'],
         },

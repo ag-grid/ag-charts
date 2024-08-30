@@ -1,4 +1,3 @@
-import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { defineMiddleware } from 'astro/middleware';
 import { parse } from 'node-html-parser';
 import * as prettier from 'prettier';
@@ -12,7 +11,7 @@ const rewriteAstroGeneratedContent = (body: string) => {
     if (env.DEV) {
         html.querySelectorAll('script').forEach((script: HTMLElement) => {
             const src = script.getAttribute('src');
-            if (src != null && src.startsWith(urlWithBaseUrl('/'))) {
+            if (src != null && src.startsWith('/')) {
                 script.setAttribute('src', new URL(src, env.PUBLIC_SITE_URL).toString());
             }
         });
