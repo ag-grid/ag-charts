@@ -347,7 +347,7 @@ describe('Legend', () => {
             chart = deproxy(chartInstance);
             await compare(chart);
 
-            chartInstance.updateDelta({
+            await chartInstance.updateDelta({
                 ...options,
                 series: [
                     { type: 'bar', xKey: 'year', yKey: 'gold' },
