@@ -82,8 +82,15 @@ export class ChartContext implements ModuleContext {
         this.syncManager = syncManager;
         this.zoomManager = chart.zoomManager;
         this.domManager = new DOMManager(container);
-        scene?.setContainer(this.domManager);
-        this.scene = scene ?? new Scene({ pixelRatio: overrideDevicePixelRatio, domManager: this.domManager });
+
+        // Sets canvas element if scene exists, otherwise use return value with scene constructor
+        const canvasElement = this.domManager.addChild(
+            'canvas',
+            'scene-canvas',
+            scene?.canvas.element
+        ) as HTMLCanvasElement;
+
+        this.scene = scene ?? new Scene({ pixelRatio: overrideDevicePixelRatio, element: canvasElement });
         this.scene.setRoot(root);
         this.axisManager = new AxisManager(root);
 

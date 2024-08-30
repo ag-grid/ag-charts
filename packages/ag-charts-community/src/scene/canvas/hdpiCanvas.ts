@@ -11,7 +11,7 @@ export interface CanvasOptions {
     height?: number;
     pixelRatio?: number;
     willReadFrequently?: boolean;
-    canvasConstructor?: () => HTMLCanvasElement;
+    element?: HTMLCanvasElement;
 }
 
 /**
@@ -34,12 +34,12 @@ export class HdpiCanvas {
     pixelRatio: number;
 
     constructor(options: CanvasOptions) {
-        const { width, height, pixelRatio, canvasConstructor, willReadFrequently = false } = options;
+        const { width, height, pixelRatio, element, willReadFrequently = false } = options;
 
         this.pixelRatio = hasConstrainedCanvasMemory() ? 1 : pixelRatio ?? getWindow('devicePixelRatio');
 
         // Create canvas and immediately apply width + height to avoid out-of-memory errors on iOS/iPadOS Safari.
-        this.element = canvasConstructor?.() ?? createElement('canvas');
+        this.element = element ?? createElement('canvas');
         // Safari needs a width and height set before calling getContext or the output can appear blurry
         // Must also be `display: block` so the height doesn't get increased by `inline-block` layout
         this.element.style.display = 'block';
