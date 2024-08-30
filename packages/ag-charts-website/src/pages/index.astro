@@ -117,48 +117,33 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                         enterprise support and continuous updates.
                     </h4>
                 </div>
-                <div class={styles.twoColumnContainer}>
-                    <div class={styles.columnSmall}>
-                        <h4>Financial JavaScript Charts</h4>
-                        <h5>
-                            Build interactive financial charts featuring advanced annotations with minimal
-                            configuration.
-                        </h5>
-                        <hr />
+                <div class={styles.cardContainer}>
+                    <div class={styles.card}>
+                        <h4>Advanced Features</h4>
                         <p>
-                            <b>Drawings and Annotations</b>
-                            <ul>
-                                <li>
-                                    Add and manage Trend Lines and Text Annotations from the intuitive toolbar for
-                                    enhanced data analysis.
-                                </li>
-                            </ul>
+                            Unlock powerful tools for data visualization and analysis, including advanced annotations,
+                            interactive zooming, and cross-chart interactions.
                         </p>
-                        <p>
-                            <b>Interactive Charts</b>
-                            <ul>
-                                <li>
-                                    Interactive analysis is enhanced with advanced Zoom capabilities and Range Buttons
-                                    for seamless time period navigation.
-                                </li>
-                            </ul>
-                        </p>
-                        <p>
-                            <b>Financial Chart types</b>
-                            <ul>
-                                <li>
-                                    The default chart type is Candlestick, with additional types like OHLC and Line
-                                    available from the Toolbar for versatile data visualisation.
-                                </li>
-                            </ul>
-                        </p>
+                        <button class={styles.learnMoreBtn}>Learn More</button>
                     </div>
-                    <div class={styles.columnLarge}>
-                        <IndexDocsExampleRunner
-                            name={'../../vanilla/financial-charts/examples/financial-charts-showcase'}
-                        />
+                    <div class={styles.card}>
+                        <h4>Additional Series Types</h4>
+                        <p>
+                            Access a wider range of chart types, including candlestick, OHLC, and multi-layered map
+                            visualizations for comprehensive data representation.
+                        </p>
+                        <button class={styles.learnMoreBtn}>Learn More</button>
+                    </div>
+                    <div class={styles.card}>
+                        <h4>Dedicated Support</h4>
+                        <p>
+                            Get priority assistance from our expert team, ensuring quick resolution of issues and
+                            guidance for optimal chart implementation.
+                        </p>
+                        <button class={styles.learnMoreBtn}>Learn More</button>
                     </div>
                 </div>
+
                 <!-- <div class={styles.twoColumnContainer}>
                     <div class={styles.columnLarge}>
                         <IndexDocsExampleRunner name={'../../vanilla/maps/examples/world-colour-map'} />
@@ -197,6 +182,53 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
             </div>
         </div>
         <div class={styles.section}>
+            <div class:list={[styles.financialChartsSectionInner, 'layout-max-width-small']}>
+                <div class={styles.sectionHeaderContainer}>
+                    <h2>JavaScript Financial Charts - Create Trading Views in Minutes</h2>
+                    <h3>Flexible, Interactive Financial Charts for Trading and Analysis</h3>
+                    <h4>
+                        Build interactive financial charts featuring advanced annotations with minimal configuration.
+                    </h4>
+                </div>
+                <div class={styles.twoColumnContainer}>
+                    <div class={styles.columnSmall}>
+                        <p>
+                            <b>Drawings and Annotations</b>
+                            <ul>
+                                <li>
+                                    Add and manage Trend Lines and Text Annotations from the intuitive toolbar for
+                                    enhanced data analysis.
+                                </li>
+                            </ul>
+                        </p>
+                        <p>
+                            <b>Interactive Charts</b>
+                            <ul>
+                                <li>
+                                    Interactive analysis is enhanced with advanced Zoom capabilities and Range Buttons
+                                    for seamless time period navigation.
+                                </li>
+                            </ul>
+                        </p>
+                        <p>
+                            <b>Financial Chart types</b>
+                            <ul>
+                                <li>
+                                    The default chart type is Candlestick, with additional types like OHLC and Line
+                                    available from the Toolbar for versatile data visualisation.
+                                </li>
+                            </ul>
+                        </p>
+                    </div>
+                    <div class={styles.columnLarge}>
+                        <IndexDocsExampleRunner
+                            name={'../../vanilla/financial-charts/examples/financial-charts-showcase'}
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class={styles.section}>
             <div class:list={[styles.benchmarkSectionInner, 'layout-max-width-small']}>
                 <div class={styles.sectionHeaderContainer}>
                     <h2>JavaScript Chart Performance Benchmarks - AG Charts vs. Competitors</h2>
@@ -219,5 +251,6 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                 <AutomatedIntegratedChartsWrapper client:visible />
             </div>
         </div>
+        <div class={styles.section}></div>
     </div>
 </Layout>

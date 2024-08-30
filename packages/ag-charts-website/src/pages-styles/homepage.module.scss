@@ -152,3 +152,52 @@
         color: var(--color-text-primary);
     }
 }
+
+.cardContainer {
+    display: flex;
+    justify-content: space-between;
+    gap: $spacing-size-4;
+    margin-bottom: $spacing-size-8;
+}
+
+.card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-bg-primary);
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-lg);
+    padding: $spacing-size-4;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    h4 {
+        font-size: var(--text-fs-xl);
+        font-weight: var(--text-bold);
+        margin-bottom: $spacing-size-2;
+        color: var(--color-brand-500);
+    }
+
+    p {
+        flex-grow: 1;
+        font-size: var(--text-fs-base);
+        color: var(--color-text-primary);
+        margin-bottom: $spacing-size-4;
+    }
+}
+
+.learnMoreBtn {
+    align-self: flex-start;
+    padding: $spacing-size-2 $spacing-size-4;
+    background-color: var(--color-brand-400);
+    color: var(--color-bg-primary);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--text-fs-sm);
+    font-weight: var(--text-bold);
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+
+    &:hover {
+        background-color: var(--color-brand-500);
+    }
+}
