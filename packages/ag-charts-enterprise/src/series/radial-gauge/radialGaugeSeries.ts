@@ -885,20 +885,17 @@ export class RadialGaugeSeries
                 lineDashOffset,
             } = datum;
 
-            const scale = size;
-
+            target.size = size;
             target.fill = highlightStyle?.fill ?? fill;
             target.fillOpacity = highlightStyle?.fillOpacity ?? fillOpacity;
             target.stroke = highlightStyle?.stroke ?? stroke;
             target.strokeOpacity = highlightStyle?.strokeOpacity ?? strokeOpacity;
-            target.strokeWidth = (highlightStyle?.strokeWidth ?? strokeWidth) / scale;
-            target.lineDash = (highlightStyle?.lineDash ?? lineDash).map((d) => d / scale);
-            target.lineDashOffset = (highlightStyle?.lineDashOffset ?? lineDashOffset) / scale;
+            target.strokeWidth = highlightStyle?.strokeWidth ?? strokeWidth;
+            target.lineDash = highlightStyle?.lineDash ?? lineDash;
+            target.lineDashOffset = highlightStyle?.lineDashOffset ?? lineDashOffset;
             target.translationX = centerX + radius * Math.cos(angle);
             target.translationY = centerY + radius * Math.sin(angle);
             target.rotation = angle + Math.PI / 2 + rotation;
-            target.scalingX = scale;
-            target.scalingY = scale;
         });
     }
 
