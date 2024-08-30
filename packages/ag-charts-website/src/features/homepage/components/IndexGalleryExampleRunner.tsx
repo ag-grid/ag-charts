@@ -1,6 +1,6 @@
 import { ExampleRunner } from '@features/example-runner/components/ExampleRunner';
 import { ExternalLinks } from '@features/example-runner/components/ExternalLinks';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
 
 import { GALLERY_EXAMPLE_TYPE, GALLERY_INTERNAL_FRAMEWORK } from '../constants';
@@ -35,9 +35,6 @@ const queryOptions = {
 
 const GalleryExampleRunnerInner = ({ examples, loadingIFrameId }: Props) => {
     const [currentExampleName, setCurrentExampleName] = useState(examples[0].exampleName);
-    const lastMouseMoveTime = useRef(Date.now());
-    const containerRef = useRef<HTMLDivElement>(null);
-
     const currentExample = examples.find((example) => example.exampleName === currentExampleName) || examples[0];
     const { title, exampleName } = currentExample;
 
@@ -146,46 +143,19 @@ const GalleryExampleRunnerInner = ({ examples, loadingIFrameId }: Props) => {
         />
     );
 
-    useEffect(() => {
-        const handleMouseMove = () => {
-            lastMouseMoveTime.current = Date.now();
-        };
-
-        const container = containerRef.current;
-        if (container) {
-            container.addEventListener('mousemove', handleMouseMove);
-        }
-
-        const interval = setInterval(() => {
-            if (Date.now() - lastMouseMoveTime.current >= 5000) {
-                const currentIndex = examples.findIndex((example) => example.exampleName === currentExampleName);
-                const nextIndex = (currentIndex + 1) % examples.length;
-                setCurrentExampleName(examples[nextIndex].exampleName);
-            }
-        }, 5000);
-
-        return () => {
-            clearInterval(interval);
-            if (container) {
-                container.removeEventListener('mousemove', handleMouseMove);
-            }
-        };
-    }, [examples, currentExampleName]);
-
     const handleExampleSelect = (exampleName: string) => {
         setCurrentExampleName(exampleName);
-        setLastInteractionTime(Date.now());
     };
 
     return (
         <>
-            <div className={styles.container} ref={containerRef}>
+            <div className={styles.container}>
                 <div className={styles.tabContainer}>
                     {examples.map((example) => (
                         <button
                             key={example.exampleName}
                             className={`${styles.tabButton} ${example.exampleName === currentExampleName ? styles.activeTabButton : ''}`}
-                            onClick={() => setCurrentExampleName(example.exampleName)}
+                            onClick={() => handleExampleSelect(example.exampleName)}
                         >
                             {example.buttonText}
                         </button>

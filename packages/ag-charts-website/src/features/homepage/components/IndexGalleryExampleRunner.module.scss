@@ -29,7 +29,6 @@
     background-color: transparent;
     box-shadow: none;
     font-weight: var(--text-regular);
-    transition: all 0.3s ease; // Add smooth transition
 
     &:hover {
         border-radius: var(--radius-4xl);
@@ -48,7 +47,6 @@
     color: var(--color-brand-600);
     border: none;
     box-shadow: var(--shadow-lg);
-    transition: all 0.3s ease; // Add smooth transition
 }
 
 .exampleContainer {
