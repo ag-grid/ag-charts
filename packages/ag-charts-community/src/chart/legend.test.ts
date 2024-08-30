@@ -326,4 +326,36 @@ describe('Legend', () => {
             });
         });
     });
+
+    describe('AG-12614', () => {
+        test('updateDelta line to bar', async () => {
+            const options: AgChartOptions = prepareTestOptions({
+                title: { text: 'Chinese Olympic medals' },
+                data: [
+                    { year: '2016', gold: 26, silver: 18, bronze: 26 },
+                    { year: '2020', gold: 38, silver: 32, bronze: 19 },
+                    { year: '2024', gold: 40, silver: 27, bronze: 24 },
+                ],
+                series: [
+                    { type: 'line', xKey: 'year', yKey: 'gold' },
+                    { type: 'line', xKey: 'year', yKey: 'silver' },
+                    { type: 'line', xKey: 'year', yKey: 'bronze' },
+                ],
+            });
+
+            const chartInstance = AgCharts.create(options);
+            chart = deproxy(chartInstance);
+            await compare(chart);
+
+            chartInstance.updateDelta({
+                ...options,
+                series: [
+                    { type: 'bar', xKey: 'year', yKey: 'gold' },
+                    { type: 'bar', xKey: 'year', yKey: 'silver' },
+                    { type: 'bar', xKey: 'year', yKey: 'bronze' },
+                ],
+            });
+            await compare(chart);
+        });
+    });
 });
