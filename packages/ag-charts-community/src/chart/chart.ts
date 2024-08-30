@@ -1247,6 +1247,12 @@ export abstract class Chart extends Observable {
             'axes[].label',
         ]);
 
+        const series = miniChart.series as Series<any, any>[];
+        for (const s of series) {
+            // AG-12681
+            s.properties.id = undefined;
+        }
+
         const axes = miniChart.axes as ChartAxis[];
         const horizontalAxis = axes.find((axis) => axis.direction === ChartAxisDirection.X);
 
