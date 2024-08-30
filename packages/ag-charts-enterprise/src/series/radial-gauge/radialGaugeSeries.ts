@@ -329,7 +329,7 @@ export class RadialGaugeSeries
         const angleAxis = this.axes[ChartAxisDirection.X];
         if (angleAxis == null) return;
 
-        const { id: seriesId, properties, radius, centerX, centerY } = this;
+        const { seriesId, properties, radius, centerX, centerY } = this;
         const {
             value,
             innerRadiusRatio,
@@ -980,7 +980,7 @@ export class RadialGaugeSeries
     }
 
     protected resetAllAnimation() {
-        this.ctx.animationManager.stopByAnimationGroupId(this.id);
+        this.ctx.animationManager.stopByAnimationGroupId(this.uniqueId);
 
         resetMotion([this.backgroundSelection, this.datumSelection], resetRadialGaugeSeriesAnimationFunctions);
     }
@@ -1018,7 +1018,7 @@ export class RadialGaugeSeries
         } else if (labelFrom === labelTo && secondaryLabelFrom === secondaryLabelTo) {
             this.formatLabelText({ label: labelTo, secondaryLabel: secondaryLabelTo });
         } else if (!this.labelsHaveExplicitText()) {
-            const animationId = `${this.id}_labels`;
+            const animationId = `${this.uniqueId}_labels`;
 
             animationManager.animate({
                 id: animationId,
@@ -1038,11 +1038,18 @@ export class RadialGaugeSeries
             true,
             this.axes[ChartAxisDirection.X]?.range[0] ?? 0
         );
-        fromToMotion(this.id, 'node', animationManager, [this.datumSelection], node, (_sector, datum) => datum.itemId!);
-        fromToMotion(this.id, 'needle', animationManager, [this.needleSelection], needle, () => 'needle');
+        fromToMotion(
+            this.uniqueId,
+            'node',
+            animationManager,
+            [this.datumSelection],
+            node,
+            (_sector, datum) => datum.itemId!
+        );
+        fromToMotion(this.uniqueId, 'needle', animationManager, [this.needleSelection], needle, () => 'needle');
 
         fromToMotion(
-            this.id,
+            this.uniqueId,
             'label',
             animationManager,
             [this.labelSelection],
@@ -1060,8 +1067,15 @@ export class RadialGaugeSeries
             false,
             this.axes[ChartAxisDirection.X]?.range[0] ?? 0
         );
-        fromToMotion(this.id, 'node', animationManager, [this.datumSelection], node, (_sector, datum) => datum.itemId!);
-        fromToMotion(this.id, 'needle', animationManager, [this.needleSelection], needle, () => 'needle');
+        fromToMotion(
+            this.uniqueId,
+            'node',
+            animationManager,
+            [this.datumSelection],
+            node,
+            (_sector, datum) => datum.itemId!
+        );
+        fromToMotion(this.uniqueId, 'needle', animationManager, [this.needleSelection], needle, () => 'needle');
 
         this.animateLabelText();
     }
@@ -1171,7 +1185,7 @@ export class RadialGaugeSeries
     }
 
     override getTooltipHtml(nodeDatum: _ModuleSupport.SeriesNodeDatum): _ModuleSupport.TooltipContent {
-        const { id: seriesId, properties } = this;
+        const { seriesId, properties } = this;
 
         if (!properties.isValid()) {
             return EMPTY_TOOLTIP_CONTENT;

@@ -281,7 +281,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         }
 
         return {
-            itemId: this.properties.yKey ?? this.id,
+            itemId: this.properties.yKey ?? this.uniqueId,
             nodeData,
             labelData,
             scales: this.calculateScaling(),
@@ -308,7 +308,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     }) {
         const { isHighlight: isDatumHighlighted } = opts;
         const {
-            id: seriesId,
+            seriesId,
             ctx: { callbackCache },
             properties,
         } = this;
@@ -416,7 +416,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         } = this.properties;
         const {
             colorScale,
-            id: seriesId,
+            seriesId,
             ctx: { callbackCache },
         } = this;
 
@@ -487,7 +487,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             {
                 legendType: 'gradient',
                 enabled: this.visible,
-                seriesId: this.id,
+                seriesId: this.seriesId,
                 colorName: this.properties.colorName,
                 colorDomain:
                     this.processedData!.domain.values[this.dataModel.resolveProcessedDataIndexById(this, 'colorValue')],

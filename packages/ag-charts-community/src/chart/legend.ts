@@ -1016,7 +1016,7 @@ export class Legend extends BaseProperties {
         }
 
         const { id, itemId, enabled } = datum;
-        const series = chartService.series.find((s) => s.id === id);
+        const series = chartService.series.find((s) => s.uniqueId === id);
         if (!series) {
             return false;
         }
@@ -1049,7 +1049,7 @@ export class Legend extends BaseProperties {
 
         this.ctx.updateService.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true });
 
-        legendItemClick?.({ type: 'click', enabled: newEnabled, itemId, seriesId: series.id });
+        legendItemClick?.({ type: 'click', enabled: newEnabled, itemId, seriesId: series.seriesId });
         return true;
     }
 
@@ -1077,7 +1077,7 @@ export class Legend extends BaseProperties {
         }
 
         const { id, itemId, seriesId } = datum;
-        const series = chartService.series.find((s) => s.id === id);
+        const series = chartService.series.find((s) => s.uniqueId === id);
         if (!series) {
             return false;
         }
@@ -1099,7 +1099,7 @@ export class Legend extends BaseProperties {
 
         this.ctx.updateService.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true });
 
-        legendItemDoubleClick?.({ type: 'dblclick', enabled: true, itemId, seriesId: series.id });
+        legendItemDoubleClick?.({ type: 'dblclick', enabled: true, itemId, seriesId: series.seriesId });
         return true;
     }
 
@@ -1127,7 +1127,7 @@ export class Legend extends BaseProperties {
             return;
         }
 
-        const series = datum ? this.ctx.chartService.series.find((s) => s.id === datum?.id) : undefined;
+        const series = datum ? this.ctx.chartService.series.find((s) => s.uniqueId === datum?.id) : undefined;
         if (datum && this.truncatedItems.has(datum.itemId ?? datum.id)) {
             const { offsetX, offsetY } = event;
             this.ctx.tooltipManager.updateTooltip(

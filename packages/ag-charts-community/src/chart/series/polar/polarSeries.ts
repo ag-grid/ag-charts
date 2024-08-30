@@ -199,7 +199,7 @@ export abstract class PolarSeries<
     protected resetAllAnimation() {
         const { item, label } = this.animationResetFns ?? {};
 
-        this.ctx.animationManager.stopByAnimationGroupId(this.id);
+        this.ctx.animationManager.stopByAnimationGroupId(this.uniqueId);
 
         if (item) {
             resetMotion([this.itemSelection, this.highlightSelection], item);

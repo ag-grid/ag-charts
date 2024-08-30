@@ -353,7 +353,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 labelName,
                 title,
                 color,
-                seriesId: this.id,
+                seriesId: this.seriesId,
             }
         );
     }
@@ -369,9 +369,9 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         return [
             {
                 legendType: 'category',
-                id: this.id,
+                id: this.uniqueId,
                 itemId: yKey,
-                seriesId: this.id,
+                seriesId: this.seriesId,
                 enabled: visible,
                 label: {
                     text: title ?? yName ?? yKey,

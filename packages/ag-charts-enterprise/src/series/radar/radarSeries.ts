@@ -320,7 +320,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                       shape: marker.shape,
                       size: marker.size,
                       highlighted: highlight,
-                      seriesId: this.id,
+                      seriesId: this.seriesId,
                   })
                 : undefined;
             node.fill = format?.fill ?? fill;
@@ -366,7 +366,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
-        const { id: seriesId } = this;
+        const { seriesId } = this;
         const { angleKey, radiusKey, angleName, radiusName, marker, tooltip } = this.properties;
         const { datum, angleValue, radiusValue, itemId } = nodeDatum;
 
@@ -429,9 +429,9 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         return [
             {
                 legendType: 'category',
-                id: this.id,
+                id: this.uniqueId,
                 itemId: radiusKey,
-                seriesId: this.id,
+                seriesId: this.seriesId,
                 enabled: visible,
                 label: {
                     text: radiusName ?? radiusKey,
@@ -462,7 +462,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     onLegendItemClick(event: _ModuleSupport.LegendItemClickChartEvent) {
         const { enabled, itemId, series } = event;
 
-        if (series.id === this.id) {
+        if (series.uniqueId === this.uniqueId) {
             this.toggleSeriesItem(itemId, enabled);
         }
     }
@@ -470,7 +470,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     onLegendItemDoubleClick(event: _ModuleSupport.LegendItemDoubleClickChartEvent) {
         const { enabled, itemId, series, numVisibleItems } = event;
 
-        const wasClicked = series.id === this.id;
+        const wasClicked = series.uniqueId === this.uniqueId;
         const newEnabled = wasClicked || (enabled && numVisibleItems === 1);
 
         this.toggleSeriesItem(itemId, newEnabled);
@@ -646,8 +646,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         this.beforePathAnimation();
 
         animationManager.animate({
-            id: `${this.id}_'path`,
-            groupId: this.id,
+            id: `${this.uniqueId}_'path`,
+            groupId: this.uniqueId,
             from: 0,
             to: 1,
             phase: 'initial',

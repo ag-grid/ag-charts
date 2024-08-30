@@ -116,7 +116,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         const { xLowerKey, xUpperKey, yLowerKey, yUpperKey, xErrorsID, yErrorsID } = this.getMaybeFlippedKeys();
         const { xScaleType, yScaleType } = opts;
 
-        const groupIndex = cartesianSeries.seriesGrouping?.groupIndex ?? cartesianSeries.id;
+        const groupIndex = cartesianSeries.seriesGrouping?.groupIndex ?? cartesianSeries.uniqueId;
         const groupOpts = {
             invalidValue: null,
             missingValue: 0,

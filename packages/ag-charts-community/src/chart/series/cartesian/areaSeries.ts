@@ -103,7 +103,7 @@ export class AreaSeries extends CartesianSeries<
             return;
         }
 
-        const { data, visible, seriesGrouping: { groupIndex = this.id, stackCount = 1 } = {} } = this;
+        const { data, visible, seriesGrouping: { groupIndex = this.uniqueId, stackCount = 1 } = {} } = this;
         const { xKey, yKey, connectMissingData, normalizedTo } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
@@ -666,7 +666,7 @@ export class AreaSeries extends CartesianSeries<
     }
 
     getTooltipHtml(nodeDatum: MarkerSelectionDatum): TooltipContent {
-        const { id: seriesId, axes, dataModel } = this;
+        const { seriesId, axes, dataModel } = this;
         const { xKey, xName, yName, tooltip, marker } = this.properties;
         const { yKey, xValue, yValue, datum, itemId } = nodeDatum;
 
@@ -736,9 +736,9 @@ export class AreaSeries extends CartesianSeries<
         return [
             {
                 legendType,
-                id: this.id,
+                id: this.uniqueId,
                 itemId: yKey,
-                seriesId: this.id,
+                seriesId: this.seriesId,
                 enabled: visible,
                 label: {
                     text: legendItemName ?? yName ?? yKey,
@@ -827,11 +827,11 @@ export class AreaSeries extends CartesianSeries<
 
         markerFadeInAnimation(this, animationManager, undefined, markerSelection);
 
-        fromToMotion(this.id, 'fill_path_properties', animationManager, [fill], fns.fill.pathProperties);
-        pathMotion(this.id, 'fill_path_update', animationManager, [fill], fns.fill.path);
+        fromToMotion(this.uniqueId, 'fill_path_properties', animationManager, [fill], fns.fill.pathProperties);
+        pathMotion(this.uniqueId, 'fill_path_update', animationManager, [fill], fns.fill.path);
 
-        fromToMotion(this.id, 'stroke_path_properties', animationManager, [stroke], fns.stroke.pathProperties);
-        pathMotion(this.id, 'stroke_path_update', animationManager, [stroke], fns.stroke.path);
+        fromToMotion(this.uniqueId, 'stroke_path_properties', animationManager, [stroke], fns.stroke.pathProperties);
+        pathMotion(this.uniqueId, 'stroke_path_update', animationManager, [stroke], fns.stroke.path);
 
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
 
@@ -840,7 +840,7 @@ export class AreaSeries extends CartesianSeries<
         // This can result in artefacting, which may be present on the final frame
         // To remove this on the final frame, re-draw the series without animations
         this.ctx.animationManager.animate({
-            id: this.id,
+            id: this.uniqueId,
             groupId: 'reset_after_animation',
             phase: 'trailing',
             from: {},

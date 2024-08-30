@@ -18,7 +18,8 @@ type NodeContextMenuActionEvent = Parameters<
 >[0];
 
 export interface ISeries<TDatum, TProps> {
-    id: string;
+    uniqueId: string;
+    seriesId: string;
     axes: Record<ChartAxisDirection, ChartAxisLike | undefined>;
     contentGroup: Group;
     properties: TProps;

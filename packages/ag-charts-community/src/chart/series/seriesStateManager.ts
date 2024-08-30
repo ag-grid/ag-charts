@@ -16,12 +16,12 @@ export class SeriesStateManager {
     } = {};
 
     public registerSeries({
-        id,
+        uniqueId,
         seriesGrouping,
         visible,
         type,
     }: {
-        id: string;
+        uniqueId: string;
         seriesGrouping?: SeriesGrouping;
         visible: boolean;
         type: string;
@@ -29,12 +29,12 @@ export class SeriesStateManager {
         if (!seriesGrouping) return;
 
         this.groups[type] ??= {};
-        this.groups[type][id] = { grouping: seriesGrouping, visible };
+        this.groups[type][uniqueId] = { grouping: seriesGrouping, visible };
     }
 
-    public deregisterSeries({ id, type }: { id: string; type: string }) {
+    public deregisterSeries({ uniqueId, type }: { uniqueId: string; type: string }) {
         if (this.groups[type]) {
-            delete this.groups[type][id];
+            delete this.groups[type][uniqueId];
         }
         if (this.groups[type] && Object.keys(this.groups[type]).length === 0) {
             delete this.groups[type];

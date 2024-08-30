@@ -91,7 +91,7 @@ export abstract class OhlcSeriesBase<
         datumSelection,
     }: _ModuleSupport.CartesianAnimationData<TItemShapeGroup, TNodeDatum>) {
         const animationFns = prepareCandlestickAnimationFunctions(true);
-        motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], animationFns);
+        motion.fromToMotion(this.uniqueId, 'datums', this.ctx.animationManager, [datumSelection], animationFns);
     }
 
     protected override animateWaitingUpdateReady({
@@ -102,7 +102,7 @@ export abstract class OhlcSeriesBase<
 
         const animationFns = prepareCandlestickAnimationFunctions(false);
         motion.fromToMotion(
-            this.id,
+            this.uniqueId,
             'datums',
             this.ctx.animationManager,
             [datumSelection],
@@ -296,7 +296,7 @@ export abstract class OhlcSeriesBase<
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        const { id, data } = this;
+        const { uniqueId, seriesId, data } = this;
         const {
             xKey,
             yName,
@@ -313,12 +313,12 @@ export abstract class OhlcSeriesBase<
         return [
             {
                 legendType: 'category',
-                id,
-                itemId: id,
-                seriesId: id,
+                id: uniqueId,
+                itemId: uniqueId,
+                seriesId: seriesId,
                 enabled: visible,
                 label: {
-                    text: legendItemName ?? yName ?? id,
+                    text: legendItemName ?? yName ?? uniqueId,
                 },
                 symbols: [
                     {
@@ -388,7 +388,7 @@ export abstract class OhlcSeriesBase<
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: styles.stroke },
             {
-                seriesId: this.id,
+                seriesId: this.seriesId,
                 highlighted: false,
                 datum,
                 ...styles,

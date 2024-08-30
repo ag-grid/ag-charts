@@ -480,7 +480,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             this.properties;
 
         return callbackCache.call(itemStyler, {
-            seriesId: this.id,
+            seriesId: this.seriesId,
             highlighted: isHighlighted,
             datum,
             depth,
@@ -498,7 +498,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     }
 
     override getTooltipHtml(node: _ModuleSupport.HierarchyNode): _ModuleSupport.TooltipContent {
-        const { id: seriesId } = this;
+        const { seriesId } = this;
         const {
             tooltip,
             colorKey,
@@ -581,7 +581,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             _Scene.ScalableGroup,
             Pick<_Scene.ScalableGroup, 'scalingX' | 'scalingY'>,
             _ModuleSupport.HierarchyNode<_ModuleSupport.SeriesNodeDatum>
-        >(this.id, 'nodes', this.ctx.animationManager, datumSelections, {
+        >(this.uniqueId, 'nodes', this.ctx.animationManager, datumSelections, {
             toFn(_group, _datum, _status) {
                 return { scalingX: 1, scalingY: 1 };
             },

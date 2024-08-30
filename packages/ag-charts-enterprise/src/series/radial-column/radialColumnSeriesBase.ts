@@ -433,7 +433,7 @@ export abstract class RadialColumnSeriesBase<
                       highlighted,
                       angleKey,
                       radiusKey,
-                      seriesId: this.id,
+                      seriesId: this.seriesId,
                   })
                 : undefined;
 
@@ -483,7 +483,7 @@ export abstract class RadialColumnSeriesBase<
         const { labelSelection } = this;
 
         const fns = this.getColumnTransitionFunctions();
-        motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [this.itemSelection], fns);
+        motion.fromToMotion(this.uniqueId, 'datums', this.ctx.animationManager, [this.itemSelection], fns);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
     }
 
@@ -492,13 +492,13 @@ export abstract class RadialColumnSeriesBase<
         const { animationManager } = this.ctx;
 
         const fns = this.getColumnTransitionFunctions();
-        motion.fromToMotion(this.id, 'datums', animationManager, [itemSelection], fns);
+        motion.fromToMotion(this.uniqueId, 'datums', animationManager, [itemSelection], fns);
 
         seriesLabelFadeOutAnimation(this, 'labels', animationManager, this.labelSelection);
     }
 
     getTooltipHtml(nodeDatum: RadialColumnNodeDatum): _ModuleSupport.TooltipContent {
-        const { id: seriesId, axes, dataModel } = this;
+        const { seriesId, axes, dataModel } = this;
         const {
             angleKey,
             radiusKey,
@@ -579,9 +579,9 @@ export abstract class RadialColumnSeriesBase<
         return [
             {
                 legendType: 'category',
-                id: this.id,
+                id: this.uniqueId,
                 itemId: radiusKey,
-                seriesId: this.id,
+                seriesId: this.seriesId,
                 enabled: visible,
                 label: {
                     text: radiusName ?? radiusKey,
@@ -604,7 +604,7 @@ export abstract class RadialColumnSeriesBase<
     onLegendItemClick(event: _ModuleSupport.LegendItemClickChartEvent) {
         const { enabled, itemId, series } = event;
 
-        if (series.id === this.id) {
+        if (series.uniqueId === this.uniqueId) {
             this.toggleSeriesItem(itemId, enabled);
         }
     }
@@ -612,7 +612,7 @@ export abstract class RadialColumnSeriesBase<
     onLegendItemDoubleClick(event: _ModuleSupport.LegendItemDoubleClickChartEvent) {
         const { enabled, itemId, series, numVisibleItems } = event;
 
-        const wasClicked = series.id === this.id;
+        const wasClicked = series.uniqueId === this.uniqueId;
         const newEnabled = wasClicked || (enabled && numVisibleItems === 1);
 
         this.toggleSeriesItem(itemId, newEnabled);

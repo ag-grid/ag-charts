@@ -416,7 +416,7 @@ export class TreemapSeries<
         const strokeWidth = isLeaf ? tile.strokeWidth : group.strokeWidth;
 
         return this.ctx.callbackCache.call(itemStyler, {
-            seriesId: this.id,
+            seriesId: this.seriesId,
             highlighted,
             datum,
             depth,
@@ -724,7 +724,7 @@ export class TreemapSeries<
 
     getTooltipHtml(node: _ModuleSupport.HierarchyNode): _ModuleSupport.TooltipContent {
         const { datum, depth } = node;
-        const { id: seriesId } = this;
+        const { seriesId } = this;
         const {
             tooltip,
             colorKey,

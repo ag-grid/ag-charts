@@ -492,7 +492,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
-        const { id: seriesId, ctx } = this;
+        const { seriesId, ctx } = this;
         const {
             yKey,
             highlightStyle: { item: itemHighlightStyle },
@@ -582,7 +582,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
-        const { id: seriesId } = this;
+        const { seriesId } = this;
         const { xKey, yKey, xName, yName, tooltip } = this.properties;
         const { datum, itemId, xValue, yValue } = nodeDatum;
         const {
@@ -651,7 +651,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             return [];
         }
 
-        const { id, seriesItemTypes } = this;
+        const { seriesId, seriesItemTypes } = this;
         const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
         const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.substring(1);
 
@@ -659,9 +659,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, name } = this.getItemConfig(item);
             legendData.push({
                 legendType: 'category',
-                id,
+                id: this.uniqueId,
                 itemId: item,
-                seriesId: id,
+                seriesId: seriesId,
                 enabled: true,
                 label: { text: name ?? capitalise(item) },
                 symbols: [{ marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } }],
@@ -677,7 +677,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
     override animateEmptyUpdateReady({ datumSelection, labelSelection, contextData, paths }: WaterfallAnimationData) {
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'));
-        motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], fns);
+        motion.fromToMotion(this.uniqueId, 'datums', this.ctx.animationManager, [datumSelection], fns);
 
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
 
@@ -717,8 +717,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         };
 
         this.ctx.animationManager.animate({
-            id: `${this.id}_connectors`,
-            groupId: this.id,
+            id: `${this.uniqueId}_connectors`,
+            groupId: this.uniqueId,
             phase: 'initial',
             from: startX,
             to: endX,
@@ -766,8 +766,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         };
 
         this.ctx.animationManager.animate({
-            id: `${this.id}_connectors`,
-            groupId: this.id,
+            id: `${this.uniqueId}_connectors`,
+            groupId: this.uniqueId,
             phase: 'initial',
             from: startY,
             to: endY,

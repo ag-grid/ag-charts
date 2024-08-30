@@ -123,7 +123,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             return;
         }
 
-        const { seriesGrouping: { groupIndex = this.id } = {}, data = [] } = this;
+        const { seriesGrouping: { groupIndex = this.uniqueId } = {}, data = [] } = this;
         const { xKey, yKey, yFilterKey, normalizedTo } = this.properties;
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
@@ -526,7 +526,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const rectParams = {
             datum: undefined as unknown as BarNodeDatum,
             ctx: this.ctx,
-            seriesId: this.id,
+            seriesId: this.seriesId,
             isHighlighted: opts.isHighlight,
             highlightStyle: itemHighlightStyle,
             yKey,
@@ -572,7 +572,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
     getTooltipHtml(nodeDatum: BarNodeDatum): TooltipContent {
         const {
-            id: seriesId,
+            seriesId,
             processedData,
             ctx: { callbackCache },
         } = this;
@@ -647,9 +647,9 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         return [
             {
                 legendType: 'category',
-                id: this.id,
+                id: this.uniqueId,
                 itemId: yKey,
-                seriesId: this.id,
+                seriesId: this.seriesId,
                 enabled: visible,
                 label: { text: legendItemName ?? yName ?? yKey },
                 symbols: [{ marker: { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } }],
@@ -661,7 +661,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
     override animateEmptyUpdateReady({ datumSelection, labelSelection, annotationSelections }: BarAnimationData) {
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'));
 
-        fromToMotion(this.id, 'nodes', this.ctx.animationManager, [datumSelection], fns);
+        fromToMotion(this.uniqueId, 'nodes', this.ctx.animationManager, [datumSelection], fns);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
         seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
     }
@@ -669,14 +669,14 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
     override animateWaitingUpdateReady(data: BarAnimationData) {
         const { datumSelection, labelSelection, annotationSelections, previousContextData } = data;
 
-        this.ctx.animationManager.stopByAnimationGroupId(this.id);
+        this.ctx.animationManager.stopByAnimationGroupId(this.uniqueId);
 
         const dataDiff = this.processedData?.reduced?.diff;
         const mode = previousContextData == null ? 'fade' : 'normal';
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, mode));
 
         fromToMotion(
-            this.id,
+            this.uniqueId,
             'nodes',
             this.ctx.animationManager,
             [datumSelection],

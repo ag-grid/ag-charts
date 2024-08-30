@@ -248,7 +248,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        const { id, data } = this;
+        const { uniqueId, seriesId, data } = this;
         const {
             xKey,
             yName,
@@ -269,12 +269,12 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         return [
             {
                 legendType: 'category',
-                id,
-                itemId: id,
-                seriesId: id,
+                id: uniqueId,
+                itemId: uniqueId,
+                seriesId: seriesId,
                 enabled: visible,
                 label: {
-                    text: legendItemName ?? yName ?? id,
+                    text: legendItemName ?? yName ?? uniqueId,
                 },
                 symbols: [{ marker: { fill, fillOpacity, stroke, strokeOpacity, strokeWidth } }],
                 legendItemName,
@@ -325,7 +325,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: fill },
             {
-                seriesId: this.id,
+                seriesId: this.seriesId,
                 itemId,
                 datum,
                 fill,
@@ -354,7 +354,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const isVertical = this.isVertical();
         const { from, to } = prepareBoxPlotFromTo(isVertical);
         motion.resetMotion([datumSelection], resetBoxPlotSelectionsScalingCenterFn(isVertical));
-        motion.staticFromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], from, to, {
+        motion.staticFromToMotion(this.uniqueId, 'datums', this.ctx.animationManager, [datumSelection], from, to, {
             phase: 'initial',
         });
     }
@@ -429,7 +429,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
     getFormattedStyles(nodeDatum: BoxPlotNodeDatum, highlighted = false): AgBoxPlotSeriesStyle {
         const {
-            id: seriesId,
+            seriesId,
             ctx: { callbackCache },
             properties,
         } = this;

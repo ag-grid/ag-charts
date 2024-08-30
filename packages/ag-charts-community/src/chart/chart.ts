@@ -941,7 +941,7 @@ export abstract class Chart extends Observable {
         if (warnConflicts && isCategoryLegendData(legendData)) {
             // Validate each series that shares a legend item label uses the same fill colour
             const seriesMarkerFills: { [key: string]: { [key: string]: string | undefined } } = {};
-            const seriesTypeMap = new Map(this.series.map((s) => [s.id, s.type]));
+            const seriesTypeMap = new Map(this.series.map((s) => [s.uniqueId, s.type]));
 
             for (const {
                 seriesId,
@@ -1002,7 +1002,7 @@ export abstract class Chart extends Observable {
         if (series.rootGroup.parent == null) return;
 
         this.seriesLayerManager.changeGroup({
-            internalId: series.internalId,
+            uniqueId: series.uniqueId,
             type: series.type,
             rootGroup: series.rootGroup,
             highlightGroup: series.highlightGroup,

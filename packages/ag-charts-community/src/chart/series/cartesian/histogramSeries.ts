@@ -226,7 +226,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
 
     async createNodeData() {
         const {
-            id: seriesId,
+            seriesId,
             axes,
             processedData,
             ctx: { callbackCache },
@@ -253,7 +253,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
 
         const nodeData: HistogramNodeDatum[] = [];
         const context = {
-            itemId: this.properties.yKey ?? this.id,
+            itemId: this.properties.yKey ?? this.uniqueId,
             nodeData,
             labelData: nodeData,
             scales: this.calculateScaling(),
@@ -505,7 +505,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             yName,
             color,
             title,
-            seriesId: this.id,
+            seriesId: this.seriesId,
         });
     }
 
@@ -519,9 +519,9 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         return [
             {
                 legendType: 'category',
-                id: this.id,
+                id: this.uniqueId,
                 itemId: xKey,
-                seriesId: this.id,
+                seriesId: this.seriesId,
                 enabled: visible,
                 label: {
                     text: yName ?? xKey ?? 'Frequency',
@@ -543,7 +543,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
 
     override animateEmptyUpdateReady({ datumSelection, labelSelection }: HistogramAnimationData) {
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes, 'normal'));
-        fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], fns);
+        fromToMotion(this.uniqueId, 'datums', this.ctx.animationManager, [datumSelection], fns);
 
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
     }
@@ -553,7 +553,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes, 'normal'));
 
         fromToMotion(
-            this.id,
+            this.uniqueId,
             'datums',
             this.ctx.animationManager,
             [data.datumSelection],

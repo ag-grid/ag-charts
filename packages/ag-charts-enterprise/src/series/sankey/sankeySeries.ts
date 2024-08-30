@@ -61,7 +61,7 @@ export class SankeySeries extends FlowProportionSeries<
 
     override async createNodeData(): Promise<SankeyNodeDataContext | undefined> {
         const {
-            id: seriesId,
+            seriesId,
             _nodeDataDependencies: { seriesRectWidth, seriesRectHeight } = { seriesRectWidth: 0, seriesRectHeight: 0 },
         } = this;
 
@@ -378,7 +378,7 @@ export class SankeySeries extends FlowProportionSeries<
     }) {
         const { datumSelection, isHighlight } = opts;
         const {
-            id: seriesId,
+            seriesId,
             properties,
             ctx: { callbackCache },
         } = this;
@@ -450,7 +450,7 @@ export class SankeySeries extends FlowProportionSeries<
     }) {
         const { datumSelection, isHighlight } = opts;
         const {
-            id: seriesId,
+            seriesId,
             properties,
             ctx: { callbackCache },
         } = this;
@@ -511,7 +511,7 @@ export class SankeySeries extends FlowProportionSeries<
 
     override getTooltipHtml(nodeDatum: SankeyDatum): _ModuleSupport.TooltipContent {
         const {
-            id: seriesId,
+            seriesId,
             processedData,
             ctx: { callbackCache },
             properties,

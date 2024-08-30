@@ -162,21 +162,21 @@ export abstract class CartesianSeries<
     private readonly paths: Path[];
     private readonly dataNodeGroup = this.contentGroup.appendChild(
         new Group({
-            name: `${this.id}-series-dataNodes`,
+            name: `${this.uniqueId}-series-dataNodes`,
             zIndex: Layers.SERIES_LAYER_ZINDEX,
             zIndexSubOrder: this.getGroupZIndexSubOrder('data'),
         })
     );
     private readonly markerGroup = this.contentGroup.appendChild(
         new Group({
-            name: `${this.id}-series-markers`,
+            name: `${this.uniqueId}-series-markers`,
             zIndex: Layers.SERIES_LAYER_ZINDEX,
             zIndexSubOrder: this.getGroupZIndexSubOrder('marker'),
         })
     );
     override readonly labelGroup = this.contentGroup.appendChild(
         new TranslatableGroup({
-            name: `${this.id}-series-labels`,
+            name: `${this.uniqueId}-series-labels`,
             zIndex: Layers.SERIES_LABEL_ZINDEX,
             zIndexSubOrder: this.getGroupZIndexSubOrder('labels'),
         })
@@ -247,7 +247,7 @@ export abstract class CartesianSeries<
 
         this.paths = [];
         for (let index = 0; index < pathsPerSeries.length; index++) {
-            this.paths[index] = new Path({ name: `${this.id}-${pathsPerSeries[index]}` });
+            this.paths[index] = new Path({ name: `${this.uniqueId}-${pathsPerSeries[index]}` });
             this.paths[index].zIndex = Layers.SERIES_LAYER_ZINDEX;
             this.paths[index].zIndexSubOrder = this.getGroupZIndexSubOrder('paths', index);
             this.contentGroup.appendChild(this.paths[index]);
@@ -374,7 +374,7 @@ export abstract class CartesianSeries<
         if (this.nodeDataRefresh) {
             this.nodeDataRefresh = false;
 
-            this.debug(`CartesianSeries.updateSelections() - calling createNodeData() for`, this.id);
+            this.debug(`CartesianSeries.updateSelections() - calling createNodeData() for`, this.uniqueId);
 
             this.markQuadtreeDirty();
             this._contextNodeData = await this.createNodeData();
@@ -726,7 +726,7 @@ export abstract class CartesianSeries<
         const { enabled, itemId, series } = event;
 
         const matchedLegendItemName = legendItemName != null && legendItemName === event.legendItemName;
-        if (series.id === this.id || matchedLegendItemName) {
+        if (series.uniqueId === this.uniqueId || matchedLegendItemName) {
             this.toggleSeriesItem(itemId, enabled);
         }
     }
@@ -736,7 +736,7 @@ export abstract class CartesianSeries<
         const { legendItemName } = this.properties;
 
         const matchedLegendItemName = legendItemName != null && legendItemName === event.legendItemName;
-        if (series.id === this.id || matchedLegendItemName) {
+        if (series.uniqueId === this.uniqueId || matchedLegendItemName) {
             // Double-clicked item should always become visible.
             this.toggleSeriesItem(itemId, true);
         } else if (enabled && numVisibleItems === 1) {
@@ -978,7 +978,7 @@ export abstract class CartesianSeries<
 
     protected resetAllAnimation(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
         // Stop any running animations by prefix convention.
-        this.ctx.animationManager.stopByAnimationGroupId(this.id);
+        this.ctx.animationManager.stopByAnimationGroupId(this.uniqueId);
 
         this.resetPathAnimation(data);
         this.resetDatumAnimation(data);

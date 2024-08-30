@@ -233,7 +233,7 @@ export class SeriesNodeEvent<TDatum extends SeriesNodeDatum, TEvent extends stri
         series: ISeries<TDatum, unknown>
     ) {
         this.datum = datum;
-        this.seriesId = series.id;
+        this.seriesId = series.seriesId;
     }
 }
 
@@ -300,10 +300,10 @@ export abstract class Series<
 
     protected readonly NodeEvent: INodeEventConstructor<TDatum, any> = SeriesNodeEvent;
 
-    readonly internalId = createId(this);
+    readonly uniqueId = createId(this);
 
-    get id() {
-        return this.properties?.id ?? this.internalId;
+    get seriesId() {
+        return this.properties.id ?? this.uniqueId;
     }
 
     readonly canHaveAxes: boolean;
@@ -394,13 +394,13 @@ export abstract class Series<
     }
 
     private onSeriesGroupingChange(prev?: SeriesGrouping, next?: SeriesGrouping) {
-        const { internalId, type, visible } = this;
+        const { uniqueId, type, visible } = this;
 
         if (prev) {
-            this.ctx.seriesStateManager.deregisterSeries({ id: internalId, type });
+            this.ctx.seriesStateManager.deregisterSeries({ uniqueId, type });
         }
         if (next) {
-            this.ctx.seriesStateManager.registerSeries({ id: internalId, type, visible, seriesGrouping: next });
+            this.ctx.seriesStateManager.registerSeries({ uniqueId, type, visible, seriesGrouping: next });
         }
 
         this.fireEvent(new SeriesGroupingChangedEvent(this, next, prev));
@@ -433,7 +433,7 @@ export abstract class Series<
 
         this.contentGroup = this.rootGroup.appendChild(
             new TranslatableGroup({
-                name: `${this.internalId}-content`,
+                name: `${this.uniqueId}-content`,
                 isVirtual: contentGroupVirtual,
                 zIndex: Layers.SERIES_LAYER_ZINDEX,
                 zIndexSubOrder: this.getGroupZIndexSubOrder('data'),
@@ -441,7 +441,7 @@ export abstract class Series<
         );
 
         this.highlightGroup = new TranslatableGroup({
-            name: `${this.internalId}-highlight`,
+            name: `${this.uniqueId}-highlight`,
             isVirtual: contentGroupVirtual,
             zIndex: Layers.SERIES_LAYER_ZINDEX,
             zIndexSubOrder: this.getGroupZIndexSubOrder('highlight'),
@@ -453,13 +453,13 @@ export abstract class Series<
 
         this.labelGroup = this.rootGroup.appendChild(
             new TranslatableGroup({
-                name: `${this.internalId}-series-labels`,
+                name: `${this.uniqueId}-series-labels`,
                 zIndex: Layers.SERIES_LABEL_ZINDEX,
             })
         );
 
         this.annotationGroup = new Group({
-            name: `${this.id}-annotation`,
+            name: `${this.uniqueId}-annotation`,
             isVirtual: contentGroupVirtual,
             zIndex: Layers.SERIES_LAYER_ZINDEX,
             zIndexSubOrder: this.getGroupZIndexSubOrder('annotation'),
@@ -778,7 +778,7 @@ export abstract class Series<
     ) {
         if (label.formatter) {
             return (
-                this.ctx.callbackCache.call(label.formatter, { seriesId: this.id, ...params }) ??
+                this.ctx.callbackCache.call(label.formatter, { seriesId: this.seriesId, ...params }) ??
                 defaultFormatter(params.value)
             );
         }
@@ -794,7 +794,7 @@ export abstract class Series<
         const markerStyle = mergeDefaults(defaultSize, defaultStyle);
         if (marker.itemStyler) {
             const style = this.ctx.callbackCache.call(marker.itemStyler, {
-                seriesId: this.id,
+                seriesId: this.seriesId,
                 ...markerStyle,
                 ...params,
                 datum: params.datum.datum,

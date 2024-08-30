@@ -164,7 +164,7 @@ export function getLabelText(
     if (label.text != null) {
         return label.text;
     } else if (value != null) {
-        return label?.formatter?.({ seriesId: series.id, datum: undefined, value }) ?? defaultFormatter?.(value);
+        return label?.formatter?.({ seriesId: series.seriesId, datum: undefined, value }) ?? defaultFormatter?.(value);
     }
 }
 

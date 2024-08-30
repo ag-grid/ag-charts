@@ -381,7 +381,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         selection.update(selectionData, undefined, idFn).each((node, datum) => {
             const format = this.properties.itemStyler
                 ? this.ctx.callbackCache.call(this.properties.itemStyler, {
-                      seriesId: this.id,
+                      seriesId: this.seriesId,
                       datum: datum.datum,
                       highlighted,
                       angleKey,
@@ -465,7 +465,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const { labelSelection } = this;
 
         const fns = this.getBarTransitionFunctions();
-        motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [this.itemSelection], fns);
+        motion.fromToMotion(this.uniqueId, 'datums', this.ctx.animationManager, [this.itemSelection], fns);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
     }
 
@@ -474,13 +474,13 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const { animationManager } = this.ctx;
 
         const fns = this.getBarTransitionFunctions();
-        motion.fromToMotion(this.id, 'datums', animationManager, [itemSelection], fns);
+        motion.fromToMotion(this.uniqueId, 'datums', animationManager, [itemSelection], fns);
 
         seriesLabelFadeOutAnimation(this, 'labels', animationManager, this.labelSelection);
     }
 
     getTooltipHtml(nodeDatum: RadialBarNodeDatum): _ModuleSupport.TooltipContent {
-        const { id: seriesId, axes, dataModel } = this;
+        const { seriesId, axes, dataModel } = this;
         const {
             angleKey,
             angleName,
@@ -560,9 +560,9 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         return [
             {
                 legendType: 'category',
-                id: this.id,
+                id: this.uniqueId,
                 itemId: angleKey,
-                seriesId: this.id,
+                seriesId: this.seriesId,
                 enabled: visible,
                 label: {
                     text: angleName ?? angleKey,
@@ -585,7 +585,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     onLegendItemClick(event: _ModuleSupport.LegendItemClickChartEvent) {
         const { enabled, itemId, series } = event;
 
-        if (series.id === this.id) {
+        if (series.uniqueId === this.uniqueId) {
             this.toggleSeriesItem(itemId, enabled);
         }
     }
@@ -593,7 +593,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     onLegendItemDoubleClick(event: _ModuleSupport.LegendItemDoubleClickChartEvent) {
         const { enabled, itemId, series, numVisibleItems } = event;
 
-        const wasClicked = series.id === this.id;
+        const wasClicked = series.uniqueId === this.uniqueId;
         const newEnabled = wasClicked || (enabled && numVisibleItems === 1);
 
         this.toggleSeriesItem(itemId, newEnabled);
@@ -604,7 +604,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     }
 
     protected getStackId() {
-        const groupIndex = this.seriesGrouping?.groupIndex ?? this.id;
+        const groupIndex = this.seriesGrouping?.groupIndex ?? this.uniqueId;
         return `radialBar-stack-${groupIndex}-xValues`;
     }
 }

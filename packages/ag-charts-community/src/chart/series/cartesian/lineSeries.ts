@@ -82,7 +82,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             return;
         }
 
-        const { data, visible, seriesGrouping: { groupIndex = this.id, stackCount = 1 } = {} } = this;
+        const { data, visible, seriesGrouping: { groupIndex = this.uniqueId, stackCount = 1 } = {} } = this;
         const { xKey, yKey, connectMissingData, normalizedTo } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
@@ -436,7 +436,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
                 yName,
                 title,
                 color,
-                seriesId: this.id,
+                seriesId: this.seriesId,
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );
@@ -454,10 +454,10 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         return [
             {
                 legendType: 'category',
-                id: this.id,
+                id: this.uniqueId,
                 itemId: yKey,
                 legendItemName,
-                seriesId: this.id,
+                seriesId: this.seriesId,
                 enabled: visible,
                 label: {
                     text: legendItemName ?? title ?? yName ?? yKey,
@@ -572,14 +572,14 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         }
 
         markerFadeInAnimation(this, animationManager, undefined, markerSelections);
-        fromToMotion(this.id, 'path_properties', animationManager, [path], fns.pathProperties);
+        fromToMotion(this.uniqueId, 'path_properties', animationManager, [path], fns.pathProperties);
 
         if (fns.status === 'added') {
             this.updateLinePaths(paths, contextData);
         } else if (fns.status === 'removed') {
             this.updateLinePaths(paths, previousContextData);
         } else {
-            pathMotion(this.id, 'path_update', animationManager, [path], fns.path);
+            pathMotion(this.uniqueId, 'path_update', animationManager, [path], fns.path);
         }
 
         if (fns.hasMotion) {

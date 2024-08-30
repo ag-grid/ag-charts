@@ -334,7 +334,7 @@ export class MapMarkerSeries
     }
 
     override async createNodeData() {
-        const { id: seriesId, dataModel, processedData, colorScale, sizeScale, properties, scale } = this;
+        const { seriesId, dataModel, processedData, colorScale, sizeScale, properties, scale } = this;
         const { idKey, latitudeKey, longitudeKey, sizeKey, colorKey, labelKey, label } = properties;
 
         if (dataModel == null || processedData == null || scale == null) return;
@@ -579,7 +579,7 @@ export class MapMarkerSeries
         const { enabled, itemId, series } = event;
 
         const matchedLegendItemName = legendItemName != null && legendItemName === event.legendItemName;
-        if (series.id === this.id || matchedLegendItemName) {
+        if (series.uniqueId === this.uniqueId || matchedLegendItemName) {
             this.toggleSeriesItem(itemId, enabled);
         }
     }
@@ -589,7 +589,7 @@ export class MapMarkerSeries
         const { legendItemName } = this.properties;
 
         const matchedLegendItemName = legendItemName != null && legendItemName === event.legendItemName;
-        if (series.id === this.id || matchedLegendItemName) {
+        if (series.uniqueId === this.uniqueId || matchedLegendItemName) {
             // Double-clicked item should always become visible.
             this.toggleSeriesItem(itemId, true);
         } else if (enabled && numVisibleItems === 1) {
@@ -615,7 +615,7 @@ export class MapMarkerSeries
 
     private resetAllAnimation() {
         // Stop any running animations by prefix convention.
-        this.ctx.animationManager.stopByAnimationGroupId(this.id);
+        this.ctx.animationManager.stopByAnimationGroupId(this.uniqueId);
         this.ctx.animationManager.skipCurrentBatch();
 
         this.labelSelection.cleanup();
@@ -626,7 +626,13 @@ export class MapMarkerSeries
     private animateMarkers() {
         const { animationManager } = this.ctx;
         const fns = prepareMapMarkerAnimationFunctions();
-        fromToMotion(this.id, 'markers', animationManager, [this.markerSelection, this.highlightMarkerSelection], fns);
+        fromToMotion(
+            this.uniqueId,
+            'markers',
+            animationManager,
+            [this.markerSelection, this.highlightMarkerSelection],
+            fns
+        );
     }
 
     override getLabelData(): _Util.PointLabelDatum[] {
@@ -685,7 +691,7 @@ export class MapMarkerSeries
             const legendDatum: _ModuleSupport.GradientLegendDatum = {
                 legendType: 'gradient',
                 enabled: visible,
-                seriesId: this.id,
+                seriesId: this.seriesId,
                 colorName,
                 colorRange,
                 colorDomain,
@@ -694,11 +700,11 @@ export class MapMarkerSeries
         } else if (legendType === 'category') {
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {
                 legendType: 'category',
-                id: this.id,
-                itemId: legendItemName ?? title ?? idName ?? idKey ?? this.id,
-                seriesId: this.id,
+                id: this.uniqueId,
+                itemId: legendItemName ?? title ?? idName ?? idKey ?? this.uniqueId,
+                seriesId: this.seriesId,
                 enabled: visible,
-                label: { text: legendItemName ?? title ?? idName ?? idKey ?? this.id },
+                label: { text: legendItemName ?? title ?? idName ?? idKey ?? this.uniqueId },
                 symbols: [
                     {
                         marker: {
@@ -721,7 +727,7 @@ export class MapMarkerSeries
 
     override getTooltipHtml(nodeDatum: MapMarkerNodeDatum): _ModuleSupport.TooltipContent {
         const {
-            id: seriesId,
+            seriesId,
             processedData,
             ctx: { callbackCache },
             properties,
@@ -831,7 +837,7 @@ export class MapMarkerSeries
 
     public getMapMarkerStyle(markerDatum: MapMarkerNodeDatum, highlighted: boolean) {
         const {
-            id: seriesId,
+            seriesId,
             properties,
             ctx: { callbackCache },
         } = this;

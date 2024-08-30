@@ -150,10 +150,10 @@ export class SeriesAreaHighlightManager extends BaseManager {
 
         // Adjust cursor if a specific datum is highlighted, rather than just a series.
         if (lastSeries?.properties.cursor && lastDatum) {
-            this.ctx.cursorManager.updateCursor(lastSeries.id);
+            this.ctx.cursorManager.updateCursor(lastSeries.uniqueId);
         }
         if (newSeries?.properties.cursor && newSeries?.properties.cursor !== 'default' && newDatum) {
-            this.ctx.cursorManager.updateCursor(newSeries.id, newSeries.properties.cursor);
+            this.ctx.cursorManager.updateCursor(newSeries.uniqueId, newSeries.properties.cursor);
         }
 
         const updateAll = newSeries == null || lastSeries == null;

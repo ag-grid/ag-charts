@@ -23,7 +23,7 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_Scene.RadialColu
     }
 
     protected getStackId() {
-        const groupIndex = this.seriesGrouping?.groupIndex ?? this.id;
+        const groupIndex = this.seriesGrouping?.groupIndex ?? this.uniqueId;
         return `radarColumn-stack-${groupIndex}-yValues`;
     }
 

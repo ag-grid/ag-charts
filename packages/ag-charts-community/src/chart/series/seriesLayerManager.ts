@@ -14,7 +14,7 @@ export type SeriesGroupZIndexSubOrderType =
     | 'annotation';
 
 export type SeriesConfig = {
-    internalId: string;
+    uniqueId: string;
     seriesGrouping?: SeriesGrouping;
     rootGroup: Group;
     highlightGroup: Group;
@@ -57,17 +57,17 @@ export class SeriesLayerManager {
 
     public requestGroup(seriesConfig: SeriesConfig) {
         const {
-            internalId,
+            uniqueId,
             type,
             rootGroup: seriesRootGroup,
             highlightGroup: seriesHighlightGroup,
             annotationGroup: seriesAnnotationGroup,
             seriesGrouping,
         } = seriesConfig;
-        const { groupIndex = internalId } = seriesGrouping ?? {};
+        const { groupIndex = uniqueId } = seriesGrouping ?? {};
 
-        if (this.series[internalId] != null) {
-            throw new Error(`AG Charts - series already has an allocated layer: ${this.series[internalId]}`);
+        if (this.series[uniqueId] != null) {
+            throw new Error(`AG Charts - series already has an allocated layer: ${this.series[uniqueId]}`);
         }
 
         // Re-evaluate mode only on first series addition - we can't swap strategy mid-setup.
@@ -112,9 +112,9 @@ export class SeriesLayerManager {
             };
         }
 
-        this.series[internalId] = { layerState: groupInfo, seriesConfig };
+        this.series[uniqueId] = { layerState: groupInfo, seriesConfig };
 
-        groupInfo.seriesIds.push(internalId);
+        groupInfo.seriesIds.push(uniqueId);
         groupInfo.group.appendChild(seriesRootGroup);
         groupInfo.highlight.appendChild(seriesHighlightGroup);
         groupInfo.annotation.appendChild(seriesAnnotationGroup);
@@ -122,18 +122,18 @@ export class SeriesLayerManager {
     }
 
     public changeGroup(seriesConfig: SeriesConfig & { oldGrouping?: SeriesGrouping }) {
-        const { internalId, seriesGrouping, type, rootGroup, highlightGroup, annotationGroup, oldGrouping } =
+        const { uniqueId, seriesGrouping, type, rootGroup, highlightGroup, annotationGroup, oldGrouping } =
             seriesConfig;
-        const { groupIndex = internalId } = seriesGrouping ?? {};
+        const { groupIndex = uniqueId } = seriesGrouping ?? {};
 
-        if (this.groups[type]?.[groupIndex]?.seriesIds.includes(internalId)) {
+        if (this.groups[type]?.[groupIndex]?.seriesIds.includes(uniqueId)) {
             // Already in the right group, nothing to do.
             return;
         }
 
-        if (this.series[internalId] != null) {
+        if (this.series[uniqueId] != null) {
             this.releaseGroup({
-                internalId,
+                uniqueId,
                 seriesGrouping: oldGrouping,
                 type,
                 rootGroup,
@@ -145,22 +145,22 @@ export class SeriesLayerManager {
     }
 
     public releaseGroup(seriesConfig: {
-        internalId: string;
+        uniqueId: string;
         seriesGrouping?: SeriesGrouping;
         highlightGroup: Group;
         rootGroup: Group;
         annotationGroup: Group;
         type: string;
     }) {
-        const { internalId, rootGroup, highlightGroup, annotationGroup, type } = seriesConfig;
+        const { uniqueId, rootGroup, highlightGroup, annotationGroup, type } = seriesConfig;
 
-        if (this.series[internalId] == null) {
-            throw new Error(`AG Charts - series doesn't have an allocated layer: ${internalId}`);
+        if (this.series[uniqueId] == null) {
+            throw new Error(`AG Charts - series doesn't have an allocated layer: ${uniqueId}`);
         }
 
-        const groupInfo = this.series[internalId]?.layerState;
+        const groupInfo = this.series[uniqueId]?.layerState;
         if (groupInfo) {
-            groupInfo.seriesIds = groupInfo.seriesIds.filter((v) => v !== internalId);
+            groupInfo.seriesIds = groupInfo.seriesIds.filter((v) => v !== uniqueId);
             groupInfo.group.removeChild(rootGroup);
             groupInfo.highlight.removeChild(highlightGroup);
             groupInfo.annotation.removeChild(annotationGroup);
@@ -172,7 +172,7 @@ export class SeriesLayerManager {
             this.highlightRoot.removeChild(groupInfo.highlight);
             this.annotationRoot.removeChild(groupInfo.annotation);
             delete this.groups[groupInfo.type][groupInfo.id];
-            delete this.groups[type][internalId];
+            delete this.groups[type][uniqueId];
         } else if (groupInfo?.seriesIds.length > 0) {
             // Update zIndexSubOrder to avoid it becoming stale as series are removed and re-added
             // with the same groupIndex, but are otherwise unrelated.
@@ -182,7 +182,7 @@ export class SeriesLayerManager {
             groupInfo.annotation.zIndexSubOrder = leadSeriesConfig?.getGroupZIndexSubOrder('annotation');
         }
 
-        delete this.series[internalId];
+        delete this.series[uniqueId];
     }
 
     private lookupIdx(groupIndex: number | string) {

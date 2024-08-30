@@ -317,7 +317,7 @@ export abstract class HierarchySeries<
         const datum = this.animationResetFns?.datum;
 
         // Stop any running animations by prefix convention.
-        this.ctx.animationManager.stopByAnimationGroupId(this.id);
+        this.ctx.animationManager.stopByAnimationGroupId(this.uniqueId);
 
         if (datum != null) {
             resetMotion(data.datumSelections, datum);
@@ -386,7 +386,7 @@ export abstract class HierarchySeries<
                   {
                       legendType: 'gradient',
                       enabled: visible,
-                      seriesId: this.id,
+                      seriesId: this.seriesId,
                       colorName,
                       colorRange,
                       colorDomain: this.colorDomain,

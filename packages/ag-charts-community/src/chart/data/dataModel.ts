@@ -6,7 +6,7 @@ import { isFiniteNumber, isObject } from '../../util/type-guards';
 import type { ChartMode } from '../chartMode';
 import { ContinuousDomain, DiscreteDomain, type IDataDomain } from './dataDomain';
 
-export type ScopeProvider = { id: string };
+export type ScopeProvider = { uniqueId: string };
 
 export type UngroupedDataItem<D, V> = {
     keys: any[];
@@ -106,7 +106,7 @@ export function fixNumericExtent(extent: Array<number | Date> | null): [] | [num
 type MissMap = Map<string | undefined, number>;
 
 export function getMissCount(scopeProvider: ScopeProvider, missMap: MissMap | undefined) {
-    return missMap?.get(scopeProvider.id) ?? 0;
+    return missMap?.get(scopeProvider.uniqueId) ?? 0;
 }
 
 type GroupingFn<K> = (data: UngroupedDataItem<K, any[]>) => K[];
@@ -366,10 +366,10 @@ export class DataModel<
     }
 
     resolveProcessedDataDefById(scope: ScopeProvider, searchId: string): ProcessedDataDef | never {
-        const def = this.scopeCache.get(scope.id)?.get(searchId);
+        const def = this.scopeCache.get(scope.uniqueId)?.get(searchId);
 
         if (!def) {
-            throw new Error(`AG Charts - didn't find property definition for [${searchId}, ${scope.id}]`);
+            throw new Error(`AG Charts - didn't find property definition for [${searchId}, ${scope.uniqueId}]`);
         }
 
         return { index: def.index, def };

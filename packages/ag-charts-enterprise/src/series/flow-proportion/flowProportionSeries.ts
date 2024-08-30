@@ -127,7 +127,7 @@ export abstract class FlowProportionSeries<
 
         const nodesDataModelPromise =
             nodes != null
-                ? nodesDataController.request<any, any, true>(this.id, nodes, {
+                ? nodesDataController.request<any, any, true>(this.uniqueId, nodes, {
                       props: [
                           keyProperty(idKey, undefined, { id: 'idValue', includeProperty: false }),
                           ...(labelKey != null
@@ -445,9 +445,9 @@ export abstract class FlowProportionSeries<
             this.processedNodes.values(),
             ({ id, label, fill, stroke }): _ModuleSupport.CategoryLegendDatum => ({
                 legendType: 'category',
-                id: this.id,
+                id: this.uniqueId,
                 itemId: id,
-                seriesId: this.id,
+                seriesId: this.seriesId,
                 enabled: true,
                 label: { text: label ?? id },
                 symbols: [

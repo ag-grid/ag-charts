@@ -4,13 +4,13 @@ import type { Selection } from '../../scene/selection';
 import type { AnimationManager } from '../interaction/animationManager';
 
 export function seriesLabelFadeInAnimation<T>(
-    { id }: { id: string },
+    { uniqueId }: { uniqueId: string },
     subId: string,
     animationManager: AnimationManager,
     ...labelSelections: Selection<NodeWithOpacity, T>[]
 ) {
     staticFromToMotion(
-        id,
+        uniqueId,
         subId,
         animationManager,
         labelSelections,
@@ -21,13 +21,13 @@ export function seriesLabelFadeInAnimation<T>(
 }
 
 export function seriesLabelFadeOutAnimation<T>(
-    { id }: { id: string },
+    { uniqueId }: { uniqueId: string },
     subId: string,
     animationManager: AnimationManager,
     ...labelSelections: Selection<NodeWithOpacity, T>[]
 ) {
     staticFromToMotion(
-        id,
+        uniqueId,
         subId,
         animationManager,
         labelSelections,

@@ -80,7 +80,7 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
                 datum: resetBarSelectionsFn,
             },
         });
-        this.colorRangesGroup = new _Scene.Group({ name: `${this.id}-colorRanges` });
+        this.colorRangesGroup = new _Scene.Group({ name: `${this.uniqueId}-colorRanges` });
         this.colorRangesSelection = _Scene.Selection.select(this.colorRangesGroup, _Scene.Rect, false);
         this.rootGroup.append(this.colorRangesGroup);
         this.targetLinesSelection = _Scene.Selection.select(this.annotationGroup, _Scene.Line, false);
@@ -305,7 +305,17 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
 
         return this.properties.tooltip.toTooltipHtml(
             { title, content, backgroundColor: this.properties.fill },
-            { datum, itemId, title, seriesId: this.id, valueKey, valueName, targetKey, targetName, color: undefined }
+            {
+                datum,
+                itemId,
+                title,
+                seriesId: this.seriesId,
+                valueKey,
+                valueName,
+                targetKey,
+                targetName,
+                color: undefined,
+            }
         );
     }
 
@@ -400,20 +410,20 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
 
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'));
 
-        fromToMotion(this.id, 'nodes', this.ctx.animationManager, [datumSelection], fns);
+        fromToMotion(this.uniqueId, 'nodes', this.ctx.animationManager, [datumSelection], fns);
         seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
     }
 
     override animateWaitingUpdateReady(data: BulletAnimationData) {
         const { datumSelection, annotationSelections } = data;
 
-        this.ctx.animationManager.stopByAnimationGroupId(this.id);
+        this.ctx.animationManager.stopByAnimationGroupId(this.uniqueId);
 
         const dataDiff = this.processedData?.reduced?.diff;
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, 'normal'));
 
         fromToMotion(
-            this.id,
+            this.uniqueId,
             'nodes',
             this.ctx.animationManager,
             [datumSelection],

@@ -371,7 +371,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
-        const { id: seriesId, ctx } = this;
+        const { seriesId, ctx } = this;
         const {
             yLowKey,
             yHighKey,
@@ -454,7 +454,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
     getTooltipHtml(nodeDatum: RangeBarNodeDatum): _ModuleSupport.TooltipContent {
         const {
-            id: seriesId,
+            seriesId,
             ctx: { callbackCache },
         } = this;
 
@@ -547,7 +547,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        const { id, visible } = this;
+        const { uniqueId, seriesId, visible } = this;
 
         if (legendType !== 'category') {
             return [];
@@ -560,9 +560,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         return [
             {
                 legendType: 'category',
-                id,
+                id: uniqueId,
                 itemId: `${yLowKey}-${yHighKey}`,
-                seriesId: id,
+                seriesId: seriesId,
                 enabled: visible,
                 label: { text: `${legendItemText}` },
                 symbols: [{ marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } }],
@@ -572,7 +572,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
     override animateEmptyUpdateReady({ datumSelection, labelSelection }: RangeBarAnimationData) {
         const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.isVertical(), 'normal'));
-        motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], fns);
+        motion.fromToMotion(this.uniqueId, 'datums', this.ctx.animationManager, [datumSelection], fns);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
     }
 
@@ -581,11 +581,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const { processedData } = this;
         const dataDiff = processedData?.reduced?.diff;
 
-        this.ctx.animationManager.stopByAnimationGroupId(this.id);
+        this.ctx.animationManager.stopByAnimationGroupId(this.uniqueId);
 
         const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.isVertical(), 'fade'));
         motion.fromToMotion(
-            this.id,
+            this.uniqueId,
             'datums',
             this.ctx.animationManager,
             [datumSelections],

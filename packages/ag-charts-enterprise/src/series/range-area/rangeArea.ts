@@ -497,7 +497,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
-        const { id: seriesId } = this;
+        const { seriesId } = this;
         const { xKey, yLowKey, yHighKey, xName, yName, yLowName, yHighName, fill, tooltip } = this.properties;
         const { datum, itemId, xValue, yLowValue, yHighValue } = nodeDatum;
 
@@ -564,9 +564,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return [
             {
                 legendType: 'category',
-                id: this.id,
+                id: this.uniqueId,
                 itemId: `${yLowKey}-${yHighKey}`,
-                seriesId: this.id,
+                seriesId: this.seriesId,
                 enabled: visible,
                 label: { text: `${legendItemText}` },
                 symbols: [

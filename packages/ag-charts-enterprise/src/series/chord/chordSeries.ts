@@ -88,7 +88,7 @@ export class ChordSeries extends FlowProportionSeries<
 
     override async createNodeData(): Promise<ChordNodeDataContext | undefined> {
         const {
-            id: seriesId,
+            seriesId,
             _nodeDataDependencies: { seriesRectWidth, seriesRectHeight } = { seriesRectWidth: 0, seriesRectHeight: 0 },
         } = this;
         const {
@@ -203,7 +203,7 @@ export class ChordSeries extends FlowProportionSeries<
         if (nodeCount * spacingSweep >= 2 * Math.PI || radius <= 0) {
             Logger.warnOnce('There was insufficient space to display the Chord Series.');
             return {
-                itemId: this.id,
+                itemId: seriesId,
                 nodeData: [],
                 labelData: [],
             };
@@ -373,7 +373,7 @@ export class ChordSeries extends FlowProportionSeries<
     }) {
         const { datumSelection, isHighlight } = opts;
         const {
-            id: seriesId,
+            seriesId,
             properties,
             ctx: { callbackCache },
         } = this;
@@ -448,7 +448,7 @@ export class ChordSeries extends FlowProportionSeries<
     }) {
         const { datumSelection, isHighlight } = opts;
         const {
-            id: seriesId,
+            seriesId,
             properties,
             ctx: { callbackCache },
         } = this;
@@ -512,7 +512,7 @@ export class ChordSeries extends FlowProportionSeries<
 
     override getTooltipHtml(nodeDatum: ChordDatum): _ModuleSupport.TooltipContent {
         const {
-            id: seriesId,
+            seriesId,
             processedData,
             ctx: { callbackCache },
             properties,

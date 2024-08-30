@@ -301,7 +301,7 @@ export class MapShapeSeries
 
     private previousLabelLayouts: Map<string, LabelLayout> | undefined = undefined;
     override async createNodeData() {
-        const { id: seriesId, dataModel, processedData, colorScale, properties, scale, previousLabelLayouts } = this;
+        const { seriesId, dataModel, processedData, colorScale, properties, scale, previousLabelLayouts } = this;
         const { idKey, colorKey, labelKey, label, fill: fillProperty } = properties;
 
         if (dataModel == null || processedData == null) return;
@@ -432,7 +432,7 @@ export class MapShapeSeries
         isHighlight: boolean;
     }) {
         const {
-            id: seriesId,
+            seriesId,
             properties,
             ctx: { callbackCache },
         } = this;
@@ -514,7 +514,7 @@ export class MapShapeSeries
         const { enabled, itemId, series } = event;
 
         const matchedLegendItemName = legendItemName != null && legendItemName === event.legendItemName;
-        if (series.id === this.id || matchedLegendItemName) {
+        if (series.uniqueId === this.uniqueId || matchedLegendItemName) {
             this.toggleSeriesItem(itemId, enabled);
         }
     }
@@ -524,7 +524,7 @@ export class MapShapeSeries
         const { legendItemName } = this.properties;
 
         const matchedLegendItemName = legendItemName != null && legendItemName === event.legendItemName;
-        if (series.id === this.id || matchedLegendItemName) {
+        if (series.uniqueId === this.uniqueId || matchedLegendItemName) {
             // Double-clicked item should always become visible.
             this.toggleSeriesItem(itemId, true);
         } else if (enabled && numVisibleItems === 1) {
@@ -609,7 +609,7 @@ export class MapShapeSeries
             const legendDatum: _ModuleSupport.GradientLegendDatum = {
                 legendType: 'gradient',
                 enabled: visible,
-                seriesId: this.id,
+                seriesId: this.seriesId,
                 colorName,
                 colorRange,
                 colorDomain,
@@ -618,9 +618,9 @@ export class MapShapeSeries
         } else if (legendType === 'category') {
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {
                 legendType: 'category',
-                id: this.id,
+                id: this.uniqueId,
                 itemId: legendItemName ?? title ?? idName ?? idKey,
-                seriesId: this.id,
+                seriesId: this.seriesId,
                 enabled: visible,
                 label: { text: legendItemName ?? title ?? idName ?? idKey },
                 symbols: [
@@ -644,7 +644,7 @@ export class MapShapeSeries
 
     override getTooltipHtml(nodeDatum: MapShapeNodeDatum): _ModuleSupport.TooltipContent {
         const {
-            id: seriesId,
+            seriesId,
             processedData,
             ctx: { callbackCache },
             properties,

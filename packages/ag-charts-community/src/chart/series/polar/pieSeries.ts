@@ -120,14 +120,14 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     // The group node that contains the background graphics.
     readonly backgroundGroup = this.rootGroup.appendChild(
         new TranslatableGroup({
-            name: `${this.id}-background`,
+            name: `${this.uniqueId}-background`,
             layer: true,
             zIndex: Layers.SERIES_BACKGROUND_ZINDEX,
         })
     );
 
     // AG-6193 If the sum of all datums is 0, then we'll draw 1 or 2 rings to represent the empty series.
-    readonly zerosumRingsGroup = this.backgroundGroup.appendChild(new Group({ name: `${this.id}-zerosumRings` }));
+    readonly zerosumRingsGroup = this.backgroundGroup.appendChild(new Group({ name: `${this.uniqueId}-zerosumRings` }));
     readonly zerosumOuterRing = this.zerosumRingsGroup.appendChild(new Circle());
 
     private readonly angleScale: LinearScale;
@@ -327,7 +327,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     }
 
     async createNodeData() {
-        const { id: seriesId, processedData, dataModel, angleScale } = this;
+        const { seriesId, processedData, dataModel, angleScale } = this;
         const { rotation } = this.properties;
 
         if (!processedData || !dataModel || processedData.type !== 'ungrouped') return;
@@ -550,7 +550,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 lineDashOffset,
                 cornerRadius,
                 highlighted,
-                seriesId: this.id,
+                seriesId: this.seriesId,
             });
         }
 
@@ -1273,7 +1273,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 itemId,
                 title,
                 color,
-                seriesId: this.id,
+                seriesId: this.seriesId,
                 angleKey: this.properties.angleKey,
                 angleName: this.properties.angleName,
                 radiusKey: this.properties.radiusKey,
@@ -1340,9 +1340,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
             legendData.push({
                 legendType: 'category',
-                id: this.id,
+                id: this.uniqueId,
                 itemId: index,
-                seriesId: this.id,
+                seriesId: this.seriesId,
                 enabled: visible && this.seriesItemEnabled[index],
                 label: {
                     text: labelParts.join(' - '),
@@ -1368,7 +1368,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     onLegendItemClick(event: LegendItemClickChartEvent) {
         const { enabled, itemId, series, legendItemName } = event;
 
-        if (series.id === this.id) {
+        if (series.uniqueId === this.uniqueId) {
             this.toggleSeriesItem(itemId, enabled);
         } else if (legendItemName != null) {
             this.toggleOtherSeriesItems(legendItemName, enabled);
@@ -1406,7 +1406,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             this.previousRadiusScale
         );
         fromToMotion(
-            this.id,
+            this.uniqueId,
             'nodes',
             animationManager,
             [this.itemSelection, this.highlightSelection, this.phantomSelection],
@@ -1427,7 +1427,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         const { animationManager } = this.ctx;
         const dataDiff = processedData?.reduced?.diff;
 
-        this.ctx.animationManager.stopByAnimationGroupId(this.id);
+        this.ctx.animationManager.stopByAnimationGroupId(this.uniqueId);
 
         const supportedDiff = (dataDiff?.moved.size ?? 0) === 0;
         const hasKeys = (processedData?.defs.keys.length ?? 0) > 0;
@@ -1443,7 +1443,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             previousRadiusScale
         );
         fromToMotion(
-            this.id,
+            this.uniqueId,
             'nodes',
             animationManager,
             [itemSelection, highlightSelection, phantomSelection],
@@ -1470,7 +1470,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             previousRadiusScale
         );
         fromToMotion(
-            this.id,
+            this.uniqueId,
             'nodes',
             animationManager,
             [itemSelection, highlightSelection, phantomSelection],

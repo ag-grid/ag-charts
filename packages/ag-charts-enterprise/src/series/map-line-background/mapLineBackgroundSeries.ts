@@ -104,7 +104,7 @@ export class MapLineBackgroundSeries
     }
 
     override async createNodeData() {
-        const { id: seriesId, topology, scale } = this;
+        const { seriesId, topology, scale } = this;
 
         if (topology == null) return;
 

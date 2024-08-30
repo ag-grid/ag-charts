@@ -303,7 +303,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 labelName,
                 title,
                 color,
-                seriesId: this.id,
+                seriesId: this.seriesId,
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );
@@ -320,9 +320,9 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         return [
             {
                 legendType: 'category',
-                id: this.id,
+                id: this.uniqueId,
                 itemId: yKey,
-                seriesId: this.id,
+                seriesId: this.seriesId,
                 enabled: visible,
                 label: {
                     text: title ?? yName ?? yKey,

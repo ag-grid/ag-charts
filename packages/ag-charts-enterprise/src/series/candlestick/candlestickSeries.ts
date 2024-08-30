@@ -60,7 +60,7 @@ export class CandlestickSeries extends OhlcSeriesBase<
 
     getFormattedStyles(nodeDatum: CandlestickNodeDatum, highlighted = false) {
         const {
-            id: seriesId,
+            seriesId,
             ctx: { callbackCache },
         } = this;
         const { xKey, openKey, closeKey, highKey, lowKey, itemStyler } = this.properties;

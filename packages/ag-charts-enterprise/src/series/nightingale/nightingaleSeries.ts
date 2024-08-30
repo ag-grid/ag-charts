@@ -22,7 +22,7 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
     }
 
     protected getStackId() {
-        const groupIndex = this.seriesGrouping?.groupIndex ?? this.id;
+        const groupIndex = this.seriesGrouping?.groupIndex ?? this.uniqueId;
         return `nightingale-stack-${groupIndex}-yValues`;
     }
 

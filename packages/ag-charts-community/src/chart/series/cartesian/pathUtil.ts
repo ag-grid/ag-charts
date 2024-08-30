@@ -202,13 +202,13 @@ export function renderPartialPath(
 }
 
 export function pathSwipeInAnimation(
-    { id, visible, nodeDataDependencies }: { id: string; visible: boolean } & NodeDataDependant,
+    { uniqueId, visible, nodeDataDependencies }: { uniqueId: string; visible: boolean } & NodeDataDependant,
     animationManager: AnimationManager,
     ...paths: Path[]
 ) {
     const { seriesRectWidth: width, seriesRectHeight: height } = nodeDataDependencies;
     staticFromToMotion(
-        id,
+        uniqueId,
         'path_properties',
         animationManager,
         paths,
@@ -223,22 +223,30 @@ export function pathSwipeInAnimation(
 }
 
 export function pathFadeInAnimation<T>(
-    { id }: { id: string },
+    { uniqueId }: { uniqueId: string },
     subId: string,
     animationManager: AnimationManager,
     phase: 'add' | 'trailing' = 'add',
     ...selection: Selection<Path, T>[] | Path[]
 ) {
-    staticFromToMotion(id, subId, animationManager, selection, { opacity: 0 }, { opacity: 1 }, { phase });
+    staticFromToMotion(uniqueId, subId, animationManager, selection, { opacity: 0 }, { opacity: 1 }, { phase });
 }
 
 export function pathFadeOutAnimation<T>(
-    { id }: { id: string },
+    { uniqueId }: { uniqueId: string },
     subId: string,
     animationManager: AnimationManager,
     ...selection: Selection<Path, T>[] | Path[]
 ) {
-    staticFromToMotion(id, subId, animationManager, selection, { opacity: 1 }, { opacity: 0 }, { phase: 'remove' });
+    staticFromToMotion(
+        uniqueId,
+        subId,
+        animationManager,
+        selection,
+        { opacity: 1 },
+        { opacity: 0 },
+        { phase: 'remove' }
+    );
 }
 
 export function buildResetPathFn(opts: { getVisible(): boolean; getOpacity(): number }) {

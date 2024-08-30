@@ -47,7 +47,7 @@ export class OhlcSeries extends OhlcSeriesBase<
 
     getFormattedStyles(nodeDatum: OhlcNodeDatum, highlighted = false) {
         const {
-            id: seriesId,
+            seriesId,
             ctx: { callbackCache },
         } = this;
         const { xKey, openKey, closeKey, highKey, lowKey, itemStyler } = this.properties;
