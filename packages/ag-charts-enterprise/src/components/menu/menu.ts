@@ -11,7 +11,7 @@ export interface MenuOptions<Value = any> extends PopoverOptions {
     sourceEvent: Event;
     value?: Value;
     onPress?: (item: MenuItem<Value>) => void;
-    menuitemrole?: 'menuitem' | 'menuitemradio';
+    menuItemRole?: 'menuitem' | 'menuitemradio';
 }
 
 export interface MenuItem<Value = any> {
@@ -49,12 +49,12 @@ export class Menu extends AnchoredPopover {
 
     private createRow<Value>(options: MenuOptions<Value>, item: MenuItem<Value>) {
         const { domManager } = this.ctx;
-        const { menuitemrole = 'menuitem' } = options;
+        const { menuItemRole = 'menuitem' } = options;
 
         const active = item.value === options.value;
         const row = createElement('div', 'ag-charts-menu__row');
-        row.setAttribute('role', menuitemrole);
-        if (menuitemrole === 'menuitemradio') {
+        row.setAttribute('role', menuItemRole);
+        if (menuItemRole === 'menuitemradio') {
             row.setAttribute('aria-checked', (options.value === item.value).toString());
         }
         if (typeof item.value === 'string') {
