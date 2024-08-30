@@ -269,18 +269,16 @@ export abstract class Chart extends Observable {
         titleGroup.append(this.subtitle.node);
         titleGroup.append(this.footnote.node);
 
-        const { overrideDevicePixelRatio } = options.specialOverrides;
-
         this.tooltip = new Tooltip();
         this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot, this.highlightRoot, this.annotationRoot);
         const ctx = (this.ctx = new ChartContext(this, {
             scene,
             root,
-            syncManager: new SyncManager(this),
             container,
+            syncManager: new SyncManager(this),
+            pixelRatio: options.specialOverrides.overrideDevicePixelRatio,
             updateCallback: (type = ChartUpdateType.FULL, opts) => this.update(type, opts),
             updateMutex: this.updateMutex,
-            overrideDevicePixelRatio,
         }));
 
         this._destroyFns.push(
