@@ -115,8 +115,13 @@
 
 .twoColumnContainer {
     display: flex;
-    .column {
+    .columnSmall {
         flex: 1;
+        padding: 10px;
+        box-sizing: border-box;
+    }
+    .columnLarge {
+        flex: 2;
         padding: 10px;
         box-sizing: border-box;
     }
