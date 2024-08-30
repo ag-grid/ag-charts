@@ -13,6 +13,11 @@
     padding: $spacing-size-8;
 }
 
+.ctaButton {
+    display: flex;
+    justify-content: center;
+}
+
 .heroSectionInner {
     display: flex;
     flex-direction: column;

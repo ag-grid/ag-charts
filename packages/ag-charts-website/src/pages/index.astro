@@ -11,6 +11,7 @@ import { getGalleryExamples } from '@features/gallery/utils/filesData';
 import { getEntry } from 'astro:content';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { AutomatedIntegratedChartsWrapper } from '@ag-website-shared/components/automated-examples/AutomatedIntegratedChartsWrapper';
+import Faqs from '../features/homepage/components/faqs/Faqs';
 
 import IndexDocsExampleRunner from '@features/homepage/components/IndexDocsExampleRunner.astro';
 const { data: whatsNewData } = await getEntry('versions', 'ag-charts-versions');
@@ -28,6 +29,7 @@ const seriesExampleMap = {
     bubble: 'bubble-with-categories',
     pie: 'pie-with-variable-radius',
     donut: 'donut-with-variable-radius',
+    combination: 'radar-line-radar-area-nightingale-combination',
 };
 
 // Prepare examples data for IndexGalleryExampleRunner
@@ -45,6 +47,11 @@ const enterpriseSeriesExampleMap = {
     'radial-column': 'reversed-radial-column',
     'radial-bar': 'reversed-radial-bar',
     sunburst: 'sunburst-with-nesting',
+    treemap: 'simple-treemap',
+    heatmap: 'simple-heatmap',
+    sankey: 'sankey',
+    chord: 'chord',
+    'bullet-chart': 'simple-bullet',
 };
 
 const exampleData = galleryEntry.data.series
@@ -195,7 +202,9 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                         <button class={styles.learnMoreBtn}>Learn More</button>
                     </div>
                 </div> -->
-                <button>View Pricing</button>
+                <div class={styles.ctaButton}>
+                    <button>View Pricing</button>
+                </div>
             </div>
         </div>
         <div class={styles.section}>
@@ -242,7 +251,7 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                         />
                     </div>
                 </div>
-                <div>
+                <div class={styles.ctaButton}>
                     <button>Learn More</button>
                 </div>
             </div>
@@ -258,7 +267,7 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                     </h4>
                 </div>
                 <span>TODO: Benchmark charts w/ Highcharts, etc...</span>
-                <div>
+                <div class={styles.ctaButton}>
                     <button>Learn More</button>
                 </div>
             </div>
@@ -280,7 +289,9 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                     <h3>FAQs</h3>
                     <h4>Common questions...</h4>
                 </div>
-                <div>TODO: FAQs</div>
+                <div>
+                    <Faqs client:load />
+                </div>
             </div>
         </div>
     </div>
@@ -309,27 +320,34 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
     .tabs {
         display: flex;
         cursor: pointer;
-        margin-bottom: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
     }
 
     .tab {
+        flex: 1;
         padding: 10px 20px;
         border: 1px solid #ddd;
+        border-radius: 5px 5px 0 0;
         border-bottom: none;
-        background-color: #f0f0f0;
+        background-color: var(--color-bg-disabled_subtle);
         transition: background-color 0.3s;
+        text-align: center;
     }
 
     .tab.active {
         background-color: white;
         border-bottom: 1px solid white;
         font-weight: bold;
+        color: var(--color-brand-400);
     }
 
     .tab-content {
         border: 1px solid #ddd;
+        border-top: none;
         padding: 20px;
         background-color: white;
+        margin-bottom: 2rem;
     }
 
     .hidden {

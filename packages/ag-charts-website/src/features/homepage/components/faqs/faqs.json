@@ -1,0 +1,42 @@
+[
+    {
+        "question": "What are AG Charts JavaScript charts?",
+        "answer": "AG Charts JavaScript charts are powerful, interactive data visualization tools for web applications. They offer a wide range of chart types and customization options, making them ideal for creating dynamic and responsive JavaScript charts."
+    },
+    {
+        "question": "How do AG Charts compare to other JavaScript chart libraries?",
+        "answer": "AG Charts stands out among JavaScript chart libraries with its high performance, extensive customization options, and seamless integration with AG Grid. It also provides superior documentation and support compared to many other JavaScript chart solutions."
+    },
+    {
+        "question": "Are AG Charts JavaScript charts responsive?",
+        "answer": "Yes, AG Charts JavaScript charts are fully responsive out of the box. They automatically adjust to different screen sizes and devices, ensuring your JavaScript charts look great on desktops, tablets, and mobile phones."
+    },
+    {
+        "question": "Can I create real-time updating JavaScript charts with AG Charts?",
+        "answer": "Absolutely! AG Charts supports real-time data updates for JavaScript charts. You can easily create dynamic charts that update as new data becomes available, making it perfect for live dashboards and monitoring applications."
+    },
+    {
+        "question": "What interactivity features do AG Charts JavaScript charts offer?",
+        "answer": "AG Charts JavaScript charts provide rich interactivity options, including tooltips, zooming, panning, and click events. You can customize these features and add your own interactive elements to create engaging user experiences with your JavaScript charts."
+    },
+    {
+        "question": "Can I export AG Charts JavaScript charts as images?",
+        "answer": "Yes, AG Charts offers built-in export functionality for JavaScript charts. You can easily export your charts as PNG, JPEG, or SVG files, making it simple to include them in reports or share them with others."
+    },
+    {
+        "question": "How do I integrate AG Charts JavaScript charts with React?",
+        "answer": "AG Charts provides official React wrappers for its JavaScript charts, making integration seamless. Simply install the AG Charts React package and use the provided components to create JavaScript charts in your React projects."
+    },
+    {
+        "question": "Are AG Charts JavaScript charts accessible?",
+        "answer": "Yes, AG Charts JavaScript charts are designed with accessibility in mind. They include features like keyboard navigation, ARIA labels, and high-contrast themes to ensure your charts are usable by people with disabilities and comply with accessibility standards."
+    },
+    {
+        "question": "How customizable are AG Charts JavaScript charts?",
+        "answer": "AG Charts JavaScript charts offer extensive customization options. You can easily modify colors, fonts, styles, and layouts to match your application's design. The API also allows for advanced customizations, including custom series types and axes for your JavaScript charts."
+    },
+    {
+        "question": "How do AG Charts JavaScript charts perform with large datasets?",
+        "answer": "AG Charts JavaScript charts are optimized for performance with large datasets. They use efficient rendering techniques and data aggregation to handle millions of data points smoothly, ensuring your JavaScript charts remain responsive even with substantial amounts of data."
+    }
+]
