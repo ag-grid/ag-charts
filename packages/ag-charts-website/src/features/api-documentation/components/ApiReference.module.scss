@@ -386,9 +386,3 @@ button.seeMore {
         border: none;
     }
 }
-
-.expandedContent > td {
-    padding: $spacing-size-2 0 $spacing-size-4;
-    display: flex;
-    flex-direction: column;
-}
