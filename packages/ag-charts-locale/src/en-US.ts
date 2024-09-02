@@ -1,8 +1,4 @@
 export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
-    // Screen reader announcement when the focused item becomes visible
-    ariaAnnounceVisible: 'visible',
-    // Screen reader announcement when the focused item becomes hidden
-    ariaAnnounceHidden: 'hidden',
     // Screen reader announcement when focusing an item in the chart
     ariaAnnounceHoverDatum: '${datum}',
     // Screen reader announcement when focusing a chart
@@ -17,6 +13,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaAnnounceFlowProportionLink: 'link ${index} of ${count}, from ${from} to ${to}, ${sizeName} ${size}',
     // Screen reader announcement when focusing a node in a Sankey or chord chart
     ariaAnnounceFlowProportionNode: 'node ${index} of ${count}, ${description}',
+    // Screen reader description for legend items
+    ariaDescriptionLegendItem: 'Press Space or Enter to toggle visibility',
     // Screen reader text for annotation-options toolbar
     ariaLabelAnnotationOptionsToolbar: 'Annotation Options',
     // Screen reader text for the color picker dialog
@@ -31,8 +29,6 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaLabelLegendPagePrevious: 'Previous Legend Page',
     // Screen reader text for the next legend page button
     ariaLabelLegendPageNext: 'Next Legend Page',
-    // Screen reader text for the an item in the legend
-    ariaLabelLegendItem: '${label}, Legend item ${index}[number] of ${count}[number], ',
     // Screen reader text for the an unknown item in the legend
     ariaLabelLegendItemUnknown: 'Unknown legend item',
     // Screen reader text for the navigator element
@@ -47,6 +43,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaLabelRangesToolbar: 'Ranges',
     // Screen reader text for zoom toolbar
     ariaLabelZoomToolbar: 'Zoom',
+    // Screen reader text for the an item in the legend
+    ariaRoleDescriptionLegendItem: 'legend item',
     // Screen reader text for the value of the navigator's range
     ariaValuePanRange: '${min}[percent] to ${max}[percent]',
     // Default text for the 'loading data' overlay
