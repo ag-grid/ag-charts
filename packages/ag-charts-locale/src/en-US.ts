@@ -96,6 +96,12 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarAnnotationsLineStyle: 'Line Style',
     // Text for the annotation toolbar's line stroke width button
     toolbarAnnotationsLineStrokeWidth: 'Line Stroke Width',
+    // Alt-text for the solid line dash style menu item icon
+    toolbarAnnotationsLineStyleSolid: 'Solid',
+    // Alt-text for the long-dashed line dash style menu item icon
+    toolbarAnnotationsLineStyleDashed: 'Long-dashed',
+    // Alt-text for the short-dashed line dash style menu item icon
+    toolbarAnnotationsLineStyleDotted: 'Short-dashed',
     // Text for the annotation toolbar's text color picker annotation button
     toolbarAnnotationsTextColor: 'Text Color',
     // Text for the annotation toolbar's text size picker annotation button
