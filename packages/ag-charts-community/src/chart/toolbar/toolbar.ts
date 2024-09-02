@@ -744,7 +744,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         if (options.value === 'drag') {
             button.addEventListener(
                 'mousedown',
-                makeAccessibleClickListener(button, (event) => this.onDragStart(event, group))
+                makeAccessibleClickListener(button, (event) => this.onDragStart(event, button, group))
             );
             button.classList.add(styles.modifiers.button.dragHandle);
         }
@@ -843,7 +843,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.ctx.toolbarManager.pressButton(group, this.buttonId({ id, value }), value, this.buttonRect(button), event);
     }
 
-    private onDragStart(event: MouseEvent, group: ToolbarGroup) {
+    private onDragStart(event: MouseEvent, button: HTMLButtonElement, group: ToolbarGroup) {
         const element = this.elements[ToolbarPosition.Floating];
 
         event.preventDefault();
@@ -858,13 +858,18 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             detached: true,
         };
 
+        button.classList.toggle(styles.modifiers.button.dragging, true);
+
         const onDrag = (e: MouseEvent) => this.onDrag(e, group);
+        const onDragEnd = () => {
+            button.classList.toggle(styles.modifiers.button.dragging, false);
+            window.removeEventListener('mousemove', onDrag);
+        };
+
         const window = getWindow();
+
         window.addEventListener('mousemove', onDrag);
-        window.addEventListener('mouseup', () => window.removeEventListener('mousemove', onDrag), {
-            once: true,
-        });
-        element.addEventListener('mouseup', () => window.removeEventListener('mousemove', onDrag), {
+        window.addEventListener('mouseup', onDragEnd, {
             once: true,
         });
 
