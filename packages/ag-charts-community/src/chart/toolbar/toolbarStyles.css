@@ -135,6 +135,8 @@
 
 .ag-charts-toolbar__button--drag-handle {
     min-width: 24px;
+    padding-left: 0;
+    padding-right: 0;
 }
 
 /* Applying this class just after the element is created prevents the flash of the default border color on initial
@@ -258,10 +260,6 @@
 
 .ag-charts-toolbar__icon + .ag-charts-toolbar__label {
     margin-left: var(--ag-charts-toolbar-gap);
-}
-
-.ag-charts-toolbar__icon.ag-charts-icon-drag-handle {
-    width: 10px;
 }
 
 .ag-charts-toolbar__icon,
