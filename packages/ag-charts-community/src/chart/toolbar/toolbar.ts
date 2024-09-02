@@ -839,16 +839,15 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         const onDrag = (e: MouseEvent) => this.onDrag(e, group);
         const onDragEnd = () => {
             button.classList.toggle(styles.modifiers.button.dragging, false);
-
-            window.removeEventListener('mousemove', onDrag),
-                {
-                    once: true,
-                };
+            window.removeEventListener('mousemove', onDrag);
         };
+
         const window = getWindow();
+
         window.addEventListener('mousemove', onDrag);
-        window.addEventListener('mouseup', onDragEnd);
-        element.addEventListener('mouseup', onDragEnd);
+        window.addEventListener('mouseup', onDragEnd, {
+            once: true,
+        });
 
         this.ctx.toolbarManager.groupMoved(group);
     }
