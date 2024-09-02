@@ -1,7 +1,7 @@
 import type { AgChartInstance, AgChartOptions, AgFinancialChartOptions, AgGaugeOptions } from 'ag-charts-types';
 
 import { CartesianChart } from '../chart/cartesianChart';
-import { Chart, type ChartExtendedOptions } from '../chart/chart';
+import { Chart, type ChartExtendedOptions, type TransferableResources } from '../chart/chart';
 import { AgChartInstanceProxy, type FactoryApi } from '../chart/chartProxy';
 import { registerInbuiltModules } from '../chart/factory/registerInbuiltModules';
 import { setupModules } from '../chart/factory/setupModules';
@@ -99,11 +99,13 @@ export abstract class AgCharts {
      */
     public static create<O extends AgChartOptions>(options: O): AgChartInstance<O> {
         this.licenseCheck(options);
-        const chart = AgChartsInternal.createOrUpdate(options, undefined, this.licenseManager);
+        const chart = AgChartsInternal.createOrUpdate(
+            options,
+            undefined,
+            this.licenseManager,
+            enterpriseModule.styles != null ? [['ag-charts-enterprise', enterpriseModule.styles]] : []
+        );
 
-        if (enterpriseModule.styles != null) {
-            chart.chart.ctx.domManager.addStyles('ag-charts-enterprise', enterpriseModule.styles);
-        }
         if (this.licenseManager?.isDisplayWatermark() && this.licenseManager) {
             enterpriseModule.injectWatermark?.(chart.chart.ctx.domManager, this.licenseManager.getWatermarkMessage());
         }
@@ -150,7 +152,8 @@ class AgChartsInternal {
     static createOrUpdate(
         options: ChartExtendedOptions,
         proxy?: AgChartInstanceProxy,
-        licenseManager?: LicenseManager
+        licenseManager?: LicenseManager,
+        styles?: Array<[string, string]>
     ) {
         AgChartsInternal.initialiseModules();
 
@@ -175,6 +178,9 @@ class AgChartsInternal {
         let chart = proxy?.chart;
         if (chart == null || chartType(userOptions) !== chartType(chart?.chartOptions.processedOptions)) {
             chart = AgChartsInternal.createChartInstance(chartOptions, chart);
+            styles?.forEach(([id, css]) => {
+                chart?.ctx.domManager.addStyles(id, css);
+            });
         }
 
         if (proxy == null) {
@@ -225,7 +231,15 @@ class AgChartsInternal {
     }
 
     private static createChartInstance(options: ChartOptions, oldChart?: Chart): Chart {
-        const transferableResource = oldChart?.destroy({ keepTransferableResources: true });
+        let transferableResource: TransferableResources | undefined;
+        if (oldChart != null) {
+            transferableResource = oldChart.destroy({ keepTransferableResources: true });
+        } else {
+            transferableResource = {
+                container: options.processedOptions.container ?? undefined,
+                scene: undefined,
+            };
+        }
         const ChartConstructor = AgChartsInternal.getChartByOptions(options.processedOptions);
         return new ChartConstructor(options, transferableResource);
     }

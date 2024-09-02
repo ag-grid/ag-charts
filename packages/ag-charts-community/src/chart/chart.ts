@@ -69,8 +69,8 @@ import type { UpdateOpts } from './updateService';
 const debug = Debug.create(true, 'opts');
 
 export type TransferableResources = {
-    container?: HTMLElement;
-    scene: Scene;
+    container: HTMLElement | undefined;
+    scene: Scene | undefined;
 };
 
 type SyncModule = ModuleInstance & { enabled?: boolean; syncAxes: (skipSync: boolean) => void };
