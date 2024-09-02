@@ -1,8 +1,7 @@
-import type { PixelSize } from 'ag-charts-community';
+import type { AgAnnotationLineStyleType, PixelSize } from 'ag-charts-community';
 
 import type {
     AnnotationLineStyle,
-    AnnotationLineStyleType,
     AnnotationOptionsColorPickerType,
     AnnotationType,
     ChannelAnnotationType,
@@ -15,8 +14,7 @@ import type {
     LinePropertiesType,
     TextualPropertiesType,
 } from '../annotationsSuperTypes';
-import { NoteProperties } from '../note/noteProperties';
-import { hasFontSize, hasLineStyle } from './has';
+import { hasFontSize, hasIconColor, hasLineStyle } from './has';
 
 export function setDefaults({
     datum,
@@ -51,9 +49,7 @@ export function setDefaults({
 
     if (hasLineStyle(datum)) {
         for (const [annotationType, style] of defaultLineStyles) {
-            if (style) {
-                setLineStyle(datum, annotationType, style);
-            }
+            setLineStyle(datum, annotationType, style);
         }
     }
 }
@@ -67,14 +63,14 @@ export function setFontSize(datum: TextualPropertiesType, annotationType: Textua
 export function setLineStyle(
     datum: LinePropertiesType | ChannelPropertiesType,
     annotationType: LineAnnotationType | ChannelAnnotationType,
-    style: AnnotationLineStyle
+    style?: AnnotationLineStyle
 ) {
     if (!(datum.type === annotationType)) {
         return;
     }
 
-    const strokeWidth = style.strokeWidth ?? datum.strokeWidth ?? 1;
-    const styleType = getLineStyle(datum.lineDash, style.type ?? datum.lineStyle);
+    const strokeWidth = style?.strokeWidth ?? datum.strokeWidth ?? 1;
+    const styleType = getLineStyle(datum.lineDash, style?.type ?? datum.lineStyle);
     const computedLineDash = getComputedLineDash(strokeWidth, styleType);
 
     datum.strokeWidth = strokeWidth;
@@ -83,11 +79,11 @@ export function setLineStyle(
     datum.lineCap = styleType === 'dotted' ? 'round' : undefined;
 }
 
-export function getLineStyle(lineDash?: PixelSize[], lineStyle?: AnnotationLineStyleType) {
+export function getLineStyle(lineDash?: PixelSize[], lineStyle?: AgAnnotationLineStyleType) {
     return lineDash ? 'dashed' : lineStyle ?? 'solid';
 }
 
-export function getComputedLineDash(strokeWidth: number, styleType: AnnotationLineStyleType): PixelSize[] {
+export function getComputedLineDash(strokeWidth: number, styleType: AgAnnotationLineStyleType): PixelSize[] {
     switch (styleType) {
         case 'solid':
             return [];
@@ -116,18 +112,21 @@ export function setColor(
             break;
         }
         case `line-color`: {
-            if ('stroke' in datum && !NoteProperties.is(datum)) datum.stroke = color;
-            if ('strokeOpacity' in datum && !NoteProperties.is(datum)) datum.strokeOpacity = opacity;
             if ('axisLabel' in datum) {
                 datum.axisLabel.fill = color;
                 datum.axisLabel.fillOpacity = opacity;
                 datum.axisLabel.stroke = color;
                 datum.axisLabel.strokeOpacity = opacity;
             }
-            if (NoteProperties.is(datum)) {
+
+            if ('fill' in datum && 'fillOpacity' in datum && hasIconColor(datum)) {
                 datum.fill = color;
                 datum.fillOpacity = opacity;
+            } else {
+                if ('stroke' in datum) datum.stroke = color;
+                if ('strokeOpacity' in datum) datum.strokeOpacity = opacity;
             }
+
             break;
         }
         case `text-color`: {

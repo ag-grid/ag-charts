@@ -2,6 +2,7 @@ import { type PixelSize, _ModuleSupport, type _Scene } from 'ag-charts-community
 
 import { Annotation, AxisLabel, Handle, LineStyle, LineTextProperties, Stroke, Value } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
+import { getComputedLineDash, getLineStyle } from '../utils/styles';
 import { validateDatumValue } from '../utils/validation';
 
 const { OBJECT, STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
@@ -35,7 +36,13 @@ export class HorizontalLineProperties extends Annotation(Value(Handle(AxisLabel(
     }
 
     getLineDash(): PixelSize[] | undefined {
-        return this.lineDash ?? this.computedLineDash;
+        const styleType = getLineStyle(this.lineDash, this.lineStyle);
+        return this.lineDash ?? this.computedLineDash ?? getComputedLineDash(this.strokeWidth ?? 1, styleType);
+    }
+
+    getLineCap(): _Scene.ShapeLineCap | undefined {
+        const styleType = getLineStyle(this.lineDash, this.lineStyle);
+        return this.lineCap ?? styleType === 'dotted' ? 'round' : undefined;
     }
 }
 
@@ -68,7 +75,13 @@ export class VerticalLineProperties extends Annotation(Value(Handle(AxisLabel(St
     }
 
     getLineDash(): PixelSize[] | undefined {
-        return this.lineDash ?? this.computedLineDash;
+        const styleType = getLineStyle(this.lineDash, this.lineStyle);
+        return this.lineDash ?? this.computedLineDash ?? getComputedLineDash(this.strokeWidth ?? 1, styleType);
+    }
+
+    getLineCap(): _Scene.ShapeLineCap | undefined {
+        const styleType = getLineStyle(this.lineDash, this.lineStyle);
+        return this.lineCap ?? styleType === 'dotted' ? 'round' : undefined;
     }
 }
 
