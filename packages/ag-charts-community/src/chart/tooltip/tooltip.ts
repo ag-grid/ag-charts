@@ -214,6 +214,8 @@ export class Tooltip extends BaseProperties {
     ) {
         const { element } = this;
 
+        const existingPosition = element?.getBoundingClientRect();
+
         if (content != null && element != null) {
             element.innerHTML = content.html;
         } else if (!element?.innerHTML) {
@@ -243,13 +245,30 @@ export class Tooltip extends BaseProperties {
         const left = clamp(minX, position.x, maxX);
         const top = clamp(minY, position.y, maxY);
 
+        let willExistOutsideBoundingRectDuringTransition = false;
+        if (existingPosition != null) {
+            // When we adjusted the content, we changed the width/height of the tooltip
+            // Detect whether the new size with the old position will overflow the bounding rect
+            const maxXWithPreviousPosition = relativeRect.width - existingPosition.width - 1 + minX;
+            const maxYWithPreviousPosition = relativeRect.height - existingPosition.height + minY;
+            willExistOutsideBoundingRectDuringTransition =
+                maxXWithPreviousPosition > maxX || maxYWithPreviousPosition > maxY;
+        }
+
         const constrained = left !== position.x || top !== position.y;
         const defaultShowArrow =
             (positionType === 'node' || positionType === 'pointer') && !constrained && !xOffset && !yOffset;
         const showArrow = meta.showArrow ?? this.showArrow ?? defaultShowArrow;
         this.updateShowArrow(showArrow);
 
+        if (willExistOutsideBoundingRectDuringTransition) {
+            // https://ag-grid.atlassian.net/browse/AG-12685
+            element.style.transition = 'none';
+        }
         element.style.transform = `translate(${Math.round(left)}px, ${Math.round(top)}px)`;
+        if (willExistOutsideBoundingRectDuringTransition) {
+            element.style.transition = '';
+        }
 
         element.style.pointerEvents = meta.enableInteraction ? 'auto' : 'none';
         element.setAttribute('data-pointer-capture', 'retain');
