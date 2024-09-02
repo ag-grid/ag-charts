@@ -12,6 +12,7 @@ import { getEntry } from 'astro:content';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { AutomatedIntegratedChartsWrapper } from '@ag-website-shared/components/automated-examples/AutomatedIntegratedChartsWrapper';
 import Faqs from '../features/homepage/components/faqs/Faqs';
+import DropdownButton from '../features/homepage/components/ctas/DropdownButton';
 
 import IndexDocsExampleRunner from '@features/homepage/components/IndexDocsExampleRunner.astro';
 const { data: whatsNewData } = await getEntry('versions', 'ag-charts-versions');
@@ -116,7 +117,7 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                     </h3>
                 </div>
                 <div class={styles.ctaContainer}>
-                    <button aria-label="Get Started with Free JavaScript Charts">Get Started</button>
+                    <DropdownButton client:load />
                     <div class={styles.installCta}>
                         <InstallText client:load />
                     </div>
