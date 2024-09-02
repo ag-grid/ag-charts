@@ -14,12 +14,6 @@ import type { PixelSize } from './types';
 // * Theme *
 // *********/
 
-export type AgAnnotationLineStyleType = 'solid' | 'dashed' | 'dotted';
-
-export interface LineOptions extends LineDashOptions {
-    lineStyle?: AgAnnotationLineStyleType;
-}
-
 export interface AgAnnotationsThemeableOptions {
     // Lines
     line?: AgLineAnnotationStyles;
@@ -257,6 +251,12 @@ export interface AgArrowDownAnnotation extends AgArrowMarkAnnotation {
 // **************
 // * Components *
 // **************/
+
+export type AgAnnotationLineStyleType = 'solid' | 'dashed' | 'dotted';
+
+export interface LineOptions extends LineDashOptions {
+    lineStyle?: AgAnnotationLineStyleType;
+}
 
 export interface AgAnnotationHandle extends FillOptions, StrokeOptions, LineDashOptions {}
 export interface AgChannelAnnotationMiddle extends Visible, StrokeOptions, LineOptions {}

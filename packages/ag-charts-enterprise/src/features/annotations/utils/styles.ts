@@ -12,8 +12,8 @@ import type {
     LinePropertiesType,
     TextualPropertiesType,
 } from '../annotationsSuperTypes';
-import { getComputedLineDash, getLineStyle } from '../properties/util';
 import { hasFontSize, hasIconColor, hasLineStyle } from './has';
+import { getComputedLineDash, getLineStyle } from './line';
 
 export function setDefaults({
     datum,

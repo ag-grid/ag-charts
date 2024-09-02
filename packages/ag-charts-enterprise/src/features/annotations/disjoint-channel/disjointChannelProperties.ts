@@ -10,7 +10,7 @@ import {
     Stroke,
 } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
-import { getLineCap, getLineDash } from '../properties/util';
+import { getLineCap, getLineDash } from '../utils/line';
 import { validateDatumLine } from '../utils/validation';
 
 const { NUMBER, OBJECT, STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
