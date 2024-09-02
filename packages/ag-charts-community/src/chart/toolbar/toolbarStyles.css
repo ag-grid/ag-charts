@@ -227,6 +227,10 @@
     cursor: grab;
 }
 
+.ag-charts-toolbar__button.ag-charts-toolbar__button--dragging {
+    cursor: grabbing;
+}
+
 .ag-charts-toolbar__button--fill-visible::after {
     content: '';
     display: block;

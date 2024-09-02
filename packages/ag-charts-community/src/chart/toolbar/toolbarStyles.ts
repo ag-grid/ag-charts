@@ -34,5 +34,6 @@ export const modifiers = {
         strokeWidthVisible: 'ag-charts-toolbar__button--stroke-width-visible',
         withTransition: 'ag-charts-toolbar__button--with-transition',
         dragHandle: 'ag-charts-toolbar__button--drag-handle',
+        dragging: 'ag-charts-toolbar__button--dragging',
     },
 };
