@@ -1207,8 +1207,7 @@ export class RadialGaugeSeries
         const targetData = this.contextNodeData?.targetData;
         if (targetData == null || targetData.length === 0) return;
 
-        const { datumIndex } = opts;
-        if (datumIndex < 0 || datumIndex >= targetData.length) return;
+        const datumIndex = Math.min(Math.max(opts.datumIndex, 0), targetData.length - 1);
 
         const datum = targetData[datumIndex];
 
