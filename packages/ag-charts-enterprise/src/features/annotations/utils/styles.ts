@@ -1,5 +1,3 @@
-import type { AgAnnotationLineStyleType, PixelSize } from 'ag-charts-community';
-
 import type {
     AnnotationLineStyle,
     AnnotationOptionsColorPickerType,
@@ -14,6 +12,7 @@ import type {
     LinePropertiesType,
     TextualPropertiesType,
 } from '../annotationsSuperTypes';
+import { getComputedLineDash, getLineStyle } from '../properties/util';
 import { hasFontSize, hasIconColor, hasLineStyle } from './has';
 
 export function setDefaults({
@@ -77,21 +76,6 @@ export function setLineStyle(
     datum.computedLineDash = computedLineDash;
     datum.lineStyle = styleType;
     datum.lineCap = styleType === 'dotted' ? 'round' : undefined;
-}
-
-export function getLineStyle(lineDash?: PixelSize[], lineStyle?: AgAnnotationLineStyleType) {
-    return lineDash ? 'dashed' : lineStyle ?? 'solid';
-}
-
-export function getComputedLineDash(strokeWidth: number, styleType: AgAnnotationLineStyleType): PixelSize[] {
-    switch (styleType) {
-        case 'solid':
-            return [];
-        case 'dashed':
-            return [strokeWidth * 4, strokeWidth * 2];
-        case 'dotted':
-            return [0, strokeWidth * 2];
-    }
 }
 
 export function setColor(

@@ -10,7 +10,7 @@ import {
     Stroke,
 } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
-import { getComputedLineDash, getLineStyle } from '../utils/styles';
+import { getLineCap, getLineDash } from '../properties/util';
 import { validateDatumLine } from '../utils/validation';
 
 const { NUMBER, OBJECT, STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
@@ -78,12 +78,10 @@ export class DisjointChannelProperties extends Annotation(Background(Line(Handle
     }
 
     getLineDash(): PixelSize[] | undefined {
-        const styleType = getLineStyle(this.lineDash, this.lineStyle);
-        return this.lineDash ?? this.computedLineDash ?? getComputedLineDash(this.strokeWidth ?? 1, styleType);
+        return getLineDash(this.lineDash, this.computedLineDash, this.lineStyle, this.strokeWidth);
     }
 
     getLineCap(): _Scene.ShapeLineCap | undefined {
-        const styleType = getLineStyle(this.lineDash, this.lineStyle);
-        return this.lineCap ?? styleType === 'dotted' ? 'round' : undefined;
+        return getLineCap(this.lineCap, this.lineDash, this.lineStyle);
     }
 }
