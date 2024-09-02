@@ -1,11 +1,11 @@
 import { Icon, type IconName } from '@ag-website-shared/components/icon/Icon';
 import { LinkIcon } from '@ag-website-shared/components/link-icon/LinkIcon';
+import styles from '@ag-website-shared/components/reference-documentation/ApiReference.module.scss';
 import { navigate, scrollIntoViewById } from '@ag-website-shared/utils/navigation';
 import classnames from 'classnames';
 import { type AllHTMLAttributes, type FunctionComponent, type MouseEventHandler, type ReactNode } from 'react';
 
 import { cleanupName } from '../apiReferenceHelpers';
-import styles from './ApiReference.module.scss';
 
 interface PropertyTitleOptions {
     name: string;

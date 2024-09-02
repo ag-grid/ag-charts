@@ -1,5 +1,6 @@
 import Code from '@ag-website-shared/components/code/Code';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
+import styles from '@ag-website-shared/components/reference-documentation/ApiReference.module.scss';
 import { navigate, scrollIntoViewById, useLocation } from '@ag-website-shared/utils/navigation';
 import type {
     ApiReferenceNode,
@@ -26,7 +27,6 @@ import {
     normalizeType,
     processMembers,
 } from '../apiReferenceHelpers';
-import styles from './ApiReference.module.scss';
 import { SelectionContext } from './OptionsNavigation';
 import { type CollapsibleType, PropertyTitle, PropertyType } from './Properties';
 
