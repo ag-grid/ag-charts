@@ -21,8 +21,20 @@ const DropdownButton = () => {
             >
                 Get Started
             </button>
-            <button className={styles.arrow} onClick={toggleDropdown}>
+            {/* <button className={styles.arrow} onClick={toggleDropdown}>
                 <Icon svgClasses={styles.expandIcon} name={!isOpen ? 'chevronDown' : 'chevronRight'} />
+            </button> */}
+            <button className={styles.frameworkButton}>
+                <img className={styles.frameworkLogo} src={fwLogos['javascript']} alt={'alt'} />
+            </button>
+            <button className={styles.frameworkButton}>
+                <img className={styles.frameworkLogo} src={fwLogos['react']} alt={'alt'} />
+            </button>
+            <button className={styles.frameworkButton}>
+                <img className={styles.frameworkLogo} src={fwLogos['angular']} alt={'alt'} />
+            </button>
+            <button className={styles.frameworkButton}>
+                <img className={styles.frameworkLogo} src={fwLogos['vue']} alt={'alt'} />
             </button>
             {isOpen && (
                 <div className={styles.dropdownMenu}>

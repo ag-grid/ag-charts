@@ -1,3 +1,4 @@
+import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { ExampleRunner } from '@features/example-runner/components/ExampleRunner';
 import { ExternalLinks } from '@features/example-runner/components/ExternalLinks';
 import { useEffect, useState } from 'react';
@@ -18,6 +19,7 @@ interface Props {
         title: string;
         exampleName: string;
         buttonText: string;
+        icon: string;
     }>;
     loadingIFrameId: string;
     format: string;
@@ -149,14 +151,18 @@ const GalleryExampleRunnerInner = ({ examples, loadingIFrameId, format }: Props)
     };
 
     return (
-        <div className={format === 'side' ? styles.sideContainer : styles.container}>
-            <div className={format === 'side' ? styles.verticalTabContainer : styles.tabContainer}>
+        <div className={styles.container}>
+            <div className={styles.tabContainer}>
                 {examples.map((example) => (
                     <button
                         key={example.exampleName}
                         className={`${styles.tabButton} ${example.exampleName === currentExampleName ? styles.activeTabButton : ''}`}
                         onClick={() => handleExampleSelect(example.exampleName)}
                     >
+                        <Icon
+                            svgClasses={`${example.exampleName === currentExampleName ? styles.activeTabButtonIcon : styles.tabButtonIcon}`}
+                            name={example.icon as IconName}
+                        />
                         {example.buttonText}
                     </button>
                 ))}

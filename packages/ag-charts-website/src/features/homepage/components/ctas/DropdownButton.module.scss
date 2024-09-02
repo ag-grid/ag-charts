@@ -8,6 +8,28 @@
     align-items: center;
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
+    padding-right: 6px;
+}
+
+.arrow {
+    padding: 0px 6px 0px 0px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.frameworkLogo {
+    width: 28px;
+    height: 28px;
+    margin: 0px 12px;
+}
+
+.frameworkButton {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.frameworkButton:not(:last-child) {
+    border-radius: 0;
 }
 
 .dropdownMenu {
@@ -36,6 +58,7 @@
 .imageButton img {
     width: 28px;
     height: 28px;
+    margin: 0px 12px;
 }
 
 .imgButton span {
@@ -45,9 +68,4 @@
 .buttonContainer {
     display: flex;
     align-items: center;
-}
-
-.arrow {
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
 }

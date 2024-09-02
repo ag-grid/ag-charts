@@ -38,7 +38,7 @@ const queryOptions = {
 };
 
 const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, pageName }: Props) => {
-    const internalFramework = useStore($internalFramework);
+    const internalFramework = 'vanilla';
     const [initialSelectedFile, setInitialSelectedFile] = useState();
     const [exampleUrl, setExampleUrl] = useState<string>();
     const [exampleRunnerExampleUrl, setExampleRunnerExampleUrl] = useState<string>();

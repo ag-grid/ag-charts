@@ -4,23 +4,21 @@
     display: flex;
     flex-direction: column;
     gap: $spacing-size-4;
-    margin: $spacing-size-8;
     align-items: center;
-    width: 100%;
 }
 
 .tabContainer {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     gap: 16px;
-    background: var(--color-brand-200);
     border-radius: var(--radius-4xl);
     padding: $spacing-size-1;
-    max-width: 75%;
+    max-width: 100%;
 }
 
 .tabButton {
-    width: 150px;
+    width: auto;
     height: 50px;
     color: var(--color-fg-primary);
     border-radius: var(--radius-4xl);
@@ -31,22 +29,38 @@
     font-weight: var(--text-regular);
 
     &:hover {
-        border-radius: var(--radius-4xl);
-        background: #fff;
+        border-radius: 0;
+        background: transparent;
         color: var(--color-brand-600);
         border: none;
-        box-shadow: var(--shadow-lg);
+        box-shadow: none;
+        border-bottom: 2px solid var(--color-brand-400);
+
+        .tabButtonIcon {
+            fill: var(--color-brand-600) !important;
+        }
     }
 }
 
+.tabButtonIcon {
+    fill: var(--color-text-primary) !important;
+    padding: 6px;
+}
+
 .activeTabButton {
-    width: 150px;
+    width: auto;
     height: 50px;
-    border-radius: var(--radius-4xl);
-    background: #fff;
+    border-radius: 0;
+    background: transparent;
     color: var(--color-brand-600);
     border: none;
-    box-shadow: var(--shadow-lg);
+    box-shadow: none;
+    border-bottom: 2px solid var(--color-brand-400);
+}
+
+.activeTabButtonIcon {
+    padding: 6px;
+    fill: var(--color-brand-600) !important;
 }
 
 .exampleContainer {

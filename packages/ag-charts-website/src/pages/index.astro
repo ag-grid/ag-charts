@@ -65,6 +65,7 @@ const exampleData = galleryEntry.data.series
             title: example.title,
             exampleName: example.name,
             buttonText: series.title,
+            icon: series.icon,
         };
     });
 
@@ -78,6 +79,7 @@ const enterpriseExampleData = galleryEntry.data.series
             title: example.title,
             exampleName: example.name,
             buttonText: series.title,
+            icon: series.icon,
         };
     });
 
@@ -219,32 +221,40 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                 </div>
                 <div class={styles.twoColumnContainer}>
                     <div class={styles.columnSmall}>
-                        <p>
-                            <b>Start in Seconds</b>
-                            <Snippet
-                                framework={'javascript'}
-                                content={'const options = {\n\tdata: getData(),\n};\n\nAgCharts.createFinancialChart(options);'}
-                                copyToClipboard
-                            />
-                        </p>
-                        <p>
-                            <b>Drawings and Annotations</b>
-                            <ul>
-                                <li>Add Trend Lines and Text Annotations from the toolbar for data analysis.</li>
-                            </ul>
-                        </p>
-                        <p>
-                            <b>Interactive Charts</b>
-                            <ul>
-                                <li>Easily navigate time periods with advanced zoom & Range buttons</li>
-                            </ul>
-                        </p>
-                        <p>
-                            <b>Financial Chart types</b>
-                            <ul>
-                                <li>Choose from 6 chart types, including OHLC, Line, and Candlestick</li>
-                            </ul>
-                        </p>
+                        <div class={styles.financialChartsFeaturesContainer}>
+                            <p>
+                                <b>Start in Seconds</b>
+                                <ul>
+                                    <li>
+                                        Financial Charts come pre-configured with built-in features, simply provide your
+                                        JSON data, and create the chart
+                                    </li>
+                                </ul>
+                                <!-- <Snippet
+                                    framework={'javascript'}
+                                    content={'const options = {\n\tdata: getData(),\n};\n\nAgCharts.createFinancialChart(options);'}
+                                    copyToClipboard
+                                /> -->
+                            </p>
+                            <p>
+                                <b>Drawings and Annotations</b>
+                                <ul>
+                                    <li>Add Trend Lines and Text Annotations from the toolbar for data analysis.</li>
+                                </ul>
+                            </p>
+                            <p>
+                                <b>Interactive Charts</b>
+                                <ul>
+                                    <li>Easily navigate time periods with advanced zoom & Range buttons</li>
+                                </ul>
+                            </p>
+                            <p>
+                                <b>Financial Chart types</b>
+                                <ul>
+                                    <li>Choose from 6 chart types, including OHLC, Line, and Candlestick</li>
+                                </ul>
+                            </p>
+                        </div>
                     </div>
                     <div class={styles.columnLarge}>
                         <IndexDocsExampleRunner
