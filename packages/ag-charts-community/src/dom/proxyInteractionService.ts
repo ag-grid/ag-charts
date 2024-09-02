@@ -7,9 +7,8 @@ import { createElement } from '../util/dom';
 import { BoundedText } from './boundedText';
 import type { DOMElementClass, DOMManager } from './domManager';
 import type { FocusIndicator } from './focusIndicator';
-import { elements } from './focusStyles';
 
-export type ListButton = { button: HTMLButtonElement; listitem: HTMLElement };
+export type ListSwitch = { button: HTMLButtonElement; listitem: HTMLElement };
 
 type UpdateServiceLike = {
     addListener(type: 'update-complete', handler: () => unknown): () => void;
@@ -55,9 +54,14 @@ type ProxyMeta = {
         params: ElemParams<'text'>;
         result: BoundedText;
     };
-    listbutton: {
-        params: InteractParams<'listbutton'> & { readonly textContent: string | TranslationKey };
-        result: ListButton;
+    listswitch: {
+        params: InteractParams<'listswitch'> & {
+            readonly textContent: string;
+            readonly ariaChecked: boolean;
+            readonly ariaRoleDescription: TranslationKey;
+            readonly ariaDescribedBy: string;
+        };
+        result: ListSwitch;
     };
 
     // Containers
@@ -75,7 +79,7 @@ type ProxyMeta = {
     };
 };
 
-type ProxyElementType = 'button' | 'slider' | 'text' | 'listbutton';
+type ProxyElementType = 'button' | 'slider' | 'text' | 'listswitch';
 type ProxyContainerType = 'toolbar' | 'group' | 'list';
 
 function checkType<T extends keyof ProxyMeta>(type: T, meta: ProxyMeta[keyof ProxyMeta]): meta is ProxyMeta[T] {
@@ -91,7 +95,7 @@ function allocateResult<T extends keyof ProxyMeta>(type: T): ProxyMeta[T]['resul
         return createElement('div');
     } else if ('text' === type) {
         return new BoundedText();
-    } else if ('listbutton' === type) {
+    } else if ('listswitch' === type) {
         return { button: createElement('button'), listitem: createElement('div') };
     } else {
         throw Error('AG Charts - error allocating meta');
@@ -198,7 +202,7 @@ export class ProxyInteractionService {
             this.setParent(params, text.getContainer());
         }
 
-        if (checkType('listbutton', meta)) {
+        if (checkType('listswitch', meta)) {
             const {
                 params,
                 result: { button, listitem },
@@ -206,14 +210,13 @@ export class ProxyInteractionService {
             this.initInteract(params, button);
             button.style.width = '100%';
             button.style.height = '100%';
-            if (typeof params.textContent === 'string') {
-                button.textContent = params.textContent;
-            } else {
-                const { textContent } = params;
-                this.addLocalisation(() => {
-                    button.textContent = this.localeManager.t(textContent.id, textContent.params);
-                });
-            }
+            button.textContent = params.textContent;
+            button.role = 'switch';
+            button.ariaChecked = params.ariaChecked.toString();
+            button.setAttribute('aria-describedby', params.ariaDescribedBy);
+            this.addLocalisation(() => {
+                button.ariaRoleDescription = this.localeManager.t(params.ariaRoleDescription.id);
+            });
 
             listitem.role = 'listitem';
             listitem.style.position = 'absolute';

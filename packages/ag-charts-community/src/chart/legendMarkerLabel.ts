@@ -1,6 +1,6 @@
 import type { FontStyle, FontWeight } from 'ag-charts-types';
 
-import type { ListButton } from '../dom/proxyInteractionService';
+import type { ListSwitch } from '../dom/proxyInteractionService';
 import { BBox } from '../scene/bbox';
 import { RedrawType } from '../scene/changeDetectable';
 import { Group } from '../scene/group';
@@ -50,7 +50,7 @@ export class LegendMarkerLabel extends Translatable(Group) {
         this.proxyButton?.listitem.remove();
     }
 
-    proxyButton?: ListButton;
+    proxyButton?: ListSwitch;
 
     pageIndex: number = NaN;
 

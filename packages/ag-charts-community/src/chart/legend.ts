@@ -21,7 +21,7 @@ import { Selection } from '../scene/selection';
 import { Line } from '../scene/shape/line';
 import { type SpriteDimensions, SpriteRenderer } from '../scene/spriteRenderer';
 import { Transformable } from '../scene/transformable';
-import { getWindow, setElementBBox } from '../util/dom';
+import { createElement, getWindow, setElementBBox } from '../util/dom';
 import { createId } from '../util/id';
 import { initToolbarKeyNav } from '../util/keynavUtil';
 import { Logger } from '../util/logger';
@@ -242,6 +242,7 @@ export class Legend extends BaseProperties {
 
     private readonly proxyLegendToolbar: HTMLDivElement;
     private readonly proxyLegendPagination: HTMLDivElement;
+    private readonly proxyLegendItemDescription: HTMLParagraphElement;
     private proxyPrevButton?: HTMLButtonElement;
     private proxyNextButton?: HTMLButtonElement;
     private pendingHighlightDatum?: HighlightNodeDatum;
@@ -302,6 +303,11 @@ export class Legend extends BaseProperties {
             ariaOrientation: 'horizontal',
             ariaHidden: true,
         });
+        this.proxyLegendItemDescription = createElement('p');
+        this.proxyLegendItemDescription.style.display = 'none';
+        this.proxyLegendItemDescription.id = `${this.id}-ariaDescription`;
+        this.proxyLegendItemDescription.textContent = this.getItemAriaDescription();
+        this.proxyLegendToolbar.append(this.proxyLegendItemDescription);
     }
 
     public destroy() {
@@ -317,17 +323,20 @@ export class Legend extends BaseProperties {
         this.itemSelection.each((markerLabel, _, i) => {
             // Create the hidden CSS button.
             markerLabel.proxyButton ??= this.ctx.proxyInteractionService.createProxyElement({
-                type: 'listbutton',
+                type: 'listswitch',
                 id: `ag-charts-legend-item-${i}`,
                 textContent: this.getItemAriaText(i),
+                ariaChecked: !!markerLabel.datum.enabled,
+                ariaRoleDescription: { id: 'ariaRoleDescriptionLegendItem' },
+                ariaDescribedBy: this.proxyLegendItemDescription.id,
                 parent: this.proxyLegendToolbar,
                 focusable: new NodeRegionBBoxProvider(markerLabel),
                 // Retrieve the datum from the node rather than from the method parameter.
                 // The method parameter `datum` gets destroyed when the data is refreshed
                 // using Series.getLegendData(). But the scene node will stay the same.
                 onclick: () => {
-                    this.doClick(markerLabel.datum);
-                    markerLabel.proxyButton!.button.textContent = this.getItemAriaText(i, !markerLabel.datum.enabled);
+                    this.doClick(markerLabel.datum, markerLabel.proxyButton?.button);
+                    markerLabel.proxyButton!.button.ariaChecked = (!!markerLabel.datum.enabled).toString();
                 },
                 onblur: () => this.handleLegendMouseExit(),
                 onfocus: () => {
@@ -1006,7 +1015,7 @@ export class Legend extends BaseProperties {
         return this.ctx.chartService.series.flatMap((s) => s.getLegendData('category')).filter((d) => d.enabled).length;
     }
 
-    private doClick(datum: CategoryLegendDatum | undefined): boolean {
+    private doClick(datum: CategoryLegendDatum | undefined, proxyButton?: HTMLButtonElement): boolean {
         const {
             listeners: { legendItemClick },
             ctx: { chartService, highlightManager },
@@ -1035,8 +1044,11 @@ export class Legend extends BaseProperties {
                 }
             }
 
-            const status: string = newEnabled ? 'ariaAnnounceVisible' : 'ariaAnnounceHidden';
-            this.ctx.ariaAnnouncementService.announceValue(status);
+            proxyButton ??= this.itemSelection.select((ml): ml is LegendMarkerLabel => ml.datum === datum)[0]
+                ?.proxyButton?.button;
+            if (proxyButton) {
+                proxyButton.ariaChecked = newEnabled.toString();
+            }
             this.ctx.chartEventManager.legendItemClick(series, itemId, newEnabled, datum.legendItemName);
         }
 
@@ -1195,21 +1207,20 @@ export class Legend extends BaseProperties {
                 proxyButton.button.textContent = this.getItemAriaText(i);
             }
         });
+        this.proxyLegendItemDescription.textContent = this.getItemAriaDescription();
     }
 
-    private getItemAriaText(nodeIndex: number, enabled?: boolean): string {
+    private getItemAriaText(nodeIndex: number): string {
         const datum = this.data[nodeIndex];
         const label = datum && this.getItemLabel(datum);
-        enabled ??= datum.enabled;
-        const lm = this.ctx.localeManager;
         if (nodeIndex >= 0 && label) {
-            const index = nodeIndex + 1;
-            const count = this.data.length;
-            const part1 = lm.t('ariaLabelLegendItem', { label, index, count });
-            const part2 = lm.t(enabled ? 'ariaAnnounceVisible' : 'ariaAnnounceHidden');
-            return [part1, part2].join('');
+            return label;
         }
-        return lm.t('ariaLabelLegendItemUnknown');
+        return this.ctx.localeManager.t('ariaLabelLegendItemUnknown');
+    }
+
+    private getItemAriaDescription(): string {
+        return this.ctx.localeManager.t('ariaDescriptionLegendItem');
     }
 
     private positionLegend(ctx: LayoutContext) {
