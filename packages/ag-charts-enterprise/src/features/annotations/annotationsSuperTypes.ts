@@ -87,6 +87,8 @@ export interface AnnotationsStateMachineContext {
     showAnnotationOptions: (index: number) => void;
     showAnnotationSettings: (index: number) => void;
 
+    recordAction: (label: string) => void;
+
     update: () => void;
 }
 

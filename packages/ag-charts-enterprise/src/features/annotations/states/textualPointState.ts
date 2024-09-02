@@ -110,6 +110,7 @@ export abstract class TextualPointStateMachine<
                     datum.set({ text: textInputValue });
                 }
                 ctx.update();
+                ctx.recordAction(`Create ${ctx.node()?.type} annotation`);
             } else {
                 ctx.delete();
             }

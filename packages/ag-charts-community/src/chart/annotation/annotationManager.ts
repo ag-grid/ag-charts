@@ -38,14 +38,14 @@ export class AnnotationManager
     public restoreMemento(_version: string, _mementoVersion: string, memento: AnnotationsMemento) {
         // Migration from older versions can be implemented here.
 
-        const annotations = this.cleanData(memento).map((annotation) => {
+        this.annotations = this.cleanData(memento).map((annotation) => {
             const annotationTheme = this.getAnnotationTypeStyles(annotation.type);
             return mergeDefaults(annotation, annotationTheme);
         });
 
         this.listeners.dispatch('restore-annotations', {
             type: 'restore-annotations',
-            annotations,
+            annotations: this.annotations,
         });
     }
 

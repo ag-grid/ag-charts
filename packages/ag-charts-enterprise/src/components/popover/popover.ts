@@ -36,6 +36,7 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
     }
 
     public hide() {
+        if (this.element.children.length === 0) return;
         this.hideFns.forEach((fn) => fn());
     }
 
