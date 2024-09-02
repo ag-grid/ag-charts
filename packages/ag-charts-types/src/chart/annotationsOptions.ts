@@ -14,6 +14,12 @@ import type { PixelSize } from './types';
 // * Theme *
 // *********/
 
+export type AgAnnotationLineStyleType = 'solid' | 'dashed' | 'dotted';
+
+export interface LineOptions extends LineDashOptions {
+    lineStyle?: AgAnnotationLineStyleType;
+}
+
 export interface AgAnnotationsThemeableOptions {
     // Lines
     line?: AgLineAnnotationStyles;
@@ -45,7 +51,7 @@ export interface AgAnnotationAxesButtons extends Toggleable {
 }
 
 export interface AgAnnotationHandleStyles extends FillOptions, StrokeOptions, LineDashOptions {}
-export interface AgLineAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineDashOptions {
+export interface AgLineAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineOptions {
     handle?: AgAnnotationHandleStyles;
 }
 
@@ -53,7 +59,7 @@ export interface AgShapeAnnotationStyles extends Lockable, Visible, StrokeOption
     size?: PixelSize;
 }
 
-export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineDashOptions {
+export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineOptions {
     handle?: AgAnnotationHandleStyles;
     middle?: AgChannelAnnotationMiddle;
     /** The fill colour for the middle of the channel. */
@@ -106,7 +112,7 @@ export interface AgLineAnnotation
         Lockable,
         Visible,
         StrokeOptions,
-        LineDashOptions {
+        LineOptions {
     /** Configuration for the trend line annotation.*/
     type: 'line';
     handle?: AgAnnotationHandle;
@@ -128,7 +134,7 @@ export interface AgVerticalLineAnnotation extends AgCrossLineAnnotation {
     text?: AgLineText;
 }
 
-export interface AgCrossLineAnnotation extends Lockable, Visible, StrokeOptions, LineDashOptions {
+export interface AgCrossLineAnnotation extends Lockable, Visible, StrokeOptions, LineOptions {
     /** Position of the annotation specified in terms of the axis values. */
     value: AgAnnotationValue;
     /** Configuration for the annotation axis label. */
@@ -146,7 +152,7 @@ export interface AgParallelChannelAnnotation
         Lockable,
         Visible,
         StrokeOptions,
-        LineDashOptions {
+        LineOptions {
     /** Configuration for the parallel-channel annotation.*/
     type: 'parallel-channel';
     /** The height of the annotation along the y-axis. */
@@ -166,7 +172,7 @@ export interface AgDisjointChannelAnnotation
         Lockable,
         Visible,
         StrokeOptions,
-        LineDashOptions {
+        LineOptions {
     /** Configuration for the disjoint-channel annotation.*/
     type: 'disjoint-channel';
     /** The height of the annotation along the y-axis at the start. */
@@ -226,7 +232,7 @@ export interface AgArrowAnnotation
         Lockable,
         Visible,
         StrokeOptions,
-        LineDashOptions {
+        LineOptions {
     /** Configuration for the arrow annotation.*/
     type: 'arrow';
     handle?: AgAnnotationHandle;
@@ -234,7 +240,7 @@ export interface AgArrowAnnotation
     text?: AgLineText;
 }
 
-export interface AgArrowMarkAnnotation extends AgAnnotationPoint, Lockable, Visible, StrokeOptions, LineDashOptions {
+export interface AgArrowMarkAnnotation extends AgAnnotationPoint, Lockable, Visible, StrokeOptions, LineOptions {
     /** Configuration for the arrow mark annotation.*/
     handle?: AgAnnotationHandle;
 }
@@ -253,7 +259,7 @@ export interface AgArrowDownAnnotation extends AgArrowMarkAnnotation {
 // **************/
 
 export interface AgAnnotationHandle extends FillOptions, StrokeOptions, LineDashOptions {}
-export interface AgChannelAnnotationMiddle extends Visible, StrokeOptions, LineDashOptions {}
+export interface AgChannelAnnotationMiddle extends Visible, StrokeOptions, LineOptions {}
 export interface AgChannelAnnotationBackground extends FillOptions {}
 export interface AgNoteAnnotationBackground extends StrokeOptions, FillOptions {}
 export interface AgAnnotationAxisLabel

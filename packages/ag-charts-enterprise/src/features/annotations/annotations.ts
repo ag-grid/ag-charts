@@ -1,4 +1,5 @@
 import {
+    type AgAnnotationLineStyleType,
     type AgToolbarAnnotationsButtonValue,
     type Direction,
     _ModuleSupport,
@@ -13,7 +14,6 @@ import { TextInput } from '../text-input/textInput';
 import type {
     AnnotationContext,
     AnnotationLineStyle,
-    AnnotationLineStyleType,
     AnnotationOptionsColorPickerType,
     ChannelAnnotationType,
     Coords,
@@ -74,7 +74,7 @@ const LINE_STROKE_WIDTH_ITEMS: MenuItem<number>[] = [
     { strokeWidth: 8, label: '8', value: 8 },
 ];
 
-const LINE_STYLE_TYPE_ITEMS: MenuItem<AnnotationLineStyleType>[] = [
+const LINE_STYLE_TYPE_ITEMS: MenuItem<AgAnnotationLineStyleType>[] = [
     { icon: 'line-style-solid', value: 'solid' },
     { icon: 'line-style-dashed', value: 'dashed' },
     { icon: 'line-style-dotted', value: 'dotted' },
@@ -570,9 +570,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         switch (event.value) {
             case AnnotationOptions.LineStyleType:
                 const lineStyle = hasLineStyle(datum) ? getLineStyle(datum.lineDash, datum.lineStyle) : undefined;
-                this.lineStyleTypeMenu.show<AnnotationLineStyleType>({
+                this.lineStyleTypeMenu.show<AgAnnotationLineStyleType>({
                     items: LINE_STYLE_TYPE_ITEMS,
-                    ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsLineStyleType'),
+                    ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsLineStyle'),
                     value: lineStyle,
                     sourceEvent: event.sourceEvent,
                     onPress: (item) => this.onLineStyleTypeMenuPress(item, datum),
@@ -756,7 +756,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         });
     }
 
-    private updateToolbarLineStyleType(item: MenuItem<AnnotationLineStyleType>) {
+    private updateToolbarLineStyleType(item: MenuItem<AgAnnotationLineStyleType>) {
         this.ctx.toolbarManager.updateButton('annotationOptions', AnnotationOptions.LineStyleType, {
             icon: item.icon,
         });
@@ -781,7 +781,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.updateToolbarFontSize(fontSize);
     }
 
-    private onLineStyleTypeMenuPress(item: MenuItem<AnnotationLineStyleType>, datum?: AnnotationProperties) {
+    private onLineStyleTypeMenuPress(item: MenuItem<AgAnnotationLineStyleType>, datum?: AnnotationProperties) {
         if (!hasLineStyle(datum)) {
             return;
         }
