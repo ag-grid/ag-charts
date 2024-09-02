@@ -266,6 +266,26 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
     }
 
+    private setButtonGroupFirstLast(group: Element) {
+        const childNodes = Array.from(group.childNodes ?? []) as HTMLElement[];
+
+        const setFirstClass = (first: boolean, button: HTMLElement, modifier: string) => {
+            const buttonVisible = !button.classList.contains(styles.modifiers.button.hiddenToggled);
+            button.classList.toggle(modifier, buttonVisible && first);
+            return buttonVisible ? false : first;
+        };
+
+        childNodes.reduce<boolean>(
+            (first, button) => setFirstClass(first, button, styles.modifiers.button.first),
+            true
+        );
+
+        childNodes.reduceRight<boolean>(
+            (last, button) => setFirstClass(last, button, styles.modifiers.button.last),
+            true
+        );
+    }
+
     private onButtonToggled(event: ToolbarButtonToggledEvent) {
         const { group, id, active, enabled, visible, checked } = event;
 
@@ -274,13 +294,15 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             return;
         }
 
-        for (const button of this.groupButtons[group]) {
-            if (button.dataset.toolbarId !== `${id}`) continue;
-            button.ariaDisabled = `${!enabled}`;
-            button.classList.toggle(styles.modifiers.button.hiddenToggled, !visible);
-            this.setButtonActive(button, active);
-            this.setButtonChecked(button, checked);
-        }
+        const button = this.groupButtons[group].find((b) => b.dataset.toolbarId === `${id}`);
+        if (button == null) return;
+
+        button.ariaDisabled = `${!enabled}`;
+        button.classList.toggle(styles.modifiers.button.hiddenToggled, !visible);
+        this.setButtonActive(button, active);
+        this.setButtonChecked(button, checked);
+
+        this.setButtonGroupFirstLast(button.parentNode! as HTMLElement);
     }
 
     private onGroupToggled(event: ToolbarGroupToggledEvent) {
@@ -471,6 +493,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         for (const options of buttons) {
             if (prevSection !== options.section) {
+                this.setButtonGroupFirstLast(section);
                 section = nextSection(options.section);
             }
             prevSection = options.section;
@@ -478,6 +501,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             section.appendChild(button);
             this.groupButtons[group].push(button);
         }
+        this.setButtonGroupFirstLast(section);
 
         const onEscape = () => {
             this.ctx.toolbarManager.cancel(group);

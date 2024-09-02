@@ -27,6 +27,8 @@ export const modifiers = {
         end: 'ag-charts-toolbar__align--end',
     },
     button: {
+        first: 'ag-charts-toolbar__button--first',
+        last: 'ag-charts-toolbar__button--last',
         active: 'ag-charts-toolbar__button--active',
         hiddenValue: 'ag-charts-toolbar__button--hidden-value',
         hiddenToggled: 'ag-charts-toolbar__button--hidden-toggled',
