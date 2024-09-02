@@ -1,18 +1,7 @@
-import {
-    type FontStyle,
-    type FontWeight,
-    type Formatter,
-    type TextAlign,
-    _ModuleSupport,
-    _Util,
-} from 'ag-charts-community';
+import type { AgAnnotationLineStyleType, FontStyle, FontWeight, Formatter, TextAlign } from 'ag-charts-community';
+import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import type {
-    AnnotationContext,
-    AnnotationLineStyleType,
-    AnnotationOptionsColorPickerType,
-    Constructor,
-} from './annotationTypes';
+import type { AnnotationContext, AnnotationOptionsColorPickerType, Constructor } from './annotationTypes';
 
 const {
     BOOLEAN,
@@ -243,7 +232,7 @@ export function LineStyle<T extends Constructor>(Parent: T) {
         lineDashOffset?: number;
 
         @Validate(LINE_STYLE, { optional: true })
-        lineStyle?: AnnotationLineStyleType;
+        lineStyle?: AgAnnotationLineStyleType;
     }
     return LineDashInternal;
 }

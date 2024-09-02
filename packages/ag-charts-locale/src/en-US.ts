@@ -92,6 +92,10 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarAnnotationsFillColor: 'Fill Color',
     // Text for the annotation toolbar's line color picker annotation button
     toolbarAnnotationsLineColor: 'Line Color',
+    // Text for the annotation toolbar's line style type button
+    toolbarAnnotationsLineStyle: 'Line Style',
+    // Text for the annotation toolbar's line stroke width button
+    toolbarAnnotationsLineStrokeWidth: 'Line Stroke Width',
     // Text for the annotation toolbar's text color picker annotation button
     toolbarAnnotationsTextColor: 'Text Color',
     // Text for the annotation toolbar's text size picker annotation button

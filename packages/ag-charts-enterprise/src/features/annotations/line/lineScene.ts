@@ -55,7 +55,7 @@ export class LineScene extends LinearScene<LineTypeProperties> {
 
     updateLine(datum: LineTypeProperties, coords: LineCoords) {
         const { line } = this;
-        const { lineDashOffset, stroke, strokeWidth, strokeOpacity, lineCap } = datum;
+        const { lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
         const { x1, y1, x2, y2 } = coords;
 
         line.setProperties({
@@ -69,7 +69,7 @@ export class LineScene extends LinearScene<LineTypeProperties> {
             strokeWidth,
             strokeOpacity,
             fillOpacity: 0,
-            lineCap,
+            lineCap: datum.getLineCap(),
         });
     }
 
