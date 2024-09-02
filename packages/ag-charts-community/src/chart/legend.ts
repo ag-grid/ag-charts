@@ -183,8 +183,10 @@ export class Legend extends BaseProperties {
     private readonly truncatedItems: Set<string> = new Set();
 
     private _data: CategoryLegendDatum[] = [];
+    private _symbolsDirty = true;
     set data(value: CategoryLegendDatum[]) {
         this._data = value;
+        this._symbolsDirty = true;
         this.updateGroupVisibility();
     }
     get data() {
@@ -458,6 +460,7 @@ export class Legend extends BaseProperties {
 
             bboxes.push(markerLabel.getBBox());
         });
+        this._symbolsDirty = false;
 
         width = Math.max(1, width);
         height = Math.max(1, height);
@@ -554,7 +557,7 @@ export class Legend extends BaseProperties {
         const dimensionProps: { length: number; spacing: number }[] = [];
         let paddedSymbolWidth = paddingX;
 
-        if (markerLabel.markers.length !== datum.symbols.length && markerLabel.lines.length !== datum.symbols.length) {
+        if (this._symbolsDirty) {
             const markers: Marker[] = [];
             const lines: Line[] = [];
 
