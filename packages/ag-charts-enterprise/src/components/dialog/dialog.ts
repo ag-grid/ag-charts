@@ -10,7 +10,7 @@ export interface DialogOptions extends PopoverOptions {}
 
 interface ButtonGroupOptions {
     label: string;
-    options: Array<{ icon: AgIconName; value: string }>;
+    options: Array<{ icon: AgIconName; altText: string; value: string }>;
     value: string;
     onChange: (value: string) => void;
 }
@@ -83,6 +83,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             if (button.value === value) {
                 buttonEl.classList.add(activeClass);
             }
+            buttonEl.ariaLabel = this.ctx.localeManager.t(button.altText);
             buttonEl.appendChild(iconEl);
             buttonEl.addEventListener('click', () => {
                 for (const b of Array.from(group.children)) {
