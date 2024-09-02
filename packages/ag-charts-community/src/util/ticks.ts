@@ -160,7 +160,7 @@ export function tickFormat(ticks: any[], format?: string): (n: number | { valueO
                     if (!Number.isFinite(x) || x === 0) return 0;
                     const l = Math.floor(Math.log10(Math.abs(x)));
                     const digits = options.type ? 6 : 12;
-                    const { 1: decimal } = x.toExponential(digits - 1).split(/\.|e/g);
+                    const decimal = x.toExponential(digits - 1).split(/\.|e/g)[1];
                     const decimalLength = decimalPlaces(decimal);
                     return Math.max(0, decimalLength - l);
                 })
