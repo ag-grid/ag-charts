@@ -10,6 +10,8 @@ import { TabControl } from '@features/homepage/components/TabControl';
 import { getGalleryExamples } from '@features/gallery/utils/filesData';
 import { getEntry } from 'astro:content';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
+import fwLogos from '@ag-website-shared/images/fw-logos';
+
 import { AutomatedIntegratedChartsWrapper } from '@ag-website-shared/components/automated-examples/AutomatedIntegratedChartsWrapper';
 import Faqs from '../features/homepage/components/faqs/Faqs';
 import DropdownButton from '../features/homepage/components/ctas/DropdownButton';
@@ -35,8 +37,6 @@ const seriesExampleMap = {
 
 // Prepare examples data for IndexGalleryExampleRunner
 const enterpriseSeriesExampleMap = {
-    bar: 'stacked-horizontal-bar',
-    histogram: 'simple-histogram',
     maps: 'map-kitchen-sink',
     'range-bar': 'horizontal-range-bar-with-labels',
     'range-area': 'range-area-with-labels',
@@ -119,7 +119,8 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                     </h3>
                 </div>
                 <div class={styles.ctaContainer}>
-                    <DropdownButton client:load />
+                    <button>Get Started</button>
+                    <!-- <DropdownButton client:load /> -->
                     <div class={styles.installCta}>
                         <InstallText client:load />
                     </div>
@@ -137,6 +138,25 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
         <div class={styles.section}>
             <div class:list={[styles.communityFeaturesSectionInner, 'layout-max-width-small']}>
                 <div class={styles.sectionHeaderContainer}>
+                    <h2>React, Angular and Vue JavaScript Charting Libraries</h2>
+                    <h3>Support for React, Angular and Vue</h3>
+                </div>
+                <div class={styles.frameworkButtonsContainer}>
+                    <button class={styles.frameworkButton}>
+                        <img class={styles.frameworkLogo} src={fwLogos['react']} alt={'alt'} />
+                    </button>
+                    <button class={styles.frameworkButton}>
+                        <img class={styles.frameworkLogo} src={fwLogos['angular']} alt={'alt'} />
+                    </button>
+                    <button class={styles.frameworkButton}>
+                        <img class={styles.frameworkLogo} src={fwLogos['vue']} alt={'alt'} />
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class={styles.section}>
+            <div class:list={[styles.communityFeaturesSectionInner, 'layout-max-width-small']}>
+                <div class={styles.sectionHeaderContainer}>
                     <h2>Free JavaScript Charting Library - Quick & Easy Setup</h2>
                     <h3>Build Beautiful Charts in Minutes, for Free</h3>
                     <h4>
@@ -145,7 +165,7 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                         reporting, and interactive dashboards.
                     </h4>
                 </div>
-                <IndexGalleryExampleRunner examples={exampleData} pageName={galleryExamples[0].page.chartSeriesName} />
+                <IndexGalleryExampleRunner examples={exampleData} pageName={'bar'} />
             </div>
         </div>
         <div class={styles.section}>
@@ -159,27 +179,45 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                         enterprise support and continuous updates.
                     </h4>
                 </div>
-                <div class="tabs">
-                    <div class="tab active" data-tab="content1">Additional Series Types</div>
-                    <div class="tab" data-tab="content2">Advanced Features</div>
+                <div class={styles.enterpriseFeaturesContainer}>
+                    <h3 class={styles.enterpriseFeaturesSubtitle}>Additional Series Types</h3>
+                    <h4 class={styles.enterpriseFeaturesDescription}>
+                        Access over 30+ additional series types, including candlestick, OHLC, and multi-layered map
+                        visualizations.
+                    </h4>
+                    <IndexGalleryExampleRunner examples={enterpriseExampleData} pageName={'map'} />
+                    <h3 class={styles.enterpriseFeaturesSubtitle}>Advanced Features</h3>
+                    <h4 class={styles.enterpriseFeaturesDescription}>
+                        Advanced features include interactive zooming, cross-chart interactions, and advanced
+                        annotations.
+                    </h4>
+                    <div class={styles.cardContainer}>
+                        <div class={styles.card}>
+                            <h4>Interactivity</h4>
+                            <p>TODO</p>
+                            <button class={styles.learnMoreBtn}>Learn More</button>
+                        </div>
+                        <div class={styles.card}>
+                            <h4>Layout & Styling</h4>
+                            <p>TODO</p>
+                            <button class={styles.learnMoreBtn}>Learn More</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- <div>
+                    <b>Advanced Features</b>
+                    <p>
+                        Leverage advanced features like interactive zooming, cross-chart interactions, and advanced
+                        annotations to enhance your data analysis capabilities.
+                    </p>
+                    <IndexDocsExampleRunner name={'../../vanilla/context-menu/examples/context-menu'} />
+                </div> -->
+
+                <div class={styles.ctaButton}>
+                    <button>View Pricing</button>
                 </div>
 
-                <div id="content1" class="tab-content">
-                    <IndexGalleryExampleRunner
-                        examples={enterpriseExampleData}
-                        pageName={galleryExamples[0].page.chartSeriesName}
-                        format="side"
-                    />
-                </div>
-
-                <div id="content2" class="tab-content hidden">
-                    <IndexDocsExampleRunner
-                        name={'../../vanilla/financial-charts/examples/financial-charts-showcase'}
-                    />
-                </div>
-
-                <!-- <TabControl client:load />
-                <div class={styles.cardContainer}>
+                <!-- <div class={styles.cardContainer}>
                     <div class={styles.card}>
                         <h4>Advanced Features</h4>
                         <p>
@@ -205,104 +243,116 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                         <button class={styles.learnMoreBtn}>Learn More</button>
                     </div>
                 </div> -->
-                <div class={styles.ctaButton}>
-                    <button>View Pricing</button>
+
+                <!-- <div class="tabs">
+                    <div class="tab active" data-tab="content1">Additional Series Types</div>
+                    <div class="tab" data-tab="content2">Advanced Features</div>
                 </div>
+                <div id="content1" class="tab-content">
+                    <IndexGalleryExampleRunner
+                        examples={enterpriseExampleData}
+                        pageName={galleryExamples[0].page.chartSeriesName}
+                        format="side"
+                    />
+                </div>
+                <div id="content2" class="tab-content hidden">
+                    <IndexDocsExampleRunner name={'../../vanilla/financial-charts/examples/financial-charts-showcase'} />
+                </div> -->
+
+                <!-- <TabControl client:load /> -->
             </div>
         </div>
-        <div class={styles.section}>
-            <div class:list={[styles.financialChartsSectionInner, 'layout-max-width-small']}>
-                <div class={styles.sectionHeaderContainer}>
-                    <h2>JavaScript Financial Charts - Create Trading Views in Minutes</h2>
-                    <h3>Flexible, Interactive Financial Charts for Trading and Analysis</h3>
-                    <h4>
-                        Build interactive financial charts featuring advanced annotations with minimal configuration.
-                    </h4>
-                </div>
-                <div class={styles.twoColumnContainer}>
-                    <div class={styles.columnSmall}>
-                        <div class={styles.financialChartsFeaturesContainer}>
-                            <p>
-                                <b>Start in Seconds</b>
-                                <ul>
-                                    <li>
-                                        Financial Charts come pre-configured with built-in features, simply provide your
-                                        JSON data, and create the chart
-                                    </li>
-                                </ul>
-                                <!-- <Snippet
+    </div>
+    <div class={styles.section}>
+        <div class:list={[styles.financialChartsSectionInner, 'layout-max-width-small']}>
+            <div class={styles.sectionHeaderContainer}>
+                <h2>JavaScript Financial Charts - Create Trading Views in Minutes</h2>
+                <h3>Flexible, Interactive Financial Charts for Trading and Analysis</h3>
+                <h4>Build interactive financial charts featuring advanced annotations with minimal configuration.</h4>
+            </div>
+            <div class={styles.twoColumnContainer}>
+                <div class={styles.columnSmall}>
+                    <div class={styles.financialChartsFeaturesContainer}>
+                        <p>
+                            <b>Start in Seconds</b>
+                            <ul>
+                                <li>
+                                    Financial Charts come pre-configured with built-in features, simply provide your
+                                    JSON data, and create the chart
+                                </li>
+                            </ul>
+                            <!-- <Snippet
                                     framework={'javascript'}
                                     content={'const options = {\n\tdata: getData(),\n};\n\nAgCharts.createFinancialChart(options);'}
                                     copyToClipboard
                                 /> -->
-                            </p>
-                            <p>
-                                <b>Drawings and Annotations</b>
-                                <ul>
-                                    <li>Add Trend Lines and Text Annotations from the toolbar for data analysis.</li>
-                                </ul>
-                            </p>
-                            <p>
-                                <b>Interactive Charts</b>
-                                <ul>
-                                    <li>Easily navigate time periods with advanced zoom & Range buttons</li>
-                                </ul>
-                            </p>
-                            <p>
-                                <b>Financial Chart types</b>
-                                <ul>
-                                    <li>Choose from 6 chart types, including OHLC, Line, and Candlestick</li>
-                                </ul>
-                            </p>
-                        </div>
-                    </div>
-                    <div class={styles.columnLarge}>
-                        <IndexDocsExampleRunner
-                            name={'../../vanilla/financial-charts/examples/financial-charts-showcase'}
-                        />
+                        </p>
+                        <p>
+                            <b>Drawings and Annotations</b>
+                            <ul>
+                                <li>Add Trend Lines and Text Annotations from the toolbar for data analysis.</li>
+                            </ul>
+                        </p>
+                        <p>
+                            <b>Interactive Charts</b>
+                            <ul>
+                                <li>Easily navigate time periods with advanced zoom & Range buttons</li>
+                            </ul>
+                        </p>
+                        <p>
+                            <b>Financial Chart types</b>
+                            <ul>
+                                <li>Choose from 6 chart types, including OHLC, Line, and Candlestick</li>
+                            </ul>
+                        </p>
                     </div>
                 </div>
-                <div class={styles.ctaButton}>
-                    <button>Learn More</button>
+                <div class={styles.columnLarge}>
+                    <IndexDocsExampleRunner
+                        name={'../../vanilla/financial-charts/examples/financial-charts-showcase'}
+                    />
                 </div>
             </div>
-        </div>
-        <div class={styles.section}>
-            <div class:list={[styles.benchmarkSectionInner, 'layout-max-width-small']}>
-                <div class={styles.sectionHeaderContainer}>
-                    <h2>JavaScript Chart Performance Benchmarks - AG Charts vs. Competitors</h2>
-                    <h3>Unbeatable Features, Uncompromised Performance</h3>
-                    <h4>
-                        AG Charts delivers unbeatable performance and unmatched features, outperforming competitors in
-                        speed, efficiency & reliability.
-                    </h4>
-                </div>
-                <span>TODO: Benchmark charts w/ Highcharts, etc...</span>
-                <div class={styles.ctaButton}>
-                    <button>Learn More</button>
-                </div>
+            <div class={styles.ctaButton}>
+                <button>Learn More</button>
             </div>
         </div>
-        <div class={styles.section}>
-            <div class:list={[styles.benchmarkSectionInner, 'layout-max-width-small']}>
-                <div class={styles.sectionHeaderContainer}>
-                    <h2>Integrated JavaScript Charts</h2>
-                    <h3>AG Grid Integrated Charts, powered by AG Charts</h3>
-                    <h4>AG Charts powers integrated charts...</h4>
-                </div>
-                <AutomatedIntegratedChartsWrapper client:visible />
+    </div>
+    <div class={styles.section}>
+        <div class:list={[styles.benchmarkSectionInner, 'layout-max-width-small']}>
+            <div class={styles.sectionHeaderContainer}>
+                <h2>JavaScript Chart Performance Benchmarks - AG Charts vs. Competitors</h2>
+                <h3>Unbeatable Features, Uncompromised Performance</h3>
+                <h4>
+                    AG Charts delivers unbeatable performance and unmatched features, outperforming competitors in
+                    speed, efficiency & reliability.
+                </h4>
+            </div>
+            <span>TODO: Benchmark charts w/ Highcharts, etc...</span>
+            <div class={styles.ctaButton}>
+                <button>Learn More</button>
             </div>
         </div>
-        <div class={styles.section}>
-            <div class:list={[styles.faqSectionInner, 'layout-max-width-small']}>
-                <div class={styles.sectionHeaderContainer}>
-                    <h2>FAQs</h2>
-                    <h3>FAQs</h3>
-                    <h4>Common questions...</h4>
-                </div>
-                <div>
-                    <Faqs client:load />
-                </div>
+    </div>
+    <div class={styles.section}>
+        <div class:list={[styles.benchmarkSectionInner, 'layout-max-width-small']}>
+            <div class={styles.sectionHeaderContainer}>
+                <h2>Integrated JavaScript Charts</h2>
+                <h3>AG Grid Integrated Charts, powered by AG Charts</h3>
+                <h4>AG Charts powers integrated charts...</h4>
+            </div>
+            <AutomatedIntegratedChartsWrapper client:visible />
+        </div>
+    </div>
+    <div class={styles.section}>
+        <div class:list={[styles.faqSectionInner, 'layout-max-width-small']}>
+            <div class={styles.sectionHeaderContainer}>
+                <h2>FAQs</h2>
+                <h3>FAQs</h3>
+                <h4>Common questions...</h4>
+            </div>
+            <div>
+                <Faqs client:load />
             </div>
         </div>
     </div>
