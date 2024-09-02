@@ -291,16 +291,17 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     tooltipManager.suppressTooltip('annotations');
                 }
 
-                if (index == null || (index != null && index !== previous)) {
-                    ctx.toolbarManager.updateButton('annotations', 'line-menu', { icon: undefined });
-                    ctx.toolbarManager.updateButton('annotations', 'text-menu', { icon: undefined });
-                }
-
-                if (node) {
+                if (node && index != null) {
+                    ctx.toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor(), index);
                     this.toggleAnnotationOptionsButtons();
                     toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: true });
                 } else {
                     toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: false });
+                }
+
+                if (index == null || (index != null && index !== previous)) {
+                    ctx.toolbarManager.updateButton('annotations', 'line-menu', { icon: undefined });
+                    ctx.toolbarManager.updateButton('annotations', 'text-menu', { icon: undefined });
                 }
 
                 this.update();
