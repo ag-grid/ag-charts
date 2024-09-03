@@ -133,6 +133,12 @@
     --stroke-width-color: var(--ag-charts-toolbar-foreground-color);
 }
 
+.ag-charts-toolbar__button--drag-handle {
+    min-width: 24px;
+    padding-left: 0;
+    padding-right: 0;
+}
+
 /* Applying this class just after the element is created prevents the flash of the default border color on initial
    render. The border color variable is evaluated after the transition and a fallback value can not be provided as it
    differs per theme. */
@@ -152,13 +158,13 @@
 .ag-charts-toolbar--floating,
 .ag-charts-toolbar--floating-top,
 .ag-charts-toolbar--floating-bottom {
-    .ag-charts-toolbar__button:nth-child(1 of :not(.ag-charts-toolbar__button--hidden-toggled)) {
+    .ag-charts-toolbar__button--first {
         border-bottom-left-radius: var(--ag-charts-button-radius);
         border-top-left-radius: var(--ag-charts-button-radius);
         margin: 0;
     }
 
-    .ag-charts-toolbar__button:nth-last-child(1 of :not(.ag-charts-toolbar__button--hidden-toggled)) {
+    .ag-charts-toolbar__button--last {
         border-bottom-right-radius: var(--ag-charts-button-radius);
         border-top-right-radius: var(--ag-charts-button-radius);
     }
@@ -172,13 +178,13 @@
         max-width: 100%;
     }
 
-    .ag-charts-toolbar__button:nth-child(1 of :not(.ag-charts-toolbar__button--hidden-toggled)) {
+    .ag-charts-toolbar__button--first {
         border-top-left-radius: var(--ag-charts-button-radius);
         border-top-right-radius: var(--ag-charts-button-radius);
         margin: 0;
     }
 
-    .ag-charts-toolbar__button:nth-last-child(1 of :not(.ag-charts-toolbar__button--hidden-toggled)) {
+    .ag-charts-toolbar__button--last {
         border-bottom-left-radius: var(--ag-charts-button-radius);
         border-bottom-right-radius: var(--ag-charts-button-radius);
     }
@@ -189,7 +195,7 @@
     display: none;
 }
 
-.ag-charts-toolbar__button:hover {
+.ag-charts-toolbar__button:hover:not([aria-disabled='true'], .ag-charts-toolbar__button--drag-handle) {
     background: var(--ag-charts-toolbar-hover-color);
     z-index: 1;
 }
@@ -217,6 +223,14 @@
     cursor: pointer;
 }
 
+.ag-charts-toolbar__button.ag-charts-toolbar__button--drag-handle {
+    cursor: grab;
+}
+
+.ag-charts-toolbar__button.ag-charts-toolbar__button--dragging {
+    cursor: grabbing;
+}
+
 .ag-charts-toolbar__button--fill-visible::after {
     content: '';
     display: block;
@@ -237,7 +251,7 @@
 
 .ag-charts-toolbar__button--stroke-width-visible::before {
     content: '';
-    height: var(--strokeWidth);
+    height: min(var(--strokeWidth), 20px);
     width: 12px;
     background: var(--stroke-width-color);
     margin-right: var(--ag-charts-toolbar-button-padding);

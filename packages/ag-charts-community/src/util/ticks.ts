@@ -66,7 +66,7 @@ export function createTicks(
         return range(start, stop, stop - start);
     }
     const step = tickStep(start, stop, count, minCount, maxCount);
-    if (isNaN(step)) {
+    if (!Number.isFinite(step)) {
         return [];
     }
     start = Math.ceil(start / step) * step;
@@ -160,7 +160,7 @@ export function tickFormat(ticks: any[], format?: string): (n: number | { valueO
                     if (!Number.isFinite(x) || x === 0) return 0;
                     const l = Math.floor(Math.log10(Math.abs(x)));
                     const digits = options.type ? 6 : 12;
-                    const [_integer, decimal] = x.toExponential(digits - 1).split(/\.|e/g);
+                    const decimal = x.toExponential(digits - 1).split(/\.|e/g)[1];
                     const decimalLength = decimalPlaces(decimal);
                     return Math.max(0, decimalLength - l);
                 })

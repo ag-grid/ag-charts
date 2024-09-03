@@ -13,13 +13,13 @@ import {
     type RadialGaugeTargetProperties,
 } from './radialGaugeSeriesProperties';
 import {
-    clipSectorVisibility,
     computeClipSector,
     fadeInFns,
     formatRadialGaugeLabels,
     getLabelText,
     prepareRadialGaugeSeriesAnimationFunctions,
-    resetRadialGaugeSeriesAnimationFunctions,
+    resetRadialGaugeSeriesResetNeedleFunction,
+    resetRadialGaugeSeriesResetSectorFunction,
 } from './radialGaugeUtil';
 
 const {
@@ -85,10 +85,6 @@ export class RadialGaugeSeries
     public radius: number = 0;
     public textAlign: TextAlign = 'center';
     public verticalAlign: VerticalAlign = 'middle';
-
-    public getNodeData(): RadialGaugeNodeDatum[] | undefined {
-        return this.contextNodeData?.nodeData;
-    }
 
     private readonly backgroundGroup = this.contentGroup.appendChild(new Group({ name: 'backgroundGroup' }));
     private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
@@ -454,7 +450,8 @@ export class RadialGaugeSeries
                 stops = Array.from({ length: numSegments }, (_, i) => {
                     const startValue = domain[0] + (i + 0) * (domainRange / numSegments);
                     const endValue = domain[0] + (i + 1) * (domainRange / numSegments);
-                    const colorScaleValue = domain[0] + i * (domainRange / (numSegments - 1));
+                    const colorScaleValue =
+                        numSegments > 1 ? domain[0] + i * (domainRange / (numSegments - 1)) : startValue;
                     const color = colorScale?.convert(colorScaleValue);
                     return { startValue, endValue, color };
                 });
@@ -723,30 +720,11 @@ export class RadialGaugeSeries
         const animationDisabled = ctx.animationManager.isSkipped();
 
         datumSelection.each((sector, datum) => {
-            const {
-                centerX,
-                centerY,
-                innerRadius,
-                outerRadius,
-                startAngle,
-                endAngle,
-                startCornerRadius,
-                endCornerRadius,
-                fill,
-            } = datum;
+            const { centerX, centerY, innerRadius, outerRadius, startCornerRadius, endCornerRadius, fill } = datum;
             sector.centerX = centerX;
             sector.centerY = centerY;
-            if (animationDisabled) {
-                const clipSector = computeClipSector(datum);
-
-                sector.innerRadius = innerRadius;
-                sector.outerRadius = outerRadius;
-                sector.startAngle = startAngle;
-                sector.endAngle = endAngle;
-                sector.clipSector = clipSector;
-
-                sector.visible = clipSector == null || clipSectorVisibility(startAngle, endAngle, clipSector);
-            }
+            sector.innerRadius = innerRadius;
+            sector.outerRadius = outerRadius;
 
             sector.fill = fill;
             sector.fillOpacity = fillOpacity;
@@ -762,6 +740,10 @@ export class RadialGaugeSeries
 
             sector.radialEdgeInset = (sectorSpacing + sector.strokeWidth) / 2;
             sector.concentricEdgeInset = sector.strokeWidth / 2;
+
+            if (animationDisabled) {
+                sector.setProperties(resetRadialGaugeSeriesResetSectorFunction(sector, datum));
+            }
         });
     }
 
@@ -834,7 +816,7 @@ export class RadialGaugeSeries
         const animationDisabled = this.ctx.animationManager.isSkipped();
 
         needleSelection.each((needle, datum) => {
-            const { centerX, centerY, radius, angle } = datum;
+            const { centerX, centerY, radius } = datum;
 
             const scale = radius * 2;
 
@@ -853,7 +835,7 @@ export class RadialGaugeSeries
             needle.scalingY = scale;
 
             if (animationDisabled) {
-                needle.rotation = angle;
+                needle.setProperties(resetRadialGaugeSeriesResetNeedleFunction(needle, datum));
             }
         });
     }
@@ -889,20 +871,17 @@ export class RadialGaugeSeries
                 lineDashOffset,
             } = datum;
 
-            const scale = size;
-
+            target.size = size;
             target.fill = highlightStyle?.fill ?? fill;
             target.fillOpacity = highlightStyle?.fillOpacity ?? fillOpacity;
             target.stroke = highlightStyle?.stroke ?? stroke;
             target.strokeOpacity = highlightStyle?.strokeOpacity ?? strokeOpacity;
-            target.strokeWidth = (highlightStyle?.strokeWidth ?? strokeWidth) / scale;
-            target.lineDash = (highlightStyle?.lineDash ?? lineDash).map((d) => d / scale);
-            target.lineDashOffset = (highlightStyle?.lineDashOffset ?? lineDashOffset) / scale;
+            target.strokeWidth = highlightStyle?.strokeWidth ?? strokeWidth;
+            target.lineDash = highlightStyle?.lineDash ?? lineDash;
+            target.lineDashOffset = highlightStyle?.lineDashOffset ?? lineDashOffset;
             target.translationX = centerX + radius * Math.cos(angle);
             target.translationY = centerY + radius * Math.sin(angle);
             target.rotation = angle + Math.PI / 2 + rotation;
-            target.scalingX = scale;
-            target.scalingY = scale;
         });
     }
 
@@ -989,7 +968,9 @@ export class RadialGaugeSeries
     protected resetAllAnimation() {
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
-        resetMotion([this.backgroundSelection, this.datumSelection], resetRadialGaugeSeriesAnimationFunctions);
+        resetMotion([this.datumSelection], resetRadialGaugeSeriesResetSectorFunction);
+        resetMotion([this.needleSelection], resetRadialGaugeSeriesResetNeedleFunction);
+        this.formatLabelText();
     }
 
     resetAnimation(phase: _ModuleSupport.ChartAnimationPhase) {
@@ -1147,9 +1128,9 @@ export class RadialGaugeSeries
         return [NaN, NaN];
     }
 
-    override getLegendData(
-        _legendType: unknown
-    ): _ModuleSupport.ChartLegendDatum<any>[] | _ModuleSupport.ChartLegendDatum<_ModuleSupport.ChartLegendType>[] {
+    override getLegendData():
+        | _ModuleSupport.ChartLegendDatum<any>[]
+        | _ModuleSupport.ChartLegendDatum<_ModuleSupport.ChartLegendType>[] {
         return [];
     }
 
@@ -1210,8 +1191,20 @@ export class RadialGaugeSeries
         );
     }
 
-    computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): _Scene.Path | undefined {
-        return;
+    override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
+        const targetData = this.contextNodeData?.targetData;
+        if (targetData == null || targetData.length === 0) return;
+
+        const datumIndex = Math.min(Math.max(opts.datumIndex, 0), targetData.length - 1);
+
+        const datum = targetData[datumIndex];
+
+        for (const node of this.targetSelection) {
+            if (node.datum === datum) {
+                const bounds = node.node;
+                return { bounds, showFocusBox: true, datum, datumIndex };
+            }
+        }
     }
 
     getCaptionText(): string {

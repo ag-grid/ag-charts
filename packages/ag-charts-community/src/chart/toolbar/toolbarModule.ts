@@ -57,6 +57,7 @@ const annotationOptions: AgToolbarOptions['annotationOptions'] = {
     enabled: true,
     position: 'floating',
     align: 'start',
+    draggable: true,
     buttons: [
         {
             icon: 'text-annotation',
@@ -83,7 +84,7 @@ const annotationOptions: AgToolbarOptions['annotationOptions'] = {
         },
         {
             icon: 'line-style-solid',
-            tooltip: 'toolbarAnnotationsLineStyle=',
+            tooltip: 'toolbarAnnotationsLineStyle',
             value: 'line-style-type',
         },
         {

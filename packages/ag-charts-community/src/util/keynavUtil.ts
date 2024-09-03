@@ -96,6 +96,7 @@ const PREV_NEXT_KEYS = {
 
 // https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/toolbar_role
 export function initToolbarKeyNav(opts: {
+    role?: 'toolbar' | 'list';
     orientation: 'horizontal' | 'vertical';
     toolbar: HTMLElement;
     buttons: HTMLElement[];
@@ -103,11 +104,11 @@ export function initToolbarKeyNav(opts: {
     onBlur?: (event: FocusEvent) => void;
     onEscape?: (event: KeyboardEvent) => void;
 }): (() => void)[] {
-    const { orientation, toolbar, buttons, onEscape, onFocus, onBlur } = opts;
+    const { role, orientation, toolbar, buttons, onEscape, onFocus, onBlur } = opts;
     const { nextKey, prevKey } = PREV_NEXT_KEYS[orientation];
     const ariaHidden: boolean = buttons.length === 0;
 
-    toolbar.role = 'toolbar';
+    toolbar.role = role ?? 'toolbar';
     toolbar.ariaOrientation = orientation;
     toolbar.ariaHidden = ariaHidden.toString();
 
@@ -143,7 +144,9 @@ export interface MenuCloser {
     finishClosing(): void;
 }
 
-export type MenuDevice = { type: 'keyboard'; lastFocus: HTMLElement } | { type: 'mouse'; lastFocus?: undefined };
+export type MenuDevice =
+    | { type: 'keyboard'; lastFocus: HTMLElement }
+    | { type: 'mouse'; lastFocus: HTMLElement | undefined };
 
 class MenuCloserImp implements MenuCloser {
     public readonly destroyFns: (() => void)[] = [];

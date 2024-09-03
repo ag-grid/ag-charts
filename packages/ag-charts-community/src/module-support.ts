@@ -55,6 +55,7 @@ export * from './chart/interaction/keyNavManager';
 export * from './chart/interaction/regionManager';
 export * from './chart/interaction/toolbarManager';
 export * from './chart/interaction/tooltipManager';
+export * from './chart/toolbar/toolbarTypes';
 export * from './chart/interaction/zoomManager';
 export * from './chart/layers';
 export * from './chart/series/series';

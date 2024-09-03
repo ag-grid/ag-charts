@@ -48,8 +48,8 @@ export class FocusIndicator {
         if (bounds === undefined) {
             this.element.classList.add(focusStyles.modifiers.hidden);
         } else if (bounds instanceof Path) {
-            const { x, y } = Transformable.toCanvasPoint(bounds, 0, 0);
-            this.path.setAttribute('d', bounds.computeSVGDataPath(x, y));
+            const matrix = Transformable.toCanvasTransform(bounds);
+            this.path.setAttribute('d', bounds.computeSVGDataPath(matrix));
             this.show(this.svg);
         } else {
             setElementBBox(this.div, bounds);
@@ -75,6 +75,6 @@ export class FocusIndicator {
                 return { type: 'keyboard', lastFocus };
             }
         }
-        return { type: 'mouse' };
+        return { type: 'mouse', lastFocus };
     }
 }

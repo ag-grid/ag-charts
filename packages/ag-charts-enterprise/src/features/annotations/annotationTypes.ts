@@ -1,4 +1,4 @@
-import type { _ModuleSupport, _Scene } from 'ag-charts-community';
+import type { AgAnnotationLineStyleType, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 export type Constructor<T = object> = new (...args: any[]) => T;
 
@@ -68,10 +68,6 @@ export function stringToAnnotationType(value: string) {
     }
 }
 
-export interface Anchor extends Coords {
-    position?: 'above' | 'above-left' | 'right' | 'below';
-}
-
 export interface Coords {
     x: number;
     y: number;
@@ -137,8 +133,6 @@ export interface GuardDragClickDoubleEvent {
 export type AnnotationOptionsColorPickerType = 'line-color' | 'fill-color' | 'text-color';
 
 export type AnnotationLineStyle = {
-    type?: AnnotationLineStyleType;
+    type?: AgAnnotationLineStyleType;
     strokeWidth?: number;
 };
-
-export type AnnotationLineStyleType = 'solid' | 'dashed' | 'dotted';

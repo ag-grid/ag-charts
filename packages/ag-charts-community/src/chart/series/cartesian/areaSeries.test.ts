@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-import type { AgCartesianChartOptions, AgChartInstance, AgChartOptions } from 'ag-charts-types';
+import type { AgAreaSeriesOptions, AgCartesianChartOptions, AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import { Transformable } from '../../../scene/transformable';
@@ -365,12 +365,17 @@ describe('AreaSeries', () => {
     describe('legend toggle animation', () => {
         const animate = spyOnAnimationManager();
 
+        const EXAMPLE = deepClone(examples.STACKED_AREA_GRAPH_EXAMPLE);
+        EXAMPLE.series?.forEach((s) => {
+            (s as AgAreaSeriesOptions).strokeWidth = 2;
+        });
+
         describe('hide', () => {
             for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
                 it(`for STACKED_AREA_GRAPH_EXAMPLE should animate at ${ratio * 100}%`, async () => {
                     animate(1200, 1);
 
-                    const options: AgChartOptions = deepClone(examples.STACKED_AREA_GRAPH_EXAMPLE);
+                    const options: AgChartOptions = deepClone(EXAMPLE);
                     prepareTestOptions(options);
 
                     chart = AgCharts.create(options);
@@ -390,7 +395,7 @@ describe('AreaSeries', () => {
                 it(`for STACKED_AREA_GRAPH_EXAMPLE should animate at ${ratio * 100}%`, async () => {
                     animate(1200, 1);
 
-                    const options: AgChartOptions = deepClone(examples.STACKED_AREA_GRAPH_EXAMPLE);
+                    const options: AgChartOptions = deepClone(EXAMPLE);
                     options.series![1].visible = false;
                     prepareTestOptions(options);
 

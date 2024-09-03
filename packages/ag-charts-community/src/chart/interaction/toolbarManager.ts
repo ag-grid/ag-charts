@@ -3,7 +3,7 @@ import type { AgIconName, AgToolbarOptions } from 'ag-charts-types';
 import type { DOMManager } from '../../dom/domManager';
 import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../baseManager';
-import { TOOLBAR_POSITIONS, type ToolbarGroup } from '../toolbar/toolbarTypes';
+import { TOOLBAR_POSITIONS, type ToolbarAnchor, type ToolbarGroup } from '../toolbar/toolbarTypes';
 
 type EventTypes =
     | 'button-pressed'
@@ -14,6 +14,7 @@ type EventTypes =
     | 'floating-anchor-changed'
     | 'group-toggled'
     | 'group-updated'
+    | 'group-moved'
     | 'proxy-group-options';
 type ToolbarEvent =
     | ToolbarButtonPressedEvent
@@ -24,6 +25,7 @@ type ToolbarEvent =
     | ToolbarFloatingAnchorChangedEvent
     | ToolbarGroupToggledEvent
     | ToolbarGroupUpdatedEvent
+    | ToolbarGroupMovedEvent
     | ToolbarProxyGroupOptionsEvent;
 type ToolbarEventButtonValue<T extends ToolbarGroup> = NonNullable<
     NonNullable<AgToolbarOptions[T]>['buttons']
@@ -41,11 +43,13 @@ export interface ToolbarGroupToggledEvent extends ToolbarBaseEvent<'group-toggle
 }
 
 export interface ToolbarGroupUpdatedEvent extends ToolbarBaseEvent<'group-updated'> {}
+export interface ToolbarGroupMovedEvent extends ToolbarBaseEvent<'group-moved'> {}
 
 export interface ToolbarCancelledEvent extends ToolbarBaseEvent<'cancelled'> {}
 
 export interface ToolbarFloatingAnchorChangedEvent extends ToolbarBaseEvent<'floating-anchor-changed'> {
-    anchor: { x: number; y: number; position?: 'right' | 'above' | 'above-left' | 'below' };
+    anchor: ToolbarAnchor;
+    floatingToolbarId: number;
 }
 
 export interface ToolbarButtonPressedEvent<T = any> extends ToolbarBaseEvent<'button-pressed'> {
@@ -140,11 +144,17 @@ export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
         this.listeners.dispatch('group-updated', { type: 'group-updated', group });
     }
 
-    changeFloatingAnchor(
-        group: ToolbarGroup,
-        anchor: { x: number; y: number; position?: 'right' | 'above' | 'above-left' }
-    ) {
-        this.listeners.dispatch('floating-anchor-changed', { type: 'floating-anchor-changed', group, anchor });
+    groupMoved<T extends ToolbarGroup>(group: T) {
+        this.listeners.dispatch('group-moved', { type: 'group-moved', group });
+    }
+
+    changeFloatingAnchor(group: ToolbarGroup, anchor: ToolbarAnchor, floatingToolbarId: number) {
+        this.listeners.dispatch('floating-anchor-changed', {
+            type: 'floating-anchor-changed',
+            group,
+            anchor,
+            floatingToolbarId,
+        });
     }
 
     buttonMoved(group: ToolbarGroup, value: any, rect: BBox, groupRect: BBox) {

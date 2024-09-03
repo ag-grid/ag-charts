@@ -21,7 +21,6 @@ Options -Indexes
 `;
 
 export default function createPlugin(options: Options): AstroIntegration {
-    let config;
     return {
         name: 'ag-htaccess-gen',
         hooks: {

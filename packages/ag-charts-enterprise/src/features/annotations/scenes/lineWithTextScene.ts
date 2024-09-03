@@ -3,6 +3,7 @@ import { _Scene, _Util } from 'ag-charts-community';
 import type { ChannelTextProperties, LineTextProperties } from '../annotationProperties';
 import type { LineCoords } from '../annotationTypes';
 import type { AnnotationScene } from './annotationScene';
+import type { CollidableLine } from './collidableLineScene';
 
 const { Vec2 } = _Util;
 
@@ -17,7 +18,7 @@ interface Decomposed {
 
 export class LineWithTextScene {
     static updateLineText<Datum extends { strokeWidth?: number; text?: LineTextProperties }>(
-        this: AnnotationScene & { line: _Scene.ClippableOutsideType<_Scene.Node>; text?: _Scene.TransformableText },
+        this: AnnotationScene & { line: CollidableLine; text?: _Scene.TransformableText },
         datum: Datum,
         coords: LineCoords
     ) {

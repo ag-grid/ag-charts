@@ -336,13 +336,8 @@ export abstract class Node extends ChangeDetectable {
         return this._childNodeCounts;
     }
 
-    /** Perform any post-processing effects. */
-    postRender(_renderCtx: RenderContext) {}
-
     render(renderCtx: RenderContext): void {
         const { stats } = renderCtx;
-
-        this.postRender(renderCtx);
 
         this._dirty = RedrawType.NONE;
 

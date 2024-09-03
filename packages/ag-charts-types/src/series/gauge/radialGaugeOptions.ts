@@ -68,8 +68,6 @@ export interface AgRadialGaugeSeriesBackgroundStyle extends FillOptions, StrokeO
 export interface AgRadialGaugeSeriesNeedleStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Whether the needle should be shown. */
     enabled?: boolean;
-    /** Shape of the needle. */
-    shape?: 'needle';
     /** Ratio of the size of the needle. */
     radiusRatio?: number;
     /** Spacing between radiusRatio, in pixels. */
@@ -102,7 +100,7 @@ export interface AgRadialGaugeTargetLabelOptions extends AgChartLabelOptions<nev
 
 export interface AgRadialGaugeTargetOptions extends FillOptions, StrokeOptions, LineDashOptions {
     /** The shape to use for the target. You can also supply a custom marker by providing a `Marker` subclass. */
-    shape?: MarkerShape;
+    shape?: AgRadialGaugeMarkerShape;
     /** Placement of target. */
     placement?: AgRadialGaugeTargetPlacement;
     /** Spacing of the target. Ignored when placement is 'middle'. */

@@ -2,6 +2,7 @@ import { type PixelSize, _ModuleSupport, type _Scene } from 'ag-charts-community
 
 import { Annotation, AxisLabel, Handle, LineStyle, LineTextProperties, Stroke, Value } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
+import { getLineCap, getLineDash } from '../utils/line';
 import { validateDatumValue } from '../utils/validation';
 
 const { OBJECT, STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
@@ -35,7 +36,11 @@ export class HorizontalLineProperties extends Annotation(Value(Handle(AxisLabel(
     }
 
     getLineDash(): PixelSize[] | undefined {
-        return this.lineDash ?? this.computedLineDash;
+        return getLineDash(this.lineDash, this.computedLineDash, this.lineStyle, this.strokeWidth);
+    }
+
+    getLineCap(): _Scene.ShapeLineCap | undefined {
+        return getLineCap(this.lineCap, this.lineDash, this.lineStyle);
     }
 }
 
@@ -68,7 +73,11 @@ export class VerticalLineProperties extends Annotation(Value(Handle(AxisLabel(St
     }
 
     getLineDash(): PixelSize[] | undefined {
-        return this.lineDash ?? this.computedLineDash;
+        return getLineDash(this.lineDash, this.computedLineDash, this.lineStyle, this.strokeWidth);
+    }
+
+    getLineCap(): _Scene.ShapeLineCap | undefined {
+        return getLineCap(this.lineCap, this.lineDash, this.lineStyle);
     }
 }
 

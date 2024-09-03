@@ -66,7 +66,22 @@ export function countFractionDigits(value: number) {
     // Highly optimized fraction counting algorithm. This was highlighted as a hot-spot for
     // tick generation on canvas resize.
     if (Math.floor(value) === value) return 0;
-    return String(value).split('.')[1]?.length ?? 0;
+
+    let valueString = String(value);
+    let exponent = 0;
+    if (value < 1e-6 || value >= 1e21) {
+        // Scientific notation (the range is spec defined, so we can avoid a call to .includes('e'))
+        let exponentString;
+        [valueString, exponentString] = valueString.split('e');
+
+        if (exponentString != null) {
+            exponent = Number(exponentString);
+        }
+    }
+
+    const decimalPlaces = valueString.split('.')[1]?.length ?? 0;
+
+    return Math.max(decimalPlaces - exponent, 0);
 }
 
 /**

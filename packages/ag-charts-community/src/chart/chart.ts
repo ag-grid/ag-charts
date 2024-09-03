@@ -269,18 +269,16 @@ export abstract class Chart extends Observable {
         titleGroup.append(this.subtitle.node);
         titleGroup.append(this.footnote.node);
 
-        const { overrideDevicePixelRatio } = options.specialOverrides;
-
         this.tooltip = new Tooltip();
         this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot, this.highlightRoot, this.annotationRoot);
         const ctx = (this.ctx = new ChartContext(this, {
             scene,
             root,
-            syncManager: new SyncManager(this),
             container,
+            syncManager: new SyncManager(this),
+            pixelRatio: options.specialOverrides.overrideDevicePixelRatio,
             updateCallback: (type = ChartUpdateType.FULL, opts) => this.update(type, opts),
             updateMutex: this.updateMutex,
-            overrideDevicePixelRatio,
         }));
 
         this._destroyFns.push(
@@ -1246,6 +1244,12 @@ export abstract class Chart extends Observable {
             'axes[].gridLine',
             'axes[].label',
         ]);
+
+        const series = miniChart.series as Series<any, any>[];
+        for (const s of series) {
+            // AG-12681
+            s.properties.id = undefined;
+        }
 
         const axes = miniChart.axes as ChartAxis[];
         const horizontalAxis = axes.find((axis) => axis.direction === ChartAxisDirection.X);
