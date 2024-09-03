@@ -136,11 +136,11 @@ export const AnnotationsModule: _ModuleSupport.Module = {
             },
             'arrow-up': {
                 fill: _Theme.PALETTE_UP_FILL,
-                handle: { ...handle },
+                handle: { ...handle, stroke: _Theme.DEFAULT_ANNOTATION_COLOR },
             },
             'arrow-down': {
                 fill: _Theme.PALETTE_DOWN_FILL,
-                handle: { ...handle },
+                handle: { ...handle, stroke: _Theme.DEFAULT_ANNOTATION_COLOR },
             },
         },
     },
