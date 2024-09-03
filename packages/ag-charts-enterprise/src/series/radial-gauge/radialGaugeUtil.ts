@@ -113,7 +113,7 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean,
 
             return { startAngle, endAngle, clipSector };
         },
-        mapFn(params) {
+        applyFn(sect, params) {
             const { startAngle, endAngle } = params;
             let { clipSector } = params;
 
@@ -128,7 +128,10 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean,
 
             const visible = clipSector == null || clipSectorVisibility(startAngle, endAngle, clipSector);
 
-            return { visible, startAngle, endAngle, clipSector };
+            sect.startAngle = startAngle;
+            sect.endAngle = endAngle;
+            sect.clipSector = clipSector;
+            sect.visible = visible;
         },
     };
 

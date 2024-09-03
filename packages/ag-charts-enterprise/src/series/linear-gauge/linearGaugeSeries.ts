@@ -1,0 +1,1070 @@
+import { type TextAlign, type VerticalAlign, _ModuleSupport, _Scale, _Scene, type _Util } from 'ag-charts-community';
+
+import { type GaugeColorStopDatum, getColorStops } from '../gauge-util/gaugeUtil';
+import { LineMarker } from './lineMarker';
+import {
+    type LinearGaugeNodeDatum,
+    LinearGaugeSeriesProperties,
+    type LinearGaugeTargetDatum,
+    type LinearGaugeTargetProperties,
+    NodeDataType,
+} from './linearGaugeSeriesProperties';
+import { prepareLinearGaugeSeriesAnimationFunctions, resetLinearGaugeSeriesResetRectFunction } from './linearGaugeUtil';
+
+const {
+    fromToMotion,
+    resetMotion,
+    SeriesNodePickMode,
+    StateMachine,
+    createDatumId,
+    ChartAxisDirection,
+    CachedTextMeasurerPool,
+    EMPTY_TOOLTIP_CONTENT,
+} = _ModuleSupport;
+const { BBox, Group, PointerEvents, Selection, Rect, Text, LinearGradient, getMarker } = _Scene;
+const { ColorScale } = _Scale;
+
+export type GaugeAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
+export type GaugeAnimationEvent =
+    | 'update'
+    | 'updateData'
+    | 'highlight'
+    | 'highlightMarkers'
+    | 'resize'
+    | 'clear'
+    | 'reset'
+    | 'skip';
+export type GaugeAnimationData = { duration?: number };
+
+type LinearGaugeLabelDatum = never;
+
+interface LinearGaugeNodeDataContext
+    extends _ModuleSupport.SeriesNodeDataContext<LinearGaugeNodeDatum, LinearGaugeLabelDatum> {
+    targetData: LinearGaugeTargetDatum[];
+    backgroundData: LinearGaugeNodeDatum[];
+}
+
+export class LinearGaugeSeries
+    extends _ModuleSupport.Series<
+        LinearGaugeNodeDatum,
+        LinearGaugeSeriesProperties,
+        LinearGaugeLabelDatum,
+        LinearGaugeNodeDataContext
+    >
+    implements _ModuleSupport.LinearGaugeSeries
+{
+    static readonly className = 'LinearGaugeSeries';
+    static readonly type = 'linear-gauge' as const;
+
+    override canHaveAxes: boolean = true;
+
+    override properties = new LinearGaugeSeriesProperties();
+
+    // REMOVE ME
+    textAlign: TextAlign = 'center';
+    verticalAlign: VerticalAlign = 'middle';
+
+    get horizontal() {
+        return this.properties.horizontal;
+    }
+    get thickness() {
+        return this.properties.thickness;
+    }
+
+    private readonly backgroundGroup = this.contentGroup.appendChild(new Group({ name: 'backgroundGroup' }));
+    private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
+    private readonly itemTargetGroup = this.contentGroup.appendChild(new Group({ name: 'itemTargetGroup' }));
+    private readonly itemTargetLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemTargetLabelGroup' }));
+    // private readonly itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
+    private readonly highlightTargetGroup = this.highlightGroup.appendChild(
+        new Group({ name: 'itemTargetLabelGroup' })
+    );
+
+    private backgroundSelection: _Scene.Selection<_Scene.Rect, LinearGaugeNodeDatum> = Selection.select(
+        this.backgroundGroup,
+        () => this.nodeFactory()
+    );
+    private datumSelection: _Scene.Selection<_Scene.Rect, LinearGaugeNodeDatum> = Selection.select(this.itemGroup, () =>
+        this.nodeFactory()
+    );
+    private targetSelection: _Scene.Selection<_Scene.Marker, LinearGaugeTargetDatum> = Selection.select(
+        this.itemTargetGroup,
+        (datum) => this.markerFactory(datum)
+    );
+    private targetLabelSelection: _Scene.Selection<_Scene.Text, _Util.PlacedLabel<_Util.PointLabelDatum>> =
+        Selection.select(this.itemTargetLabelGroup, Text);
+    // private labelSelection: _Scene.Selection<_Scene.Text, LinearGaugeLabelDatum> = Selection.select(
+    //     this.itemLabelGroup,
+    //     Text
+    // );
+    private highlightTargetSelection: _Scene.Selection<_Scene.Marker, LinearGaugeTargetDatum> = Selection.select(
+        this.highlightTargetGroup,
+        (datum) => this.markerFactory(datum)
+    );
+
+    private readonly animationState: _ModuleSupport.StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
+
+    public contextNodeData?: LinearGaugeNodeDataContext;
+
+    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+        super({
+            moduleCtx,
+            contentGroupVirtual: false,
+            useLabelLayer: true,
+            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
+        });
+
+        this.animationState = new StateMachine<GaugeAnimationState, GaugeAnimationEvent>('empty', {
+            empty: {
+                update: {
+                    target: 'ready',
+                    action: () => this.animateEmptyUpdateReady(),
+                },
+                reset: 'empty',
+                skip: 'ready',
+            },
+            ready: {
+                updateData: 'waiting',
+                clear: 'clearing',
+                // highlight: (data) => this.animateReadyHighlight(data),
+                // highlightMarkers: (data) => this.animateReadyHighlightMarkers(data),
+                resize: () => this.animateReadyResize(),
+                reset: 'empty',
+                skip: 'ready',
+            },
+            waiting: {
+                update: {
+                    target: 'ready',
+                    action: () => this.animateWaitingUpdateReady(),
+                },
+                reset: 'empty',
+                skip: 'ready',
+            },
+            clearing: {
+                update: {
+                    target: 'empty',
+                    // action: (data) => this.animateClearingUpdateEmpty(data),
+                },
+                reset: 'empty',
+                skip: 'ready',
+            },
+        });
+
+        this.backgroundGroup.pointerEvents = PointerEvents.None;
+        this.itemTargetLabelGroup.pointerEvents = PointerEvents.None;
+        // this.itemLabelGroup.pointerEvents = PointerEvents.None;
+    }
+
+    override get hasData(): boolean {
+        return true;
+    }
+
+    private nodeFactory(): _Scene.Rect {
+        return new Rect();
+    }
+
+    private markerFactory({ shape }: LinearGaugeTargetDatum): _Scene.Marker {
+        const MarkerShape = shape !== 'line' ? getMarker(shape) : LineMarker;
+        const marker = new MarkerShape();
+        marker.size = 1;
+        return marker;
+    }
+
+    override async processData(): Promise<void> {
+        this.nodeDataRefresh = true;
+
+        this.animationState.transition('updateData');
+    }
+
+    private formatLabel(value: number) {
+        const angleAxis = this.axes[ChartAxisDirection.X];
+        if (angleAxis == null) return '';
+
+        const [min, max] = angleAxis.scale.domain;
+        const minLog10 = min !== 0 ? Math.ceil(Math.log10(Math.abs(min))) : 0;
+        const maxLog10 = max !== 0 ? Math.ceil(Math.log10(Math.abs(max))) : 0;
+        const dp = Math.max(2 - Math.max(minLog10, maxLog10), 0);
+        return value.toFixed(dp);
+    }
+
+    private createLinearGradient(
+        colorStops: GaugeColorStopDatum[] | undefined,
+        [min, max]: number[],
+        bbox: _Scene.BBox
+    ) {
+        if (colorStops == null) return;
+
+        const { horizontal } = this.properties;
+
+        const stops = colorStops.map((colorStop): _Scene.GradientColorStop => {
+            const { stop, color } = colorStop;
+            const offset = (stop - min) / (max - min);
+            return { offset, color };
+        });
+
+        return new LinearGradient('oklch', stops, horizontal ? 90 : 0, bbox);
+    }
+
+    private getTargetPoint(targetProperties: LinearGaugeTargetProperties) {
+        const xAxis = this.axes[ChartAxisDirection.X];
+        const yAxis = this.axes[ChartAxisDirection.Y];
+
+        if (xAxis == null || yAxis == null) return { x: 0, y: 0 };
+
+        const { properties } = this;
+        const { horizontal, thickness, target } = properties;
+        const { value, placement = target.placement, spacing = target.spacing, size = target.size } = targetProperties;
+
+        const mainAxis = horizontal ? xAxis : yAxis;
+        const mainOffset = mainAxis.scale.convert(value) - mainAxis.scale.range[0];
+
+        let crossOffset: number;
+        switch (placement) {
+            case 'before':
+                crossOffset = -(spacing + size / 2);
+                break;
+            case 'after':
+                crossOffset = thickness + spacing + size / 2;
+                break;
+            default:
+                crossOffset = thickness / 2;
+                break;
+        }
+
+        return {
+            x: xAxis.range[0] + (horizontal ? mainOffset : crossOffset),
+            y: yAxis.range[0] + (horizontal ? crossOffset : mainOffset),
+        };
+    }
+
+    override async createNodeData() {
+        const { id: seriesId, properties } = this;
+        const {
+            value,
+            horizontal,
+            thickness,
+            cornerRadius,
+            appearance,
+            cornerMode,
+            // targets,
+            bar,
+            background,
+            // label,
+            // secondaryLabel,
+            barSpacing,
+        } = properties;
+
+        const xAxis = this.axes[ChartAxisDirection.X];
+        const yAxis = this.axes[ChartAxisDirection.Y];
+        if (xAxis == null || yAxis == null) return;
+        const mainAxis = horizontal ? xAxis : yAxis;
+
+        const xScale = xAxis.scale;
+        const yScale = yAxis.scale;
+        const mainAxisScale = mainAxis.scale;
+
+        let { domain } = mainAxis.scale;
+        if (mainAxis.isReversed()) {
+            domain = domain.slice().reverse();
+        }
+        const colorStops = getColorStops(this.properties, domain, appearance);
+        const nodeData: LinearGaugeNodeDatum[] = [];
+        const targetData: LinearGaugeTargetDatum[] = [];
+        const labelData: LinearGaugeLabelDatum[] = [];
+        const backgroundData: LinearGaugeNodeDatum[] = [];
+
+        let [x0, x1] = xAxis.range;
+        if (xAxis.isReversed()) {
+            [x1, x0] = [x0, x1];
+        }
+        let [y0, y1] = yAxis.range;
+        if (yAxis.isReversed()) {
+            [y1, y0] = [y0, y1];
+        }
+
+        const isContinuous = appearance === 'continuous';
+        const cornersOnAllItems = cornerMode === 'item';
+        let mainAxisInset = 0;
+        if (isContinuous && cornersOnAllItems) {
+            const [m0, m1] = mainAxisScale.range;
+            const mainAxisSize = Math.abs(m1 - m0);
+            const appliedCornerRadius = Math.min(cornerRadius, thickness / 2, mainAxisSize / 2);
+            mainAxisInset = appliedCornerRadius;
+        }
+        if (mainAxis.isReversed()) {
+            mainAxisInset = -mainAxisInset;
+        }
+
+        const xAxisInset = horizontal ? mainAxisInset : 0;
+        const yAxisInset = horizontal ? 0 : mainAxisInset;
+
+        const containerX = horizontal ? xScale.convert(value) : x1;
+        const containerY = horizontal ? y1 : yScale.convert(value);
+
+        const gradientBBox = new BBox(Math.min(x0, x1), Math.min(y0, y1), Math.abs(x1 - x0), Math.abs(y1 - y0));
+
+        const horizontalInset = horizontal ? barSpacing / 2 : 0;
+        const verticalInset = horizontal ? 0 : barSpacing / 2;
+
+        if (isContinuous) {
+            if (bar.enabled) {
+                const barFill: string | _Scene.Gradient | undefined =
+                    bar.fill ?? this.createLinearGradient(colorStops, domain, gradientBBox);
+                const sizeParams = cornersOnAllItems
+                    ? {
+                          x0: x0 - xAxisInset,
+                          y0: y0 - yAxisInset,
+                          x1: containerX + 2 * xAxisInset,
+                          y1: containerY + 2 * yAxisInset,
+                          clipX0: undefined,
+                          clipY0: undefined,
+                          clipX1: undefined,
+                          clipY1: undefined,
+                      }
+                    : {
+                          x0: x0,
+                          y0: y0,
+                          x1: x1,
+                          y1: y1,
+                          clipX0: x0,
+                          clipY0: y0,
+                          clipX1: containerX,
+                          clipY1: containerY,
+                      };
+
+                nodeData.push({
+                    series: this,
+                    itemId: `value`,
+                    datum: value,
+                    type: NodeDataType.Node,
+                    x0: sizeParams.x0,
+                    y0: sizeParams.y0,
+                    x1: sizeParams.x1,
+                    y1: sizeParams.y1,
+                    clipX0: sizeParams.clipX0,
+                    clipY0: sizeParams.clipY0,
+                    clipX1: sizeParams.clipX1,
+                    clipY1: sizeParams.clipY1,
+                    topLeftCornerRadius: cornerRadius,
+                    topRightCornerRadius: cornerRadius,
+                    bottomRightCornerRadius: cornerRadius,
+                    bottomLeftCornerRadius: cornerRadius,
+                    fill: barFill,
+                    horizontalInset,
+                    verticalInset,
+                });
+            }
+
+            const backgroundFill: string | _Scene.Gradient | undefined =
+                background.fill ??
+                this.createLinearGradient(!bar.enabled ? colorStops : undefined, domain, gradientBBox) ??
+                background.defaultFill;
+
+            backgroundData.push({
+                series: this,
+                itemId: `background`,
+                datum: value,
+                type: NodeDataType.Node,
+                x0: x0 - xAxisInset,
+                y0: y0 - yAxisInset,
+                x1: x1 + 2 * xAxisInset,
+                y1: y1 + 2 * yAxisInset,
+                clipX0: undefined,
+                clipY0: undefined,
+                clipX1: undefined,
+                clipY1: undefined,
+                topLeftCornerRadius: cornerRadius,
+                topRightCornerRadius: cornerRadius,
+                bottomRightCornerRadius: cornerRadius,
+                bottomLeftCornerRadius: cornerRadius,
+                fill: backgroundFill,
+                horizontalInset,
+                verticalInset,
+            });
+        } else {
+            let stops: Array<{ startValue: number; endValue: number; color: string | undefined }>;
+            const domainRange = domain[1] - domain[0];
+            if (this.properties.colorStops.length !== 0) {
+                // User provided colour stops
+                stops = colorStops.map(({ color, stop }, i) => {
+                    const startValue = i > 0 ? stop : domain[0];
+                    const endValue = i < colorStops.length - 1 ? colorStops[i + 1].stop : domain[1];
+                    return { startValue, endValue, color };
+                });
+            } else {
+                // No colour stops defined, use the theme
+                const colorScale = new ColorScale();
+                colorScale.domain = domain;
+                colorScale.range = colorStops.map((cs) => cs.color);
+
+                const ticks = mainAxisScale.ticks?.().length;
+                const numSegments = ticks != null ? ticks - 1 : 8;
+
+                stops = Array.from({ length: numSegments }, (_, i) => {
+                    const startValue = domain[0] + (i + 0) * (domainRange / numSegments);
+                    const endValue = domain[0] + (i + 1) * (domainRange / numSegments);
+                    const colorScaleValue =
+                        numSegments > 1 ? domain[0] + i * (domainRange / (numSegments - 1)) : startValue;
+                    const color = colorScale?.convert(colorScaleValue);
+                    return { startValue, endValue, color };
+                });
+            }
+
+            for (let i = 0; i < stops.length; i += 1) {
+                const { startValue, endValue, color } = stops[i];
+                const isStart = i === 0;
+                const isEnd = i === stops.length - 1;
+
+                const itemStart = mainAxisScale.convert(startValue);
+                const itemEnd = mainAxisScale.convert(endValue);
+
+                const startCornerRadius = cornersOnAllItems || isStart ? cornerRadius : 0;
+                const endCornerRadius = cornersOnAllItems || isEnd ? cornerRadius : 0;
+                const topLeftCornerRadius = horizontal ? startCornerRadius : endCornerRadius;
+                const topRightCornerRadius = endCornerRadius;
+                const bottomRightCornerRadius = horizontal ? endCornerRadius : startCornerRadius;
+                const bottomLeftCornerRadius = startCornerRadius;
+
+                if (bar.enabled) {
+                    const barFill = bar.fill ?? color;
+
+                    nodeData.push({
+                        series: this,
+                        itemId: `value-${i}`,
+                        datum: value,
+                        type: NodeDataType.Node,
+                        x0: horizontal ? itemStart : x0,
+                        y0: horizontal ? y0 : itemStart,
+                        x1: horizontal ? itemEnd : x1,
+                        y1: horizontal ? y1 : itemEnd,
+                        clipX0: x0,
+                        clipY0: y0,
+                        clipX1: containerX,
+                        clipY1: containerY,
+                        topLeftCornerRadius,
+                        topRightCornerRadius,
+                        bottomRightCornerRadius,
+                        bottomLeftCornerRadius,
+                        fill: barFill,
+                        horizontalInset,
+                        verticalInset,
+                    });
+                }
+
+                const backgroundBarFill = !bar.enabled ? color : undefined;
+                const backgroundFill = background.fill ?? backgroundBarFill ?? background.defaultFill;
+
+                backgroundData.push({
+                    series: this,
+                    itemId: `background-${i}`,
+                    datum: value,
+                    type: NodeDataType.Node,
+                    x0: horizontal ? itemStart : x0,
+                    y0: horizontal ? y0 : itemStart,
+                    x1: horizontal ? itemEnd : x1,
+                    y1: horizontal ? y1 : itemEnd,
+                    clipX0: undefined,
+                    clipY0: undefined,
+                    clipX1: undefined,
+                    clipY1: undefined,
+                    topLeftCornerRadius,
+                    topRightCornerRadius,
+                    bottomRightCornerRadius,
+                    bottomLeftCornerRadius,
+                    fill: backgroundFill,
+                    horizontalInset,
+                    verticalInset,
+                });
+            }
+        }
+
+        // if (label.enabled) {
+        //     const { color: fill, fontSize, fontStyle, fontWeight, fontFamily, lineHeight, formatter } = label;
+        //     labelData.push({
+        //         label: LabelType.Primary,
+        //         centerX,
+        //         centerY,
+        //         text: label.text,
+        //         value,
+        //         fill,
+        //         fontSize,
+        //         fontStyle,
+        //         fontWeight,
+        //         fontFamily,
+        //         lineHeight,
+        //         formatter,
+        //     });
+        // }
+
+        // if (secondaryLabel.enabled) {
+        //     const { color: fill, fontSize, fontStyle, fontWeight, fontFamily, lineHeight, formatter } = secondaryLabel;
+        //     labelData.push({
+        //         label: LabelType.Secondary,
+        //         centerX,
+        //         centerY,
+        //         text: secondaryLabel.text,
+        //         value,
+        //         fill,
+        //         fontSize,
+        //         fontStyle,
+        //         fontWeight,
+        //         fontFamily,
+        //         lineHeight,
+        //         formatter,
+        //     });
+        // }
+
+        // const { target } = properties;
+        // for (let i = 0; i < targets.length; i += 1) {
+        //     const t = targets[i];
+        //     const {
+        //         value: targetValue,
+        //         text,
+        //         placement = target.placement,
+        //         size = target.size,
+        //         fill = target.fill,
+        //         fillOpacity = target.fillOpacity,
+        //         stroke = target.stroke,
+        //         strokeOpacity = target.strokeOpacity,
+        //         lineDash = target.lineDash,
+        //         lineDashOffset = target.lineDashOffset,
+        //     } = t;
+
+        //     const targetRadius = this.getTargetRadius(t);
+        //     const targetAngle = mainAxisScale.convert(targetValue);
+
+        //     let { shape = target.shape, rotation = target.rotation } = t;
+        //     switch (placement) {
+        //         case 'outside':
+        //             shape ??= 'triangle';
+        //             rotation ??= 180;
+        //             break;
+        //         case 'inside':
+        //             shape ??= 'triangle';
+        //             rotation ??= 0;
+        //             break;
+        //         default:
+        //             shape ??= 'circle';
+        //             rotation ??= 0;
+        //     }
+        //     rotation = toRadians(rotation);
+
+        //     const strokeWidth = t.strokeWidth ?? target.strokeWidth ?? (shape === 'line' ? 2 : 0);
+
+        //     targetData.push({
+        //         series: this,
+        //         itemId: `target-${i}`,
+        //         midPoint: {
+        //             x: targetRadius * Math.cos(targetAngle) + centerX,
+        //             y: targetRadius * Math.sin(targetAngle) + centerY,
+        //         },
+        //         datum: targetValue,
+        //         type: NodeDataType.Target,
+        //         value: targetValue,
+        //         text,
+        //         centerX,
+        //         centerY,
+        //         shape,
+        //         radius: targetRadius,
+        //         angle: targetAngle,
+        //         size,
+        //         rotation,
+        //         fill,
+        //         fillOpacity,
+        //         stroke,
+        //         strokeOpacity,
+        //         strokeWidth,
+        //         lineDash,
+        //         lineDashOffset,
+        //     });
+        // }
+
+        return {
+            itemId: seriesId,
+            nodeData,
+            targetData,
+            labelData,
+            backgroundData,
+        };
+    }
+
+    async updateSelections(resize: boolean): Promise<void> {
+        if (this.nodeDataRefresh || resize) {
+            this.contextNodeData = await this.createNodeData();
+            this.nodeDataRefresh = false;
+        }
+    }
+
+    private highlightDatum(node: _ModuleSupport.HighlightNodeDatum | undefined): LinearGaugeTargetDatum | undefined {
+        if (node != null && node.series === this && (node as LinearGaugeTargetDatum).type === NodeDataType.Target) {
+            return node as LinearGaugeTargetDatum;
+        }
+    }
+
+    override async update({ seriesRect }: { seriesRect?: _Scene.BBox }): Promise<void> {
+        const {
+            datumSelection,
+            // labelSelection,
+            targetSelection,
+            targetLabelSelection,
+            backgroundSelection,
+            highlightTargetSelection,
+        } = this;
+
+        const resize = this.checkResize(seriesRect);
+        await this.updateSelections(resize);
+
+        this.contentGroup.visible = this.visible;
+        this.contentGroup.opacity = this.getOpacity();
+
+        const nodeData = this.contextNodeData?.nodeData ?? [];
+        // const labelData = this.contextNodeData?.labelData ?? [];
+        const targetData = this.contextNodeData?.targetData ?? [];
+        const backgroundData = this.contextNodeData?.backgroundData ?? [];
+
+        const highlightTargetDatum = this.highlightDatum(this.ctx.highlightManager.getActiveHighlight());
+
+        this.backgroundSelection = await this.updateBackgroundSelection({ backgroundData, backgroundSelection });
+        await this.updateBackgroundNodes({ backgroundSelection });
+
+        this.targetSelection = await this.updateTargetSelection({ targetData, targetSelection });
+        await this.updateTargetNodes({ targetSelection, isHighlight: false });
+
+        this.targetLabelSelection = await this.updateTargetLabelSelection({ targetLabelSelection });
+        await this.updateTargetLabelNodes({ targetLabelSelection });
+
+        this.datumSelection = await this.updateDatumSelection({ nodeData, datumSelection });
+        await this.updateDatumNodes({ datumSelection });
+
+        // this.labelSelection = await this.updateLabelSelection({ labelData, labelSelection });
+        // await this.updateLabelNodes({ labelSelection });
+
+        this.highlightTargetSelection = await this.updateTargetSelection({
+            targetData: highlightTargetDatum != null ? [highlightTargetDatum] : [],
+            targetSelection: highlightTargetSelection,
+        });
+        await this.updateTargetNodes({ targetSelection: highlightTargetSelection, isHighlight: true });
+
+        if (resize) {
+            this.animationState.transition('resize');
+        }
+        this.animationState.transition('update');
+    }
+
+    private async updateDatumSelection(opts: {
+        nodeData: LinearGaugeNodeDatum[];
+        datumSelection: _Scene.Selection<_Scene.Rect, LinearGaugeNodeDatum>;
+    }) {
+        return opts.datumSelection.update(opts.nodeData, undefined, (datum) => {
+            return createDatumId(opts.nodeData.length, datum.itemId!);
+        });
+    }
+
+    private async updateDatumNodes(opts: { datumSelection: _Scene.Selection<_Scene.Rect, LinearGaugeNodeDatum> }) {
+        const { datumSelection } = opts;
+        const { ctx, properties } = this;
+        const { bar } = properties;
+        const { fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = bar;
+        const strokeWidth = this.getStrokeWidth(bar.strokeWidth);
+        const animationDisabled = ctx.animationManager.isSkipped();
+
+        datumSelection.each((rect, datum) => {
+            const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius, fill } =
+                datum;
+
+            rect.fill = fill;
+            rect.fillOpacity = fillOpacity;
+            rect.stroke = stroke;
+            rect.strokeOpacity = strokeOpacity;
+            rect.strokeWidth = strokeWidth;
+            rect.lineDash = lineDash;
+            rect.lineDashOffset = lineDashOffset;
+            rect.topLeftCornerRadius = topLeftCornerRadius;
+            rect.topRightCornerRadius = topRightCornerRadius;
+            rect.bottomRightCornerRadius = bottomRightCornerRadius;
+            rect.bottomLeftCornerRadius = bottomLeftCornerRadius;
+
+            if (animationDisabled) {
+                rect.setProperties(resetLinearGaugeSeriesResetRectFunction(rect, datum));
+            }
+        });
+    }
+
+    private async updateBackgroundSelection(opts: {
+        backgroundData: LinearGaugeNodeDatum[];
+        backgroundSelection: _Scene.Selection<_Scene.Rect, LinearGaugeNodeDatum>;
+    }) {
+        return opts.backgroundSelection.update(opts.backgroundData, undefined, (datum) => {
+            return createDatumId(opts.backgroundData.length, datum.itemId!);
+        });
+    }
+
+    private async updateBackgroundNodes(opts: {
+        backgroundSelection: _Scene.Selection<_Scene.Rect, LinearGaugeNodeDatum>;
+    }) {
+        const { backgroundSelection } = opts;
+        const { background } = this.properties;
+        const { fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = background;
+
+        backgroundSelection.each((rect, datum) => {
+            const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius, fill } =
+                datum;
+
+            rect.fill = fill;
+            rect.fillOpacity = fillOpacity;
+            rect.stroke = stroke;
+            rect.strokeOpacity = strokeOpacity;
+            rect.strokeWidth = strokeWidth;
+            rect.lineDash = lineDash;
+            rect.lineDashOffset = lineDashOffset;
+            rect.topLeftCornerRadius = topLeftCornerRadius;
+            rect.topRightCornerRadius = topRightCornerRadius;
+            rect.bottomRightCornerRadius = bottomRightCornerRadius;
+            rect.bottomLeftCornerRadius = bottomLeftCornerRadius;
+
+            rect.setProperties(resetLinearGaugeSeriesResetRectFunction(rect, datum));
+        });
+    }
+
+    private async updateTargetSelection(opts: {
+        targetData: LinearGaugeTargetDatum[];
+        targetSelection: _Scene.Selection<_Scene.Marker, LinearGaugeTargetDatum>;
+    }) {
+        return opts.targetSelection.update(opts.targetData, undefined, (target) => target.itemId);
+    }
+
+    private async updateTargetNodes(opts: {
+        targetSelection: _Scene.Selection<_Scene.Marker, LinearGaugeTargetDatum>;
+        isHighlight: boolean;
+    }) {
+        const { targetSelection, isHighlight } = opts;
+        const { horizontal } = this.properties;
+        const highlightStyle = isHighlight ? this.properties.highlightStyle.item : undefined;
+
+        targetSelection.each((target, datum) => {
+            const {
+                x,
+                y,
+                size,
+                rotation,
+                fill,
+                fillOpacity,
+                stroke,
+                strokeOpacity,
+                strokeWidth,
+                lineDash,
+                lineDashOffset,
+            } = datum;
+
+            target.size = size;
+            target.fill = highlightStyle?.fill ?? fill;
+            target.fillOpacity = highlightStyle?.fillOpacity ?? fillOpacity;
+            target.stroke = highlightStyle?.stroke ?? stroke;
+            target.strokeOpacity = highlightStyle?.strokeOpacity ?? strokeOpacity;
+            target.strokeWidth = highlightStyle?.strokeWidth ?? strokeWidth;
+            target.lineDash = highlightStyle?.lineDash ?? lineDash;
+            target.lineDashOffset = highlightStyle?.lineDashOffset ?? lineDashOffset;
+            target.translationX = x;
+            target.translationY = y;
+            target.rotation = (horizontal ? Math.PI / 2 : 0) + rotation;
+        });
+    }
+
+    private async updateTargetLabelSelection(opts: {
+        targetLabelSelection: _Scene.Selection<_Scene.Text, _Util.PlacedLabel<_Util.PointLabelDatum>>;
+    }) {
+        const targetLabelData = this.chart?.placeLabels(this.properties.target.label.spacing).get(this) ?? [];
+        return opts.targetLabelSelection.update(targetLabelData);
+    }
+
+    private async updateTargetLabelNodes(opts: {
+        targetLabelSelection: _Scene.Selection<_Scene.Text, _Util.PlacedLabel<_Util.PointLabelDatum>>;
+    }) {
+        const { targetLabelSelection } = opts;
+        const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = this.properties.target.label;
+
+        targetLabelSelection.each((label, { x, y, width, height, text }) => {
+            label.visible = true;
+            label.x = x + width / 2;
+            label.y = y + height / 2;
+            label.text = text;
+            label.fill = fill;
+            label.fontStyle = fontStyle;
+            label.fontWeight = fontWeight;
+            label.fontSize = fontSize;
+            label.fontFamily = fontFamily;
+            label.textAlign = 'center';
+            label.textBaseline = 'middle';
+        });
+    }
+
+    // private async updateLabelSelection(opts: {
+    //     labelData: LinearGaugeLabelDatum[];
+    //     labelSelection: _Scene.Selection<_Scene.Text, LinearGaugeLabelDatum>;
+    // }) {
+    //     return opts.labelSelection.update(opts.labelData, undefined, (datum) => datum.label);
+    // }
+
+    // private async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, LinearGaugeLabelDatum> }) {
+    //     const { labelSelection } = opts;
+    //     const animationDisabled = this.ctx.animationManager.isSkipped();
+
+    //     labelSelection.each((label, datum) => {
+    //         label.fill = datum.fill;
+    //         label.fontStyle = datum.fontStyle;
+    //         label.fontWeight = datum.fontWeight;
+    //         label.fontFamily = datum.fontFamily;
+    //     });
+
+    //     if (animationDisabled || this.labelsHaveExplicitText()) {
+    //         this.formatLabelText();
+    //     }
+    // }
+
+    // labelsHaveExplicitText() {
+    //     for (const { datum } of this.labelSelection) {
+    //         if (datum.text == null) {
+    //             return false;
+    //         }
+    //     }
+
+    //     return true;
+    // }
+
+    // formatLabelText(datum?: { label: number; secondaryLabel: number }) {
+    //     const angleAxis = this.axes[ChartAxisDirection.X];
+    //     if (angleAxis == null) return;
+
+    //     const { labelSelection, textAlign, verticalAlign } = this;
+    //     const { label, secondaryLabel, margin: padding } = this.properties;
+
+    //     formatLinearGaugeLabels(
+    //         this,
+    //         labelSelection,
+    //         label,
+    //         secondaryLabel,
+    //         { padding, textAlign, verticalAlign },
+    //         0,
+    //         (value) => this.formatLabel(value),
+    //         datum
+    //     );
+    // }
+
+    protected resetAllAnimation() {
+        this.ctx.animationManager.stopByAnimationGroupId(this.id);
+
+        resetMotion([this.datumSelection], resetLinearGaugeSeriesResetRectFunction);
+        // this.formatLabelText();
+    }
+
+    resetAnimation(phase: _ModuleSupport.ChartAnimationPhase) {
+        if (phase === 'initial') {
+            this.animationState.transition('reset');
+        } else if (phase === 'ready') {
+            this.animationState.transition('skip');
+        }
+    }
+
+    // private animateLabelText(params: { from?: number; phase?: _ModuleSupport.AnimationPhase } = {}) {
+    //     const { animationManager } = this.ctx;
+
+    //     let labelFrom = 0;
+    //     let labelTo = 0;
+    //     let secondaryLabelFrom = 0;
+    //     let secondaryLabelTo = 0;
+    //     this.labelSelection.each((label, datum) => {
+    //         // Reset animation
+    //         label.opacity = 1;
+
+    //         if (datum.label === LabelType.Primary) {
+    //             labelFrom = label.previousDatum?.value ?? params.from ?? datum.value;
+    //             labelTo = datum.value;
+    //         } else if (datum.label === LabelType.Secondary) {
+    //             secondaryLabelFrom = label.previousDatum?.value ?? params.from ?? datum.value;
+    //             secondaryLabelTo = datum.value;
+    //         }
+    //     });
+
+    //     if (this.labelsHaveExplicitText()) {
+    //         // Ignore
+    //     } else if (labelFrom === labelTo && secondaryLabelFrom === secondaryLabelTo) {
+    //         this.formatLabelText({ label: labelTo, secondaryLabel: secondaryLabelTo });
+    //     } else if (!this.labelsHaveExplicitText()) {
+    //         const animationId = `${this.id}_labels`;
+
+    //         animationManager.animate({
+    //             id: animationId,
+    //             groupId: 'label',
+    //             from: { label: labelFrom, secondaryLabel: secondaryLabelFrom },
+    //             to: { label: labelTo, secondaryLabel: secondaryLabelTo },
+    //             phase: params.phase ?? 'update',
+    //             onUpdate: (datum) => this.formatLabelText(datum),
+    //         });
+    //     }
+    // }
+
+    animateEmptyUpdateReady() {
+        const { animationManager } = this.ctx;
+
+        const { node } = prepareLinearGaugeSeriesAnimationFunctions(true, this.horizontal);
+        fromToMotion(this.id, 'node', animationManager, [this.datumSelection], node, (_sector, datum) => datum.itemId!);
+
+        // fromToMotion(
+        //     this.id,
+        //     'label',
+        //     animationManager,
+        //     [this.labelSelection],
+        //     fadeInFns,
+        //     (_label, datum) => datum.label
+        // );
+
+        // this.animateLabelText({ from: 0, phase: 'initial' });
+    }
+
+    animateWaitingUpdateReady() {
+        const { animationManager } = this.ctx;
+
+        const { node } = prepareLinearGaugeSeriesAnimationFunctions(false, this.horizontal);
+        fromToMotion(this.id, 'node', animationManager, [this.datumSelection], node, (_sector, datum) => datum.itemId!);
+
+        // this.animateLabelText();
+    }
+
+    protected animateReadyResize() {
+        this.resetAllAnimation();
+    }
+
+    override getLabelData(): _Util.PointLabelDatum[] {
+        const angleAxis = this.axes[ChartAxisDirection.X];
+        if (angleAxis == null) return [];
+
+        const { properties } = this;
+        const { horizontal, target } = properties;
+        const { label } = target;
+
+        const font = label.getFont();
+        const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font });
+
+        return this.properties.targets
+            .filter((t) => t.text != null)
+            .map((t) => {
+                const { text = '', size = target.size, placement = target.placement } = t;
+                const { width, height } = textMeasurer.measureText(text);
+
+                const { x, y } = this.getTargetPoint(t);
+
+                const point: _Scene.SizedPoint = { x, y, size };
+
+                return {
+                    point,
+                    marker: undefined,
+                    label: { text, width, height },
+                    placement: horizontal && placement === 'after' ? 'bottom' : 'top',
+                };
+            });
+    }
+
+    override getSeriesDomain() {
+        return [NaN, NaN];
+    }
+
+    override getLegendData():
+        | _ModuleSupport.ChartLegendDatum<any>[]
+        | _ModuleSupport.ChartLegendDatum<_ModuleSupport.ChartLegendType>[] {
+        return [];
+    }
+
+    private readonly nodeDatum: any = { series: this, datum: this };
+    override pickNode(
+        point: _Scene.Point,
+        intent: _ModuleSupport.SeriesNodePickIntent
+    ): _ModuleSupport.PickResult | undefined {
+        switch (intent) {
+            case 'event':
+            case 'context-menu':
+                return undefined;
+            case 'tooltip':
+            case 'highlight':
+            case 'highlight-tooltip': {
+                const highlightedTarget = this.itemTargetGroup.pickNode(point.x, point.y);
+                return highlightedTarget != null
+                    ? {
+                          pickMode: _ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH,
+                          match: highlightedTarget.datum,
+                          distance: 0,
+                      }
+                    : { pickMode: _ModuleSupport.SeriesNodePickMode.NEAREST_NODE, match: this.nodeDatum, distance: 0 };
+            }
+        }
+    }
+
+    override getTooltipHtml(nodeDatum: _ModuleSupport.SeriesNodeDatum): _ModuleSupport.TooltipContent {
+        const { id: seriesId, properties } = this;
+
+        if (!properties.isValid()) {
+            return EMPTY_TOOLTIP_CONTENT;
+        }
+
+        const datum = this.highlightDatum(nodeDatum);
+
+        const value = datum?.value ?? properties.value;
+        const text = datum?.text;
+        const { tooltip } = properties;
+
+        const title = text ?? '';
+        const content = this.formatLabel(value);
+
+        const itemId = datum?.itemId;
+        const color = datum?.fill;
+
+        return tooltip.toTooltipHtml(
+            { title, content, backgroundColor: color },
+            {
+                seriesId,
+                itemId,
+                title,
+                datum,
+                color,
+                value,
+                ...this.getModuleTooltipParams(),
+            }
+        );
+    }
+
+    override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
+        const targetData = this.contextNodeData?.targetData;
+        if (targetData == null || targetData.length === 0) return;
+
+        const datumIndex = Math.min(Math.max(opts.datumIndex, 0), targetData.length - 1);
+
+        const datum = targetData[datumIndex];
+
+        for (const node of this.targetSelection) {
+            if (node.datum === datum) {
+                const bounds = node.node;
+                return { bounds, showFocusBox: true, datum, datumIndex };
+            }
+        }
+    }
+
+    getCaptionText(): string {
+        // const { value, label, secondaryLabel } = this.properties;
+        const { value } = this.properties;
+
+        const description: string[] = [];
+
+        description.push(this.formatLabel(value));
+
+        // const labelText = getLabelText(this, label, value);
+        // if (labelText != null) {
+        //     description.push(labelText);
+        // }
+
+        // const secondaryLabelText = getLabelText(this, secondaryLabel, value);
+        // if (secondaryLabelText != null) {
+        //     description.push(secondaryLabelText);
+        // }
+
+        return description.join('. ');
+    }
+}
