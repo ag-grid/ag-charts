@@ -1,3 +1,4 @@
+import { HistoryManager } from '../api/state/historyManager';
 import { StateManager } from '../api/state/stateManager';
 import { DOMManager } from '../dom/domManager';
 import { FocusIndicator } from '../dom/focusIndicator';
@@ -53,6 +54,7 @@ export class ChartContext implements ModuleContext {
     domManager: DOMManager;
     focusIndicator: FocusIndicator;
     highlightManager: HighlightManager;
+    historyManager: HistoryManager;
     interactionManager: InteractionManager;
     keyNavManager: KeyNavManager;
     localeManager: LocaleManager;
@@ -121,6 +123,7 @@ export class ChartContext implements ModuleContext {
         );
         this.seriesStateManager = new SeriesStateManager();
         this.stateManager = new StateManager();
+        this.historyManager = new HistoryManager(this.domManager);
         this.callbackCache = new CallbackCache();
 
         this.animationManager = new AnimationManager(this.interactionManager, updateMutex);
