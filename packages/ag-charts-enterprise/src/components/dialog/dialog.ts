@@ -8,7 +8,7 @@ const { Vec2 } = _Util;
 
 export interface DialogOptions extends PopoverOptions {}
 
-interface ButtonGroupOptions {
+interface RadioGroupOptions {
     label: string;
     options: Array<{ icon: AgIconName; altText: string; value: string }>;
     value: string;
@@ -72,7 +72,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     /**********
      * Inputs *
      **********/
-    protected createRadioGroup({ label, options, value, onChange }: ButtonGroupOptions) {
+    protected createRadioGroup({ label, options, value, onChange }: RadioGroupOptions) {
         const group = this.createInputGroup(label);
         group.role = 'radiogroup';
         group.tabIndex = -1;
