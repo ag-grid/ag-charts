@@ -205,7 +205,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
                 cloneProxy.chart.series[index].visible = false; // sync series visibility
             }
         });
-        chart.update(ChartUpdateType.FULL, { forceNodeDataRefresh: true });
+        cloneProxy.chart.update(ChartUpdateType.FULL, { forceNodeDataRefresh: true });
         await cloneProxy.waitForUpdate();
         return cloneProxy;
     }
