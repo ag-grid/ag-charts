@@ -28,7 +28,7 @@ import {
 } from '../apiReferenceHelpers';
 import styles from './ApiReference.module.scss';
 import { SelectionContext } from './OptionsNavigation';
-import { type CollapsibleType, PropertyTitle, PropertyType } from './Properies';
+import { type CollapsibleType, PropertyTitle, PropertyType } from './Properties';
 
 export const ApiReferenceContext = createContext<ApiReferenceType | undefined>(undefined);
 export const ApiReferenceConfigContext = createContext<ApiReferenceConfig>({});
