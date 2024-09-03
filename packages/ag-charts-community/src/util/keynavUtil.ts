@@ -95,22 +95,25 @@ const PREV_NEXT_KEYS = {
 } as const;
 
 // https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/toolbar_role
-export function initToolbarKeyNav(opts: {
-    role?: 'toolbar' | 'list';
+export function initToolbarKeyNav(
+    opts: { toolbar: HTMLElement } & Parameters<typeof initRovingTabIndex>[0]
+): ReturnType<typeof initRovingTabIndex> {
+    opts.toolbar.role = 'toolbar';
+    opts.toolbar.ariaOrientation = opts.orientation;
+    opts.toolbar.ariaHidden = (opts.buttons.length === 0).toString();
+    return initRovingTabIndex(opts);
+}
+
+// https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/#kbd_roving_tabindex
+export function initRovingTabIndex(opts: {
     orientation: 'horizontal' | 'vertical';
-    toolbar: HTMLElement;
     buttons: HTMLElement[];
     onFocus?: (event: FocusEvent) => void;
     onBlur?: (event: FocusEvent) => void;
     onEscape?: (event: KeyboardEvent) => void;
-}): (() => void)[] {
-    const { role, orientation, toolbar, buttons, onEscape, onFocus, onBlur } = opts;
+}) {
+    const { orientation, buttons, onEscape, onFocus, onBlur } = opts;
     const { nextKey, prevKey } = PREV_NEXT_KEYS[orientation];
-    const ariaHidden: boolean = buttons.length === 0;
-
-    toolbar.role = role ?? 'toolbar';
-    toolbar.ariaOrientation = orientation;
-    toolbar.ariaHidden = ariaHidden.toString();
 
     // Assistive Technologies might provide functionality to focus on any element at random.
     // For example, in VoiceOver the user can press Ctrl+Opt+Shift Up to leave the toolbar, and then

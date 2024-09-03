@@ -122,3 +122,12 @@
     color: var(--ag-charts-input-placeholder);
     content: attr(placeholder);
 }
+
+/* Focus indicator */
+.ag-charts-dialog__button:focus-visible,
+.ag-charts-dialog__select:focus-visible,
+.ag-charts-dialog__textarea:focus-visible {
+    outline: var(--ag-charts-focus-border);
+    box-shadow: var(--ag-charts-focus-border-shadow);
+    z-index: calc(var(--ag-charts-layer-ui-overlay) + 1);
+}
