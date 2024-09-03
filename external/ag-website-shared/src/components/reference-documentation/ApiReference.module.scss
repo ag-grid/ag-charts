@@ -63,19 +63,6 @@
         height: 1px; // needed for divs to fit table cell heights correctly
     }
 
-    tbody {
-        @container (max-width: #{$breakpoint-table-small}) {
-            display: block;
-        }
-    }
-
-    tr {
-        @container (max-width: #{$breakpoint-table-small}) {
-            display: flex;
-            flex-direction: column;
-        }
-    }
-
     pre:global(.code) {
         margin-bottom: $spacing-size-2;
     }
@@ -123,10 +110,9 @@
 }
 
 .rightColumn {
-    &:not(td) {
-        display: flex;
-        flex-direction: column;
-    }
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-size-4;
 
     @container (max-width: #{$breakpoint-table-small}) {
         width: 100%;
@@ -219,7 +205,6 @@
     font-weight: 400;
 }
 
-.initialItem,
 a.metaValue {
     color: var(--color-link);
     text-decoration: underline;
@@ -239,8 +224,6 @@ a.metaValue {
     display: flex;
     flex-wrap: wrap;
     gap: $spacing-size-4 $spacing-size-8;
-    margin-top: $spacing-size-2;
-    padding-top: $spacing-size-2;
 
     pre {
         min-width: 100%;
@@ -301,6 +284,17 @@ button.seeMore {
 
     @container (max-width: #{$breakpoint-table-small}) {
         min-width: 1.5ch;
+    }
+}
+
+.docLink {
+    white-space: nowrap;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+
+    svg {
+        --icon-size: 16px;
     }
 }
 

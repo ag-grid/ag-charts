@@ -1,9 +1,9 @@
 import { Icon, type IconName } from '@ag-website-shared/components/icon/Icon';
 import { LinkIcon } from '@ag-website-shared/components/link-icon/LinkIcon';
 import styles from '@ag-website-shared/components/reference-documentation/ApiReference.module.scss';
-import { navigate, scrollIntoViewById } from '@ag-website-shared/utils/navigation';
+import { useScrollToAnchor } from '@ag-website-shared/utils/navigation';
 import classnames from 'classnames';
-import { type AllHTMLAttributes, type FunctionComponent, type MouseEventHandler, type ReactNode } from 'react';
+import { type AllHTMLAttributes, type FunctionComponent, type ReactNode } from 'react';
 
 import { cleanupName } from '../apiReferenceHelpers';
 
@@ -17,19 +17,18 @@ interface PropertyTitleOptions {
 export type CollapsibleType = 'childrenProperties' | 'code' | 'none';
 
 export function PropertyTitle({ name, anchorId, prefixPath, required }: PropertyTitleOptions) {
-    const handleClick: MouseEventHandler<HTMLAnchorElement> = (event) => {
-        event.preventDefault();
-        navigate(event.currentTarget.href);
-        const href = event.currentTarget.getAttribute('href');
-        if (href?.startsWith('#')) {
-            scrollIntoViewById(href.substring(1));
-        }
-    };
+    const scrollToAnchor = useScrollToAnchor();
+
     return (
         <div className={classnames(styles.name, 'side-menu-exclude')}>
             <PropertyNamePrefix prefixPath={prefixPath} />
             <PropertyName isRequired={required}>{name}</PropertyName>
-            <LinkIcon href={`#${anchorId}`} onClick={handleClick} className={styles.linkIcon} />
+            <LinkIcon
+                href={`#${anchorId}`}
+                onClick={scrollToAnchor}
+                className={styles.linkIcon}
+                aria-label={`Link to ${name} property`}
+            />
         </div>
     );
 }
@@ -142,9 +141,9 @@ export function PropertyType({
 
             {/* TODO: Add this for grid, when this component is shared
             {isInitial && (
-                <div className={classnames(styles.metaItem, styles.initialItem)}>
+                <div className={classnames(styles.metaItem)}>
                     <a
-                        className={styles.initialLabel}
+                        className={styles.metaValue}
                         href={urlWithPrefix({
                             url: './grid-interface/#initial-grid-options',
                             framework,
