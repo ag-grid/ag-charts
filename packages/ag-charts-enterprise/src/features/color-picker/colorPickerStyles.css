@@ -54,7 +54,10 @@
 
 .ag-charts-color-picker__palette:focus-visible::after {
     outline: var(--ag-charts-focus-border);
-    box-shadow: var(--ag-charts-focus-box-shadow);
+    box-shadow:
+        var(--box-shadow),
+        0 0 0 2px #fff8,
+        var(--ag-charts-focus-border-shadow);
 }
 
 .ag-charts-color-picker__hue-input,
