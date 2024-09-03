@@ -439,7 +439,7 @@ export class ExtendedPath2D {
                     joinAngle(A0);
                     joinAngle(A1, true);
                     const criticalAngles = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
-                    for (let crit of criticalAngles) {
+                    for (const crit of criticalAngles) {
                         if ((A0 < A1 && A0 <= crit && crit <= A1) || (A0 > A1 && (A0 <= crit || crit <= A1))) {
                             joinAngle(crit);
                         }
