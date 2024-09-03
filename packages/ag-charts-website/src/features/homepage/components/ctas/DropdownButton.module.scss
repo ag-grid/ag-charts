@@ -1,0 +1,71 @@
+.ctaContainer {
+    position: relative;
+    display: flex;
+}
+
+.dropdownButton {
+    display: inline-flex;
+    align-items: center;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    padding-right: 6px;
+}
+
+.arrow {
+    padding: 0px 6px 0px 0px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.frameworkLogo {
+    width: 28px;
+    height: 28px;
+    margin: 0px 12px;
+}
+
+.frameworkButton {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.frameworkButton:not(:last-child) {
+    border-radius: 0;
+}
+
+.dropdownMenu {
+    display: flex;
+    justify-content: space-between;
+    position: absolute;
+    width: 100%;
+    top: 100%;
+    left: 0;
+    background-color: white;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+}
+
+.imageButton {
+    background: none;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    color: var(--color-text-primary);
+}
+
+.imageButton img {
+    width: 28px;
+    height: 28px;
+    margin: 0px 12px;
+}
+
+.imgButton span {
+    height: 100%;
+}
+
+.buttonContainer {
+    display: flex;
+    align-items: center;
+}
