@@ -3,30 +3,20 @@ import Layout from '@layouts/Layout.astro';
 import styles from '@pages-styles/homepage.module.scss';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { FrameworkSelector } from '../components/framework-selector/FrameworkSelector';
-
-import InstallText from '@features/homepage/components/InstallText';
-import IndexGalleryExampleRunner from '@features/homepage/components/IndexGalleryExampleRunner.astro';
-import { Snippet } from '@ag-website-shared/components/snippet/Snippet';
-
-import { TabControl } from '@features/homepage/components/TabControl';
-import { getGalleryExamples } from '@features/gallery/utils/filesData';
 import { getEntry } from 'astro:content';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
-import fwLogos from '@ag-website-shared/images/fw-logos';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
-
 import { AutomatedIntegratedChartsWrapper } from '@ag-website-shared/components/automated-examples/AutomatedIntegratedChartsWrapper';
-import Faqs from '../features/homepage/components/faqs/Faqs';
-import DropdownButton from '../features/homepage/components/ctas/DropdownButton';
+import { Faqs } from '../features/homepage/components/faqs/Faqs';
 
+// Custom Example Runners || TODO: Cleanup
+import IndexGalleryExampleRunner from '@features/homepage/components/IndexGalleryExampleRunner.astro';
 import IndexDocsExampleRunner from '@features/homepage/components/IndexDocsExampleRunner.astro';
-const { data: whatsNewData } = await getEntry('versions', 'ag-charts-versions');
 
-// Fetch gallery data
+// All Gallery Examples
 const galleryEntry = await getEntry('gallery', 'data');
-const galleryExamples = getGalleryExamples({ galleryData: galleryEntry.data });
 
-// Prepare examples data for IndexGalleryExampleRunner
+// Extract Specific Community Examples from Gallery
 const seriesExampleMap = {
     bar: 'stacked-horizontal-bar',
     line: 'multiple-line-series-large-data',
@@ -38,7 +28,7 @@ const seriesExampleMap = {
     combination: 'radar-line-radar-area-nightingale-combination',
 };
 
-// Prepare examples data for IndexGalleryExampleRunner
+// Extract Specific Enterprise Examples from Gallery
 const enterpriseSeriesExampleMap = {
     'range-bar': 'horizontal-range-bar-with-labels',
     'range-area': 'range-area-with-labels',
@@ -132,45 +122,6 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
     description="Create beautiful, high-performance JavaScript charts quickly with AG Charts. Free forever; upgrade to enterprise for advanced features and dedicated support."
 >
     <div class:list={[styles.container]}>
-        <!-- <div class={styles.section}>
-            <div class={styles.smallRectangleLeft}></div>
-            <div class={styles.smallRectangleRight}></div>
-            <div class={styles.blueRectangle}></div>
-            <div class:list={[styles.heroSectionInner, 'layout-max-width-small']}>
-                <div class={styles.whatsNewTagContainer}>
-                    <span class={styles.whatsNewVersion}>v{whatsNewData[0].version}</span>
-                    <span class={styles.whatsNewText}>
-                        {whatsNewData[0].highlightSummary}
-                    </span>
-                    <Icon svgClasses={[styles.whatsNewArrow]} name="arrowRight" />
-                </div>
-                <div class={styles.headingContainer}>
-                    <h1>JavaScript Charts</h1>
-                    <h2>High Performance, Feature Rich JavaScript Charting Library</h2>
-                    <h3>
-                        AG Charts is a high-performance JavaScript charting library that lets you create stunning
-                        visualizations, including <a>bar</a>, <a>line</a>, <a>pie</a>, and <a>map</a> charts, within
-                        minutes. <a>Get started</a> for free with essential features or <a>upgrade to Enterprise</a> for
-                        advanced features, series types and dedicated support.
-                    </h3>
-                </div>
-                <div class={styles.ctaContainer}>
-                    <button>Get Started</button>
-                    <DropdownButton client:load />
-                    <div class={styles.installCta}>
-                        <InstallText client:load />
-                    </div>
-                </div>
-                <img
-                    class={styles.heroImage}
-                    src="charts/images/readme-assets/gallery.gif"
-                    alt="AG Charts Examples - JavaScript Bar, Line, Pie, and Map Charts"
-                />
-                <a href="./gallery" class={styles.galleryCta}
-                    >JavaScript Charts Gallery <Icon svgClasses={[styles.whatsNewArrow]} name="arrowRight" />
-                </a>
-            </div>
-        </div> -->
         <div class={styles.homepageHero}>
             <div class:list={[styles.heroInner, 'layout-max-width-small']}>
                 <div class={styles.heroHeadings}>
@@ -191,25 +142,6 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                 <FrameworkSelector data={frameworksData} isFullWidth />
             </div>
         </div>
-        <!-- <div class={styles.section}>
-            <div class:list={[styles.communityFeaturesSectionInner, 'layout-max-width-small']}>
-                <div class={styles.sectionHeaderContainer}>
-                    <h2>React, Angular and Vue JavaScript Charting Libraries</h2>
-                    <h3>Support for React, Angular and Vue</h3>
-                </div>
-                <div class={styles.frameworkButtonsContainer}>
-                    <button class={styles.frameworkButton}>
-                        <img class={styles.frameworkLogo} src={fwLogos['react']} alt={'alt'} />
-                    </button>
-                    <button class={styles.frameworkButton}>
-                        <img class={styles.frameworkLogo} src={fwLogos['angular']} alt={'alt'} />
-                    </button>
-                    <button class={styles.frameworkButton}>
-                        <img class={styles.frameworkLogo} src={fwLogos['vue']} alt={'alt'} />
-                    </button>
-                </div>
-            </div>
-        </div> -->
         <div class={styles.section}>
             <div class:list={[styles.communityFeaturesSectionInner, 'layout-max-width-small']}>
                 <div class={styles.sectionHeaderContainer}>
@@ -252,62 +184,9 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                         </div>
                     </div>
                 </div>
-                <!-- <div>
-                    <b>Advanced Features</b>
-                    <p>
-                        Leverage advanced features like interactive zooming, cross-chart interactions, and advanced
-                        annotations to enhance your data analysis capabilities.
-                    </p>
-                    <IndexDocsExampleRunner name={'../../vanilla/context-menu/examples/context-menu'} />
-                </div> -->
-
                 <div class={styles.ctaButton}>
                     <button>View Pricing</button>
                 </div>
-
-                <!-- <div class={styles.cardContainer}>
-                    <div class={styles.card}>
-                        <h4>Advanced Features</h4>
-                        <p>
-                            Unlock powerful tools for data visualization and analysis, including advanced annotations,
-                            interactive zooming, and cross-chart interactions.
-                        </p>
-                        <button class={styles.learnMoreBtn}>Learn More</button>
-                    </div>
-                    <div class={styles.card}>
-                        <h4>Additional Series Types</h4>
-                        <p>
-                            Access a wider range of chart types, including candlestick, OHLC, and multi-layered map
-                            visualizations for comprehensive data representation.
-                        </p>
-                        <button class={styles.learnMoreBtn}>Learn More</button>
-                    </div>
-                    <div class={styles.card}>
-                        <h4>Dedicated Support</h4>
-                        <p>
-                            Get priority assistance from our expert team, ensuring quick resolution of issues and
-                            guidance for optimal chart implementation.
-                        </p>
-                        <button class={styles.learnMoreBtn}>Learn More</button>
-                    </div>
-                </div> -->
-
-                <!-- <div class="tabs">
-                    <div class="tab active" data-tab="content1">Additional Series Types</div>
-                    <div class="tab" data-tab="content2">Advanced Features</div>
-                </div>
-                <div id="content1" class="tab-content">
-                    <IndexGalleryExampleRunner
-                        examples={enterpriseExampleData}
-                        pageName={galleryExamples[0].page.chartSeriesName}
-                        format="side"
-                    />
-                </div>
-                <div id="content2" class="tab-content hidden">
-                    <IndexDocsExampleRunner name={'../../vanilla/financial-charts/examples/financial-charts-showcase'} />
-                </div> -->
-
-                <!-- <TabControl client:load /> -->
             </div>
         </div>
         <div class={styles.section}>
@@ -326,44 +205,6 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                         name={'../../vanilla/financial-charts/examples/financial-charts-showcase'}
                     />
                 </div>
-                <!-- <div class={styles.twoColumnContainer}>
-                    <div class={styles.columnSmall}>
-                        <div class={styles.financialChartsFeaturesContainer}>
-                            <p>
-                                <b>Start in Seconds</b>
-                                <ul>
-                                    <li>
-                                        Financial Charts come pre-configured with built-in features, simply provide your
-                                        JSON data, and create the chart
-                                    </li>
-                                </ul>
-                            </p>
-                            <p>
-                                <b>Drawings and Annotations</b>
-                                <ul>
-                                    <li>Add Trend Lines and Text Annotations from the toolbar for data analysis.</li>
-                                </ul>
-                            </p>
-                            <p>
-                                <b>Interactive Charts</b>
-                                <ul>
-                                    <li>Easily navigate time periods with advanced zoom & Range buttons</li>
-                                </ul>
-                            </p>
-                            <p>
-                                <b>Financial Chart types</b>
-                                <ul>
-                                    <li>Choose from 6 chart types, including OHLC, Line, and Candlestick</li>
-                                </ul>
-                            </p>
-                        </div>
-                    </div>
-                    <div class={styles.columnLarge}>
-                        <IndexDocsExampleRunner
-                            name={'../../vanilla/financial-charts/examples/financial-charts-showcase'}
-                        />
-                    </div>
-                </div> -->
                 <div class={styles.ctaButton}>
                     <button>Learn More</button>
                 </div>
@@ -468,61 +309,3 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
         </div>
     </div>
 </Layout>
-
-<script>
-    function switchTab(event, tabId) {
-        const tabs = document.querySelectorAll('.tab');
-        const contents = document.querySelectorAll('.tab-content');
-
-        tabs.forEach((tab) => tab.classList.remove('active'));
-        contents.forEach((content) => content.classList.add('hidden'));
-
-        event.target.classList.add('active');
-        document.getElementById(tabId).classList.remove('hidden');
-    }
-
-    document.querySelectorAll('.tab').forEach((tab) => {
-        tab.addEventListener('click', (event) => {
-            switchTab(event, event.target.dataset.tab);
-        });
-    });
-</script>
-
-<style>
-    .tabs {
-        display: flex;
-        cursor: pointer;
-        justify-content: center;
-        margin-top: 2rem;
-    }
-
-    .tab {
-        flex: 1;
-        padding: 10px 20px;
-        border: 1px solid #ddd;
-        border-radius: 5px 5px 0 0;
-        border-bottom: none;
-        background-color: var(--color-bg-disabled_subtle);
-        transition: background-color 0.3s;
-        text-align: center;
-    }
-
-    .tab.active {
-        background-color: white;
-        border-bottom: 1px solid white;
-        font-weight: bold;
-        color: var(--color-brand-400);
-    }
-
-    .tab-content {
-        border: 1px solid #ddd;
-        border-top: none;
-        padding: 20px;
-        background-color: white;
-        margin-bottom: 2rem;
-    }
-
-    .hidden {
-        display: none;
-    }
-</style>

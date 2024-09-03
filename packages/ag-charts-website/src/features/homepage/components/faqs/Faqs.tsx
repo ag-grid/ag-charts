@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import styles from './Faqs.module.scss';
 import faqs from './faqs.json';
 
-const Faqs: React.FC = () => {
+export const Faqs: React.FC = () => {
     const [activeIndex, setActiveIndex] = useState(-1);
 
     const handleToggle = (index: number) => {
@@ -56,5 +56,3 @@ const Faqs: React.FC = () => {
         </div>
     );
 };
-
-export default Faqs;
