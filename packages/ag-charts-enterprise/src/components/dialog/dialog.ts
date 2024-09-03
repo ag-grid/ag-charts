@@ -3,7 +3,7 @@ import type { AgIconName } from 'ag-charts-types';
 
 import { Popover, type PopoverOptions } from '../popover/popover';
 
-const { createElement } = _ModuleSupport;
+const { createElement, initRovingTabIndex } = _ModuleSupport;
 const { Vec2 } = _Util;
 
 export interface DialogOptions extends PopoverOptions {}
@@ -72,14 +72,22 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     /**********
      * Inputs *
      **********/
-    protected createButtonGroup({ label, options, value, onChange }: ButtonGroupOptions) {
+    protected createRadioGroup({ label, options, value, onChange }: ButtonGroupOptions) {
         const group = this.createInputGroup(label);
+        group.role = 'radiogroup';
+        group.tabIndex = -1;
+        group.ariaLabel = label;
 
         const activeClass = 'ag-charts-dialog__button--active';
+        const buttons: HTMLButtonElement[] = [];
 
         for (const button of options) {
             const buttonEl = createElement('button', `ag-charts-dialog__button`);
             const iconEl = createElement('span', this.ctx.domManager.getIconClassNames(button.icon));
+            buttonEl.role = 'radio';
+            buttonEl.ariaLabel = this.ctx.localeManager.t(button.altText ?? '');
+            buttonEl.ariaChecked = 'false';
+            iconEl.ariaHidden = 'true';
             if (button.value === value) {
                 buttonEl.classList.add(activeClass);
             }
@@ -88,13 +96,18 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             buttonEl.addEventListener('click', () => {
                 for (const b of Array.from(group.children)) {
                     b.classList.remove(activeClass);
+                    b.ariaChecked = 'false';
                 }
                 buttonEl.classList.add(activeClass);
+                buttonEl.ariaChecked = 'true';
                 onChange(button.value);
             });
             group.appendChild(buttonEl);
+            buttons.push(buttonEl);
         }
 
+        if (buttons[0] != null) buttons[0].ariaChecked = 'true';
+        initRovingTabIndex({ orientation: 'horizontal', buttons });
         return group;
     }
 

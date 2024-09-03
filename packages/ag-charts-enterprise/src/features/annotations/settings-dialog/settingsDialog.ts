@@ -54,7 +54,7 @@ export class AnnotationSettingsDialog extends Dialog {
     }
 
     private createPositionButtonGroup(position: string, onChangePosition: (position: string) => void) {
-        return this.createButtonGroup({
+        return this.createRadioGroup({
             label: 'Position',
             options: [
                 { icon: 'position-top', altText: 'iconAltTextPositionTop', value: 'top' },
@@ -67,7 +67,7 @@ export class AnnotationSettingsDialog extends Dialog {
     }
 
     private createAlignmentButtonGroup(alignment: string, onChangeAlignment: (alignment: string) => void) {
-        return this.createButtonGroup({
+        return this.createRadioGroup({
             label: 'Align',
             options: [
                 { icon: 'align-left', altText: 'iconAltTextAlignLeft', value: 'left' },
