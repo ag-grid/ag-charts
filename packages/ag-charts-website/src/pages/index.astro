@@ -15,6 +15,7 @@ import fwLogos from '@ag-website-shared/images/fw-logos';
 import { AutomatedIntegratedChartsWrapper } from '@ag-website-shared/components/automated-examples/AutomatedIntegratedChartsWrapper';
 import Faqs from '../features/homepage/components/faqs/Faqs';
 import DropdownButton from '../features/homepage/components/ctas/DropdownButton';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 
 import IndexDocsExampleRunner from '@features/homepage/components/IndexDocsExampleRunner.astro';
 const { data: whatsNewData } = await getEntry('versions', 'ag-charts-versions');
@@ -99,42 +100,44 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
 >
     <div class:list={[styles.container]}>
         <div class={styles.section}>
-            <div class={styles.smallRectangleLeft}></div>
-            <div class={styles.smallRectangleRight}></div>
-            <div class={styles.blueRectangle}></div>
             <div class:list={[styles.heroSectionInner, 'layout-max-width-small']}>
-                <div class={styles.whatsNewTagContainer}>
-                    <span class={styles.whatsNewVersion}>v{whatsNewData[0].version}</span>
-                    <span class={styles.whatsNewText}>
-                        {whatsNewData[0].highlightSummary}
-                    </span>
-                    <Icon svgClasses={[styles.whatsNewArrow]} name="arrowRight" />
-                </div>
-                <div class={styles.headingContainer}>
-                    <h1>JavaScript Charts</h1>
-                    <h2>High Performance, Feature Rich JavaScript Charting Library</h2>
-                    <h3>
-                        AG Charts is a high-performance JavaScript charting library that lets you create stunning
-                        visualizations, including <a>bar</a>, <a>line</a>, <a>pie</a>, and <a>map</a> charts, within
-                        minutes. <a>Get started</a> for free with essential features or <a>upgrade to Enterprise</a> for
-                        advanced features, series types and dedicated support.
-                    </h3>
-                </div>
-                <div class={styles.ctaContainer}>
-                    <button>Get Started</button>
-                    <!-- <DropdownButton client:load /> -->
-                    <div class={styles.installCta}>
-                        <InstallText client:load />
+                <div class={styles.twoColumnContainer}>
+                    <div class={styles.columnEqual}>
+                        <div class={styles.headingContainer}>
+                            <h1>JavaScript Charts</h1>
+                            <h2>The Best JavaScript Charts In The World</h2>
+                            <h3>
+                                The professional choice for developers building Enterprise JavaScript Charting
+                                Applications
+                            </h3>
+                        </div>
+                        <div class={styles.ctaContainer}>
+                            <a href={urlWithBaseUrl('/react/quick-start')} class="button">Get Started</a>
+                            <a href={urlWithBaseUrl('/gallery')} class="button-secondary"
+                                >View Gallery<Icon name="chevronRight" /></a
+                            >
+                        </div>
+                    </div>
+                    <div class={styles.columnEqual}>
+                        <div class={styles.galleryScrollerContainer}>
+                            <div class={styles.galleryScroller}></div>
+                        </div>
                     </div>
                 </div>
-                <img
-                    class={styles.heroImage}
-                    src="charts/images/readme-assets/gallery.gif"
-                    alt="AG Charts Examples - JavaScript Bar, Line, Pie, and Map Charts"
-                />
-                <a href="./gallery" class={styles.galleryCta}
-                    >JavaScript Charts Gallery <Icon svgClasses={[styles.whatsNewArrow]} name="arrowRight" />
-                </a>
+            </div>
+        </div>
+        <div class={styles.section}>
+            <div class:list={[styles.communityFeaturesSectionInner, 'layout-max-width-small']}>
+                <div class={styles.sectionHeaderContainer}>
+                    <h2>Free JavaScript Charting Library - Quick & Easy Setup</h2>
+                    <h3>Create Beautiful JavaScript Charts in Minutes, for Free</h3>
+                    <h4>
+                        AG Charts Community supports multiple series types, customizable axes, real-time updates, and
+                        accessibility features. Use it to create dynamic visualizations for data analysis, financial
+                        reporting, and interactive dashboards.
+                    </h4>
+                </div>
+                <IndexGalleryExampleRunner examples={exampleData} pageName={'bar'} />
             </div>
         </div>
         <div class={styles.section}>
@@ -154,20 +157,6 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                         <img class={styles.frameworkLogo} src={fwLogos['vue']} alt={'alt'} />
                     </button>
                 </div>
-            </div>
-        </div>
-        <div class={styles.section}>
-            <div class:list={[styles.communityFeaturesSectionInner, 'layout-max-width-small']}>
-                <div class={styles.sectionHeaderContainer}>
-                    <h2>Free JavaScript Charting Library - Quick & Easy Setup</h2>
-                    <h3>Create Beautiful JavaScript Charts in Minutes, for Free</h3>
-                    <h4>
-                        AG Charts Community supports multiple series types, customizable axes, real-time updates, and
-                        accessibility features. Use it to create dynamic visualizations for data analysis, financial
-                        reporting, and interactive dashboards.
-                    </h4>
-                </div>
-                <IndexGalleryExampleRunner examples={exampleData} pageName={'bar'} />
             </div>
         </div>
         <div class={styles.section}>

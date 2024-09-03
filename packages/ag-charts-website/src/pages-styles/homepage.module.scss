@@ -7,6 +7,10 @@
 
 .container > div:nth-child(even) {
     background-color: var(--color-gray-50);
+
+    #{$selector-darkmode} & {
+        background-color: var(--color-util-gray-200);
+    }
 }
 
 .section {
@@ -81,42 +85,6 @@
 .heroSectionInner {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    text-align: center;
-
-    .whatsNewTagContainer {
-        display: flex;
-        border-radius: var(--radius-4xl);
-        justify-content: center;
-        align-items: center;
-        cursor: pointer;
-        align-self: center;
-        background-color: var(--color-brand-200);
-
-        .whatsNewVersion {
-            border: 2px solid var(--color-util-brand-200);
-            background: var(--color-bg-primary);
-            border-radius: var(--radius-4xl);
-            margin: $spacing-size-1;
-            padding: 0 $spacing-size-2;
-            font-size: var(--text-fs-sm);
-            font-weight: var(--text-base);
-            color: var(--color-brand-500);
-        }
-
-        .whatsNewText {
-            padding: 0 $spacing-size-2;
-            font-size: var(--text-fs-sm);
-            font-weight: var(--text-base);
-            color: var(--color-brand-500);
-            line-height: 100%;
-        }
-
-        .whatsNewArrow {
-            padding: $spacing-size-2;
-            fill: var(--color-brand-500);
-        }
-    }
 
     .headingContainer {
         margin-top: $spacing-size-8;
@@ -128,16 +96,15 @@
         }
 
         h2 {
-            font-size: 72px;
-            line-height: 77px;
-            padding: 0 64px;
+            font-size: 52px;
+            line-height: 52px;
             font-weight: var(--text-bold);
         }
 
         h3 {
-            margin: $spacing-size-8;
+            margin: $spacing-size-8 0;
             font-family: var(--text-font-family);
-            font-size: var(--text-fs-lg);
+            font-size: var(--text-fs-xl);
             line-height: var(--text-lh-base);
             font-weight: var(--text-regular);
             color: var(--color-text-primary);
@@ -164,9 +131,10 @@
     }
 
     .heroImage {
+        width: auto;
         max-width: 100%;
-        border-radius: var(--radius-2xl);
-        border: 1px solid var(--color-gray-200);
+        height: 100%;
+        object-fit: contain;
     }
 
     .galleryCta {
@@ -319,4 +287,83 @@
     margin-bottom: $spacing-size-4;
     font-weight: var(--text-regular);
     color: var(--color-text-primary);
+}
+
+.galleryScrollerContainer {
+    display: flex;
+    justify-content: center;
+    height: 100%;
+    align-items: center;
+}
+
+.galleryScroller {
+    --scroller-height: max(416px, 33vh);
+
+    position: relative;
+    height: var(--scroller-height);
+    overflow: hidden;
+    background-image: url(urlWithBaseUrl('/images/homepage-scroll-light.webp'));
+    background-size: 100% auto;
+    animation-name: scroll-hero;
+    animation-duration: 220s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+
+    &::before,
+    &::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        left: 0;
+        height: $spacing-size-12;
+    }
+
+    &::before {
+        top: 0;
+        background-image: linear-gradient(var(--color-util-brand-700), transparent);
+        z-index: 1;
+    }
+
+    &::after {
+        bottom: 0;
+        background-image: linear-gradient(transparent, var(--color-util-brand-700));
+    }
+
+    #{$selector-darkmode} & {
+        background-image: url(urlWithBaseUrl('/images/homepage-scroll-dark.webp'));
+
+        &::before {
+            background-image: linear-gradient(var(--color-bg-primary), transparent);
+        }
+
+        &::after {
+            background-image: linear-gradient(transparent, var(--color-bg-primary));
+        }
+    }
+
+    @media screen and (min-width: $breakpoint-hero-large) {
+        width: 720px;
+
+        &::before {
+            display: none;
+        }
+    }
+}
+
+@keyframes scroll-hero {
+    from {
+        background-position-y: 0;
+    }
+
+    to {
+        background-position-y: 500%;
+    }
+}
+
+.galleryScrollerExample {
+    background: white;
+
+    #{$selector-darkmode} & {
+        background: var(--color-bg-primary);
+    }
 }
