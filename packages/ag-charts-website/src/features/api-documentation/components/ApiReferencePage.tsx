@@ -12,7 +12,7 @@ import type { NavigationData, SpecialTypesMap } from '../apiReferenceHelpers';
 import { ApiReference, ApiReferenceConfigContext, ApiReferenceContext } from './ApiReference';
 import styles from './ApiReferencePage.module.scss';
 import { OptionsNavigation, SelectionContext } from './OptionsNavigation';
-import { PropertyType } from './Properies';
+import { PropertyType } from './Properties';
 
 interface ApiReferencePageOptions {
     reference: ApiReferenceType;

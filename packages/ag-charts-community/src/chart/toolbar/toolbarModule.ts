@@ -96,6 +96,7 @@ const annotationOptions: AgToolbarOptions['annotationOptions'] = {
             role: 'switch',
             icon: 'unlocked',
             tooltip: 'toolbarAnnotationsLock',
+            ariaLabel: 'toolbarAnnotationsLock',
             checkedOverrides: {
                 icon: 'locked',
                 tooltip: 'toolbarAnnotationsUnlock',

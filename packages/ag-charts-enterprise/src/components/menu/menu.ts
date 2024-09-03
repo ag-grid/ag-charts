@@ -14,12 +14,15 @@ export interface MenuOptions<Value = any> extends PopoverOptions {
     menuItemRole?: 'menuitem' | 'menuitemradio';
 }
 
-export interface MenuItem<Value = any> {
-    label?: string;
+// These types force a compilation error if the developer tries to add an icon-only
+// menu item without an accessible text alternative.
+type LabelAndIcon = { label: string; icon?: AgIconName; altText?: undefined };
+type IconOnly = { label?: undefined; icon: AgIconName; altText: string };
+
+export type MenuItem<Value = any> = (LabelAndIcon | IconOnly) & {
     value: Value;
-    icon?: AgIconName;
     strokeWidth?: number;
-}
+};
 
 /**
  * An anchored popover containing a list of pressable items.
@@ -77,6 +80,10 @@ export class Menu extends AnchoredPopover {
             const label = createElement('span', 'ag-charts-menu__label');
             label.textContent = this.ctx.localeManager.t(item.label);
             row.appendChild(label);
+        }
+
+        if (item.altText != null) {
+            row.ariaLabel = this.ctx.localeManager.t(item.altText);
         }
 
         const select = () => {
