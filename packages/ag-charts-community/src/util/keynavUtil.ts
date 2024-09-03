@@ -108,11 +108,12 @@ export function initToolbarKeyNav(
 export function initRovingTabIndex(opts: {
     orientation: 'horizontal' | 'vertical';
     buttons: HTMLElement[];
+    wrapAround?: boolean;
     onFocus?: (event: FocusEvent) => void;
     onBlur?: (event: FocusEvent) => void;
     onEscape?: (event: KeyboardEvent) => void;
 }) {
-    const { orientation, buttons, onEscape, onFocus, onBlur } = opts;
+    const { orientation, buttons, wrapAround = false, onEscape, onFocus, onBlur } = opts;
     const { nextKey, prevKey } = PREV_NEXT_KEYS[orientation];
 
     // Assistive Technologies might provide functionality to focus on any element at random.
@@ -126,11 +127,13 @@ export function initRovingTabIndex(opts: {
         }
     };
 
+    // When wrapAround is false, use c,m such that (c+x)%m === x
+    const [c, m] = wrapAround ? [buttons.length, buttons.length] : [0, Infinity];
     const destroyFns: (() => void)[] = [];
     for (let i = 0; i < buttons.length; i++) {
-        const prev = buttons[i - 1];
+        const prev = buttons[(c + i - 1) % m];
         const curr = buttons[i];
-        const next = buttons[i + 1];
+        const next = buttons[(c + i + 1) % m];
         addRemovableEventListener(destroyFns, curr, 'focus', setTabIndices);
         if (onFocus) addRemovableEventListener(destroyFns, curr, 'focus', onFocus);
         if (onBlur) addRemovableEventListener(destroyFns, curr, 'blur', onBlur);
@@ -187,24 +190,16 @@ export function initMenuKeyNav(opts: {
     const { nextKey, prevKey } = PREV_NEXT_KEYS[orientation];
 
     const menuCloser = new MenuCloserImp(menu, device.lastFocus, closeCallback);
-    const close = () => menuCloser.close();
+    const onEscape = () => menuCloser.close();
     const { destroyFns } = menuCloser;
 
     menu.role = 'menu';
     menu.ariaOrientation = orientation;
-    for (let i = 0; i < buttons.length; i++) {
-        // Use modules to wrap around when navigation past the start/end of the menu.
-        const prev = buttons[(buttons.length + i - 1) % buttons.length];
-        const curr = buttons[i];
-        const next = buttons[(buttons.length + i + 1) % buttons.length];
-        addEscapeEventListener(destroyFns, curr, close);
-        linkThreeButtons(destroyFns, curr, prev, prevKey, next, nextKey);
-        curr.tabIndex = -1;
-    }
+    initRovingTabIndex({ orientation, buttons, onEscape, wrapAround: true });
 
     // Add handlers for the menu element itself.
     menu.tabIndex = -1;
-    addEscapeEventListener(destroyFns, menu, close);
+    addEscapeEventListener(destroyFns, menu, onEscape);
     addRemovableEventListener(destroyFns, menu, 'keydown', (ev: KeyboardEvent) => {
         if (ev.target === menu && (ev.key === nextKey || ev.key === prevKey)) {
             ev.preventDefault();
