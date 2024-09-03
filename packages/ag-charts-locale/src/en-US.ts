@@ -47,6 +47,12 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaRoleDescriptionLegendItem: 'legend item',
     // Screen reader text for the value of the navigator's range
     ariaValuePanRange: '${min}[percent] to ${max}[percent]',
+    // Alt-text for the solid line dash style menu item icon
+    iconAltTextLineStyleSolid: 'Solid',
+    // Alt-text for the long-dashed line dash style menu item icon
+    iconAltTextLineStyleDashed: 'Long-dashed',
+    // Alt-text for the short-dashed line dash style menu item icon
+    iconAltTextLineStyleDotted: 'Short-dashed',
     // Alt-text for the 'position-top' icon
     iconAltTextPositionTop: 'Top',
     // Alt-text for the 'position-center' icon
@@ -108,12 +114,6 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarAnnotationsLineStyle: 'Line Style',
     // Text for the annotation toolbar's line stroke width button
     toolbarAnnotationsLineStrokeWidth: 'Line Stroke Width',
-    // Alt-text for the solid line dash style menu item icon
-    toolbarAnnotationsLineStyleSolid: 'Solid',
-    // Alt-text for the long-dashed line dash style menu item icon
-    toolbarAnnotationsLineStyleDashed: 'Long-dashed',
-    // Alt-text for the short-dashed line dash style menu item icon
-    toolbarAnnotationsLineStyleDotted: 'Short-dashed',
     // Text for the annotation toolbar's text color picker annotation button
     toolbarAnnotationsTextColor: 'Text Color',
     // Text for the annotation toolbar's text size picker annotation button
