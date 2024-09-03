@@ -357,8 +357,8 @@ export const Changelog = () => {
                     <section className={styles.header}>
                         <Alert type="idea">
                             This changelog enables you to identify the specific version in which a feature request or
-                            bug fix was included. Check out the <a href="../pipeline/">Pipeline</a> to see what's in our
-                            product backlog.
+                            bug fix was included. Check out the <a href={urlWithBaseUrl('/pipeline')}>Pipeline</a> to
+                            see what's in our product backlog.
                         </Alert>
 
                         <ReleaseVersionNotes
