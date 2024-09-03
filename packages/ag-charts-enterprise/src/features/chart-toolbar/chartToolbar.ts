@@ -76,6 +76,9 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
                 this.setChartType(item.value);
                 this.hidePopover();
             },
+            onHide: () => {
+                this.ctx.toolbarManager.toggleButton(BUTTON_GROUP, BUTTON_VALUE, { active: false });
+            },
         });
 
         this.ctx.toolbarManager.toggleButton(BUTTON_GROUP, BUTTON_VALUE, { active: true });

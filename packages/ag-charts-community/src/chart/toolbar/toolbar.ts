@@ -328,7 +328,12 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         const { group, anchor, floatingToolbarId } = event;
 
-        if (this.floatingToolbarId === floatingToolbarId && this.dragState.detached) {
+        const element = elements[ToolbarPosition.Floating];
+
+        if (
+            this.floatingToolbarId === floatingToolbarId &&
+            (this.dragState.detached || element.classList.contains(styles.modifiers.hidden))
+        ) {
             return;
         }
 
@@ -336,9 +341,6 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.dragState.detached = false;
 
         if (!positions[ToolbarPosition.Floating].has(group)) return;
-
-        const element = elements[ToolbarPosition.Floating];
-        if (element.classList.contains(styles.modifiers.hidden)) return;
 
         const position = anchor.position ?? 'above';
 

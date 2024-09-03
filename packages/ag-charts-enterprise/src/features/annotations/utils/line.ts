@@ -22,7 +22,7 @@ export function getLineDash(
     strokeWidth?: number
 ): PixelSize[] | undefined {
     const styleType = getLineStyle(lineDash, lineStyle);
-    return lineDash ?? computedLineDash ?? getComputedLineDash(strokeWidth ?? 1, styleType);
+    return computedLineDash ?? lineDash ?? getComputedLineDash(strokeWidth ?? 1, styleType);
 }
 
 export function getLineCap(

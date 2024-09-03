@@ -54,12 +54,12 @@ export class AnnotationSettingsDialog extends Dialog {
     }
 
     private createPositionButtonGroup(position: string, onChangePosition: (position: string) => void) {
-        return this.createButtonGroup({
+        return this.createRadioGroup({
             label: 'Position',
             options: [
-                { icon: 'position-top', value: 'top' },
-                { icon: 'position-center', value: 'center' },
-                { icon: 'position-bottom', value: 'bottom' },
+                { icon: 'position-top', altText: 'iconAltTextPositionTop', value: 'top' },
+                { icon: 'position-center', altText: 'iconAltTextPositionCenter', value: 'center' },
+                { icon: 'position-bottom', altText: 'iconAltTextPositionBottom', value: 'bottom' },
             ],
             value: position,
             onChange: onChangePosition,
@@ -67,12 +67,12 @@ export class AnnotationSettingsDialog extends Dialog {
     }
 
     private createAlignmentButtonGroup(alignment: string, onChangeAlignment: (alignment: string) => void) {
-        return this.createButtonGroup({
+        return this.createRadioGroup({
             label: 'Align',
             options: [
-                { icon: 'align-left', value: 'left' },
-                { icon: 'align-center', value: 'center' },
-                { icon: 'align-right', value: 'right' },
+                { icon: 'align-left', altText: 'iconAltTextAlignLeft', value: 'left' },
+                { icon: 'align-center', altText: 'iconAltTextAlignCenter', value: 'center' },
+                { icon: 'align-right', altText: 'iconAltTextAlignRight', value: 'right' },
             ],
             value: alignment,
             onChange: onChangeAlignment,

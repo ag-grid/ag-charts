@@ -23,7 +23,7 @@ import { type SpriteDimensions, SpriteRenderer } from '../scene/spriteRenderer';
 import { Transformable } from '../scene/transformable';
 import { createElement, getWindow, setElementBBox } from '../util/dom';
 import { createId } from '../util/id';
-import { initToolbarKeyNav } from '../util/keynavUtil';
+import { initRovingTabIndex } from '../util/keynavUtil';
 import { Logger } from '../util/logger';
 import { clamp } from '../util/number';
 import { BaseProperties } from '../util/properties';
@@ -352,11 +352,9 @@ export class Legend extends BaseProperties {
             .nodes()
             .map((markerLabel) => markerLabel.proxyButton?.button)
             .filter((button): button is HTMLButtonElement => !!button);
-        initToolbarKeyNav({
-            role: 'list',
+        initRovingTabIndex({
             orientation: this.getOrientation(),
             buttons,
-            toolbar: this.proxyLegendToolbar,
         });
     }
 

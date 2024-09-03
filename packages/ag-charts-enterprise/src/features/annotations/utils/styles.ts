@@ -69,13 +69,14 @@ export function setLineStyle(
     }
 
     const strokeWidth = style?.strokeWidth ?? datum.strokeWidth ?? 1;
-    const styleType = getLineStyle(datum.lineDash, style?.type ?? datum.lineStyle);
-    const computedLineDash = getComputedLineDash(strokeWidth, styleType);
+    const lineType = style?.type ?? datum.lineStyle;
+    const lineStyle = lineType ?? getLineStyle(datum.lineDash, lineType);
+    const computedLineDash = getComputedLineDash(strokeWidth, lineStyle);
 
     datum.strokeWidth = strokeWidth;
     datum.computedLineDash = computedLineDash;
-    datum.lineStyle = styleType;
-    datum.lineCap = styleType === 'dotted' ? 'round' : undefined;
+    datum.lineStyle = lineStyle;
+    datum.lineCap = lineStyle === 'dotted' ? 'round' : undefined;
 }
 
 export function setColor(

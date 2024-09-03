@@ -76,9 +76,9 @@ const LINE_STROKE_WIDTH_ITEMS: MenuItem<number>[] = [
 ];
 
 const LINE_STYLE_TYPE_ITEMS: MenuItem<AgAnnotationLineStyleType>[] = [
-    { icon: 'line-style-solid', value: 'solid' },
-    { icon: 'line-style-dashed', value: 'dashed' },
-    { icon: 'line-style-dotted', value: 'dotted' },
+    { icon: 'line-style-solid', altText: 'iconAltTextLineStyleSolid', value: 'solid' },
+    { icon: 'line-style-dashed', altText: 'iconAltTextLineStyleDashed', value: 'dashed' },
+    { icon: 'line-style-dotted', altText: 'iconAltTextLineStyleDotted', value: 'dotted' },
 ];
 
 const TEXT_SIZE_ITEMS: MenuItem<number>[] = [

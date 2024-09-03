@@ -21,7 +21,7 @@ HTMLCollection [
     >
       <button
         class="ag-chart-context-menu__item"
-        tabindex="-1"
+        tabindex="0"
       >
         Download
       </button>
