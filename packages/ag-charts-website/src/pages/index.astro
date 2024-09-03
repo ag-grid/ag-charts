@@ -8,6 +8,10 @@ import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
 import { AutomatedIntegratedChartsWrapper } from '@ag-website-shared/components/automated-examples/AutomatedIntegratedChartsWrapper';
 import { Faqs } from '../features/homepage/components/faqs/Faqs';
+import { parseVersion } from '@ag-website-shared/utils/parseVersion';
+import { Version, type VersionProps } from '@ag-website-shared/components/whats-new/components/Version';
+import whatsNewData from '@ag-website-shared/content/whats-new/data.json';
+const { name, blogPrefix } = whatsNewData['charts'];
 
 // Custom Example Runners || TODO: Cleanup
 import IndexGalleryExampleRunner from '@features/homepage/components/IndexGalleryExampleRunner.astro';
@@ -15,6 +19,7 @@ import IndexDocsExampleRunner from '@features/homepage/components/IndexDocsExamp
 
 // All Gallery Examples
 const galleryEntry = await getEntry('gallery', 'data');
+const { data: versionsData } = await getEntry('versions', 'ag-charts-versions');
 
 // Extract Specific Community Examples from Gallery
 const seriesExampleMap = {
@@ -265,26 +270,47 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
             </div>
         </div>
         <div class={styles.section}>
-            <div class:list={[styles.faqSectionInner, 'layout-max-width-small']}>
+            <div class:list={[styles.latestNewsSectionInner, 'layout-max-width-small']}>
                 <div class={styles.sectionHeaderContainer}>
-                    <h2>Latest News</h2>
-                    <h3>Stay Up To Date With the Latest News, Updates, Tutorials, Releases</h3>
+                    <h2>Latest JavaScript Charting Releases from AG Charts</h2>
+                    <h3>Stay Up To Date With the the Latest Changes from our JavaScript Charting Library</h3>
                     <h4>
-                        Browse our latest blogs, watch our tutorials or read our release notes to learn more about
-                        what's new in AG Charts.
+                        Browse our changes to the JavaScript Charting Library, including new features, enhancements, and
+                        bug fixes.
                     </h4>
                 </div>
-                <div>
-                    <p>TODO</p>
+                <div class={styles.latestNewsVersions}>
+                    {
+                        versionsData
+                            .filter((versionInfo) => versionInfo.version.endsWith('.0')) // Exclude patch releases
+                            .slice(0, 3)
+                            .map((versionInfo, index) => {
+                                if (versionInfo.highlights) {
+                                    const { major, minor } = parseVersion(versionInfo.version);
+                                    const blogUrl = `${minor ? `${blogPrefix}${major}-${minor}` : `${blogPrefix}${major}`}/`;
+                                    return (
+                                        <Version
+                                            client:load
+                                            isLatest={index === 0}
+                                            blogUrl={blogUrl}
+                                            version={versionInfo.version}
+                                            date={versionInfo.date}
+                                            highlights={versionInfo.highlights}
+                                            notesPath={versionInfo.notesPath}
+                                        />
+                                    );
+                                }
+                            })
+                    }
                 </div>
             </div>
         </div>
         <div class={styles.section}>
             <div class:list={[styles.faqSectionInner, 'layout-max-width-small']}>
                 <div class={styles.sectionHeaderContainer}>
-                    <h2>FAQs</h2>
+                    <h2>JavaScript Charts Frequently Asked Questions</h2>
                     <h3>FAQs</h3>
-                    <h4>Common questions...</h4>
+                    <h4>Answers to common questions about AG Charts, and JavaScript Charting in general.</h4>
                 </div>
                 <div>
                     <Faqs client:load />
