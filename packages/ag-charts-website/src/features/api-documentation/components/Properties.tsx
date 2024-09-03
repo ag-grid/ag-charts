@@ -140,7 +140,8 @@ export function PropertyType({
                 </div>
             )}
 
-            {/* {isInitial && (
+            {/* TODO: Add this for grid, when this component is shared
+            {isInitial && (
                 <div className={classnames(styles.metaItem, styles.initialItem)}>
                     <a
                         className={styles.initialLabel}
