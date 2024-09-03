@@ -12,7 +12,7 @@ export abstract class Gradient {
     constructor(
         public colorSpace: ColorSpace,
         public stops: GradientColorStop[] = [],
-        private bbox?: BBox
+        private readonly bbox?: BBox
     ) {}
 
     protected abstract createCanvasGradient(ctx: CanvasRenderingContext2D, bbox: BBox): CanvasGradient | undefined;
