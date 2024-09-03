@@ -303,6 +303,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 if (index == null || (index != null && index !== previous)) {
                     ctx.toolbarManager.updateButton('annotations', 'line-menu', { icon: undefined });
                     ctx.toolbarManager.updateButton('annotations', 'text-menu', { icon: undefined });
+                    ctx.toolbarManager.updateButton('annotations', 'shape-menu', { icon: undefined });
                 }
 
                 this.update();
