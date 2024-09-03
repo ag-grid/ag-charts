@@ -1,7 +1,7 @@
 import type { AgFinancialChartPresets } from '../api/presetOptions';
 import type { AgBaseCartesianChartOptions } from '../series/cartesian/cartesianOptions';
 import type { AgBaseFlowProportionChartOptions } from '../series/flow-proportion/flowProportionOptions';
-import type { AgBaseGaugeChartOptions, AgGaugeSeriesOptions } from '../series/gauge/gaugeOptions';
+import type { AgBaseGaugeChartOptions } from '../series/gauge/gaugeOptions';
 import type { AgRadialGaugeSeriesOptions } from '../series/gauge/radialGaugeOptions';
 import type { AgBaseHierarchyChartOptions } from '../series/hierarchy/hierarchyOptions';
 import type { AgBasePolarChartOptions } from '../series/polar/polarOptions';
