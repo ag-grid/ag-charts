@@ -251,7 +251,7 @@
 
 .ag-charts-toolbar__button--stroke-width-visible::before {
     content: '';
-    height: var(--strokeWidth);
+    height: min(var(--strokeWidth), 20px);
     width: 12px;
     background: var(--stroke-width-color);
     margin-right: var(--ag-charts-toolbar-button-padding);
