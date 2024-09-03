@@ -36,8 +36,16 @@
         box-shadow: none;
         border-bottom: 2px solid var(--color-brand-400);
 
+        #{$selector-darkmode} & {
+            color: var(--color-util-brand-600) !important;
+        }
+
         .tabButtonIcon {
             fill: var(--color-brand-600) !important;
+
+            #{$selector-darkmode} & {
+                fill: var(--color-util-brand-600) !important;
+            }
         }
     }
 }
@@ -56,11 +64,19 @@
     border: none;
     box-shadow: none;
     border-bottom: 2px solid var(--color-brand-400);
+
+    #{$selector-darkmode} & {
+        color: var(--color-util-brand-600);
+    }
 }
 
 .activeTabButtonIcon {
     padding: 6px;
     fill: var(--color-brand-600) !important;
+
+    #{$selector-darkmode} & {
+        fill: var(--color-util-brand-600) !important;
+    }
 }
 
 .exampleContainer {

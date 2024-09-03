@@ -7,10 +7,14 @@
 
 .container > div:nth-child(even) {
     background-color: var(--color-gray-50);
+
+    #{$selector-darkmode} & {
+        background-color: var(--color-util-gray-200);
+    }
 }
 
 .section {
-    padding: $spacing-size-8;
+    padding: $spacing-size-16 $spacing-size-8;
 }
 
 .homepageHero {
@@ -387,9 +391,6 @@
     }
 }
 
-.enterpriseFeaturesSectionInner {
-}
-
 .twoColumnContainer {
     display: flex;
 
@@ -531,4 +532,14 @@
     margin-bottom: $spacing-size-4;
     font-weight: var(--text-regular);
     color: var(--color-text-primary);
+}
+
+.latestNewsVersions {
+    --versions-gap: #{$spacing-size-4};
+
+    container-type: inline-size;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--versions-gap);
+    margin-top: $spacing-size-8;
 }
