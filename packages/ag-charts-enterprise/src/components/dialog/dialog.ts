@@ -86,10 +86,12 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             const iconEl = createElement('span', this.ctx.domManager.getIconClassNames(button.icon));
             buttonEl.role = 'radio';
             buttonEl.ariaLabel = this.ctx.localeManager.t(button.altText ?? '');
-            buttonEl.ariaChecked = 'false';
             iconEl.ariaHidden = 'true';
             if (button.value === value) {
                 buttonEl.classList.add(activeClass);
+                buttonEl.ariaChecked = 'true';
+            } else {
+                buttonEl.ariaChecked = 'false';
             }
             buttonEl.ariaLabel = this.ctx.localeManager.t(button.altText);
             buttonEl.appendChild(iconEl);
@@ -106,7 +108,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             buttons.push(buttonEl);
         }
 
-        if (buttons[0] != null) buttons[0].ariaChecked = 'true';
         initRovingTabIndex({ orientation: 'horizontal', buttons });
         return group;
     }
