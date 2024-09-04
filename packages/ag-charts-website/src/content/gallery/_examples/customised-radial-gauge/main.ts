@@ -12,7 +12,7 @@ const firstOptions: AgGaugeOptions = {
     scale: {
         min: 0,
         max: 120,
-        label: {
+        interval: {
             step: 10,
         },
         fills: [{ color: '#4cd137' }, { color: '#fbc531', stop: 65 }, { color: '#e84118', stop: 75 }],
@@ -107,7 +107,7 @@ const fourthOptions: AgGaugeOptions = {
     scale: {
         min: 0,
         max: 50,
-        label: {
+        interval: {
             step: 5,
         },
         fills: [{ color: '#e84118' }, { color: '#fbc531' }, { color: '#4cd137' }],

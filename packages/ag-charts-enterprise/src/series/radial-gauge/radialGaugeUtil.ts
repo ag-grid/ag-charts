@@ -159,12 +159,15 @@ export function getLabelText(
     series: _ModuleSupport.Series<any, any>,
     label: RadialGaugeLabelProperties | RadialGaugeSecondaryLabelProperties,
     value: number | undefined,
-    defaultFormatter?: (value: number) => void
+    defaultFormatter?: (value: number) => string
 ) {
     if (label.text != null) {
         return label.text;
     } else if (value != null) {
-        return label?.formatter?.({ seriesId: series.id, datum: undefined, value }) ?? defaultFormatter?.(value);
+        const labelFormat = label?.formatter?.({ seriesId: series.id, datum: undefined, value });
+        if (labelFormat != null) return String(labelFormat);
+
+        return defaultFormatter?.(value);
     }
 }
 
@@ -181,7 +184,7 @@ export function formatRadialGaugeLabels(
     secondaryLabelProps: RadialGaugeSecondaryLabelProperties,
     opts: { padding: number; textAlign: TextAlign; verticalAlign: VerticalAlign },
     innerRadius: number,
-    defaultFormatter: (value: number) => void,
+    defaultFormatter: (value: number) => string,
     datumOverrides?: { label: number; secondaryLabel: number }
 ) {
     const { padding, textAlign, verticalAlign } = opts;

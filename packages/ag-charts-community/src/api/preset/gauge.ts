@@ -82,7 +82,6 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         }
     );
 
-    const { values, step, ...label } = opts.scale?.label ?? {};
     const axesOpts: AgPolarAxisOptions[] = [
         {
             type: 'angle-number',
@@ -90,11 +89,8 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
             max: opts.scale?.max ?? 1,
             startAngle: opts.startAngle ?? 270,
             endAngle: opts.endAngle ?? 270 + 180,
-            interval: {
-                values,
-                step,
-            },
-            label,
+            interval: opts.scale?.interval ?? {},
+            label: opts.scale?.label ?? {},
             nice: false,
             line: {
                 enabled: false,
@@ -148,7 +144,7 @@ function linearGaugeOptions(opts: AgLinearGaugeSeriesOptions) {
     );
 
     const { horizontal = false } = opts;
-    const { values, step, placement, ...label } = opts.scale?.label ?? {};
+    const { placement, ...label } = opts.scale?.label ?? {};
     let mainAxisPosition: AgCartesianAxisPosition;
     let crossAxisPosition: AgCartesianAxisPosition;
     if (horizontal) {
@@ -164,10 +160,7 @@ function linearGaugeOptions(opts: AgLinearGaugeSeriesOptions) {
         min: opts.scale?.min ?? 0,
         max: opts.scale?.max ?? 1,
         reverse: !horizontal,
-        interval: {
-            values,
-            step,
-        },
+        interval: opts.scale?.interval ?? {},
         label,
         nice: false,
         line: {

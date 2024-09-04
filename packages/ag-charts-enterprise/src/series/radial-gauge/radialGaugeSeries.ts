@@ -1,6 +1,7 @@
 import { type TextAlign, type VerticalAlign, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { type GaugeColorStopDatum, getColorStops } from '../gauge-util/gaugeUtil';
+import { formatLabel } from '../gauge-util/label';
 import { LineMarker } from './lineMarker';
 import { RadialGaugeNeedle } from './radialGaugeNeedle';
 import {
@@ -197,14 +198,7 @@ export class RadialGaugeSeries
     }
 
     private formatLabel(value: number) {
-        const angleAxis = this.axes[ChartAxisDirection.X];
-        if (angleAxis == null) return '';
-
-        const [min, max] = angleAxis.scale.domain;
-        const minLog10 = min !== 0 ? Math.ceil(Math.log10(Math.abs(min))) : 0;
-        const maxLog10 = max !== 0 ? Math.ceil(Math.log10(Math.abs(max))) : 0;
-        const dp = Math.max(2 - Math.max(minLog10, maxLog10), 0);
-        return value.toFixed(dp);
+        return formatLabel(value, this.axes[ChartAxisDirection.X]);
     }
 
     private createConicGradient(
