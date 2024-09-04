@@ -13,7 +13,7 @@ import { Version } from '@ag-website-shared/components/whats-new/components/Vers
 import whatsNewData from '@ag-website-shared/content/whats-new/data.json';
 
 // Custom Example Runners || TODO: Cleanup
-import IndexGalleryExampleRunner from '@features/homepage/components/IndexGalleryExampleRunner.astro';
+import HomepageGalleryExamples from '@features/homepage/components/HomepageGalleryExamples.astro';
 import IndexDocsExampleRunner from '@features/homepage/components/IndexDocsExampleRunner.astro';
 
 const { blogPrefix } = whatsNewData['charts'];
@@ -159,7 +159,7 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                         visualizations for any use-case.
                     </h4>
                 </div>
-                <IndexGalleryExampleRunner examples={exampleData} pageName={'bar'} />
+                <HomepageGalleryExamples examples={exampleData} pageName={'bar'} />
             </div>
         </div>
         <div class={styles.section}>
@@ -174,7 +174,7 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                     </h4>
                 </div>
                 <div class={styles.enterpriseFeaturesContainer}>
-                    <IndexGalleryExampleRunner examples={enterpriseExampleData} pageName={'range-bar'} />
+                    <HomepageGalleryExamples examples={enterpriseExampleData} pageName={'range-bar'} />
                     <div class={styles.cardContainer}>
                         <div class={styles.card}>
                             <h4>Interactivity</h4>
