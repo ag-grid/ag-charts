@@ -413,7 +413,7 @@ export class ExtendedPath2D {
                     const Ts = calculateDerivativeExtremaXY(sx, sy, cp1x, cp1y, cp2x, cp2y, x, y);
 
                     // Check points where the derivative is zero
-                    Ts.forEach((t) => {
+                    Ts.forEach((t: number) => {
                         const px = bezierAt(sx, cp1x, cp2x, x, t);
                         const py = bezierAt(sy, cp1y, cp2y, y, t);
                         joinPoint(px, py);
