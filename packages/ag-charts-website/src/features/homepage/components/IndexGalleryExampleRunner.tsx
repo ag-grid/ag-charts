@@ -1,4 +1,4 @@
-import { Icon } from '@ag-website-shared/components/icon/Icon';
+import { Icon, type IconName } from '@ag-website-shared/components/icon/Icon';
 import { ExampleRunner } from '@features/example-runner/components/ExampleRunner';
 import { ExternalLinks } from '@features/example-runner/components/ExternalLinks';
 import { useEffect, useState } from 'react';
