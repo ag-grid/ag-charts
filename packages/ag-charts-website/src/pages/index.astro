@@ -15,7 +15,7 @@ import whatsNewData from '@ag-website-shared/content/whats-new/data.json';
 import { getIsProduction, getIsArchive, GRID_STAGING_SITE_URL } from '@utils/env';
 
 // Custom Example Runners || TODO: Cleanup
-import IndexGalleryExampleRunner from '@features/homepage/components/IndexGalleryExampleRunner.astro';
+import HomepageGalleryExamples from '@features/homepage/components/HomepageGalleryExamples.astro';
 import IndexDocsExampleRunner from '@features/homepage/components/IndexDocsExampleRunner.astro';
 
 const { blogPrefix } = whatsNewData['charts'];
@@ -158,7 +158,7 @@ const AG_GRID_CHARTS_CDN_URL = isProduction
                     <h2>AG Charts JavaScript Charting Library</h2>
                     <h3>JavaScript Charts <br /> Designed for Every Use Case</h3>
                 </div>
-                <IndexGalleryExampleRunner examples={exampleData} pageName={'bar'} />
+                <HomepageGalleryExamples examples={exampleData} pageName={'bar'} />
                 <div class={styles.ctaButton}>
                     <a
                         href={urlWithBaseUrl(
