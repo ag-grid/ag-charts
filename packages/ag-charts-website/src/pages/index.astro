@@ -10,14 +10,15 @@ import { AutomatedIntegratedChartsWrapper } from '@ag-website-shared/components/
 import { Faqs } from '../features/homepage/components/faqs/Faqs';
 import ImageCarousel from '../features/homepage/components/hero/ImageCarousel';
 import { parseVersion } from '@ag-website-shared/utils/parseVersion';
-import { Version, type VersionProps } from '@ag-website-shared/components/whats-new/components/Version';
+import { Version } from '@ag-website-shared/components/whats-new/components/Version';
 import whatsNewData from '@ag-website-shared/content/whats-new/data.json';
-const { name, blogPrefix } = whatsNewData['charts'];
-import { getIsProduction, getIsArchive, getIsStaging, GRID_STAGING_SITE_URL } from '@utils/env';
+import { getIsProduction, getIsArchive, GRID_STAGING_SITE_URL } from '@utils/env';
 
 // Custom Example Runners || TODO: Cleanup
 import IndexGalleryExampleRunner from '@features/homepage/components/IndexGalleryExampleRunner.astro';
 import IndexDocsExampleRunner from '@features/homepage/components/IndexDocsExampleRunner.astro';
+
+const { blogPrefix } = whatsNewData['charts'];
 
 // All Gallery Examples
 const galleryEntry = await getEntry('gallery', 'data');
