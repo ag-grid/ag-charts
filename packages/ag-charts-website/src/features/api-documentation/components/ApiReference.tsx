@@ -29,7 +29,6 @@ import {
 } from '../apiReferenceHelpers';
 import { SelectionContext } from './OptionsNavigation';
 import { type CollapsibleType, PropertyTitle, PropertyType } from './Properties';
-import { ChildPropertiesButton } from './Properties';
 
 export const ApiReferenceContext = createContext<ApiReferenceType | undefined>(undefined);
 export const ApiReferenceConfigContext = createContext<ApiReferenceConfig>({});
@@ -96,6 +95,31 @@ export function ApiReferenceWithReferenceContext(props: ApiReferenceOptions & Ap
         <ApiReferenceContext.Provider value={reference}>
             <ApiReference {...props} />
         </ApiReferenceContext.Provider>
+    );
+}
+
+export function ChildPropertiesButton({
+    name,
+    isExpanded,
+    onClick,
+}: {
+    name: string;
+    isExpanded?: boolean;
+    onClick?: () => void;
+    collapsibleType?: CollapsibleType;
+}) {
+    return (
+        <button
+            className={classnames(styles.childButton, 'button-style-none', {
+                [styles.isExpanded]: isExpanded,
+            })}
+            onClick={onClick}
+            aria-label={`See child properties of ${name}`}
+        >
+            <span>
+                See child properties of <span className={styles.childButtonName}>{name}</span>
+            </span>
+        </button>
     );
 }
 
