@@ -1,17 +1,35 @@
-import type {
-    AgBasePresetOptions,
-    AgCartesianAxisOptions,
-    AgCartesianAxisPosition,
-    AgGaugeChartOptions,
-    AgGaugeOptions,
-    AgLinearGaugeOptions,
-    AgLinearGaugeSeriesOptions,
-    AgPolarAxisOptions,
-    AgRadialGaugeOptions,
-    AgRadialGaugeSeriesOptions,
+import {
+    type AgCartesianAxisOptions,
+    type AgCartesianAxisPosition,
+    type AgGaugeChartOptions,
+    type AgGaugeOptions,
+    type AgLinearGaugeOptions,
+    type AgLinearGaugeSeriesOptions,
+    type AgPolarAxisOptions,
+    type AgRadialGaugeOptions,
+    type AgRadialGaugeSeriesOptions,
 } from 'ag-charts-types';
 
-function isRadialGauge(opts: AgGaugeOptions): opts is AgRadialGaugeSeriesOptions {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function assertEmpty(_t: Record<string, never>) {}
+
+const IGNORED_PROP = Symbol('IGNORED_PROP');
+
+function pickProps<T>(
+    opts: Partial<T>,
+    values: { [K in keyof Required<T>]: T[K] extends Required<T[K]> ? T[K] : T[K] | typeof IGNORED_PROP | undefined }
+) {
+    const out: any = {};
+    for (const key in values) {
+        const value = values[key];
+        if (value !== IGNORED_PROP && Object.hasOwn(opts as any, key)) {
+            out[key] = value;
+        }
+    }
+    return out;
+}
+
+function isRadialGauge(opts: AgGaugeOptions): opts is AgRadialGaugeOptions {
     return opts.type === 'radial-gauge';
 }
 
@@ -19,78 +37,104 @@ function isLinearGauge(opts: AgGaugeOptions): opts is AgLinearGaugeOptions {
     return opts.type === 'linear-gauge';
 }
 
-function allProperties<T>(
-    opts: AgGaugeOptions,
-    typeCheckedOpts: Record<keyof T, boolean>,
-    overrides?: Record<string, any>
-): T {
-    const out: any = {};
-    for (const key in typeCheckedOpts) {
-        if (typeCheckedOpts[key] && Object.hasOwn(opts, key)) {
-            out[key] = (opts as any)[key];
-        }
-    }
-
-    if (overrides != null) {
-        for (const key in overrides) {
-            const value = overrides[key];
-            if (value != null) {
-                out[key] = value;
-            }
-        }
-    }
-
-    return out;
-}
-
 function radialGaugeOptions(opts: AgRadialGaugeOptions) {
-    const seriesOpts = allProperties<AgRadialGaugeSeriesOptions>(
-        opts,
-        {
-            type: true,
-            id: true,
-            data: true,
-            visible: true,
-            cursor: true,
-            nodeClickRange: true,
-            showInLegend: true,
-            listeners: true,
-            tooltip: true,
-            value: true,
-            scale: false,
-            startAngle: false,
-            endAngle: false,
-            itemStyler: true,
-            highlightStyle: true,
-            bar: true,
-            background: true,
-            needle: true,
-            targets: true,
-            target: true,
-            outerRadiusRatio: true,
-            innerRadiusRatio: true,
-            sectorSpacing: true,
-            cornerRadius: true,
-            appearance: true,
-            cornerMode: true,
-            label: true,
-            secondaryLabel: true,
-            margin: true,
-        },
-        {
-            colorStops: opts.scale?.fills,
-        }
-    );
+    const {
+        container,
+        animation,
+        width,
+        height,
+        minWidth,
+        minHeight,
+        theme,
+        title,
+        seriesArea,
+        listeners,
+        type,
+        id,
+        data,
+        visible,
+        cursor,
+        nodeClickRange,
+        showInLegend,
+        tooltip,
+        value,
+        scale,
+        startAngle,
+        endAngle,
+        itemStyler,
+        highlightStyle,
+        bar,
+        background,
+        needle,
+        targets,
+        target,
+        outerRadiusRatio,
+        innerRadiusRatio,
+        sectorSpacing,
+        cornerRadius,
+        appearance,
+        cornerMode,
+        label,
+        secondaryLabel,
+        margin,
+        ...rest
+    } = opts;
+    assertEmpty(rest);
+
+    const chartOpts = pickProps(opts, {
+        container,
+        animation,
+        width,
+        height,
+        minWidth,
+        minHeight,
+        theme,
+        title,
+        seriesArea,
+        listeners,
+    });
+    const seriesOpts = pickProps<AgRadialGaugeSeriesOptions>(opts, {
+        scale: IGNORED_PROP,
+        type,
+        id,
+        data,
+        visible,
+        cursor,
+        nodeClickRange,
+        showInLegend,
+        listeners,
+        tooltip,
+        value,
+        startAngle,
+        endAngle,
+        itemStyler,
+        highlightStyle,
+        bar,
+        background,
+        needle,
+        targets,
+        target,
+        outerRadiusRatio,
+        innerRadiusRatio,
+        sectorSpacing,
+        cornerRadius,
+        appearance,
+        cornerMode,
+        label,
+        secondaryLabel,
+        margin,
+        ...rest,
+    });
 
     const axesOpts: AgPolarAxisOptions[] = [
         {
             type: 'angle-number',
-            min: opts.scale?.min ?? 0,
-            max: opts.scale?.max ?? 1,
+            min: scale?.min ?? 0,
+            max: scale?.max ?? 1,
             startAngle: opts.startAngle ?? 270,
             endAngle: opts.endAngle ?? 270 + 180,
-            interval: opts.scale?.interval ?? {},
-            label: opts.scale?.label ?? {},
+            interval: scale?.interval ?? {},
+            label: scale?.label ?? {},
             nice: false,
             line: {
                 enabled: false,
@@ -102,56 +146,103 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
     ];
 
     return {
+        ...chartOpts,
         series: [seriesOpts],
         axes: axesOpts,
     };
 }
 
-function linearGaugeOptions(opts: AgLinearGaugeSeriesOptions) {
-    const seriesOpts = allProperties<AgLinearGaugeSeriesOptions>(
-        opts,
-        {
-            type: true,
-            id: true,
-            data: true,
-            visible: true,
-            cursor: true,
-            nodeClickRange: true,
-            showInLegend: true,
-            listeners: true,
-            tooltip: true,
-            value: true,
-            scale: false,
-            horizontal: true,
-            thickness: true,
-            itemStyler: true,
-            highlightStyle: true,
-            bar: true,
-            background: true,
-            targets: true,
-            target: true,
-            barSpacing: true,
-            cornerRadius: true,
-            appearance: true,
-            cornerMode: true,
-            label: true,
-            secondaryLabel: true,
-            margin: true,
-        },
-        {
-            colorStops: opts.scale?.fills,
-        }
-    );
+function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
+    const {
+        container,
+        animation,
+        width,
+        height,
+        minWidth,
+        minHeight,
+        theme,
+        title,
+        seriesArea,
+        listeners,
+        type,
+        id,
+        data,
+        visible,
+        cursor,
+        nodeClickRange,
+        showInLegend,
+        tooltip,
+        value,
+        scale,
+        horizontal,
+        thickness,
+        itemStyler,
+        highlightStyle,
+        bar,
+        background,
+        targets,
+        target,
+        barSpacing,
+        cornerRadius,
+        appearance,
+        cornerMode,
+        label,
+        secondaryLabel,
+        margin,
+        ...rest
+    } = opts;
+    assertEmpty(rest);
 
-    const { horizontal = false } = opts;
-    const { placement, ...label } = opts.scale?.label ?? {};
+    const chartOpts = pickProps(opts, {
+        container,
+        animation,
+        width,
+        height,
+        minWidth,
+        minHeight,
+        theme,
+        title,
+        seriesArea,
+        listeners,
+    });
+    const seriesOpts = pickProps<AgLinearGaugeSeriesOptions>(opts, {
+        scale: IGNORED_PROP,
+        type,
+        id,
+        data,
+        visible,
+        cursor,
+        nodeClickRange,
+        showInLegend,
+        listeners,
+        tooltip,
+        value,
+        horizontal,
+        thickness,
+        itemStyler,
+        highlightStyle,
+        bar,
+        background,
+        targets,
+        target,
+        barSpacing,
+        cornerRadius,
+        appearance,
+        cornerMode,
+        label,
+        secondaryLabel,
+        margin,
+        ...rest,
+    });
+
+    const { placement: labelPlacement, ...axisLabel } = scale?.label ?? {};
     let mainAxisPosition: AgCartesianAxisPosition;
     let crossAxisPosition: AgCartesianAxisPosition;
     if (horizontal) {
-        mainAxisPosition = placement === 'before' ? 'top' : 'bottom';
+        mainAxisPosition = labelPlacement === 'before' ? 'top' : 'bottom';
         crossAxisPosition = 'left';
     } else {
-        mainAxisPosition = placement === 'after' ? 'right' : 'left';
+        mainAxisPosition = labelPlacement === 'after' ? 'right' : 'left';
         crossAxisPosition = 'bottom';
     }
     const mainAxis: AgCartesianAxisOptions = {
@@ -161,7 +252,7 @@ function linearGaugeOptions(opts: AgLinearGaugeSeriesOptions) {
         max: opts.scale?.max ?? 1,
         reverse: !horizontal,
         interval: opts.scale?.interval ?? {},
-        label,
+        label: axisLabel,
         nice: false,
         line: {
             enabled: false,
@@ -188,36 +279,31 @@ function linearGaugeOptions(opts: AgLinearGaugeSeriesOptions) {
     const axesOpts: AgCartesianAxisOptions[] = horizontal ? [mainAxis, crossAxis] : [crossAxis, mainAxis];
 
     return {
+        ...chartOpts,
         series: [seriesOpts],
         axes: axesOpts,
     };
 }
 
 export function gauge(opts: AgGaugeOptions): AgGaugeChartOptions {
-    const baseOpts = allProperties<AgBasePresetOptions>(opts, {
-        container: true,
-        animation: true,
-        width: true,
-        height: true,
-        minWidth: true,
-        minHeight: true,
-        theme: true,
-        title: true,
-        seriesArea: true,
-        listeners: true,
-    });
-
     if (isRadialGauge(opts)) {
-        return {
-            ...baseOpts,
-            ...radialGaugeOptions(opts),
-        };
+        return radialGaugeOptions(opts);
     } else if (isLinearGauge(opts)) {
-        return {
-            ...baseOpts,
-            ...linearGaugeOptions(opts),
-        };
+        return linearGaugeOptions(opts);
     }
 
-    return baseOpts;
+    const { container, animation, width, height, minWidth, minHeight, theme, title, seriesArea, listeners } = opts;
+    const chartOpts = pickProps(opts, {
+        container,
+        animation,
+        width,
+        height,
+        minWidth,
+        minHeight,
+        theme,
+        title,
+        seriesArea,
+        listeners,
+    });
+    return chartOpts;
 }

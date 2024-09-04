@@ -301,7 +301,7 @@ export class RadialGaugeSecondaryLabelProperties extends AutoSizedSecondaryLabel
 
 export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeSeriesOptions> {
     @Validate(NUMBER)
-    value: number = 0;
+    value!: number;
 
     @Validate(OBJECT_ARRAY)
     colorStops = new PropertiesArray<RadialGaugeStopProperties>(RadialGaugeStopProperties);

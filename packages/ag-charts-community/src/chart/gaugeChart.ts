@@ -4,6 +4,7 @@ import type { LayoutContext } from '../module/baseModule';
 import type { BBox } from '../scene/bbox';
 import { sectorBox } from '../scene/util/sector';
 import { isBetweenAngles, normalizeAngle360Inclusive } from '../util/angle';
+import { Logger } from '../util/logger';
 import { CartesianAxis } from './axis/cartesianAxis';
 import { PolarAxis } from './axis/polarAxis';
 import { Chart } from './chart';
@@ -72,11 +73,15 @@ export class GaugeChart extends Chart {
         });
         const centerXOffset = -(unitBox.x + unitBox.width / 2) * 2;
         const centerYOffset = -(unitBox.y + unitBox.height / 2) * 2;
-        let radius = 0.5 * Math.min(seriesRect.width / unitBox.width, seriesRect.height / unitBox.height);
+        let radius = Math.max(
+            0.5 * Math.min(seriesRect.width / unitBox.width, seriesRect.height / unitBox.height),
+            // seriesRect may have negative size
+            0
+        );
 
         const MAX_ITERATIONS = 8;
         for (let i = 0; i < MAX_ITERATIONS; i += 1) {
-            const isFinalIteration = i === MAX_ITERATIONS - 1;
+            const isFinalIteration = radius === 0 || i === MAX_ITERATIONS - 1;
 
             const centerX = seriesRect.x + seriesRect.width / 2 + centerXOffset * radius;
             const centerY = seriesRect.y + seriesRect.height / 2 + centerYOffset * radius;
@@ -88,8 +93,12 @@ export class GaugeChart extends Chart {
             angleAxis.calculateLayout();
             const bbox = angleAxis.computeLabelsBBox({ hideWhenNecessary: isFinalIteration }, seriesRect);
 
+            if (isFinalIteration) {
+                break;
+            }
+
             let shrinkDelta = 0;
-            if (!isFinalIteration && bbox != null) {
+            if (bbox != null) {
                 const bboxX0 = bbox.x + centerX;
                 const bboxX1 = bboxX0 + bbox.width;
                 const bboxY0 = bbox.y + centerY;
@@ -105,7 +114,7 @@ export class GaugeChart extends Chart {
             }
 
             if (shrinkDelta > 0) {
-                radius -= shrinkDelta;
+                radius = Math.max(radius - shrinkDelta, 0);
             } else {
                 break;
             }
@@ -119,6 +128,10 @@ export class GaugeChart extends Chart {
         series.radius = radius;
         series.textAlign = textAlign;
         series.verticalAlign = verticalAlign;
+
+        if (radius === 0) {
+            Logger.warnOnce('There was insufficient space to display the Radial Gauge.');
+        }
     }
 
     private updateLinearGauge(seriesRect: BBox, series: LinearGaugeSeries) {
@@ -130,8 +143,8 @@ export class GaugeChart extends Chart {
 
         const { horizontal, thickness } = series;
 
-        const width = horizontal ? seriesRect.width : thickness;
-        const height = horizontal ? thickness : seriesRect.height;
+        const width = Math.max(horizontal ? seriesRect.width : thickness, 0);
+        const height = Math.max(horizontal ? thickness : seriesRect.height, 0);
 
         const x0 = seriesRect.x + (seriesRect.width - width) / 2;
         const y0 = seriesRect.y + (seriesRect.height - height) / 2;
@@ -150,6 +163,10 @@ export class GaugeChart extends Chart {
 
         series.originX = x0 - seriesRect.x;
         series.originY = y0 - seriesRect.y;
+
+        if (width === 0 || height === 0) {
+            Logger.warnOnce('There was insufficient space to display the Linear Gauge.');
+        }
     }
 
     protected performLayout(ctx: LayoutContext) {

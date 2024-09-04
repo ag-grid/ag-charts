@@ -1,4 +1,3 @@
-import { times } from './array';
 import { Logger } from './logger';
 import { clamp, countFractionDigits } from './number';
 import { numberFormat, parseFormat } from './numberFormat';
@@ -13,7 +12,7 @@ import {
     durationYear,
 } from './time/duration';
 import timeHour from './time/hour';
-import { type CountableTimeInterval, TimeInterval } from './time/interval';
+import { type CountableTimeInterval, type TimeInterval } from './time/interval';
 import timeMillisecond from './time/millisecond';
 import timeMinute from './time/minute';
 import timeMonth from './time/month';
@@ -172,11 +171,21 @@ export function tickFormat(ticks: any[], format?: string): (n: number | { valueO
 }
 
 export function range(start: number, end: number, step: number): number[] {
-    const n = Math.ceil(Math.abs(end - start) / step);
     const f = 10 ** countFractionDigits(step);
     const d0 = Math.min(start, end);
+    const d1 = Math.max(start, end);
 
-    return times(n + 1, (i) => Math.round((d0 + step * i) * f) / f);
+    const out: number[] = [];
+    for (let i = 0; ; i += 1) {
+        const p = Math.round((d0 + step * i) * f) / f;
+        if (p <= d1) {
+            out.push(p);
+        } else {
+            break;
+        }
+    }
+
+    return out;
 }
 
 export function isDenseInterval(count: number, availableRange: number) {

@@ -177,7 +177,7 @@ export class RadialGaugeSeries
     }
 
     override get hasData(): boolean {
-        return true;
+        return this.properties.value != null;
     }
 
     private nodeFactory(): _Scene.Sector {
@@ -489,6 +489,10 @@ export class RadialGaugeSeries
                 lineDash = target.lineDash,
                 lineDashOffset = target.lineDashOffset,
             } = t;
+
+            if (value < Math.min(...domain) || value > Math.max(...domain)) {
+                continue;
+            }
 
             const targetRadius = this.getTargetRadius(t);
             const targetAngle = angleScale.convert(targetValue);
@@ -850,7 +854,7 @@ export class RadialGaugeSeries
         return true;
     }
 
-    formatLabelText(datum?: { label: number; secondaryLabel: number }) {
+    formatLabelText(datum?: { label: number | undefined; secondaryLabel: number | undefined }) {
         const angleAxis = this.axes[ChartAxisDirection.X];
         if (angleAxis == null) return;
 
@@ -888,10 +892,10 @@ export class RadialGaugeSeries
     private animateLabelText(params: { from?: number; phase?: _ModuleSupport.AnimationPhase } = {}) {
         const { animationManager } = this.ctx;
 
-        let labelFrom = 0;
-        let labelTo = 0;
-        let secondaryLabelFrom = 0;
-        let secondaryLabelTo = 0;
+        let labelFrom: number | undefined;
+        let labelTo: number | undefined;
+        let secondaryLabelFrom: number | undefined;
+        let secondaryLabelTo: number | undefined;
         this.labelSelection.each((label, datum) => {
             // Reset animation
             label.opacity = 1;
@@ -907,6 +911,8 @@ export class RadialGaugeSeries
 
         if (this.labelsHaveExplicitText()) {
             // Ignore
+        } else if (labelTo == null || secondaryLabelTo == null) {
+            this.formatLabelText();
         } else if (labelFrom === labelTo && secondaryLabelFrom === secondaryLabelTo) {
             this.formatLabelText({ label: labelTo, secondaryLabel: secondaryLabelTo });
         } else if (!this.labelsHaveExplicitText()) {
@@ -942,7 +948,10 @@ export class RadialGaugeSeries
             (_label, datum) => datum.label
         );
 
-        this.animateLabelText({ from: 0, phase: 'initial' });
+        this.animateLabelText({
+            from: this.axes[ChartAxisDirection.X]?.scale.domain[0] ?? 0,
+            phase: 'initial',
+        });
     }
 
     animateWaitingUpdateReady() {

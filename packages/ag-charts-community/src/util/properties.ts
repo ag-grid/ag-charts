@@ -18,10 +18,16 @@ export class BaseProperties<T extends object = object> {
                 const self = this as any;
                 if (isProperties(self[propertyKey])) {
                     // re-set property to force re-validation
-                    self[propertyKey] =
-                        self[propertyKey] instanceof PropertiesArray
-                            ? self[propertyKey].reset(value)
-                            : self[propertyKey].set(value);
+                    if (self[propertyKey] instanceof PropertiesArray) {
+                        const array = self[propertyKey].reset(value);
+                        if (array != null) {
+                            self[propertyKey] = array;
+                        } else {
+                            Logger.warn(`unable to set [${propertyKey}] - expecting a properties array`);
+                        }
+                    } else {
+                        self[propertyKey].set(value);
+                    }
                 } else {
                     self[propertyKey] = value;
                 }
@@ -76,8 +82,10 @@ export class PropertiesArray<T extends BaseProperties> extends Array<T> {
         return this;
     }
 
-    reset(properties: object[]): PropertiesArray<T> {
-        return new PropertiesArray(this.itemFactory, ...properties);
+    reset(properties: object[]): PropertiesArray<T> | undefined {
+        if (Array.isArray(properties)) {
+            return new PropertiesArray(this.itemFactory, ...properties);
+        }
     }
 
     toJson() {
