@@ -307,8 +307,8 @@
             },
             {
                 "label": {
-                    "name": "Annotations",
-                    "link": "https://ag-grid.com/charts/react/annotations/"
+                    "name": "Toolbar",
+                    "link": "https://ag-grid.com/charts/react/financial-charts-toolbar/"
                 },
                 "community": false,
                 "enterprise": true,
@@ -316,8 +316,8 @@
             },
             {
                 "label": {
-                    "name": "Range Toolbar",
-                    "link": "https://ag-grid.com/charts/react/toolbar/"
+                    "name": "Range Buttons",
+                    "link": "https://ag-grid.com/charts/react/range-buttons/"
                 },
                 "community": false,
                 "enterprise": true,

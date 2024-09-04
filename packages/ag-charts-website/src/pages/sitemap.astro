@@ -15,9 +15,6 @@ const parsedSitemap = parseSitemap(xmlSitemap);
     showSearchBar={true}
 >
     <div class:list={['contentViewport layout-grid']}>
-        <div className={'layout-max-width-small'}>
-            <h1>AG Charts Sitemap</h1>
-            <Sitemap client:only="react" sitemap={parsedSitemap} />
-        </div>
+        <Sitemap client:load sitemap={parsedSitemap} site="Charts" />
     </div>
 </Layout>
