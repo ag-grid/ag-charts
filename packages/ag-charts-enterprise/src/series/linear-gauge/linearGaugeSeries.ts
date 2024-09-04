@@ -1,6 +1,5 @@
 import { type TextAlign, type VerticalAlign, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
-import { type GaugeColorStopDatum, getColorStops } from '../gauge-util/gaugeUtil';
 import { LineMarker } from './lineMarker';
 import {
     type LinearGaugeNodeDatum,
@@ -42,7 +41,7 @@ type LinearGaugeLabelDatum = never;
 interface LinearGaugeNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<LinearGaugeNodeDatum, LinearGaugeLabelDatum> {
     targetData: LinearGaugeTargetDatum[];
-    backgroundData: LinearGaugeNodeDatum[];
+    scaleData: LinearGaugeNodeDatum[];
 }
 
 export class LinearGaugeSeries
@@ -74,7 +73,7 @@ export class LinearGaugeSeries
         return this.properties.thickness;
     }
 
-    private readonly backgroundGroup = this.contentGroup.appendChild(new Group({ name: 'backgroundGroup' }));
+    private readonly scaleGroup = this.contentGroup.appendChild(new Group({ name: 'scaleGroup' }));
     private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
     private readonly itemTargetGroup = this.contentGroup.appendChild(new Group({ name: 'itemTargetGroup' }));
     private readonly itemTargetLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemTargetLabelGroup' }));
@@ -83,8 +82,8 @@ export class LinearGaugeSeries
         new Group({ name: 'itemTargetLabelGroup' })
     );
 
-    private backgroundSelection: _Scene.Selection<_Scene.Rect, LinearGaugeNodeDatum> = Selection.select(
-        this.backgroundGroup,
+    private scaleSelection: _Scene.Selection<_Scene.Rect, LinearGaugeNodeDatum> = Selection.select(
+        this.scaleGroup,
         () => this.nodeFactory()
     );
     private datumSelection: _Scene.Selection<_Scene.Rect, LinearGaugeNodeDatum> = Selection.select(this.itemGroup, () =>
@@ -153,7 +152,7 @@ export class LinearGaugeSeries
             },
         });
 
-        this.backgroundGroup.pointerEvents = PointerEvents.None;
+        this.scaleGroup.pointerEvents = PointerEvents.None;
         this.itemTargetLabelGroup.pointerEvents = PointerEvents.None;
         // this.itemLabelGroup.pointerEvents = PointerEvents.None;
     }
@@ -190,18 +189,13 @@ export class LinearGaugeSeries
         return value.toFixed(dp);
     }
 
-    private createLinearGradient(
-        colorStops: GaugeColorStopDatum[] | undefined,
-        [min, max]: number[],
-        bbox: _Scene.BBox
-    ) {
-        if (colorStops == null) return;
+    private createLinearGradient(colorScale: _Scale.ColorScale | undefined, bbox: _Scene.BBox) {
+        if (colorScale == null) return;
 
         const { horizontal } = this.properties;
 
-        const stops = colorStops.map((colorStop): _Scene.GradientColorStop => {
-            const { stop, color } = colorStop;
-            const offset = (stop - min) / (max - min);
+        const stops = colorScale.range.map((color, i, range): _Scene.GradientColorStop => {
+            const offset = i > 0 ? i / (range.length - 1) : 0;
             return { offset, color };
         });
 
@@ -251,10 +245,11 @@ export class LinearGaugeSeries
             cornerMode,
             targets,
             bar,
-            background,
+            scale,
             // label,
             // secondaryLabel,
             barSpacing,
+            defaultColorRange,
         } = properties;
 
         const xAxis = this.axes[ChartAxisDirection.X];
@@ -270,11 +265,10 @@ export class LinearGaugeSeries
         if (mainAxis.isReversed()) {
             domain = domain.slice().reverse();
         }
-        const colorStops = getColorStops(this.properties, domain, appearance);
         const nodeData: LinearGaugeNodeDatum[] = [];
         const targetData: LinearGaugeTargetDatum[] = [];
         const labelData: LinearGaugeLabelDatum[] = [];
-        const backgroundData: LinearGaugeNodeDatum[] = [];
+        const scaleData: LinearGaugeNodeDatum[] = [];
 
         let [x0, x1] = xAxis.range;
         if (xAxis.isReversed()) {
@@ -309,10 +303,24 @@ export class LinearGaugeSeries
         const horizontalInset = horizontal ? barSpacing / 2 : 0;
         const verticalInset = horizontal ? 0 : barSpacing / 2;
 
+        let barColorScale: _Scale.ColorScale | undefined;
+        if (bar.enabled || bar.colorRange != null) {
+            barColorScale = new ColorScale();
+            barColorScale.domain = domain;
+            barColorScale.range = bar.colorRange ?? defaultColorRange;
+        }
+
+        let scaleColorScale: _Scale.ColorScale | undefined;
+        if (!bar.enabled || scale.colorRange != null) {
+            scaleColorScale = new ColorScale();
+            scaleColorScale.domain = domain;
+            scaleColorScale.range = scale.colorRange ?? defaultColorRange;
+        }
+
         if (isContinuous) {
             if (bar.enabled) {
                 const barFill: string | _Scene.Gradient | undefined =
-                    bar.fill ?? this.createLinearGradient(colorStops, domain, gradientBBox);
+                    bar.fill ?? this.createLinearGradient(barColorScale, gradientBBox);
                 const sizeParams = cornersOnAllItems
                     ? {
                           x0: originX + x0 - xAxisInset,
@@ -358,14 +366,12 @@ export class LinearGaugeSeries
                 });
             }
 
-            const backgroundFill: string | _Scene.Gradient | undefined =
-                background.fill ??
-                this.createLinearGradient(!bar.enabled ? colorStops : undefined, domain, gradientBBox) ??
-                background.defaultFill;
+            const scaleFill: string | _Scene.Gradient | undefined =
+                scale.fill ?? this.createLinearGradient(scaleColorScale, gradientBBox) ?? scale.defaultFill;
 
-            backgroundData.push({
+            scaleData.push({
                 series: this,
-                itemId: `background`,
+                itemId: `scale`,
                 datum: value,
                 type: NodeDataType.Node,
                 x0: originX + x0 - xAxisInset,
@@ -380,43 +386,26 @@ export class LinearGaugeSeries
                 topRightCornerRadius: cornerRadius,
                 bottomRightCornerRadius: cornerRadius,
                 bottomLeftCornerRadius: cornerRadius,
-                fill: backgroundFill,
+                fill: scaleFill,
                 horizontalInset,
                 verticalInset,
             });
         } else {
-            let stops: Array<{ startValue: number; endValue: number; color: string | undefined }>;
             const domainRange = domain[1] - domain[0];
-            if (this.properties.colorStops.length !== 0) {
-                // User provided colour stops
-                stops = colorStops.map(({ color, stop }, i) => {
-                    const startValue = i > 0 ? stop : domain[0];
-                    const endValue = i < colorStops.length - 1 ? colorStops[i + 1].stop : domain[1];
-                    return { startValue, endValue, color };
-                });
-            } else {
-                // No colour stops defined, use the theme
-                const colorScale = new ColorScale();
-                colorScale.domain = domain;
-                colorScale.range = colorStops.map((cs) => cs.color);
 
-                const ticks = mainAxisScale.ticks?.().length;
-                const numSegments = ticks != null ? ticks - 1 : 8;
+            let segments: number[] =
+                properties.segments.length > 0 ? properties.segments : mainAxisScale.ticks?.() ?? [];
+            segments = segments.filter((v) => v > domain[0] && v < domain[1]).sort((a, b) => a - b);
+            segments = [domain[0], ...segments, domain[1]];
 
-                stops = Array.from({ length: numSegments }, (_, i) => {
-                    const startValue = domain[0] + (i + 0) * (domainRange / numSegments);
-                    const endValue = domain[0] + (i + 1) * (domainRange / numSegments);
-                    const colorScaleValue =
-                        numSegments > 1 ? domain[0] + i * (domainRange / (numSegments - 1)) : startValue;
-                    const color = colorScale?.convert(colorScaleValue);
-                    return { startValue, endValue, color };
-                });
-            }
+            for (let i = 0; i < segments.length - 1; i += 1) {
+                const startValue = segments[i + 0];
+                const endValue = segments[i + 1];
+                const stopSpan = endValue - startValue;
+                const colorValue = ((startValue - domain[0]) * domainRange) / (domainRange - stopSpan) + domain[0];
 
-            for (let i = 0; i < stops.length; i += 1) {
-                const { startValue, endValue, color } = stops[i];
                 const isStart = i === 0;
-                const isEnd = i === stops.length - 1;
+                const isEnd = i === segments.length - 2;
 
                 const itemStart = mainAxisScale.convert(startValue);
                 const itemEnd = mainAxisScale.convert(endValue);
@@ -429,7 +418,7 @@ export class LinearGaugeSeries
                 const bottomLeftCornerRadius = startCornerRadius;
 
                 if (bar.enabled) {
-                    const barFill = bar.fill ?? color;
+                    const barFill = bar.fill ?? barColorScale?.convert(colorValue);
 
                     nodeData.push({
                         series: this,
@@ -454,12 +443,11 @@ export class LinearGaugeSeries
                     });
                 }
 
-                const backgroundBarFill = !bar.enabled ? color : undefined;
-                const backgroundFill = background.fill ?? backgroundBarFill ?? background.defaultFill;
+                const scaleFill = scale.fill ?? scaleColorScale?.convert(colorValue) ?? scale.defaultFill;
 
-                backgroundData.push({
+                scaleData.push({
                     series: this,
-                    itemId: `background-${i}`,
+                    itemId: `scale-${i}`,
                     datum: value,
                     type: NodeDataType.Node,
                     x0: originX + (horizontal ? itemStart : x0),
@@ -474,7 +462,7 @@ export class LinearGaugeSeries
                     topRightCornerRadius,
                     bottomRightCornerRadius,
                     bottomLeftCornerRadius,
-                    fill: backgroundFill,
+                    fill: scaleFill,
                     horizontalInset,
                     verticalInset,
                 });
@@ -581,7 +569,7 @@ export class LinearGaugeSeries
             nodeData,
             targetData,
             labelData,
-            backgroundData,
+            scaleData,
         };
     }
 
@@ -604,7 +592,7 @@ export class LinearGaugeSeries
             // labelSelection,
             targetSelection,
             targetLabelSelection,
-            backgroundSelection,
+            scaleSelection,
             highlightTargetSelection,
         } = this;
 
@@ -617,12 +605,12 @@ export class LinearGaugeSeries
         const nodeData = this.contextNodeData?.nodeData ?? [];
         // const labelData = this.contextNodeData?.labelData ?? [];
         const targetData = this.contextNodeData?.targetData ?? [];
-        const backgroundData = this.contextNodeData?.backgroundData ?? [];
+        const scaleData = this.contextNodeData?.scaleData ?? [];
 
         const highlightTargetDatum = this.highlightDatum(this.ctx.highlightManager.getActiveHighlight());
 
-        this.backgroundSelection = await this.updateBackgroundSelection({ backgroundData, backgroundSelection });
-        await this.updateBackgroundNodes({ backgroundSelection });
+        this.scaleSelection = await this.updateScaleSelection({ scaleData, scaleSelection });
+        await this.updateScaleNodes({ scaleSelection });
 
         this.targetSelection = await this.updateTargetSelection({ targetData, targetSelection });
         await this.updateTargetNodes({ targetSelection, isHighlight: false });
@@ -687,23 +675,21 @@ export class LinearGaugeSeries
         });
     }
 
-    private async updateBackgroundSelection(opts: {
-        backgroundData: LinearGaugeNodeDatum[];
-        backgroundSelection: _Scene.Selection<_Scene.Rect, LinearGaugeNodeDatum>;
+    private async updateScaleSelection(opts: {
+        scaleData: LinearGaugeNodeDatum[];
+        scaleSelection: _Scene.Selection<_Scene.Rect, LinearGaugeNodeDatum>;
     }) {
-        return opts.backgroundSelection.update(opts.backgroundData, undefined, (datum) => {
-            return createDatumId(opts.backgroundData.length, datum.itemId!);
+        return opts.scaleSelection.update(opts.scaleData, undefined, (datum) => {
+            return createDatumId(opts.scaleData.length, datum.itemId!);
         });
     }
 
-    private async updateBackgroundNodes(opts: {
-        backgroundSelection: _Scene.Selection<_Scene.Rect, LinearGaugeNodeDatum>;
-    }) {
-        const { backgroundSelection } = opts;
-        const { background } = this.properties;
-        const { fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = background;
+    private async updateScaleNodes(opts: { scaleSelection: _Scene.Selection<_Scene.Rect, LinearGaugeNodeDatum> }) {
+        const { scaleSelection } = opts;
+        const { scale } = this.properties;
+        const { fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = scale;
 
-        backgroundSelection.each((rect, datum) => {
+        scaleSelection.each((rect, datum) => {
             const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius, fill } =
                 datum;
 

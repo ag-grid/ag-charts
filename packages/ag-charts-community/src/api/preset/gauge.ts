@@ -8,6 +8,7 @@ import {
     type AgPolarAxisOptions,
     type AgRadialGaugeOptions,
     type AgRadialGaugeSeriesOptions,
+    type AgRadialGaugeSeriesScale,
 } from 'ag-charts-types';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -17,7 +18,7 @@ const IGNORED_PROP = Symbol('IGNORED_PROP');
 
 function pickProps<T>(
     opts: Partial<T>,
-    values: { [K in keyof Required<T>]: T[K] extends Required<T[K]> ? T[K] : T[K] | typeof IGNORED_PROP | undefined }
+    values: { [K in keyof Required<T>]: (T[K] extends Required<T[K]> ? T[K] : T[K] | undefined) | typeof IGNORED_PROP }
 ) {
     const out: any = {};
     for (const key in values) {
@@ -36,6 +37,11 @@ function isRadialGauge(opts: AgGaugeOptions): opts is AgRadialGaugeOptions {
 function isLinearGauge(opts: AgGaugeOptions): opts is AgLinearGaugeOptions {
     return opts.type === 'linear-gauge';
 }
+
+type ScaleStyle = Pick<
+    AgRadialGaugeSeriesScale,
+    'colorRange' | 'fill' | 'fillOpacity' | 'stroke' | 'strokeWidth' | 'strokeOpacity' | 'lineDash' | 'lineDashOffset'
+>;
 
 function radialGaugeOptions(opts: AgRadialGaugeOptions) {
     const {
@@ -58,13 +64,13 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         showInLegend,
         tooltip,
         value,
-        scale,
+        segments,
+        scale = {},
         startAngle,
         endAngle,
         itemStyler,
         highlightStyle,
         bar,
-        background,
         needle,
         targets,
         target,
@@ -81,6 +87,23 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
     } = opts;
     assertEmpty(rest);
 
+    const {
+        colorRange: scaleColorRange,
+        fill: scaleFill,
+        fillOpacity: scaleFillOpacity,
+        stroke: scaleStroke,
+        strokeWidth: scaleStrokeWidth,
+        strokeOpacity: scaleStrokeOpacity,
+        lineDash: scaleLineDash,
+        lineDashOffset: scaleLineDashOffset,
+        min: scaleMin = 0,
+        max: scaleMax = 1,
+        interval: scaleInterval = {},
+        label: scaleLabel = {},
+        ...scaleRest
+    } = scale;
+    assertEmpty(scaleRest);
+
     const chartOpts = pickProps(opts, {
         container,
         animation,
@@ -93,8 +116,21 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         seriesArea,
         listeners,
     });
+
+    const scaleOpts = pickProps<ScaleStyle>(scale, {
+        colorRange: scaleColorRange,
+        fill: scaleFill,
+        fillOpacity: scaleFillOpacity,
+        stroke: scaleStroke,
+        strokeWidth: scaleStrokeWidth,
+        strokeOpacity: scaleStrokeOpacity,
+        lineDash: scaleLineDash,
+        lineDashOffset: scaleLineDashOffset,
+    });
     const seriesOpts = pickProps<AgRadialGaugeSeriesOptions>(opts, {
-        scale: IGNORED_PROP,
+        startAngle: IGNORED_PROP,
+        endAngle: IGNORED_PROP,
+        scale: scaleOpts,
         type,
         id,
         data,
@@ -105,12 +141,10 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         listeners,
         tooltip,
         value,
-        startAngle,
-        endAngle,
+        segments,
         itemStyler,
         highlightStyle,
         bar,
-        background,
         needle,
         targets,
         target,
@@ -129,12 +163,12 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
     const axesOpts: AgPolarAxisOptions[] = [
         {
             type: 'angle-number',
-            min: scale?.min ?? 0,
-            max: scale?.max ?? 1,
-            startAngle: opts.startAngle ?? 270,
-            endAngle: opts.endAngle ?? 270 + 180,
-            interval: scale?.interval ?? {},
-            label: scale?.label ?? {},
+            min: scaleMin ?? 0,
+            max: scaleMax ?? 1,
+            startAngle: startAngle ?? 270,
+            endAngle: endAngle ?? 270 + 180,
+            interval: scaleInterval ?? {},
+            label: scaleLabel ?? {},
             nice: false,
             line: {
                 enabled: false,
