@@ -261,7 +261,11 @@ function ApiReferenceRow({
     return (
         <div
             id={anchorId}
-            className={classnames(styles.propertyRow, prefixPath && prefixPath.length > 0 && styles.isChildProp)}
+            className={classnames(
+                'property-row',
+                styles.propertyRow,
+                prefixPath && prefixPath.length > 0 && styles.isChildProp
+            )}
             style={{ '--nested-path-depth': prefixPath?.length ?? 0 } as CSSProperties}
         >
             <div className={styles.leftColumn}>

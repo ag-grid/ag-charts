@@ -81,9 +81,25 @@
     padding: $spacing-size-4 0;
     flex-wrap: wrap;
     scroll-margin-top: var(--anchor-offset, 0);
+    border-top: 1px solid var(--color-border-secondary);
 
-    &:where(:not(:first-child)) {
-        border-top: 1px solid var(--color-border-secondary);
+    &:last-child {
+        border-bottom: 1px solid var(--color-border-secondary);
+    }
+
+    #{$selector-darkmode} & {
+        border-top-color: var(--color-util-gray-400);
+        border-bottom-color: var(--color-util-gray-400);
+    }
+
+    :global(.tabs-outer) & {
+        &:first-child {
+            border-top: none;
+        }
+
+        &:last-child {
+            border-bottom: none;
+        }
     }
 
     @container (max-width: #{$breakpoint-table-small}) {
