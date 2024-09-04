@@ -115,7 +115,7 @@ export abstract class AgCharts {
     }
 
     public static createGauge(options: AgGaugeOptions): AgChartInstance<AgGaugeOptions> {
-        return this.create({ presetType: 'gauge', ...(options as any) } as AgChartOptions) as any;
+        return this.create({ presetType: 'gauge', ...options } as AgChartOptions) as any;
     }
 }
 

@@ -13,10 +13,3 @@ export interface RadialGaugeSeries extends GaugeSeries {
     textAlign: TextAlign;
     verticalAlign: VerticalAlign;
 }
-
-export interface LinearGaugeSeries extends GaugeSeries {
-    originX: number;
-    originY: number;
-    readonly horizontal: boolean;
-    readonly thickness: number;
-}

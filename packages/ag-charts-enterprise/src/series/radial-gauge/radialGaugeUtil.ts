@@ -113,7 +113,7 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean,
 
             return { startAngle, endAngle, clipSector };
         },
-        applyFn(sect, params) {
+        mapFn(params) {
             const { startAngle, endAngle } = params;
             let { clipSector } = params;
 
@@ -128,10 +128,7 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean,
 
             const visible = clipSector == null || clipSectorVisibility(startAngle, endAngle, clipSector);
 
-            sect.startAngle = startAngle;
-            sect.endAngle = endAngle;
-            sect.clipSector = clipSector;
-            sect.visible = visible;
+            return { visible, startAngle, endAngle, clipSector };
         },
     };
 
@@ -159,15 +156,12 @@ export function getLabelText(
     series: _ModuleSupport.Series<any, any>,
     label: RadialGaugeLabelProperties | RadialGaugeSecondaryLabelProperties,
     value: number | undefined,
-    defaultFormatter?: (value: number) => string
+    defaultFormatter?: (value: number) => void
 ) {
     if (label.text != null) {
         return label.text;
     } else if (value != null) {
-        const labelFormat = label?.formatter?.({ seriesId: series.id, datum: undefined, value });
-        if (labelFormat != null) return String(labelFormat);
-
-        return defaultFormatter?.(value);
+        return label?.formatter?.({ seriesId: series.id, datum: undefined, value }) ?? defaultFormatter?.(value);
     }
 }
 
@@ -184,7 +178,7 @@ export function formatRadialGaugeLabels(
     secondaryLabelProps: RadialGaugeSecondaryLabelProperties,
     opts: { padding: number; textAlign: TextAlign; verticalAlign: VerticalAlign },
     innerRadius: number,
-    defaultFormatter: (value: number) => string,
+    defaultFormatter: (value: number) => void,
     datumOverrides?: { label: number; secondaryLabel: number }
 ) {
     const { padding, textAlign, verticalAlign } = opts;

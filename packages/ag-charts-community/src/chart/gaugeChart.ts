@@ -4,19 +4,14 @@ import type { LayoutContext } from '../module/baseModule';
 import type { BBox } from '../scene/bbox';
 import { sectorBox } from '../scene/util/sector';
 import { isBetweenAngles, normalizeAngle360Inclusive } from '../util/angle';
-import { CartesianAxis } from './axis/cartesianAxis';
 import { PolarAxis } from './axis/polarAxis';
 import { Chart } from './chart';
 import { ChartAxisDirection } from './chartAxisDirection';
-import type { GaugeSeries, LinearGaugeSeries, RadialGaugeSeries } from './series/gaugeSeries';
+import type { GaugeSeries, RadialGaugeSeries } from './series/gaugeSeries';
 import type { Series } from './series/series';
 
 function isRadialGaugeSeries(series: Series<any, any>): series is RadialGaugeSeries {
     return series.type === 'radial-gauge';
-}
-
-function isLinearGaugeSeries(series: Series<any, any>): series is LinearGaugeSeries {
-    return series.type === 'linear-gauge';
 }
 
 export class GaugeChart extends Chart {
@@ -121,37 +116,6 @@ export class GaugeChart extends Chart {
         series.verticalAlign = verticalAlign;
     }
 
-    private updateLinearGauge(seriesRect: BBox, series: LinearGaugeSeries) {
-        const xAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.X);
-        const yAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.Y);
-
-        if (!(xAxis instanceof CartesianAxis)) return seriesRect;
-        if (!(yAxis instanceof CartesianAxis)) return seriesRect;
-
-        const { horizontal, thickness } = series;
-
-        const width = horizontal ? seriesRect.width : thickness;
-        const height = horizontal ? thickness : seriesRect.height;
-
-        const x0 = seriesRect.x + (seriesRect.width - width) / 2;
-        const y0 = seriesRect.y + (seriesRect.height - height) / 2;
-
-        xAxis.range = [0, width];
-        xAxis.gridLength = width;
-        xAxis.calculateLayout();
-        xAxis.translation.x = x0;
-        xAxis.translation.y = y0 + (xAxis.position === 'bottom' ? thickness : 0);
-
-        yAxis.range = [0, height];
-        yAxis.gridLength = height;
-        yAxis.calculateLayout();
-        yAxis.translation.x = x0 + (yAxis.position === 'right' ? thickness : 0);
-        yAxis.translation.y = y0;
-
-        series.originX = x0 - seriesRect.x;
-        series.originY = y0 - seriesRect.y;
-    }
-
     protected performLayout(ctx: LayoutContext) {
         const { seriesRoot, annotationRoot, highlightRoot, series, seriesArea } = this;
         const { layoutBox } = ctx;
@@ -159,16 +123,14 @@ export class GaugeChart extends Chart {
 
         layoutBox.shrink(seriesArea.padding.toJson());
 
-        const firstSeries = this.series[0];
-        if (isRadialGaugeSeries(firstSeries)) {
-            this.updateRadialGauge(layoutBox, firstSeries);
-        } else if (isLinearGaugeSeries(firstSeries)) {
-            this.updateLinearGauge(layoutBox, firstSeries);
+        const radialGaugeSeries = this.series.find(isRadialGaugeSeries);
+        if (radialGaugeSeries != null) {
+            this.updateRadialGauge(layoutBox, radialGaugeSeries);
         }
 
         this.axes.forEach((axis) => axis.update());
 
-        this.seriesRect = seriesRect.clone().translate(seriesRect.x - layoutBox.x, seriesRect.y - layoutBox.y);
+        this.seriesRect = layoutBox;
         this.animationRect = layoutBox;
         seriesRoot.visible = series.some((s) => s.visible);
 

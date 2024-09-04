@@ -58,7 +58,6 @@ interface ApiReferenceOptions {
     id: string;
     anchorId?: string;
     className?: string;
-    isInline?: boolean;
 }
 
 interface ApiReferenceRowOptions {
@@ -98,13 +97,33 @@ export function ApiReferenceWithReferenceContext(props: ApiReferenceOptions & Ap
     );
 }
 
-export function ApiReference({
-    id,
-    anchorId,
-    className,
-    isInline,
-    ...props
-}: ApiReferenceOptions & AllHTMLAttributes<Element>) {
+export function ChildPropertiesButton({
+    name,
+    isExpanded,
+    onClick,
+    collapsibleType,
+}: {
+    name: string;
+    isExpanded?: boolean;
+    onClick?: () => void;
+    collapsibleType?: CollapsibleType;
+}) {
+    return (
+        <button
+            className={classnames(styles.childButton, 'button-style-none', {
+                [styles.isExpanded]: isExpanded,
+            })}
+            onClick={onClick}
+            aria-label={`See child properties of ${name}`}
+        >
+            <span>
+                See child properties of <span className={styles.childButtonName}>{name}</span>
+            </span>
+        </button>
+    );
+}
+
+export function ApiReference({ id, anchorId, className, ...props }: ApiReferenceOptions & AllHTMLAttributes<Element>) {
     const reference = useContext(ApiReferenceContext);
     const config = useContext(ApiReferenceConfigContext);
     const interfaceRef = reference?.get(id);
@@ -122,12 +141,7 @@ export function ApiReference({
     }
 
     return (
-        <div
-            {...props}
-            className={classnames(styles.apiReferenceOuter, className, {
-                [styles.isInline]: isInline,
-            })}
-        >
+        <div {...props} className={classnames(styles.apiReferenceOuter, className)}>
             {anchorId && <a id={anchorId} />}
             {!config.hideHeader &&
                 (interfaceRef.docs?.join('\n') ?? (
@@ -135,6 +149,7 @@ export function ApiReference({
                         Properties available on the <code>{id}</code> interface.
                     </p>
                 ))}
+
             <div className={classnames(styles.reference, styles.apiReference, 'no-zebra')}>
                 <div>
                     {processMembers(interfaceRef, config).map((member) => (
@@ -259,6 +274,9 @@ function ApiReferenceRow({
                     <Markdown remarkPlugins={[remarkBreaks]} urlTransform={(url: string) => urlWithBaseUrl(url)}>
                         {member.docs?.join('\n')}
                     </Markdown>
+                    {collapsibleType === 'childrenProperties' && (
+                        <ChildPropertiesButton name={memberName} isExpanded={isExpanded} onClick={onDetailsToggle} />
+                    )}
                 </div>
                 {nestedPath && (
                     <div className={styles.actions}>

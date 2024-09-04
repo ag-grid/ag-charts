@@ -1,16 +1,15 @@
-import type { AgBaseAxisOptions } from '../../chart/axisOptions';
 import type { AgBaseThemeableChartOptions } from '../../chart/chartOptions';
-import type { AgLinearGaugeSeriesOptions } from './linearGaugeOptions';
+import type { AgPolarAxisOptions } from '../polar/polarOptions';
 import type { AgRadialGaugeSeriesOptions } from './radialGaugeOptions';
 
-export type AgGaugeSeriesOptions = AgRadialGaugeSeriesOptions | AgLinearGaugeSeriesOptions;
+export type AgGaugeSeriesOptions = AgRadialGaugeSeriesOptions;
 
 export interface AgBaseGaugeChartOptions {
     /** Series configurations. */
     series?: AgGaugeSeriesOptions[];
 
     /** Axis configurations. */
-    axes?: AgBaseAxisOptions[];
+    axes?: AgPolarAxisOptions[];
 }
 
 export interface AgBaseGaugeThemeOptions extends AgBaseThemeableChartOptions {}
