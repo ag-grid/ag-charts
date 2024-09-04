@@ -1,4 +1,6 @@
 .ag-charts-popover {
+    --popover-layer: 0;
+
     position: absolute;
     border: var(--ag-charts-popover-border);
     border-radius: var(--ag-charts-popover-border-radius);
@@ -6,5 +8,5 @@
     color: var(--ag-charts-popover-foreground-color);
     font-family: var(--ag-charts-font-family);
     font-size: var(--ag-charts-popover-font-size);
-    z-index: var(--ag-charts-layer-ui-overlay);
+    z-index: calc(var(--ag-charts-layer-ui-overlay) + var(--popover-layer));
 }

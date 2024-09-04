@@ -1,6 +1,7 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 import type { AgIconName } from 'ag-charts-types';
 
+import { ColorPicker } from '../../features/color-picker/colorPicker';
 import { Popover, type PopoverOptions } from '../popover/popover';
 
 const { createElement, initRovingTabIndex } = _ModuleSupport;
@@ -28,18 +29,30 @@ interface TextAreaOptions {
     onChange?: (value: string) => void;
 }
 
+interface ColorPickerOptions {
+    label: string;
+    color: string | undefined;
+    onChange: (colorOpacity: string, color: string, opacity: number) => void;
+}
+
 /**
  * A popover that opens at the bottom right of the chart but can be moved by the user.
  */
 export abstract class Dialog<Options extends DialogOptions = DialogOptions> extends Popover<Options> {
     private static readonly offset = 100;
 
+    private colorPicker = new ColorPicker(this.ctx);
     private dragStartState?: { client: _Util.Vec2; position: _Util.Vec2 };
 
     protected override showWithChildren(children: Array<HTMLElement>, options: Options) {
         const popover = super.showWithChildren(children, options);
         popover.classList.add('ag-charts-dialog');
         popover.setAttribute('role', 'dialog');
+
+        popover.addEventListener('mousedown', (event) => {
+            if ((event.target as any).classList?.contains('ag-charts-dialog__color-picker-button')) return;
+            this.colorPicker.hide();
+        });
 
         // Give the dialog's dimensions a chance to be calculated before positioning
         requestAnimationFrame(() => {
@@ -163,6 +176,46 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         }
 
         return textArea;
+    }
+
+    protected createColorPicker({ color, label, onChange }: ColorPickerOptions) {
+        const group = this.createInputGroup(label);
+
+        const colorEl = createElement('button', 'ag-charts-dialog__color-picker-button');
+        if (color) colorEl.style.setProperty('--color', color);
+
+        let defaultColor = color;
+
+        colorEl.addEventListener('click', (sourceEvent) => {
+            const rect = colorEl.getBoundingClientRect();
+            const canvasRect = this.ctx.domManager.getBoundingClientRect();
+
+            const topLeft = Vec2.sub(Vec2.from(rect.x, rect.y), Vec2.from(canvasRect.left, canvasRect.top));
+            const anchor = Vec2.add(topLeft, Vec2.from(0, rect.height + 5));
+            const fallbackAnchor = Vec2.sub(topLeft, Vec2.from(0, 5));
+
+            this.colorPicker.show({
+                anchor,
+                fallbackAnchor,
+                color: defaultColor,
+                opacity: 1,
+                sourceEvent,
+                nested: true,
+                onChange: (colorOpacity: string, color: string, opacity: number) => {
+                    defaultColor = colorOpacity;
+                    colorEl.style.setProperty('--color', colorOpacity);
+                    onChange(colorOpacity, color, opacity);
+                },
+            });
+        });
+
+        group.append(colorEl);
+
+        this.hideFns.push(() => {
+            this.colorPicker.hide();
+        });
+
+        return group;
     }
 
     /***********

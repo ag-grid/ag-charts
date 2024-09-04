@@ -6,6 +6,7 @@ const canvasOverlay = 'canvas-overlay';
 export interface PopoverOptions {
     ariaLabel?: string;
     class?: string;
+    nested?: boolean;
     onHide?: () => void;
 }
 
@@ -49,6 +50,7 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
     protected showWithChildren(children: Array<HTMLElement>, options: Options) {
         const popover = createElement('div', 'ag-charts-popover');
         popover.setAttribute('data-pointer-capture', 'exclusive');
+        popover.style.setProperty('--popover-layer', `${options.nested ? 1 : 0}`);
 
         if (options.ariaLabel != null) {
             popover.setAttribute('aria-label', options.ariaLabel);

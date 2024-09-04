@@ -132,10 +132,22 @@
     content: attr(placeholder);
 }
 
+/* Color picker */
+.ag-charts-dialog__color-picker-button {
+    --color: #000;
+    background: var(--color);
+    border: none;
+    border-radius: var(--ag-charts-popover-border-radius);
+    cursor: pointer;
+    height: 26px;
+    width: 26px;
+}
+
 /* Focus indicator */
 .ag-charts-dialog__button:focus-visible,
 .ag-charts-dialog__select:focus-visible,
-.ag-charts-dialog__textarea:focus-visible {
+.ag-charts-dialog__textarea:focus-visible,
+.ag-charts-dialog__color-picker-button:focus-visible {
     outline: var(--ag-charts-focus-border);
     box-shadow: var(--ag-charts-focus-border-shadow);
     z-index: calc(var(--ag-charts-layer-ui-overlay) + 1);

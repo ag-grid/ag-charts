@@ -40,6 +40,7 @@ export class ColorPicker extends AnchoredPopover<ColorPickerOptions> {
             if (this.hasChanged) this.onChangeHide?.();
         });
     }
+
     public show(options: ColorPickerOptions) {
         this.hasChanged = false;
         this.onChangeHide = options.onChangeHide;

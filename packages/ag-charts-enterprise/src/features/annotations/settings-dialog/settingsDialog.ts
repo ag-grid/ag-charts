@@ -6,7 +6,15 @@ import type { ChannelPropertiesType, LinePropertiesType } from '../annotationsSu
 const { focusCursorAtEnd } = _ModuleSupport;
 
 interface LineSettingsDialogOptions extends DialogOptions {
-    onChange: (props: { alignment?: string; fontSize?: number; position?: string; label?: string }) => void;
+    onChange: (props: LineSettingsDialogChangeProps) => void;
+}
+
+export interface LineSettingsDialogChangeProps {
+    alignment?: string;
+    color?: string;
+    fontSize?: number;
+    position?: string;
+    label?: string;
 }
 
 export class AnnotationSettingsDialog extends Dialog {
@@ -14,7 +22,7 @@ export class AnnotationSettingsDialog extends Dialog {
         super(ctx, 'settings');
     }
 
-    showLine(datum: LinePropertiesType | ChannelPropertiesType, options: LineSettingsDialogOptions) {
+    showLineOrChannel(datum: LinePropertiesType | ChannelPropertiesType, options: LineSettingsDialogOptions) {
         const header = this.createHeader('Text');
         const textTabContent = this.createTabContent();
 
@@ -28,7 +36,10 @@ export class AnnotationSettingsDialog extends Dialog {
         const fontSize = this.createFontSizeSelect(datum.text.fontSize, (value: number) =>
             options.onChange({ fontSize: value })
         );
-        fontSizeAndColor.append(fontSize);
+        const colorPicker = this.createColorPickerInput(datum.text.color, (color) => {
+            options.onChange({ color });
+        });
+        fontSizeAndColor.append(fontSize, colorPicker);
 
         const positionAndAlignment = this.createInputGroupLine();
         const textPosition = datum.text.position === 'inside' ? 'center' : datum.text.position;
@@ -46,6 +57,14 @@ export class AnnotationSettingsDialog extends Dialog {
         popover.classList.add('ag-charts-dialog--annotation-settings');
 
         focusCursorAtEnd(textArea);
+    }
+
+    private createColorPickerInput(color: string | undefined, onChangeColor: (color: string) => void) {
+        return this.createColorPicker({
+            label: 'Color',
+            color,
+            onChange: (color) => onChangeColor(color),
+        });
     }
 
     private createFontSizeSelect(fontSize: number, onChangeFontSize: (fontSize: number) => void) {
