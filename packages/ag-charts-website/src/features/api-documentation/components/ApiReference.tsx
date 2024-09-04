@@ -58,6 +58,7 @@ interface ApiReferenceOptions {
     id: string;
     anchorId?: string;
     className?: string;
+    isInline?: boolean;
 }
 
 interface ApiReferenceRowOptions {
@@ -97,7 +98,13 @@ export function ApiReferenceWithReferenceContext(props: ApiReferenceOptions & Ap
     );
 }
 
-export function ApiReference({ id, anchorId, className, ...props }: ApiReferenceOptions & AllHTMLAttributes<Element>) {
+export function ApiReference({
+    id,
+    anchorId,
+    className,
+    isInline,
+    ...props
+}: ApiReferenceOptions & AllHTMLAttributes<Element>) {
     const reference = useContext(ApiReferenceContext);
     const config = useContext(ApiReferenceConfigContext);
     const interfaceRef = reference?.get(id);
@@ -115,7 +122,12 @@ export function ApiReference({ id, anchorId, className, ...props }: ApiReference
     }
 
     return (
-        <div {...props} className={classnames(styles.apiReferenceOuter, className)}>
+        <div
+            {...props}
+            className={classnames(styles.apiReferenceOuter, className, {
+                [styles.isInline]: isInline,
+            })}
+        >
             {anchorId && <a id={anchorId} />}
             {!config.hideHeader &&
                 (interfaceRef.docs?.join('\n') ?? (
