@@ -8,7 +8,7 @@ const options: AgGaugeOptions = {
     scale: {
         min: 0,
         max: 100,
-        label: {
+        interval: {
             step: 10,
         },
     },
