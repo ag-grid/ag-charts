@@ -131,6 +131,8 @@ export class LegendMarkerLabel extends Translatable(Group) {
             const size = marker?.size ?? 0;
 
             let lineTop = Infinity;
+            let lineX1 = Infinity;
+            let lineX2 = Infinity;
             let markerTop = Infinity;
             let markerLeft = Infinity;
             if (marker) {
@@ -141,8 +143,8 @@ export class LegendMarkerLabel extends Translatable(Group) {
                 marker.y = center.y;
                 marker.translationX = (center.x - 0.5) * size + length / 2 + shift;
                 marker.translationY = (center.y - 0.5) * size;
-                markerTop = marker.y - radius;
-                markerLeft = marker.x - radius;
+                markerTop = marker.translationY - radius;
+                markerLeft = marker.translationX - radius;
             }
 
             if (line) {
@@ -152,10 +154,12 @@ export class LegendMarkerLabel extends Translatable(Group) {
                 line.y2 = 0;
                 line.markDirty(this, RedrawType.MAJOR);
                 lineTop = -line.strokeWidth / 2;
+                lineX1 = line.x1;
+                lineX2 = line.x2;
             }
 
             shift += spacing + Math.max(length, size);
-            spriteX = Math.min(spriteX, line.x1, line.x2, markerLeft);
+            spriteX = Math.min(spriteX, lineX1, lineX2, markerLeft);
             spriteY = Math.min(spriteY, lineTop, markerTop);
         }
 
