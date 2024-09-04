@@ -137,8 +137,10 @@ export class LegendMarkerLabel extends Translatable(Group) {
                 const center = (marker.constructor as MarkerConstructor).center;
                 const radius = (size + marker.strokeWidth) / 2;
 
-                marker.x = (center.x - 0.5) * size + length / 2 + shift;
-                marker.y = (center.y - 0.5) * size;
+                marker.x = center.x;
+                marker.y = center.y;
+                marker.translationX = (center.x - 0.5) * size + length / 2 + shift;
+                marker.translationY = (center.y - 0.5) * size;
                 markerTop = marker.y - radius;
                 markerLeft = marker.x - radius;
             }
