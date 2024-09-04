@@ -24,10 +24,13 @@ export class AnnotationSettingsDialog extends Dialog {
             onChange: (label) => options.onChange({ label }),
         });
 
+        const fontSizeAndColor = this.createInputGroupLine();
         const fontSize = this.createFontSizeSelect(datum.text.fontSize, (value: number) =>
             options.onChange({ fontSize: value })
         );
+        fontSizeAndColor.append(fontSize);
 
+        const positionAndAlignment = this.createInputGroupLine();
         const textPosition = datum.text.position === 'inside' ? 'center' : datum.text.position;
         const position = this.createPositionButtonGroup(textPosition!, (value: string) =>
             options.onChange({ position: value })
@@ -35,8 +38,9 @@ export class AnnotationSettingsDialog extends Dialog {
         const alignment = this.createAlignmentButtonGroup(datum.text.alignment!, (value: string) =>
             options.onChange({ alignment: value })
         );
+        positionAndAlignment.append(position, alignment);
 
-        textTabContent.append(textArea, fontSize, position, alignment);
+        textTabContent.append(textArea, fontSizeAndColor, positionAndAlignment);
 
         const popover = this.showWithChildren([header, textTabContent], options);
         popover.classList.add('ag-charts-dialog--annotation-settings');

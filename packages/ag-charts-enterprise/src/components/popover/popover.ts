@@ -79,7 +79,7 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
 
         popover.style.setProperty('top', 'unset');
         popover.style.setProperty('bottom', 'unset');
-        popover.style.setProperty('left', `${position.x}px`);
-        popover.style.setProperty('top', `${position.y}px`);
+        popover.style.setProperty('left', `${Math.floor(position.x)}px`);
+        popover.style.setProperty('top', `${Math.floor(position.y)}px`);
     }
 }

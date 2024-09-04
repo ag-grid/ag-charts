@@ -72,6 +72,10 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     /**********
      * Inputs *
      **********/
+    protected createInputGroupLine() {
+        return createElement('div', 'ag-charts-dialog__input-group-line');
+    }
+
     protected createRadioGroup({ label, options, value, onChange }: RadioGroupOptions) {
         const group = this.createInputGroup(label);
         group.role = 'radiogroup';
@@ -168,7 +172,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const dragHandle = createElement('div', 'ag-charts-dialog__drag-handle');
         const dragHandleIcon = createElement('span', this.ctx.domManager.getIconClassNames('drag-handle'));
         dragHandle.append(dragHandleIcon);
-        dragHandle.addEventListener('mousedown', this.onDragStart.bind(this));
+        dragHandle.addEventListener('mousedown', this.onDragStart.bind(this, dragHandle));
 
         return dragHandle;
     }
@@ -201,7 +205,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return group;
     }
 
-    private onDragStart(event: MouseEvent) {
+    private onDragStart(dragHandle: HTMLDivElement, event: MouseEvent) {
         const popover = this.getPopoverElement();
         if (!popover) return;
 
@@ -219,17 +223,19 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                 Number(popover.style.getPropertyValue('top').replace('px', ''))
             ),
         };
+        dragHandle.classList.add('ag-charts-dialog__drag-handle--dragging');
 
         const onDrag = this.onDrag.bind(this);
+        const onDragEnd = () => {
+            domManager.removeEventListener('mousemove', onDrag);
+            dragHandle.classList.remove('ag-charts-dialog__drag-handle--dragging');
+        };
+
         domManager.addEventListener('mousemove', onDrag);
-        domManager.addEventListener('mouseup', () => domManager.removeEventListener('mousemove', onDrag), {
-            once: true,
-        });
+        domManager.addEventListener('mouseup', onDragEnd, { once: true });
 
         // Catch `mouseup` events that do not propagate beyond the overlay
-        popover.addEventListener('mouseup', () => domManager.removeEventListener('mousemove', onDrag), {
-            once: true,
-        });
+        popover.addEventListener('mouseup', () => onDragEnd, { once: true });
     }
 
     private onDrag(event: MouseEvent) {

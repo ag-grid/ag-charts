@@ -75,7 +75,7 @@
 
     /* Dialog */
     --ag-charts-dialog-input-background: var(--ag-charts-background-color);
-    --ag-charts-dialog-input-group-label-text-color: #6c6e6f;
+    --ag-charts-dialog-input-group-label-color: color-mix(in srgb, transparent, var(--ag-charts-foreground-color), 65%);
 
     /* Buttons */
     --ag-charts-button-radius: var(--ag-border-radius, 4px);
