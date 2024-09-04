@@ -514,18 +514,29 @@ export class Legend extends BaseProperties {
         const { showSeriesStroke, marker } = this.item;
         const markerEnabled = !!marker.enabled || !showSeriesStroke || (symbol.marker.enabled ?? true);
         const lineEnabled = !!(symbol.line && showSeriesStroke);
-        return { markerEnabled, lineEnabled };
+
+        let customMarkerSize: number | undefined;
+        const { shape } = symbol.marker;
+        // Calculate the marker size of a custom marker shape:
+        if (markerEnabled && shape && typeof shape !== 'string') {
+            const tmpShape = new shape();
+            tmpShape.updatePath();
+            const bbox = tmpShape.getBBox();
+            customMarkerSize = Math.max(bbox.width, bbox.height);
+        }
+
+        return { markerEnabled, lineEnabled, customMarkerSize };
     }
 
     private calcSymbolsLengths(symbol: LegendSymbolOptions) {
         const { marker, line } = this.item;
-        const { markerEnabled, lineEnabled } = this.calcSymbolsEnabled(symbol);
+        const { markerEnabled, lineEnabled, customMarkerSize } = this.calcSymbolsEnabled(symbol);
         const { strokeWidth: markerStrokeWidth } = this.getMarkerStyles(symbol);
         const { strokeWidth: lineStrokeWidth } = lineEnabled ? this.getLineStyles(symbol) : { strokeWidth: 0 };
 
         const markerLength = markerEnabled ? marker.size : 0;
         const lineLength = lineEnabled ? line.length ?? 25 : 0;
-        return { markerLength, markerStrokeWidth, lineLength, lineStrokeWidth };
+        return { markerLength, markerStrokeWidth, lineLength, lineStrokeWidth, customMarkerSize };
     }
 
     private calculateSpriteDimensions(): SpriteDimensions {
@@ -536,9 +547,9 @@ export class Legend extends BaseProperties {
         let markerWidth = 0;
         this.itemSelection.each((_, datum) => {
             datum.symbols.forEach((symbol) => {
-                const { markerLength, markerStrokeWidth, lineLength, lineStrokeWidth } =
+                const { markerLength, markerStrokeWidth, lineLength, lineStrokeWidth, customMarkerSize } =
                     this.calcSymbolsLengths(symbol);
-                const markerTotalLength = markerLength + markerStrokeWidth;
+                const markerTotalLength = customMarkerSize ?? markerLength + markerStrokeWidth;
                 markerWidth = Math.max(markerWidth, lineLength, markerLength);
                 spriteWidth = Math.max(spriteWidth, lineLength, markerTotalLength);
                 spriteHeight = Math.max(spriteHeight, lineStrokeWidth, markerTotalLength);
