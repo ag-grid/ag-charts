@@ -9,13 +9,14 @@ import { urlWithPrefix } from '@utils/urlWithPrefix';
 import { AutomatedIntegratedChartsWrapper } from '@ag-website-shared/components/automated-examples/AutomatedIntegratedChartsWrapper';
 import { Faqs } from '../features/homepage/components/faqs/Faqs';
 import { parseVersion } from '@ag-website-shared/utils/parseVersion';
-import { Version, type VersionProps } from '@ag-website-shared/components/whats-new/components/Version';
+import { Version } from '@ag-website-shared/components/whats-new/components/Version';
 import whatsNewData from '@ag-website-shared/content/whats-new/data.json';
-const { name, blogPrefix } = whatsNewData['charts'];
 
 // Custom Example Runners || TODO: Cleanup
 import IndexGalleryExampleRunner from '@features/homepage/components/IndexGalleryExampleRunner.astro';
 import IndexDocsExampleRunner from '@features/homepage/components/IndexDocsExampleRunner.astro';
+
+const { blogPrefix } = whatsNewData['charts'];
 
 // All Gallery Examples
 const galleryEntry = await getEntry('gallery', 'data');
