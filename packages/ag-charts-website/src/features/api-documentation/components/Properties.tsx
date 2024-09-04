@@ -50,7 +50,7 @@ export function PropertyNamePrefix({
     );
 }
 
-function CodeCollapsibleButton({
+function CollapsibleButton({
     name,
     isExpanded,
     onClick,
@@ -61,9 +61,13 @@ function CodeCollapsibleButton({
     onClick?: () => void;
     collapsibleType?: CollapsibleType;
 }) {
-    if (collapsibleType !== 'code') {
-        return null;
+    const isCollapsible = collapsibleType === 'childrenProperties' || collapsibleType === 'code';
+
+    if (!isCollapsible) {
+        return;
     }
+
+    const iconName: IconName = collapsibleType === 'childrenProperties' ? 'arrowDown' : 'chevronDown';
 
     return (
         <button
@@ -73,7 +77,7 @@ function CodeCollapsibleButton({
             onClick={onClick}
             aria-label={`See more details about ${name}`}
         >
-            <Icon className={`${styles.chevron} ${isExpanded ? 'expandedIcon' : ''}`} name="chevronDown" />
+            <Icon className={`${styles.chevron} ${isExpanded ? 'expandedIcon' : ''}`} name={iconName} />
         </button>
     );
 }
@@ -100,7 +104,7 @@ export function PropertyType({
     return (
         <div className={styles.metaItem}>
             <div className={styles.metaRow}>
-                <CodeCollapsibleButton
+                <CollapsibleButton
                     name={name}
                     isExpanded={isExpanded}
                     onClick={onCollapseClick!}

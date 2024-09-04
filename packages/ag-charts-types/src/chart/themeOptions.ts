@@ -18,6 +18,7 @@ import type { AgChordSeriesThemeableOptions } from '../series/flow-proportion/ch
 import type { AgBaseFlowProportionThemeOptions } from '../series/flow-proportion/flowProportionOptions';
 import type { AgSankeySeriesOptions, AgSankeySeriesThemeableOptions } from '../series/flow-proportion/sankeyOptions';
 import type { AgBaseGaugeThemeOptions } from '../series/gauge/gaugeOptions';
+import type { AgLinearGaugeSeriesThemeableOptions } from '../series/gauge/linearGaugeOptions';
 import type { AgRadialGaugeSeriesThemeableOptions } from '../series/gauge/radialGaugeOptions';
 import type { AgBaseHierarchyThemeOptions, AgHierarchySeriesOptions } from '../series/hierarchy/hierarchyOptions';
 import type { AgSunburstSeriesThemeableOptions } from '../series/hierarchy/sunburstOptions';
@@ -180,6 +181,9 @@ export interface AgChordThemeOverrides extends AgBaseFlowProportionThemeOptions 
 export interface AgRadialGaugeThemeOverrides extends AgBaseGaugeThemeOptions {
     series?: AgRadialGaugeSeriesThemeableOptions;
 }
+export interface AgLinearGaugeThemeOverrides extends AgBaseGaugeThemeOptions {
+    series?: AgLinearGaugeSeriesThemeableOptions;
+}
 
 export interface AgCommonThemeableAxisOptions extends AgCartesianAxesTheme, AgPolarAxesTheme {}
 
@@ -255,6 +259,8 @@ export interface AgChartThemeOverrides {
     chord?: AgChordThemeOverrides;
     /** radial gauge theme overrides. */
     'radial-gauge'?: AgRadialGaugeThemeOverrides;
+    /** radial gauge theme overrides. */
+    'linear-gauge'?: AgLinearGaugeThemeOverrides;
 }
 
 // Use Typescript function types to verify that all series types are present in the manually
