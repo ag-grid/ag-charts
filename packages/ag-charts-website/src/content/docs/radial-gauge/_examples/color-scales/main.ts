@@ -7,14 +7,20 @@ const options: AgRadialGaugeOptions = {
     scale: {
         min: 0,
         max: 100,
-        fills: [{ color: '#E84118' }, { color: '#9C88FF' }, { color: '#00A8FF' }],
+    },
+    bar: {
+        colorRange: ['#E84118', '#9C88FF', '#00A8FF'],
     },
     sectorSpacing: 2,
 };
 
 const chart = AgCharts.createGauge(options);
 
-function setAppearance(appearance: 'segmented' | 'continuous') {
-    options.appearance = appearance;
+function setSegments(segments: number | undefined) {
+    if (segments !== undefined) {
+        options.segments = segments;
+    } else {
+        delete options.segments;
+    }
     chart.update(options);
 }

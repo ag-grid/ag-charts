@@ -185,7 +185,7 @@ export function formatRadialGaugeLabels(
     opts: { padding: number; textAlign: TextAlign; verticalAlign: VerticalAlign },
     innerRadius: number,
     defaultFormatter: (value: number) => string,
-    datumOverrides?: { label: number; secondaryLabel: number }
+    datumOverrides?: { label: number | undefined; secondaryLabel: number | undefined }
 ) {
     const { padding, textAlign, verticalAlign } = opts;
 

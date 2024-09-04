@@ -21,6 +21,7 @@ export interface AgLinearGaugeSeriesItemStylerParams<TDatum = any>
         AgLinearGaugeSeriesOptionsKeys,
         Required<AgLinearGaugeSeriesStyle> {}
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface AgLinearGaugeSeriesHighlightStyle<_TDatum> extends AgSeriesHighlightStyle {}
 
 export interface AgLinearGaugeSeriesOptionsKeys {}
@@ -39,7 +40,9 @@ export interface AgLinearGaugeSeriesScaleLabel extends AgBaseAxisLabelOptions {
     placement?: 'before' | 'after';
 }
 
-export interface AgLinearGaugeSeriesScale {
+export interface AgLinearGaugeSeriesScale extends FillOptions, StrokeOptions, LineDashOptions {
+    /** Configuration the colours. */
+    colorRange?: CssColor[];
     /** Maximum value of the scale. Any values exceeding this number will be clipped to this maximum. */
     min?: number;
     /** Minimum value of the scale. Any values exceeding this number will be clipped to this minimum. */
@@ -48,8 +51,6 @@ export interface AgLinearGaugeSeriesScale {
     label?: AgLinearGaugeSeriesScaleLabel;
     /** Configuration for the ticks interval. */
     interval?: AgLinearGaugeSeriesScaleInterval;
-    /** Configuration the colours. */
-    fills?: AgLinearGaugeColorStop[];
 }
 
 export interface AgLinearGaugeSeriesTooltipRendererParams<TDatum>
@@ -68,6 +69,8 @@ export interface AgLinearGaugeSeriesStyle {
 export interface AgLinearGaugeSeriesBarStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Whether the bar should be shown. */
     enabled?: boolean;
+    /** Configuration the colours. */
+    colorRange?: CssColor[];
 }
 
 export interface AgLinearGaugeSeriesBackgroundStyle extends FillOptions, StrokeOptions, LineDashOptions {}
@@ -123,13 +126,6 @@ export interface AgLinearGaugeSecondaryLabelOptions<TDatum>
     text?: string;
 }
 
-export interface AgLinearGaugeColorStop {
-    /** Stop value of this category. */
-    stop?: number;
-    /** Colour of this category. */
-    color: CssColor;
-}
-
 export interface AgLinearGaugeSeriesThemeableOptions<TDatum = any>
     extends AgLinearGaugeSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
@@ -137,10 +133,10 @@ export interface AgLinearGaugeSeriesThemeableOptions<TDatum = any>
     horizontal?: boolean;
     /** Width of the gauge, or the height if `horizontal` is true. */
     thickness?: number;
-    /** The spacing between sectors when using `segmented` appearance. */
+    /** Configuration for a segmented appearance. */
+    segments?: number[] | number;
+    /** The spacing between bars. */
     barSpacing?: number;
-    /** Configuration of the appearance of the gauge. */
-    appearance?: 'continuous' | 'segmented';
     /** Configuration on whether to apply `cornerRadius` only to the ends of the gauge, or each individual item within the gauge. */
     cornerMode?: 'container' | 'item';
     /** Configuration for all targets. */

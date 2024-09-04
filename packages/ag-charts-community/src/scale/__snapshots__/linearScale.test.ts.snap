@@ -131,7 +131,6 @@ exports[`LinearScale should create ticks for interval: 10.5 domain: [0, 102] cas
   73.5,
   84,
   94.5,
-  105,
 ]
 `;
 

@@ -1,6 +1,7 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 
-export function formatLabel(value: number, axis: _ModuleSupport.ChartAxis | undefined) {
+export function formatLabel(value: number | undefined, axis: _ModuleSupport.ChartAxis | undefined) {
+    if (value == null) return '';
     if (axis == null) return String(value);
 
     const [min, max] = axis.scale.domain;

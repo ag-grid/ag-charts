@@ -141,6 +141,15 @@ describe('LinearScale', () => {
 
             expect(scale.ticks()).toMatchSnapshot();
         });
+
+        it('should create ticks within range', () => {
+            const scale = new LinearScale();
+            scale.range = [0, 100];
+            scale.domain = [0, 100];
+            scale.interval = 30;
+
+            expect(scale.ticks()).toEqual([0, 30, 60, 90]);
+        });
     });
 
     test('scale.tickFormat', () => {

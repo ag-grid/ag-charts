@@ -29,6 +29,7 @@ const {
     FUNCTION,
     LINE_DASH,
     MARKER_SHAPE,
+    NUMBER_ARRAY,
     NUMBER,
     OBJECT_ARRAY,
     OBJECT,
@@ -197,17 +198,12 @@ export class RadialGaugeTargetProperties extends BaseProperties {
     lineDashOffset: number | undefined;
 }
 
-export class RadialGaugeStopProperties extends BaseProperties {
-    @Validate(NUMBER, { optional: true })
-    stop?: number;
-
-    @Validate(COLOR_STRING, { optional: true })
-    color?: string;
-}
-
 export class RadialGaugeBarProperties extends BaseProperties {
     @Validate(BOOLEAN)
     enabled = true;
+
+    @Validate(COLOR_STRING_ARRAY, { optional: true })
+    colorRange: string[] | undefined;
 
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined;
@@ -231,7 +227,10 @@ export class RadialGaugeBarProperties extends BaseProperties {
     lineDashOffset: number = 0;
 }
 
-export class RadialGaugeBackgroundProperties extends BaseProperties {
+export class RadialGaugeScaleProperties extends BaseProperties {
+    @Validate(COLOR_STRING_ARRAY, { optional: true })
+    colorRange: string[] | undefined;
+
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined;
 
@@ -301,13 +300,13 @@ export class RadialGaugeSecondaryLabelProperties extends AutoSizedSecondaryLabel
 
 export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeSeriesOptions> {
     @Validate(NUMBER)
-    value: number = 0;
+    value!: number;
 
-    @Validate(OBJECT_ARRAY)
-    colorStops = new PropertiesArray<RadialGaugeStopProperties>(RadialGaugeStopProperties);
+    @Validate(OR(NUMBER, NUMBER_ARRAY), { optional: true })
+    segments: number[] | number | undefined;
 
     @Validate(COLOR_STRING_ARRAY)
-    defaultColorStops: string[] = [];
+    defaultColorRange: string[] = [];
 
     @Validate(OBJECT_ARRAY)
     targets = new PropertiesArray<RadialGaugeTargetProperties>(RadialGaugeTargetProperties);
@@ -327,9 +326,6 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeS
     @Validate(POSITIVE_NUMBER)
     cornerRadius: number = 0;
 
-    @Validate(UNION(['continuous', 'segmented'], 'an appearance'))
-    appearance: 'continuous' | 'segmented' = 'continuous';
-
     @Validate(UNION(['container', 'item'], 'a corner mode'))
     cornerMode: 'container' | 'item' = 'container';
 
@@ -337,7 +333,7 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeS
     margin: number = 0;
 
     @Validate(OBJECT)
-    readonly background = new RadialGaugeBackgroundProperties();
+    readonly scale = new RadialGaugeScaleProperties();
 
     @Validate(OBJECT)
     readonly bar = new RadialGaugeBarProperties();

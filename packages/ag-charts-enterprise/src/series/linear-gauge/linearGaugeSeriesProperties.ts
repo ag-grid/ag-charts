@@ -26,6 +26,7 @@ const {
     LINE_DASH,
     MARKER_SHAPE,
     NUMBER,
+    NUMBER_ARRAY,
     OBJECT_ARRAY,
     OBJECT,
     POSITIVE_NUMBER,
@@ -171,17 +172,12 @@ export class LinearGaugeTargetProperties extends BaseProperties {
     lineDashOffset: number | undefined;
 }
 
-export class LinearGaugeStopProperties extends BaseProperties {
-    @Validate(NUMBER, { optional: true })
-    stop?: number;
-
-    @Validate(COLOR_STRING, { optional: true })
-    color?: string;
-}
-
 export class LinearGaugeBarProperties extends BaseProperties {
     @Validate(BOOLEAN)
     enabled = true;
+
+    @Validate(COLOR_STRING_ARRAY, { optional: true })
+    colorRange: string[] | undefined;
 
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined;
@@ -205,7 +201,10 @@ export class LinearGaugeBarProperties extends BaseProperties {
     lineDashOffset: number = 0;
 }
 
-export class LinearGaugeBackgroundProperties extends BaseProperties {
+export class LinearGaugeScaleProperties extends BaseProperties {
+    @Validate(COLOR_STRING_ARRAY, { optional: true })
+    colorRange: string[] | undefined;
+
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined;
 
@@ -245,11 +244,11 @@ export class LinearGaugeSeriesProperties extends SeriesProperties<AgLinearGaugeS
     @Validate(NUMBER)
     value: number = 0;
 
-    @Validate(OBJECT_ARRAY)
-    colorStops = new PropertiesArray<LinearGaugeStopProperties>(LinearGaugeStopProperties);
+    @Validate(OR(NUMBER, NUMBER_ARRAY), { optional: true })
+    segments: number[] | number | undefined;
 
     @Validate(COLOR_STRING_ARRAY)
-    defaultColorStops: string[] = [];
+    defaultColorRange: string[] = [];
 
     @Validate(OBJECT_ARRAY)
     targets = new PropertiesArray<LinearGaugeTargetProperties>(LinearGaugeTargetProperties);
@@ -269,9 +268,6 @@ export class LinearGaugeSeriesProperties extends SeriesProperties<AgLinearGaugeS
     @Validate(POSITIVE_NUMBER)
     cornerRadius: number = 0;
 
-    @Validate(UNION(['continuous', 'segmented'], 'an appearance'))
-    appearance: 'continuous' | 'segmented' = 'continuous';
-
     @Validate(UNION(['container', 'item'], 'a corner mode'))
     cornerMode: 'container' | 'item' = 'container';
 
@@ -279,7 +275,7 @@ export class LinearGaugeSeriesProperties extends SeriesProperties<AgLinearGaugeS
     margin: number = 0;
 
     @Validate(OBJECT)
-    readonly background = new LinearGaugeBackgroundProperties();
+    readonly scale = new LinearGaugeScaleProperties();
 
     @Validate(OBJECT)
     readonly bar = new LinearGaugeBarProperties();

@@ -163,20 +163,18 @@ The `target` property is used to apply common styles to all targets. Some proper
 
 ## Appearance
 
-{% chartExampleRunner title="Appearance" name="appearance" type="generated" options={ "exampleHeight": 350 } /%}
-
-The appearance can be customised with the `appearance` property.
+{% chartExampleRunner title="Appearance" name="appearance" type="generated" options={ "exampleHeight": 300 } /%}
 
 ```js
 {
-    appearance: 'segmented',
+    segments: 10,
     sectorSpacing: 2,
 }
 ```
 
 In this configuration:
 
--   `appearance` can be set to `continuous` to render a single gradient, or `segmented` to render multiple segments.
+-   `segments` specifies the number of segments to use for a segmented appearance.
 -   `sectorSpacing` defines the spacing between sectors for the `segmented` appearance.
 
 ### Colour Scales
@@ -185,23 +183,19 @@ The bar is coloured using a scale.
 
 {% chartExampleRunner title="Colour Scales" name="color-scales" type="generated" options={ "exampleHeight": 300 } /%}
 
-The colour scale can be customised using the `colorStops` property.
+The colour scale can be customised using the `colorRange` property.
 
 ```js
 {
-    scale: {
-        fills: [
-            { color: '#E84118' },
-            { color: '#9C88FF' },
-            { color: '#00A8FF' }
+    bar: {
+        colorRange: [
+            '#E84118',
+            '#9C88FF',
+            '#00A8FF'
         ],
     }
 }
 ```
-
-In this configuration:
-
--   `color` is the defines a colour within the gradient for a `continuous` appearance, or a the colour of a sector for a `segmented` appearance.
 
 ### Colour Stops
 
@@ -211,24 +205,30 @@ To show explicit colour stops, use the `scale.values` property in combination wi
 
 ```js
 {
-    appearance: 'segmented',
     scale: {
         min: 0,
         max: 100,
-        fills: [
-            { color: '#E84118' },
-            { color: '#FBC531', stop: 35 },
-            { color: '#4CD137', stop: 45 },
-            { color: '#FBC531', stop: 55 },
-            { color: '#E84118', stop: 65 },
-        ],
     },
+    segments: [35, 45, 55, 65],
+    bar: {
+        colorRange: [
+            '#E84118',
+            '#FBC531',
+            '#4CD137',
+            '#FBC531',
+            '#E84118'
+        ]
+    }
 }
 ```
 
 In this configuration:
 
--   `stop` defines the start point for the segment
+-   `segments` specifies the exact position of the segments to use for a segmented appearance.
+
+{% note %}
+To ensure the provided colours are not interpolated, there should be one more colour in the `colourRange` than the total number of `segments`.
+{% /note %}
 
 ### Corner Radius
 

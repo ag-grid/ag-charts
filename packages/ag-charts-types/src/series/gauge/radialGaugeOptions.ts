@@ -21,6 +21,7 @@ export interface AgRadialGaugeSeriesItemStylerParams<TDatum = any>
         AgRadialGaugeSeriesOptionsKeys,
         Required<AgRadialGaugeSeriesStyle> {}
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface AgRadialGaugeSeriesHighlightStyle<_TDatum> extends AgSeriesHighlightStyle {}
 
 export interface AgRadialGaugeSeriesOptionsKeys {}
@@ -36,7 +37,9 @@ export interface AgRadialGaugeSeriesScaleInterval {
 
 export interface AgRadialGaugeSeriesScaleLabel extends AgBaseAxisLabelOptions {}
 
-export interface AgRadialGaugeSeriesScale {
+export interface AgRadialGaugeSeriesScale extends FillOptions, StrokeOptions, LineDashOptions {
+    /** Configuration the colours. */
+    colorRange?: CssColor[];
     /** Maximum value of the scale. Any values exceeding this number will be clipped to this maximum. */
     min?: number;
     /** Minimum value of the scale. Any values exceeding this number will be clipped to this minimum. */
@@ -45,8 +48,6 @@ export interface AgRadialGaugeSeriesScale {
     label?: AgRadialGaugeSeriesScaleLabel;
     /** Configuration for the ticks interval. */
     interval?: AgRadialGaugeSeriesScaleInterval;
-    /** Configuration the colours. */
-    fills?: AgRadialGaugeColorStop[];
 }
 
 export interface AgRadialGaugeSeriesTooltipRendererParams<TDatum>
@@ -65,9 +66,9 @@ export interface AgRadialGaugeSeriesStyle {
 export interface AgRadialGaugeSeriesBarStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Whether the bar should be shown. */
     enabled?: boolean;
+    /** Configuration the colours. */
+    colorRange?: CssColor[];
 }
-
-export interface AgRadialGaugeSeriesBackgroundStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
 export interface AgRadialGaugeSeriesNeedleStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Whether the needle should be shown. */
@@ -129,13 +130,6 @@ export interface AgRadialGaugeSecondaryLabelOptions<TDatum>
     text?: string;
 }
 
-export interface AgRadialGaugeColorStop {
-    /** Stop value of this category. */
-    stop?: number;
-    /** Colour of this category. */
-    color: CssColor;
-}
-
 export interface AgRadialGaugeSeriesThemeableOptions<TDatum = any>
     extends AgRadialGaugeSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
@@ -147,20 +141,20 @@ export interface AgRadialGaugeSeriesThemeableOptions<TDatum = any>
     startAngle?: Degree;
     /** Angle in degrees of the end of the gauge. */
     endAngle?: Degree;
-    /** The spacing between sectors when using `segmented` appearance. */
+    /** Configuration for a segmented appearance. */
+    segments?: number[] | number;
+    /** The spacing between sectors. */
     sectorSpacing?: number;
-    /** Configuration of the appearance of the gauge. */
-    appearance?: 'continuous' | 'segmented';
     /** Configuration on whether to apply `cornerRadius` only to the ends of the gauge, or each individual item within the gauge. */
     cornerMode?: 'container' | 'item';
     /** Configuration for all targets. */
     target?: AgRadialGaugeTargetOptions;
     /** Configuration for the needle. */
     needle?: AgRadialGaugeSeriesNeedleStyle;
+    /** Configuration for the scale. */
+    scale?: AgRadialGaugeSeriesScale;
     /** Configuration for the bar. */
     bar?: AgRadialGaugeSeriesBarStyle;
-    /** Configuration for the background. */
-    background?: AgRadialGaugeSeriesBackgroundStyle;
     /** Configuration for the labels shown inside the shape. */
     label?: AgRadialGaugeLabelOptions<TDatum>;
     /** Configuration for the labels shown inside the shape. */
@@ -184,8 +178,6 @@ export interface AgRadialGaugeSeriesOptions<TDatum = any>
     type: 'radial-gauge';
     /** Value of the Radial Gauge Series. */
     value: number;
-    /** Scale of the Radial Gauge Series. */
-    scale?: AgRadialGaugeSeriesScale;
     /** Configuration for the targets. */
     targets?: AgRadialGaugeTarget[];
 }
