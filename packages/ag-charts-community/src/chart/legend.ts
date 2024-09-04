@@ -514,6 +514,14 @@ export class Legend extends BaseProperties {
         const { showSeriesStroke, marker } = this.item;
         const markerEnabled = !!marker.enabled || !showSeriesStroke || (symbol.marker.enabled ?? true);
         const lineEnabled = !!(symbol.line && showSeriesStroke);
+        return { markerEnabled, lineEnabled };
+    }
+
+    private calcSymbolsLengths(symbol: LegendSymbolOptions) {
+        const { marker, line } = this.item;
+        const { markerEnabled, lineEnabled } = this.calcSymbolsEnabled(symbol);
+        const { strokeWidth: markerStrokeWidth } = this.getMarkerStyles(symbol);
+        const { strokeWidth: lineStrokeWidth } = lineEnabled ? this.getLineStyles(symbol) : { strokeWidth: 0 };
 
         let customMarkerSize: number | undefined;
         const { shape } = symbol.marker;
@@ -524,15 +532,6 @@ export class Legend extends BaseProperties {
             const bbox = tmpShape.getBBox();
             customMarkerSize = Math.max(bbox.width, bbox.height);
         }
-
-        return { markerEnabled, lineEnabled, customMarkerSize };
-    }
-
-    private calcSymbolsLengths(symbol: LegendSymbolOptions) {
-        const { marker, line } = this.item;
-        const { markerEnabled, lineEnabled, customMarkerSize } = this.calcSymbolsEnabled(symbol);
-        const { strokeWidth: markerStrokeWidth } = this.getMarkerStyles(symbol);
-        const { strokeWidth: lineStrokeWidth } = lineEnabled ? this.getLineStyles(symbol) : { strokeWidth: 0 };
 
         const markerLength = markerEnabled ? marker.size : 0;
         const lineLength = lineEnabled ? line.length ?? 25 : 0;
@@ -547,11 +546,11 @@ export class Legend extends BaseProperties {
         let markerWidth = 0;
         this.itemSelection.each((_, datum) => {
             datum.symbols.forEach((symbol) => {
-                const { markerLength, markerStrokeWidth, lineLength, lineStrokeWidth, customMarkerSize } =
+                const { markerLength, markerStrokeWidth, lineLength, lineStrokeWidth, customMarkerSize = -Infinity } =
                     this.calcSymbolsLengths(symbol);
-                const markerTotalLength = customMarkerSize ?? markerLength + markerStrokeWidth;
-                markerWidth = Math.max(markerWidth, lineLength, markerLength);
-                spriteWidth = Math.max(spriteWidth, lineLength, markerTotalLength);
+                const markerTotalLength = markerLength + markerStrokeWidth;
+                markerWidth = Math.max(markerWidth, lineLength, customMarkerSize, markerLength);
+                spriteWidth = Math.max(spriteWidth, lineLength, customMarkerSize, markerTotalLength);
                 spriteHeight = Math.max(spriteHeight, lineStrokeWidth, markerTotalLength);
                 // Add +0.5 padding to handle cases where the X/Y pixel coordinates are not integers
                 // (We need this extra row/column of pixels because legend's sprite render will use
