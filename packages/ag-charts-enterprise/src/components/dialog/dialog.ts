@@ -42,7 +42,13 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     private static readonly offset = 100;
 
     private colorPicker = new ColorPicker(this.ctx);
+    private colorPickerAnchorElement?: HTMLElement;
     private dragStartState?: { client: _Util.Vec2; position: _Util.Vec2 };
+
+    constructor(ctx: _ModuleSupport.ModuleContext, id: string) {
+        super(ctx, id);
+        this.destroyFns.push(ctx.domManager.addListener('resize', () => this.reposition()));
+    }
 
     protected override showWithChildren(children: Array<HTMLElement>, options: Options) {
         const popover = super.showWithChildren(children, options);
@@ -55,13 +61,18 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         });
 
         // Give the dialog's dimensions a chance to be calculated before positioning
-        requestAnimationFrame(() => {
-            const bbox = this.ctx.domManager.getBoundingClientRect();
-            const position = Vec2.sub(Vec2.sub(Vec2.from(bbox), Vec2.from(popover)), Dialog.offset);
-            this.updatePosition(position);
-        });
+        requestAnimationFrame(() => this.reposition());
 
         return popover;
+    }
+
+    protected override updatePosition(position: _Util.Vec2): void {
+        super.updatePosition(position);
+
+        const { anchor, fallbackAnchor } = this.getColorPickerAnchors() ?? {};
+        if (!anchor) return;
+
+        this.colorPicker.setAnchor(anchor, fallbackAnchor);
     }
 
     /**************
@@ -187,13 +198,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         let defaultColor = color;
 
         colorEl.addEventListener('click', (sourceEvent) => {
-            const rect = colorEl.getBoundingClientRect();
-            const canvasRect = this.ctx.domManager.getBoundingClientRect();
-
-            const topLeft = Vec2.sub(Vec2.from(rect.x, rect.y), Vec2.from(canvasRect.left, canvasRect.top));
-            const anchor = Vec2.add(topLeft, Vec2.from(0, rect.height + 5));
-            const fallbackAnchor = Vec2.sub(topLeft, Vec2.from(0, 5));
-
+            const { anchor, fallbackAnchor } = this.getColorPickerAnchors(colorEl) ?? {};
             this.colorPicker.show({
                 anchor,
                 fallbackAnchor,
@@ -309,5 +314,37 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         if (position.y >= bounds.y && position.y + popover.offsetHeight <= bounds.height) {
             popover.style.setProperty('top', `${position.y}px`);
         }
+    }
+
+    private reposition() {
+        const bbox = this.ctx.domManager.getBoundingClientRect();
+        const popover = this.getPopoverElement();
+        if (!popover) return;
+
+        let position: _Util.Vec2;
+        if (bbox.width > 1000) {
+            const bottomCenter = Vec2.from(bbox.width / 2, bbox.height);
+            const popoverOffset = Vec2.from(popover.offsetWidth / 2, popover.offsetHeight);
+            position = Vec2.sub(Vec2.sub(bottomCenter, popoverOffset), Vec2.from(0, Dialog.offset));
+        } else {
+            const bottomRight = Vec2.sub(Vec2.from(bbox), Vec2.from(popover));
+            position = Vec2.sub(bottomRight, Dialog.offset);
+        }
+
+        this.updatePosition(position);
+    }
+
+    private getColorPickerAnchors(element?: HTMLElement) {
+        if (element) this.colorPickerAnchorElement = element;
+        if (!this.colorPickerAnchorElement) return;
+
+        const rect = this.colorPickerAnchorElement.getBoundingClientRect();
+        const canvasRect = this.ctx.domManager.getBoundingClientRect();
+
+        const topLeft = Vec2.sub(Vec2.from(rect.x, rect.y), Vec2.from(canvasRect.left, canvasRect.top));
+        const anchor = Vec2.add(topLeft, Vec2.from(0, rect.height + 5));
+        const fallbackAnchor = Vec2.sub(topLeft, Vec2.from(0, 5));
+
+        return { anchor, fallbackAnchor };
     }
 }
