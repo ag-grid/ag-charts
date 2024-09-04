@@ -49,9 +49,7 @@ export interface AgLineAnnotationStyles extends Extendable, Lockable, Visible, S
     handle?: AgAnnotationHandleStyles;
 }
 
-export interface AgShapeAnnotationStyles extends Lockable, Visible, StrokeOptions, FillOptions {
-    size?: PixelSize;
-}
+export interface AgShapeAnnotationStyles extends Lockable, Visible, FillOptions {}
 
 export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineOptions {
     handle?: AgAnnotationHandleStyles;
@@ -234,7 +232,7 @@ export interface AgArrowAnnotation
     text?: AgLineText;
 }
 
-export interface AgArrowMarkAnnotation extends AgAnnotationPoint, Lockable, Visible, StrokeOptions, LineOptions {
+export interface AgArrowMarkAnnotation extends AgAnnotationPoint, Lockable, Visible, FillOptions {
     /** Configuration for the arrow mark annotation.*/
     handle?: AgAnnotationHandle;
 }

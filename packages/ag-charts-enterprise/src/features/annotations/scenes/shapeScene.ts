@@ -32,9 +32,6 @@ export abstract class ShapeScene<Datum extends ShapePointProperties> extends Poi
 
         shape.fill = datum.fill;
         shape.fillOpacity = datum.fillOpacity ?? 1;
-        shape.stroke = datum.stroke;
-        shape.strokeWidth = datum.strokeWidth ?? 1;
-        shape.strokeOpacity = datum.strokeOpacity ?? 1;
     }
 
     protected updateShapePath(datum: Datum, point: _Util.Vec2) {

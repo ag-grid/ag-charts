@@ -121,8 +121,8 @@ const TEXT_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
 
 const SHAPE_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
     { label: 'toolbarAnnotationsArrow', icon: 'arrow-drawing', value: AnnotationType.Arrow },
-    { label: 'toolbarAnnotationsArrowUp', icon: 'arrow-up', value: AnnotationType.ArrowUp },
-    { label: 'toolbarAnnotationsArrowDown', icon: 'arrow-down', value: AnnotationType.ArrowDown },
+    { label: 'toolbarAnnotationsArrowUp', icon: 'arrow-up-drawing', value: AnnotationType.ArrowUp },
+    { label: 'toolbarAnnotationsArrowDown', icon: 'arrow-down-drawing', value: AnnotationType.ArrowDown },
 ];
 
 enum AnnotationOptions {
@@ -270,6 +270,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 if (index == null || (index != null && index !== previous)) {
                     ctx.toolbarManager.updateButton('annotations', 'line-menu', { icon: undefined });
                     ctx.toolbarManager.updateButton('annotations', 'text-menu', { icon: undefined });
+                    ctx.toolbarManager.updateButton('annotations', 'shape-menu', { icon: undefined });
                 }
 
                 this.update();
