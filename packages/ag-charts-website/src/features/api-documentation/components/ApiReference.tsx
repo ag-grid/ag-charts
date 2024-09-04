@@ -29,6 +29,7 @@ import {
 } from '../apiReferenceHelpers';
 import { SelectionContext } from './OptionsNavigation';
 import { type CollapsibleType, PropertyTitle, PropertyType } from './Properties';
+import { ChildPropertiesButton } from './Properties';
 
 export const ApiReferenceContext = createContext<ApiReferenceType | undefined>(undefined);
 export const ApiReferenceConfigContext = createContext<ApiReferenceConfig>({});
@@ -135,6 +136,7 @@ export function ApiReference({
                         Properties available on the <code>{id}</code> interface.
                     </p>
                 ))}
+
             <div className={classnames(styles.reference, styles.apiReference, 'no-zebra')}>
                 <div>
                     {processMembers(interfaceRef, config).map((member) => (
@@ -259,6 +261,9 @@ function ApiReferenceRow({
                     <Markdown remarkPlugins={[remarkBreaks]} urlTransform={(url: string) => urlWithBaseUrl(url)}>
                         {member.docs?.join('\n')}
                     </Markdown>
+                    {collapsibleType === 'childrenProperties' && (
+                        <ChildPropertiesButton name={memberName} isExpanded={isExpanded} onClick={onDetailsToggle} />
+                    )}
                 </div>
                 {nestedPath && (
                     <div className={styles.actions}>

@@ -61,13 +61,9 @@ function CollapsibleButton({
     onClick?: () => void;
     collapsibleType?: CollapsibleType;
 }) {
-    const isCollapsible = collapsibleType === 'childrenProperties' || collapsibleType === 'code';
-
-    if (!isCollapsible) {
-        return;
+    if (collapsibleType !== 'code') {
+        return null;
     }
-
-    const iconName: IconName = collapsibleType === 'childrenProperties' ? 'arrowDown' : 'chevronDown';
 
     return (
         <button
@@ -77,11 +73,36 @@ function CollapsibleButton({
             onClick={onClick}
             aria-label={`See more details about ${name}`}
         >
-            <Icon className={`${styles.chevron} ${isExpanded ? 'expandedIcon' : ''}`} name={iconName} />
+            <Icon className={`${styles.chevron} ${isExpanded ? 'expandedIcon' : ''}`} name="chevronDown" />
         </button>
     );
 }
 
+export function ChildPropertiesButton({
+    name,
+    isExpanded,
+    onClick,
+    collapsibleType,
+}: {
+    name: string;
+    isExpanded?: boolean;
+    onClick?: () => void;
+    collapsibleType?: CollapsibleType;
+}) {
+    return (
+        <button
+            className={classnames(styles.childButton, 'button-style-none', {
+                [styles.isExpanded]: isExpanded,
+            })}
+            onClick={onClick}
+            aria-label={`See child properties of ${name}`}
+        >
+            <span>
+                See child properties of <span className={styles.childButtonName}>{name}</span>
+            </span>
+        </button>
+    );
+}
 export function PropertyType({
     name,
     type,
