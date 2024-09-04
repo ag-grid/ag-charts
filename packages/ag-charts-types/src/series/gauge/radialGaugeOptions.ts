@@ -27,12 +27,14 @@ export interface AgRadialGaugeSeriesOptionsKeys {}
 
 export interface AgRadialGaugeSeriesOptionsNames {}
 
-export interface AgRadialGaugeSeriesScaleLabel extends AgBaseAxisLabelOptions {
+export interface AgRadialGaugeSeriesScaleInterval {
     /** Array of values in axis units for specified intervals along the axis. The values in this array must be compatible with the axis type. */
     values?: number[];
     /** The axis interval. Expressed in the units of the axis. If the configured interval results in too many items given the chart size, it will be ignored. */
     step?: number;
 }
+
+export interface AgRadialGaugeSeriesScaleLabel extends AgBaseAxisLabelOptions {}
 
 export interface AgRadialGaugeSeriesScale {
     /** Maximum value of the scale. Any values exceeding this number will be clipped to this maximum. */
@@ -41,6 +43,8 @@ export interface AgRadialGaugeSeriesScale {
     max?: number;
     /** Configuration for the axis labels, shown next to the ticks. */
     label?: AgRadialGaugeSeriesScaleLabel;
+    /** Configuration for the ticks interval. */
+    interval?: AgRadialGaugeSeriesScaleInterval;
     /** Configuration the colours. */
     fills?: AgRadialGaugeColorStop[];
 }
@@ -118,6 +122,7 @@ export interface AgRadialGaugeLabelOptions<TDatum>
     /** Text to always display. */
     text?: string;
 }
+
 export interface AgRadialGaugeSecondaryLabelOptions<TDatum>
     extends AgChartAutoSizedSecondaryLabelOptions<TDatum, AgRadialGaugeSeriesLabelFormatterParams> {
     /** Text to always display. */

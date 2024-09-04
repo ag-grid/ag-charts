@@ -26,6 +26,7 @@ import { BulletModule } from './series/bullet/bulletModule';
 import { CandlestickModule } from './series/candlestick/main';
 import { ChordModule } from './series/chord/main';
 import { HeatmapModule } from './series/heatmap/main';
+import { LinearGaugeModule } from './series/linear-gauge/main';
 import { MapLineBackgroundModule } from './series/map-line-background/main';
 import { MapLineModule } from './series/map-line/main';
 import { MapMarkerModule } from './series/map-marker/main';
@@ -64,6 +65,7 @@ export function setupEnterpriseModules() {
         CrosshairModule,
         DataSourceModule,
         ErrorBarsModule,
+        LinearGaugeModule,
         MapLineModule,
         MapLineBackgroundModule,
         MapMarkerModule,

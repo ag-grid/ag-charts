@@ -1,6 +1,6 @@
-import { AgCharts, AgGaugeOptions } from 'ag-charts-enterprise';
+import { AgCharts, AgRadialGaugeOptions } from 'ag-charts-enterprise';
 
-const options: AgGaugeOptions = {
+const options: AgRadialGaugeOptions = {
     type: 'radial-gauge',
     container: document.getElementById('myChart'),
     value: 85,
