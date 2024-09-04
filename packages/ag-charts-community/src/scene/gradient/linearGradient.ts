@@ -6,9 +6,10 @@ export class LinearGradient extends Gradient {
     constructor(
         colorSpace: ColorSpace,
         stops: GradientColorStop[],
-        public angle = 0
+        public angle = 0,
+        bbox?: BBox
     ) {
-        super(colorSpace, stops);
+        super(colorSpace, stops, bbox);
     }
 
     protected override createCanvasGradient(ctx: CanvasRenderingContext2D, bbox: BBox): CanvasGradient | undefined {

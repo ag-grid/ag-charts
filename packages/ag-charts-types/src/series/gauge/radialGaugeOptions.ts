@@ -118,6 +118,7 @@ export interface AgRadialGaugeLabelOptions<TDatum>
     /** Text to always display. */
     text?: string;
 }
+
 export interface AgRadialGaugeSecondaryLabelOptions<TDatum>
     extends AgChartAutoSizedSecondaryLabelOptions<TDatum, AgRadialGaugeSeriesLabelFormatterParams> {
     /** Text to always display. */
