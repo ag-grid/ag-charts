@@ -185,7 +185,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private readonly textSizeMenu = new Menu(this.ctx, 'text-size');
     private readonly lineStyleTypeMenu = new Menu(this.ctx, 'annotations-line-style-type');
     private readonly lineStrokeWidthMenu = new Menu(this.ctx, 'annotations-line-stroke-width');
-    private readonly annotationOptionsMenu = new Menu(this.ctx, 'annotations');
+    private readonly annotationMenu = new Menu(this.ctx, 'annotations');
     private readonly settingsDialog = new AnnotationSettingsDialog(this.ctx);
     private readonly textInput = new TextInput(this.ctx);
 
@@ -242,12 +242,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     ctx: { toolbarManager, tooltipManager },
                 } = this;
 
-                // Always hide all overlays other than the annotation menu
-                this.colorPicker.hide();
-                this.textSizeMenu.hide();
-                this.lineStyleTypeMenu.hide();
-                this.lineStrokeWidthMenu.hide();
-                this.settingsDialog.hide();
+                this.hideOverlays();
 
                 const selectedNode = index != null ? annotations.at(index) : null;
                 const previousNode = previous != null ? annotations.at(previous) : null;
@@ -274,8 +269,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                         toolbarManager.changeFloatingAnchor('annotationOptions', selectedNode.getAnchor());
                     });
                 } else {
-                    // Only hide the annotation options menu when deselecting
-                    this.annotationOptionsMenu.hide();
                     tooltipManager.unsuppressTooltip('annotations');
                 }
 
@@ -643,8 +636,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.cancel();
         this.reset();
 
-        this.annotationOptionsMenu.setAnchor({ x: x + width + 6, y });
-        this.annotationOptionsMenu.show<AnnotationType>({
+        this.annotationMenu.setAnchor({ x: x + width + 6, y });
+        this.annotationMenu.show<AnnotationType>({
             items,
             ariaLabel: this.ctx.localeManager.t(ariaLabel),
             sourceEvent: event.sourceEvent,
@@ -825,7 +818,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         });
 
         this.beginAnnotationPlacement(item.value);
-        this.annotationOptionsMenu.hide();
+        this.annotationMenu.hide();
 
         this.removeAmbientKeyboardListener?.();
         this.removeAmbientKeyboardListener = this.ctx.interactionManager.addListener(
@@ -1212,7 +1205,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.textSizeMenu.hide();
         this.lineStyleTypeMenu.hide();
         this.lineStrokeWidthMenu.hide();
-        this.annotationOptionsMenu.hide();
+        this.annotationMenu.hide();
         this.settingsDialog.hide();
     }
 
