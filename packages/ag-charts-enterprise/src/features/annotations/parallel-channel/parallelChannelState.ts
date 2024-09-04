@@ -12,6 +12,7 @@ interface ParallelChannelStateMachineContext extends Omit<AnnotationsStateMachin
     delete: () => void;
     datum: () => ParallelChannelProperties | undefined;
     node: () => ParallelChannelScene | undefined;
+    showAnnotationOptions: () => void;
     guardDragClickDoubleEvent: GuardDragClickDoubleEvent;
 }
 
@@ -87,6 +88,8 @@ export class ParallelChannelStateMachine extends StateMachine<
 
             datum.set({ height });
             ctx.recordAction(`Create ${AnnotationType.ParallelChannel} annotation`);
+            ctx.showAnnotationOptions();
+            ctx.update();
         };
 
         const actionCancel = () => ctx.delete();

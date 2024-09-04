@@ -49,7 +49,6 @@ export interface ToolbarCancelledEvent extends ToolbarBaseEvent<'cancelled'> {}
 
 export interface ToolbarFloatingAnchorChangedEvent extends ToolbarBaseEvent<'floating-anchor-changed'> {
     anchor: ToolbarAnchor;
-    floatingToolbarId: number;
 }
 
 export interface ToolbarButtonPressedEvent<T = any> extends ToolbarBaseEvent<'button-pressed'> {
@@ -148,12 +147,11 @@ export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
         this.listeners.dispatch('group-moved', { type: 'group-moved', group });
     }
 
-    changeFloatingAnchor(group: ToolbarGroup, anchor: ToolbarAnchor, floatingToolbarId: number) {
+    changeFloatingAnchor(group: ToolbarGroup, anchor: ToolbarAnchor) {
         this.listeners.dispatch('floating-anchor-changed', {
             type: 'floating-anchor-changed',
             group,
             anchor,
-            floatingToolbarId,
         });
     }
 

@@ -210,8 +210,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
         super(States.Idle, {
             [States.Idle]: {
                 onEnter: () => {
-                    ctx.resetToIdle();
-                    ctx.select(this.active);
+                    ctx.select(this.active, this.active);
                 },
 
                 hover: ({ offset }: { offset: _Util.Vec2 }) => {

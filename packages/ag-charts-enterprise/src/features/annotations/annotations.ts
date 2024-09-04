@@ -173,8 +173,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.createAnnotationDatum
     );
     private readonly defaults = new AnnotationDefaults();
-    private pendingHistoryRecordType?: 'annotations' | 'defaults';
-    private pendingHistoryRecord?: string;
 
     // Elements
     private seriesRect?: _Scene.BBox;
@@ -187,7 +185,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private readonly textSizeMenu = new Menu(this.ctx, 'text-size');
     private readonly lineStyleTypeMenu = new Menu(this.ctx, 'annotations-line-style-type');
     private readonly lineStrokeWidthMenu = new Menu(this.ctx, 'annotations-line-stroke-width');
-    private readonly annotationMenu = new Menu(this.ctx, 'annotations');
+    private readonly annotationOptionsMenu = new Menu(this.ctx, 'annotations');
     private readonly settingsDialog = new AnnotationSettingsDialog(this.ctx);
     private readonly textInput = new TextInput(this.ctx);
 
@@ -244,34 +242,47 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     ctx: { toolbarManager, tooltipManager },
                 } = this;
 
-                const node = index != null ? annotations.at(index) : undefined;
-                node?.toggleActive(true);
+                // Always hide all overlays other than the annotation menu
+                this.colorPicker.hide();
+                this.textSizeMenu.hide();
+                this.lineStyleTypeMenu.hide();
+                this.lineStrokeWidthMenu.hide();
+                this.settingsDialog.hide();
 
-                this.hideOverlays();
+                const selectedNode = index != null ? annotations.at(index) : null;
+                const previousNode = previous != null ? annotations.at(previous) : null;
 
-                if (previous != null && previous != index) {
-                    annotations.at(previous)?.toggleActive(false);
+                // Only change anything else if a different node has been selected or when deselecting
+                if (previousNode === selectedNode && selectedNode != null) {
+                    return;
                 }
 
-                if (index == null) {
-                    tooltipManager.unsuppressTooltip('annotations');
-                } else {
+                // Deselect the previous node
+                previousNode?.toggleActive(false);
+
+                // Hide the annotation options so it has time to update before being shown again
+                toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: false });
+
+                if (selectedNode) {
+                    selectedNode.toggleActive(true);
                     tooltipManager.suppressTooltip('annotations');
-                }
-
-                if (node && index != null) {
-                    ctx.toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor(), index);
                     this.toggleAnnotationOptionsButtons();
-                    toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: true });
+                    this.postUpdateFns.push(() => {
+                        // Set the annotation options to be visible _before_ setting the anchor to ensure the toolbar
+                        // element has a width and height that it can use in the anchor calculations.
+                        toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: true });
+                        toolbarManager.changeFloatingAnchor('annotationOptions', selectedNode.getAnchor());
+                    });
                 } else {
-                    toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: false });
+                    // Only hide the annotation options menu when deselecting
+                    this.annotationOptionsMenu.hide();
+                    tooltipManager.unsuppressTooltip('annotations');
                 }
 
-                if (index == null || (index != null && index !== previous)) {
-                    ctx.toolbarManager.updateButton('annotations', 'line-menu', { icon: undefined });
-                    ctx.toolbarManager.updateButton('annotations', 'text-menu', { icon: undefined });
-                    ctx.toolbarManager.updateButton('annotations', 'shape-menu', { icon: undefined });
-                }
+                // Reset the icons on the annotation toolbars
+                toolbarManager.updateButton('annotations', 'line-menu', { icon: undefined });
+                toolbarManager.updateButton('annotations', 'text-menu', { icon: undefined });
+                toolbarManager.updateButton('annotations', 'shape-menu', { icon: undefined });
 
                 this.update();
             },
@@ -337,6 +348,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             },
 
             update: () => {
+                this.postUpdateFns.push(() => {
+                    const active = this.state.getActive();
+                    const node = active != null ? this.annotations.at(active) : null;
+                    if (node == null) return;
+                    ctx.toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
+                });
                 this.update();
             },
 
@@ -396,9 +413,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 const node = this.annotations.at(active);
                 if (!node) return;
 
-                ctx.toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor(), active);
                 this.toggleAnnotationOptionsButtons();
                 ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: true });
+                ctx.toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
             },
 
             showAnnotationSettings: (active: number) => {
@@ -626,8 +643,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.cancel();
         this.reset();
 
-        this.annotationMenu.setAnchor({ x: x + width + 6, y });
-        this.annotationMenu.show<AnnotationType>({
+        this.annotationOptionsMenu.setAnchor({ x: x + width + 6, y });
+        this.annotationOptionsMenu.show<AnnotationType>({
             items,
             ariaLabel: this.ctx.localeManager.t(ariaLabel),
             sourceEvent: event.sourceEvent,
@@ -808,7 +825,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         });
 
         this.beginAnnotationPlacement(item.value);
-        this.annotationMenu.hide();
+        this.annotationOptionsMenu.hide();
 
         this.removeAmbientKeyboardListener?.();
         this.removeAmbientKeyboardListener = this.ctx.interactionManager.addListener(
@@ -895,8 +912,18 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private recordActionAfterNextUpdate(type: 'annotations' | 'defaults', label: string) {
-        this.pendingHistoryRecordType = type;
-        this.pendingHistoryRecord = label;
+        const {
+            defaults,
+            ctx: { annotationManager, historyManager },
+        } = this;
+
+        this.postUpdateFns.push(() => {
+            if (type === 'defaults') {
+                historyManager.record(label, annotationManager, defaults);
+            } else {
+                historyManager.record(label, annotationManager);
+            }
+        });
     }
 
     private updateAnnotations() {
@@ -904,7 +931,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             annotationData,
             annotations,
             seriesRect,
-            state,
             ctx: { annotationManager, toolbarManager },
         } = this;
 
@@ -915,33 +941,25 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         annotationManager.updateData(annotationData.toJson() as any);
 
-        if (this.pendingHistoryRecord) {
-            if (this.pendingHistoryRecordType === 'defaults') {
-                this.ctx.historyManager.record(this.pendingHistoryRecord, this.ctx.annotationManager, this.defaults);
-            } else {
-                this.ctx.historyManager.record(this.pendingHistoryRecord, this.ctx.annotationManager);
-            }
-            this.pendingHistoryRecord = undefined;
-        }
-
         const clearAllEnabled = annotationData.length > 0;
         toolbarManager.toggleButton('annotations', 'clear', { enabled: clearAllEnabled });
 
         annotations
             .update(annotationData ?? [], undefined, (datum) => datum.id)
-            .each((node, datum, index) => {
+            .each((node, datum) => {
                 if (!this.validateDatum(datum)) {
                     node.visible = false;
                     return;
                 }
 
                 updateAnnotation(node, datum, context);
-
-                if (state.isActive(index)) {
-                    toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor(), index);
-                }
             });
+
+        this.postUpdateFns.forEach((fn) => fn());
+        this.postUpdateFns = [];
     }
+
+    private postUpdateFns: Array<() => void> = [];
 
     // Validation of the options beyond the scope of the @Validate decorator
     private validateDatum(datum: AnnotationProperties) {
@@ -1194,7 +1212,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.textSizeMenu.hide();
         this.lineStyleTypeMenu.hide();
         this.lineStrokeWidthMenu.hide();
-        this.annotationMenu.hide();
+        this.annotationOptionsMenu.hide();
         this.settingsDialog.hide();
     }
 
