@@ -40,7 +40,9 @@ export interface AgLinearGaugeSeriesScaleLabel extends AgBaseAxisLabelOptions {
     placement?: 'before' | 'after';
 }
 
-export interface AgLinearGaugeSeriesScale {
+export interface AgLinearGaugeSeriesScale extends FillOptions, StrokeOptions, LineDashOptions {
+    /** Configuration the colours. */
+    colorRange?: CssColor[];
     /** Maximum value of the scale. Any values exceeding this number will be clipped to this maximum. */
     min?: number;
     /** Minimum value of the scale. Any values exceeding this number will be clipped to this minimum. */
@@ -49,8 +51,6 @@ export interface AgLinearGaugeSeriesScale {
     label?: AgLinearGaugeSeriesScaleLabel;
     /** Configuration for the ticks interval. */
     interval?: AgLinearGaugeSeriesScaleInterval;
-    /** Configuration the colours. */
-    fills?: AgLinearGaugeColorStop[];
 }
 
 export interface AgLinearGaugeSeriesTooltipRendererParams<TDatum>
@@ -69,6 +69,8 @@ export interface AgLinearGaugeSeriesStyle {
 export interface AgLinearGaugeSeriesBarStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Whether the bar should be shown. */
     enabled?: boolean;
+    /** Configuration the colours. */
+    colorRange?: CssColor[];
 }
 
 export interface AgLinearGaugeSeriesBackgroundStyle extends FillOptions, StrokeOptions, LineDashOptions {}
@@ -122,13 +124,6 @@ export interface AgLinearGaugeSecondaryLabelOptions<TDatum>
     extends AgChartAutoSizedSecondaryLabelOptions<TDatum, AgLinearGaugeSeriesLabelFormatterParams> {
     /** Text to always display. */
     text?: string;
-}
-
-export interface AgLinearGaugeColorStop {
-    /** Stop value of this category. */
-    stop?: number;
-    /** Colour of this category. */
-    color: CssColor;
 }
 
 export interface AgLinearGaugeSeriesThemeableOptions<TDatum = any>

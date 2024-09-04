@@ -205,7 +205,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         showInLegend,
         tooltip,
         value,
-        scale,
+        scale = {},
         horizontal,
         thickness,
         itemStyler,
@@ -225,6 +225,23 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
     } = opts;
     assertEmpty(rest);
 
+    const {
+        colorRange: scaleColorRange,
+        fill: scaleFill,
+        fillOpacity: scaleFillOpacity,
+        stroke: scaleStroke,
+        strokeWidth: scaleStrokeWidth,
+        strokeOpacity: scaleStrokeOpacity,
+        lineDash: scaleLineDash,
+        lineDashOffset: scaleLineDashOffset,
+        min: scaleMin = 0,
+        max: scaleMax = 1,
+        interval: scaleInterval = {},
+        label: scaleLabel = {},
+        ...scaleRest
+    } = scale;
+    assertEmpty(scaleRest);
+
     const chartOpts = pickProps(opts, {
         container,
         animation,
@@ -237,8 +254,18 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         seriesArea,
         listeners,
     });
+    const scaleOpts = pickProps<ScaleStyle>(scale, {
+        colorRange: scaleColorRange,
+        fill: scaleFill,
+        fillOpacity: scaleFillOpacity,
+        stroke: scaleStroke,
+        strokeWidth: scaleStrokeWidth,
+        strokeOpacity: scaleStrokeOpacity,
+        lineDash: scaleLineDash,
+        lineDashOffset: scaleLineDashOffset,
+    });
     const seriesOpts = pickProps<AgLinearGaugeSeriesOptions>(opts, {
-        scale: IGNORED_PROP,
+        scale: scaleOpts,
         type,
         id,
         data,
@@ -267,7 +294,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         ...rest,
     });
 
-    const { placement: labelPlacement, ...axisLabel } = scale?.label ?? {};
+    const { placement: labelPlacement, ...axisLabel } = scaleLabel;
     let mainAxisPosition: AgCartesianAxisPosition;
     let crossAxisPosition: AgCartesianAxisPosition;
     if (horizontal) {
@@ -280,10 +307,10 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
     const mainAxis: AgCartesianAxisOptions = {
         type: 'number',
         position: mainAxisPosition,
-        min: opts.scale?.min ?? 0,
-        max: opts.scale?.max ?? 1,
+        min: scaleMin,
+        max: scaleMax,
         reverse: !horizontal,
-        interval: opts.scale?.interval ?? {},
+        interval: scaleInterval,
         label: axisLabel,
         nice: false,
         line: {
