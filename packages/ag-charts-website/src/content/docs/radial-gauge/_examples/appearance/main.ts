@@ -8,16 +8,11 @@ const options: AgRadialGaugeOptions = {
         min: 0,
         max: 100,
     },
-    appearance: 'segmented',
+    segments: 10,
     sectorSpacing: 2,
 };
 
 const chart = AgCharts.createGauge(options);
-
-function setAppearance(appearance: 'segmented' | 'continuous') {
-    options.appearance = appearance;
-    chart.update(options);
-}
 
 function setSectorSpacing(sectorSpacing: number) {
     options.sectorSpacing = sectorSpacing;

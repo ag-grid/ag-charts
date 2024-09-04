@@ -244,8 +244,8 @@ export class LinearGaugeSeriesProperties extends SeriesProperties<AgLinearGaugeS
     @Validate(NUMBER)
     value: number = 0;
 
-    @Validate(NUMBER_ARRAY)
-    segments: number[] = [];
+    @Validate(OR(NUMBER, NUMBER_ARRAY), { optional: true })
+    segments: number[] | number | undefined;
 
     @Validate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
@@ -267,9 +267,6 @@ export class LinearGaugeSeriesProperties extends SeriesProperties<AgLinearGaugeS
 
     @Validate(POSITIVE_NUMBER)
     cornerRadius: number = 0;
-
-    @Validate(UNION(['continuous', 'segmented'], 'an appearance'))
-    appearance: 'continuous' | 'segmented' = 'continuous';
 
     @Validate(UNION(['container', 'item'], 'a corner mode'))
     cornerMode: 'container' | 'item' = 'container';

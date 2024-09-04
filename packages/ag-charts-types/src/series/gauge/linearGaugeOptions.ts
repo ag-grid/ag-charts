@@ -21,6 +21,7 @@ export interface AgLinearGaugeSeriesItemStylerParams<TDatum = any>
         AgLinearGaugeSeriesOptionsKeys,
         Required<AgLinearGaugeSeriesStyle> {}
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface AgLinearGaugeSeriesHighlightStyle<_TDatum> extends AgSeriesHighlightStyle {}
 
 export interface AgLinearGaugeSeriesOptionsKeys {}
@@ -137,10 +138,10 @@ export interface AgLinearGaugeSeriesThemeableOptions<TDatum = any>
     horizontal?: boolean;
     /** Width of the gauge, or the height if `horizontal` is true. */
     thickness?: number;
-    /** The spacing between sectors when using `segmented` appearance. */
+    /** Configuration for a segmented appearance. */
+    segments?: number[] | number;
+    /** The spacing between bars. */
     barSpacing?: number;
-    /** Configuration of the appearance of the gauge. */
-    appearance?: 'continuous' | 'segmented';
     /** Configuration on whether to apply `cornerRadius` only to the ends of the gauge, or each individual item within the gauge. */
     cornerMode?: 'container' | 'item';
     /** Configuration for all targets. */

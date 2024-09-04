@@ -241,7 +241,6 @@ export class LinearGaugeSeries
             horizontal,
             thickness,
             cornerRadius,
-            appearance,
             cornerMode,
             targets,
             bar,
@@ -279,10 +278,9 @@ export class LinearGaugeSeries
             [y1, y0] = [y0, y1];
         }
 
-        const isContinuous = appearance === 'continuous';
         const cornersOnAllItems = cornerMode === 'item';
         let mainAxisInset = 0;
-        if (isContinuous && cornersOnAllItems) {
+        if (properties.segments == null && cornersOnAllItems) {
             const [m0, m1] = mainAxisScale.range;
             const mainAxisSize = Math.abs(m1 - m0);
             const appliedCornerRadius = Math.min(cornerRadius, thickness / 2, mainAxisSize / 2);
@@ -306,18 +304,18 @@ export class LinearGaugeSeries
         let barColorScale: _Scale.ColorScale | undefined;
         if (bar.enabled || bar.colorRange != null) {
             barColorScale = new ColorScale();
-            barColorScale.domain = domain;
+            barColorScale.domain = [0, 1];
             barColorScale.range = bar.colorRange ?? defaultColorRange;
         }
 
         let scaleColorScale: _Scale.ColorScale | undefined;
         if (!bar.enabled || scale.colorRange != null) {
             scaleColorScale = new ColorScale();
-            scaleColorScale.domain = domain;
+            scaleColorScale.domain = [0, 1];
             scaleColorScale.range = scale.colorRange ?? defaultColorRange;
         }
 
-        if (isContinuous) {
+        if (properties.segments == null) {
             if (bar.enabled) {
                 const barFill: string | _Scene.Gradient | undefined =
                     bar.fill ?? this.createLinearGradient(barColorScale, gradientBBox);
@@ -391,18 +389,22 @@ export class LinearGaugeSeries
                 verticalInset,
             });
         } else {
-            const domainRange = domain[1] - domain[0];
-
-            let segments: number[] =
-                properties.segments.length > 0 ? properties.segments : mainAxisScale.ticks?.() ?? [];
-            segments = segments.filter((v) => v > domain[0] && v < domain[1]).sort((a, b) => a - b);
-            segments = [domain[0], ...segments, domain[1]];
+            let segments: number[];
+            if (Array.isArray(properties.segments)) {
+                segments = properties.segments.filter((v) => v > domain[0] && v < domain[1]).sort((a, b) => a - b);
+                segments = [domain[0], ...segments, domain[1]];
+            } else {
+                const numSegments = properties.segments;
+                segments = Array.from(
+                    { length: properties.segments + 1 },
+                    (_, i) => (i / numSegments) * (domain[1] - domain[0]) + domain[0]
+                );
+            }
 
             for (let i = 0; i < segments.length - 1; i += 1) {
                 const startValue = segments[i + 0];
                 const endValue = segments[i + 1];
-                const stopSpan = endValue - startValue;
-                const colorValue = ((startValue - domain[0]) * domainRange) / (domainRange - stopSpan) + domain[0];
+                const colorValue = i > 0 ? i / (segments.length - 2) : 0;
 
                 const isStart = i === 0;
                 const isEnd = i === segments.length - 2;

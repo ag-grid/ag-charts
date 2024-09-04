@@ -141,10 +141,10 @@ export interface AgRadialGaugeSeriesThemeableOptions<TDatum = any>
     startAngle?: Degree;
     /** Angle in degrees of the end of the gauge. */
     endAngle?: Degree;
-    /** The spacing between sectors when using `segmented` appearance. */
+    /** Configuration for a segmented appearance. */
+    segments?: number[] | number;
+    /** The spacing between sectors. */
     sectorSpacing?: number;
-    /** Configuration of the appearance of the gauge. */
-    appearance?: 'continuous' | 'segmented';
     /** Configuration on whether to apply `cornerRadius` only to the ends of the gauge, or each individual item within the gauge. */
     cornerMode?: 'container' | 'item';
     /** Configuration for all targets. */
@@ -178,8 +178,6 @@ export interface AgRadialGaugeSeriesOptions<TDatum = any>
     type: 'radial-gauge';
     /** Value of the Radial Gauge Series. */
     value: number;
-    /** Sectors for the 'segmented' appearance. */
-    segments?: number[];
     /** Configuration for the targets. */
     targets?: AgRadialGaugeTarget[];
 }
