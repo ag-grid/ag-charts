@@ -1,6 +1,7 @@
 import type {
     AgBasePresetOptions,
     AgCartesianAxisOptions,
+    AgCartesianAxisPosition,
     AgGaugeChartOptions,
     AgGaugeOptions,
     AgLinearGaugeOptions,
@@ -147,10 +148,19 @@ function linearGaugeOptions(opts: AgLinearGaugeSeriesOptions) {
     );
 
     const { horizontal = false } = opts;
-    const { values, step, ...label } = opts.scale?.label ?? {};
+    const { values, step, placement, ...label } = opts.scale?.label ?? {};
+    let mainAxisPosition: AgCartesianAxisPosition;
+    let crossAxisPosition: AgCartesianAxisPosition;
+    if (horizontal) {
+        mainAxisPosition = placement === 'before' ? 'top' : 'bottom';
+        crossAxisPosition = 'left';
+    } else {
+        mainAxisPosition = placement === 'after' ? 'right' : 'left';
+        crossAxisPosition = 'bottom';
+    }
     const mainAxis: AgCartesianAxisOptions = {
         type: 'number',
-        position: horizontal ? 'bottom' : 'left',
+        position: mainAxisPosition,
         min: opts.scale?.min ?? 0,
         max: opts.scale?.max ?? 1,
         reverse: !horizontal,
@@ -169,7 +179,7 @@ function linearGaugeOptions(opts: AgLinearGaugeSeriesOptions) {
     };
     const crossAxis: AgCartesianAxisOptions = {
         type: 'number',
-        position: horizontal ? 'left' : 'bottom',
+        position: crossAxisPosition,
         min: 0,
         max: 1,
         line: {
@@ -216,7 +226,5 @@ export function gauge(opts: AgGaugeOptions): AgGaugeChartOptions {
         };
     }
 
-    return {
-        ...baseOpts,
-    };
+    return baseOpts;
 }

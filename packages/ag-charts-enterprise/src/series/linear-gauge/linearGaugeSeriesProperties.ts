@@ -37,7 +37,7 @@ const {
 const { Label } = _Scene;
 
 const TARGET_MARKER_SHAPE = OR(MARKER_SHAPE, UNION(['line'], 'a marker shape'));
-const TARGET_PLACEMENT = UNION(['inside', 'outside', 'middle'], 'a placement');
+const TARGET_PLACEMENT = UNION(['before', 'after', 'middle'], 'a placement');
 
 export enum NodeDataType {
     Node,

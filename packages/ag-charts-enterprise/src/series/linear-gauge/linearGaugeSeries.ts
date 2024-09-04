@@ -1,4 +1,4 @@
-import { type TextAlign, type VerticalAlign, _ModuleSupport, _Scale, _Scene, type _Util } from 'ag-charts-community';
+import { type TextAlign, type VerticalAlign, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
 import { type GaugeColorStopDatum, getColorStops } from '../gauge-util/gaugeUtil';
 import { LineMarker } from './lineMarker';
@@ -23,6 +23,7 @@ const {
 } = _ModuleSupport;
 const { BBox, Group, PointerEvents, Selection, Rect, Text, LinearGradient, getMarker } = _Scene;
 const { ColorScale } = _Scale;
+const { toRadians } = _Util;
 
 export type GaugeAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 export type GaugeAnimationEvent =
@@ -64,6 +65,8 @@ export class LinearGaugeSeries
     textAlign: TextAlign = 'center';
     verticalAlign: VerticalAlign = 'middle';
 
+    public originX = 0;
+    public originY = 0;
     get horizontal() {
         return this.properties.horizontal;
     }
@@ -211,7 +214,7 @@ export class LinearGaugeSeries
 
         if (xAxis == null || yAxis == null) return { x: 0, y: 0 };
 
-        const { properties } = this;
+        const { properties, originX, originY } = this;
         const { horizontal, thickness, target } = properties;
         const { value, placement = target.placement, spacing = target.spacing, size = target.size } = targetProperties;
 
@@ -232,13 +235,13 @@ export class LinearGaugeSeries
         }
 
         return {
-            x: xAxis.range[0] + (horizontal ? mainOffset : crossOffset),
-            y: yAxis.range[0] + (horizontal ? crossOffset : mainOffset),
+            x: originX + xAxis.range[0] + (horizontal ? mainOffset : crossOffset),
+            y: originY + yAxis.range[0] + (horizontal ? crossOffset : mainOffset),
         };
     }
 
     override async createNodeData() {
-        const { id: seriesId, properties } = this;
+        const { id: seriesId, properties, originX, originY } = this;
         const {
             value,
             horizontal,
@@ -246,7 +249,7 @@ export class LinearGaugeSeries
             cornerRadius,
             appearance,
             cornerMode,
-            // targets,
+            targets,
             bar,
             background,
             // label,
@@ -312,24 +315,24 @@ export class LinearGaugeSeries
                     bar.fill ?? this.createLinearGradient(colorStops, domain, gradientBBox);
                 const sizeParams = cornersOnAllItems
                     ? {
-                          x0: x0 - xAxisInset,
-                          y0: y0 - yAxisInset,
-                          x1: containerX + 2 * xAxisInset,
-                          y1: containerY + 2 * yAxisInset,
+                          x0: originX + x0 - xAxisInset,
+                          y0: originY + y0 - yAxisInset,
+                          x1: originX + containerX + 2 * xAxisInset,
+                          y1: originY + containerY + 2 * yAxisInset,
                           clipX0: undefined,
                           clipY0: undefined,
                           clipX1: undefined,
                           clipY1: undefined,
                       }
                     : {
-                          x0: x0,
-                          y0: y0,
-                          x1: x1,
-                          y1: y1,
-                          clipX0: x0,
-                          clipY0: y0,
-                          clipX1: containerX,
-                          clipY1: containerY,
+                          x0: originX + x0,
+                          y0: originY + y0,
+                          x1: originX + x1,
+                          y1: originY + y1,
+                          clipX0: originX + x0,
+                          clipY0: originY + y0,
+                          clipX1: originX + containerX,
+                          clipY1: originY + containerY,
                       };
 
                 nodeData.push({
@@ -365,10 +368,10 @@ export class LinearGaugeSeries
                 itemId: `background`,
                 datum: value,
                 type: NodeDataType.Node,
-                x0: x0 - xAxisInset,
-                y0: y0 - yAxisInset,
-                x1: x1 + 2 * xAxisInset,
-                y1: y1 + 2 * yAxisInset,
+                x0: originX + x0 - xAxisInset,
+                y0: originY + y0 - yAxisInset,
+                x1: originX + x1 + 2 * xAxisInset,
+                y1: originY + y1 + 2 * yAxisInset,
                 clipX0: undefined,
                 clipY0: undefined,
                 clipX1: undefined,
@@ -433,14 +436,14 @@ export class LinearGaugeSeries
                         itemId: `value-${i}`,
                         datum: value,
                         type: NodeDataType.Node,
-                        x0: horizontal ? itemStart : x0,
-                        y0: horizontal ? y0 : itemStart,
-                        x1: horizontal ? itemEnd : x1,
-                        y1: horizontal ? y1 : itemEnd,
-                        clipX0: x0,
-                        clipY0: y0,
-                        clipX1: containerX,
-                        clipY1: containerY,
+                        x0: originX + (horizontal ? itemStart : x0),
+                        y0: originY + (horizontal ? y0 : itemStart),
+                        x1: originX + (horizontal ? itemEnd : x1),
+                        y1: originY + (horizontal ? y1 : itemEnd),
+                        clipX0: originX + x0,
+                        clipY0: originY + y0,
+                        clipX1: originX + containerX,
+                        clipY1: originY + containerY,
                         topLeftCornerRadius,
                         topRightCornerRadius,
                         bottomRightCornerRadius,
@@ -459,10 +462,10 @@ export class LinearGaugeSeries
                     itemId: `background-${i}`,
                     datum: value,
                     type: NodeDataType.Node,
-                    x0: horizontal ? itemStart : x0,
-                    y0: horizontal ? y0 : itemStart,
-                    x1: horizontal ? itemEnd : x1,
-                    y1: horizontal ? y1 : itemEnd,
+                    x0: originX + (horizontal ? itemStart : x0),
+                    y0: originY + (horizontal ? y0 : itemStart),
+                    x1: originX + (horizontal ? itemEnd : x1),
+                    y1: originY + (horizontal ? y1 : itemEnd),
                     clipX0: undefined,
                     clipY0: undefined,
                     clipX1: undefined,
@@ -514,70 +517,64 @@ export class LinearGaugeSeries
         //     });
         // }
 
-        // const { target } = properties;
-        // for (let i = 0; i < targets.length; i += 1) {
-        //     const t = targets[i];
-        //     const {
-        //         value: targetValue,
-        //         text,
-        //         placement = target.placement,
-        //         size = target.size,
-        //         fill = target.fill,
-        //         fillOpacity = target.fillOpacity,
-        //         stroke = target.stroke,
-        //         strokeOpacity = target.strokeOpacity,
-        //         lineDash = target.lineDash,
-        //         lineDashOffset = target.lineDashOffset,
-        //     } = t;
+        const { target } = properties;
+        for (let i = 0; i < targets.length; i += 1) {
+            const t = targets[i];
+            const {
+                value: targetValue,
+                text,
+                placement = target.placement,
+                size = target.size,
+                fill = target.fill,
+                fillOpacity = target.fillOpacity,
+                stroke = target.stroke,
+                strokeOpacity = target.strokeOpacity,
+                lineDash = target.lineDash,
+                lineDashOffset = target.lineDashOffset,
+            } = t;
 
-        //     const targetRadius = this.getTargetRadius(t);
-        //     const targetAngle = mainAxisScale.convert(targetValue);
+            const targetPoint = this.getTargetPoint(t);
 
-        //     let { shape = target.shape, rotation = target.rotation } = t;
-        //     switch (placement) {
-        //         case 'outside':
-        //             shape ??= 'triangle';
-        //             rotation ??= 180;
-        //             break;
-        //         case 'inside':
-        //             shape ??= 'triangle';
-        //             rotation ??= 0;
-        //             break;
-        //         default:
-        //             shape ??= 'circle';
-        //             rotation ??= 0;
-        //     }
-        //     rotation = toRadians(rotation);
+            let { shape = target.shape, rotation = target.rotation } = t;
+            switch (placement) {
+                case 'before':
+                    shape ??= 'triangle';
+                    rotation ??= 90;
+                    break;
+                case 'after':
+                    shape ??= 'triangle';
+                    rotation ??= -90;
+                    break;
+                default:
+                    shape ??= 'circle';
+                    rotation ??= 0;
+            }
+            rotation = toRadians(rotation);
 
-        //     const strokeWidth = t.strokeWidth ?? target.strokeWidth ?? (shape === 'line' ? 2 : 0);
+            const strokeWidth = t.strokeWidth ?? target.strokeWidth ?? (shape === 'line' ? 2 : 0);
 
-        //     targetData.push({
-        //         series: this,
-        //         itemId: `target-${i}`,
-        //         midPoint: {
-        //             x: targetRadius * Math.cos(targetAngle) + centerX,
-        //             y: targetRadius * Math.sin(targetAngle) + centerY,
-        //         },
-        //         datum: targetValue,
-        //         type: NodeDataType.Target,
-        //         value: targetValue,
-        //         text,
-        //         centerX,
-        //         centerY,
-        //         shape,
-        //         radius: targetRadius,
-        //         angle: targetAngle,
-        //         size,
-        //         rotation,
-        //         fill,
-        //         fillOpacity,
-        //         stroke,
-        //         strokeOpacity,
-        //         strokeWidth,
-        //         lineDash,
-        //         lineDashOffset,
-        //     });
-        // }
+            targetData.push({
+                series: this,
+                itemId: `target-${i}`,
+                midPoint: targetPoint,
+                datum: targetValue,
+                type: NodeDataType.Target,
+                value: targetValue,
+                text,
+                x: targetPoint.x,
+                y: targetPoint.y,
+                shape,
+                size,
+                rotation,
+                fill,
+                fillOpacity,
+                stroke,
+                strokeOpacity,
+                strokeWidth,
+                lineDash,
+                lineDashOffset,
+            });
+        }
 
         return {
             itemId: seriesId,
@@ -954,12 +951,38 @@ export class LinearGaugeSeries
                 const { x, y } = this.getTargetPoint(t);
 
                 const point: _Scene.SizedPoint = { x, y, size };
+                let labelPlacement: _Util.LabelPlacement;
+                if (horizontal) {
+                    switch (placement) {
+                        case 'before':
+                            labelPlacement = 'top';
+                            break;
+                        case 'after':
+                            labelPlacement = 'bottom';
+                            break;
+                        default:
+                            labelPlacement = 'top';
+                            break;
+                    }
+                } else {
+                    switch (placement) {
+                        case 'before':
+                            labelPlacement = 'left';
+                            break;
+                        case 'after':
+                            labelPlacement = 'right';
+                            break;
+                        default:
+                            labelPlacement = 'top';
+                            break;
+                    }
+                }
 
                 return {
                     point,
                     marker: undefined,
                     label: { text, width, height },
-                    placement: horizontal && placement === 'after' ? 'bottom' : 'top',
+                    placement: labelPlacement,
                 };
             });
     }

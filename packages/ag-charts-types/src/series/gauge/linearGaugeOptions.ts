@@ -32,6 +32,8 @@ export interface AgLinearGaugeSeriesScaleLabel extends AgBaseAxisLabelOptions {
     values?: number[];
     /** The axis interval. Expressed in the units of the axis. If the configured interval results in too many items given the chart size, it will be ignored. */
     step?: number;
+    /** Placement of labels */
+    placement?: 'before' | 'after';
 }
 
 export interface AgLinearGaugeSeriesScale {

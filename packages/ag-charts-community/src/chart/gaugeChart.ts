@@ -1,7 +1,7 @@
 import type { TextAlign, VerticalAlign } from 'ag-charts-types';
 
 import type { LayoutContext } from '../module/baseModule';
-import { BBox } from '../scene/bbox';
+import type { BBox } from '../scene/bbox';
 import { sectorBox } from '../scene/util/sector';
 import { isBetweenAngles, normalizeAngle360Inclusive } from '../util/angle';
 import { CartesianAxis } from './axis/cartesianAxis';
@@ -140,20 +140,21 @@ export class GaugeChart extends Chart {
         xAxis.gridLength = width;
         xAxis.calculateLayout();
         xAxis.translation.x = x0;
-        xAxis.translation.y = y0 + (horizontal ? thickness : 0);
+        xAxis.translation.y = y0 + (xAxis.position === 'bottom' ? thickness : 0);
 
         yAxis.range = [0, height];
         yAxis.gridLength = height;
         yAxis.calculateLayout();
-        yAxis.translation.x = x0;
+        yAxis.translation.x = x0 + (yAxis.position === 'right' ? thickness : 0);
         yAxis.translation.y = y0;
 
-        return new BBox(x0, y0, width, height);
+        series.originX = x0 - seriesRect.x;
+        series.originY = y0 - seriesRect.y;
     }
 
     protected performLayout(ctx: LayoutContext) {
         const { seriesRoot, annotationRoot, highlightRoot, series, seriesArea } = this;
-        let { layoutBox } = ctx;
+        const { layoutBox } = ctx;
         const seriesRect = layoutBox.clone();
 
         layoutBox.shrink(seriesArea.padding.toJson());
@@ -162,12 +163,12 @@ export class GaugeChart extends Chart {
         if (isRadialGaugeSeries(firstSeries)) {
             this.updateRadialGauge(layoutBox, firstSeries);
         } else if (isLinearGaugeSeries(firstSeries)) {
-            layoutBox = this.updateLinearGauge(layoutBox, firstSeries);
+            this.updateLinearGauge(layoutBox, firstSeries);
         }
 
         this.axes.forEach((axis) => axis.update());
 
-        this.seriesRect = layoutBox;
+        this.seriesRect = seriesRect.clone().translate(seriesRect.x - layoutBox.x, seriesRect.y - layoutBox.y);
         this.animationRect = layoutBox;
         seriesRoot.visible = series.some((s) => s.visible);
 

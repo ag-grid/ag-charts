@@ -39,7 +39,9 @@ function datumRect(datum: AnimatableRectDatum) {
     return { x, y, width, height };
 }
 
-export function clipBBoxVisibility(datum: AnimatableRectDatum, clipBBox: _Scene.BBox) {
+function clipBBoxVisibility(datum: AnimatableRectDatum, clipBBox: _Scene.BBox | undefined) {
+    if (clipBBox == null) return true;
+
     const rect = datumRect(datum);
     const delta = 1e-6;
     const x0 = rect.x + delta;
@@ -59,23 +61,32 @@ function hasClipBBox(datum: AnimatableRectDatum) {
     return (clipX0 != null && clipX1 != null) || (clipY0 != null && clipY1 != null);
 }
 
-function datumClipBBox(datum: AnimatableRectDatum, horizontal?: boolean, initial = false) {
-    let { clipX0, clipX1, clipY0, clipY1 } = datum;
+function computeClipBBox(datum: AnimatableRectDatum): _Scene.BBox | undefined {
+    if (!hasClipBBox(datum)) return;
+
     const { x0, y0, x1, y1 } = datum;
+    const { x, y, width, height } = datumRect(datum);
+    let { clipX0, clipX1, clipY0, clipY1 } = datum;
 
     if (clipX0 == null || clipX1 == null) {
         clipX0 = x0;
         clipX1 = x1;
-    } else if (initial && horizontal === true) {
-        clipX1 = 0;
     }
 
     if (clipY0 == null || clipY1 == null) {
         clipY0 = y0;
         clipY1 = y1;
-    } else if (initial && horizontal === false) {
-        clipY1 = 0;
     }
+
+    const clipX = Math.min(clipX0, clipX1);
+    const clipY = Math.min(clipY0, clipY1);
+    const clipWidth = Math.abs(clipX1 - clipX0);
+    const clipHeight = Math.abs(clipY1 - clipY0);
+
+    clipX0 = Math.max(x, clipX);
+    clipY0 = Math.max(y, clipY);
+    clipX1 = Math.min(x + width, clipX + clipWidth);
+    clipY1 = Math.min(y + height, clipY + clipHeight);
 
     return new BBox(
         Math.min(clipX0, clipX1),
@@ -83,10 +94,6 @@ function datumClipBBox(datum: AnimatableRectDatum, horizontal?: boolean, initial
         Math.abs(clipX1 - clipX0),
         Math.abs(clipY1 - clipY0)
     );
-}
-
-export function computeClipBBox(datum: AnimatableRectDatum): _Scene.BBox | undefined {
-    return hasClipBBox(datum) ? datumClipBBox(datum) : undefined;
 }
 
 export function prepareLinearGaugeSeriesAnimationFunctions(initialLoad: boolean, horizontal: boolean) {
@@ -147,30 +154,7 @@ export function prepareLinearGaugeSeriesAnimationFunctions(initialLoad: boolean,
             return { x0, y0, x1, y1, clipX0, clipY0, clipX1, clipY1, horizontalInset, verticalInset };
         },
         applyFn(rect, params) {
-            const { x, y, width, height } = datumRect(params);
-            let clipBBox = computeClipBBox(params);
-
-            if (clipBBox != null) {
-                const clipBBoxX0 = Math.max(x, clipBBox.x);
-                const clipBBoxY0 = Math.max(y, clipBBox.y);
-                const clipBBoxX1 = Math.min(x + width, clipBBox.x + clipBBox.width);
-                const clipBBoxY1 = Math.min(y + height, clipBBox.y + clipBBox.height);
-                clipBBox = new BBox(
-                    Math.min(clipBBoxX0, clipBBoxX1),
-                    Math.min(clipBBoxY0, clipBBoxY1),
-                    Math.abs(clipBBoxX1 - clipBBoxX0),
-                    Math.abs(clipBBoxY1 - clipBBoxY0)
-                );
-            }
-
-            const visible = clipBBox == null || clipBBoxVisibility(params, clipBBox);
-
-            rect.x = x;
-            rect.y = y;
-            rect.width = width;
-            rect.height = height;
-            rect.clipBBox = clipBBox;
-            rect.visible = visible;
+            rect.setProperties(resetLinearGaugeSeriesResetRectFunction(rect, params));
         },
     };
 
@@ -180,6 +164,6 @@ export function prepareLinearGaugeSeriesAnimationFunctions(initialLoad: boolean,
 export function resetLinearGaugeSeriesResetRectFunction(_node: _Scene.Rect, datum: AnimatableRectDatum) {
     const { x, y, width, height } = datumRect(datum);
     const clipBBox = computeClipBBox(datum);
-    const visible = clipBBox == null || clipBBoxVisibility(datum, clipBBox);
+    const visible = clipBBoxVisibility(datum, clipBBox);
     return { x, y, width, height, clipBBox, visible };
 }

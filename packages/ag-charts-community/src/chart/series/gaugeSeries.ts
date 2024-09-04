@@ -15,6 +15,8 @@ export interface RadialGaugeSeries extends GaugeSeries {
 }
 
 export interface LinearGaugeSeries extends GaugeSeries {
+    originX: number;
+    originY: number;
     readonly horizontal: boolean;
     readonly thickness: number;
 }
