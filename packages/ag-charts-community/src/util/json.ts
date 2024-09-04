@@ -75,6 +75,9 @@ export function deepClone<T>(source: T, options?: { shallow?: string[] }): T {
             options?.shallow?.includes(key as string) ? shallowClone(value) : deepClone(value, options)
         );
     }
+    if (source instanceof Map) {
+        return new Map(deepClone(Array.from(source))) as T;
+    }
     return shallowClone(source);
 }
 

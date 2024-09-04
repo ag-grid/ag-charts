@@ -1,6 +1,6 @@
 import { type Direction, _ModuleSupport, _Util } from 'ag-charts-community';
 
-import type { Point } from '../annotationTypes';
+import { AnnotationType, type Point } from '../annotationTypes';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import { type CrossLineProperties, HorizontalLineProperties, VerticalLineProperties } from './crossLineProperties';
 import type { CrossLineScene } from './crossLineScene';
@@ -30,6 +30,10 @@ export class CrossLineStateMachine extends StateMachine<
 
             datum.set({ value: isHorizontal ? point.y : point.x });
             ctx.create(datum);
+
+            ctx.recordAction(
+                `Create ${isHorizontal ? AnnotationType.HorizontalLine : AnnotationType.VerticalLine} annotation`
+            );
         };
 
         const actionFirstRender = () => {

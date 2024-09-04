@@ -1,7 +1,6 @@
 import type {
     AnnotationLineStyle,
     AnnotationOptionsColorPickerType,
-    AnnotationType,
     ChannelAnnotationType,
     LineAnnotationType,
     TextualAnnotationType,
@@ -12,46 +11,8 @@ import type {
     LinePropertiesType,
     TextualPropertiesType,
 } from '../annotationsSuperTypes';
-import { hasFontSize, hasIconColor, hasLineStyle } from './has';
+import { hasIconColor } from './has';
 import { getComputedLineDash, getLineStyle } from './line';
-
-export function setDefaults({
-    datum,
-    defaultColors,
-    defaultFontSizes,
-    defaultLineStyles,
-}: {
-    datum: AnnotationProperties;
-    defaultColors: Map<AnnotationType, Map<AnnotationOptionsColorPickerType, [string, string, number] | undefined>>;
-    defaultFontSizes: Map<TextualAnnotationType, number | undefined>;
-    defaultLineStyles: Map<LineAnnotationType | ChannelAnnotationType, AnnotationLineStyle | undefined>;
-}) {
-    for (const [annotationType, colors] of defaultColors) {
-        if (datum.type !== annotationType) {
-            continue;
-        }
-
-        for (const [colorPickerType, [colorOpacity, color, opacity] = []] of colors) {
-            if (colorOpacity && color && opacity != null) {
-                setColor(datum, colorPickerType, colorOpacity, color, opacity);
-            }
-        }
-    }
-
-    if (hasFontSize(datum)) {
-        for (const [annotationType, size] of defaultFontSizes) {
-            if (size) {
-                setFontSize(datum, annotationType, size);
-            }
-        }
-    }
-
-    if (hasLineStyle(datum)) {
-        for (const [annotationType, style] of defaultLineStyles) {
-            setLineStyle(datum, annotationType, style);
-        }
-    }
-}
 
 export function setFontSize(datum: TextualPropertiesType, annotationType: TextualAnnotationType, fontSize: number) {
     if (datum.type === annotationType && 'fontSize' in datum) {
@@ -69,13 +30,14 @@ export function setLineStyle(
     }
 
     const strokeWidth = style?.strokeWidth ?? datum.strokeWidth ?? 1;
-    const styleType = getLineStyle(datum.lineDash, style?.type ?? datum.lineStyle);
-    const computedLineDash = getComputedLineDash(strokeWidth, styleType);
+    const lineType = style?.type ?? datum.lineStyle;
+    const lineStyle = lineType ?? getLineStyle(datum.lineDash, lineType);
+    const computedLineDash = getComputedLineDash(strokeWidth, lineStyle);
 
     datum.strokeWidth = strokeWidth;
     datum.computedLineDash = computedLineDash;
-    datum.lineStyle = styleType;
-    datum.lineCap = styleType === 'dotted' ? 'round' : undefined;
+    datum.lineStyle = lineStyle;
+    datum.lineCap = lineStyle === 'dotted' ? 'round' : undefined;
 }
 
 export function setColor(
@@ -95,6 +57,7 @@ export function setColor(
             }
             break;
         }
+
         case `line-color`: {
             if ('axisLabel' in datum) {
                 datum.axisLabel.fill = color;
@@ -113,6 +76,7 @@ export function setColor(
 
             break;
         }
+
         case `text-color`: {
             if ('color' in datum) datum.color = colorOpacity;
             break;

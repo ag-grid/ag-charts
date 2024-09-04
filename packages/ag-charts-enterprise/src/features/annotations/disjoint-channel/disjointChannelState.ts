@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import type { GuardDragClickDoubleEvent, Point } from '../annotationTypes';
+import { AnnotationType, type GuardDragClickDoubleEvent, type Point } from '../annotationTypes';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import { DisjointChannelProperties } from './disjointChannelProperties';
 import type { DisjointChannelScene } from './disjointChannelScene';
@@ -78,6 +78,8 @@ export class DisjointChannelStateMachine extends StateMachine<
             }
 
             datum.set({ startHeight, endHeight });
+            ctx.recordAction(`Create ${AnnotationType.DisjointChannel} annotation`);
+
             ctx.update();
         };
 

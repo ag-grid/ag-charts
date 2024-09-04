@@ -255,6 +255,7 @@ export interface AgArrowDownAnnotation extends AgArrowMarkAnnotation {
 export type AgAnnotationLineStyleType = 'solid' | 'dashed' | 'dotted';
 
 export interface LineOptions extends LineDashOptions {
+    /** Defines how the line stroke is rendered. If `lineDash` is configured, this takes priority over the `lineStyle` property. */
     lineStyle?: AgAnnotationLineStyleType;
 }
 

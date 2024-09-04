@@ -1,3 +1,4 @@
+import type { HistoryManager } from '../api/state/historyManager';
 import type { StateManager } from '../api/state/stateManager';
 import type { AnnotationManager } from '../chart/annotation/annotationManager';
 import type { AxisManager } from '../chart/axis/axisManager';
@@ -49,6 +50,7 @@ export interface ModuleContext {
     readonly domManager: DOMManager;
     readonly focusIndicator: FocusIndicator;
     readonly highlightManager: HighlightManager;
+    readonly historyManager: HistoryManager;
     readonly interactionManager: InteractionManager;
     readonly keyNavManager: KeyNavManager;
     readonly localeManager: LocaleManager;

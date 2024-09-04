@@ -4,10 +4,11 @@ import type { ChannelTextProperties, LineTextProperties } from '../annotationPro
 import type { LineCoords } from '../annotationTypes';
 import type { AnnotationScene } from './annotationScene';
 import type { CollidableLine } from './collidableLineScene';
+import { DivariantHandle } from './handle';
 
 const { Vec2 } = _Util;
 
-interface Decomposed {
+interface Numbers {
     left: _Util.Vec2;
     right: _Util.Vec2;
     inset: _Util.Vec2;
@@ -37,9 +38,9 @@ export class LineWithTextScene {
 
         const { alignment, position } = datum.text;
 
-        const decomposed = LineWithTextScene.decompose(coords, datum.strokeWidth);
-        const { point, textBaseline } = LineWithTextScene.positionAndAlignment(decomposed, position, alignment);
-        LineWithTextScene.setProperties(this.text, datum.text, point, decomposed.angle, textBaseline);
+        const numbers = LineWithTextScene.getNumbers(coords, datum.text.fontSize, datum.strokeWidth);
+        const { point, textBaseline } = LineWithTextScene.positionAndAlignment(numbers, position, alignment);
+        LineWithTextScene.setProperties(this.text, datum.text, point, numbers.angle, textBaseline);
 
         if (position === 'center') {
             const { x, y, width, height } = this.text.getBBox();
@@ -47,7 +48,7 @@ export class LineWithTextScene {
             this.line.setClipMask({
                 x: x + width / 2,
                 y: y + height / 2,
-                radius: diameter / 2 + Vec2.length(decomposed.offset),
+                radius: diameter / 2 + Vec2.length(numbers.offset),
             });
         } else {
             this.line.setClipMask();
@@ -87,43 +88,43 @@ export class LineWithTextScene {
             };
         }
 
-        const decomposed = LineWithTextScene.decompose(relativeLine, datum.strokeWidth);
+        const numbers = LineWithTextScene.getNumbers(relativeLine, datum.text.fontSize, datum.strokeWidth);
         const { point, textBaseline } = LineWithTextScene.positionAndAlignment(
-            decomposed,
+            numbers,
             position === 'inside' ? 'center' : position,
             alignment,
             offsetInsideTextLabel
         );
-        LineWithTextScene.setProperties(this.text, datum.text, point, decomposed.angle, textBaseline);
+        LineWithTextScene.setProperties(this.text, datum.text, point, numbers.angle, textBaseline);
     }
 
-    static decompose(coords: LineCoords, strokeWidth?: number): Decomposed {
+    static getNumbers(coords: LineCoords, fontSize?: number, strokeWidth?: number): Numbers {
         let [left, right] = Vec2.from(coords);
         if (left.x > right.x) [left, right] = [right, left];
 
+        const fontOffset = (fontSize ?? 14) / 3;
+
         const normal = Vec2.normalized(Vec2.sub(right, left));
         const angle = Vec2.angle(normal);
-        const inset = Vec2.multiply(normal, (strokeWidth ?? 2) + 13);
-        const offset = Vec2.multiply(normal, (strokeWidth ?? 2) + 3);
+        const inset = Vec2.multiply(normal, DivariantHandle.HANDLE_SIZE / 2 + fontOffset);
+        const offset = Vec2.multiply(normal, (strokeWidth ?? 2) / 2 + fontOffset);
 
         return { left, right, normal, angle, inset, offset };
     }
 
     static positionAndAlignment(
-        { left, right, normal, angle, inset, offset }: Decomposed,
+        { left, right, normal, angle, inset, offset }: Numbers,
         position?: 'top' | 'center' | 'bottom',
         alignment?: 'left' | 'center' | 'right',
         offsetInsideTextLabel?: boolean
     ) {
-        let point = left;
-        if (alignment === 'left' && position === 'center') {
-            point = Vec2.add(left, inset);
-        } else if (alignment === 'right' && position === 'center') {
+        let point: _Util.Vec2;
+        if (alignment === 'right') {
             point = Vec2.sub(right, inset);
-        } else if (alignment === 'right') {
-            point = right;
         } else if (alignment === 'center') {
             point = Vec2.add(left, Vec2.multiply(normal, Vec2.distance(left, right) / 2));
+        } else {
+            point = Vec2.add(left, inset);
         }
 
         let textBaseline: CanvasTextBaseline = 'middle';

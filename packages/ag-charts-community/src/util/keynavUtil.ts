@@ -95,22 +95,26 @@ const PREV_NEXT_KEYS = {
 } as const;
 
 // https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/toolbar_role
-export function initToolbarKeyNav(opts: {
-    role?: 'toolbar' | 'list';
+export function initToolbarKeyNav(
+    opts: { toolbar: HTMLElement } & Parameters<typeof initRovingTabIndex>[0]
+): ReturnType<typeof initRovingTabIndex> {
+    opts.toolbar.role = 'toolbar';
+    opts.toolbar.ariaOrientation = opts.orientation;
+    opts.toolbar.ariaHidden = (opts.buttons.length === 0).toString();
+    return initRovingTabIndex(opts);
+}
+
+// https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/#kbd_roving_tabindex
+export function initRovingTabIndex(opts: {
     orientation: 'horizontal' | 'vertical';
-    toolbar: HTMLElement;
     buttons: HTMLElement[];
+    wrapAround?: boolean;
     onFocus?: (event: FocusEvent) => void;
     onBlur?: (event: FocusEvent) => void;
     onEscape?: (event: KeyboardEvent) => void;
-}): (() => void)[] {
-    const { role, orientation, toolbar, buttons, onEscape, onFocus, onBlur } = opts;
+}) {
+    const { orientation, buttons, wrapAround = false, onEscape, onFocus, onBlur } = opts;
     const { nextKey, prevKey } = PREV_NEXT_KEYS[orientation];
-    const ariaHidden: boolean = buttons.length === 0;
-
-    toolbar.role = role ?? 'toolbar';
-    toolbar.ariaOrientation = orientation;
-    toolbar.ariaHidden = ariaHidden.toString();
 
     // Assistive Technologies might provide functionality to focus on any element at random.
     // For example, in VoiceOver the user can press Ctrl+Opt+Shift Up to leave the toolbar, and then
@@ -123,11 +127,13 @@ export function initToolbarKeyNav(opts: {
         }
     };
 
+    // When wrapAround is false, use c,m such that (c+x)%m === x
+    const [c, m] = wrapAround ? [buttons.length, buttons.length] : [0, Infinity];
     const destroyFns: (() => void)[] = [];
     for (let i = 0; i < buttons.length; i++) {
-        const prev = buttons[i - 1];
+        const prev = buttons[(c + i - 1) % m];
         const curr = buttons[i];
-        const next = buttons[i + 1];
+        const next = buttons[(c + i + 1) % m];
         addRemovableEventListener(destroyFns, curr, 'focus', setTabIndices);
         if (onFocus) addRemovableEventListener(destroyFns, curr, 'focus', onFocus);
         if (onBlur) addRemovableEventListener(destroyFns, curr, 'blur', onBlur);
@@ -184,24 +190,16 @@ export function initMenuKeyNav(opts: {
     const { nextKey, prevKey } = PREV_NEXT_KEYS[orientation];
 
     const menuCloser = new MenuCloserImp(menu, device.lastFocus, closeCallback);
-    const close = () => menuCloser.close();
+    const onEscape = () => menuCloser.close();
     const { destroyFns } = menuCloser;
 
     menu.role = 'menu';
     menu.ariaOrientation = orientation;
-    for (let i = 0; i < buttons.length; i++) {
-        // Use modules to wrap around when navigation past the start/end of the menu.
-        const prev = buttons[(buttons.length + i - 1) % buttons.length];
-        const curr = buttons[i];
-        const next = buttons[(buttons.length + i + 1) % buttons.length];
-        addEscapeEventListener(destroyFns, curr, close);
-        linkThreeButtons(destroyFns, curr, prev, prevKey, next, nextKey);
-        curr.tabIndex = -1;
-    }
+    initRovingTabIndex({ orientation, buttons, onEscape, wrapAround: true });
 
     // Add handlers for the menu element itself.
     menu.tabIndex = -1;
-    addEscapeEventListener(destroyFns, menu, close);
+    addEscapeEventListener(destroyFns, menu, onEscape);
     addRemovableEventListener(destroyFns, menu, 'keydown', (ev: KeyboardEvent) => {
         if (ev.target === menu && (ev.key === nextKey || ev.key === prevKey)) {
             ev.preventDefault();

@@ -1,0 +1,62 @@
+@use 'design-system' as *;
+
+.container {
+    display: flex;
+    width: 100%;
+    max-width: 1500px;
+    justify-content: space-between;
+    padding: 20px 20px 0 20px;
+    border-radius: 8px;
+}
+
+.column {
+    flex: 1;
+    box-sizing: border-box;
+    padding-top: 20px;
+    max-width: 48%;
+}
+
+.questionContainer {
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+.titleContainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    word-wrap: break-word;
+    padding: 10px;
+    transition: border-color 0.3s ease;
+}
+
+.titleContainer:hover {
+    border-color: #bbb;
+}
+
+.question {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-fg-secondary);
+}
+
+.expandIcon {
+    fill: var(--color-fg-secondary);
+    padding: $spacing-size-2;
+    transition: transform 0.3s ease;
+}
+
+.iconRotate {
+    transform: rotate(180deg);
+}
+
+.answerContainer {
+    padding: 10px;
+}
+
+hr {
+    background-color: #d0d5dd54;
+    margin: $spacing-size-4 0;
+}

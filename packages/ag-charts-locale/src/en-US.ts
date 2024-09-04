@@ -47,6 +47,24 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaRoleDescriptionLegendItem: 'legend item',
     // Screen reader text for the value of the navigator's range
     ariaValuePanRange: '${min}[percent] to ${max}[percent]',
+    // Alt-text for the solid line dash style menu item icon
+    iconAltTextLineStyleSolid: 'Solid',
+    // Alt-text for the long-dashed line dash style menu item icon
+    iconAltTextLineStyleDashed: 'Long-dashed',
+    // Alt-text for the short-dashed line dash style menu item icon
+    iconAltTextLineStyleDotted: 'Short-dashed',
+    // Alt-text for the 'position-top' icon
+    iconAltTextPositionTop: 'Top',
+    // Alt-text for the 'position-center' icon
+    iconAltTextPositionCenter: 'Center',
+    // Alt-text for the 'position-bottom' icon
+    iconAltTextPositionBottom: 'Bottom',
+    // Alt-text for the 'position-left' icon
+    iconAltTextAlignLeft: 'Left',
+    // Alt-text for the 'position-center' icon
+    iconAltTextAlignCenter: 'Center',
+    // Alt-text for the 'position-right' icon
+    iconAltTextAlignRight: 'Right',
     // Default text for the 'loading data' overlay
     overlayLoadingData: 'Loading data...',
     // Default text for the 'no data' overlay

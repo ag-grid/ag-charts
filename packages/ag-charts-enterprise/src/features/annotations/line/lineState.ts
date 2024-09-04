@@ -72,7 +72,10 @@ abstract class LineTypeStateMachine<Datum extends ArrowProperties | LineProperti
                     target: StateMachine.parent,
                     action: actionCancel,
                 },
-                onExit: ctx.guardDragClickDoubleEvent.reset,
+                onExit: () => {
+                    ctx.guardDragClickDoubleEvent.reset();
+                    ctx.recordAction(`Create ${ctx.node()?.type} annotation`);
+                },
             },
         });
     }

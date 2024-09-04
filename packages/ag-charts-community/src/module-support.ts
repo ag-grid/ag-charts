@@ -109,5 +109,5 @@ export * from './motion/fromToMotion';
 export * from './dom/domManager';
 export { resetIds } from './util/id';
 export { type DefaultColors } from './chart/themes/defaultColors';
-
 export { ChartUpdateType } from './chart/chartUpdateType';
+export { type MementoOriginator } from './api/state/memento';

@@ -318,9 +318,9 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 },
 
                 delete: () => {
-                    if (this.active != null) {
-                        ctx.delete(this.active);
-                    }
+                    if (this.active == null) return;
+                    ctx.delete(this.active);
+                    ctx.recordAction('Delete annotation');
                 },
 
                 deleteAll: () => {

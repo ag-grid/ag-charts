@@ -151,7 +151,10 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
     }
 
     override containsPoint(x: number, y: number) {
-        return super.containsPoint(x, y) || this.middleLine.containsPoint(x, y);
+        return (
+            super.containsPoint(x, y) ||
+            (this.middleLine.visible && this.middleLine.strokeWidth > 0 && this.middleLine.containsPoint(x, y))
+        );
     }
 
     override updateLines(datum: ParallelChannelProperties, top: LineCoords, bottom: LineCoords) {
