@@ -12,6 +12,7 @@ interface DisjointChannelStateMachineContext extends Omit<AnnotationsStateMachin
     delete: () => void;
     datum: () => DisjointChannelProperties | undefined;
     node: () => DisjointChannelScene | undefined;
+    showAnnotationOptions: () => void;
     guardDragClickDoubleEvent: GuardDragClickDoubleEvent;
 }
 
@@ -79,7 +80,7 @@ export class DisjointChannelStateMachine extends StateMachine<
 
             datum.set({ startHeight, endHeight });
             ctx.recordAction(`Create ${AnnotationType.DisjointChannel} annotation`);
-
+            ctx.showAnnotationOptions();
             ctx.update();
         };
 

@@ -78,8 +78,6 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         detached: false,
     };
 
-    private floatingToolbarId?: number;
-
     private readonly horizontalSpacing = 10;
     private readonly verticalSpacing = 10;
     private readonly floatingDetectionRange = 38;
@@ -325,25 +323,19 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
     private onFloatingAnchorChanged(event: ToolbarFloatingAnchorChangedEvent) {
         const { elements, positions, horizontalSpacing, verticalSpacing } = this;
-
-        const { group, anchor, floatingToolbarId } = event;
+        const { group, anchor } = event;
 
         const element = elements[ToolbarPosition.Floating];
 
-        if (
-            this.floatingToolbarId === floatingToolbarId &&
-            (this.dragState.detached || element.classList.contains(styles.modifiers.hidden))
-        ) {
+        if (this.dragState.detached || element.classList.contains(styles.modifiers.hidden)) {
             return;
         }
 
-        this.floatingToolbarId = floatingToolbarId;
         this.dragState.detached = false;
 
         if (!positions[ToolbarPosition.Floating].has(group)) return;
 
         const position = anchor.position ?? 'above';
-
         const { offsetWidth: width, offsetHeight: height } = element;
 
         let top = anchor.y - height - verticalSpacing;
@@ -371,8 +363,15 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         bbox.x = clamp(0, bbox.x, canvasRect.width - bbox.width);
         bbox.y = clamp(0, bbox.y, canvasRect.height - bbox.height);
 
-        element.style.setProperty('left', `${bbox.x}px`);
-        element.style.setProperty('top', `${bbox.y}px`);
+        const left = `${Math.floor(bbox.x)}px`;
+        const top = `${Math.floor(bbox.y)}px`;
+
+        const dirty = element.style.getPropertyValue('left') !== left || element.style.getPropertyValue('top') !== top;
+
+        if (!dirty) return;
+
+        element.style.setProperty('left', left);
+        element.style.setProperty('top', top);
 
         this.onGroupMoved(group, bbox);
     }
@@ -382,6 +381,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             groupButtons,
             ctx: { toolbarManager },
         } = this;
+
         for (const button of groupButtons[group]) {
             if (button.classList.contains(styles.modifiers.button.hiddenToggled)) continue;
 
@@ -678,6 +678,9 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         for (const position of TOOLBAR_POSITIONS) {
             const visible = this.enabled && Array.from(this.positions[position].values()).some(isGroupVisible);
+            if (position === ToolbarPosition.Floating && !visible) {
+                this.dragState.detached = false;
+            }
             this.elements[position].classList.toggle(styles.modifiers.hidden, !visible);
         }
 
