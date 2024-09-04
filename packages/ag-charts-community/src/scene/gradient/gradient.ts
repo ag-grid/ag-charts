@@ -11,22 +11,12 @@ export type ColorSpace = 'rgb' | 'oklch';
 export abstract class Gradient {
     constructor(
         public colorSpace: ColorSpace,
-        public stops: GradientColorStop[] = [],
-        private readonly bbox?: BBox
+        public stops: GradientColorStop[] = []
     ) {}
 
     protected abstract createCanvasGradient(ctx: CanvasRenderingContext2D, bbox: BBox): CanvasGradient | undefined;
 
-    private _cache:
-        | { ctx: CanvasRenderingContext2D; bbox: BBox; gradient: CanvasGradient | string | undefined }
-        | undefined = undefined;
-    createGradient(ctx: CanvasRenderingContext2D, shapeBbox: BBox): CanvasGradient | string | undefined {
-        const bbox = this.bbox ?? shapeBbox;
-
-        if (this._cache != null && this._cache.ctx === ctx && this._cache.bbox.equals(bbox)) {
-            return this._cache.gradient;
-        }
-
+    createGradient(ctx: CanvasRenderingContext2D, bbox: BBox): CanvasGradient | string | undefined {
         const { stops, colorSpace } = this;
 
         if (stops.length === 0) return;
@@ -56,8 +46,6 @@ export abstract class Gradient {
 
             c0 = c1;
         }
-
-        this._cache = { ctx, bbox, gradient };
 
         return gradient;
     }

@@ -58,7 +58,6 @@ interface ApiReferenceOptions {
     id: string;
     anchorId?: string;
     className?: string;
-    isInline?: boolean;
 }
 
 interface ApiReferenceRowOptions {
@@ -97,6 +96,7 @@ export function ApiReferenceWithReferenceContext(props: ApiReferenceOptions & Ap
         </ApiReferenceContext.Provider>
     );
 }
+
 export function ChildPropertiesButton({
     name,
     isExpanded,
@@ -141,12 +141,7 @@ export function ApiReference({ id, anchorId, className, ...props }: ApiReference
     }
 
     return (
-        <div
-            {...props}
-            className={classnames(styles.apiReferenceOuter, className, {
-                [styles.isInline]: isInline,
-            })}
-        >
+        <div {...props} className={classnames(styles.apiReferenceOuter, className)}>
             {anchorId && <a id={anchorId} />}
             {!config.hideHeader &&
                 (interfaceRef.docs?.join('\n') ?? (

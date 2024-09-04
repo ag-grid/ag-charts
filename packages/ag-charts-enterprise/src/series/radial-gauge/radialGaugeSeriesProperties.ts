@@ -53,6 +53,11 @@ export enum LabelType {
     Secondary = 'secondary',
 }
 
+export interface AgRadialGaugeColorStopDatum {
+    stop: number;
+    color: string;
+}
+
 export interface RadialGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     type: NodeDataType.Node;
     centerX: number;

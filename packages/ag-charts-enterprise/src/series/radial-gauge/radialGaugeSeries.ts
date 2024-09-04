@@ -1,10 +1,9 @@
 import { type TextAlign, type VerticalAlign, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 
-import { type GaugeColorStopDatum, getColorStops } from '../gauge-util/gaugeUtil';
-import { formatLabel } from '../gauge-util/label';
 import { LineMarker } from './lineMarker';
 import { RadialGaugeNeedle } from './radialGaugeNeedle';
 import {
+    type AgRadialGaugeColorStopDatum,
     LabelType,
     NodeDataType,
     type RadialGaugeLabelDatum,
@@ -14,6 +13,7 @@ import {
     type RadialGaugeTargetProperties,
 } from './radialGaugeSeriesProperties';
 import {
+    computeClipSector,
     fadeInFns,
     formatRadialGaugeLabels,
     getLabelText,
@@ -198,11 +198,96 @@ export class RadialGaugeSeries
     }
 
     private formatLabel(value: number) {
-        return formatLabel(value, this.axes[ChartAxisDirection.X]);
+        const angleAxis = this.axes[ChartAxisDirection.X];
+        if (angleAxis == null) return '';
+
+        const [min, max] = angleAxis.scale.domain;
+        const minLog10 = min !== 0 ? Math.ceil(Math.log10(Math.abs(min))) : 0;
+        const maxLog10 = max !== 0 ? Math.ceil(Math.log10(Math.abs(max))) : 0;
+        const dp = Math.max(2 - Math.max(minLog10, maxLog10), 0);
+        return value.toFixed(dp);
+    }
+
+    private getColorStops(domain: number[], mode: 'continuous' | 'segmented') {
+        const [min, max] = domain;
+        const domainRange = max - min;
+
+        const { colorStops, defaultColorStops } = this.properties;
+        if (colorStops.length === 0) {
+            return defaultColorStops.map((color, index, { length }) => ({
+                color,
+                stop: ((max - min) * index) / (length - 1) + min,
+            }));
+        }
+
+        const segmented = mode === 'segmented';
+        const rangeDelta = segmented ? 1 : 0;
+
+        const stops = new Float64Array(colorStops.length);
+        let previousDefinedStopIndex = 0;
+        let nextDefinedStopIndex = -1;
+        for (let i = 0; i < colorStops.length; i += 1) {
+            const colorStop = colorStops[i];
+
+            if (i >= nextDefinedStopIndex) {
+                nextDefinedStopIndex = colorStops.length - 1;
+
+                for (let j = i + 1; j < colorStops.length; j += 1) {
+                    if (colorStops[j].stop != null) {
+                        nextDefinedStopIndex = j;
+                        break;
+                    }
+                }
+            }
+
+            let { stop } = colorStop;
+
+            if (stop == null) {
+                const value0 = colorStops[previousDefinedStopIndex].stop ?? min;
+                const value1 = colorStops[nextDefinedStopIndex].stop ?? max;
+                stop =
+                    value0 +
+                    ((value1 - value0) * (i - previousDefinedStopIndex)) /
+                        (nextDefinedStopIndex - previousDefinedStopIndex + rangeDelta);
+            } else {
+                previousDefinedStopIndex = i;
+            }
+
+            stops[i] = stop;
+        }
+
+        let colorScale: _Scale.ColorScale | undefined;
+        let lastDefinedColor = colorStops.find((c) => c.color != null)?.color;
+
+        return colorStops.map(({ color }, i): AgRadialGaugeColorStopDatum => {
+            const stop = stops[i];
+
+            if (color != null) {
+                lastDefinedColor = color;
+            } else if (lastDefinedColor != null) {
+                color = lastDefinedColor;
+            } else {
+                if (colorScale == null) {
+                    colorScale = new ColorScale();
+                    colorScale.domain = domain;
+                    colorScale.range = defaultColorStops;
+                }
+
+                if (segmented) {
+                    const nextStop = i < stops.length - 1 ? stops[i + 1] : max;
+                    const adjustedStop = (stop / (domainRange - (nextStop - stop))) * domainRange + min;
+                    color = colorScale.convert(adjustedStop);
+                } else {
+                    color = colorScale.convert(stop);
+                }
+            }
+
+            return { stop, color };
+        });
     }
 
     private createConicGradient(
-        colorStops: GaugeColorStopDatum[] | undefined,
+        colorStops: AgRadialGaugeColorStopDatum[] | undefined,
         [min, max]: number[],
         startAngle: number,
         endAngle: number
@@ -261,7 +346,7 @@ export class RadialGaugeSeries
         } = properties;
 
         const { domain } = angleAxis.scale;
-        const colorStops = getColorStops(this.properties, domain, appearance);
+        const colorStops = this.getColorStops(domain, appearance);
         const nodeData: RadialGaugeNodeDatum[] = [];
         const targetData: RadialGaugeTargetDatum[] = [];
         const needleData: RadialGaugeNeedleDatum[] = [];
@@ -359,7 +444,7 @@ export class RadialGaugeSeries
                 colorScale.domain = domain;
                 colorScale.range = colorStops.map((cs) => cs.color);
 
-                const ticks = angleScale.ticks?.().length;
+                const ticks = angleAxis.scale.ticks?.().length;
                 const numSegments = ticks != null ? ticks - 1 : 8;
 
                 stops = Array.from({ length: numSegments }, (_, i) => {
@@ -679,11 +764,24 @@ export class RadialGaugeSeries
         const { fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = background;
 
         backgroundSelection.each((sector, datum) => {
-            const { centerX, centerY, innerRadius, outerRadius, startCornerRadius, endCornerRadius, fill } = datum;
+            const {
+                centerX,
+                centerY,
+                innerRadius,
+                outerRadius,
+                startAngle,
+                endAngle,
+                startCornerRadius,
+                endCornerRadius,
+                fill,
+            } = datum;
             sector.centerX = centerX;
             sector.centerY = centerY;
             sector.innerRadius = innerRadius;
             sector.outerRadius = outerRadius;
+            sector.startAngle = startAngle;
+            sector.endAngle = endAngle;
+            sector.clipSector = computeClipSector(datum);
 
             sector.fill = fill;
             sector.fillOpacity = fillOpacity;
@@ -699,8 +797,6 @@ export class RadialGaugeSeries
 
             sector.radialEdgeInset = (sectorSpacing + sector.strokeWidth) / 2;
             sector.concentricEdgeInset = sector.strokeWidth / 2;
-
-            sector.setProperties(resetRadialGaugeSeriesResetSectorFunction(sector, datum));
         });
     }
 

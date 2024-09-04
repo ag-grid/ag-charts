@@ -54,11 +54,12 @@ export interface FromToFns<
     N extends Node,
     T extends Record<string, string | number | Interpolating | undefined> & Partial<N>,
     D,
+    I extends Record<string, string | number | Interpolating | undefined> & Partial<N> = T,
 > {
-    fromFn: FromToMotionPropFn<N, T, D>;
-    toFn: FromToMotionPropFn<N, T, D>;
+    fromFn: FromToMotionPropFn<N, I, D>;
+    toFn: FromToMotionPropFn<N, I, D>;
     intermediateFn?: IntermediateFn<N, D>;
-    applyFn?: (note: N, props: T) => void;
+    mapFn?: (value: I, datum: D, previousDatum: D | undefined) => T;
 }
 
 /**
@@ -88,7 +89,7 @@ export function fromToMotion<
     getDatumId?: (node: N, datum: D) => string,
     diff?: FromToDiff
 ) {
-    const { fromFn, toFn, intermediateFn, applyFn = (node, props) => node.setProperties(props) } = fns;
+    const { fromFn, toFn, intermediateFn, mapFn = (value) => value } = fns;
     const { nodes, selections } = deconstructSelectionsOrNodes(selectionsOrNodes);
 
     const processNodes = (liveNodes: N[], subNodes: N[]) => {
@@ -139,23 +140,29 @@ export function fromToMotion<
                 ease: easing.easeOut,
                 collapsable,
                 onPlay: () => {
-                    applyFn(node, { ...start, ...toStart } as unknown as T);
+                    node.setProperties(mapFn({ ...start, ...toStart } as unknown as T, node.datum, node.previousDatum));
                 },
                 onUpdate(props) {
-                    applyFn(node, props);
+                    node.setProperties(mapFn(props, node.datum, node.previousDatum));
                     if (intermediateFn) {
                         node.setProperties(intermediateFn(node, node.datum, status, ctx));
                     }
                 },
                 onStop: () => {
-                    applyFn(node, {
-                        ...start,
-                        ...toStart,
-                        ...from,
-                        ...to,
-                        ...finish,
-                        ...toFinish,
-                    } as unknown as T);
+                    node.setProperties(
+                        mapFn(
+                            {
+                                ...start,
+                                ...toStart,
+                                ...from,
+                                ...to,
+                                ...finish,
+                                ...toFinish,
+                            } as unknown as T,
+                            node.datum,
+                            node.previousDatum
+                        )
+                    );
                 },
             });
 

@@ -728,14 +728,9 @@ export function addGenericInterfaceImport(imports: string[], tData: string, bind
 export type ChartAPI = 'financial' | 'gauge' | 'vanilla';
 
 export function chartApi(bindings: any): ChartAPI {
-    const typeStr = bindings.optionsTypeInfo?.typeStr;
-    if (typeStr === 'AgFinancialChartOptions') {
+    if (bindings.optionsTypeInfo?.typeStr === 'AgFinancialChartOptions') {
         return 'financial';
-    } else if (
-        typeStr === 'AgGaugeOptions' ||
-        typeStr === 'AgRadialGaugeOptions' ||
-        typeStr === 'AgLinearGaugeOptions'
-    ) {
+    } else if (bindings.optionsTypeInfo?.typeStr === 'AgGaugeOptions') {
         return 'gauge';
     }
     return 'vanilla';
