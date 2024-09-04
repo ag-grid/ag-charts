@@ -7,7 +7,7 @@ const firstOptions: AgGaugeOptions = {
     value: 90,
     startAngle: 180 + 45,
     endAngle: 360 + 180 - 45,
-    appearance: 'segmented',
+    segments: [65, 75],
     sectorSpacing: 2,
     scale: {
         min: 0,
@@ -15,7 +15,9 @@ const firstOptions: AgGaugeOptions = {
         interval: {
             step: 10,
         },
-        fills: [{ color: '#4cd137' }, { color: '#fbc531', stop: 65 }, { color: '#e84118', stop: 75 }],
+    },
+    bar: {
+        colorRange: ['#4cd137', '#fbc531', '#e84118'],
     },
     secondaryLabel: {
         text: 'mph',
@@ -49,12 +51,12 @@ const secondOptions: AgGaugeOptions = {
     value: 6.5,
     startAngle: 180 + 45,
     endAngle: 360 + 180 - 45,
-    appearance: 'segmented',
+    segments: [6],
     sectorSpacing: 2,
     scale: {
         min: 0,
         max: 8,
-        fills: [{ color: '#7f8fa6' }, { color: '#e84118', stop: 6 }],
+        colorRange: ['#7f8fa6', '#e84118'],
     },
     bar: {
         enabled: false,
@@ -73,18 +75,12 @@ const thirdOptions: AgGaugeOptions = {
     value: 75,
     startAngle: 180 + 45,
     endAngle: 360 + 180 - 45,
-    appearance: 'segmented',
+    segments: [50, 60, 70, 80],
     sectorSpacing: 2,
     scale: {
         min: 0,
         max: 100,
-        fills: [
-            { color: '#e84118' },
-            { color: '#fbc531', stop: 50 },
-            { color: '#4cd137', stop: 60 },
-            { color: '#fbc531', stop: 70 },
-            { color: '#e84118', stop: 80 },
-        ],
+        colorRange: ['#e84118', '#fbc531', '#4cd137', '#fbc531', '#e84118'],
     },
     bar: {
         enabled: false,
@@ -103,14 +99,15 @@ const fourthOptions: AgGaugeOptions = {
     value: 15,
     startAngle: 180 + 45,
     endAngle: 360 + 180 - 45,
-    appearance: 'continuous',
     scale: {
         min: 0,
         max: 50,
         interval: {
             step: 5,
         },
-        fills: [{ color: '#e84118' }, { color: '#fbc531' }, { color: '#4cd137' }],
+    },
+    bar: {
+        colorRange: ['#e84118', '#fbc531', '#4cd137'],
     },
     secondaryLabel: {
         text: 'litres',
