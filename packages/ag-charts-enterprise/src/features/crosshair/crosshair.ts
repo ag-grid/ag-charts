@@ -43,7 +43,6 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     private seriesRect: _Scene.BBox = new BBox(0, 0, 0, 0);
     private hoverRect: _Scene.BBox = new BBox(0, 0, 0, 0);
     private bounds: _Scene.BBox = new BBox(0, 0, 0, 0);
-    private visible: boolean = false;
     private axisLayout?: _ModuleSupport.AxisLayout;
     private labelFormatter?: (value: any) => string;
 
@@ -65,17 +64,15 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         super();
 
         this.axisCtx = ctx.parent;
-        this.crosshairGroup.visible = false;
         this.labels = {};
 
         const seriesRegion = ctx.regionManager.getRegion('series')!;
-        const mouseMoveStates = InteractionState.Default | InteractionState.Annotations;
         this.destroyFns.push(
             ctx.scene.attachNode(this.crosshairGroup),
-            seriesRegion.addListener('hover', (event) => this.onMouseMove(event), mouseMoveStates),
-            seriesRegion.addListener('drag', (event) => this.onMouseMove(event), mouseMoveStates),
-            seriesRegion.addListener('wheel', () => this.onMouseOut(), mouseMoveStates),
-            seriesRegion.addListener('leave', () => this.onMouseOut(), mouseMoveStates),
+            seriesRegion.addListener('hover', (event) => this.onMouseMove(event), InteractionState.Default),
+            seriesRegion.addListener('drag', (event) => this.onMouseMove(event), InteractionState.Annotations),
+            seriesRegion.addListener('wheel', () => this.onMouseOut(), InteractionState.Default),
+            seriesRegion.addListener('leave', () => this.onMouseOut(), InteractionState.Default),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
             ctx.layoutManager.addListener('layout:complete', (event) => this.layout(event)),
             () => Object.entries(this.labels).forEach(([_, label]) => label.destroy())
@@ -83,12 +80,12 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     private layout({ series: { rect, paddedRect, visible }, axes }: _ModuleSupport.LayoutCompleteEvent) {
+        this.hideCrosshairs();
+
         if (!(visible && axes && this.enabled)) {
-            this.visible = false;
             return;
         }
 
-        this.visible = true;
         this.seriesRect = rect;
         this.hoverRect = paddedRect;
 
@@ -196,12 +193,12 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         const { crosshairGroup, hoverRect } = this;
         const { offsetX, offsetY } = event;
 
-        if (event.type === 'hover' && this.visible && hoverRect.containsPoint(offsetX, offsetY)) {
-            crosshairGroup.visible = true;
-
+        if (hoverRect.containsPoint(offsetX, offsetY)) {
             const lineData = this.getData(event);
 
             this.updatePositions(lineData);
+
+            crosshairGroup.visible = true;
         } else {
             this.hideCrosshairs();
         }
@@ -211,6 +208,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     private onMouseOut() {
         this.hideCrosshairs();
+        this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.SCENE_RENDER);
     }
 
     private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
@@ -225,7 +223,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.activeHighlight = hasCrosshair ? event.currentHighlight : undefined;
 
         if (this.snap) {
-            if (!this.visible || !this.activeHighlight) {
+            if (!this.activeHighlight) {
                 this.hideCrosshairs();
                 return;
             }
