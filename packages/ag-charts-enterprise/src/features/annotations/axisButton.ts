@@ -35,12 +35,13 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         this.snap = axisCtx.scaleBandwidth() > 0;
 
         const seriesRegion = this.ctx.regionManager.getRegion(REGIONS.SERIES);
-        const mouseMoveStates = InteractionState.Default | InteractionState.Annotations;
 
         this.destroyFns.push(
-            seriesRegion.addListener('hover', (event) => this.onMouseMove(event), mouseMoveStates),
-            seriesRegion.addListener('drag', (event) => this.onMouseMove(event), mouseMoveStates),
-            seriesRegion.addListener('leave', () => this.onLeave(), mouseMoveStates),
+            seriesRegion.addListener('hover', (event) => this.show(event), InteractionState.Default),
+            seriesRegion.addListener('drag', (event) => this.show(event), InteractionState.Annotations),
+            seriesRegion.addListener('wheel', () => this.hide(), InteractionState.Default),
+            seriesRegion.addListener('leave', () => this.hide(), InteractionState.Default),
+            ctx.layoutManager.addListener('layout:complete', () => this.hide()),
             () => this.destroyElements(),
             () => this.wrapper.remove(),
             () => this.button.remove()
@@ -74,16 +75,17 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         this.ctx.domManager.removeChild('canvas-overlay', DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
     }
 
-    private onMouseMove(event: _ModuleSupport.PointerInteractionEvent<'hover' | 'drag'>) {
+    private show(event: _ModuleSupport.PointerInteractionEvent<'hover' | 'drag'>) {
         if (!this.enabled) return;
 
-        this.toggleVisibility(true);
         const buttonCoords = this.getButtonCoordinates({ x: event.offsetX, y: event.offsetY });
         this.coords = this.getAxisCoordinates(buttonCoords);
         this.updatePosition(buttonCoords);
+
+        this.toggleVisibility(true);
     }
 
-    private onLeave() {
+    private hide() {
         this.toggleVisibility(false);
     }
 
