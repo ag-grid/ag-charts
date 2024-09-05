@@ -36,8 +36,8 @@ export class AnnotationSettingsDialog extends Dialog {
         const fontSize = this.createFontSizeSelect(datum.text.fontSize, (value: number) =>
             options.onChange({ fontSize: value })
         );
-        const colorPicker = this.createColorPickerInput(datum.text.color, (color) => {
-            options.onChange({ color });
+        const colorPicker = this.createColorPickerInput(datum.text.color, (value) => {
+            options.onChange({ color: value });
         });
         fontSizeAndColor.append(fontSize, colorPicker);
 
@@ -62,8 +62,8 @@ export class AnnotationSettingsDialog extends Dialog {
     private createColorPickerInput(color: string | undefined, onChangeColor: (color: string) => void) {
         return this.createColorPicker({
             label: 'Color',
-            color,
-            onChange: (color) => onChangeColor(color),
+            value: color,
+            onChange: (value) => onChangeColor(value),
         });
     }
 

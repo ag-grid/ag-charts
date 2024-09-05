@@ -31,7 +31,7 @@ interface TextAreaOptions {
 
 interface ColorPickerOptions {
     label: string;
-    color: string | undefined;
+    value: string | undefined;
     onChange: (colorOpacity: string, color: string, opacity: number) => void;
 }
 
@@ -41,7 +41,7 @@ interface ColorPickerOptions {
 export abstract class Dialog<Options extends DialogOptions = DialogOptions> extends Popover<Options> {
     private static readonly offset = 100;
 
-    private colorPicker = new ColorPicker(this.ctx);
+    private readonly colorPicker = new ColorPicker(this.ctx);
     private colorPickerAnchorElement?: HTMLElement;
     private dragStartState?: { client: _Util.Vec2; position: _Util.Vec2 };
 
@@ -189,13 +189,13 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return textArea;
     }
 
-    protected createColorPicker({ color, label, onChange }: ColorPickerOptions) {
+    protected createColorPicker({ value, label, onChange }: ColorPickerOptions) {
         const group = this.createInputGroup(label);
 
         const colorEl = createElement('button', 'ag-charts-dialog__color-picker-button');
-        if (color) colorEl.style.setProperty('--color', color);
+        if (value) colorEl.style.setProperty('--color', value);
 
-        let defaultColor = color;
+        let defaultColor = value;
 
         colorEl.addEventListener('click', (sourceEvent) => {
             const { anchor, fallbackAnchor } = this.getColorPickerAnchors(colorEl) ?? {};
