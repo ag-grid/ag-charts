@@ -48,4 +48,6 @@ export interface AgBaseSeriesOptions<TDatum> extends AgBaseSeriesThemeableOption
     data?: TDatum[];
     /** Whether to display the series. */
     visible?: boolean;
+    /** Optional focus priority (default: `Infinity`). Series with lower priorities are focused first by keyboard navigation arrow keys. When series have duplicate priorities, the focus-order will match the declaration order. */
+    focusPriority?: number;
 }

@@ -6,6 +6,7 @@ import {
     COLOR_STRING,
     INTERACTION_RANGE,
     LINE_DASH,
+    NUMBER,
     OBJECT,
     POSITIVE_NUMBER,
     RATIO,
@@ -75,6 +76,9 @@ export abstract class SeriesProperties<T extends object> extends BaseProperties<
 
     @Validate(BOOLEAN)
     visible: boolean = true;
+
+    @Validate(NUMBER)
+    focusPriority: number = Infinity;
 
     @Validate(BOOLEAN)
     showInLegend: boolean = true;

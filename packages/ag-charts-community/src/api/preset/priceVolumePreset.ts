@@ -258,6 +258,7 @@ function createVolumeSeries(
             type: 'bar',
             xKey: 'date',
             yKey: volumeKey,
+            focusPriority: 1,
             tooltip: { enabled: false },
             // @ts-expect-error
             highlight: { enabled: false },
@@ -304,6 +305,7 @@ function createPriceSeries(
             return [
                 {
                     type: 'ohlc',
+                    focusPriority: 0,
                     ...common,
                     ...keys,
                 } satisfies AgOhlcSeriesOptions,
@@ -312,6 +314,7 @@ function createPriceSeries(
             return [
                 {
                     type: 'line',
+                    focusPriority: 0,
                     ...common,
                     ...singleKeys,
                     stroke: fromTheme(theme, (t) => t.overrides?.line?.series?.stroke) ?? PALETTE_NEUTRAL_STROKE,
@@ -322,6 +325,7 @@ function createPriceSeries(
             return [
                 {
                     type: 'line',
+                    focusPriority: 0,
                     ...common,
                     ...singleKeys,
                     stroke: fromTheme(theme, (t) => t.overrides?.line?.series?.stroke) ?? PALETTE_NEUTRAL_STROKE,
@@ -338,6 +342,7 @@ function createPriceSeries(
             return [
                 {
                     type: RANGE_AREA_TYPE,
+                    focusPriority: 0,
                     ...common,
                     xKey,
                     yHighKey: highKey,
@@ -349,6 +354,7 @@ function createPriceSeries(
                 } satisfies AgRangeAreaSeriesOptions,
                 {
                     type: RANGE_AREA_TYPE,
+                    focusPriority: 0,
                     ...common,
                     xKey,
                     yHighKey: closeKey,
@@ -373,6 +379,7 @@ function createPriceSeries(
             return [
                 {
                     type: 'range-bar',
+                    focusPriority: 0,
                     ...common,
                     xKey,
                     yHighKey: highKey,
@@ -388,6 +395,7 @@ function createPriceSeries(
             return [
                 {
                     type: 'candlestick',
+                    focusPriority: 0,
                     ...common,
                     ...keys,
                 } satisfies AgCandlestickSeriesOptions,
@@ -397,6 +405,7 @@ function createPriceSeries(
             return [
                 {
                     type: 'candlestick',
+                    focusPriority: 0,
                     ...common,
                     ...keys,
                     item: {
@@ -411,6 +420,7 @@ function createPriceSeries(
             return [
                 {
                     type: 'candlestick',
+                    focusPriority: 0,
                     ...common,
                     ...keys,
                 } satisfies AgCandlestickSeriesOptions,
