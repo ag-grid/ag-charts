@@ -1,11 +1,22 @@
-import { type TextAlign, type VerticalAlign, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import {
+    type AgLinearGaugeMarkerShape,
+    type AgLinearGaugeTargetPlacement,
+    type FontStyle,
+    type FontWeight,
+    type TextAlign,
+    type VerticalAlign,
+    _ModuleSupport,
+    _Scale,
+    _Scene,
+    _Util,
+} from 'ag-charts-community';
 
-import { LineMarker } from './lineMarker';
+import { LineMarker } from '../gauge-util/lineMarker';
 import {
     type LinearGaugeNodeDatum,
     LinearGaugeSeriesProperties,
     type LinearGaugeTargetDatum,
-    type LinearGaugeTargetProperties,
+    type LinearGaugeTargetDatumLabel,
     NodeDataType,
 } from './linearGaugeSeriesProperties';
 import { prepareLinearGaugeSeriesAnimationFunctions, resetLinearGaugeSeriesResetRectFunction } from './linearGaugeUtil';
@@ -17,12 +28,40 @@ const {
     StateMachine,
     createDatumId,
     ChartAxisDirection,
-    CachedTextMeasurerPool,
     EMPTY_TOOLTIP_CONTENT,
 } = _ModuleSupport;
 const { BBox, Group, PointerEvents, Selection, Rect, Text, LinearGradient, getMarker } = _Scene;
 const { ColorScale } = _Scale;
 const { toRadians } = _Util;
+
+interface TargetLabel {
+    enabled: boolean;
+    color: string;
+    fontStyle: FontStyle;
+    fontWeight: FontWeight;
+    fontSize: number;
+    fontFamily: string;
+    spacing: number;
+    // formatter: Formatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>;
+}
+
+interface Target {
+    text: string | undefined;
+    value: number;
+    shape: AgLinearGaugeMarkerShape;
+    placement: AgLinearGaugeTargetPlacement;
+    spacing: number;
+    size: number;
+    rotation: number;
+    fill: string;
+    fillOpacity: number;
+    stroke: string;
+    strokeWidth: number;
+    strokeOpacity: number;
+    lineDash: number[];
+    lineDashOffset: number;
+    label: TargetLabel;
+}
 
 export type GaugeAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 export type GaugeAnimationEvent =
@@ -93,8 +132,10 @@ export class LinearGaugeSeries
         this.itemTargetGroup,
         (datum) => this.markerFactory(datum)
     );
-    private targetLabelSelection: _Scene.Selection<_Scene.Text, _Util.PlacedLabel<_Util.PointLabelDatum>> =
-        Selection.select(this.itemTargetLabelGroup, Text);
+    private targetLabelSelection: _Scene.Selection<_Scene.Text, LinearGaugeTargetDatum> = Selection.select(
+        this.itemTargetLabelGroup,
+        Text
+    );
     // private labelSelection: _Scene.Selection<_Scene.Text, LinearGaugeLabelDatum> = Selection.select(
     //     this.itemLabelGroup,
     //     Text
@@ -202,15 +243,92 @@ export class LinearGaugeSeries
         return new LinearGradient('oklch', stops, horizontal ? 90 : 0, bbox);
     }
 
-    private getTargetPoint(targetProperties: LinearGaugeTargetProperties) {
+    private getTargets(): Target[] {
+        const { properties } = this;
+        const defaultTarget = properties.defaultTarget;
+        return Array.from(properties.targets).map((target): Target => {
+            const {
+                text = defaultTarget.text,
+                value = defaultTarget.value ?? 0,
+                placement = defaultTarget.placement ?? 'middle',
+                spacing = defaultTarget.spacing ?? 0,
+                size = defaultTarget.size ?? 0,
+                fill = defaultTarget.fill ?? 'black',
+                fillOpacity = defaultTarget.fillOpacity ?? 1,
+                stroke = defaultTarget.stroke ?? 'black',
+                strokeOpacity = defaultTarget.strokeOpacity ?? 1,
+                lineDash = defaultTarget.lineDash ?? [0],
+                lineDashOffset = defaultTarget.lineDashOffset ?? 0,
+            } = target;
+            const {
+                enabled: labelEnabled = defaultTarget.label.enabled,
+                color: labelColor = defaultTarget.label.color ?? 'black',
+                fontStyle: labelFontStyle = defaultTarget.label.fontStyle ?? 'normal',
+                fontWeight: labelFontWeight = defaultTarget.label.fontWeight ?? 'normal',
+                fontSize: labelFontSize = defaultTarget.label.fontSize,
+                fontFamily: labelFontFamily = defaultTarget.label.fontFamily,
+                spacing: labelSpacing = defaultTarget.label.spacing ?? 0,
+            } = target.label;
+
+            let {
+                shape = defaultTarget.shape,
+                rotation = defaultTarget.rotation,
+                strokeWidth = defaultTarget.strokeWidth,
+            } = target;
+            switch (placement) {
+                case 'before':
+                    shape ??= 'triangle';
+                    rotation ??= 90;
+                    break;
+                case 'after':
+                    shape ??= 'triangle';
+                    rotation ??= -90;
+                    break;
+                default:
+                    shape ??= 'circle';
+                    rotation ??= 0;
+            }
+            rotation = toRadians(rotation);
+
+            strokeWidth ??= shape === 'line' ? 2 : 0;
+
+            return {
+                text,
+                value,
+                shape,
+                placement,
+                spacing,
+                size,
+                rotation,
+                fill,
+                fillOpacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+                label: {
+                    enabled: labelEnabled,
+                    color: labelColor,
+                    fontStyle: labelFontStyle,
+                    fontWeight: labelFontWeight,
+                    fontSize: labelFontSize,
+                    fontFamily: labelFontFamily,
+                    spacing: labelSpacing,
+                },
+            };
+        });
+    }
+
+    private getTargetPoint(target: Target) {
         const xAxis = this.axes[ChartAxisDirection.X];
         const yAxis = this.axes[ChartAxisDirection.Y];
 
         if (xAxis == null || yAxis == null) return { x: 0, y: 0 };
 
         const { properties, originX, originY } = this;
-        const { horizontal, thickness, target } = properties;
-        const { value, placement = target.placement, spacing = target.spacing, size = target.size } = targetProperties;
+        const { horizontal, thickness } = properties;
+        const { value, placement, spacing, size } = target;
 
         const mainAxis = horizontal ? xAxis : yAxis;
         const mainOffset = mainAxis.scale.convert(value) - mainAxis.scale.range[0];
@@ -234,6 +352,59 @@ export class LinearGaugeSeries
         };
     }
 
+    private getTargetLabel(target: Target): LinearGaugeTargetDatumLabel {
+        const { size, placement, label } = target;
+        const { spacing, color: fill, fontStyle, fontWeight, fontSize, fontFamily } = label;
+        const lineHeight = undefined;
+
+        const offset = size / 2 + spacing;
+
+        let textAlign: CanvasTextAlign;
+        let textBaseline: CanvasTextBaseline;
+        let offsetX: number = 0;
+        let offsetY: number = 0;
+        if (this.horizontal) {
+            textAlign = 'center';
+
+            switch (placement) {
+                case 'after':
+                    textBaseline = 'top';
+                    offsetY = offset;
+                    break;
+                default:
+                    textBaseline = 'bottom';
+                    offsetY = -offset;
+                    break;
+            }
+        } else {
+            textBaseline = 'middle';
+
+            switch (placement) {
+                case 'before':
+                    textAlign = 'right';
+                    offsetX = -offset;
+                    break;
+                default:
+                    textAlign = 'left';
+                    offsetX = offset;
+                    break;
+            }
+        }
+
+        return {
+            offsetX,
+            offsetY,
+            fill,
+            textAlign,
+            textBaseline,
+            fontStyle,
+            fontWeight,
+            fontSize,
+            fontFamily,
+            lineHeight,
+        };
+    }
+
     override async createNodeData() {
         const { id: seriesId, properties, originX, originY } = this;
         const {
@@ -242,7 +413,6 @@ export class LinearGaugeSeries
             thickness,
             cornerRadius,
             cornerMode,
-            targets,
             bar,
             scale,
             // label,
@@ -250,6 +420,7 @@ export class LinearGaugeSeries
             barSpacing,
             defaultColorRange,
         } = properties;
+        const targets = this.getTargets();
 
         const xAxis = this.axes[ChartAxisDirection.X];
         const yAxis = this.axes[ChartAxisDirection.Y];
@@ -507,41 +678,24 @@ export class LinearGaugeSeries
         //     });
         // }
 
-        const { target } = properties;
         for (let i = 0; i < targets.length; i += 1) {
-            const t = targets[i];
+            const target = targets[i];
             const {
                 value: targetValue,
                 text,
-                placement = target.placement,
-                size = target.size,
-                fill = target.fill,
-                fillOpacity = target.fillOpacity,
-                stroke = target.stroke,
-                strokeOpacity = target.strokeOpacity,
-                lineDash = target.lineDash,
-                lineDashOffset = target.lineDashOffset,
-            } = t;
+                shape,
+                rotation,
+                size,
+                fill,
+                fillOpacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+            } = target;
 
-            const targetPoint = this.getTargetPoint(t);
-
-            let { shape = target.shape, rotation = target.rotation } = t;
-            switch (placement) {
-                case 'before':
-                    shape ??= 'triangle';
-                    rotation ??= 90;
-                    break;
-                case 'after':
-                    shape ??= 'triangle';
-                    rotation ??= -90;
-                    break;
-                default:
-                    shape ??= 'circle';
-                    rotation ??= 0;
-            }
-            rotation = toRadians(rotation);
-
-            const strokeWidth = t.strokeWidth ?? target.strokeWidth ?? (shape === 'line' ? 2 : 0);
+            const targetPoint = this.getTargetPoint(target);
 
             targetData.push({
                 series: this,
@@ -563,6 +717,7 @@ export class LinearGaugeSeries
                 strokeWidth,
                 lineDash,
                 lineDashOffset,
+                label: this.getTargetLabel(target),
             });
         }
 
@@ -617,7 +772,7 @@ export class LinearGaugeSeries
         this.targetSelection = await this.updateTargetSelection({ targetData, targetSelection });
         await this.updateTargetNodes({ targetSelection, isHighlight: false });
 
-        this.targetLabelSelection = await this.updateTargetLabelSelection({ targetLabelSelection });
+        this.targetLabelSelection = await this.updateTargetLabelSelection({ targetData, targetLabelSelection });
         await this.updateTargetLabelNodes({ targetLabelSelection });
 
         this.datumSelection = await this.updateDatumSelection({ nodeData, datumSelection });
@@ -756,30 +911,33 @@ export class LinearGaugeSeries
     }
 
     private async updateTargetLabelSelection(opts: {
-        targetLabelSelection: _Scene.Selection<_Scene.Text, _Util.PlacedLabel<_Util.PointLabelDatum>>;
+        targetData: LinearGaugeTargetDatum[];
+        targetLabelSelection: _Scene.Selection<_Scene.Text, LinearGaugeTargetDatum>;
     }) {
-        const targetLabelData = this.chart?.placeLabels(this.properties.target.label.spacing).get(this) ?? [];
-        return opts.targetLabelSelection.update(targetLabelData);
+        return opts.targetLabelSelection.update(opts.targetData);
     }
 
     private async updateTargetLabelNodes(opts: {
-        targetLabelSelection: _Scene.Selection<_Scene.Text, _Util.PlacedLabel<_Util.PointLabelDatum>>;
+        targetLabelSelection: _Scene.Selection<_Scene.Text, LinearGaugeTargetDatum>;
     }) {
         const { targetLabelSelection } = opts;
-        const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = this.properties.target.label;
 
-        targetLabelSelection.each((label, { x, y, width, height, text }) => {
+        targetLabelSelection.each((label, target) => {
+            const { x, y, text } = target;
+            const { offsetX, offsetY, fill, fontStyle, fontWeight, fontSize, fontFamily, textAlign, textBaseline } =
+                target.label;
+
             label.visible = true;
-            label.x = x + width / 2;
-            label.y = y + height / 2;
+            label.x = x + offsetX;
+            label.y = y + offsetY;
             label.text = text;
             label.fill = fill;
             label.fontStyle = fontStyle;
             label.fontWeight = fontWeight;
             label.fontSize = fontSize;
             label.fontFamily = fontFamily;
-            label.textAlign = 'center';
-            label.textBaseline = 'middle';
+            label.textAlign = textAlign;
+            label.textBaseline = textBaseline;
         });
     }
 
@@ -920,59 +1078,7 @@ export class LinearGaugeSeries
     }
 
     override getLabelData(): _Util.PointLabelDatum[] {
-        const angleAxis = this.axes[ChartAxisDirection.X];
-        if (angleAxis == null) return [];
-
-        const { properties } = this;
-        const { horizontal, target } = properties;
-        const { label } = target;
-
-        const font = label.getFont();
-        const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font });
-
-        return this.properties.targets
-            .filter((t) => t.text != null)
-            .map((t) => {
-                const { text = '', size = target.size, placement = target.placement } = t;
-                const { width, height } = textMeasurer.measureText(text);
-
-                const { x, y } = this.getTargetPoint(t);
-
-                const point: _Scene.SizedPoint = { x, y, size };
-                let labelPlacement: _Util.LabelPlacement;
-                if (horizontal) {
-                    switch (placement) {
-                        case 'before':
-                            labelPlacement = 'top';
-                            break;
-                        case 'after':
-                            labelPlacement = 'bottom';
-                            break;
-                        default:
-                            labelPlacement = 'top';
-                            break;
-                    }
-                } else {
-                    switch (placement) {
-                        case 'before':
-                            labelPlacement = 'left';
-                            break;
-                        case 'after':
-                            labelPlacement = 'right';
-                            break;
-                        default:
-                            labelPlacement = 'top';
-                            break;
-                    }
-                }
-
-                return {
-                    point,
-                    marker: undefined,
-                    label: { text, width, height },
-                    placement: labelPlacement,
-                };
-            });
+        return [];
     }
 
     override getSeriesDomain() {

@@ -12,7 +12,7 @@ import {
 } from 'ag-charts-community';
 
 import { formatLabel } from '../gauge-util/label';
-import { LineMarker } from './lineMarker';
+import { LineMarker } from '../gauge-util/lineMarker';
 import { RadialGaugeNeedle } from './radialGaugeNeedle';
 import {
     LabelType,
@@ -291,7 +291,7 @@ export class RadialGaugeSeries
                 fontWeight: labelFontWeight = defaultTarget.label.fontWeight ?? 'normal',
                 fontSize: labelFontSize = defaultTarget.label.fontSize,
                 fontFamily: labelFontFamily = defaultTarget.label.fontFamily,
-                spacing: labelSpacing = (defaultTarget.label.spacing = 0),
+                spacing: labelSpacing = defaultTarget.label.spacing ?? 0,
             } = target.label;
 
             let {

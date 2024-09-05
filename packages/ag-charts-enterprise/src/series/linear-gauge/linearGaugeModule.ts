@@ -32,7 +32,8 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
             bar: {
                 strokeWidth: 0,
             },
-            target: {
+            // @ts-expect-error Interla
+            defaultTarget: {
                 fill: DEFAULT_LABEL_COLOUR,
                 stroke: DEFAULT_LABEL_COLOUR,
                 size: 10,

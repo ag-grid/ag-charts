@@ -7,6 +7,8 @@ import type {
     AgLinearGaugeSeriesStyle,
     AgLinearGaugeSeriesTooltipRendererParams,
     AgLinearGaugeTargetPlacement,
+    FontStyle,
+    FontWeight,
     MarkerShape,
     Styler,
 } from 'ag-charts-types';
@@ -64,6 +66,19 @@ export interface LinearGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     verticalInset: number;
 }
 
+export interface LinearGaugeTargetDatumLabel {
+    offsetX: number;
+    offsetY: number;
+    fill: string | undefined;
+    textAlign: CanvasTextAlign;
+    textBaseline: CanvasTextBaseline;
+    fontStyle: FontStyle | undefined;
+    fontWeight: FontWeight | undefined;
+    fontSize: number;
+    fontFamily: string;
+    lineHeight: number | undefined;
+}
+
 export interface LinearGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum {
     type: NodeDataType.Target;
     value: number;
@@ -80,52 +95,12 @@ export interface LinearGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum {
     strokeWidth: number;
     lineDash: number[];
     lineDashOffset: number;
+    label: LinearGaugeTargetDatumLabel;
 }
 
 class LinearGaugeDefaultTargetLabelProperties extends Label<never> {
-    @Validate(NUMBER)
-    spacing: number = 0;
-}
-
-class LinearGaugeDefaultTargetProperties extends BaseProperties {
-    @Validate(TARGET_MARKER_SHAPE, { optional: true })
-    shape: AgLinearGaugeMarkerShape | undefined;
-
-    @Validate(TARGET_PLACEMENT)
-    placement: AgLinearGaugeTargetPlacement = 'middle';
-
-    @Validate(NUMBER)
-    spacing: number = 0;
-
-    @Validate(POSITIVE_NUMBER)
-    size: number = 0;
-
     @Validate(NUMBER, { optional: true })
-    rotation: number | undefined;
-
-    @Validate(COLOR_STRING)
-    fill: string = 'black';
-
-    @Validate(RATIO)
-    fillOpacity: number = 1;
-
-    @Validate(COLOR_STRING)
-    stroke: string = 'black';
-
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    strokeWidth: number | undefined;
-
-    @Validate(RATIO)
-    strokeOpacity: number = 1;
-
-    @Validate(LINE_DASH)
-    lineDash: number[] = [0];
-
-    @Validate(POSITIVE_NUMBER)
-    lineDashOffset: number = 0;
-
-    @Validate(OBJECT)
-    readonly label = new LinearGaugeDefaultTargetLabelProperties();
+    spacing: number | undefined;
 }
 
 export class LinearGaugeTargetProperties extends BaseProperties {
@@ -170,6 +145,9 @@ export class LinearGaugeTargetProperties extends BaseProperties {
 
     @Validate(POSITIVE_NUMBER, { optional: true })
     lineDashOffset: number | undefined;
+
+    @Validate(OBJECT)
+    readonly label = new LinearGaugeDefaultTargetLabelProperties();
 }
 
 export class LinearGaugeBarProperties extends BaseProperties {
@@ -254,7 +232,7 @@ export class LinearGaugeSeriesProperties extends SeriesProperties<AgLinearGaugeS
     targets = new PropertiesArray<LinearGaugeTargetProperties>(LinearGaugeTargetProperties);
 
     @Validate(OBJECT)
-    target = new LinearGaugeDefaultTargetProperties();
+    defaultTarget = new LinearGaugeTargetProperties();
 
     @Validate(BOOLEAN)
     horizontal: boolean = false;
