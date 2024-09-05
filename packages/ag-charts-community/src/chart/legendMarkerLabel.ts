@@ -116,7 +116,7 @@ export class LegendMarkerLabel extends Translatable(Group) {
     update(
         spriteRenderer: SpriteRenderer,
         { spriteAAPadding, spritePixelRatio: scale }: SpriteDimensions,
-        dimensionProps: { length: number; spacing: number }[]
+        dimensionProps: { length: number; spacing: number; isCustomMarker: boolean }[]
     ) {
         const { markers, lines } = this;
 
@@ -124,7 +124,7 @@ export class LegendMarkerLabel extends Translatable(Group) {
         let spriteY = 0;
         let shift = 0;
         for (let i = 0; i < Math.max(markers.length, lines.length); i++) {
-            const { length, spacing } = dimensionProps[i] ?? 0;
+            const { length, spacing, isCustomMarker } = dimensionProps[i] ?? 0;
             const marker = markers[i];
             const line = lines[i];
 
@@ -139,12 +139,19 @@ export class LegendMarkerLabel extends Translatable(Group) {
                 const center = (marker.constructor as MarkerConstructor).center;
                 const radius = (size + marker.strokeWidth) / 2;
 
-                marker.x = center.x;
-                marker.y = center.y;
-                marker.translationX = (center.x - 0.5) * size + length / 2 + shift;
-                marker.translationY = (center.y - 0.5) * size;
-                markerTop = marker.translationY - radius;
-                markerLeft = marker.translationX - radius;
+                if (isCustomMarker) {
+                    marker.x = 0;
+                    marker.y = 0;
+                    marker.translationX = (center.x - 0.5) * size + length / 2 + shift;
+                    marker.translationY = (center.y - 0.5) * size;
+                    markerTop = marker.translationY - radius;
+                    markerLeft = marker.translationX - radius;
+                } else {
+                    marker.x = (center.x - 0.5) * size + length / 2 + shift;
+                    marker.y = (center.y - 0.5) * size;
+                    markerTop = marker.y - radius;
+                    markerLeft = marker.x - radius;
+                }
             }
 
             if (line) {

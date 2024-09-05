@@ -510,11 +510,19 @@ export class Legend extends BaseProperties {
         return { oldPages };
     }
 
+    private isCustomMarker(
+        markerEnabled: boolean,
+        shape: LegendSymbolOptions['marker']['shape']
+    ): shape is typeof Marker {
+        return markerEnabled && shape !== undefined && typeof shape !== 'string';
+    }
+
     private calcSymbolsEnabled(symbol: LegendSymbolOptions) {
         const { showSeriesStroke, marker } = this.item;
         const markerEnabled = !!marker.enabled || !showSeriesStroke || (symbol.marker.enabled ?? true);
         const lineEnabled = !!(symbol.line && showSeriesStroke);
-        return { markerEnabled, lineEnabled };
+        const isCustomMarker = this.isCustomMarker(markerEnabled, symbol.marker.shape);
+        return { markerEnabled, lineEnabled, isCustomMarker };
     }
 
     private calcSymbolsLengths(symbol: LegendSymbolOptions) {
@@ -526,7 +534,7 @@ export class Legend extends BaseProperties {
         let customMarkerSize: number | undefined;
         const { shape } = symbol.marker;
         // Calculate the marker size of a custom marker shape:
-        if (markerEnabled && shape && typeof shape !== 'string') {
+        if (this.isCustomMarker(markerEnabled, shape)) {
             const tmpShape = new shape();
             tmpShape.updatePath();
             const bbox = tmpShape.getBBox();
@@ -576,7 +584,7 @@ export class Legend extends BaseProperties {
     ): number {
         const { marker: itemMarker, paddingX } = this.item;
         const { markerWidth } = spriteDims;
-        const dimensionProps: { length: number; spacing: number }[] = [];
+        const dimensionProps: { length: number; spacing: number; isCustomMarker: boolean }[] = [];
         let paddedSymbolWidth = paddingX;
 
         if (this._symbolsDirty) {
@@ -597,10 +605,10 @@ export class Legend extends BaseProperties {
 
         datum.symbols.forEach((symbol, i) => {
             const spacing = symbol.marker.padding ?? itemMarker.padding;
-            const { markerEnabled, lineEnabled } = this.calcSymbolsEnabled(symbol);
+            const { markerEnabled, lineEnabled, isCustomMarker } = this.calcSymbolsEnabled(symbol);
 
             markerLabel.markers[i].size = markerEnabled || !lineEnabled ? itemMarker.size : 0;
-            dimensionProps.push({ length: markerWidth, spacing });
+            dimensionProps.push({ length: markerWidth, spacing, isCustomMarker });
 
             if (markerEnabled || lineEnabled) {
                 paddedSymbolWidth += spacing + markerWidth;
