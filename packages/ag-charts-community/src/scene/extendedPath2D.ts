@@ -381,7 +381,8 @@ export class ExtendedPath2D {
     computeBBox(): BBox {
         const { commands, params } = this;
         let [top, left, right, bot] = [Infinity, Infinity, -Infinity, -Infinity];
-        let [sx, sy] = [NaN, NaN]; // the starting point of the  current path
+        let [sx, sy] = [NaN, NaN]; // the starting point of the current path
+        let [mx, my] = [NaN, NaN]; // the end point for a ClosePath command.
 
         const joinPoint = (x: number, y: number, updatestart?: boolean) => {
             top = Math.min(y, top);
@@ -398,6 +399,9 @@ export class ExtendedPath2D {
         for (let ci = 0; ci < commands.length; ci++) {
             switch (commands[ci]) {
                 case Command.Move:
+                    joinPoint(params[pi++], params[pi++], true);
+                    [mx, my] = [sx, sy];
+                    break;
                 case Command.Line:
                     joinPoint(params[pi++], params[pi++], true);
                     break;
@@ -447,6 +451,7 @@ export class ExtendedPath2D {
                     break;
                 }
                 case Command.ClosePath:
+                    [sx, sy] = [mx, my];
                     break;
             }
         }
