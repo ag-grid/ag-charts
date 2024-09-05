@@ -174,150 +174,132 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                 </div>
                 <div class={styles.enterpriseFeaturesContainer}>
                     <IndexGalleryExampleRunner examples={enterpriseExampleData} pageName={'range-bar'} />
-                    <div class={styles.cardContainer}>
-                        <div class={styles.card}>
-                            <h4>Interactivity</h4>
-                            <p>Animations, Context Menu, Cross Hairs, Navigator, Synchronization, Zoom</p>
-                        </div>
-                        <div class={styles.card}>
-                            <h4>Layout & Styling</h4>
-                            <p>Add Error Bars & Background Images</p>
-                        </div>
-                        <div class={styles.card}>
-                            <h4>Dedicated Support</h4>
-                            <p>Access to AG Charts experts for support & guidance via Zendesk</p>
-                        </div>
-                    </div>
-                </div>
-                <div class={styles.ctaButton}>
-                    <a href={urlWithBaseUrl('/license-pricing')} class="button-secondary">View Pricing</a>
                 </div>
             </div>
-        </div>
-        <div class={styles.section}>
-            <div class:list={[styles.financialChartsSectionInner, 'layout-max-width-small']}>
-                <div class={styles.sectionHeaderContainer}>
-                    <h2>JavaScript Financial Charts - Create Trading Views in Minutes</h2>
-                    <h3>Flexible, Interactive Financial Charts for Trading and Analysis</h3>
-                    <h4>
-                        Build interactive financial charts featuring advanced annotations with minimal configuration -
-                        just provide your data. Use the toolbar in the example below to add annotations, change the
-                        Series type, and interact with the data in real-time.
-                    </h4>
-                </div>
-                <div>
-                    <IndexDocsExampleRunner
-                        name={'../../vanilla/financial-charts/examples/financial-charts-showcase'}
-                    />
-                </div>
-                <div class={styles.ctaButton}>
-                    <a href={urlWithBaseUrl('react/financial-charts/')} class="button-secondary">Learn More</a>
-                </div>
+            <div class={styles.ctaButton}>
+                <a href={urlWithBaseUrl('/license-pricing')} class="button-secondary">View Pricing</a>
             </div>
         </div>
-        <div class={styles.section}>
-            <div class:list={[styles.financialChartsSectionInner, 'layout-max-width-small']}>
-                <div class={styles.sectionHeaderContainer}>
-                    <h2>JavaScript Map Charts - Easily Visualise Geographical Data</h2>
-                    <h3>Turn GeoJSON Data into Interactive Maps</h3>
-                    <h4>
-                        Visualise Geographical Areas, Overlay Routes & Connections, Add Markers & Points Of Interest
-                    </h4>
-                </div>
-                <div class={styles.cardContainer}>
-                    <div class={styles.card}>
-                        <h4>Geographic Areas</h4>
-                        <p>
-                            Visualise data representing geographic areas such as countries, using colours to denote
-                            distinct series or the magnitude of the values.
-                        </p>
-                        <IndexDocsExampleRunner name={'../../vanilla/map-shapes/examples/multiple-series/'} />
-                    </div>
-                    <div class={styles.card}>
-                        <h4>Routes & Connections</h4>
-                        <p>
-                            Draw geographic lines, such as roads or flight paths, with the ability to vary width and
-                            colour to represent data values.
-                        </p>
-                        <IndexDocsExampleRunner name={'../../vanilla/map-lines/examples/heatmap/'} />
-                    </div>
-                    <div class={styles.card}>
-                        <h4>Makers & POIs</h4>
-                        <p>
-                            Add markers data for geographic points, with the ability to vary the size to represent data
-                            values.
-                        </p>
-                        <IndexDocsExampleRunner name={'../../vanilla/map-markers/examples/marker-size/'} />
-                    </div>
-                </div>
-                <div class={styles.ctaButton}>
-                    <a href={urlWithBaseUrl('react/maps/')} class="button-secondary">Learn More</a>
-                </div>
+    </div>
+    <div class={styles.section}>
+        <div class:list={[styles.financialChartsSectionInner, 'layout-max-width-small']}>
+            <div class={styles.sectionHeaderContainer}>
+                <h2>JavaScript Financial Charts - Create Trading Views in Minutes</h2>
+                <h3>Flexible, Interactive Financial Charts for Trading and Analysis</h3>
+                <h4>
+                    Build interactive financial charts featuring advanced annotations with minimal configuration - just
+                    provide your data. Use the toolbar in the example below to add annotations, change the Series type,
+                    and interact with the data in real-time.
+                </h4>
+            </div>
+            <div>
+                <IndexDocsExampleRunner name={'../../vanilla/financial-charts/examples/financial-charts-showcase'} />
+            </div>
+            <div class={styles.ctaButton}>
+                <a href={urlWithBaseUrl('react/financial-charts/')} class="button-secondary">Learn More</a>
             </div>
         </div>
-        <div class={styles.section}>
-            <div class:list={[styles.benchmarkSectionInner, 'layout-max-width-small']}>
-                <div class={styles.sectionHeaderContainer}>
-                    <h2>Integrated JavaScript Charts</h2>
-                    <h3>AG Grid Integrated Charts, powered by AG Charts</h3>
-                    <h4>
-                        AG Charts is powers the Integrated Charts feature in AG Grid - our market leading data grid
-                        library which is used by 90% of the Fortune 500. Purchase an Enterprise Bundle License to access
-                        all of the Enterprise features in both AG Grid and AG Charts.
-                    </h4>
-                </div>
-                <AutomatedIntegratedChartsWrapper client:visible />
+    </div>
+    <div class={styles.section}>
+        <div class:list={[styles.financialChartsSectionInner, 'layout-max-width-small']}>
+            <div class={styles.sectionHeaderContainer}>
+                <h2>JavaScript Map Charts - Easily Visualise Geographical Data</h2>
+                <h3>Turn GeoJSON Data into Interactive Maps</h3>
+                <h4>Visualise Geographical Areas, Overlay Routes & Connections, Add Markers & Points Of Interest</h4>
             </div>
-        </div>
-        <div class={styles.section}>
-            <div class:list={[styles.latestNewsSectionInner, 'layout-max-width-small']}>
-                <div class={styles.sectionHeaderContainer}>
-                    <h2>Latest JavaScript Charting Releases from AG Charts</h2>
-                    <h3>Stay Up To Date With the Latest Changes from our JavaScript Charting Library</h3>
-                    <h4>
-                        Browse our changes to the JavaScript Charting Library, including new features, enhancements, and
-                        bug fixes.
-                    </h4>
+            <div class={styles.cardContainer}>
+                <div class={styles.card}>
+                    <h4>Geographic Areas</h4>
+                    <p>
+                        Visualise data representing geographic areas such as countries, using colours to denote distinct
+                        series or the magnitude of the values.
+                    </p>
+                    <IndexDocsExampleRunner name={'../../vanilla/map-shapes/examples/multiple-series/'} />
                 </div>
-                <div class={styles.latestNewsVersions}>
-                    {
-                        versionsData
-                            .filter((versionInfo) => versionInfo.version.endsWith('.0')) // Exclude patch releases
-                            .slice(0, 3)
-                            .map((versionInfo, index) => {
-                                if (versionInfo.highlights) {
-                                    const { major, minor } = parseVersion(versionInfo.version);
-                                    const blogUrl = `${minor ? `${blogPrefix}${major}-${minor}` : `${blogPrefix}${major}`}/`;
-                                    return (
-                                        <Version
-                                            client:load
-                                            isLatest={index === 0}
-                                            blogUrl={blogUrl}
-                                            version={versionInfo.version}
-                                            date={versionInfo.date}
-                                            highlights={versionInfo.highlights}
-                                            notesPath={versionInfo.notesPath}
-                                        />
-                                    );
-                                }
-                            })
-                    }
+                <div class={styles.card}>
+                    <h4>Routes & Connections</h4>
+                    <p>
+                        Draw geographic lines, such as roads or flight paths, with the ability to vary width and colour
+                        to represent data values.
+                    </p>
+                    <IndexDocsExampleRunner name={'../../vanilla/map-lines/examples/heatmap/'} />
                 </div>
-                <div class={styles.ctaButton}>
-                    <a href={urlWithBaseUrl('react/maps/')} class="button-secondary">View More</a>
+                <div class={styles.card}>
+                    <h4>Makers & POIs</h4>
+                    <p>
+                        Add markers data for geographic points, with the ability to vary the size to represent data
+                        values.
+                    </p>
+                    <IndexDocsExampleRunner name={'../../vanilla/map-markers/examples/marker-size/'} />
                 </div>
             </div>
+            <div class={styles.ctaButton}>
+                <a href={urlWithBaseUrl('react/maps/')} class="button-secondary">Learn More</a>
+            </div>
         </div>
-        <div class={styles.section}>
-            <div class:list={[styles.faqSectionInner, 'layout-max-width-small']}>
-                <div class={styles.sectionHeaderContainer}>
-                    <h2>JavaScript Charts Frequently Asked Questions</h2>
-                    <h3>FAQs</h3>
-                    <h4>Answers to common questions about AG Charts, and JavaScript Charting in general.</h4>
-                </div>
-                <div>
-                    <Faqs client:load />
-                </div>
+    </div>
+    <div class={styles.section}>
+        <div class:list={[styles.benchmarkSectionInner, 'layout-max-width-small']}>
+            <div class={styles.sectionHeaderContainer}>
+                <h2>Integrated JavaScript Charts</h2>
+                <h3>AG Grid Integrated Charts, powered by AG Charts</h3>
+                <h4>
+                    AG Charts is powers the Integrated Charts feature in AG Grid - our market leading data grid library
+                    which is used by 90% of the Fortune 500. Purchase an Enterprise Bundle License to access all of the
+                    Enterprise features in both AG Grid and AG Charts.
+                </h4>
+            </div>
+            <AutomatedIntegratedChartsWrapper client:visible />
+        </div>
+    </div>
+    <div class={styles.section}>
+        <div class:list={[styles.latestNewsSectionInner, 'layout-max-width-small']}>
+            <div class={styles.sectionHeaderContainer}>
+                <h2>Latest JavaScript Charting Releases from AG Charts</h2>
+                <h3>Stay Up To Date With the Latest Changes from our JavaScript Charting Library</h3>
+                <h4>
+                    Browse our changes to the JavaScript Charting Library, including new features, enhancements, and bug
+                    fixes.
+                </h4>
+            </div>
+            <div class={styles.latestNewsVersions}>
+                {
+                    versionsData
+                        .filter((versionInfo) => versionInfo.version.endsWith('.0')) // Exclude patch releases
+                        .slice(0, 3)
+                        .map((versionInfo, index) => {
+                            if (versionInfo.highlights) {
+                                const { major, minor } = parseVersion(versionInfo.version);
+                                const blogUrl = `${minor ? `${blogPrefix}${major}-${minor}` : `${blogPrefix}${major}`}/`;
+                                return (
+                                    <Version
+                                        client:load
+                                        isLatest={index === 0}
+                                        blogUrl={blogUrl}
+                                        version={versionInfo.version}
+                                        date={versionInfo.date}
+                                        highlights={versionInfo.highlights}
+                                        notesPath={versionInfo.notesPath}
+                                    />
+                                );
+                            }
+                        })
+                }
+            </div>
+            <div class={styles.ctaButton}>
+                <a href={urlWithBaseUrl('react/maps/')} class="button-secondary">View More</a>
+            </div>
+        </div>
+    </div>
+    <div class={styles.section}>
+        <div class:list={[styles.faqSectionInner, 'layout-max-width-small']}>
+            <div class={styles.sectionHeaderContainer}>
+                <h2>JavaScript Charts Frequently Asked Questions</h2>
+                <h3>FAQs</h3>
+                <h4>Answers to common questions about AG Charts, and JavaScript Charting in general.</h4>
+            </div>
+            <div>
+                <Faqs client:load />
             </div>
         </div>
     </div>
