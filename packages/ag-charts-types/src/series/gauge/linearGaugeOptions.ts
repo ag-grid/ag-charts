@@ -69,6 +69,8 @@ export interface AgLinearGaugeSeriesStyle {
 export interface AgLinearGaugeSeriesBarStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Whether the bar should be shown. */
     enabled?: boolean;
+    /** Width of the bar, or the height if `horizontal` is true. Defaults to the gauge thickness. */
+    thickness?: number;
     /** Configuration the colours. */
     colorRange?: CssColor[];
 }
