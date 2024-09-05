@@ -1,12 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { AgIconName } from 'ag-charts-types';
 
-import { AnchoredPopover } from '../popover/anchoredPopover';
-import type { PopoverOptions } from '../popover/popover';
+import { AnchoredPopover, type AnchoredPopoverOptions } from '../popover/anchoredPopover';
 
 const { createElement, initMenuKeyNav, isButtonClickEvent } = _ModuleSupport;
 
-export interface MenuOptions<Value = any> extends PopoverOptions {
+export interface MenuOptions<Value = any> extends AnchoredPopoverOptions {
     items: Array<MenuItem<Value>>;
     sourceEvent: Event;
     value?: Value;

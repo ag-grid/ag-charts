@@ -414,7 +414,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             showAnnotationSettings: (active: number) => {
                 const datum = this.annotationData.at(active);
                 if (!hasLineText(datum)) return;
-                this.settingsDialog.showLine(datum, {
+                this.settingsDialog.showLineOrChannel(datum, {
                     onChange: (props) => {
                         this.state.transition('lineText', props);
                     },

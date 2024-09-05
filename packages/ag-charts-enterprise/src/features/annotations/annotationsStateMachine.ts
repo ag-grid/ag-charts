@@ -12,6 +12,7 @@ import type {
     AnnotationsStateMachineContext,
     AnnotationsStateMachineHelperFns,
 } from './annotationsSuperTypes';
+import type { LineSettingsDialogChangeProps } from './settings-dialog/settingsDialog';
 import { guardCancelAndExit, guardSaveAndExit } from './states/textualStateUtils';
 import { hasLineStyle, hasLineText } from './utils/has';
 import { setColor, setFontSize, setLineStyle } from './utils/styles';
@@ -282,7 +283,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 lineText: {
                     guard: guardActive,
-                    action: (props: { alignment?: string; fontSize?: number; label?: string; position?: string }) => {
+                    action: (props: LineSettingsDialogChangeProps) => {
                         const datum = getTypedDatum(ctx.datum(this.active!));
                         if (!hasLineText(datum)) return;
                         if (isChannelType(datum) && props.position === 'center') {

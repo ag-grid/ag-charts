@@ -27,6 +27,10 @@
     text-align: center;
 }
 
+.ag-charts-dialog__drag-handle--dragging {
+    cursor: grabbing;
+}
+
 .ag-charts-dialog__title {
     padding: var(--spacing) 0;
 }
@@ -53,6 +57,11 @@
  **********/
 
 /* Input group */
+.ag-charts-dialog__input-group-line {
+    display: flex;
+    gap: 18px;
+}
+
 .ag-charts-dialog__input-group {
     align-items: center;
     display: flex;
@@ -64,14 +73,14 @@
     margin-right: 5px;
 }
 
-/* Button group */
+/* Button */
 .ag-charts-dialog__button {
     background: var(--ag-charts-dialog-input-background);
     border: 1px solid var(--ag-charts-border-color);
     color: inherit;
     cursor: pointer;
     margin-right: -1px;
-    padding: 4px;
+    padding: 2px;
 }
 
 .ag-charts-dialog__button:hover {
@@ -81,6 +90,7 @@
 .ag-charts-dialog__button.ag-charts-dialog__button--active {
     background: var(--ag-charts-popover-active-background-color);
     border-color: var(--ag-charts-popover-active-color);
+    color: var(--ag-charts-popover-active-color);
     z-index: 1;
 }
 
@@ -101,8 +111,7 @@
     border: 1px solid var(--ag-charts-border-color);
     border-radius: var(--ag-charts-popover-border-radius);
     color: inherit;
-    height: 30px;
-    padding: 0 2px;
+    padding: 3px 2px 4px;
 }
 
 /* Textarea */
@@ -123,10 +132,22 @@
     content: attr(placeholder);
 }
 
+/* Color picker */
+.ag-charts-dialog__color-picker-button {
+    --color: #000;
+    background: var(--color);
+    border: none;
+    border-radius: var(--ag-charts-popover-border-radius);
+    cursor: pointer;
+    height: 26px;
+    width: 26px;
+}
+
 /* Focus indicator */
 .ag-charts-dialog__button:focus-visible,
 .ag-charts-dialog__select:focus-visible,
-.ag-charts-dialog__textarea:focus-visible {
+.ag-charts-dialog__textarea:focus-visible,
+.ag-charts-dialog__color-picker-button:focus-visible {
     outline: var(--ag-charts-focus-border);
     box-shadow: var(--ag-charts-focus-border-shadow);
     z-index: calc(var(--ag-charts-layer-ui-overlay) + 1);

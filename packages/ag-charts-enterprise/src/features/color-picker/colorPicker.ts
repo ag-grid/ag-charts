@@ -1,6 +1,7 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { AnchoredPopover, type AnchoredPopoverOptions } from '../../components/popover/anchoredPopover';
+import type { PopoverConstructorOptions } from '../../components/popover/popover';
 import colorPickerTemplate from './colorPickerTemplate.html';
 
 const { createElement } = _ModuleSupport;
@@ -30,8 +31,8 @@ export class ColorPicker extends AnchoredPopover<ColorPickerOptions> {
     private hasChanged = false;
     private onChangeHide?: () => void;
 
-    constructor(ctx: _ModuleSupport.ModuleContext) {
-        super(ctx, 'color-picker');
+    constructor(ctx: _ModuleSupport.ModuleContext, options?: PopoverConstructorOptions) {
+        super(ctx, 'color-picker', options);
         this.hideFns.push(() => {
             this.lastFocus?.focus();
             this.lastFocus = undefined;
@@ -40,6 +41,7 @@ export class ColorPicker extends AnchoredPopover<ColorPickerOptions> {
             if (this.hasChanged) this.onChangeHide?.();
         });
     }
+
     public show(options: ColorPickerOptions) {
         this.hasChanged = false;
         this.onChangeHide = options.onChangeHide;
