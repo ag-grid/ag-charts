@@ -17,6 +17,7 @@ interface RadioGroupOptions {
 }
 
 interface SelectOptions {
+    altText: string;
     label: string;
     options: Array<{ label: string; value: string }>;
     value: string;
@@ -30,6 +31,7 @@ interface TextAreaOptions {
 }
 
 interface ColorPickerOptions {
+    altText: string;
     label: string;
     value: string | undefined;
     onChange: (colorOpacity: string, color: string, opacity: number) => void;
@@ -113,8 +115,10 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         for (const button of options) {
             const buttonEl = createElement('button', `ag-charts-dialog__button`);
             const iconEl = createElement('span', this.ctx.domManager.getIconClassNames(button.icon));
+            const altTextT = this.ctx.localeManager.t(button.altText);
             buttonEl.role = 'radio';
-            buttonEl.ariaLabel = this.ctx.localeManager.t(button.altText ?? '');
+            buttonEl.ariaLabel = altTextT;
+            buttonEl.title = altTextT;
             iconEl.ariaHidden = 'true';
             if (button.value === value) {
                 buttonEl.classList.add(activeClass);
@@ -122,7 +126,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             } else {
                 buttonEl.ariaChecked = 'false';
             }
-            buttonEl.ariaLabel = this.ctx.localeManager.t(button.altText);
             buttonEl.appendChild(iconEl);
             buttonEl.addEventListener('click', () => {
                 for (const b of Array.from(group.children)) {
@@ -141,10 +144,13 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return group;
     }
 
-    protected createSelect({ label, options, value, onChange }: SelectOptions) {
+    protected createSelect({ altText, label, options, value, onChange }: SelectOptions) {
         const group = this.createInputGroup(label);
 
         const select = createElement('select', 'ag-charts-dialog__select');
+        const altTextT = this.ctx.localeManager.t(altText);
+        select.ariaLabel = altTextT;
+        select.title = altTextT;
         for (const option of options) {
             const optionEl = createElement('option');
             optionEl.value = option.value;
@@ -174,7 +180,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         }
 
         if (options.placeholder != null) {
-            textArea.setAttribute('placeholder', options.placeholder);
+            textArea.setAttribute('placeholder', this.ctx.localeManager.t(options.placeholder));
         }
 
         if (options.value != null) {
@@ -190,12 +196,15 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return textArea;
     }
 
-    protected createColorPicker({ value, label, onChange }: ColorPickerOptions) {
+    protected createColorPicker({ value, label, altText, onChange }: ColorPickerOptions) {
         const group = this.createInputGroup(label);
 
         const colorEl = createElement('button', 'ag-charts-dialog__color-picker-button');
-        if (value) colorEl.style.setProperty('--color', value);
+        const altTextT = this.ctx.localeManager.t(altText);
+        colorEl.ariaLabel = altTextT;
+        colorEl.title = altTextT;
 
+        if (value) colorEl.style.setProperty('--color', value);
         let defaultColor = value;
 
         colorEl.addEventListener('click', (sourceEvent) => {
@@ -241,7 +250,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 
     private createHeaderTabGroup(label: string) {
         const title = createElement('div', 'ag-charts-dialog__title');
-        title.textContent = label;
+        title.textContent = this.ctx.localeManager.t(label);
 
         return title;
     }
@@ -261,7 +270,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const group = createElement('div', 'ag-charts-dialog__input-group');
 
         const labelEl = createElement('div', 'ag-charts-dialog__input-group-label');
-        labelEl.innerText = label;
+        labelEl.innerText = this.ctx.localeManager.t(label);
         group.appendChild(labelEl);
 
         return group;

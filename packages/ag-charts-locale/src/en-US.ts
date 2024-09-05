@@ -196,4 +196,20 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     contextMenuZoomToCursor: 'Zoom to here',
     // Text for the context menu's pan to point button
     contextMenuPanToCursor: 'Pan to here',
+    // Text for the annotation dialog's header text tab label
+    dialogHeaderText: 'Text',
+    // Text for the annotation dialog's text alignment buttons label
+    dialogInputAlign: 'Align',
+    // Text for the annotation dialog's color picker label
+    dialogInputColorPicker: 'Color',
+    // Text for the annotation dialog's color picker label
+    dialogInputColorPickerAltText: 'Text Color',
+    // Text for the annotation dialog's font size select box label
+    dialogInputFontSize: 'Size',
+    // Text for the annotation dialog's font size select box alt text
+    dialogInputFontSizeAltText: 'Font Size',
+    // Text for the annotation dialog's text position buttons label
+    dialogInputPosition: 'Position',
+    // Text for the annotation dialog's textarea placeholder
+    dialogInputTextareaPlaceholder: 'Add Text',
 };

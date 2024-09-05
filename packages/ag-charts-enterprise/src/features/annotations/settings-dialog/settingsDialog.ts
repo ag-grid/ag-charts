@@ -23,11 +23,11 @@ export class AnnotationSettingsDialog extends Dialog {
     }
 
     showLineOrChannel(datum: LinePropertiesType | ChannelPropertiesType, options: LineSettingsDialogOptions) {
-        const header = this.createHeader('Text');
+        const header = this.createHeader('dialogHeaderText');
         const textTabContent = this.createTabContent();
 
         const textArea = this.createTextArea({
-            placeholder: 'Add Text',
+            placeholder: 'dialogInputTextareaPlaceholder',
             value: datum.text.label,
             onChange: (label) => options.onChange({ label }),
         });
@@ -61,7 +61,8 @@ export class AnnotationSettingsDialog extends Dialog {
 
     private createColorPickerInput(color: string | undefined, onChangeColor: (color: string) => void) {
         return this.createColorPicker({
-            label: 'Color',
+            label: 'dialogInputColorPicker',
+            altText: 'dialogInputColorPickerAltText',
             value: color,
             onChange: (value) => onChangeColor(value),
         });
@@ -69,7 +70,8 @@ export class AnnotationSettingsDialog extends Dialog {
 
     private createFontSizeSelect(fontSize: number, onChangeFontSize: (fontSize: number) => void) {
         return this.createSelect({
-            label: 'Size',
+            label: 'dialogInputFontSize',
+            altText: 'dialogInputFontSizeAltText',
             options: [10, 12, 14, 16, 18, 22, 28, 36, 46].map((n) => ({ label: `${n}px`, value: `${n}` })),
             value: `${fontSize}`,
             onChange: (value) => onChangeFontSize(Number(value)),
@@ -78,7 +80,7 @@ export class AnnotationSettingsDialog extends Dialog {
 
     private createPositionButtonGroup(position: string, onChangePosition: (position: string) => void) {
         return this.createRadioGroup({
-            label: 'Position',
+            label: 'dialogInputPosition',
             options: [
                 { icon: 'position-top', altText: 'iconAltTextPositionTop', value: 'top' },
                 { icon: 'position-center', altText: 'iconAltTextPositionCenter', value: 'center' },
@@ -91,7 +93,7 @@ export class AnnotationSettingsDialog extends Dialog {
 
     private createAlignmentButtonGroup(alignment: string, onChangeAlignment: (alignment: string) => void) {
         return this.createRadioGroup({
-            label: 'Align',
+            label: 'dialogInputAlign',
             options: [
                 { icon: 'align-left', altText: 'iconAltTextAlignLeft', value: 'left' },
                 { icon: 'align-center', altText: 'iconAltTextAlignCenter', value: 'center' },
