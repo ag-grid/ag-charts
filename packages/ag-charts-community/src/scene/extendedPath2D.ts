@@ -1,5 +1,5 @@
 import { normalizeAngle360 } from '../util/angle';
-import { bezierAt, calculateDerivativeExtremaXY } from '../util/bezier';
+import { evaluateBezier, calculateDerivativeExtremaXY } from './util/bezier';
 import { arcDistanceSquared, lineDistanceSquared } from '../util/distance';
 import { Logger } from '../util/logger';
 import { BBox } from './bbox';
@@ -414,8 +414,8 @@ export class ExtendedPath2D {
 
                     // Check points where the derivative is zero
                     Ts.forEach((t: number) => {
-                        const px = bezierAt(sx, cp1x, cp2x, x, t);
-                        const py = bezierAt(sy, cp1y, cp2y, y, t);
+                        const px = evaluateBezier(sx, cp1x, cp2x, x, t);
+                        const py = evaluateBezier(sy, cp1y, cp2y, y, t);
                         joinPoint(px, py);
                     });
                     break;
