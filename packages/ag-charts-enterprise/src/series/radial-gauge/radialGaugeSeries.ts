@@ -1,4 +1,15 @@
-import { type TextAlign, type VerticalAlign, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import {
+    type AgRadialGaugeMarkerShape,
+    type AgRadialGaugeTargetPlacement,
+    type FontStyle,
+    type FontWeight,
+    type TextAlign,
+    type VerticalAlign,
+    _ModuleSupport,
+    _Scale,
+    _Scene,
+    _Util,
+} from 'ag-charts-community';
 
 import { formatLabel } from '../gauge-util/label';
 import { LineMarker } from './lineMarker';
@@ -10,7 +21,7 @@ import {
     type RadialGaugeNodeDatum,
     RadialGaugeSeriesProperties,
     type RadialGaugeTargetDatum,
-    type RadialGaugeTargetProperties,
+    type RadialGaugeTargetDatumLabel,
 } from './radialGaugeSeriesProperties';
 import {
     fadeInFns,
@@ -28,12 +39,40 @@ const {
     StateMachine,
     createDatumId,
     ChartAxisDirection,
-    CachedTextMeasurerPool,
     EMPTY_TOOLTIP_CONTENT,
 } = _ModuleSupport;
 const { Group, PointerEvents, Selection, Sector, Text, ConicGradient, getMarker } = _Scene;
 const { ColorScale } = _Scale;
 const { normalizeAngle360, normalizeAngle360Inclusive, toDegrees, toRadians } = _Util;
+
+interface TargetLabel {
+    enabled: boolean;
+    color: string;
+    fontStyle: FontStyle;
+    fontWeight: FontWeight;
+    fontSize: number;
+    fontFamily: string;
+    spacing: number;
+    // formatter: Formatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>;
+}
+
+interface Target {
+    text: string | undefined;
+    value: number;
+    shape: AgRadialGaugeMarkerShape;
+    placement: AgRadialGaugeTargetPlacement;
+    spacing: number;
+    size: number;
+    rotation: number;
+    fill: string;
+    fillOpacity: number;
+    stroke: string;
+    strokeWidth: number;
+    strokeOpacity: number;
+    lineDash: number[];
+    lineDashOffset: number;
+    label: TargetLabel;
+}
 
 export type GaugeAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 export type GaugeAnimationEvent =
@@ -60,8 +99,18 @@ interface RadialGaugeNodeDataContext
     scaleData: RadialGaugeNodeDatum[];
 }
 
-const outsideLabelPlacements: _Util.LabelPlacement[] = ['bottom-right', 'bottom-left', 'top-left', 'top-right'];
-const insideLabelPlacements: _Util.LabelPlacement[] = ['top-left', 'top-right', 'bottom-right', 'bottom-left'];
+const outsideLabelPlacements: Array<{ textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline }> = [
+    { textAlign: 'left', textBaseline: 'top' },
+    { textAlign: 'right', textBaseline: 'top' },
+    { textAlign: 'right', textBaseline: 'bottom' },
+    { textAlign: 'left', textBaseline: 'bottom' },
+];
+const insideLabelPlacements: Array<{ textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline }> = [
+    { textAlign: 'right', textBaseline: 'bottom' },
+    { textAlign: 'left', textBaseline: 'bottom' },
+    { textAlign: 'left', textBaseline: 'top' },
+    { textAlign: 'right', textBaseline: 'top' },
+];
 
 export class RadialGaugeSeries
     extends _ModuleSupport.Series<
@@ -111,8 +160,10 @@ export class RadialGaugeSeries
         this.itemTargetGroup,
         (datum) => this.markerFactory(datum)
     );
-    private targetLabelSelection: _Scene.Selection<_Scene.Text, _Util.PlacedLabel<_Util.PointLabelDatum>> =
-        Selection.select(this.itemTargetLabelGroup, Text);
+    private targetLabelSelection: _Scene.Selection<_Scene.Text, RadialGaugeTargetDatum> = Selection.select(
+        this.itemTargetLabelGroup,
+        Text
+    );
     private labelSelection: _Scene.Selection<_Scene.Text, RadialGaugeLabelDatum> = Selection.select(
         this.itemLabelGroup,
         Text
@@ -216,10 +267,87 @@ export class RadialGaugeSeries
         return new ConicGradient('oklch', stops, toDegrees(conicAngle) - 90);
     }
 
-    private getTargetRadius(targetProperties: RadialGaugeTargetProperties) {
+    private getTargets(): Target[] {
+        const { properties } = this;
+        const defaultTarget = properties.defaultTarget;
+        return Array.from(properties.targets).map((target): Target => {
+            const {
+                text = defaultTarget.text,
+                value = defaultTarget.value ?? 0,
+                placement = defaultTarget.placement ?? 'middle',
+                spacing = defaultTarget.spacing ?? 0,
+                size = defaultTarget.size ?? 0,
+                fill = defaultTarget.fill ?? 'black',
+                fillOpacity = defaultTarget.fillOpacity ?? 1,
+                stroke = defaultTarget.stroke ?? 'black',
+                strokeOpacity = defaultTarget.strokeOpacity ?? 1,
+                lineDash = defaultTarget.lineDash ?? [0],
+                lineDashOffset = defaultTarget.lineDashOffset ?? 0,
+            } = target;
+            const {
+                enabled: labelEnabled = defaultTarget.label.enabled,
+                color: labelColor = defaultTarget.label.color ?? 'black',
+                fontStyle: labelFontStyle = defaultTarget.label.fontStyle ?? 'normal',
+                fontWeight: labelFontWeight = defaultTarget.label.fontWeight ?? 'normal',
+                fontSize: labelFontSize = defaultTarget.label.fontSize,
+                fontFamily: labelFontFamily = defaultTarget.label.fontFamily,
+                spacing: labelSpacing = (defaultTarget.label.spacing = 0),
+            } = target.label;
+
+            let {
+                shape = defaultTarget.shape,
+                rotation = defaultTarget.rotation,
+                strokeWidth = defaultTarget.strokeWidth,
+            } = target;
+            switch (placement) {
+                case 'outside':
+                    shape ??= 'triangle';
+                    rotation ??= 180;
+                    break;
+                case 'inside':
+                    shape ??= 'triangle';
+                    rotation ??= 0;
+                    break;
+                default:
+                    shape ??= 'circle';
+                    rotation ??= 0;
+            }
+            rotation = toRadians(rotation);
+
+            strokeWidth ??= shape === 'line' ? 2 : 0;
+
+            return {
+                text,
+                value,
+                shape,
+                placement,
+                spacing,
+                size,
+                rotation,
+                fill,
+                fillOpacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+                label: {
+                    enabled: labelEnabled,
+                    color: labelColor,
+                    fontStyle: labelFontStyle,
+                    fontWeight: labelFontWeight,
+                    fontSize: labelFontSize,
+                    fontFamily: labelFontFamily,
+                    spacing: labelSpacing,
+                },
+            };
+        });
+    }
+
+    private getTargetRadius(target: Target) {
         const { radius, properties } = this;
-        const { innerRadiusRatio, outerRadiusRatio, target } = properties;
-        const { placement = target.placement, spacing = target.spacing, size = target.size } = targetProperties;
+        const { innerRadiusRatio, outerRadiusRatio } = properties;
+        const { placement, spacing, size } = target;
 
         const outerRadius = radius * outerRadiusRatio;
         const innerRadius = radius * innerRadiusRatio;
@@ -234,6 +362,56 @@ export class RadialGaugeSeries
         }
     }
 
+    private getTargetLabel(target: Target): RadialGaugeTargetDatumLabel {
+        const angleAxis = this.axes[ChartAxisDirection.X]!;
+        const angleScale = angleAxis.scale;
+
+        const { value, size, placement, label } = target;
+        const { spacing, color: fill, fontStyle, fontWeight, fontSize, fontFamily } = label;
+        const lineHeight = undefined;
+        const angle = angleScale.convert(value);
+
+        const quadrant = (normalizeAngle360(angle) / (Math.PI / 2)) | 0;
+
+        const offset = size / 2 + spacing;
+
+        let textAlign: CanvasTextAlign;
+        let textBaseline: CanvasTextBaseline;
+        let offsetX: number;
+        let offsetY: number;
+        switch (placement) {
+            case 'outside':
+                ({ textAlign, textBaseline } = outsideLabelPlacements[quadrant]);
+                offsetX = offset * Math.cos(angle);
+                offsetY = offset * Math.sin(angle);
+                break;
+            case 'inside':
+                ({ textAlign, textBaseline } = insideLabelPlacements[quadrant]);
+                offsetX = -offset * Math.cos(angle);
+                offsetY = -offset * Math.sin(angle);
+                break;
+            default:
+                textAlign = 'center';
+                textBaseline = 'bottom';
+                offsetX = 0;
+                offsetY = -offset;
+                break;
+        }
+
+        return {
+            offsetX,
+            offsetY,
+            fill,
+            textAlign,
+            textBaseline,
+            fontStyle,
+            fontWeight,
+            fontSize,
+            fontFamily,
+            lineHeight,
+        };
+    }
+
     override async createNodeData() {
         const angleAxis = this.axes[ChartAxisDirection.X];
         if (angleAxis == null) return;
@@ -246,13 +424,13 @@ export class RadialGaugeSeries
             cornerRadius,
             cornerMode,
             needle,
-            targets,
             bar,
             scale,
             label,
             secondaryLabel,
             defaultColorRange,
         } = properties;
+        const targets = this.getTargets();
 
         const { domain } = angleAxis.scale;
         const nodeData: RadialGaugeNodeDatum[] = [];
@@ -464,46 +642,29 @@ export class RadialGaugeSeries
             });
         }
 
-        const { target } = properties;
         for (let i = 0; i < targets.length; i += 1) {
-            const t = targets[i];
+            const target = targets[i];
             const {
                 value: targetValue,
                 text,
-                placement = target.placement,
-                size = target.size,
-                fill = target.fill,
-                fillOpacity = target.fillOpacity,
-                stroke = target.stroke,
-                strokeOpacity = target.strokeOpacity,
-                lineDash = target.lineDash,
-                lineDashOffset = target.lineDashOffset,
-            } = t;
+                size,
+                shape,
+                rotation,
+                fill,
+                fillOpacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+            } = target;
 
             if (targetValue < Math.min(...domain) || targetValue > Math.max(...domain)) {
                 continue;
             }
 
-            const targetRadius = this.getTargetRadius(t);
+            const targetRadius = this.getTargetRadius(target);
             const targetAngle = angleScale.convert(targetValue);
-
-            let { shape = target.shape, rotation = target.rotation } = t;
-            switch (placement) {
-                case 'outside':
-                    shape ??= 'triangle';
-                    rotation ??= 180;
-                    break;
-                case 'inside':
-                    shape ??= 'triangle';
-                    rotation ??= 0;
-                    break;
-                default:
-                    shape ??= 'circle';
-                    rotation ??= 0;
-            }
-            rotation = toRadians(rotation);
-
-            const strokeWidth = t.strokeWidth ?? target.strokeWidth ?? (shape === 'line' ? 2 : 0);
 
             targetData.push({
                 series: this,
@@ -530,6 +691,7 @@ export class RadialGaugeSeries
                 strokeWidth,
                 lineDash,
                 lineDashOffset,
+                label: this.getTargetLabel(target),
             });
         }
 
@@ -590,7 +752,7 @@ export class RadialGaugeSeries
         this.targetSelection = await this.updateTargetSelection({ targetData, targetSelection });
         await this.updateTargetNodes({ targetSelection, isHighlight: false });
 
-        this.targetLabelSelection = await this.updateTargetLabelSelection({ targetLabelSelection });
+        this.targetLabelSelection = await this.updateTargetLabelSelection({ targetData, targetLabelSelection });
         await this.updateTargetLabelNodes({ targetLabelSelection });
 
         this.datumSelection = await this.updateDatumSelection({ nodeData, datumSelection });
@@ -782,30 +944,40 @@ export class RadialGaugeSeries
     }
 
     private async updateTargetLabelSelection(opts: {
-        targetLabelSelection: _Scene.Selection<_Scene.Text, _Util.PlacedLabel<_Util.PointLabelDatum>>;
+        targetData: RadialGaugeTargetDatum[];
+        targetLabelSelection: _Scene.Selection<_Scene.Text, RadialGaugeTargetDatum>;
     }) {
-        const targetLabelData = this.chart?.placeLabels(this.properties.target.label.spacing).get(this) ?? [];
-        return opts.targetLabelSelection.update(targetLabelData);
+        return opts.targetLabelSelection.update(opts.targetData, undefined, (target) => target.itemId);
     }
 
     private async updateTargetLabelNodes(opts: {
-        targetLabelSelection: _Scene.Selection<_Scene.Text, _Util.PlacedLabel<_Util.PointLabelDatum>>;
+        targetLabelSelection: _Scene.Selection<_Scene.Text, RadialGaugeTargetDatum>;
     }) {
         const { targetLabelSelection } = opts;
-        const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = this.properties.target.label;
 
-        targetLabelSelection.each((label, { x, y, width, height, text }) => {
+        targetLabelSelection.each((label, target) => {
+            const { centerX, centerY, radius, angle, text } = target;
+            const { offsetX, offsetY, fill, fontStyle, fontWeight, fontSize, fontFamily, textAlign, textBaseline } =
+                target.label;
+
+            console.log(text, target.label);
+
+            if (text == null) {
+                label.visible = false;
+                return;
+            }
+
             label.visible = true;
-            label.x = x + width / 2;
-            label.y = y + height / 2;
+            label.x = centerX + radius * Math.cos(angle) + offsetX;
+            label.y = centerY + radius * Math.sin(angle) + offsetY;
             label.text = text;
             label.fill = fill;
             label.fontStyle = fontStyle;
             label.fontWeight = fontWeight;
             label.fontSize = fontSize;
             label.fontFamily = fontFamily;
-            label.textAlign = 'center';
-            label.textBaseline = 'middle';
+            label.textAlign = textAlign;
+            label.textBaseline = textBaseline;
         });
     }
 
@@ -960,69 +1132,7 @@ export class RadialGaugeSeries
     }
 
     override getLabelData(): _Util.PointLabelDatum[] {
-        const angleAxis = this.axes[ChartAxisDirection.X];
-        if (angleAxis == null) return [];
-
-        const { radius, centerX, centerY, properties } = this;
-        const { innerRadiusRatio, outerRadiusRatio, target } = properties;
-        const { label } = target;
-        const angleScale = angleAxis.scale;
-
-        const gaugeThickness = radius * (outerRadiusRatio - innerRadiusRatio);
-
-        const font = label.getFont();
-        const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font });
-
-        return this.properties.targets
-            .filter((t) => t.text != null)
-            .map((t) => {
-                const { text = '', value, shape = target.shape, size = target.size, placement = target.placement } = t;
-                const { width, height } = textMeasurer.measureText(text);
-                const angle = angleScale.convert(value);
-
-                const sizeOffset = (size / 2) * Math.min(Math.abs(Math.cos(angle)), Math.abs(Math.sin(angle)));
-                const quadrant = (normalizeAngle360(angle) / (Math.PI / 2)) | 0;
-
-                let labelPlacement: _Util.LabelPlacement;
-                let radiusOffset = 0;
-                switch (placement) {
-                    case 'outside':
-                        labelPlacement = outsideLabelPlacements[quadrant];
-                        radiusOffset = sizeOffset;
-                        break;
-                    case 'inside':
-                        labelPlacement = insideLabelPlacements[quadrant];
-                        radiusOffset = -sizeOffset;
-                        break;
-                    default:
-                        labelPlacement = 'top';
-                        break;
-                }
-
-                const targetRadius = this.getTargetRadius(t) - radiusOffset;
-
-                let point: _Scene.SizedPoint;
-                if (shape === 'line' && placement === 'middle' && size >= gaugeThickness) {
-                    point = {
-                        x: (targetRadius + size / 2) * Math.cos(angle) + centerX,
-                        y: (targetRadius + size / 2) * Math.sin(angle) + centerY,
-                        size: 1,
-                    };
-                } else {
-                    point = {
-                        x: targetRadius * Math.cos(angle) + centerX,
-                        y: targetRadius * Math.sin(angle) + centerY,
-                        size,
-                    };
-                }
-
-                return {
-                    point,
-                    marker: undefined,
-                    label: { text, width, height },
-                    placement: labelPlacement,
-                };
-            });
+        return [];
     }
 
     override getSeriesDomain() {

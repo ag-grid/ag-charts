@@ -33,7 +33,8 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
             bar: {
                 strokeWidth: 0,
             },
-            target: {
+            // @ts-expect-error Private
+            defaultTarget: {
                 fill: DEFAULT_LABEL_COLOUR,
                 stroke: DEFAULT_LABEL_COLOUR,
                 size: 10,
