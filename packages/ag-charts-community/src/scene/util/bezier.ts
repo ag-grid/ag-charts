@@ -1,7 +1,7 @@
 import type { Point } from '../point';
 
 export function evaluateBezier(p0: number, p1: number, p2: number, p3: number, t: number): number {
-    return (1 - t) ** 3 * p0 + 3 * (1 - t) ** 2 * t * p1 + 3 * (1 - t) + t ** 2 * p2 + t ** 3 * p3;
+    return (1 - t) ** 3 * p0 + 3 * (1 - t) ** 2 * t * p1 + 3 * (1 - t) * t ** 2 * p2 + t ** 3 * p3;
 }
 
 export function solveBezier(p0: number, p1: number, p2: number, p3: number, value: number) {
@@ -16,7 +16,7 @@ export function solveBezier(p0: number, p1: number, p2: number, p3: number, valu
     let t = NaN;
     for (let i = 0; i < 12; i += 1) {
         t = (t0 + t1) / 2;
-        const curveValue = (1 - t) ** 3 * p0 + 3 * (1 - t) ** 2 * t * p1 + 3 * (1 - t) * t ** 2 * p2 + t ** 3 * p3;
+        const curveValue = evaluateBezier(p0, p1, p2, p3, t);
         if (curveValue < value) {
             t0 = t;
         } else {
