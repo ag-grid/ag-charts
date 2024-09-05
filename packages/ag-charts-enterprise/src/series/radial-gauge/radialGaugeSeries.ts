@@ -960,8 +960,6 @@ export class RadialGaugeSeries
             const { offsetX, offsetY, fill, fontStyle, fontWeight, fontSize, fontFamily, textAlign, textBaseline } =
                 target.label;
 
-            console.log(text, target.label);
-
             if (text == null) {
                 label.visible = false;
                 return;
