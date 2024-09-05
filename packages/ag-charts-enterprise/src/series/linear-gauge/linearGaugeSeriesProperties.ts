@@ -154,6 +154,9 @@ export class LinearGaugeBarProperties extends BaseProperties {
     @Validate(BOOLEAN)
     enabled = true;
 
+    @Validate(POSITIVE_NUMBER, { optional: true })
+    thickness: number | undefined;
+
     @Validate(COLOR_STRING_ARRAY, { optional: true })
     colorRange: string[] | undefined;
 

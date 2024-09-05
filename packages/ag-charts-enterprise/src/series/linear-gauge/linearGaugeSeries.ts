@@ -203,7 +203,9 @@ export class LinearGaugeSeries
     }
 
     private nodeFactory(): _Scene.Rect {
-        return new Rect();
+        const rect = new Rect();
+        rect.crisp = true;
+        return rect;
     }
 
     private markerFactory({ shape }: LinearGaugeTargetDatum): _Scene.Marker {
@@ -480,16 +482,25 @@ export class LinearGaugeSeries
             scaleColorScale.range = scale.colorRange ?? defaultColorRange;
         }
 
+        let barXInset = 0;
+        let barYInset = 0;
+        if (bar.thickness != null) {
+            const inset = -Math.max(thickness - bar.thickness, 0) / 2;
+
+            barXInset = horizontal ? 0 : inset;
+            barYInset = horizontal ? inset : 0;
+        }
+
         if (properties.segments == null) {
             if (bar.enabled) {
                 const barFill: string | _Scene.Gradient | undefined =
                     bar.fill ?? this.createLinearGradient(barColorScale, gradientBBox);
                 const sizeParams = cornersOnAllItems
                     ? {
-                          x0: originX + x0 - xAxisInset,
-                          y0: originY + y0 - yAxisInset,
-                          x1: originX + containerX + 2 * xAxisInset,
-                          y1: originY + containerY + 2 * yAxisInset,
+                          x0: originX + x0 - xAxisInset - barXInset,
+                          y0: originY + y0 - yAxisInset - barYInset,
+                          x1: originX + containerX + xAxisInset + barXInset,
+                          y1: originY + containerY + yAxisInset + barYInset,
                           clipX0: undefined,
                           clipY0: undefined,
                           clipX1: undefined,
@@ -500,10 +511,10 @@ export class LinearGaugeSeries
                           y0: originY + y0,
                           x1: originX + x1,
                           y1: originY + y1,
-                          clipX0: originX + x0,
-                          clipY0: originY + y0,
-                          clipX1: originX + containerX,
-                          clipY1: originY + containerY,
+                          clipX0: originX + x0 - barXInset,
+                          clipY0: originY + y0 - barYInset,
+                          clipX1: originX + containerX + barXInset,
+                          clipY1: originY + containerY + barYInset,
                       };
 
                 nodeData.push({
@@ -596,10 +607,10 @@ export class LinearGaugeSeries
                         y0: originY + (horizontal ? y0 : itemStart),
                         x1: originX + (horizontal ? itemEnd : x1),
                         y1: originY + (horizontal ? y1 : itemEnd),
-                        clipX0: originX + x0,
-                        clipY0: originY + y0,
-                        clipX1: originX + containerX,
-                        clipY1: originY + containerY,
+                        clipX0: originX + x0 - barXInset,
+                        clipY0: originY + y0 - barYInset,
+                        clipX1: originX + containerX + barXInset,
+                        clipY1: originY + containerY + barYInset,
                         topLeftCornerRadius,
                         topRightCornerRadius,
                         bottomRightCornerRadius,
