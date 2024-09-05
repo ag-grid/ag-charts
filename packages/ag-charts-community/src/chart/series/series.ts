@@ -828,8 +828,8 @@ export abstract class Series<
             markerNode.checkPathDirty();
 
             // AG-1275 Calculate the marker size to ensure that the focus indicator is correct.
-            if (point !== undefined) {
-                const bb = markerNode.getBBox();
+            const bb = markerNode.getBBox();
+            if (point !== undefined && !isNaN(bb.width) && !isNaN(bb.height)) {
                 const center = bb.computeCenter();
                 const [dx, dy] = (['x', 'y'] satisfies (keyof Point)[]).map(
                     (key) => (activeStyle.strokeWidth ?? 0) + Math.abs(center[key] - point[key])
