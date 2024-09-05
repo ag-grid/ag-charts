@@ -6,6 +6,20 @@ import { Rotatable, Scalable, Translatable } from '../../scene/transformable';
 
 export type MarkerPathMove = { x: number; y: number; t?: 'move' };
 
+const BUILTIN_MARKERS: readonly string[] = [
+    'ArrowDown',
+    'ArrowUp',
+    'Circle',
+    'Cross',
+    'Diamond',
+    'Heart',
+    'MapPin',
+    'Plus',
+    'Square',
+    'Star',
+    'Triangle',
+];
+
 const DEFAULT_CENTER_POINT = Object.freeze({ x: 0.5, y: 0.5 });
 class InternalMarker extends Path {
     @ScenePathChangeDetection()
@@ -17,7 +31,15 @@ class InternalMarker extends Path {
     @ScenePathChangeDetection({ convertor: Math.abs })
     size: number = 12;
 
+    private isBuiltIn(): boolean {
+        return BUILTIN_MARKERS.includes((this.constructor as { className?: string }).className ?? '');
+    }
+
     protected override computeBBox(): BBox {
+        if (!this.isBuiltIn()) {
+            return this.path.computeBBox();
+        }
+
         const { x, y, size } = this;
         const { center } = this.constructor as any;
 

@@ -1,7 +1,10 @@
+import { normalizeAngle360 } from '../util/angle';
 import { arcDistanceSquared, lineDistanceSquared } from '../util/distance';
 import { Logger } from '../util/logger';
+import { BBox } from './bbox';
 import { arcIntersections, cubicSegmentIntersections, segmentIntersection } from './intersection';
 import type { Matrix } from './matrix';
+import { calculateDerivativeExtremaXY, evaluateBezier } from './util/bezier';
 
 enum Command {
     Move,
@@ -373,5 +376,86 @@ export class ExtendedPath2D {
         }
 
         return buffer.join(' ');
+    }
+
+    computeBBox(): BBox {
+        const { commands, params } = this;
+        let [top, left, right, bot] = [Infinity, Infinity, -Infinity, -Infinity];
+        let [sx, sy] = [NaN, NaN]; // the starting point of the current path
+        let [mx, my] = [NaN, NaN]; // the end point for a ClosePath command.
+
+        const joinPoint = (x: number, y: number, updatestart?: boolean) => {
+            top = Math.min(y, top);
+            left = Math.min(x, left);
+            right = Math.max(x, right);
+            bot = Math.max(y, bot);
+
+            if (updatestart) {
+                [sx, sy] = [x, y];
+            }
+        };
+
+        let pi = 0;
+        for (let ci = 0; ci < commands.length; ci++) {
+            switch (commands[ci]) {
+                case Command.Move:
+                    joinPoint(params[pi++], params[pi++], true);
+                    [mx, my] = [sx, sy];
+                    break;
+                case Command.Line:
+                    joinPoint(params[pi++], params[pi++], true);
+                    break;
+                case Command.Curve:
+                    const cp1x = params[pi++];
+                    const cp1y = params[pi++];
+                    const cp2x = params[pi++];
+                    const cp2y = params[pi++];
+                    const x = params[pi++];
+                    const y = params[pi++];
+                    joinPoint(x, y, true);
+
+                    const Ts = calculateDerivativeExtremaXY(sx, sy, cp1x, cp1y, cp2x, cp2y, x, y);
+
+                    // Check points where the derivative is zero
+                    Ts.forEach((t: number) => {
+                        const px = evaluateBezier(sx, cp1x, cp2x, x, t);
+                        const py = evaluateBezier(sy, cp1y, cp2y, y, t);
+                        joinPoint(px, py);
+                    });
+                    break;
+                case Command.Arc: {
+                    const cx = params[pi++];
+                    const cy = params[pi++];
+                    const r = params[pi++];
+                    let A0 = normalizeAngle360(params[pi++]);
+                    let A1 = normalizeAngle360(params[pi++]);
+                    const ccw = params[pi++];
+
+                    if (ccw) {
+                        [A0, A1] = [A1, A0];
+                    }
+
+                    const joinAngle = (angle: number, updatestart?: boolean) => {
+                        const px = cx + r * Math.cos(angle);
+                        const py = cy + r * Math.sin(angle);
+                        joinPoint(px, py, updatestart);
+                    };
+                    joinAngle(A0);
+                    joinAngle(A1, true);
+                    const criticalAngles = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
+                    for (const crit of criticalAngles) {
+                        if ((A0 < A1 && A0 <= crit && crit <= A1) || (A0 > A1 && (A0 <= crit || crit <= A1))) {
+                            joinAngle(crit);
+                        }
+                    }
+                    break;
+                }
+                case Command.ClosePath:
+                    [sx, sy] = [mx, my];
+                    break;
+            }
+        }
+
+        return new BBox(left, top, right - left, bot - top);
     }
 }

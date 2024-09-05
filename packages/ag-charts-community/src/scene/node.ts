@@ -306,8 +306,8 @@ export abstract class Node extends ChangeDetectable {
 
     private cachedBBox?: BBox;
 
-    getBBox(forceRecalculation = false): BBox {
-        if (this.cachedBBox == null || forceRecalculation) {
+    getBBox(): BBox {
+        if (this.cachedBBox == null) {
             this.cachedBBox = Object.freeze(this.computeBBox());
         }
 

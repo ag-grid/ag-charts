@@ -384,7 +384,7 @@ export class Pagination extends BaseProperties {
     }
 
     getBBox() {
-        return this.group.getBBox(true);
+        return this.group.getBBox();
     }
 
     computeCSSBounds() {

@@ -4,6 +4,7 @@ import type { AgCartesianChartOptions, AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
 import type { Chart } from './chart';
+import { Marker } from './marker/marker';
 import * as examples from './test/examples';
 import { seedRandom } from './test/random';
 import {
@@ -49,6 +50,47 @@ const OPTIONS: AgCartesianChartOptions = {
     },
     series: SERIES,
 };
+
+class AGChartsLogo extends Marker {
+    override updatePath() {
+        const pathData = [
+            'M58,10l-17,0l-8,8l25,0l0,-8Z',
+            'M43,30l0,-7.995l-14,0l-8.008,7.995l22.008,0Z',
+            'M13,38.01l4,-4.01l14,0l0,8l-18,0l0,-3.99Z',
+            'M41,10l-4,4l-26,0l0,-8l30,0l0,4Z',
+            'M16,26l9,0l8,-8l-17,0l0,8Z',
+            'M6,37.988l7,0.012l7.992,-8l-14.992,-0.047l-0,8.035Z',
+        ];
+        updatePath(pathData, this.path, 0.4, 12, 10);
+    }
+}
+
+class NpmLogo extends Marker {
+    override updatePath() {
+        const pathData = ['M5.8,21.75l7.86,0l0,-11.77l3.92,0l0,11.78l3.93,0l0,-15.7l-15.7,0l0,15.69'];
+        updatePath(pathData, this.path, 0.75, 5, 11);
+    }
+}
+
+function updatePath(pathData: string[], path: Marker['path'], scale: number, xOffset: number, yOffset: number) {
+    path.clear();
+    pathData.forEach((pathDatum) => {
+        const parts = pathDatum.split('l');
+        let startX = parseFloat(parts[0].substring(1).split(',')[0]) * scale - xOffset;
+        let startY = parseFloat(parts[0].substring(1).split(',')[1]) * scale - yOffset;
+        path.moveTo(startX, startY);
+
+        for (let i = 1; i < parts.length; i++) {
+            const coords = parts[i].split(',');
+            const x = parseFloat(coords[0]) * scale;
+            const y = parseFloat(coords[1]) * scale;
+            path.lineTo(startX + x, startY + y);
+            startX += x;
+            startY += y;
+        }
+    });
+    path.closePath();
+}
 
 describe('Legend', () => {
     setupMockConsole();
@@ -355,6 +397,39 @@ describe('Legend', () => {
                     { type: 'bar', xKey: 'year', yKey: 'bronze' },
                 ],
             });
+            await compare(chart);
+        });
+    });
+
+    describe('AG-12693', () => {
+        test('custom marker shapes', async () => {
+            const options = prepareTestOptions({
+                data: [
+                    { x: 0, ag: 2, npm: 3 },
+                    { x: 1, ag: 6, npm: 7 },
+                    { x: 2, ag: 5, npm: 1 },
+                ],
+                series: [
+                    { type: 'scatter', xKey: 'x', yKey: 'ag', shape: AGChartsLogo },
+                    { type: 'scatter', xKey: 'x', yKey: 'npm', shape: NpmLogo },
+                ],
+            });
+            chart = deproxy(AgCharts.create(options));
+            await compare(chart);
+
+            const [x_ag, x_npm, y] = [357, 428, 575];
+
+            // Hide AG Grid scatter
+            await clickAction(x_ag, y)(chart);
+            await compare(chart);
+
+            // Hide NPM scatter
+            await clickAction(x_npm, y)(chart);
+            await compare(chart);
+
+            // Show both scatters
+            await clickAction(x_ag, y)(chart);
+            await clickAction(x_npm, y)(chart);
             await compare(chart);
         });
     });
