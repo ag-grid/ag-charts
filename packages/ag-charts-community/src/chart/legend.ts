@@ -546,8 +546,13 @@ export class Legend extends BaseProperties {
         let markerWidth = 0;
         this.itemSelection.each((_, datum) => {
             datum.symbols.forEach((symbol) => {
-                const { markerLength, markerStrokeWidth, lineLength, lineStrokeWidth, customMarkerSize = -Infinity } =
-                    this.calcSymbolsLengths(symbol);
+                const {
+                    markerLength,
+                    markerStrokeWidth,
+                    lineLength,
+                    lineStrokeWidth,
+                    customMarkerSize = -Infinity,
+                } = this.calcSymbolsLengths(symbol);
                 const markerTotalLength = markerLength + markerStrokeWidth;
                 markerWidth = Math.max(markerWidth, lineLength, customMarkerSize, markerLength);
                 spriteWidth = Math.max(spriteWidth, lineLength, customMarkerSize, markerTotalLength);

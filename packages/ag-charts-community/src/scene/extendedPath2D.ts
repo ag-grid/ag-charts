@@ -1,10 +1,10 @@
 import { normalizeAngle360 } from '../util/angle';
-import { evaluateBezier, calculateDerivativeExtremaXY } from './util/bezier';
 import { arcDistanceSquared, lineDistanceSquared } from '../util/distance';
 import { Logger } from '../util/logger';
 import { BBox } from './bbox';
 import { arcIntersections, cubicSegmentIntersections, segmentIntersection } from './intersection';
 import type { Matrix } from './matrix';
+import { calculateDerivativeExtremaXY, evaluateBezier } from './util/bezier';
 
 enum Command {
     Move,

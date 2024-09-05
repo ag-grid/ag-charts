@@ -108,4 +108,3 @@ export function calculateDerivativeExtremaXY(
     const ty = calculateDerivativeExtrema(sy, cp1y, cp2y, y);
     return [...tx, ...ty];
 }
-
