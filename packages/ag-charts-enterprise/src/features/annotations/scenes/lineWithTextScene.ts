@@ -129,13 +129,14 @@ export class LineWithTextScene {
             point = Vec2.add(left, inset);
         }
 
-        let textBaseline: CanvasTextBaseline = 'middle';
-        if (position === 'top' || offsetInsideTextLabel) {
-            point = Vec2.rotate(offset, angle - Math.PI / 2, point);
-            textBaseline = 'bottom';
-        } else if (position === 'bottom') {
+        let textBaseline: CanvasTextBaseline = 'bottom';
+        if (position === 'bottom' && !offsetInsideTextLabel) {
             point = Vec2.rotate(offset, angle + Math.PI / 2, point);
             textBaseline = 'top';
+        } else if (position === 'center' && !offsetInsideTextLabel) {
+            textBaseline = 'middle';
+        } else {
+            point = Vec2.rotate(offset, angle - Math.PI / 2, point);
         }
 
         return { point, textBaseline };
