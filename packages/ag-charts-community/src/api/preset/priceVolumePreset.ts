@@ -258,9 +258,9 @@ function createVolumeSeries(
             type: 'bar',
             xKey: 'date',
             yKey: volumeKey,
+            // @ts-expect-error
             focusPriority: 1,
             tooltip: { enabled: false },
-            // @ts-expect-error
             highlight: { enabled: false },
             fillOpacity: fromTheme(theme, (t) => t.overrides?.bar?.series?.fillOpacity) ?? 0.5,
             ...itemStyler,
@@ -305,6 +305,7 @@ function createPriceSeries(
             return [
                 {
                     type: 'ohlc',
+                    // @ts-expect-error
                     focusPriority: 0,
                     ...common,
                     ...keys,
@@ -314,6 +315,7 @@ function createPriceSeries(
             return [
                 {
                     type: 'line',
+                    // @ts-expect-error
                     focusPriority: 0,
                     ...common,
                     ...singleKeys,
@@ -325,6 +327,7 @@ function createPriceSeries(
             return [
                 {
                     type: 'line',
+                    // @ts-expect-error
                     focusPriority: 0,
                     ...common,
                     ...singleKeys,
@@ -342,6 +345,7 @@ function createPriceSeries(
             return [
                 {
                     type: RANGE_AREA_TYPE,
+                    // @ts-expect-error
                     focusPriority: 0,
                     ...common,
                     xKey,
@@ -354,6 +358,7 @@ function createPriceSeries(
                 } satisfies AgRangeAreaSeriesOptions,
                 {
                     type: RANGE_AREA_TYPE,
+                    // @ts-expect-error
                     focusPriority: 0,
                     ...common,
                     xKey,
@@ -379,6 +384,7 @@ function createPriceSeries(
             return [
                 {
                     type: 'range-bar',
+                    // @ts-expect-error
                     focusPriority: 0,
                     ...common,
                     xKey,
@@ -395,6 +401,7 @@ function createPriceSeries(
             return [
                 {
                     type: 'candlestick',
+                    // @ts-expect-error
                     focusPriority: 0,
                     ...common,
                     ...keys,
@@ -405,6 +412,7 @@ function createPriceSeries(
             return [
                 {
                     type: 'candlestick',
+                    // @ts-expect-error
                     focusPriority: 0,
                     ...common,
                     ...keys,
@@ -420,6 +428,7 @@ function createPriceSeries(
             return [
                 {
                     type: 'candlestick',
+                    // @ts-expect-error
                     focusPriority: 0,
                     ...common,
                     ...keys,
