@@ -1,3 +1,4 @@
+import { isPlainObject } from '../../../util/type-guards';
 import type { CartesianSeriesNodeDataContext } from './cartesianSeries';
 import { type Span, clipSpanX, rescaleSpan, spanRange } from './lineInterpolation';
 import { scale } from './lineUtil';
@@ -35,10 +36,18 @@ interface SpanIndices {
     datumIndex: number;
 }
 
+function axisValue(value: any) {
+    if (isPlainObject(value) && Object.hasOwn(value, 'id')) {
+        // Integrated charts
+        return value.id;
+    }
+    return value.valueOf();
+}
+
 function getAxisIndices({ data }: SpanContext, axisValues: any[]): SpanIndices[] {
     return data.map((datum, datumIndex) => ({
-        xValue0Index: axisValues.indexOf(datum.xValue0.valueOf()),
-        xValue1Index: axisValues.indexOf(datum.xValue1.valueOf()),
+        xValue0Index: axisValues.indexOf(axisValue(datum.xValue0)),
+        xValue1Index: axisValues.indexOf(axisValue(datum.xValue1)),
         datumIndex,
     }));
 }
@@ -48,9 +57,9 @@ function getAxisValues(newData: SpanContext, oldData: SpanContext) {
     // Array.sort does not handle this case
     const allAxisValues = new Set<AxisValue>();
     for (const { xValue0, xValue1 } of newData.data) {
-        const xValue0ValueOf = xValue0.valueOf();
-        const xValue1ValueOf = xValue1.valueOf();
-        allAxisValues.add(xValue0ValueOf).add(xValue1ValueOf);
+        const xValue0Value = axisValue(xValue0);
+        const xValue1Value = axisValue(xValue1);
+        allAxisValues.add(xValue0Value).add(xValue1Value);
     }
 
     const newAxisValues = Array.from(allAxisValues).sort((a, b) => {
@@ -59,15 +68,15 @@ function getAxisValues(newData: SpanContext, oldData: SpanContext) {
 
     const exclusivelyOldAxisValues = [];
     for (const { xValue0, xValue1 } of oldData.data) {
-        const xValue0ValueOf = xValue0.valueOf();
-        const xValue1ValueOf = xValue1.valueOf();
-        if (!allAxisValues.has(xValue0ValueOf)) {
-            allAxisValues.add(xValue0ValueOf);
-            exclusivelyOldAxisValues.push(xValue0ValueOf);
+        const xValue0Value = axisValue(xValue0);
+        const xValue1Value = axisValue(xValue1);
+        if (!allAxisValues.has(xValue0Value)) {
+            allAxisValues.add(xValue0Value);
+            exclusivelyOldAxisValues.push(xValue0Value);
         }
-        if (!allAxisValues.has(xValue1ValueOf)) {
-            allAxisValues.add(xValue1ValueOf);
-            exclusivelyOldAxisValues.push(xValue1ValueOf);
+        if (!allAxisValues.has(xValue1Value)) {
+            allAxisValues.add(xValue1Value);
+            exclusivelyOldAxisValues.push(xValue1Value);
         }
     }
 
@@ -177,9 +186,9 @@ function alignSpanToContainingSpan(
     postSpanIndices: SpanIndices
 ) {
     const startXValue0 = axisValues[postSpanIndices.xValue0Index];
-    const startDatum = preData.data.find((spanDatum) => spanDatum.xValue0.valueOf() === startXValue0);
+    const startDatum = preData.data.find((spanDatum) => axisValue(spanDatum.xValue0) === startXValue0);
     const endXValue1 = axisValues[postSpanIndices.xValue1Index];
-    const endDatum = preData.data.find((spanDatum) => spanDatum.xValue1.valueOf() === endXValue1);
+    const endDatum = preData.data.find((spanDatum) => axisValue(spanDatum.xValue1) === endXValue1);
 
     if (startDatum == null || endDatum == null) return;
 
