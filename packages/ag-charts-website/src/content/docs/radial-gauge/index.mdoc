@@ -127,30 +127,32 @@ In this configuration:
 
 {% chartExampleRunner title="Target Customisation" name="custom-targets" type="generated" options={ "exampleHeight": 250 } /%}
 
-The `target` property is used to apply common styles to all targets. Some properties can be overridden on a per-case basis in the objects within the `targets` array.
-
 ```js
 {
-    target: {
-        shape: 'triangle',
-        placement: 'outside',
-        size: 12,
-        spacing: 8,
-        fill: 'white',
-        strokeWidth: 2,
-    },
     targets: [
         {
             value: 30,
+            shape: 'triangle',
+            placement: 'outside',
+            fill: 'white',
+            strokeWidth: 2,
+            spacing: 8,
         },
         {
             value: 75,
             placement: 'inside',
+            shape: 'triangle',
+            fill: 'white',
+            strokeWidth: 2,
+            spacing: 8,
         },
         {
             value: 90,
             placement: 'middle',
             shape: 'circle',
+            fill: 'white',
+            strokeWidth: 2,
+            spacing: 8,
         },
     ],
 }

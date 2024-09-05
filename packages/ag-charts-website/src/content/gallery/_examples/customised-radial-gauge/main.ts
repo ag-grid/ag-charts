@@ -30,16 +30,14 @@ const firstOptions: AgGaugeOptions = {
             spacing: 5,
             fill: '#8884',
             text: 'LIMIT',
+            label: {
+                color: '#8888',
+                fontSize: 8,
+                fontWeight: 'bold',
+                spacing: 2,
+            },
         },
     ],
-    target: {
-        label: {
-            color: '#8888',
-            fontSize: 8,
-            fontWeight: 'bold',
-            spacing: 2,
-        },
-    },
 };
 
 AgCharts.createGauge(firstOptions);

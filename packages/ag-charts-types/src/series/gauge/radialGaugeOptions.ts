@@ -81,29 +81,16 @@ export interface AgRadialGaugeSeriesNeedleStyle extends FillOptions, StrokeOptio
 
 export type AgRadialGaugeMarkerShape = MarkerShape | 'line';
 
-export interface AgRadialGaugeTarget extends FillOptions, StrokeOptions, LineDashOptions {
-    /** Value to use to position the target */
-    value: number;
-    /** Text to use for the target label. */
-    text?: string;
-    /** The shape to use for the target. You can also supply a custom marker by providing a `Marker` subclass. */
-    shape?: AgRadialGaugeMarkerShape;
-    /** Placement of target. */
-    placement?: AgRadialGaugeTargetPlacement;
-    /** Spacing of the target. Ignored when placement is 'middle'. */
-    spacing?: PixelSize;
-    /** Size of the target. */
-    size?: PixelSize;
-    /** Rotation of the target, in degrees. */
-    rotation?: Degree;
-}
-
 export interface AgRadialGaugeTargetLabelOptions extends AgChartLabelOptions<never, never> {
     /** Spacing of the label. */
     spacing?: PixelSize;
 }
 
-export interface AgRadialGaugeTargetOptions extends FillOptions, StrokeOptions, LineDashOptions {
+export interface AgRadialGaugeTarget extends FillOptions, StrokeOptions, LineDashOptions {
+    /** Value to use to position the target */
+    value: number;
+    /** Text to use for the target label. */
+    text?: string;
     /** The shape to use for the target. You can also supply a custom marker by providing a `Marker` subclass. */
     shape?: AgRadialGaugeMarkerShape;
     /** Placement of target. */
@@ -147,8 +134,6 @@ export interface AgRadialGaugeSeriesThemeableOptions<TDatum = any>
     sectorSpacing?: number;
     /** Configuration on whether to apply `cornerRadius` only to the ends of the gauge, or each individual item within the gauge. */
     cornerMode?: 'container' | 'item';
-    /** Configuration for all targets. */
-    target?: AgRadialGaugeTargetOptions;
     /** Configuration for the needle. */
     needle?: AgRadialGaugeSeriesNeedleStyle;
     /** Configuration for the scale. */
