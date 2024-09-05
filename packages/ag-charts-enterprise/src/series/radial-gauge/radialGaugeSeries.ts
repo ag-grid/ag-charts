@@ -261,6 +261,7 @@ export class RadialGaugeSeries
             let offset = i > 0 ? i / (range.length - 1) : 0;
             const angle = startAngle + sweepAngle * offset;
             offset = (angle - conicAngle) / (2 * Math.PI);
+            offset = ((offset % 1) + 1) % 1;
             return { offset, color };
         });
 
