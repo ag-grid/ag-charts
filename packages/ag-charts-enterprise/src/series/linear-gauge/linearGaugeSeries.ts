@@ -366,28 +366,22 @@ export class LinearGaugeSeries
         if (this.horizontal) {
             textAlign = 'center';
 
-            switch (placement) {
-                case 'after':
-                    textBaseline = 'top';
-                    offsetY = offset;
-                    break;
-                default:
-                    textBaseline = 'bottom';
-                    offsetY = -offset;
-                    break;
+            if (placement === 'after') {
+                textBaseline = 'top';
+                offsetY = offset;
+            } else {
+                textBaseline = 'bottom';
+                offsetY = -offset;
             }
         } else {
             textBaseline = 'middle';
 
-            switch (placement) {
-                case 'before':
-                    textAlign = 'right';
-                    offsetX = -offset;
-                    break;
-                default:
-                    textAlign = 'left';
-                    offsetX = offset;
-                    break;
+            if (placement === 'before') {
+                textAlign = 'right';
+                offsetX = -offset;
+            } else {
+                textAlign = 'left';
+                offsetX = offset;
             }
         }
 
