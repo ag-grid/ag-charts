@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import { _ModuleSupport, type _Scene, _Util } from 'ag-charts-community';
 import type { AgIconName } from 'ag-charts-types';
 
 import { ColorPicker } from '../../features/color-picker/colorPicker';
@@ -39,15 +39,16 @@ interface ColorPickerOptions {
  * A popover that opens at the bottom right of the chart but can be moved by the user.
  */
 export abstract class Dialog<Options extends DialogOptions = DialogOptions> extends Popover<Options> {
-    private static readonly offset = 100;
+    private static readonly offset = 60;
 
     private readonly colorPicker = new ColorPicker(this.ctx);
     private colorPickerAnchorElement?: HTMLElement;
     private dragStartState?: { client: _Util.Vec2; position: _Util.Vec2 };
+    private seriesRect?: _Scene.BBox;
 
     constructor(ctx: _ModuleSupport.ModuleContext, id: string) {
         super(ctx, id);
-        this.destroyFns.push(ctx.domManager.addListener('resize', () => this.reposition()));
+        this.destroyFns.push(ctx.layoutManager.addListener('layout:complete', (event) => this.onLayoutComplete(event)));
     }
 
     protected override showWithChildren(children: Array<HTMLElement>, options: Options) {
@@ -198,7 +199,10 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         let defaultColor = value;
 
         colorEl.addEventListener('click', (sourceEvent) => {
+            // Retrieve the anchor for this particular color picker element, and use it when repositioning if the chart
+            // is resized. When a different color picker trigger element is clicked that one will take over this task.
             const { anchor, fallbackAnchor } = this.getColorPickerAnchors(colorEl) ?? {};
+
             this.colorPicker.show({
                 anchor,
                 fallbackAnchor,
@@ -263,6 +267,11 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return group;
     }
 
+    private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
+        this.seriesRect = event.series.paddedRect;
+        this.reposition();
+    }
+
     private onDragStart(dragHandle: HTMLDivElement, event: MouseEvent) {
         const popover = this.getPopoverElement();
         if (!popover) return;
@@ -317,17 +326,28 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     }
 
     private reposition() {
-        const bbox = this.ctx.domManager.getBoundingClientRect();
+        const { seriesRect, ctx } = this;
+        const clientRect = ctx.domManager.getBoundingClientRect();
         const popover = this.getPopoverElement();
-        if (!popover) return;
+        if (!seriesRect || !popover) return;
+
+        // Position the dialog relative to the series rect height, to cater for the range buttons and other
+        // paraphernalia at the bottom of the chart, but relative to the client width so the dialog
+        // remains centered relative to the floating zoom buttons.
+        const outerOffset = Vec2.from(0, seriesRect.y);
+        const outerSize = Vec2.from(clientRect.width, seriesRect.height);
+        const popoverSize = Vec2.from(popover);
+        const halfWidth = Vec2.from(0.5, 1);
 
         let position: _Util.Vec2;
-        if (bbox.width > 1000) {
-            const bottomCenter = Vec2.from(bbox.width / 2, bbox.height);
-            const popoverOffset = Vec2.from(popover.offsetWidth / 2, popover.offsetHeight);
-            position = Vec2.sub(Vec2.sub(bottomCenter, popoverOffset), Vec2.from(0, Dialog.offset));
+        if (seriesRect.width > 1000) {
+            const bottomCenter = Vec2.sub(
+                Vec2.add(outerOffset, Vec2.multiply(outerSize, halfWidth)),
+                Vec2.multiply(popoverSize, halfWidth)
+            );
+            position = Vec2.sub(bottomCenter, Vec2.from(0, Dialog.offset));
         } else {
-            const bottomRight = Vec2.sub(Vec2.from(bbox), Vec2.from(popover));
+            const bottomRight = Vec2.sub(Vec2.add(outerOffset, outerSize), popoverSize);
             position = Vec2.sub(bottomRight, Dialog.offset);
         }
 
