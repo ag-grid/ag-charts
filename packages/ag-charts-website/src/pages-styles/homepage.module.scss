@@ -14,7 +14,8 @@
 }
 
 .section {
-    padding: $spacing-size-16 $spacing-size-8;
+    padding-top: $spacing-size-16;
+    padding-bottom: $spacing-size-16;
 }
 
 .homepageHero {
@@ -422,19 +423,24 @@
     }
 
     h3 {
-        font-size: 48px;
-        line-height: 64px;
-        padding: 0 64px;
+        font-size: var(--text-fs-2xl);
+        line-height: var(--text-lh-tight);
         font-weight: var(--text-bold);
+
+        @media screen and (min-width: $breakpoint-hero-small) {
+            font-size: 48px;
+        }
     }
 
     h4 {
         margin: $spacing-size-2;
         font-family: var(--text-font-family);
-        font-size: var(--text-fs-lg);
-        line-height: var(--text-lh-base);
         font-weight: var(--text-regular);
         color: var(--color-text-primary);
+
+        @media screen and (min-width: $breakpoint-hero-small) {
+            font-size: var(--text-fs-lg);
+        }
     }
 }
 
