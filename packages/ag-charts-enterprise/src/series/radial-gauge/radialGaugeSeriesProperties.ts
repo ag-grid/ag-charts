@@ -123,8 +123,8 @@ export type RadialGaugeLabelDatum = {
 };
 
 export class RadialGaugeDefaultTargetLabelProperties extends Label<never> {
-    @Validate(NUMBER)
-    spacing: number = 0;
+    @Validate(NUMBER, { optional: true })
+    spacing: number | undefined;
 }
 
 export class RadialGaugeTargetProperties extends BaseProperties {
