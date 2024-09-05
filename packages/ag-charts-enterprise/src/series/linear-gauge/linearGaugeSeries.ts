@@ -290,6 +290,9 @@ export class LinearGaugeSeries
                     shape ??= 'circle';
                     rotation ??= 0;
             }
+            if (shape === 'line') {
+                rotation += 90;
+            }
             rotation = toRadians(rotation);
 
             strokeWidth ??= shape === 'line' ? 2 : 0;
