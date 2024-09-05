@@ -6,10 +6,10 @@ import {
     COLOR_STRING,
     INTERACTION_RANGE,
     LINE_DASH,
-    NUMBER,
     OBJECT,
     POSITIVE_NUMBER,
     RATIO,
+    REAL_NUMBER,
     STRING,
     Validate,
 } from '../../util/validation';
@@ -77,7 +77,7 @@ export abstract class SeriesProperties<T extends object> extends BaseProperties<
     @Validate(BOOLEAN)
     visible: boolean = true;
 
-    @Validate(NUMBER)
+    @Validate(REAL_NUMBER)
     focusPriority: number = Infinity;
 
     @Validate(BOOLEAN)
