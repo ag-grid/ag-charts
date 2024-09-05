@@ -480,7 +480,7 @@ export class RadialGaugeSeries
                 lineDashOffset = target.lineDashOffset,
             } = t;
 
-            if (value < Math.min(...domain) || value > Math.max(...domain)) {
+            if (targetValue < Math.min(...domain) || targetValue > Math.max(...domain)) {
                 continue;
             }
 
