@@ -50,7 +50,10 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 
     constructor(ctx: _ModuleSupport.ModuleContext, id: string) {
         super(ctx, id);
-        this.destroyFns.push(ctx.layoutManager.addListener('layout:complete', (event) => this.onLayoutComplete(event)));
+        this.destroyFns.push(
+            ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
+            ctx.interactionManager.addListener('keydown', this.onKeyDown.bind(this))
+        );
     }
 
     protected override showWithChildren(children: Array<HTMLElement>, options: Options) {
@@ -279,6 +282,11 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
         this.seriesRect = event.series.paddedRect;
         this.reposition();
+    }
+
+    private onKeyDown(event: _ModuleSupport.KeyInteractionEvent<'keydown'>) {
+        if (event.sourceEvent.key !== 'Escape') return;
+        this.hide();
     }
 
     private onDragStart(dragHandle: HTMLDivElement, event: MouseEvent) {
