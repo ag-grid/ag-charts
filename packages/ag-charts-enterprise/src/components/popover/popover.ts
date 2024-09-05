@@ -3,10 +3,15 @@ import { _ModuleSupport, type _Util } from 'ag-charts-community';
 const { BaseModuleInstance, createElement } = _ModuleSupport;
 const canvasOverlay = 'canvas-overlay';
 
+export interface PopoverConstructorOptions {
+    // Create the popover without appending it to the canvas overlay, then it should
+    // call `popover.attachTo(parentPopover)` before calling `popover.show()`.
+    detached?: boolean;
+}
+
 export interface PopoverOptions {
     ariaLabel?: string;
     class?: string;
-    nested?: boolean;
     onHide?: () => void;
 }
 
@@ -24,16 +29,26 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
 
     constructor(
         protected readonly ctx: _ModuleSupport.ModuleContext,
-        id: string
+        id: string,
+        options?: PopoverConstructorOptions
     ) {
         super();
 
         this.moduleId = `popover-${id}`;
 
-        this.element = ctx.domManager.addChild(canvasOverlay, this.moduleId);
+        if (options?.detached) {
+            this.element = createElement('div');
+        } else {
+            this.element = ctx.domManager.addChild(canvasOverlay, this.moduleId);
+        }
         this.element.setAttribute('role', 'presentation');
 
         this.destroyFns.push(() => ctx.domManager.removeChild(canvasOverlay, this.moduleId));
+    }
+
+    public attachTo(popover: Popover) {
+        if (this.element.parentElement) return;
+        popover.element.append(this.element);
     }
 
     public hide() {
@@ -48,9 +63,12 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
     }
 
     protected showWithChildren(children: Array<HTMLElement>, options: Options) {
+        if (!this.element.parentElement) {
+            throw new Error('Can not show popover that has not been attached to a parent.');
+        }
+
         const popover = createElement('div', 'ag-charts-popover');
         popover.setAttribute('data-pointer-capture', 'exclusive');
-        popover.style.setProperty('--popover-layer', `${options.nested ? 1 : 0}`);
 
         if (options.ariaLabel != null) {
             popover.setAttribute('aria-label', options.ariaLabel);

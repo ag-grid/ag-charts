@@ -43,7 +43,7 @@ interface ColorPickerOptions {
 export abstract class Dialog<Options extends DialogOptions = DialogOptions> extends Popover<Options> {
     private static readonly offset = 60;
 
-    private readonly colorPicker = new ColorPicker(this.ctx);
+    private readonly colorPicker = new ColorPicker(this.ctx, { detached: true });
     private colorPickerAnchorElement?: HTMLElement;
     private dragStartState?: { client: _Util.Vec2; position: _Util.Vec2 };
     private seriesRect?: _Scene.BBox;
@@ -68,6 +68,8 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 
         // Give the dialog's dimensions a chance to be calculated before positioning
         requestAnimationFrame(() => this.reposition());
+
+        this.colorPicker.attachTo(this);
 
         return popover;
     }
@@ -214,14 +216,12 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             // Retrieve the anchor for this particular color picker element, and use it when repositioning if the chart
             // is resized. When a different color picker trigger element is clicked that one will take over this task.
             const { anchor, fallbackAnchor } = this.getColorPickerAnchors(colorEl) ?? {};
-
             this.colorPicker.show({
                 anchor,
                 fallbackAnchor,
                 color: defaultColor,
                 opacity: 1,
                 sourceEvent,
-                nested: true,
                 onChange: (colorOpacity: string, color: string, opacity: number) => {
                     defaultColor = colorOpacity;
                     colorEl.style.setProperty('--color', colorOpacity);
