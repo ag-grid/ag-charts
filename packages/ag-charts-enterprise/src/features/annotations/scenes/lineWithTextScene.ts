@@ -102,12 +102,14 @@ export class LineWithTextScene {
         let [left, right] = Vec2.from(coords);
         if (left.x > right.x) [left, right] = [right, left];
 
-        const fontOffset = (fontSize ?? 14) / 3;
-
         const normal = Vec2.normalized(Vec2.sub(right, left));
         const angle = Vec2.angle(normal);
-        const inset = Vec2.multiply(normal, DivariantHandle.HANDLE_SIZE / 2 + fontOffset);
-        const offset = Vec2.multiply(normal, (strokeWidth ?? 2) / 2 + fontOffset);
+
+        // Inset from the end of the line
+        const inset = Vec2.multiply(normal, DivariantHandle.HANDLE_SIZE / 2 + (fontSize ?? 14) / 2);
+
+        // Offset above or below the line, and within when over the line and clipping
+        const offset = Vec2.multiply(normal, (strokeWidth ?? 2) / 2 + (fontSize ?? 14) / 3);
 
         return { left, right, normal, angle, inset, offset };
     }
@@ -127,13 +129,14 @@ export class LineWithTextScene {
             point = Vec2.add(left, inset);
         }
 
-        let textBaseline: CanvasTextBaseline = 'middle';
-        if (position === 'top' || offsetInsideTextLabel) {
-            point = Vec2.rotate(offset, angle - Math.PI / 2, point);
-            textBaseline = 'bottom';
-        } else if (position === 'bottom') {
+        let textBaseline: CanvasTextBaseline = 'bottom';
+        if (position === 'bottom' && !offsetInsideTextLabel) {
             point = Vec2.rotate(offset, angle + Math.PI / 2, point);
             textBaseline = 'top';
+        } else if (position === 'center' && !offsetInsideTextLabel) {
+            textBaseline = 'middle';
+        } else {
+            point = Vec2.rotate(offset, angle - Math.PI / 2, point);
         }
 
         return { point, textBaseline };
