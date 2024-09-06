@@ -17,12 +17,7 @@ const { title, name, type, options, pageName } = Astro.props as Props;
 const framework = 'vanilla';
 ---
 
-<ExampleRunnerContainer
-    exampleHeight={options?.exampleHeight}
-    exampleWidth={options?.exampleWidth}
-    pageName={pageName}
-    exampleName={name}
->
+<ExampleRunnerContainer exampleHeight={200} exampleWidth={options?.exampleWidth} pageName={pageName} exampleName={name}>
     <IndexDocsExampleRunner
         client:only="react"
         title={title}
