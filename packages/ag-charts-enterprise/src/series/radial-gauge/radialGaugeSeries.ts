@@ -1,4 +1,5 @@
 import {
+    type AgGaugeSeriesFillMode,
     type AgRadialGaugeMarkerShape,
     type AgRadialGaugeTargetPlacement,
     type FontStyle,
@@ -6,13 +7,13 @@ import {
     type TextAlign,
     type VerticalAlign,
     _ModuleSupport,
-    _Scale,
     _Scene,
     _Util,
 } from 'ag-charts-community';
 
 import { formatLabel } from '../gauge-util/label';
 import { LineMarker } from '../gauge-util/lineMarker';
+import { type GaugeStopProperties, getColorStops } from '../gauge-util/stops';
 import { RadialGaugeNeedle } from './radialGaugeNeedle';
 import {
     LabelType,
@@ -42,7 +43,6 @@ const {
     EMPTY_TOOLTIP_CONTENT,
 } = _ModuleSupport;
 const { Group, PointerEvents, Selection, Sector, Text, ConicGradient, getMarker } = _Scene;
-const { ColorScale } = _Scale;
 const { normalizeAngle360, normalizeAngle360Inclusive, toDegrees, toRadians } = _Util;
 
 interface TargetLabel {
@@ -251,19 +251,30 @@ export class RadialGaugeSeries
         return formatLabel(value, this.axes[ChartAxisDirection.X]);
     }
 
-    private createConicGradient(colorScale: _Scale.ColorScale | undefined, startAngle: number, endAngle: number) {
-        if (colorScale == null) return;
+    private createConicGradient(
+        fills: GaugeStopProperties[],
+        fillMode: AgGaugeSeriesFillMode | undefined,
+        segments: number[] | undefined
+    ) {
+        const { domain, range } = this.axes[ChartAxisDirection.X]!.scale;
+        const [startAngle, endAngle] = range;
+        const { defaultColorRange } = this.properties;
 
         const conicAngle = normalizeAngle360((startAngle + endAngle) / 2 + Math.PI);
         const sweepAngle = normalizeAngle360Inclusive(endAngle - startAngle);
 
-        const stops = colorScale.range.map((color, i, range): _Scene.GradientColorStop => {
-            let offset = i > 0 ? i / (range.length - 1) : 0;
-            const angle = startAngle + sweepAngle * offset;
-            offset = (angle - conicAngle) / (2 * Math.PI);
-            offset = ((offset % 1) + 1) % 1;
-            return { offset, color };
-        });
+        const [d0, d1] = domain;
+
+        const stops = getColorStops(fills, defaultColorRange, domain, fillMode, segments).map(
+            ({ color, stop }): _Scene.GradientColorStop => {
+                let offset = (stop - d0) / (d1 - d0);
+                offset = Math.min(Math.max(offset, 0), 1);
+                const angle = startAngle + sweepAngle * offset;
+                offset = (angle - conicAngle) / (2 * Math.PI);
+                offset = ((offset % 1) + 1) % 1;
+                return { offset, color };
+            }
+        );
 
         return new ConicGradient('oklch', stops, toDegrees(conicAngle) - 90);
     }
@@ -422,6 +433,7 @@ export class RadialGaugeSeries
             value,
             innerRadiusRatio,
             outerRadiusRatio,
+            segmentation,
             cornerRadius,
             cornerMode,
             needle,
@@ -429,7 +441,6 @@ export class RadialGaugeSeries
             scale,
             label,
             secondaryLabel,
-            defaultColorRange,
         } = properties;
         const targets = this.getTargets();
 
@@ -447,46 +458,26 @@ export class RadialGaugeSeries
         const innerRadius = radius * innerRadiusRatio;
 
         const cornersOnAllItems = cornerMode === 'item';
-        let angleInset = 0;
-        if (properties.segments == null && cornersOnAllItems) {
-            const appliedCornerRadius = Math.min(cornerRadius, (outerRadius - innerRadius) / 2);
-            angleInset = appliedCornerRadius / ((innerRadius + outerRadius) / 2);
-        }
 
         const containerStartAngle = angleScale.convert(domain[0]);
         const containerEndAngle = angleScale.convert(value);
 
-        let barColorScale: _Scale.ColorScale | undefined;
-        if (bar.enabled || bar.colorRange != null) {
-            barColorScale = new ColorScale();
-            barColorScale.domain = [0, 1];
-            barColorScale.range = bar.colorRange ?? defaultColorRange;
+        let segments = segmentation.interval.getSegments(domain);
+        if (segments == null && segmentation.spacing != null) {
+            segments = angleAxis.scale.ticks?.();
         }
 
-        let scaleColorScale: _Scale.ColorScale | undefined;
-        if (!bar.enabled || scale.colorRange != null) {
-            scaleColorScale = new ColorScale();
-            scaleColorScale.domain = [0, 1];
-            scaleColorScale.range = scale.colorRange ?? defaultColorRange;
-        }
+        const barFill = bar.fill ?? this.createConicGradient(bar.fills, bar.fillMode, segments);
+        const scaleFill =
+            scale.fill ??
+            (bar.enabled ? scale.defaultFill : undefined) ??
+            this.createConicGradient(scale.fills, scale.fillMode, segments);
 
-        if (properties.segments == null) {
+        if (segments == null && cornersOnAllItems) {
+            const appliedCornerRadius = Math.min(cornerRadius, (outerRadius - innerRadius) / 2);
+            const angleInset = appliedCornerRadius / ((innerRadius + outerRadius) / 2);
+
             if (bar.enabled) {
-                const barFill: string | _Scene.Gradient | undefined =
-                    bar.fill ?? this.createConicGradient(barColorScale, startAngle, endAngle);
-                const angleParams = cornersOnAllItems
-                    ? {
-                          startAngle: containerStartAngle - angleInset,
-                          endAngle: containerEndAngle + angleInset,
-                          clipStartAngle: undefined,
-                          clipEndAngle: undefined,
-                      }
-                    : {
-                          startAngle: startAngle,
-                          endAngle: endAngle,
-                          clipStartAngle: containerStartAngle,
-                          clipEndAngle: containerEndAngle,
-                      };
                 nodeData.push({
                     series: this,
                     itemId: `value`,
@@ -496,18 +487,15 @@ export class RadialGaugeSeries
                     centerY,
                     outerRadius,
                     innerRadius,
-                    startAngle: angleParams.startAngle,
-                    endAngle: angleParams.endAngle,
-                    clipStartAngle: angleParams.clipStartAngle,
-                    clipEndAngle: angleParams.clipEndAngle,
+                    startAngle: startAngle - angleInset,
+                    endAngle: endAngle + angleInset,
+                    clipStartAngle: undefined,
+                    clipEndAngle: undefined,
                     startCornerRadius: cornerRadius,
                     endCornerRadius: cornerRadius,
                     fill: barFill,
                 });
             }
-
-            const scaleFill: string | _Scene.Gradient | undefined =
-                scale.fill ?? this.createConicGradient(scaleColorScale, startAngle, endAngle) ?? scale.defaultFill;
 
             scaleData.push({
                 series: this,
@@ -527,22 +515,13 @@ export class RadialGaugeSeries
                 fill: scaleFill,
             });
         } else {
-            let segments: number[];
-            if (Array.isArray(properties.segments)) {
-                segments = properties.segments.filter((v) => v > domain[0] && v < domain[1]).sort((a, b) => a - b);
-                segments = [domain[0], ...segments, domain[1]];
-            } else {
-                const numSegments = properties.segments;
-                segments = Array.from(
-                    { length: properties.segments + 1 },
-                    (_, i) => (i / numSegments) * (domain[1] - domain[0]) + domain[0]
-                );
+            if (segmentation.spacing == null || segments == null) {
+                segments = domain;
             }
 
             for (let i = 0; i < segments.length - 1; i += 1) {
                 const startValue = segments[i + 0];
                 const endValue = segments[i + 1];
-                const colorValue = i > 0 ? i / (segments.length - 2) : 0;
 
                 const isStart = i === 0;
                 const isEnd = i === segments.length - 2;
@@ -551,8 +530,6 @@ export class RadialGaugeSeries
                 const itemEndAngle = angleScale.convert(endValue);
 
                 if (bar.enabled) {
-                    const barFill = bar.fill ?? barColorScale?.convert(colorValue);
-
                     nodeData.push({
                         series: this,
                         itemId: `value-${i}`,
@@ -571,8 +548,6 @@ export class RadialGaugeSeries
                         fill: barFill,
                     });
                 }
-
-                const scaleFill = scale.fill ?? scaleColorScale?.convert(colorValue) ?? scale.defaultFill;
 
                 scaleData.push({
                     series: this,
@@ -786,7 +761,8 @@ export class RadialGaugeSeries
     private async updateDatumNodes(opts: { datumSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum> }) {
         const { datumSelection } = opts;
         const { ctx, properties } = this;
-        const { sectorSpacing, bar } = properties;
+        const { bar, segmentation } = properties;
+        const sectorSpacing = segmentation.spacing ?? 0;
         const { fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = bar;
         const strokeWidth = this.getStrokeWidth(bar.strokeWidth);
         const animationDisabled = ctx.animationManager.isSkipped();
@@ -830,7 +806,8 @@ export class RadialGaugeSeries
 
     private async updateScaleNodes(opts: { scaleSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum> }) {
         const { scaleSelection } = opts;
-        const { sectorSpacing, scale } = this.properties;
+        const { scale, segmentation } = this.properties;
+        const sectorSpacing = segmentation.spacing ?? 0;
         const { fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = scale;
 
         scaleSelection.each((sector, datum) => {
