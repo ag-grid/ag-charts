@@ -9,18 +9,19 @@ const options: AgRadialGaugeOptions = {
         max: 100,
     },
     bar: {
-        colorRange: ['#E84118', '#9C88FF', '#00A8FF'],
+        fills: [{ color: '#E84118' }, { color: '#9C88FF' }, { color: '#00A8FF' }],
+        fillMode: 'discrete',
     },
-    sectorSpacing: 2,
+    segmentation: {
+        interval: {
+            count: 3,
+        },
+    },
 };
 
 const chart = AgCharts.createGauge(options);
 
-function setSegments(segments: number | undefined) {
-    if (segments !== undefined) {
-        options.segments = segments;
-    } else {
-        delete options.segments;
-    }
+function setFillMode(fillMode: 'discrete' | 'continuous') {
+    options.bar!.fillMode = fillMode;
     chart.update(options);
 }

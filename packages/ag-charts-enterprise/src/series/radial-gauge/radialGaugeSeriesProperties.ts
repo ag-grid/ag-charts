@@ -1,6 +1,7 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 import type {
     AgChartLabelFormatterParams,
+    AgGaugeSeriesFillMode,
     AgRadialGaugeMarkerShape,
     AgRadialGaugeSeriesItemStylerParams,
     AgRadialGaugeSeriesLabelFormatterParams,
@@ -15,6 +16,8 @@ import type {
     Styler,
 } from 'ag-charts-types';
 
+import { GaugeSegmentationProperties } from '../gauge-util/segmentation';
+import { GaugeStopProperties } from '../gauge-util/stops';
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
 const {
@@ -29,7 +32,6 @@ const {
     FUNCTION,
     LINE_DASH,
     MARKER_SHAPE,
-    NUMBER_ARRAY,
     NUMBER,
     OBJECT_ARRAY,
     OBJECT,
@@ -41,6 +43,7 @@ const {
 } = _ModuleSupport;
 const { Label } = _Scene;
 
+const FILL_MODE = UNION(['continuous', 'discrete'], 'a fill mode');
 const TARGET_MARKER_SHAPE = OR(MARKER_SHAPE, UNION(['line'], 'a marker shape'));
 const TARGET_PLACEMENT = UNION(['inside', 'outside', 'middle'], 'a placement');
 
@@ -178,8 +181,11 @@ export class RadialGaugeBarProperties extends BaseProperties {
     @Validate(BOOLEAN)
     enabled = true;
 
-    @Validate(COLOR_STRING_ARRAY, { optional: true })
-    colorRange: string[] | undefined;
+    @Validate(OBJECT_ARRAY)
+    fills = new PropertiesArray<GaugeStopProperties>(GaugeStopProperties);
+
+    @Validate(FILL_MODE, { optional: true })
+    fillMode: AgGaugeSeriesFillMode | undefined;
 
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined;
@@ -204,8 +210,11 @@ export class RadialGaugeBarProperties extends BaseProperties {
 }
 
 export class RadialGaugeScaleProperties extends BaseProperties {
-    @Validate(COLOR_STRING_ARRAY, { optional: true })
-    colorRange: string[] | undefined;
+    @Validate(OBJECT_ARRAY)
+    fills = new PropertiesArray<GaugeStopProperties>(GaugeStopProperties);
+
+    @Validate(FILL_MODE, { optional: true })
+    fillMode: AgGaugeSeriesFillMode | undefined;
 
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined;
@@ -278,8 +287,8 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeS
     @Validate(NUMBER)
     value!: number;
 
-    @Validate(OR(NUMBER, NUMBER_ARRAY), { optional: true })
-    segments: number[] | number | undefined;
+    @Validate(OBJECT)
+    readonly segmentation = new GaugeSegmentationProperties();
 
     @Validate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
@@ -288,16 +297,13 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeS
     targets = new PropertiesArray<RadialGaugeTargetProperties>(RadialGaugeTargetProperties);
 
     @Validate(OBJECT)
-    defaultTarget = new RadialGaugeTargetProperties();
+    readonly defaultTarget = new RadialGaugeTargetProperties();
 
     @Validate(RATIO)
     outerRadiusRatio: number = 1;
 
     @Validate(RATIO)
     innerRadiusRatio: number = 1;
-
-    @Validate(POSITIVE_NUMBER)
-    sectorSpacing: number = 0;
 
     @Validate(POSITIVE_NUMBER)
     cornerRadius: number = 0;

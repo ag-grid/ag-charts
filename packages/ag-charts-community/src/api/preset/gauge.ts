@@ -40,7 +40,15 @@ function isLinearGauge(opts: AgGaugeOptions): opts is AgLinearGaugeOptions {
 
 type ScaleStyle = Pick<
     AgRadialGaugeSeriesScale,
-    'colorRange' | 'fill' | 'fillOpacity' | 'stroke' | 'strokeWidth' | 'strokeOpacity' | 'lineDash' | 'lineDashOffset'
+    | 'fills'
+    | 'fillMode'
+    | 'fill'
+    | 'fillOpacity'
+    | 'stroke'
+    | 'strokeWidth'
+    | 'strokeOpacity'
+    | 'lineDash'
+    | 'lineDashOffset'
 >;
 
 function radialGaugeOptions(opts: AgRadialGaugeOptions) {
@@ -69,13 +77,12 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         endAngle,
         itemStyler,
         highlightStyle,
-        segments,
+        segmentation,
         bar,
         needle,
         targets,
         outerRadiusRatio,
         innerRadiusRatio,
-        sectorSpacing,
         cornerRadius,
         cornerMode,
         label,
@@ -86,7 +93,8 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
     assertEmpty(rest);
 
     const {
-        colorRange: scaleColorRange,
+        fills: scaleFills,
+        fillMode: scaleFillMode,
         fill: scaleFill,
         fillOpacity: scaleFillOpacity,
         stroke: scaleStroke,
@@ -116,7 +124,8 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
     });
 
     const scaleOpts = pickProps<ScaleStyle>(scale, {
-        colorRange: scaleColorRange,
+        fills: scaleFills,
+        fillMode: scaleFillMode,
         fill: scaleFill,
         fillOpacity: scaleFillOpacity,
         stroke: scaleStroke,
@@ -142,12 +151,11 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         value,
         itemStyler,
         highlightStyle,
-        segments,
+        segmentation,
         bar,
         targets,
         outerRadiusRatio,
         innerRadiusRatio,
-        sectorSpacing,
         cornerRadius,
         cornerMode,
         label,
@@ -253,7 +261,8 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         listeners,
     });
     const scaleOpts = pickProps<ScaleStyle>(scale, {
-        colorRange: scaleColorRange,
+        fills: scaleColorRange?.map((color) => ({ color })),
+        fillMode: undefined,
         fill: scaleFill,
         fillOpacity: scaleFillOpacity,
         stroke: scaleStroke,
