@@ -112,7 +112,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const group = this.createInputGroup(label);
         group.role = 'radiogroup';
         group.tabIndex = -1;
-        group.ariaLabel = label;
+        group.ariaLabel = this.ctx.localeManager.t(label);
 
         const activeClass = 'ag-charts-dialog__button--active';
         const buttons: HTMLButtonElement[] = [];
