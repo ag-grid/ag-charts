@@ -199,6 +199,18 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             ctx.update();
         };
 
+        const actionSaveText = ({ textInputValue }: { textInputValue?: string }) => {
+            const datum = ctx.datum(this.active!);
+            if (textInputValue != null && textInputValue.length > 0) {
+                datum?.set({ text: textInputValue });
+                ctx.update();
+                ctx.recordAction(`Change ${datum?.type} annotation text`);
+            } else {
+                ctx.delete(this.active!);
+                ctx.recordAction(`Delete ${datum?.type} annotation`);
+            }
+        };
+
         const guardActive = () => this.active != null;
         const guardActiveHasLineText = () => {
             if (this.active == null) return false;
@@ -291,6 +303,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                         }
                         datum.text.set(props);
                         ctx.update();
+                        ctx.recordAction(`Update ${datum.type} text`);
                     },
                 },
 
@@ -320,7 +333,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 delete: () => {
                     if (this.active == null) return;
                     ctx.delete(this.active);
-                    ctx.recordAction('Delete annotation');
+                    ctx.recordAction(`Delete ${ctx.datum(this.active!)?.type} annotation`);
                 },
 
                 deleteAll: () => {
@@ -365,14 +378,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 click: {
                     target: States.Idle,
-                    action: ({ textInputValue }: { textInputValue?: string }) => {
-                        if (textInputValue != null && textInputValue.length > 0) {
-                            ctx.datum(this.active!)?.set({ text: textInputValue });
-                            ctx.update();
-                        } else {
-                            ctx.delete(this.active!);
-                        }
-                    },
+                    action: actionSaveText,
                 },
 
                 keyDown: [
@@ -383,10 +389,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     {
                         guard: guardSaveAndExit,
                         target: States.Idle,
-                        action: ({ textInputValue }: { textInputValue?: string }) => {
-                            ctx.datum(this.active!)?.set({ text: textInputValue });
-                            ctx.update();
-                        },
+                        action: actionSaveText,
                     },
                 ],
 

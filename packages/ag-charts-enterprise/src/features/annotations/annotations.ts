@@ -512,6 +512,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (event.value === 'clear') {
             this.clear();
+            this.recordActionAfterNextUpdate('annotations', 'Clear all annotations');
             return;
         }
 

@@ -91,8 +91,10 @@ export class ColorPicker extends AnchoredPopover<ColorPickerOptions> {
                 colorInput.value = colorString.toUpperCase();
             }
 
-            const plainColor = Color.fromHSB(h, s, v, 1).toHexString();
-            opts.onChange?.(colorString, plainColor, a);
+            if (trackChange || opts.color == null) {
+                const plainColor = Color.fromHSB(h, s, v, 1).toHexString();
+                opts.onChange?.(colorString, plainColor, a);
+            }
 
             if (trackChange) this.hasChanged = true;
         };
