@@ -52,7 +52,7 @@ export interface SeriesNodeDatum {
     readonly series: ISeries<any, any>;
     readonly itemId?: any;
     readonly datum: any;
-    readonly point?: Readonly<SizedPoint>;
+    readonly point?: Readonly<Point> & SizedPoint;
     readonly missing?: boolean;
     readonly enabled?: boolean;
     readonly focusable?: boolean;
