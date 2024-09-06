@@ -17,7 +17,7 @@ export interface GaugeColorStopDatum {
 }
 
 function discreteColorStops(colorStops: GaugeColorStopDatum[]): GaugeColorStopDatum[] {
-    return colorStops.flatMap((colorStop, i, colorStops) => {
+    return colorStops.flatMap((colorStop, i) => {
         const { stop } = colorStop;
         const nextColor = colorStops.at(i + 1)?.color;
         return nextColor != null ? [colorStop, { stop, color: nextColor }] : [colorStop];
