@@ -187,8 +187,12 @@ const GalleryExampleRunnerInner = ({ examples, loadingIFrameId, format }: Props)
                             />
                         </div>
                         <footer className={exampleRunnerStyles.footer}>
-                            <a href={urlWithBaseUrl(`./gallery/${currentExampleName}`)}>
-                                View {currentExample.buttonText} Chart Examples <Icon name="arrowRight" />
+                            <a
+                                href={urlWithBaseUrl(
+                                    `./gallery#${currentExample.buttonText.replace(' ', '-').toLowerCase()}`
+                                )}
+                            >
+                                View More {currentExample.buttonText} Chart Examples <Icon name="arrowRight" />
                             </a>
                         </footer>
                     </div>
