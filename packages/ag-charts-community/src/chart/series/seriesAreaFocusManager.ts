@@ -55,8 +55,8 @@ export class SeriesAreaFocusManager extends BaseManager {
 
     public seriesChanged(series: Series<any, SeriesProperties<any>>[]) {
         this.series = [...series].sort((a, b) => {
-            const fpA = a.properties.focusPriority;
-            const fpB = b.properties.focusPriority;
+            const fpA = a.properties.focusPriority ?? Infinity;
+            const fpB = b.properties.focusPriority ?? Infinity;
             if (fpA === fpB) {
                 return a._declarationOrder - b._declarationOrder;
             } else {

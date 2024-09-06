@@ -77,8 +77,8 @@ export abstract class SeriesProperties<T extends object> extends BaseProperties<
     @Validate(BOOLEAN)
     visible: boolean = true;
 
-    @Validate(REAL_NUMBER)
-    focusPriority: number = Infinity;
+    @Validate(REAL_NUMBER, { optional: true })
+    focusPriority?: number = Infinity;
 
     @Validate(BOOLEAN)
     showInLegend: boolean = true;
