@@ -12,6 +12,7 @@ import type { LayoutCompleteEvent } from '../layout/layoutManager';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import type { TooltipContent } from '../tooltip/tooltip';
 import type { PickFocusOutputs, Series } from './series';
+import type { SeriesProperties } from './seriesProperties';
 import type { SeriesNodeDatum } from './seriesTypes';
 
 /** Manages focus and keyboard navigation concerns around the series area and sub-components. */
@@ -52,8 +53,16 @@ export class SeriesAreaFocusManager extends BaseManager {
         );
     }
 
-    public seriesChanged(series: Series<any, any>[]) {
-        this.series = series;
+    public seriesChanged(series: Series<any, SeriesProperties<any>>[]) {
+        this.series = [...series].sort((a, b) => {
+            let fpA = a.properties.focusPriority ?? Infinity;
+            let fpB = b.properties.focusPriority ?? Infinity;
+            if (fpA === fpB) {
+                [fpA, fpB] = [a._declarationOrder, b._declarationOrder];
+            }
+            // Note: `Infinity-Infinity` results in `NaN`, so use `<` comparison instead of `-` subtraction.
+            return fpA < fpB ? -1 : 1;
+        });
         this.onBlur();
     }
 

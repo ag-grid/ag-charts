@@ -258,8 +258,9 @@ function createVolumeSeries(
             type: 'bar',
             xKey: 'date',
             yKey: volumeKey,
-            tooltip: { enabled: false },
             // @ts-expect-error
+            focusPriority: 1,
+            tooltip: { enabled: false },
             highlight: { enabled: false },
             fillOpacity: fromTheme(theme, (t) => t.overrides?.bar?.series?.fillOpacity) ?? 0.5,
             ...itemStyler,
@@ -304,6 +305,8 @@ function createPriceSeries(
             return [
                 {
                     type: 'ohlc',
+                    // @ts-expect-error
+                    focusPriority: 0,
                     ...common,
                     ...keys,
                 } satisfies AgOhlcSeriesOptions,
@@ -312,6 +315,8 @@ function createPriceSeries(
             return [
                 {
                     type: 'line',
+                    // @ts-expect-error
+                    focusPriority: 0,
                     ...common,
                     ...singleKeys,
                     stroke: fromTheme(theme, (t) => t.overrides?.line?.series?.stroke) ?? PALETTE_NEUTRAL_STROKE,
@@ -322,6 +327,8 @@ function createPriceSeries(
             return [
                 {
                     type: 'line',
+                    // @ts-expect-error
+                    focusPriority: 0,
                     ...common,
                     ...singleKeys,
                     stroke: fromTheme(theme, (t) => t.overrides?.line?.series?.stroke) ?? PALETTE_NEUTRAL_STROKE,
@@ -338,6 +345,8 @@ function createPriceSeries(
             return [
                 {
                     type: RANGE_AREA_TYPE,
+                    // @ts-expect-error
+                    focusPriority: 0,
                     ...common,
                     xKey,
                     yHighKey: highKey,
@@ -349,6 +358,8 @@ function createPriceSeries(
                 } satisfies AgRangeAreaSeriesOptions,
                 {
                     type: RANGE_AREA_TYPE,
+                    // @ts-expect-error
+                    focusPriority: 0,
                     ...common,
                     xKey,
                     yHighKey: closeKey,
@@ -373,6 +384,8 @@ function createPriceSeries(
             return [
                 {
                     type: 'range-bar',
+                    // @ts-expect-error
+                    focusPriority: 0,
                     ...common,
                     xKey,
                     yHighKey: highKey,
@@ -388,6 +401,8 @@ function createPriceSeries(
             return [
                 {
                     type: 'candlestick',
+                    // @ts-expect-error
+                    focusPriority: 0,
                     ...common,
                     ...keys,
                 } satisfies AgCandlestickSeriesOptions,
@@ -397,6 +412,8 @@ function createPriceSeries(
             return [
                 {
                     type: 'candlestick',
+                    // @ts-expect-error
+                    focusPriority: 0,
                     ...common,
                     ...keys,
                     item: {
@@ -411,6 +428,8 @@ function createPriceSeries(
             return [
                 {
                     type: 'candlestick',
+                    // @ts-expect-error
+                    focusPriority: 0,
                     ...common,
                     ...keys,
                 } satisfies AgCandlestickSeriesOptions,
