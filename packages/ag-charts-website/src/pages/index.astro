@@ -23,32 +23,32 @@ const { data: versionsData } = await getEntry('versions', 'ag-charts-versions');
 
 // Extract Specific Community Examples from Gallery
 const seriesExampleMap = {
-    bar: 'stacked-horizontal-bar',
-    line: 'multiple-line-series-large-data',
-    area: 'stacked-area',
-    scatter: 'scatter-with-large-data',
-    bubble: 'bubble-with-categories',
-    pie: 'pie-with-variable-radius',
-    donut: 'donut-with-variable-radius',
-    combination: 'radar-line-radar-area-nightingale-combination',
-};
-
-// Extract Specific Enterprise Examples from Gallery
-const enterpriseSeriesExampleMap = {
-    'range-bar': 'horizontal-range-bar-with-labels',
+    bar: 'simple-horizontal-bar',
+    line: 'multiple-line-series',
+    area: 'simple-area',
+    scatter: 'simple-scatter',
+    bubble: 'bubble-with-negative-values',
+    pie: 'simple-pie',
+    donut: 'simple-donut',
+    combination: 'bar-line-combination',
+    map: 'multiple-map-shape-series',
+    histogram: 'simple-histogram',
+    'range-bar': 'horizontal-range-bar',
     'range-area': 'range-area-with-labels',
-    waterfall: 'customised-waterfall',
-    'box-plot': 'multiple-box-plots',
-    candlestick: 'ohlc',
-    'radar-line': 'reversed-radar-with-markers',
-    nightingale: 'reversed-nightingale',
-    'radial-column': 'reversed-radial-column',
-    'radial-bar': 'reversed-radial-bar',
-    sunburst: 'sunburst-with-nesting',
+    waterfall: 'simple-waterfall',
+    'box-plot': 'simple-box-plot',
+    candlestick: 'candlestick',
+    'radar-line': 'simple-radar-line',
+    'radar-area': 'simple-radar-area',
+    nightingale: 'simple-nightingale',
+    'radial-column': 'simple-radial-column',
+    'radial-bar': 'stacked-radial-bar',
+    sunburst: 'simple-sunburst',
     treemap: 'simple-treemap',
     heatmap: 'simple-heatmap',
     sankey: 'sankey',
     chord: 'chord',
+    'radial-gauge': 'simple-radial-gauge',
     'bullet-chart': 'simple-bullet',
 };
 
@@ -57,20 +57,6 @@ const exampleData = galleryEntry.data.series
     .filter((series) => series.seriesName in seriesExampleMap)
     .map((series) => {
         const exampleName = seriesExampleMap[series.seriesName];
-        const example = series.examples.find((ex) => ex.name === exampleName);
-        return {
-            title: example.title,
-            exampleName: example.name,
-            buttonText: series.title,
-            icon: series.icon,
-        };
-    });
-
-const enterpriseExampleData = galleryEntry.data.series
-    .flatMap((seriesGroup) => seriesGroup)
-    .filter((series) => series.seriesName in enterpriseSeriesExampleMap)
-    .map((series) => {
-        const exampleName = enterpriseSeriesExampleMap[series.seriesName];
         const example = series.examples.find((ex) => ex.name === exampleName);
         return {
             title: example.title,
@@ -159,39 +145,6 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                     </h4>
                 </div>
                 <IndexGalleryExampleRunner examples={exampleData} pageName={'bar'} />
-            </div>
-        </div>
-        <div class={styles.section}>
-            <div class:list={[styles.enterpriseFeaturesSectionInner, 'layout-max-width-small']}>
-                <div class={styles.sectionHeaderContainer}>
-                    <h2>Enterprise JavaScript Charts - Advanced Features & Support</h2>
-                    <h3>Upgrade for Advanced Features, Series Types and Dedicated Enterprise Support</h3>
-                    <h4>
-                        Enterprise features include advanced chart types such as candlestick and OHLC for financial
-                        data, multi-layered map visualizations, and many more in addition to advanced interactivity
-                        features, additional styling options and dedicated support from our engineering team.
-                    </h4>
-                </div>
-                <div class={styles.enterpriseFeaturesContainer}>
-                    <IndexGalleryExampleRunner examples={enterpriseExampleData} pageName={'range-bar'} />
-                    <div class={styles.cardContainer}>
-                        <div class={styles.card}>
-                            <h4>Interactivity</h4>
-                            <p>Animations, Context Menu, Cross Hairs, Navigator, Synchronization, Zoom</p>
-                        </div>
-                        <div class={styles.card}>
-                            <h4>Layout & Styling</h4>
-                            <p>Add Error Bars & Background Images</p>
-                        </div>
-                        <div class={styles.card}>
-                            <h4>Dedicated Support</h4>
-                            <p>Access to AG Charts experts for support & guidance via Zendesk</p>
-                        </div>
-                    </div>
-                </div>
-                <div class={styles.ctaButton}>
-                    <a href={urlWithBaseUrl('/license-pricing')} class="button-secondary">View Pricing</a>
-                </div>
             </div>
         </div>
         <div class={styles.section}>
