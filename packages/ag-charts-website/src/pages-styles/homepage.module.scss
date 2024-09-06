@@ -13,6 +13,10 @@
     }
 }
 
+.container > div:last-child {
+    padding-bottom: $spacing-size-24;
+}
+
 .section {
     padding: $spacing-size-16 $spacing-size-8;
 }
