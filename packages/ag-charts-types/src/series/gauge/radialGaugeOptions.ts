@@ -6,9 +6,10 @@ import type {
     AgChartLabelOptions,
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, Degree, MarkerShape, PixelSize, Ratio } from '../../chart/types';
+import type { Degree, MarkerShape, PixelSize, Ratio } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
+import type { AgGaugeSegmentation, AgGaugeSeriesColorStop, AgGaugeSeriesFillMode } from './gaugeCommonOptions';
 
 export type AgRadialGaugeTargetPlacement = 'inside' | 'outside' | 'middle';
 
@@ -39,7 +40,9 @@ export interface AgRadialGaugeSeriesScaleLabel extends AgBaseAxisLabelOptions {}
 
 export interface AgRadialGaugeSeriesScale extends FillOptions, StrokeOptions, LineDashOptions {
     /** Configuration the colours. */
-    colorRange?: CssColor[];
+    fills?: AgGaugeSeriesColorStop[];
+    /** Configuration the fill mode. */
+    fillMode?: AgGaugeSeriesFillMode;
     /** Maximum value of the scale. Any values exceeding this number will be clipped to this maximum. */
     min?: number;
     /** Minimum value of the scale. Any values exceeding this number will be clipped to this minimum. */
@@ -67,7 +70,9 @@ export interface AgRadialGaugeSeriesBarStyle extends FillOptions, StrokeOptions,
     /** Whether the bar should be shown. */
     enabled?: boolean;
     /** Configuration the colours. */
-    colorRange?: CssColor[];
+    fills?: AgGaugeSeriesColorStop[];
+    /** Configuration the fill mode. */
+    fillMode?: AgGaugeSeriesFillMode;
 }
 
 export interface AgRadialGaugeSeriesNeedleStyle extends FillOptions, StrokeOptions, LineDashOptions {
@@ -129,9 +134,7 @@ export interface AgRadialGaugeSeriesThemeableOptions<TDatum = any>
     /** Angle in degrees of the end of the gauge. */
     endAngle?: Degree;
     /** Configuration for a segmented appearance. */
-    segments?: number[] | number;
-    /** The spacing between sectors. */
-    sectorSpacing?: number;
+    segmentation?: AgGaugeSegmentation;
     /** Configuration on whether to apply `cornerRadius` only to the ends of the gauge, or each individual item within the gauge. */
     cornerMode?: 'container' | 'item';
     /** Configuration for the needle. */

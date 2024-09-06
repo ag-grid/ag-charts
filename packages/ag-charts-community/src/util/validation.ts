@@ -109,6 +109,7 @@ export const BOOLEAN = predicateWithMessage(isBoolean, 'a boolean');
 export const FUNCTION = predicateWithMessage(isFunction, 'a function');
 export const STRING = predicateWithMessage(isString, 'a string');
 export const NUMBER = attachNumberRestrictions(predicateWithMessage(isFiniteNumber, 'a number'));
+export const REAL_NUMBER = predicateWithMessage((value) => isNumber(value) && !isNaN(value), 'a real number');
 export const NAN = predicateWithMessage((value) => isNumber(value) && isNaN(value), 'NaN');
 export const POSITIVE_NUMBER = NUMBER.restrict({ min: 0 });
 export const RATIO = NUMBER.restrict({ min: 0, max: 1 });

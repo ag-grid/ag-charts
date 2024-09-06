@@ -4,7 +4,6 @@ const options: AgGaugeOptions = {
     type: 'radial-gauge',
     container: document.getElementById('myChart'),
     value: 80,
-    segments: 10,
     scale: {
         min: 0,
         max: 100,

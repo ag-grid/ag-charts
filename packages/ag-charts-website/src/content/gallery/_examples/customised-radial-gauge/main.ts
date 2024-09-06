@@ -7,8 +7,6 @@ const firstOptions: AgGaugeOptions = {
     value: 90,
     startAngle: 180 + 45,
     endAngle: 360 + 180 - 45,
-    segments: [65, 75],
-    sectorSpacing: 2,
     scale: {
         min: 0,
         max: 120,
@@ -16,8 +14,15 @@ const firstOptions: AgGaugeOptions = {
             step: 10,
         },
     },
+    segmentation: {
+        interval: {
+            values: [65, 75],
+        },
+        spacing: 2,
+    },
     bar: {
-        colorRange: ['#4cd137', '#fbc531', '#e84118'],
+        fills: [{ color: '#4cd137', stop: 65 }, { color: '#fbc531', stop: 75 }, { color: '#e84118' }],
+        fillMode: 'discrete',
     },
     secondaryLabel: {
         text: 'mph',
@@ -49,12 +54,17 @@ const secondOptions: AgGaugeOptions = {
     value: 6.5,
     startAngle: 180 + 45,
     endAngle: 360 + 180 - 45,
-    segments: [6],
-    sectorSpacing: 2,
+    segmentation: {
+        interval: {
+            step: 1,
+        },
+        spacing: 2,
+    },
     scale: {
         min: 0,
         max: 8,
-        colorRange: ['#7f8fa6', '#e84118'],
+        fills: [{ color: '#7f8fa6', stop: 6.25 }, { color: '#e84118' }],
+        fillMode: 'discrete',
     },
     bar: {
         enabled: false,
@@ -73,12 +83,23 @@ const thirdOptions: AgGaugeOptions = {
     value: 75,
     startAngle: 180 + 45,
     endAngle: 360 + 180 - 45,
-    segments: [50, 60, 70, 80],
-    sectorSpacing: 2,
+    segmentation: {
+        interval: {
+            values: [50, 60, 70, 80],
+        },
+        spacing: 2,
+    },
     scale: {
         min: 0,
         max: 100,
-        colorRange: ['#e84118', '#fbc531', '#4cd137', '#fbc531', '#e84118'],
+        fills: [
+            { color: '#e84118', stop: 50 },
+            { color: '#fbc531', stop: 60 },
+            { color: '#4cd137', stop: 70 },
+            { color: '#fbc531', stop: 80 },
+            { color: '#e84118' },
+        ],
+        fillMode: 'discrete',
     },
     bar: {
         enabled: false,
@@ -105,7 +126,7 @@ const fourthOptions: AgGaugeOptions = {
         },
     },
     bar: {
-        colorRange: ['#e84118', '#fbc531', '#4cd137'],
+        fills: [{ color: '#e84118' }, { color: '#fbc531' }, { color: '#4cd137' }],
     },
     secondaryLabel: {
         text: 'litres',

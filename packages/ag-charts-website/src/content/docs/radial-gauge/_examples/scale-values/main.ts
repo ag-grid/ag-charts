@@ -8,9 +8,20 @@ const options: AgRadialGaugeOptions = {
         min: 0,
         max: 100,
     },
-    segments: [35, 45, 55, 65],
+    segmentation: {
+        interval: {
+            values: [35, 45, 55, 65],
+        },
+    },
     bar: {
-        colorRange: ['#E84118', '#FBC531', '#4CD137', '#FBC531', '#E84118'],
+        fills: [
+            { color: '#E84118', stop: 35 },
+            { color: '#FBC531', stop: 45 },
+            { color: '#4CD137', stop: 55 },
+            { color: '#FBC531', stop: 65 },
+            { color: '#E84118' },
+        ],
+        fillMode: 'discrete',
     },
 };
 
