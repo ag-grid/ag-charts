@@ -2,7 +2,7 @@ import type { AgIconName } from 'ag-charts-types';
 
 import { BaseManager } from '../chart/baseManager';
 import { BBox } from '../scene/bbox';
-import { setAttribute } from '../sparklines-util';
+import { setAttribute } from '../util/attributeUtil';
 import STYLES from '../styles.css';
 import { createElement, getDocument, getWindow } from '../util/dom';
 import { type Size, SizeMonitor } from '../util/sizeMonitor';
