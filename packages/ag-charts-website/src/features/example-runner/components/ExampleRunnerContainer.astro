@@ -37,12 +37,16 @@ const loadingLogoId = getLoadingLogoId({ pageName, exampleName });
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) scale(2);
+            transform: translate(-50%, -100%) scale(2);
         }
     }
 
     .example-runner-outer {
         margin-bottom: $spacing-size-4;
+    }
+
+    :global(.largeExamples) .example-runner-outer {
+        width: calc(139% - 40px);
     }
 
     :global(.tabs-content) .example-runner-outer {
