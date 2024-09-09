@@ -827,7 +827,7 @@ export abstract class Series<
             markerNode.updatePath();
             markerNode.checkPathDirty();
 
-            // AG-1275 Calculate the marker size to ensure that the focus indicator is correct.
+            // AG-12745 Calculate the marker size to ensure that the focus indicator is correct.
             const bb = markerNode.getBBox();
             if (point !== undefined && bb.isFinite()) {
                 const center = bb.computeCenter();
