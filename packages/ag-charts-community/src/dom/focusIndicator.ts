@@ -48,8 +48,8 @@ export class FocusIndicator {
         if (bounds === undefined) {
             this.element.classList.add(focusStyles.modifiers.hidden);
         } else if (bounds instanceof Path) {
-            const matrix = Transformable.toCanvasTransform(bounds);
-            this.path.setAttribute('d', bounds.computeSVGDataPath(matrix));
+            const transform = (x: number, y: number) => Transformable.toCanvasPoint(bounds, x, y);
+            this.path.setAttribute('d', bounds.computeSVGDataPath(transform));
             this.show(this.svg);
         } else {
             setElementBBox(this.div, bounds);
