@@ -1,4 +1,5 @@
 import {
+    type AgGaugeSeriesFillMode,
     type AgLinearGaugeMarkerShape,
     type AgLinearGaugeTargetPlacement,
     type FontStyle,
@@ -6,12 +7,12 @@ import {
     type TextAlign,
     type VerticalAlign,
     _ModuleSupport,
-    _Scale,
     _Scene,
     _Util,
 } from 'ag-charts-community';
 
 import { LineMarker } from '../gauge-util/lineMarker';
+import { type GaugeStopProperties, getColorStops } from '../gauge-util/stops';
 import {
     type LinearGaugeNodeDatum,
     LinearGaugeSeriesProperties,
@@ -31,7 +32,6 @@ const {
     EMPTY_TOOLTIP_CONTENT,
 } = _ModuleSupport;
 const { BBox, Group, PointerEvents, Selection, Rect, Text, LinearGradient, getMarker } = _Scene;
-const { ColorScale } = _Scale;
 const { toRadians } = _Util;
 
 interface TargetLabel {
@@ -232,17 +232,27 @@ export class LinearGaugeSeries
         return value.toFixed(dp);
     }
 
-    private createLinearGradient(colorScale: _Scale.ColorScale | undefined, bbox: _Scene.BBox) {
-        if (colorScale == null) return;
+    private createLinearGradient(
+        fills: GaugeStopProperties[],
+        fillMode: AgGaugeSeriesFillMode | undefined,
+        segments: number[] | undefined
+    ) {
+        const { properties, originX, originY } = this;
+        const { horizontal, thickness, defaultColorRange } = properties;
 
-        const { horizontal } = this.properties;
+        const mainAxis = horizontal ? this.axes[ChartAxisDirection.X] : this.axes[ChartAxisDirection.Y];
+        const { domain, range } = mainAxis!.scale;
 
-        const stops = colorScale.range.map((color, i, range): _Scene.GradientColorStop => {
-            const offset = i > 0 ? i / (range.length - 1) : 0;
-            return { offset, color };
-        });
+        const length = range[1] - range[0];
 
-        return new LinearGradient('oklch', stops, horizontal ? 90 : 0, bbox);
+        const stops = getColorStops(fills, defaultColorRange, domain, fillMode, segments);
+
+        return new LinearGradient(
+            'oklch',
+            stops,
+            horizontal ? 90 : 0,
+            new BBox(originX, originY, horizontal ? length : thickness, horizontal ? thickness : length)
+        );
     }
 
     private getTargets(): Target[] {
@@ -408,6 +418,7 @@ export class LinearGaugeSeries
         const { id: seriesId, properties, originX, originY } = this;
         const {
             value,
+            segmentation,
             horizontal,
             thickness,
             cornerRadius,
@@ -416,8 +427,6 @@ export class LinearGaugeSeries
             scale,
             // label,
             // secondaryLabel,
-            barSpacing,
-            defaultColorRange,
         } = properties;
         const targets = this.getTargets();
 
@@ -434,6 +443,7 @@ export class LinearGaugeSeries
         if (mainAxis.isReversed()) {
             domain = domain.slice().reverse();
         }
+
         const nodeData: LinearGaugeNodeDatum[] = [];
         const targetData: LinearGaugeTargetDatum[] = [];
         const labelData: LinearGaugeLabelDatum[] = [];
@@ -448,17 +458,10 @@ export class LinearGaugeSeries
             [y1, y0] = [y0, y1];
         }
 
-        const cornersOnAllItems = cornerMode === 'item';
-        let mainAxisInset = 0;
-        if (properties.segments == null && cornersOnAllItems) {
-            const [m0, m1] = mainAxisScale.range;
-            const mainAxisSize = Math.abs(m1 - m0);
-            const appliedCornerRadius = Math.min(cornerRadius, thickness / 2, mainAxisSize / 2);
-            mainAxisInset = appliedCornerRadius;
-        }
-        if (mainAxis.isReversed()) {
-            mainAxisInset = -mainAxisInset;
-        }
+        const [m0, m1] = mainAxisScale.range;
+        const mainAxisSize = Math.abs(m1 - m0);
+        const appliedCornerRadius = Math.min(cornerRadius, thickness / 2, mainAxisSize / 2);
+        const mainAxisInset = appliedCornerRadius * (mainAxis.isReversed() ? -1 : 1);
 
         const xAxisInset = horizontal ? mainAxisInset : 0;
         const yAxisInset = horizontal ? 0 : mainAxisInset;
@@ -466,24 +469,8 @@ export class LinearGaugeSeries
         const containerX = horizontal ? xScale.convert(value) : x1;
         const containerY = horizontal ? y1 : yScale.convert(value);
 
-        const gradientBBox = new BBox(Math.min(x0, x1), Math.min(y0, y1), Math.abs(x1 - x0), Math.abs(y1 - y0));
-
-        const horizontalInset = horizontal ? barSpacing / 2 : 0;
-        const verticalInset = horizontal ? 0 : barSpacing / 2;
-
-        let barColorScale: _Scale.ColorScale | undefined;
-        if (bar.enabled || bar.colorRange != null) {
-            barColorScale = new ColorScale();
-            barColorScale.domain = [0, 1];
-            barColorScale.range = bar.colorRange ?? defaultColorRange;
-        }
-
-        let scaleColorScale: _Scale.ColorScale | undefined;
-        if (!bar.enabled || scale.colorRange != null) {
-            scaleColorScale = new ColorScale();
-            scaleColorScale.domain = [0, 1];
-            scaleColorScale.range = scale.colorRange ?? defaultColorRange;
-        }
+        const horizontalInset = horizontal ? (segmentation.spacing ?? 0) / 2 : 0;
+        const verticalInset = horizontal ? 0 : (segmentation.spacing ?? 0) / 2;
 
         let barXInset = 0;
         let barYInset = 0;
@@ -494,45 +481,31 @@ export class LinearGaugeSeries
             barYInset = horizontal ? inset : 0;
         }
 
-        if (properties.segments == null) {
-            if (bar.enabled) {
-                const barFill: string | _Scene.Gradient | undefined =
-                    bar.fill ?? this.createLinearGradient(barColorScale, gradientBBox);
-                const sizeParams = cornersOnAllItems
-                    ? {
-                          x0: originX + x0 - xAxisInset - barXInset,
-                          y0: originY + y0 - yAxisInset - barYInset,
-                          x1: originX + containerX + xAxisInset + barXInset,
-                          y1: originY + containerY + yAxisInset + barYInset,
-                          clipX0: undefined,
-                          clipY0: undefined,
-                          clipX1: undefined,
-                          clipY1: undefined,
-                      }
-                    : {
-                          x0: originX + x0,
-                          y0: originY + y0,
-                          x1: originX + x1,
-                          y1: originY + y1,
-                          clipX0: originX + x0 - barXInset,
-                          clipY0: originY + y0 - barYInset,
-                          clipX1: originX + containerX + barXInset,
-                          clipY1: originY + containerY + barYInset,
-                      };
+        const cornersOnAllItems = cornerMode === 'item';
 
+        let segments = segmentation.getSegments(mainAxisScale);
+
+        const barFill = bar.fill ?? this.createLinearGradient(bar.fills, bar.fillMode, segments);
+        const scaleFill =
+            scale.fill ??
+            (bar.enabled && scale.fills.length === 0 ? scale.defaultFill : undefined) ??
+            this.createLinearGradient(scale.fills, scale.fillMode, segments);
+
+        if (segments == null && cornersOnAllItems) {
+            if (bar.enabled) {
                 nodeData.push({
                     series: this,
                     itemId: `value`,
                     datum: value,
                     type: NodeDataType.Node,
-                    x0: sizeParams.x0,
-                    y0: sizeParams.y0,
-                    x1: sizeParams.x1,
-                    y1: sizeParams.y1,
-                    clipX0: sizeParams.clipX0,
-                    clipY0: sizeParams.clipY0,
-                    clipX1: sizeParams.clipX1,
-                    clipY1: sizeParams.clipY1,
+                    x0: originX + x0 - xAxisInset - barXInset,
+                    y0: originY + y0 - yAxisInset - barYInset,
+                    x1: originX + containerX + xAxisInset + barXInset,
+                    y1: originY + containerY + yAxisInset + barYInset,
+                    clipX0: undefined,
+                    clipY0: undefined,
+                    clipX1: undefined,
+                    clipY1: undefined,
                     topLeftCornerRadius: cornerRadius,
                     topRightCornerRadius: cornerRadius,
                     bottomRightCornerRadius: cornerRadius,
@@ -542,9 +515,6 @@ export class LinearGaugeSeries
                     verticalInset,
                 });
             }
-
-            const scaleFill: string | _Scene.Gradient | undefined =
-                scale.fill ?? this.createLinearGradient(scaleColorScale, gradientBBox) ?? scale.defaultFill;
 
             scaleData.push({
                 series: this,
@@ -568,22 +538,18 @@ export class LinearGaugeSeries
                 verticalInset,
             });
         } else {
-            let segments: number[];
-            if (Array.isArray(properties.segments)) {
-                segments = properties.segments.filter((v) => v > domain[0] && v < domain[1]).sort((a, b) => a - b);
-                segments = [domain[0], ...segments, domain[1]];
-            } else {
-                const numSegments = properties.segments;
-                segments = Array.from(
-                    { length: properties.segments + 1 },
-                    (_, i) => (i / numSegments) * (domain[1] - domain[0]) + domain[0]
-                );
+            if (segmentation.spacing == null || segments == null) {
+                segments = domain;
             }
+
+            const clipX0 = originX + x0 - barXInset;
+            const clipY0 = originY + y0 - barYInset;
+            const clipX1 = originX + containerX + barXInset;
+            const clipY1 = originY + containerY + barYInset;
 
             for (let i = 0; i < segments.length - 1; i += 1) {
                 const startValue = segments[i + 0];
                 const endValue = segments[i + 1];
-                const colorValue = i > 0 ? i / (segments.length - 2) : 0;
 
                 const isStart = i === 0;
                 const isEnd = i === segments.length - 2;
@@ -599,8 +565,6 @@ export class LinearGaugeSeries
                 const bottomLeftCornerRadius = startCornerRadius;
 
                 if (bar.enabled) {
-                    const barFill = bar.fill ?? barColorScale?.convert(colorValue);
-
                     nodeData.push({
                         series: this,
                         itemId: `value-${i}`,
@@ -610,10 +574,10 @@ export class LinearGaugeSeries
                         y0: originY + (horizontal ? y0 : itemStart),
                         x1: originX + (horizontal ? itemEnd : x1),
                         y1: originY + (horizontal ? y1 : itemEnd),
-                        clipX0: originX + x0 - barXInset,
-                        clipY0: originY + y0 - barYInset,
-                        clipX1: originX + containerX + barXInset,
-                        clipY1: originY + containerY + barYInset,
+                        clipX0,
+                        clipY0,
+                        clipX1,
+                        clipY1,
                         topLeftCornerRadius,
                         topRightCornerRadius,
                         bottomRightCornerRadius,
@@ -623,8 +587,6 @@ export class LinearGaugeSeries
                         verticalInset,
                     });
                 }
-
-                const scaleFill = scale.fill ?? scaleColorScale?.convert(colorValue) ?? scale.defaultFill;
 
                 scaleData.push({
                     series: this,

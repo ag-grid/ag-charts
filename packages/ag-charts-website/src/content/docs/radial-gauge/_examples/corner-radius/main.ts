@@ -18,7 +18,7 @@ function setSegments(segments: boolean) {
     if (segments) {
         options.segmentation = {
             interval: {
-                count: 5,
+                count: 4,
             },
             spacing: 2,
         };

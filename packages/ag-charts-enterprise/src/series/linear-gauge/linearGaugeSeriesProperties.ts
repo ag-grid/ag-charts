@@ -1,5 +1,6 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 import type {
+    AgGaugeSeriesFillMode,
     AgLinearGaugeMarkerShape,
     AgLinearGaugeSeriesItemStylerParams,
     AgLinearGaugeSeriesLabelFormatterParams,
@@ -13,6 +14,9 @@ import type {
     Styler,
 } from 'ag-charts-types';
 
+import { FILL_MODE, TARGET_MARKER_SHAPE } from '../gauge-util/properties';
+import { GaugeSegmentationProperties } from '../gauge-util/segmentation';
+import { GaugeStopProperties } from '../gauge-util/stops';
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
 const {
@@ -26,20 +30,16 @@ const {
     COLOR_STRING_ARRAY,
     FUNCTION,
     LINE_DASH,
-    MARKER_SHAPE,
     NUMBER,
-    NUMBER_ARRAY,
     OBJECT_ARRAY,
     OBJECT,
     POSITIVE_NUMBER,
     RATIO,
     STRING,
     UNION,
-    OR,
 } = _ModuleSupport;
 const { Label } = _Scene;
 
-const TARGET_MARKER_SHAPE = OR(MARKER_SHAPE, UNION(['line'], 'a marker shape'));
 const TARGET_PLACEMENT = UNION(['before', 'after', 'middle'], 'a placement');
 
 export enum NodeDataType {
@@ -157,8 +157,11 @@ export class LinearGaugeBarProperties extends BaseProperties {
     @Validate(POSITIVE_NUMBER, { optional: true })
     thickness: number | undefined;
 
-    @Validate(COLOR_STRING_ARRAY, { optional: true })
-    colorRange: string[] | undefined;
+    @Validate(OBJECT_ARRAY)
+    fills = new PropertiesArray<GaugeStopProperties>(GaugeStopProperties);
+
+    @Validate(FILL_MODE, { optional: true })
+    fillMode: AgGaugeSeriesFillMode | undefined;
 
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined;
@@ -183,8 +186,11 @@ export class LinearGaugeBarProperties extends BaseProperties {
 }
 
 export class LinearGaugeScaleProperties extends BaseProperties {
-    @Validate(COLOR_STRING_ARRAY, { optional: true })
-    colorRange: string[] | undefined;
+    @Validate(OBJECT_ARRAY)
+    fills = new PropertiesArray<GaugeStopProperties>(GaugeStopProperties);
+
+    @Validate(FILL_MODE, { optional: true })
+    fillMode: AgGaugeSeriesFillMode | undefined;
 
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined;
@@ -225,8 +231,8 @@ export class LinearGaugeSeriesProperties extends SeriesProperties<AgLinearGaugeS
     @Validate(NUMBER)
     value: number = 0;
 
-    @Validate(OR(NUMBER, NUMBER_ARRAY), { optional: true })
-    segments: number[] | number | undefined;
+    @Validate(OBJECT)
+    readonly segmentation = new GaugeSegmentationProperties();
 
     @Validate(COLOR_STRING_ARRAY)
     defaultColorRange: string[] = [];
@@ -242,9 +248,6 @@ export class LinearGaugeSeriesProperties extends SeriesProperties<AgLinearGaugeS
 
     @Validate(POSITIVE_NUMBER)
     thickness: number = 1;
-
-    @Validate(POSITIVE_NUMBER)
-    barSpacing: number = 0;
 
     @Validate(POSITIVE_NUMBER)
     cornerRadius: number = 0;

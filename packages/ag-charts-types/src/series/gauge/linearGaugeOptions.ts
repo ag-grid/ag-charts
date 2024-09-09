@@ -6,9 +6,10 @@ import type {
     AgChartLabelOptions,
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, Degree, MarkerShape, PixelSize } from '../../chart/types';
+import type { Degree, MarkerShape, PixelSize } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
+import type { AgGaugeSeriesColorStop, AgGaugeSeriesFillMode } from './gaugeCommonOptions';
 
 export type AgLinearGaugeTargetPlacement = 'before' | 'after' | 'middle';
 
@@ -42,7 +43,9 @@ export interface AgLinearGaugeSeriesScaleLabel extends AgBaseAxisLabelOptions {
 
 export interface AgLinearGaugeSeriesScale extends FillOptions, StrokeOptions, LineDashOptions {
     /** Configuration the colours. */
-    colorRange?: CssColor[];
+    fills?: AgGaugeSeriesColorStop[];
+    /** Configuration the fill mode. */
+    fillMode?: AgGaugeSeriesFillMode;
     /** Maximum value of the scale. Any values exceeding this number will be clipped to this maximum. */
     min?: number;
     /** Minimum value of the scale. Any values exceeding this number will be clipped to this minimum. */
@@ -72,7 +75,9 @@ export interface AgLinearGaugeSeriesBarStyle extends FillOptions, StrokeOptions,
     /** Width of the bar, or the height if `horizontal` is true. Defaults to the gauge thickness. */
     thickness?: number;
     /** Configuration the colours. */
-    colorRange?: CssColor[];
+    fills?: AgGaugeSeriesColorStop[];
+    /** Configuration the fill mode. */
+    fillMode?: AgGaugeSeriesFillMode;
 }
 
 export interface AgLinearGaugeSeriesBackgroundStyle extends FillOptions, StrokeOptions, LineDashOptions {}
