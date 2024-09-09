@@ -47,7 +47,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     private colorPickerAnchorElement?: HTMLElement;
     private dragStartState?: { client: _Util.Vec2; position: _Util.Vec2 };
     private seriesRect?: _Scene.BBox;
-    private escapeHandler: (event: KeyboardEvent) => unknown;
+    private readonly escapeHandler: (event: KeyboardEvent) => unknown;
 
     constructor(ctx: _ModuleSupport.ModuleContext, id: string) {
         super(ctx, id);
