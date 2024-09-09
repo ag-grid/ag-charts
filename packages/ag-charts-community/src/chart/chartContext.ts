@@ -99,7 +99,7 @@ export class ChartContext implements ModuleContext {
         this.interactionManager = new InteractionManager(chart.keyboard, this.domManager);
         this.keyNavManager = new KeyNavManager(this.interactionManager);
         this.focusIndicator = new FocusIndicator(this.domManager);
-        this.regionManager = new RegionManager(this.interactionManager, this.focusIndicator);
+        this.regionManager = new RegionManager(this.interactionManager);
         this.contextMenuRegistry = new ContextMenuRegistry(this.regionManager);
         this.gestureDetector = new GestureDetector(this.domManager);
         this.ariaAnnouncementService = new AriaAnnouncementService(
