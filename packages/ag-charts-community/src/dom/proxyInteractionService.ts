@@ -108,9 +108,6 @@ function allocateMeta<T extends keyof ProxyMeta>(params: ProxyMeta[T]['params'])
 }
 
 export class ProxyInteractionService {
-    // This debug option make the proxies button partially transparent instead of fully transparent.
-    // To enabled this option, set window.agChartsDebug = ['showDOMProxies'].
-    private readonly debugShowDOMProxies: boolean = Debug.check('showDOMProxies');
     private focusable?: BBoxProvider<BBoxValues>;
     private readonly destroyFns: Array<() => void> = [];
 
@@ -145,8 +142,7 @@ export class ProxyInteractionService {
         const { params, result: div } = meta;
 
         this.domManager.addChild('canvas-overlay', params.id, div);
-        div.classList.add(...params.classList);
-        div.style.pointerEvents = 'none';
+        div.classList.add(...params.classList, 'ag-charts-proxy-container');
         div.role = params.type;
         if ('ariaOrientation' in params) {
             div.ariaOrientation = params.ariaOrientation;
@@ -226,10 +222,7 @@ export class ProxyInteractionService {
     private initElement<T extends ProxyElementType, TElem extends HTMLElement>(params: ElemParams<T>, element: TElem) {
         const { id } = params;
         element.id = id;
-        element.style.pointerEvents = 'none';
-        element.style.opacity = this.debugShowDOMProxies ? '0.25' : '0';
-        element.style.position = 'absolute';
-        element.style.overflow = 'hidden';
+        element.classList.toggle('ag-charts-proxy-elem', true);
     }
 
     private initInteract<T extends ProxyElementType, TElem extends HTMLElement>(
