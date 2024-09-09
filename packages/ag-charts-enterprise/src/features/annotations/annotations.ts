@@ -411,12 +411,15 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 ctx.toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
             },
 
-            showAnnotationSettings: (active: number) => {
+            showAnnotationSettings: (active: number, lastFocus: HTMLElement | undefined) => {
                 const datum = this.annotationData.at(active);
                 if (!hasLineText(datum)) return;
                 this.settingsDialog.showLineOrChannel(datum, {
                     onChange: (props) => {
                         this.state.transition('lineText', props);
+                    },
+                    onHide: () => {
+                        lastFocus?.focus();
                     },
                 });
             },
@@ -619,7 +622,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             }
 
             case AnnotationOptions.Settings: {
-                state.transition('toolbarPressSettings');
+                const { lastFocus } = this.ctx.focusIndicator.guessDevice(event.sourceEvent);
+                state.transition('toolbarPressSettings', lastFocus);
                 break;
             }
         }

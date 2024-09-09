@@ -17,17 +17,10 @@ import { area, groupAverage, groupCount, groupSum } from '../../data/aggregateFu
 import type { DataController } from '../../data/dataController';
 import type { AggregatePropertyDefinition, GroupByFn, PropertyDefinition } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
-import { SORT_DOMAIN_GROUPS, createDatumId, diff } from '../../data/processors';
+import { SORT_DOMAIN_GROUPS, createDatumId, diff, keyProperty, valueProperty } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
-import {
-    type PickFocusInputs,
-    Series,
-    type SeriesNodePickMatch,
-    SeriesNodePickMode,
-    keyProperty,
-    valueProperty,
-} from '../series';
+import { type PickFocusInputs, Series, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import {
     collapsedStartingBarPosition,

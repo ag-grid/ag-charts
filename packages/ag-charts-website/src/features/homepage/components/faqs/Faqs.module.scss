@@ -2,18 +2,27 @@
 
 .container {
     display: flex;
+    flex-direction: column;
     width: 100%;
     max-width: 1500px;
     justify-content: space-between;
-    padding: 20px 20px 0 20px;
+    padding-top: $spacing-size-5;
     border-radius: 8px;
+
+    @media screen and (min-width: $breakpoint-faq-columns-medium) {
+        flex-direction: row;
+        gap: $spacing-size-4;
+    }
 }
 
 .column {
     flex: 1;
     box-sizing: border-box;
     padding-top: 20px;
-    max-width: 48%;
+
+    @media screen and (min-width: $breakpoint-faq-columns-medium) {
+        width: 50%;
+    }
 }
 
 .questionContainer {
@@ -43,13 +52,9 @@
 }
 
 .expandIcon {
-    fill: var(--color-fg-secondary);
+    flex-shrink: 0;
     padding: $spacing-size-2;
-    transition: transform 0.3s ease;
-}
-
-.iconRotate {
-    transform: rotate(180deg);
+    fill: var(--color-fg-secondary);
 }
 
 .answerContainer {
