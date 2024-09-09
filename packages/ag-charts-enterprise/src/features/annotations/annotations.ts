@@ -415,6 +415,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 const datum = this.annotationData.at(active);
                 if (!hasLineText(datum)) return;
                 this.settingsDialog.showLineOrChannel(datum, {
+                    ariaLabel: this.ctx.localeManager.t('ariaLabelAnnotationSettingsDialog'),
                     onChange: (props) => {
                         this.state.transition('lineText', props);
                     },
