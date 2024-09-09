@@ -28,11 +28,11 @@ export class ChartCaptions {
         }
         if (subtitle.enabled) {
             this.positionCaption('top', subtitle, ctx.layoutBox, maxHeight);
-            this.shrinkLayoutByCaption('top', title, ctx.layoutBox, subtitle.spacing);
+            this.shrinkLayoutByCaption('top', subtitle, ctx.layoutBox, subtitle.spacing);
         }
         if (footnote.enabled) {
             this.positionCaption('bottom', footnote, ctx.layoutBox, maxHeight);
-            this.shrinkLayoutByCaption('bottom', title, ctx.layoutBox, footnote.spacing);
+            this.shrinkLayoutByCaption('bottom', footnote, ctx.layoutBox, footnote.spacing);
         }
     }
 
