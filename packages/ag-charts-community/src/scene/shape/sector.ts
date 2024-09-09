@@ -1,4 +1,4 @@
-import { BBox } from '../bbox';
+import type { BBox } from '../bbox';
 import type { Point } from '../point';
 import { SectorBox } from '../sectorBox';
 import {
@@ -112,11 +112,6 @@ export class Sector extends Path {
 
     protected override computeBBox(): BBox {
         return sectorBox(this).translate(this.centerX, this.centerY);
-    }
-
-    protected override gradientBBox(): BBox {
-        const { centerX, centerY, outerRadius } = this;
-        return new BBox(centerX - outerRadius, centerY - outerRadius, 2 * outerRadius, 2 * outerRadius);
     }
 
     private normalizedRadii() {

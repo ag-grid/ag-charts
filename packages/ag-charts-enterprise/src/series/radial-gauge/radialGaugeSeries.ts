@@ -42,7 +42,7 @@ const {
     ChartAxisDirection,
     EMPTY_TOOLTIP_CONTENT,
 } = _ModuleSupport;
-const { Group, PointerEvents, Selection, Sector, Text, ConicGradient, getMarker } = _Scene;
+const { Group, PointerEvents, Selection, Sector, Text, BBox, ConicGradient, getMarker } = _Scene;
 const { normalizeAngle360, normalizeAngle360Inclusive, toDegrees, toRadians } = _Util;
 
 interface TargetLabel {
@@ -256,6 +256,7 @@ export class RadialGaugeSeries
         fillMode: AgGaugeSeriesFillMode | undefined,
         segments: number[] | undefined
     ) {
+        const { centerX, centerY, radius } = this;
         const { domain, range } = this.axes[ChartAxisDirection.X]!.scale;
         const [startAngle, endAngle] = range;
         const { defaultColorRange } = this.properties;
@@ -276,7 +277,12 @@ export class RadialGaugeSeries
             }
         );
 
-        return new ConicGradient('oklch', stops, toDegrees(conicAngle) - 90);
+        return new ConicGradient(
+            'oklch',
+            stops,
+            toDegrees(conicAngle) - 90,
+            new BBox(centerX - radius, centerY - radius, 2 * radius, 2 * radius)
+        );
     }
 
     private getTargets(): Target[] {
