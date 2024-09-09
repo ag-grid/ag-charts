@@ -2,6 +2,7 @@ import type { AgIconName } from 'ag-charts-types';
 
 import { BaseManager } from '../chart/baseManager';
 import { BBox } from '../scene/bbox';
+import { setAttribute } from '../sparklines-util';
 import STYLES from '../styles.css';
 import { createElement, getDocument, getWindow } from '../util/dom';
 import { type Size, SizeMonitor } from '../util/sizeMonitor';
@@ -20,8 +21,8 @@ type DOMElementConfig = {
 
 const domElementConfig: Map<DOMElementClass, DOMElementConfig> = new Map([
     ['styles', { childElementType: 'style' }],
-    ['canvas', { childElementType: 'canvas', eventTypes: ['focus', 'blur'] }],
-    ['canvas-proxy', { childElementType: 'div' }],
+    ['canvas', { childElementType: 'canvas' }],
+    ['canvas-proxy', { childElementType: 'div', eventTypes: ['focus', 'blur'] }],
     ['canvas-overlay', { childElementType: 'div' }],
     [CANVAS_CENTER_CLASS, { childElementType: 'div' }],
 ]);
@@ -202,10 +203,16 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     }
 
     setTabIndex(tabIndex: number) {
-        const canvasElement = this.rootElements['canvas'].element.querySelector<HTMLCanvasElement>('canvas');
-        if (canvasElement) {
-            canvasElement.tabIndex = tabIndex;
+        const canvasProxy = this.rootElements['canvas-proxy'].element;
+        if (canvasProxy) {
+            canvasProxy.tabIndex = tabIndex;
         }
+    }
+
+    updateCanvasLabel(ariaLabel: string) {
+        const canvasProxy = this.rootElements['canvas-proxy'].element;
+        setAttribute(canvasProxy, 'role', 'img');
+        setAttribute(canvasProxy, 'aria-label', ariaLabel);
     }
 
     addEventListenerOnElement<K extends keyof HTMLElementEventMap>(
@@ -233,6 +240,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
             const els = this.rootElements[elType];
             els.listeners.push([type, listener, options]);
+            els.element.addEventListener(type, listener);
             els.children.forEach((el) => {
                 el.addEventListener(type, listener);
             });
@@ -251,6 +259,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
             const els = this.rootElements[elType];
             els.listeners = els.listeners.filter(([t, l]) => t !== type && l !== listener);
+            els.element.removeEventListener(type, listener);
             els.children.forEach((el) => {
                 el.removeEventListener(type, listener, options);
             });

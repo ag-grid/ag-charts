@@ -32,6 +32,10 @@
     pointer-events: none;
 }
 
+.ag-charts-canvas-proxy:focus-visible {
+    opacity: 1;
+}
+
 .ag-charts-tab-guard {
     width: 0;
     height: 0;
