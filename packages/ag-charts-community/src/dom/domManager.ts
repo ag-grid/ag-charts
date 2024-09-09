@@ -211,7 +211,6 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
     updateCanvasLabel(ariaLabel: string) {
         const canvasProxy = this.rootElements['canvas-proxy'].element;
-        setAttribute(canvasProxy, 'role', 'img');
         setAttribute(canvasProxy, 'aria-label', ariaLabel);
     }
 
