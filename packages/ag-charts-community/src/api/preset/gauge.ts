@@ -61,7 +61,8 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         minHeight,
         theme,
         title,
-        seriesArea,
+        subtitle,
+        padding,
         listeners,
         type,
         id,
@@ -119,7 +120,8 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         minHeight,
         theme,
         title,
-        seriesArea,
+        subtitle,
+        padding,
         listeners,
     });
 
@@ -200,7 +202,8 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         minHeight,
         theme,
         title,
-        seriesArea,
+        subtitle,
+        padding,
         listeners,
         type,
         id,
@@ -258,7 +261,8 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         minHeight,
         theme,
         title,
-        seriesArea,
+        subtitle,
+        padding,
         listeners,
     });
     const scaleOpts = pickProps<ScaleStyle>(scale, {

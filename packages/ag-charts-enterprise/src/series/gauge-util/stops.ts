@@ -49,10 +49,14 @@ function getDefaultColorStops(
         return discreteColorStops(colorStops);
     }
 
-    return defaultColorStops.map((color, index, { length }) => ({
+    const stops = defaultColorStops.map((color, index, { length }) => ({
         offset: index / (length - 1),
         color,
     }));
+
+    if (fillMode === 'discrete') return discreteColorStops(stops);
+
+    return stops;
 }
 
 export function getColorStops(

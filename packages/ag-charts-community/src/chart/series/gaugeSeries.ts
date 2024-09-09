@@ -12,6 +12,8 @@ export interface RadialGaugeSeries extends GaugeSeries {
     radius: number;
     textAlign: TextAlign;
     verticalAlign: VerticalAlign;
+    readonly maximumRadius: number | undefined;
+    readonly minimumRadius: number | undefined;
 }
 
 export interface LinearGaugeSeries extends GaugeSeries {

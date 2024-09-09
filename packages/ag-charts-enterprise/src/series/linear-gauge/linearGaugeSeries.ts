@@ -106,7 +106,7 @@ export class LinearGaugeSeries
     public originX = 0;
     public originY = 0;
     get horizontal() {
-        return this.properties.horizontal;
+        return this.properties.direction === 'horizontal';
     }
     get thickness() {
         return this.properties.thickness;
@@ -237,8 +237,8 @@ export class LinearGaugeSeries
         fillMode: AgGaugeSeriesFillMode | undefined,
         segments: number[] | undefined
     ) {
-        const { properties, originX, originY } = this;
-        const { horizontal, thickness, defaultColorRange } = properties;
+        const { properties, originX, originY, horizontal } = this;
+        const { thickness, defaultColorRange } = properties;
 
         const mainAxis = horizontal ? this.axes[ChartAxisDirection.X] : this.axes[ChartAxisDirection.Y];
         const { domain, range } = mainAxis!.scale;
@@ -341,8 +341,8 @@ export class LinearGaugeSeries
 
         if (xAxis == null || yAxis == null) return { x: 0, y: 0 };
 
-        const { properties, originX, originY } = this;
-        const { horizontal, thickness } = properties;
+        const { properties, originX, originY, horizontal } = this;
+        const { thickness } = properties;
         const { value, placement, spacing, size } = target;
 
         const mainAxis = horizontal ? xAxis : yAxis;
@@ -415,11 +415,13 @@ export class LinearGaugeSeries
     }
 
     override async createNodeData() {
-        const { id: seriesId, properties, originX, originY } = this;
+        const { id: seriesId, properties, originX, originY, horizontal } = this;
+
+        if (!properties.isValid()) return;
+
         const {
             value,
             segmentation,
-            horizontal,
             thickness,
             cornerRadius,
             cornerMode,
@@ -458,28 +460,17 @@ export class LinearGaugeSeries
             [y1, y0] = [y0, y1];
         }
 
-        const [m0, m1] = mainAxisScale.range;
-        const mainAxisSize = Math.abs(m1 - m0);
-        const appliedCornerRadius = Math.min(cornerRadius, thickness / 2, mainAxisSize / 2);
-        const mainAxisInset = appliedCornerRadius * (mainAxis.isReversed() ? -1 : 1);
-
-        const xAxisInset = horizontal ? mainAxisInset : 0;
-        const yAxisInset = horizontal ? 0 : mainAxisInset;
-
         const containerX = horizontal ? xScale.convert(value) : x1;
         const containerY = horizontal ? y1 : yScale.convert(value);
 
         const horizontalInset = horizontal ? (segmentation.spacing ?? 0) / 2 : 0;
         const verticalInset = horizontal ? 0 : (segmentation.spacing ?? 0) / 2;
 
-        let barXInset = 0;
-        let barYInset = 0;
-        if (bar.thickness != null) {
-            const inset = -Math.max(thickness - bar.thickness, 0) / 2;
+        const barThickness = Math.min(bar.thickness ?? thickness, thickness);
 
-            barXInset = horizontal ? 0 : inset;
-            barYInset = horizontal ? inset : 0;
-        }
+        const barInset = -(thickness - barThickness) / 2;
+        const barXInset = horizontal ? 0 : barInset;
+        const barYInset = horizontal ? barInset : 0;
 
         const cornersOnAllItems = cornerMode === 'item';
 
@@ -492,16 +483,25 @@ export class LinearGaugeSeries
             this.createLinearGradient(scale.fills, scale.fillMode, segments);
 
         if (segments == null && cornersOnAllItems) {
+            const [m0, m1] = mainAxisScale.range;
+            const mainAxisSize = Math.abs(m1 - m0);
+
             if (bar.enabled) {
+                const barAppliedCornerRadius = Math.min(cornerRadius, barThickness / 2, mainAxisSize / 2);
+                const barCornerInset = barAppliedCornerRadius * (mainAxis.isReversed() ? -1 : 1);
+
+                const barCornerXInset = horizontal ? barCornerInset : 0;
+                const barCornerYInset = horizontal ? 0 : barCornerInset;
+
                 nodeData.push({
                     series: this,
                     itemId: `value`,
                     datum: value,
                     type: NodeDataType.Node,
-                    x0: originX + x0 - xAxisInset - barXInset,
-                    y0: originY + y0 - yAxisInset - barYInset,
-                    x1: originX + containerX + xAxisInset + barXInset,
-                    y1: originY + containerY + yAxisInset + barYInset,
+                    x0: originX + x0 - barCornerXInset - barXInset,
+                    y0: originY + y0 - barCornerYInset - barYInset,
+                    x1: originX + containerX + barCornerXInset + barXInset,
+                    y1: originY + containerY + barCornerYInset + barYInset,
                     clipX0: undefined,
                     clipY0: undefined,
                     clipX1: undefined,
@@ -516,15 +516,21 @@ export class LinearGaugeSeries
                 });
             }
 
+            const scaleAppliedCornerRadius = Math.min(cornerRadius, thickness / 2, mainAxisSize / 2);
+            const scaleCornerInset = scaleAppliedCornerRadius * (mainAxis.isReversed() ? -1 : 1);
+
+            const scaleCornerXInset = horizontal ? scaleCornerInset : 0;
+            const scaleCornerYInset = horizontal ? 0 : scaleCornerInset;
+
             scaleData.push({
                 series: this,
                 itemId: `scale`,
                 datum: value,
                 type: NodeDataType.Node,
-                x0: originX + x0 - xAxisInset,
-                y0: originY + y0 - yAxisInset,
-                x1: originX + x1 + 2 * xAxisInset,
-                y1: originY + y1 + 2 * yAxisInset,
+                x0: originX + x0 - scaleCornerXInset,
+                y0: originY + y0 - scaleCornerYInset,
+                x1: originX + x1 + 2 * scaleCornerXInset,
+                y1: originY + y1 + 2 * scaleCornerYInset,
                 clipX0: undefined,
                 clipY0: undefined,
                 clipX1: undefined,
@@ -848,8 +854,8 @@ export class LinearGaugeSeries
         isHighlight: boolean;
     }) {
         const { targetSelection, isHighlight } = opts;
-        const { horizontal } = this.properties;
-        const highlightStyle = isHighlight ? this.properties.highlightStyle.item : undefined;
+        const { horizontal, properties } = this;
+        const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
 
         targetSelection.each((target, datum) => {
             const {

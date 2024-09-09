@@ -41,6 +41,7 @@ const {
 const { Label } = _Scene;
 
 const TARGET_PLACEMENT = UNION(['before', 'after', 'middle'], 'a placement');
+const DIRECTION = UNION(['horizontal', 'vertical'], 'an orientation');
 
 export enum NodeDataType {
     Node,
@@ -243,8 +244,8 @@ export class LinearGaugeSeriesProperties extends SeriesProperties<AgLinearGaugeS
     @Validate(OBJECT)
     defaultTarget = new LinearGaugeTargetProperties();
 
-    @Validate(BOOLEAN)
-    horizontal: boolean = false;
+    @Validate(DIRECTION, { optional: true })
+    direction: 'horizontal' | 'vertical' = 'vertical';
 
     @Validate(POSITIVE_NUMBER)
     thickness: number = 1;

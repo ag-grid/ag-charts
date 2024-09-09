@@ -134,6 +134,13 @@ export class RadialGaugeSeries
     public textAlign: TextAlign = 'center';
     public verticalAlign: VerticalAlign = 'middle';
 
+    public get maximumRadius() {
+        return this.properties.outerRadius;
+    }
+    public get minimumRadius() {
+        return this.properties.outerRadius;
+    }
+
     private readonly scaleGroup = this.contentGroup.appendChild(new Group({ name: 'scaleGroup' }));
     private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
     private readonly itemNeedleGroup = this.contentGroup.appendChild(new Group({ name: 'itemNeedleGroup' }));
@@ -428,10 +435,13 @@ export class RadialGaugeSeries
     }
 
     override async createNodeData() {
+        const { id: seriesId, properties, radius, centerX, centerY } = this;
+
+        if (!properties.isValid()) return;
+
         const angleAxis = this.axes[ChartAxisDirection.X];
         if (angleAxis == null) return;
 
-        const { id: seriesId, properties, radius, centerX, centerY } = this;
         const {
             value,
             innerRadiusRatio,
@@ -445,6 +455,7 @@ export class RadialGaugeSeries
             label,
             secondaryLabel,
         } = properties;
+        const { outerRadius = radius * outerRadiusRatio, innerRadius = radius * innerRadiusRatio } = properties;
         const targets = this.getTargets();
 
         const { domain } = angleAxis.scale;
@@ -456,9 +467,6 @@ export class RadialGaugeSeries
 
         const [startAngle, endAngle] = angleAxis.range;
         const angleScale = angleAxis.scale;
-
-        const outerRadius = radius * outerRadiusRatio;
-        const innerRadius = radius * innerRadiusRatio;
 
         const cornersOnAllItems = cornerMode === 'item';
 
@@ -487,8 +495,8 @@ export class RadialGaugeSeries
                     centerY,
                     outerRadius,
                     innerRadius,
-                    startAngle: startAngle - angleInset,
-                    endAngle: endAngle + angleInset,
+                    startAngle: containerStartAngle - angleInset,
+                    endAngle: containerEndAngle + angleInset,
                     clipStartAngle: undefined,
                     clipEndAngle: undefined,
                     startCornerRadius: cornerRadius,
