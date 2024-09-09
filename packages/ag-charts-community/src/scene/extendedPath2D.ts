@@ -3,7 +3,6 @@ import { arcDistanceSquared, lineDistanceSquared } from '../util/distance';
 import { Logger } from '../util/logger';
 import { BBox } from './bbox';
 import { arcIntersections, cubicSegmentIntersections, segmentIntersection } from './intersection';
-import type { Matrix } from './matrix';
 import { calculateDerivativeExtremaXY, evaluateBezier } from './util/bezier';
 
 enum Command {
@@ -303,14 +302,14 @@ export class ExtendedPath2D {
     }
 
     // https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d
-    computeSVGDataPath(matrix: Matrix): string {
+    computeSVGDataPath(transform: (x: number, y: number) => { x: number; y: number }): string {
         const buffer: (string | number)[] = [];
         const { commands, params } = this;
 
         const addCommand = (command: string, ...points: number[]) => {
             buffer.push(command);
             for (let i = 0; i < points.length; i += 2) {
-                const { x, y } = matrix.transformPoint(points[i], points[i + 1]);
+                const { x, y } = transform(points[i], points[i + 1]);
                 buffer.push(x, y);
             }
         };
