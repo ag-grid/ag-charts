@@ -61,16 +61,12 @@ export class ChartCaptions {
         return layoutBox.x + layoutBox.width / 2;
     }
 
-    private updateCaption(caption: Caption, layoutBox: BBox, maxHeight: number) {
-        caption.computeTextWrap(layoutBox.width, Math.max(TextUtils.getLineHeight(caption.fontSize), maxHeight));
-    }
-
     private positionCaption(vAlign: 'top' | 'bottom', caption: Caption, layoutBox: BBox, maxHeight: number) {
-        const baseY = layoutBox.y + (vAlign === 'top' ? 0 : layoutBox.height);
+        const containerHeight = Math.max(TextUtils.getLineHeight(caption.fontSize), maxHeight);
         caption.node.x = this.computeX(caption.textAlign, layoutBox) + caption.padding;
-        caption.node.y = baseY + caption.padding;
+        caption.node.y = layoutBox.y + (vAlign === 'top' ? 0 : layoutBox.height) + caption.padding;
         caption.node.textBaseline = vAlign;
-        this.updateCaption(caption, layoutBox, maxHeight);
+        caption.computeTextWrap(layoutBox.width, containerHeight);
     }
 
     private shrinkLayoutByCaption(vAlign: 'top' | 'bottom', caption: Caption, layoutBox: BBox, spacing: number = 0) {
