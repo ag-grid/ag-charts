@@ -47,13 +47,23 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     private colorPickerAnchorElement?: HTMLElement;
     private dragStartState?: { client: _Util.Vec2; position: _Util.Vec2 };
     private seriesRect?: _Scene.BBox;
+    private escapeHandler: (event: KeyboardEvent) => unknown;
 
     constructor(ctx: _ModuleSupport.ModuleContext, id: string) {
         super(ctx, id);
-        this.destroyFns.push(
-            ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
-            ctx.interactionManager.addListener('keydown', this.onKeyDown.bind(this))
-        );
+        this.destroyFns.push(ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)));
+        this.escapeHandler = (event: KeyboardEvent) => {
+            if (
+                !event.altKey &&
+                !event.ctrlKey &&
+                !event.ctrlKey &&
+                !event.metaKey &&
+                !event.isComposing &&
+                event.key === 'Escape'
+            ) {
+                this.hide();
+            }
+        };
     }
 
     protected override showWithChildren(children: Array<HTMLElement>, options: Options) {
@@ -141,6 +151,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                 buttonEl.ariaChecked = 'true';
                 onChange(button.value);
             });
+            buttonEl.addEventListener('keydown', this.escapeHandler);
             group.appendChild(buttonEl);
             buttons.push(buttonEl);
         }
@@ -168,6 +179,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         select.addEventListener('change', () => {
             onChange(select.value);
         });
+        select.addEventListener('keydown', this.escapeHandler);
 
         group.append(select);
 
@@ -196,6 +208,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             textArea.addEventListener('input', () => {
                 options.onChange?.(textArea.innerText.trim());
             });
+            textArea.addEventListener('keydown', this.escapeHandler);
         }
 
         return textArea;
@@ -230,6 +243,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                 },
             });
         });
+        colorEl.addEventListener('keydown', this.escapeHandler);
 
         group.append(colorEl);
 
@@ -266,7 +280,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         closeButton.addEventListener('click', () => {
             this.hide();
         });
-
+        closeButton.addEventListener('keydown', this.escapeHandler);
         return closeButton;
     }
 
@@ -283,11 +297,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
         this.seriesRect = event.series.paddedRect;
         this.reposition();
-    }
-
-    private onKeyDown(event: _ModuleSupport.KeyInteractionEvent<'keydown'>) {
-        if (event.sourceEvent.key !== 'Escape') return;
-        this.hide();
     }
 
     private onDragStart(dragHandle: HTMLDivElement, event: MouseEvent) {
