@@ -1,7 +1,7 @@
 import type { AgChartInstance, AgChartOptions, AgFinancialChartOptions, AgGaugeOptions } from 'ag-charts-types';
 
 import { CartesianChart } from '../chart/cartesianChart';
-import { Chart, type ChartExtendedOptions, type TransferableResources } from '../chart/chart';
+import { Chart, type ChartExtendedOptions } from '../chart/chart';
 import { AgChartInstanceProxy, type FactoryApi } from '../chart/chartProxy';
 import { registerInbuiltModules } from '../chart/factory/registerInbuiltModules';
 import { setupModules } from '../chart/factory/setupModules';
@@ -231,15 +231,7 @@ class AgChartsInternal {
     }
 
     private static createChartInstance(options: ChartOptions, oldChart?: Chart): Chart {
-        let transferableResource: TransferableResources | undefined;
-        if (oldChart != null) {
-            transferableResource = oldChart.destroy({ keepTransferableResources: true });
-        } else {
-            transferableResource = {
-                container: options.processedOptions.container ?? undefined,
-                scene: undefined,
-            };
-        }
+        const transferableResource = oldChart?.destroy({ keepTransferableResources: true });
         const ChartConstructor = AgChartsInternal.getChartByOptions(options.processedOptions);
         return new ChartConstructor(options, transferableResource);
     }
