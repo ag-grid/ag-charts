@@ -44,6 +44,12 @@
     padding: 1px 6px;
 }
 
+.ag-charts-dialog__close-button:focus-visible {
+    outline: var(--ag-charts-focus-border);
+    box-shadow: var(--ag-charts-focus-border-shadow);
+    z-index: calc(var(--ag-charts-layer-ui-overlay) + 1);
+}
+
 /* Tab content */
 .ag-charts-dialog__tab-content {
     display: flex;
