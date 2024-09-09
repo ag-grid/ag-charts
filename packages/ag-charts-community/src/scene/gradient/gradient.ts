@@ -59,7 +59,7 @@ export abstract class Gradient {
 
         if ('createPattern' in gradient) {
             // Node-canvas stubs
-            gradient = (gradient as any).createPattern();
+            gradient = (gradient as { createPattern(): CanvasGradient }).createPattern();
         }
 
         this._cache = { ctx, bbox, gradient };
