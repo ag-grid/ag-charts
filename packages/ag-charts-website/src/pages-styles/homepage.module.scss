@@ -450,6 +450,10 @@
     gap: $spacing-size-4;
     margin: $spacing-size-8 0;
     flex-wrap: wrap;
+
+    @media screen and (max-width: $breakpoint-react-landing-page-medium) {
+        flex-direction: column;
+    }
 }
 
 .card {
