@@ -25,7 +25,7 @@ import type { TypedEvent, TypedEventListener } from '../util/observable';
 import { Observable } from '../util/observable';
 import { Padding } from '../util/padding';
 import { BaseProperties } from '../util/properties';
-import { ActionOnSet } from '../util/proxy';
+import { ActionOnSet, ProxyProperty } from '../util/proxy';
 import { debouncedCallback } from '../util/render';
 import { isDefined, isFiniteNumber, isFunction, isNumber } from '../util/type-guards';
 import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
@@ -33,6 +33,7 @@ import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxis } from './chartAxis';
 import { ChartAxisDirection } from './chartAxisDirection';
+import { ChartCaptions } from './chartCaptions';
 import { ChartContext } from './chartContext';
 import { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
@@ -47,6 +48,7 @@ import { SyncManager } from './interaction/syncManager';
 import { ZoomManager } from './interaction/zoomManager';
 import { Keyboard } from './keyboard';
 import { Layers } from './layers';
+import { LayoutElement } from './layout/layoutManager';
 import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
 import { guessInvalidPositions } from './mapping/prepareAxis';
 import { matchSeriesOptions } from './mapping/prepareSeries';
@@ -60,7 +62,6 @@ import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesGrouping } from './series/seriesStateManager';
 import type { ISeries } from './series/seriesTypes';
 import { Tooltip } from './tooltip/tooltip';
-import { BaseLayoutProcessor } from './update/baseLayoutProcessor';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
 import type { UpdateProcessor } from './update/processor';
@@ -204,19 +205,21 @@ export abstract class Chart extends Observable {
     readonly seriesArea = new SeriesArea();
 
     @Validate(OBJECT)
-    readonly title = new Caption();
-
-    @Validate(OBJECT)
-    readonly subtitle = new Caption();
-
-    @Validate(OBJECT)
-    readonly footnote = new Caption();
-
-    @Validate(OBJECT)
     readonly keyboard = new Keyboard();
 
     @Validate(UNION(['standalone', 'integrated'], 'a chart mode'))
     mode: ChartMode = 'standalone';
+
+    private chartCaptions = new ChartCaptions();
+
+    @ProxyProperty('chartCaptions.title')
+    readonly title!: Caption;
+
+    @ProxyProperty('chartCaptions.subtitle')
+    readonly subtitle!: Caption;
+
+    @ProxyProperty('chartCaptions.footnote')
+    readonly footnote!: Caption;
 
     public destroyed = false;
 
@@ -290,7 +293,6 @@ export abstract class Chart extends Observable {
             getLoadingSpinner(this.overlays.loading.getText(ctx.localeManager), ctx.animationManager.defaultDuration);
 
         this.processors = [
-            new BaseLayoutProcessor(this, ctx.layoutManager),
             new DataWindowProcessor(this, ctx.dataService, ctx.updateService, ctx.zoomManager),
             new OverlaysProcessor(
                 this,
@@ -328,6 +330,12 @@ export abstract class Chart extends Observable {
 
         ctx.regionManager.addRegion('root', root);
         this._destroyFns.push(
+            ctx.layoutManager.registerElement(LayoutElement.Caption, (e) => {
+                e.layoutBox.shrink(this.padding.toJson());
+                this.chartCaptions.positionCaptions(e);
+            }),
+            ctx.layoutManager.addListener('layout:complete', (e) => this.chartCaptions.positionAbsoluteCaptions(e)),
+
             ctx.dataService.addListener('data-load', (event) => {
                 this.data = event.data;
             }),
