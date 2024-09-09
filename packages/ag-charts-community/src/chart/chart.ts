@@ -210,7 +210,7 @@ export abstract class Chart extends Observable {
     @Validate(UNION(['standalone', 'integrated'], 'a chart mode'))
     mode: ChartMode = 'standalone';
 
-    private chartCaptions = new ChartCaptions();
+    private readonly chartCaptions = new ChartCaptions();
 
     @ProxyProperty('chartCaptions.title')
     readonly title!: Caption;
