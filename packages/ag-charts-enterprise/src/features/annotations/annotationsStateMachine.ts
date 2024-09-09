@@ -12,7 +12,10 @@ import type {
     AnnotationsStateMachineContext,
     AnnotationsStateMachineHelperFns,
 } from './annotationsSuperTypes';
-import type { LineSettingsDialogChangeProps } from './settings-dialog/settingsDialog';
+import type {
+    LinearSettingsDialogLineChangeProps,
+    LinearSettingsDialogTextChangeProps,
+} from './settings-dialog/settingsDialog';
 import { guardCancelAndExit, guardSaveAndExit } from './states/textualStateUtils';
 import { hasLineStyle, hasLineText } from './utils/has';
 import { setColor, setFontSize, setLineStyle } from './utils/styles';
@@ -42,6 +45,7 @@ type AnnotationEvent =
     // Annotation properties events
     | 'color'
     | 'fontSize'
+    | 'lineProps'
     | 'lineStyle'
     | 'lineText'
     | 'updateTextInputBBox'
@@ -288,6 +292,15 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     action: actionFontSize,
                 },
 
+                lineProps: {
+                    guard: guardActive,
+                    action: (props: LinearSettingsDialogLineChangeProps) => {
+                        const datum = getTypedDatum(ctx.datum(this.active!));
+                        datum?.set(props);
+                        ctx.update();
+                    },
+                },
+
                 lineStyle: {
                     guard: guardActive,
                     action: actionLineStyle,
@@ -295,7 +308,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 lineText: {
                     guard: guardActive,
-                    action: (props: LineSettingsDialogChangeProps) => {
+                    action: (props: LinearSettingsDialogTextChangeProps) => {
                         const datum = getTypedDatum(ctx.datum(this.active!));
                         if (!hasLineText(datum)) return;
                         if (isChannelType(datum) && props.position === 'center') {

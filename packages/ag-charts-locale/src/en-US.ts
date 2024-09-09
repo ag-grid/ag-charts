@@ -116,12 +116,12 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarAnnotationsLineStyle: 'Line Style',
     // Text for the annotation toolbar's line stroke width button
     toolbarAnnotationsLineStrokeWidth: 'Line Stroke Width',
+    // Text for the annotation toolbar's settings annotation button
+    toolbarAnnotationsSettings: 'Settings',
     // Text for the annotation toolbar's text color picker annotation button
     toolbarAnnotationsTextColor: 'Text Color',
     // Text for the annotation toolbar's text size picker annotation button
     toolbarAnnotationsTextSize: 'Text Size',
-    // Text for the annotation toolbar's text options annotation button
-    toolbarAnnotationsTextOptions: 'Text Options',
     // Text for the annotation toolbar's lock annotation button
     toolbarAnnotationsLock: 'Lock',
     // Text for the annotation toolbar's unlock annotation button
@@ -198,20 +198,28 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     contextMenuZoomToCursor: 'Zoom to here',
     // Text for the context menu's pan to point button
     contextMenuPanToCursor: 'Pan to here',
+    // Text for the annotation dialog's header channel tab label
+    dialogHeaderChannel: 'Channel',
+    // Text for the annotation dialog's header line tab label
+    dialogHeaderLine: 'Line',
     // Text for the annotation dialog's header text tab label
     dialogHeaderText: 'Text',
-    // Text for the annotation dialog's text alignment buttons label
+    // Text for the annotation dialog's text alignment radio label
     dialogInputAlign: 'Align',
     // Text for the annotation dialog's color picker label
     dialogInputColorPicker: 'Color',
-    // Text for the annotation dialog's color picker label
+    // Text for the annotation dialog's color picker alt text
     dialogInputColorPickerAltText: 'Text Color',
     // Text for the annotation dialog's font size select box label
     dialogInputFontSize: 'Size',
     // Text for the annotation dialog's font size select box alt text
     dialogInputFontSizeAltText: 'Font Size',
-    // Text for the annotation dialog's text position buttons label
+    // Text for the annotation dialog's line style radio label
+    dialogInputLineStyle: 'Dash',
+    // Text for the annotation dialog's text position radio label
     dialogInputPosition: 'Position',
+    // Text for the annotation dialog's stroke width label
+    dialogInputStrokeWidth: 'Weight',
     // Text for the annotation dialog's textarea placeholder
     dialogInputTextareaPlaceholder: 'Add Text',
 };
