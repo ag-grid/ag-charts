@@ -208,6 +208,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const altTextT = this.ctx.localeManager.t(altText);
         colorEl.ariaLabel = altTextT;
         colorEl.title = altTextT;
+        colorEl.tabIndex = 0;
 
         if (value) colorEl.style.setProperty('--color', value);
         let defaultColor = value;
