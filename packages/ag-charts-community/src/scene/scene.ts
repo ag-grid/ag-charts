@@ -3,7 +3,6 @@ import { downloadUrl } from '../util/dom';
 import { createId } from '../util/id';
 import type { BBox } from './bbox';
 import { type CanvasOptions, HdpiCanvas } from './canvas/hdpiCanvas';
-import { Group } from './group';
 import { LayersManager } from './layersManager';
 import type { Node, RenderContext } from './node';
 import { RedrawType } from './node';
@@ -69,17 +68,9 @@ export class Scene {
         return this;
     }
 
-    attachNode<T extends Node>(node: T, rootGroupName?: string) {
-        if (!rootGroupName) {
-            this.appendChild(node);
-            return () => this.removeChild(node);
-        }
-
-        const parentGroup = this.root?.children.find((g) => g instanceof Group && g.name === rootGroupName);
-        if (!parentGroup) throw new Error('AG Charts - Unrecognized root group name: ' + rootGroupName);
-
-        parentGroup.appendChild(node);
-        return () => parentGroup.removeChild(node);
+    attachNode<T extends Node>(node: T) {
+        this.appendChild(node);
+        return () => this.removeChild(node);
     }
 
     appendChild<T extends Node>(node: T) {

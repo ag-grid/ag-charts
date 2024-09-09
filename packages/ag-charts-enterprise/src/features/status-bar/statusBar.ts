@@ -252,7 +252,7 @@ export class StatusBar
         this.labelGroup.visible = false;
 
         this.destroyFns.push(
-            ctx.scene.attachNode(this.labelGroup, 'titles'),
+            ctx.scene.attachNode(this.labelGroup),
             ctx.layoutManager.registerElement(LayoutElement.Overlay, (e) => this.startPerformLayout(e)),
             ctx.layoutManager.addListener('layout:complete', (e) => this.onLayoutComplete(e)),
             ctx.highlightManager.addListener('highlight-change', () => this.updateHighlight())
