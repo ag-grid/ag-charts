@@ -14,7 +14,8 @@
 }
 
 .section {
-    padding: $spacing-size-16 $spacing-size-8;
+    padding-top: $spacing-size-16;
+    padding-bottom: $spacing-size-16;
 }
 
 .homepageHero {
@@ -241,7 +242,7 @@
     border-radius: 8px;
     border: 1px solid #0e449126;
 
-    @media screen and (max-width: $breakpoint-react-landing-page-medium) {
+    @media screen and (max-width: $breakpoint-landing-page-medium) {
         visibility: hidden;
     }
 }
@@ -258,7 +259,7 @@
     border-radius: 8px;
     border: 1px solid #0e449126;
 
-    @media screen and (max-width: $breakpoint-react-landing-page-medium) {
+    @media screen and (max-width: $breakpoint-landing-page-medium) {
         visibility: hidden;
     }
 }
@@ -277,7 +278,7 @@
     border-right: 1px solid linear-gradient(0deg, #dde9f9 -61.34%, #0e449126 89.79%);
     border-bottom: 1px solid #0e449126;
 
-    @media screen and (max-width: $breakpoint-react-landing-page-medium) {
+    @media screen and (max-width: $breakpoint-landing-page-medium) {
         position: absolute;
         bottom: 0;
         width: 100%;
@@ -422,19 +423,24 @@
     }
 
     h3 {
-        font-size: 48px;
-        line-height: 64px;
-        padding: 0 64px;
+        font-size: var(--text-fs-2xl);
+        line-height: var(--text-lh-tight);
         font-weight: var(--text-bold);
+
+        @media screen and (min-width: $breakpoint-hero-small) {
+            font-size: 48px;
+        }
     }
 
     h4 {
         margin: $spacing-size-2;
         font-family: var(--text-font-family);
-        font-size: var(--text-fs-lg);
-        line-height: var(--text-lh-base);
         font-weight: var(--text-regular);
         color: var(--color-text-primary);
+
+        @media screen and (min-width: $breakpoint-hero-small) {
+            font-size: var(--text-fs-lg);
+        }
     }
 }
 
@@ -444,6 +450,10 @@
     gap: $spacing-size-4;
     margin: $spacing-size-8 0;
     flex-wrap: wrap;
+
+    @media screen and (max-width: $breakpoint-landing-page-medium) {
+        flex-direction: column;
+    }
 }
 
 .card {
@@ -451,16 +461,20 @@
     display: flex;
     flex-direction: column;
     background-color: var(--color-bg-primary);
-    border: 1px solid var(--color-gray-200);
+    border: 1px solid var(--color-util-gray-200);
     border-radius: var(--radius-lg);
     padding: $spacing-size-4;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    #{$selector-darkmode} & {
+        border-color: var(--color-util-gray-300);
+    }
 
     h4 {
         font-size: var(--text-fs-xl);
         font-weight: var(--text-bold);
         margin-bottom: $spacing-size-2;
-        color: var(--color-brand-500);
+        color: var(--color-brand-400);
     }
 
     p {
@@ -539,8 +553,8 @@
 
     container-type: inline-size;
     display: flex;
-    flex-wrap: wrap;
     gap: var(--versions-gap);
     margin-top: $spacing-size-8;
     margin-bottom: $spacing-size-8;
+    overflow-x: hidden;
 }
