@@ -354,6 +354,7 @@ export class Legend extends BaseProperties {
             orientation: this.getOrientation(),
             buttons,
         });
+        this.proxyLegendToolbar.ariaHidden = (buttons.length === 0).toString();
     }
 
     public onMarkerShapeChange() {
@@ -754,10 +755,12 @@ export class Legend extends BaseProperties {
                     focusable: new NodeRegionBBoxProvider(this.pagination.nextButton),
                     onclick: () => this.pagination.clickNext(),
                 });
+                this.proxyLegendPagination.ariaHidden = 'false';
             } else {
                 this.proxyNextButton?.remove();
                 this.proxyPrevButton?.remove();
                 [this.proxyNextButton, this.proxyPrevButton] = [undefined, undefined];
+                this.proxyLegendPagination.ariaHidden = 'true';
             }
         }
 
