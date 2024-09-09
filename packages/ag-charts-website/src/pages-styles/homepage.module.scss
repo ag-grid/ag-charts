@@ -242,7 +242,7 @@
     border-radius: 8px;
     border: 1px solid #0e449126;
 
-    @media screen and (max-width: $breakpoint-react-landing-page-medium) {
+    @media screen and (max-width: $breakpoint-landing-page-medium) {
         visibility: hidden;
     }
 }
@@ -259,7 +259,7 @@
     border-radius: 8px;
     border: 1px solid #0e449126;
 
-    @media screen and (max-width: $breakpoint-react-landing-page-medium) {
+    @media screen and (max-width: $breakpoint-landing-page-medium) {
         visibility: hidden;
     }
 }
@@ -278,7 +278,7 @@
     border-right: 1px solid linear-gradient(0deg, #dde9f9 -61.34%, #0e449126 89.79%);
     border-bottom: 1px solid #0e449126;
 
-    @media screen and (max-width: $breakpoint-react-landing-page-medium) {
+    @media screen and (max-width: $breakpoint-landing-page-medium) {
         position: absolute;
         bottom: 0;
         width: 100%;
@@ -451,7 +451,7 @@
     margin: $spacing-size-8 0;
     flex-wrap: wrap;
 
-    @media screen and (max-width: $breakpoint-react-landing-page-medium) {
+    @media screen and (max-width: $breakpoint-landing-page-medium) {
         flex-direction: column;
     }
 }
