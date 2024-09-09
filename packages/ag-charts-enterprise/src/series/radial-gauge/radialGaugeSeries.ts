@@ -42,7 +42,7 @@ const {
     ChartAxisDirection,
     EMPTY_TOOLTIP_CONTENT,
 } = _ModuleSupport;
-const { Group, PointerEvents, Selection, Sector, Text, ConicGradient, getMarker } = _Scene;
+const { BBox, Group, PointerEvents, Selection, Sector, Text, ConicGradient, getMarker } = _Scene;
 const { normalizeAngle360, normalizeAngle360Inclusive, toDegrees, toRadians } = _Util;
 
 interface TargetLabel {
@@ -256,6 +256,7 @@ export class RadialGaugeSeries
         fillMode: AgGaugeSeriesFillMode | undefined,
         segments: number[] | undefined
     ) {
+        const { centerX, centerY, radius } = this;
         const { domain, range } = this.axes[ChartAxisDirection.X]!.scale;
         const [startAngle, endAngle] = range;
         const { defaultColorRange } = this.properties;
@@ -263,11 +264,8 @@ export class RadialGaugeSeries
         const conicAngle = normalizeAngle360((startAngle + endAngle) / 2 + Math.PI);
         const sweepAngle = normalizeAngle360Inclusive(endAngle - startAngle);
 
-        const [d0, d1] = domain;
-
         const stops = getColorStops(fills, defaultColorRange, domain, fillMode, segments).map(
-            ({ color, stop }): _Scene.GradientColorStop => {
-                let offset = (stop - d0) / (d1 - d0);
+            ({ color, offset }): _Scene.GradientColorStop => {
                 offset = Math.min(Math.max(offset, 0), 1);
                 const angle = startAngle + sweepAngle * offset;
                 offset = (angle - conicAngle) / (2 * Math.PI);
@@ -276,7 +274,12 @@ export class RadialGaugeSeries
             }
         );
 
-        return new ConicGradient('oklch', stops, toDegrees(conicAngle) - 90);
+        return new ConicGradient(
+            'oklch',
+            stops,
+            toDegrees(conicAngle) - 90,
+            new BBox(centerX - radius, centerY - radius, 2 * radius, 2 * radius)
+        );
     }
 
     private getTargets(): Target[] {
@@ -462,10 +465,7 @@ export class RadialGaugeSeries
         const containerStartAngle = angleScale.convert(domain[0]);
         const containerEndAngle = angleScale.convert(value);
 
-        let segments = segmentation.interval.getSegments(domain);
-        if (segments == null && segmentation.spacing != null) {
-            segments = angleAxis.scale.ticks?.();
-        }
+        let segments = segmentation.getSegments(angleAxis.scale);
 
         const barFill = bar.fill ?? this.createConicGradient(bar.fills, bar.fillMode, segments);
         const scaleFill =

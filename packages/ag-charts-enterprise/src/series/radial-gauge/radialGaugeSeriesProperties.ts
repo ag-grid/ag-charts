@@ -16,6 +16,7 @@ import type {
     Styler,
 } from 'ag-charts-types';
 
+import { FILL_MODE, TARGET_MARKER_SHAPE } from '../gauge-util/properties';
 import { GaugeSegmentationProperties } from '../gauge-util/segmentation';
 import { GaugeStopProperties } from '../gauge-util/stops';
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
@@ -31,7 +32,6 @@ const {
     COLOR_STRING_ARRAY,
     FUNCTION,
     LINE_DASH,
-    MARKER_SHAPE,
     NUMBER,
     OBJECT_ARRAY,
     OBJECT,
@@ -39,12 +39,9 @@ const {
     RATIO,
     STRING,
     UNION,
-    OR,
 } = _ModuleSupport;
 const { Label } = _Scene;
 
-const FILL_MODE = UNION(['continuous', 'discrete'], 'a fill mode');
-const TARGET_MARKER_SHAPE = OR(MARKER_SHAPE, UNION(['line'], 'a marker shape'));
 const TARGET_PLACEMENT = UNION(['inside', 'outside', 'middle'], 'a placement');
 
 export enum NodeDataType {
