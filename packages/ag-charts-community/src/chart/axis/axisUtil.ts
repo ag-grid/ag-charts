@@ -46,10 +46,11 @@ const fullCircle = Math.PI * 2;
 const halfCircle = fullCircle / 2;
 function normaliseEndRotation(start: number, end: number) {
     const directDistance = Math.abs(end - start);
-
-    if (directDistance < halfCircle) return end;
-
-    if (start > end) return end + fullCircle;
+    if (directDistance < halfCircle) {
+        return end;
+    } else if (start > end) {
+        return end + fullCircle;
+    }
     return end - fullCircle;
 }
 
@@ -84,11 +85,6 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
                 y: 0,
                 translationY: y,
                 opacity,
-                finish: {
-                    // Set explicit y after animation so it's pixel aligned
-                    y: y,
-                    translationY: 0,
-                },
             };
         },
         intermediateFn(node, _datum, _status) {
@@ -144,7 +140,7 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
                 rotation = normaliseEndRotation(node.previousDatum?.rotation ?? datum.rotation, datum.rotation);
             }
 
-            return { x, y, rotationCenterX, translationY, rotation, opacity, finish: { rotation: datum.rotation } };
+            return { x, y, rotationCenterX, translationY, rotation, opacity };
         },
     };
     const line: FromToFns<Line, any, AxisLineDatum> = {
