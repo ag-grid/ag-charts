@@ -232,7 +232,8 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
     assertEmpty(rest);
 
     const {
-        colorRange: scaleColorRange,
+        fills: scaleFills,
+        fillMode: scaleFillMode,
         fill: scaleFill,
         fillOpacity: scaleFillOpacity,
         stroke: scaleStroke,
@@ -261,8 +262,8 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         listeners,
     });
     const scaleOpts = pickProps<ScaleStyle>(scale, {
-        fills: scaleColorRange?.map((color) => ({ color })),
-        fillMode: undefined,
+        fills: scaleFills,
+        fillMode: scaleFillMode,
         fill: scaleFill,
         fillOpacity: scaleFillOpacity,
         stroke: scaleStroke,

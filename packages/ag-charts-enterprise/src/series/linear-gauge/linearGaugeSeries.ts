@@ -488,7 +488,7 @@ export class LinearGaugeSeries
         const barFill = bar.fill ?? this.createLinearGradient(bar.fills, bar.fillMode, segments);
         const scaleFill =
             scale.fill ??
-            (bar.enabled ? scale.defaultFill : undefined) ??
+            (bar.enabled && scale.fills.length === 0 ? scale.defaultFill : undefined) ??
             this.createLinearGradient(scale.fills, scale.fillMode, segments);
 
         if (segments == null && cornersOnAllItems) {
