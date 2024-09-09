@@ -549,8 +549,8 @@
 
     container-type: inline-size;
     display: flex;
-    flex-wrap: wrap;
     gap: var(--versions-gap);
     margin-top: $spacing-size-8;
     margin-bottom: $spacing-size-8;
+    overflow-x: hidden;
 }
