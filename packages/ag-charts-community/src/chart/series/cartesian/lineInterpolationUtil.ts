@@ -1,4 +1,4 @@
-import { isPlainObject } from '../../../util/type-guards';
+import { transformIntegratedCategoryValue } from '../../../util/value';
 import type { CartesianSeriesNodeDataContext } from './cartesianSeries';
 import { type Span, clipSpanX, rescaleSpan, spanRange } from './lineInterpolation';
 import { scale } from './lineUtil';
@@ -37,11 +37,7 @@ interface SpanIndices {
 }
 
 function axisValue(value: any) {
-    if (isPlainObject(value) && Object.hasOwn(value, 'id')) {
-        // Integrated charts
-        return value.id;
-    }
-    return value.valueOf();
+    return transformIntegratedCategoryValue(value).valueOf();
 }
 
 function getAxisIndices({ data }: SpanContext, axisValues: any[]): SpanIndices[] {
