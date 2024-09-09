@@ -2,6 +2,7 @@ import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSuppo
 
 const {
     CachedTextMeasurerPool,
+    Layers,
     LayoutElement,
     Validate,
     BaseProperties,
@@ -116,7 +117,11 @@ export class StatusBar
     data?: any[] = undefined;
 
     private readonly highlightManager: _ModuleSupport.HighlightManager;
-    private readonly labelGroup = new _Scene.TranslatableGroup({ name: 'StatusBar' });
+    private readonly labelGroup = new _Scene.TranslatableGroup({
+        name: 'StatusBar',
+        zIndex: Layers.SERIES_LABEL_ZINDEX,
+        layer: true,
+    });
     private readonly backgroundNode = this.labelGroup.appendChild(new Rect());
     private readonly labels = [
         {

@@ -256,7 +256,7 @@ export abstract class Chart extends Observable {
         const container = resources?.container;
 
         const root = new Group({ name: 'root' });
-        const titleGroup = new Group({ layer: true, zIndex: Layers.SERIES_LABEL_ZINDEX });
+        const titleGroup = new Group({ name: 'titles', layer: true, zIndex: Layers.SERIES_LABEL_ZINDEX });
         // Prevent the scene from rendering chart components in an invalid state
         // (before first layout is performed).
         root.visible = false;
