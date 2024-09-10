@@ -1,20 +1,62 @@
 import { _Util } from 'ag-charts-community';
 
 import type { PointProperties } from '../annotationProperties';
-import type { AnnotationContext, Coords } from '../annotationTypes';
+import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
+import { boundsIntersections } from '../utils/line';
 import { convertPoint, invertCoords } from '../utils/values';
 import { AnnotationScene } from './annotationScene';
 
 const { Vec2 } = _Util;
 
 export abstract class LinearScene<
-    Datum extends { start: Pick<PointProperties, 'x' | 'y'>; end: Pick<PointProperties, 'x' | 'y'>; locked?: boolean },
+    Datum extends {
+        start: Pick<PointProperties, 'x' | 'y'>;
+        end: Pick<PointProperties, 'x' | 'y'>;
+        extendStart?: boolean;
+        extendEnd?: boolean;
+        locked?: boolean;
+    },
 > extends AnnotationScene {
     protected dragState?: {
         offset: Coords;
         start: Coords;
         end: Coords;
     };
+
+    protected extendLine({ x1, y1, x2, y2 }: LineCoords, datum: Datum, context: AnnotationContext) {
+        // Clone the points to prevent mutating the original
+        const linePoints = { x1, y1, x2, y2 };
+
+        if (!datum.extendStart && !datum.extendEnd) {
+            return linePoints;
+        }
+
+        const [left, right] = boundsIntersections(linePoints, context.yAxis.bounds);
+
+        const isFlippedX = linePoints.x2 > linePoints.x1;
+        const isFlippedY = linePoints.y1 >= linePoints.y2;
+        const isVertical = linePoints.x2 === linePoints.x1;
+
+        if (datum.extendEnd) {
+            if (isVertical) {
+                linePoints.y2 = isFlippedY ? right.y : left.y;
+            } else {
+                linePoints.x2 = isFlippedX ? right.x : left.x;
+                linePoints.y2 = isFlippedX ? right.y : left.y;
+            }
+        }
+
+        if (datum.extendStart) {
+            if (isVertical) {
+                linePoints.y1 = isFlippedY ? left.y : right.y;
+            } else {
+                linePoints.x1 = isFlippedX ? left.x : right.x;
+                linePoints.y1 = isFlippedX ? left.y : right.y;
+            }
+        }
+
+        return linePoints;
+    }
 
     public dragStart(datum: Datum, target: Coords, context: AnnotationContext) {
         this.dragState = {

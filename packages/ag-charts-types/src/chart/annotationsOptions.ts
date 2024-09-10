@@ -330,8 +330,8 @@ interface Lockable {
 }
 
 interface Extendable {
-    // extendLeft?: boolean;
-    // extendRight?: boolean;
+    extendStart?: boolean;
+    extendEnd?: boolean;
 }
 
 // TODO: Add these options back when we have another cap type.
