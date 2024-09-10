@@ -67,7 +67,7 @@ const NULL_DOMRECT: DOMRect = {
 
 export class DOMManager extends BaseManager<Events['type'], Events> {
     private readonly rootElements: Record<DOMElementClass, LiveDOMElement>;
-    private styles = new Map<string, string>();
+    private readonly styles = new Map<string, string>();
     private readonly element: HTMLElement;
     private container?: HTMLElement = undefined;
     containerSize?: Size = undefined;
