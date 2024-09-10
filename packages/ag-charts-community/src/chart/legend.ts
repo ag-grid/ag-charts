@@ -890,6 +890,7 @@ export class Legend extends BaseProperties {
             markerLabel.translationX = x;
             markerLabel.translationY = y;
         });
+        this.updateItemProxyButtons();
     }
 
     private updatePageNumber(pageNumber: number) {
