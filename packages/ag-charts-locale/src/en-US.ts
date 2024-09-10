@@ -31,6 +31,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaLabelLegendPagePrevious: 'Previous Legend Page',
     // Screen reader text for the next legend page button
     ariaLabelLegendPageNext: 'Next Legend Page',
+    // Screen reader text for the an item in the legend
+    ariaLabelLegendItem: '${label}, Legend item ${index}[number] of ${count}[number]',
     // Screen reader text for the an unknown item in the legend
     ariaLabelLegendItemUnknown: 'Unknown legend item',
     // Screen reader text for the navigator element
@@ -45,8 +47,6 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaLabelRangesToolbar: 'Ranges',
     // Screen reader text for zoom toolbar
     ariaLabelZoomToolbar: 'Zoom',
-    // Screen reader text for the an item in the legend
-    ariaRoleDescriptionLegendItem: 'legend item',
     // Screen reader text for the value of the navigator's range
     ariaValuePanRange: '${min}[percent] to ${max}[percent]',
     // Alt-text for the solid line dash style menu item icon

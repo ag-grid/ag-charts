@@ -327,7 +327,6 @@ export class Legend extends BaseProperties {
                 id: `ag-charts-legend-item-${i}`,
                 textContent: this.getItemAriaText(i),
                 ariaChecked: !!markerLabel.datum.enabled,
-                ariaRoleDescription: { id: 'ariaRoleDescriptionLegendItem' },
                 ariaDescribedBy: this.proxyLegendItemDescription.id,
                 parent: this.proxyLegendToolbar,
                 focusable: new NodeRegionBBoxProvider(markerLabel),
@@ -1234,10 +1233,13 @@ export class Legend extends BaseProperties {
     private getItemAriaText(nodeIndex: number): string {
         const datum = this.data[nodeIndex];
         const label = datum && this.getItemLabel(datum);
+        const lm = this.ctx.localeManager;
         if (nodeIndex >= 0 && label) {
-            return label;
+            const index = nodeIndex + 1;
+            const count = this.data.length;
+            return lm.t('ariaLabelLegendItem', { label, index, count });
         }
-        return this.ctx.localeManager.t('ariaLabelLegendItemUnknown');
+        return lm.t('ariaLabelLegendItemUnknown');
     }
 
     private getItemAriaDescription(): string {

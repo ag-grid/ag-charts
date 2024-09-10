@@ -58,7 +58,6 @@ type ProxyMeta = {
         params: InteractParams<'listswitch'> & {
             readonly textContent: string;
             readonly ariaChecked: boolean;
-            readonly ariaRoleDescription: TranslationKey;
             readonly ariaDescribedBy: string;
         };
         result: ListSwitch;
@@ -214,9 +213,6 @@ export class ProxyInteractionService {
             button.role = 'switch';
             button.ariaChecked = params.ariaChecked.toString();
             button.setAttribute('aria-describedby', params.ariaDescribedBy);
-            this.addLocalisation(() => {
-                button.ariaRoleDescription = this.localeManager.t(params.ariaRoleDescription.id);
-            });
 
             listitem.role = 'listitem';
             listitem.style.position = 'absolute';
