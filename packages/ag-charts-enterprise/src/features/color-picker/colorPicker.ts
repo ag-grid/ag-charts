@@ -1,6 +1,7 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { AnchoredPopover, type AnchoredPopoverOptions } from '../../components/popover/anchoredPopover';
+import type { PopoverConstructorOptions } from '../../components/popover/popover';
 import colorPickerTemplate from './colorPickerTemplate.html';
 
 const { createElement } = _ModuleSupport;
@@ -12,6 +13,7 @@ export interface ColorPickerOptions extends AnchoredPopoverOptions {
     opacity?: number;
     sourceEvent: Event;
     onChange?: (colorOpacity: string, color: string, opacity: number) => void;
+    onChangeHide?: () => void;
 }
 
 const getHsva = (input: string) => {
@@ -26,16 +28,24 @@ const getHsva = (input: string) => {
 
 export class ColorPicker extends AnchoredPopover<ColorPickerOptions> {
     private lastFocus?: HTMLElement;
+    private hasChanged = false;
+    private onChangeHide?: () => void;
 
-    constructor(ctx: _ModuleSupport.ModuleContext) {
-        super(ctx, 'color-picker');
+    constructor(ctx: _ModuleSupport.ModuleContext, options?: PopoverConstructorOptions) {
+        super(ctx, 'color-picker', options);
         this.hideFns.push(() => {
             this.lastFocus?.focus();
             this.lastFocus = undefined;
         });
+        this.hideFns.push(() => {
+            if (this.hasChanged) this.onChangeHide?.();
+        });
     }
 
     public show(options: ColorPickerOptions) {
+        this.hasChanged = false;
+        this.onChangeHide = options.onChangeHide;
+
         const { element, initialFocus } = this.createColorPicker(options);
         const popover = this.showWithChildren([element], options);
         popover.classList.add('ag-charts-color-picker');
@@ -61,7 +71,7 @@ export class ColorPicker extends AnchoredPopover<ColorPickerOptions> {
         const alphaInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__alpha-input')!;
         const colorInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__color-input')!;
 
-        const update = () => {
+        const update = (trackChange = true) => {
             const color = Color.fromHSB(h, s, v, a);
             const colorString = color.toHexString();
 
@@ -81,11 +91,15 @@ export class ColorPicker extends AnchoredPopover<ColorPickerOptions> {
                 colorInput.value = colorString.toUpperCase();
             }
 
-            const plainColor = Color.fromHSB(h, s, v, 1).toHexString();
-            opts.onChange?.(colorString, plainColor, a);
+            if (trackChange || opts.color == null) {
+                const plainColor = Color.fromHSB(h, s, v, 1).toHexString();
+                opts.onChange?.(colorString, plainColor, a);
+            }
+
+            if (trackChange) this.hasChanged = true;
         };
 
-        update();
+        update(false);
 
         const beginPaletteInteraction = (e: MouseEvent) => {
             e.preventDefault();

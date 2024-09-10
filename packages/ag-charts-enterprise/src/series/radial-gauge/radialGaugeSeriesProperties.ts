@@ -1,6 +1,7 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 import type {
     AgChartLabelFormatterParams,
+    AgGaugeSeriesFillMode,
     AgRadialGaugeMarkerShape,
     AgRadialGaugeSeriesItemStylerParams,
     AgRadialGaugeSeriesLabelFormatterParams,
@@ -15,6 +16,9 @@ import type {
     Styler,
 } from 'ag-charts-types';
 
+import { CORNER_MODE, FILL_MODE, TARGET_MARKER_SHAPE } from '../gauge-util/properties';
+import { GaugeSegmentationProperties } from '../gauge-util/segmentation';
+import { GaugeStopProperties } from '../gauge-util/stops';
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
 const {
@@ -28,7 +32,6 @@ const {
     COLOR_STRING_ARRAY,
     FUNCTION,
     LINE_DASH,
-    MARKER_SHAPE,
     NUMBER,
     OBJECT_ARRAY,
     OBJECT,
@@ -36,11 +39,10 @@ const {
     RATIO,
     STRING,
     UNION,
-    OR,
 } = _ModuleSupport;
 const { Label } = _Scene;
+const { Logger } = _Util;
 
-const TARGET_MARKER_SHAPE = OR(MARKER_SHAPE, UNION(['line'], 'a marker shape'));
 const TARGET_PLACEMENT = UNION(['inside', 'outside', 'middle'], 'a placement');
 
 export enum NodeDataType {
@@ -51,11 +53,6 @@ export enum NodeDataType {
 export enum LabelType {
     Primary = 'primary',
     Secondary = 'secondary',
-}
-
-export interface AgRadialGaugeColorStopDatum {
-    stop: number;
-    color: string;
 }
 
 export interface RadialGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
@@ -71,6 +68,19 @@ export interface RadialGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     startCornerRadius: number;
     endCornerRadius: number;
     fill: string | _Scene.Gradient | undefined;
+}
+
+export interface RadialGaugeTargetDatumLabel {
+    offsetX: number;
+    offsetY: number;
+    fill: string | undefined;
+    textAlign: CanvasTextAlign;
+    textBaseline: CanvasTextBaseline;
+    fontStyle: FontStyle | undefined;
+    fontWeight: FontWeight | undefined;
+    fontSize: number;
+    fontFamily: string;
+    lineHeight: number | undefined;
 }
 
 export interface RadialGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum {
@@ -91,6 +101,7 @@ export interface RadialGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum {
     strokeWidth: number;
     lineDash: number[];
     lineDashOffset: number;
+    label: RadialGaugeTargetDatumLabel;
 }
 
 export type RadialGaugeLabelDatum = {
@@ -112,58 +123,17 @@ export type RadialGaugeLabelDatum = {
         | undefined;
 };
 
-class RadialGaugeDefaultTargetLabelProperties extends Label<never> {
-    @Validate(NUMBER)
-    spacing: number = 0;
-}
-
-class RadialGaugeDefaultTargetProperties extends BaseProperties {
-    @Validate(TARGET_MARKER_SHAPE, { optional: true })
-    shape: AgRadialGaugeMarkerShape | undefined;
-
-    @Validate(TARGET_PLACEMENT)
-    placement: AgRadialGaugeTargetPlacement = 'middle';
-
-    @Validate(NUMBER)
-    spacing: number = 0;
-
-    @Validate(POSITIVE_NUMBER)
-    size: number = 0;
-
+export class RadialGaugeDefaultTargetLabelProperties extends Label<never> {
     @Validate(NUMBER, { optional: true })
-    rotation: number | undefined;
-
-    @Validate(COLOR_STRING)
-    fill: string = 'black';
-
-    @Validate(RATIO)
-    fillOpacity: number = 1;
-
-    @Validate(COLOR_STRING)
-    stroke: string = 'black';
-
-    @Validate(POSITIVE_NUMBER, { optional: true })
-    strokeWidth: number | undefined;
-
-    @Validate(RATIO)
-    strokeOpacity: number = 1;
-
-    @Validate(LINE_DASH)
-    lineDash: number[] = [0];
-
-    @Validate(POSITIVE_NUMBER)
-    lineDashOffset: number = 0;
-
-    @Validate(OBJECT)
-    readonly label = new RadialGaugeDefaultTargetLabelProperties();
+    spacing: number | undefined;
 }
 
 export class RadialGaugeTargetProperties extends BaseProperties {
     @Validate(STRING, { optional: true })
     text: string | undefined;
 
-    @Validate(NUMBER)
-    value: number = 0;
+    @Validate(NUMBER, { optional: true })
+    value: number | undefined;
 
     @Validate(TARGET_MARKER_SHAPE, { optional: true })
     shape: AgRadialGaugeMarkerShape | undefined;
@@ -200,19 +170,20 @@ export class RadialGaugeTargetProperties extends BaseProperties {
 
     @Validate(POSITIVE_NUMBER, { optional: true })
     lineDashOffset: number | undefined;
-}
 
-export class RadialGaugeStopProperties extends BaseProperties {
-    @Validate(NUMBER, { optional: true })
-    stop?: number;
-
-    @Validate(COLOR_STRING, { optional: true })
-    color?: string;
+    @Validate(OBJECT)
+    readonly label = new RadialGaugeDefaultTargetLabelProperties();
 }
 
 export class RadialGaugeBarProperties extends BaseProperties {
     @Validate(BOOLEAN)
     enabled = true;
+
+    @Validate(OBJECT_ARRAY)
+    fills = new PropertiesArray<GaugeStopProperties>(GaugeStopProperties);
+
+    @Validate(FILL_MODE, { optional: true })
+    fillMode: AgGaugeSeriesFillMode | undefined;
 
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined;
@@ -220,10 +191,10 @@ export class RadialGaugeBarProperties extends BaseProperties {
     @Validate(RATIO)
     fillOpacity: number = 1;
 
-    @Validate(COLOR_STRING)
+    @Validate(COLOR_STRING, { optional: true })
     stroke: string = 'black';
 
-    @Validate(POSITIVE_NUMBER)
+    @Validate(POSITIVE_NUMBER, { optional: true })
     strokeWidth: number = 0;
 
     @Validate(RATIO)
@@ -236,7 +207,13 @@ export class RadialGaugeBarProperties extends BaseProperties {
     lineDashOffset: number = 0;
 }
 
-export class RadialGaugeBackgroundProperties extends BaseProperties {
+export class RadialGaugeScaleProperties extends BaseProperties {
+    @Validate(OBJECT_ARRAY)
+    fills = new PropertiesArray<GaugeStopProperties>(GaugeStopProperties);
+
+    @Validate(FILL_MODE, { optional: true })
+    fillMode: AgGaugeSeriesFillMode | undefined;
+
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined;
 
@@ -306,19 +283,19 @@ export class RadialGaugeSecondaryLabelProperties extends AutoSizedSecondaryLabel
 
 export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeSeriesOptions> {
     @Validate(NUMBER)
-    value: number = 0;
+    value!: number;
 
-    @Validate(OBJECT_ARRAY)
-    colorStops = new PropertiesArray<RadialGaugeStopProperties>(RadialGaugeStopProperties);
+    @Validate(OBJECT)
+    readonly segmentation = new GaugeSegmentationProperties();
 
     @Validate(COLOR_STRING_ARRAY)
-    defaultColorStops: string[] = [];
+    defaultColorRange: string[] = [];
 
     @Validate(OBJECT_ARRAY)
     targets = new PropertiesArray<RadialGaugeTargetProperties>(RadialGaugeTargetProperties);
 
     @Validate(OBJECT)
-    target = new RadialGaugeDefaultTargetProperties();
+    readonly defaultTarget = new RadialGaugeTargetProperties();
 
     @Validate(RATIO)
     outerRadiusRatio: number = 1;
@@ -326,23 +303,23 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeS
     @Validate(RATIO)
     innerRadiusRatio: number = 1;
 
-    @Validate(POSITIVE_NUMBER)
-    sectorSpacing: number = 0;
+    @Validate(POSITIVE_NUMBER, { optional: true })
+    outerRadius: number | undefined;
+
+    @Validate(POSITIVE_NUMBER, { optional: true })
+    innerRadius: number | undefined;
 
     @Validate(POSITIVE_NUMBER)
     cornerRadius: number = 0;
 
-    @Validate(UNION(['continuous', 'segmented'], 'an appearance'))
-    appearance: 'continuous' | 'segmented' = 'continuous';
-
-    @Validate(UNION(['container', 'item'], 'a corner mode'))
+    @Validate(CORNER_MODE)
     cornerMode: 'container' | 'item' = 'container';
 
     @Validate(NUMBER)
     margin: number = 0;
 
     @Validate(OBJECT)
-    readonly background = new RadialGaugeBackgroundProperties();
+    readonly scale = new RadialGaugeScaleProperties();
 
     @Validate(OBJECT)
     readonly bar = new RadialGaugeBarProperties();
@@ -361,4 +338,16 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeS
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgRadialGaugeSeriesTooltipRendererParams<any>>();
+
+    override isValid(warningPrefix?: string | undefined): boolean {
+        if (!super.isValid(warningPrefix)) return false;
+
+        const { outerRadius, innerRadius } = this;
+        if ((outerRadius == null) !== (innerRadius == null)) {
+            Logger.warnOnce('Either [innerRadius] and [outerRadius] must both be set, or neither can be set.');
+            return false;
+        }
+
+        return true;
+    }
 }

@@ -13,6 +13,7 @@ interface LineStateMachineContext<Datum extends ArrowProperties | LineProperties
     delete: () => void;
     datum: () => Datum | undefined;
     node: () => LineScene | undefined;
+    showAnnotationOptions: () => void;
     guardDragClickDoubleEvent: GuardDragClickDoubleEvent;
 }
 
@@ -44,6 +45,12 @@ abstract class LineTypeStateMachine<Datum extends ArrowProperties | LineProperti
 
         const actionCancel = () => ctx.delete();
 
+        const onExitEnd = () => {
+            ctx.guardDragClickDoubleEvent.reset();
+            ctx.showAnnotationOptions();
+            ctx.recordAction(`Create ${ctx.node()?.type} annotation`);
+        };
+
         super('start', {
             start: {
                 reset: StateMachine.parent,
@@ -72,7 +79,7 @@ abstract class LineTypeStateMachine<Datum extends ArrowProperties | LineProperti
                     target: StateMachine.parent,
                     action: actionCancel,
                 },
-                onExit: ctx.guardDragClickDoubleEvent.reset,
+                onExit: onExitEnd,
             },
         });
     }

@@ -55,6 +55,7 @@ export * from './chart/interaction/keyNavManager';
 export * from './chart/interaction/regionManager';
 export * from './chart/interaction/toolbarManager';
 export * from './chart/interaction/tooltipManager';
+export * from './chart/toolbar/toolbarTypes';
 export * from './chart/interaction/zoomManager';
 export * from './chart/layers';
 export * from './chart/series/series';
@@ -106,7 +107,8 @@ export * from './util/stateMachine';
 export * from './motion/resetMotion';
 export * from './motion/fromToMotion';
 export * from './dom/domManager';
+export * from './dom/elements';
 export { resetIds } from './util/id';
 export { type DefaultColors } from './chart/themes/defaultColors';
-
 export { ChartUpdateType } from './chart/chartUpdateType';
+export { type MementoOriginator } from './api/state/memento';

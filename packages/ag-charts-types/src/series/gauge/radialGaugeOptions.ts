@@ -6,9 +6,10 @@ import type {
     AgChartLabelOptions,
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, Degree, MarkerShape, PixelSize, Ratio } from '../../chart/types';
+import type { Degree, MarkerShape, PixelSize, Ratio } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
+import type { AgGaugeSegmentation, AgGaugeSeriesColorStop, AgGaugeSeriesFillMode } from './gaugeCommonOptions';
 
 export type AgRadialGaugeTargetPlacement = 'inside' | 'outside' | 'middle';
 
@@ -21,28 +22,35 @@ export interface AgRadialGaugeSeriesItemStylerParams<TDatum = any>
         AgRadialGaugeSeriesOptionsKeys,
         Required<AgRadialGaugeSeriesStyle> {}
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface AgRadialGaugeSeriesHighlightStyle<_TDatum> extends AgSeriesHighlightStyle {}
 
 export interface AgRadialGaugeSeriesOptionsKeys {}
 
 export interface AgRadialGaugeSeriesOptionsNames {}
 
-export interface AgRadialGaugeSeriesScaleLabel extends AgBaseAxisLabelOptions {
+export interface AgRadialGaugeSeriesScaleInterval {
     /** Array of values in axis units for specified intervals along the axis. The values in this array must be compatible with the axis type. */
     values?: number[];
     /** The axis interval. Expressed in the units of the axis. If the configured interval results in too many items given the chart size, it will be ignored. */
     step?: number;
 }
 
-export interface AgRadialGaugeSeriesScale {
+export interface AgRadialGaugeSeriesScaleLabel extends AgBaseAxisLabelOptions {}
+
+export interface AgRadialGaugeSeriesScale extends FillOptions, StrokeOptions, LineDashOptions {
+    /** Configuration the colours. */
+    fills?: AgGaugeSeriesColorStop[];
+    /** Configuration the fill mode. */
+    fillMode?: AgGaugeSeriesFillMode;
     /** Maximum value of the scale. Any values exceeding this number will be clipped to this maximum. */
     min?: number;
     /** Minimum value of the scale. Any values exceeding this number will be clipped to this minimum. */
     max?: number;
     /** Configuration for the axis labels, shown next to the ticks. */
     label?: AgRadialGaugeSeriesScaleLabel;
-    /** Configuration the colours. */
-    fills?: AgRadialGaugeColorStop[];
+    /** Configuration for the ticks interval. */
+    interval?: AgRadialGaugeSeriesScaleInterval;
 }
 
 export interface AgRadialGaugeSeriesTooltipRendererParams<TDatum>
@@ -61,9 +69,11 @@ export interface AgRadialGaugeSeriesStyle {
 export interface AgRadialGaugeSeriesBarStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Whether the bar should be shown. */
     enabled?: boolean;
+    /** Configuration the colours. */
+    fills?: AgGaugeSeriesColorStop[];
+    /** Configuration the fill mode. */
+    fillMode?: AgGaugeSeriesFillMode;
 }
-
-export interface AgRadialGaugeSeriesBackgroundStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
 export interface AgRadialGaugeSeriesNeedleStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Whether the needle should be shown. */
@@ -76,29 +86,16 @@ export interface AgRadialGaugeSeriesNeedleStyle extends FillOptions, StrokeOptio
 
 export type AgRadialGaugeMarkerShape = MarkerShape | 'line';
 
-export interface AgRadialGaugeTarget extends FillOptions, StrokeOptions, LineDashOptions {
-    /** Value to use to position the target */
-    value: number;
-    /** Text to use for the target label. */
-    text?: string;
-    /** The shape to use for the target. You can also supply a custom marker by providing a `Marker` subclass. */
-    shape?: AgRadialGaugeMarkerShape;
-    /** Placement of target. */
-    placement?: AgRadialGaugeTargetPlacement;
-    /** Spacing of the target. Ignored when placement is 'middle'. */
-    spacing?: PixelSize;
-    /** Size of the target. */
-    size?: PixelSize;
-    /** Rotation of the target, in degrees. */
-    rotation?: Degree;
-}
-
 export interface AgRadialGaugeTargetLabelOptions extends AgChartLabelOptions<never, never> {
     /** Spacing of the label. */
     spacing?: PixelSize;
 }
 
-export interface AgRadialGaugeTargetOptions extends FillOptions, StrokeOptions, LineDashOptions {
+export interface AgRadialGaugeTarget extends FillOptions, StrokeOptions, LineDashOptions {
+    /** Value to use to position the target */
+    value: number;
+    /** Text to use for the target label. */
+    text?: string;
     /** The shape to use for the target. You can also supply a custom marker by providing a `Marker` subclass. */
     shape?: AgRadialGaugeMarkerShape;
     /** Placement of target. */
@@ -118,17 +115,11 @@ export interface AgRadialGaugeLabelOptions<TDatum>
     /** Text to always display. */
     text?: string;
 }
+
 export interface AgRadialGaugeSecondaryLabelOptions<TDatum>
     extends AgChartAutoSizedSecondaryLabelOptions<TDatum, AgRadialGaugeSeriesLabelFormatterParams> {
     /** Text to always display. */
     text?: string;
-}
-
-export interface AgRadialGaugeColorStop {
-    /** Stop value of this category. */
-    stop?: number;
-    /** Colour of this category. */
-    color: CssColor;
 }
 
 export interface AgRadialGaugeSeriesThemeableOptions<TDatum = any>
@@ -142,20 +133,16 @@ export interface AgRadialGaugeSeriesThemeableOptions<TDatum = any>
     startAngle?: Degree;
     /** Angle in degrees of the end of the gauge. */
     endAngle?: Degree;
-    /** The spacing between sectors when using `segmented` appearance. */
-    sectorSpacing?: number;
-    /** Configuration of the appearance of the gauge. */
-    appearance?: 'continuous' | 'segmented';
+    /** Configuration for a segmented appearance. */
+    segmentation?: AgGaugeSegmentation;
     /** Configuration on whether to apply `cornerRadius` only to the ends of the gauge, or each individual item within the gauge. */
     cornerMode?: 'container' | 'item';
-    /** Configuration for all targets. */
-    target?: AgRadialGaugeTargetOptions;
     /** Configuration for the needle. */
     needle?: AgRadialGaugeSeriesNeedleStyle;
+    /** Configuration for the scale. */
+    scale?: AgRadialGaugeSeriesScale;
     /** Configuration for the bar. */
     bar?: AgRadialGaugeSeriesBarStyle;
-    /** Configuration for the background. */
-    background?: AgRadialGaugeSeriesBackgroundStyle;
     /** Configuration for the labels shown inside the shape. */
     label?: AgRadialGaugeLabelOptions<TDatum>;
     /** Configuration for the labels shown inside the shape. */
@@ -179,8 +166,6 @@ export interface AgRadialGaugeSeriesOptions<TDatum = any>
     type: 'radial-gauge';
     /** Value of the Radial Gauge Series. */
     value: number;
-    /** Scale of the Radial Gauge Series. */
-    scale?: AgRadialGaugeSeriesScale;
     /** Configuration for the targets. */
     targets?: AgRadialGaugeTarget[];
 }

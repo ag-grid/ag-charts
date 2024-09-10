@@ -4,11 +4,10 @@ const options: AgGaugeOptions = {
     type: 'radial-gauge',
     container: document.getElementById('myChart'),
     value: 80,
-    appearance: 'segmented',
     scale: {
         min: 0,
         max: 100,
-        label: {
+        interval: {
             step: 10,
         },
     },

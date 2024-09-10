@@ -24,7 +24,7 @@ type MatrixTransformType<T> = T &
         updateMatrix(matrix: Matrix): void;
     };
 
-function isMatrixTransform<N extends Node>(node: N): node is MatrixTransformType<N> {
+export function isMatrixTransform<N extends Node>(node: N): node is MatrixTransformType<N> {
     return isMatrixTransformType(node.constructor as any);
 }
 

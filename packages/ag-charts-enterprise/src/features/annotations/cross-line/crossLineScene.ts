@@ -63,7 +63,7 @@ export class CrossLineScene extends AnnotationScene {
 
     private updateLine(datum: CrossLineProperties, coords: LineCoords) {
         const { line } = this;
-        const { lineDashOffset, stroke, strokeWidth, strokeOpacity, lineCap } = datum;
+        const { lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
         const { x1, y1, x2, y2 } = coords;
 
         line.setProperties({
@@ -77,7 +77,7 @@ export class CrossLineScene extends AnnotationScene {
             strokeWidth,
             strokeOpacity,
             fillOpacity: 0,
-            lineCap,
+            lineCap: datum.getLineCap(),
         });
     }
 

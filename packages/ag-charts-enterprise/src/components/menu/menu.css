@@ -13,10 +13,6 @@
     grid: auto-flow auto / auto 1fr;
 }
 
-.ag-charts-menu:has(.ag-charts-menu__row--stroke-width-visible) {
-    column-gap: var(--item-padding);
-}
-
 .ag-charts-menu__row--stroke-width-visible::before {
     content: '';
     height: var(--strokeWidth);

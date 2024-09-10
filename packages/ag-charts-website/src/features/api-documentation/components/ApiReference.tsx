@@ -1,5 +1,6 @@
 import Code from '@ag-website-shared/components/code/Code';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
+import styles from '@ag-website-shared/components/reference-documentation/ApiReference.module.scss';
 import { navigate, scrollIntoViewById, useLocation } from '@ag-website-shared/utils/navigation';
 import type {
     ApiReferenceNode,
@@ -26,9 +27,8 @@ import {
     normalizeType,
     processMembers,
 } from '../apiReferenceHelpers';
-import styles from './ApiReference.module.scss';
 import { SelectionContext } from './OptionsNavigation';
-import { PropertyTitle, PropertyType } from './Properies';
+import { type CollapsibleType, PropertyTitle, PropertyType } from './Properties';
 
 export const ApiReferenceContext = createContext<ApiReferenceType | undefined>(undefined);
 export const ApiReferenceConfigContext = createContext<ApiReferenceConfig>({});
@@ -58,6 +58,7 @@ interface ApiReferenceOptions {
     id: string;
     anchorId?: string;
     className?: string;
+    isInline?: boolean;
 }
 
 interface ApiReferenceRowOptions {
@@ -97,7 +98,38 @@ export function ApiReferenceWithReferenceContext(props: ApiReferenceOptions & Ap
     );
 }
 
-export function ApiReference({ id, anchorId, className, ...props }: ApiReferenceOptions & AllHTMLAttributes<Element>) {
+export function ChildPropertiesButton({
+    name,
+    isExpanded,
+    onClick,
+}: {
+    name: string;
+    isExpanded?: boolean;
+    onClick?: () => void;
+    collapsibleType?: CollapsibleType;
+}) {
+    return (
+        <button
+            className={classnames(styles.childButton, 'button-style-none', {
+                [styles.isExpanded]: isExpanded,
+            })}
+            onClick={onClick}
+            aria-label={`See child properties of ${name}`}
+        >
+            <span>
+                See child properties of <span className={styles.childButtonName}>{name}</span>
+            </span>
+        </button>
+    );
+}
+
+export function ApiReference({
+    id,
+    anchorId,
+    className,
+    isInline,
+    ...props
+}: ApiReferenceOptions & AllHTMLAttributes<Element>) {
     const reference = useContext(ApiReferenceContext);
     const config = useContext(ApiReferenceConfigContext);
     const interfaceRef = reference?.get(id);
@@ -115,7 +147,12 @@ export function ApiReference({ id, anchorId, className, ...props }: ApiReference
     }
 
     return (
-        <div {...props} className={classnames(styles.apiReferenceOuter, className)}>
+        <div
+            {...props}
+            className={classnames(styles.apiReferenceOuter, className, {
+                [styles.isInline]: isInline,
+            })}
+        >
             {anchorId && <a id={anchorId} />}
             {!config.hideHeader &&
                 (interfaceRef.docs?.join('\n') ?? (
@@ -123,6 +160,7 @@ export function ApiReference({ id, anchorId, className, ...props }: ApiReference
                         Properties available on the <code>{id}</code> interface.
                     </p>
                 ))}
+
             <div className={classnames(styles.reference, styles.apiReference, 'no-zebra')}>
                 <div>
                     {processMembers(interfaceRef, config).map((member) => (
@@ -217,11 +255,17 @@ function ApiReferenceRow({
     const selection = useContext(SelectionContext);
     const memberName = cleanupName(member.name);
     const memberType = normalizeType(member.type);
+    const additionalDetails = useMemberAdditionalDetails(member);
+    const collapsibleType = getCollapsibleType({ additionalDetails, nestedPath });
 
     return (
         <div
             id={anchorId}
-            className={classnames(styles.propertyRow, prefixPath && prefixPath.length > 0 && styles.isChildProp)}
+            className={classnames(
+                'property-row',
+                styles.propertyRow,
+                prefixPath && prefixPath.length > 0 && styles.isChildProp
+            )}
             style={{ '--nested-path-depth': prefixPath?.length ?? 0 } as CSSProperties}
         >
             <div className={styles.leftColumn}>
@@ -231,15 +275,25 @@ function ApiReferenceRow({
                     prefixPath={prefixPath}
                     required={!config.hideRequired && !member.optional}
                 />
-                <PropertyType type={memberType} defaultValue={member.defaultValue} />
+                <PropertyType
+                    name={memberName}
+                    type={memberType}
+                    defaultValue={member.defaultValue}
+                    collapsibleType={collapsibleType}
+                    isExpanded={isExpanded}
+                    onCollapseClick={onDetailsToggle}
+                />
             </div>
             <div className={styles.rightColumn}>
                 <div role="presentation" className={styles.description}>
                     <Markdown remarkPlugins={[remarkBreaks]} urlTransform={(url: string) => urlWithBaseUrl(url)}>
                         {member.docs?.join('\n')}
                     </Markdown>
+                    {collapsibleType === 'childrenProperties' && (
+                        <ChildPropertiesButton name={memberName} isExpanded={isExpanded} onClick={onDetailsToggle} />
+                    )}
                 </div>
-                {nestedPath ? (
+                {nestedPath && (
                     <div className={styles.actions}>
                         <a
                             href={nestedPath}
@@ -258,42 +312,14 @@ function ApiReferenceRow({
                             See property details <Icon name="arrowRight" />
                         </a>
                     </div>
-                ) : (
-                    <MemberActions member={member} isExpanded={isExpanded} onDetailsToggle={onDetailsToggle} />
                 )}
             </div>
-        </div>
-    );
-}
 
-function MemberActions({
-    member,
-    isExpanded,
-    onDetailsToggle,
-}: {
-    member: MemberNode;
-    isExpanded?: boolean;
-    onDetailsToggle?: () => void;
-}) {
-    const additionalDetails = useMemberAdditionalDetails(member);
-    const hasMembers = additionalDetails && 'members' in additionalDetails;
-    const shouldExpand = isExpanded && additionalDetails && !hasMembers;
-
-    if (additionalDetails == null) {
-        return null;
-    }
-
-    return (
-        <div className={styles.actions}>
-            {additionalDetails && (
-                <ToggleDetails
-                    isOpen={isExpanded}
-                    moreText={hasMembers ? 'See child properties' : 'More details'}
-                    lessText={hasMembers ? 'Hide child properties' : 'Hide details'}
-                    onToggle={onDetailsToggle}
-                />
+            {collapsibleType === 'code' && isExpanded && (
+                <div id={getDetailsId(anchorId)} className={classnames(styles.expandedContent)}>
+                    <TypeCodeBlock apiNode={additionalDetails!} member={member} />
+                </div>
             )}
-            {shouldExpand && <TypeCodeBlock apiNode={additionalDetails} member={member} />}
         </div>
     );
 }
@@ -320,22 +346,20 @@ export function TypeCodeBlock({ apiNode, member }: { apiNode: ApiNode | ApiNode[
     return <Code code={codeSample} />;
 }
 
-function ToggleDetails({
-    isOpen,
-    moreText = 'More details',
-    lessText = 'Hide details',
-    onToggle,
-}: {
-    isOpen?: boolean;
-    moreText?: string;
-    lessText?: string;
-    onToggle?: () => void;
-}) {
-    return (
-        <button className={classnames(styles.seeMore, 'button-as-link')} onClick={onToggle}>
-            {!isOpen ? moreText : lessText} <Icon name={isOpen ? 'chevronUp' : 'chevronDown'} />
-        </button>
-    );
+function getCollapsibleType({ additionalDetails, nestedPath }): CollapsibleType {
+    const hasMembers = additionalDetails && 'members' in additionalDetails;
+    let collapsibleType: CollapsibleType = 'none';
+    if (hasMembers) {
+        collapsibleType = 'childrenProperties';
+    } else if (Boolean(additionalDetails) && !nestedPath) {
+        collapsibleType = 'code';
+    }
+
+    return collapsibleType;
+}
+
+function getDetailsId(id: string) {
+    return `${id}-details`;
 }
 
 function useMemberAdditionalDetails(member: MemberNode) {

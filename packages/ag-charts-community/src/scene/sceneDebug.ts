@@ -1,3 +1,4 @@
+import { toArray } from '../util/array';
 import { Debug } from '../util/debug';
 import { getWindow } from '../util/dom';
 import { Logger } from '../util/logger';
@@ -69,21 +70,15 @@ export function debugStats(
 }
 
 export function prepareSceneNodeHighlight(ctx: RenderContext) {
-    let config: string | string[] = getWindow('agChartsSceneDebug') ?? [];
-
-    if (typeof config === 'string') {
-        config = [config];
-    }
-
-    const result: (string | RegExp)[] = [];
-    config.forEach((name: string) => {
+    const config: string[] = toArray(getWindow('agChartsSceneDebug'));
+    const result: RenderContext['debugNodeSearch'] = [];
+    for (const name of config) {
         if (name === 'layout') {
             result.push('seriesRoot', 'legend', 'root', /.*Axis-\d+-axis.*/);
         } else {
             result.push(name);
         }
-    });
-
+    }
     ctx.debugNodeSearch = result;
 }
 

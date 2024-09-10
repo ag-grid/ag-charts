@@ -151,12 +151,15 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
     }
 
     override containsPoint(x: number, y: number) {
-        return super.containsPoint(x, y) || this.middleLine.containsPoint(x, y);
+        return (
+            super.containsPoint(x, y) ||
+            (this.middleLine.visible && this.middleLine.strokeWidth > 0 && this.middleLine.containsPoint(x, y))
+        );
     }
 
     override updateLines(datum: ParallelChannelProperties, top: LineCoords, bottom: LineCoords) {
         const { topLine, middleLine, bottomLine } = this;
-        const { lineDashOffset, stroke, strokeOpacity, strokeWidth, lineCap } = datum;
+        const { lineDashOffset, stroke, strokeOpacity, strokeWidth } = datum;
 
         const lineDash = datum.getLineDash();
 
@@ -166,7 +169,7 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
             stroke,
             strokeOpacity,
             strokeWidth,
-            lineCap,
+            lineCap: datum.getLineCap(),
         };
 
         topLine.setProperties({

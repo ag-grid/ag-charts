@@ -1,6 +1,6 @@
-import { AgCharts, AgGaugeOptions } from 'ag-charts-enterprise';
+import { AgCharts, AgRadialGaugeOptions } from 'ag-charts-enterprise';
 
-const options: AgGaugeOptions = {
+const options: AgRadialGaugeOptions = {
     type: 'radial-gauge',
     container: document.getElementById('myChart'),
     value: 85,
@@ -8,18 +8,14 @@ const options: AgGaugeOptions = {
         min: 0,
         max: 100,
     },
-    appearance: 'segmented',
-    sectorSpacing: 2,
+    segmentation: {
+        spacing: 2,
+    },
 };
 
 const chart = AgCharts.createGauge(options);
 
-function setAppearance(appearance: 'segmented' | 'continuous') {
-    options.appearance = appearance;
-    chart.update(options);
-}
-
-function setSectorSpacing(sectorSpacing: number) {
-    options.sectorSpacing = sectorSpacing;
+function setSpacing(spacing: number) {
+    options.segmentation!.spacing = spacing;
     chart.update(options);
 }

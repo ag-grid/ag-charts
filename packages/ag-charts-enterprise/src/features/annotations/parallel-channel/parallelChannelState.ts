@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import type { GuardDragClickDoubleEvent, Point } from '../annotationTypes';
+import { AnnotationType, type GuardDragClickDoubleEvent, type Point } from '../annotationTypes';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import { ParallelChannelProperties } from './parallelChannelProperties';
 import type { ParallelChannelScene } from './parallelChannelScene';
@@ -12,6 +12,7 @@ interface ParallelChannelStateMachineContext extends Omit<AnnotationsStateMachin
     delete: () => void;
     datum: () => ParallelChannelProperties | undefined;
     node: () => ParallelChannelScene | undefined;
+    showAnnotationOptions: () => void;
     guardDragClickDoubleEvent: GuardDragClickDoubleEvent;
 }
 
@@ -79,11 +80,16 @@ export class ParallelChannelStateMachine extends StateMachine<
             ctx.node()?.toggleHandles(true);
 
             if (
-                ctx.validatePoint({ x: datum.start.x, y: bottomStartY }) &&
-                ctx.validatePoint({ x: datum.end.x, y: point.y })
+                !ctx.validatePoint({ x: datum.start.x, y: bottomStartY }) ||
+                !ctx.validatePoint({ x: datum.end.x, y: point.y })
             ) {
-                datum.set({ height });
+                return;
             }
+
+            datum.set({ height });
+            ctx.recordAction(`Create ${AnnotationType.ParallelChannel} annotation`);
+            ctx.showAnnotationOptions();
+            ctx.update();
         };
 
         const actionCancel = () => ctx.delete();

@@ -1,10 +1,13 @@
-import { _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import { Popover, type PopoverOptions } from './popover';
 
 const { clamp } = _Util;
 
-export interface AnchoredPopoverOptions extends PopoverOptions {}
+export interface AnchoredPopoverOptions extends PopoverOptions {
+    anchor?: _Util.Vec2;
+    fallbackAnchor?: _Util.Vec2;
+}
 
 /**
  * A popover that opens at a given anchor point, keeps itself within the bounds of the chart, and can not be directly
@@ -25,7 +28,8 @@ export abstract class AnchoredPopover<
     }
 
     protected override showWithChildren(children: Array<HTMLElement>, options: Options) {
-        const { anchor, fallbackAnchor } = this;
+        const anchor = options.anchor ?? this.anchor;
+        const fallbackAnchor = options.fallbackAnchor ?? this.fallbackAnchor;
 
         const popover = super.showWithChildren(children, options);
 
@@ -34,7 +38,11 @@ export abstract class AnchoredPopover<
             this.setAnchor(anchor, fallbackAnchor);
         }
 
-        this.repositionWithinBounds();
+        // Wait for the DOM to be ready to reposition the element, so it is able to calculate if it will overflow the
+        // bounding box
+        _ModuleSupport.getWindow().requestAnimationFrame(() => {
+            this.repositionWithinBounds();
+        });
 
         return popover;
     }

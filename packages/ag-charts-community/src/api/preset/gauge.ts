@@ -1,102 +1,180 @@
-import type {
-    AgBasePresetOptions,
-    AgGaugeChartOptions,
-    AgGaugeOptions,
-    AgPolarAxisOptions,
-    AgRadialGaugeSeriesOptions,
+import {
+    type AgCartesianAxisOptions,
+    type AgCartesianAxisPosition,
+    type AgGaugeChartOptions,
+    type AgGaugeOptions,
+    type AgLinearGaugeOptions,
+    type AgLinearGaugeSeriesOptions,
+    type AgPolarAxisOptions,
+    type AgRadialGaugeOptions,
+    type AgRadialGaugeSeriesOptions,
+    type AgRadialGaugeSeriesScale,
 } from 'ag-charts-types';
 
-function allProperties<T extends {}>(
-    opts: AgGaugeOptions,
-    typeCheckedOpts: Record<keyof T, boolean>,
-    overrides?: Record<string, any>
-): T {
-    const out: T = {} as any;
-    for (const key in typeCheckedOpts) {
-        if (typeCheckedOpts[key] && Object.hasOwn(opts, key)) {
-            // @ts-expect-error
-            out[key] = opts[key];
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function assertEmpty(_t: Record<string, never>) {}
+
+const IGNORED_PROP = Symbol('IGNORED_PROP');
+
+function pickProps<T>(
+    opts: Partial<T>,
+    values: { [K in keyof Required<T>]: (T[K] extends Required<T[K]> ? T[K] : T[K] | undefined) | typeof IGNORED_PROP }
+) {
+    const out: any = {};
+    for (const key in values) {
+        const value = values[key];
+        if (value !== IGNORED_PROP && Object.hasOwn(opts as any, key)) {
+            out[key] = value;
         }
     }
-
-    if (overrides != null) {
-        for (const key in overrides) {
-            const value = overrides[key];
-            if (value != null) {
-                // @ts-expect-error
-                out[key] = value;
-            }
-        }
-    }
-
     return out;
 }
 
-export function gauge(opts: AgGaugeOptions): AgGaugeChartOptions {
-    const baseOpts = allProperties<AgBasePresetOptions>(opts, {
-        container: true,
-        animation: true,
-        width: true,
-        height: true,
-        minWidth: true,
-        minHeight: true,
-        theme: true,
-        title: true,
-        seriesArea: true,
-        listeners: true,
+function isRadialGauge(opts: AgGaugeOptions): opts is AgRadialGaugeOptions {
+    return opts.type === 'radial-gauge';
+}
+
+function isLinearGauge(opts: AgGaugeOptions): opts is AgLinearGaugeOptions {
+    return opts.type === 'linear-gauge';
+}
+
+type ScaleStyle = Pick<
+    AgRadialGaugeSeriesScale,
+    | 'fills'
+    | 'fillMode'
+    | 'fill'
+    | 'fillOpacity'
+    | 'stroke'
+    | 'strokeWidth'
+    | 'strokeOpacity'
+    | 'lineDash'
+    | 'lineDashOffset'
+>;
+
+function radialGaugeOptions(opts: AgRadialGaugeOptions) {
+    const {
+        container,
+        animation,
+        width,
+        height,
+        minWidth,
+        minHeight,
+        theme,
+        title,
+        subtitle,
+        padding,
+        listeners,
+        type,
+        id,
+        data,
+        visible,
+        cursor,
+        nodeClickRange,
+        showInLegend,
+        tooltip,
+        value,
+        scale = {},
+        startAngle,
+        endAngle,
+        itemStyler,
+        highlightStyle,
+        segmentation,
+        bar,
+        needle,
+        targets,
+        outerRadiusRatio,
+        innerRadiusRatio,
+        cornerRadius,
+        cornerMode,
+        label,
+        secondaryLabel,
+        margin,
+        ...rest
+    } = opts;
+    assertEmpty(rest);
+
+    const {
+        fills: scaleFills,
+        fillMode: scaleFillMode,
+        fill: scaleFill,
+        fillOpacity: scaleFillOpacity,
+        stroke: scaleStroke,
+        strokeWidth: scaleStrokeWidth,
+        strokeOpacity: scaleStrokeOpacity,
+        lineDash: scaleLineDash,
+        lineDashOffset: scaleLineDashOffset,
+        min: scaleMin = 0,
+        max: scaleMax = 1,
+        interval: scaleInterval = {},
+        label: scaleLabel = {},
+        ...scaleRest
+    } = scale;
+    assertEmpty(scaleRest);
+
+    const chartOpts = pickProps(opts, {
+        container,
+        animation,
+        width,
+        height,
+        minWidth,
+        minHeight,
+        theme,
+        title,
+        subtitle,
+        padding,
+        listeners,
     });
 
-    const seriesOpts = allProperties<AgRadialGaugeSeriesOptions>(
-        opts,
-        {
-            type: true,
-            id: true,
-            data: true,
-            visible: true,
-            cursor: true,
-            nodeClickRange: true,
-            showInLegend: true,
-            listeners: true,
-            tooltip: true,
-            value: true,
-            scale: false,
-            startAngle: false,
-            endAngle: false,
-            itemStyler: true,
-            highlightStyle: true,
-            bar: true,
-            background: true,
-            needle: true,
-            targets: true,
-            target: true,
-            outerRadiusRatio: true,
-            innerRadiusRatio: true,
-            sectorSpacing: true,
-            cornerRadius: true,
-            appearance: true,
-            cornerMode: true,
-            label: true,
-            secondaryLabel: true,
-            margin: true,
-        },
-        {
-            colorStops: opts.scale?.fills,
-        }
-    );
+    const scaleOpts = pickProps<ScaleStyle>(scale, {
+        fills: scaleFills,
+        fillMode: scaleFillMode,
+        fill: scaleFill,
+        fillOpacity: scaleFillOpacity,
+        stroke: scaleStroke,
+        strokeWidth: scaleStrokeWidth,
+        strokeOpacity: scaleStrokeOpacity,
+        lineDash: scaleLineDash,
+        lineDashOffset: scaleLineDashOffset,
+    });
+    const seriesOpts = pickProps<AgRadialGaugeSeriesOptions>(opts, {
+        startAngle: IGNORED_PROP,
+        endAngle: IGNORED_PROP,
+        needle: needle != null ? { enabled: true, ...needle } : IGNORED_PROP,
+        scale: scaleOpts,
+        type,
+        id,
+        data,
+        visible,
+        cursor,
+        nodeClickRange,
+        showInLegend,
+        listeners,
+        tooltip,
+        value,
+        itemStyler,
+        highlightStyle,
+        segmentation,
+        bar,
+        targets,
+        outerRadiusRatio,
+        innerRadiusRatio,
+        cornerRadius,
+        cornerMode,
+        label,
+        secondaryLabel,
+        margin,
+        ...rest,
+    });
 
-    const { values, step, ...label } = opts.scale?.label ?? {};
     const axesOpts: AgPolarAxisOptions[] = [
         {
             type: 'angle-number',
-            min: opts.scale?.min ?? 0,
-            max: opts.scale?.max ?? 1,
-            startAngle: opts.startAngle ?? 270,
-            endAngle: opts.endAngle ?? 270 + 180,
-            interval: {
-                values,
-                step,
-            },
-            label,
+            min: scaleMin ?? 0,
+            max: scaleMax ?? 1,
+            startAngle: startAngle ?? 270,
+            endAngle: endAngle ?? 270 + 180,
+            interval: scaleInterval ?? {},
+            label: scaleLabel ?? {},
             nice: false,
             line: {
                 enabled: false,
@@ -106,9 +184,197 @@ export function gauge(opts: AgGaugeOptions): AgGaugeChartOptions {
             type: 'radius-number',
         },
     ];
+
     return {
-        ...baseOpts,
+        ...chartOpts,
         series: [seriesOpts],
         axes: axesOpts,
     };
+}
+
+function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
+    const {
+        container,
+        animation,
+        width,
+        height,
+        minWidth,
+        minHeight,
+        theme,
+        title,
+        subtitle,
+        padding,
+        listeners,
+        type,
+        id,
+        data,
+        visible,
+        cursor,
+        nodeClickRange,
+        showInLegend,
+        tooltip,
+        value,
+        scale = {},
+        direction,
+        thickness,
+        itemStyler,
+        highlightStyle,
+        segments,
+        bar,
+        background,
+        targets,
+        target,
+        barSpacing,
+        cornerRadius,
+        cornerMode,
+        label,
+        secondaryLabel,
+        margin,
+        ...rest
+    } = opts;
+    assertEmpty(rest);
+
+    const {
+        fills: scaleFills,
+        fillMode: scaleFillMode,
+        fill: scaleFill,
+        fillOpacity: scaleFillOpacity,
+        stroke: scaleStroke,
+        strokeWidth: scaleStrokeWidth,
+        strokeOpacity: scaleStrokeOpacity,
+        lineDash: scaleLineDash,
+        lineDashOffset: scaleLineDashOffset,
+        min: scaleMin = 0,
+        max: scaleMax = 1,
+        interval: scaleInterval = {},
+        label: scaleLabel = {},
+        ...scaleRest
+    } = scale;
+    assertEmpty(scaleRest);
+
+    const chartOpts = pickProps(opts, {
+        container,
+        animation,
+        width,
+        height,
+        minWidth,
+        minHeight,
+        theme,
+        title,
+        subtitle,
+        padding,
+        listeners,
+    });
+    const scaleOpts = pickProps<ScaleStyle>(scale, {
+        fills: scaleFills,
+        fillMode: scaleFillMode,
+        fill: scaleFill,
+        fillOpacity: scaleFillOpacity,
+        stroke: scaleStroke,
+        strokeWidth: scaleStrokeWidth,
+        strokeOpacity: scaleStrokeOpacity,
+        lineDash: scaleLineDash,
+        lineDashOffset: scaleLineDashOffset,
+    });
+    const seriesOpts = pickProps<AgLinearGaugeSeriesOptions>(opts, {
+        scale: scaleOpts,
+        type,
+        id,
+        data,
+        visible,
+        cursor,
+        nodeClickRange,
+        showInLegend,
+        listeners,
+        tooltip,
+        value,
+        direction,
+        thickness,
+        itemStyler,
+        highlightStyle,
+        segments,
+        bar,
+        background,
+        targets,
+        target,
+        barSpacing,
+        cornerRadius,
+        cornerMode,
+        label,
+        secondaryLabel,
+        margin,
+        ...rest,
+    });
+
+    const { placement: labelPlacement, ...axisLabel } = scaleLabel;
+    let mainAxisPosition: AgCartesianAxisPosition;
+    let crossAxisPosition: AgCartesianAxisPosition;
+    const horizontal = direction === 'horizontal';
+    if (horizontal) {
+        mainAxisPosition = labelPlacement === 'before' ? 'top' : 'bottom';
+        crossAxisPosition = 'left';
+    } else {
+        mainAxisPosition = labelPlacement === 'after' ? 'right' : 'left';
+        crossAxisPosition = 'bottom';
+    }
+    const mainAxis: AgCartesianAxisOptions = {
+        type: 'number',
+        position: mainAxisPosition,
+        min: scaleMin,
+        max: scaleMax,
+        reverse: !horizontal,
+        interval: scaleInterval,
+        label: axisLabel,
+        nice: false,
+        line: {
+            enabled: false,
+        },
+        gridLine: {
+            enabled: false,
+        },
+    };
+    const crossAxis: AgCartesianAxisOptions = {
+        type: 'number',
+        position: crossAxisPosition,
+        min: 0,
+        max: 1,
+        line: {
+            enabled: false,
+        },
+        label: {
+            enabled: false,
+        },
+        gridLine: {
+            enabled: false,
+        },
+    };
+    const axesOpts: AgCartesianAxisOptions[] = horizontal ? [mainAxis, crossAxis] : [crossAxis, mainAxis];
+
+    return {
+        ...chartOpts,
+        series: [seriesOpts],
+        axes: axesOpts,
+    };
+}
+
+export function gauge(opts: AgGaugeOptions): AgGaugeChartOptions {
+    if (isRadialGauge(opts)) {
+        return radialGaugeOptions(opts);
+    } else if (isLinearGauge(opts)) {
+        return linearGaugeOptions(opts);
+    }
+
+    const { container, animation, width, height, minWidth, minHeight, theme, title, seriesArea, listeners } = opts;
+    return pickProps(opts, {
+        container,
+        animation,
+        width,
+        height,
+        minWidth,
+        minHeight,
+        theme,
+        title,
+        seriesArea,
+        listeners,
+    });
 }

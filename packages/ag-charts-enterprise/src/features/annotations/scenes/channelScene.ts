@@ -39,10 +39,13 @@ export abstract class ChannelScene<
             this.visible = visible ?? true;
         }
 
-        this.updateLines(datum, top, bottom);
+        const topLine = this.extendLine(top, datum, context);
+        const bottomLine = this.extendLine(bottom, datum, context);
+
+        this.updateLines(datum, topLine, bottomLine);
         this.updateHandles(datum, top, bottom);
         this.updateText(datum, top, bottom);
-        this.updateBackground(datum, top, bottom);
+        this.updateBackground(datum, topLine, bottomLine);
 
         for (const handle of Object.values(this.handles)) {
             handle.toggleLocked(locked ?? false);

@@ -28,8 +28,6 @@ interface DefinedClipSector {
 type SectorAnimation = {
     startAngle: number;
     endAngle: number;
-    innerRadius: number;
-    outerRadius: number;
     clipSector: _Scene.SectorBox | undefined;
 };
 
@@ -76,7 +74,6 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean,
     const node: _ModuleSupport.FromToFns<_Scene.Sector, SectorAnimation, AnimatableSectorDatum> = {
         fromFn(sect, datum) {
             const previousDatum: AnimatableSectorDatum | undefined = sect.previousDatum;
-            const { innerRadius, outerRadius } = previousDatum ?? datum;
             let { startAngle, endAngle } = previousDatum ?? datum;
 
             const previousClipSector =
@@ -104,20 +101,20 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean,
                 endAngle = startAngle;
             }
 
-            return { startAngle, endAngle, innerRadius, outerRadius, clipSector, phase };
+            return { startAngle, endAngle, clipSector, phase };
         },
         toFn(_sect, datum) {
-            const { startAngle, endAngle, innerRadius, outerRadius } = datum;
+            const { startAngle, endAngle } = datum;
 
             let clipSector: _Scene.SectorBox | undefined;
             if (hasClipSector(datum)) {
                 clipSector = datumClipSector(datum, false);
             }
 
-            return { startAngle, endAngle, outerRadius, innerRadius, clipSector };
+            return { startAngle, endAngle, clipSector };
         },
-        mapFn(params) {
-            const { startAngle, endAngle, outerRadius, innerRadius } = params;
+        applyFn(sect, params) {
+            const { startAngle, endAngle } = params;
             let { clipSector } = params;
 
             if (clipSector != null) {
@@ -131,7 +128,10 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean,
 
             const visible = clipSector == null || clipSectorVisibility(startAngle, endAngle, clipSector);
 
-            return { visible, startAngle, endAngle, outerRadius, innerRadius, clipSector };
+            sect.startAngle = startAngle;
+            sect.endAngle = endAngle;
+            sect.clipSector = clipSector;
+            sect.visible = visible;
         },
     };
 
@@ -159,12 +159,15 @@ export function getLabelText(
     series: _ModuleSupport.Series<any, any>,
     label: RadialGaugeLabelProperties | RadialGaugeSecondaryLabelProperties,
     value: number | undefined,
-    defaultFormatter?: (value: number) => void
+    defaultFormatter?: (value: number) => string
 ) {
     if (label.text != null) {
         return label.text;
     } else if (value != null) {
-        return label?.formatter?.({ seriesId: series.id, datum: undefined, value }) ?? defaultFormatter?.(value);
+        const labelFormat = label?.formatter?.({ seriesId: series.id, datum: undefined, value });
+        if (labelFormat != null) return String(labelFormat);
+
+        return defaultFormatter?.(value);
     }
 }
 
@@ -181,8 +184,8 @@ export function formatRadialGaugeLabels(
     secondaryLabelProps: RadialGaugeSecondaryLabelProperties,
     opts: { padding: number; textAlign: TextAlign; verticalAlign: VerticalAlign },
     innerRadius: number,
-    defaultFormatter: (value: number) => void,
-    datumOverrides?: { label: number; secondaryLabel: number }
+    defaultFormatter: (value: number) => string,
+    datumOverrides?: { label: number | undefined; secondaryLabel: number | undefined }
 ) {
     const { padding, textAlign, verticalAlign } = opts;
 
@@ -265,11 +268,14 @@ export function formatRadialGaugeLabels(
     });
 }
 
-export function resetRadialGaugeSeriesAnimationFunctions(_node: _Scene.Sector, datum: AnimatableSectorDatum) {
-    return {
-        startAngle: datum.startAngle,
-        endAngle: datum.endAngle,
-        innerRadius: datum.innerRadius,
-        outerRadius: datum.outerRadius,
-    };
+export function resetRadialGaugeSeriesResetSectorFunction(_node: _Scene.Sector, datum: AnimatableSectorDatum) {
+    const { startAngle, endAngle } = datum;
+    const clipSector = computeClipSector(datum);
+    const visible = clipSector == null || clipSectorVisibility(startAngle, endAngle, clipSector);
+    return { startAngle, endAngle, clipSector, visible };
+}
+
+export function resetRadialGaugeSeriesResetNeedleFunction(_node: RadialGaugeNeedle, datum: AnimatableNeedleDatum) {
+    const { angle } = datum;
+    return { rotation: angle };
 }

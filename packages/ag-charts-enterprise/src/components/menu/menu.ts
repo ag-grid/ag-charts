@@ -1,24 +1,27 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { AgIconName } from 'ag-charts-types';
 
-import { AnchoredPopover } from '../popover/anchoredPopover';
-import type { PopoverOptions } from '../popover/popover';
+import { AnchoredPopover, type AnchoredPopoverOptions } from '../popover/anchoredPopover';
 
 const { createElement, initMenuKeyNav, isButtonClickEvent } = _ModuleSupport;
 
-export interface MenuOptions<Value = any> extends PopoverOptions {
+export interface MenuOptions<Value = any> extends AnchoredPopoverOptions {
     items: Array<MenuItem<Value>>;
     sourceEvent: Event;
     value?: Value;
     onPress?: (item: MenuItem<Value>) => void;
+    menuItemRole?: 'menuitem' | 'menuitemradio';
 }
 
-export interface MenuItem<Value = any> {
-    label?: string;
+// These types force a compilation error if the developer tries to add an icon-only
+// menu item without an accessible text alternative.
+type LabelAndIcon = { label: string; icon?: AgIconName; altText?: undefined };
+type IconOnly = { label?: undefined; icon: AgIconName; altText: string };
+
+export type MenuItem<Value = any> = (LabelAndIcon | IconOnly) & {
     value: Value;
-    icon?: AgIconName;
     strokeWidth?: number;
-}
+};
 
 /**
  * An anchored popover containing a list of pressable items.
@@ -48,10 +51,14 @@ export class Menu extends AnchoredPopover {
 
     private createRow<Value>(options: MenuOptions<Value>, item: MenuItem<Value>) {
         const { domManager } = this.ctx;
+        const { menuItemRole = 'menuitem' } = options;
 
         const active = item.value === options.value;
         const row = createElement('div', 'ag-charts-menu__row');
-        row.setAttribute('role', 'menuitem');
+        row.setAttribute('role', menuItemRole);
+        if (menuItemRole === 'menuitemradio') {
+            row.setAttribute('aria-checked', (options.value === item.value).toString());
+        }
         if (typeof item.value === 'string') {
             row.dataset.popoverId = item.value;
         }
@@ -72,6 +79,10 @@ export class Menu extends AnchoredPopover {
             const label = createElement('span', 'ag-charts-menu__label');
             label.textContent = this.ctx.localeManager.t(item.label);
             row.appendChild(label);
+        }
+
+        if (item.altText != null) {
+            row.ariaLabel = this.ctx.localeManager.t(item.altText);
         }
 
         const select = () => {

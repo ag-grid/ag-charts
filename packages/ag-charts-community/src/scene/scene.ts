@@ -3,7 +3,6 @@ import { downloadUrl } from '../util/dom';
 import { createId } from '../util/id';
 import type { BBox } from './bbox';
 import { type CanvasOptions, HdpiCanvas } from './canvas/hdpiCanvas';
-import { Group } from './group';
 import { LayersManager } from './layersManager';
 import type { Node, RenderContext } from './node';
 import { RedrawType } from './node';
@@ -16,18 +15,6 @@ import {
     prepareSceneNodeHighlight,
 } from './sceneDebug';
 
-interface DOMManagerLike {
-    addChild(type: 'canvas', id: string, child?: HTMLElement): HTMLElement;
-}
-
-interface SceneOptions {
-    width?: number;
-    height?: number;
-    pixelRatio?: number;
-    canvasPosition?: 'absolute';
-    domManager?: DOMManagerLike;
-}
-
 export class Scene {
     static readonly className = 'Scene';
 
@@ -38,18 +25,11 @@ export class Scene {
     readonly layersManager: LayersManager;
 
     private root: Node | null = null;
+    private pendingSize: [number, number] | null = null;
     private isDirty: boolean = false;
-    private pendingSize?: [number, number];
 
-    private domManager?: DOMManagerLike;
-
-    constructor({ width, height, pixelRatio, domManager }: SceneOptions) {
-        this.domManager = domManager;
-        const canvasOpts: CanvasOptions = { width, height, pixelRatio };
-        if (domManager) {
-            canvasOpts.canvasConstructor = () => domManager.addChild('canvas', 'scene-canvas') as HTMLCanvasElement;
-        }
-        this.canvas = new HdpiCanvas(canvasOpts);
+    constructor(canvasOptions: CanvasOptions) {
+        this.canvas = new HdpiCanvas(canvasOptions);
         this.layersManager = new LayersManager(this.canvas, () => {
             this.isDirty = true;
         });
@@ -63,18 +43,11 @@ export class Scene {
         return this.pendingSize?.[1] ?? this.canvas.height;
     }
 
-    setContainer(value: HTMLElement | DOMManagerLike) {
-        const isElement = (v: unknown): v is HTMLElement => {
-            return typeof (v as any).tagName !== 'undefined';
-        };
-        if (isElement(value)) {
-            const { element } = this.canvas;
-            element.parentElement?.removeChild(element);
-            value.appendChild(element);
-        } else {
-            this.domManager = value;
-            this.domManager.addChild('canvas', 'scene-canvas', this.canvas.element);
-        }
+    /** @deprecated v10.2.0 Only used by AG Grid Sparklines */
+    setContainer(value: HTMLElement) {
+        const { element } = this.canvas;
+        element.parentElement?.removeChild(element);
+        value.appendChild(element);
         return this;
     }
 
@@ -95,17 +68,9 @@ export class Scene {
         return this;
     }
 
-    attachNode<T extends Node>(node: T, rootGroupName?: string) {
-        if (!rootGroupName) {
-            this.root?.appendChild(node);
-            return () => this.removeChild(node);
-        }
-
-        const parentGroup = this.root?.children.find((g) => g instanceof Group && g.name === rootGroupName);
-        if (!parentGroup) throw new Error('AG Charts - Unrecognized root group name: ' + rootGroupName);
-
-        parentGroup.appendChild(node);
-        return () => parentGroup.removeChild(node);
+    attachNode<T extends Node>(node: T) {
+        this.appendChild(node);
+        return () => this.removeChild(node);
     }
 
     appendChild<T extends Node>(node: T) {
@@ -154,7 +119,7 @@ export class Scene {
         const renderStartTime = performance.now();
         if (pendingSize) {
             this.layersManager.resize(...pendingSize);
-            this.pendingSize = undefined;
+            this.pendingSize = null;
         }
 
         if (root && !root.visible) {

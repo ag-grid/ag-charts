@@ -123,6 +123,7 @@ export abstract class TextualStartEndStateMachine<
             if (textInputValue != null && textInputValue.length > 0) {
                 ctx.datum()?.set({ text: textInputValue });
                 ctx.update();
+                ctx.recordAction(`Create ${ctx.node()?.type} annotation`);
             } else {
                 ctx.delete();
             }

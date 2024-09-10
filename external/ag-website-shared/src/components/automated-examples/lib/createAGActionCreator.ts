@@ -2,19 +2,20 @@ import type { Group } from '@tweenjs/tween.js';
 
 import type { ApplyColumnStateParams, ChartToolPanelName, CreateRangeChartParams, GridApi } from 'ag-grid-community';
 
-import { type AgElementFinder } from './agElements';
-import { type AgElementName } from './agElements/agElementsConfig';
-import { type Mouse } from './createMouse';
+import type { AgElementFinder } from './agElements';
+import type { AgElementName } from './agElements/agElementsConfig';
+import type { Mouse } from './createMouse';
 import { addCellRange } from './scriptActions/addCellRange';
-import { type ClickOnContextMenuItemParams, clickOnContextMenuItem } from './scriptActions/clickOnContextMenuItem';
+import { clickOnContextMenuItem } from './scriptActions/clickOnContextMenuItem';
+import type { ClickOnContextMenuItemParams } from './scriptActions/clickOnContextMenuItem';
 import { dragColumnToRowGroupPanel } from './scriptActions/dragColumnToRowGroupPanel';
 import { moveToElementAndClick } from './scriptActions/moveToElementAndClick';
 import { openChartToolPanel } from './scriptActions/openChartToolPanel';
 import { resetGrid } from './scriptActions/resetGrid';
 import { clearAllSingleCellSelections, clearSingleCell, selectSingleCell } from './scriptActions/singleCell';
 import { typeInTextInput } from './scriptActions/typeInTextInput';
-import { type ScriptDebugger } from './scriptDebugger';
-import { type EasingFunction } from './tween';
+import type { ScriptDebugger } from './scriptDebugger';
+import type { EasingFunction } from './tween';
 
 interface ResetAction {
     actionType: 'reset';
@@ -86,8 +87,8 @@ export interface ClearAllSingleCellSelectionsAction {
     actionType: 'clearAllSingleCellSelections';
 }
 
-export interface ClearRangeSelectionAction {
-    actionType: 'clearRangeSelection';
+export interface ClearCellSelectionAction {
+    actionType: 'clearCellSelection';
 }
 
 export interface SortAction {
@@ -176,7 +177,7 @@ export type AGCreatorAction =
     | SelectSingleCellAction
     | ClearSelectSingleCellAction
     | ClearAllSingleCellSelectionsAction
-    | ClearRangeSelectionAction
+    | ClearCellSelectionAction
     | SortAction
     | FocusCellAction
     | OpenToolPanelAction
@@ -248,8 +249,8 @@ export function createAGActionCreator({
             clearSingleCell({ agElementFinder, ...action.actionParams });
         } else if (actionType === 'clearAllSingleCellSelections') {
             clearAllSingleCellSelections();
-        } else if (actionType === 'clearRangeSelection') {
-            gridApi.clearRangeSelection();
+        } else if (actionType === 'clearCellSelection') {
+            gridApi.clearCellSelection();
         } else if (actionType === 'sort') {
             const action = agAction as SortAction;
             const { colId, sort } = action.actionParams;

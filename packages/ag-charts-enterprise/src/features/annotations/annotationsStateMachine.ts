@@ -12,6 +12,10 @@ import type {
     AnnotationsStateMachineContext,
     AnnotationsStateMachineHelperFns,
 } from './annotationsSuperTypes';
+import type {
+    LinearSettingsDialogLineChangeProps,
+    LinearSettingsDialogTextChangeProps,
+} from './settings-dialog/settingsDialog';
 import { guardCancelAndExit, guardSaveAndExit } from './states/textualStateUtils';
 import { hasLineStyle, hasLineText } from './utils/has';
 import { setColor, setFontSize, setLineStyle } from './utils/styles';
@@ -41,6 +45,7 @@ type AnnotationEvent =
     // Annotation properties events
     | 'color'
     | 'fontSize'
+    | 'lineProps'
     | 'lineStyle'
     | 'lineText'
     | 'updateTextInputBBox'
@@ -198,6 +203,18 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             ctx.update();
         };
 
+        const actionSaveText = ({ textInputValue }: { textInputValue?: string }) => {
+            const datum = ctx.datum(this.active!);
+            if (textInputValue != null && textInputValue.length > 0) {
+                datum?.set({ text: textInputValue });
+                ctx.update();
+                ctx.recordAction(`Change ${datum?.type} annotation text`);
+            } else {
+                ctx.delete(this.active!);
+                ctx.recordAction(`Delete ${datum?.type} annotation`);
+            }
+        };
+
         const guardActive = () => this.active != null;
         const guardActiveHasLineText = () => {
             if (this.active == null) return false;
@@ -210,8 +227,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
         super(States.Idle, {
             [States.Idle]: {
                 onEnter: () => {
-                    ctx.resetToIdle();
-                    ctx.select(this.active);
+                    ctx.select(this.active, this.active);
                 },
 
                 hover: ({ offset }: { offset: _Util.Vec2 }) => {
@@ -241,7 +257,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 dblclick: {
                     guard: guardActiveHasLineText,
                     action: () => {
-                        ctx.showAnnotationSettings(this.active!);
+                        ctx.showAnnotationSettings(this.active!, undefined);
                     },
                 },
 
@@ -276,6 +292,15 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     action: actionFontSize,
                 },
 
+                lineProps: {
+                    guard: guardActive,
+                    action: (props: LinearSettingsDialogLineChangeProps) => {
+                        const datum = getTypedDatum(ctx.datum(this.active!));
+                        datum?.set(props);
+                        ctx.update();
+                    },
+                },
+
                 lineStyle: {
                     guard: guardActive,
                     action: actionLineStyle,
@@ -283,7 +308,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 lineText: {
                     guard: guardActive,
-                    action: (props: { alignment?: string; fontSize?: number; label?: string; position?: string }) => {
+                    action: (props: LinearSettingsDialogTextChangeProps) => {
                         const datum = getTypedDatum(ctx.datum(this.active!));
                         if (!hasLineText(datum)) return;
                         if (isChannelType(datum) && props.position === 'center') {
@@ -291,6 +316,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                         }
                         datum.text.set(props);
                         ctx.update();
+                        ctx.recordAction(`Update ${datum.type} text`);
                     },
                 },
 
@@ -301,8 +327,8 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 toolbarPressSettings: {
                     guard: guardActiveHasLineText,
-                    action: () => {
-                        ctx.showAnnotationSettings(this.active!);
+                    action: (lastFocus: HTMLElement | undefined) => {
+                        ctx.showAnnotationSettings(this.active!, lastFocus);
                     },
                 },
 
@@ -318,9 +344,9 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 },
 
                 delete: () => {
-                    if (this.active != null) {
-                        ctx.delete(this.active);
-                    }
+                    if (this.active == null) return;
+                    ctx.delete(this.active);
+                    ctx.recordAction(`Delete ${ctx.datum(this.active!)?.type} annotation`);
                 },
 
                 deleteAll: () => {
@@ -365,14 +391,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 click: {
                     target: States.Idle,
-                    action: ({ textInputValue }: { textInputValue?: string }) => {
-                        if (textInputValue != null && textInputValue.length > 0) {
-                            ctx.datum(this.active!)?.set({ text: textInputValue });
-                            ctx.update();
-                        } else {
-                            ctx.delete(this.active!);
-                        }
-                    },
+                    action: actionSaveText,
                 },
 
                 keyDown: [
@@ -383,10 +402,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     {
                         guard: guardSaveAndExit,
                         target: States.Idle,
-                        action: ({ textInputValue }: { textInputValue?: string }) => {
-                            ctx.datum(this.active!)?.set({ text: textInputValue });
-                            ctx.update();
-                        },
+                        action: actionSaveText,
                     },
                 ],
 

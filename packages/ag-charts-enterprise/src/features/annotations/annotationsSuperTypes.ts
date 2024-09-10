@@ -85,7 +85,9 @@ export interface AnnotationsStateMachineContext {
     updateTextInputBBox: (bbox?: _Scene.BBox) => void;
 
     showAnnotationOptions: (index: number) => void;
-    showAnnotationSettings: (index: number) => void;
+    showAnnotationSettings: (index: number, lastFocus: HTMLElement | undefined) => void;
+
+    recordAction: (label: string) => void;
 
     update: () => void;
 }

@@ -23,6 +23,14 @@ test.describe('toolbar', () => {
 
         await page.click('canvas', { position: { x: 200, y: 200 } });
         await expect(page).toHaveScreenshot('line-4-complete.png', { animations: 'disabled' });
+
+        await page.click('canvas', { position: { x: 300, y: 300 } });
+
+        await page.locator('canvas').press('ControlOrMeta+z');
+        await expect(page).toHaveScreenshot('line-5-undo.png', { animations: 'disabled' });
+
+        await page.locator('canvas').press('ControlOrMeta+y');
+        await expect(page).toHaveScreenshot('line-6-redo.png', { animations: 'disabled' });
     });
 
     test('text', async ({ page }) => {

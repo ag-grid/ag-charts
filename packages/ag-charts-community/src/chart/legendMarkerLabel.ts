@@ -1,5 +1,6 @@
 import type { FontStyle, FontWeight } from 'ag-charts-types';
 
+import type { ListSwitch } from '../dom/proxyInteractionService';
 import { BBox } from '../scene/bbox';
 import { RedrawType } from '../scene/changeDetectable';
 import { Group } from '../scene/group';
@@ -45,10 +46,11 @@ export class LegendMarkerLabel extends Translatable(Group) {
 
     override destroy() {
         super.destroy();
-        this.proxyButton?.remove();
+        this.proxyButton?.button.remove();
+        this.proxyButton?.listitem.remove();
     }
 
-    proxyButton?: HTMLButtonElement;
+    proxyButton?: ListSwitch;
 
     pageIndex: number = NaN;
 
@@ -114,7 +116,7 @@ export class LegendMarkerLabel extends Translatable(Group) {
     update(
         spriteRenderer: SpriteRenderer,
         { spriteAAPadding, spritePixelRatio: scale }: SpriteDimensions,
-        dimensionProps: { length: number; spacing: number }[]
+        dimensionProps: { length: number; spacing: number; isCustomMarker: boolean }[]
     ) {
         const { markers, lines } = this;
 
@@ -122,23 +124,34 @@ export class LegendMarkerLabel extends Translatable(Group) {
         let spriteY = 0;
         let shift = 0;
         for (let i = 0; i < Math.max(markers.length, lines.length); i++) {
-            const { length, spacing } = dimensionProps[i] ?? 0;
+            const { length, spacing, isCustomMarker } = dimensionProps[i] ?? 0;
             const marker = markers[i];
             const line = lines[i];
 
             const size = marker?.size ?? 0;
 
             let lineTop = Infinity;
+            let lineX1 = Infinity;
+            let lineX2 = Infinity;
             let markerTop = Infinity;
             let markerLeft = Infinity;
             if (marker) {
                 const center = (marker.constructor as MarkerConstructor).center;
                 const radius = (size + marker.strokeWidth) / 2;
 
-                marker.x = (center.x - 0.5) * size + length / 2 + shift;
-                marker.y = (center.y - 0.5) * size;
-                markerTop = marker.y - radius;
-                markerLeft = marker.x - radius;
+                if (isCustomMarker) {
+                    marker.x = 0;
+                    marker.y = 0;
+                    marker.translationX = (center.x - 0.5) * size + length / 2 + shift;
+                    marker.translationY = (center.y - 0.5) * size;
+                    markerTop = marker.translationY - radius;
+                    markerLeft = marker.translationX - radius;
+                } else {
+                    marker.x = (center.x - 0.5) * size + length / 2 + shift;
+                    marker.y = (center.y - 0.5) * size;
+                    markerTop = marker.y - radius;
+                    markerLeft = marker.x - radius;
+                }
             }
 
             if (line) {
@@ -148,10 +161,12 @@ export class LegendMarkerLabel extends Translatable(Group) {
                 line.y2 = 0;
                 line.markDirty(this, RedrawType.MAJOR);
                 lineTop = -line.strokeWidth / 2;
+                lineX1 = line.x1;
+                lineX2 = line.x2;
             }
 
             shift += spacing + Math.max(length, size);
-            spriteX = Math.min(spriteX, line.x1, line.x2, markerLeft);
+            spriteX = Math.min(spriteX, lineX1, lineX2, markerLeft);
             spriteY = Math.min(spriteY, lineTop, markerTop);
         }
 

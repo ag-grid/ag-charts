@@ -182,7 +182,10 @@ export class AxisTicks {
     private getTicksData() {
         const ticks: TickDatum[] = [];
         const rawTicks = this.scale.ticks();
-        const fractionDigits = rawTicks.reduce((max, tick) => Math.max(max, countFractionDigits(tick)), 0);
+        const fractionDigits = rawTicks.reduce(
+            (max, tick) => Math.max(max, typeof tick === 'number' ? countFractionDigits(tick) : 0),
+            0
+        );
         const idGenerator = createIdsGenerator();
 
         const labelFormatter = this.label.format

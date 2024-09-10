@@ -1,4 +1,4 @@
-import { type GridApi } from 'ag-grid-community';
+import type { GridApi } from 'ag-grid-community';
 
 import { clearAllMenuOptionHighlights } from './clearAllMenuOptionHighlights';
 import { clearAllRowHighlights } from './clearAllRowHighlights';
@@ -18,7 +18,7 @@ export function resetGrid({ gridApi, scrollRow, scrollColumn }: Params) {
     gridApi.setColumnsPinned([], null);
     gridApi.setFilterModel(null);
     gridApi.closeToolPanel();
-    gridApi.clearRangeSelection();
+    gridApi.clearCellSelection();
     destoryAllCharts(gridApi);
     removeDragAndDropHandles();
     clearAllSingleCellSelections();

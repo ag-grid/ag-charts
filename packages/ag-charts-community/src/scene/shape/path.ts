@@ -79,12 +79,12 @@ export class Path extends Shape implements DistantObject {
         return this.distanceSquaredTransformedPoint(x, y);
     }
 
-    computeSVGDataPath(x: number, y: number): string {
+    computeSVGDataPath(transform: (x: number, y: number) => { x: number; y: number }): string {
         if (this.dirtyPath) {
             this.updatePath();
             this.dirtyPath = false;
         }
-        return this.path.computeSVGDataPath(x, y);
+        return this.path.computeSVGDataPath(transform);
     }
 
     protected distanceSquaredTransformedPoint(x: number, y: number): number {

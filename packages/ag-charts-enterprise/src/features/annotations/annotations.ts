@@ -1,4 +1,5 @@
 import {
+    type AgAnnotationLineStyleType,
     type AgToolbarAnnotationsButtonValue,
     type Direction,
     _ModuleSupport,
@@ -10,17 +11,8 @@ import { Menu, type MenuItem } from '../../components/menu/menu';
 import { buildBounds } from '../../utils/position';
 import { ColorPicker } from '../color-picker/colorPicker';
 import { TextInput } from '../text-input/textInput';
-import type {
-    AnnotationContext,
-    AnnotationLineStyle,
-    AnnotationLineStyleType,
-    AnnotationOptionsColorPickerType,
-    ChannelAnnotationType,
-    Coords,
-    LineAnnotationType,
-    Point,
-    TextualAnnotationType,
-} from './annotationTypes';
+import { AnnotationDefaults } from './annotationDefaults';
+import type { AnnotationContext, AnnotationOptionsColorPickerType, Coords, Point } from './annotationTypes';
 import {
     ANNOTATION_BUTTONS,
     ANNOTATION_BUTTON_GROUPS,
@@ -28,14 +20,15 @@ import {
     stringToAnnotationType,
 } from './annotationTypes';
 import { annotationConfigs, getTypedDatum } from './annotationsConfig';
+import { LINE_STROKE_WIDTH_ITEMS, LINE_STYLE_TYPE_ITEMS, TEXT_SIZE_ITEMS } from './annotationsMenuOptions';
 import { AnnotationsStateMachine } from './annotationsStateMachine';
 import type { AnnotationProperties, AnnotationScene } from './annotationsSuperTypes';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
 import { AnnotationSettingsDialog } from './settings-dialog/settingsDialog';
 import { calculateAxisLabelPadding } from './utils/axis';
 import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasLineText, hasTextColor } from './utils/has';
-import { getLineStyle, setDefaults } from './utils/styles';
-import { isTextType } from './utils/types';
+import { getLineStyle } from './utils/line';
+import { isChannelType, isLineType, isTextType } from './utils/types';
 import { updateAnnotation } from './utils/update';
 import { validateDatumPoint } from './utils/validation';
 import { invertCoords } from './utils/values';
@@ -65,32 +58,6 @@ type AnnotationAxis = {
 };
 
 const AXIS_TYPE = UNION(['x', 'y', 'xy'], 'an axis type');
-
-const LINE_STROKE_WIDTH_ITEMS: MenuItem<number>[] = [
-    { strokeWidth: 1, label: '1', value: 1 },
-    { strokeWidth: 2, label: '2', value: 2 },
-    { strokeWidth: 3, label: '3', value: 3 },
-    { strokeWidth: 4, label: '4', value: 4 },
-    { strokeWidth: 8, label: '8', value: 8 },
-];
-
-const LINE_STYLE_TYPE_ITEMS: MenuItem<AnnotationLineStyleType>[] = [
-    { icon: 'line-style-solid', value: 'solid' },
-    { icon: 'line-style-dashed', value: 'dashed' },
-    { icon: 'line-style-dotted', value: 'dotted' },
-];
-
-const TEXT_SIZE_ITEMS: MenuItem<number>[] = [
-    { label: '10', value: 10 },
-    { label: '12', value: 12 },
-    { label: '14', value: 14 },
-    { label: '16', value: 16 },
-    { label: '18', value: 18 },
-    { label: '22', value: 22 },
-    { label: '28', value: 28 },
-    { label: '36', value: 36 },
-    { label: '46', value: 46 },
-];
 
 const LINE_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
     {
@@ -129,8 +96,8 @@ const TEXT_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
 
 const SHAPE_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
     { label: 'toolbarAnnotationsArrow', icon: 'arrow-drawing', value: AnnotationType.Arrow },
-    { label: 'toolbarAnnotationsArrowUp', icon: 'arrow-up', value: AnnotationType.ArrowUp },
-    { label: 'toolbarAnnotationsArrowDown', icon: 'arrow-down', value: AnnotationType.ArrowDown },
+    { label: 'toolbarAnnotationsArrowUp', icon: 'arrow-up-drawing', value: AnnotationType.ArrowUp },
+    { label: 'toolbarAnnotationsArrowDown', icon: 'arrow-down-drawing', value: AnnotationType.ArrowDown },
 ];
 
 enum AnnotationOptions {
@@ -180,37 +147,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private readonly annotationData: AnnotationPropertiesArray = new PropertiesArray<AnnotationProperties>(
         this.createAnnotationDatum
     );
-    private readonly defaultColors: Map<
-        AnnotationType,
-        Map<AnnotationOptionsColorPickerType, [string, string, number] | undefined>
-    > = new Map(
-        Object.values(AnnotationType).map((type) => [
-            type,
-            new Map([
-                ['line-color', undefined],
-                ['fill-color', undefined],
-                ['text-color', undefined],
-            ]),
-        ])
-    );
-    private readonly defaultFontSizes: Map<TextualAnnotationType, number | undefined> = new Map([
-        [AnnotationType.Callout, undefined],
-        [AnnotationType.Comment, undefined],
-        [AnnotationType.Note, undefined],
-        [AnnotationType.Text, undefined],
-    ]);
-
-    private readonly defaultLineStyles: Map<
-        LineAnnotationType | ChannelAnnotationType,
-        AnnotationLineStyle | undefined
-    > = new Map<LineAnnotationType | ChannelAnnotationType, AnnotationLineStyle | undefined>([
-        [AnnotationType.Line, undefined],
-        [AnnotationType.HorizontalLine, undefined],
-        [AnnotationType.VerticalLine, undefined],
-        [AnnotationType.DisjointChannel, undefined],
-        [AnnotationType.ParallelChannel, undefined],
-        [AnnotationType.Arrow, undefined],
-    ]);
+    private readonly defaults = new AnnotationDefaults();
 
     // Elements
     private seriesRect?: _Scene.BBox;
@@ -236,6 +173,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         super();
         this.state = this.setupStateMachine();
         this.setupListeners();
+
+        // Add originators to the history only when this module is enabled to prevent memory increases
+        this.ctx.historyManager.addMementoOriginator(ctx.annotationManager);
+        this.ctx.historyManager.addMementoOriginator(this.defaults);
     }
 
     private setupStateMachine() {
@@ -276,32 +217,40 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     ctx: { toolbarManager, tooltipManager },
                 } = this;
 
-                const node = index != null ? annotations.at(index) : undefined;
-                node?.toggleActive(true);
-
                 this.hideOverlays();
 
-                if (previous != null && previous != index) {
-                    annotations.at(previous)?.toggleActive(false);
+                const selectedNode = index != null ? annotations.at(index) : null;
+                const previousNode = previous != null ? annotations.at(previous) : null;
+
+                // Only change anything else if a different node has been selected or when deselecting
+                if (previousNode === selectedNode && selectedNode != null) {
+                    return;
                 }
 
-                if (index == null) {
-                    tooltipManager.unsuppressTooltip('annotations');
-                } else {
+                // Deselect the previous node
+                previousNode?.toggleActive(false);
+
+                // Hide the annotation options so it has time to update before being shown again
+                toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: false });
+
+                if (selectedNode) {
+                    selectedNode.toggleActive(true);
                     tooltipManager.suppressTooltip('annotations');
-                }
-
-                if (index == null || (index != null && index !== previous)) {
-                    ctx.toolbarManager.updateButton('annotations', 'line-menu', { icon: undefined });
-                    ctx.toolbarManager.updateButton('annotations', 'text-menu', { icon: undefined });
-                }
-
-                if (node) {
                     this.toggleAnnotationOptionsButtons();
-                    toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: true });
+                    this.postUpdateFns.push(() => {
+                        // Set the annotation options to be visible _before_ setting the anchor to ensure the toolbar
+                        // element has a width and height that it can use in the anchor calculations.
+                        toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: true });
+                        toolbarManager.changeFloatingAnchor('annotationOptions', selectedNode.getAnchor());
+                    });
                 } else {
-                    toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: false });
+                    tooltipManager.unsuppressTooltip('annotations');
                 }
+
+                // Reset the icons on the annotation toolbars
+                toolbarManager.updateButton('annotations', 'line-menu', { icon: undefined });
+                toolbarManager.updateButton('annotations', 'text-menu', { icon: undefined });
+                toolbarManager.updateButton('annotations', 'shape-menu', { icon: undefined });
 
                 this.update();
             },
@@ -324,13 +273,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 const styles = this.ctx.annotationManager.getAnnotationTypeStyles(type);
                 if (styles) datum.set(styles);
 
-                setDefaults({
-                    datum,
-                    defaultColors: this.defaultColors,
-                    defaultFontSizes: this.defaultFontSizes,
-                    defaultLineStyles: this.defaultLineStyles,
-                });
-
+                this.defaults.applyDefaults(datum);
                 this.resetToolbarButtonStates();
 
                 this.removeAmbientKeyboardListener?.();
@@ -368,7 +311,17 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 return this.annotations.at(index);
             },
 
+            recordAction: (label: string) => {
+                this.recordActionAfterNextUpdate('annotations', label);
+            },
+
             update: () => {
+                this.postUpdateFns.push(() => {
+                    const active = this.state.getActive();
+                    const node = active != null ? this.annotations.at(active) : null;
+                    if (node == null) return;
+                    ctx.toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
+                });
                 this.update();
             },
 
@@ -428,17 +381,27 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 const node = this.annotations.at(active);
                 if (!node) return;
 
-                ctx.toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
                 this.toggleAnnotationOptionsButtons();
                 ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: true });
+                ctx.toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
             },
 
-            showAnnotationSettings: (active: number) => {
+            showAnnotationSettings: (active: number, lastFocus: HTMLElement | undefined) => {
                 const datum = this.annotationData.at(active);
-                if (!hasLineText(datum)) return;
-                this.settingsDialog.showLine(datum, {
-                    onChange: (props) => {
+                if (!isLineType(datum) && !isChannelType(datum)) return;
+                this.settingsDialog.showLineOrChannel(datum, {
+                    ariaLabel: this.ctx.localeManager.t('ariaLabelAnnotationSettingsDialog'),
+                    onChangeLine: (props) => {
+                        this.state.transition('lineProps', props);
+                    },
+                    onChangeLineStyle: (props) => {
+                        this.state.transition('lineStyle', props);
+                    },
+                    onChangeText: (props) => {
                         this.state.transition('lineText', props);
+                    },
+                    onHide: () => {
+                        lastFocus?.focus();
                     },
                 });
             },
@@ -482,6 +445,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             ctx.annotationManager.addListener('restore-annotations', this.onRestoreAnnotations.bind(this)),
             ctx.toolbarManager.addListener('button-pressed', this.onToolbarButtonPress.bind(this)),
             ctx.toolbarManager.addListener('button-moved', this.onToolbarButtonMoved.bind(this)),
+            ctx.toolbarManager.addListener('group-moved', this.onToolbarGroupMoved.bind(this)),
             ctx.toolbarManager.addListener('cancelled', this.onToolbarCancelled.bind(this)),
             ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
             ctx.updateService.addListener('pre-scene-render', this.onPreRender.bind(this)),
@@ -533,6 +497,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (event.value === 'clear') {
             this.clear();
+            this.recordActionAfterNextUpdate('annotations', 'Clear all annotations');
             return;
         }
 
@@ -565,20 +530,23 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.hideOverlays();
 
         const datum = getTypedDatum(annotationData[active]);
+        const node = this.annotations.at(active);
 
         switch (event.value) {
-            case AnnotationOptions.LineStyleType:
+            case AnnotationOptions.LineStyleType: {
                 const lineStyle = hasLineStyle(datum) ? getLineStyle(datum.lineDash, datum.lineStyle) : undefined;
-                this.lineStyleTypeMenu.show<AnnotationLineStyleType>({
+                this.lineStyleTypeMenu.show<AgAnnotationLineStyleType>({
                     items: LINE_STYLE_TYPE_ITEMS,
-                    ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsLineStyleType'),
+                    ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsLineStyle'),
                     value: lineStyle,
                     sourceEvent: event.sourceEvent,
                     onPress: (item) => this.onLineStyleTypeMenuPress(item, datum),
                     class: 'annotations__line-style-type',
                 });
                 break;
-            case AnnotationOptions.LineStrokeWidth:
+            }
+
+            case AnnotationOptions.LineStrokeWidth: {
                 const strokeWidth = hasLineStyle(datum) ? datum.strokeWidth : undefined;
                 this.lineStrokeWidthMenu.show<number>({
                     items: LINE_STROKE_WIDTH_ITEMS,
@@ -589,16 +557,25 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     class: 'annotations__line-stroke-width',
                 });
                 break;
+            }
+
             case AnnotationOptions.LineColor:
             case AnnotationOptions.FillColor:
-            case AnnotationOptions.TextColor:
+            case AnnotationOptions.TextColor: {
                 this.colorPicker.show({
                     color: datum?.getDefaultColor(event.value),
                     opacity: datum?.getDefaultOpacity(event.value),
                     sourceEvent: event.sourceEvent,
                     onChange: datum != null ? this.onColorPickerChange.bind(this, event.value, datum) : undefined,
+                    onChangeHide: ((type: AnnotationOptionsColorPickerType) => {
+                        this.recordActionAfterNextUpdate(
+                            'defaults',
+                            `Change ${node?.type} ${event.value} to ${datum?.getDefaultColor(type)}`
+                        );
+                    }).bind(this, event.value),
                 });
                 break;
+            }
 
             case AnnotationOptions.TextSize: {
                 const fontSize = isTextType(datum) ? datum.fontSize : undefined;
@@ -613,11 +590,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 break;
             }
 
-            case AnnotationOptions.Delete:
+            case AnnotationOptions.Delete: {
                 this.cancel();
                 this.delete();
                 this.reset();
                 break;
+            }
 
             case AnnotationOptions.Lock: {
                 annotationData[active].locked = !annotationData[active].locked;
@@ -626,7 +604,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             }
 
             case AnnotationOptions.Settings: {
-                state.transition('toolbarPressSettings');
+                const { lastFocus } = this.ctx.focusIndicator.guessDevice(event.sourceEvent);
+                state.transition('toolbarPressSettings', lastFocus);
+                break;
             }
         }
 
@@ -697,6 +677,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
     }
 
+    private onToolbarGroupMoved(_event: _ModuleSupport.ToolbarGroupMovedEvent) {
+        this.hideOverlays();
+    }
+
     private onColorPickerChange(
         colorPickerType: AnnotationOptionsColorPickerType,
         datum: AnnotationProperties,
@@ -705,7 +689,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         opacity: number
     ) {
         this.state.transition('color', { colorPickerType, colorOpacity, color, opacity });
-        this.defaultColors.get(datum.type)?.set(colorPickerType, [colorOpacity, color, opacity]);
+        this.defaults.setDefaultColor(datum.type, colorPickerType, colorOpacity, color, opacity);
 
         this.updateToolbarColorPickerFill(colorPickerType, colorOpacity);
     }
@@ -751,7 +735,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         });
     }
 
-    private updateToolbarLineStyleType(item: MenuItem<AnnotationLineStyleType>) {
+    private updateToolbarLineStyleType(item: MenuItem<AgAnnotationLineStyleType>) {
         this.ctx.toolbarManager.updateButton('annotationOptions', AnnotationOptions.LineStyleType, {
             icon: item.icon,
         });
@@ -765,10 +749,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onTextSizeMenuPress(item: MenuItem<number>, datum?: AnnotationProperties) {
+        if (!isTextType(datum)) return;
+
         const fontSize = item.value;
-        if (isTextType(datum)) {
-            this.defaultFontSizes.set(datum.type, fontSize);
-        }
+        this.defaults.setDefaultFontSize(datum.type, fontSize);
+        this.recordActionAfterNextUpdate('defaults', `Change ${datum?.type} font size to ${fontSize}`);
 
         this.state.transition('fontSize', fontSize);
         this.textSizeMenu.hide();
@@ -776,19 +761,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.updateToolbarFontSize(fontSize);
     }
 
-    private onLineStyleTypeMenuPress(item: MenuItem<AnnotationLineStyleType>, datum?: AnnotationProperties) {
-        if (!hasLineStyle(datum)) {
-            return;
-        }
+    private onLineStyleTypeMenuPress(item: MenuItem<AgAnnotationLineStyleType>, datum?: AnnotationProperties) {
+        if (!hasLineStyle(datum)) return;
 
         const type = item.value;
 
-        const defaultStyle = this.defaultLineStyles.get(datum.type);
-        if (defaultStyle) {
-            defaultStyle.type = type;
-        } else {
-            this.defaultLineStyles.set(datum.type, { type: type });
-        }
+        this.defaults.setDefaultLineStyleType(datum.type, type);
+        this.recordActionAfterNextUpdate('defaults', `Change ${datum?.type} line style to ${type}`);
 
         this.state.transition('lineStyle', { type });
         this.lineStyleTypeMenu.hide();
@@ -803,12 +782,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         const strokeWidth = item.value;
 
-        const defaultStyle = this.defaultLineStyles.get(datum.type);
-        if (defaultStyle) {
-            defaultStyle.strokeWidth = strokeWidth;
-        } else {
-            this.defaultLineStyles.set(datum.type, { strokeWidth });
-        }
+        this.defaults.setDefaultLineStyleWidth(datum.type, strokeWidth);
+        this.recordActionAfterNextUpdate('defaults', `Change ${datum?.type} stroke width to ${strokeWidth}`);
 
         this.state.transition('lineStyle', { strokeWidth });
         this.lineStrokeWidthMenu.hide();
@@ -916,12 +891,26 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         return { layout: axisLayout, context: axisCtx, bounds, button };
     }
 
+    private recordActionAfterNextUpdate(type: 'annotations' | 'defaults', label: string) {
+        const {
+            defaults,
+            ctx: { annotationManager, historyManager },
+        } = this;
+
+        this.postUpdateFns.push(() => {
+            if (type === 'defaults') {
+                historyManager.record(label, annotationManager, defaults);
+            } else {
+                historyManager.record(label, annotationManager);
+            }
+        });
+    }
+
     private updateAnnotations() {
         const {
             annotationData,
             annotations,
             seriesRect,
-            state,
             ctx: { annotationManager, toolbarManager },
         } = this;
 
@@ -937,19 +926,20 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         annotations
             .update(annotationData ?? [], undefined, (datum) => datum.id)
-            .each((node, datum, index) => {
+            .each((node, datum) => {
                 if (!this.validateDatum(datum)) {
                     node.visible = false;
                     return;
                 }
 
                 updateAnnotation(node, datum, context);
-
-                if (state.isActive(index)) {
-                    toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
-                }
             });
+
+        this.postUpdateFns.forEach((fn) => fn());
+        this.postUpdateFns = [];
     }
+
+    private postUpdateFns: Array<() => void> = [];
 
     // Validation of the options beyond the scope of the @Validate decorator
     private validateDatum(datum: AnnotationProperties) {

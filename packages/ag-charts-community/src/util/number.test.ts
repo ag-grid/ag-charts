@@ -22,5 +22,8 @@ describe('number module', () => {
         expect(countFractionDigits(1.25)).toBe(2);
         // AG-10143
         expect(countFractionDigits(400 - 0.6)).toBe(1);
+        // AG-12700
+        expect(countFractionDigits(1e-8)).toBe(8);
+        expect(countFractionDigits(1.23e-8)).toBe(10);
     });
 });

@@ -57,6 +57,7 @@ const annotationOptions: AgToolbarOptions['annotationOptions'] = {
     enabled: true,
     position: 'floating',
     align: 'start',
+    draggable: true,
     buttons: [
         {
             icon: 'text-annotation',
@@ -83,18 +84,19 @@ const annotationOptions: AgToolbarOptions['annotationOptions'] = {
         },
         {
             icon: 'line-style-solid',
-            tooltip: 'toolbarAnnotationsLineStyle=',
+            tooltip: 'toolbarAnnotationsLineStyle',
             value: 'line-style-type',
         },
         {
-            icon: 'text-annotation',
-            tooltip: 'toolbarAnnotationsTextOptions',
+            icon: 'settings',
+            tooltip: 'toolbarAnnotationsSettings',
             value: 'settings',
         },
         {
             role: 'switch',
             icon: 'unlocked',
             tooltip: 'toolbarAnnotationsLock',
+            ariaLabel: 'toolbarAnnotationsLock',
             checkedOverrides: {
                 icon: 'locked',
                 tooltip: 'toolbarAnnotationsUnlock',

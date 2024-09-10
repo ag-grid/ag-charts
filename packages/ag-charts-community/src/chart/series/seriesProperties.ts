@@ -9,6 +9,7 @@ import {
     OBJECT,
     POSITIVE_NUMBER,
     RATIO,
+    REAL_NUMBER,
     STRING,
     Validate,
 } from '../../util/validation';
@@ -75,6 +76,9 @@ export abstract class SeriesProperties<T extends object> extends BaseProperties<
 
     @Validate(BOOLEAN)
     visible: boolean = true;
+
+    @Validate(REAL_NUMBER, { optional: true })
+    focusPriority?: number = Infinity;
 
     @Validate(BOOLEAN)
     showInLegend: boolean = true;

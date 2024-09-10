@@ -71,6 +71,10 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
         // Buttons have no visible rendering change
         'state-save-restore': { skipCanvasUpdateCheck: true },
     },
+    'api-download': {
+        // No canvas updates for downloading
+        download: { skipCanvasUpdateCheck: true },
+    },
     events: {
         // Buttons have no visible rendering change
         'interaction-ranges': { skipCanvasUpdateCheck: true },

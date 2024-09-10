@@ -1,4 +1,3 @@
-import { times } from './array';
 import { Logger } from './logger';
 import { clamp, countFractionDigits } from './number';
 import { numberFormat, parseFormat } from './numberFormat';
@@ -13,7 +12,7 @@ import {
     durationYear,
 } from './time/duration';
 import timeHour from './time/hour';
-import { type CountableTimeInterval, TimeInterval } from './time/interval';
+import { type CountableTimeInterval, type TimeInterval } from './time/interval';
 import timeMillisecond from './time/millisecond';
 import timeMinute from './time/minute';
 import timeMonth from './time/month';
@@ -55,6 +54,10 @@ export const TickIntervals = [
 
 export const TickMultipliers = [1, 2, 5, 10];
 
+function isCloseToInteger(n: number, delta: number) {
+    return Math.abs(Math.round(n) - n) < delta;
+}
+
 export function createTicks(
     start: number,
     stop: number,
@@ -63,14 +66,18 @@ export function createTicks(
     maxCount?: number
 ): number[] {
     if (count < 2) {
-        return range(start, stop, stop - start);
+        return [start, stop];
     }
     const step = tickStep(start, stop, count, minCount, maxCount);
-    if (isNaN(step)) {
+    if (!Number.isFinite(step)) {
         return [];
     }
-    start = Math.ceil(start / step) * step;
-    stop = Math.floor(stop / step) * step;
+    if (!isCloseToInteger(start / step, 1e-12)) {
+        start = Math.ceil(start / step) * step;
+    }
+    if (!isCloseToInteger(stop / step, 1e-12)) {
+        stop = Math.floor(stop / step) * step;
+    }
     return range(start, stop, step);
 }
 
@@ -107,9 +114,8 @@ export function getTickInterval(
 
 export function tickStep(start: number, end: number, count: number, minCount = 0, maxCount = Infinity): number {
     if (start === end) {
-        return 1;
-    }
-    if (count < 1) {
+        return clamp(1, minCount, maxCount);
+    } else if (count < 1) {
         return NaN;
     }
 
@@ -160,7 +166,7 @@ export function tickFormat(ticks: any[], format?: string): (n: number | { valueO
                     if (!Number.isFinite(x) || x === 0) return 0;
                     const l = Math.floor(Math.log10(Math.abs(x)));
                     const digits = options.type ? 6 : 12;
-                    const [_integer, decimal] = x.toExponential(digits - 1).split(/\.|e/g);
+                    const decimal = x.toExponential(digits - 1).split(/\.|e/g)[1];
                     const decimalLength = decimalPlaces(decimal);
                     return Math.max(0, decimalLength - l);
                 })
@@ -172,11 +178,23 @@ export function tickFormat(ticks: any[], format?: string): (n: number | { valueO
 }
 
 export function range(start: number, end: number, step: number): number[] {
-    const n = Math.ceil(Math.abs(end - start) / step);
+    if (!Number.isFinite(step) || step <= 0) return [];
+
     const f = 10 ** countFractionDigits(step);
     const d0 = Math.min(start, end);
+    const d1 = Math.max(start, end);
 
-    return times(n + 1, (i) => Math.round((d0 + step * i) * f) / f);
+    const out: number[] = [];
+    for (let i = 0; ; i += 1) {
+        const p = Math.round((d0 + step * i) * f) / f;
+        if (p <= d1) {
+            out.push(p);
+        } else {
+            break;
+        }
+    }
+
+    return out;
 }
 
 export function isDenseInterval(count: number, availableRange: number) {

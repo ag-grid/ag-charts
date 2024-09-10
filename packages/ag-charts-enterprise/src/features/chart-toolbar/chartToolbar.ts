@@ -68,12 +68,16 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
 
         this.menu.show({
             items: menuItems,
+            menuItemRole: 'menuitemradio',
             ariaLabel: this.ctx.localeManager.t('toolbarSeriesTypeDropdown'),
             value: this.getChartType(),
             sourceEvent: e.sourceEvent,
             onPress: (item) => {
                 this.setChartType(item.value);
                 this.hidePopover();
+            },
+            onHide: () => {
+                this.ctx.toolbarManager.toggleButton(BUTTON_GROUP, BUTTON_VALUE, { active: false });
             },
         });
 

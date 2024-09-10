@@ -88,6 +88,8 @@ describe('BaseProperties', () => {
 });
 
 describe('PropertiesArray', () => {
+    setupMockConsole();
+
     it('should correctly handle arrays of BaseProperties instances', () => {
         class MyProperties extends BaseProperties<{ value: string }> {
             @Validate(STRING)
@@ -125,10 +127,31 @@ describe('PropertiesArray', () => {
             value!: string;
         }
         const array = new PropertiesArray(MyProperties, { value: 'item1' });
-        const newArray = array.reset([{ value: 'newItem' }]);
+        const newArray = array.reset([{ value: 'newItem' }])!;
         expect(newArray[0]).toBeInstanceOf(MyProperties);
         expect(newArray[0].value).toBe('newItem');
         expect(newArray.length).toBe(1);
+    });
+
+    it('should reject non-arrays', () => {
+        class MyProperties extends BaseProperties<{ value: string }> {
+            @Validate(STRING)
+            value!: string;
+        }
+        class MyClass extends BaseProperties<{ props: { value: string }[] }> {
+            @Validate(OBJECT_ARRAY)
+            props = new PropertiesArray(MyProperties);
+        }
+        // @ts-expect-error error
+        const instance = new MyClass().set({ props: { value: 'item1' } });
+        expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - unable to set [props] - expecting a properties array",
+  ],
+]
+`);
+        expect(instance.props).toHaveLength(0);
     });
 });
 

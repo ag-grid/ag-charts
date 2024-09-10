@@ -3,6 +3,12 @@ import { _ModuleSupport, type _Util } from 'ag-charts-community';
 const { BaseModuleInstance, createElement } = _ModuleSupport;
 const canvasOverlay = 'canvas-overlay';
 
+export interface PopoverConstructorOptions {
+    // Create the popover without appending it to the canvas overlay, then it should
+    // call `popover.attachTo(parentPopover)` before calling `popover.show()`.
+    detached?: boolean;
+}
+
 export interface PopoverOptions {
     ariaLabel?: string;
     class?: string;
@@ -23,19 +29,32 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
 
     constructor(
         protected readonly ctx: _ModuleSupport.ModuleContext,
-        id: string
+        id: string,
+        options?: PopoverConstructorOptions
     ) {
         super();
 
         this.moduleId = `popover-${id}`;
 
-        this.element = ctx.domManager.addChild(canvasOverlay, this.moduleId);
+        if (options?.detached) {
+            this.element = createElement('div');
+        } else {
+            this.element = ctx.domManager.addChild(canvasOverlay, this.moduleId);
+        }
         this.element.setAttribute('role', 'presentation');
 
         this.destroyFns.push(() => ctx.domManager.removeChild(canvasOverlay, this.moduleId));
     }
 
+    public attachTo(popover: Popover) {
+        if (this.element.parentElement) return;
+        popover.element.append(this.element);
+    }
+
     public hide() {
+        // Ensure no side-effects in `onHide()` listeners are caused by modules eagerly hiding the popover when it is
+        // already hidden.
+        if (this.element.children.length === 0) return;
         this.hideFns.forEach((fn) => fn());
     }
 
@@ -44,6 +63,10 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
     }
 
     protected showWithChildren(children: Array<HTMLElement>, options: Options) {
+        if (!this.element.parentElement) {
+            throw new Error('Can not show popover that has not been attached to a parent.');
+        }
+
         const popover = createElement('div', 'ag-charts-popover');
         popover.setAttribute('data-pointer-capture', 'exclusive');
 
@@ -76,7 +99,7 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
 
         popover.style.setProperty('top', 'unset');
         popover.style.setProperty('bottom', 'unset');
-        popover.style.setProperty('left', `${position.x}px`);
-        popover.style.setProperty('top', `${position.y}px`);
+        popover.style.setProperty('left', `${Math.floor(position.x)}px`);
+        popover.style.setProperty('top', `${Math.floor(position.y)}px`);
     }
 }

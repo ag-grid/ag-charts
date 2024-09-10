@@ -1,20 +1,33 @@
-import { AgCharts, AgGaugeOptions } from 'ag-charts-enterprise';
+import { AgCharts, AgRadialGaugeOptions } from 'ag-charts-enterprise';
 
-const options: AgGaugeOptions = {
+const options: AgRadialGaugeOptions = {
     type: 'radial-gauge',
     container: document.getElementById('myChart'),
     value: 80,
     scale: {
         min: 0,
         max: 100,
-        fills: [{ color: '#E84118' }, { color: '#9C88FF' }, { color: '#00A8FF' }],
     },
-    sectorSpacing: 2,
+    bar: {
+        fills: [{ color: '#E84118' }, { color: '#9C88FF' }, { color: '#00A8FF' }],
+        fillMode: 'discrete',
+    },
+    segmentation: {
+        interval: {
+            count: 3,
+        },
+    },
 };
 
 const chart = AgCharts.createGauge(options);
 
-function setAppearance(appearance: 'segmented' | 'continuous') {
-    options.appearance = appearance;
+function setFillMode(fillMode: 'discrete' | 'continuous') {
+    delete options!.bar!.fill;
+    options.bar!.fillMode = fillMode;
+    chart.update(options);
+}
+
+function setSolidFill() {
+    options!.bar!.fill = '#E84118';
     chart.update(options);
 }

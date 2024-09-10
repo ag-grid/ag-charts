@@ -2,6 +2,7 @@ import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSuppo
 
 const {
     CachedTextMeasurerPool,
+    Layers,
     LayoutElement,
     Validate,
     BaseProperties,
@@ -57,7 +58,7 @@ const itemIdMap: Record<string, 'positive' | 'negative' | 'neutral' | 'altNeutra
     down: 'negative',
 };
 
-const neutralColourMap: Partial<Record<AgPriceVolumeChartType, 'neutral' | 'altNeutral'>> = {
+const neutralColorMap: Partial<Record<AgPriceVolumeChartType, 'neutral' | 'altNeutral'>> = {
     hlc: 'altNeutral',
 };
 
@@ -116,7 +117,11 @@ export class StatusBar
     data?: any[] = undefined;
 
     private readonly highlightManager: _ModuleSupport.HighlightManager;
-    private readonly labelGroup = new _Scene.TranslatableGroup({ name: 'StatusBar' });
+    private readonly labelGroup = new _Scene.TranslatableGroup({
+        name: 'StatusBar',
+        zIndex: Layers.CHART_OVERLAY_ZINDEX,
+        layer: true,
+    });
     private readonly backgroundNode = this.labelGroup.appendChild(new Rect());
     private readonly labels = [
         {
@@ -252,7 +257,7 @@ export class StatusBar
         this.labelGroup.visible = false;
 
         this.destroyFns.push(
-            ctx.scene.attachNode(this.labelGroup, 'titles'),
+            ctx.scene.attachNode(this.labelGroup),
             ctx.layoutManager.registerElement(LayoutElement.Overlay, (e) => this.startPerformLayout(e)),
             ctx.layoutManager.addListener('layout:complete', (e) => this.onLayoutComplete(e)),
             ctx.highlightManager.addListener('highlight-change', () => this.updateHighlight())
@@ -387,23 +392,26 @@ export class StatusBar
 
     private onLayoutComplete(opts: _ModuleSupport.LayoutCompleteEvent) {
         this.labelGroup.translationX = opts.series.rect.x;
+
+        this.updateHighlight();
     }
 
     private updateHighlight() {
         if (!this.enabled) return;
 
         const activeHighlight = this.highlightManager.getActiveHighlight();
+        const datum = activeHighlight?.datum ?? this.data?.at(-1);
 
-        if (activeHighlight == null) {
+        if (datum == null) {
             this.labelGroup.visible = false;
             return;
         }
 
         this.labelGroup.visible = true;
 
-        const datum = activeHighlight.datum;
+        const itemId = activeHighlight?.itemId;
 
-        let baseStyle = itemIdMap[activeHighlight.itemId];
+        let baseStyle = itemId != null ? itemIdMap[itemId] : undefined;
         if (baseStyle == null && this.openKey != null && this.closeKey != null) {
             // Fallback for series without distinct positive/negative items.
             if (datum[this.openKey] < datum[this.closeKey]) {
@@ -415,10 +423,10 @@ export class StatusBar
 
         for (const { domain, value, key, formatter, style } of this.labels) {
             if (domain == null) continue;
-            let labelStyle = style ?? baseStyle;
+            let labelStyle = style ?? baseStyle ?? 'neutral';
 
             if (labelStyle === 'neutral') {
-                labelStyle = neutralColourMap[this.getChartType()] ?? labelStyle;
+                labelStyle = neutralColorMap[this.getChartType()] ?? labelStyle;
             }
 
             const datumKey = this[key];

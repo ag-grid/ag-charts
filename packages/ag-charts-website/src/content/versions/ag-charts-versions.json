@@ -2,6 +2,7 @@
     {
         "version": "10.2.0",
         "date": "September 17th 2024",
+        "highlightSummary": "Radial Gauge Series, Financial Charts Trend Line Labels & Arrow Drawings",
         "highlights": [
             {
                 "text": "Radial Gauge",
@@ -21,6 +22,7 @@
     {
         "version": "10.1.0",
         "date": "August 8th 2024",
+        "highlightSummary": "New Financial Charts Annotations: Text, Comments, Callouts & Notes",
         "highlights": [
             {
                 "text": "Financial Chart Type Selection",

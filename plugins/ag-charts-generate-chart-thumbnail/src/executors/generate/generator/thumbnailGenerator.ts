@@ -64,6 +64,7 @@ export async function generateThumbnail({ example, theme, outputPath, dpi, mockT
             window,
             window: { document },
         } = new JSDOM(`<html><head><style></style></head><body></body></html>`);
+        window.requestAnimationFrame = (cb) => setTimeout(cb, 0);
 
         // Note - we'll need one instance per DPI setting
         const mockCtx = mockCanvas.setup({

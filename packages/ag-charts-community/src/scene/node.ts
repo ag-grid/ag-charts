@@ -306,8 +306,8 @@ export abstract class Node extends ChangeDetectable {
 
     private cachedBBox?: BBox;
 
-    getBBox(forceRecalculation = false): BBox {
-        if (this.cachedBBox == null || forceRecalculation) {
+    getBBox(): BBox {
+        if (this.cachedBBox == null) {
             this.cachedBBox = Object.freeze(this.computeBBox());
         }
 
@@ -336,13 +336,8 @@ export abstract class Node extends ChangeDetectable {
         return this._childNodeCounts;
     }
 
-    /** Perform any post-processing effects. */
-    postRender(_renderCtx: RenderContext) {}
-
     render(renderCtx: RenderContext): void {
         const { stats } = renderCtx;
-
-        this.postRender(renderCtx);
 
         this._dirty = RedrawType.NONE;
 

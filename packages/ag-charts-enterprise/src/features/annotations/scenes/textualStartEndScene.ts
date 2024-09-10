@@ -1,6 +1,6 @@
-import { type AgAnnotationHandleStyles, _Scene, _Util } from 'ag-charts-community';
+import { type AgAnnotationHandleStyles, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import { type Anchor, type AnnotationContext, type Coords, type LineCoords } from '../annotationTypes';
+import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
 import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
 import { DivariantHandle } from '../scenes/handle';
 import { LinearScene } from '../scenes/linearScene';
@@ -17,7 +17,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
     protected readonly start = new DivariantHandle();
     protected readonly end = new DivariantHandle();
 
-    protected anchor: Anchor = {
+    protected anchor: _ModuleSupport.ToolbarAnchor = {
         x: 0,
         y: 0,
         position: 'above-left',
@@ -139,7 +139,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         // Shapes should be implemented by the extending annotation type class
     }
 
-    protected updateAnchor(_datum: Datum, bbox: _Scene.BBox, context: AnnotationContext): Anchor {
+    protected updateAnchor(_datum: Datum, bbox: _Scene.BBox, context: AnnotationContext): _ModuleSupport.ToolbarAnchor {
         return {
             x: bbox.x + context.seriesRect.x,
             y: bbox.y + context.seriesRect.y - bbox.height,

@@ -1,13 +1,70 @@
 ---
 import Layout from '@layouts/Layout.astro';
+import styles from '@pages-styles/homepage.module.scss';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { FrameworkSelector } from '../components/framework-selector/FrameworkSelector';
+import { getEntry } from 'astro:content';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
-import styles from '@pages-styles/homepage.module.scss';
-import GridLogoType from '@ag-website-shared/images/inline-svgs/ag-grid-logotype.svg?react';
-import GridLogoMark from '@ag-website-shared/images/inline-svgs/ag-grid-logomark.svg?react';
-import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { AutomatedIntegratedChartsWrapper } from '@ag-website-shared/components/automated-examples/AutomatedIntegratedChartsWrapper';
+import { Faqs } from '../features/homepage/components/faqs/Faqs';
+import { parseVersion } from '@ag-website-shared/utils/parseVersion';
+import { Version, type VersionProps } from '@ag-website-shared/components/whats-new/components/Version';
+import whatsNewData from '@ag-website-shared/content/whats-new/data.json';
+const { name, blogPrefix } = whatsNewData['charts'];
+
+// Custom Example Runners || TODO: Cleanup
+import IndexGalleryExampleRunner from '@features/homepage/components/IndexGalleryExampleRunner.astro';
+import IndexDocsExampleRunner from '@features/homepage/components/IndexDocsExampleRunner.astro';
+
+// All Gallery Examples
+const galleryEntry = await getEntry('gallery', 'data');
+const { data: versionsData } = await getEntry('versions', 'ag-charts-versions');
+
+// Extract Specific Community Examples from Gallery
+const seriesExampleMap = {
+    bar: 'simple-horizontal-bar',
+    line: 'multiple-line-series',
+    area: 'simple-area',
+    scatter: 'simple-scatter',
+    bubble: 'bubble-with-negative-values',
+    pie: 'simple-pie',
+    donut: 'simple-donut',
+    combination: 'bar-line-combination',
+    map: 'multiple-map-shape-series',
+    histogram: 'simple-histogram',
+    'range-bar': 'horizontal-range-bar',
+    'range-area': 'range-area-with-labels',
+    waterfall: 'simple-waterfall',
+    'box-plot': 'simple-box-plot',
+    candlestick: 'candlestick',
+    'radar-line': 'simple-radar-line',
+    'radar-area': 'simple-radar-area',
+    nightingale: 'simple-nightingale',
+    'radial-column': 'simple-radial-column',
+    'radial-bar': 'stacked-radial-bar',
+    sunburst: 'simple-sunburst',
+    treemap: 'simple-treemap',
+    heatmap: 'simple-heatmap',
+    sankey: 'sankey',
+    chord: 'chord',
+    'radial-gauge': 'simple-radial-gauge',
+    'bullet-chart': 'simple-bullet',
+};
+
+const exampleData = galleryEntry.data.series
+    .flatMap((seriesGroup) => seriesGroup)
+    .filter((series) => series.seriesName in seriesExampleMap)
+    .map((series) => {
+        const exampleName = seriesExampleMap[series.seriesName];
+        const example = series.examples.find((ex) => ex.name === exampleName);
+        return {
+            title: example.title,
+            exampleName: example.name,
+            buttonText: series.title,
+            icon: series.icon,
+        };
+    });
 
 const frameworksData = [
     {
@@ -51,74 +108,201 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
 
 <script is:inline src={AG_GRID_CHARTS_CDN_URL}></script>
 
-<Layout>
-    <div class={styles.homepageHero}>
-        <div class:list={[styles.heroInner, 'layout-max-width-small']}>
-            <div class={styles.heroHeadings}>
-                <h1>The Best JavaScript Charts in the World</h1>
-                <h2>The professional choice for developers building enterprise applications</h2>
-                <a href={urlWithBaseUrl('/gallery')} class="button-secondary"
-                    >See the charts <Icon name="chevronRight" /></a
-                >
-            </div>
-
-            <div class={styles.galleryScroller}></div>
-        </div>
-    </div>
-
-    <div class={styles.homepageFrameworks}>
-        <div class:list={[styles.frameworksInner, 'layout-max-width-small']}>
-            <span class:list={[styles.frameworksLabel, 'text-secondary']}>Get&nbsp;started</span>
-            <FrameworkSelector data={frameworksData} isFullWidth />
-        </div>
-    </div>
-
-    <div class={styles.homepageBenefits}>
-        <div class:list={[styles.benefitsInner, 'layout-max-width-small']}>
-            <video
-                class={styles.videoLight}
-                src={urlWithBaseUrl('/videos/chart-features-light.mp4')}
-                muted
-                autoplay
-                loop></video>
-            <video class={styles.videoDark} src={urlWithBaseUrl('videos/chart-features-dark.mp4')} muted autoplay loop
-            ></video>
-            <div class={styles.benefitsCopy}>
-                <h2>Data Visualisation, made easy</h2>
-                <p class="text-lg">
-                    Create interactive, animated, high-performance charts & graphs with <b>AG Charts</b> JavaScript
-                    Charting library, from the makers of <a href="https://ag-grid.com/">AG Grid</a>.
-                </p>
-
-                <p class="text-lg">
-                    Built for <a href="/javascript/quick-start/">JavaScript</a>, <a href="/react/quick-start">React</a>,
-
-
-                    <a href="/angular/quick-start">Angular</a> & <a href="/vue/quick-start/">Vue</a> with support for
-                    over 20 chart types, including <a href="/javascript/pie-series/">Pie</a>, <a
-                        href="/javascript/bar-series/">Stacked Bar</a
-                    >, <a href="/javascript/donut-series/">Donut</a>, <a href="/javascript/waterfall-series/"
-                        >Waterfall</a
-                    > and more.
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <div class={styles.homepageGrid}>
-        <AutomatedIntegratedChartsWrapper client:visible>
-            <div class={styles.gridCopy}>
-                <div class={styles.agGridLogo}>
-                    <GridLogoType />
-                    <GridLogoMark />
+<Layout
+    title="JavaScript Charts | High-Performance & Feature-Rich Charting Library - AG Charts"
+    description="Create beautiful, high-performance JavaScript charts quickly with AG Charts. Free forever; upgrade to enterprise for advanced features and dedicated support."
+>
+    <div class:list={[styles.container]}>
+        <div class={styles.homepageHero}>
+            <div class:list={[styles.heroInner, 'layout-max-width-small']}>
+                <div class={styles.heroHeadings}>
+                    <h1>The Best JavaScript Charts in the World</h1>
+                    <h2>The professional choice for developers building enterprise applications</h2>
+                    <a
+                        href={urlWithBaseUrl(
+                            '/gallery?utm_source=charts-homepage&utm_medium=hero-section&utm_campaign=homepage-cta'
+                        )}
+                        class="button-secondary">See the charts <Icon name="chevronRight" /></a
+                    >
                 </div>
-                <p class="text-lg">
-                    See how <a href="https://ag-grid.com/"><b>AG Grid</b></a> uses <b>AG Charts</b> to provide a
-                    seamless
-                    <a href="https://ag-grid.com/javascript-data-grid/integrated-charts/">Integrated Charting</a>
-                     experience from within the grid.
-                </p>
+
+                <div class={styles.galleryScroller}></div>
             </div>
-        </AutomatedIntegratedChartsWrapper>
+        </div>
+
+        <div class={styles.homepageFrameworks}>
+            <div class:list={[styles.frameworksInner, 'layout-max-width-small']}>
+                <span class:list={[styles.frameworksLabel, 'text-secondary']}>Get&nbsp;started</span>
+                <FrameworkSelector data={frameworksData} isFullWidth />
+            </div>
+        </div>
+
+        <div class={styles.section}>
+            <div class:list={[styles.communityFeaturesSectionInner, 'layout-max-width-small']}>
+                <div class={styles.sectionHeaderContainer}>
+                    <h2>AG Charts JavaScript Charting Library</h2>
+                    <h3>JavaScript Charts Designed for Every Use Case</h3>
+                    <h4>
+                        Discover a comprehensive range of high-quality and flexible JavaScript Charts designed for quick
+                        & easy integration into your JavaScript, React, Angular or Vue applications.
+                    </h4>
+                </div>
+                <IndexGalleryExampleRunner examples={exampleData} pageName={'bar'} />
+                <div class={styles.ctaButton}>
+                    <a
+                        href={urlWithBaseUrl(
+                            '/react/quick-start/?utm_source=charts-homepage&utm_medium=features-section&utm_campaign=homepage-cta'
+                        )}
+                        class="button">Get Started For Free</a
+                    >
+                </div>
+            </div>
+        </div>
+        <div class={styles.section}>
+            <div class:list={[styles.financialChartsSectionInner, 'layout-max-width-small']}>
+                <div class={styles.sectionHeaderContainer}>
+                    <h2>JavaScript Financial Charts - Create Trading Views in Minutes</h2>
+                    <h3>Interactive Financial Charts for Trading and Analysis</h3>
+                    <h4>
+                        Build interactive financial charts featuring advanced annotations with minimal configuration -
+                        just provide your data. Use the toolbar in the example below to add annotations, change the
+                        Series type, and interact with the data in real-time.
+                    </h4>
+                </div>
+                <br />
+                <div>
+                    <IndexDocsExampleRunner
+                        options={{ exampleHeight: 700 }}
+                        name={'../../vanilla/financial-charts/examples/financial-charts-showcase'}
+                    />
+                </div>
+                <div class={styles.ctaButton}>
+                    <a
+                        href={urlWithBaseUrl(
+                            '/react/financial-charts/?utm_source=charts-homepage&utm_medium=financial-charts-section&utm_campaign=homepage-cta'
+                        )}
+                        class="button">View Financial Charts Features</a
+                    >
+                </div>
+            </div>
+        </div>
+        <div class={styles.section}>
+            <div class:list={[styles.financialChartsSectionInner, 'layout-max-width-small']}>
+                <div class={styles.sectionHeaderContainer}>
+                    <h2>JavaScript Map Charts - Easily Visualise Geographical Data</h2>
+                    <h3>Customizable JavaScript Map Charts for Geographical Data Visualisation</h3>
+                    <h4>
+                        Visualise Geographical Areas, Overlay Routes & Connections, Add Markers & Points Of Interest
+                    </h4>
+                </div>
+                <div class={styles.cardContainer}>
+                    <div class={styles.card}>
+                        <h4>Geographic Areas</h4>
+                        <p>
+                            Visualise data representing geographic areas such as countries, using colours to denote
+                            distinct series or the magnitude of the values.
+                        </p>
+                        <IndexDocsExampleRunner name={'../../vanilla/map-shapes/examples/multiple-series/'} />
+                    </div>
+                    <div class={styles.card}>
+                        <h4>Routes & Connections</h4>
+                        <p>
+                            Draw geographic lines, such as roads or flight paths, with the ability to vary width and
+                            colour to represent data values.
+                        </p>
+                        <IndexDocsExampleRunner name={'../../vanilla/map-lines/examples/map-shapes-lines/'} />
+                    </div>
+                    <div class={styles.card}>
+                        <h4>Makers & POIs</h4>
+                        <p>
+                            Add markers data for geographic points, with the ability to vary the size to represent data
+                            values.
+                        </p>
+                        <IndexDocsExampleRunner name={'../../vanilla/map-markers/examples/marker-size/'} />
+                    </div>
+                </div>
+                <div class={styles.ctaButton}>
+                    <a
+                        href={urlWithBaseUrl(
+                            '/react/maps/?utm_source=charts-homepage&utm_medium=maps-section&utm_campaign=homepage-cta'
+                        )}
+                        class="button">View Map Charts Features</a
+                    >
+                </div>
+            </div>
+        </div>
+        <div class={styles.section}>
+            <div class:list={[styles.benchmarkSectionInner, 'layout-max-width-small']}>
+                <div class={styles.sectionHeaderContainer}>
+                    <h2>AG Grid Integrated JavaScript Charts</h2>
+                    <h3>AG Grid Integrated Charts, powered by AG Charts</h3>
+                    <h4>
+                        AG Charts is powers the <a href="https://www.ag-grid.com/react-data-grid/integrated-charts/"
+                            >Integrated Charts</a
+                        > feature in <a href="https://www.ag-grid.com/">AG Grid</a> - our market leading data grid
+                        library which is used by 90% of the Fortune 500. Purchase an <a
+                            href="https://www.ag-grid.com/license-pricing">Enterprise Bundle License</a
+                        > to access all of the Enterprise features in both AG Grid and AG Charts.
+                    </h4>
+                </div>
+                <AutomatedIntegratedChartsWrapper client:visible />
+            </div>
+        </div>
+        <div class={styles.section}>
+            <div class:list={[styles.latestNewsSectionInner, 'layout-max-width-small']}>
+                <div class={styles.sectionHeaderContainer}>
+                    <h2>Latest JavaScript Charting Releases from AG Charts</h2>
+                    <h3>Regular Releases, Updates, and Enhancements</h3>
+                    <h4>
+                        Browse the latest updates to AG Charts JavaScript Charting Library, including new features,
+                        series types, functionality and more.
+                    </h4>
+                </div>
+                <div class={styles.latestNewsVersions}>
+                    {
+                        versionsData
+                            .filter((versionInfo) => versionInfo.version.endsWith('.0')) // Exclude patch releases
+                            .slice(0, 3)
+                            .map((versionInfo, index) => {
+                                if (versionInfo.highlights) {
+                                    const { major, minor } = parseVersion(versionInfo.version);
+                                    const blogUrl = `${minor ? `${blogPrefix}${major}-${minor}` : `${blogPrefix}${major}`}/`;
+                                    return (
+                                        <Version
+                                            client:load
+                                            isLatest={index === 0}
+                                            blogUrl={blogUrl}
+                                            version={versionInfo.version}
+                                            date={versionInfo.date}
+                                            highlights={versionInfo.highlights}
+                                            notesPath={versionInfo.notesPath}
+                                        />
+                                    );
+                                }
+                            })
+                    }
+                </div>
+                <div class={styles.ctaButton}>
+                    <a
+                        href={urlWithBaseUrl(
+                            '/whats-new/?utm_source=charts-homepage&utm_medium=whats-new-section&utm_campaign=homepage-cta'
+                        )}
+                        class="button">See Whats New</a
+                    >
+                </div>
+            </div>
+        </div>
+        <div class={styles.section}>
+            <div class:list={[styles.faqSectionInner, 'layout-max-width-small']}>
+                <div class={styles.sectionHeaderContainer}>
+                    <h2>JavaScript Charts Frequently Asked Questions</h2>
+                    <h3>FAQs</h3>
+                    <h4>Answers to common questions about AG Charts, and JavaScript Charting in general.</h4>
+                </div>
+                <div>
+                    <Faqs client:load />
+                </div>
+            </div>
+        </div>
     </div>
 </Layout>

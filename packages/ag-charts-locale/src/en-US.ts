@@ -1,8 +1,4 @@
 export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
-    // Screen reader announcement when the focused item becomes visible
-    ariaAnnounceVisible: 'visible',
-    // Screen reader announcement when the focused item becomes hidden
-    ariaAnnounceHidden: 'hidden',
     // Screen reader announcement when focusing an item in the chart
     ariaAnnounceHoverDatum: '${datum}',
     // Screen reader announcement when focusing a chart
@@ -17,8 +13,12 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaAnnounceFlowProportionLink: 'link ${index} of ${count}, from ${from} to ${to}, ${sizeName} ${size}',
     // Screen reader announcement when focusing a node in a Sankey or chord chart
     ariaAnnounceFlowProportionNode: 'node ${index} of ${count}, ${description}',
+    // Screen reader description for legend items
+    ariaDescriptionLegendItem: 'Press Space or Enter to toggle visibility',
     // Screen reader text for annotation-options toolbar
     ariaLabelAnnotationOptionsToolbar: 'Annotation Options',
+    // Screen reader text for annotation-settings dialog
+    ariaLabelAnnotationSettingsDialog: 'Annotation Settings',
     // Screen reader text for the color picker dialog
     ariaLabelColorPicker: 'Color picker',
     // Screen reader text for the financial charts toolbar
@@ -32,7 +32,7 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     // Screen reader text for the next legend page button
     ariaLabelLegendPageNext: 'Next Legend Page',
     // Screen reader text for the an item in the legend
-    ariaLabelLegendItem: '${label}, Legend item ${index}[number] of ${count}[number], ',
+    ariaLabelLegendItem: '${label}, Legend item ${index}[number] of ${count}[number]',
     // Screen reader text for the an unknown item in the legend
     ariaLabelLegendItemUnknown: 'Unknown legend item',
     // Screen reader text for the navigator element
@@ -49,6 +49,24 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaLabelZoomToolbar: 'Zoom',
     // Screen reader text for the value of the navigator's range
     ariaValuePanRange: '${min}[percent] to ${max}[percent]',
+    // Alt-text for the solid line dash style menu item icon
+    iconAltTextLineStyleSolid: 'Solid',
+    // Alt-text for the long-dashed line dash style menu item icon
+    iconAltTextLineStyleDashed: 'Long-dashed',
+    // Alt-text for the short-dashed line dash style menu item icon
+    iconAltTextLineStyleDotted: 'Short-dashed',
+    // Alt-text for the 'position-top' icon
+    iconAltTextPositionTop: 'Top',
+    // Alt-text for the 'position-center' icon
+    iconAltTextPositionCenter: 'Center',
+    // Alt-text for the 'position-bottom' icon
+    iconAltTextPositionBottom: 'Bottom',
+    // Alt-text for the 'position-left' icon
+    iconAltTextAlignLeft: 'Left',
+    // Alt-text for the 'position-center' icon
+    iconAltTextAlignCenter: 'Center',
+    // Alt-text for the 'position-right' icon
+    iconAltTextAlignRight: 'Right',
     // Default text for the 'loading data' overlay
     overlayLoadingData: 'Loading data...',
     // Default text for the 'no data' overlay
@@ -94,18 +112,24 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarAnnotationsFillColor: 'Fill Color',
     // Text for the annotation toolbar's line color picker annotation button
     toolbarAnnotationsLineColor: 'Line Color',
+    // Text for the annotation toolbar's line style type button
+    toolbarAnnotationsLineStyle: 'Line Style',
+    // Text for the annotation toolbar's line stroke width button
+    toolbarAnnotationsLineStrokeWidth: 'Line Stroke Width',
+    // Text for the annotation toolbar's settings annotation button
+    toolbarAnnotationsSettings: 'Settings',
     // Text for the annotation toolbar's text color picker annotation button
     toolbarAnnotationsTextColor: 'Text Color',
     // Text for the annotation toolbar's text size picker annotation button
     toolbarAnnotationsTextSize: 'Text Size',
-    // Text for the annotation toolbar's text options annotation button
-    toolbarAnnotationsTextOptions: 'Text Options',
     // Text for the annotation toolbar's lock annotation button
     toolbarAnnotationsLock: 'Lock',
     // Text for the annotation toolbar's unlock annotation button
     toolbarAnnotationsUnlock: 'Unlock',
     // Text for the annotation toolbar's delete annotation button
     toolbarAnnotationsDelete: 'Delete',
+    // Text for the annotation toolbar's drag handle
+    toolbarAnnotationsDragHandle: 'Drag Toolbar',
     // Text for the annotation toolbar's line drawings menu button
     toolbarAnnotationsLineAnnotations: 'Trend Lines',
     // Text for the annotation toolbar's text annotations menu button
@@ -122,10 +146,10 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarAnnotationsText: 'Text',
     // Text for the annotation toolbar's arrow button
     toolbarAnnotationsArrow: 'Arrow',
-    // Text for the annotation toolbar's arrow mark up button
-    toolbarAnnotationsArrowUp: 'Arrow Mark Up',
-    // Text for the annotation toolbar's arrow mark down button
-    toolbarAnnotationsArrowDown: 'Arrow Mark Down',
+    // Text for the annotation toolbar's arrow up button
+    toolbarAnnotationsArrowUp: 'Arrow Up',
+    // Text for the annotation toolbar's arrow down button
+    toolbarAnnotationsArrowDown: 'Arrow Down',
     // Text for the range toolbar's 1 month button
     toolbarRange1Month: '1M',
     // Aria label for the range toolbar's 1 month button
@@ -174,4 +198,28 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     contextMenuZoomToCursor: 'Zoom to here',
     // Text for the context menu's pan to point button
     contextMenuPanToCursor: 'Pan to here',
+    // Text for the annotation dialog's header channel tab label
+    dialogHeaderChannel: 'Channel',
+    // Text for the annotation dialog's header line tab label
+    dialogHeaderLine: 'Line',
+    // Text for the annotation dialog's header text tab label
+    dialogHeaderText: 'Text',
+    // Text for the annotation dialog's text alignment radio label
+    dialogInputAlign: 'Align',
+    // Text for the annotation dialog's color picker label
+    dialogInputColorPicker: 'Color',
+    // Text for the annotation dialog's color picker alt text
+    dialogInputColorPickerAltText: 'Text Color',
+    // Text for the annotation dialog's font size select box label
+    dialogInputFontSize: 'Size',
+    // Text for the annotation dialog's font size select box alt text
+    dialogInputFontSizeAltText: 'Font Size',
+    // Text for the annotation dialog's line style radio label
+    dialogInputLineStyle: 'Dash',
+    // Text for the annotation dialog's text position radio label
+    dialogInputPosition: 'Position',
+    // Text for the annotation dialog's stroke width label
+    dialogInputStrokeWidth: 'Weight',
+    // Text for the annotation dialog's textarea placeholder
+    dialogInputTextareaPlaceholder: 'Add Text',
 };

@@ -1,6 +1,12 @@
 import { convertTemplate, getImport } from './angular-utils';
 import { wrapOptionsUpdateCode } from './chart-utils';
-import { ChartAPI, addBindingImports, chartApi, convertFunctionToProperty, isInstanceMethod } from './parser-utils';
+import {
+    type ChartAPI,
+    addBindingImports,
+    chartApi,
+    convertFunctionToProperty,
+    isInstanceMethod,
+} from './parser-utils';
 import { toKebabCase, toTitleCase } from './string-utils';
 
 const components: Record<ChartAPI, string> = {

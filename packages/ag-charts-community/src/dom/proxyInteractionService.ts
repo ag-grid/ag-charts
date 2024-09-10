@@ -8,6 +8,8 @@ import { BoundedText } from './boundedText';
 import type { DOMElementClass, DOMManager } from './domManager';
 import type { FocusIndicator } from './focusIndicator';
 
+export type ListSwitch = { button: HTMLButtonElement; listitem: HTMLElement };
+
 type UpdateServiceLike = {
     addListener(type: 'update-complete', handler: () => unknown): () => void;
 };
@@ -39,6 +41,7 @@ type ContainerParams<T extends ProxyContainerType> = {
 };
 
 type ProxyMeta = {
+    // Elements
     button: {
         params: InteractParams<'button'> & { readonly textContent: string | TranslationKey };
         result: HTMLButtonElement;
@@ -51,6 +54,16 @@ type ProxyMeta = {
         params: ElemParams<'text'>;
         result: BoundedText;
     };
+    listswitch: {
+        params: InteractParams<'listswitch'> & {
+            readonly textContent: string;
+            readonly ariaChecked: boolean;
+            readonly ariaDescribedBy: string;
+        };
+        result: ListSwitch;
+    };
+
+    // Containers
     toolbar: {
         params: ContainerParams<'toolbar'>;
         result: HTMLDivElement;
@@ -59,10 +72,14 @@ type ProxyMeta = {
         params: ContainerParams<'group'>;
         result: HTMLDivElement;
     };
+    list: {
+        params: Omit<ContainerParams<'list'>, 'ariaOrientation'>;
+        result: HTMLDivElement;
+    };
 };
 
-type ProxyElementType = 'button' | 'slider' | 'text';
-type ProxyContainerType = 'toolbar' | 'group';
+type ProxyElementType = 'button' | 'slider' | 'text' | 'listswitch';
+type ProxyContainerType = 'toolbar' | 'group' | 'list';
 
 function checkType<T extends keyof ProxyMeta>(type: T, meta: ProxyMeta[keyof ProxyMeta]): meta is ProxyMeta[T] {
     return meta.params?.type === type;
@@ -73,10 +90,12 @@ function allocateResult<T extends keyof ProxyMeta>(type: T): ProxyMeta[T]['resul
         return createElement('button');
     } else if ('slider' === type) {
         return createElement('input');
-    } else if ('toolbar' === type || 'group' === type) {
+    } else if (['toolbar', 'group', 'list'].includes(type)) {
         return createElement('div');
     } else if ('text' === type) {
         return new BoundedText();
+    } else if ('listswitch' === type) {
+        return { button: createElement('button'), listitem: createElement('div') };
     } else {
         throw Error('AG Charts - error allocating meta');
     }
@@ -129,7 +148,9 @@ export class ProxyInteractionService {
         div.classList.add(...params.classList);
         div.style.pointerEvents = 'none';
         div.role = params.type;
-        div.ariaOrientation = params.ariaOrientation;
+        if ('ariaOrientation' in params) {
+            div.ariaOrientation = params.ariaOrientation;
+        }
 
         if (typeof params.ariaHidden === 'boolean') {
             div.ariaHidden = params.ariaHidden.toString();
@@ -157,6 +178,7 @@ export class ProxyInteractionService {
                     button.textContent = this.localeManager.t(textContent.id, textContent.params);
                 });
             }
+            this.setParent(params, button);
         }
 
         if (checkType('slider', meta)) {
@@ -170,29 +192,44 @@ export class ProxyInteractionService {
             this.addLocalisation(() => {
                 slider.ariaLabel = this.localeManager.t(params.ariaLabel.id, params.ariaLabel.params);
             });
+            this.setParent(params, slider);
         }
 
         if (checkType('text', meta)) {
             const { params, result: text } = meta;
             this.initElement(params, text.getContainer());
+            this.setParent(params, text.getContainer());
+        }
+
+        if (checkType('listswitch', meta)) {
+            const {
+                params,
+                result: { button, listitem },
+            } = meta;
+            this.initInteract(params, button);
+            button.style.width = '100%';
+            button.style.height = '100%';
+            button.textContent = params.textContent;
+            button.role = 'switch';
+            button.ariaChecked = params.ariaChecked.toString();
+            button.setAttribute('aria-describedby', params.ariaDescribedBy);
+
+            listitem.role = 'listitem';
+            listitem.style.position = 'absolute';
+            listitem.replaceChildren(button);
+            this.setParent(params, listitem);
         }
 
         return meta.result;
     }
 
     private initElement<T extends ProxyElementType, TElem extends HTMLElement>(params: ElemParams<T>, element: TElem) {
-        const { id, parent } = params;
+        const { id } = params;
         element.id = id;
         element.style.pointerEvents = 'none';
         element.style.opacity = this.debugShowDOMProxies ? '0.25' : '0';
         element.style.position = 'absolute';
         element.style.overflow = 'hidden';
-
-        if (typeof parent === 'string') {
-            this.domManager.addChild(parent, id, element);
-        } else {
-            parent.appendChild(element);
-        }
     }
 
     private initInteract<T extends ProxyElementType, TElem extends HTMLElement>(
@@ -227,6 +264,15 @@ export class ProxyInteractionService {
         }
         if (onchange) {
             element.addEventListener('change', onchange);
+        }
+    }
+
+    private setParent<T extends ProxyElementType, TElem extends HTMLElement>(params: ElemParams<T>, element: TElem) {
+        const { id, parent } = params;
+        if (typeof parent === 'string') {
+            this.domManager.addChild(parent, id, element);
+        } else {
+            parent.appendChild(element);
         }
     }
 }

@@ -1004,7 +1004,10 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 break;
         }
 
-        const fractionDigits = rawTicks.reduce((max, tick) => Math.max(max, countFractionDigits(tick)), 0);
+        const fractionDigits = rawTicks.reduce(
+            (max, tick) => Math.max(max, typeof tick === 'number' ? countFractionDigits(tick) : 0),
+            0
+        );
         const halfBandwidth = (scale.bandwidth ?? 0) / 2;
         const ticks: TickDatum[] = [];
 

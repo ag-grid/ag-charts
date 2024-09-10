@@ -7,15 +7,22 @@ const firstOptions: AgGaugeOptions = {
     value: 90,
     startAngle: 180 + 45,
     endAngle: 360 + 180 - 45,
-    appearance: 'segmented',
-    sectorSpacing: 2,
     scale: {
         min: 0,
         max: 120,
-        label: {
+        interval: {
             step: 10,
         },
-        fills: [{ color: '#4cd137' }, { color: '#fbc531', stop: 65 }, { color: '#e84118', stop: 75 }],
+    },
+    segmentation: {
+        interval: {
+            values: [65, 75],
+        },
+        spacing: 2,
+    },
+    bar: {
+        fills: [{ color: '#4cd137', stop: 65 }, { color: '#fbc531', stop: 75 }, { color: '#e84118' }],
+        fillMode: 'discrete',
     },
     secondaryLabel: {
         text: 'mph',
@@ -28,16 +35,14 @@ const firstOptions: AgGaugeOptions = {
             spacing: 5,
             fill: '#8884',
             text: 'LIMIT',
+            label: {
+                color: '#8888',
+                fontSize: 8,
+                fontWeight: 'bold',
+                spacing: 2,
+            },
         },
     ],
-    target: {
-        label: {
-            color: '#8888',
-            fontSize: 8,
-            fontWeight: 'bold',
-            spacing: 2,
-        },
-    },
 };
 
 AgCharts.createGauge(firstOptions);
@@ -49,12 +54,17 @@ const secondOptions: AgGaugeOptions = {
     value: 6.5,
     startAngle: 180 + 45,
     endAngle: 360 + 180 - 45,
-    appearance: 'segmented',
-    sectorSpacing: 2,
+    segmentation: {
+        interval: {
+            step: 1,
+        },
+        spacing: 2,
+    },
     scale: {
         min: 0,
         max: 8,
-        fills: [{ color: '#7f8fa6' }, { color: '#e84118', stop: 6 }],
+        fills: [{ color: '#7f8fa6', stop: 6.25 }, { color: '#e84118' }],
+        fillMode: 'discrete',
     },
     bar: {
         enabled: false,
@@ -73,18 +83,23 @@ const thirdOptions: AgGaugeOptions = {
     value: 75,
     startAngle: 180 + 45,
     endAngle: 360 + 180 - 45,
-    appearance: 'segmented',
-    sectorSpacing: 2,
+    segmentation: {
+        interval: {
+            values: [50, 60, 70, 80],
+        },
+        spacing: 2,
+    },
     scale: {
         min: 0,
         max: 100,
         fills: [
+            { color: '#e84118', stop: 50 },
+            { color: '#fbc531', stop: 60 },
+            { color: '#4cd137', stop: 70 },
+            { color: '#fbc531', stop: 80 },
             { color: '#e84118' },
-            { color: '#fbc531', stop: 50 },
-            { color: '#4cd137', stop: 60 },
-            { color: '#fbc531', stop: 70 },
-            { color: '#e84118', stop: 80 },
         ],
+        fillMode: 'discrete',
     },
     bar: {
         enabled: false,
@@ -103,13 +118,14 @@ const fourthOptions: AgGaugeOptions = {
     value: 15,
     startAngle: 180 + 45,
     endAngle: 360 + 180 - 45,
-    appearance: 'continuous',
     scale: {
         min: 0,
         max: 50,
-        label: {
+        interval: {
             step: 5,
         },
+    },
+    bar: {
         fills: [{ color: '#e84118' }, { color: '#fbc531' }, { color: '#4cd137' }],
     },
     secondaryLabel: {

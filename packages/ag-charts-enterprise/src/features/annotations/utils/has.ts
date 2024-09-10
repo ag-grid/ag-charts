@@ -26,6 +26,10 @@ export function hasLineColor(datum?: AnnotationProperties) {
     return isLineType(datum) || isChannelType(datum) || CalloutProperties.is(datum) || NoteProperties.is(datum);
 }
 
+export function hasIconColor(datum?: AnnotationProperties) {
+    return NoteProperties.is(datum);
+}
+
 export function hasFillColor(datum?: AnnotationProperties) {
     return (
         isChannelType(datum) ||
