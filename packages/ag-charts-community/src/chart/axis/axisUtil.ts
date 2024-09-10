@@ -46,10 +46,11 @@ const fullCircle = Math.PI * 2;
 const halfCircle = fullCircle / 2;
 function normaliseEndRotation(start: number, end: number) {
     const directDistance = Math.abs(end - start);
-
-    if (directDistance < halfCircle) return end;
-
-    if (start > end) return end + fullCircle;
+    if (directDistance < halfCircle) {
+        return end;
+    } else if (start > end) {
+        return end + fullCircle;
+    }
     return end - fullCircle;
 }
 
