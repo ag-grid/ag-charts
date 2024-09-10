@@ -1,6 +1,5 @@
 import type { DistantObject } from '../../util//nearest';
 import { ExtendedPath2D } from '../extendedPath2D';
-import type { Matrix } from '../matrix';
 import type { RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
 import { Shape } from './shape';
@@ -80,12 +79,12 @@ export class Path extends Shape implements DistantObject {
         return this.distanceSquaredTransformedPoint(x, y);
     }
 
-    computeSVGDataPath(matrix: Matrix): string {
+    computeSVGDataPath(transform: (x: number, y: number) => { x: number; y: number }): string {
         if (this.dirtyPath) {
             this.updatePath();
             this.dirtyPath = false;
         }
-        return this.path.computeSVGDataPath(matrix);
+        return this.path.computeSVGDataPath(transform);
     }
 
     protected distanceSquaredTransformedPoint(x: number, y: number): number {

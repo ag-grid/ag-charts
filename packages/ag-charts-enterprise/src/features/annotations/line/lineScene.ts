@@ -47,22 +47,19 @@ export class LineScene extends LinearScene<LineTypeProperties> {
         this.visible = datum.visible ?? true;
         if (!this.visible) return;
 
-        this.updateLine(datum, coords);
+        this.updateLine(datum, coords, context);
         this.updateHandles(datum, coords, locked);
         this.updateText(datum, coords);
         this.updateCaps(datum, coords);
     }
 
-    updateLine(datum: LineTypeProperties, coords: LineCoords) {
+    updateLine(datum: LineTypeProperties, coords: LineCoords, context: AnnotationContext) {
         const { line } = this;
         const { lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
-        const { x1, y1, x2, y2 } = coords;
+        const linePoints = this.extendLine(coords, datum, context);
 
         line.setProperties({
-            x1,
-            y1,
-            x2,
-            y2,
+            ...linePoints,
             lineDash: datum.getLineDash(),
             lineDashOffset,
             stroke,

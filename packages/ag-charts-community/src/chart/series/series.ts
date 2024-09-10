@@ -9,7 +9,6 @@ import type {
 import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
 import type { SeriesOptionInstance, SeriesOptionModule, SeriesType } from '../../module/optionsModuleTypes';
-import type { ScaleType } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
 import type { ZIndexSubOrder } from '../../scene/layersManager';
@@ -22,21 +21,15 @@ import { jsonDiff } from '../../util/json';
 import { Listeners } from '../../util/listeners';
 import { LRUCache } from '../../util/lruCache';
 import { type DistantObject, nearestSquared } from '../../util/nearest';
-import { clamp } from '../../util/number';
 import { mergeDefaults } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
 import { Observable } from '../../util/observable';
 import { ActionOnSet } from '../../util/proxy';
-import { isFiniteNumber } from '../../util/type-guards';
-import { isContinuous } from '../../util/value';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartMode } from '../chartMode';
-import { accumulatedValue, range, trailingAccumulatedValue } from '../data/aggregateFunctions';
 import type { DataController } from '../data/dataController';
-import type { DatumPropertyDefinition } from '../data/dataModel';
-import { accumulateGroup, accumulateStack } from '../data/processors';
 import { Layers } from '../layers';
 import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
 import type { Marker } from '../marker/marker';
@@ -85,122 +78,6 @@ export type PickFocusOutputs = {
 };
 
 export type PickResult = { pickMode: SeriesNodePickMode; match: SeriesNodeDatum; distance: number };
-
-export function basicContinuousCheckDatumValidation(value: any) {
-    return value != null && isContinuous(value);
-}
-
-function basicDiscreteCheckDatumValidation(value: any) {
-    return value != null;
-}
-
-function getValidationFn(scaleType?: ScaleType) {
-    switch (scaleType) {
-        case 'number':
-        case 'log':
-        case 'ordinal-time':
-        case 'time':
-        case 'color':
-            return basicContinuousCheckDatumValidation;
-        default:
-            return basicDiscreteCheckDatumValidation;
-    }
-}
-
-function getValueType(scaleType?: ScaleType) {
-    switch (scaleType) {
-        case 'number':
-        case 'log':
-        case 'time':
-        case 'color':
-            return 'range';
-        default:
-            return 'category';
-    }
-}
-export function keyProperty<K>(propName: K, scaleType?: ScaleType, opts: Partial<DatumPropertyDefinition<K>> = {}) {
-    const result: DatumPropertyDefinition<K> = {
-        property: propName,
-        type: 'key',
-        valueType: getValueType(scaleType),
-        validation: getValidationFn(scaleType),
-        ...opts,
-    };
-    return result;
-}
-
-export function valueProperty<K>(propName: K, scaleType?: ScaleType, opts: Partial<DatumPropertyDefinition<K>> = {}) {
-    const result: DatumPropertyDefinition<K> = {
-        property: propName,
-        type: 'value',
-        valueType: getValueType(scaleType),
-        validation: getValidationFn(scaleType),
-        ...opts,
-    };
-    return result;
-}
-
-export function rangedValueProperty<K>(
-    propName: K,
-    opts: Partial<DatumPropertyDefinition<K>> & { min?: number; max?: number } = {}
-): DatumPropertyDefinition<K> {
-    const { min = -Infinity, max = Infinity, ...defOpts } = opts;
-    return {
-        type: 'value',
-        property: propName,
-        valueType: 'range',
-        validation: basicContinuousCheckDatumValidation,
-        processor: () => (datum) => (isFiniteNumber(datum) ? clamp(min, datum, max) : datum),
-        ...defOpts,
-    };
-}
-
-export function accumulativeValueProperty<K>(
-    propName: K,
-    scaleType?: ScaleType,
-    opts: Partial<DatumPropertyDefinition<K>> & { onlyPositive?: boolean } = {}
-) {
-    const { onlyPositive, ...defOpts } = opts;
-    const result: DatumPropertyDefinition<K> = {
-        ...valueProperty(propName, scaleType, defOpts),
-        processor: accumulatedValue(onlyPositive),
-    };
-    return result;
-}
-
-export function trailingAccumulatedValueProperty<K>(
-    propName: K,
-    scaleType?: ScaleType,
-    opts: Partial<DatumPropertyDefinition<K>> = {}
-) {
-    const result: DatumPropertyDefinition<K> = {
-        ...valueProperty(propName, scaleType, opts),
-        processor: trailingAccumulatedValue(),
-    };
-    return result;
-}
-
-export function groupAccumulativeValueProperty<K>(
-    propName: K,
-    mode: 'normal' | 'trailing' | 'window' | 'window-trailing',
-    sum: 'current' | 'last' = 'current',
-    opts: Partial<DatumPropertyDefinition<K>> & { rangeId?: string; groupId: string },
-    scaleType?: ScaleType
-) {
-    return [
-        valueProperty(propName, scaleType, opts),
-        accumulateGroup(opts.groupId, mode, sum, opts.separateNegative),
-        ...(opts.rangeId != null ? [range(opts.rangeId, opts.groupId)] : []),
-    ];
-}
-
-export function groupStackValueProperty<K>(
-    propName: K,
-    scaleType: ScaleType | undefined,
-    opts: Partial<DatumPropertyDefinition<K>> & { rangeId?: string; groupId: string }
-) {
-    return [valueProperty(propName, scaleType, opts), accumulateStack(opts.groupId)];
-}
 
 export type SeriesNodeEventTypes = 'nodeClick' | 'nodeDoubleClick' | 'nodeContextMenuAction' | 'groupingChanged';
 
@@ -827,7 +704,7 @@ export abstract class Series<
             markerNode.updatePath();
             markerNode.checkPathDirty();
 
-            // AG-1275 Calculate the marker size to ensure that the focus indicator is correct.
+            // AG-12745 Calculate the marker size to ensure that the focus indicator is correct.
             const bb = markerNode.getBBox();
             if (point !== undefined && bb.isFinite()) {
                 const center = bb.computeCenter();

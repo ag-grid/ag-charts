@@ -1,5 +1,4 @@
 import { clamp } from '../../util/number';
-import type { BBox } from '../bbox';
 import type { DropShadow } from '../dropShadow';
 import { Gradient } from '../gradient/gradient';
 import { LinearGradient } from '../gradient/linearGradient';
@@ -167,13 +166,9 @@ export abstract class Shape extends Node {
         path ? ctx.fill(path) : ctx.fill();
     }
 
-    protected gradientBBox(): BBox {
-        return this.getBBox()!;
-    }
-
     protected applyFill(ctx: CanvasContext) {
         ctx.fillStyle =
-            this.gradient?.createGradient(ctx as any, this.gradientBBox()) ??
+            this.gradient?.createGradient(ctx as any, this.getBBox()) ??
             (typeof this.fill === 'string' ? this.fill : undefined) ??
             'black';
     }

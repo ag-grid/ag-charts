@@ -19,18 +19,20 @@ import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import type { DataModelOptions, DatumPropertyDefinition } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
-import { animationValidation, createDatumId, diff, normaliseGroupTo } from '../../data/processors';
+import {
+    animationValidation,
+    createDatumId,
+    diff,
+    groupAccumulativeValueProperty,
+    keyProperty,
+    normaliseGroupTo,
+    valueProperty,
+} from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
-import {
-    type PickFocusInputs,
-    SeriesNodePickMode,
-    groupAccumulativeValueProperty,
-    keyProperty,
-    valueProperty,
-} from '../series';
+import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { CartesianAnimationData, CartesianSeriesNodeDataContext } from './cartesianSeries';
 import {

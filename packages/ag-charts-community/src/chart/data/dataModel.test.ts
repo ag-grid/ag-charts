@@ -1,7 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { isFiniteNumber } from '../../util/type-guards';
-import { rangedValueProperty } from '../series/series';
 import { DATA_BROWSER_MARKET_SHARE } from '../test/data';
 import * as examples from '../test/examples';
 import { expectWarningsCalls, setupMockConsole } from '../test/utils';
@@ -20,6 +19,7 @@ import {
     SORT_DOMAIN_GROUPS,
     normaliseGroupTo as actualNormaliseGroupTo,
     normalisePropertyTo as actualNormalisePropertyTo,
+    rangedValueProperty,
 } from './processors';
 
 const rangeKey = (property: string) => ({ scope: 'test', property, type: 'key' as const, valueType: 'range' as const });

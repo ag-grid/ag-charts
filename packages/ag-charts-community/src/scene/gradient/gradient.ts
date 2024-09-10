@@ -32,7 +32,7 @@ export abstract class Gradient {
         if (stops.length === 0) return;
         if (stops.length === 1) return stops[0].color;
 
-        const gradient = this.createCanvasGradient(ctx, bbox);
+        let gradient = this.createCanvasGradient(ctx, bbox);
         if (gradient == null) return;
 
         const isOkLch = colorSpace === 'oklch';
@@ -55,6 +55,11 @@ export abstract class Gradient {
             gradient.addColorStop(c1.offset, c1.color);
 
             c0 = c1;
+        }
+
+        if ('createPattern' in gradient) {
+            // Node-canvas stubs
+            gradient = (gradient as { createPattern(): CanvasGradient }).createPattern();
         }
 
         this._cache = { ctx, bbox, gradient };

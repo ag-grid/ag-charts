@@ -253,7 +253,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 dblclick: {
                     guard: guardActiveHasLineText,
                     action: () => {
-                        ctx.showAnnotationSettings(this.active!);
+                        ctx.showAnnotationSettings(this.active!, undefined);
                     },
                 },
 
@@ -314,8 +314,8 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 toolbarPressSettings: {
                     guard: guardActiveHasLineText,
-                    action: () => {
-                        ctx.showAnnotationSettings(this.active!);
+                    action: (lastFocus: HTMLElement | undefined) => {
+                        ctx.showAnnotationSettings(this.active!, lastFocus);
                     },
                 },
 

@@ -12,15 +12,15 @@ export class GaugeStopProperties extends BaseProperties {
 }
 
 export interface GaugeColorStopDatum {
-    stop: number;
+    offset: number;
     color: string;
 }
 
 function discreteColorStops(colorStops: GaugeColorStopDatum[]): GaugeColorStopDatum[] {
     return colorStops.flatMap((colorStop, i) => {
-        const { stop } = colorStop;
+        const { offset } = colorStop;
         const nextColor = colorStops.at(i + 1)?.color;
-        return nextColor != null ? [colorStop, { stop, color: nextColor }] : [colorStop];
+        return nextColor != null ? [colorStop, { offset, color: nextColor }] : [colorStop];
     });
 }
 
@@ -30,7 +30,8 @@ function getDefaultColorStops(
     fillMode: 'continuous' | 'discrete' | undefined,
     segments: number[] | undefined
 ) {
-    const [min, max] = domain;
+    const d0 = Math.min(...domain);
+    const d1 = Math.max(...domain);
 
     if (segments != null && fillMode !== 'continuous') {
         const colorScale = new ColorScale();
@@ -39,18 +40,18 @@ function getDefaultColorStops(
 
         const colorStops = Array.from({ length: segments.length - 1 }, (_, i): GaugeColorStopDatum => {
             const stop = segments[i + 1];
-            const offset = i > 0 ? i / (segments.length - 2) : 0;
-            const color = colorScale.convert(offset);
+            const offset = (stop - d0) / (d1 - d0);
+            const color = colorScale.convert(i > 0 ? i / (segments.length - 2) : 0);
 
-            return { stop, color };
+            return { offset, color };
         });
 
         return discreteColorStops(colorStops);
     }
 
     return defaultColorStops.map((color, index, { length }) => ({
+        offset: index / (length - 1),
         color,
-        stop: ((max - min) * index) / (length - 1) + min,
     }));
 }
 
@@ -65,9 +66,10 @@ export function getColorStops(
         return getDefaultColorStops(defaultColorStops, domain, fillMode, segments);
     }
 
-    const [min, max] = domain;
+    const d0 = Math.min(...domain);
+    const d1 = Math.max(...domain);
     const stopOffset = fillMode === 'discrete' ? 1 : 0;
-    const stops = new Float64Array(fills.length);
+    const offsets = new Float64Array(fills.length);
     let previousDefinedStopIndex = 0;
     let nextDefinedStopIndex = -1;
     for (let i = 0; i < fills.length; i += 1) {
@@ -87,8 +89,8 @@ export function getColorStops(
         let { stop } = colorStop;
 
         if (stop == null) {
-            const value0 = fills[previousDefinedStopIndex].stop ?? min;
-            const value1 = fills[nextDefinedStopIndex].stop ?? max;
+            const value0 = fills[previousDefinedStopIndex].stop ?? d0;
+            const value1 = fills[nextDefinedStopIndex].stop ?? d1;
             stop =
                 value0 +
                 ((value1 - value0) * (i - previousDefinedStopIndex + stopOffset)) /
@@ -97,14 +99,16 @@ export function getColorStops(
             previousDefinedStopIndex = i;
         }
 
-        stops[i] = stop;
+        const offset = (stop - d0) / (d1 - d0);
+
+        offsets[i] = offset;
     }
 
     let lastDefinedColor = fills.find((c) => c.color != null)?.color;
     let colorScale: _Scale.ColorScale | undefined;
 
     const colorStops = fills.map(({ color }, i): GaugeColorStopDatum => {
-        const stop = stops[i];
+        const offset = offsets[i];
 
         if (color != null) {
             lastDefinedColor = color;
@@ -113,14 +117,14 @@ export function getColorStops(
         } else {
             if (colorScale == null) {
                 colorScale = new ColorScale();
-                colorScale.domain = domain;
+                colorScale.domain = [0, 1];
                 colorScale.range = defaultColorStops;
             }
 
-            color = colorScale.convert(stop);
+            color = colorScale.convert(offset);
         }
 
-        return { stop, color };
+        return { offset, color };
     });
 
     return fillMode === 'discrete' ? discreteColorStops(colorStops) : colorStops;

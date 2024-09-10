@@ -38,6 +38,7 @@ export class Caption extends BaseProperties implements CaptionLike {
     });
 
     @Validate(BOOLEAN)
+    @ProxyPropertyOnWrite('node', 'visible')
     enabled: boolean = false;
 
     @Validate(STRING, { optional: true })

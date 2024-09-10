@@ -54,6 +54,10 @@ export const TickIntervals = [
 
 export const TickMultipliers = [1, 2, 5, 10];
 
+function isCloseToInteger(n: number, delta: number) {
+    return Math.abs(Math.round(n) - n) < delta;
+}
+
 export function createTicks(
     start: number,
     stop: number,
@@ -68,8 +72,12 @@ export function createTicks(
     if (!Number.isFinite(step)) {
         return [];
     }
-    start = Math.ceil(start / step) * step;
-    stop = Math.floor(stop / step) * step;
+    if (!isCloseToInteger(start / step, 1e-12)) {
+        start = Math.ceil(start / step) * step;
+    }
+    if (!isCloseToInteger(stop / step, 1e-12)) {
+        stop = Math.floor(stop / step) * step;
+    }
     return range(start, stop, step);
 }
 
