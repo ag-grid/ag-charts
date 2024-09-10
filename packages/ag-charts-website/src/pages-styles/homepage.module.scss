@@ -72,9 +72,6 @@
         text-align: unset;
     }
 
-    #{$selector-darkmode} & {
-    }
-
     p,
     h1,
     h2 {
@@ -117,9 +114,17 @@
 
     a {
         padding-left: $spacing-size-8;
+        color: var(--color-brand-500);
+        #{$selector-darkmode} & {
+            color: var(--color-brand-200);
+        }
 
         :global(.icon) {
             --icon-size: 1.3333em;
+            fill: var(--color-brand-500);
+            #{$selector-darkmode} & {
+                fill: var(--color-brand-200);
+            }
 
             transition: transform 0.33s ease-in-out;
         }
