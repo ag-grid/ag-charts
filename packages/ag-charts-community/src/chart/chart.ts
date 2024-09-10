@@ -70,8 +70,8 @@ import type { UpdateOpts } from './updateService';
 const debug = Debug.create(true, 'opts');
 
 export type TransferableResources = {
-    container?: HTMLElement;
-    scene: Scene;
+    container: HTMLElement | undefined;
+    scene: Scene | undefined;
 };
 
 type SyncModule = ModuleInstance & { enabled?: boolean; syncAxes: (skipSync: boolean) => void };
@@ -256,7 +256,7 @@ export abstract class Chart extends Observable {
         this.chartOptions = options;
 
         const scene: Scene | undefined = resources?.scene;
-        const container = resources?.container;
+        const container = resources?.container ?? options.processedOptions.container ?? undefined;
 
         const root = new Group({ name: 'root' });
         const titleGroup = new Group({ name: 'titles', layer: true, zIndex: Layers.SERIES_LABEL_ZINDEX });
