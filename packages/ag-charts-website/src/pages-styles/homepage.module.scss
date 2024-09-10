@@ -495,6 +495,7 @@
 
     #{$selector-darkmode} & {
         border-color: var(--color-util-gray-300);
+        background-color: #192232;
     }
 
     h4 {
@@ -502,6 +503,7 @@
         font-weight: var(--text-bold);
         margin-bottom: $spacing-size-2;
         color: var(--color-brand-500);
+
         #{$selector-darkmode} & {
             color: var(--color-brand-200);
         }
