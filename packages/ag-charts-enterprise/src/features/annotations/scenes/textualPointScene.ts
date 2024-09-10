@@ -62,6 +62,25 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         datum.y = point.y;
     }
 
+    public copy(datum: Datum, copiedDatum: Datum, context: AnnotationContext, _offset: Coords) {
+        const coords = convertPoint(datum, context);
+        const bbox = this.getTextBBox(datum, coords, context);
+
+        const padding = datum.getPadding();
+        const horizontalPadding = padding.left + padding.right;
+        const verticalPadding = padding.top + padding.bottom;
+
+        const xOffset = (bbox.width + horizontalPadding) / 2;
+        const yOffset = bbox.height + verticalPadding;
+
+        const point = invertCoords({ x: coords.x - xOffset, y: coords.y - yOffset }, context);
+
+        copiedDatum.x = point.x;
+        copiedDatum.y = point.y;
+
+        return copiedDatum;
+    }
+
     override toggleHandles(show: boolean | Partial<Record<'handle', boolean>>) {
         this.handle.visible = Boolean(show);
         this.handle.toggleHovered(this.activeHandle === 'handle');

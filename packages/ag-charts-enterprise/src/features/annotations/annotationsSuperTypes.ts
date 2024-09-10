@@ -4,6 +4,7 @@ import type {
     AnnotationContext,
     AnnotationType,
     Constructor,
+    Coords,
     GuardDragClickDoubleEvent,
     Point,
 } from './annotationTypes';
@@ -68,6 +69,8 @@ export interface AnnotationsStateMachineContext {
     startInteracting: () => void;
     stopInteracting: () => void;
 
+    copy: (index: number) => AnnotationProperties | undefined;
+    paste: (datum: AnnotationProperties) => void;
     create: (type: AnnotationType, datum: AnnotationProperties) => void;
     delete: (index: number) => void;
     deleteAll: () => void;
@@ -98,6 +101,13 @@ export interface AnnotationTypeConfig<Datum extends _ModuleSupport.BasePropertie
     datum: Constructor<Datum>;
     scene: Constructor<Scene>;
     update: (node: AnnotationSceneNode, datum: _ModuleSupport.BaseProperties, context: AnnotationContext) => void;
+    copy: (
+        node: AnnotationSceneNode,
+        datum: _ModuleSupport.BaseProperties,
+        copiedDatum: _ModuleSupport.BaseProperties,
+        context: AnnotationContext,
+        offset: Coords
+    ) => Datum | undefined;
     createState: (
         ctx: AnnotationsStateMachineContext & {
             delete: () => void;

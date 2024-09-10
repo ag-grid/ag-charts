@@ -150,6 +150,17 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         return [bottomLeft, bottomRight];
     }
 
+    override copy(
+        datum: ParallelChannelProperties,
+        copiedDatum: ParallelChannelProperties,
+        context: AnnotationContext,
+        offset: Coords
+    ) {
+        super.copy(datum, copiedDatum, context, offset);
+        copiedDatum.height = datum.height;
+        return copiedDatum;
+    }
+
     override containsPoint(x: number, y: number) {
         return (
             super.containsPoint(x, y) ||
