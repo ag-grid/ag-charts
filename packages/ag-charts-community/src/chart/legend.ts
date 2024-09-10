@@ -335,7 +335,6 @@ export class Legend extends BaseProperties {
                 // using Series.getLegendData(). But the scene node will stay the same.
                 onclick: () => {
                     this.doClick(markerLabel.datum, markerLabel.proxyButton?.button);
-                    markerLabel.proxyButton!.button.ariaChecked = (!!markerLabel.datum.enabled).toString();
                 },
                 onblur: () => this.handleLegendMouseExit(),
                 onfocus: () => {
