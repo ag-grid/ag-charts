@@ -2,9 +2,9 @@ import type { AdditionalAnimationOptions, AnimationOptions, AnimationValue, IAni
 import { Animation } from '../../motion/animation';
 import { Debug } from '../../util/debug';
 import { getWindow } from '../../util/dom';
+import { EventEmitter, type EventListener } from '../../util/eventEmitter';
 import { Logger } from '../../util/logger';
 import type { Mutex } from '../../util/mutex';
-import { BaseManager } from '../baseManager';
 import { AnimationBatch } from './animationBatch';
 import { InteractionManager, InteractionState } from './interactionManager';
 
@@ -15,6 +15,8 @@ export interface AnimationEvent {
     deltaMs: number;
 }
 
+type AnimationEventMap = { [K in AnimationEventType]: AnimationEvent };
+
 function validAnimationDuration(testee?: number) {
     if (testee == null) return true;
     return !isNaN(testee) && testee >= 0 && testee <= 2;
@@ -24,25 +26,28 @@ function validAnimationDuration(testee?: number) {
  * Manage animations across a chart, running all animations through only one `requestAnimationFrame` callback,
  * preventing duplicate animations and handling their lifecycle.
  */
-export class AnimationManager extends BaseManager<AnimationEventType, AnimationEvent> {
+export class AnimationManager {
     public defaultDuration = 1000;
 
     private batch = new AnimationBatch(this.defaultDuration * 1.5);
 
     private readonly debug = Debug.create(true, 'animation');
+    private readonly events = new EventEmitter<AnimationEventMap>();
     private readonly rafAvailable = typeof requestAnimationFrame !== 'undefined';
 
-    private isPlaying = false;
+    private isPlaying = true;
     private requestId: number | null = null;
-    private skipAnimations = false;
+    private skipAnimations = true;
 
     private currentAnonymousAnimationId: number = 0;
 
     constructor(
         private readonly interactionManager: InteractionManager,
         private readonly chartUpdateMutex: Mutex
-    ) {
-        super();
+    ) {}
+
+    public addListener<K extends keyof AnimationEventMap>(eventName: K, listener: EventListener<AnimationEventMap[K]>) {
+        return this.events.on(eventName, listener);
     }
 
     /**
@@ -221,7 +226,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
                     this.failsafeOnError(error);
                 }
 
-                this.listeners.dispatch('animation-frame', {
+                this.events.emit('animation-frame', {
                     type: 'animation-frame',
                     deltaMs: deltaTime,
                 });
@@ -239,14 +244,14 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
                 this.scheduleAnimationFrame(onAnimationFrame);
             } else {
                 this.batch.stop();
-                this.listeners.dispatch('animation-stop', {
+                this.events.emit('animation-stop', {
                     type: 'animation-stop',
                     deltaMs: this.batch.consumedTimeMs,
                 });
             }
         };
 
-        this.listeners.dispatch('animation-start', {
+        this.events.emit('animation-start', {
             type: 'animation-start',
             deltaMs: 0,
         });
@@ -270,7 +275,6 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
     public startBatch(skipAnimations?: boolean) {
         this.debug(`AnimationManager - startBatch() with skipAnimations=${skipAnimations}.`);
         this.reset();
-        this.batch.stop();
         this.batch.destroy();
         this.batch = new AnimationBatch(this.defaultDuration * 1.5);
         if (skipAnimations === true) {
@@ -293,5 +297,10 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
 
     public onBatchStop(cb: () => void) {
         this.batch.stoppedCbs.add(cb);
+    }
+
+    public destroy() {
+        this.stop();
+        this.events.clear();
     }
 }

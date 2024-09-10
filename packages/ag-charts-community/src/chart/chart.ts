@@ -45,7 +45,6 @@ import { legendRegistry } from './factory/legendRegistry';
 import { seriesRegistry } from './factory/seriesRegistry';
 import { REGIONS } from './interaction/regions';
 import { SyncManager } from './interaction/syncManager';
-import { ZoomManager } from './interaction/zoomManager';
 import { Keyboard } from './keyboard';
 import { Layers } from './layers';
 import { LayoutElement } from './layout/layoutManager';
@@ -229,8 +228,6 @@ export abstract class Chart extends Observable {
     chartAnimationPhase: ChartAnimationPhase = 'initial';
 
     public readonly modulesManager = new ModulesManager();
-    // FIXME: zoomManager should be owned by ctx, but it can't because it is used by CartesianChart.onAxisChange before ctx is initialised
-    public readonly zoomManager = new ZoomManager();
     public readonly ctx: ChartContext;
     protected readonly seriesLayerManager: SeriesLayerManager;
     protected readonly seriesAreaManager: SeriesAreaManager;
@@ -434,7 +431,6 @@ export abstract class Chart extends Observable {
         this.animationRect = undefined;
 
         this.ctx.destroy();
-        this.zoomManager.destroy();
         this.destroyed = true;
 
         Object.freeze(this);
