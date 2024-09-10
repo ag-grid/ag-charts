@@ -49,10 +49,10 @@
 .gradient-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(to top, var(--color-util-brand-500), transparent 50%);
+    background: linear-gradient(to top, var(--color-util-brand-500), transparent 20%);
     pointer-events: none;
 
     #{$selector-darkmode} & {
-        background: linear-gradient(to top, var(--color-bg-primary), transparent 50%);
+        background: linear-gradient(to top, var(--color-bg-primary), transparent 30%);
     }
 }
