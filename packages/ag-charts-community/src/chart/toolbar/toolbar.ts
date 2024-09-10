@@ -760,7 +760,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
         this.updateButton(button, options);
 
-        requestAnimationFrame(() => {
+        getWindow().requestAnimationFrame(() => {
             button.classList.add(styles.modifiers.button.withTransition);
         });
 

@@ -89,7 +89,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         });
 
         // Give the dialog's dimensions a chance to be calculated before positioning
-        requestAnimationFrame(() => this.reposition());
+        _ModuleSupport.getWindow().requestAnimationFrame(() => this.reposition());
 
         this.colorPicker.attachTo(this);
 
