@@ -473,7 +473,8 @@ export class RadialGaugeSeries
         const containerStartAngle = angleScale.convert(domain[0]);
         const containerEndAngle = angleScale.convert(value);
 
-        let segments = segmentation.getSegments(angleAxis.scale);
+        const maxTicks = Math.ceil(normalizeAngle360Inclusive(containerEndAngle - containerStartAngle) * radius);
+        let segments = segmentation.getSegments(angleAxis.scale, maxTicks);
 
         const barFill = bar.fill ?? this.createConicGradient(bar.fills, bar.fillMode, segments);
         const scaleFill =

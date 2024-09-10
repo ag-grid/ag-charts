@@ -451,6 +451,9 @@ export class LinearGaugeSeries
         const labelData: LinearGaugeLabelDatum[] = [];
         const scaleData: LinearGaugeNodeDatum[] = [];
 
+        const [m0, m1] = mainAxisScale.range;
+        const mainAxisSize = Math.abs(m1 - m0);
+
         let [x0, x1] = xAxis.range;
         if (xAxis.isReversed()) {
             [x1, x0] = [x0, x1];
@@ -475,7 +478,8 @@ export class LinearGaugeSeries
 
         const cornersOnAllItems = cornerMode === 'item';
 
-        let segments = segmentation.getSegments(mainAxisScale);
+        const maxTicks = Math.ceil(mainAxisSize);
+        let segments = segmentation.getSegments(mainAxisScale, maxTicks);
 
         const barFill = bar.fill ?? this.createLinearGradient(bar.fills, bar.fillMode, segments);
         const scaleFill =
@@ -484,9 +488,6 @@ export class LinearGaugeSeries
             this.createLinearGradient(scale.fills, scale.fillMode, segments);
 
         if (segments == null && cornersOnAllItems) {
-            const [m0, m1] = mainAxisScale.range;
-            const mainAxisSize = Math.abs(m1 - m0);
-
             if (bar.enabled) {
                 const barAppliedCornerRadius = Math.min(cornerRadius, barThickness / 2, mainAxisSize / 2);
                 const barCornerInset = barAppliedCornerRadius * (mainAxis.isReversed() ? -1 : 1);
