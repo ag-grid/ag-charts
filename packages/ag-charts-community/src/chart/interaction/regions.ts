@@ -1,3 +1,4 @@
+import { BBox } from '../../scene/bbox';
 import { Node } from '../../scene/node';
 import { Transformable } from '../../scene/transformable';
 import type { BBoxContainsTester, BBoxProvider, BBoxValues } from '../../util/bboxinterface';
@@ -40,5 +41,19 @@ export class NodeRegionBBoxProvider implements RegionBBoxProvider {
 
     fromCanvasPoint(x: number, y: number) {
         return Transformable.fromCanvasPoint(this.node, x, y);
+    }
+}
+
+export class SimpleRegionBBoxProvider extends NodeRegionBBoxProvider {
+    constructor(
+        node: Node,
+        private readonly bboxFn: () => BBox,
+        overrideId?: string
+    ) {
+        super(node, overrideId);
+    }
+
+    override toCanvasBBox() {
+        return this.bboxFn();
     }
 }

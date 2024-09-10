@@ -52,11 +52,14 @@ function addHandler<T extends RegionEvent['type']>(
     );
 }
 
-type RegionNodeType = Node | { id: string; node: Node };
+type RegionNodeType = NodeRegionBBoxProvider | Node | { id: string; node: Node };
 
 function nodeToBBoxProvider(node: RegionNodeType) {
     if (node instanceof Node) {
         return new NodeRegionBBoxProvider(node);
+    }
+    if (node instanceof NodeRegionBBoxProvider) {
+        return node;
     }
 
     return new NodeRegionBBoxProvider(node.node, node.id);

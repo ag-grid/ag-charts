@@ -43,7 +43,7 @@ import { axisRegistry } from './factory/axisRegistry';
 import { EXPECTED_ENTERPRISE_MODULES } from './factory/expectedEnterpriseModules';
 import { legendRegistry } from './factory/legendRegistry';
 import { seriesRegistry } from './factory/seriesRegistry';
-import { REGIONS } from './interaction/regions';
+import { REGIONS, SimpleRegionBBoxProvider } from './interaction/regions';
 import { SyncManager } from './interaction/syncManager';
 import { ZoomManager } from './interaction/zoomManager';
 import { Keyboard } from './keyboard';
@@ -309,7 +309,12 @@ export abstract class Chart extends Observable {
         this.container = container;
 
         const moduleContext = this.getModuleContext();
-        ctx.regionManager.addRegion(REGIONS.SERIES, this.seriesRoot, this.ctx.axisManager.axisGridGroup);
+        ctx.regionManager.addRegion(
+            REGIONS.SERIES,
+            this.seriesRoot,
+            new SimpleRegionBBoxProvider(this.seriesRoot, () => this.seriesRect ?? BBox.zero),
+            this.ctx.axisManager.axisGridGroup
+        );
         ctx.regionManager.addRegion(REGIONS.HORIZONTAL_AXES);
         ctx.regionManager.addRegion(REGIONS.VERTICAL_AXES);
 
