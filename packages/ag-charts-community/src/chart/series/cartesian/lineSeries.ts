@@ -85,7 +85,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         }
 
         const { data, visible, seriesGrouping: { groupIndex = this.id, stackCount = 1 } = {} } = this;
-        const { xKey, yKey, connectMissingData, normalizedTo } = this.properties;
+        const { xKey, yKey, yFilterKey, connectMissingData, normalizedTo } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
@@ -118,6 +118,10 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
                 invalidValue: undefined,
             })
         );
+
+        if (yFilterKey != null) {
+            props.push(valueProperty(yFilterKey, yScaleType, { id: 'ySelectionRaw' }));
+        }
 
         if (stackCount > 1) {
             const ids = [
@@ -211,17 +215,20 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             return;
         }
 
-        const { xKey, yKey, xName, yName, marker, label, connectMissingData, legendItemName } = this.properties;
+        const { xKey, yKey, yFilterKey, xName, yName, marker, label, connectMissingData, legendItemName } =
+            this.properties;
         const stacked = (this.seriesGrouping?.stackCount ?? 1) > 1;
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
         const yOffset = (yScale.bandwidth ?? 0) / 2;
         const nodeData: LineNodeDatum[] = [];
-        const size = marker.enabled ? marker.size : 0;
+        const baseSize = marker.enabled ? marker.size : 0;
 
         const xIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`);
         const yIdx = dataModel.resolveProcessedDataIndexById(this, `yValueRaw`);
+        const ySelectionIdx =
+            yFilterKey != null ? dataModel.resolveProcessedDataIndexById(this, `ySelectionRaw`) : undefined;
         const yCumulativeIdx = stacked ? dataModel.resolveProcessedDataIndexById(this, `yValueCumulative`) : yIdx;
         const yEndIdx = stacked ? dataModel.resolveProcessedDataIndexById(this, `yValueEnd`) : undefined;
 
@@ -245,6 +252,9 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             }
 
             const y = yScale.convert(yCumulativeDatum) + yOffset;
+
+            const selected = ySelectionIdx != null ? values[ySelectionIdx] !== 0 : true;
+            const size = selected ? baseSize : 0;
 
             const labelText = this.getLabelText(
                 label,
@@ -308,6 +318,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         visible: boolean;
         animationEnabled: boolean;
     }) {
+        const { yFilterKey } = this.properties;
         const {
             paths: [lineNode],
             opacity,
@@ -322,7 +333,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             opacity,
             stroke: this.properties.stroke,
             strokeWidth: this.getStrokeWidth(this.properties.strokeWidth),
-            strokeOpacity: this.properties.strokeOpacity,
+            strokeOpacity: this.properties.strokeOpacity * (yFilterKey != null ? 0.5 : 1),
             lineDash: this.properties.lineDash,
             lineDashOffset: this.properties.lineDashOffset,
         });

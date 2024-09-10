@@ -54,6 +54,9 @@ export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeries
     yName?: string;
 
     @Validate(STRING, { optional: true })
+    yFilterKey: string | undefined;
+
+    @Validate(STRING, { optional: true })
     stackGroup?: string;
 
     @Validate(POSITIVE_NUMBER, { optional: true })
