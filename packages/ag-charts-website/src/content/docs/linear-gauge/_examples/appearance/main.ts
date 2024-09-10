@@ -2,6 +2,7 @@ import { AgCharts, AgLinearGaugeOptions } from 'ag-charts-enterprise';
 
 const options: AgLinearGaugeOptions = {
     type: 'linear-gauge',
+    direction: 'horizontal',
     container: document.getElementById('myChart'),
     value: 85,
     scale: {
