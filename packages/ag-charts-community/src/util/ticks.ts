@@ -114,7 +114,7 @@ export function getTickInterval(
 
 export function tickStep(start: number, end: number, count: number, minCount = 0, maxCount = Infinity): number {
     if (start === end) {
-        return Math.min(Math.max(1, minCount), maxCount);
+        return clamp(1, minCount, maxCount);
     } else if (count < 1) {
         return NaN;
     }
