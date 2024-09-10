@@ -59,7 +59,7 @@ export const Faqs: React.FC = () => {
             if (terms.includes(part)) {
                 const url = linkMap[part];
                 elements.push(
-                    <a href={url} target="_blank" rel="noopener noreferrer" key={`${url}-${index}`}>
+                    <a href={url} target="_blank" rel="noopener noreferrer" key={`${url}-${part}`}>
                         {part}
                     </a>
                 );
