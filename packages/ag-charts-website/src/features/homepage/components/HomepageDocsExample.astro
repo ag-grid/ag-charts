@@ -1,0 +1,32 @@
+---
+import ExampleRunnerContainer from '@features/example-runner/components/ExampleRunnerContainer.astro';
+import { DocsExampleRunner } from '@features/docs/components/DocsExampleRunner';
+import type { ExampleType } from '@features/example-generator/types';
+import type { InternalFramework } from '@ag-grid-types';
+
+interface Props {
+    pageName: string;
+    exampleName: string;
+    options?: any;
+}
+
+const { pageName, exampleName, options } = Astro.props as Props;
+const exampleHeight = options?.exampleHeight;
+
+const type: ExampleType = 'generated';
+const internalFramework: InternalFramework = 'vanilla';
+---
+
+<ExampleRunnerContainer pageName={pageName} exampleName={exampleName} exampleHeight={exampleHeight}>
+    <DocsExampleRunner
+        client:only="react"
+        title={exampleName}
+        name={exampleName}
+        exampleType={type}
+        options={options}
+        pageName={pageName}
+        internalFrameworkOverride={internalFramework}
+        hideCode
+        hideExternalLinks
+    />
+</ExampleRunnerContainer>

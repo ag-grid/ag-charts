@@ -52,6 +52,7 @@ export const ExampleRunner: FunctionComponent<Props> = ({
     footerChildren,
 }) => {
     const [showCode, setShowCode] = useState(initialShowCode);
+    const hideFooter = !hideCode && !hideExternalLinks && !footerChildren;
 
     return (
         <div id={id} className={styles.exampleOuter}>
@@ -80,38 +81,40 @@ export const ExampleRunner: FunctionComponent<Props> = ({
                         />
                     )}
                 </div>
-                <footer className={styles.footer}>
-                    {!hideCode && (
-                        <button
-                            className={classnames(styles.previewCodeToggle, 'button-secondary')}
-                            onClick={(e) => {
-                                setShowCode(!showCode);
-                            }}
-                        >
-                            {showCode && (
-                                <span>
-                                    <Icon name="eye" /> Preview
-                                </span>
-                            )}
-                            {!showCode && (
-                                <span>
-                                    <Icon name="code" /> Code
-                                </span>
-                            )}
-                        </button>
-                    )}
+                {hideFooter && (
+                    <footer className={styles.footer}>
+                        {!hideCode && (
+                            <button
+                                className={classnames(styles.previewCodeToggle, 'button-secondary')}
+                                onClick={(e) => {
+                                    setShowCode(!showCode);
+                                }}
+                            >
+                                {showCode && (
+                                    <span>
+                                        <Icon name="eye" /> Preview
+                                    </span>
+                                )}
+                                {!showCode && (
+                                    <span>
+                                        <Icon name="code" /> Code
+                                    </span>
+                                )}
+                            </button>
+                        )}
 
-                    {!hideExternalLinks && (
-                        <ul className={classnames('list-style-none', styles.externalLinks)}>
-                            <li>
-                                <OpenInCTA type="newTab" href={exampleUrl!} />
-                            </li>
-                            {externalLinks}
-                        </ul>
-                    )}
+                        {!hideExternalLinks && (
+                            <ul className={classnames('list-style-none', styles.externalLinks)}>
+                                <li>
+                                    <OpenInCTA type="newTab" href={exampleUrl!} />
+                                </li>
+                                {externalLinks}
+                            </ul>
+                        )}
 
-                    {footerChildren}
-                </footer>
+                        {footerChildren}
+                    </footer>
+                )}
             </div>
         </div>
     );
