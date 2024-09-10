@@ -1,5 +1,4 @@
 import { Icon } from '@ag-website-shared/components/icon/Icon';
-import { access } from 'fs';
 import React, { useState } from 'react';
 
 import styles from './Faqs.module.scss';
