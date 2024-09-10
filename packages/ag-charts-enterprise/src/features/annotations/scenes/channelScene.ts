@@ -42,7 +42,7 @@ export abstract class ChannelScene<
         const topLine = this.extendLine(top, datum, context);
         const bottomLine = this.extendLine(bottom, datum, context);
 
-        this.updateLines(datum, topLine, bottomLine);
+        this.updateLines(datum, topLine, bottomLine, context, top, bottom);
         this.updateHandles(datum, top, bottom);
         this.updateText(datum, top, bottom);
         this.updateBackground(datum, topLine, bottomLine, context);
@@ -91,7 +91,14 @@ export abstract class ChannelScene<
         return topLine.containsPoint(x, y) || bottomLine.containsPoint(x, y) || Boolean(text?.containsPoint(x, y));
     }
 
-    protected abstract updateLines(datum: Datum, top: LineCoords, bottom: LineCoords): void;
+    protected abstract updateLines(
+        datum: Datum,
+        top: LineCoords,
+        bottom: LineCoords,
+        context: AnnotationContext,
+        naturalTop: LineCoords,
+        naturalBottom: LineCoords
+    ): void;
 
     protected abstract updateHandles(datum: Datum, top: LineCoords, bottom: LineCoords): void;
 
