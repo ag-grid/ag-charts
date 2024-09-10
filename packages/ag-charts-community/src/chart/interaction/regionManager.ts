@@ -54,9 +54,12 @@ function addHandler<T extends RegionEvent['type']>(
 
 type RegionNodeType = Node | { id: string; node: Node };
 
-function nodeToBBoxProvider(node: RegionNodeType) {
+function nodeToBBoxProvider(node: RegionNodeType | NodeRegionBBoxProvider) {
     if (node instanceof Node) {
         return new NodeRegionBBoxProvider(node);
+    }
+    if (node instanceof NodeRegionBBoxProvider) {
+        return node;
     }
 
     return new NodeRegionBBoxProvider(node.node, node.id);
@@ -96,7 +99,7 @@ export class RegionManager {
         this.regions.clear();
     }
 
-    public addRegion(name: RegionName, ...nodes: RegionNodeType[]) {
+    public addRegion(name: RegionName, ...nodes: (RegionNodeType | NodeRegionBBoxProvider)[]) {
         if (this.regions.has(name)) {
             throw new Error(`AG Charts - Region: ${name} already exists`);
         }
