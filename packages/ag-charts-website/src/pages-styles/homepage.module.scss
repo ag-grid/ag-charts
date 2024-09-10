@@ -70,13 +70,16 @@
     #{$selector-darkmode} & {
     }
 
+    p,
     h1,
     h2 {
-        line-height: var(--text-lh-tight);
+        line-height: 1.1;
         color: var(--color-white);
     }
 
+    p,
     h1 {
+        margin-bottom: 0;
         font-size: 28px;
 
         @media screen and (min-width: $breakpoint-hero-small) {
@@ -85,21 +88,24 @@
 
         @media screen and (min-width: $breakpoint-hero-large) {
             font-size: min(3.4vw, 54px);
-            margin-top: -0.225em;
-            margin-bottom: 0.5em;
         }
+    }
+
+    p {
+        font-weight: var(--text-bold);
     }
 
     h2 {
         max-width: 18em;
+        margin-top: $spacing-size-10;
         margin-bottom: 1.4em;
+        font-weight: var(--text-regular);
 
         @media screen and (min-width: $breakpoint-hero-small) {
-            font-size: 22px;
+            font-size: 24px;
         }
 
         @media screen and (min-width: $breakpoint-hero-large) {
-            font-size: min(1.9vw, 30px);
             max-width: unset;
         }
     }
