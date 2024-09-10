@@ -31,6 +31,14 @@ test.describe('toolbar', () => {
 
         await page.locator('canvas').press('ControlOrMeta+y');
         await expect(page).toHaveScreenshot('line-6-redo.png', { animations: 'disabled' });
+
+        await page.click('canvas', { position: { x: 150, y: 150 } });
+
+        await page.locator('canvas').press('ControlOrMeta+c');
+        await expect(page).toHaveScreenshot('line-7-copy.png', { animations: 'disabled' });
+
+        await page.locator('canvas').press('ControlOrMeta+v');
+        await expect(page).toHaveScreenshot('line-8-paste.png', { animations: 'disabled' });
     });
 
     test('text', async ({ page }) => {
