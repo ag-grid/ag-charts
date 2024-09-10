@@ -6,10 +6,10 @@ import type {
     AgChartLabelOptions,
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { Degree, MarkerShape, PixelSize } from '../../chart/types';
+import type { Degree, Direction, MarkerShape, PixelSize } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesThemeableOptions } from '../seriesOptions';
-import type { AgGaugeSegmentation, AgGaugeSeriesColorStop, AgGaugeSeriesFillMode } from './gaugeCommonOptions';
+import type { AgGaugeColorStop, AgGaugeCornerMode, AgGaugeFillMode, AgGaugeSegmentation } from './gaugeCommonOptions';
 
 export type AgLinearGaugeTargetPlacement = 'before' | 'after' | 'middle';
 
@@ -33,9 +33,9 @@ export interface AgLinearGaugeSeriesScaleLabel extends AgBaseAxisLabelOptions {
 
 export interface AgLinearGaugeSeriesScale extends FillOptions, StrokeOptions, LineDashOptions {
     /** Configuration the colours. */
-    fills?: AgGaugeSeriesColorStop[];
+    fills?: AgGaugeColorStop[];
     /** Configuration the fill mode. */
-    fillMode?: AgGaugeSeriesFillMode;
+    fillMode?: AgGaugeFillMode;
     /** Maximum value of the scale. Any values exceeding this number will be clipped to this maximum. */
     min?: number;
     /** Minimum value of the scale. Any values exceeding this number will be clipped to this minimum. */
@@ -61,9 +61,9 @@ export interface AgLinearGaugeSeriesBarStyle extends FillOptions, StrokeOptions,
     /** Thickness of the bar in proportion to the gauge thickness. Ignored if `thickness` is set. */
     thicknessRatio?: number;
     /** Configuration the colours. */
-    fills?: AgGaugeSeriesColorStop[];
+    fills?: AgGaugeColorStop[];
     /** Configuration the fill mode. */
-    fillMode?: AgGaugeSeriesFillMode;
+    fillMode?: AgGaugeFillMode;
 }
 
 export interface AgLinearGaugeSeriesBackgroundStyle extends FillOptions, StrokeOptions, LineDashOptions {}
@@ -123,7 +123,7 @@ export interface AgLinearGaugeSeriesThemeableOptions<TDatum = any>
     extends AgLinearGaugeSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum>, 'showInLegend'> {
     /** Direction to display the gauge in. */
-    direction?: 'horizontal' | 'vertical';
+    direction?: Direction;
     /** Width of the gauge, or the height if `direction` is `horizontal`. */
     thickness?: number;
     /** Configuration for a segmented appearance. */
@@ -131,7 +131,7 @@ export interface AgLinearGaugeSeriesThemeableOptions<TDatum = any>
     /** Apply rounded corners to the gauge. */
     cornerRadius?: number;
     /** Configuration on whether to apply `cornerRadius` only to the ends of the gauge, or each individual item within the gauge. */
-    cornerMode?: 'container' | 'item';
+    cornerMode?: AgGaugeCornerMode;
     /** Configuration for all targets. */
     target?: AgLinearGaugeTargetOptions;
     /** Configuration for the bar. */

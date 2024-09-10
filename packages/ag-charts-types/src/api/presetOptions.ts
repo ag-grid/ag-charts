@@ -106,8 +106,8 @@ export interface AgPriceVolumePreset {
 
 export type AgFinancialChartPresets = AgPriceVolumePreset;
 
-export type AgLinearGaugePreset = AgLinearGaugeSeriesOptions;
-export type AgRadialGaugePreset = AgRadialGaugeSeriesOptions;
+export interface AgLinearGaugePreset extends AgLinearGaugeSeriesOptions {}
+export interface AgRadialGaugePreset extends AgRadialGaugeSeriesOptions {}
 export type AgGaugePreset = AgLinearGaugePreset | AgRadialGaugePreset;
 
 export type Preset = AgFinancialChartPresets;

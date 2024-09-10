@@ -9,7 +9,7 @@ import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart
 import type { Degree, MarkerShape, PixelSize, Ratio } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesThemeableOptions } from '../seriesOptions';
-import type { AgGaugeSegmentation, AgGaugeSeriesColorStop, AgGaugeSeriesFillMode } from './gaugeCommonOptions';
+import type { AgGaugeColorStop, AgGaugeCornerMode, AgGaugeFillMode, AgGaugeSegmentation } from './gaugeCommonOptions';
 
 export type AgRadialGaugeTargetPlacement = 'inside' | 'outside' | 'middle';
 
@@ -30,9 +30,9 @@ export interface AgRadialGaugeSeriesScaleLabel extends AgBaseAxisLabelOptions {}
 
 export interface AgRadialGaugeSeriesScale extends FillOptions, StrokeOptions, LineDashOptions {
     /** Configuration the colours. */
-    fills?: AgGaugeSeriesColorStop[];
+    fills?: AgGaugeColorStop[];
     /** Configuration the fill mode. */
-    fillMode?: AgGaugeSeriesFillMode;
+    fillMode?: AgGaugeFillMode;
     /** Maximum value of the scale. Any values exceeding this number will be clipped to this maximum. */
     min?: number;
     /** Minimum value of the scale. Any values exceeding this number will be clipped to this minimum. */
@@ -54,9 +54,9 @@ export interface AgRadialGaugeSeriesBarStyle extends FillOptions, StrokeOptions,
     /** Whether the bar should be shown. */
     enabled?: boolean;
     /** Configuration the colours. */
-    fills?: AgGaugeSeriesColorStop[];
+    fills?: AgGaugeColorStop[];
     /** Configuration the fill mode. */
-    fillMode?: AgGaugeSeriesFillMode;
+    fillMode?: AgGaugeFillMode;
 }
 
 export interface AgRadialGaugeSeriesNeedleStyle extends FillOptions, StrokeOptions, LineDashOptions {
@@ -126,7 +126,7 @@ export interface AgRadialGaugeSeriesThemeableOptions<TDatum = any>
     /** Apply rounded corners to the gauge. */
     cornerRadius?: number;
     /** Configuration on whether to apply `cornerRadius` only to the ends of the gauge, or each individual item within the gauge. */
-    cornerMode?: 'container' | 'item';
+    cornerMode?: AgGaugeCornerMode;
     /** Configuration for the needle. */
     needle?: AgRadialGaugeSeriesNeedleStyle;
     /** Configuration for the scale. */

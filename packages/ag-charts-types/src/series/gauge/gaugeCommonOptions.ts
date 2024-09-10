@@ -13,9 +13,11 @@ export interface AgGaugeSegmentation {
     spacing?: number;
 }
 
-export type AgGaugeSeriesFillMode = 'continuous' | 'discrete';
+export type AgGaugeFillMode = 'continuous' | 'discrete';
 
-export interface AgGaugeSeriesColorStop {
+export type AgGaugeCornerMode = 'container' | 'item';
+
+export interface AgGaugeColorStop {
     color?: CssColor;
     stop?: number;
 }
