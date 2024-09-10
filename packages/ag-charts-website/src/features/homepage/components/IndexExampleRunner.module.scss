@@ -3,6 +3,8 @@
 .exampleOuter {
     --example-border-color: color-mix(in srgb, var(--color-border-secondary), var(--color-border-primary));
 
+    background-color: var(--color-bg-primary);
+
     #{$selector-darkmode} & {
         --example-border-color: color-mix(in srgb, var(--color-bg-primary), white 10%);
     }
