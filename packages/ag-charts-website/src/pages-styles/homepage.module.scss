@@ -55,6 +55,10 @@
     padding-bottom: $spacing-size-10;
     min-width: 500px;
 
+    @media screen and (max-width: $breakpoint-hero-small) {
+        min-width: 100%;
+    }
+
     @media screen and (min-width: $breakpoint-hero-small) {
         padding-top: $spacing-size-10;
     }
