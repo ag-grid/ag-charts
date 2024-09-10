@@ -230,4 +230,30 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
     }
 
     override updateText = LineWithTextScene.updateChannelText.bind(this, true);
+
+    protected override getBackgroundPoints(
+        datum: ParallelChannelProperties,
+        top: LineCoords,
+        bottom: LineCoords,
+        bounds: LineCoords
+    ) {
+        const isFlippedX = top.x1 > top.x2;
+        const isFlippedY = top.y1 > top.y2;
+        const outOfBoundsStart = top.x1 !== bottom.x1 && top.y1 !== bottom.y1;
+        const outOfBoundsEnd = top.x2 !== bottom.x2 && top.y2 !== bottom.y2;
+
+        const points = Vec2.from(top);
+
+        if (datum.extendEnd && outOfBoundsEnd) {
+            points.push(Vec2.from(isFlippedX ? bounds.x1 : bounds.x2, isFlippedY ? bounds.y1 : bounds.y2));
+        }
+
+        points.push(...Vec2.from(bottom).reverse());
+
+        if (datum.extendStart && outOfBoundsStart) {
+            points.push(Vec2.from(isFlippedX ? bounds.x2 : bounds.x1, isFlippedY ? bounds.y2 : bounds.y1));
+        }
+
+        return points;
+    }
 }
