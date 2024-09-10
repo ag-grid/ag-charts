@@ -67,7 +67,7 @@ const NULL_DOMRECT: DOMRect = {
 
 export class DOMManager extends BaseManager<Events['type'], Events> {
     private readonly rootElements: Record<DOMElementClass, LiveDOMElement>;
-    private styles: Record<string, string> = {};
+    private readonly styles = new Map<string, string>();
     private readonly element: HTMLElement;
     private container?: HTMLElement = undefined;
     containerSize?: Size = undefined;
@@ -170,20 +170,21 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             }
         }
 
+        this.container = newContainer;
+
+        // If we moved from a shadow DOM to outside, we need to ensure the page styles are present
+        // Or if the container is added lazily, we need to ensure styles are added before the container
+        // This is a no-op if styles already exist
+        for (const [id, styles] of this.styles) {
+            this.addStyles(id, styles);
+        }
+
         newContainer.appendChild(this.element);
         this.sizeMonitor.observe(newContainer, (size) => {
             this.containerSize = size;
             this.updateContainerSize();
             this.listeners.dispatch('resize', { type: 'resize' });
         });
-
-        this.container = newContainer;
-
-        // If we moved from a shadow DOM to outside, we need to ensure the page styles are present
-        // This is a no-op if styles already exist
-        for (const [id, styles] of Object.entries(this.styles)) {
-            this.addStyles(id, styles);
-        }
 
         this.listeners.dispatch('container-changed', { type: 'container-changed' });
     }
@@ -355,7 +356,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     }
 
     addStyles(id: string, styles: string) {
-        this.styles[id] = styles;
+        this.styles.set(id, styles);
 
         if (this.container == null) return;
 

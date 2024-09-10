@@ -176,6 +176,7 @@ jobs:
         outputs:
             nx_base: ${{ steps.setup.outputs.base }}
             matrix: ${{ steps.matrix.outputs.matrix }}
+            count: ${{ steps.matrix.outputs.count }}
         steps:
             - name: Checkout
               id: checkout
@@ -210,6 +211,7 @@ jobs:
 
                   matrix=$(node ./tools/test/calculate-shards.js eval ${count})
                   echo "matrix=${matrix}" >> $GITHUB_OUTPUT
+                  echo "count=${count}" >> $GITHUB_OUTPUT
                   echo "E2E matrix determined to be: ${matrix}"
 
             - name: Perist build outputs
@@ -225,6 +227,7 @@ jobs:
         runs-on: ubuntu-latest
         name: E2E Tests (${{ matrix.shard }}/${{ strategy.job-total }})
         needs: [e2e_init]
+        if: needs.e2e_init.outputs.count > 0
         strategy:
             fail-fast: false
             matrix: ${{ fromJson(needs.e2e_init.outputs.matrix )}}

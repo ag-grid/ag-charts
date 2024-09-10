@@ -99,11 +99,13 @@ export abstract class AgCharts {
      */
     public static create<O extends AgChartOptions>(options: O): AgChartInstance<O> {
         this.licenseCheck(options);
-        const chart = AgChartsInternal.createOrUpdate(options, undefined, this.licenseManager);
+        const chart = AgChartsInternal.createOrUpdate(
+            options,
+            undefined,
+            this.licenseManager,
+            enterpriseModule.styles != null ? [['ag-charts-enterprise', enterpriseModule.styles]] : []
+        );
 
-        if (enterpriseModule.styles != null) {
-            chart.chart.ctx.domManager.addStyles('ag-charts-enterprise', enterpriseModule.styles);
-        }
         if (this.licenseManager?.isDisplayWatermark() && this.licenseManager) {
             enterpriseModule.injectWatermark?.(chart.chart.ctx.domManager, this.licenseManager.getWatermarkMessage());
         }
@@ -150,7 +152,8 @@ class AgChartsInternal {
     static createOrUpdate(
         options: ChartExtendedOptions,
         proxy?: AgChartInstanceProxy,
-        licenseManager?: LicenseManager
+        licenseManager?: LicenseManager,
+        styles?: Array<[string, string]>
     ) {
         AgChartsInternal.initialiseModules();
 
@@ -175,6 +178,9 @@ class AgChartsInternal {
         let chart = proxy?.chart;
         if (chart == null || chartType(userOptions) !== chartType(chart?.chartOptions.processedOptions)) {
             chart = AgChartsInternal.createChartInstance(chartOptions, chart);
+            styles?.forEach(([id, css]) => {
+                chart?.ctx.domManager.addStyles(id, css);
+            });
         }
 
         if (proxy == null) {
