@@ -35,6 +35,7 @@ export interface BubbleNodeDatum extends CartesianSeriesNodeDatum {
     readonly placement: LabelPlacement;
     readonly marker: MarkerConstructor;
     readonly fill: string | undefined;
+    readonly selected: boolean | undefined;
 }
 
 class BubbleSeriesMarker extends SeriesMarker<AgBubbleSeriesOptionsKeys> {
@@ -73,6 +74,9 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
 
     @Validate(STRING, { optional: true })
     colorKey?: string;
+
+    @Validate(STRING, { optional: true })
+    sizeFilterKey: string | undefined;
 
     @Validate(STRING, { optional: true })
     xName?: string;

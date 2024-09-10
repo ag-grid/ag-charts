@@ -104,7 +104,7 @@ export class AreaSeries extends CartesianSeries<
         }
 
         const { data, visible, seriesGrouping: { groupIndex = this.id, stackCount = 1 } = {} } = this;
-        const { xKey, yKey, connectMissingData, normalizedTo } = this.properties;
+        const { xKey, yKey, yFilterKey, connectMissingData, normalizedTo } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
@@ -137,6 +137,7 @@ export class AreaSeries extends CartesianSeries<
             props: [
                 keyProperty(xKey, xScaleType, { id: 'xValue' }),
                 valueProperty(yKey, yScaleType, { id: `yValueRaw`, ...common }),
+                ...(yFilterKey != null ? [valueProperty(yFilterKey, yScaleType, { id: 'yFilterRaw' })] : []),
                 ...groupStackValueProperty(yKey, yScaleType, {
                     id: `yValueStack`,
                     ...common,
@@ -214,6 +215,7 @@ export class AreaSeries extends CartesianSeries<
         const {
             yKey,
             xKey,
+            yFilterKey,
             marker,
             label,
             fill: seriesFill,
@@ -228,6 +230,8 @@ export class AreaSeries extends CartesianSeries<
         const xOffset = (xScale.bandwidth ?? 0) / 2;
 
         const defs = dataModel.resolveProcessedDataDefsByIds(this, [`yValueEnd`, `yValueRaw`, `yValueCumulative`]);
+        const yFilterIndex =
+            yFilterKey != null ? dataModel.resolveProcessedDataIndexById(this, 'yFilterRaw') : undefined;
         const yValueStackIndex = dataModel.resolveProcessedDataIndexById(this, 'yValueStack');
 
         const createMarkerCoordinate = (xDatum: any, yEnd: number, rawYDatum: any): SizedPoint => {
@@ -276,6 +280,7 @@ export class AreaSeries extends CartesianSeries<
                 const point = createMarkerCoordinate(xDatum, +yValueCumulative, yDatum);
 
                 if (validPoint && marker) {
+                    const selected = yFilterIndex != null ? values[yFilterIndex] !== 0 : undefined;
                     markerData.push({
                         index: datumIdx,
                         series: this,
@@ -291,6 +296,7 @@ export class AreaSeries extends CartesianSeries<
                         fill: marker.fill ?? seriesFill,
                         stroke: marker.stroke ?? seriesStroke,
                         strokeWidth: marker.strokeWidth ?? this.getStrokeWidth(this.properties.strokeWidth),
+                        selected,
                     });
                 }
 
@@ -515,6 +521,7 @@ export class AreaSeries extends CartesianSeries<
         visible: boolean;
         animationEnabled: boolean;
     }) {
+        const { yFilterKey } = this.properties;
         const { opacity, visible, animationEnabled } = opts;
         const [fill, stroke] = opts.paths;
 
@@ -525,7 +532,7 @@ export class AreaSeries extends CartesianSeries<
             pointerEvents: PointerEvents.None,
             stroke: this.properties.stroke,
             strokeWidth,
-            strokeOpacity: this.properties.strokeOpacity,
+            strokeOpacity: this.properties.strokeOpacity * (yFilterKey != null ? 0.25 : 1),
             lineDash: this.properties.lineDash,
             lineDashOffset: this.properties.lineDashOffset,
             opacity,
@@ -536,7 +543,7 @@ export class AreaSeries extends CartesianSeries<
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
             fill: this.properties.fill,
-            fillOpacity: this.properties.fillOpacity,
+            fillOpacity: this.properties.fillOpacity * (yFilterKey != null ? 0.125 : 1),
             fillShadow: this.properties.shadow,
             opacity,
             visible: visible || animationEnabled,
@@ -624,7 +631,9 @@ export class AreaSeries extends CartesianSeries<
         });
 
         markerSelection.each((node, datum) => {
-            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey }, baseStyle);
+            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey }, baseStyle, {
+                selected: datum.selected,
+            });
         });
 
         if (!highlighted) {

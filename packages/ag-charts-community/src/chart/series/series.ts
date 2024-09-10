@@ -686,7 +686,7 @@ export abstract class Series<
         marker: ISeriesMarker<TParams>,
         params: TParams & Omit<AgSeriesMarkerStylerParams<TDatum>, 'seriesId'>,
         defaultStyle: AgSeriesMarkerStyle = marker.getStyle(),
-        { applyTranslation = true } = {}
+        { applyTranslation = true, selected = true } = {}
     ) {
         const { point } = params.datum;
         const activeStyle = this.getMarkerStyle(marker, params, defaultStyle);
@@ -696,6 +696,11 @@ export abstract class Series<
             markerNode.setProperties({ visible, ...activeStyle, translationX: point?.x, translationY: point?.y });
         } else {
             markerNode.setProperties({ visible, ...activeStyle });
+        }
+
+        if (!selected) {
+            markerNode.fillOpacity *= 0.25;
+            markerNode.strokeOpacity *= 0.125;
         }
 
         // Only for custom marker shapes

@@ -120,7 +120,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         );
 
         if (yFilterKey != null) {
-            props.push(valueProperty(yFilterKey, yScaleType, { id: 'ySelectionRaw' }));
+            props.push(valueProperty(yFilterKey, yScaleType, { id: 'yFilterRaw' }));
         }
 
         if (stackCount > 1) {
@@ -223,12 +223,12 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         const xOffset = (xScale.bandwidth ?? 0) / 2;
         const yOffset = (yScale.bandwidth ?? 0) / 2;
         const nodeData: LineNodeDatum[] = [];
-        const baseSize = marker.enabled ? marker.size : 0;
+        const size = marker.enabled ? marker.size : 0;
 
         const xIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`);
         const yIdx = dataModel.resolveProcessedDataIndexById(this, `yValueRaw`);
         const ySelectionIdx =
-            yFilterKey != null ? dataModel.resolveProcessedDataIndexById(this, `ySelectionRaw`) : undefined;
+            yFilterKey != null ? dataModel.resolveProcessedDataIndexById(this, `yFilterRaw`) : undefined;
         const yCumulativeIdx = stacked ? dataModel.resolveProcessedDataIndexById(this, `yValueCumulative`) : yIdx;
         const yEndIdx = stacked ? dataModel.resolveProcessedDataIndexById(this, `yValueEnd`) : undefined;
 
@@ -253,8 +253,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
 
             const y = yScale.convert(yCumulativeDatum) + yOffset;
 
-            const selected = ySelectionIdx != null ? values[ySelectionIdx] !== 0 : true;
-            const size = selected ? baseSize : 0;
+            const selected = ySelectionIdx != null ? values[ySelectionIdx] !== 0 : undefined;
 
             const labelText = this.getLabelText(
                 label,
@@ -288,6 +287,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
                           fill: label.color,
                       }
                     : undefined,
+                selected,
             });
             moveTo = false;
         });
@@ -333,7 +333,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             opacity,
             stroke: this.properties.stroke,
             strokeWidth: this.getStrokeWidth(this.properties.strokeWidth),
-            strokeOpacity: this.properties.strokeOpacity * (yFilterKey != null ? 0.5 : 1),
+            strokeOpacity: this.properties.strokeOpacity * (yFilterKey != null ? 0.25 : 1),
             lineDash: this.properties.lineDash,
             lineDashOffset: this.properties.lineDashOffset,
         });
@@ -377,7 +377,10 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
 
         const applyTranslation = this.ctx.animationManager.isSkipped();
         markerSelection.each((node, datum) => {
-            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey }, baseStyle, { applyTranslation });
+            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey }, baseStyle, {
+                applyTranslation,
+                selected: datum.selected,
+            });
         });
 
         if (!highlighted) {
