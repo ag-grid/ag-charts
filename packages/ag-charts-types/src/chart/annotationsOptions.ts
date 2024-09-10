@@ -283,20 +283,20 @@ export interface AgAnnotationLabelFormatterParams {
     value: any;
 }
 
-export interface AgLineAnnotationText extends AgLineAnnotationTextOptions, FontOptions {
+export interface AgLineAnnotationText extends AgLineAnnotationTextOptions {
     label?: string;
 }
 
-export interface AgChannelAnnotationText extends AgChannelAnnotationTextOptions, FontOptions {
+export interface AgChannelAnnotationText extends AgChannelAnnotationTextOptions {
     label?: string;
 }
 
-export interface AgLineAnnotationTextOptions {
+export interface AgLineAnnotationTextOptions extends FontOptions {
     position?: 'top' | 'center' | 'bottom';
     alignment?: 'left' | 'center' | 'right';
 }
 
-export interface AgChannelAnnotationTextOptions {
+export interface AgChannelAnnotationTextOptions extends FontOptions {
     position?: 'top' | 'inside' | 'bottom';
     alignment?: 'left' | 'center' | 'right';
 }
