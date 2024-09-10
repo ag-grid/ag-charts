@@ -36,6 +36,7 @@ export type AgIconName =
     | 'position-top'
     | 'price-label-annotation'
     | 'reset'
+    | 'settings'
     | 'step-line-series'
     | 'text-annotation'
     | 'trend-line-drawing'

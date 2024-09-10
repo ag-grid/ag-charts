@@ -88,8 +88,8 @@ const annotationOptions: AgToolbarOptions['annotationOptions'] = {
             value: 'line-style-type',
         },
         {
-            icon: 'text-annotation',
-            tooltip: 'toolbarAnnotationsTextOptions',
+            icon: 'settings',
+            tooltip: 'toolbarAnnotationsSettings',
             value: 'settings',
         },
         {

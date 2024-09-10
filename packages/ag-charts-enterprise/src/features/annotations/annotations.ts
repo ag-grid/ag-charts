@@ -20,6 +20,7 @@ import {
     stringToAnnotationType,
 } from './annotationTypes';
 import { annotationConfigs, getTypedDatum } from './annotationsConfig';
+import { LINE_STROKE_WIDTH_ITEMS, LINE_STYLE_TYPE_ITEMS, TEXT_SIZE_ITEMS } from './annotationsMenuOptions';
 import { AnnotationsStateMachine } from './annotationsStateMachine';
 import type { AnnotationProperties, AnnotationScene } from './annotationsSuperTypes';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
@@ -27,7 +28,7 @@ import { AnnotationSettingsDialog } from './settings-dialog/settingsDialog';
 import { calculateAxisLabelPadding } from './utils/axis';
 import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasLineText, hasTextColor } from './utils/has';
 import { getLineStyle } from './utils/line';
-import { isTextType } from './utils/types';
+import { isChannelType, isLineType, isTextType } from './utils/types';
 import { updateAnnotation } from './utils/update';
 import { validateDatumPoint } from './utils/validation';
 import { invertCoords } from './utils/values';
@@ -57,32 +58,6 @@ type AnnotationAxis = {
 };
 
 const AXIS_TYPE = UNION(['x', 'y', 'xy'], 'an axis type');
-
-const LINE_STROKE_WIDTH_ITEMS: MenuItem<number>[] = [
-    { strokeWidth: 1, label: '1', value: 1 },
-    { strokeWidth: 2, label: '2', value: 2 },
-    { strokeWidth: 3, label: '3', value: 3 },
-    { strokeWidth: 4, label: '4', value: 4 },
-    { strokeWidth: 8, label: '8', value: 8 },
-];
-
-const LINE_STYLE_TYPE_ITEMS: MenuItem<AgAnnotationLineStyleType>[] = [
-    { icon: 'line-style-solid', altText: 'iconAltTextLineStyleSolid', value: 'solid' },
-    { icon: 'line-style-dashed', altText: 'iconAltTextLineStyleDashed', value: 'dashed' },
-    { icon: 'line-style-dotted', altText: 'iconAltTextLineStyleDotted', value: 'dotted' },
-];
-
-const TEXT_SIZE_ITEMS: MenuItem<number>[] = [
-    { label: '10', value: 10 },
-    { label: '12', value: 12 },
-    { label: '14', value: 14 },
-    { label: '16', value: 16 },
-    { label: '18', value: 18 },
-    { label: '22', value: 22 },
-    { label: '28', value: 28 },
-    { label: '36', value: 36 },
-    { label: '46', value: 46 },
-];
 
 const LINE_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
     {
@@ -413,10 +388,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
             showAnnotationSettings: (active: number, lastFocus: HTMLElement | undefined) => {
                 const datum = this.annotationData.at(active);
-                if (!hasLineText(datum)) return;
+                if (!isLineType(datum) && !isChannelType(datum)) return;
                 this.settingsDialog.showLineOrChannel(datum, {
                     ariaLabel: this.ctx.localeManager.t('ariaLabelAnnotationSettingsDialog'),
-                    onChange: (props) => {
+                    onChangeLine: (props) => {
+                        this.state.transition('lineProps', props);
+                    },
+                    onChangeLineStyle: (props) => {
+                        this.state.transition('lineStyle', props);
+                    },
+                    onChangeText: (props) => {
                         this.state.transition('lineText', props);
                     },
                     onHide: () => {
