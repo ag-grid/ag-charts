@@ -1,4 +1,4 @@
-import { normalizeAngle360 } from '../util/angle';
+import { angleDiff, normalizeAngle360 } from '../util/angle';
 import { arcDistanceSquared, lineDistanceSquared } from '../util/distance';
 import { Logger } from '../util/logger';
 import { BBox } from './bbox';
@@ -327,45 +327,24 @@ export class ExtendedPath2D {
                     addCommand('C', params[pi++], params[pi++], params[pi++], params[pi++], params[pi++], params[pi++]);
                     break;
                 case Command.Arc: {
-                    // The SVG arc command is terrible, and it's not possible to apply a matrix transformation to it
-                    // Convert the arc into a series of bezier curves, which can be transformed
-                    const cx = params[pi++];
-                    const cy = params[pi++];
-                    const r = params[pi++];
-                    const A0 = params[pi++];
-                    const A1 = params[pi++];
-                    const ccw = params[pi++];
-
+                    const [cx, cy, r, a0, a1, ccw] = [
+                        params[pi++],
+                        params[pi++],
+                        params[pi++],
+                        params[pi++],
+                        params[pi++],
+                        params[pi++],
+                    ];
+                    const x0 = cx + Math.cos(a0) * r;
+                    const y0 = cy + Math.sin(a0) * r;
+                    const x1 = cx + Math.cos(a1) * r;
+                    const y1 = cy + Math.sin(a1) * r;
+                    const p0 = transform(x0, y0);
+                    const p1 = transform(x1, y1);
+                    const largeArcFlag = angleDiff(a0, a1, !!ccw) > Math.PI ? 1 : 0;
+                    const sweepFlag = (ccw + 1) % 2;
                     const move = buffer.length === 0 ? 'M' : 'L';
-                    addCommand(move, cx + Math.cos(A0) * r, cy + Math.sin(A0) * r);
-
-                    // A bezier curve can handle at most one quarter turn
-                    const arcSections = Math.max((Math.abs(A1 - A0) / (Math.PI / 2)) | 0, 1);
-
-                    const step = (A1 - A0) * (ccw ? -1 : 1);
-                    for (let i = 0; i < arcSections; i += 1) {
-                        const a0 = A0 + (step * (i + 0)) / arcSections;
-                        const a1 = A0 + (step * (i + 1)) / arcSections;
-
-                        // "Approximation of circular arcs by cubic polynomials",
-                        // Michael Goldapp, Computer Aided Geometric Design 8 (1991) 227-238
-                        const rSinStart = r * Math.sin(a0);
-                        const rCosStart = r * Math.cos(a0);
-                        const rSinEnd = r * Math.sin(a1);
-                        const rCosEnd = r * Math.cos(a1);
-
-                        const h = (4 / 3) * Math.tan((a1 - a0) / 4);
-
-                        addCommand(
-                            'C',
-                            cx + rCosStart - h * rSinStart,
-                            cy + rSinStart + h * rCosStart,
-                            cx + rCosEnd + h * rSinEnd,
-                            cy + rSinEnd - h * rCosEnd,
-                            cx + rCosEnd,
-                            cy + rSinEnd
-                        );
-                    }
+                    buffer.push(move, p0.x, p0.y, 'A', r, r, 0, largeArcFlag, sweepFlag, p1.x, p1.y);
                     break;
                 }
                 case Command.ClosePath:
