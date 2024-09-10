@@ -53,6 +53,7 @@
     text-align: center;
     padding-top: $spacing-size-10;
     padding-bottom: $spacing-size-10;
+    min-width: 500px;
 
     @media screen and (min-width: $breakpoint-hero-small) {
         padding-top: $spacing-size-10;
@@ -352,7 +353,7 @@
         h1 {
             margin-bottom: 0;
             font-size: 22px;
-            color: var(--color-brand-400);
+            color: var(--color-brand-500);
         }
 
         h2 {
@@ -430,7 +431,11 @@
     h2 {
         margin-bottom: $spacing-size-1;
         font-size: 22px;
-        color: var(--color-brand-400);
+        color: var(--color-brand-500);
+
+        #{$selector-darkmode} & {
+            color: var(--color-brand-200);
+        }
     }
 
     h3 {
@@ -492,7 +497,7 @@
         font-size: var(--text-fs-xl);
         font-weight: var(--text-bold);
         margin-bottom: $spacing-size-2;
-        color: var(--color-brand-400);
+        color: var(--color-brand-500);
     }
 
     p {
