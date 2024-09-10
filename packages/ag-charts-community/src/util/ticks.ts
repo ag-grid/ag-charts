@@ -66,7 +66,7 @@ export function createTicks(
     maxCount?: number
 ): number[] {
     if (count < 2) {
-        return range(start, stop, stop - start);
+        return [start, stop];
     }
     const step = tickStep(start, stop, count, minCount, maxCount);
     if (!Number.isFinite(step)) {
@@ -114,9 +114,8 @@ export function getTickInterval(
 
 export function tickStep(start: number, end: number, count: number, minCount = 0, maxCount = Infinity): number {
     if (start === end) {
-        return 1;
-    }
-    if (count < 1) {
+        return Math.min(Math.max(1, minCount), maxCount);
+    } else if (count < 1) {
         return NaN;
     }
 
@@ -179,6 +178,8 @@ export function tickFormat(ticks: any[], format?: string): (n: number | { valueO
 }
 
 export function range(start: number, end: number, step: number): number[] {
+    if (!Number.isFinite(step) || step <= 0) return [];
+
     const f = 10 ** countFractionDigits(step);
     const d0 = Math.min(start, end);
     const d1 = Math.max(start, end);
