@@ -73,15 +73,17 @@ export class GaugeChart extends Chart {
         });
         const centerXOffset = -(unitBox.x + unitBox.width / 2) * 2;
         const centerYOffset = -(unitBox.y + unitBox.height / 2) * 2;
-        let radius = Math.max(
+        const { minimumRadius = 0, maximumRadius } = series;
+        const radiusBounds = Math.max(
             0.5 * Math.min(seriesRect.width / unitBox.width, seriesRect.height / unitBox.height),
             // seriesRect may have negative size
             0
         );
+        let radius = Math.min(maximumRadius ?? Infinity, Math.max(radiusBounds, minimumRadius ?? 0));
 
         const MAX_ITERATIONS = 8;
         for (let i = 0; i < MAX_ITERATIONS; i += 1) {
-            const isFinalIteration = radius === 0 || i === MAX_ITERATIONS - 1;
+            const isFinalIteration = radius <= minimumRadius || i === MAX_ITERATIONS - 1;
 
             const centerX = seriesRect.x + seriesRect.width / 2 + centerXOffset * radius;
             const centerY = seriesRect.y + seriesRect.height / 2 + centerYOffset * radius;
@@ -93,9 +95,7 @@ export class GaugeChart extends Chart {
             angleAxis.calculateLayout();
             const bbox = angleAxis.computeLabelsBBox({ hideWhenNecessary: isFinalIteration }, seriesRect);
 
-            if (isFinalIteration) {
-                break;
-            }
+            if (isFinalIteration) break;
 
             let shrinkDelta = 0;
             if (bbox != null) {
@@ -114,7 +114,7 @@ export class GaugeChart extends Chart {
             }
 
             if (shrinkDelta > 0) {
-                radius = Math.max(radius - shrinkDelta, 0);
+                radius = Math.max(radius - shrinkDelta, minimumRadius);
             } else {
                 break;
             }
@@ -129,7 +129,7 @@ export class GaugeChart extends Chart {
         series.textAlign = textAlign;
         series.verticalAlign = verticalAlign;
 
-        if (radius === 0) {
+        if (radius === 0 || radius > radiusBounds) {
             Logger.warnOnce('There was insufficient space to display the Radial Gauge.');
         }
     }
@@ -192,7 +192,6 @@ export class GaugeChart extends Chart {
         for (const group of [seriesRoot, annotationRoot, highlightRoot]) {
             group.translationX = Math.floor(layoutBox.x);
             group.translationY = Math.floor(layoutBox.y);
-            group.setClipRectInGroupCoordinateSpace(seriesRect.clone());
         }
 
         this.ctx.layoutManager.emitLayoutComplete(ctx, {

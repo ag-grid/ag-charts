@@ -61,7 +61,8 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         minHeight,
         theme,
         title,
-        seriesArea,
+        subtitle,
+        padding,
         listeners,
         type,
         id,
@@ -119,7 +120,8 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         minHeight,
         theme,
         title,
-        seriesArea,
+        subtitle,
+        padding,
         listeners,
     });
 
@@ -200,7 +202,8 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         minHeight,
         theme,
         title,
-        seriesArea,
+        subtitle,
+        padding,
         listeners,
         type,
         id,
@@ -212,7 +215,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         tooltip,
         value,
         scale = {},
-        horizontal,
+        direction,
         thickness,
         itemStyler,
         highlightStyle,
@@ -258,7 +261,8 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         minHeight,
         theme,
         title,
-        seriesArea,
+        subtitle,
+        padding,
         listeners,
     });
     const scaleOpts = pickProps<ScaleStyle>(scale, {
@@ -284,7 +288,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         listeners,
         tooltip,
         value,
-        horizontal,
+        direction,
         thickness,
         itemStyler,
         highlightStyle,
@@ -305,6 +309,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
     const { placement: labelPlacement, ...axisLabel } = scaleLabel;
     let mainAxisPosition: AgCartesianAxisPosition;
     let crossAxisPosition: AgCartesianAxisPosition;
+    const horizontal = direction === 'horizontal';
     if (horizontal) {
         mainAxisPosition = labelPlacement === 'before' ? 'top' : 'bottom';
         crossAxisPosition = 'left';

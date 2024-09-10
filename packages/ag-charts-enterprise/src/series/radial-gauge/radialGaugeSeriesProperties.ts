@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 import type {
     AgChartLabelFormatterParams,
     AgGaugeSeriesFillMode,
@@ -16,7 +16,7 @@ import type {
     Styler,
 } from 'ag-charts-types';
 
-import { FILL_MODE, TARGET_MARKER_SHAPE } from '../gauge-util/properties';
+import { CORNER_MODE, FILL_MODE, TARGET_MARKER_SHAPE } from '../gauge-util/properties';
 import { GaugeSegmentationProperties } from '../gauge-util/segmentation';
 import { GaugeStopProperties } from '../gauge-util/stops';
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
@@ -41,6 +41,7 @@ const {
     UNION,
 } = _ModuleSupport;
 const { Label } = _Scene;
+const { Logger } = _Util;
 
 const TARGET_PLACEMENT = UNION(['inside', 'outside', 'middle'], 'a placement');
 
@@ -302,10 +303,16 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeS
     @Validate(RATIO)
     innerRadiusRatio: number = 1;
 
+    @Validate(POSITIVE_NUMBER, { optional: true })
+    outerRadius: number | undefined;
+
+    @Validate(POSITIVE_NUMBER, { optional: true })
+    innerRadius: number | undefined;
+
     @Validate(POSITIVE_NUMBER)
     cornerRadius: number = 0;
 
-    @Validate(UNION(['container', 'item'], 'a corner mode'))
+    @Validate(CORNER_MODE)
     cornerMode: 'container' | 'item' = 'container';
 
     @Validate(NUMBER)
@@ -331,4 +338,16 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeS
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgRadialGaugeSeriesTooltipRendererParams<any>>();
+
+    override isValid(warningPrefix?: string | undefined): boolean {
+        if (!super.isValid(warningPrefix)) return false;
+
+        const { outerRadius, innerRadius } = this;
+        if ((outerRadius == null) !== (innerRadius == null)) {
+            Logger.warnOnce('Either [innerRadius] and [outerRadius] must both be set, or neither can be set.');
+            return false;
+        }
+
+        return true;
+    }
 }

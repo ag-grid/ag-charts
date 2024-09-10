@@ -14,7 +14,7 @@ import type {
     Styler,
 } from 'ag-charts-types';
 
-import { FILL_MODE, TARGET_MARKER_SHAPE } from '../gauge-util/properties';
+import { CORNER_MODE, FILL_MODE, TARGET_MARKER_SHAPE } from '../gauge-util/properties';
 import { GaugeSegmentationProperties } from '../gauge-util/segmentation';
 import { GaugeStopProperties } from '../gauge-util/stops';
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
@@ -41,6 +41,7 @@ const {
 const { Label } = _Scene;
 
 const TARGET_PLACEMENT = UNION(['before', 'after', 'middle'], 'a placement');
+const DIRECTION = UNION(['horizontal', 'vertical'], 'an orientation');
 
 export enum NodeDataType {
     Node,
@@ -157,6 +158,9 @@ export class LinearGaugeBarProperties extends BaseProperties {
     @Validate(POSITIVE_NUMBER, { optional: true })
     thickness: number | undefined;
 
+    @Validate(RATIO)
+    thicknessRatio: number = 1;
+
     @Validate(OBJECT_ARRAY)
     fills = new PropertiesArray<GaugeStopProperties>(GaugeStopProperties);
 
@@ -243,8 +247,8 @@ export class LinearGaugeSeriesProperties extends SeriesProperties<AgLinearGaugeS
     @Validate(OBJECT)
     defaultTarget = new LinearGaugeTargetProperties();
 
-    @Validate(BOOLEAN)
-    horizontal: boolean = false;
+    @Validate(DIRECTION)
+    direction: 'horizontal' | 'vertical' = 'vertical';
 
     @Validate(POSITIVE_NUMBER)
     thickness: number = 1;
@@ -252,7 +256,7 @@ export class LinearGaugeSeriesProperties extends SeriesProperties<AgLinearGaugeS
     @Validate(POSITIVE_NUMBER)
     cornerRadius: number = 0;
 
-    @Validate(UNION(['container', 'item'], 'a corner mode'))
+    @Validate(CORNER_MODE)
     cornerMode: 'container' | 'item' = 'container';
 
     @Validate(NUMBER)

@@ -74,6 +74,8 @@ export interface AgLinearGaugeSeriesBarStyle extends FillOptions, StrokeOptions,
     enabled?: boolean;
     /** Width of the bar, or the height if `horizontal` is true. Defaults to the gauge thickness. */
     thickness?: number;
+    /** Thickness of the bar in proportion to the gauge thickness. Ignored if `thickness` is set. */
+    thicknessRatio?: number;
     /** Configuration the colours. */
     fills?: AgGaugeSeriesColorStop[];
     /** Configuration the fill mode. */
@@ -136,9 +138,9 @@ export interface AgLinearGaugeSecondaryLabelOptions<TDatum>
 export interface AgLinearGaugeSeriesThemeableOptions<TDatum = any>
     extends AgLinearGaugeSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
-    /** Display the gauge horizontally. */
-    horizontal?: boolean;
-    /** Width of the gauge, or the height if `horizontal` is true. */
+    /** Direction to display the gauge in. */
+    direction?: 'horizontal' | 'vertical';
+    /** Width of the gauge, or the height if `direction` is `horizontal`. */
     thickness?: number;
     /** Configuration for a segmented appearance. */
     segments?: number[] | number;
