@@ -1,7 +1,8 @@
-import { _ModuleSupport, _Scale } from 'ag-charts-community';
+import { _ModuleSupport, _Scale, _Util } from 'ag-charts-community';
 
 const { BaseProperties, Validate, COLOR_STRING, NUMBER } = _ModuleSupport;
 const { ColorScale } = _Scale;
+const { Logger } = _Util;
 
 export class GaugeStopProperties extends BaseProperties {
     @Validate(NUMBER, { optional: true })
@@ -14,6 +15,22 @@ export class GaugeStopProperties extends BaseProperties {
 export interface GaugeColorStopDatum {
     offset: number;
     color: string;
+}
+
+function stopsAreAscending(fills: GaugeStopProperties[]) {
+    let currentStop: number | undefined;
+    for (let i = 0; i < fills.length; i += 1) {
+        const { stop } = fills[i];
+        if (stop == null) {
+            continue;
+        } else if (currentStop != null && stop < currentStop) {
+            return false;
+        }
+
+        currentStop = stop;
+    }
+
+    return true;
 }
 
 function discreteColorStops(colorStops: GaugeColorStopDatum[]): GaugeColorStopDatum[] {
@@ -33,30 +50,31 @@ function getDefaultColorStops(
     const d0 = Math.min(...domain);
     const d1 = Math.max(...domain);
 
+    const stopOffset = fillMode === 'discrete' ? 1 : 0;
+
+    let colorStops: GaugeColorStopDatum[];
     if (segments != null && fillMode !== 'continuous') {
+        fillMode ??= 'discrete';
+
         const colorScale = new ColorScale();
         colorScale.domain = [0, 1];
         colorScale.range = defaultColorStops;
 
-        const colorStops = Array.from({ length: segments.length - 1 }, (_, i): GaugeColorStopDatum => {
+        colorStops = Array.from({ length: segments.length - 1 }, (_, i): GaugeColorStopDatum => {
             const stop = segments[i + 1];
             const offset = (stop - d0) / (d1 - d0);
             const color = colorScale.convert(i > 0 ? i / (segments.length - 2) : 0);
 
             return { offset, color };
         });
-
-        return discreteColorStops(colorStops);
+    } else {
+        colorStops = defaultColorStops.map((color, index, { length }) => ({
+            offset: (index + stopOffset) / (length - 1 + stopOffset),
+            color,
+        }));
     }
 
-    const stops = defaultColorStops.map((color, index, { length }) => ({
-        offset: index / (length - 1),
-        color,
-    }));
-
-    if (fillMode === 'discrete') return discreteColorStops(stops);
-
-    return stops;
+    return fillMode === 'discrete' ? discreteColorStops(colorStops) : colorStops;
 }
 
 export function getColorStops(
@@ -68,6 +86,9 @@ export function getColorStops(
 ): GaugeColorStopDatum[] {
     if (fills.length === 0) {
         return getDefaultColorStops(defaultColorStops, domain, fillMode, segments);
+    } else if (!stopsAreAscending(fills)) {
+        Logger.warnOnce(`[fills] must have the stops defined in ascending order`);
+        return [];
     }
 
     const d0 = Math.min(...domain);

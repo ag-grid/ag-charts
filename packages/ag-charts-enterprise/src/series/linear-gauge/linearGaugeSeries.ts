@@ -463,8 +463,9 @@ export class LinearGaugeSeries
         const containerX = horizontal ? xScale.convert(value) : x1;
         const containerY = horizontal ? y1 : yScale.convert(value);
 
-        const horizontalInset = horizontal ? (segmentation.spacing ?? 0) / 2 : 0;
-        const verticalInset = horizontal ? 0 : (segmentation.spacing ?? 0) / 2;
+        const inset = (segmentation.spacing ?? 0) / 2;
+        const horizontalInset = horizontal ? inset : 0;
+        const verticalInset = horizontal ? 0 : inset;
 
         const barThickness = Math.min(bar.thickness ?? Math.round(bar.thicknessRatio * thickness), thickness);
 
