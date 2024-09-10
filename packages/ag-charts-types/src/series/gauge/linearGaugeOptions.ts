@@ -74,6 +74,8 @@ export interface AgLinearGaugeSeriesBarStyle extends FillOptions, StrokeOptions,
     enabled?: boolean;
     /** Width of the bar, or the height if `horizontal` is true. Defaults to the gauge thickness. */
     thickness?: number;
+    /** Thickness of the bar in proportion to the gauge thickness. Ignored if `thickness` is set. */
+    thicknessRatio?: number;
     /** Configuration the colours. */
     fills?: AgGaugeSeriesColorStop[];
     /** Configuration the fill mode. */

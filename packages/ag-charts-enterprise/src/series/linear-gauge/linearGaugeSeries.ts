@@ -466,7 +466,7 @@ export class LinearGaugeSeries
         const horizontalInset = horizontal ? (segmentation.spacing ?? 0) / 2 : 0;
         const verticalInset = horizontal ? 0 : (segmentation.spacing ?? 0) / 2;
 
-        const barThickness = Math.min(bar.thickness ?? thickness, thickness);
+        const barThickness = Math.min(bar.thickness ?? Math.round(bar.thicknessRatio * thickness), thickness);
 
         const barInset = -(thickness - barThickness) / 2;
         const barXInset = horizontal ? 0 : barInset;

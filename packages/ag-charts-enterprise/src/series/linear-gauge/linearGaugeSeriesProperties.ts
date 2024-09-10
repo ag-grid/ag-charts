@@ -158,6 +158,9 @@ export class LinearGaugeBarProperties extends BaseProperties {
     @Validate(POSITIVE_NUMBER, { optional: true })
     thickness: number | undefined;
 
+    @Validate(RATIO)
+    thicknessRatio: number = 1;
+
     @Validate(OBJECT_ARRAY)
     fills = new PropertiesArray<GaugeStopProperties>(GaugeStopProperties);
 
