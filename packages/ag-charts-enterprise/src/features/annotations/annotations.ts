@@ -1147,10 +1147,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (modifierKey && sourceEvent.key === 'c') {
             this.state.transition('copy');
+            this.recordActionAfterNextUpdate('annotations', `Copy annotation`);
         } else if (modifierKey && sourceEvent.key === 'x') {
             this.state.transition('cut');
+            this.recordActionAfterNextUpdate('annotations', `Cut annotation`);
         } else if (modifierKey && sourceEvent.key === 'v') {
             this.state.transition('paste');
+            this.recordActionAfterNextUpdate('annotations', `Paste annotation`);
         }
     }
 
