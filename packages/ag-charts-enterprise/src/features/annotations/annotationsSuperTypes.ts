@@ -69,7 +69,8 @@ export interface AnnotationsStateMachineContext {
     startInteracting: () => void;
     stopInteracting: () => void;
 
-    paste: (datum: AnnotationProperties, index: number) => void;
+    copy: (index: number) => AnnotationProperties | undefined;
+    paste: (datum: AnnotationProperties) => void;
     create: (type: AnnotationType, datum: AnnotationProperties) => void;
     delete: (index: number) => void;
     deleteAll: () => void;

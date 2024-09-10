@@ -40,6 +40,7 @@ type AnnotationEvent =
     // Data events
     | 'selectLast'
     | 'copy'
+    | 'cut'
     | 'paste'
     | 'cancel'
     | 'reset'
@@ -64,7 +65,8 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
     private hovered?: number;
     // eslint-disable-next-line @typescript-eslint/prefer-readonly
     private active?: number;
-    private copied?: number;
+    // eslint-disable-next-line @typescript-eslint/prefer-readonly
+    private copied?: AnnotationProperties;
 
     constructor(ctx: AnnotationsStateMachineContext) {
         // A `click` is preceeded by the `dragStart` and `dragEnd` events, since `dragStart` also selects the annotation we
@@ -240,17 +242,24 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 },
 
                 copy: {
+                    guard: guardActive,
                     action: () => {
-                        this.copied = this.active;
+                        this.copied = ctx.copy(this.active!);
+                    },
+                },
+
+                cut: {
+                    guard: guardActive,
+                    action: () => {
+                        this.copied = ctx.copy(this.active!);
+                        deleteDatum();
                     },
                 },
 
                 paste: {
                     guard: guardCopied,
                     action: () => {
-                        const datum = ctx.datum(this.copied!);
-                        if (!datum) return;
-                        ctx.paste(datum, this.copied!);
+                        ctx.paste(this.copied!);
                     },
                 },
 

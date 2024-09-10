@@ -211,10 +211,22 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 return hovered;
             },
 
-            paste: (datum: AnnotationProperties, index: number) => {
-                this.pasteAnnotation(datum, index);
+            copy: (index: number) => {
+                const node = this.annotations.at(index);
+                const datum = getTypedDatum(this.annotationData.at(index));
+                if (!node || !datum) {
+                    return;
+                }
+
+                return this.createAnnotationDatumCopy({ node, datum });
+            },
+
+            paste: (datum: AnnotationProperties) => {
+                this.createAnnotation(datum.type, datum, false);
+
                 this.postUpdateFns.push(() => {
                     this.state.transitionAsync('selectLast');
+                    this.state.transitionAsync('copy');
                 });
             },
 
@@ -474,14 +486,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private createAnnotationDatumCopy({
-        type,
         node,
         datum,
     }: {
-        type: AnnotationType;
         node: AnnotationScene;
         datum: AnnotationProperties;
     }): AnnotationProperties | undefined {
+        const { type } = datum;
         if (type in annotationConfigs) {
             const config = annotationConfigs[type];
 
@@ -526,21 +537,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.removeAmbientKeyboardListener = undefined;
 
         this.update();
-    }
-
-    private pasteAnnotation(datum: AnnotationProperties, index: number) {
-        const node = this.annotations.at(index);
-        if (!node) {
-            return;
-        }
-
-        const copiedDatum = this.createAnnotationDatumCopy({ node, type: datum.type, datum });
-
-        if (!copiedDatum) {
-            return;
-        }
-
-        this.createAnnotation(copiedDatum.type, copiedDatum, false);
     }
 
     private onToolbarButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
@@ -1151,6 +1147,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (modifierKey && sourceEvent.key === 'c') {
             this.state.transition('copy');
+        } else if (modifierKey && sourceEvent.key === 'x') {
+            this.state.transition('cut');
         } else if (modifierKey && sourceEvent.key === 'v') {
             this.state.transition('paste');
         }
