@@ -221,7 +221,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
             return zoomManager.getZoom();
         }
 
-        const combinedZoom = chart.zoomManager.getZoom() ?? {};
+        const combinedZoom = chart.ctx.zoomManager.getZoom() ?? {};
         combinedZoom[this.axes] = zoomManager.getZoom()?.[this.axes];
         return combinedZoom;
     }
