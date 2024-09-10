@@ -1,19 +1,24 @@
-import { getWindow } from '../util/dom';
+import { downloadUrl, getWindow } from '../util/dom';
 import { hasConstrainedCanvasMemory } from '../util/userAgent';
 import { CartesianChart } from './chart/cartesianChart';
 import { ChartOptions } from './chart/chartOptions';
-import type { AgChartOptions, DownloadOptions, IChart, IChartOptions, ImageUrlOptions } from './chart/chartTypes';
+import type {
+    AgChartOptions,
+    DownloadOptions,
+    IChart,
+    IChartConstructor,
+    IChartOptions,
+    ImageUrlOptions,
+} from './chart/chartTypes';
 import { HierarchyChart } from './chart/hierarchyChart';
 import { PolarChart } from './chart/polarChart';
 import { TopologyChart } from './chart/topologyChart';
 import { Stage } from './drawing/stage';
 import { ChartType } from './types/enums';
 
-type IChartConstructor = new (stage: Stage, options: IChartOptions<any>) => IChart<any>;
-
 export abstract class AgCharts {
     static create<T extends AgChartOptions>(options: T) {
-        // first-time: check license
+        // TODO: first-time, check license
         return new ChartInstance<T>(options);
     }
 
@@ -23,14 +28,6 @@ export abstract class AgCharts {
 
     static remove(chartInstance: ChartInstance<any>) {
         return chartInstance.remove();
-    }
-
-    static download(chartInstance: ChartInstance<any>, options: DownloadOptions) {
-        return chartInstance.download(options);
-    }
-
-    static getImageDataURL(chartInstance: ChartInstance<any>, options: ImageUrlOptions) {
-        return chartInstance.getImageDataURL(options);
     }
 }
 
@@ -62,9 +59,13 @@ export class ChartInstance<T extends AgChartOptions> {
         this.chart.remove();
     }
 
-    download(_options: DownloadOptions) {}
+    download(options: DownloadOptions) {
+        downloadUrl(this.getImageDataURL(options), options.fileName ?? 'TempFileName');
+    }
 
-    getImageDataURL(_options: ImageUrlOptions) {}
+    getImageDataURL(options: ImageUrlOptions) {
+        return this.stage.toDataURL(options);
+    }
 
     private static create(stage: Stage, options: ChartOptions<any>) {
         const ChartConstructor = this.getConstructor(options);
@@ -82,7 +83,7 @@ export class ChartInstance<T extends AgChartOptions> {
             case ChartType.Topology:
                 return TopologyChart;
             default:
-                throw new TypeError('invalid chartType');
+                throw new TypeError('Invalid chartType');
         }
     }
 }

@@ -1,5 +1,6 @@
 import { createElement } from '../../util/dom';
 import { EventEmitter } from '../../util/eventEmitter';
+import type { ImageUrlOptions } from '../chart/chartTypes';
 import type { IStage, StageEventMap } from './drawingTypes';
 import { StageLayout } from './stageLayout';
 
@@ -53,8 +54,15 @@ export class Stage implements IStage {
         }
     }
 
-    toDataURL(type?: string) {
-        return this.canvas.toDataURL(type);
+    toDataURL(options: ImageUrlOptions) {
+        let { canvas } = this;
+        if (options.width || options.height) {
+            canvas = createElement('canvas');
+            canvas.width = options.width ?? this.width;
+            canvas.height = options.height ?? this.height;
+            // TODO: render stage content to new canvas
+        }
+        return canvas.toDataURL(options.fileFormat);
     }
 
     remove() {

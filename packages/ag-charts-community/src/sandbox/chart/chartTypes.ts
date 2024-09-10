@@ -1,4 +1,4 @@
-import type { AgChartCaptionOptions } from 'ag-charts-types';
+import type { AgChartCaptionOptions, PixelSize } from 'ag-charts-types';
 
 import type { EventEmitter } from '../../util/eventEmitter';
 import type { CartesianChartAxes, PolarChartAxes } from '../axes/axesTypes';
@@ -31,6 +31,8 @@ export interface IChart<T extends AgChartOptions> {
     waitForUpdate(): Promise<void>;
     remove(): void;
 }
+
+export type IChartConstructor = new (stage: IStage, options: IChartOptions<any>) => IChart<any>;
 
 export interface ChartEventMap<T extends AgChartOptions> {
     change: IChartOptions<T>;
@@ -109,9 +111,15 @@ export interface TopologyChartOptions extends CommonChartOptions {
     series: TopologyChartSeries[];
 }
 
-export interface DownloadOptions {}
+export interface DownloadOptions extends ImageUrlOptions {
+    fileName?: string;
+}
 
-export interface ImageUrlOptions {}
+export interface ImageUrlOptions {
+    width?: PixelSize;
+    height?: PixelSize;
+    fileFormat?: string;
+}
 
 export interface SeriesAreaOptions {
     clip?: boolean;
