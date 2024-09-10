@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
+import { useEffect, useRef } from 'react';
 
 import './ImageCarousel.scss';
 
@@ -24,14 +25,14 @@ const ImageCarousel = () => {
     }, []);
 
     const images = [
-        'charts/images/scroller-1.png',
-        'charts/images/scroller-2.png',
-        'charts/images/scroller-3.png',
-        'charts/images/scroller-4.png',
-        'charts/images/scroller-5.png',
-        'charts/images/scroller-6.png',
-        'charts/images/scroller-7.png',
-        'charts/images/scroller-8.png',
+        'images/scroller-1.png',
+        'images/scroller-2.png',
+        'images/scroller-3.png',
+        'images/scroller-4.png',
+        'images/scroller-5.png',
+        'images/scroller-6.png',
+        'images/scroller-7.png',
+        'images/scroller-8.png',
     ];
 
     const createImagePairs = (imgs) => {
@@ -52,7 +53,11 @@ const ImageCarousel = () => {
                         <div key={index} className="image-row">
                             {pair.map((src, i) => (
                                 <div key={`${index}-${i}`} className="image-column">
-                                    <img src={src} alt={`Image ${index * 2 + i + 1}`} className="carousel-image" />
+                                    <img
+                                        src={urlWithBaseUrl(src)}
+                                        alt={`Image ${index * 2 + i + 1}`}
+                                        className="carousel-image"
+                                    />
                                 </div>
                             ))}
                         </div>
