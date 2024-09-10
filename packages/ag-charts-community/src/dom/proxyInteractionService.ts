@@ -1,17 +1,11 @@
 import type { Direction } from 'ag-charts-types';
 
 import type { LocaleManager } from '../locale/localeManager';
-import type { BBoxProvider, BBoxValues } from '../util/bboxinterface';
 import { createElement } from '../util/dom';
 import { BoundedText } from './boundedText';
 import type { DOMElementClass, DOMManager } from './domManager';
-import type { FocusIndicator } from './focusIndicator';
 
 export type ListSwitch = { button: HTMLButtonElement; listitem: HTMLElement };
-
-type UpdateServiceLike = {
-    addListener(type: 'update-complete', handler: () => unknown): () => void;
-};
 
 type ElemParams<T extends ProxyElementType> = {
     readonly type: T;
@@ -20,7 +14,6 @@ type ElemParams<T extends ProxyElementType> = {
 };
 
 type InteractParams<T extends ProxyElementType> = ElemParams<T> & {
-    readonly focusable: BBoxProvider<BBoxValues>;
     readonly tabIndex?: number;
     readonly onclick?: (ev: MouseEvent) => void;
     readonly onchange?: (ev: Event) => void;
@@ -107,30 +100,20 @@ function allocateMeta<T extends keyof ProxyMeta>(params: ProxyMeta[T]['params'])
 }
 
 export class ProxyInteractionService {
-    private focusable?: BBoxProvider<BBoxValues>;
     private readonly destroyFns: Array<() => void> = [];
 
     constructor(
-        updateService: UpdateServiceLike,
         private readonly localeManager: LocaleManager,
-        private readonly domManager: DOMManager,
-        private readonly focusIndicator: FocusIndicator
-    ) {
-        this.destroyFns.push(updateService.addListener('update-complete', () => this.update()));
-    }
+        private readonly domManager: DOMManager
+    ) {}
 
     destroy() {
         this.destroyFns.forEach((fn) => fn());
     }
 
-    private update() {
-        if (this.focusable) {
-            this.focusIndicator.updateBounds(this.focusable.toCanvasBBox());
-        }
-    }
-
     private addLocalisation(fn: () => void) {
         fn();
+        // FIXME(olegat) The result of `addListener` must be freed when the HTMLElement goes out of scope.
         this.destroyFns.push(this.localeManager.addListener('locale-changed', fn));
     }
 
@@ -228,23 +211,13 @@ export class ProxyInteractionService {
         params: InteractParams<T>,
         element: TElem
     ) {
-        const { focusable, onclick, onchange, onfocus, onblur, tabIndex } = params;
+        const { onclick, onchange, onfocus, onblur, tabIndex } = params;
         this.initElement(params, element);
 
         if (tabIndex !== undefined) {
             element.tabIndex = tabIndex;
         }
 
-        element.addEventListener('focus', (_event: FocusEvent): any => {
-            this.focusable = focusable;
-            element.style.setProperty('pointerEvents', null);
-            this.focusIndicator.updateBounds(focusable.toCanvasBBox());
-        });
-        element.addEventListener('blur', (_event: FocusEvent): any => {
-            this.focusable = undefined;
-            element.style.pointerEvents = 'none';
-            this.focusIndicator.updateBounds(undefined);
-        });
         if (onclick) {
             element.addEventListener('click', onclick);
         }

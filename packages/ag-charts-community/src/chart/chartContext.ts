@@ -108,12 +108,7 @@ export class ChartContext implements ModuleContext {
             this.layoutManager
         );
         this.updateService = new UpdateService(updateCallback);
-        this.proxyInteractionService = new ProxyInteractionService(
-            this.updateService,
-            this.localeManager,
-            this.domManager,
-            this.focusIndicator
-        );
+        this.proxyInteractionService = new ProxyInteractionService(this.localeManager, this.domManager);
         this.historyManager = new HistoryManager(this.domManager);
         this.animationManager = new AnimationManager(this.interactionManager, updateMutex);
         this.dataService = new DataService<any>(this.animationManager);
