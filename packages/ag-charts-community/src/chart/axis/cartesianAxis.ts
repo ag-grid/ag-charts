@@ -61,7 +61,6 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     override calculateLayout(primaryTickCount?: number) {
-        debugger;
         this.updateDirection();
         return super.calculateLayout(primaryTickCount);
     }
