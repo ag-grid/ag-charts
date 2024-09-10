@@ -262,7 +262,6 @@ export class LinearGaugeSeries
             const {
                 text = defaultTarget.text,
                 value = defaultTarget.value ?? 0,
-                placement = defaultTarget.placement ?? 'middle',
                 spacing = defaultTarget.spacing ?? 0,
                 size = defaultTarget.size ?? 0,
                 fill = defaultTarget.fill ?? 'black',
@@ -283,10 +282,19 @@ export class LinearGaugeSeries
             } = target.label;
 
             let {
+                placement = defaultTarget.placement,
                 shape = defaultTarget.shape,
                 rotation = defaultTarget.rotation,
                 strokeWidth = defaultTarget.strokeWidth,
             } = target;
+            if (shape === 'line') {
+                placement ??= 'middle';
+                rotation ??= 90;
+                strokeWidth ??= 2;
+            } else {
+                placement ??= 'after';
+                strokeWidth ??= 0;
+            }
             switch (placement) {
                 case 'before':
                     shape ??= 'triangle';
@@ -300,12 +308,7 @@ export class LinearGaugeSeries
                     shape ??= 'circle';
                     rotation ??= 0;
             }
-            if (shape === 'line') {
-                rotation += 90;
-            }
             rotation = toRadians(rotation);
-
-            strokeWidth ??= shape === 'line' ? 2 : 0;
 
             return {
                 text,
