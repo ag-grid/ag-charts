@@ -165,11 +165,12 @@ function PropertyName({
         console.warn('PropertyName children must be of type string', children);
         return <Component {...props} />;
     }
+
     return (
-        <Component {...props}>
-            {wbrInject(children, splitRegex)}
+        <>
+            <Component {...props}>{wbrInject(children, splitRegex)}</Component>
             {isRequired && <span className={styles.required}>required</span>}
-        </Component>
+        </>
     );
 }
 

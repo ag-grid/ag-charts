@@ -148,18 +148,19 @@
     --parent-properties-color: var(--color-fg-secondary);
     --parent-properties-font-weight: var(--text-regular);
 
-    color: var(--color-fg-primary);
     position: relative;
-    display: inline-block;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: $spacing-size-3;
     margin-top: 0;
+    margin-bottom: 0;
     padding-right: $spacing-size-2;
     font-family: var(--text-monospace-font-family);
     font-size: 15px;
     line-height: var(--text-lh-xs);
     font-weight: 700;
-    margin-bottom: 0;
-    display: flex;
-    flex-direction: row;
+    color: var(--color-fg-primary);
 
     @container (min-width: #{$breakpoint-table-small}) {
         font-size: 15px;
