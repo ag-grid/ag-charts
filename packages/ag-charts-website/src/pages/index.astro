@@ -8,6 +8,7 @@ import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
 import { AutomatedIntegratedChartsWrapper } from '@ag-website-shared/components/automated-examples/AutomatedIntegratedChartsWrapper';
 import { Faqs } from '../features/homepage/components/faqs/Faqs';
+import ImageCarousel from '../features/homepage/components/hero/ImageCarousel';
 import { parseVersion } from '@ag-website-shared/utils/parseVersion';
 import { Version, type VersionProps } from '@ag-website-shared/components/whats-new/components/Version';
 import whatsNewData from '@ag-website-shared/content/whats-new/data.json';
@@ -97,6 +98,8 @@ const frameworksData = [
     },
 ];
 
+const mapExampleHeights = 360;
+
 /**
  * Version of `ag-grid-charts-enterprise` to use
  *
@@ -116,7 +119,9 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
         <div class={styles.homepageHero}>
             <div class:list={[styles.heroInner, 'layout-max-width-small']}>
                 <div class={styles.heroHeadings}>
-                    <h1>The Best JavaScript Charts in the World</h1>
+                    <p>The Best</p>
+                    <h1>JavaScript Charts</h1>
+                    <p>in the World</p>
                     <h2>The professional choice for developers building enterprise applications</h2>
                     <a
                         href={urlWithBaseUrl(
@@ -126,7 +131,7 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                     >
                 </div>
 
-                <div class={styles.galleryScroller}></div>
+                <ImageCarousel client:load />
             </div>
         </div>
 
@@ -141,7 +146,7 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
             <div class:list={[styles.communityFeaturesSectionInner, 'layout-max-width-small']}>
                 <div class={styles.sectionHeaderContainer}>
                     <h2>AG Charts JavaScript Charting Library</h2>
-                    <h3>JavaScript Charts Designed for Every Use Case</h3>
+                    <h3>JavaScript Charts <br /> Designed for Every Use Case</h3>
                     <h4>
                         Discover a comprehensive range of high-quality and flexible JavaScript Charts designed for quick
                         & easy integration into your JavaScript, React, Angular or Vue applications.
@@ -162,7 +167,7 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
             <div class:list={[styles.financialChartsSectionInner, 'layout-max-width-small']}>
                 <div class={styles.sectionHeaderContainer}>
                     <h2>JavaScript Financial Charts - Create Trading Views in Minutes</h2>
-                    <h3>Interactive Financial Charts for Trading and Analysis</h3>
+                    <h3>Interactive Financial Charts <br /> for Trading&nbsp;and&nbsp;Analysis</h3>
                     <h4>
                         Build interactive financial charts featuring advanced annotations with minimal configuration -
                         just provide your data. Use the toolbar in the example below to add annotations, change the
@@ -190,7 +195,7 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
             <div class:list={[styles.financialChartsSectionInner, 'layout-max-width-small']}>
                 <div class={styles.sectionHeaderContainer}>
                     <h2>JavaScript Map Charts - Easily Visualise Geographical Data</h2>
-                    <h3>Customizable JavaScript Map Charts for Geographical Data Visualisation</h3>
+                    <h3>Customizable JavaScript Map Charts for <br /> Geographical Data&nbsp;Visualisation</h3>
                     <h4>
                         Visualise Geographical Areas, Overlay Routes & Connections, Add Markers & Points Of Interest
                     </h4>
@@ -202,7 +207,10 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                             Visualise data representing geographic areas such as countries, using colours to denote
                             distinct series or the magnitude of the values.
                         </p>
-                        <IndexDocsExampleRunner name={'../../vanilla/map-shapes/examples/multiple-series/'} />
+                        <IndexDocsExampleRunner
+                            name={'../../vanilla/map-shapes/examples/multiple-series/'}
+                            options={{ exampleHeight: mapExampleHeights }}
+                        />
                     </div>
                     <div class={styles.card}>
                         <h4>Routes & Connections</h4>
@@ -210,7 +218,10 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                             Draw geographic lines, such as roads or flight paths, with the ability to vary width and
                             colour to represent data values.
                         </p>
-                        <IndexDocsExampleRunner name={'../../vanilla/map-lines/examples/map-shapes-lines/'} />
+                        <IndexDocsExampleRunner
+                            name={'../../vanilla/map-lines/examples/map-shapes-lines/'}
+                            options={{ exampleHeight: mapExampleHeights }}
+                        />
                     </div>
                     <div class={styles.card}>
                         <h4>Makers & POIs</h4>
@@ -218,7 +229,10 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                             Add markers data for geographic points, with the ability to vary the size to represent data
                             values.
                         </p>
-                        <IndexDocsExampleRunner name={'../../vanilla/map-markers/examples/marker-size/'} />
+                        <IndexDocsExampleRunner
+                            name={'../../vanilla/map-markers/examples/marker-size/'}
+                            options={{ exampleHeight: mapExampleHeights }}
+                        />
                     </div>
                 </div>
                 <div class={styles.ctaButton}>
@@ -235,7 +249,7 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
             <div class:list={[styles.benchmarkSectionInner, 'layout-max-width-small']}>
                 <div class={styles.sectionHeaderContainer}>
                     <h2>AG Grid Integrated JavaScript Charts</h2>
-                    <h3>AG Grid Integrated Charts, powered by AG Charts</h3>
+                    <h3>AG Grid Integrated Charts, <br /> Powered by&nbsp;AG&nbsp;Charts</h3>
                     <h4>
                         AG Charts is powers the <a href="https://www.ag-grid.com/react-data-grid/integrated-charts/"
                             >Integrated Charts</a
@@ -252,7 +266,7 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
             <div class:list={[styles.latestNewsSectionInner, 'layout-max-width-small']}>
                 <div class={styles.sectionHeaderContainer}>
                     <h2>Latest JavaScript Charting Releases from AG Charts</h2>
-                    <h3>Regular Releases, Updates, and Enhancements</h3>
+                    <h3>Regular Releases, <br /> Updates, and&nbsp;Enhancements</h3>
                     <h4>
                         Browse the latest updates to AG Charts JavaScript Charting Library, including new features,
                         series types, functionality and more.

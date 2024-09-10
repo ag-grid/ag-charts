@@ -11,71 +11,76 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 16px;
-    border-radius: var(--radius-4xl);
+    gap: $spacing-size-4;
     padding: $spacing-size-1;
     max-width: 100%;
 }
 
 .tabButton {
+    position: relative;
     width: auto;
-    height: 50px;
+    padding: $spacing-size-2 $spacing-size-1;
     color: var(--color-fg-primary);
-    border-radius: var(--radius-4xl);
-    border: none;
-    appearance: none;
     background-color: transparent;
+    border: none;
     box-shadow: none;
+    border-radius: var(--radius-none);
     font-weight: var(--text-regular);
+    overflow: hidden;
 
-    &:hover {
-        border-radius: 0;
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background-color: var(--color-brand-400);
+        transition: transform $transition-default-timing;
+    }
+
+    &:hover,
+    &.activeTabButton {
         background: transparent;
         color: var(--color-brand-600);
-        border: none;
-        box-shadow: none;
-        border-bottom: 2px solid var(--color-brand-400);
 
         #{$selector-darkmode} & {
-            color: var(--color-util-brand-600) !important;
+            color: var(--color-brand-200);
         }
 
-        .tabButtonIcon {
+        .tabButtonIcon,
+        .activeTabButtonIcon {
             fill: var(--color-brand-600) !important;
-
             #{$selector-darkmode} & {
-                fill: var(--color-util-brand-600) !important;
+                fill: var(--color-brand-200) !important;
             }
+        }
+
+        &::after {
+            transform: translateY(-2px);
         }
     }
 }
 
-.tabButtonIcon {
+.tabButtonIcon,
+.activeTabButtonIcon {
+    --icon-size: #{$spacing-size-6} !important;
+
     fill: var(--color-text-primary) !important;
-    padding: 6px;
+    margin-right: $spacing-size-2 !important;
 }
 
 .activeTabButton {
-    width: auto;
-    height: 50px;
-    border-radius: 0;
-    background: transparent;
-    color: var(--color-brand-600);
-    border: none;
-    box-shadow: none;
-    border-bottom: 2px solid var(--color-brand-400);
-
     #{$selector-darkmode} & {
-        color: var(--color-util-brand-600);
+        color: var(--color-brand-200);
     }
 }
 
 .activeTabButtonIcon {
-    padding: 6px;
     fill: var(--color-brand-600) !important;
 
     #{$selector-darkmode} & {
-        fill: var(--color-util-brand-600) !important;
+        fill: var(--color-brand-200) !important;
     }
 }
 
