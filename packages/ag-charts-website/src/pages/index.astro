@@ -97,6 +97,8 @@ const frameworksData = [
     },
 ];
 
+const mapExampleHeights = 360;
+
 /**
  * Version of `ag-grid-charts-enterprise` to use
  *
@@ -204,7 +206,10 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                             Visualise data representing geographic areas such as countries, using colours to denote
                             distinct series or the magnitude of the values.
                         </p>
-                        <IndexDocsExampleRunner name={'../../vanilla/map-shapes/examples/multiple-series/'} />
+                        <IndexDocsExampleRunner
+                            name={'../../vanilla/map-shapes/examples/multiple-series/'}
+                            options={{ exampleHeight: mapExampleHeights }}
+                        />
                     </div>
                     <div class={styles.card}>
                         <h4>Routes & Connections</h4>
@@ -212,7 +217,10 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                             Draw geographic lines, such as roads or flight paths, with the ability to vary width and
                             colour to represent data values.
                         </p>
-                        <IndexDocsExampleRunner name={'../../vanilla/map-lines/examples/map-shapes-lines/'} />
+                        <IndexDocsExampleRunner
+                            name={'../../vanilla/map-lines/examples/map-shapes-lines/'}
+                            options={{ exampleHeight: mapExampleHeights }}
+                        />
                     </div>
                     <div class={styles.card}>
                         <h4>Makers & POIs</h4>
@@ -220,7 +228,10 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                             Add markers data for geographic points, with the ability to vary the size to represent data
                             values.
                         </p>
-                        <IndexDocsExampleRunner name={'../../vanilla/map-markers/examples/marker-size/'} />
+                        <IndexDocsExampleRunner
+                            name={'../../vanilla/map-markers/examples/marker-size/'}
+                            options={{ exampleHeight: mapExampleHeights }}
+                        />
                     </div>
                 </div>
                 <div class={styles.ctaButton}>
