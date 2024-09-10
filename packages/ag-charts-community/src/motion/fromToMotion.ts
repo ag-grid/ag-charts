@@ -127,6 +127,7 @@ export function fromToMotion<
                 ...to
             } = toFn(node, node.datum, status, ctx);
 
+            const collapsable = finish == null;
             animationManager.animate({
                 id: animationId,
                 groupId,
@@ -136,6 +137,7 @@ export function fromToMotion<
                 from: from as unknown as T,
                 to: to as unknown as T,
                 ease: easing.easeOut,
+                collapsable,
                 onPlay: () => {
                     applyFn(node, { ...start, ...toStart } as unknown as T);
                 },
