@@ -12,16 +12,16 @@
         "answer": "Yes, AG Charts JavaScript charts are fully responsive out of the box. They automatically adjust to different screen sizes and devices, ensuring your JavaScript charts look great on desktops, tablets, and mobile phones."
     },
     {
-        "question": "Can I create real-time updating JavaScript charts with AG Charts?",
-        "answer": "Absolutely! AG Charts supports real-time data updates for JavaScript charts. You can easily create dynamic charts that update as new data becomes available, making it perfect for live dashboards and monitoring applications."
+        "question": "Can I create real time updating JavaScript charts with AG Charts?",
+        "answer": "Absolutely! AG Charts supports real time data updates for JavaScript charts. You can easily create dynamic charts that update as new data becomes available, making it perfect for live dashboards and monitoring applications."
     },
     {
         "question": "What interactivity features do AG Charts JavaScript charts offer?",
-        "answer": "AG Charts JavaScript charts provide rich interactivity options, including tooltips, zooming, panning, and click events. You can customize these features and add your own interactive elements to create engaging user experiences with your JavaScript charts."
+        "answer": "AG Charts JavaScript charts provide rich interactivity options, including tooltips, zooming, panning, context menus and click events. You can customize these features to create engaging user experiences with your JavaScript charts."
     },
     {
         "question": "Can I export AG Charts JavaScript charts as images?",
-        "answer": "Yes, AG Charts offers built-in export functionality for JavaScript charts. You can easily export your charts as PNG, JPEG, or SVG files, making it simple to include them in reports or share them with others."
+        "answer": "Yes, AG Charts offers built-in export functionality for JavaScript charts. You can easily export your charts as PNG files, making it simple to include them in reports or share them with others."
     },
     {
         "question": "How do I integrate AG Charts JavaScript charts with React?",
@@ -29,14 +29,14 @@
     },
     {
         "question": "Are AG Charts JavaScript charts accessible?",
-        "answer": "Yes, AG Charts JavaScript charts are designed with accessibility in mind. They include features like keyboard navigation, ARIA labels, and high-contrast themes to ensure your charts are usable by people with disabilities and comply with accessibility standards."
+        "answer": "Yes, AG Charts JavaScript charts are designed with accessibility in mind. They include features like keyboard navigation and ARIA labels to ensure your charts are usable by people with disabilities and comply with accessibility standards."
     },
     {
         "question": "How customizable are AG Charts JavaScript charts?",
-        "answer": "AG Charts JavaScript charts offer extensive customization options. You can easily modify colors, fonts, styles, and layouts to match your application's design. The API also allows for advanced customizations, including custom series types and axes for your JavaScript charts."
+        "answer": "AG Charts JavaScript charts offer extensive customization options. You can easily modify colors, fonts, styles, and layouts to match your application's design. The API also allows for advanced customizations for your JavaScript charts."
     },
     {
         "question": "How do AG Charts JavaScript charts perform with large datasets?",
-        "answer": "AG Charts JavaScript charts are optimized for performance with large datasets. They use efficient rendering techniques and data aggregation to handle millions of data points smoothly, ensuring your JavaScript charts remain responsive even with substantial amounts of data."
+        "answer": "AG Charts JavaScript charts are optimized for performance with large datasets. We use efficient rendering techniques to handle hundreds of thousands of data points smoothly, ensuring your JavaScript charts remain responsive even with substantial amounts of data."
     }
 ]

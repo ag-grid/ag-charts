@@ -1,9 +1,12 @@
-import type { AgFinancialChartPresets } from '../api/presetOptions';
+import type {
+    AgFinancialChartPresets,
+    AgGaugePreset,
+    AgLinearGaugePreset,
+    AgRadialGaugePreset,
+} from '../api/presetOptions';
 import type { AgBaseCartesianChartOptions } from '../series/cartesian/cartesianOptions';
 import type { AgBaseFlowProportionChartOptions } from '../series/flow-proportion/flowProportionOptions';
 import type { AgBaseGaugeChartOptions } from '../series/gauge/gaugeOptions';
-import type { AgLinearGaugeSeriesOptions } from '../series/gauge/linearGaugeOptions';
-import type { AgRadialGaugeSeriesOptions } from '../series/gauge/radialGaugeOptions';
 import type { AgBaseHierarchyChartOptions } from '../series/hierarchy/hierarchyOptions';
 import type { AgBasePolarChartOptions } from '../series/polar/polarOptions';
 import type { AgBaseTopologyChartOptions } from '../series/topology/topologyOptions';
@@ -41,8 +44,7 @@ export type AgChartOptions =
     | AgPolarChartOptions
     | AgHierarchyChartOptions
     | AgTopologyChartOptions
-    | AgFlowProportionChartOptions
-    | AgGaugeChartOptions;
+    | AgFlowProportionChartOptions;
 
 export type AgBaseFinancialPresetOptions = Pick<
     AgCartesianChartOptions,
@@ -53,22 +55,15 @@ export type AgBaseFinancialPresetOptions = Pick<
 export type AgFinancialChartOptions = AgFinancialChartPresets & AgBaseFinancialPresetOptions;
 
 type AgBaseGaugePresetOptions = Pick<
-    AgCartesianChartOptions,
-    | 'container'
-    | 'animation'
-    | 'width'
-    | 'height'
-    | 'minWidth'
-    | 'minHeight'
-    | 'theme'
-    | 'title'
-    | 'subtitle'
-    | 'padding'
->;
+    AgBaseChartOptions<any>,
+    'container' | 'animation' | 'width' | 'height' | 'minWidth' | 'minHeight' | 'title' | 'subtitle' | 'padding'
+> & {
+    theme?: AgChartTheme | AgChartThemeName;
+};
 
-export type AgRadialGaugeOptions = AgBaseGaugePresetOptions & AgRadialGaugeSeriesOptions;
-export type AgLinearGaugeOptions = AgBaseGaugePresetOptions & AgLinearGaugeSeriesOptions;
-export type AgGaugeOptions = AgRadialGaugeOptions | AgLinearGaugeOptions;
+export type AgLinearGaugeOptions = AgLinearGaugePreset & AgBaseGaugePresetOptions;
+export type AgRadialGaugeOptions = AgRadialGaugePreset & AgBaseGaugePresetOptions;
+export type AgGaugeOptions = AgGaugePreset & AgBaseGaugePresetOptions;
 
 export type AgChartInstanceOptions = AgChartOptions | AgFinancialChartOptions;
 

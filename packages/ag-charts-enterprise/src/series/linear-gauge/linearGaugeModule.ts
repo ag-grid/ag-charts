@@ -8,7 +8,7 @@ const {
     DEFAULT_HIERARCHY_FILLS,
     DEFAULT_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
-    POLAR_AXIS_TYPE,
+    CARTESIAN_AXIS_TYPE,
 } = _Theme;
 
 export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
@@ -21,8 +21,8 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
     moduleFactory: (ctx) => new LinearGaugeSeries(ctx),
     tooltipDefaults: { range: 'exact' },
     defaultAxes: [
-        { type: POLAR_AXIS_TYPE.ANGLE_NUMBER, line: { enabled: false } },
-        { type: POLAR_AXIS_TYPE.RADIUS_NUMBER, line: { enabled: false } },
+        { type: CARTESIAN_AXIS_TYPE.NUMBER, line: { enabled: false } },
+        { type: CARTESIAN_AXIS_TYPE.NUMBER, line: { enabled: false } },
     ],
     themeTemplate: {
         minWidth: 200,

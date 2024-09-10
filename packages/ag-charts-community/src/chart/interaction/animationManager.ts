@@ -1,6 +1,7 @@
 import type { AdditionalAnimationOptions, AnimationOptions, AnimationValue, IAnimation } from '../../motion/animation';
 import { Animation } from '../../motion/animation';
 import { Debug } from '../../util/debug';
+import { getWindow } from '../../util/dom';
 import { Logger } from '../../util/logger';
 import type { Mutex } from '../../util/mutex';
 import { BaseManager } from '../baseManager';
@@ -188,7 +189,7 @@ export class AnimationManager extends BaseManager<AnimationEventType, AnimationE
 
     /** Mocking point for tests to capture requestAnimationFrame callbacks. */
     public scheduleAnimationFrame(cb: (time: number) => Promise<void>) {
-        this.requestId = requestAnimationFrame(cb);
+        this.requestId = getWindow().requestAnimationFrame(cb);
     }
 
     /** Mocking point for tests to skip animations to a specific point in time. */

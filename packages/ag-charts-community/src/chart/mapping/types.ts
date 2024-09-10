@@ -1,10 +1,16 @@
 import type {
     AgCartesianChartOptions,
+    AgCartesianSeriesOptions,
     AgFlowProportionChartOptions,
+    AgFlowProportionSeriesOptions,
     AgGaugeChartOptions,
+    AgGaugeSeriesOptions,
     AgHierarchyChartOptions,
+    AgHierarchySeriesOptions,
     AgPolarChartOptions,
+    AgPolarSeriesOptions,
     AgTopologyChartOptions,
+    AgTopologySeriesOptions,
 } from 'ag-charts-types';
 import type { AgChartOptions } from 'ag-charts-types';
 
@@ -21,7 +27,15 @@ import {
 } from '../factory/expectedEnterpriseModules';
 
 export type AxesOptionsTypes = NonNullable<AgCartesianChartOptions['axes']>[number];
-export type SeriesOptionsTypes = NonNullable<AgChartOptions['series']>[number];
+
+export type SeriesOptionsTypes =
+    | AgCartesianSeriesOptions
+    | AgPolarSeriesOptions
+    | AgHierarchySeriesOptions
+    | AgTopologySeriesOptions
+    | AgFlowProportionSeriesOptions
+    | AgGaugeSeriesOptions;
+
 export type SeriesType = SeriesOptionsTypes['type'];
 
 export function optionsType(input: { series?: { type?: SeriesType }[] }): NonNullable<SeriesType> {
@@ -98,13 +112,13 @@ export function isAgFlowProportionChartOptions(input: AgChartOptions): input is 
     return chartTypes.isFlowProportion(specifiedType) || isEnterpriseFlowProportion(specifiedType);
 }
 
-export function isAgGaugeChartOptions(input: AgChartOptions): input is AgGaugeChartOptions {
+export function isAgGaugeChartOptions(input: any): input is AgGaugeChartOptions {
     const specifiedType = optionsType(input);
     if (specifiedType == null) {
         return false;
     }
 
-    if ((specifiedType as string) === 'flow-proportion') {
+    if ((specifiedType as string) === 'gauge') {
         Logger.warnOnce(`type '${specifiedType}' is deprecated, use a series type instead`);
         return true;
     }

@@ -327,7 +327,6 @@ export class Legend extends BaseProperties {
                 id: `ag-charts-legend-item-${i}`,
                 textContent: this.getItemAriaText(i),
                 ariaChecked: !!markerLabel.datum.enabled,
-                ariaRoleDescription: { id: 'ariaRoleDescriptionLegendItem' },
                 ariaDescribedBy: this.proxyLegendItemDescription.id,
                 parent: this.proxyLegendToolbar,
                 focusable: new NodeRegionBBoxProvider(markerLabel),
@@ -336,7 +335,6 @@ export class Legend extends BaseProperties {
                 // using Series.getLegendData(). But the scene node will stay the same.
                 onclick: () => {
                     this.doClick(markerLabel.datum, markerLabel.proxyButton?.button);
-                    markerLabel.proxyButton!.button.ariaChecked = (!!markerLabel.datum.enabled).toString();
                 },
                 onblur: () => this.handleLegendMouseExit(),
                 onfocus: () => {
@@ -356,6 +354,7 @@ export class Legend extends BaseProperties {
             orientation: this.getOrientation(),
             buttons,
         });
+        this.proxyLegendToolbar.ariaHidden = (buttons.length === 0).toString();
     }
 
     public onMarkerShapeChange() {
@@ -756,10 +755,12 @@ export class Legend extends BaseProperties {
                     focusable: new NodeRegionBBoxProvider(this.pagination.nextButton),
                     onclick: () => this.pagination.clickNext(),
                 });
+                this.proxyLegendPagination.ariaHidden = 'false';
             } else {
                 this.proxyNextButton?.remove();
                 this.proxyPrevButton?.remove();
                 [this.proxyNextButton, this.proxyPrevButton] = [undefined, undefined];
+                this.proxyLegendPagination.ariaHidden = 'true';
             }
         }
 
@@ -1234,10 +1235,13 @@ export class Legend extends BaseProperties {
     private getItemAriaText(nodeIndex: number): string {
         const datum = this.data[nodeIndex];
         const label = datum && this.getItemLabel(datum);
+        const lm = this.ctx.localeManager;
         if (nodeIndex >= 0 && label) {
-            return label;
+            const index = nodeIndex + 1;
+            const count = this.data.length;
+            return lm.t('ariaLabelLegendItem', { label, index, count });
         }
-        return this.ctx.localeManager.t('ariaLabelLegendItemUnknown');
+        return lm.t('ariaLabelLegendItemUnknown');
     }
 
     private getItemAriaDescription(): string {
