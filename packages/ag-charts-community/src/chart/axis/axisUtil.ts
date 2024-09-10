@@ -85,6 +85,11 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
                 y: 0,
                 translationY: y,
                 opacity,
+                finish: {
+                    // Set explicit y after animation so it's pixel aligned
+                    y: y,
+                    translationY: 0,
+                },
             };
         },
         intermediateFn(node, _datum, _status) {
@@ -140,7 +145,7 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
                 rotation = normaliseEndRotation(node.previousDatum?.rotation ?? datum.rotation, datum.rotation);
             }
 
-            return { x, y, rotationCenterX, translationY, rotation, opacity };
+            return { x, y, rotationCenterX, translationY, rotation, opacity, finish: { rotation: datum.rotation } };
         },
     };
     const line: FromToFns<Line, any, AxisLineDatum> = {

@@ -127,7 +127,6 @@ export function fromToMotion<
                 ...to
             } = toFn(node, node.datum, status, ctx);
 
-            const collapsable = finish == null && toFinish == null;
             animationManager.animate({
                 id: animationId,
                 groupId,
@@ -137,7 +136,6 @@ export function fromToMotion<
                 from: from as unknown as T,
                 to: to as unknown as T,
                 ease: easing.easeOut,
-                collapsable,
                 onPlay: () => {
                     applyFn(node, { ...start, ...toStart } as unknown as T);
                 },
@@ -214,7 +212,6 @@ export function staticFromToMotion<N extends Node, T extends AnimationValue & Pa
     const { start, finish, phase } = extraOpts;
 
     // Simple static to/from case, we can batch updates.
-    const collapsable = finish == null;
     animationManager.animate({
         id: `${groupId}_${subId}`,
         groupId,
@@ -222,7 +219,6 @@ export function staticFromToMotion<N extends Node, T extends AnimationValue & Pa
         from,
         to,
         ease: easing.easeOut,
-        collapsable,
         onPlay: () => {
             if (!start) return;
 
