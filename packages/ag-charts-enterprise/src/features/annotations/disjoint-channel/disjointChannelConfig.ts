@@ -10,6 +10,15 @@ export const disjointChannelConfig: AnnotationTypeConfig<DisjointChannelProperti
     datum: DisjointChannelProperties,
     scene: DisjointChannelScene,
     isDatum: DisjointChannelProperties.is,
+    copy: (node, datum, copiedDatum, context, offset) => {
+        if (
+            DisjointChannelProperties.is(datum) &&
+            DisjointChannelProperties.is(copiedDatum) &&
+            DisjointChannelScene.is(node)
+        ) {
+            return node.copy(datum, copiedDatum, context, offset);
+        }
+    },
     update: (node, datum, context) => {
         if (DisjointChannelProperties.is(datum) && DisjointChannelScene.is(node)) {
             node.update(datum, context);

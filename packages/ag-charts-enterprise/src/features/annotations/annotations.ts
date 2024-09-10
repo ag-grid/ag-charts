@@ -211,6 +211,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 return hovered;
             },
 
+            paste: (datum: AnnotationProperties, index: number) => {
+                this.pasteAnnotation(datum, index);
+                this.postUpdateFns.push(() => {
+                    this.state.transitionAsync('selectLast');
+                });
+            },
+
             select: (index?: number, previous?: number) => {
                 const {
                     annotations,
@@ -268,18 +275,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             },
 
             create: (type: AnnotationType, datum: AnnotationProperties) => {
-                this.annotationData.push(datum);
-
-                const styles = this.ctx.annotationManager.getAnnotationTypeStyles(type);
-                if (styles) datum.set(styles);
-
-                this.defaults.applyDefaults(datum);
-                this.resetToolbarButtonStates();
-
-                this.removeAmbientKeyboardListener?.();
-                this.removeAmbientKeyboardListener = undefined;
-
-                this.update();
+                this.createAnnotation(type, datum);
             },
 
             delete: (index: number) => {
@@ -439,6 +435,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             ctx.keyNavManager.addListener('cancel', this.onCancel.bind(this)),
             ctx.keyNavManager.addListener('delete', this.onDelete.bind(this)),
             ctx.interactionManager.addListener('keydown', this.onKeyDown.bind(this), AnnotationsState),
+            ctx.interactionManager.addListener('keydown', this.onCopyPaste.bind(this), All),
             ...otherRegions.map((region) => region.addListener('click', this.onCancel.bind(this), All)),
 
             // Services
@@ -476,12 +473,74 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         );
     }
 
+    private createAnnotationDatumCopy({
+        type,
+        node,
+        datum,
+    }: {
+        type: AnnotationType;
+        node: AnnotationScene;
+        datum: AnnotationProperties;
+    }): AnnotationProperties | undefined {
+        if (type in annotationConfigs) {
+            const config = annotationConfigs[type];
+
+            const newDatum = new config.datum();
+            newDatum.set(datum.toJson());
+
+            const context = this.getAnnotationContext();
+            if (!context) {
+                return;
+            }
+
+            const offset = { x: -30, y: -30 }; // just above and to the left
+
+            return config.copy(node, datum, newDatum, context, offset);
+        }
+        throw new Error(
+            `AG Charts - Cannot set property of unknown type [${type}], expected one of [${Object.keys(annotationConfigs)}], ignoring.`
+        );
+    }
+
     private onRestoreAnnotations(event: { annotations?: any }) {
         if (!this.enabled) return;
 
         this.clear();
         this.annotationData.set(event.annotations);
         this.update();
+    }
+
+    private createAnnotation(type: AnnotationType, datum: AnnotationProperties, applyDefaults: boolean = true) {
+        this.annotationData.push(datum);
+
+        const styles = this.ctx.annotationManager.getAnnotationTypeStyles(type);
+        if (styles) datum.set(styles);
+
+        if (applyDefaults) {
+            this.defaults.applyDefaults(datum);
+        }
+
+        this.resetToolbarButtonStates();
+
+        this.removeAmbientKeyboardListener?.();
+        this.removeAmbientKeyboardListener = undefined;
+
+        this.update();
+    }
+
+    private pasteAnnotation(datum: AnnotationProperties, index: number) {
+        const node = this.annotations.at(index);
+        if (!node) {
+            return;
+        }
+
+        const copiedDatum = this.createAnnotationDatumCopy({ node, type: datum.type, datum });
+
+        if (!copiedDatum) {
+            return;
+        }
+
+        this.createAnnotation(copiedDatum.type, copiedDatum, false);
     }
 
     private onToolbarButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
@@ -1084,6 +1143,17 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const textInputValue = this.textInput.getValue();
 
         state.transition('keyDown', { key, shiftKey, textInputValue });
+    }
+
+    private onCopyPaste(event: _ModuleSupport.KeyInteractionEvent<'keydown'>) {
+        const { sourceEvent } = event;
+        const modifierKey = sourceEvent.ctrlKey || sourceEvent.metaKey;
+
+        if (modifierKey && sourceEvent.key === 'c') {
+            this.state.transition('copy');
+        } else if (modifierKey && sourceEvent.key === 'v') {
+            this.state.transition('paste');
+        }
     }
 
     private beginAnnotationPlacement(annotation: AnnotationType) {

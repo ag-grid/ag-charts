@@ -3,7 +3,7 @@ import { _Util } from 'ag-charts-community';
 import type { PointProperties } from '../annotationProperties';
 import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
 import { boundsIntersections } from '../utils/line';
-import { convertPoint, invertCoords } from '../utils/values';
+import { convertLine, convertPoint, invertCoords } from '../utils/values';
 import { AnnotationScene } from './annotationScene';
 
 const { Vec2 } = _Util;
@@ -83,18 +83,40 @@ export abstract class LinearScene<
 
         if (!dragState) return;
 
+        this.translatePoints({
+            datum,
+            start: dragState.start,
+            end: dragState.end,
+            translation: Vec2.sub(target, dragState.offset),
+            context,
+        });
+    }
+
+    public translatePoints({
+        datum,
+        start,
+        end,
+        translation,
+        context,
+    }: {
+        datum: Datum;
+        start: Coords;
+        end: Coords;
+        translation: _Util.Vec2;
+        context: AnnotationContext;
+    }) {
+        const a = Vec2.add(start, translation);
+        const b = Vec2.add(end, translation);
+
+        const startPoint = invertCoords(a, context);
+        const endPoint = invertCoords(b, context);
+
         const { xAxis, yAxis } = context;
-
-        const topLeft = Vec2.add(dragState.start, Vec2.sub(target, dragState.offset));
-        const topRight = Vec2.add(dragState.end, Vec2.sub(target, dragState.offset));
-
-        const startPoint = invertCoords(topLeft, context);
-        const endPoint = invertCoords(topRight, context);
 
         // Only move the points along each axis if all the corners are within the axis, allowing the annotation to
         // slide along the perpendicular axis.
         const within = (min: number, value: number, max: number) => value >= min && value <= max;
-        const coords = [topLeft, topRight].concat(...this.getOtherCoords(datum, topLeft, topRight, context));
+        const coords = [a, b].concat(...this.getOtherCoords(datum, a, b, context));
 
         if (coords.every((coord) => within(xAxis.bounds.x, coord.x, xAxis.bounds.x + xAxis.bounds.width))) {
             datum.start.x = startPoint.x;
@@ -105,6 +127,26 @@ export abstract class LinearScene<
             datum.start.y = startPoint.y;
             datum.end.y = endPoint.y;
         }
+    }
+
+    public copy(datum: Datum, copiedDatum: Datum, context: AnnotationContext, _offset: Coords) {
+        const coords = convertLine(datum, context);
+
+        if (!coords) {
+            return;
+        }
+
+        const bbox = this.computeBBoxWithoutHandles();
+
+        this.translatePoints({
+            datum: copiedDatum,
+            start: { x: coords.x1, y: coords.y1 },
+            end: { x: coords.x2, y: coords.y2 },
+            translation: { x: -bbox.width / 2, y: -bbox.height / 2 },
+            context,
+        });
+
+        return copiedDatum;
     }
 
     protected getOtherCoords(

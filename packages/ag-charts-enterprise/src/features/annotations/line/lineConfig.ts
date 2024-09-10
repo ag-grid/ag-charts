@@ -10,6 +10,11 @@ export const lineConfig: AnnotationTypeConfig<LineProperties, LineScene> = {
     datum: LineProperties,
     scene: LineScene,
     isDatum: LineProperties.is,
+    copy: (node, datum, copiedDatum, context, offset) => {
+        if (LineProperties.is(datum) && LineProperties.is(copiedDatum) && LineScene.is(node)) {
+            return node.copy(datum, copiedDatum, context, offset) as LineProperties;
+        }
+    },
     update: (node, datum, context) => {
         if (LineProperties.is(datum) && LineScene.is(node)) {
             node.update(datum, context);
@@ -35,6 +40,11 @@ export const arrowConfig: AnnotationTypeConfig<ArrowProperties, LineScene> = {
     datum: ArrowProperties,
     scene: LineScene,
     isDatum: ArrowProperties.is,
+    copy: (node, datum, copiedDatum, context, offset) => {
+        if (ArrowProperties.is(datum) && ArrowProperties.is(copiedDatum) && LineScene.is(node)) {
+            return node.copy(datum, copiedDatum, context, offset) as ArrowProperties;
+        }
+    },
     update: (node, datum, context) => {
         if (ArrowProperties.is(datum) && LineScene.is(node)) {
             node.update(datum, context);

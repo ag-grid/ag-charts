@@ -38,6 +38,9 @@ type AnnotationEvent =
     | 'dragEnd'
     | 'keyDown'
     // Data events
+    | 'selectLast'
+    | 'copy'
+    | 'paste'
     | 'cancel'
     | 'reset'
     | 'delete'
@@ -61,6 +64,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
     private hovered?: number;
     // eslint-disable-next-line @typescript-eslint/prefer-readonly
     private active?: number;
+    private copied?: number;
 
     constructor(ctx: AnnotationsStateMachineContext) {
         // A `click` is preceeded by the `dragStart` and `dragEnd` events, since `dragStart` also selects the annotation we
@@ -216,6 +220,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
         };
 
         const guardActive = () => this.active != null;
+        const guardCopied = () => this.copied != null;
         const guardActiveHasLineText = () => {
             if (this.active == null) return false;
             const datum = ctx.datum(this.active);
@@ -232,6 +237,27 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 hover: ({ offset }: { offset: _Util.Vec2 }) => {
                     this.hovered = ctx.hoverAtCoords(offset, this.active);
+                },
+
+                copy: {
+                    action: () => {
+                        this.copied = this.active;
+                    },
+                },
+
+                paste: {
+                    guard: guardCopied,
+                    action: () => {
+                        const datum = ctx.datum(this.copied!);
+                        if (!datum) return;
+                        ctx.paste(datum, this.copied!);
+                    },
+                },
+
+                selectLast: () => {
+                    const previousActive = this.active;
+                    this.active = ctx.selectLast();
+                    ctx.select(this.active, previousActive);
                 },
 
                 click: [
