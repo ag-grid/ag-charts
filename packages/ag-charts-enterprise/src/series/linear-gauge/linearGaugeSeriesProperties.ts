@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 import type {
-    AgGaugeSeriesFillMode,
+    AgGaugeFillMode,
     AgLinearGaugeMarkerShape,
     AgLinearGaugeSeriesItemStylerParams,
     AgLinearGaugeSeriesLabelFormatterParams,
@@ -165,7 +165,7 @@ export class LinearGaugeBarProperties extends BaseProperties {
     fills = new PropertiesArray<GaugeStopProperties>(GaugeStopProperties);
 
     @Validate(FILL_MODE, { optional: true })
-    fillMode: AgGaugeSeriesFillMode | undefined;
+    fillMode: AgGaugeFillMode | undefined;
 
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined;
@@ -194,7 +194,7 @@ export class LinearGaugeScaleProperties extends BaseProperties {
     fills = new PropertiesArray<GaugeStopProperties>(GaugeStopProperties);
 
     @Validate(FILL_MODE, { optional: true })
-    fillMode: AgGaugeSeriesFillMode | undefined;
+    fillMode: AgGaugeFillMode | undefined;
 
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined;

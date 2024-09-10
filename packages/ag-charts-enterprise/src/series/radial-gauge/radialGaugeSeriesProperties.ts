@@ -1,7 +1,7 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 import type {
     AgChartLabelFormatterParams,
-    AgGaugeSeriesFillMode,
+    AgGaugeFillMode,
     AgRadialGaugeMarkerShape,
     AgRadialGaugeSeriesItemStylerParams,
     AgRadialGaugeSeriesLabelFormatterParams,
@@ -183,7 +183,7 @@ export class RadialGaugeBarProperties extends BaseProperties {
     fills = new PropertiesArray<GaugeStopProperties>(GaugeStopProperties);
 
     @Validate(FILL_MODE, { optional: true })
-    fillMode: AgGaugeSeriesFillMode | undefined;
+    fillMode: AgGaugeFillMode | undefined;
 
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined;
@@ -212,7 +212,7 @@ export class RadialGaugeScaleProperties extends BaseProperties {
     fills = new PropertiesArray<GaugeStopProperties>(GaugeStopProperties);
 
     @Validate(FILL_MODE, { optional: true })
-    fillMode: AgGaugeSeriesFillMode | undefined;
+    fillMode: AgGaugeFillMode | undefined;
 
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined;
