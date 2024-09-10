@@ -215,7 +215,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         tooltip,
         value,
         scale = {},
-        horizontal,
+        direction,
         thickness,
         itemStyler,
         highlightStyle,
@@ -288,7 +288,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         listeners,
         tooltip,
         value,
-        horizontal,
+        direction,
         thickness,
         itemStyler,
         highlightStyle,
@@ -309,6 +309,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
     const { placement: labelPlacement, ...axisLabel } = scaleLabel;
     let mainAxisPosition: AgCartesianAxisPosition;
     let crossAxisPosition: AgCartesianAxisPosition;
+    const horizontal = direction === 'horizontal';
     if (horizontal) {
         mainAxisPosition = labelPlacement === 'before' ? 'top' : 'bottom';
         crossAxisPosition = 'left';

@@ -138,9 +138,9 @@ export interface AgLinearGaugeSecondaryLabelOptions<TDatum>
 export interface AgLinearGaugeSeriesThemeableOptions<TDatum = any>
     extends AgLinearGaugeSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
-    /** Display the gauge horizontally. */
-    horizontal?: boolean;
-    /** Width of the gauge, or the height if `horizontal` is true. */
+    /** Direction to display the gauge in. */
+    direction?: 'horizontal' | 'vertical';
+    /** Width of the gauge, or the height if `direction` is `horizontal`. */
     thickness?: number;
     /** Configuration for a segmented appearance. */
     segments?: number[] | number;

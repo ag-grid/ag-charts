@@ -14,7 +14,7 @@ import type {
     Styler,
 } from 'ag-charts-types';
 
-import { FILL_MODE, TARGET_MARKER_SHAPE } from '../gauge-util/properties';
+import { CORNER_MODE, FILL_MODE, TARGET_MARKER_SHAPE } from '../gauge-util/properties';
 import { GaugeSegmentationProperties } from '../gauge-util/segmentation';
 import { GaugeStopProperties } from '../gauge-util/stops';
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
@@ -247,7 +247,7 @@ export class LinearGaugeSeriesProperties extends SeriesProperties<AgLinearGaugeS
     @Validate(OBJECT)
     defaultTarget = new LinearGaugeTargetProperties();
 
-    @Validate(DIRECTION, { optional: true })
+    @Validate(DIRECTION)
     direction: 'horizontal' | 'vertical' = 'vertical';
 
     @Validate(POSITIVE_NUMBER)
@@ -256,7 +256,7 @@ export class LinearGaugeSeriesProperties extends SeriesProperties<AgLinearGaugeS
     @Validate(POSITIVE_NUMBER)
     cornerRadius: number = 0;
 
-    @Validate(UNION(['container', 'item'], 'a corner mode'))
+    @Validate(CORNER_MODE)
     cornerMode: 'container' | 'item' = 'container';
 
     @Validate(NUMBER)
