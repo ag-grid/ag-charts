@@ -33,7 +33,7 @@ export abstract class LinearScene<
 
         const [left, right] = boundsIntersections(linePoints, context.yAxis.bounds);
 
-        const isFlippedX = linePoints.x2 > linePoints.x1;
+        const isFlippedX = linePoints.x2 < linePoints.x1;
         const isFlippedY = linePoints.y1 >= linePoints.y2;
         const isVertical = linePoints.x2 === linePoints.x1;
 
@@ -41,8 +41,8 @@ export abstract class LinearScene<
             if (isVertical) {
                 linePoints.y2 = isFlippedY ? right.y : left.y;
             } else {
-                linePoints.x2 = isFlippedX ? right.x : left.x;
-                linePoints.y2 = isFlippedX ? right.y : left.y;
+                linePoints.x2 = isFlippedX ? left.x : right.x;
+                linePoints.y2 = isFlippedX ? left.y : right.y;
             }
         }
 
@@ -50,8 +50,8 @@ export abstract class LinearScene<
             if (isVertical) {
                 linePoints.y1 = isFlippedY ? left.y : right.y;
             } else {
-                linePoints.x1 = isFlippedX ? left.x : right.x;
-                linePoints.y1 = isFlippedX ? left.y : right.y;
+                linePoints.x1 = isFlippedX ? right.x : left.x;
+                linePoints.y1 = isFlippedX ? right.y : left.y;
             }
         }
 

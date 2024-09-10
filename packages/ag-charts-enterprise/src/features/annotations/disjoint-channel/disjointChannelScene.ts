@@ -203,4 +203,38 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
     }
 
     override updateText = LineWithTextScene.updateChannelText.bind(this, false);
+
+    protected override getBackgroundPoints(
+        datum: DisjointChannelProperties,
+        top: LineCoords,
+        bottom: LineCoords,
+        bounds: LineCoords
+    ) {
+        const isFlippedX = top.x1 > top.x2;
+        const isFlippedY = top.y1 > top.y2;
+        const topY = isFlippedY ? bounds.y2 : bounds.y1;
+        const bottomY = isFlippedY ? bounds.y1 : bounds.y2;
+
+        const points = Vec2.from(top);
+
+        if (datum.extendEnd && top.y2 === bottomY) {
+            points.push(Vec2.from(isFlippedX ? bounds.x1 : bounds.x2, isFlippedY ? bounds.y1 : bounds.y2));
+        }
+
+        if (datum.extendEnd && bottom.y2 === topY) {
+            points.push(Vec2.from(isFlippedX ? bounds.x1 : bounds.x2, isFlippedY ? bounds.y2 : bounds.y1));
+        }
+
+        points.push(...Vec2.from(bottom).reverse());
+
+        if (datum.extendStart && bottom.y1 === bottomY) {
+            points.push(Vec2.from(isFlippedX ? bounds.x2 : bounds.x1, isFlippedY ? bounds.y1 : bounds.y2));
+        }
+
+        if (datum.extendStart && top.y1 === topY) {
+            points.push(Vec2.from(isFlippedX ? bounds.x2 : bounds.x1, isFlippedY ? bounds.y2 : bounds.y1));
+        }
+
+        return points;
+    }
 }

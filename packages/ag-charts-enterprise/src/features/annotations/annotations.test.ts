@@ -343,7 +343,6 @@ describe('Annotations', () => {
             await compare();
         });
 
-        // TODO: this test is failing
         it('should render stacked annotations with text', async () => {
             await prepareChart({
                 annotations: [
@@ -370,6 +369,24 @@ describe('Annotations', () => {
                             position: 'center',
                             alignment: 'center',
                         },
+                    },
+                ],
+            });
+            await compare();
+        });
+    });
+
+    describe('extending lines', () => {
+        it('should render an extended parallel-channel annotation', async () => {
+            await prepareChart({
+                annotations: [
+                    {
+                        type: 'parallel-channel',
+                        start: { x: { __type: 'date', value: '2024-03-01' }, y: 40 },
+                        end: { x: { __type: 'date', value: '2024-09-01' }, y: 90 },
+                        height: 30,
+                        extendStart: true,
+                        extendEnd: true,
                     },
                 ],
             });
