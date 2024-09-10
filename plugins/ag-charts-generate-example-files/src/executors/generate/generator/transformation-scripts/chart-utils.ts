@@ -1,18 +1,21 @@
 import type { BindingImport } from './parser-utils';
 
+const optionsDotRe = /(?<!\w)options(?:!)?\./g;
+const optionsSquareRe = /(?<!\w)options(?:!)?\[/g;
+
 export function wrapOptionsUpdateCode(
     code: string,
     before = 'const options = clone(this.options);',
     after = 'this.options = options;',
     localVar = 'options'
 ): string {
-    if (!code.includes('options.') && !code.includes('options[')) {
+    if (!optionsDotRe.test(code) && !optionsSquareRe.test(code)) {
         return code;
     }
 
     return code
-        .replace(/(?<!\w)options\./g, localVar + '.')
-        .replace(/(?<!\w)options\[/g, localVar + '[')
+        .replace(optionsDotRe, localVar + '.')
+        .replace(optionsSquareRe, localVar + '[')
         .replace(/(.*?)\{(.*)\}/s, `$1{\n${before}\n$2\n${after}\n}`);
 }
 

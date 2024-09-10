@@ -1,6 +1,11 @@
 import { Icon } from '@ag-website-shared/components/icon/Icon';
-import { ExampleRunner } from '@features/example-runner/components/ExampleRunner';
+import { ExampleIFrame } from '@features/example-runner/components/ExampleIFrame';
+import exampleRunnerStyles from '@features/example-runner/components/ExampleRunner.module.scss';
 import { ExternalLinks } from '@features/example-runner/components/ExternalLinks';
+// Charts specific example runner styles
+import chartsStyles from '@features/example-runner/components/LegacyExampleRunner.module.scss';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
+import classnames from 'classnames';
 import { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
 
@@ -168,20 +173,30 @@ const GalleryExampleRunnerInner = ({ examples, loadingIFrameId, format }: Props)
                 ))}
             </div>
             <div className={styles.exampleContainer}>
-                <ExampleRunner
-                    id={id}
-                    title={title}
-                    exampleUrl={exampleUrl}
-                    exampleRunnerExampleUrl={exampleRunnerExampleUrl}
-                    exampleType={exampleType}
-                    exampleFiles={exampleFiles}
-                    initialSelectedFile={initialSelectedFile}
-                    internalFramework={internalFramework}
-                    externalLinks={externalLinks}
-                    hideInternalFrameworkSelection={true}
-                    exampleHeight={620}
-                    loadingIFrameId={loadingIFrameId}
-                />
+                <div id={id} className={styles.exampleOuter}>
+                    <div className={styles.tabsContainer}>
+                        <div
+                            className={classnames(chartsStyles.content, exampleRunnerStyles.content)}
+                            role="tabpanel"
+                            style={{ height: 500 }}
+                        >
+                            <ExampleIFrame
+                                title={title}
+                                url={exampleRunnerExampleUrl!}
+                                loadingIFrameId={loadingIFrameId}
+                            />
+                        </div>
+                        <footer className={exampleRunnerStyles.footer}>
+                            <a
+                                href={urlWithBaseUrl(
+                                    `./gallery#${currentExample.buttonText.replace(' ', '-').toLowerCase()}`
+                                )}
+                            >
+                                View More {currentExample.buttonText} Chart Examples <Icon name="arrowRight" />
+                            </a>
+                        </footer>
+                    </div>
+                </div>
             </div>
         </div>
     );

@@ -53,53 +53,10 @@ export const ExampleRunner: FunctionComponent<Props> = ({
                 <div
                     className={classnames(chartsStyles.content, styles.content)}
                     role="tabpanel"
-                    aria-labelledby={`${showCode ? 'Preview' : 'Code'} tab`}
-                    style={{ height: exampleHeight }}
+                    style={{ height: exampleHeight, minHeight: 0 }}
                 >
-                    <ExampleIFrame
-                        title={title}
-                        isHidden={showCode}
-                        url={exampleRunnerExampleUrl!}
-                        loadingIFrameId={loadingIFrameId}
-                    />
-                    {exampleFiles && (
-                        <CodeViewer
-                            id={id}
-                            isActive={showCode}
-                            files={exampleFiles}
-                            initialSelectedFile={initialSelectedFile!}
-                            exampleType={exampleType!}
-                            internalFramework={internalFramework}
-                            hideInternalFrameworkSelection={hideInternalFrameworkSelection}
-                        />
-                    )}
+                    <ExampleIFrame title={title} url={exampleRunnerExampleUrl!} loadingIFrameId={loadingIFrameId} />
                 </div>
-                <footer className={styles.footer}>
-                    <button
-                        className={classnames(styles.previewCodeToggle, 'button-secondary')}
-                        onClick={(e) => {
-                            setShowCode(!showCode);
-                        }}
-                    >
-                        {showCode && (
-                            <span>
-                                <Icon name="eye" /> Preview
-                            </span>
-                        )}
-                        {!showCode && (
-                            <span>
-                                <Icon name="code" /> Code
-                            </span>
-                        )}
-                    </button>
-
-                    <ul className={classnames('list-style-none', styles.externalLinks)}>
-                        <li>
-                            <OpenInCTA type="newTab" href={exampleUrl!} />
-                        </li>
-                        {externalLinks}
-                    </ul>
-                </footer>
             </div>
         </div>
     );

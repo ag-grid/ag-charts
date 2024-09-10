@@ -8,27 +8,17 @@ const options: AgRadialGaugeOptions = {
         min: 0,
         max: 100,
     },
+    segmentation: {
+        interval: {
+            count: 4,
+        },
+        spacing: 2,
+    },
     cornerRadius: 99,
     cornerMode: 'container',
 };
 
 const chart = AgCharts.createGauge(options);
-
-function setSegments(segments: boolean) {
-    if (segments) {
-        options.segmentation = {
-            interval: {
-                count: 4,
-            },
-            spacing: 2,
-        };
-    } else {
-        options.segmentation = {
-            interval: {},
-        };
-    }
-    chart.update(options);
-}
 
 function setCornerMode(cornerMode: 'container' | 'item') {
     options.cornerMode = cornerMode;

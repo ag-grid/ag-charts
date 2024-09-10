@@ -2,16 +2,19 @@
 title: 'Radial Gauge'
 ---
 
-A Radial Gauge presents a single data point within a predefined range. It employs a segment overlaid with either a bar or needle.
+A Radial Gauge presents a single data point within a predefined range using a circular scale.
+The data is represented by a needle or bar indicating the value.
 
 ## Simple Radial Gauge
 
 {% chartExampleRunner title="Simple Radial Gauge" name="simple-radial-gauge" type="generated" options={ "exampleHeight": 250 } /%}
 
-To create a Radial Gauge, use the `createGauge` API using the type `radial-gauge`.
+To create a Radial Gauge, use the `createGauge` API with the type `radial-gauge`.
+
+{% if isFramework("javascript") %}
 
 ```js
-const radialGauge = createGauge({
+const options = {
     type: 'radial-gauge',
     container: document.getElementById('myChart'),
     value: 80,
@@ -19,74 +22,97 @@ const radialGauge = createGauge({
         min: 0,
         max: 100,
     },
-});
+};
+
+AgCharts.createGauge(options);
 ```
+
+{% /if %}
+
+{% if isFramework("react") %}
+
+```jsx
+const [options, setOptions] = useState({
+    type: 'radial-gauge',
+    value: 80,
+    scale: {
+      min: 0,
+      max: 100,
+    },
+});
+
+return (
+    <AgGauge options={options} />
+);
+```
+
+{% /if %}
+
+{% if isFramework("angular") %}
+
+```js
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [AgGauge],
+  template: `<ag-gauge [options]="options"></ag-gauge>`,
+})
+export class AppComponent {
+  public options: AgRadialGaugeOptions;
+  constructor() {
+    this.options = {
+        type: "radial-gauge",
+
+        value: 80,
+        scale: {
+          min: 0,
+          max: 100,
+        },
+    };
+  }
+}
+```
+
+{% /if %}
+
+{% if isFramework("vue") %}
+
+```js
+template: `<aag-gauge:options="options"/>`,
+components: {
+    'ag-gauge': AgGauge,
+},
+data() {
+    return {
+        options: {
+            type: "radial-gauge",
+
+        value: 80,
+        scale: {
+          min: 0,
+          max: 100,
+        },
+          }      ,
+    };
+}
+```
+
+{% /if %}
 
 In this configuration:
 
 -   `value` is the value displayed by the gauge.
--   `scale.min` defines the minimum value displayable by the gauge.
--   `scale.max` defines the minimum value displayable by the gauge.
+-   `scale.min` defines the minimum value of the scale.
+-   `scale.max` defines the maximum value of the scale.
+-   The data is represented by a coloured bar displayed over a grey scale.
 
-## Labels
+## Customisation
 
-Labels are used to show the current value of the gauge, or any other information to provide context.
-
-{% chartExampleRunner title="Labels" name="labels" type="generated" options={ "exampleHeight": 250 } /%}
-
-The scale labels can be configured with the `label` property within the `scale` configuration. Additionally. up to two inner labels can be configured with the `label` and `secondaryLabel` properties.
-
-```js
-{
-    scale: {
-        label: {
-            enabled: false,
-        },
-    },
-    label: {
-        formatter({ value }) {
-            return `${value.toFixed(0)}%`;
-        },
-    },
-    secondaryLabel: {
-        text: 'Test Score',
-    },
-}
-```
-
-In this configuration:
-
--   `enabled` provides the ability to remove labels.
--   `formatter` takes the current value as a number and returns a formatted value as a string.
--   `text` provides an explicit value for the label. Only available for inner labels.
-
-## Radial Angles
-
-{% chartExampleRunner title="Angles" name="angles" type="generated" options={ "exampleHeight": 300 } /%}
-
-The `startAngle` and `endAngle` properties can be used to customise the position of the start and end of the gauge.
-
-```js
-{
-    startAngle: 225,
-    endAngle: 495,
-}
-```
-
-In this configuration:-
-
--   `startAngle` is the number of degrees from 12 o'clock to start the gauge.
--   `endAngle` must be greater than `startAngle`.
-
-## Needle
-
-Needles can be used to indicate the value instead of the bar.
+### Needle / Bar
 
 {% chartExampleRunner title="Needle" name="needle" type="generated" options={ "exampleHeight": 350 } /%}
 
-A needle can be added to the gauge with the `needle` configuration.
-
-When adding needles, it is common to disable the bar. This can be done with the `bar` configuration. When the bar is hidden, the colour stops are applied to the full range.
+It is possible to display the data value using a bar, a needle or both. These are both rendered over the scale.
 
 ```js
 {
@@ -99,13 +125,154 @@ When adding needles, it is common to disable the bar. This can be done with the 
 }
 ```
 
+In the above example, note that:
+
+-   When the needle is enabled, the label is not shown.
+-   When the bar is disabled, the scale defaults to showing the gradient colour instead of the solid grey.
+
+For customisation of both the bar and needle, see below or the [API Reference](#api-reference).
+
+### Labels
+
+{% chartExampleRunner title="Labels" name="labels" type="generated" options={ "exampleHeight": 250 } /%}
+
+Up to two inner labels can be configured with the `label` and `secondaryLabel` properties.
+
+```js
+{
+    label: {
+        formatter({ value }) {
+            return `${value.toFixed(0)}%`;
+        },
+    },
+    secondaryLabel: {
+        text: 'Test Score',
+    },
+    scale: {
+        label: {
+            enabled: false,
+        },
+    },
+}
+```
+
+In this configuration:
+
+-   The first label uses a `formatter` to format the value.
+-   The second label displays a fixed `text` string. This option is only available for inner labels.
+-   The scale labels are hidden using the `scale.label.enabled` option. See the [API Reference](#api-reference) for more details about customising the scale label style and interval.
+
+### Colour Options
+
+Both the bar and scale have the same colour options and are configured in the same way. If the bar is enabled, it will display above the scale.
+
+{% chartExampleRunner title="Colour Scales" name="color-scales" type="generated" options={ "exampleHeight": 300 } /%}
+
+```js
+{
+    bar: {
+        // fill: '#E84118', - sets a single colour
+        fills: [
+            { color: '#E84118' },
+            { color: '#9C88FF' },
+            { color: '#00A8FF' }
+        ], //colours are allocated equally
+        fillMode: 'discrete', //'discrete' | 'continuous'
+    },
+}
+```
+
+In this configuration:
+
+-   Providing a `fill` value of a single string will result in a solid colour. This overrides the `fills` property.
+-   Providing a `fills` array will equally divide the entire scale or bar into the provided colours.
+-   The `fillMode` determines if the `fills` colours are shown as discrete blocks or as a continuous gradient.
+
+To configure explicit colour stops, provide `stop` values within the `fills` array.
+
+{% chartExampleRunner title="Scale Values" name="scale-values" type="generated" options={ "exampleHeight": 250 } /%}
+
+```js
+{
+    bar: {
+        fills: [
+            { color: '#E84118', stop: 35 },
+            { color: '#FBC531', stop: 45 },
+            { color: '#4CD137', stop: 55 },
+            { color: '#FBC531', stop: 65 },
+            { color: '#E84118' },
+        ],
+        fillMode: 'discrete',
+    },
+}
+```
+
+In this configuration:
+
+-   Each colour stops at the `stop` value, and the next colour begins at that point.
+-   The last colour is used until the end of the scale or bar.
+-   Both `discrete` and `continuous` modes can be used with colour stops.
+
+### Segmentation
+
+To split the gauge into segments, use the `segmentation` option.
+
+{% chartExampleRunner title="Appearance" name="appearance" type="generated" options={ "exampleHeight": 300 } /%}
+
+```js
+{
+    segmentation: {
+        interval: {step: 4}
+        spacing: 4,
+    },
+}
+```
+
+In this configuration:
+
+-   `segmentation.interval` specifies where the gauge is segmented. Available options are:
+    -   `step` - segments the gauge at a fixed interval.
+    -   `count` - segments the gauge a fixed number of times.
+    -   `values` - segments the gauge at specific scale values.
+-   `spacing` defines the spacing between each segment.
+
+### Corner Radius
+
+{% chartExampleRunner title="Corner Radius" name="corner-radius" type="generated" options={ "exampleHeight": 350 } /%}
+
+```js
+{
+    cornerRadius: 99,
+    cornerMode: 'container',
+}
+```
+
+In this configuration:
+
+-   `cornerRadius` specifies the amount of curvature applied to each corner.
+-   `cornerMode` can be set to `container` to apply rounded corners only to the start and end of the gauge, or `item` for all visual items within the gauge.
+
+### Start and End Angles
+
+{% chartExampleRunner title="Angles" name="angles" type="generated" options={ "exampleHeight": 300 } /%}
+
+The `startAngle` and `endAngle` properties can be used to customise the start and end position of the gauge.
+
+```js
+{
+    startAngle: 225,
+    endAngle: 495,
+}
+```
+
+-   Angles are calculated clockwise, starting from the top of the gauge.
+-   `endAngle` must be greater than `startAngle`.
+
 ## Targets
 
-Targets indicate points on the gauge other than the current value.
+Gauges often display targets or thresholds to provide context to the displayed data value. These can be added using the `targets` configuration array.
 
 {% chartExampleRunner title="Targets" name="targets" type="generated" options={ "exampleHeight": 250 } /%}
-
-Targets can be added using the `targets` configuration array.
 
 ```js
 {
@@ -120,8 +287,8 @@ Targets can be added using the `targets` configuration array.
 
 In this configuration:
 
--   `value` is the position for the marker.
--   `text` is an optional string of some text accompanying the marker.
+-   `value` is the position for the target marker.
+-   `text` is an optional string for the target label.
 
 ### Customisation
 
@@ -158,95 +325,12 @@ In this configuration:
 }
 ```
 
--   `shape` is a marker shape.
+In this configuration:
+
+-   `shape` is a [marker shape](#reference-AgRadialGaugeOptions-targets-shape).
 -   `placement` indicates the relative placement to the gauge - either `inside`, `outside`, or `middle`.
--   `size` is the size of the marker, in pixels
+-   `size` is the size of the marker, in pixels.
 -   `spacing` is spacing from the edge of the gauge to the marker. Ignored when `placement` is `middle`.
-
-## Appearance
-
-{% chartExampleRunner title="Appearance" name="appearance" type="generated" options={ "exampleHeight": 300 } /%}
-
-```js
-{
-    segmentation: {
-        spacing: 2,
-    },
-}
-```
-
-In this configuration:
-
--   `segments` specifies the number of segments to use for a segmented appearance.
--   `sectorSpacing` defines the spacing between sectors for the `segmented` appearance.
-
-### Colour Scales
-
-The bar is coloured using a scale.
-
-{% chartExampleRunner title="Colour Scales" name="color-scales" type="generated" options={ "exampleHeight": 300 } /%}
-
-The colour scale can be customised using the `colorRange` property.
-
-```js
-{
-    bar: {
-        fills: [{ color: '#E84118' }, { color: '#9C88FF' }, { color: '#00A8FF' }],
-        fillMode: 'discrete',
-    },
-}
-```
-
-### Colour Stops
-
-{% chartExampleRunner title="Scale Values" name="scale-values" type="generated" options={ "exampleHeight": 250 } /%}
-
-To show explicit colour stops, use the `scale.values` property in combination with the `colorStops` property.
-
-```js
-{
-    scale: {
-        min: 0,
-        max: 100,
-    },
-    bar: {
-        fills: [
-            { color: '#E84118', stop: 35 },
-            { color: '#FBC531', stop: 45 },
-            { color: '#4CD137', stop: 55 },
-            { color: '#FBC531', stop: 65 },
-            { color: '#E84118' },
-        ],
-        fillMode: 'discrete',
-    },
-}
-```
-
-In this configuration:
-
--   `segments` specifies the exact position of the segments to use for a segmented appearance.
-
-{% note %}
-To ensure the provided colours are not interpolated, there should be one more colour in the `colourRange` than the total number of `segments`.
-{% /note %}
-
-### Corner Radius
-
-{% chartExampleRunner title="Corner Radius" name="corner-radius" type="generated" options={ "exampleHeight": 350 } /%}
-
-The corner radius can be customised with the `cornerRadius` property. This can be used in conjunction with `cornerMode` property to specify which elements have corner radii.
-
-```js
-{
-    cornerRadius: 99,
-    cornerMode: 'container',
-}
-```
-
-In this configuration:
-
--   `cornerRadius` specifies the amount of curvature on each corner. It is clamped to the maximum value that will fit.
--   `cornerMode` can be set to `container` to apply rounded corners only to the start and end of the gauge, or `item` for all visual items within the gauge.
 
 ## API Reference
 

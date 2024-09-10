@@ -22,6 +22,12 @@ const options: AgRadialGaugeOptions = {
 const chart = AgCharts.createGauge(options);
 
 function setFillMode(fillMode: 'discrete' | 'continuous') {
+    delete options!.bar!.fill;
     options.bar!.fillMode = fillMode;
+    chart.update(options);
+}
+
+function setSolidFill() {
+    options!.bar!.fill = '#E84118';
     chart.update(options);
 }
