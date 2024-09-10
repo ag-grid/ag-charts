@@ -44,9 +44,16 @@
         background: transparent;
         color: var(--color-brand-600);
 
+        #{$selector-darkmode} & {
+            color: var(--color-brand-200);
+        }
+
         .tabButtonIcon,
         .activeTabButtonIcon {
             fill: var(--color-brand-600) !important;
+            #{$selector-darkmode} & {
+                fill: var(--color-brand-200) !important;
+            }
         }
 
         &::after {
@@ -65,7 +72,7 @@
 
 .activeTabButton {
     #{$selector-darkmode} & {
-        color: var(--color-util-brand-600);
+        color: var(--color-brand-200);
     }
 }
 
@@ -73,7 +80,7 @@
     fill: var(--color-brand-600) !important;
 
     #{$selector-darkmode} & {
-        fill: var(--color-util-brand-600) !important;
+        fill: var(--color-brand-200) !important;
     }
 }
 
