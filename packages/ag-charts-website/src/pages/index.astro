@@ -8,6 +8,7 @@ import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
 import { AutomatedIntegratedChartsWrapper } from '@ag-website-shared/components/automated-examples/AutomatedIntegratedChartsWrapper';
 import { Faqs } from '../features/homepage/components/faqs/Faqs';
+import ImageCarousel from '../features/homepage/components/hero/ImageCarousel';
 import { parseVersion } from '@ag-website-shared/utils/parseVersion';
 import { Version, type VersionProps } from '@ag-website-shared/components/whats-new/components/Version';
 import whatsNewData from '@ag-website-shared/content/whats-new/data.json';
@@ -123,7 +124,7 @@ const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-ente
                     >
                 </div>
 
-                <div class={styles.galleryScroller}></div>
+                <ImageCarousel client:load />
             </div>
         </div>
 
