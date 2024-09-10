@@ -12,9 +12,10 @@ import { axisRegistry } from '../chart/factory/axisRegistry';
 import { publicChartTypes } from '../chart/factory/chartTypes';
 import { isEnterpriseSeriesType } from '../chart/factory/expectedEnterpriseModules';
 import { removeUsedEnterpriseOptions } from '../chart/factory/processEnterpriseOptions';
-import { type SeriesOptions, seriesRegistry } from '../chart/factory/seriesRegistry';
+import { seriesRegistry } from '../chart/factory/seriesRegistry';
 import { getChartTheme } from '../chart/mapping/themes';
 import {
+    type SeriesOptionsTypes,
     isAgCartesianChartOptions,
     isAgFlowProportionChartOptions,
     isAgGaugeChartOptions,
@@ -68,7 +69,7 @@ type GroupingOptions = {
         stackCount: number;
     };
 };
-type GroupingSeriesOptions = SeriesOptions & GroupingOptions & { xKey?: string };
+type GroupingSeriesOptions = SeriesOptionsTypes & GroupingOptions & { xKey?: string };
 type SeriesGroup = { groupType: GroupingType; seriesType: string; series: GroupingSeriesOptions[]; groupId: string };
 
 enum GroupingType {
@@ -251,7 +252,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             userPalette,
         };
 
-        const processedSeries = options.series?.map((series) => {
+        const processedSeries = (options.series as SeriesOptionsTypes[])?.map((series) => {
             series.type ??= defaultSeriesType;
             const { innerLabels: innerLabelsTheme, ...seriesTheme } =
                 this.getSeriesThemeConfig(series.type).series ?? {};
@@ -324,7 +325,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         });
     }
 
-    protected getSeriesGroupingOptions(series: SeriesOptions & GroupingOptions) {
+    protected getSeriesGroupingOptions(series: SeriesOptionsTypes & GroupingOptions) {
         const groupable = seriesRegistry.isGroupable(series.type);
         const stackable = seriesRegistry.isStackable(series.type);
         const stackedByDefault = seriesRegistry.isStackedByDefault(series.type);
@@ -368,7 +369,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             .flatMap((seriesGroup) => {
                 groupIdx[seriesGroup.seriesType] ??= 0;
                 switch (seriesGroup.groupType) {
-                    case GroupingType.STACK:
+                    case GroupingType.STACK: {
                         const groupIndex = groupIdx[seriesGroup.seriesType]++;
                         return seriesGroup.series.map((series, stackIndex) =>
                             Object.assign(series, {
@@ -381,6 +382,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                                 },
                             })
                         );
+                    }
 
                     case GroupingType.GROUP:
                         return seriesGroup.series.map((series) =>
@@ -518,7 +520,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private soloSeriesIntegrity(options: Partial<T>) {
-        const allSeries: SeriesOptions[] | undefined = options.series;
+        const allSeries: SeriesOptionsTypes[] | undefined = options.series;
         if (allSeries && allSeries.length > 1 && allSeries.some((series) => seriesRegistry.isSolo(series.type))) {
             const mainSeriesType = this.optionsType(options);
             if (seriesRegistry.isSolo(mainSeriesType)) {

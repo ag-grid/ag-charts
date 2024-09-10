@@ -1,8 +1,14 @@
 import type {
     AgCartesianChartOptions,
+    AgCartesianSeriesOptions,
     AgChartThemeOverrides,
-    AgGaugeChartOptions,
+    AgFlowProportionSeriesOptions,
+    AgHierarchySeriesOptions,
+    AgLinearGaugeOptions,
     AgPolarChartOptions,
+    AgPolarSeriesOptions,
+    AgRadialGaugeOptions,
+    AgTopologySeriesOptions,
 } from 'ag-charts-types';
 import type { AgChartOptions } from 'ag-charts-types';
 
@@ -35,20 +41,28 @@ export interface LegendModule extends BaseModule {
 
 type SeriesOptionsTypes = NonNullable<AgChartOptions['series']>[number];
 
-export type ExtensibleTheme<SeriesType extends RequiredSeriesType> = NonNullable<AgChartThemeOverrides[SeriesType]>;
+type Themes = AgChartThemeOverrides & {
+    'linear-gauge'?: { series: AgLinearGaugeOptions };
+    'radial-gauge'?: { series: AgRadialGaugeOptions };
+};
+
+export type ExtensibleTheme<SeriesType extends RequiredSeriesType> = NonNullable<Themes[SeriesType]>;
 
 export type SeriesTypeOptions<SeriesType extends RequiredSeriesType> = Extract<
     SeriesOptionsTypes,
     { type: SeriesType }
 >;
 
-type OptionsSeriesType<T extends AgChartOptions> = NonNullable<T['series']>[number]['type'];
-type SeriesDefaultAxes<SeriesType extends RequiredSeriesType> =
-    SeriesType extends OptionsSeriesType<AgCartesianChartOptions>
-        ? AgCartesianChartOptions['axes']
-        : SeriesType extends OptionsSeriesType<AgPolarChartOptions | AgGaugeChartOptions>
-          ? AgPolarChartOptions['axes']
-          : never;
+type Axes = Record<Required<AgCartesianSeriesOptions>['type'], AgCartesianChartOptions['axes']> &
+    Record<Required<AgPolarSeriesOptions>['type'], AgPolarChartOptions['axes']> &
+    Record<Required<AgHierarchySeriesOptions>['type'], never> &
+    Record<Required<AgTopologySeriesOptions>['type'], never> &
+    Record<Required<AgFlowProportionSeriesOptions>['type'], never> & {
+        'radial-gauge': AgPolarChartOptions['axes'];
+        'linear-gauge': AgCartesianChartOptions['axes'];
+    };
+
+type SeriesDefaultAxes<SeriesType extends RequiredSeriesType> = Axes[SeriesType];
 
 export type SeriesTooltipDefaults = {
     range: 'exact' | 'nearest';
@@ -67,7 +81,7 @@ export interface SeriesModule<
     tooltipDefaults: SeriesTooltipDefaults;
     defaultAxes?: SeriesDefaultAxes<SeriesType>;
     themeTemplate: ExtensibleTheme<SeriesType>;
-    paletteFactory?: SeriesPaletteFactory<SeriesType>;
+    paletteFactory?: SeriesPaletteFactory<ExtensibleTheme<SeriesType>>;
     solo?: boolean;
     stackable?: boolean;
     groupable?: boolean;

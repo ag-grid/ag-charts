@@ -1,12 +1,4 @@
-import type {
-    AgCartesianSeriesOptions,
-    AgChartOptions,
-    AgFlowProportionSeriesOptions,
-    AgGaugeSeriesOptions,
-    AgHierarchySeriesOptions,
-    AgPolarSeriesOptions,
-    AgTopologySeriesOptions,
-} from 'ag-charts-types';
+import type { AgChartOptions } from 'ag-charts-types';
 
 import type { SeriesFactory, SeriesModule, SeriesTooltipDefaults } from '../../module/coreModules';
 import type { SeriesPaletteFactory } from '../../module/coreModulesTypes';
@@ -17,19 +9,11 @@ import type { SeriesType } from '../mapping/types';
 import type { ISeries } from '../series/seriesTypes';
 import { chartTypes, publicChartTypes } from './chartTypes';
 
-export type SeriesOptions =
-    | AgCartesianSeriesOptions
-    | AgPolarSeriesOptions
-    | AgHierarchySeriesOptions
-    | AgTopologySeriesOptions
-    | AgFlowProportionSeriesOptions
-    | AgGaugeSeriesOptions;
-
 interface SeriesRegistryRecord {
     moduleFactory?: SeriesFactory;
     defaultAxes?: object[];
     tooltipDefaults?: SeriesTooltipDefaults;
-    paletteFactory?: SeriesPaletteFactory;
+    paletteFactory?: SeriesPaletteFactory<unknown>;
     solo?: boolean;
     groupable?: boolean;
     stackable?: boolean;
