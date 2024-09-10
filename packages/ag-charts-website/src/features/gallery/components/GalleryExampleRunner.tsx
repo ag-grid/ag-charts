@@ -1,6 +1,6 @@
 import { ExampleRunner } from '@features/example-runner/components/ExampleRunner';
 import { ExternalLinks } from '@features/example-runner/components/ExternalLinks';
-import { useEffect, useState } from 'react';
+import { type ReactElement, useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
 
 import { GALLERY_EXAMPLE_TYPE, GALLERY_INTERNAL_FRAMEWORK } from '../constants';
@@ -16,6 +16,9 @@ interface Props {
     title: string;
     exampleName: string;
     loadingIFrameId: string;
+    hideCode?: boolean;
+    hideExternalLinks?: boolean;
+    footerChildren?: ReactElement;
 }
 
 // NOTE: Not on the layout level, as that is generated at build time, and queryClient needs to be
@@ -29,7 +32,14 @@ const queryOptions = {
     refetchOnReconnect: false,
 };
 
-const GalleryExampleRunnerInner = ({ title, exampleName, loadingIFrameId }: Props) => {
+const GalleryExampleRunnerInner = ({
+    title,
+    exampleName,
+    loadingIFrameId,
+    hideCode,
+    hideExternalLinks,
+    footerChildren,
+}: Props) => {
     const [initialSelectedFile, setInitialSelectedFile] = useState();
     const [exampleUrl, setExampleUrl] = useState<string>();
     const [exampleRunnerExampleUrl, setExampleRunnerExampleUrl] = useState<string>();
@@ -64,7 +74,10 @@ const GalleryExampleRunnerInner = ({ title, exampleName, loadingIFrameId }: Prop
 
             return Promise.all([getContents, getExampleFileHtml]);
         },
-        queryOptions
+        {
+            ...queryOptions,
+            enabled: !hideCode,
+        }
     );
 
     useEffect(() => {
@@ -122,7 +135,7 @@ const GalleryExampleRunnerInner = ({ title, exampleName, loadingIFrameId }: Prop
         setExampleBoilerPlateFiles(contents.boilerPlateFiles);
     }, [contents, exampleFilesIsLoading, exampleFilesIsError, exampleFileHtml]);
 
-    const externalLinks = (
+    const externalLinks = hideExternalLinks ? undefined : (
         <ExternalLinks
             title={title}
             internalFramework={internalFramework}
@@ -142,13 +155,16 @@ const GalleryExampleRunnerInner = ({ title, exampleName, loadingIFrameId }: Prop
             exampleUrl={exampleUrl}
             exampleRunnerExampleUrl={exampleRunnerExampleUrl}
             exampleType={exampleType}
+            hideCode={hideCode}
             exampleFiles={exampleFiles}
             initialSelectedFile={initialSelectedFile}
             internalFramework={internalFramework}
             externalLinks={externalLinks}
+            hideExternalLinks={hideExternalLinks}
             hideInternalFrameworkSelection={true}
             exampleHeight={620}
             loadingIFrameId={loadingIFrameId}
+            footerChildren={footerChildren}
         />
     );
 };

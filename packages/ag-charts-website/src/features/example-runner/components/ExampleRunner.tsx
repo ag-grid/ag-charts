@@ -17,8 +17,10 @@ interface Props {
     exampleUrl?: string;
     exampleRunnerExampleUrl?: string;
     exampleType?: ExampleType;
+    hideCode?: boolean;
     initialShowCode?: boolean;
     externalLinks?: ReactElement;
+    hideExternalLinks?: boolean;
     exampleHeight?: number;
     exampleWidth?: number;
     exampleFiles?: FileContents;
@@ -26,6 +28,7 @@ interface Props {
     internalFramework: InternalFramework;
     hideInternalFrameworkSelection?: boolean;
     loadingIFrameId: string;
+    footerChildren?: ReactElement;
 }
 
 const DEFAULT_HEIGHT = 500;
@@ -36,14 +39,17 @@ export const ExampleRunner: FunctionComponent<Props> = ({
     exampleUrl,
     exampleRunnerExampleUrl,
     exampleType,
+    hideCode,
     initialShowCode,
     externalLinks,
+    hideExternalLinks,
     exampleHeight = DEFAULT_HEIGHT,
     exampleFiles,
     initialSelectedFile,
     internalFramework,
     hideInternalFrameworkSelection,
     loadingIFrameId,
+    footerChildren,
 }) => {
     const [showCode, setShowCode] = useState(initialShowCode);
 
@@ -62,7 +68,7 @@ export const ExampleRunner: FunctionComponent<Props> = ({
                         url={exampleRunnerExampleUrl!}
                         loadingIFrameId={loadingIFrameId}
                     />
-                    {exampleFiles && (
+                    {exampleFiles && !hideCode && (
                         <CodeViewer
                             id={id}
                             isActive={showCode}
@@ -75,30 +81,36 @@ export const ExampleRunner: FunctionComponent<Props> = ({
                     )}
                 </div>
                 <footer className={styles.footer}>
-                    <button
-                        className={classnames(styles.previewCodeToggle, 'button-secondary')}
-                        onClick={(e) => {
-                            setShowCode(!showCode);
-                        }}
-                    >
-                        {showCode && (
-                            <span>
-                                <Icon name="eye" /> Preview
-                            </span>
-                        )}
-                        {!showCode && (
-                            <span>
-                                <Icon name="code" /> Code
-                            </span>
-                        )}
-                    </button>
+                    {!hideCode && (
+                        <button
+                            className={classnames(styles.previewCodeToggle, 'button-secondary')}
+                            onClick={(e) => {
+                                setShowCode(!showCode);
+                            }}
+                        >
+                            {showCode && (
+                                <span>
+                                    <Icon name="eye" /> Preview
+                                </span>
+                            )}
+                            {!showCode && (
+                                <span>
+                                    <Icon name="code" /> Code
+                                </span>
+                            )}
+                        </button>
+                    )}
 
-                    <ul className={classnames('list-style-none', styles.externalLinks)}>
-                        <li>
-                            <OpenInCTA type="newTab" href={exampleUrl!} />
-                        </li>
-                        {externalLinks}
-                    </ul>
+                    {!hideExternalLinks && (
+                        <ul className={classnames('list-style-none', styles.externalLinks)}>
+                            <li>
+                                <OpenInCTA type="newTab" href={exampleUrl!} />
+                            </li>
+                            {externalLinks}
+                        </ul>
+                    )}
+
+                    {footerChildren}
                 </footer>
             </div>
         </div>

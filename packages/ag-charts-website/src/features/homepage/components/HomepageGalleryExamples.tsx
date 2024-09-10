@@ -1,5 +1,6 @@
 import { Icon, type IconName } from '@ag-website-shared/components/icon/Icon';
 import { GalleryExampleRunner } from '@features/gallery/components/GalleryExampleRunner';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { useState } from 'react';
 
 import styles from './HomepageGalleryExamples.module.scss';
@@ -23,6 +24,12 @@ export const HomepageGalleryExamples = ({ examples, loadingIFrameId }: Props) =>
         setCurrentExampleName(exampleName);
     };
 
+    const footerChildren = (
+        <a href={urlWithBaseUrl(`/gallery#${currentExample.buttonText.replace(' ', '-').toLowerCase()}`)}>
+            View More {currentExample.buttonText} Chart Examples <Icon name="arrowRight" />
+        </a>
+    );
+
     return (
         <div className={styles.container}>
             <div className={styles.tabContainer}>
@@ -41,7 +48,14 @@ export const HomepageGalleryExamples = ({ examples, loadingIFrameId }: Props) =>
                 ))}
             </div>
             <div className={styles.exampleContainer}>
-                <GalleryExampleRunner title={title} exampleName={exampleName} loadingIFrameId={loadingIFrameId} />
+                <GalleryExampleRunner
+                    title={title}
+                    exampleName={exampleName}
+                    loadingIFrameId={loadingIFrameId}
+                    hideCode
+                    hideExternalLinks
+                    footerChildren={footerChildren}
+                />
             </div>
         </div>
     );
