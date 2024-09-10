@@ -40,7 +40,6 @@ const options: AgCartesianChartOptions = {
     ],
     legend: {
         item: {
-            showSeriesStroke: false,
             label: {
                 fontSize: 14,
                 fontStyle: 'italic',

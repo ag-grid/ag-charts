@@ -1,21 +1,21 @@
 ---
-title: 'Radial Gauge'
+title: 'Linear Gauge'
 ---
 
-A Radial Gauge presents a single data point within a predefined range using a circular scale.
-The data is represented by a needle or bar indicating the value.
+A Linear Gauge presents a single data point within a predefined range along a scale.
+The data is represented by a bar indicating the value.
 
-## Simple Radial Gauge
+## Simple Linear Gauge
 
-{% chartExampleRunner title="Simple Radial Gauge" name="simple-radial-gauge" type="generated" options={ "exampleHeight": 250 } /%}
+{% chartExampleRunner title="Simple Linear Gauge" name="simple-linear-gauge" type="generated" /%}
 
-To create a Radial Gauge, use the `createGauge` API with the type `radial-gauge`.
+To create a Linear Gauge, use the `createGauge` API with the type `linear-gauge`.
 
 {% if isFramework("javascript") %}
 
 ```js
 const options = {
-    type: 'radial-gauge',
+    type: 'linear-gauge',
     container: document.getElementById('myChart'),
     value: 80,
     scale: {
@@ -33,7 +33,7 @@ AgCharts.createGauge(options);
 
 ```jsx
 const [options, setOptions] = useState({
-    type: 'radial-gauge',
+    type: 'linear-gauge',
     value: 80,
     scale: {
       min: 0,
@@ -58,10 +58,10 @@ return (
   template: `<ag-gauge [options]="options"></ag-gauge>`,
 })
 export class AppComponent {
-  public options: AgRadialGaugeOptions;
+  public options: AgLinearGaugeOptions;
   constructor() {
     this.options = {
-        type: "radial-gauge",
+        type: "linear-gauge",
 
         value: 80,
         scale: {
@@ -85,7 +85,7 @@ components: {
 data() {
     return {
         options: {
-            type: "radial-gauge",
+            type: "linear-gauge",
 
         value: 80,
         scale: {
@@ -106,48 +106,57 @@ In this configuration:
 -   `scale.max` defines the maximum value of the scale.
 -   The data is represented by a coloured bar displayed over a grey scale.
 
-## Customisation
+## Horizontal Linear Gauge
 
-### Needle / Bar
+{% chartExampleRunner title="Horizontal Linear Gauge" name="horizontal-linear-gauge" type="generated" options={ "exampleHeight": 250 } /%}
 
-{% chartExampleRunner title="Needle" name="needle" type="generated" options={ "exampleHeight": 350 } /%}
-
-It is possible to display the data value using a bar, a needle or both. These are both rendered over the scale.
+To create a Horizontal Linear Gauge, set `direction: 'horizontal'`.
 
 ```js
-{
-    needle: {
-        enabled: true,
+const options = {
+    type: 'linear-gauge',
+    direction: 'horizontal',
+    value: 80,
+    scale: {
+        min: 0,
+        max: 100,
     },
-    bar: {
-        enabled: false,
-    },
-}
+};
 ```
 
-In the above example, note that:
+## Customisation
 
--   When the needle is enabled, the label is not shown.
--   When the bar is disabled, the scale defaults to showing the gradient colour instead of the solid grey.
+### Thickness
 
-For customisation of both the bar and needle, see below or the [API Reference](#api-reference).
+{% chartExampleRunner title="Thickness" name="thickness" type="generated" options={ "exampleHeight": 250 } /%}
+
+```js
+const options = {
+    type: 'linear-gauge',
+    //...
+
+    thickness: 50
+    bar: {
+        thickness: 25
+    }
+}
+
+```
+
+In the above configuration:
+
+-   The thickness of the scale is specified as 50 pixels.
+-   The thickness of the bar is specified as 25 pixels.
+-   It is also possible to use `thicknessRatio` to specify the width of the bar as a proportion of the scale.
 
 ### Labels
 
-{% chartExampleRunner title="Labels" name="labels" type="generated" options={ "exampleHeight": 250 } /%}
+//TODO
 
-Up to two inner labels can be configured with the `label` and `secondaryLabel` properties.
+{% chartExampleRunner title="Labels" name="labels" type="generated" options={ "exampleHeight": 250 } /%}
 
 ```js
 {
-    label: {
-        formatter({ value }) {
-            return `${value.toFixed(0)}%`;
-        },
-    },
-    secondaryLabel: {
-        text: 'Test Score',
-    },
     scale: {
         label: {
             enabled: false,
@@ -158,13 +167,11 @@ Up to two inner labels can be configured with the `label` and `secondaryLabel` p
 
 In this configuration:
 
--   The first label uses a `formatter` to format the value.
--   The second label displays a fixed `text` string. This option is only available for inner labels.
 -   The scale labels are hidden using the `scale.label.enabled` option. See the [API Reference](#api-reference) for more details about customising the scale label style and interval.
 
 ### Colour Options
 
-Both the bar and scale have the same colour options and are configured in the same way. If the bar is enabled, it will display above the scale.
+Both the bar and scale have the same colour options and are configured in the same way.
 
 {% chartExampleRunner title="Colour Scales" name="color-scales" type="generated" options={ "exampleHeight": 300 } /%}
 
@@ -252,22 +259,6 @@ In this configuration:
 -   `cornerRadius` specifies the amount of curvature applied to each corner.
 -   `cornerMode` can be set to `container` to apply rounded corners only to the start and end of the gauge, or `item` for all visual items within the gauge.
 
-### Start and End Angles
-
-{% chartExampleRunner title="Angles" name="angles" type="generated" options={ "exampleHeight": 300 } /%}
-
-The `startAngle` and `endAngle` properties can be used to customise the start and end position of the gauge.
-
-```js
-{
-    startAngle: 225,
-    endAngle: 495,
-}
-```
-
--   Angles are calculated clockwise, starting from the top of the gauge.
--   `endAngle` must be greater than `startAngle`.
-
 ## Targets
 
 Gauges often display targets or thresholds to provide context to the displayed data value. These can be added using the `targets` configuration array.
@@ -327,17 +318,23 @@ In this configuration:
 
 In this configuration:
 
--   `shape` is a [marker shape](#reference-AgRadialGaugeOptions-targets-shape).
--   `placement` indicates the relative placement to the gauge - either `inside`, `outside`, or `middle`.
+-   `shape` is a [marker shape](#reference-AgLinearGaugeOptions-targets-shape).
+-   `placement` indicates the relative placement to the gauge - either `before`, `after`, or `middle`.
 -   `size` is the size of the marker, in pixels.
 -   `spacing` is spacing from the edge of the gauge to the marker. Ignored when `placement` is `middle`.
+
+## Bullet Series
+
+{% chartExampleRunner title="Bullet" name="bullet" type="generated" options={ "exampleHeight": 250 } /%}
+
+To create a bullet chart, use the `line` shape for the target.
 
 ## API Reference
 
 {% tabs %}
 
-{% tabItem id="AgRadialGaugeOptions" label="Radial Gauge Options" %}
-{% apiReference id="AgRadialGaugeOptions" /%}
+{% tabItem id="AgLinearGaugeOptions" label="Linear Gauge Options" %}
+{% apiReference id="AgLinearGaugeOptions" /%}
 {% /tabItem %}
 
 {% /tabs %}

@@ -441,6 +441,12 @@
                         "icon": "chartsRadialGauge",
                         "path": "radial-gauge",
                         "isEnterprise": true
+                    },
+                    {
+                        "title": "Linear Gauge",
+                        "icon": "chartsBullet",
+                        "path": "linear-gauge",
+                        "isEnterprise": true
                     }
                 ]
             }
