@@ -8,26 +8,16 @@ import type {
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { Degree, MarkerShape, PixelSize } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
-import type { AgGaugeSeriesColorStop, AgGaugeSeriesFillMode } from './gaugeCommonOptions';
+import type { AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type { AgGaugeSegmentation, AgGaugeSeriesColorStop, AgGaugeSeriesFillMode } from './gaugeCommonOptions';
 
 export type AgLinearGaugeTargetPlacement = 'before' | 'after' | 'middle';
 
-export interface AgLinearGaugeSeriesLabelFormatterParams
-    extends AgLinearGaugeSeriesOptionsKeys,
-        AgLinearGaugeSeriesOptionsNames {}
+export interface AgLinearGaugeSeriesLabelFormatterParams {}
 
 export interface AgLinearGaugeSeriesItemStylerParams<TDatum = any>
     extends DatumCallbackParams<TDatum>,
-        AgLinearGaugeSeriesOptionsKeys,
         Required<AgLinearGaugeSeriesStyle> {}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export interface AgLinearGaugeSeriesHighlightStyle<_TDatum> extends AgSeriesHighlightStyle {}
-
-export interface AgLinearGaugeSeriesOptionsKeys {}
-
-export interface AgLinearGaugeSeriesOptionsNames {}
 
 export interface AgLinearGaugeSeriesScaleInterval {
     /** Array of values in axis units for specified intervals along the axis. The values in this array must be compatible with the axis type. */
@@ -56,18 +46,12 @@ export interface AgLinearGaugeSeriesScale extends FillOptions, StrokeOptions, Li
     interval?: AgLinearGaugeSeriesScaleInterval;
 }
 
-export interface AgLinearGaugeSeriesTooltipRendererParams<TDatum>
-    extends AgSeriesTooltipRendererParams<TDatum>,
-        AgLinearGaugeSeriesOptionsKeys,
-        AgLinearGaugeSeriesOptionsNames {
+export interface AgLinearGaugeSeriesTooltipRendererParams<TDatum> extends AgSeriesTooltipRendererParams<TDatum> {
     /** Value of the Gauge */
     value: number;
 }
 
-export interface AgLinearGaugeSeriesStyle {
-    /** Apply rounded corners to the gauge. */
-    cornerRadius?: number;
-}
+export interface AgLinearGaugeSeriesStyle {}
 
 export interface AgLinearGaugeSeriesBarStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Whether the bar should be shown. */
@@ -137,15 +121,15 @@ export interface AgLinearGaugeSecondaryLabelOptions<TDatum>
 
 export interface AgLinearGaugeSeriesThemeableOptions<TDatum = any>
     extends AgLinearGaugeSeriesStyle,
-        Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
+        Omit<AgBaseSeriesThemeableOptions<TDatum>, 'showInLegend'> {
     /** Direction to display the gauge in. */
     direction?: 'horizontal' | 'vertical';
     /** Width of the gauge, or the height if `direction` is `horizontal`. */
     thickness?: number;
     /** Configuration for a segmented appearance. */
-    segments?: number[] | number;
-    /** The spacing between bars. */
-    barSpacing?: number;
+    segmentation?: AgGaugeSegmentation;
+    /** Apply rounded corners to the gauge. */
+    cornerRadius?: number;
     /** Configuration on whether to apply `cornerRadius` only to the ends of the gauge, or each individual item within the gauge. */
     cornerMode?: 'container' | 'item';
     /** Configuration for all targets. */
@@ -164,15 +148,9 @@ export interface AgLinearGaugeSeriesThemeableOptions<TDatum = any>
     tooltip?: AgSeriesTooltip<AgLinearGaugeSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular Linear Gauge based on the input parameters. */
     itemStyler?: Styler<AgLinearGaugeSeriesItemStylerParams, AgLinearGaugeSeriesStyle>;
-    /** Style overrides when a node is hovered. */
-    highlightStyle?: AgLinearGaugeSeriesHighlightStyle<TDatum>;
 }
 
-export interface AgLinearGaugeSeriesOptions<TDatum = any>
-    extends Omit<AgBaseSeriesOptions<TDatum>, 'highlightStyle'>,
-        AgLinearGaugeSeriesOptionsKeys,
-        AgLinearGaugeSeriesOptionsNames,
-        AgLinearGaugeSeriesThemeableOptions<TDatum> {
+export interface AgLinearGaugeSeriesOptions<TDatum = any> extends AgLinearGaugeSeriesThemeableOptions<TDatum> {
     /** Configuration for the Linear Gauge Series. */
     type: 'linear-gauge';
     /** Value of the Linear Gauge Series. */

@@ -8,26 +8,16 @@ import type {
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { Degree, MarkerShape, PixelSize, Ratio } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
+import type { AgBaseSeriesThemeableOptions } from '../seriesOptions';
 import type { AgGaugeSegmentation, AgGaugeSeriesColorStop, AgGaugeSeriesFillMode } from './gaugeCommonOptions';
 
 export type AgRadialGaugeTargetPlacement = 'inside' | 'outside' | 'middle';
 
-export interface AgRadialGaugeSeriesLabelFormatterParams
-    extends AgRadialGaugeSeriesOptionsKeys,
-        AgRadialGaugeSeriesOptionsNames {}
+export interface AgRadialGaugeSeriesLabelFormatterParams {}
 
 export interface AgRadialGaugeSeriesItemStylerParams<TDatum = any>
     extends DatumCallbackParams<TDatum>,
-        AgRadialGaugeSeriesOptionsKeys,
         Required<AgRadialGaugeSeriesStyle> {}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export interface AgRadialGaugeSeriesHighlightStyle<_TDatum> extends AgSeriesHighlightStyle {}
-
-export interface AgRadialGaugeSeriesOptionsKeys {}
-
-export interface AgRadialGaugeSeriesOptionsNames {}
 
 export interface AgRadialGaugeSeriesScaleInterval {
     /** Array of values in axis units for specified intervals along the axis. The values in this array must be compatible with the axis type. */
@@ -53,18 +43,12 @@ export interface AgRadialGaugeSeriesScale extends FillOptions, StrokeOptions, Li
     interval?: AgRadialGaugeSeriesScaleInterval;
 }
 
-export interface AgRadialGaugeSeriesTooltipRendererParams<TDatum>
-    extends AgSeriesTooltipRendererParams<TDatum>,
-        AgRadialGaugeSeriesOptionsKeys,
-        AgRadialGaugeSeriesOptionsNames {
+export interface AgRadialGaugeSeriesTooltipRendererParams<TDatum> extends AgSeriesTooltipRendererParams<TDatum> {
     /** Value of the Gauge */
     value: number;
 }
 
-export interface AgRadialGaugeSeriesStyle {
-    /** Apply rounded corners to the gauge. */
-    cornerRadius?: number;
-}
+export interface AgRadialGaugeSeriesStyle {}
 
 export interface AgRadialGaugeSeriesBarStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Whether the bar should be shown. */
@@ -124,7 +108,11 @@ export interface AgRadialGaugeSecondaryLabelOptions<TDatum>
 
 export interface AgRadialGaugeSeriesThemeableOptions<TDatum = any>
     extends AgRadialGaugeSeriesStyle,
-        Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
+        Omit<AgBaseSeriesThemeableOptions<TDatum>, 'data' | 'showInLegend'> {
+    /** Ratio of the outer radius of the gauge. */
+    outerRadius?: number;
+    /** Ratio of the inner radius of the gauge. */
+    innerRadius?: number;
     /** Ratio of the outer radius of the gauge. */
     outerRadiusRatio?: Ratio;
     /** Ratio of the inner radius of the gauge. */
@@ -135,6 +123,8 @@ export interface AgRadialGaugeSeriesThemeableOptions<TDatum = any>
     endAngle?: Degree;
     /** Configuration for a segmented appearance. */
     segmentation?: AgGaugeSegmentation;
+    /** Apply rounded corners to the gauge. */
+    cornerRadius?: number;
     /** Configuration on whether to apply `cornerRadius` only to the ends of the gauge, or each individual item within the gauge. */
     cornerMode?: 'container' | 'item';
     /** Configuration for the needle. */
@@ -153,15 +143,9 @@ export interface AgRadialGaugeSeriesThemeableOptions<TDatum = any>
     tooltip?: AgSeriesTooltip<AgRadialGaugeSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular Radial Gauge based on the input parameters. */
     itemStyler?: Styler<AgRadialGaugeSeriesItemStylerParams, AgRadialGaugeSeriesStyle>;
-    /** Style overrides when a node is hovered. */
-    highlightStyle?: AgRadialGaugeSeriesHighlightStyle<TDatum>;
 }
 
-export interface AgRadialGaugeSeriesOptions<TDatum = any>
-    extends Omit<AgBaseSeriesOptions<TDatum>, 'highlightStyle'>,
-        AgRadialGaugeSeriesOptionsKeys,
-        AgRadialGaugeSeriesOptionsNames,
-        AgRadialGaugeSeriesThemeableOptions<TDatum> {
+export interface AgRadialGaugeSeriesOptions<TDatum = any> extends AgRadialGaugeSeriesThemeableOptions<TDatum> {
     /** Configuration for the Radial Gauge Series. */
     type: 'radial-gauge';
     /** Value of the Radial Gauge Series. */
