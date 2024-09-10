@@ -499,6 +499,10 @@
     :global(.example-runner-outer) {
         margin-bottom: 0 !important;
     }
+
+    :global(div[class*='content']) {
+        border: none;
+    }
 }
 
 .financialChartsFeaturesContainer {
