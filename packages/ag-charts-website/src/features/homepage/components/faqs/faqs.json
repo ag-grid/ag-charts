@@ -37,6 +37,6 @@
     },
     {
         "question": "How do AG Charts JavaScript charts perform with large datasets?",
-        "answer": "AG Charts JavaScript charts are optimized for performance with large datasets. They use efficient rendering techniques and data aggregation to handle millions of data points smoothly, ensuring your JavaScript charts remain responsive even with substantial amounts of data."
+        "answer": "AG Charts JavaScript charts are optimized for performance with large datasets. We use efficient rendering techniques to handle hundreds of thousands of data points smoothly, ensuring your JavaScript charts remain responsive even with substantial amounts of data."
     }
 ]
