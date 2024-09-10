@@ -8,7 +8,6 @@ const options: AgLinearGaugeOptions = {
         min: 0,
         max: 100,
     },
-    // @ts-expect-error
     segmentation: {
         spacing: 2,
     },
@@ -17,7 +16,6 @@ const options: AgLinearGaugeOptions = {
 const chart = AgCharts.createGauge(options);
 
 function setSpacing(spacing: number) {
-    // @ts-expect-error
     options.segmentation!.spacing = spacing;
     chart.update(options);
 }

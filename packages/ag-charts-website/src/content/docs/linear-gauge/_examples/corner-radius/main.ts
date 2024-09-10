@@ -8,7 +8,6 @@ const options: AgLinearGaugeOptions = {
         min: 0,
         max: 100,
     },
-    // @ts-expect-error
     segmentation: {
         interval: {
             count: 25,
