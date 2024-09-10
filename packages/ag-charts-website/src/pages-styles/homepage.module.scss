@@ -13,6 +13,10 @@
     }
 }
 
+.container > div:last-child {
+    padding-bottom: $spacing-size-24;
+}
+
 .section {
     padding-top: $spacing-size-16;
     padding-bottom: $spacing-size-16;
@@ -293,6 +297,7 @@
 .ctaButton {
     display: flex;
     justify-content: center;
+    margin-top: $spacing-size-16;
 }
 
 .heroSectionInner {
