@@ -5,7 +5,13 @@
     height: 480px;
     width: 100%;
     overflow: hidden;
-    pointer-events: none;
+    display: flex;
+}
+
+.carousel-column {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
 }
 
 .carousel-scroll {
@@ -14,12 +20,20 @@
     overflow-y: scroll;
     scrollbar-width: none;
     -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+.scroll-down {
     mask-image: linear-gradient(to top, var(--color-util-brand-500) 80%, transparent);
     -webkit-mask-image: linear-gradient(to top, var(--color-util-brand-700) 80%, transparent);
 }
 
-.carousel-scroll::-webkit-scrollbar {
-    display: none;
+.scroll-up {
+    mask-image: linear-gradient(to bottom, var(--color-util-brand-500) 80%, transparent);
+    -webkit-mask-image: linear-gradient(to bottom, var(--color-util-brand-700) 80%, transparent);
 }
 
 .carousel-content {
@@ -29,12 +43,7 @@
 
 .image-row {
     width: 100%;
-    padding: 8px;
-}
-
-.image-row {
-    display: flex;
-    gap: $spacing-size-4;
+    padding: $spacing-size-4;
 }
 
 .carousel-image {

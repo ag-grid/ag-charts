@@ -1,28 +1,48 @@
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import './ImageCarousel.scss';
 
 const ImageCarousel = () => {
-    const carouselRef = useRef(null);
+    const leftColumnRef = useRef(null);
+    const rightColumnRef = useRef(null);
+    const [scrollHeight, setScrollHeight] = useState(0);
 
     useEffect(() => {
-        const carousel = carouselRef.current;
+        const leftColumn = leftColumnRef.current;
+        const rightColumn = rightColumnRef.current;
         let animationId;
 
+        const updateScrollHeight = () => {
+            if (leftColumn) {
+                setScrollHeight(leftColumn.scrollHeight / 2);
+            }
+        };
+
         const animate = () => {
-            if (carousel.scrollTop >= carousel.scrollHeight / 2) {
-                carousel.scrollTop = 0;
-            } else {
-                carousel.scrollTop += 1;
+            if (leftColumn && rightColumn) {
+                leftColumn.scrollTop += 1;
+                if (leftColumn.scrollTop >= scrollHeight) {
+                    leftColumn.scrollTop = 0;
+                }
+
+                rightColumn.scrollTop -= 1;
+                if (rightColumn.scrollTop <= 0) {
+                    rightColumn.scrollTop = scrollHeight;
+                }
             }
             animationId = requestAnimationFrame(animate);
         };
 
+        updateScrollHeight();
+        window.addEventListener('resize', updateScrollHeight);
         animationId = requestAnimationFrame(animate);
 
-        return () => cancelAnimationFrame(animationId);
-    }, []);
+        return () => {
+            cancelAnimationFrame(animationId);
+            window.removeEventListener('resize', updateScrollHeight);
+        };
+    }, [scrollHeight]);
 
     const images = [
         'images/scroller-1.png',
@@ -35,33 +55,39 @@ const ImageCarousel = () => {
         'images/scroller-8.png',
     ];
 
-    const createImagePairs = (imgs) => {
-        const pairs = [];
-        for (let i = 0; i < imgs.length; i += 2) {
-            pairs.push([imgs[i], imgs[i + 1]]);
-        }
-        return pairs;
-    };
-
-    const imagePairs = createImagePairs([...images, ...images]);
+    const leftImages = [...images, ...images];
+    const rightImages = [...images.reverse(), ...images.reverse()];
 
     return (
         <div className="carousel-container">
-            <div ref={carouselRef} className="carousel-scroll">
-                <div className="carousel-content">
-                    {imagePairs.map((pair, index) => (
-                        <div key={index} className="image-row">
-                            {pair.map((src, i) => (
-                                <div key={`${index}-${i}`} className="image-column">
-                                    <img
-                                        src={urlWithBaseUrl(src)}
-                                        alt={`Image ${index * 2 + i + 1}`}
-                                        className="carousel-image"
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                    ))}
+            <div className="carousel-column">
+                <div ref={leftColumnRef} className="carousel-scroll scroll-down">
+                    <div className="carousel-content">
+                        {leftImages.map((src, index) => (
+                            <div key={index} className="image-row">
+                                <img
+                                    src={urlWithBaseUrl(src)}
+                                    alt={`Left Image ${index + 1}`}
+                                    className="carousel-image"
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+            <div className="carousel-column">
+                <div ref={rightColumnRef} className="carousel-scroll scroll-up">
+                    <div className="carousel-content">
+                        {rightImages.map((src, index) => (
+                            <div key={index} className="image-row">
+                                <img
+                                    src={urlWithBaseUrl(src)}
+                                    alt={`Right Image ${index + 1}`}
+                                    className="carousel-image"
+                                />
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
             <div className="gradient-overlay"></div>
