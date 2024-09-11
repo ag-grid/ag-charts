@@ -17,7 +17,7 @@
     },
     {
         "question": "What interactivity features do AG Charts JavaScript charts offer?",
-        "answer": "AG Charts JavaScript charts provide rich interactivity options, including tooltips, zooming, panning, context menus and click events. You can customize these features to create engaging user experiences with your JavaScript charts."
+        "answer": "AG Charts JavaScript charts provide rich interactivity options, including tooltips, zooming and panning, context menus and click events. You can customize these features to create engaging user experiences with your JavaScript charts."
     },
     {
         "question": "Can I export AG Charts JavaScript charts as images?",
