@@ -513,14 +513,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         return config.copy(node, datum, newDatum, context);
     }
 
-    private onRestoreAnnotations(event: { annotations?: any }) {
-        if (!this.enabled) return;
-
-        this.clear();
-        this.annotationData.set(event.annotations);
-        this.update();
-    }
-
     private createAnnotation(type: AnnotationType, datum: AnnotationProperties, applyDefaults: boolean = true) {
         this.annotationData.push(datum);
 
@@ -536,6 +528,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.removeAmbientKeyboardListener?.();
         this.removeAmbientKeyboardListener = undefined;
 
+        this.update();
+    }
+
+    private onRestoreAnnotations(event: { annotations?: any }) {
+        if (!this.enabled) return;
+
+        this.clear();
+        this.annotationData.set(event.annotations);
         this.update();
     }
 
