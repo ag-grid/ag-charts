@@ -1,5 +1,6 @@
 import { type _ModuleSupport, _Theme } from 'ag-charts-community';
 
+import defaultColorStops from '../gauge-util/defaultColorStops';
 import { LinearGaugeSeries } from './linearGaugeSeries';
 
 const {
@@ -37,6 +38,8 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
                 fill: DEFAULT_LABEL_COLOUR,
                 stroke: DEFAULT_LABEL_COLOUR,
                 size: 10,
+                shape: 'triangle',
+                placement: 'outside',
                 spacing: 5,
                 label: {
                     enabled: true,
@@ -81,7 +84,7 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
                 defaultFill: hierarchyFills?.[1],
                 stroke: hierarchyFills?.[2],
             },
-            defaultColorRange: colorRange,
+            defaultColorRange: defaultColorStops(colorRange),
         };
     },
 };

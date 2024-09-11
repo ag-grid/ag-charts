@@ -99,6 +99,11 @@ interface RadialGaugeNodeDataContext
     scaleData: RadialGaugeNodeDatum[];
 }
 
+const targetPlacementRotation: Record<AgRadialGaugeTargetPlacement, number> = {
+    inside: 90,
+    middle: 0,
+    outside: -90,
+};
 const outsideLabelPlacements: Array<{ textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline }> = [
     { textAlign: 'left', textBaseline: 'top' },
     { textAlign: 'right', textBaseline: 'top' },
@@ -258,11 +263,7 @@ export class RadialGaugeSeries
         return formatLabel(value, this.axes[ChartAxisDirection.X]);
     }
 
-    private createConicGradient(
-        fills: GaugeStopProperties[],
-        fillMode: AgGaugeFillMode | undefined,
-        segments: number[] | undefined
-    ) {
+    private createConicGradient(fills: GaugeStopProperties[], fillMode: AgGaugeFillMode | undefined) {
         const { centerX, centerY, radius } = this;
         const { domain, range } = this.axes[ChartAxisDirection.X]!.scale;
         const [startAngle, endAngle] = range;
@@ -271,7 +272,7 @@ export class RadialGaugeSeries
         const conicAngle = normalizeAngle360((startAngle + endAngle) / 2 + Math.PI);
         const sweepAngle = normalizeAngle360Inclusive(endAngle - startAngle);
 
-        const stops = getColorStops(fills, defaultColorRange, domain, fillMode, segments).map(
+        const stops = getColorStops(fills, defaultColorRange, domain, fillMode).map(
             ({ color, offset }): _Scene.GradientColorStop => {
                 offset = Math.min(Math.max(offset, 0), 1);
                 const angle = startAngle + sweepAngle * offset;
@@ -296,6 +297,9 @@ export class RadialGaugeSeries
             const {
                 text = defaultTarget.text,
                 value = defaultTarget.value ?? 0,
+                shape = defaultTarget.shape ?? 'triangle',
+                rotation = defaultTarget.rotation ?? 0,
+                strokeWidth = defaultTarget.strokeWidth ?? 0,
                 placement = defaultTarget.placement ?? 'middle',
                 spacing = defaultTarget.spacing ?? 0,
                 size = defaultTarget.size ?? 0,
@@ -315,28 +319,6 @@ export class RadialGaugeSeries
                 fontFamily: labelFontFamily = defaultTarget.label.fontFamily,
                 spacing: labelSpacing = defaultTarget.label.spacing ?? 0,
             } = target.label;
-
-            let {
-                shape = defaultTarget.shape,
-                rotation = defaultTarget.rotation,
-                strokeWidth = defaultTarget.strokeWidth,
-            } = target;
-            switch (placement) {
-                case 'outside':
-                    shape ??= 'triangle';
-                    rotation ??= 180;
-                    break;
-                case 'inside':
-                    shape ??= 'triangle';
-                    rotation ??= 0;
-                    break;
-                default:
-                    shape ??= 'circle';
-                    rotation ??= 0;
-            }
-            rotation = toRadians(rotation);
-
-            strokeWidth ??= shape === 'line' ? 2 : 0;
 
             return {
                 text,
@@ -476,11 +458,11 @@ export class RadialGaugeSeries
         const maxTicks = Math.ceil(normalizeAngle360Inclusive(containerEndAngle - containerStartAngle) * radius);
         let segments = segmentation.getSegments(angleAxis.scale, maxTicks);
 
-        const barFill = bar.fill ?? this.createConicGradient(bar.fills, bar.fillMode, segments);
+        const barFill = bar.fill ?? this.createConicGradient(bar.fills, bar.fillMode);
         const scaleFill =
             scale.fill ??
             (bar.enabled && scale.fills.length === 0 ? scale.defaultFill : undefined) ??
-            this.createConicGradient(scale.fills, scale.fillMode, segments);
+            this.createConicGradient(scale.fills, scale.fillMode);
 
         if (segments == null && cornersOnAllItems) {
             const appliedCornerRadius = Math.min(cornerRadius, (outerRadius - innerRadius) / 2);
@@ -634,7 +616,6 @@ export class RadialGaugeSeries
                 text,
                 size,
                 shape,
-                rotation,
                 fill,
                 fillOpacity,
                 stroke,
@@ -650,6 +631,7 @@ export class RadialGaugeSeries
 
             const targetRadius = this.getTargetRadius(target);
             const targetAngle = angleScale.convert(targetValue);
+            const targetRotation = toRadians(target.rotation + targetPlacementRotation[target.placement]);
 
             targetData.push({
                 series: this,
@@ -667,8 +649,8 @@ export class RadialGaugeSeries
                 shape,
                 radius: targetRadius,
                 angle: targetAngle,
+                rotation: targetRotation,
                 size,
-                rotation,
                 fill,
                 fillOpacity,
                 stroke,
@@ -926,7 +908,7 @@ export class RadialGaugeSeries
             target.lineDashOffset = highlightStyle?.lineDashOffset ?? lineDashOffset;
             target.translationX = centerX + radius * Math.cos(angle);
             target.translationY = centerY + radius * Math.sin(angle);
-            target.rotation = angle + Math.PI / 2 + rotation;
+            target.rotation = angle + rotation;
         });
     }
 

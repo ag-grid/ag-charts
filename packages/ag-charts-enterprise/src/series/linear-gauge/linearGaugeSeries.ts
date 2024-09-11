@@ -83,6 +83,17 @@ interface LinearGaugeNodeDataContext
     scaleData: LinearGaugeNodeDatum[];
 }
 
+const horizontalTargetPlacementRotation: Record<AgLinearGaugeTargetPlacement, number> = {
+    before: 180,
+    middle: 0,
+    after: 0,
+};
+const verticalTargetPlacementRotation: Record<AgLinearGaugeTargetPlacement, number> = {
+    before: 90,
+    middle: 0,
+    after: -90,
+};
+
 export class LinearGaugeSeries
     extends _ModuleSupport.Series<
         LinearGaugeNodeDatum,
@@ -232,11 +243,7 @@ export class LinearGaugeSeries
         return value.toFixed(dp);
     }
 
-    private createLinearGradient(
-        fills: GaugeStopProperties[],
-        fillMode: AgGaugeFillMode | undefined,
-        segments: number[] | undefined
-    ) {
+    private createLinearGradient(fills: GaugeStopProperties[], fillMode: AgGaugeFillMode | undefined) {
         const { properties, originX, originY, horizontal } = this;
         const { thickness, defaultColorRange } = properties;
 
@@ -245,7 +252,7 @@ export class LinearGaugeSeries
 
         const length = range[1] - range[0];
 
-        const stops = getColorStops(fills, defaultColorRange, domain, fillMode, segments);
+        const stops = getColorStops(fills, defaultColorRange, domain, fillMode);
 
         return new LinearGradient(
             'oklch',
@@ -262,6 +269,10 @@ export class LinearGaugeSeries
             const {
                 text = defaultTarget.text,
                 value = defaultTarget.value ?? 0,
+                shape = defaultTarget.shape ?? 'triangle',
+                rotation = defaultTarget.rotation ?? 0,
+                strokeWidth = defaultTarget.strokeWidth ?? 0,
+                placement = defaultTarget.placement ?? 'middle',
                 spacing = defaultTarget.spacing ?? 0,
                 size = defaultTarget.size ?? 0,
                 fill = defaultTarget.fill ?? 'black',
@@ -280,35 +291,6 @@ export class LinearGaugeSeries
                 fontFamily: labelFontFamily = defaultTarget.label.fontFamily,
                 spacing: labelSpacing = defaultTarget.label.spacing ?? 0,
             } = target.label;
-
-            let {
-                placement = defaultTarget.placement,
-                shape = defaultTarget.shape,
-                rotation = defaultTarget.rotation,
-                strokeWidth = defaultTarget.strokeWidth,
-            } = target;
-            if (shape === 'line') {
-                placement ??= 'middle';
-                rotation ??= 90;
-                strokeWidth ??= 2;
-            } else {
-                placement ??= 'after';
-                strokeWidth ??= 0;
-            }
-            switch (placement) {
-                case 'before':
-                    shape ??= 'triangle';
-                    rotation ??= 90;
-                    break;
-                case 'after':
-                    shape ??= 'triangle';
-                    rotation ??= -90;
-                    break;
-                default:
-                    shape ??= 'circle';
-                    rotation ??= 0;
-            }
-            rotation = toRadians(rotation);
 
             return {
                 text,
@@ -484,11 +466,11 @@ export class LinearGaugeSeries
         const maxTicks = Math.ceil(mainAxisSize);
         let segments = segmentation.getSegments(mainAxisScale, maxTicks);
 
-        const barFill = bar.fill ?? this.createLinearGradient(bar.fills, bar.fillMode, segments);
+        const barFill = bar.fill ?? this.createLinearGradient(bar.fills, bar.fillMode);
         const scaleFill =
             scale.fill ??
             (bar.enabled && scale.fills.length === 0 ? scale.defaultFill : undefined) ??
-            this.createLinearGradient(scale.fills, scale.fillMode, segments);
+            this.createLinearGradient(scale.fills, scale.fillMode);
 
         if (segments == null && cornersOnAllItems) {
             if (bar.enabled) {
@@ -534,8 +516,8 @@ export class LinearGaugeSeries
                 type: NodeDataType.Node,
                 x0: originX + x0 - scaleCornerXInset,
                 y0: originY + y0 - scaleCornerYInset,
-                x1: originX + x1 + 2 * scaleCornerXInset,
-                y1: originY + y1 + 2 * scaleCornerYInset,
+                x1: originX + x1 + scaleCornerXInset,
+                y1: originY + y1 + scaleCornerYInset,
                 clipX0: undefined,
                 clipY0: undefined,
                 clipX1: undefined,
@@ -659,13 +641,15 @@ export class LinearGaugeSeries
         //     });
         // }
 
+        const targetPlacementRotation = horizontal
+            ? horizontalTargetPlacementRotation
+            : verticalTargetPlacementRotation;
         for (let i = 0; i < targets.length; i += 1) {
             const target = targets[i];
             const {
                 value: targetValue,
                 text,
                 shape,
-                rotation,
                 size,
                 fill,
                 fillOpacity,
@@ -677,6 +661,7 @@ export class LinearGaugeSeries
             } = target;
 
             const targetPoint = this.getTargetPoint(target);
+            const targetRotation = toRadians(target.rotation + targetPlacementRotation[target.placement]);
 
             targetData.push({
                 series: this,
@@ -690,7 +675,7 @@ export class LinearGaugeSeries
                 y: targetPoint.y,
                 shape,
                 size,
-                rotation,
+                rotation: targetRotation,
                 fill,
                 fillOpacity,
                 stroke,
@@ -859,8 +844,7 @@ export class LinearGaugeSeries
         isHighlight: boolean;
     }) {
         const { targetSelection, isHighlight } = opts;
-        const { horizontal, properties } = this;
-        const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
+        const highlightStyle = isHighlight ? this.properties.highlightStyle.item : undefined;
 
         targetSelection.each((target, datum) => {
             const {
@@ -887,7 +871,7 @@ export class LinearGaugeSeries
             target.lineDashOffset = highlightStyle?.lineDashOffset ?? lineDashOffset;
             target.translationX = x;
             target.translationY = y;
-            target.rotation = (horizontal ? Math.PI / 2 : 0) + rotation;
+            target.rotation = rotation;
         });
     }
 

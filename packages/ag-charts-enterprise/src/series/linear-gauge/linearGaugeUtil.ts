@@ -113,26 +113,18 @@ export function prepareLinearGaugeSeriesAnimationFunctions(initialLoad: boolean,
                 // Use previous clip data
             } else if (!previousHadClipBBox && nextHasClipBBox) {
                 // Clip sector added
-                x0 = datum.x0;
-                y0 = datum.y0;
-                x1 = datum.x1;
-                y1 = datum.y1;
-                clipX0 = datum.clipX0;
-                clipY0 = datum.clipY0;
-                clipX1 = datum.clipX1;
-                clipY1 = datum.clipY1;
+                ({ x0, y0, x1, y1, clipX0, clipY0, clipX1, clipY1 } = datum);
 
-                if (horizontal) {
-                    clipX1 = datum.clipX0;
-                } else {
-                    clipY1 = datum.clipY0;
+                if (initialLoad) {
+                    if (horizontal) {
+                        clipX1 = datum.clipX0;
+                    } else {
+                        clipY1 = datum.clipY0;
+                    }
                 }
             } else if (previousHadClipBBox && !nextHasClipBBox) {
                 // Clip sector removed
-                x0 = datum.x0;
-                y0 = datum.y0;
-                x1 = datum.x1;
-                y1 = datum.y1;
+                ({ x0, y0, x1, y1 } = datum);
                 clipX0 = undefined;
                 clipY0 = undefined;
                 clipX1 = undefined;
