@@ -77,12 +77,12 @@ export class AnnotationSettingsDialog extends Dialog {
         if ('extendStart' in datum && 'extendEnd' in datum) {
             content.append(
                 this.createCheckbox({
-                    label: isChannelType(datum) ? 'Extend channel start' : 'Extend line start',
+                    label: isChannelType(datum) ? 'dialogInputExtendChannelStart' : 'dialogInputExtendLineStart',
                     checked: datum.extendStart ?? false,
                     onChange: (extendStart) => options.onChangeLine({ extendStart }),
                 }),
                 this.createCheckbox({
-                    label: isChannelType(datum) ? 'Extend channel end' : 'Extend line end',
+                    label: isChannelType(datum) ? 'dialogInputExtendChannelEnd' : 'dialogInputExtendLineEnd',
                     checked: datum.extendEnd ?? false,
                     onChange: (extendEnd) => options.onChangeLine({ extendEnd }),
                 })
