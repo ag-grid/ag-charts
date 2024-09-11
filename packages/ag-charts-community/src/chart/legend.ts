@@ -21,7 +21,6 @@ import { Selection } from '../scene/selection';
 import { Line } from '../scene/shape/line';
 import { type SpriteDimensions, SpriteRenderer } from '../scene/spriteRenderer';
 import { Transformable } from '../scene/transformable';
-import type { BBoxProvider } from '../util/bboxinterface';
 import { createElement, getWindow, setElementBBox } from '../util/dom';
 import { createId } from '../util/id';
 import { initRovingTabIndex } from '../util/keynavUtil';
@@ -330,7 +329,7 @@ export class Legend extends BaseProperties {
                 ariaChecked: !!markerLabel.datum.enabled,
                 ariaDescribedBy: this.proxyLegendItemDescription.id,
                 parent: this.proxyLegendToolbar,
-                focusable: this.getLegendItemHitboxProvider(markerLabel),
+                focusable: new NodeRegionBBoxProvider(markerLabel),
                 // Retrieve the datum from the node rather than from the method parameter.
                 // The method parameter `datum` gets destroyed when the data is refreshed
                 // using Series.getLegendData(). But the scene node will stay the same.
@@ -727,10 +726,7 @@ export class Legend extends BaseProperties {
     }
 
     private updateItemProxyButtons() {
-        this.itemSelection.each((l) => {
-            const bbox = Transformable.toCanvas(l.parent!, this.getLegendItemHitbox(l));
-            setElementBBox(l.proxyButton?.listitem, bbox);
-        });
+        this.itemSelection.each((l) => setElementBBox(l.proxyButton?.listitem, Transformable.toCanvas(l)));
     }
 
     private updatePaginationProxyButtons(oldPages: Page[] | undefined) {
@@ -992,30 +988,6 @@ export class Legend extends BaseProperties {
 
         // Fallback to returning closest match to the left/up.
         return closestLeftTop.datum;
-    }
-    private getLegendItemHitbox(legendItemNode: { getBBox(): BBox }): BBox {
-        const bbox = legendItemNode.getBBox().clone();
-        bbox.grow(this.item.paddingX / 2, 'horizontal');
-        bbox.grow(this.item.paddingY / 2, 'vertical');
-        return bbox;
-    }
-    private getLegendItemHitboxProvider(legendItemNode: LegendMarkerLabel): BBoxProvider<BBox> {
-        // FIXME: This method is required for the `focusable` property of `createProxyElement`, but the `focusable` property should eventually be removed because it's only required to update the FocusIndicator
-        const legend = this;
-        return {
-            get id() {
-                return legendItemNode.id;
-            },
-            get visible() {
-                return legendItemNode.visible;
-            },
-            toCanvasBBox() {
-                return Transformable.toCanvas(legend.group, legend.getLegendItemHitbox(legendItemNode));
-            },
-            fromCanvasPoint(x: number, y: number) {
-                return Transformable.fromCanvasPoint(legendItemNode!, x, y);
-            },
-        };
     }
 
     private computePagedBBox(): BBox {
