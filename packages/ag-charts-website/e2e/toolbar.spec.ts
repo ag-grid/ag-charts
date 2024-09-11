@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
+import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
 
 test.describe('toolbar', () => {
     setupIntrinsicAssertions();
@@ -16,28 +16,28 @@ test.describe('toolbar', () => {
         await page.locator('[data-popover-id="line"]').click();
         await expect(page).toHaveScreenshot('line-2-button-active.png', { animations: 'disabled' });
 
-        await page.hover('canvas', { position: { x: 100, y: 100 } });
-        await page.click('canvas', { position: { x: 100, y: 100 } });
-        await page.hover('canvas', { position: { x: 200, y: 200 } });
+        await page.hover(SELECTORS.canvas, { position: { x: 100, y: 100 } });
+        await page.click(SELECTORS.canvas, { position: { x: 100, y: 100 } });
+        await page.hover(SELECTORS.canvas, { position: { x: 200, y: 200 } });
         await expect(page).toHaveScreenshot('line-3-drawing.png', { animations: 'disabled' });
 
-        await page.click('canvas', { position: { x: 200, y: 200 } });
+        await page.click(SELECTORS.canvas, { position: { x: 200, y: 200 } });
         await expect(page).toHaveScreenshot('line-4-complete.png', { animations: 'disabled' });
 
-        await page.click('canvas', { position: { x: 300, y: 300 } });
+        await page.click(SELECTORS.canvas, { position: { x: 300, y: 300 } });
 
-        await page.locator('canvas').press('ControlOrMeta+z');
+        await page.locator(SELECTORS.canvas).press('ControlOrMeta+z');
         await expect(page).toHaveScreenshot('line-5-undo.png', { animations: 'disabled' });
 
-        await page.locator('canvas').press('ControlOrMeta+y');
+        await page.locator(SELECTORS.canvas).press('ControlOrMeta+y');
         await expect(page).toHaveScreenshot('line-6-redo.png', { animations: 'disabled' });
 
-        await page.click('canvas', { position: { x: 150, y: 150 } });
+        await page.click(SELECTORS.canvas, { position: { x: 150, y: 150 } });
 
-        await page.locator('canvas').press('ControlOrMeta+c');
+        await page.locator(SELECTORS.canvas).press('ControlOrMeta+c');
         await expect(page).toHaveScreenshot('line-7-copy.png', { animations: 'disabled' });
 
-        await page.locator('canvas').press('ControlOrMeta+v');
+        await page.locator(SELECTORS.canvas).press('ControlOrMeta+v');
         await expect(page).toHaveScreenshot('line-8-paste.png', { animations: 'disabled' });
     });
 
@@ -53,8 +53,8 @@ test.describe('toolbar', () => {
         await page.locator('[data-popover-id="text"]').click();
         await expect(page).toHaveScreenshot('text-3-button-active.png', { animations: 'disabled' });
 
-        await page.hover('canvas', { position: { x: 200, y: 200 } });
-        await page.click('canvas', { position: { x: 200, y: 200 } });
+        await page.hover(SELECTORS.canvas, { position: { x: 200, y: 200 } });
+        await page.click(SELECTORS.canvas, { position: { x: 200, y: 200 } });
         await expect(page).toHaveScreenshot('text-4-start.png', { animations: 'disabled' });
 
         await page.keyboard.type('Hello, world!');
@@ -64,18 +64,18 @@ test.describe('toolbar', () => {
         await expect(page).toHaveScreenshot('text-6-save.png', { animations: 'disabled' });
 
         // Select text annotation
-        await page.hover('canvas', { position: { x: 210, y: 190 } });
-        await page.click('canvas', { position: { x: 210, y: 190 } });
+        await page.hover(SELECTORS.canvas, { position: { x: 210, y: 190 } });
+        await page.click(SELECTORS.canvas, { position: { x: 210, y: 190 } });
 
-        await page.click('canvas', { position: { x: 210, y: 190 } });
+        await page.click(SELECTORS.canvas, { position: { x: 210, y: 190 } });
         await page.keyboard.type(' Editing!');
         await expect(page).toHaveScreenshot('text-7-editing.png', { animations: 'disabled' });
 
         await page.keyboard.down('Enter');
 
         // Select text annotation
-        await page.hover('canvas', { position: { x: 210, y: 190 } });
-        await page.click('canvas', { position: { x: 210, y: 190 } });
+        await page.hover(SELECTORS.canvas, { position: { x: 210, y: 190 } });
+        await page.click(SELECTORS.canvas, { position: { x: 210, y: 190 } });
 
         await page.locator('[data-toolbar-id="text-size"]').click();
         await expect(page).toHaveScreenshot('text-8-font-size-popover.png', { animations: 'disabled' });
@@ -93,12 +93,12 @@ test.describe('toolbar', () => {
         await page.locator('[data-toolbar-group="annotations"][data-toolbar-id="text-menu"]').click();
         await page.locator('[data-popover-id="callout"]').click();
 
-        await page.hover('canvas', { position: { x: 200, y: 200 } });
-        await page.click('canvas', { position: { x: 200, y: 200 } });
+        await page.hover(SELECTORS.canvas, { position: { x: 200, y: 200 } });
+        await page.click(SELECTORS.canvas, { position: { x: 200, y: 200 } });
         await expect(page).toHaveScreenshot('callout-1-start.png', { animations: 'disabled' });
 
-        await page.hover('canvas', { position: { x: 250, y: 150 } });
-        await page.click('canvas', { position: { x: 250, y: 150 } });
+        await page.hover(SELECTORS.canvas, { position: { x: 250, y: 150 } });
+        await page.click(SELECTORS.canvas, { position: { x: 250, y: 150 } });
         await expect(page).toHaveScreenshot('callout-2-end.png', { animations: 'disabled' });
 
         await page.keyboard.type('Hello, world!');
@@ -107,8 +107,8 @@ test.describe('toolbar', () => {
         await page.keyboard.down('Enter');
         await expect(page).toHaveScreenshot('callout-4-save.png', { animations: 'disabled' });
 
-        await page.hover('canvas', { position: { x: 260, y: 140 } });
-        await page.click('canvas', { position: { x: 260, y: 140 } });
+        await page.hover(SELECTORS.canvas, { position: { x: 260, y: 140 } });
+        await page.click(SELECTORS.canvas, { position: { x: 260, y: 140 } });
         await page.locator('[data-toolbar-id="fill-color"]').click();
         await expect(page).toHaveScreenshot('callout-5-fill-color-popover.png', { animations: 'disabled' });
 
@@ -118,8 +118,8 @@ test.describe('toolbar', () => {
                 y: 5,
             },
         });
-        await page.hover('canvas', { position: { x: 100, y: 100 } });
-        await page.click('canvas', { position: { x: 100, y: 100 } });
+        await page.hover(SELECTORS.canvas, { position: { x: 100, y: 100 } });
+        await page.click(SELECTORS.canvas, { position: { x: 100, y: 100 } });
         await expect(page).toHaveScreenshot('callout-6-change-fill-color.png', { animations: 'disabled' });
     });
 });
