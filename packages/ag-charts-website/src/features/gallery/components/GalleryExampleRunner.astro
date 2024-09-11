@@ -3,11 +3,17 @@ import { getEntry } from 'astro:content';
 import ExampleRunnerContainer from '@features/example-runner/components/ExampleRunnerContainer.astro';
 import { GalleryExampleRunner } from './GalleryExampleRunner';
 import { getChartExampleTitle, getSeriesTypeSlug } from '../utils/filesData';
-import { GALLERY_EXAMPLE_NAME_PATH_INDEX } from '../constants';
 import { getLoadingIFrameId } from '@features/example-runner/utils/getLoadingLogoId';
 
-const pathSegments = Astro.url.pathname.split('/');
-const exampleName = pathSegments[GALLERY_EXAMPLE_NAME_PATH_INDEX];
+interface Props {
+    exampleName: string;
+    /**
+     * If inline, there is margin on the bottom
+     */
+    isInline?: boolean;
+}
+
+const { exampleName, isInline } = Astro.props as Props;
 
 const galleryDataEntry = await getEntry('gallery', 'data');
 const title = getChartExampleTitle({
@@ -21,6 +27,6 @@ const pageName = getSeriesTypeSlug({
 const loadingIFrameId = getLoadingIFrameId({ pageName, exampleName });
 ---
 
-<ExampleRunnerContainer pageName={pageName} exampleName={exampleName}>
+<ExampleRunnerContainer pageName={pageName} exampleName={exampleName} isInline={isInline}>
     <GalleryExampleRunner client:load title={title} exampleName={exampleName} loadingIFrameId={loadingIFrameId} />
 </ExampleRunnerContainer>

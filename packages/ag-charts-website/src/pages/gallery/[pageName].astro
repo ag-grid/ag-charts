@@ -16,6 +16,8 @@ export async function getStaticPaths() {
 }
 
 const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
+const exampleName = Astro.params.pageName;
+
 const metaDescription = `Example of a ${page.title} Chart built with AG Charts JavaScript Charting Library. Edit source code with CodeSandbox & Plunker. View JavaScript ${toTitle(page.seriesTitle)} Charts documentation for more info.`;
 ---
 
@@ -37,9 +39,7 @@ const metaDescription = `Example of a ${page.title} Chart built with AG Charts J
             </div>
         </div>
 
-        <GalleryExampleRunner title={page.name} name={page.slug} />
-
-        <p class="description" set:html={page.description} />
+        <GalleryExampleRunner exampleName={exampleName} />
 
         <p class="moreExampleLabel text-secondary">More from the charts gallery...</p>
 
@@ -94,12 +94,9 @@ const metaDescription = `Example of a ${page.title} Chart built with AG Charts J
         fill: var(--color-enterprise-icon);
     }
 
-    .description {
-        margin-bottom: $spacing-size-24 !important;
-    }
-
-    .description,
     .moreExampleLabel {
+        margin-top: $spacing-size-24;
+
         @media screen and (min-width: $breakpoint-gallery-small) {
             font-size: var(--text-fs-lg);
         }
