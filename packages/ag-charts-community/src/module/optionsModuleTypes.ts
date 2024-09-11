@@ -1,6 +1,7 @@
 import type {
     AgCartesianSeriesOptions,
     AgFlowProportionSeriesOptions,
+    AgGaugeOptions,
     AgHierarchySeriesOptions,
     AgPolarSeriesOptions,
     AgTopologySeriesOptions,
@@ -8,7 +9,6 @@ import type {
 
 import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { PropertyDefinition } from '../chart/data/dataModel';
-import type { AgGaugeSeriesOptions } from '../chart/mapping/types';
 import type { SeriesNodeDatum } from '../chart/series/seriesTypes';
 import type { ScaleType } from '../scale/scale';
 import type { Point } from '../scene/point';
@@ -23,7 +23,7 @@ export type SeriesType = NonNullable<
     | AgHierarchySeriesOptions['type']
     | AgTopologySeriesOptions['type']
     | AgFlowProportionSeriesOptions['type']
-    | AgGaugeSeriesOptions['type']
+    | AgGaugeOptions['type']
 >;
 
 export interface SeriesOptionInstance extends ModuleInstance {
