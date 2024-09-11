@@ -8,6 +8,7 @@ const {
     createButton,
     createCheckbox,
     createElement,
+    createElementId,
     createIcon,
     createSelect,
     createTextArea,
@@ -101,19 +102,24 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     /**************
      * Containers *
      **************/
-    protected createTabs<T extends Record<string, { label: string; content: HTMLElement; onShow?: () => void }>>(
+    protected createTabs<T extends Record<string, { label: string; panel: HTMLElement; onShow?: () => void }>>(
         initial: keyof T,
         tabs: T
     ) {
         const element = createElement('div', 'ag-charts-dialog__tabs');
 
-        for (const tab of Object.values(tabs)) {
-            tab.content.role = 'tabpanel';
+        const tabButtonIds = mapValues(tabs, () => createElementId('ag-charts-dialog__tab'));
+        const tabPanelIds = mapValues(tabs, () => createElementId('ag-charts-dialog__tab-panel'));
+
+        for (const [key, tab] of Object.entries(tabs)) {
+            tab.panel.id = tabPanelIds[key];
+            tab.panel.role = 'tabpanel';
+            tab.panel.setAttribute('aria-labelledby', tabButtonIds[key]);
         }
 
         const onPressTab = (active: keyof T) => {
             for (const [key, tab] of Object.entries(tabs)) {
-                tab.content.classList.toggle('ag-charts-dialog__tab-content--active', key === active);
+                tab.panel.classList.toggle('ag-charts-dialog__tab-panel--active', key === active);
                 tabButtons[key].classList.toggle('ag-charts-dialog__tab-button--active', key === active);
                 if (key === active) tab.onShow?.();
             }
@@ -130,17 +136,19 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                     onPress: () => onPressTab(key),
                 },
                 {
+                    id: tabButtonIds[key],
                     className: 'ag-charts-dialog__tab-button',
                     role: 'tab',
+                    ariaControls: tabPanelIds[key],
                 }
             )
         );
         const closeButton = this.createHeaderCloseButton();
 
         header.append(dragHandle, ...Object.values(tabButtons), closeButton);
-        element.append(header, ...Object.values(tabs).map((t) => t.content));
+        element.append(header, ...Object.values(tabs).map((t) => t.panel));
 
-        tabs[initial].content.classList.add('ag-charts-dialog__tab-content--active');
+        tabs[initial].panel.classList.add('ag-charts-dialog__tab-panel--active');
         tabs[initial].onShow?.();
         tabButtons[initial].classList.add('ag-charts-dialog__tab-button--active');
 
@@ -151,8 +159,8 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return element;
     }
 
-    protected createTabContent() {
-        return createElement('div', 'ag-charts-dialog__tab-content');
+    protected createTabPanel() {
+        return createElement('div', 'ag-charts-dialog__tab-panel');
     }
 
     /**********

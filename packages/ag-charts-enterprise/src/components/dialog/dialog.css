@@ -67,15 +67,15 @@
     z-index: calc(var(--ag-charts-layer-ui-overlay) + 1);
 }
 
-/* Tab content */
-.ag-charts-dialog__tab-content {
+/* Tab panel */
+.ag-charts-dialog__tab-panel {
     display: none;
     flex-direction: column;
     gap: var(--ag-charts-input-spacing);
     margin: 0 var(--ag-charts-input-spacing);
 }
 
-.ag-charts-dialog__tab-content--active {
+.ag-charts-dialog__tab-panel--active {
     display: flex;
 }
 

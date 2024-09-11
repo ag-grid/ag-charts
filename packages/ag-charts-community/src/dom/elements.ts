@@ -3,7 +3,10 @@ import type { AgIconName } from 'ag-charts-types';
 import { createElement } from '../util/dom';
 import { isPlainObject } from '../util/type-guards';
 
-type Attrs<T extends HTMLElement = HTMLElement> = string | Partial<T>;
+type Attrs<T extends HTMLElement = HTMLElement> = string | Partial<T & MissingAriaAttrs>;
+interface MissingAriaAttrs {
+    ariaControls?: string;
+}
 
 export interface ButtonOptions {
     label: string | HTMLElement;
@@ -78,6 +81,12 @@ function getClassName(baseClass: string, attrs?: Attrs) {
 function applyAttrs(element: HTMLElement, attrs?: Attrs) {
     if (!isPlainObject(attrs)) return;
     for (const [key, value] of Object.entries(attrs)) {
-        if (value != null) element.setAttribute(key, `${value}`);
+        if (key === 'className') continue;
+        if (value != null) element.setAttribute(normaliseMissingAriaAttrs(key), `${value}`);
     }
+}
+
+function normaliseMissingAriaAttrs(key: string) {
+    if (key === 'ariaControls') return 'aria-controls';
+    return key;
 }

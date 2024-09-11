@@ -43,11 +43,11 @@ export class AnnotationSettingsDialog extends Dialog {
         const tabs = this.createTabs('line', {
             line: {
                 label: isChannelType(datum) ? 'dialogHeaderChannel' : 'dialogHeaderLine',
-                content: lineTab,
+                panel: lineTab,
             },
             text: {
                 label: 'dialogHeaderText',
-                content: textTab.content,
+                panel: textTab.panel,
                 onShow: textTab.onShow,
             },
         });
@@ -60,7 +60,7 @@ export class AnnotationSettingsDialog extends Dialog {
         datum: LinePropertiesType | ChannelPropertiesType,
         options: LinearSettingsDialogOptions
     ) {
-        const content = this.createTabContent();
+        const panel = this.createTabPanel();
 
         const colorAndStrokeWidth = this.createInputGroupLine();
         const colorPicker = this.createColorPickerInput(
@@ -73,10 +73,10 @@ export class AnnotationSettingsDialog extends Dialog {
 
         const lineStyle = this.createLineStyleRadioGroup(datum.lineStyle ?? 'solid', options.onChangeLineStyleType);
 
-        content.append(colorAndStrokeWidth, lineStyle);
+        panel.append(colorAndStrokeWidth, lineStyle);
 
         if ('extendStart' in datum && 'extendEnd' in datum) {
-            content.append(
+            panel.append(
                 this.createCheckbox({
                     label: isChannelType(datum) ? 'Extend channel start' : 'Extend line start',
                     checked: datum.extendStart ?? false,
@@ -90,14 +90,14 @@ export class AnnotationSettingsDialog extends Dialog {
             );
         }
 
-        return content;
+        return panel;
     }
 
     private createLinearTextTab(
         datum: LinePropertiesType | ChannelPropertiesType,
         options: LinearSettingsDialogOptions
     ) {
-        const content = this.createTabContent();
+        const panel = this.createTabPanel();
 
         const textArea = this.createTextArea({
             placeholder: 'dialogInputTextareaPlaceholder',
@@ -124,9 +124,9 @@ export class AnnotationSettingsDialog extends Dialog {
         );
         positionAndAlignment.append(position, alignment);
 
-        content.append(textArea, fontSizeAndColor, positionAndAlignment);
+        panel.append(textArea, fontSizeAndColor, positionAndAlignment);
 
-        return { content, onShow: () => focusCursorAtEnd(textArea) };
+        return { panel, onShow: () => focusCursorAtEnd(textArea) };
     }
 
     private createColorPickerInput(
