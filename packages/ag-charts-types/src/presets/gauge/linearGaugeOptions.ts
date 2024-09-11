@@ -138,12 +138,12 @@ export interface AgLinearGaugeThemeableOptions<TDatum = any>
     bar?: AgLinearGaugeBarStyle;
     /** Configuration for the background. */
     background?: AgLinearGaugeBackgroundStyle;
-    /** Configuration for the labels shown inside the shape. */
-    label?: AgLinearGaugeLabelOptions<TDatum>;
-    /** Configuration for the labels shown inside the shape. */
-    secondaryLabel?: AgLinearGaugeSecondaryLabelOptions<TDatum>;
-    /** Distance between the shape edges and the text. */
-    margin?: PixelSize;
+    // /** Configuration for the labels shown inside the shape. */
+    // label?: AgLinearGaugeLabelOptions<TDatum>;
+    // /** Configuration for the labels shown inside the shape. */
+    // secondaryLabel?: AgLinearGaugeSecondaryLabelOptions<TDatum>;
+    // /** Distance between the shape edges and the text. */
+    // spacing?: PixelSize;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgLinearGaugeTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular Linear Gauge based on the input parameters. */

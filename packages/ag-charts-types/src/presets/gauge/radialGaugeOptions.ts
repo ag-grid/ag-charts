@@ -138,7 +138,7 @@ export interface AgRadialGaugeThemeableOptions<TDatum = any>
     /** Configuration for the labels shown inside the shape. */
     secondaryLabel?: AgRadialGaugeSecondaryLabelOptions<TDatum>;
     /** Distance between the shape edges and the text. */
-    margin?: PixelSize;
+    spacing?: PixelSize;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgRadialGaugeTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular Radial Gauge based on the input parameters. */
