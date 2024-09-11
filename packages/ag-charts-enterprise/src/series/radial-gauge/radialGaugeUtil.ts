@@ -128,10 +128,6 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean,
 
             const visible = clipSector == null || clipSectorVisibility(startAngle, endAngle, clipSector);
 
-            if (startAngle == null) {
-                console.log(sect, params);
-            }
-
             sect.startAngle = startAngle;
             sect.endAngle = endAngle;
             sect.clipSector = clipSector;
