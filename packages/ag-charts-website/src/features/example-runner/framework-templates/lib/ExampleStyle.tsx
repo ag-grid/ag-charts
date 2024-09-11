@@ -81,12 +81,15 @@ export const ExampleStyle = ({
             font-family: -apple-system, 'system-ui', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
                 'Liberation Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
                 'Noto Color Emoji';
-            background: #fff;
 
             --button-background-color: transparent;
             --button-text-color: #212529;
             --button-color-border-primary: #d0d5dd;
             --button-hover-background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        :root[data-dark-mode='false'] {
+            background: white;
         }
 
         :root[data-dark-mode='true'] {
