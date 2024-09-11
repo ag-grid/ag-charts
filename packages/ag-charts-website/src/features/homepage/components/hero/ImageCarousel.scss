@@ -6,6 +6,10 @@
     width: 100%;
     overflow: hidden;
     display: flex;
+    pointer-events: none;
+    @media screen and (max-width: $breakpoint-hero-small) {
+        height: 200px;
+    }
 }
 
 .carousel-column {
@@ -32,8 +36,8 @@
 }
 
 .scroll-up {
-    mask-image: linear-gradient(to bottom, var(--color-util-brand-500) 80%, transparent);
-    -webkit-mask-image: linear-gradient(to bottom, var(--color-util-brand-700) 80%, transparent);
+    mask-image: linear-gradient(to top, var(--color-util-brand-500) 80%, transparent);
+    -webkit-mask-image: linear-gradient(to top, var(--color-util-brand-700) 80%, transparent);
 }
 
 .carousel-content {
@@ -43,7 +47,7 @@
 
 .image-row {
     width: 100%;
-    padding: $spacing-size-4;
+    padding: $spacing-size-2;
 }
 
 .carousel-image {

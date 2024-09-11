@@ -36,6 +36,13 @@ const ImageCarousel = () => {
 
         updateScrollHeight();
         window.addEventListener('resize', updateScrollHeight);
+
+        // Set initial scroll positions
+        if (leftColumn && rightColumn && scrollHeight > 0) {
+            leftColumn.scrollTop = 0;
+            rightColumn.scrollTop = scrollHeight / 2;
+        }
+
         animationId = requestAnimationFrame(animate);
 
         return () => {
@@ -53,10 +60,18 @@ const ImageCarousel = () => {
         'images/scroller-6.png',
         'images/scroller-7.png',
         'images/scroller-8.png',
+        'images/scroller-9.png',
+        'images/scroller-10.png',
+        'images/scroller-11.png',
+        'images/scroller-12.png',
     ];
 
+    // Create arrays with twice the length of the original images array
     const leftImages = [...images, ...images];
-    const rightImages = [...images.reverse(), ...images.reverse()];
+    const rightImages = [...images, ...images];
+
+    // Offset the right column images by half the length of the array
+    rightImages.push(...rightImages.splice(0, images.length));
 
     return (
         <div className="carousel-container">
