@@ -75,11 +75,11 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             props: [
                 keyProperty(xKey, xScaleType, { id: 'xKey-raw' }),
                 keyProperty(yKey, yScaleType, { id: 'yKey-raw' }),
-                ...(xFilterKey != null ? [valueProperty(xFilterKey, xScaleType, { id: 'xFilterKey-raw' })] : []),
-                ...(yFilterKey != null ? [valueProperty(yFilterKey, yScaleType, { id: 'yFilterKey-raw' })] : []),
                 ...(labelKey ? [keyProperty(labelKey, 'band', { id: `labelKey-raw` })] : []),
                 valueProperty(xKey, xScaleType, { id: `xValue` }),
                 valueProperty(yKey, yScaleType, { id: `yValue` }),
+                ...(xFilterKey != null ? [valueProperty(xFilterKey, xScaleType, { id: 'xFilterValue' })] : []),
+                ...(yFilterKey != null ? [valueProperty(yFilterKey, yScaleType, { id: 'yFilterValue' })] : []),
                 ...(colorKey ? [valueProperty(colorKey, colorScaleType, { id: `colorValue` })] : []),
                 ...(labelKey ? [valueProperty(labelKey, 'band', { id: `labelValue` })] : []),
             ],
@@ -136,12 +136,12 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
 
         const xDataIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`);
         const yDataIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`);
-        const xFilterDataIdx =
-            xFilterKey != null ? dataModel.resolveProcessedDataIndexById(this, `xFilterKey-raw`) : undefined;
-        const yFilterDataIdx =
-            yFilterKey != null ? dataModel.resolveProcessedDataIndexById(this, `yFilterKey-raw`) : undefined;
         const colorDataIdx = colorKey != null ? dataModel.resolveProcessedDataIndexById(this, `colorValue`) : -1;
         const labelDataIdx = labelKey != null ? dataModel.resolveProcessedDataIndexById(this, `labelValue`) : -1;
+        const xFilterDataIdx =
+            xFilterKey != null ? dataModel.resolveProcessedDataIndexById(this, `xFilterValue`) : undefined;
+        const yFilterDataIdx =
+            yFilterKey != null ? dataModel.resolveProcessedDataIndexById(this, `yFilterValue`) : undefined;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
