@@ -493,32 +493,24 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         datum: AnnotationProperties;
     }): AnnotationProperties | undefined {
         const { type } = datum;
-        if (type in annotationConfigs) {
-            const config = annotationConfigs[type];
 
-            const newDatum = new config.datum();
-            newDatum.set(datum.toJson());
-
-            const context = this.getAnnotationContext();
-            if (!context) {
-                return;
-            }
-
-            const offset = { x: -30, y: -30 }; // just above and to the left
-
-            return config.copy(node, datum, newDatum, context, offset);
+        if (!(type in annotationConfigs)) {
+            throw new Error(
+                `AG Charts - Cannot set property of unknown type [${type}], expected one of [${Object.keys(annotationConfigs)}], ignoring.`
+            );
         }
-        throw new Error(
-            `AG Charts - Cannot set property of unknown type [${type}], expected one of [${Object.keys(annotationConfigs)}], ignoring.`
-        );
-    }
 
-    private onRestoreAnnotations(event: { annotations?: any }) {
-        if (!this.enabled) return;
+        const config = annotationConfigs[type];
 
-        this.clear();
-        this.annotationData.set(event.annotations);
-        this.update();
+        const newDatum = new config.datum();
+        newDatum.set(datum.toJson());
+
+        const context = this.getAnnotationContext();
+        if (!context) {
+            return;
+        }
+
+        return config.copy(node, datum, newDatum, context);
     }
 
     private createAnnotation(type: AnnotationType, datum: AnnotationProperties, applyDefaults: boolean = true) {
@@ -536,6 +528,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.removeAmbientKeyboardListener?.();
         this.removeAmbientKeyboardListener = undefined;
 
+        this.update();
+    }
+
+    private onRestoreAnnotations(event: { annotations?: any }) {
+        if (!this.enabled) return;
+
+        this.clear();
+        this.annotationData.set(event.annotations);
         this.update();
     }
 

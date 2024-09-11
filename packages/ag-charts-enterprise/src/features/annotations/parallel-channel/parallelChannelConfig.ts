@@ -10,13 +10,13 @@ export const parallelChannelConfig: AnnotationTypeConfig<ParallelChannelProperti
     datum: ParallelChannelProperties,
     scene: ParallelChannelScene,
     isDatum: ParallelChannelProperties.is,
-    copy: (node, datum, copiedDatum, context, offset) => {
+    copy: (node, datum, copiedDatum, context) => {
         if (
             ParallelChannelProperties.is(datum) &&
             ParallelChannelProperties.is(copiedDatum) &&
             ParallelChannelScene.is(node)
         ) {
-            return node.copy(datum, copiedDatum, context, offset);
+            return node.copy(datum, copiedDatum, context);
         }
     },
     update: (node, datum, context) => {

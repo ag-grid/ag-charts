@@ -10,9 +10,9 @@ export const commentConfig: AnnotationTypeConfig<CommentProperties, CommentScene
     datum: CommentProperties,
     scene: CommentScene,
     isDatum: CommentProperties.is,
-    copy: (node, datum, copiedDatum, context, offset) => {
+    copy: (node, datum, copiedDatum, context) => {
         if (CommentProperties.is(datum) && CommentProperties.is(copiedDatum) && CommentScene.is(node)) {
-            return node.copy(datum, copiedDatum, context, offset);
+            return node.copy(datum, copiedDatum, context);
         }
     },
     update: (node, datum, context) => {

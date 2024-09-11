@@ -151,18 +151,6 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
         return [bottomLeft, bottomRight];
     }
 
-    override copy(
-        datum: DisjointChannelProperties,
-        copiedDatum: DisjointChannelProperties,
-        context: AnnotationContext,
-        offset: Coords
-    ) {
-        super.copy(datum, copiedDatum, context, offset);
-        copiedDatum.startHeight = datum.startHeight;
-        copiedDatum.endHeight = datum.endHeight;
-        return copiedDatum;
-    }
-
     override updateLines(datum: DisjointChannelProperties, top: LineCoords, bottom: LineCoords) {
         const { topLine, bottomLine } = this;
         const { lineDashOffset, stroke, strokeOpacity, strokeWidth } = datum;
