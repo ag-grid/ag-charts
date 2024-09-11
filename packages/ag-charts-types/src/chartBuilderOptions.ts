@@ -1,12 +1,10 @@
 import type { AgBaseChartOptions } from './chart/chartOptions';
 import type { AgBaseChartThemeOptions, AgChartTheme, AgChartThemeName } from './chart/themeOptions';
 import type { PixelSize } from './chart/types';
-import type {
-    AgFinancialChartPresets,
-    AgGaugePreset,
-    AgLinearGaugePreset,
-    AgRadialGaugePreset,
-} from './presets/presetOptions';
+import type { AgFinancialChartPresets } from './presets/financial/financialOptions';
+import type { AgGaugePreset } from './presets/gauge/gaugeOptions';
+import type { AgLinearGaugePreset } from './presets/gauge/linearGaugeOptions';
+import type { AgRadialGaugePreset } from './presets/gauge/radialGaugeOptions';
 import type { AgBaseCartesianChartOptions } from './series/cartesian/cartesianOptions';
 import type { AgBaseFlowProportionChartOptions } from './series/flow-proportion/flowProportionOptions';
 import type { AgBaseHierarchyChartOptions } from './series/hierarchy/hierarchyOptions';
