@@ -29,12 +29,6 @@ export type FromToMotionPropFn<
     T extends Record<string, string | number | Interpolating | undefined> & Partial<N>,
     D,
 > = (node: N, datum: D, state: NodeUpdateState, ctx: FromToMotionPropFnContext<N>) => T & Partial<ExtraOpts<N>>;
-type IntermediateFn<N extends Node, D> = (
-    node: N,
-    datum: D,
-    state: NodeUpdateState,
-    ctx: FromToMotionPropFnContext<N>
-) => Partial<N>;
 
 export const NODE_UPDATE_STATE_TO_PHASE_MAPPING: Record<NodeUpdateState, AnimationPhase> = {
     added: 'add',
