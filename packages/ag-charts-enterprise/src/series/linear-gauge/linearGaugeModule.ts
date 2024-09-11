@@ -39,7 +39,7 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
                 stroke: DEFAULT_LABEL_COLOUR,
                 size: 10,
                 shape: 'triangle',
-                placement: 'outside',
+                placement: 'after',
                 spacing: 5,
                 label: {
                     enabled: true,
