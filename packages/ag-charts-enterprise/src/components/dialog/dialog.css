@@ -40,6 +40,7 @@
     border: 0;
     border-bottom: 2px solid transparent;
     border-radius: 0;
+    color: var(--ag-charts-dialog-tab-color--inactive);
     margin-bottom: -1px;
     padding: var(--ag-charts-input-padding) calc(var(--ag-charts-input-padding) / 2);
 }
@@ -50,9 +51,10 @@
 
 .ag-charts-dialog__tab-button--active {
     border-color: currentColor;
+    color: inherit;
 }
 
-.ag-charts-dialog__close-button {
+.ag-charts-button.ag-charts-dialog__close-button {
     background: none;
     border: 0;
     margin-left: auto;
@@ -109,7 +111,7 @@
 }
 
 .ag-charts-dialog__button.ag-charts-dialog__button--active {
-    background: var(--ag-charts-input-background--active);
+    background: var(--ag-charts-input-background-color--active);
     border-color: var(--ag-charts-input-border-color--active);
     color: var(--ag-charts-input-color--active);
     z-index: var(--input-layer-active);
