@@ -262,6 +262,7 @@ export class AreaSeries extends CartesianSeries<
         const { visibleSameStackCount } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
 
         let datumIdx = -1;
+        let crossFiltering = false;
         groupedData?.forEach((datumGroup) => {
             const {
                 keys,
@@ -282,8 +283,12 @@ export class AreaSeries extends CartesianSeries<
                 // marker data
                 const point = createMarkerCoordinate(xDatum, +yValueCumulative, yDatum);
 
+                const selected = yFilterIndex != null ? values[yFilterIndex] === yDatum : undefined;
+                if (selected === false) {
+                    crossFiltering = true;
+                }
+
                 if (validPoint && marker) {
-                    const selected = yFilterIndex != null ? values[yFilterIndex] !== 0 : undefined;
                     markerData.push({
                         index: datumIdx,
                         series: this,
@@ -503,6 +508,7 @@ export class AreaSeries extends CartesianSeries<
             scales: this.calculateScaling(),
             visible: this.visible,
             stackVisible: visibleSameStackCount > 0,
+            crossFiltering,
         };
 
         return context;
@@ -524,10 +530,9 @@ export class AreaSeries extends CartesianSeries<
         visible: boolean;
         animationEnabled: boolean;
     }) {
-        const { yFilterKey } = this.properties;
         const { opacity, visible, animationEnabled } = opts;
         const [fill, stroke] = opts.paths;
-        const crossFiltering = yFilterKey != null;
+        const crossFiltering = this.contextNodeData?.crossFiltering === true;
 
         const strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
         stroke.setProperties({

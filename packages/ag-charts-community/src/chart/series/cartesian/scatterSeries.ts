@@ -158,7 +158,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             const y = yScale.convert(yDatum) + yOffset;
             const selected =
                 xFilterDataIdx != null && yFilterDataIdx != null
-                    ? values[xFilterDataIdx] !== 0 && values[yFilterDataIdx] !== 0
+                    ? values[xFilterDataIdx] === xDatum && values[yFilterDataIdx] === yDatum
                     : undefined;
 
             const labelText = this.getLabelText(label, {
