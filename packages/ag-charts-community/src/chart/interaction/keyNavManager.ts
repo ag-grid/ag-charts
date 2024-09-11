@@ -77,10 +77,7 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
     private onFocus(event: FocusInteractionEvent<'focus'>) {
         this.hasBrowserFocus = true;
 
-        // CRT-420 - Differentiate between keyboard-nav focus and click focus (when browser tab is also
-        // regaining focus - no click event is emitted).
-        const tabFocusFromClick = event.relatedElement == null && event.targetElement?.tagName === 'CANVAS';
-        if (this.isClicking || tabFocusFromClick) {
+        if (this.isClicking) {
             this.isMouseBlurred = true;
             return;
         }
