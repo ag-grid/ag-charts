@@ -129,7 +129,7 @@ export function PropertyType({
             {defaultValue != null && (
                 <div className={styles.metaItem}>
                     <span className={classnames(styles.metaValue, styles.defaultValue)}>
-                        <span>default: </span>
+                        <span className={styles.defaultLabel}>default: </span>
                         {defaultValue}
                     </span>
                 </div>
