@@ -9,7 +9,7 @@ import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart
 import type { Degree, MarkerShape, PixelSize, Ratio } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../../series/cartesian/commonOptions';
 import type { AgBaseSeriesThemeableOptions } from '../../series/seriesOptions';
-import type { AgGaugeColorStop, AgGaugeCornerMode, AgGaugeFillMode, AgGaugeSegmentation } from './gaugeCommonOptions';
+import type { AgGaugeColorStop, AgGaugeCornerMode, AgGaugeFillMode, AgGaugeSegmentation } from './commonOptions';
 
 export type AgRadialGaugeTargetPlacement = 'inside' | 'outside' | 'middle';
 

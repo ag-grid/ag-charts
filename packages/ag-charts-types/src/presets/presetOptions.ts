@@ -1,4 +1,4 @@
 import type { AgFinancialChartPresets } from './financial/financialOptions';
-import type { AgGaugePreset } from './gauge/gaugeOptions';
+import type { AgGaugePresets } from './gauge/gaugeOptions';
 
-export type Preset = AgFinancialChartPresets | AgGaugePreset;
+export type Preset = AgFinancialChartPresets | AgGaugePresets;
