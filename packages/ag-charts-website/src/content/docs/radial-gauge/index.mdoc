@@ -164,31 +164,21 @@ In this configuration:
 
 ### Colour Options
 
-Both the bar and scale have the same colour options and are configured in the same way. If the bar is enabled, it will display above the scale.
+Both the bar and scale can be displayed using a gradient, or using a set of colours.
 
-{% chartExampleRunner title="Colour Scales" name="color-scales" type="generated" options={ "exampleHeight": 300 } /%}
+{% chartExampleRunner title="Colour Scales" name="fill-mode" type="generated" options={ "exampleHeight": 300 } /%}
 
 ```js
 {
     bar: {
-        // fill: '#E84118', - sets a single colour
-        fills: [
-            { color: '#E84118' },
-            { color: '#9C88FF' },
-            { color: '#00A8FF' }
-        ], //colours are allocated equally
-        fillMode: 'discrete', //'discrete' | 'continuous'
+        fillMode: 'discrete',
     },
 }
 ```
 
-In this configuration:
+The `fillMode` can be set to `continuous` for a gradient, or `discrete` to use a set of colours.
 
--   Providing a `fill` value of a single string will result in a solid colour. This overrides the `fills` property.
--   Providing a `fills` array will equally divide the entire scale or bar into the provided colours.
--   The `fillMode` determines if the `fills` colours are shown as discrete blocks or as a continuous gradient.
-
-To configure explicit colour stops, provide `stop` values within the `fills` array.
+The fills used can be customised using the `fills` property.
 
 {% chartExampleRunner title="Scale Values" name="scale-values" type="generated" options={ "exampleHeight": 250 } /%}
 
@@ -222,8 +212,10 @@ To split the gauge into segments, use the `segmentation` option.
 ```js
 {
     segmentation: {
-        interval: {step: 4}
-        spacing: 4,
+        interval: {
+            count: 4
+        },
+        spacing: 2,
     },
 }
 ```

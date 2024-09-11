@@ -89,7 +89,6 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
         'legend-position': { clickOrder: 'reverse' },
     },
     'radial-gauge': {
-        'corner-radius': { skipCanvasUpdateCheck: true },
         needle: { skipCanvasUpdateCheck: true },
     },
     'range-bar-series': {

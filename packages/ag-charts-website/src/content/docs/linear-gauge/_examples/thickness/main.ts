@@ -6,7 +6,9 @@ const options: AgLinearGaugeOptions = {
     container: document.getElementById('myChart'),
     value: 80,
     thickness: 100,
-    bar: { thickness: 25 },
+    bar: {
+        thickness: 50,
+    },
     scale: {
         min: 0,
         max: 100,
