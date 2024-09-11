@@ -1010,7 +1010,7 @@ export class Legend extends BaseProperties {
                 return legendItemNode.visible;
             },
             toCanvasBBox() {
-                return Transformable.toCanvas(legendItemNode.parent!, legend.getLegendItemHitbox(legendItemNode));
+                return Transformable.toCanvas(legend.group, legend.getLegendItemHitbox(legendItemNode));
             },
             fromCanvasPoint(x: number, y: number) {
                 return Transformable.fromCanvasPoint(legendItemNode!, x, y);
