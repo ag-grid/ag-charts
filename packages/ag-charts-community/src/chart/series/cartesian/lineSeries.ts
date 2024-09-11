@@ -51,6 +51,8 @@ import {
 } from './markerUtil';
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, plotPath, updateClipPath } from './pathUtil';
 
+const LINE_STROKE_OPACITY_FACTOR = 0.25;
+
 type LineAnimationData = CartesianAnimationData<Group, LineNodeDatum>;
 
 export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, LineNodeDatum> {
@@ -325,6 +327,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             visible,
             animationEnabled,
         } = opts;
+        const crossFiltering = yFilterKey != null;
 
         lineNode.setProperties({
             fill: undefined,
@@ -333,7 +336,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             opacity,
             stroke: this.properties.stroke,
             strokeWidth: this.getStrokeWidth(this.properties.strokeWidth),
-            strokeOpacity: this.properties.strokeOpacity * (yFilterKey != null ? 0.25 : 1),
+            strokeOpacity: this.properties.strokeOpacity * (crossFiltering ? LINE_STROKE_OPACITY_FACTOR : 1),
             lineDash: this.properties.lineDash,
             lineDashOffset: this.properties.lineDashOffset,
         });

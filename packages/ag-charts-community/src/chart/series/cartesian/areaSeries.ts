@@ -61,6 +61,9 @@ import {
 } from './markerUtil';
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 
+const AREA_FILL_OPACITY_FACTOR = 0.125;
+const AREA_STROKE_OPACITY_FACTOR = 0.25;
+
 type AreaAnimationData = CartesianAnimationData<
     Group,
     MarkerSelectionDatum,
@@ -524,6 +527,7 @@ export class AreaSeries extends CartesianSeries<
         const { yFilterKey } = this.properties;
         const { opacity, visible, animationEnabled } = opts;
         const [fill, stroke] = opts.paths;
+        const crossFiltering = yFilterKey != null;
 
         const strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
         stroke.setProperties({
@@ -532,7 +536,7 @@ export class AreaSeries extends CartesianSeries<
             pointerEvents: PointerEvents.None,
             stroke: this.properties.stroke,
             strokeWidth,
-            strokeOpacity: this.properties.strokeOpacity * (yFilterKey != null ? 0.25 : 1),
+            strokeOpacity: this.properties.strokeOpacity * (crossFiltering ? AREA_STROKE_OPACITY_FACTOR : 1),
             lineDash: this.properties.lineDash,
             lineDashOffset: this.properties.lineDashOffset,
             opacity,
@@ -543,7 +547,7 @@ export class AreaSeries extends CartesianSeries<
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
             fill: this.properties.fill,
-            fillOpacity: this.properties.fillOpacity * (yFilterKey != null ? 0.125 : 1),
+            fillOpacity: this.properties.fillOpacity * (crossFiltering ? AREA_FILL_OPACITY_FACTOR : 1),
             fillShadow: this.properties.shadow,
             opacity,
             visible: visible || animationEnabled,
