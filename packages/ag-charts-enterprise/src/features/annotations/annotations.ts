@@ -12,7 +12,15 @@ import { buildBounds } from '../../utils/position';
 import { ColorPicker } from '../color-picker/colorPicker';
 import { TextInput } from '../text-input/textInput';
 import { AnnotationDefaults } from './annotationDefaults';
-import type { AnnotationContext, AnnotationOptionsColorPickerType, Coords, Point } from './annotationTypes';
+import type {
+    AnnotationContext,
+    AnnotationOptionsColorPickerType,
+    ChannelAnnotationType,
+    Coords,
+    LineAnnotationType,
+    Point,
+    TextualAnnotationType,
+} from './annotationTypes';
 import {
     ANNOTATION_BUTTONS,
     ANNOTATION_BUTTON_GROUPS,
@@ -320,7 +328,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             },
 
             recordAction: (label: string) => {
-                this.recordActionAfterNextUpdate('annotations', label);
+                this.recordActionAfterNextUpdate(label);
             },
 
             update: () => {
@@ -402,11 +410,26 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     onChangeLine: (props) => {
                         this.state.transition('lineProps', props);
                     },
-                    onChangeLineStyle: (props) => {
-                        this.state.transition('lineStyle', props);
-                    },
                     onChangeText: (props) => {
                         this.state.transition('lineText', props);
+                    },
+                    onChangeLineColor: (colorOpacity, color, opacity) => {
+                        this.setDefaultColor(datum.type, 'line-color', colorOpacity, color, opacity);
+                        this.state.transition('color', { colorPickerType: 'line-color', colorOpacity, color, opacity });
+                    },
+                    onChangeLineStyleType: (lineStyleType: AgAnnotationLineStyleType) => {
+                        this.setDefaultLineStyleType(datum.type, lineStyleType);
+                        this.state.transition('lineStyle', { type: lineStyleType });
+                    },
+                    onChangeLineStyleWidth: (strokeWidth: number) => {
+                        this.setDefaultLineStyleWidth(datum.type, strokeWidth);
+                        this.state.transition('lineStyle', { strokeWidth });
+                    },
+                    onChangeTextColor: (_colorOpacity, color, _opacity) => {
+                        this.state.transition('lineText', { color });
+                    },
+                    onChangeTextFontSize: (fontSize: number) => {
+                        this.state.transition('lineText', { fontSize });
                     },
                     onHide: () => {
                         lastFocus?.focus();
@@ -552,7 +575,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (event.value === 'clear') {
             this.clear();
-            this.recordActionAfterNextUpdate('annotations', 'Clear all annotations');
+            this.recordActionAfterNextUpdate('Clear all annotations');
             return;
         }
 
@@ -624,8 +647,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     onChange: datum != null ? this.onColorPickerChange.bind(this, event.value, datum) : undefined,
                     onChangeHide: ((type: AnnotationOptionsColorPickerType) => {
                         this.recordActionAfterNextUpdate(
-                            'defaults',
-                            `Change ${node?.type} ${event.value} to ${datum?.getDefaultColor(type)}`
+                            `Change ${node?.type} ${event.value} to ${datum?.getDefaultColor(type)}`,
+                            ['annotations', 'defaults']
                         );
                     }).bind(this, event.value),
                 });
@@ -743,9 +766,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         color: string,
         opacity: number
     ) {
-        this.state.transition('color', { colorPickerType, colorOpacity, color, opacity });
-        this.defaults.setDefaultColor(datum.type, colorPickerType, colorOpacity, color, opacity);
-
+        this.setDefaultColor(datum.type, colorPickerType, colorOpacity, color, opacity);
         this.updateToolbarColorPickerFill(colorPickerType, colorOpacity);
     }
 
@@ -807,12 +828,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (!isTextType(datum)) return;
 
         const fontSize = item.value;
-        this.defaults.setDefaultFontSize(datum.type, fontSize);
-        this.recordActionAfterNextUpdate('defaults', `Change ${datum?.type} font size to ${fontSize}`);
-
+        this.setDefaultFontSize(datum.type, fontSize);
         this.state.transition('fontSize', fontSize);
         this.textSizeMenu.hide();
-
         this.updateToolbarFontSize(fontSize);
     }
 
@@ -820,13 +838,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (!hasLineStyle(datum)) return;
 
         const type = item.value;
-
-        this.defaults.setDefaultLineStyleType(datum.type, type);
-        this.recordActionAfterNextUpdate('defaults', `Change ${datum?.type} line style to ${type}`);
-
+        this.setDefaultLineStyleType(datum.type, type);
         this.state.transition('lineStyle', { type });
         this.lineStyleTypeMenu.hide();
-
         this.updateToolbarLineStyleType(item);
     }
 
@@ -836,13 +850,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         const strokeWidth = item.value;
-
-        this.defaults.setDefaultLineStyleWidth(datum.type, strokeWidth);
-        this.recordActionAfterNextUpdate('defaults', `Change ${datum?.type} stroke width to ${strokeWidth}`);
-
+        this.setDefaultLineStyleWidth(datum.type, strokeWidth);
         this.state.transition('lineStyle', { strokeWidth });
         this.lineStrokeWidthMenu.hide();
-
         this.updateToolbarStrokeWidth(item);
     }
 
@@ -946,19 +956,48 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         return { layout: axisLayout, context: axisCtx, bounds, button };
     }
 
-    private recordActionAfterNextUpdate(type: 'annotations' | 'defaults', label: string) {
+    private recordActionAfterNextUpdate(label: string, types: Array<'annotations' | 'defaults'> = ['annotations']) {
         const {
             defaults,
             ctx: { annotationManager, historyManager },
         } = this;
 
+        const originators = types.map((type) => (type === 'defaults' ? defaults : annotationManager));
         this.postUpdateFns.push(() => {
-            if (type === 'defaults') {
-                historyManager.record(label, annotationManager, defaults);
-            } else {
-                historyManager.record(label, annotationManager);
-            }
+            historyManager.record(label, ...originators);
         });
+    }
+
+    private setDefaultColor(
+        datumType: AnnotationType,
+        colorPickerType: AnnotationOptionsColorPickerType,
+        colorOpacity: string,
+        color: string,
+        opacity: number
+    ) {
+        this.state.transition('color', { colorPickerType, colorOpacity, color, opacity });
+        this.defaults.setDefaultColor(datumType, colorPickerType, colorOpacity, color, opacity);
+    }
+
+    private setDefaultFontSize(datumType: TextualAnnotationType, fontSize: number) {
+        this.defaults.setDefaultFontSize(datumType, fontSize);
+        this.recordActionAfterNextUpdate(`Change ${datumType} font size to ${fontSize}`, ['annotations', 'defaults']);
+    }
+
+    private setDefaultLineStyleType(
+        datumType: LineAnnotationType | ChannelAnnotationType,
+        styleType: AgAnnotationLineStyleType
+    ) {
+        this.defaults.setDefaultLineStyleType(datumType, styleType);
+        this.recordActionAfterNextUpdate(`Change ${datumType} line style to ${styleType}`, ['annotations', 'defaults']);
+    }
+
+    private setDefaultLineStyleWidth(datumType: LineAnnotationType | ChannelAnnotationType, strokeWidth: number) {
+        this.defaults.setDefaultLineStyleWidth(datumType, strokeWidth);
+        this.recordActionAfterNextUpdate(`Change ${datumType} stroke width to ${strokeWidth}`, [
+            'annotations',
+            'defaults',
+        ]);
     }
 
     private updateAnnotations() {
@@ -1147,13 +1186,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (modifierKey && sourceEvent.key === 'c') {
             this.state.transition('copy');
-            this.recordActionAfterNextUpdate('annotations', `Copy annotation`);
         } else if (modifierKey && sourceEvent.key === 'x') {
             this.state.transition('cut');
-            this.recordActionAfterNextUpdate('annotations', `Cut annotation`);
         } else if (modifierKey && sourceEvent.key === 'v') {
             this.state.transition('paste');
-            this.recordActionAfterNextUpdate('annotations', `Paste annotation`);
         }
     }
 

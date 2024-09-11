@@ -1,7 +1,7 @@
 import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
 
 import { Dialog, type DialogOptions } from '../../../components/dialog/dialog';
-import type { AnnotationLineStyle } from '../annotationTypes';
+import type { ColorPickerOptions } from '../../color-picker/colorPicker';
 import { LINE_STROKE_WIDTH_ITEMS, TEXT_SIZE_ITEMS } from '../annotationsMenuOptions';
 import type { ChannelPropertiesType, LinePropertiesType } from '../annotationsSuperTypes';
 import { isChannelType } from '../utils/types';
@@ -10,20 +10,22 @@ const { focusCursorAtEnd } = _ModuleSupport;
 
 interface LinearSettingsDialogOptions extends DialogOptions {
     onChangeLine: (props: LinearSettingsDialogLineChangeProps) => void;
-    onChangeLineStyle: (lineStyle: AnnotationLineStyle) => void;
     onChangeText: (props: LinearSettingsDialogTextChangeProps) => void;
+
+    onChangeLineColor: Required<ColorPickerOptions>['onChange'];
+    onChangeLineStyleType: (lineStyleType: AgAnnotationLineStyleType) => void;
+    onChangeLineStyleWidth: (strokeWidth: number) => void;
+    onChangeTextColor: Required<ColorPickerOptions>['onChange'];
+    onChangeTextFontSize: (fontSize: number) => void;
 }
 
 export interface LinearSettingsDialogLineChangeProps {
     extendStart?: boolean;
     extendEnd?: boolean;
-    stroke?: string;
 }
 
 export interface LinearSettingsDialogTextChangeProps {
     alignment?: string;
-    color?: string;
-    fontSize?: number;
     position?: string;
     label?: string;
 }
@@ -60,17 +62,11 @@ export class AnnotationSettingsDialog extends Dialog {
         const content = this.createTabContent();
 
         const colorAndStrokeWidth = this.createInputGroupLine();
-        const colorPicker = this.createColorPickerInput(datum.getDefaultColor('line-color'), (value) => {
-            options.onChangeLine({ stroke: value });
-        });
-        const strokeWidth = this.createStrokeWidthSelect(datum.strokeWidth ?? 2, (value) => {
-            options.onChangeLineStyle({ strokeWidth: value });
-        });
+        const colorPicker = this.createColorPickerInput(datum.getDefaultColor('line-color'), options.onChangeLineColor);
+        const strokeWidth = this.createStrokeWidthSelect(datum.strokeWidth ?? 2, options.onChangeLineStyleWidth);
         colorAndStrokeWidth.append(colorPicker, strokeWidth);
 
-        const lineStyle = this.createLineStyleRadioGroup(datum.lineStyle ?? 'solid', (value) =>
-            options.onChangeLineStyle({ type: value })
-        );
+        const lineStyle = this.createLineStyleRadioGroup(datum.lineStyle ?? 'solid', options.onChangeLineStyleType);
 
         content.append(colorAndStrokeWidth, lineStyle);
 
@@ -105,12 +101,8 @@ export class AnnotationSettingsDialog extends Dialog {
         });
 
         const fontSizeAndColor = this.createInputGroupLine();
-        const fontSize = this.createFontSizeSelect(datum.text.fontSize, (value) =>
-            options.onChangeText({ fontSize: value })
-        );
-        const colorPicker = this.createColorPickerInput(datum.text.color, (value) => {
-            options.onChangeText({ color: value });
-        });
+        const fontSize = this.createFontSizeSelect(datum.text.fontSize, options.onChangeTextFontSize);
+        const colorPicker = this.createColorPickerInput(datum.text.color, options.onChangeTextColor);
         fontSizeAndColor.append(fontSize, colorPicker);
 
         const positionAndAlignment = this.createInputGroupLine();
@@ -128,7 +120,7 @@ export class AnnotationSettingsDialog extends Dialog {
         return { content, onShow: () => focusCursorAtEnd(textArea) };
     }
 
-    private createColorPickerInput(color: string | undefined, onChange: (value: string) => void) {
+    private createColorPickerInput(color: string | undefined, onChange: Required<ColorPickerOptions>['onChange']) {
         return this.createColorPicker({
             label: 'dialogInputColorPicker',
             altText: 'dialogInputColorPickerAltText',

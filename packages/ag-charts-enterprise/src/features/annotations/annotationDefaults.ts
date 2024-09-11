@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import { type AgAnnotationLineStyleType, _ModuleSupport, _Util } from 'ag-charts-community';
 
 import {
     type AnnotationLineStyle,
@@ -87,7 +87,10 @@ export class AnnotationDefaults implements _ModuleSupport.MementoOriginator<Defa
         this.fontSizes.set(type, fontSize);
     }
 
-    setDefaultLineStyleType(type: LineAnnotationType | ChannelAnnotationType, lineStyleType: any) {
+    setDefaultLineStyleType(
+        type: LineAnnotationType | ChannelAnnotationType,
+        lineStyleType: AgAnnotationLineStyleType | undefined
+    ) {
         const defaultStyle = this.lineStyles.get(type);
         if (defaultStyle) {
             defaultStyle.type = lineStyleType;

@@ -12,6 +12,7 @@ const {
     createSelect,
     createTextArea,
     initRovingTabIndex,
+    getWindow,
     mapValues,
 } = _ModuleSupport;
 const { Vec2 } = _Util;
@@ -80,7 +81,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         popover.addEventListener('keydown', this.onKeyDown.bind(this));
 
         // Give the dialog's dimensions a chance to be calculated before positioning
-        _ModuleSupport.getWindow().requestAnimationFrame(() => this.reposition());
+        getWindow().requestAnimationFrame(() => this.reposition());
 
         this.colorPicker.attachTo(this);
 
