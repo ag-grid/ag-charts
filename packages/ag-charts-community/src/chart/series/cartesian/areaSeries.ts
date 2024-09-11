@@ -61,8 +61,8 @@ import {
 } from './markerUtil';
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 
-const AREA_FILL_OPACITY_FACTOR = 0.125;
-const AREA_STROKE_OPACITY_FACTOR = 0.25;
+const CROSS_FILTER_AREA_FILL_OPACITY_FACTOR = 0.125;
+const CROSS_FILTER_AREA_STROKE_OPACITY_FACTOR = 0.25;
 
 type AreaAnimationData = CartesianAnimationData<
     Group,
@@ -536,7 +536,8 @@ export class AreaSeries extends CartesianSeries<
             pointerEvents: PointerEvents.None,
             stroke: this.properties.stroke,
             strokeWidth,
-            strokeOpacity: this.properties.strokeOpacity * (crossFiltering ? AREA_STROKE_OPACITY_FACTOR : 1),
+            strokeOpacity:
+                this.properties.strokeOpacity * (crossFiltering ? CROSS_FILTER_AREA_STROKE_OPACITY_FACTOR : 1),
             lineDash: this.properties.lineDash,
             lineDashOffset: this.properties.lineDashOffset,
             opacity,
@@ -547,7 +548,7 @@ export class AreaSeries extends CartesianSeries<
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
             fill: this.properties.fill,
-            fillOpacity: this.properties.fillOpacity * (crossFiltering ? AREA_FILL_OPACITY_FACTOR : 1),
+            fillOpacity: this.properties.fillOpacity * (crossFiltering ? CROSS_FILTER_AREA_FILL_OPACITY_FACTOR : 1),
             fillShadow: this.properties.shadow,
             opacity,
             visible: visible || animationEnabled,
