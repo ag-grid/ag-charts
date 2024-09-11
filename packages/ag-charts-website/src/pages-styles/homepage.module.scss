@@ -439,8 +439,8 @@
     text-align: center;
 
     h2 {
-        margin-bottom: $spacing-size-1;
-        font-size: 22px;
+        margin-bottom: $spacing-size-4;
+        font-size: 20px;
         color: var(--color-brand-500);
 
         #{$selector-darkmode} & {
