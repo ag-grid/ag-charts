@@ -21,3 +21,10 @@ export interface AgGaugeColorStop {
     color?: CssColor;
     stop?: number;
 }
+
+export interface FillsOptions {
+    /** Configuration for two or more colours, and the values they are rendered at. */
+    fills?: AgGaugeColorStop[];
+    /** Configuration the fills should be rendered. */
+    fillMode?: AgGaugeFillMode;
+}

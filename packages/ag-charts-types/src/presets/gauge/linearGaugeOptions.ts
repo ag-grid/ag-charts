@@ -9,7 +9,7 @@ import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart
 import type { Degree, Direction, MarkerShape, PixelSize } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../../series/cartesian/commonOptions';
 import type { AgBaseSeriesThemeableOptions } from '../../series/seriesOptions';
-import type { AgGaugeColorStop, AgGaugeCornerMode, AgGaugeFillMode, AgGaugeSegmentation } from './commonOptions';
+import type { AgGaugeCornerMode, AgGaugeSegmentation, FillsOptions } from './commonOptions';
 
 export type AgLinearGaugeTargetPlacement = 'before' | 'after' | 'middle';
 
@@ -20,9 +20,9 @@ export interface AgLinearGaugeItemStylerParams<TDatum = any>
         Required<AgLinearGaugeStyle> {}
 
 export interface AgLinearGaugeScaleInterval {
-    /** Array of values in axis units for specified intervals along the axis. The values in this array must be compatible with the axis type. */
+    /** Array of values in scale units for specified intervals along the scale. The values in this array must be compatible with the scale type. */
     values?: number[];
-    /** The axis interval. Expressed in the units of the axis. If the configured interval results in too many items given the chart size, it will be ignored. */
+    /** The scale interval. Expressed in the units of the scale. If the configured interval results in too many items given the chart size, it will be ignored. */
     step?: number;
 }
 
@@ -31,16 +31,12 @@ export interface AgLinearGaugeScaleLabel extends AgBaseAxisLabelOptions {
     placement?: 'before' | 'after';
 }
 
-export interface AgLinearGaugeScale extends FillOptions, StrokeOptions, LineDashOptions {
-    /** Configuration the colours. */
-    fills?: AgGaugeColorStop[];
-    /** Configuration the fill mode. */
-    fillMode?: AgGaugeFillMode;
+export interface AgLinearGaugeScale extends FillsOptions, FillOptions, StrokeOptions, LineDashOptions {
     /** Maximum value of the scale. Any values exceeding this number will be clipped to this maximum. */
     min?: number;
     /** Minimum value of the scale. Any values exceeding this number will be clipped to this minimum. */
     max?: number;
-    /** Configuration for the axis labels, shown next to the ticks. */
+    /** Configuration for the scale labels. */
     label?: AgLinearGaugeScaleLabel;
     /** Configuration for the ticks interval. */
     interval?: AgLinearGaugeScaleInterval;
@@ -53,17 +49,13 @@ export interface AgLinearGaugeTooltipRendererParams<TDatum> extends AgSeriesTool
 
 export interface AgLinearGaugeStyle {}
 
-export interface AgLinearGaugeBarStyle extends FillOptions, StrokeOptions, LineDashOptions {
+export interface AgLinearGaugeBarStyle extends FillsOptions, FillOptions, StrokeOptions, LineDashOptions {
     /** Whether the bar should be shown. */
     enabled?: boolean;
     /** Width of the bar, or the height if `horizontal` is true. Defaults to the gauge thickness. */
     thickness?: number;
     /** Thickness of the bar in proportion to the gauge thickness. Ignored if `thickness` is set. */
     thicknessRatio?: number;
-    /** Configuration the colours. */
-    fills?: AgGaugeColorStop[];
-    /** Configuration the fill mode. */
-    fillMode?: AgGaugeFillMode;
 }
 
 export interface AgLinearGaugeBackgroundStyle extends FillOptions, StrokeOptions, LineDashOptions {}
