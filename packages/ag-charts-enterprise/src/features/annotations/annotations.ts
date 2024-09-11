@@ -416,6 +416,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     },
                     onChangeLineColor: (colorOpacity, color, opacity) => {
                         this.setColorAndDefault(datum.type, 'line-color', colorOpacity, color, opacity);
+                        this.updateToolbarColorPickerFill('line-color', color, opacity);
                     },
                     onChangeHideLineColor: () => {
                         this.recordActionAfterNextUpdate(
@@ -427,13 +428,19 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     onChangeLineStyleType: (lineStyleType: AgAnnotationLineStyleType) => {
                         this.setLineStyleTypeAndDefault(datum.type, lineStyleType);
                         this.state.transition('lineStyle', { type: lineStyleType });
+                        this.updateToolbarLineStyleType(
+                            LINE_STYLE_TYPE_ITEMS.find((item) => item.value === lineStyleType) ??
+                                LINE_STYLE_TYPE_ITEMS[0]
+                        );
                     },
                     onChangeLineStyleWidth: (strokeWidth: number) => {
                         this.setLineStyleWidthAndDefault(datum.type, strokeWidth);
                         this.state.transition('lineStyle', { strokeWidth });
+                        this.updateToolbarStrokeWidth({ strokeWidth, value: strokeWidth, label: String(strokeWidth) });
                     },
-                    onChangeTextColor: (_colorOpacity, color, _opacity) => {
+                    onChangeTextColor: (_colorOpacity, color, opacity) => {
                         this.state.transition('lineTextColor', color);
+                        this.updateToolbarColorPickerFill('text-color', color, opacity);
                     },
                     onChangeHideTextColor: () => {
                         this.recordActionAfterNextUpdate(
