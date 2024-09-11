@@ -53,7 +53,16 @@ export type AgFinancialChartOptions = AgFinancialChartPresets & AgBaseFinancialP
 
 type AgBaseGaugePresetOptions = Pick<
     AgBaseChartOptions<any>,
-    'container' | 'animation' | 'width' | 'height' | 'minWidth' | 'minHeight' | 'title' | 'subtitle' | 'padding'
+    | 'container'
+    | 'animation'
+    | 'width'
+    | 'height'
+    | 'minWidth'
+    | 'minHeight'
+    | 'title'
+    | 'subtitle'
+    | 'footnote'
+    | 'padding'
 > & {
     theme?: AgChartTheme | AgChartThemeName;
 };
