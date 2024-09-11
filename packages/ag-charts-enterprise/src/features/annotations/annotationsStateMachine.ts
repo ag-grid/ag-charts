@@ -374,8 +374,8 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 toolbarPressSettings: {
                     guard: guardActiveHasLineText,
-                    action: (lastFocus: HTMLElement | undefined) => {
-                        ctx.showAnnotationSettings(this.active!, lastFocus);
+                    action: (sourceEvent: Event) => {
+                        ctx.showAnnotationSettings(this.active!, sourceEvent);
                     },
                 },
 

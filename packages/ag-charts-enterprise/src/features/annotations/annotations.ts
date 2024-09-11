@@ -402,11 +402,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 ctx.toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
             },
 
-            showAnnotationSettings: (active: number, lastFocus: HTMLElement | undefined) => {
+            showAnnotationSettings: (active: number, sourceEvent?: Event) => {
                 const datum = this.annotationData.at(active);
                 if (!isLineType(datum) && !isChannelType(datum)) return;
                 this.settingsDialog.showLineOrChannel(datum, {
                     ariaLabel: this.ctx.localeManager.t('ariaLabelAnnotationSettingsDialog'),
+                    sourceEvent,
                     onChangeLine: (props) => {
                         this.state.transition('lineProps', props);
                     },
@@ -430,9 +431,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     },
                     onChangeTextFontSize: (fontSize: number) => {
                         this.state.transition('lineText', { fontSize });
-                    },
-                    onHide: () => {
-                        lastFocus?.focus();
                     },
                 });
             },
@@ -682,8 +680,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             }
 
             case AnnotationOptions.Settings: {
-                const { lastFocus } = this.ctx.focusIndicator.guessDevice(event.sourceEvent);
-                state.transition('toolbarPressSettings', lastFocus);
+                state.transition('toolbarPressSettings', event.sourceEvent);
                 break;
             }
         }

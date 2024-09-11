@@ -13,6 +13,7 @@ export interface PopoverOptions {
     ariaLabel?: string;
     class?: string;
     initialFocus?: HTMLElement;
+    sourceEvent?: Event;
     onHide?: () => void;
 }
 
@@ -27,6 +28,7 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
 
     private readonly moduleId: string;
     private readonly element: HTMLElement;
+    private lastFocus?: HTMLElement;
 
     constructor(
         protected readonly ctx: _ModuleSupport.ModuleContext,
@@ -43,6 +45,11 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
             this.element = ctx.domManager.addChild(canvasOverlay, this.moduleId);
         }
         this.element.setAttribute('role', 'presentation');
+
+        this.hideFns.push(() => {
+            this.lastFocus?.focus();
+            this.lastFocus = undefined;
+        });
 
         this.destroyFns.push(() => ctx.domManager.removeChild(canvasOverlay, this.moduleId));
     }
@@ -87,7 +94,13 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
             this.hideFns.push(options.onHide);
         }
 
-        options.initialFocus?.focus();
+        if (options.initialFocus && options.sourceEvent) {
+            const { type, lastFocus } = this.ctx.focusIndicator.guessDevice(options.sourceEvent);
+            if (type === 'keyboard' && lastFocus !== undefined) {
+                options.initialFocus.focus();
+                this.lastFocus = lastFocus;
+            }
+        }
 
         return popover;
     }
