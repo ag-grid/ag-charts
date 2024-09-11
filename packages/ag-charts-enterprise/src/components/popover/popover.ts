@@ -46,11 +46,6 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         }
         this.element.setAttribute('role', 'presentation');
 
-        this.hideFns.push(() => {
-            this.lastFocus?.focus();
-            this.lastFocus = undefined;
-        });
-
         this.destroyFns.push(() => ctx.domManager.removeChild(canvasOverlay, this.moduleId));
     }
 
@@ -64,6 +59,9 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         // already hidden.
         if (this.element.children.length === 0) return;
         this.hideFns.forEach((fn) => fn());
+
+        this.lastFocus?.focus();
+        this.lastFocus = undefined;
     }
 
     protected removeChildren() {
