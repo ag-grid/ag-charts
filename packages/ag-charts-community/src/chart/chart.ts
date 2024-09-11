@@ -546,6 +546,7 @@ export abstract class Chart extends Observable {
         let updateDeferred = false;
         switch (performUpdateType) {
             case ChartUpdateType.FULL:
+                this.ctx.updateService.dispatchPreDomUpdate();
                 this.updateDOM();
             // fallthrough
 
