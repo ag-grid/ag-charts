@@ -1004,7 +1004,7 @@ export class RadialGaugeSeries
         if (angleAxis == null) return;
 
         const { labelSelection, radius, textAlign, verticalAlign } = this;
-        const { label, secondaryLabel, margin: padding, innerRadiusRatio } = this.properties;
+        const { label, secondaryLabel, spacing: padding, innerRadiusRatio } = this.properties;
 
         formatRadialGaugeLabels(
             this,

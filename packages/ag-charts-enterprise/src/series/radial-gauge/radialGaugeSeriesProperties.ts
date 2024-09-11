@@ -316,7 +316,7 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeO
     cornerMode: 'container' | 'item' = 'container';
 
     @Validate(NUMBER)
-    margin: number = 0;
+    spacing: number = 0;
 
     @Validate(OBJECT)
     readonly scale = new RadialGaugeScaleProperties();

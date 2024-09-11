@@ -86,7 +86,7 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         cornerMode,
         label,
         secondaryLabel,
-        margin,
+        spacing,
         ...rest
     } = opts;
     assertEmpty(rest);
@@ -158,7 +158,7 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         cornerMode,
         label,
         secondaryLabel,
-        margin,
+        spacing,
         ...rest,
     });
 
@@ -218,9 +218,9 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         target,
         cornerRadius,
         cornerMode,
-        label,
-        secondaryLabel,
-        margin,
+        // label,
+        // secondaryLabel,
+        // spacing,
         ...rest
     } = opts;
     assertEmpty(rest);
@@ -286,9 +286,9 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         target,
         cornerRadius,
         cornerMode,
-        label,
-        secondaryLabel,
-        margin,
+        // label,
+        // secondaryLabel,
+        // spacing,
         ...rest,
     });
 
