@@ -59,24 +59,11 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     private colorPickerAnchorElement?: HTMLElement;
     private dragStartState?: { client: _Util.Vec2; position: _Util.Vec2 };
     private seriesRect?: _Scene.BBox;
-    private readonly escapeHandler: (event: KeyboardEvent) => unknown;
     private initialFocus?: HTMLElement;
 
     constructor(ctx: _ModuleSupport.ModuleContext, id: string) {
         super(ctx, id);
         this.destroyFns.push(ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)));
-        this.escapeHandler = (event: KeyboardEvent) => {
-            if (
-                !event.altKey &&
-                !event.ctrlKey &&
-                !event.ctrlKey &&
-                !event.metaKey &&
-                !event.isComposing &&
-                event.key === 'Escape'
-            ) {
-                this.hide();
-            }
-        };
     }
 
     protected override showWithChildren(children: Array<HTMLElement>, options: Options) {
@@ -90,6 +77,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             if ((event.target as any).classList?.contains('ag-charts-dialog__color-picker-button')) return;
             this.colorPicker.hide();
         });
+        popover.addEventListener('keydown', this.onKeyDown.bind(this));
 
         // Give the dialog's dimensions a chance to be calculated before positioning
         _ModuleSupport.getWindow().requestAnimationFrame(() => this.reposition());
@@ -201,8 +189,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                 buttonEl.classList.add(activeClass);
             }
 
-            buttonEl.addEventListener('keydown', this.escapeHandler);
-
             group.appendChild(buttonEl);
             buttons.push(buttonEl);
         }
@@ -219,7 +205,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             { value, options, onChange },
             { className: 'ag-charts-dialog__select', ariaLabel: altTextT, title: altTextT }
         );
-        select.addEventListener('keydown', this.escapeHandler);
         group.append(select);
 
         return group;
@@ -228,7 +213,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     protected createTextArea({ placeholder, value, onChange }: TextAreaOptions) {
         const placeholderT = placeholder ? this.ctx.localeManager.t(placeholder) : undefined;
         const textArea = createTextArea({ value, onChange }, { placeholder: placeholderT });
-        textArea.addEventListener('keydown', this.escapeHandler);
 
         return textArea;
     }
@@ -238,7 +222,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const group = this.createInputGroup(label, { for: id });
 
         const checkbox = createCheckbox({ checked, onChange }, 'ag-charts-dialog__checkbox');
-        checkbox.addEventListener('keydown', this.escapeHandler);
         checkbox.id = id;
 
         group.append(checkbox);
@@ -279,8 +262,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             }
         );
 
-        colorEl.addEventListener('keydown', this.escapeHandler);
-
         if (value) colorEl.style.setProperty('--color', value);
         let defaultColor = value;
 
@@ -310,7 +291,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             { label: createIcon('close'), onPress: () => this.hide() },
             'ag-charts-dialog__close-button'
         );
-        closeButton.addEventListener('keydown', this.escapeHandler);
 
         return closeButton;
     }
@@ -330,6 +310,11 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
         this.seriesRect = event.series.paddedRect;
         this.reposition();
+    }
+
+    private onKeyDown(event: KeyboardEvent) {
+        if (event.altKey || event.ctrlKey || event.metaKey || event.isComposing || event.key !== 'Escape') return;
+        this.hide();
     }
 
     private onDragStart(dragHandle: HTMLDivElement, event: MouseEvent) {
