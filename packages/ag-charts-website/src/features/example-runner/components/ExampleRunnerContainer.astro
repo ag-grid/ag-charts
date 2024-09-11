@@ -8,19 +8,30 @@ interface Props {
     exampleWidth?: number;
     pageName: string;
     exampleName: string;
+    /**
+     * If inline, there is margin on the bottom
+     */
+    isInline?: boolean;
 }
 
 const DEFAULT_HEIGHT = 500;
-const FRAME_WRAPPER_HEIGHT = 42 + 16;
 
-const { exampleHeight = DEFAULT_HEIGHT, exampleWidth, pageName, exampleName } = Astro.props as Props;
+const { exampleHeight = DEFAULT_HEIGHT, exampleWidth, pageName, exampleName, isInline } = Astro.props as Props;
+const FRAME_WRAPPER_HEIGHT = isInline ? 42 + 16 : 0;
+
 const minHeight = exampleHeight + FRAME_WRAPPER_HEIGHT;
 const maxWidth = exampleWidth;
 const loadingLogoId = getLoadingLogoId({ pageName, exampleName });
 ---
 
 <div
-    class="container example-runner-outer"
+    class:list={[
+        'container',
+        'example-runner-outer',
+        {
+            isInline,
+        },
+    ]}
     style={{ minHeight: `${minHeight}px`, maxWidth: maxWidth != null ? `${maxWidth}px` : undefined }}
 >
     <LoadingLogo id={loadingLogoId} />
@@ -41,7 +52,7 @@ const loadingLogoId = getLoadingLogoId({ pageName, exampleName });
         }
     }
 
-    .example-runner-outer {
+    .isInline {
         margin-bottom: $spacing-size-4;
     }
 

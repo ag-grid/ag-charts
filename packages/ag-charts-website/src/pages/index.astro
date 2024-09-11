@@ -10,14 +10,14 @@ import { AutomatedIntegratedChartsWrapper } from '@ag-website-shared/components/
 import { Faqs } from '../features/homepage/components/faqs/Faqs';
 import ImageCarousel from '../features/homepage/components/hero/ImageCarousel';
 import { parseVersion } from '@ag-website-shared/utils/parseVersion';
-import { Version, type VersionProps } from '@ag-website-shared/components/whats-new/components/Version';
+import { Version } from '@ag-website-shared/components/whats-new/components/Version';
 import whatsNewData from '@ag-website-shared/content/whats-new/data.json';
-const { name, blogPrefix } = whatsNewData['charts'];
-import { getIsProduction, getIsArchive, getIsStaging, GRID_STAGING_SITE_URL } from '@utils/env';
+import { getIsProduction, getIsArchive, GRID_STAGING_SITE_URL } from '@utils/env';
 
-// Custom Example Runners || TODO: Cleanup
-import IndexGalleryExampleRunner from '@features/homepage/components/IndexGalleryExampleRunner.astro';
-import IndexDocsExampleRunner from '@features/homepage/components/IndexDocsExampleRunner.astro';
+import HomepageGalleryExamples from '@features/homepage/components/HomepageGalleryExamples.astro';
+import HomepageDocsExample from '@features/homepage/components/HomepageDocsExample.astro';
+
+const { blogPrefix } = whatsNewData['charts'];
 
 // All Gallery Examples
 const galleryEntry = await getEntry('gallery', 'data');
@@ -157,7 +157,7 @@ const AG_GRID_CHARTS_CDN_URL = isProduction
                     <h2>AG Charts JavaScript Charting Library</h2>
                     <h3>JavaScript Charts <br /> Designed for Every Use Case</h3>
                 </div>
-                <IndexGalleryExampleRunner examples={exampleData} pageName={'bar'} />
+                <HomepageGalleryExamples examples={exampleData} pageName={'bar'} />
                 <div class={styles.ctaButton}>
                     <a
                         href={urlWithBaseUrl(
@@ -181,9 +181,10 @@ const AG_GRID_CHARTS_CDN_URL = isProduction
                 </div>
                 <br />
                 <div>
-                    <IndexDocsExampleRunner
+                    <HomepageDocsExample
                         options={{ exampleHeight: 700 }}
-                        name={'../../vanilla/financial-charts/examples/financial-charts-showcase'}
+                        pageName="financial-charts"
+                        exampleName="financial-charts-showcase"
                     />
                 </div>
                 <div class={styles.ctaButton}>
@@ -212,8 +213,9 @@ const AG_GRID_CHARTS_CDN_URL = isProduction
                             Visualise data representing geographic areas such as countries, using colours to denote
                             distinct series or the magnitude of the values.
                         </p>
-                        <IndexDocsExampleRunner
-                            name={'../../vanilla/map-shapes/examples/multiple-series/'}
+                        <HomepageDocsExample
+                            pageName="map-shapes"
+                            exampleName="multiple-series"
                             options={{ exampleHeight: mapExampleHeights }}
                         />
                     </div>
@@ -223,8 +225,9 @@ const AG_GRID_CHARTS_CDN_URL = isProduction
                             Draw geographic lines, such as roads or flight paths, with the ability to vary width and
                             colour to represent data values.
                         </p>
-                        <IndexDocsExampleRunner
-                            name={'../../vanilla/map-lines/examples/map-shapes-lines/'}
+                        <HomepageDocsExample
+                            pageName="map-lines"
+                            exampleName="map-shapes-lines"
                             options={{ exampleHeight: mapExampleHeights }}
                         />
                     </div>
@@ -234,8 +237,9 @@ const AG_GRID_CHARTS_CDN_URL = isProduction
                             Add markers data for geographic points, with the ability to vary the size to represent data
                             values.
                         </p>
-                        <IndexDocsExampleRunner
-                            name={'../../vanilla/map-markers/examples/marker-size/'}
+                        <HomepageDocsExample
+                            pageName="map-markers"
+                            exampleName="marker-size"
                             options={{ exampleHeight: mapExampleHeights }}
                         />
                     </div>

@@ -29,32 +29,26 @@
                 "examples": [
                     {
                         "title": "Simple Bar",
-                        "description": "",
                         "name": "simple-bar"
                     },
                     {
                         "title": "Grouped Stacked Bar",
-                        "description": "",
                         "name": "grouped-stacked-bar"
                     },
                     {
                         "title": "Stacked Bar",
-                        "description": "",
                         "name": "stacked-bar"
                     },
                     {
                         "title": "Simple Horizontal Bar",
-                        "description": "",
                         "name": "simple-horizontal-bar"
                     },
                     {
                         "title": "Stacked Horizontal Bar",
-                        "description": "",
                         "name": "stacked-horizontal-bar"
                     },
                     {
                         "title": "Grouped Horizontal Bar",
-                        "description": "",
                         "name": "grouped-horizontal-bar"
                     }
                 ]
@@ -69,32 +63,26 @@
                 "examples": [
                     {
                         "title": "Simple Line",
-                        "description": "",
                         "name": "simple-line"
                     },
                     {
                         "title": "Line With Gaps",
-                        "description": "",
                         "name": "line-with-gaps"
                     },
                     {
                         "title": "Multiple Line Series",
-                        "description": "",
                         "name": "multiple-line-series"
                     },
                     {
                         "title": "Line With Time Axis",
-                        "description": "",
                         "name": "line-with-time-axis"
                     },
                     {
                         "title": "Line With Large Data",
-                        "description": "",
                         "name": "multiple-line-series-large-data"
                     },
                     {
                         "title": "Line With Labels",
-                        "description": "",
                         "name": "line-with-labels"
                     }
                 ]
@@ -109,32 +97,26 @@
                 "examples": [
                     {
                         "title": "Simple Area",
-                        "description": "",
                         "name": "simple-area"
                     },
                     {
                         "title": "Area With Labels",
-                        "description": "",
                         "name": "area-with-labels"
                     },
                     {
                         "title": "Stacked Area",
-                        "description": "",
                         "name": "stacked-area"
                     },
                     {
                         "title": "Area With Markers",
-                        "description": "",
                         "name": "area-with-markers"
                     },
                     {
                         "title": "100% Stacked Area",
-                        "description": "",
                         "name": "100--stacked-area"
                     },
                     {
                         "title": "Area With Negative Values",
-                        "description": "",
                         "name": "area-with-negative-values"
                     }
                 ]
@@ -149,32 +131,26 @@
                 "examples": [
                     {
                         "title": "Simple Scatter",
-                        "description": "",
                         "name": "simple-scatter"
                     },
                     {
                         "title": "Multiple Scatter Series",
-                        "description": "",
                         "name": "multiple-scatter-series"
                     },
                     {
                         "title": "Scatter With Large Data",
-                        "description": "",
                         "name": "scatter-with-large-data"
                     },
                     {
                         "title": "Scatter With Custom Markers",
-                        "description": "",
                         "name": "scatter-with-custom-markers"
                     },
                     {
                         "title": "Scatter With Labels",
-                        "description": "",
                         "name": "scatter-with-labels"
                     },
                     {
                         "title": "Scatter With Multiple Axes",
-                        "description": "",
                         "name": "scatter-with-multiple-axes"
                     }
                 ]
@@ -189,28 +165,23 @@
                 "examples": [
                     {
                         "title": "Simple Bubble",
-                        "description": "",
                         "name": "bubble-with-negative-values"
                     },
                     {
                         "title": "Multiple Bubble Series",
-                        "description": "",
                         "name": "multiple-bubble-series"
                     },
                     {
                         "title": "Bubble With Categories",
-                        "description": "",
                         "name": "bubble-with-categories"
                     },
                     {
                         "title": "Bubble With Custom Markers",
-                        "description": "",
                         "name": "bubble-with-custom-markers",
                         "hidden": true
                     },
                     {
                         "title": "Bubble With Labels",
-                        "description": "",
                         "name": "bubble-with-labels",
                         "hidden": true
                     }
@@ -226,17 +197,14 @@
                 "examples": [
                     {
                         "title": "Simple Pie",
-                        "description": "",
                         "name": "simple-pie"
                     },
                     {
                         "title": "Pie With Variable Radius",
-                        "description": "",
                         "name": "pie-with-variable-radius"
                     },
                     {
                         "title": "Pie In A Donut",
-                        "description": "",
                         "name": "pie-in-a-donut"
                     }
                 ]
@@ -251,17 +219,14 @@
                 "examples": [
                     {
                         "title": "Simple Donut",
-                        "description": "",
                         "name": "simple-donut"
                     },
                     {
                         "title": "Donut With Variable Radius",
-                        "description": "",
                         "name": "donut-with-variable-radius"
                     },
                     {
                         "title": "Multiple Donuts",
-                        "description": "",
                         "name": "multiple-donuts"
                     }
                 ]
@@ -277,32 +242,26 @@
                 "examples": [
                     {
                         "title": "Map With Multiple Shape Series",
-                        "description": "",
                         "name": "multiple-map-shape-series"
                     },
                     {
                         "title": "Multiple Map Series",
-                        "description": "",
                         "name": "multiple-map-series"
                     },
                     {
                         "title": "Map with Heatmap",
-                        "description": "",
                         "name": "map-heatmap-series"
                     },
                     {
                         "title": "Map With Shapes and Lines",
-                        "description": "",
                         "name": "map-shapes-lines"
                     },
                     {
                         "title": "Map with Lines and Markers",
-                        "description": "",
                         "name": "map-lines-markers"
                     },
                     {
                         "title": "Map Kitchen Sink",
-                        "description": "Almost every mapping feature in one map",
                         "name": "map-kitchen-sink"
                     }
                 ]
@@ -317,17 +276,14 @@
                 "examples": [
                     {
                         "title": "Simple Histogram",
-                        "description": "",
                         "name": "simple-histogram"
                     },
                     {
                         "title": "Histogram With Specified Bins",
-                        "description": "",
                         "name": "histogram-with-specified-bins"
                     },
                     {
                         "title": "Histogram With Missing Bins",
-                        "description": "",
                         "name": "histogram-with-missing-bins"
                     }
                 ]
@@ -342,32 +298,26 @@
                 "examples": [
                     {
                         "title": "Simple Range Bar",
-                        "description": "",
                         "name": "simple-range-bar"
                     },
                     {
                         "title": "Range Bar With Labels",
-                        "description": "",
                         "name": "range-bar-with-labels"
                     },
                     {
                         "title": "Multiple Range Bars",
-                        "description": "",
                         "name": "multiple-range-bars"
                     },
                     {
                         "title": "Horizontal Range Bar",
-                        "description": "",
                         "name": "horizontal-range-bar"
                     },
                     {
                         "title": "Horizontal Range Bar With Labels",
-                        "description": "",
                         "name": "horizontal-range-bar-with-labels"
                     },
                     {
                         "title": "Multiple Horizontal Range Bar",
-                        "description": "",
                         "name": "multiple-horizontal-range-bars"
                     }
                 ]
@@ -382,17 +332,14 @@
                 "examples": [
                     {
                         "title": "Simple Range Area",
-                        "description": "",
                         "name": "simple-range-area"
                     },
                     {
                         "title": "Multiple Range Areas",
-                        "description": "",
                         "name": "multiple-range-areas"
                     },
                     {
                         "title": "Range Area With Labels",
-                        "description": "",
                         "name": "range-area-with-labels"
                     }
                 ]
@@ -407,17 +354,14 @@
                 "examples": [
                     {
                         "title": "Simple Waterfall",
-                        "description": "",
                         "name": "simple-waterfall"
                     },
                     {
                         "title": "Horizontal Waterfall",
-                        "description": "",
                         "name": "horizontal-waterfall"
                     },
                     {
                         "title": "Customised Waterfall",
-                        "description": "",
                         "name": "customised-waterfall"
                     }
                 ]
@@ -432,17 +376,14 @@
                 "examples": [
                     {
                         "title": "Simple Box Plot",
-                        "description": "",
                         "name": "simple-box-plot"
                     },
                     {
                         "title": "Multiple Box Plots",
-                        "description": "",
                         "name": "multiple-box-plots"
                     },
                     {
                         "title": "Horizontal Box Plot",
-                        "description": "",
                         "name": "horizontal-box-plot"
                     }
                 ]
@@ -457,17 +398,14 @@
                 "examples": [
                     {
                         "title": "Candlestick",
-                        "description": "",
                         "name": "candlestick"
                     },
                     {
                         "title": "Hollow Candlesticks",
-                        "description": "",
                         "name": "candlestick-hollow"
                     },
                     {
                         "title": "OHLC",
-                        "description": "",
                         "name": "ohlc"
                     }
                 ]
@@ -482,17 +420,14 @@
                 "examples": [
                     {
                         "title": "Simple Radar Line",
-                        "description": "",
                         "name": "simple-radar-line"
                     },
                     {
                         "title": "Radar With Markers",
-                        "description": "",
                         "name": "radar-with-markers"
                     },
                     {
                         "title": "Reversed Radar With Markers",
-                        "description": "",
                         "name": "reversed-radar-with-markers"
                     }
                 ]
@@ -505,17 +440,14 @@
                 "examples": [
                     {
                         "title": "Simple Radar Area",
-                        "description": "",
                         "name": "simple-radar-area"
                     },
                     {
                         "title": "Radar Area With Labels",
-                        "description": "",
                         "name": "radar-area-with-labels"
                     },
                     {
                         "title": "Reversed Radar Area",
-                        "description": "",
                         "name": "reversed-radar-area"
                     }
                 ]
@@ -530,17 +462,14 @@
                 "examples": [
                     {
                         "title": "Simple Nightingale",
-                        "description": "",
                         "name": "simple-nightingale"
                     },
                     {
                         "title": "Multiple Nightingale Series",
-                        "description": "",
                         "name": "multiple-nightingale-series"
                     },
                     {
                         "title": "Reversed Nightingale",
-                        "description": "",
                         "name": "reversed-nightingale"
                     }
                 ]
@@ -553,17 +482,14 @@
                 "examples": [
                     {
                         "title": "Simple Radial Column",
-                        "description": "",
                         "name": "simple-radial-column"
                     },
                     {
                         "title": "Grouped Radial Column",
-                        "description": "",
                         "name": "grouped-radial-column"
                     },
                     {
                         "title": "Reversed Radial Column",
-                        "description": "",
                         "name": "reversed-radial-column"
                     }
                 ]
@@ -576,17 +502,14 @@
                 "examples": [
                     {
                         "title": "Simple Radial Bar",
-                        "description": "",
                         "name": "simple-radial-bar"
                     },
                     {
                         "title": "Stacked Radial Bar",
-                        "description": "",
                         "name": "stacked-radial-bar"
                     },
                     {
                         "title": "Reversed Radial Bar",
-                        "description": "",
                         "name": "reversed-radial-bar"
                     }
                 ]
@@ -601,17 +524,14 @@
                 "examples": [
                     {
                         "title": "Simple Sunburst",
-                        "description": "",
                         "name": "simple-sunburst"
                     },
                     {
                         "title": "Sunburst with Nesting",
-                        "description": "",
                         "name": "sunburst-with-nesting"
                     },
                     {
                         "title": "Sunburst with Colour Range",
-                        "description": "",
                         "name": "sunburst-with-color-range"
                     }
                 ]
@@ -626,17 +546,14 @@
                 "examples": [
                     {
                         "title": "Simple Treemap",
-                        "description": "",
                         "name": "simple-treemap"
                     },
                     {
                         "title": "Treemap with Nesting",
-                        "description": "",
                         "name": "treemap-with-nesting"
                     },
                     {
                         "title": "Treemap with Colour Range",
-                        "description": "",
                         "name": "treemap-with-color-range"
                     }
                 ]
@@ -651,17 +568,14 @@
                 "examples": [
                     {
                         "title": "Simple Heatmap",
-                        "description": "",
                         "name": "simple-heatmap"
                     },
                     {
                         "title": "Heatmap with Labels",
-                        "description": "",
                         "name": "heatmap-with-labels"
                     },
                     {
                         "title": "Calendar Heatmap",
-                        "description": "",
                         "name": "calendar-heatmap"
                     }
                 ]
@@ -676,12 +590,10 @@
                 "examples": [
                     {
                         "title": "Sankey",
-                        "description": "",
                         "name": "sankey"
                     },
                     {
                         "title": "Sankey Customisation",
-                        "description": "",
                         "name": "sankey-customisation"
                     }
                 ]
@@ -696,12 +608,10 @@
                 "examples": [
                     {
                         "title": "Chord",
-                        "description": "",
                         "name": "chord"
                     },
                     {
                         "title": "Chord Customisation",
-                        "description": "",
                         "name": "chord-customisation"
                     }
                 ]
@@ -716,12 +626,10 @@
                 "examples": [
                     {
                         "title": "Simple Bullet",
-                        "description": "",
                         "name": "simple-bullet"
                     },
                     {
                         "title": "Horizontal Bullet",
-                        "description": "",
                         "name": "horizontal-bullet"
                     }
                 ]
@@ -736,12 +644,10 @@
                 "examples": [
                     {
                         "title": "Simple Radial Gauge",
-                        "description": "",
                         "name": "simple-radial-gauge"
                     },
                     {
                         "title": "Customised Radial Gauges",
-                        "description": "",
                         "name": "customised-radial-gauge"
                     }
                 ]
@@ -756,22 +662,18 @@
                 "examples": [
                     {
                         "title": "Bar And Line Combination",
-                        "description": "",
                         "name": "bar-line-combination"
                     },
                     {
                         "title": "Histogram And Scatter Combination",
-                        "description": "",
                         "name": "histogram-scatter-combination"
                     },
                     {
                         "title": "Horizontal Range Bar And Scatter Combination",
-                        "description": "",
                         "name": "horizontal-range-bar-scatter-combination"
                     },
                     {
                         "title": "Radar Line, Radar Area And Nightingale Combination",
-                        "description": "",
                         "name": "radar-line-radar-area-nightingale-combination"
                     }
                 ]

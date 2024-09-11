@@ -1,4 +1,4 @@
-import type { Framework } from '@ag-grid-types';
+import type { InternalFramework } from '@ag-grid-types';
 import type { ExampleType } from '@features/example-generator/types';
 import { ExampleRunner } from '@features/example-runner/components/ExampleRunner';
 import { ExternalLinks } from '@features/example-runner/components/ExternalLinks';
@@ -22,8 +22,10 @@ interface Props {
     title: string;
     exampleType?: ExampleType;
     options?: ExampleOptions;
-    framework: Framework;
     pageName: string;
+    internalFrameworkOverride?: InternalFramework;
+    hideCode?: boolean;
+    hideExternalLinks?: boolean;
 }
 
 // NOTE: Not on the layout level, as that is generated at build time, and queryClient needs to be
@@ -37,8 +39,18 @@ const queryOptions = {
     refetchOnReconnect: false,
 };
 
-const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, pageName }: Props) => {
-    const internalFramework = useStore($internalFramework);
+const DocsExampleRunnerInner = ({
+    name,
+    title,
+    exampleType,
+    options,
+    pageName,
+    internalFrameworkOverride,
+    hideCode,
+    hideExternalLinks,
+}: Props) => {
+    const storeInternalFramework = useStore($internalFramework);
+    const internalFramework = internalFrameworkOverride ?? storeInternalFramework;
     const [initialSelectedFile, setInitialSelectedFile] = useState();
     const [exampleUrl, setExampleUrl] = useState<string>();
     const [exampleRunnerExampleUrl, setExampleRunnerExampleUrl] = useState<string>();
@@ -170,6 +182,8 @@ const DocsExampleRunnerInner = ({ name, title, exampleType, options, framework, 
             internalFramework={internalFramework}
             externalLinks={externalLinks}
             loadingIFrameId={loadingIFrameId}
+            hideCode={hideCode}
+            hideExternalLinks={hideExternalLinks}
         />
     );
 };
