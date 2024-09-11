@@ -75,6 +75,7 @@
     border: 1px solid var(--ag-charts-input-border-color);
     border-radius: var(--ag-charts-input-border-radius);
     padding: 3px 2px 4px;
+    font-size: inherit;
 }
 
 /* Textarea */
