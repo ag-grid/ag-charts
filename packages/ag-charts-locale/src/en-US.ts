@@ -210,6 +210,14 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     dialogInputColorPicker: 'Color',
     // Text for the annotation dialog's color picker alt text
     dialogInputColorPickerAltText: 'Text Color',
+    // Text for the annotation dialog's extend channel start checkbox
+    dialogInputExtendChannelStart: 'Extend channel start',
+    // Text for the annotation dialog's extend channel end checkbox
+    dialogInputExtendChannelEnd: 'Extend channel end',
+    // Text for the annotation dialog's extend line start checkbox
+    dialogInputExtendLineStart: 'Extend line start',
+    // Text for the annotation dialog's extend line end checkbox
+    dialogInputExtendLineEnd: 'Extend line end',
     // Text for the annotation dialog's font size select box label
     dialogInputFontSize: 'Size',
     // Text for the annotation dialog's font size select box alt text
@@ -220,6 +228,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     dialogInputPosition: 'Position',
     // Text for the annotation dialog's stroke width label
     dialogInputStrokeWidth: 'Weight',
+    // Text for the annotation dialog's stroke width label
+    dialogInputStrokeWidthAltText: 'Line Weight',
     // Text for the annotation dialog's textarea placeholder
     dialogInputTextareaPlaceholder: 'Add Text',
 };
