@@ -143,23 +143,34 @@
 }
 
 .name {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
     --parent-properties-color: var(--color-fg-secondary);
     --parent-properties-font-weight: var(--text-regular);
 
-    color: var(--color-fg-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
     position: relative;
-    display: inline-block;
-    margin-top: 0;
     padding-right: $spacing-size-2;
     font-family: var(--text-monospace-font-family);
     font-size: 15px;
     line-height: var(--text-lh-xs);
     font-weight: 700;
-    margin-bottom: 0;
-    display: flex;
-    flex-direction: row;
+    color: var(--color-fg-primary);
+
+    &:hover .linkIcon {
+        opacity: 0.5;
+    }
+
+    .linkIcon {
+        &:hover {
+            opacity: 1;
+        }
+
+        svg {
+            width: $spacing-size-4;
+            height: $spacing-size-4;
+        }
+    }
 
     @container (min-width: #{$breakpoint-table-small}) {
         font-size: 15px;
@@ -203,6 +214,10 @@
     padding-left: 8px;
     padding-right: 8px;
     border-radius: var(--radius-sm);
+
+    #{$selector-darkmode} & {
+        background-color: color-mix(in srgb, var(--color-fg-code), var(--color-bg-primary) 90%);
+    }
 }
 
 .defaultValue {
@@ -217,6 +232,14 @@
     font-variant-ligatures: none;
     font-optical-sizing: auto;
     font-weight: 400;
+
+    #{$selector-darkmode} & {
+        background-color: color-mix(in srgb, var(--color-gray-700) 75%, var(--color-gray-800) 66%) !important;
+    }
+}
+
+.defaultLabel {
+    opacity: 0.6;
 }
 
 a.metaValue {

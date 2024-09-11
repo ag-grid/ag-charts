@@ -129,7 +129,7 @@ export function PropertyType({
             {defaultValue != null && (
                 <div className={styles.metaItem}>
                     <span className={classnames(styles.metaValue, styles.defaultValue)}>
-                        <span>default: </span>
+                        <span className={styles.defaultLabel}>default: </span>
                         {defaultValue}
                     </span>
                 </div>
@@ -165,11 +165,12 @@ function PropertyName({
         console.warn('PropertyName children must be of type string', children);
         return <Component {...props} />;
     }
+
     return (
-        <Component {...props}>
-            {wbrInject(children, splitRegex)}
+        <>
+            <Component {...props}>{wbrInject(children, splitRegex)}</Component>
             {isRequired && <span className={styles.required}>required</span>}
-        </Component>
+        </>
     );
 }
 
