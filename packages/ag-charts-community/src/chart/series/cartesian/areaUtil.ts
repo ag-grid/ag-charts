@@ -73,6 +73,7 @@ export interface AreaSeriesNodeDataContext
     fillData: AreaFillPathDatum;
     strokeData: AreaStrokePathDatum;
     stackVisible: boolean;
+    crossFiltering: boolean;
 }
 
 interface SpanAnimation {
