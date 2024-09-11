@@ -1,18 +1,15 @@
-import type {
-    AgFinancialChartPresets,
-    AgGaugePreset,
-    AgLinearGaugePreset,
-    AgRadialGaugePreset,
-} from '../api/presetOptions';
-import type { AgBaseCartesianChartOptions } from '../series/cartesian/cartesianOptions';
-import type { AgBaseFlowProportionChartOptions } from '../series/flow-proportion/flowProportionOptions';
-import type { AgBaseGaugeChartOptions } from '../series/gauge/gaugeOptions';
-import type { AgBaseHierarchyChartOptions } from '../series/hierarchy/hierarchyOptions';
-import type { AgBasePolarChartOptions } from '../series/polar/polarOptions';
-import type { AgBaseTopologyChartOptions } from '../series/topology/topologyOptions';
-import type { AgBaseChartOptions } from './chartOptions';
-import type { AgBaseChartThemeOptions, AgChartTheme, AgChartThemeName } from './themeOptions';
-import type { PixelSize } from './types';
+import type { AgBaseChartOptions } from './chart/chartOptions';
+import type { AgBaseChartThemeOptions, AgChartTheme, AgChartThemeName } from './chart/themeOptions';
+import type { PixelSize } from './chart/types';
+import type { AgFinancialChartPresets } from './presets/financial/financialOptions';
+import type { AgGaugePresets } from './presets/gauge/gaugeOptions';
+import type { AgLinearGaugePreset } from './presets/gauge/linearGaugeOptions';
+import type { AgRadialGaugePreset } from './presets/gauge/radialGaugeOptions';
+import type { AgBaseCartesianChartOptions } from './series/cartesian/cartesianOptions';
+import type { AgBaseFlowProportionChartOptions } from './series/flow-proportion/flowProportionOptions';
+import type { AgBaseHierarchyChartOptions } from './series/hierarchy/hierarchyOptions';
+import type { AgBasePolarChartOptions } from './series/polar/polarOptions';
+import type { AgBaseTopologyChartOptions } from './series/topology/topologyOptions';
 
 export interface AgChartThemeOptions extends AgBaseChartThemeOptions {}
 
@@ -36,7 +33,7 @@ export interface AgTopologyChartOptions extends AgBaseTopologyChartOptions, AgBa
 export interface AgFlowProportionChartOptions extends AgBaseFlowProportionChartOptions, AgBaseChartOptions {
     theme?: AgChartTheme | AgChartThemeName;
 }
-export interface AgGaugeChartOptions extends AgBaseGaugeChartOptions, AgBaseChartOptions {
+export interface AgGaugeChartOptions extends AgBaseChartOptions {
     theme?: AgChartTheme | AgChartThemeName;
 }
 export type AgChartOptions =
@@ -63,7 +60,7 @@ type AgBaseGaugePresetOptions = Pick<
 
 export type AgLinearGaugeOptions = AgLinearGaugePreset & AgBaseGaugePresetOptions;
 export type AgRadialGaugeOptions = AgRadialGaugePreset & AgBaseGaugePresetOptions;
-export type AgGaugeOptions = AgGaugePreset & AgBaseGaugePresetOptions;
+export type AgGaugeOptions = AgGaugePresets & AgBaseGaugePresetOptions;
 
 export type AgChartInstanceOptions = AgChartOptions | AgFinancialChartOptions;
 

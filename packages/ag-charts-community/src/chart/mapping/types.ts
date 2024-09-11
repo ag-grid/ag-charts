@@ -4,7 +4,7 @@ import type {
     AgFlowProportionChartOptions,
     AgFlowProportionSeriesOptions,
     AgGaugeChartOptions,
-    AgGaugeSeriesOptions,
+    AgGaugeOptions,
     AgHierarchyChartOptions,
     AgHierarchySeriesOptions,
     AgPolarChartOptions,
@@ -34,7 +34,7 @@ export type SeriesOptionsTypes =
     | AgHierarchySeriesOptions
     | AgTopologySeriesOptions
     | AgFlowProportionSeriesOptions
-    | AgGaugeSeriesOptions;
+    | AgGaugeOptions;
 
 export type SeriesType = SeriesOptionsTypes['type'];
 

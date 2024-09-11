@@ -1,7 +1,7 @@
 import type {
     AgCartesianSeriesOptions,
     AgFlowProportionSeriesOptions,
-    AgGaugeSeriesOptions,
+    AgGaugeOptions,
     AgHierarchySeriesOptions,
     AgPolarSeriesOptions,
     AgTopologySeriesOptions,
@@ -23,7 +23,7 @@ export type SeriesType = NonNullable<
     | AgHierarchySeriesOptions['type']
     | AgTopologySeriesOptions['type']
     | AgFlowProportionSeriesOptions['type']
-    | AgGaugeSeriesOptions['type']
+    | AgGaugeOptions['type']
 >;
 
 export interface SeriesOptionInstance extends ModuleInstance {

@@ -58,7 +58,7 @@ return (
   template: `<ag-gauge [options]="options"></ag-gauge>`,
 })
 export class AppComponent {
-  public options: AgLinearGaugeOptions;
+  public options: AgRadialGaugePreset;
   constructor() {
     this.options = {
         type: "linear-gauge",
@@ -318,7 +318,7 @@ In this configuration:
 
 In this configuration:
 
--   `shape` is a [marker shape](#reference-AgLinearGaugeOptions-targets-shape).
+-   `shape` is a [marker shape](#reference-AgRadialGaugePreset-targets-shape).
 -   `placement` indicates the relative placement to the gauge - either `before`, `after`, or `middle`.
 -   `size` is the size of the marker, in pixels.
 -   `spacing` is spacing from the edge of the gauge to the marker. Ignored when `placement` is `middle`.
@@ -333,8 +333,8 @@ To create a bullet chart, use the `line` shape for the target.
 
 {% tabs %}
 
-{% tabItem id="AgLinearGaugeOptions" label="Linear Gauge Options" %}
-{% apiReference id="AgLinearGaugeOptions" /%}
+{% tabItem id="AgRadialGaugePreset" label="Linear Gauge Options" %}
+{% apiReference id="AgLinearGaugePreset" /%}
 {% /tabItem %}
 
 {% /tabs %}

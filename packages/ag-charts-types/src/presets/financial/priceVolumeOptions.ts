@@ -1,6 +1,3 @@
-import type { AgLinearGaugeSeriesOptions } from '../series/gauge/linearGaugeOptions';
-import type { AgRadialGaugeSeriesOptions } from '../series/gauge/radialGaugeOptions';
-
 /** @deprecated v10.1.0 use 'hlc' instead. */
 export type DeprecatedAgPriceVolumeChartType = 'range-area';
 export type AgPriceVolumeChartType =
@@ -103,11 +100,3 @@ export interface AgPriceVolumePreset {
      */
     zoom?: boolean;
 }
-
-export type AgFinancialChartPresets = AgPriceVolumePreset;
-
-export type AgLinearGaugePreset = AgLinearGaugeSeriesOptions;
-export type AgRadialGaugePreset = AgRadialGaugeSeriesOptions;
-export type AgGaugePreset = AgLinearGaugePreset | AgRadialGaugePreset;
-
-export type Preset = AgFinancialChartPresets;

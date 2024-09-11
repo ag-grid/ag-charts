@@ -1,5 +1,5 @@
 import {
-    type AgGaugeSeriesFillMode,
+    type AgGaugeFillMode,
     type AgRadialGaugeMarkerShape,
     type AgRadialGaugeTargetPlacement,
     type FontStyle,
@@ -260,7 +260,7 @@ export class RadialGaugeSeries
 
     private createConicGradient(
         fills: GaugeStopProperties[],
-        fillMode: AgGaugeSeriesFillMode | undefined,
+        fillMode: AgGaugeFillMode | undefined,
         segments: number[] | undefined
     ) {
         const { centerX, centerY, radius } = this;

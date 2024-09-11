@@ -1,5 +1,5 @@
 import {
-    type AgGaugeSeriesFillMode,
+    type AgGaugeFillMode,
     type AgLinearGaugeMarkerShape,
     type AgLinearGaugeTargetPlacement,
     type FontStyle,
@@ -234,7 +234,7 @@ export class LinearGaugeSeries
 
     private createLinearGradient(
         fills: GaugeStopProperties[],
-        fillMode: AgGaugeSeriesFillMode | undefined,
+        fillMode: AgGaugeFillMode | undefined,
         segments: number[] | undefined
     ) {
         const { properties, originX, originY, horizontal } = this;
