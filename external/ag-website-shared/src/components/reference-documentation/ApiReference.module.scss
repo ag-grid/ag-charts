@@ -204,6 +204,10 @@
     padding-left: 8px;
     padding-right: 8px;
     border-radius: var(--radius-sm);
+
+    #{$selector-darkmode} & {
+        background-color: color-mix(in srgb, var(--color-fg-code), var(--color-bg-primary) 90%);
+    }
 }
 
 .defaultValue {
@@ -218,6 +222,10 @@
     font-variant-ligatures: none;
     font-optical-sizing: auto;
     font-weight: 400;
+
+    #{$selector-darkmode} & {
+        background-color: color-mix(in srgb, var(--color-gray-700) 75%, var(--color-gray-800) 66%) !important;
+    }
 }
 
 .defaultLabel {
