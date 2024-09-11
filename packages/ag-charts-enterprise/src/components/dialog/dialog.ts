@@ -107,6 +107,10 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     ) {
         const element = createElement('div', 'ag-charts-dialog__tabs');
 
+        for (const tab of Object.values(tabs)) {
+            tab.content.role = 'tabpanel';
+        }
+
         const onPressTab = (active: keyof T) => {
             for (const [key, tab] of Object.entries(tabs)) {
                 tab.content.classList.toggle('ag-charts-dialog__tab-content--active', key === active);
@@ -116,6 +120,8 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         };
 
         const header = createElement('div', 'ag-charts-dialog__header');
+        header.role = 'tablist';
+
         const dragHandle = this.createHeaderDragHandle();
         const tabButtons = mapValues(tabs, (tab, key) =>
             createButton(
@@ -123,7 +129,10 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                     label: this.ctx.localeManager.t(tab.label),
                     onPress: () => onPressTab(key),
                 },
-                'ag-charts-dialog__tab-button'
+                {
+                    className: 'ag-charts-dialog__tab-button',
+                    role: 'tab',
+                }
             )
         );
         const closeButton = this.createHeaderCloseButton();
