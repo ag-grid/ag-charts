@@ -50,6 +50,7 @@ export interface MarkerSelectionDatum extends CartesianSeriesNodeDatum {
     readonly stroke?: string;
     readonly strokeWidth: number;
     readonly cumulativeValue: number;
+    readonly selected: boolean | undefined;
 }
 
 export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum {
