@@ -12,6 +12,7 @@ export interface PopoverConstructorOptions {
 export interface PopoverOptions {
     ariaLabel?: string;
     class?: string;
+    initialFocus?: HTMLElement;
     onHide?: () => void;
 }
 
@@ -85,6 +86,8 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         if (options.onHide) {
             this.hideFns.push(options.onHide);
         }
+
+        options.initialFocus?.focus();
 
         return popover;
     }

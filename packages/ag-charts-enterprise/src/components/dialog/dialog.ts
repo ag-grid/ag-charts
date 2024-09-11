@@ -60,6 +60,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     private dragStartState?: { client: _Util.Vec2; position: _Util.Vec2 };
     private seriesRect?: _Scene.BBox;
     private readonly escapeHandler: (event: KeyboardEvent) => unknown;
+    private initialFocus?: HTMLElement;
 
     constructor(ctx: _ModuleSupport.ModuleContext, id: string) {
         super(ctx, id);
@@ -79,6 +80,8 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     }
 
     protected override showWithChildren(children: Array<HTMLElement>, options: Options) {
+        options.initialFocus ??= this.initialFocus;
+
         const popover = super.showWithChildren(children, options);
         popover.classList.add('ag-charts-dialog');
         popover.setAttribute('role', 'dialog');
@@ -141,6 +144,10 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         tabs[initial].content.classList.add('ag-charts-dialog__tab-content--active');
         tabs[initial].onShow?.();
         tabButtons[initial].classList.add('ag-charts-dialog__tab-button--active');
+
+        initRovingTabIndex({ orientation: 'horizontal', buttons: Object.values(tabButtons) });
+
+        this.initialFocus = tabButtons[initial];
 
         return element;
     }
