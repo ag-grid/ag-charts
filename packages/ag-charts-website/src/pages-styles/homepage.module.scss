@@ -116,18 +116,20 @@
         padding-left: $spacing-size-8;
         background-color: var(--color-brand-200);
         color: var(--color-brand-500);
+
         #{$selector-darkmode} & {
             color: var(--color-bg-primary);
         }
 
         :global(.icon) {
             --icon-size: 1.3333em;
+
             fill: var(--color-brand-500);
+            transition: transform 0.33s ease-in-out;
+
             #{$selector-darkmode} & {
                 fill: var(--color-brand-primary);
             }
-
-            transition: transform 0.33s ease-in-out;
         }
 
         &:hover :global(.icon) {
