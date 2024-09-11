@@ -47,7 +47,7 @@
     border-bottom-right-radius: inherit;
 }
 
-.ag-charts-menu__row:hover {
+.ag-charts-menu__row:focus {
     background: var(--ag-charts-popover-hover-color);
 }
 
