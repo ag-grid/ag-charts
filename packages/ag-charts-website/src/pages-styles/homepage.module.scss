@@ -522,12 +522,26 @@
         margin-bottom: $spacing-size-4;
     }
 
+    :global(div[class*='content']) {
+        border: none;
+    }
+
+    // Temporary solution to hide map example titles on homepage.
+    // true solution is to modify examples to not include titles.
+    $maps-title-offset: -54px;
+
     :global(.example-runner-outer) {
-        margin-bottom: 0 !important;
+        margin-top: $spacing-size-2;
+        margin-bottom: $maps-title-offset !important;
     }
 
     :global(div[class*='content']) {
-        border: none;
+        overflow: hidden;
+    }
+
+    :global(div[class*='content'] div[class*='container']) {
+        position: relative;
+        top: $maps-title-offset;
     }
 }
 
