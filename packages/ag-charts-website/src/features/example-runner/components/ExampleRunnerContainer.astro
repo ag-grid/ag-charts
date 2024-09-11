@@ -45,12 +45,14 @@ const loadingLogoId = getLoadingLogoId({ pageName, exampleName });
         margin-bottom: $spacing-size-4;
     }
 
-    :global(.largeExamples) .example-runner-outer {
-        width: calc(139% - 40px);
-    }
-
     :global(.tabs-content) .example-runner-outer {
         margin-bottom: 0;
+    }
+
+    @media screen and (min-width: $breakpoint-docs-nav-large) {
+        :global(.largeExamples) .example-runner-outer {
+            width: calc(139% - 40px);
+        }
     }
 </style>
 
