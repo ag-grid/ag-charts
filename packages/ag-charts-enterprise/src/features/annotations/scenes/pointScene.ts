@@ -63,6 +63,17 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
         this.handle.toggleDragging(false);
     }
 
+    public copy(datum: Datum, copiedDatum: Datum, context: AnnotationContext, offset: Coords) {
+        const coords = convertPoint(datum, context);
+
+        const point = invertCoords({ x: coords.x + offset.x, y: coords.y + offset.y }, context);
+
+        copiedDatum.x = point.x;
+        copiedDatum.y = point.y;
+
+        return copiedDatum;
+    }
+
     override getAnchor(): _ModuleSupport.ToolbarAnchor {
         return this.anchor;
     }

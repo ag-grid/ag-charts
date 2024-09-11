@@ -124,7 +124,7 @@
     },
     "lint:depcruise": {
       "executor": "nx:run-commands",
-      "inputs": ["{projectRoot}/src/**"],
+      "inputs": ["{projectRoot}/src/**", "{projectRoot}/.dependency-cruiser.js"],
       "outputs": [],
       "options": {
         "cwd": "{projectRoot}",

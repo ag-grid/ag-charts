@@ -13,6 +13,7 @@ import { parseVersion } from '@ag-website-shared/utils/parseVersion';
 import { Version, type VersionProps } from '@ag-website-shared/components/whats-new/components/Version';
 import whatsNewData from '@ag-website-shared/content/whats-new/data.json';
 const { name, blogPrefix } = whatsNewData['charts'];
+import { getIsProduction, getIsArchive, getIsStaging, GRID_STAGING_SITE_URL } from '@utils/env';
 
 // Custom Example Runners || TODO: Cleanup
 import IndexGalleryExampleRunner from '@features/homepage/components/IndexGalleryExampleRunner.astro';
@@ -106,7 +107,15 @@ const mapExampleHeights = 360;
  * NOTE: Fix version so we can upgrade outside of grid/charts releases
  */
 const AG_GRID_CHARTS_VERSION = '32.1.0';
-const AG_GRID_CHARTS_CDN_URL = `https://cdn.jsdelivr.net/npm/ag-grid-charts-enterprise@${AG_GRID_CHARTS_VERSION}/dist/ag-grid-charts-enterprise.min.js`;
+
+const isProduction = getIsProduction();
+const isArchive = getIsArchive();
+
+const AG_GRID_CHARTS_CDN_URL = isProduction
+    ? `https://cdn.jsdelivr.net/npm/ag-grid-charts-enterprise@${AG_GRID_CHARTS_VERSION}/dist/ag-grid-charts-enterprise.min.js`
+    : isArchive
+      ? `https://www.ag-grid.com/archive/${AG_GRID_CHARTS_VERSION}/files/ag-grid-charts-enterprise/dist/ag-grid-charts-enterprise.min.js`
+      : `${GRID_STAGING_SITE_URL}/files/ag-grid-charts-enterprise/dist/ag-grid-charts-enterprise.min.js`;
 ---
 
 <script is:inline src={AG_GRID_CHARTS_CDN_URL}></script>

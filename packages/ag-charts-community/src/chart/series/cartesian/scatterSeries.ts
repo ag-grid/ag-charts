@@ -69,12 +69,14 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
         const { xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
         const colorScaleType = this.colorScale.type;
-        const { xKey, yKey, labelKey, colorKey, colorDomain, colorRange } = this.properties;
+        const { xKey, yKey, xFilterKey, yFilterKey, labelKey, colorKey, colorDomain, colorRange } = this.properties;
 
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
                 keyProperty(xKey, xScaleType, { id: 'xKey-raw' }),
                 keyProperty(yKey, yScaleType, { id: 'yKey-raw' }),
+                ...(xFilterKey != null ? [valueProperty(xFilterKey, xScaleType, { id: 'xFilterKey-raw' })] : []),
+                ...(yFilterKey != null ? [valueProperty(yFilterKey, yScaleType, { id: 'yFilterKey-raw' })] : []),
                 ...(labelKey ? [keyProperty(labelKey, 'band', { id: `labelKey-raw` })] : []),
                 valueProperty(xKey, xScaleType, { id: `xValue` }),
                 valueProperty(yKey, yScaleType, { id: `yValue` }),
@@ -108,7 +110,20 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
 
     async createNodeData() {
         const { axes, dataModel, processedData, colorScale } = this;
-        const { xKey, yKey, labelKey, colorKey, xName, yName, labelName, marker, label, visible } = this.properties;
+        const {
+            xKey,
+            yKey,
+            xFilterKey,
+            yFilterKey,
+            labelKey,
+            colorKey,
+            xName,
+            yName,
+            labelName,
+            marker,
+            label,
+            visible,
+        } = this.properties;
         const { placement } = label;
         const markerShape = getMarker(marker.shape);
 
@@ -121,8 +136,12 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
 
         const xDataIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`);
         const yDataIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`);
-        const colorDataIdx = colorKey ? dataModel.resolveProcessedDataIndexById(this, `colorValue`) : -1;
-        const labelDataIdx = labelKey ? dataModel.resolveProcessedDataIndexById(this, `labelValue`) : -1;
+        const xFilterDataIdx =
+            xFilterKey != null ? dataModel.resolveProcessedDataIndexById(this, `xFilterKey-raw`) : undefined;
+        const yFilterDataIdx =
+            yFilterKey != null ? dataModel.resolveProcessedDataIndexById(this, `yFilterKey-raw`) : undefined;
+        const colorDataIdx = colorKey != null ? dataModel.resolveProcessedDataIndexById(this, `colorValue`) : -1;
+        const labelDataIdx = labelKey != null ? dataModel.resolveProcessedDataIndexById(this, `labelValue`) : -1;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -137,6 +156,10 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             const yDatum = values[yDataIdx];
             const x = xScale.convert(xDatum) + xOffset;
             const y = yScale.convert(yDatum) + yOffset;
+            const selected =
+                xFilterDataIdx != null && yFilterDataIdx != null
+                    ? values[xFilterDataIdx] !== 0 && values[yFilterDataIdx] !== 0
+                    : undefined;
 
             const labelText = this.getLabelText(label, {
                 value: labelKey ? values[labelDataIdx] : yDatum,
@@ -167,6 +190,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 label: { text: labelText, ...size },
                 marker: markerShape,
                 placement,
+                selected,
             });
         }
 
@@ -216,7 +240,9 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         const baseStyle = mergeDefaults(highlighted && highlightStyle.item, marker.getStyle());
 
         markerSelection.each((node, datum) => {
-            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey, labelKey }, baseStyle);
+            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey, labelKey }, baseStyle, {
+                selected: datum.selected,
+            });
         });
 
         if (!highlighted) {

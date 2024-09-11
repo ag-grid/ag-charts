@@ -38,6 +38,7 @@ export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSerie
         readonly textBaseline: CanvasTextBaseline;
         readonly fill?: string;
     };
+    readonly selected: boolean | undefined;
 }
 
 export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeriesOptions> {

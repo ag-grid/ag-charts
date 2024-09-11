@@ -38,6 +38,10 @@ type AnnotationEvent =
     | 'dragEnd'
     | 'keyDown'
     // Data events
+    | 'selectLast'
+    | 'copy'
+    | 'cut'
+    | 'paste'
     | 'cancel'
     | 'reset'
     | 'delete'
@@ -61,6 +65,8 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
     private hovered?: number;
     // eslint-disable-next-line @typescript-eslint/prefer-readonly
     private active?: number;
+    // eslint-disable-next-line @typescript-eslint/prefer-readonly
+    private copied?: AnnotationProperties;
 
     constructor(ctx: AnnotationsStateMachineContext) {
         // A `click` is preceeded by the `dragStart` and `dragEnd` events, since `dragStart` also selects the annotation we
@@ -216,6 +222,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
         };
 
         const guardActive = () => this.active != null;
+        const guardCopied = () => this.copied != null;
         const guardActiveHasLineText = () => {
             if (this.active == null) return false;
             const datum = ctx.datum(this.active);
@@ -232,6 +239,34 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 hover: ({ offset }: { offset: _Util.Vec2 }) => {
                     this.hovered = ctx.hoverAtCoords(offset, this.active);
+                },
+
+                copy: {
+                    guard: guardActive,
+                    action: () => {
+                        this.copied = ctx.copy(this.active!);
+                    },
+                },
+
+                cut: {
+                    guard: guardActive,
+                    action: () => {
+                        this.copied = ctx.copy(this.active!);
+                        deleteDatum();
+                    },
+                },
+
+                paste: {
+                    guard: guardCopied,
+                    action: () => {
+                        ctx.paste(this.copied!);
+                    },
+                },
+
+                selectLast: () => {
+                    const previousActive = this.active;
+                    this.active = ctx.selectLast();
+                    ctx.select(this.active, previousActive);
                 },
 
                 click: [

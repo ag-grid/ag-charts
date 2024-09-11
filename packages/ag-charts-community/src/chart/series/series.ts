@@ -97,6 +97,9 @@ export interface INodeEventConstructor<
     new <T extends TEvent>(type: T, event: Event, { datum }: TDatum, series: TSeries): INodeEvent<T>;
 }
 
+const CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR = 0.25;
+const CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR = 0.125;
+
 export class SeriesNodeEvent<TDatum extends SeriesNodeDatum, TEvent extends string = SeriesNodeEventTypes>
     implements INodeEvent<TEvent>
 {
@@ -686,7 +689,7 @@ export abstract class Series<
         marker: ISeriesMarker<TParams>,
         params: TParams & Omit<AgSeriesMarkerStylerParams<TDatum>, 'seriesId'>,
         defaultStyle: AgSeriesMarkerStyle = marker.getStyle(),
-        { applyTranslation = true } = {}
+        { applyTranslation = true, selected = true } = {}
     ) {
         const { point } = params.datum;
         const activeStyle = this.getMarkerStyle(marker, params, defaultStyle);
@@ -696,6 +699,11 @@ export abstract class Series<
             markerNode.setProperties({ visible, ...activeStyle, translationX: point?.x, translationY: point?.y });
         } else {
             markerNode.setProperties({ visible, ...activeStyle });
+        }
+
+        if (!selected) {
+            markerNode.fillOpacity *= CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR;
+            markerNode.strokeOpacity *= CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR;
         }
 
         // Only for custom marker shapes

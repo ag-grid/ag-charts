@@ -115,6 +115,13 @@ export class StateMachine<State extends string, Event extends string> {
         }
     }
 
+    transitionAsync(event: Event, data?: any) {
+        // TODO: consider merging this with transition
+        setTimeout(() => {
+            this.transition(event, data);
+        }, 0);
+    }
+
     protected is(value: unknown): boolean {
         if (this.state === StateMachine.child && this.childState) {
             return this.childState.is(value);

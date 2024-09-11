@@ -25,6 +25,7 @@ export interface ScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSe
     readonly placement: LabelPlacement;
     readonly marker: MarkerConstructor;
     readonly fill: string | undefined;
+    readonly selected: boolean | undefined;
 }
 
 class ScatterSeriesLabel extends Label<AgScatterSeriesLabelFormatterParams> {
@@ -44,6 +45,12 @@ export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatter
 
     @Validate(STRING, { optional: true })
     colorKey?: string;
+
+    @Validate(STRING, { optional: true })
+    xFilterKey: string | undefined;
+
+    @Validate(STRING, { optional: true })
+    yFilterKey: string | undefined;
 
     @Validate(STRING, { optional: true })
     xName?: string;

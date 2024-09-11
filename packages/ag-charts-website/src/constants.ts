@@ -66,6 +66,7 @@ export const SITE_BASE_URL =
  */
 export const SITE_URL = import.meta.env?.SITE_URL || import.meta.env?.PUBLIC_SITE_URL;
 
+export const GRID_STAGING_SITE_URL = 'https://grid-staging.ag-grid.com';
 export const STAGING_SITE_URL = 'https://charts-staging.ag-grid.com';
 // NOTE: no `/charts` folder here, as it is just for comparing hostname
 export const PRODUCTION_SITE_URL = 'https://ag-grid.com';
