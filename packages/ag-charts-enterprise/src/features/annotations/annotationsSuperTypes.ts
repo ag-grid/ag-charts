@@ -4,7 +4,6 @@ import type {
     AnnotationContext,
     AnnotationType,
     Constructor,
-    Coords,
     GuardDragClickDoubleEvent,
     Point,
 } from './annotationTypes';
@@ -105,8 +104,7 @@ export interface AnnotationTypeConfig<Datum extends _ModuleSupport.BasePropertie
         node: AnnotationSceneNode,
         datum: _ModuleSupport.BaseProperties,
         copiedDatum: _ModuleSupport.BaseProperties,
-        context: AnnotationContext,
-        offset: Coords
+        context: AnnotationContext
     ) => Datum | undefined;
     createState: (
         ctx: AnnotationsStateMachineContext & {

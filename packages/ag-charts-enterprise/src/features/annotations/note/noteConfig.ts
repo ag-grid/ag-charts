@@ -10,9 +10,9 @@ export const noteConfig: AnnotationTypeConfig<NoteProperties, NoteScene> = {
     datum: NoteProperties,
     scene: NoteScene,
     isDatum: NoteProperties.is,
-    copy: (node, datum, copiedDatum, context, offset) => {
+    copy: (node, datum, copiedDatum, context) => {
         if (NoteProperties.is(datum) && NoteProperties.is(copiedDatum) && NoteScene.is(node)) {
-            return node.copy(datum, copiedDatum, context, offset);
+            return node.copy(datum, copiedDatum, context);
         }
     },
     update: (node, datum, context) => {

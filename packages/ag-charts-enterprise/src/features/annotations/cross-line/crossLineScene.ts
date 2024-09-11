@@ -196,12 +196,7 @@ export class CrossLineScene extends AnnotationScene {
         this.middle.toggleDragging(false);
     }
 
-    public copy(
-        datum: CrossLineProperties,
-        copiedDatum: CrossLineProperties,
-        context: AnnotationContext,
-        offset: Coords
-    ) {
+    public copy(datum: CrossLineProperties, copiedDatum: CrossLineProperties, context: AnnotationContext) {
         const isHorizontal = HorizontalLineProperties.is(datum);
         const axisContext = this.isHorizontal ? context.yAxis : context.xAxis;
 
@@ -210,8 +205,8 @@ export class CrossLineScene extends AnnotationScene {
             return;
         }
 
-        const yOffset = isHorizontal ? offset.y : 0;
-        const xOffset = isHorizontal ? 0 : offset.x;
+        const yOffset = isHorizontal ? -30 : 0;
+        const xOffset = isHorizontal ? 0 : -30;
 
         const point = invertCoords({ x: coords.x1 + xOffset, y: coords.y1 + yOffset }, context);
 
@@ -219,6 +214,7 @@ export class CrossLineScene extends AnnotationScene {
 
         return copiedDatum;
     }
+
     override getCursor() {
         if (this.activeHandle == null) return 'pointer';
         return this[this.activeHandle].getCursor();

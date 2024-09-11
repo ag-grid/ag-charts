@@ -493,24 +493,24 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         datum: AnnotationProperties;
     }): AnnotationProperties | undefined {
         const { type } = datum;
-        if (type in annotationConfigs) {
-            const config = annotationConfigs[type];
 
-            const newDatum = new config.datum();
-            newDatum.set(datum.toJson());
-
-            const context = this.getAnnotationContext();
-            if (!context) {
-                return;
-            }
-
-            const offset = { x: -30, y: -30 }; // just above and to the left
-
-            return config.copy(node, datum, newDatum, context, offset);
+        if (!(type in annotationConfigs)) {
+            throw new Error(
+                `AG Charts - Cannot set property of unknown type [${type}], expected one of [${Object.keys(annotationConfigs)}], ignoring.`
+            );
         }
-        throw new Error(
-            `AG Charts - Cannot set property of unknown type [${type}], expected one of [${Object.keys(annotationConfigs)}], ignoring.`
-        );
+
+        const config = annotationConfigs[type];
+
+        const newDatum = new config.datum();
+        newDatum.set(datum.toJson());
+
+        const context = this.getAnnotationContext();
+        if (!context) {
+            return;
+        }
+
+        return config.copy(node, datum, newDatum, context);
     }
 
     private onRestoreAnnotations(event: { annotations?: any }) {

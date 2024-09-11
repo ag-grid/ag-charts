@@ -10,9 +10,9 @@ export const arrowDownConfig: AnnotationTypeConfig<ArrowDownProperties, ArrowDow
     datum: ArrowDownProperties,
     scene: ArrowDownScene,
     isDatum: ArrowDownProperties.is,
-    copy: (node, datum, copiedDatum, context, offset) => {
+    copy: (node, datum, copiedDatum, context) => {
         if (ArrowDownProperties.is(datum) && ArrowDownProperties.is(copiedDatum) && ArrowDownScene.is(node)) {
-            return node.copy(datum, copiedDatum, context, offset);
+            return node.copy(datum, copiedDatum, context);
         }
     },
     update: (node, datum, context) => {

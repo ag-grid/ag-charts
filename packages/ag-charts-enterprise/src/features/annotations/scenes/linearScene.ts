@@ -105,18 +105,20 @@ export abstract class LinearScene<
         translation: _Util.Vec2;
         context: AnnotationContext;
     }) {
-        const a = Vec2.add(start, translation);
-        const b = Vec2.add(end, translation);
+        const translatedStart = Vec2.add(start, translation);
+        const translatedEnd = Vec2.add(end, translation);
 
-        const startPoint = invertCoords(a, context);
-        const endPoint = invertCoords(b, context);
+        const startPoint = invertCoords(translatedStart, context);
+        const endPoint = invertCoords(translatedEnd, context);
 
         const { xAxis, yAxis } = context;
 
         // Only move the points along each axis if all the corners are within the axis, allowing the annotation to
         // slide along the perpendicular axis.
         const within = (min: number, value: number, max: number) => value >= min && value <= max;
-        const coords = [a, b].concat(...this.getOtherCoords(datum, a, b, context));
+        const coords = [translatedStart, translatedEnd].concat(
+            ...this.getOtherCoords(datum, translatedStart, translatedEnd, context)
+        );
 
         if (coords.every((coord) => within(xAxis.bounds.x, coord.x, xAxis.bounds.x + xAxis.bounds.width))) {
             datum.start.x = startPoint.x;
@@ -129,7 +131,7 @@ export abstract class LinearScene<
         }
     }
 
-    public copy(datum: Datum, copiedDatum: Datum, context: AnnotationContext, _offset: Coords) {
+    public copy(datum: Datum, copiedDatum: Datum, context: AnnotationContext) {
         const coords = convertLine(datum, context);
 
         if (!coords) {

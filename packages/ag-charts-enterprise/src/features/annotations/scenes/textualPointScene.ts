@@ -62,7 +62,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         datum.y = point.y;
     }
 
-    public copy(datum: Datum, copiedDatum: Datum, context: AnnotationContext, _offset: Coords) {
+    public copy(datum: Datum, copiedDatum: Datum, context: AnnotationContext) {
         const coords = convertPoint(datum, context);
         const bbox = this.getTextBBox(datum, coords, context);
 
