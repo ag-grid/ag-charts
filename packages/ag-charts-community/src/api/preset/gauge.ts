@@ -4,11 +4,11 @@ import {
     type AgGaugeChartOptions,
     type AgGaugeOptions,
     type AgLinearGaugeOptions,
-    type AgLinearGaugeSeriesOptions,
+    type AgLinearGaugePreset,
     type AgPolarAxisOptions,
     type AgRadialGaugeOptions,
-    type AgRadialGaugeSeriesOptions,
-    type AgRadialGaugeSeriesScale,
+    type AgRadialGaugePreset,
+    type AgRadialGaugeScale,
 } from 'ag-charts-types';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -39,7 +39,7 @@ function isLinearGauge(opts: AgGaugeOptions): opts is AgLinearGaugeOptions {
 }
 
 type ScaleStyle = Pick<
-    AgRadialGaugeSeriesScale,
+    AgRadialGaugeScale,
     | 'fills'
     | 'fillMode'
     | 'fill'
@@ -134,7 +134,7 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         lineDash: scaleLineDash,
         lineDashOffset: scaleLineDashOffset,
     });
-    const seriesOpts = pickProps<AgRadialGaugeSeriesOptions>(opts, {
+    const seriesOpts = pickProps<AgRadialGaugePreset>(opts, {
         startAngle: IGNORED_PROP,
         endAngle: IGNORED_PROP,
         needle: needle != null ? { enabled: true, ...needle } : IGNORED_PROP,
@@ -267,7 +267,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         lineDash: scaleLineDash,
         lineDashOffset: scaleLineDashOffset,
     });
-    const seriesOpts = pickProps<AgLinearGaugeSeriesOptions>(opts, {
+    const seriesOpts = pickProps<AgLinearGaugePreset>(opts, {
         scale: scaleOpts,
         type,
         cursor,

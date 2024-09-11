@@ -1,7 +1,6 @@
 import type {
     AgCartesianSeriesOptions,
     AgFlowProportionSeriesOptions,
-    AgGaugeSeriesOptions,
     AgHierarchySeriesOptions,
     AgPolarSeriesOptions,
     AgTopologySeriesOptions,
@@ -9,6 +8,7 @@ import type {
 
 import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { PropertyDefinition } from '../chart/data/dataModel';
+import type { AgGaugeSeriesOptions } from '../chart/mapping/types';
 import type { SeriesNodeDatum } from '../chart/series/seriesTypes';
 import type { ScaleType } from '../scale/scale';
 import type { Point } from '../scene/point';

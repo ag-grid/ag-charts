@@ -13,25 +13,25 @@ import type { AgGaugeColorStop, AgGaugeCornerMode, AgGaugeFillMode, AgGaugeSegme
 
 export type AgLinearGaugeTargetPlacement = 'before' | 'after' | 'middle';
 
-export interface AgLinearGaugeSeriesLabelFormatterParams {}
+export interface AgLinearGaugeLabelFormatterParams {}
 
-export interface AgLinearGaugeSeriesItemStylerParams<TDatum = any>
+export interface AgLinearGaugeItemStylerParams<TDatum = any>
     extends DatumCallbackParams<TDatum>,
-        Required<AgLinearGaugeSeriesStyle> {}
+        Required<AgLinearGaugeStyle> {}
 
-export interface AgLinearGaugeSeriesScaleInterval {
+export interface AgLinearGaugeScaleInterval {
     /** Array of values in axis units for specified intervals along the axis. The values in this array must be compatible with the axis type. */
     values?: number[];
     /** The axis interval. Expressed in the units of the axis. If the configured interval results in too many items given the chart size, it will be ignored. */
     step?: number;
 }
 
-export interface AgLinearGaugeSeriesScaleLabel extends AgBaseAxisLabelOptions {
+export interface AgLinearGaugeScaleLabel extends AgBaseAxisLabelOptions {
     /** Placement of labels */
     placement?: 'before' | 'after';
 }
 
-export interface AgLinearGaugeSeriesScale extends FillOptions, StrokeOptions, LineDashOptions {
+export interface AgLinearGaugeScale extends FillOptions, StrokeOptions, LineDashOptions {
     /** Configuration the colours. */
     fills?: AgGaugeColorStop[];
     /** Configuration the fill mode. */
@@ -41,19 +41,19 @@ export interface AgLinearGaugeSeriesScale extends FillOptions, StrokeOptions, Li
     /** Minimum value of the scale. Any values exceeding this number will be clipped to this minimum. */
     max?: number;
     /** Configuration for the axis labels, shown next to the ticks. */
-    label?: AgLinearGaugeSeriesScaleLabel;
+    label?: AgLinearGaugeScaleLabel;
     /** Configuration for the ticks interval. */
-    interval?: AgLinearGaugeSeriesScaleInterval;
+    interval?: AgLinearGaugeScaleInterval;
 }
 
-export interface AgLinearGaugeSeriesTooltipRendererParams<TDatum> extends AgSeriesTooltipRendererParams<TDatum> {
+export interface AgLinearGaugeTooltipRendererParams<TDatum> extends AgSeriesTooltipRendererParams<TDatum> {
     /** Value of the Gauge */
     value: number;
 }
 
-export interface AgLinearGaugeSeriesStyle {}
+export interface AgLinearGaugeStyle {}
 
-export interface AgLinearGaugeSeriesBarStyle extends FillOptions, StrokeOptions, LineDashOptions {
+export interface AgLinearGaugeBarStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Whether the bar should be shown. */
     enabled?: boolean;
     /** Width of the bar, or the height if `horizontal` is true. Defaults to the gauge thickness. */
@@ -66,7 +66,7 @@ export interface AgLinearGaugeSeriesBarStyle extends FillOptions, StrokeOptions,
     fillMode?: AgGaugeFillMode;
 }
 
-export interface AgLinearGaugeSeriesBackgroundStyle extends FillOptions, StrokeOptions, LineDashOptions {}
+export interface AgLinearGaugeBackgroundStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
 export type AgLinearGaugeMarkerShape = MarkerShape | 'line';
 
@@ -108,19 +108,19 @@ export interface AgLinearGaugeTargetOptions extends FillOptions, StrokeOptions, 
 }
 
 export interface AgLinearGaugeLabelOptions<TDatum>
-    extends AgChartAutoSizedLabelOptions<TDatum, AgLinearGaugeSeriesLabelFormatterParams> {
+    extends AgChartAutoSizedLabelOptions<TDatum, AgLinearGaugeLabelFormatterParams> {
     /** Text to always display. */
     text?: string;
 }
 
 export interface AgLinearGaugeSecondaryLabelOptions<TDatum>
-    extends AgChartAutoSizedSecondaryLabelOptions<TDatum, AgLinearGaugeSeriesLabelFormatterParams> {
+    extends AgChartAutoSizedSecondaryLabelOptions<TDatum, AgLinearGaugeLabelFormatterParams> {
     /** Text to always display. */
     text?: string;
 }
 
-export interface AgLinearGaugeSeriesThemeableOptions<TDatum = any>
-    extends AgLinearGaugeSeriesStyle,
+export interface AgLinearGaugeThemeableOptions<TDatum = any>
+    extends AgLinearGaugeStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum>, 'showInLegend'> {
     /** Direction to display the gauge in. */
     direction?: Direction;
@@ -135,9 +135,9 @@ export interface AgLinearGaugeSeriesThemeableOptions<TDatum = any>
     /** Configuration for all targets. */
     target?: AgLinearGaugeTargetOptions;
     /** Configuration for the bar. */
-    bar?: AgLinearGaugeSeriesBarStyle;
+    bar?: AgLinearGaugeBarStyle;
     /** Configuration for the background. */
-    background?: AgLinearGaugeSeriesBackgroundStyle;
+    background?: AgLinearGaugeBackgroundStyle;
     /** Configuration for the labels shown inside the shape. */
     label?: AgLinearGaugeLabelOptions<TDatum>;
     /** Configuration for the labels shown inside the shape. */
@@ -145,18 +145,18 @@ export interface AgLinearGaugeSeriesThemeableOptions<TDatum = any>
     /** Distance between the shape edges and the text. */
     margin?: PixelSize;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgLinearGaugeSeriesTooltipRendererParams<TDatum>>;
+    tooltip?: AgSeriesTooltip<AgLinearGaugeTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular Linear Gauge based on the input parameters. */
-    itemStyler?: Styler<AgLinearGaugeSeriesItemStylerParams, AgLinearGaugeSeriesStyle>;
+    itemStyler?: Styler<AgLinearGaugeItemStylerParams, AgLinearGaugeStyle>;
 }
 
-export interface AgLinearGaugeSeriesOptions<TDatum = any> extends AgLinearGaugeSeriesThemeableOptions<TDatum> {
+export interface AgLinearGaugePreset<TDatum = any> extends AgLinearGaugeThemeableOptions<TDatum> {
     /** Configuration for the Linear Gauge Series. */
     type: 'linear-gauge';
     /** Value of the Linear Gauge Series. */
     value: number;
     /** Scale of the Linear Gauge Series. */
-    scale?: AgLinearGaugeSeriesScale;
+    scale?: AgLinearGaugeScale;
     /** Configuration for the targets. */
     targets?: AgLinearGaugeTarget[];
 }

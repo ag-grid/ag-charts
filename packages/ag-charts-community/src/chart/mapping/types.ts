@@ -4,11 +4,12 @@ import type {
     AgFlowProportionChartOptions,
     AgFlowProportionSeriesOptions,
     AgGaugeChartOptions,
-    AgGaugeSeriesOptions,
     AgHierarchyChartOptions,
     AgHierarchySeriesOptions,
+    AgLinearGaugeOptions,
     AgPolarChartOptions,
     AgPolarSeriesOptions,
+    AgRadialGaugeOptions,
     AgTopologyChartOptions,
     AgTopologySeriesOptions,
 } from 'ag-charts-types';
@@ -25,6 +26,8 @@ import {
     isEnterprisePolar,
     isEnterpriseTopology,
 } from '../factory/expectedEnterpriseModules';
+
+export type AgGaugeSeriesOptions = AgLinearGaugeOptions | AgRadialGaugeOptions;
 
 export type AxesOptionsTypes = NonNullable<AgCartesianChartOptions['axes']>[number];
 

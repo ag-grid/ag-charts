@@ -65,7 +65,6 @@ export * from './series/topology/mapLineBackgroundOptions';
 export * from './series/flow-proportion/flowProportionOptions';
 export * from './series/flow-proportion/chordOptions';
 export * from './series/flow-proportion/sankeyOptions';
-export * from './series/gauge/gaugeOptions';
 export * from './series/gauge/gaugeCommonOptions';
 export * from './series/gauge/linearGaugeOptions';
 export * from './series/gauge/radialGaugeOptions';
