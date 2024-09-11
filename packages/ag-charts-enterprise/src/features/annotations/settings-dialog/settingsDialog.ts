@@ -11,11 +11,12 @@ const { focusCursorAtEnd } = _ModuleSupport;
 interface LinearSettingsDialogOptions extends DialogOptions {
     onChangeLine: (props: LinearSettingsDialogLineChangeProps) => void;
     onChangeText: (props: LinearSettingsDialogTextChangeProps) => void;
-
     onChangeLineColor: Required<ColorPickerOptions>['onChange'];
+    onChangeHideLineColor: Required<ColorPickerOptions>['onChangeHide'];
     onChangeLineStyleType: (lineStyleType: AgAnnotationLineStyleType) => void;
     onChangeLineStyleWidth: (strokeWidth: number) => void;
     onChangeTextColor: Required<ColorPickerOptions>['onChange'];
+    onChangeHideTextColor: Required<ColorPickerOptions>['onChangeHide'];
     onChangeTextFontSize: (fontSize: number) => void;
 }
 
@@ -62,7 +63,11 @@ export class AnnotationSettingsDialog extends Dialog {
         const content = this.createTabContent();
 
         const colorAndStrokeWidth = this.createInputGroupLine();
-        const colorPicker = this.createColorPickerInput(datum.getDefaultColor('line-color'), options.onChangeLineColor);
+        const colorPicker = this.createColorPickerInput(
+            datum.getDefaultColor('line-color'),
+            options.onChangeLineColor,
+            options.onChangeHideLineColor
+        );
         const strokeWidth = this.createStrokeWidthSelect(datum.strokeWidth ?? 2, options.onChangeLineStyleWidth);
         colorAndStrokeWidth.append(colorPicker, strokeWidth);
 
@@ -102,7 +107,11 @@ export class AnnotationSettingsDialog extends Dialog {
 
         const fontSizeAndColor = this.createInputGroupLine();
         const fontSize = this.createFontSizeSelect(datum.text.fontSize, options.onChangeTextFontSize);
-        const colorPicker = this.createColorPickerInput(datum.text.color, options.onChangeTextColor);
+        const colorPicker = this.createColorPickerInput(
+            datum.text.color,
+            options.onChangeTextColor,
+            options.onChangeHideTextColor
+        );
         fontSizeAndColor.append(fontSize, colorPicker);
 
         const positionAndAlignment = this.createInputGroupLine();
@@ -120,12 +129,17 @@ export class AnnotationSettingsDialog extends Dialog {
         return { content, onShow: () => focusCursorAtEnd(textArea) };
     }
 
-    private createColorPickerInput(color: string | undefined, onChange: Required<ColorPickerOptions>['onChange']) {
+    private createColorPickerInput(
+        color: string | undefined,
+        onChange: Required<ColorPickerOptions>['onChange'],
+        onChangeHide: Required<ColorPickerOptions>['onChangeHide']
+    ) {
         return this.createColorPicker({
             label: 'dialogInputColorPicker',
             altText: 'dialogInputColorPickerAltText',
             value: color,
             onChange,
+            onChangeHide,
         });
     }
 

@@ -29,8 +29,13 @@ export abstract class LineTypeProperties extends Annotation(
         return super.isValid(warningPrefix) && validateDatumLine(context, this, warningPrefix);
     }
 
-    getDefaultColor(_colorPickerType: AnnotationOptionsColorPickerType) {
-        return this.stroke;
+    getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType) {
+        switch (colorPickerType) {
+            case 'line-color':
+                return this.stroke;
+            case 'text-color':
+                return this.text.color;
+        }
     }
 
     getDefaultOpacity(_colorPickerType: AnnotationOptionsColorPickerType) {

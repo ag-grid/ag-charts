@@ -44,6 +44,7 @@ interface ColorPickerOptions {
     label: string;
     value: string | undefined;
     onChange: (colorOpacity: string, color: string, opacity: number) => void;
+    onChangeHide: () => void;
 }
 
 /**
@@ -230,7 +231,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return group;
     }
 
-    protected createColorPicker({ value, label, altText, onChange }: ColorPickerOptions) {
+    protected createColorPicker({ value, label, altText, onChange, onChangeHide }: ColorPickerOptions) {
         const group = this.createInputGroup(label);
 
         const altTextT = this.ctx.localeManager.t(altText);
@@ -252,6 +253,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                             colorEl.style.setProperty('--color', colorOpacity);
                             onChange(colorOpacity, color, opacity);
                         },
+                        onChangeHide,
                     });
                 },
             },

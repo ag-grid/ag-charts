@@ -52,6 +52,7 @@ type AnnotationEvent =
     | 'lineProps'
     | 'lineStyle'
     | 'lineText'
+    | 'lineTextColor'
     | 'updateTextInputBBox'
     // Toolbar events
     | 'toolbarPressSettings'
@@ -364,6 +365,16 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                                 .map(([key, value]) => `${key} to ${value}`)
                                 .join(', ')}`
                         );
+                    },
+                },
+
+                lineTextColor: {
+                    guard: guardActive,
+                    action: (color: string) => {
+                        const datum = getTypedDatum(ctx.datum(this.active!));
+                        if (!hasLineText(datum)) return;
+                        datum.text.set({ color });
+                        ctx.update();
                     },
                 },
 
