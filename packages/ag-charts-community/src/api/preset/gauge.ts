@@ -207,7 +207,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         tooltip,
         value,
         scale = {},
-        direction,
+        direction = 'vertical',
         thickness,
         itemStyler,
         highlightStyle,

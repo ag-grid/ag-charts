@@ -28,16 +28,15 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
         minWidth: 200,
         minHeight: 200,
         series: {
-            thickness: 20,
+            thickness: 50,
             bar: {
                 strokeWidth: 0,
             },
-            // @ts-expect-error Interla
+            // @ts-expect-error Private
             defaultTarget: {
                 fill: DEFAULT_LABEL_COLOUR,
                 stroke: DEFAULT_LABEL_COLOUR,
                 size: 10,
-                placement: 'middle',
                 spacing: 5,
                 label: {
                     enabled: true,
