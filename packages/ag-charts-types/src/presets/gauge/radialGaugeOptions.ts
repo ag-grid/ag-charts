@@ -146,9 +146,9 @@ export interface AgRadialGaugeThemeableOptions<TDatum = any>
 }
 
 export interface AgRadialGaugePreset<TDatum = any> extends AgRadialGaugeThemeableOptions<TDatum> {
-    /** Configuration for the Radial Gauge Series. */
+    /** Configuration for the Radial Gauge. */
     type: 'radial-gauge';
-    /** Value of the Radial Gauge Series. */
+    /** Value of the Radial Gauge. */
     value: number;
     /** Configuration for the targets. */
     targets?: AgRadialGaugeTarget[];

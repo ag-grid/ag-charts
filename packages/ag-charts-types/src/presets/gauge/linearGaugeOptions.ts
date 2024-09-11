@@ -151,11 +151,11 @@ export interface AgLinearGaugeThemeableOptions<TDatum = any>
 }
 
 export interface AgLinearGaugePreset<TDatum = any> extends AgLinearGaugeThemeableOptions<TDatum> {
-    /** Configuration for the Linear Gauge Series. */
+    /** Configuration for the Linear Gauge. */
     type: 'linear-gauge';
-    /** Value of the Linear Gauge Series. */
+    /** Value of the Linear Gauge. */
     value: number;
-    /** Scale of the Linear Gauge Series. */
+    /** Scale of the Linear Gauge. */
     scale?: AgLinearGaugeScale;
     /** Configuration for the targets. */
     targets?: AgLinearGaugeTarget[];
