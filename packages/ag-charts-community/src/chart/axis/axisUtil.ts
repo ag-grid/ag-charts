@@ -92,8 +92,9 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
                 },
             };
         },
-        intermediateFn(node, _datum, _status) {
-            return { visible: !outOfBounds(node.y) };
+        applyFn(node, props) {
+            node.setProperties(props);
+            node.visible = !outOfBounds(node.y);
         },
     };
 

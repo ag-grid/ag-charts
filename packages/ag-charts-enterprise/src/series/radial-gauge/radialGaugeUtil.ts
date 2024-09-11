@@ -128,6 +128,10 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean,
 
             const visible = clipSector == null || clipSectorVisibility(startAngle, endAngle, clipSector);
 
+            if (startAngle == null) {
+                console.log(sect, params);
+            }
+
             sect.startAngle = startAngle;
             sect.endAngle = endAngle;
             sect.clipSector = clipSector;
@@ -153,6 +157,18 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean,
     };
 
     return { node, needle };
+}
+
+export function resetRadialGaugeSeriesResetSectorFunction(_node: _Scene.Sector, datum: AnimatableSectorDatum) {
+    const { startAngle, endAngle } = datum;
+    const clipSector = computeClipSector(datum);
+    const visible = clipSector == null || clipSectorVisibility(startAngle, endAngle, clipSector);
+    return { startAngle, endAngle, clipSector, visible };
+}
+
+export function resetRadialGaugeSeriesResetNeedleFunction(_node: RadialGaugeNeedle, datum: AnimatableNeedleDatum) {
+    const { angle } = datum;
+    return { rotation: angle };
 }
 
 export function getLabelText(
@@ -266,16 +282,4 @@ export function formatRadialGaugeLabels(
         label.y = datum.centerY + rectOriginInLabelRect - rectYOffset;
         label.x = datum.centerX;
     });
-}
-
-export function resetRadialGaugeSeriesResetSectorFunction(_node: _Scene.Sector, datum: AnimatableSectorDatum) {
-    const { startAngle, endAngle } = datum;
-    const clipSector = computeClipSector(datum);
-    const visible = clipSector == null || clipSectorVisibility(startAngle, endAngle, clipSector);
-    return { startAngle, endAngle, clipSector, visible };
-}
-
-export function resetRadialGaugeSeriesResetNeedleFunction(_node: RadialGaugeNeedle, datum: AnimatableNeedleDatum) {
-    const { angle } = datum;
-    return { rotation: angle };
 }

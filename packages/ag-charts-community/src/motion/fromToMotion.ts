@@ -57,7 +57,6 @@ export interface FromToFns<
 > {
     fromFn: FromToMotionPropFn<N, T, D>;
     toFn: FromToMotionPropFn<N, T, D>;
-    intermediateFn?: IntermediateFn<N, D>;
     applyFn?: (note: N, props: T) => void;
 }
 
@@ -98,7 +97,7 @@ export function fromToMotion<
     getDatumId?: (node: N, datum: D) => string,
     diff?: FromToDiff
 ) {
-    const { fromFn, toFn, intermediateFn, applyFn = (node, props) => node.setProperties(props) } = fns;
+    const { fromFn, toFn, applyFn = (node, props) => node.setProperties(props) } = fns;
     const { nodes, selections } = deconstructSelectionsOrNodes(selectionsOrNodes);
 
     const processNodes = (liveNodes: N[], subNodes: N[]) => {
@@ -149,13 +148,10 @@ export function fromToMotion<
                 ease: easing.easeOut,
                 collapsable,
                 onPlay: () => {
-                    applyFn(node, { ...start, ...toStart } as unknown as T);
+                    applyFn(node, { ...start, ...toStart, ...from } as unknown as T);
                 },
                 onUpdate(props) {
                     applyFn(node, props);
-                    if (intermediateFn) {
-                        node.setProperties(intermediateFn(node, node.datum, status, ctx));
-                    }
                 },
                 onStop: () => {
                     applyFn(node, {

@@ -804,7 +804,7 @@ export class LinearGaugeSeries
             rect.bottomRightCornerRadius = bottomRightCornerRadius;
             rect.bottomLeftCornerRadius = bottomLeftCornerRadius;
 
-            if (animationDisabled) {
+            if (animationDisabled || rect.previousDatum == null) {
                 rect.setProperties(resetLinearGaugeSeriesResetRectFunction(rect, datum));
             }
         });
