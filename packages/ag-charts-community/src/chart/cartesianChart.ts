@@ -32,8 +32,7 @@ export class CartesianChart extends Chart {
 
     override onAxisChange(newValue: ChartAxis[], oldValue?: ChartAxis[]) {
         super.onAxisChange(newValue, oldValue);
-
-        this.zoomManager.updateAxes(newValue);
+        this.ctx?.zoomManager.updateAxes(newValue);
     }
 
     override destroySeries(series: Series<any, any>[]) {
@@ -125,7 +124,7 @@ export class CartesianChart extends Chart {
         crossLines: true,
         series: true,
     };
-    updateAxes(inputShrinkRect: BBox) {
+    updateAxes(layoutBox: BBox) {
         // FIXME - the crosslines get regenerated when switching between light/dark mode.
         // Ideally, even in this case this updateAxes logic would still work. But there's more work to make that happen.
         const crossLineIds = this.axes.flatMap((axis) => axis.crossLines ?? []).map((crossLine) => crossLine.id);
@@ -176,13 +175,13 @@ export class CartesianChart extends Chart {
                 return false;
             }
             // Check for existing axis positions and equality.
-            return [...axisAreaWidths.entries()].every(([p, w]) => {
+            for (const [p, w] of axisAreaWidths.entries()) {
                 const otherW = otherAxisWidths.get(p);
-                if (w != null || otherW != null) {
-                    return w === otherW;
+                if ((w != null || otherW != null) && w !== otherW) {
+                    return false;
                 }
-                return true;
-            });
+            }
+            return true;
         };
 
         const ceilValues = <K extends string>(map: Map<K, number>) => {
@@ -209,7 +208,7 @@ export class CartesianChart extends Chart {
             clipSeries = lastPassClipSeries;
             Object.assign(visibility, lastPassVisibility);
 
-            const result = this.updateAxesPass(axisAreaWidths, inputShrinkRect.clone(), seriesRect);
+            const result = this.updateAxesPass(axisAreaWidths, layoutBox.clone(), seriesRect);
             lastPassAxisAreaWidths = ceilValues(result.axisAreaWidths);
             lastPassVisibility = result.visibility;
             lastPassClipSeries = result.clipSeries;
@@ -245,9 +244,9 @@ export class CartesianChart extends Chart {
                 case 'left':
                 case 'right':
                     axis.clipTickLines(
-                        inputShrinkRect.x,
+                        layoutBox.x,
                         seriesRect.y,
-                        inputShrinkRect.width + clipRectPadding,
+                        layoutBox.width + clipRectPadding,
                         seriesRect.height + clipRectPadding
                     );
                     break;
@@ -255,9 +254,9 @@ export class CartesianChart extends Chart {
                 case 'bottom':
                     axis.clipTickLines(
                         seriesRect.x,
-                        inputShrinkRect.y,
+                        layoutBox.y,
                         seriesRect.width + clipRectPadding,
-                        inputShrinkRect.height + clipRectPadding
+                        layoutBox.height + clipRectPadding
                     );
                     break;
             }
@@ -267,7 +266,7 @@ export class CartesianChart extends Chart {
         this._lastVisibility = visibility;
         this._lastClipSeries = clipSeries;
 
-        return { seriesRect, animationRect: inputShrinkRect, visibility, clipSeries };
+        return { seriesRect, animationRect: layoutBox, visibility, clipSeries };
     }
 
     private updateAxesPass(
