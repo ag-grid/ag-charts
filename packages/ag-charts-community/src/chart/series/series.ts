@@ -97,6 +97,9 @@ export interface INodeEventConstructor<
     new <T extends TEvent>(type: T, event: Event, { datum }: TDatum, series: TSeries): INodeEvent<T>;
 }
 
+const UNFILTERED_FILL_OPACITY_FACTOR = 0.25;
+const UNFILTERED_STROKE_OPACITY_FACTOR = 0.125;
+
 export class SeriesNodeEvent<TDatum extends SeriesNodeDatum, TEvent extends string = SeriesNodeEventTypes>
     implements INodeEvent<TEvent>
 {
@@ -699,8 +702,8 @@ export abstract class Series<
         }
 
         if (!selected) {
-            markerNode.fillOpacity *= 0.25;
-            markerNode.strokeOpacity *= 0.125;
+            markerNode.fillOpacity *= UNFILTERED_FILL_OPACITY_FACTOR;
+            markerNode.strokeOpacity *= UNFILTERED_STROKE_OPACITY_FACTOR;
         }
 
         // Only for custom marker shapes
