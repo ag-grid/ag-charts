@@ -158,6 +158,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             ctx.toolbarManager.addListener('proxy-group-options', this.onProxyGroupOptions.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.Toolbar, this.onLayoutStart.bind(this)),
             ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
+            ctx.updateService.addListener('update-complete', this.onUpdateComplete.bind(this)),
             ctx.localeManager.addListener('locale-changed', () => {
                 this.hasNewLocale = true;
             }),
@@ -246,6 +247,12 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
         if (this.enabled) {
             this.refreshInnerLayout(opts.series.rect);
+        }
+    }
+
+    private onUpdateComplete() {
+        for (const button of Object.values(this.groupButtons).flat()) {
+            button.classList.add(styles.modifiers.button.withTransition);
         }
     }
 
@@ -759,10 +766,6 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             button.ariaChecked = false.toString();
         }
         this.updateButton(button, options);
-
-        getWindow().requestAnimationFrame(() => {
-            button.classList.add(styles.modifiers.button.withTransition);
-        });
 
         this.destroyFns.push(() => button.remove());
 
