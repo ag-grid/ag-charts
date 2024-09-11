@@ -84,12 +84,25 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         const { xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
         const colorScaleType = this.colorScale.type;
         const sizeScaleType = this.sizeScale.type;
-        const { xKey, yKey, sizeFilterKey, sizeKey, labelKey, colorDomain, colorRange, colorKey, marker } =
-            this.properties;
+        const {
+            xKey,
+            yKey,
+            sizeKey,
+            xFilterKey,
+            yFilterKey,
+            sizeFilterKey,
+            labelKey,
+            colorDomain,
+            colorRange,
+            colorKey,
+            marker,
+        } = this.properties;
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
                 keyProperty(xKey, xScaleType, { id: 'xKey-raw' }),
                 keyProperty(yKey, yScaleType, { id: 'yKey-raw' }),
+                ...(xFilterKey ? [keyProperty(xFilterKey, xScaleType, { id: `xFilterKey-raw` })] : []),
+                ...(yFilterKey ? [keyProperty(yFilterKey, yScaleType, { id: `yFilterKey-raw` })] : []),
                 ...(sizeFilterKey ? [keyProperty(sizeFilterKey, sizeScaleType, { id: `sizeFilterKey-raw` })] : []),
                 ...(labelKey ? [keyProperty(labelKey, 'band', { id: `labelKey-raw` })] : []),
                 valueProperty(xKey, xScaleType, { id: `xValue` }),
@@ -133,6 +146,8 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             xKey,
             yKey,
             sizeKey,
+            xFilterKey,
+            yFilterKey,
             sizeFilterKey,
             labelKey,
             xName,
@@ -156,6 +171,10 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
 
         const xDataIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`);
         const yDataIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`);
+        const xFilterDataIdx =
+            xFilterKey != null ? dataModel.resolveProcessedDataIndexById(this, `xFilterKey`) : undefined;
+        const yFilterDataIdx =
+            yFilterKey != null ? dataModel.resolveProcessedDataIndexById(this, `yFilterKey`) : undefined;
         const sizeFilterDataIdx =
             sizeFilterKey != null ? dataModel.resolveProcessedDataIndexById(this, `sizeFilterKey`) : undefined;
         const sizeDataIdx = sizeKey != null ? dataModel.resolveProcessedDataIndexById(this, `sizeValue`) : -1;
@@ -177,7 +196,10 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             const yDatum = values[yDataIdx];
             const x = xScale.convert(xDatum) + xOffset;
             const y = yScale.convert(yDatum) + yOffset;
-            const selected = sizeFilterDataIdx != null ? values[sizeFilterDataIdx] !== 0 : undefined;
+            const selected =
+                xFilterDataIdx != null && yFilterDataIdx != null && sizeFilterDataIdx != null
+                    ? values[xFilterDataIdx] !== 0 && values[yFilterDataIdx] !== 0 && values[sizeFilterDataIdx] !== 0
+                    : undefined;
 
             const labelText = this.getLabelText(label, {
                 value: labelKey ? values[labelDataIdx] : yDatum,

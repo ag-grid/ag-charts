@@ -47,7 +47,10 @@ export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatter
     colorKey?: string;
 
     @Validate(STRING, { optional: true })
-    filterKey: string | undefined;
+    xFilterKey: string | undefined;
+
+    @Validate(STRING, { optional: true })
+    yFilterKey: string | undefined;
 
     @Validate(STRING, { optional: true })
     xName?: string;

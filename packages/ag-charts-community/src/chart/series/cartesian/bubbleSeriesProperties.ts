@@ -76,6 +76,12 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     colorKey?: string;
 
     @Validate(STRING, { optional: true })
+    xFilterKey: string | undefined;
+
+    @Validate(STRING, { optional: true })
+    yFilterKey: string | undefined;
+
+    @Validate(STRING, { optional: true })
     sizeFilterKey: string | undefined;
 
     @Validate(STRING, { optional: true })
