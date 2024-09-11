@@ -7,8 +7,8 @@ import type {
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { Degree, Direction, MarkerShape, PixelSize } from '../../chart/types';
-import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
-import type { AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type { FillOptions, LineDashOptions, StrokeOptions } from '../../series/cartesian/commonOptions';
+import type { AgBaseSeriesThemeableOptions } from '../../series/seriesOptions';
 import type { AgGaugeColorStop, AgGaugeCornerMode, AgGaugeFillMode, AgGaugeSegmentation } from './gaugeCommonOptions';
 
 export type AgLinearGaugeTargetPlacement = 'before' | 'after' | 'middle';

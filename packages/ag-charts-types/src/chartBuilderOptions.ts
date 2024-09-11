@@ -1,17 +1,17 @@
+import type { AgBaseChartOptions } from './chart/chartOptions';
+import type { AgBaseChartThemeOptions, AgChartTheme, AgChartThemeName } from './chart/themeOptions';
+import type { PixelSize } from './chart/types';
 import type {
     AgFinancialChartPresets,
     AgGaugePreset,
     AgLinearGaugePreset,
     AgRadialGaugePreset,
-} from '../api/presetOptions';
-import type { AgBaseCartesianChartOptions } from '../series/cartesian/cartesianOptions';
-import type { AgBaseFlowProportionChartOptions } from '../series/flow-proportion/flowProportionOptions';
-import type { AgBaseHierarchyChartOptions } from '../series/hierarchy/hierarchyOptions';
-import type { AgBasePolarChartOptions } from '../series/polar/polarOptions';
-import type { AgBaseTopologyChartOptions } from '../series/topology/topologyOptions';
-import type { AgBaseChartOptions } from './chartOptions';
-import type { AgBaseChartThemeOptions, AgChartTheme, AgChartThemeName } from './themeOptions';
-import type { PixelSize } from './types';
+} from './presets/presetOptions';
+import type { AgBaseCartesianChartOptions } from './series/cartesian/cartesianOptions';
+import type { AgBaseFlowProportionChartOptions } from './series/flow-proportion/flowProportionOptions';
+import type { AgBaseHierarchyChartOptions } from './series/hierarchy/hierarchyOptions';
+import type { AgBasePolarChartOptions } from './series/polar/polarOptions';
+import type { AgBaseTopologyChartOptions } from './series/topology/topologyOptions';
 
 export interface AgChartThemeOptions extends AgBaseChartThemeOptions {}
 
