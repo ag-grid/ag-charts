@@ -12,14 +12,14 @@ const options: AgLinearGaugeOptions = {
             enabled: false,
         },
     },
-    label: {
-        formatter({ value }) {
-            return `${value.toFixed(0)}%`;
-        },
-    },
-    secondaryLabel: {
-        text: 'Test Score',
-    },
+    // label: {
+    //     formatter({ value }) {
+    //         return `${value.toFixed(0)}%`;
+    //     },
+    // },
+    // secondaryLabel: {
+    //     text: 'Test Score',
+    // },
 };
 
 AgCharts.createGauge(options);
