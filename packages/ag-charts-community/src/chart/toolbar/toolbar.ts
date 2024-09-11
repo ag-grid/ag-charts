@@ -251,16 +251,18 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
     }
 
-    private onPreDomUpdate() {
+    private toggleButtonsClass(className: string, enabled: boolean) {
         for (const button of Object.values(this.groupButtons).flat()) {
-            button.classList.remove(styles.modifiers.button.withTransition);
+            button.classList.toggle(className, enabled);
         }
     }
 
+    private onPreDomUpdate() {
+        this.toggleButtonsClass(styles.modifiers.button.withTransition, false);
+    }
+
     private onUpdateComplete() {
-        for (const button of Object.values(this.groupButtons).flat()) {
-            button.classList.add(styles.modifiers.button.withTransition);
-        }
+        this.toggleButtonsClass(styles.modifiers.button.withTransition, true);
     }
 
     private onButtonUpdated(event: ToolbarButtonUpdatedEvent) {
