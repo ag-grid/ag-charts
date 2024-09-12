@@ -36,7 +36,6 @@ export abstract class TextualStartEndStateMachine<
         const actionCreate = ({ point }: { point: Point }) => {
             const datum = this.createDatum();
             datum.set({ start: point, end: point, visible: true });
-            datum.placeholderText = 'Add Text';
             ctx.create(datum);
         };
 
@@ -47,9 +46,7 @@ export abstract class TextualStartEndStateMachine<
         const onStartEditing = () => {
             ctx.showTextInput();
             const datum = ctx.datum();
-            if (datum) {
-                datum.visible = false;
-            }
+            if (datum) datum.visible = false;
         };
 
         const onStopEditing = () => {
@@ -74,11 +71,7 @@ export abstract class TextualStartEndStateMachine<
 
         const onEndClick = ({ point }: { point: Point }) => {
             ctx.showAnnotationOptions();
-            const datum = ctx.datum();
-            if (datum) {
-                datum.set({ end: point });
-                datum.placeholderText = undefined;
-            }
+            ctx.datum()?.set({ end: point });
             ctx.node()?.toggleHandles({ end: true });
         };
 

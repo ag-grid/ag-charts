@@ -1,4 +1,4 @@
-import { type _Scene, _Util } from 'ag-charts-community';
+import { type _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -28,6 +28,7 @@ export class LineScene extends LinearScene<LineTypeProperties> {
     public text?: _Scene.TransformableText;
     private startCap?: CapScene;
     private endCap?: CapScene;
+    private readonly anchor: _ModuleSupport.ToolbarAnchor = { x: 0, y: 0 };
 
     constructor() {
         super();
@@ -51,6 +52,7 @@ export class LineScene extends LinearScene<LineTypeProperties> {
         this.updateHandles(datum, coords, locked);
         this.updateText(datum, coords);
         this.updateCaps(datum, coords);
+        this.updateAnchor(coords);
     }
 
     updateLine(datum: LineTypeProperties, coords: LineCoords, context: AnnotationContext) {
@@ -160,6 +162,17 @@ export class LineScene extends LinearScene<LineTypeProperties> {
         }
     }
 
+    updateAnchor(coords: LineCoords) {
+        const { x, y } = _Scene.Transformable.toCanvasPoint(
+            this.line,
+            (coords.x1 + coords.x2) / 2,
+            Math.min(coords.y1, coords.y2)
+        );
+
+        this.anchor.x = x;
+        this.anchor.y = y;
+    }
+
     override toggleHandles(show: boolean | Partial<Record<'start' | 'end', boolean>>) {
         if (typeof show === 'boolean') {
             show = { start: show, end: show };
@@ -198,8 +211,7 @@ export class LineScene extends LinearScene<LineTypeProperties> {
     }
 
     override getAnchor() {
-        const bbox = this.computeBBoxWithoutHandles();
-        return { x: bbox.x + bbox.width / 2, y: bbox.y };
+        return this.anchor;
     }
 
     override getCursor() {

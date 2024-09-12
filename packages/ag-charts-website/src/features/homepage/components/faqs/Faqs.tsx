@@ -32,8 +32,8 @@ export const Faqs: React.FC = () => {
         panning: 'https://www.ag-grid.com/charts/react/navigator/?utm_source=charts-homepage&utm_medium=faqs',
         'context menus':
             'https://www.ag-grid.com/charts/react/context-menu/?utm_source=charts-homepage&utm_medium=faqs',
-        'click events': 'https://localhost:4600/charts/react/events/?utm_source=charts-homepage&utm_medium=faqs',
-        'export your charts': 'https://localhost:4600/charts/react/api-download',
+        'click events': 'https://www.ag-grid.com/charts/react/events/?utm_source=charts-homepage&utm_medium=faqs',
+        'export your charts': 'https://www.ag-grid.com/charts/react/api-download',
         'AG Charts React':
             'https://www.ag-grid.com/charts/react/quick-start/?utm_source=charts-homepage&utm_medium=faqs',
         accessibility: 'https://www.ag-grid.com/charts/react/accessibility/?utm_source=charts-homepage&utm_medium=faqs',

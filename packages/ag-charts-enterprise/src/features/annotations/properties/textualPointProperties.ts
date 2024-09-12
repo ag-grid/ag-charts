@@ -15,7 +15,7 @@ export class TextualPointProperties extends Annotation(Point(Handle(Label(Font(B
     alignment: AnnotationTextAlignment = 'left';
     placement: 'inside' | 'outside' = 'inside';
     width?: number;
-    placeholderText?: string = undefined;
+    placeholderText?: string = 'inputTextareaPlaceholder';
 
     override isValidWithContext(_context: AnnotationContext, warningPrefix?: string) {
         return super.isValid(warningPrefix);

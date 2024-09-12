@@ -616,13 +616,14 @@ export class AreaSeries extends CartesianSeries<
         markerSelection: Selection<Marker, MarkerSelectionDatum>;
     }) {
         const { nodeData, markerSelection } = opts;
+        const markersEnabled = this.properties.marker.enabled || this.contextNodeData?.crossFiltering === true;
 
         if (this.properties.marker.isDirty()) {
             markerSelection.clear();
             markerSelection.cleanup();
         }
 
-        return markerSelection.update(this.properties.marker.enabled ? nodeData : []);
+        return markerSelection.update(markersEnabled ? nodeData : []);
     }
 
     protected override async updateMarkerNodes(opts: {
@@ -832,6 +833,11 @@ export class AreaSeries extends CartesianSeries<
             pathFadeInAnimation(this, 'fill_path_properties', animationManager, 'add', fill);
             pathFadeInAnimation(this, 'stroke_path_properties', animationManager, 'add', stroke);
             seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
+            return;
+        }
+
+        if (contextData.crossFiltering !== previousContextData.crossFiltering) {
+            skip();
             return;
         }
 
