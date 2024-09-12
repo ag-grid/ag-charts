@@ -112,15 +112,9 @@ In this configuration:
 To create a Horizontal Linear Gauge, set `direction: 'horizontal'`.
 
 ```js
-const options = {
-    type: 'linear-gauge',
+{
     direction: 'horizontal',
-    value: 80,
-    scale: {
-        min: 0,
-        max: 100,
-    },
-};
+}
 ```
 
 ## Customisation
@@ -130,16 +124,12 @@ const options = {
 {% chartExampleRunner title="Thickness" name="thickness" type="generated" options={ "exampleHeight": 250 } /%}
 
 ```js
-const options = {
-    type: 'linear-gauge',
-    //...
-
-    thickness: 50
+{
+    thickness: 50;
     bar: {
-        thickness: 25
+        thickness: 25;
     }
 }
-
 ```
 
 In the above configuration:
