@@ -432,7 +432,7 @@
                     },
                     {
                         "title": "Bullet",
-                        "icon": "chartsBullet",
+                        "icon": "chartsLinearGauge",
                         "path": "bullet-series",
                         "isEnterprise": true
                     },
@@ -444,7 +444,7 @@
                     },
                     {
                         "title": "Linear Gauge",
-                        "icon": "chartsBullet",
+                        "icon": "chartsLinearGauge",
                         "path": "linear-gauge",
                         "isEnterprise": true
                     }

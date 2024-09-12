@@ -621,7 +621,7 @@
             {
                 "title": "Bullet Chart",
                 "seriesName": "bullet-chart",
-                "icon": "chartsBullet",
+                "icon": "chartsLinearGauge",
                 "enterprise": true,
                 "examples": [
                     {
