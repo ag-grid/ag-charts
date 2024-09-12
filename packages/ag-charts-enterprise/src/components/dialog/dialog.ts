@@ -127,6 +127,12 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 
         const header = createElement('div', 'ag-charts-dialog__header');
         header.role = 'tablist';
+        header.addEventListener('mousedown', (event) => {
+            // Only start dragging when an empty part of the header is dragged
+            if (event.target instanceof Element && event.target.classList.contains('ag-charts-dialog__header')) {
+                this.onDragStart(event);
+            }
+        });
 
         const dragHandle = this.createHeaderDragHandle();
         const tabButtons = mapValues(tabs, (tab, key) =>
@@ -299,7 +305,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const dragHandle = createElement('div', 'ag-charts-dialog__drag-handle');
         const dragHandleIcon = createIcon('drag-handle');
         dragHandle.append(dragHandleIcon);
-        dragHandle.addEventListener('mousedown', this.onDragStart.bind(this, dragHandle));
+        dragHandle.addEventListener('mousedown', (event) => this.onDragStart(event, dragHandle));
 
         return dragHandle;
     }
@@ -333,7 +339,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         this.hide();
     }
 
-    private onDragStart(dragHandle: HTMLDivElement, event: MouseEvent) {
+    private onDragStart(event: MouseEvent, dragHandle?: HTMLDivElement) {
         const popover = this.getPopoverElement();
         if (!popover) return;
 
@@ -351,12 +357,12 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                 Number(popover.style.getPropertyValue('top').replace('px', ''))
             ),
         };
-        dragHandle.classList.add('ag-charts-dialog__drag-handle--dragging');
+        dragHandle?.classList.add('ag-charts-dialog__drag-handle--dragging');
 
         const onDrag = this.onDrag.bind(this);
         const onDragEnd = () => {
             domManager.removeEventListener('mousemove', onDrag);
-            dragHandle.classList.remove('ag-charts-dialog__drag-handle--dragging');
+            dragHandle?.classList.remove('ag-charts-dialog__drag-handle--dragging');
         };
 
         domManager.addEventListener('mousemove', onDrag);

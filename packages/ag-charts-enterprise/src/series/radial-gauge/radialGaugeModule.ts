@@ -35,6 +35,8 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 strokeWidth: 0,
             },
             segmentation: {
+                enabled: false,
+                interval: {},
                 spacing: 2,
             },
             // @ts-expect-error Private

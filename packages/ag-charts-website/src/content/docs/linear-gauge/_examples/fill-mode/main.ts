@@ -9,13 +9,14 @@ const options: AgLinearGaugeOptions = {
         min: 0,
         max: 100,
     },
-    segmentation: {
-        enabled: true,
-        interval: {
-            count: 4,
-        },
-        spacing: 2,
+    bar: {
+        fillMode: 'discrete',
     },
 };
 
 const chart = AgCharts.createGauge(options);
+
+function setFillMode(fillMode: 'continuous' | 'discrete') {
+    options.bar!.fillMode = fillMode;
+    chart.update(options);
+}

@@ -212,6 +212,7 @@ To split the gauge into segments, use the `segmentation` option.
 ```js
 {
     segmentation: {
+        enabled: true,
         interval: {
             count: 4
         },
@@ -222,7 +223,8 @@ To split the gauge into segments, use the `segmentation` option.
 
 In this configuration:
 
--   `segmentation.interval` specifies where the gauge is segmented. Available options are:
+-   `enabled` specifies whether the gauge is segmented.
+-   `segmentation.interval` specifies how the gauge is segmented. Available options are:
     -   `step` - segments the gauge at a fixed interval.
     -   `count` - segments the gauge a fixed number of times.
     -   `values` - segments the gauge at specific scale values.

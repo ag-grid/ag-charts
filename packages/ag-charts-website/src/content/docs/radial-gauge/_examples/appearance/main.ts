@@ -9,6 +9,7 @@ const options: AgRadialGaugeOptions = {
         max: 100,
     },
     segmentation: {
+        enabled: true,
         interval: {
             count: 4,
         },

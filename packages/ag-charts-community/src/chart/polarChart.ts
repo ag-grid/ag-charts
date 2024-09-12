@@ -2,6 +2,7 @@ import type { LayoutContext } from '../module/baseModule';
 import type { ChartOptions } from '../module/optionsModule';
 import type { Scale } from '../scale/scale';
 import { BBox } from '../scene/bbox';
+import { iterate } from '../util/iterator';
 import { Padding } from '../util/padding';
 import { PolarAxis } from './axis/polarAxis';
 import type { TransferableResources } from './chart';
@@ -48,14 +49,13 @@ export class PolarChart extends Chart {
         if (!(angleAxis instanceof PolarAxis) || !(radiusAxis instanceof PolarAxis)) return;
 
         const angleScale: Scale<number, number> = angleAxis.scale;
-        const angles = angleScale.ticks?.().map((value) => angleScale.convert(value));
         const innerRadiusRatio = radiusAxis.innerRadiusRatio;
 
         angleAxis.innerRadiusRatio = innerRadiusRatio;
         angleAxis.computeRange();
         angleAxis.gridLength = radius;
 
-        radiusAxis.gridAngles = angles;
+        radiusAxis.gridAngles = angleScale.ticks?.().map((value) => angleScale.convert(value));
         radiusAxis.gridRange = angleAxis.range;
         radiusAxis.range = [radius, radius * innerRadiusRatio];
 
@@ -101,7 +101,7 @@ export class PolarChart extends Chart {
 
         const shake = async ({ hideWhenNecessary = false } = {}) => {
             const labelBoxes = [];
-            for (const series of [...polarAxes, ...polarSeries]) {
+            for (const series of iterate(polarAxes, polarSeries)) {
                 const box = await series.computeLabelsBBox({ hideWhenNecessary }, seriesBox);
                 if (box) {
                     labelBoxes.push(box);
@@ -117,10 +117,6 @@ export class PolarChart extends Chart {
             const refined = this.refineCircle(labelBox, radius, seriesBox);
             setSeriesCircle(refined.centerX, refined.centerY, refined.radius);
 
-            if (refined.radius === radius) {
-                return;
-            }
-
             radius = refined.radius;
         };
 
@@ -129,6 +125,11 @@ export class PolarChart extends Chart {
         await shake(); // Just in case
         await shake({ hideWhenNecessary: true }); // Hide unnecessary labels
         await shake({ hideWhenNecessary: true }); // Final result
+
+        // Must compute labels again in case last shake changed niceDomain
+        for (const series of iterate(polarAxes, polarSeries)) {
+            await series.computeLabelsBBox({ hideWhenNecessary: true }, seriesBox);
+        }
 
         return { radius, centerX, centerY };
     }

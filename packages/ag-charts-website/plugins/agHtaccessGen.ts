@@ -24,16 +24,24 @@ export default function createPlugin(options: Options): AstroIntegration {
     return {
         name: 'ag-htaccess-gen',
         hooks: {
-            'astro:build:done': async ({ dir }) => {
+            'astro:build:done': async ({ dir, routes }) => {
                 if (!options.include) {
                     // eslint-disable-next-line no-console
                     console.info('[agHtaccessGen] .htaccess generation disabled, skipping');
                     return;
                 }
 
+                const redirects = routes
+                    .flatMap(({ route, redirect }) =>
+                        route != null && redirect != null ? [`Redirect 301 ${route} ${redirect}`] : []
+                    )
+                    .join('\n');
+
+                const content = HTACCESS_CONTENT + redirects;
+
                 const destDir = fileURLToPath(dir);
                 const filename = join(destDir, '.htaccess');
-                writeFileSync(filename, HTACCESS_CONTENT);
+                writeFileSync(filename, content);
 
                 // eslint-disable-next-line no-console
                 console.info('[agHtaccessGen] .htaccess generated to: ', filename);
