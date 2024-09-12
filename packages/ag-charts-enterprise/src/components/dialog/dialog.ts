@@ -231,9 +231,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 
     protected createTextArea({ placeholder, value, onChange }: TextAreaOptions) {
         const placeholderT = placeholder ? this.ctx.localeManager.t(placeholder) : undefined;
-        const textArea = createTextArea({ value, onChange }, { placeholder: placeholderT });
-
-        return textArea;
+        return createTextArea({ value, onChange }, { placeholder: placeholderT });
     }
 
     protected createCheckbox({ label, checked, onChange }: CheckboxOptions) {
@@ -307,12 +305,10 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     }
 
     private createHeaderCloseButton() {
-        const closeButton = createButton(
+        return createButton(
             { label: createIcon('close'), onPress: () => this.hide() },
             'ag-charts-dialog__close-button'
         );
-
-        return closeButton;
     }
 
     private createInputGroup(label: string, options?: { for?: string }) {

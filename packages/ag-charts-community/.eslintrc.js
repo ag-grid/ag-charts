@@ -11,6 +11,7 @@ module.exports = {
   rules: {
     // Show this warning in IDE and PRs, but not when running at command line (to reduce clutter).
     'sonarjs/cognitive-complexity': env !== 'nx-task' ? 1 : 0,
+    'sonarjs/no-duplicate-string': env !== 'nx-task' ? 1 : 0,
     '@nx/dependency-checks': 1,
   },
   overrides: [
