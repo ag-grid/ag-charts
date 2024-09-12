@@ -9,17 +9,11 @@ const options: AgRadialGaugeOptions = {
         max: 100,
     },
     segmentation: {
+        interval: {
+            count: 4,
+        },
         spacing: 2,
     },
 };
 
 const chart = AgCharts.createGauge(options);
-
-function setSpacing(spacing: boolean) {
-    if (spacing) {
-        options.segmentation = { spacing: 2 };
-    } else {
-        options.segmentation = {};
-    }
-    chart.update(options);
-}

@@ -34,6 +34,9 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
             bar: {
                 strokeWidth: 0,
             },
+            segmentation: {
+                spacing: 2,
+            },
             // @ts-expect-error Private
             defaultTarget: {
                 fill: DEFAULT_LABEL_COLOUR,

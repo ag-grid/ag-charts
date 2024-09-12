@@ -12,18 +12,9 @@ export class GaugeSegmentationIntervalProperties extends BaseProperties {
 
     @Validate(NUMBER, { optional: true })
     count?: number;
-}
-
-export class GaugeSegmentationProperties extends BaseProperties {
-    @Validate(OBJECT)
-    readonly interval = new GaugeSegmentationIntervalProperties();
-
-    @Validate(NUMBER, { optional: true })
-    spacing: number | undefined;
 
     getSegments(scale: _Scale.Scale<number, number>, maxTicks: number) {
-        const { spacing } = this;
-        const { values, step, count } = this.interval;
+        const { values, step, count } = this;
         const d0 = Math.min(...scale.domain);
         const d1 = Math.max(...scale.domain);
 
@@ -41,8 +32,6 @@ export class GaugeSegmentationProperties extends BaseProperties {
         } else if (count != null) {
             const segments = count + 1;
             ticks = Array.from({ length: segments + 1 }, (_, i) => (i / segments) * (d1 - d0) + d0);
-        } else if (spacing != null) {
-            ticks = scale.ticks?.();
         }
 
         if (ticks != null && ticks.length > maxTicks) {
@@ -54,4 +43,12 @@ export class GaugeSegmentationProperties extends BaseProperties {
 
         return ticks;
     }
+}
+
+export class GaugeSegmentationProperties extends BaseProperties {
+    @Validate(OBJECT)
+    readonly interval = new GaugeSegmentationIntervalProperties();
+
+    @Validate(NUMBER)
+    spacing: number = 0;
 }

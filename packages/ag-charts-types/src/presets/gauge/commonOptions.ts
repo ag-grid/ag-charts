@@ -13,7 +13,13 @@ import type {
 } from '../../chart/types';
 import type { AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../../series/seriesOptions';
 
-export interface AgBaseGaugeThemeableOptions<TDatum> {
+export interface GaugeDatum {
+    value: number;
+    segmentStart: number;
+    segmentEnd: number;
+}
+
+export interface AgBaseGaugeThemeableOptions {
     /** The cursor to use for the gauge. This config is identical to the CSS `cursor` property. */
     cursor?: string;
     /** Configuration for marker and series highlighting when a series or legend item is hovered over. */
@@ -21,11 +27,11 @@ export interface AgBaseGaugeThemeableOptions<TDatum> {
     /** Range from a node that a click triggers the listener. */
     nodeClickRange?: InteractionRange;
     /** A map of event names to event listeners. */
-    listeners?: AgSeriesListeners<TDatum>;
+    listeners?: AgSeriesListeners<GaugeDatum>;
 }
 
 // Verification checks for completeness/correctness.
-const __THEMEABLE_OPTIONS = undefined as any as Required<AgBaseGaugeThemeableOptions<any>>;
+const __THEMEABLE_OPTIONS = undefined as any as Required<AgBaseGaugeThemeableOptions>;
 // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
 // @ts-ignore
 let __VERIFY_THEMEABLE_OPTIONS: Required<Omit<AgBaseSeriesThemeableOptions<any>, 'showInLegend'>> = undefined as any;

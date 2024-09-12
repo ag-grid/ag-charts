@@ -33,6 +33,9 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
             bar: {
                 strokeWidth: 0,
             },
+            segmentation: {
+                spacing: 1,
+            },
             // @ts-expect-error Private
             defaultTarget: {
                 fill: DEFAULT_LABEL_COLOUR,
