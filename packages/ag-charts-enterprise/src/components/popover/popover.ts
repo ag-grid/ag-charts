@@ -93,8 +93,8 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         }
 
         if (options.initialFocus && options.sourceEvent) {
-            const { type, lastFocus } = this.ctx.focusIndicator.guessDevice(options.sourceEvent);
-            if (type === 'keyboard' && lastFocus !== undefined) {
+            const { lastFocus } = this.ctx.focusIndicator.guessDevice(options.sourceEvent);
+            if (lastFocus !== undefined) {
                 options.initialFocus.focus();
                 this.lastFocus = lastFocus;
             }
