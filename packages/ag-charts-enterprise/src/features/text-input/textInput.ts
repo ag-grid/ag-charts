@@ -38,6 +38,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
     public show(opts: {
         anchor?: { x: number; y: number };
         text?: string;
+        placeholderText?: string;
         styles?: FontOptions & { placeholderColor?: string };
         layout?: Layout;
         onChange?: (text: string, bbox: _Scene.BBox) => void;
@@ -55,7 +56,10 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
             textArea.contentEditable = 'true';
         }
 
-        textArea.setAttribute('placeholder', 'Add Text');
+        textArea.setAttribute(
+            'placeholder',
+            this.ctx.localeManager.t(opts.placeholderText ?? 'inputTextareaPlaceholder')
+        );
 
         if (opts.styles?.placeholderColor) {
             textArea.style.setProperty('--ag-charts-input-placeholder-color', opts.styles?.placeholderColor);

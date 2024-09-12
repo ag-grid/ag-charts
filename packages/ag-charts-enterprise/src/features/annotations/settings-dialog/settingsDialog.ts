@@ -100,7 +100,7 @@ export class AnnotationSettingsDialog extends Dialog {
         const panel = this.createTabPanel();
 
         const textArea = this.createTextArea({
-            placeholder: 'dialogInputTextareaPlaceholder',
+            placeholder: 'inputTextareaPlaceholder',
             value: datum.text.label,
             onChange: (value) => options.onChangeText({ label: value }),
         });
