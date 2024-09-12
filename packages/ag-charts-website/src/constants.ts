@@ -28,6 +28,8 @@ export const agChartsVueVersion = import.meta.env?.PUBLIC_PACKAGE_VERSION ?? 'un
 
 export const agLibraryVersion = agChartsVersion;
 
+export const agGridVersion = import.meta.env?.PUBLIC_GRID_VERSION ?? 'unknown';
+
 export const NPM_CDN = 'https://cdn.jsdelivr.net/npm';
 export const PUBLISHED_URLS = {
     'ag-charts-react': `${NPM_CDN}/ag-charts-react@${agChartsReactVersion}/`,
