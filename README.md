@@ -120,7 +120,6 @@ AG Charts offers 20+ JavaScript Chart types, each of which are fully customisabl
 | [Donut](https://ag-grid.com/charts/javascript/donut-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                 | ✅                  | ✅                   |
 | [Combination](https://ag-grid.com/charts/javascript/combination-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)     | ✅                  | ✅                   |
 | [Box Plot](https://ag-grid.com/charts/javascript/box-plot-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)           | ❌                  | ✅                   |
-| [Bullet](https://ag-grid.com/charts/javascript/bullet-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)               | ❌                  | ✅                   |
 | [Candlestick](https://ag-grid.com/charts/javascript/candlestick-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)     | ❌                  | ✅                   |
 | [OHLC](https://ag-grid.com/charts/javascript/ohlc-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                   | ❌                  | ✅                   |
 | [Heatmap](https://ag-grid.com/charts/javascript/heatmap-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)             | ❌                  | ✅                   |
@@ -137,6 +136,8 @@ AG Charts offers 20+ JavaScript Chart types, each of which are fully customisabl
 | [Waterfall](https://ag-grid.com/charts/javascript/waterfall-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)         | ❌                  | ✅                   |
 | [Sankey](https://ag-grid.com/charts/javascript/sankey-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)               | ❌                  | ✅                   |
 | [Chord](https://ag-grid.com/charts/javascript/chord-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                 | ❌                  | ✅                   |
+| [Radial Gauge](https://ag-grid.com/charts/javascript/radial-gauge/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)          | ❌                  | ✅                   |
+| [Linear Gauge](https://ag-grid.com/charts/javascript/linear-gauge/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)          | ❌                  | ✅                   |
 
 #### Features
 
