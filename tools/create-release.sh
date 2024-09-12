@@ -18,7 +18,9 @@ node ./tools/readme/sync-readme.js
 git commit -a -m "BRANCH prep for ${NEW_VERSION}"
 git tag latest-beta-version -f
 
-if [ "$SKIP_PROMPT" != "skipPrompt" ]; then
+if [ "$SKIP_PROMPT" == "skipPrompt" ]; then
+    git push -f origin ${BRANCH} latest-beta-version
+else
     read -p "Ready to push to ${BRANCH}? " -n 1 -r
     if [[ $REPLY =~ ^[Yy]$ ]] ; then
         git push -f origin ${BRANCH} latest-beta-version
