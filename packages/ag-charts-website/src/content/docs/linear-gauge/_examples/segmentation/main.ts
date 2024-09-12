@@ -9,15 +9,18 @@ const options: AgLinearGaugeOptions = {
         min: 0,
         max: 100,
     },
-    bar: {
-        fills: [{ color: '#00a8ff' }, { color: '#9c88ff' }, { color: '#e84118' }],
-        fillMode: 'discrete',
+    segmentation: {
+        enabled: true,
+        interval: {
+            count: 4,
+        },
+        spacing: 2,
     },
 };
 
 const chart = AgCharts.createGauge(options);
 
-function setFillMode(fillMode: 'continuous' | 'discrete') {
-    options.bar!.fillMode = fillMode;
+function setCount(count: number) {
+    options.segmentation!.interval!.count = count;
     chart.update(options);
 }

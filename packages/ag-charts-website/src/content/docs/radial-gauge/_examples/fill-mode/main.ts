@@ -9,6 +9,7 @@ const options: AgRadialGaugeOptions = {
         max: 100,
     },
     bar: {
+        fills: [{ color: '#00a8ff' }, { color: '#9c88ff' }, { color: '#e84118' }],
         fillMode: 'discrete',
     },
 };

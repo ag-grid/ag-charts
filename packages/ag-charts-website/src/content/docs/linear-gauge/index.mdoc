@@ -170,21 +170,40 @@ In this configuration:
 
 ### Colour Options
 
-Both the bar and scale can be displayed using a gradient, or using a set of colours.
+Both the bar and scale can be displayed using a solid fill.
+
+{% chartExampleRunner title="Fill" name="fill" type="generated" options={ "exampleHeight": 250 } /%}
+
+```js
+{
+    scale: {
+        fill: '#f5f6fa',
+    },
+    bar: {
+        fill: '#4cd137',
+    },
+}
+```
+
+One or more colours can be specified using the `fills` property.
 
 {% chartExampleRunner title="Colour Scales" name="fill-mode" type="generated" options={ "exampleHeight": 300 } /%}
 
 ```js
 {
     bar: {
+        fills: [{ color: '#00a8ff' }, { color: '#9c88ff' }, { color: '#e84118' }],
         fillMode: 'discrete',
     },
 }
 ```
 
-The `fillMode` can be set to `continuous` for a gradient, or `discrete` to use a set of colours.
+In this configuration:
 
-The fills used can be customised using the `fills` property.
+-   `fills` specifies an array of colours to use to fill the bar.
+-   `fillMode` can be set to `continuous` for a gradient, or `discrete` to use a set of colours.
+
+The default behaviour is to space out the colours evenly. This can be customised by using the `stop` property within a fill.
 
 {% chartExampleRunner title="Scale Values" name="scale-values" type="generated" options={ "exampleHeight": 250 } /%}
 
@@ -206,6 +225,7 @@ The fills used can be customised using the `fills` property.
 In this configuration:
 
 -   Each colour stops at the `stop` value, and the next colour begins at that point.
+-   If no `stop` is provided, the fills will be distributed equally.
 -   The last colour is used until the end of the scale or bar.
 -   Both `discrete` and `continuous` modes can be used with colour stops.
 
@@ -213,7 +233,7 @@ In this configuration:
 
 To split the gauge into segments, use the `segmentation` option.
 
-{% chartExampleRunner title="Appearance" name="appearance" type="generated" options={ "exampleHeight": 300 } /%}
+{% chartExampleRunner title="Segmentation" name="segmentation" type="generated" options={ "exampleHeight": 300 } /%}
 
 ```js
 {
