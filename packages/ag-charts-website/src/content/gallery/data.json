@@ -619,24 +619,6 @@
         ],
         [
             {
-                "title": "Bullet Chart",
-                "seriesName": "bullet-chart",
-                "icon": "chartsLinearGauge",
-                "enterprise": true,
-                "examples": [
-                    {
-                        "title": "Simple Bullet",
-                        "name": "simple-bullet"
-                    },
-                    {
-                        "title": "Horizontal Bullet",
-                        "name": "horizontal-bullet"
-                    }
-                ]
-            }
-        ],
-        [
-            {
                 "title": "Radial Gauge",
                 "seriesName": "radial-gauge",
                 "icon": "chartsRadialGauge",
@@ -649,6 +631,24 @@
                     {
                         "title": "Customised Radial Gauges",
                         "name": "customised-radial-gauge"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Linear Gauge",
+                "seriesName": "linear-gauge",
+                "icon": "chartsLinearGauge",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Simple Linear Gauge",
+                        "name": "simple-linear-gauge"
+                    },
+                    {
+                        "title": "Horizontal Linear Gauge",
+                        "name": "horizontal-linear-gauge"
                     }
                 ]
             }
