@@ -1158,17 +1158,18 @@ export class RadialGaugeSeries
             return EMPTY_TOOLTIP_CONTENT;
         }
 
-        const datum = this.highlightDatum(nodeDatum);
+        const highlightDatum = this.highlightDatum(nodeDatum);
 
-        const value = datum?.value ?? properties.value;
-        const text = datum?.text;
+        const value = highlightDatum?.value ?? properties.value;
+        const text = highlightDatum?.text;
         const { tooltip } = properties;
 
         const title = text ?? '';
         const content = this.formatLabel(value);
 
-        const itemId = datum?.itemId;
-        const color = datum?.fill;
+        const itemId = highlightDatum?.itemId;
+        const datum = undefined;
+        const color = highlightDatum?.fill;
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: color },

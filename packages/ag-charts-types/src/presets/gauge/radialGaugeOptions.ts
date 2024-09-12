@@ -44,7 +44,7 @@ export interface AgRadialGaugeScale extends FillsOptions, FillOptions, StrokeOpt
     interval?: AgRadialGaugeScaleInterval;
 }
 
-export interface AgRadialGaugeTooltipRendererParams extends AgSeriesTooltipRendererParams<never> {
+export interface AgRadialGaugeTooltipRendererParams extends AgSeriesTooltipRendererParams<undefined> {
     /** Value of the Gauge */
     value: number;
 }
@@ -67,7 +67,7 @@ export interface AgRadialGaugeNeedleStyle extends FillOptions, StrokeOptions, Li
 
 export type AgRadialGaugeMarkerShape = MarkerShape | 'line';
 
-export interface AgRadialGaugeTargetLabelOptions extends AgChartLabelOptions<never, never> {
+export interface AgRadialGaugeTargetLabelOptions extends AgChartLabelOptions<undefined, never> {
     /** Spacing of the label. */
     spacing?: PixelSize;
 }
@@ -92,13 +92,13 @@ export interface AgRadialGaugeTarget extends FillOptions, StrokeOptions, LineDas
 }
 
 export interface AgRadialGaugeLabelOptions
-    extends AgChartAutoSizedLabelOptions<never, AgRadialGaugeLabelFormatterParams> {
+    extends AgChartAutoSizedLabelOptions<undefined, AgRadialGaugeLabelFormatterParams> {
     /** Text to always display. */
     text?: string;
 }
 
 export interface AgRadialGaugeSecondaryLabelOptions
-    extends AgChartAutoSizedSecondaryLabelOptions<never, AgRadialGaugeLabelFormatterParams> {
+    extends AgChartAutoSizedSecondaryLabelOptions<undefined, AgRadialGaugeLabelFormatterParams> {
     /** Text to always display. */
     text?: string;
 }

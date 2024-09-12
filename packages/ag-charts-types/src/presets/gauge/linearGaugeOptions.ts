@@ -45,7 +45,7 @@ export interface AgLinearGaugeScale extends FillsOptions, FillOptions, StrokeOpt
     interval?: AgLinearGaugeScaleInterval;
 }
 
-export interface AgLinearGaugeTooltipRendererParams extends AgSeriesTooltipRendererParams<never> {
+export interface AgLinearGaugeTooltipRendererParams extends AgSeriesTooltipRendererParams<undefined> {
     /** Value of the Gauge */
     value: number;
 }
@@ -80,7 +80,7 @@ export interface AgLinearGaugeTarget extends FillOptions, StrokeOptions, LineDas
     rotation?: Degree;
 }
 
-export interface AgLinearGaugeTargetLabelOptions extends AgChartLabelOptions<never, never> {
+export interface AgLinearGaugeTargetLabelOptions extends AgChartLabelOptions<undefined, never> {
     /** Spacing of the label. */
     spacing?: PixelSize;
 }
