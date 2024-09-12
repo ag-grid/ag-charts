@@ -1,4 +1,4 @@
-import { _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { ChannelTextProperties, PointProperties } from '../annotationProperties';
 import type { AnnotationContext, LineCoords } from '../annotationTypes';
@@ -25,6 +25,7 @@ export abstract class ChannelScene<
     protected bottomLine = new CollidableLine();
     protected background = new _Scene.Path({ zIndex: -1 });
     public text?: _Scene.TransformableText;
+    private readonly anchor: _ModuleSupport.ToolbarAnchor = { x: 0, y: 0 };
 
     public update(datum: Datum, context: AnnotationContext) {
         const { locked, visible } = datum;
@@ -46,6 +47,7 @@ export abstract class ChannelScene<
         this.updateHandles(datum, top, bottom);
         this.updateText(datum, top, bottom);
         this.updateBackground(datum, topLine, bottomLine, context);
+        this.updateAnchor(top, bottom);
 
         for (const handle of Object.values(this.handles)) {
             handle.toggleLocked(locked ?? false);
@@ -67,8 +69,7 @@ export abstract class ChannelScene<
     }
 
     override getAnchor() {
-        const bbox = this.computeBBoxWithoutHandles();
-        return { x: bbox.x + bbox.width / 2, y: bbox.y };
+        return this.anchor;
     }
 
     override getCursor() {
@@ -133,6 +134,17 @@ export abstract class ChannelScene<
             fill: datum.background.fill,
             fillOpacity: datum.background.fillOpacity,
         });
+    }
+
+    protected updateAnchor(top: LineCoords, bottom: LineCoords) {
+        const { x, y } = _Scene.Transformable.toCanvasPoint(
+            this.topLine,
+            (top.x1 + top.x2) / 2,
+            Math.min(top.y1, top.y2, bottom.y1, bottom.y2)
+        );
+
+        this.anchor.x = x;
+        this.anchor.y = y;
     }
 
     protected abstract getBackgroundPoints(
