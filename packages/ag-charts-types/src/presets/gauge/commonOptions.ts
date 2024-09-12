@@ -52,7 +52,7 @@ export interface AgGaugeScaleLabel {
     padding?: PixelSize;
     /** The colour to use for the labels */
     color?: CssColor;
-    /** The rotation of the scale labels in degrees. Note: for integrated charts the default is 335 degrees, unless the scale shows grouped or default categories (indexes). The first row of labels in a grouped category scale is rotated perpendicular to the scale line. */
+    /** The rotation of the scale labels in degrees. */
     rotation?: Degree;
     /** Avoid scale label collision by automatically reducing the number of ticks displayed. If set to `false`, scale labels may collide. */
     avoidCollisions?: boolean;
