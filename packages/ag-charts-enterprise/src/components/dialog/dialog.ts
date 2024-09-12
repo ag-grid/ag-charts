@@ -103,6 +103,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
      * Containers *
      **************/
     protected createTabs<T extends Record<string, { label: string; panel: HTMLElement; onShow?: () => void }>>(
+        tablistLabel: string,
         initial: keyof T,
         tabs: T
     ) {
@@ -126,7 +127,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         };
 
         const header = createElement('div', 'ag-charts-dialog__header');
-        header.role = 'tablist';
         header.addEventListener('mousedown', (event) => {
             // Only start dragging when an empty part of the header is dragged
             if (event.target instanceof Element && event.target.classList.contains('ag-charts-dialog__header')) {
@@ -149,9 +149,14 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                 }
             )
         );
+        const tablist = createElement('div');
+        tablist.role = 'tablist';
+        tablist.ariaLabel = this.ctx.localeManager.t(tablistLabel);
+        tablist.append(...Object.values(tabButtons));
+
         const closeButton = this.createHeaderCloseButton();
 
-        header.append(dragHandle, ...Object.values(tabButtons), closeButton);
+        header.append(dragHandle, tablist, closeButton);
         element.append(header, ...Object.values(tabs).map((t) => t.panel));
 
         tabs[initial].panel.classList.add('ag-charts-dialog__tab-panel--active');

@@ -41,7 +41,7 @@ export class AnnotationSettingsDialog extends Dialog {
         const lineTab = this.createLinearLineTab(datum, options);
         const textTab = this.createLinearTextTab(datum, options);
 
-        const tabs = this.createTabs('line', {
+        const tabs = this.createTabs('ariaLabelSettingsTabBar', 'line', {
             line: {
                 label: isChannelType(datum) ? 'dialogHeaderChannel' : 'dialogHeaderLine',
                 panel: lineTab,
