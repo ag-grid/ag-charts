@@ -7,6 +7,10 @@ on:
                 type: string
                 required: true
                 default: '10.0.0'
+            gridVersion:
+                type: string
+                required: true
+                default: '32.1.0'
             type:
                 type: 'choice'
                 required: true
@@ -61,6 +65,12 @@ jobs:
               if: ${{ github.event.inputs.type == 'create' }}
               run: |
                   ./tools/bump-versions.sh ${{ github.event.inputs.version }}
+
+            - name: Update Grid Version
+              id: update_grid_version
+              if: ${{ github.event.inputs.type == 'create' }}
+              run: |
+                  node tools/update-grid-version.js ${{ github.event.inputs.gridVersion }}
 
             - name: Update Release Information
               id: release_info
