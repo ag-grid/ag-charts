@@ -186,11 +186,13 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const buttons: HTMLButtonElement[] = [];
 
         for (const button of options) {
-            const altTextT = this.ctx.localeManager.t(button.altText);
+            const { icon, altText: altTextKey } = button;
+            const altText = this.ctx.localeManager.t(altTextKey);
 
             const buttonEl = createButton(
                 {
-                    label: createIcon(button.icon),
+                    icon,
+                    altText,
                     onPress: () => {
                         for (const b of Array.from(group.children)) {
                             b.classList.remove(activeClass);
@@ -205,8 +207,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                     className: 'ag-charts-dialog__button',
                     role: 'radio',
                     ariaChecked: button.value === value ? 'true' : 'false',
-                    ariaLabel: altTextT,
-                    title: altTextT,
+                    title: altText,
                 }
             );
 
@@ -312,7 +313,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 
     private createHeaderCloseButton() {
         return createButton(
-            { label: createIcon('close'), onPress: () => this.hide() },
+            { icon: 'close', altText: this.ctx.localeManager.t('iconAltTextClose'), onPress: () => this.hide() },
             'ag-charts-dialog__close-button'
         );
     }

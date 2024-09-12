@@ -8,13 +8,23 @@ interface MissingAriaAttrs {
     ariaControls?: string;
 }
 
-export interface ButtonOptions {
-    label: string | HTMLElement;
+// These types force a compilation error if the developer tries to add an icon-only
+// menu item without an accessible text alternative.
+type LabelAndIcon = { label: string; icon?: AgIconName; altText?: undefined };
+type IconOnly = { label?: undefined; icon: AgIconName; altText: string };
+export type LabelIcon = LabelAndIcon | IconOnly;
+
+export type ButtonOptions = LabelIcon & {
     onPress: (event: MouseEvent) => void;
-}
+};
 export function createButton(options: ButtonOptions, attrs?: Attrs<HTMLButtonElement>) {
     const button = createElement('button', getClassName('ag-charts-input ag-charts-button', attrs));
-    button.append(options.label);
+    if (options.label !== undefined) {
+        button.append(options.label);
+    } else {
+        button.append(createIcon(options.icon));
+        button.ariaLabel = options.altText;
+    }
     button.addEventListener('click', options.onPress);
     applyAttrs(button, attrs);
     return button;
