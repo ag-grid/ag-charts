@@ -16,7 +16,7 @@ const {
     getWindow,
     mapValues,
 } = _ModuleSupport;
-const { Vec2 } = _Util;
+const { Vec2, setAttributes } = _Util;
 
 export interface DialogOptions extends PopoverOptions {}
 
@@ -113,9 +113,11 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const tabPanelIds = mapValues(tabs, () => createElementId('ag-charts-dialog__tab-panel'));
 
         for (const [key, tab] of Object.entries(tabs)) {
-            tab.panel.id = tabPanelIds[key];
-            tab.panel.role = 'tabpanel';
-            tab.panel.setAttribute('aria-labelledby', tabButtonIds[key]);
+            setAttributes(tab.panel, {
+                id: tabPanelIds[key],
+                role: 'tabpanel',
+                'aria-labelledby': tabButtonIds[key],
+            });
         }
 
         const onPressTab = (active: keyof T) => {
@@ -143,15 +145,14 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                 },
                 {
                     id: tabButtonIds[key],
-                    className: 'ag-charts-dialog__tab-button',
+                    class: 'ag-charts-dialog__tab-button',
                     role: 'tab',
-                    ariaControls: tabPanelIds[key],
+                    'aria-controls': tabPanelIds[key],
                 }
             )
         );
         const tablist = createElement('div');
-        tablist.role = 'tablist';
-        tablist.ariaLabel = this.ctx.localeManager.t(tablistLabel);
+        setAttributes(tablist, { role: 'tablist', 'aria-label': this.ctx.localeManager.t(tablistLabel) });
         tablist.append(...Object.values(tabButtons));
 
         const closeButton = this.createHeaderCloseButton();
@@ -183,9 +184,11 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 
     protected createRadioGroup<T extends string>({ label, options, value, onChange }: RadioGroupOptions<T>) {
         const group = this.createInputGroup(label);
-        group.role = 'radiogroup';
-        group.tabIndex = -1;
-        group.ariaLabel = this.ctx.localeManager.t(label);
+        setAttributes(group, {
+            role: 'radiogroup',
+            tabindex: -1,
+            'aria-label': this.ctx.localeManager.t(label),
+        });
 
         const activeClass = 'ag-charts-dialog__button--active';
         const buttons: HTMLButtonElement[] = [];
@@ -209,9 +212,9 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                     },
                 },
                 {
-                    className: 'ag-charts-dialog__button',
+                    'aria-checked': button.value === value,
+                    class: 'ag-charts-dialog__button',
                     role: 'radio',
-                    ariaChecked: button.value === value ? 'true' : 'false',
                     title: altText,
                 }
             );
@@ -234,7 +237,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const altTextT = this.ctx.localeManager.t(altText);
         const select = createSelect(
             { value, options, onChange },
-            { className: 'ag-charts-dialog__select', ariaLabel: altTextT, title: altTextT }
+            { class: 'ag-charts-dialog__select', 'aria-label': altTextT, title: altTextT }
         );
         group.append(select);
 
@@ -250,7 +253,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const id = `ag-charts__${label}`;
         const group = this.createInputGroup(label, { for: id });
 
-        const checkbox = createCheckbox({ checked, onChange }, 'ag-charts-dialog__checkbox');
+        const checkbox = createCheckbox({ checked, onChange }, { class: 'ag-charts-dialog__checkbox' });
         checkbox.id = id;
 
         group.append(checkbox);
@@ -285,10 +288,10 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                 },
             },
             {
-                className: 'ag-charts-dialog__color-picker-button',
-                ariaLabel: altTextT,
+                'aria-label': altTextT,
+                tabindex: 0,
+                class: 'ag-charts-dialog__color-picker-button',
                 title: altTextT,
-                tabIndex: 0,
             }
         );
 
@@ -319,7 +322,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     private createHeaderCloseButton() {
         return createButton(
             { icon: 'close', altText: this.ctx.localeManager.t('iconAltTextClose'), onPress: () => this.hide() },
-            'ag-charts-dialog__close-button'
+            { class: 'ag-charts-dialog__close-button' }
         );
     }
 
