@@ -87,6 +87,6 @@ function applyAttrs(element: HTMLElement, attrs?: Attrs) {
 }
 
 function normaliseMissingAriaAttrs(key: string) {
-    if (key === 'ariaControls') return 'aria-controls';
-    return key;
+    // Convert camelCaseString to kebab-case-string
+    return key.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
 }
