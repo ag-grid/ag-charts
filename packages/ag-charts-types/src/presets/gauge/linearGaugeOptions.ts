@@ -1,4 +1,3 @@
-import type { AgBaseAxisLabelOptions } from '../../chart/axisOptions';
 import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type {
     AgChartAutoSizedLabelOptions,
@@ -9,7 +8,7 @@ import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart
 import type { Degree, Direction, MarkerShape, PixelSize } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../../series/cartesian/commonOptions';
 import type { AgBaseSeriesThemeableOptions } from '../../series/seriesOptions';
-import type { AgGaugeCornerMode, AgGaugeSegmentation, FillsOptions } from './commonOptions';
+import type { AgGaugeCornerMode, AgGaugeScaleLabel, AgGaugeSegmentation, FillsOptions } from './commonOptions';
 
 export type AgLinearGaugeTargetPlacement = 'before' | 'after' | 'middle';
 
@@ -26,7 +25,7 @@ export interface AgLinearGaugeScaleInterval {
     step?: number;
 }
 
-export interface AgLinearGaugeScaleLabel extends AgBaseAxisLabelOptions {
+export interface AgLinearGaugeScaleLabel extends AgGaugeScaleLabel {
     /** Placement of labels */
     placement?: 'before' | 'after';
 }

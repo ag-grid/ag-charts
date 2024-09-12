@@ -62,6 +62,7 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         theme,
         title,
         subtitle,
+        footnote,
         padding,
         listeners,
         type,
@@ -119,6 +120,7 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         title,
         theme,
         subtitle,
+        footnote,
         padding,
         listeners,
     });
@@ -199,6 +201,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         theme,
         title,
         subtitle,
+        footnote,
         padding,
         listeners,
         type,
@@ -253,6 +256,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         theme,
         title,
         subtitle,
+        footnote,
         padding,
         listeners,
     });
