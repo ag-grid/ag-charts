@@ -592,6 +592,11 @@ export class LineSeries extends CartesianSeries<
             return;
         }
 
+        if (contextData.crossFiltering !== previousContextData.crossFiltering) {
+            skip();
+            return;
+        }
+
         const fns = prepareLinePathAnimation(
             contextData,
             previousContextData,

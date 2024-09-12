@@ -836,6 +836,11 @@ export class AreaSeries extends CartesianSeries<
             return;
         }
 
+        if (contextData.crossFiltering !== previousContextData.crossFiltering) {
+            skip();
+            return;
+        }
+
         const fns = prepareAreaPathAnimation(contextData, previousContextData);
         if (fns === undefined) {
             // Un-animatable - skip all animations.
