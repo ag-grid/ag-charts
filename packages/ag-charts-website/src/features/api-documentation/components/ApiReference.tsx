@@ -220,24 +220,26 @@ function NodeFactory({ member, anchorId, genericsMap, prefixPath = [], ...props 
                 isExpanded={isExpanded}
                 onDetailsToggle={toggleExpanded}
             />
-            {hasMembers &&
-                isExpanded &&
-                processMembers(interfaceRef, config, typeArguments)
-                    .filter((childMember) => !skip?.includes(childMember.name))
-                    .map((childMember) => (
-                        <NodeFactory
-                            key={childMember.name}
-                            member={childMember}
-                            anchorId={`${anchorId}-${cleanupName(childMember.name)}`}
-                            prefixPath={prefixPath.concat(member.name)}
-                            genericsMap={(interfaceRef as any).genericsMap}
-                            nestedPath={
-                                hasNestedPages
-                                    ? `${location?.pathname}/${member.name}/${cleanupName(childMember.name)}`
-                                    : undefined
-                            }
-                        />
-                    ))}
+            {hasMembers && isExpanded && (
+                <div className={styles.childPropsList}>
+                    {processMembers(interfaceRef, config, typeArguments)
+                        .filter((childMember) => !skip?.includes(childMember.name))
+                        .map((childMember) => (
+                            <NodeFactory
+                                key={childMember.name}
+                                member={childMember}
+                                anchorId={`${anchorId}-${cleanupName(childMember.name)}`}
+                                prefixPath={prefixPath.concat(member.name)}
+                                genericsMap={(interfaceRef as any).genericsMap}
+                                nestedPath={
+                                    hasNestedPages
+                                        ? `${location?.pathname}/${member.name}/${cleanupName(childMember.name)}`
+                                        : undefined
+                                }
+                            />
+                        ))}
+                </div>
+            )}
         </>
     );
 }
@@ -264,7 +266,8 @@ function ApiReferenceRow({
             className={classnames(
                 'property-row',
                 styles.propertyRow,
-                prefixPath && prefixPath.length > 0 && styles.isChildProp
+                prefixPath && prefixPath.length > 0 && styles.isChildProp,
+                isExpanded && hasChildProps && styles.expandedChildProps
             )}
             style={{ '--nested-path-depth': prefixPath?.length ?? 0 } as CSSProperties}
         >
