@@ -75,6 +75,7 @@
 }
 
 .propertyRow {
+    position: relative;
     display: flex;
     gap: $spacing-size-4;
     width: 100%;
@@ -117,6 +118,17 @@
         flex: 1;
         box-sizing: border-box;
         min-width: calc(50% - $spacing-size-2);
+    }
+
+    &.expandedChildProps::after {
+        content: '';
+        position: absolute;
+        top: $spacing-size-10;
+        bottom: 0;
+        left: $spacing-size-2;
+        width: 1px;
+        background-color: var(--color-util-gray-300);
+        pointer-events: none;
     }
 }
 
@@ -199,6 +211,10 @@
     gap: $spacing-size-3;
     align-items: center;
     flex-wrap: wrap;
+
+    .expandedChildProps & {
+        margin-left: $spacing-size-6;
+    }
 }
 
 .metaRow {
@@ -407,7 +423,7 @@ button.seeMore {
 
 .isChildProp {
     position: relative;
-    border-top: 1px dashed var(--color-util-gray-200);
+    border-top: 1px dashed var(--color-util-gray-200) !important;
 
     &::before,
     &::after {
