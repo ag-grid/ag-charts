@@ -10,6 +10,13 @@ const options: AgRadialGaugeOptions = {
     },
     cornerRadius: 99,
     cornerMode: 'container',
+    segmentation: {
+        enabled: false,
+        interval: {
+            count: 4,
+        },
+        spacing: 2,
+    },
 };
 
 const chart = AgCharts.createGauge(options);
@@ -20,17 +27,6 @@ function setCornerMode(cornerMode: 'container' | 'item') {
 }
 
 function setSegmentation(segmented: boolean) {
-    if (segmented) {
-        options.segmentation = {
-            interval: {
-                count: 4,
-            },
-            spacing: 2,
-        };
-    } else {
-        options.segmentation = {
-            interval: {},
-        };
-    }
+    options.segmentation!.enabled = segmented;
     chart.update(options);
 }

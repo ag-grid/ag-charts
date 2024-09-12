@@ -456,7 +456,7 @@ export class RadialGaugeSeries
         const containerEndAngle = angleScale.convert(value);
 
         const maxTicks = Math.ceil(normalizeAngle360Inclusive(containerEndAngle - containerStartAngle) * radius);
-        let segments = segmentation.interval.getSegments(angleAxis.scale, maxTicks);
+        let segments = segmentation.enabled ? segmentation.interval.getSegments(angleAxis.scale, maxTicks) : undefined;
 
         const barFill = bar.fill ?? this.createConicGradient(bar.fills, bar.fillMode);
         const scaleFill =
@@ -508,9 +508,7 @@ export class RadialGaugeSeries
                 fill: scaleFill,
             });
         } else {
-            if (segmentation.spacing === 0 || segments == null) {
-                segments = domain;
-            }
+            segments ??= domain;
 
             for (let i = 0; i < segments.length - 1; i += 1) {
                 const segmentStart = segments[i + 0];

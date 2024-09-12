@@ -81,6 +81,8 @@ export interface AgGaugeSegmentationInterval {
 }
 
 export interface AgGaugeSegmentation {
+    /** Enable segmentation. */
+    enabled?: boolean;
     /** Configuration for the segmentation. */
     interval?: AgGaugeSegmentationInterval;
     /** The spacing between segments. */
