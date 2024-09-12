@@ -1,7 +1,14 @@
 import type { AgAnnotationLineStyleType, FontStyle, FontWeight, Formatter, TextAlign } from 'ag-charts-community';
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import type { AnnotationContext, AnnotationOptionsColorPickerType, Constructor } from './annotationTypes';
+import type {
+    AnnotationContext,
+    AnnotationOptionsColorPickerType,
+    ChannelTextPosition,
+    Constructor,
+    LineTextAlignment,
+    LineTextPosition,
+} from './annotationTypes';
 
 const {
     BOOLEAN,
@@ -54,10 +61,10 @@ export class LineTextProperties extends Font(BaseProperties) {
     label: string = '';
 
     @Validate(UNION(['top', 'center', 'bottom']), { optional: true })
-    position?: 'top' | 'center' | 'bottom' = 'top';
+    position?: LineTextPosition = 'top';
 
     @Validate(UNION(['left', 'center', 'right']), { optional: true })
-    alignment?: 'left' | 'center' | 'right' = 'left';
+    alignment?: LineTextAlignment = 'left';
 }
 
 export class ChannelTextProperties extends Font(BaseProperties) {
@@ -65,10 +72,10 @@ export class ChannelTextProperties extends Font(BaseProperties) {
     label: string = '';
 
     @Validate(UNION(['top', 'inside', 'bottom']), { optional: true })
-    position?: 'top' | 'inside' | 'bottom';
+    position?: ChannelTextPosition;
 
     @Validate(UNION(['left', 'center', 'right']), { optional: true })
-    alignment?: 'left' | 'center' | 'right';
+    alignment?: LineTextAlignment;
 }
 
 export interface AxisLabelFormatterParams {

@@ -1,34 +1,14 @@
-import type {
-    AnnotationLineStyle,
-    AnnotationOptionsColorPickerType,
-    ChannelAnnotationType,
-    LineAnnotationType,
-    TextualAnnotationType,
-} from '../annotationTypes';
-import type {
-    AnnotationProperties,
-    ChannelPropertiesType,
-    LinePropertiesType,
-    TextualPropertiesType,
-} from '../annotationsSuperTypes';
-import { hasIconColor } from './has';
+import type { AnnotationLineStyle, AnnotationOptionsColorPickerType } from '../annotationTypes';
+import type { AnnotationProperties, ChannelPropertiesType, LinePropertiesType } from '../annotationsSuperTypes';
+import { hasIconColor, hasLineText } from './has';
 import { getComputedLineDash, getLineStyle } from './line';
 
-export function setFontSize(datum: TextualPropertiesType, annotationType: TextualAnnotationType, fontSize: number) {
-    if (datum.type === annotationType && 'fontSize' in datum) {
-        datum.fontSize = fontSize;
-    }
+export function setFontSize(datum: AnnotationProperties, fontSize: number) {
+    if ('fontSize' in datum) datum.fontSize = fontSize;
+    if (hasLineText(datum)) datum.text.fontSize = fontSize;
 }
 
-export function setLineStyle(
-    datum: LinePropertiesType | ChannelPropertiesType,
-    annotationType: LineAnnotationType | ChannelAnnotationType,
-    style?: AnnotationLineStyle
-) {
-    if (!(datum.type === annotationType)) {
-        return;
-    }
-
+export function setLineStyle(datum: LinePropertiesType | ChannelPropertiesType, style?: AnnotationLineStyle) {
     const strokeWidth = style?.strokeWidth ?? datum.strokeWidth ?? 1;
     const lineType = style?.type ?? datum.lineStyle;
     const lineStyle = lineType ?? getLineStyle(datum.lineDash, lineType);
@@ -79,6 +59,7 @@ export function setColor(
 
         case `text-color`: {
             if ('color' in datum) datum.color = colorOpacity;
+            if (hasLineText(datum)) datum.text.color = color;
             break;
         }
     }

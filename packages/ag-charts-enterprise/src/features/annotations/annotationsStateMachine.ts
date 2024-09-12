@@ -18,7 +18,7 @@ import type {
 } from './settings-dialog/settingsDialog';
 import { guardCancelAndExit, guardSaveAndExit } from './states/textualStateUtils';
 import { hasLineStyle, hasLineText } from './utils/has';
-import { setColor, setFontSize, setLineStyle } from './utils/styles';
+import { setColor, setLineStyle } from './utils/styles';
 import { isChannelType, isTextType } from './utils/types';
 
 const { StateMachine } = _ModuleSupport;
@@ -52,7 +52,6 @@ type AnnotationEvent =
     | 'lineProps'
     | 'lineStyle'
     | 'lineText'
-    | 'lineTextColor'
     | 'updateTextInputBBox'
     // Toolbar events
     | 'toolbarPressSettings'
@@ -184,11 +183,14 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
         const actionFontSize = (fontSize: number) => {
             const datum = ctx.datum(this.active!);
             const node = ctx.node(this.active!);
-            if (!datum || !node || !isTextType(datum)) return;
+            if (!datum || !node) return;
 
-            setFontSize(datum, datum.type, fontSize);
-
-            ctx.updateTextInputFontSize(fontSize);
+            if (isTextType(datum)) {
+                datum.fontSize = fontSize;
+                ctx.updateTextInputFontSize(fontSize);
+            } else if (hasLineText(datum)) {
+                datum.text.fontSize = fontSize;
+            }
 
             ctx.update();
         };
@@ -198,8 +200,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             const node = ctx.node(this.active!);
             if (!datum || !node || !hasLineStyle(datum)) return;
 
-            setLineStyle(datum, datum.type, lineStyle);
-
+            setLineStyle(datum, lineStyle);
             ctx.update();
         };
 
@@ -359,21 +360,6 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                             props.position = 'inside';
                         }
                         datum.text.set(props);
-                        ctx.update();
-                        ctx.recordAction(
-                            `Change ${datum.type} text ${Object.entries(props)
-                                .map(([key, value]) => `${key} to ${value}`)
-                                .join(', ')}`
-                        );
-                    },
-                },
-
-                lineTextColor: {
-                    guard: guardActive,
-                    action: (color: string) => {
-                        const datum = getTypedDatum(ctx.datum(this.active!));
-                        if (!hasLineText(datum)) return;
-                        datum.text.set({ color });
                         ctx.update();
                     },
                 },
