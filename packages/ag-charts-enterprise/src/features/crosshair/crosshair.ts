@@ -69,12 +69,16 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         const seriesRegion = ctx.regionManager.getRegion('series')!;
         const mouseMoveStates = InteractionState.Default | InteractionState.Annotations;
 
+        this.hideCrosshairs();
+
         this.destroyFns.push(
             ctx.scene.attachNode(this.crosshairGroup),
             seriesRegion.addListener('hover', (event) => this.onMouseMove(event), mouseMoveStates),
             seriesRegion.addListener('drag', (event) => this.onMouseMove(event), InteractionState.Annotations),
             seriesRegion.addListener('wheel', () => this.onMouseOut(), InteractionState.Default),
             seriesRegion.addListener('leave', () => this.onMouseOut(), InteractionState.Default),
+            ctx.zoomManager.addListener('zoom-pan-start', () => this.onMouseOut()),
+            ctx.zoomManager.addListener('zoom-change', () => this.onMouseOut()),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
             ctx.layoutManager.addListener('layout:complete', (event) => this.layout(event)),
             () => Object.entries(this.labels).forEach(([_, label]) => label.destroy())
@@ -82,8 +86,6 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     private layout({ series: { rect, paddedRect, visible }, axes }: _ModuleSupport.LayoutCompleteEvent) {
-        this.hideCrosshairs();
-
         if (!(visible && axes && this.enabled)) {
             return;
         }
@@ -158,10 +160,10 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             line.lineDash = lineDash;
             line.lineDashOffset = lineDashOffset;
 
-            line.y1 = 0;
-            line.y2 = isVertical ? bounds.height : 0;
-            line.x1 = 0;
-            line.x2 = isVertical ? 0 : bounds.width;
+            line.y1 ||= 0;
+            line.y2 ||= isVertical ? bounds.height : 0;
+            line.x1 ||= 0;
+            line.x2 ||= isVertical ? 0 : bounds.width;
         });
     }
 

@@ -634,7 +634,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const {
             panner,
             seriesRect,
-            ctx: { tooltipManager, updateService, zoomManager },
+            ctx: { tooltipManager, zoomManager },
         } = this;
 
         if (!seriesRect) return;
@@ -646,7 +646,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
 
         tooltipManager.updateTooltip(TOOLTIP_ID);
-        updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
     private updateAxes(axes?: Array<_ModuleSupport.AxisLayout>) {
