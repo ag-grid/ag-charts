@@ -8,8 +8,9 @@ const fs = require('fs');
 
 const GRID_ENV_VAR_NAME = 'PUBLIC_GRID_VERSION';
 
-// NOTE: Only production files use the grid version
+// NOTE: Only archive and production files use the grid version
 const ENV_FILES = [
+    './packages/ag-charts-website/.env.build.archive',
     './packages/ag-charts-website/.env.build.production',
     './packages/ag-charts-website/.env.preview.production',
 ];
