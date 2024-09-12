@@ -8,10 +8,12 @@ const {
     createButton,
     createCheckbox,
     createElement,
+    createElementId,
     createIcon,
     createSelect,
     createTextArea,
     initRovingTabIndex,
+    getWindow,
     mapValues,
 } = _ModuleSupport;
 const { Vec2 } = _Util;
@@ -43,6 +45,7 @@ interface ColorPickerOptions {
     label: string;
     value: string | undefined;
     onChange: (colorOpacity: string, color: string, opacity: number) => void;
+    onChangeHide: () => void;
 }
 
 /**
@@ -59,26 +62,16 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     private colorPickerAnchorElement?: HTMLElement;
     private dragStartState?: { client: _Util.Vec2; position: _Util.Vec2 };
     private seriesRect?: _Scene.BBox;
-    private readonly escapeHandler: (event: KeyboardEvent) => unknown;
+    private initialFocus?: HTMLElement;
 
     constructor(ctx: _ModuleSupport.ModuleContext, id: string) {
         super(ctx, id);
         this.destroyFns.push(ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)));
-        this.escapeHandler = (event: KeyboardEvent) => {
-            if (
-                !event.altKey &&
-                !event.ctrlKey &&
-                !event.ctrlKey &&
-                !event.metaKey &&
-                !event.isComposing &&
-                event.key === 'Escape'
-            ) {
-                this.hide();
-            }
-        };
     }
 
     protected override showWithChildren(children: Array<HTMLElement>, options: Options) {
+        options.initialFocus ??= this.initialFocus;
+
         const popover = super.showWithChildren(children, options);
         popover.classList.add('ag-charts-dialog');
         popover.setAttribute('role', 'dialog');
@@ -87,9 +80,10 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             if ((event.target as any).classList?.contains('ag-charts-dialog__color-picker-button')) return;
             this.colorPicker.hide();
         });
+        popover.addEventListener('keydown', this.onKeyDown.bind(this));
 
         // Give the dialog's dimensions a chance to be calculated before positioning
-        _ModuleSupport.getWindow().requestAnimationFrame(() => this.reposition());
+        getWindow().requestAnimationFrame(() => this.reposition());
 
         this.colorPicker.attachTo(this);
 
@@ -108,21 +102,32 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     /**************
      * Containers *
      **************/
-    protected createTabs<T extends Record<string, { label: string; content: HTMLElement; onShow?: () => void }>>(
+    protected createTabs<T extends Record<string, { label: string; panel: HTMLElement; onShow?: () => void }>>(
         initial: keyof T,
         tabs: T
     ) {
         const element = createElement('div', 'ag-charts-dialog__tabs');
 
+        const tabButtonIds = mapValues(tabs, () => createElementId('ag-charts-dialog__tab'));
+        const tabPanelIds = mapValues(tabs, () => createElementId('ag-charts-dialog__tab-panel'));
+
+        for (const [key, tab] of Object.entries(tabs)) {
+            tab.panel.id = tabPanelIds[key];
+            tab.panel.role = 'tabpanel';
+            tab.panel.setAttribute('aria-labelledby', tabButtonIds[key]);
+        }
+
         const onPressTab = (active: keyof T) => {
             for (const [key, tab] of Object.entries(tabs)) {
-                tab.content.classList.toggle('ag-charts-dialog__tab-content--active', key === active);
+                tab.panel.classList.toggle('ag-charts-dialog__tab-panel--active', key === active);
                 tabButtons[key].classList.toggle('ag-charts-dialog__tab-button--active', key === active);
                 if (key === active) tab.onShow?.();
             }
         };
 
         const header = createElement('div', 'ag-charts-dialog__header');
+        header.role = 'tablist';
+
         const dragHandle = this.createHeaderDragHandle();
         const tabButtons = mapValues(tabs, (tab, key) =>
             createButton(
@@ -130,23 +135,32 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                     label: this.ctx.localeManager.t(tab.label),
                     onPress: () => onPressTab(key),
                 },
-                'ag-charts-dialog__tab-button'
+                {
+                    id: tabButtonIds[key],
+                    className: 'ag-charts-dialog__tab-button',
+                    role: 'tab',
+                    ariaControls: tabPanelIds[key],
+                }
             )
         );
         const closeButton = this.createHeaderCloseButton();
 
         header.append(dragHandle, ...Object.values(tabButtons), closeButton);
-        element.append(header, ...Object.values(tabs).map((t) => t.content));
+        element.append(header, ...Object.values(tabs).map((t) => t.panel));
 
-        tabs[initial].content.classList.add('ag-charts-dialog__tab-content--active');
+        tabs[initial].panel.classList.add('ag-charts-dialog__tab-panel--active');
         tabs[initial].onShow?.();
         tabButtons[initial].classList.add('ag-charts-dialog__tab-button--active');
+
+        initRovingTabIndex({ orientation: 'horizontal', buttons: Object.values(tabButtons) });
+
+        this.initialFocus = tabButtons[initial];
 
         return element;
     }
 
-    protected createTabContent() {
-        return createElement('div', 'ag-charts-dialog__tab-content');
+    protected createTabPanel() {
+        return createElement('div', 'ag-charts-dialog__tab-panel');
     }
 
     /**********
@@ -194,8 +208,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                 buttonEl.classList.add(activeClass);
             }
 
-            buttonEl.addEventListener('keydown', this.escapeHandler);
-
             group.appendChild(buttonEl);
             buttons.push(buttonEl);
         }
@@ -212,7 +224,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             { value, options, onChange },
             { className: 'ag-charts-dialog__select', ariaLabel: altTextT, title: altTextT }
         );
-        select.addEventListener('keydown', this.escapeHandler);
         group.append(select);
 
         return group;
@@ -221,7 +232,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     protected createTextArea({ placeholder, value, onChange }: TextAreaOptions) {
         const placeholderT = placeholder ? this.ctx.localeManager.t(placeholder) : undefined;
         const textArea = createTextArea({ value, onChange }, { placeholder: placeholderT });
-        textArea.addEventListener('keydown', this.escapeHandler);
 
         return textArea;
     }
@@ -231,7 +241,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const group = this.createInputGroup(label, { for: id });
 
         const checkbox = createCheckbox({ checked, onChange }, 'ag-charts-dialog__checkbox');
-        checkbox.addEventListener('keydown', this.escapeHandler);
         checkbox.id = id;
 
         group.append(checkbox);
@@ -239,7 +248,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return group;
     }
 
-    protected createColorPicker({ value, label, altText, onChange }: ColorPickerOptions) {
+    protected createColorPicker({ value, label, altText, onChange, onChangeHide }: ColorPickerOptions) {
         const group = this.createInputGroup(label);
 
         const altTextT = this.ctx.localeManager.t(altText);
@@ -261,6 +270,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                             colorEl.style.setProperty('--color', colorOpacity);
                             onChange(colorOpacity, color, opacity);
                         },
+                        onChangeHide,
                     });
                 },
             },
@@ -271,8 +281,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                 tabIndex: 0,
             }
         );
-
-        colorEl.addEventListener('keydown', this.escapeHandler);
 
         if (value) colorEl.style.setProperty('--color', value);
         let defaultColor = value;
@@ -303,7 +311,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             { label: createIcon('close'), onPress: () => this.hide() },
             'ag-charts-dialog__close-button'
         );
-        closeButton.addEventListener('keydown', this.escapeHandler);
 
         return closeButton;
     }
@@ -323,6 +330,11 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
         this.seriesRect = event.series.paddedRect;
         this.reposition();
+    }
+
+    private onKeyDown(event: KeyboardEvent) {
+        if (event.altKey || event.ctrlKey || event.metaKey || event.isComposing || event.key !== 'Escape') return;
+        this.hide();
     }
 
     private onDragStart(dragHandle: HTMLDivElement, event: MouseEvent) {

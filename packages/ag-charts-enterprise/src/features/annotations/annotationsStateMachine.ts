@@ -52,6 +52,7 @@ type AnnotationEvent =
     | 'lineProps'
     | 'lineStyle'
     | 'lineText'
+    | 'lineTextColor'
     | 'updateTextInputBBox'
     // Toolbar events
     | 'toolbarPressSettings'
@@ -245,6 +246,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     guard: guardActive,
                     action: () => {
                         this.copied = ctx.copy(this.active!);
+                        ctx.recordAction('Copy annotation');
                     },
                 },
 
@@ -253,6 +255,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     action: () => {
                         this.copied = ctx.copy(this.active!);
                         deleteDatum();
+                        ctx.recordAction('Cut annotation');
                     },
                 },
 
@@ -260,6 +263,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     guard: guardCopied,
                     action: () => {
                         ctx.paste(this.copied!);
+                        ctx.recordAction('Paste annotation');
                     },
                 },
 
@@ -333,6 +337,11 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                         const datum = getTypedDatum(ctx.datum(this.active!));
                         datum?.set(props);
                         ctx.update();
+                        ctx.recordAction(
+                            `Change ${datum?.type} ${Object.entries(props)
+                                .map(([key, value]) => `${key} to ${value}`)
+                                .join(', ')}`
+                        );
                     },
                 },
 
@@ -351,7 +360,21 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                         }
                         datum.text.set(props);
                         ctx.update();
-                        ctx.recordAction(`Update ${datum.type} text`);
+                        ctx.recordAction(
+                            `Change ${datum.type} text ${Object.entries(props)
+                                .map(([key, value]) => `${key} to ${value}`)
+                                .join(', ')}`
+                        );
+                    },
+                },
+
+                lineTextColor: {
+                    guard: guardActive,
+                    action: (color: string) => {
+                        const datum = getTypedDatum(ctx.datum(this.active!));
+                        if (!hasLineText(datum)) return;
+                        datum.text.set({ color });
+                        ctx.update();
                     },
                 },
 
@@ -362,8 +385,8 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 toolbarPressSettings: {
                     guard: guardActiveHasLineText,
-                    action: (lastFocus: HTMLElement | undefined) => {
-                        ctx.showAnnotationSettings(this.active!, lastFocus);
+                    action: (sourceEvent: Event) => {
+                        ctx.showAnnotationSettings(this.active!, sourceEvent);
                     },
                 },
 
