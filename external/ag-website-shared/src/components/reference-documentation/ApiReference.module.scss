@@ -149,6 +149,9 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 
+    display: flex;
+    align-items: center;
+    gap: $spacing-size-2;
     position: relative;
     padding-right: $spacing-size-2;
     font-family: var(--text-monospace-font-family);
@@ -162,6 +165,8 @@
     }
 
     .linkIcon {
+        margin-left: 0;
+
         &:hover {
             opacity: 1;
         }

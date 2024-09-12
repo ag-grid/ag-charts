@@ -21,8 +21,11 @@ export function PropertyTitle({ name, anchorId, prefixPath, required }: Property
 
     return (
         <div className={classnames(styles.name, 'side-menu-exclude')}>
-            <PropertyNamePrefix prefixPath={prefixPath} />
-            <PropertyName isRequired={required}>{name}</PropertyName>
+            <span>
+                <PropertyNamePrefix prefixPath={prefixPath} />
+                <PropertyName>{name}</PropertyName>
+            </span>
+            {required && <span className={styles.required}>required</span>}
             <LinkIcon
                 href={`#${anchorId}`}
                 onClick={scrollToAnchor}
@@ -156,10 +159,9 @@ export function PropertyType({
 function PropertyName({
     as: Component = 'span',
     splitRegex = /(?=[A-Z]|\s+\|\s+)/,
-    isRequired,
     children,
     ...props
-}: AllHTMLAttributes<Element> & { as?: string; isRequired?: boolean; splitRegex?: RegExp }) {
+}: AllHTMLAttributes<Element> & { as?: string; splitRegex?: RegExp }) {
     if (typeof children !== 'string') {
         // eslint-disable-next-line no-console
         console.warn('PropertyName children must be of type string', children);
@@ -169,7 +171,6 @@ function PropertyName({
     return (
         <>
             <Component {...props}>{wbrInject(children, splitRegex)}</Component>
-            {isRequired && <span className={styles.required}>required</span>}
         </>
     );
 }
