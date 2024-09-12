@@ -15,13 +15,8 @@ const ENV_FILES = [
     './packages/ag-charts-website/.env.preview.production',
 ];
 
-function updateEnvFiles() {
-    const newGridVersion = process.argv[2];
+function updateEnvFiles(newGridVersion) {
     const updatedFiles = [];
-
-    if (!newGridVersion) {
-        throw new Error('No grid version specified');
-    }
 
     for (const envFile of ENV_FILES) {
         const content = fs
@@ -42,13 +37,15 @@ function updateEnvFiles() {
         fs.writeFileSync(envFile, content);
     }
 
-    return {
-        updatedFiles,
-        newGridVersion,
-    };
+    return updatedFiles;
 }
 
-const { newGridVersion, updatedFiles } = updateEnvFiles();
+const newGridVersion = process.argv[2];
+if (!newGridVersion) {
+    throw new Error('No grid version specified');
+}
+
+const updatedFiles = updateEnvFiles(newGridVersion);
 
 if (updatedFiles.length) {
     console.log(`Grid version ${newGridVersion} updated (${updatedFiles.length}) in ${updatedFiles}`);
