@@ -269,7 +269,7 @@ export class LinearGaugeSeriesProperties extends SeriesProperties<AgLinearGaugeO
     readonly bar = new LinearGaugeBarProperties();
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgLinearGaugeItemStylerParams<unknown>, AgLinearGaugeStyle>;
+    itemStyler?: Styler<AgLinearGaugeItemStylerParams, AgLinearGaugeStyle>;
 
     @Validate(OBJECT)
     readonly label = new LinearGaugeLabelProperties();
@@ -278,5 +278,5 @@ export class LinearGaugeSeriesProperties extends SeriesProperties<AgLinearGaugeO
     readonly secondaryLabel = new LinearGaugeSecondaryLabelProperties();
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgLinearGaugeTooltipRendererParams<any>>();
+    readonly tooltip = new SeriesTooltip<AgLinearGaugeTooltipRendererParams>();
 }
