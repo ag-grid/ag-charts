@@ -138,35 +138,39 @@ export abstract class AngleAxis<
         const points = [];
         if (shape === 'circle') {
             if (isFullCircle) {
-                points.push({ x: radius, y: 0, moveTo: true });
-                points.push({
-                    x: 0,
-                    y: 0,
-                    radius,
-                    startAngle: 0,
-                    endAngle: 2 * Math.PI,
-                    arc: true,
-                    moveTo: false,
-                });
+                points.push(
+                    { x: radius, y: 0, moveTo: true },
+                    {
+                        x: 0,
+                        y: 0,
+                        radius,
+                        startAngle: 0,
+                        endAngle: 2 * Math.PI,
+                        arc: true,
+                        moveTo: false,
+                    }
+                );
             } else {
-                points.push({
-                    x: radius * Math.cos(startAngle),
-                    y: radius * Math.sin(startAngle),
-                    moveTo: true,
-                });
-                points.push({
-                    x: 0,
-                    y: 0,
-                    radius,
-                    startAngle: normalizeAngle360(startAngle),
-                    endAngle: normalizeAngle360(endAngle),
-                    arc: true,
-                    moveTo: false,
-                });
+                points.push(
+                    {
+                        x: radius * Math.cos(startAngle),
+                        y: radius * Math.sin(startAngle),
+                        moveTo: true,
+                    },
+                    {
+                        x: 0,
+                        y: 0,
+                        radius,
+                        startAngle: normalizeAngle360(startAngle),
+                        endAngle: normalizeAngle360(endAngle),
+                        arc: true,
+                        moveTo: false,
+                    }
+                );
             }
         } else if (shape === 'polygon') {
-            const angles = (scale.ticks?.() ?? []).map((value) => scale.convert(value));
-            if (angles.length > 2) {
+            const angles = scale.ticks?.().map((value) => scale.convert(value));
+            if (angles && angles.length > 2) {
                 angles.forEach((angle, i) => {
                     const x = radius * Math.cos(angle);
                     const y = radius * Math.sin(angle);
