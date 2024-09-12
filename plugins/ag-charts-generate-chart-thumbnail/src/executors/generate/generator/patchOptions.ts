@@ -8,16 +8,7 @@ export function patchOptions(
 ) {
     delete options.subtitle;
     delete options.footnote;
-    delete options.legend;
     delete options.gradientLegend;
-    if (api === 'createGauge') {
-        delete options.title;
-        delete (options as any).targets;
-        (options as any).label = {
-            ...(options as any).label,
-            fontSize: 36,
-        };
-    }
 
     options.legend = { enabled: false };
 
@@ -47,6 +38,16 @@ export function patchOptions(
     (options as any as AgCartesianChartOptions).axes?.forEach((axis) => {
         axis.title = { enabled: false };
     });
+
+    if (api === 'createGauge') {
+        delete options.title;
+        delete (options as any).targets;
+        delete options.legend;
+        (options as any).label = {
+            ...(options as any).label,
+            fontSize: 36,
+        };
+    }
 
     // The bullet series are the only other chart types with multiple examples
     // They've been designed using the old padding values, so leave as-is for now

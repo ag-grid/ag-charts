@@ -142,7 +142,7 @@ type IgnoredMiniChartSeries = 'bullet';
 type VerifyAgMiniChartSeriesOptions = Record<NonNullable<AgCartesianSeriesOptions['type']>, string>;
 
 // Verification checks for completeness/correctness.
-const __MINI_CHART_SERIES_OPTIONS = {} as Record<
+const __MINI_CHART_SERIES_OPTIONS = undefined as any as Record<
     NonNullable<AgMiniChartSeriesOptions['type']> | IgnoredMiniChartSeries,
     string
 >;

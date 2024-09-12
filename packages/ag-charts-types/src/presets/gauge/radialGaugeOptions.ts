@@ -7,8 +7,13 @@ import type {
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { Degree, MarkerShape, PixelSize, Ratio } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../../series/cartesian/commonOptions';
-import type { AgBaseSeriesThemeableOptions } from '../../series/seriesOptions';
-import type { AgGaugeCornerMode, AgGaugeScaleLabel, AgGaugeSegmentation, FillsOptions } from './commonOptions';
+import type {
+    AgBaseGaugeThemeableOptions,
+    AgGaugeCornerMode,
+    AgGaugeScaleLabel,
+    AgGaugeSegmentation,
+    FillsOptions,
+} from './commonOptions';
 
 export type AgRadialGaugeTargetPlacement = 'inside' | 'outside' | 'middle';
 
@@ -99,7 +104,7 @@ export interface AgRadialGaugeSecondaryLabelOptions<TDatum>
 
 export interface AgRadialGaugeThemeableOptions<TDatum = any>
     extends AgRadialGaugeStyle,
-        Omit<AgBaseSeriesThemeableOptions<TDatum>, 'data' | 'showInLegend'> {
+        AgBaseGaugeThemeableOptions<TDatum> {
     /** Ratio of the outer radius of the gauge. */
     outerRadius?: number;
     /** Ratio of the inner radius of the gauge. */
@@ -116,7 +121,11 @@ export interface AgRadialGaugeThemeableOptions<TDatum = any>
     segmentation?: AgGaugeSegmentation;
     /** Apply rounded corners to the gauge. */
     cornerRadius?: number;
-    /** Configuration on whether to apply `cornerRadius` only to the ends of the gauge, or each individual item within the gauge. */
+    /**
+     * Configuration on whether to apply `cornerRadius` only to the ends of the gauge, or each individual item within the gauge.
+     *
+     * Default: `container`
+     **/
     cornerMode?: AgGaugeCornerMode;
     /** Configuration for the needle. */
     needle?: AgRadialGaugeNeedleStyle;

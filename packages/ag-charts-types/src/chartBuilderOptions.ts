@@ -51,18 +51,22 @@ export type AgBaseFinancialPresetOptions = Pick<
 
 export type AgFinancialChartOptions = AgFinancialChartPresets & AgBaseFinancialPresetOptions;
 
-type AgBaseGaugePresetOptions = Pick<
+export type AgBaseGaugePresetOptions = Pick<
     AgBaseChartOptions<any>,
-    | 'container'
     | 'animation'
-    | 'width'
-    | 'height'
-    | 'minWidth'
-    | 'minHeight'
-    | 'title'
-    | 'subtitle'
+    | 'background'
+    | 'container'
+    | 'contextMenu'
     | 'footnote'
+    | 'height'
+    | 'listeners'
+    | 'locale'
+    | 'minHeight'
+    | 'minWidth'
     | 'padding'
+    | 'subtitle'
+    | 'title'
+    | 'width'
 > & {
     theme?: AgChartTheme | AgChartThemeName;
 };

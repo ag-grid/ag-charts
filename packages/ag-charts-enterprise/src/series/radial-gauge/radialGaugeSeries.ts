@@ -263,7 +263,7 @@ export class RadialGaugeSeries
         return formatLabel(value, this.axes[ChartAxisDirection.X]);
     }
 
-    private createConicGradient(fills: GaugeStopProperties[], fillMode: AgGaugeFillMode | undefined) {
+    private createConicGradient(fills: GaugeStopProperties[], fillMode: AgGaugeFillMode) {
         const { centerX, centerY, radius } = this;
         const { domain, range } = this.axes[ChartAxisDirection.X]!.scale;
         const [startAngle, endAngle] = range;

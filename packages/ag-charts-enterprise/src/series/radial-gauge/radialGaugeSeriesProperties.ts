@@ -182,8 +182,8 @@ export class RadialGaugeBarProperties extends BaseProperties {
     @Validate(OBJECT_ARRAY)
     fills = new PropertiesArray<GaugeStopProperties>(GaugeStopProperties);
 
-    @Validate(FILL_MODE, { optional: true })
-    fillMode: AgGaugeFillMode | undefined;
+    @Validate(FILL_MODE)
+    fillMode: AgGaugeFillMode = 'continuous';
 
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined;
@@ -211,8 +211,8 @@ export class RadialGaugeScaleProperties extends BaseProperties {
     @Validate(OBJECT_ARRAY)
     fills = new PropertiesArray<GaugeStopProperties>(GaugeStopProperties);
 
-    @Validate(FILL_MODE, { optional: true })
-    fillMode: AgGaugeFillMode | undefined;
+    @Validate(FILL_MODE)
+    fillMode: AgGaugeFillMode = 'continuous';
 
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined;

@@ -243,7 +243,7 @@ export class LinearGaugeSeries
         return value.toFixed(dp);
     }
 
-    private createLinearGradient(fills: GaugeStopProperties[], fillMode: AgGaugeFillMode | undefined) {
+    private createLinearGradient(fills: GaugeStopProperties[], fillMode: AgGaugeFillMode) {
         const { properties, originX, originY, horizontal } = this;
         const { thickness, defaultColorRange } = properties;
 
