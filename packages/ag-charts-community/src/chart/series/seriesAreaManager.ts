@@ -76,7 +76,7 @@ export class SeriesAreaManager extends BaseManager {
     public seriesChanged(series: Series<any, any>[]) {
         this.series = series;
         for (const manager of this.subManagers) {
-            manager.seriesChanged(series);
+            manager.seriesChanged([...series]);
         }
     }
 

@@ -98,14 +98,14 @@ export class SeriesLayerManager {
                 highlight: this.highlightRoot.appendChild(
                     new Group({
                         name: `${type}-highlight`,
-                        zIndex: Layers.SERIES_LAYER_ZINDEX,
+                        zIndex: Layers.SERIES_HIGHLIGHT_ZINDEX,
                         zIndexSubOrder: seriesConfig.getGroupZIndexSubOrder('highlight'),
                     })
                 ),
                 annotation: this.annotationRoot.appendChild(
                     new Group({
                         name: `${type}-annotation`,
-                        zIndex: Layers.SERIES_LAYER_ZINDEX,
+                        zIndex: Layers.SERIES_ANNOTATION_ZINDEX,
                         zIndexSubOrder: seriesConfig.getGroupZIndexSubOrder('annotation'),
                     })
                 ),
