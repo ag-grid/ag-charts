@@ -49,13 +49,11 @@ export function patchOptions(
         };
     }
 
-    // The bullet series are the only other chart types with multiple examples
-    // They've been designed using the old padding values, so leave as-is for now
-    if (multiple && api === 'createGauge') {
+    if (multiple) {
         options.padding = {
-            top: 0,
+            top: 5,
             right: 0,
-            bottom: 0,
+            bottom: 5,
             left: 0,
         };
     } else {

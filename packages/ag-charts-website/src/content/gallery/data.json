@@ -649,6 +649,10 @@
                     {
                         "title": "Horizontal Linear Gauge",
                         "name": "horizontal-linear-gauge"
+                    },
+                    {
+                        "title": "Bullet Chart",
+                        "name": "simple-bullet"
                     }
                 ]
             }

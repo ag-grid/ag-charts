@@ -97,16 +97,16 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const cloneOptions = { shallow: ['data'] };
         userOptions = deepClone(userOptions, cloneOptions);
 
-        if (!enterpriseModule.isEnterprise) {
-            removeUsedEnterpriseOptions(userOptions);
-        }
-
         let options = deepClone(userOptions, cloneOptions);
 
         if (this.presetType != null) {
             const presetOptions = (PRESETS as any)[this.presetType]?.(options, () => this.activeTheme) ?? options;
             this.debug('>>> AgCharts.createOrUpdate() - applying preset', options, presetOptions);
             options = presetOptions;
+        }
+
+        if (!enterpriseModule.isEnterprise) {
+            removeUsedEnterpriseOptions(options);
         }
 
         this.activeTheme = getChartTheme(options.theme);
