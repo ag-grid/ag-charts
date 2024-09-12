@@ -99,6 +99,9 @@ export default defineConfig({
     },
     integrations: [react(), markdoc(), sitemap(getSitemapConfig()), agHtaccessGen({ include: HTACCESS === 'true' })],
     redirects: {
-        '/[framework]/bullet-series': '/[framework]/linear-gauge/#bullet-series',
+        '/javascript/bullet-series': '/javascript/linear-gauge/#bullet-series',
+        '/angular/bullet-series': '/angular/linear-gauge/#bullet-series',
+        '/react/bullet-series': '/react/linear-gauge/#bullet-series',
+        '/vue/bullet-series': '/vue/linear-gauge/#bullet-series',
     },
 });
