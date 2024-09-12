@@ -12,20 +12,24 @@ interface PropertyTitleOptions {
     anchorId: string;
     prefixPath?: string[];
     required?: boolean;
+    hasChildProps?: boolean;
 }
 
 export type CollapsibleType = 'childrenProperties' | 'code' | 'none';
 
-export function PropertyTitle({ name, anchorId, prefixPath, required }: PropertyTitleOptions) {
+export function PropertyTitle({ name, anchorId, prefixPath, required, hasChildProps }: PropertyTitleOptions) {
     const scrollToAnchor = useScrollToAnchor();
 
     return (
         <div className={classnames(styles.name, 'side-menu-exclude')}>
             <span>
+                {hasChildProps && <Icon svgClasses={styles.propNameChevron} name="chevronRight" />}
                 <PropertyNamePrefix prefixPath={prefixPath} />
                 <PropertyName>{name}</PropertyName>
             </span>
+
             {required && <span className={styles.required}>required</span>}
+
             <LinkIcon
                 href={`#${anchorId}`}
                 onClick={scrollToAnchor}

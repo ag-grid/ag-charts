@@ -182,6 +182,13 @@
     }
 }
 
+.propNameChevron {
+    --icon-size: 15px;
+
+    position: relative;
+    top: -1px;
+}
+
 .parentProperties {
     font-weight: var(--parent-properties-font-weight);
     color: var(--parent-properties-color);
@@ -272,45 +279,20 @@ a.metaValue {
     }
 }
 
-.isExpanded svg {
-    transform: rotate(180deg);
+.childButton {
+    &:hover svg {
+        fill: var(--color-link-hover) !important;
+    }
+
+    &.isExpanded svg {
+        transform: rotate(90deg);
+    }
 }
 
-.childButton {
-    color: color-mix(in srgb, var(--color-fg-secondary), var(--color-bg-primary) 20%);
-    font-weight: var(--text-regular);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: $spacing-size-2;
+.childChevron {
+    --icon-size: 15px !important;
 
-    .childButtonName {
-        font-family: var(--text-monospace-font-family);
-        font-weight: var(--text-semibold);
-        font-size: var(--text-fs-sm);
-    }
-
-    &:hover {
-        color: var(--color-text-primary);
-    }
-
-    &::before {
-        content: '';
-        display: inline-block;
-        width: 0px;
-        height: 0px;
-        border-style: solid;
-        border-width: 0 6px 8px 6px;
-        border-color: transparent transparent color-mix(in srgb, var(--color-fg-secondary), var(--color-bg-primary) 50%)
-            transparent;
-        transform: rotate(90deg);
-        transition: transform 0.25s ease-in-out;
-    }
-
-    &.isExpanded::before {
-        transform: rotate(180deg);
-        transition: transform 0.25s ease-in-out;
-    }
+    fill: var(--color-link) !important;
 }
 
 button.seeMore {

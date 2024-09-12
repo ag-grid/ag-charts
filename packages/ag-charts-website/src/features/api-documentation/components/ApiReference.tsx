@@ -110,15 +110,14 @@ export function ChildPropertiesButton({
 }) {
     return (
         <button
-            className={classnames(styles.childButton, 'button-style-none', {
+            className={classnames(styles.childButton, 'button-as-link', {
                 [styles.isExpanded]: isExpanded,
             })}
             onClick={onClick}
             aria-label={`See child properties of ${name}`}
         >
-            <span>
-                See child properties of <span className={styles.childButtonName}>{name}</span>
-            </span>
+            <Icon svgClasses={styles.childChevron} name="chevronRight" />
+            <span>See child properties</span>
         </button>
     );
 }
@@ -257,6 +256,7 @@ function ApiReferenceRow({
     const memberType = normalizeType(member.type);
     const additionalDetails = useMemberAdditionalDetails(member);
     const collapsibleType = getCollapsibleType({ additionalDetails, nestedPath });
+    const hasChildProps = collapsibleType === 'childrenProperties';
 
     return (
         <div
@@ -274,6 +274,7 @@ function ApiReferenceRow({
                     anchorId={anchorId}
                     prefixPath={prefixPath}
                     required={!config.hideRequired && !member.optional}
+                    hasChildProps={hasChildProps}
                 />
                 <PropertyType
                     name={memberName}
@@ -289,7 +290,7 @@ function ApiReferenceRow({
                     <Markdown remarkPlugins={[remarkBreaks]} urlTransform={(url: string) => urlWithBaseUrl(url)}>
                         {member.docs?.join('\n')}
                     </Markdown>
-                    {collapsibleType === 'childrenProperties' && (
+                    {hasChildProps && (
                         <ChildPropertiesButton name={memberName} isExpanded={isExpanded} onClick={onDetailsToggle} />
                     )}
                 </div>
