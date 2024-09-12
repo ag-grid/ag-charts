@@ -53,9 +53,19 @@ import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, plotPath, 
 
 const CROSS_FILTER_LINE_STROKE_OPACITY_FACTOR = 0.25;
 
-type LineAnimationData = CartesianAnimationData<Group, LineNodeDatum>;
+interface LineSeriesNodeDataContext extends CartesianSeriesNodeDataContext<LineNodeDatum> {
+    crossFiltering: boolean;
+}
 
-export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, LineNodeDatum> {
+type LineAnimationData = CartesianAnimationData<Group, LineNodeDatum, LineNodeDatum, LineSeriesNodeDataContext>;
+
+export class LineSeries extends CartesianSeries<
+    Group,
+    LineSeriesProperties,
+    LineNodeDatum,
+    LineNodeDatum,
+    LineSeriesNodeDataContext
+> {
     static readonly className = 'LineSeries';
     static readonly type = 'line' as const;
 
@@ -235,6 +245,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         const yEndIdx = stacked ? dataModel.resolveProcessedDataIndexById(this, `yValueEnd`) : undefined;
 
         let moveTo = true;
+        let crossFiltering = false;
         // let nextPoint: UngroupedDataItem<any, any> | undefined;
         processedData.data?.forEach(({ datum, values }) => {
             const xDatum = values[xIdx];
@@ -255,7 +266,10 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
 
             const y = yScale.convert(yCumulativeDatum) + yOffset;
 
-            const selected = ySelectionIdx != null ? values[ySelectionIdx] !== 0 : undefined;
+            const selected = ySelectionIdx != null ? values[ySelectionIdx] === yDatum : undefined;
+            if (selected === false) {
+                crossFiltering = true;
+            }
 
             const labelText = this.getLabelText(
                 label,
@@ -300,6 +314,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             labelData: nodeData,
             scales: this.calculateScaling(),
             visible: this.visible,
+            crossFiltering,
         };
     }
 
@@ -320,14 +335,13 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         visible: boolean;
         animationEnabled: boolean;
     }) {
-        const { yFilterKey } = this.properties;
         const {
             paths: [lineNode],
             opacity,
             visible,
             animationEnabled,
         } = opts;
-        const crossFiltering = yFilterKey != null;
+        const crossFiltering = this.contextNodeData?.crossFiltering === true;
 
         lineNode.setProperties({
             fill: undefined,
