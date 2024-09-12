@@ -29,7 +29,7 @@ import type { AnnotationScene as AnnotationSceneNode } from './scenes/annotation
 import type { TextProperties } from './text/textProperties';
 import type { TextScene } from './text/textScene';
 
-export type ShapePropertyType = ArrowUpProperties | ArrowDownProperties;
+export type ShapePropertiesType = ArrowUpProperties | ArrowDownProperties;
 export type TextualPropertiesType = CalloutProperties | CommentProperties | NoteProperties | TextProperties;
 export type LinePropertiesType = LineProperties | HorizontalLineProperties | VerticalLineProperties | ArrowProperties;
 export type ChannelPropertiesType = ParallelChannelProperties | DisjointChannelProperties;
@@ -38,7 +38,7 @@ export type AnnotationProperties =
     | LinePropertiesType
     | ChannelPropertiesType
     | TextualPropertiesType
-    | ShapePropertyType;
+    | ShapePropertiesType;
 
 export type AnnotationScene =
     // Lines
