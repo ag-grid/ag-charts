@@ -370,6 +370,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                         width: datum.width,
                     },
                     text: datum.text,
+                    placeholderText: datum.placeholderText,
                     onChange: (_text, bbox) => {
                         this.state.transition('updateTextInputBBox', bbox);
                     },
@@ -563,6 +564,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (applyDefaults) {
             this.defaults.applyDefaults(datum);
         }
+
+        if ('setLocaleManager' in datum) datum.setLocaleManager(this.ctx.localeManager);
 
         this.resetToolbarButtonStates();
 

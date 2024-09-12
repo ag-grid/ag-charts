@@ -187,6 +187,17 @@ function Lockable<T extends Constructor>(Parent: T) {
     return LockableInternal;
 }
 
+export function Localisable<T extends Constructor>(Parent: T) {
+    class LocalisableInternal extends Parent {
+        localeManager?: _ModuleSupport.ModuleContext['localeManager'];
+
+        setLocaleManager(localeManager: _ModuleSupport.ModuleContext['localeManager']) {
+            this.localeManager = localeManager;
+        }
+    }
+    return LocalisableInternal;
+}
+
 /******************
  * Generic mixins *
  ******************/
