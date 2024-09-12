@@ -6,6 +6,8 @@ BRANCH=$1
 RELEASE=$(echo "$1" | sed 's/^[a-zA-Z]*//')
 echo "Preparing BRANCH branch ${BRANCH}"
 
+SKIP_PROMPT=${2:-prompt} # optional
+
 git checkout -b ${BRANCH}
 ./tools/bump-versions.sh ${RELEASE}
 node ./tools/update-release-info.js
@@ -16,11 +18,13 @@ node ./tools/readme/sync-readme.js
 git commit -a -m "BRANCH prep for ${NEW_VERSION}"
 git tag latest-beta-version -f
 
-read -p "Ready to push to ${BRANCH}? " -n 1 -r
-if [[ $REPLY =~ ^[Yy]$ ]] ; then
-    git push -f origin ${BRANCH} latest-beta-version
-else
-    echo
-    echo "Run this command when ready:"
-    echo "  git push -f origin ${BRANCH} latest-beta-version"
+if [ "$SKIP_PROMPT" != "skipPrompt" ]; then
+    read -p "Ready to push to ${BRANCH}? " -n 1 -r
+    if [[ $REPLY =~ ^[Yy]$ ]] ; then
+        git push -f origin ${BRANCH} latest-beta-version
+    else
+        echo
+        echo "Run this command when ready:"
+        echo "  git push -f origin ${BRANCH} latest-beta-version"
+    fi
 fi
