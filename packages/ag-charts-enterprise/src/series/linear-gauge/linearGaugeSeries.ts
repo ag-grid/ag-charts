@@ -204,7 +204,7 @@ export class LinearGaugeSeries
             },
         });
 
-        this.scaleGroup.pointerEvents = PointerEvents.None;
+        this.itemGroup.pointerEvents = PointerEvents.None;
         this.itemTargetLabelGroup.pointerEvents = PointerEvents.None;
         // this.itemLabelGroup.pointerEvents = PointerEvents.None;
     }
@@ -464,7 +464,7 @@ export class LinearGaugeSeries
         const cornersOnAllItems = cornerMode === 'item';
 
         const maxTicks = Math.ceil(mainAxisSize);
-        let segments = segmentation.getSegments(mainAxisScale, maxTicks);
+        let segments = segmentation.interval.getSegments(mainAxisScale, maxTicks);
 
         const barFill = bar.fill ?? this.createLinearGradient(bar.fills, bar.fillMode);
         const scaleFill =
@@ -473,6 +473,10 @@ export class LinearGaugeSeries
             this.createLinearGradient(scale.fills, scale.fillMode);
 
         if (segments == null && cornersOnAllItems) {
+            const segmentStart = Math.min(...domain);
+            const segmentEnd = Math.max(...domain);
+            const datum = { value, segmentStart, segmentEnd };
+
             if (bar.enabled) {
                 const barAppliedCornerRadius = Math.min(cornerRadius, barThickness / 2, mainAxisSize / 2);
                 const barCornerInset = barAppliedCornerRadius * (mainAxis.isReversed() ? -1 : 1);
@@ -483,7 +487,7 @@ export class LinearGaugeSeries
                 nodeData.push({
                     series: this,
                     itemId: `value`,
-                    datum: value,
+                    datum,
                     type: NodeDataType.Node,
                     x0: originX + x0 - barCornerXInset - barXInset,
                     y0: originY + y0 - barCornerYInset - barYInset,
@@ -512,7 +516,7 @@ export class LinearGaugeSeries
             scaleData.push({
                 series: this,
                 itemId: `scale`,
-                datum: value,
+                datum,
                 type: NodeDataType.Node,
                 x0: originX + x0 - scaleCornerXInset,
                 y0: originY + y0 - scaleCornerYInset,
@@ -531,7 +535,7 @@ export class LinearGaugeSeries
                 verticalInset,
             });
         } else {
-            if (segmentation.spacing == null || segments == null) {
+            if (segmentation.spacing === 0 || segments == null) {
                 segments = domain;
             }
 
@@ -541,14 +545,15 @@ export class LinearGaugeSeries
             const clipY1 = originY + containerY + barYInset;
 
             for (let i = 0; i < segments.length - 1; i += 1) {
-                const startValue = segments[i + 0];
-                const endValue = segments[i + 1];
+                const segmentStart = segments[i + 0];
+                const segmentEnd = segments[i + 1];
+                const datum = { value, segmentStart, segmentEnd };
 
                 const isStart = i === 0;
                 const isEnd = i === segments.length - 2;
 
-                const itemStart = mainAxisScale.convert(startValue);
-                const itemEnd = mainAxisScale.convert(endValue);
+                const itemStart = mainAxisScale.convert(segmentStart);
+                const itemEnd = mainAxisScale.convert(segmentEnd);
 
                 const startCornerRadius = cornersOnAllItems || isStart ? cornerRadius : 0;
                 const endCornerRadius = cornersOnAllItems || isEnd ? cornerRadius : 0;
@@ -561,7 +566,7 @@ export class LinearGaugeSeries
                     nodeData.push({
                         series: this,
                         itemId: `value-${i}`,
-                        datum: value,
+                        datum,
                         type: NodeDataType.Node,
                         x0: originX + (horizontal ? itemStart : x0),
                         y0: originY + (horizontal ? y0 : itemStart),
@@ -584,7 +589,7 @@ export class LinearGaugeSeries
                 scaleData.push({
                     series: this,
                     itemId: `scale-${i}`,
-                    datum: value,
+                    datum,
                     type: NodeDataType.Node,
                     x0: originX + (horizontal ? itemStart : x0),
                     y0: originY + (horizontal ? y0 : itemStart),
@@ -667,7 +672,7 @@ export class LinearGaugeSeries
                 series: this,
                 itemId: `target-${i}`,
                 midPoint: targetPoint,
-                datum: targetValue,
+                datum: { value: targetValue },
                 type: NodeDataType.Target,
                 value: targetValue,
                 text,
@@ -1056,15 +1061,23 @@ export class LinearGaugeSeries
         return [];
     }
 
-    private readonly nodeDatum: any = { series: this, datum: this };
+    private readonly nodeDatum: any = { series: this, datum: {} };
     override pickNode(
         point: _Scene.Point,
         intent: _ModuleSupport.SeriesNodePickIntent
     ): _ModuleSupport.PickResult | undefined {
         switch (intent) {
             case 'event':
-            case 'context-menu':
-                return undefined;
+            case 'context-menu': {
+                const sectorTarget = this.scaleGroup.pickNode(point.x, point.y);
+                return sectorTarget != null
+                    ? {
+                          pickMode: _ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH,
+                          match: sectorTarget.datum,
+                          distance: 0,
+                      }
+                    : undefined;
+            }
             case 'tooltip':
             case 'highlight':
             case 'highlight-tooltip': {
@@ -1075,7 +1088,11 @@ export class LinearGaugeSeries
                           match: highlightedTarget.datum,
                           distance: 0,
                       }
-                    : { pickMode: _ModuleSupport.SeriesNodePickMode.NEAREST_NODE, match: this.nodeDatum, distance: 0 };
+                    : {
+                          pickMode: _ModuleSupport.SeriesNodePickMode.NEAREST_NODE,
+                          match: this.nodeDatum,
+                          distance: 0,
+                      };
             }
         }
     }
@@ -1087,17 +1104,18 @@ export class LinearGaugeSeries
             return EMPTY_TOOLTIP_CONTENT;
         }
 
-        const datum = this.highlightDatum(nodeDatum);
+        const highlightDatum = this.highlightDatum(nodeDatum);
 
-        const value = datum?.value ?? properties.value;
-        const text = datum?.text;
+        const value = highlightDatum?.value ?? properties.value;
+        const text = highlightDatum?.text;
         const { tooltip } = properties;
 
         const title = text ?? '';
         const content = this.formatLabel(value);
 
-        const itemId = datum?.itemId;
-        const color = datum?.fill;
+        const itemId = highlightDatum?.itemId;
+        const datum = undefined;
+        const color = highlightDatum?.fill;
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: color },

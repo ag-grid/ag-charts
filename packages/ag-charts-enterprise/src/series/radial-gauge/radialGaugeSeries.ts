@@ -233,7 +233,7 @@ export class RadialGaugeSeries
             },
         });
 
-        this.scaleGroup.pointerEvents = PointerEvents.None;
+        this.itemGroup.pointerEvents = PointerEvents.None;
         this.itemTargetLabelGroup.pointerEvents = PointerEvents.None;
         this.itemLabelGroup.pointerEvents = PointerEvents.None;
     }
@@ -456,7 +456,7 @@ export class RadialGaugeSeries
         const containerEndAngle = angleScale.convert(value);
 
         const maxTicks = Math.ceil(normalizeAngle360Inclusive(containerEndAngle - containerStartAngle) * radius);
-        let segments = segmentation.getSegments(angleAxis.scale, maxTicks);
+        let segments = segmentation.interval.getSegments(angleAxis.scale, maxTicks);
 
         const barFill = bar.fill ?? this.createConicGradient(bar.fills, bar.fillMode);
         const scaleFill =
@@ -465,6 +465,8 @@ export class RadialGaugeSeries
             this.createConicGradient(scale.fills, scale.fillMode);
 
         if (segments == null && cornersOnAllItems) {
+            const [segmentStart, segmentEnd] = domain;
+            const datum = { value, segmentStart, segmentEnd };
             const appliedCornerRadius = Math.min(cornerRadius, (outerRadius - innerRadius) / 2);
             const angleInset = appliedCornerRadius / ((innerRadius + outerRadius) / 2);
 
@@ -472,7 +474,7 @@ export class RadialGaugeSeries
                 nodeData.push({
                     series: this,
                     itemId: `value`,
-                    datum: value,
+                    datum,
                     type: NodeDataType.Node,
                     centerX,
                     centerY,
@@ -491,7 +493,7 @@ export class RadialGaugeSeries
             scaleData.push({
                 series: this,
                 itemId: `scale`,
-                datum: value,
+                datum,
                 type: NodeDataType.Node,
                 centerX,
                 centerY,
@@ -506,25 +508,26 @@ export class RadialGaugeSeries
                 fill: scaleFill,
             });
         } else {
-            if (segmentation.spacing == null || segments == null) {
+            if (segmentation.spacing === 0 || segments == null) {
                 segments = domain;
             }
 
             for (let i = 0; i < segments.length - 1; i += 1) {
-                const startValue = segments[i + 0];
-                const endValue = segments[i + 1];
+                const segmentStart = segments[i + 0];
+                const segmentEnd = segments[i + 1];
+                const datum = { value, segmentStart, segmentEnd };
 
                 const isStart = i === 0;
                 const isEnd = i === segments.length - 2;
 
-                const itemStartAngle = angleScale.convert(startValue);
-                const itemEndAngle = angleScale.convert(endValue);
+                const itemStartAngle = angleScale.convert(segmentStart);
+                const itemEndAngle = angleScale.convert(segmentEnd);
 
                 if (bar.enabled) {
                     nodeData.push({
                         series: this,
                         itemId: `value-${i}`,
-                        datum: value,
+                        datum,
                         type: NodeDataType.Node,
                         centerX,
                         centerY,
@@ -543,7 +546,7 @@ export class RadialGaugeSeries
                 scaleData.push({
                     series: this,
                     itemId: `scale-${i}`,
-                    datum: value,
+                    datum,
                     type: NodeDataType.Node,
                     centerX,
                     centerY,
@@ -640,7 +643,7 @@ export class RadialGaugeSeries
                     x: targetRadius * Math.cos(targetAngle) + centerX,
                     y: targetRadius * Math.sin(targetAngle) + centerY,
                 },
-                datum: targetValue,
+                datum: { value: targetValue },
                 type: NodeDataType.Target,
                 value: targetValue,
                 text,
@@ -1112,15 +1115,23 @@ export class RadialGaugeSeries
         return [];
     }
 
-    private readonly nodeDatum: any = { series: this, datum: this };
+    private readonly nodeDatum: any = { series: this, datum: {} };
     override pickNode(
         point: _Scene.Point,
         intent: _ModuleSupport.SeriesNodePickIntent
     ): _ModuleSupport.PickResult | undefined {
         switch (intent) {
             case 'event':
-            case 'context-menu':
-                return undefined;
+            case 'context-menu': {
+                const sectorTarget = this.scaleGroup.pickNode(point.x, point.y);
+                return sectorTarget != null
+                    ? {
+                          pickMode: _ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH,
+                          match: sectorTarget.datum,
+                          distance: 0,
+                      }
+                    : undefined;
+            }
             case 'tooltip':
             case 'highlight':
             case 'highlight-tooltip': {
@@ -1131,7 +1142,11 @@ export class RadialGaugeSeries
                           match: highlightedTarget.datum,
                           distance: 0,
                       }
-                    : { pickMode: _ModuleSupport.SeriesNodePickMode.NEAREST_NODE, match: this.nodeDatum, distance: 0 };
+                    : {
+                          pickMode: _ModuleSupport.SeriesNodePickMode.NEAREST_NODE,
+                          match: this.nodeDatum,
+                          distance: 0,
+                      };
             }
         }
     }
@@ -1143,17 +1158,18 @@ export class RadialGaugeSeries
             return EMPTY_TOOLTIP_CONTENT;
         }
 
-        const datum = this.highlightDatum(nodeDatum);
+        const highlightDatum = this.highlightDatum(nodeDatum);
 
-        const value = datum?.value ?? properties.value;
-        const text = datum?.text;
+        const value = highlightDatum?.value ?? properties.value;
+        const text = highlightDatum?.text;
         const { tooltip } = properties;
 
         const title = text ?? '';
         const content = this.formatLabel(value);
 
-        const itemId = datum?.itemId;
-        const color = datum?.fill;
+        const itemId = highlightDatum?.itemId;
+        const datum = undefined;
+        const color = highlightDatum?.fill;
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: color },
