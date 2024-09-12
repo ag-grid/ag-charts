@@ -21,6 +21,7 @@ import { TopologyChart } from '../chart/topologyChart';
 import type { LicenseManager } from '../module/enterpriseModule';
 import { enterpriseModule } from '../module/enterpriseModule';
 import { ChartOptions } from '../module/optionsModule';
+import { Logger } from '../sparklines-util';
 import { Debug } from '../util/debug';
 import { deepClone, jsonWalk } from '../util/json';
 import { mergeDefaults } from '../util/object';
