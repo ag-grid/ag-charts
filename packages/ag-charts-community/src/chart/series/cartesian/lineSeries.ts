@@ -370,8 +370,8 @@ export class LineSeries extends CartesianSeries<
     }) {
         let { nodeData } = opts;
         const { markerSelection } = opts;
-        const { shape, enabled } = this.properties.marker;
-        nodeData = shape && enabled ? nodeData : [];
+        const markersEnabled = this.properties.marker.enabled || this.contextNodeData?.crossFiltering === true;
+        nodeData = markersEnabled ? nodeData : [];
 
         if (this.properties.marker.isDirty()) {
             markerSelection.clear();
