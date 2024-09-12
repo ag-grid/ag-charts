@@ -199,12 +199,10 @@ export interface AgNavigatorOptions {
     spacing?: PixelSize;
     /**
      * The start of the visible range in the `[0, 1]` interval.
-     * @deprecated v10.2.0 use `initialState.zoom.ratioX` instead.
      */
     min?: Ratio;
     /**
      * The end of the visible range in the `[0, 1]` interval.
-     * @deprecated v10.2.0 use `initialState.zoom.ratioX` instead.
      */
     max?: Ratio;
     /** Configuration for the Navigator's visible range mask. */

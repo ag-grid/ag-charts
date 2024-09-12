@@ -124,16 +124,7 @@ describe('Feature Combinations', () => {
         it('should init with navigator min/max', async () => {
             await prepareChart({ min: 0.1, max: 0.3 });
             await compare();
-            expectWarningsCalls().toMatchInlineSnapshot(`
-[
-  [
-    "AG Charts - Property [navigator.min] is deprecated. Use [initialState.zoom.ratioX] instead.",
-  ],
-  [
-    "AG Charts - Property [navigator.max] is deprecated. Use [initialState.zoom.ratioX] instead.",
-  ],
-]
-`);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
 
         it('should init with zoom ratio', async () => {
@@ -157,12 +148,6 @@ describe('Feature Combinations', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - Property [navigator.min] is deprecated. Use [initialState.zoom.ratioX] instead.",
-  ],
-  [
-    "AG Charts - Property [navigator.max] is deprecated. Use [initialState.zoom.ratioX] instead.",
-  ],
-  [
     "AG Charts - Property [zoom.ratioX] is deprecated. Use [initialState.zoom.ratioX] instead.",
   ],
   [
@@ -175,22 +160,7 @@ describe('Feature Combinations', () => {
         it('should prioritise zoom range over navigator min/max', async () => {
             await prepareChart({ min: 0.1, max: 0.3 }, { rangeX: { start: 3, end: 6 } });
             await compare();
-            expectWarningsCalls().toMatchInlineSnapshot(`
-[
-  [
-    "AG Charts - Property [navigator.min] is deprecated. Use [initialState.zoom.ratioX] instead.",
-  ],
-  [
-    "AG Charts - Property [navigator.max] is deprecated. Use [initialState.zoom.ratioX] instead.",
-  ],
-  [
-    "AG Charts - Property [zoom.rangeX] is deprecated. Use [initialState.zoom.rangeX] instead.",
-  ],
-  [
-    "AG Charts - Property [zoom.rangeY] is deprecated. Use [initialState.zoom.rangeY] instead.",
-  ],
-]
-`);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
     });
 
