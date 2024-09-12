@@ -52,18 +52,18 @@ const ImageCarousel = () => {
     }, [scrollHeight]);
 
     const images = [
-        'images/scroller-1.png',
-        'images/scroller-2.png',
-        'images/scroller-3.png',
-        'images/scroller-4.png',
-        'images/scroller-5.png',
-        'images/scroller-6.png',
-        'images/scroller-7.png',
-        'images/scroller-8.png',
-        'images/scroller-9.png',
-        'images/scroller-10.png',
-        'images/scroller-11.png',
-        'images/scroller-12.png',
+        'images/scroller-1.webp',
+        'images/scroller-2.webp',
+        'images/scroller-3.webp',
+        'images/scroller-4.webp',
+        'images/scroller-5.webp',
+        'images/scroller-6.webp',
+        'images/scroller-7.webp',
+        'images/scroller-8.webp',
+        'images/scroller-9.webp',
+        'images/scroller-10.webp',
+        'images/scroller-11.webp',
+        'images/scroller-12.webp',
     ];
 
     // Create arrays with twice the length of the original images array
