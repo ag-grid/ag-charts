@@ -126,7 +126,6 @@
 
             fill: var(--color-brand-500);
             transition: transform 0.33s ease-in-out;
-
             #{$selector-darkmode} & {
                 fill: var(--color-brand-primary);
             }
