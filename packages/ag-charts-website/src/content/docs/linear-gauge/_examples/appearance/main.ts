@@ -10,13 +10,11 @@ const options: AgLinearGaugeOptions = {
         max: 100,
     },
     segmentation: {
+        interval: {
+            step: 25,
+        },
         spacing: 2,
     },
 };
 
 const chart = AgCharts.createGauge(options);
-
-function setSpacing(spacing: number) {
-    options.segmentation!.spacing = spacing;
-    chart.update(options);
-}

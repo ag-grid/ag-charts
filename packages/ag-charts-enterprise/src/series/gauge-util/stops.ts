@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scale, _Util } from 'ag-charts-community';
+import { type AgGaugeFillMode, _ModuleSupport, _Scale, _Util } from 'ag-charts-community';
 
 const { BaseProperties, Validate, COLOR_STRING, NUMBER } = _ModuleSupport;
 const { ColorScale } = _Scale;
@@ -41,7 +41,7 @@ function discreteColorStops(colorStops: GaugeColorStopDatum[]): GaugeColorStopDa
     });
 }
 
-function getDefaultColorStops(defaultColorStops: string[], fillMode: 'continuous' | 'discrete' | undefined) {
+function getDefaultColorStops(defaultColorStops: string[], fillMode: AgGaugeFillMode) {
     const stopOffset = fillMode === 'discrete' ? 1 : 0;
 
     const colorStops = defaultColorStops.map(
@@ -58,7 +58,7 @@ export function getColorStops(
     fills: GaugeStopProperties[],
     defaultColorStops: string[],
     domain: number[],
-    fillMode: 'continuous' | 'discrete' | undefined
+    fillMode: AgGaugeFillMode
 ): GaugeColorStopDatum[] {
     if (fills.length === 0) {
         return getDefaultColorStops(defaultColorStops, fillMode);

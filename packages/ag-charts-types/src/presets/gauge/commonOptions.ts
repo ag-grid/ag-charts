@@ -1,6 +1,41 @@
 import type { AgAxisLabelFormatterParams, AgBaseAxisLabelOptions } from '../../chart/axisOptions';
 import type { Formatter } from '../../chart/callbackOptions';
-import type { CssColor, Degree, FontFamily, FontSize, FontStyle, FontWeight, PixelSize } from '../../chart/types';
+import type { AgSeriesListeners } from '../../chart/eventOptions';
+import type {
+    CssColor,
+    Degree,
+    FontFamily,
+    FontSize,
+    FontStyle,
+    FontWeight,
+    InteractionRange,
+    PixelSize,
+} from '../../chart/types';
+import type { AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../../series/seriesOptions';
+
+export interface GaugeDatum {
+    value: number;
+    segmentStart: number;
+    segmentEnd: number;
+}
+
+export interface AgBaseGaugeThemeableOptions {
+    /** The cursor to use for the gauge. This config is identical to the CSS `cursor` property. */
+    cursor?: string;
+    /** Configuration for marker and series highlighting when a series or legend item is hovered over. */
+    highlightStyle?: AgSeriesHighlightStyle;
+    /** Range from a node that a click triggers the listener. */
+    nodeClickRange?: InteractionRange;
+    /** A map of event names to event listeners. */
+    listeners?: AgSeriesListeners<GaugeDatum>;
+}
+
+// Verification checks for completeness/correctness.
+const __THEMEABLE_OPTIONS = undefined as any as Required<AgBaseGaugeThemeableOptions>;
+// eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+// @ts-ignore
+let __VERIFY_THEMEABLE_OPTIONS: Required<Omit<AgBaseSeriesThemeableOptions<any>, 'showInLegend'>> = undefined as any;
+__VERIFY_THEMEABLE_OPTIONS = __THEMEABLE_OPTIONS;
 
 export interface AgGaugeScaleLabel {
     /** Set to `false` to hide the scale labels. */
@@ -30,15 +65,18 @@ export interface AgGaugeScaleLabel {
 }
 
 // Verification checks for completeness/correctness.
-const __AXIS_LABEL_OPTIONS = {} as any as Required<AgGaugeScaleLabel>;
+const __AXIS_LABEL_OPTIONS = undefined as any as Required<AgGaugeScaleLabel>;
 // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
 // @ts-ignore
-let __VERIFY_AXIS_LABELS_OPTIONS: Required<AgBaseAxisLabelOptions> = undefined as any;
-__VERIFY_AXIS_LABELS_OPTIONS = __AXIS_LABEL_OPTIONS;
+let __VERIFY_AXIS_LABEL_OPTIONS: Required<AgBaseAxisLabelOptions> = undefined as any;
+__VERIFY_AXIS_LABEL_OPTIONS = __AXIS_LABEL_OPTIONS;
 
 export interface AgGaugeSegmentationInterval {
+    /** The segmentation interval. If the configured interval results in too many items given the chart size, it will be ignored. */
     step?: number;
+    /** Array of values for specified intervals along the gauge. */
     values?: number[];
+    /** Number of evenly-divided segments in the gauge. */
     count?: number;
 }
 
@@ -54,13 +92,19 @@ export type AgGaugeFillMode = 'continuous' | 'discrete';
 export type AgGaugeCornerMode = 'container' | 'item';
 
 export interface AgGaugeColorStop {
-    color?: CssColor;
+    /** Colour of this category. */
+    color?: string;
+    /** Stop value of this category. Defaults the maximum value if unset. */
     stop?: number;
 }
 
 export interface FillsOptions {
     /** Configuration for two or more colours, and the values they are rendered at. */
     fills?: AgGaugeColorStop[];
-    /** Configuration the fills should be rendered. */
+    /**
+     * Configuration the fills should be rendered.
+     *
+     * Default: `continuous`
+     **/
     fillMode?: AgGaugeFillMode;
 }

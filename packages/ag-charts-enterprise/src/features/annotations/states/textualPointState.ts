@@ -34,7 +34,6 @@ export abstract class TextualPointStateMachine<
         const actionCreate = ({ point }: { point: Point }) => {
             const datum = this.createDatum();
             datum.set({ x: point.x, y: point.y });
-            datum.placeholderText = 'Add Text';
             ctx.create(datum);
         };
 
@@ -92,9 +91,7 @@ export abstract class TextualPointStateMachine<
             if (!datum || !node || !isTextType(datum)) return;
 
             setFontSize(datum, datum.type, fontSize);
-
             ctx.updateTextInputFontSize(fontSize);
-
             ctx.update();
         };
 
@@ -104,11 +101,7 @@ export abstract class TextualPointStateMachine<
 
         const actionSave = ({ textInputValue }: { textInputValue?: string }) => {
             if (textInputValue != null && textInputValue.length > 0) {
-                const datum = ctx.datum();
-                if (datum) {
-                    datum.placeholderText = undefined;
-                    datum.set({ text: textInputValue });
-                }
+                ctx.datum()?.set({ text: textInputValue });
                 ctx.update();
                 ctx.recordAction(`Create ${ctx.node()?.type} annotation`);
             } else {

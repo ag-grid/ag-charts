@@ -182,8 +182,8 @@ export class RadialGaugeBarProperties extends BaseProperties {
     @Validate(OBJECT_ARRAY)
     fills = new PropertiesArray<GaugeStopProperties>(GaugeStopProperties);
 
-    @Validate(FILL_MODE, { optional: true })
-    fillMode: AgGaugeFillMode | undefined;
+    @Validate(FILL_MODE)
+    fillMode: AgGaugeFillMode = 'continuous';
 
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined;
@@ -211,8 +211,8 @@ export class RadialGaugeScaleProperties extends BaseProperties {
     @Validate(OBJECT_ARRAY)
     fills = new PropertiesArray<GaugeStopProperties>(GaugeStopProperties);
 
-    @Validate(FILL_MODE, { optional: true })
-    fillMode: AgGaugeFillMode | undefined;
+    @Validate(FILL_MODE)
+    fillMode: AgGaugeFillMode = 'continuous';
 
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined;
@@ -328,7 +328,7 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeO
     readonly needle = new RadialGaugeNeedleProperties();
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgRadialGaugeItemStylerParams<unknown>, AgRadialGaugeStyle>;
+    itemStyler?: Styler<AgRadialGaugeItemStylerParams, AgRadialGaugeStyle>;
 
     @Validate(OBJECT)
     readonly label = new RadialGaugeLabelProperties();
@@ -337,7 +337,7 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeO
     readonly secondaryLabel = new RadialGaugeSecondaryLabelProperties();
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgRadialGaugeTooltipRendererParams<any>>();
+    readonly tooltip = new SeriesTooltip<AgRadialGaugeTooltipRendererParams>();
 
     override isValid(warningPrefix?: string | undefined): boolean {
         if (!super.isValid(warningPrefix)) return false;

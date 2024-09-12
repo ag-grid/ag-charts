@@ -1,4 +1,5 @@
 import {
+    type AgBaseGaugePresetOptions,
     type AgCartesianAxisOptions,
     type AgCartesianAxisPosition,
     type AgGaugeChartOptions,
@@ -53,18 +54,21 @@ type ScaleStyle = Pick<
 
 function radialGaugeOptions(opts: AgRadialGaugeOptions) {
     const {
-        container,
         animation,
-        width,
+        background,
+        container,
+        contextMenu,
+        footnote,
         height,
-        minWidth,
+        listeners,
+        locale,
         minHeight,
+        minWidth,
+        padding,
+        subtitle,
         theme,
         title,
-        subtitle,
-        footnote,
-        padding,
-        listeners,
+        width,
         type,
         cursor,
         nodeClickRange,
@@ -110,19 +114,22 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
     } = scale;
     assertEmpty(scaleRest);
 
-    const chartOpts = pickProps(opts, {
-        container,
+    const chartOpts = pickProps<AgBaseGaugePresetOptions>(opts, {
         animation,
-        width,
-        height,
-        minWidth,
-        minHeight,
-        title,
-        theme,
-        subtitle,
+        background,
+        container,
+        contextMenu,
         footnote,
-        padding,
+        height,
         listeners,
+        locale,
+        minHeight,
+        minWidth,
+        padding,
+        subtitle,
+        theme,
+        title,
+        width,
     });
 
     const scaleOpts = pickProps<ScaleStyle>(scale, {
@@ -192,18 +199,21 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
 
 function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
     const {
-        container,
         animation,
-        width,
+        background,
+        container,
+        contextMenu,
+        footnote,
         height,
-        minWidth,
+        listeners,
+        locale,
         minHeight,
+        minWidth,
+        padding,
+        subtitle,
         theme,
         title,
-        subtitle,
-        footnote,
-        padding,
-        listeners,
+        width,
         type,
         cursor,
         nodeClickRange,
@@ -216,7 +226,6 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         highlightStyle,
         segmentation,
         bar,
-        background,
         targets,
         target,
         cornerRadius,
@@ -246,19 +255,22 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
     } = scale;
     assertEmpty(scaleRest);
 
-    const chartOpts = pickProps(opts, {
-        container,
+    const chartOpts = pickProps<AgBaseGaugePresetOptions>(opts, {
         animation,
-        width,
+        background,
+        container,
+        contextMenu,
+        footnote,
         height,
-        minWidth,
+        listeners,
+        locale,
         minHeight,
+        minWidth,
+        padding,
+        subtitle,
         theme,
         title,
-        subtitle,
-        footnote,
-        padding,
-        listeners,
+        width,
     });
     const scaleOpts = pickProps<ScaleStyle>(scale, {
         fills: scaleFills,
@@ -285,7 +297,6 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         highlightStyle,
         segmentation,
         bar,
-        background,
         targets,
         target,
         cornerRadius,
@@ -354,17 +365,38 @@ export function gauge(opts: AgGaugeOptions): AgGaugeChartOptions {
         return linearGaugeOptions(opts);
     }
 
-    const { container, animation, width, height, minWidth, minHeight, theme, title, seriesArea, listeners } = opts;
-    return pickProps(opts, {
-        container,
+    const {
         animation,
-        width,
+        background,
+        container,
+        contextMenu,
+        footnote,
         height,
-        minWidth,
+        listeners,
+        locale,
         minHeight,
+        minWidth,
+        padding,
+        subtitle,
         theme,
         title,
-        seriesArea,
+        width,
+    } = opts;
+    return pickProps<AgBaseGaugePresetOptions>(opts, {
+        animation,
+        background,
+        container,
+        contextMenu,
+        footnote,
+        height,
         listeners,
+        locale,
+        minHeight,
+        minWidth,
+        padding,
+        subtitle,
+        theme,
+        title,
+        width,
     });
 }

@@ -140,6 +140,39 @@ zoom: {
 }
 ```
 
+## Range
+
+Use the `rangeX` and `rangeY` options to set the zoom range. This can be used for when the chart first loads, or updated via the [update API](./api-create-update/) at runtime.
+
+The `start` and `end` values should be of the same type as the matching axis, for example a `Date` object on a time axis.
+
+{% chartExampleRunner title="Zoom Range" name="zoom-range" type="generated" /%}
+
+```ts
+zoom: {
+    rangeX: {
+        start: new Date('2024-08-01 00:00:00'),
+        end: new Date('2024-08-30 23:59:59'),
+    },
+}
+```
+
+As an alternative to specifying the zoom in terms of range values, you can use `ratioX` and `ratioY` to specify it as a ratio of the full chart from `0` to `1`.
+
+```ts
+zoom: {
+    ratioX:
+    {
+      start: 0.8,
+      end: 1,
+    }
+}
+```
+
+{% note %}
+If a range or ratio is specified, [double-click to reset](#double-click-to-reset) will reset to the initial range or ratio specified.
+{% /note %}
+
 ## Navigator
 
 The zoom functionality can be used together with the [Navigator](./navigator/) to add a visual reference to the zoom position.
