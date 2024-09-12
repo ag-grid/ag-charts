@@ -1,9 +1,9 @@
 /**
  * Please note:
- * 
+ *
  * Translations are provided as an illustration only and are
  * not guaranteed to be accurate or error-free.
- * 
+ *
  * They are designed to show developers where to store t heir
  * chosen phrase or spelling variant in the target language.
  */
@@ -18,7 +18,7 @@ export const AG_CHARTS_LOCALE_FR_FR: Record<string, string> = {
     ariaAnnounceHoverDatum: '${datum}',
     ariaDescriptionLegendItem: 'Appuyez sur Espace ou Entrée pour basculer la visibilité',
     ariaLabelAnnotationOptionsToolbar: "Options d'annotation",
-    ariaLabelAnnotationSettingsDialog: 'Paramètres d\'annotation',
+    ariaLabelAnnotationSettingsDialog: "Paramètres d'annotation",
     ariaLabelColorPicker: 'Sélecteur de couleur',
     ariaLabelFinancialCharts: 'Graphiques financiers',
     ariaLabelLegend: 'Légende',
@@ -76,7 +76,7 @@ export const AG_CHARTS_LOCALE_FR_FR: Record<string, string> = {
     toolbarAnnotationsComment: 'Commentaire',
     toolbarAnnotationsDelete: 'Supprimer',
     toolbarAnnotationsDisjointChannel: 'Canal disjoint',
-    toolbarAnnotationsDragHandle: 'Faites glisser la barre d\'outils',
+    toolbarAnnotationsDragHandle: "Faites glisser la barre d'outils",
     toolbarAnnotationsFillColor: 'Couleur de remplissage',
     toolbarAnnotationsHorizontalLine: 'Ligne Horizontale',
     toolbarAnnotationsLineAnnotations: 'Lignes de tendance',
@@ -122,5 +122,5 @@ export const AG_CHARTS_LOCALE_FR_FR: Record<string, string> = {
     toolbarZoomPanStart: 'Déplacer au début',
     toolbarZoomReset: 'Réinitialiser le zoom',
     toolbarZoomZoomIn: 'Agrandir',
-    toolbarZoomZoomOut: 'Dézoomer'
+    toolbarZoomZoomOut: 'Dézoomer',
 };

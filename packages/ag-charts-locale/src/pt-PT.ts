@@ -1,9 +1,9 @@
 /**
  * Please note:
- * 
+ *
  * Translations are provided as an illustration only and are
  * not guaranteed to be accurate or error-free.
- * 
+ *
  * They are designed to show developers where to store t heir
  * chosen phrase or spelling variant in the target language.
  */
@@ -122,5 +122,5 @@ export const AG_CHARTS_LOCALE_PT_PT: Record<string, string> = {
     toolbarZoomPanStart: 'Mover para o início',
     toolbarZoomReset: 'Redefinir o zoom',
     toolbarZoomZoomIn: 'Aproximar',
-    toolbarZoomZoomOut: 'Afastar'
+    toolbarZoomZoomOut: 'Afastar',
 };

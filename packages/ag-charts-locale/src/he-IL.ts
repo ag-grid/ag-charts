@@ -122,5 +122,5 @@ export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
     toolbarZoomPanStart: 'גלול להתחלה',
     toolbarZoomReset: 'אפס זום',
     toolbarZoomZoomIn: 'התקרב',
-    toolbarZoomZoomOut: 'התרחק'
+    toolbarZoomZoomOut: 'התרחק',
 };

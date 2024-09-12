@@ -1,9 +1,9 @@
 /**
  * Please note:
- * 
+ *
  * Translations are provided as an illustration only and are
  * not guaranteed to be accurate or error-free.
- * 
+ *
  * They are designed to show developers where to store t heir
  * chosen phrase or spelling variant in the target language.
  */
@@ -122,5 +122,5 @@ export const AG_CHARTS_LOCALE_HR_HR: Record<string, string> = {
     toolbarZoomPanStart: 'Pomakni na početak',
     toolbarZoomReset: 'Resetiraj povećanje',
     toolbarZoomZoomIn: 'Povećaj',
-    toolbarZoomZoomOut: 'Umanji'
+    toolbarZoomZoomOut: 'Umanji',
 };

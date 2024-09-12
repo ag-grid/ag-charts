@@ -1,9 +1,9 @@
 /**
  * Please note:
- * 
+ *
  * Translations are provided as an illustration only and are
  * not guaranteed to be accurate or error-free.
- * 
+ *
  * They are designed to show developers where to store t heir
  * chosen phrase or spelling variant in the target language.
  */
@@ -122,5 +122,5 @@ export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
     toolbarZoomPanStart: '시작 위치로 이동',
     toolbarZoomReset: '줌 리셋',
     toolbarZoomZoomIn: '확대',
-    toolbarZoomZoomOut: '축소'
+    toolbarZoomZoomOut: '축소',
 };

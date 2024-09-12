@@ -1,9 +1,9 @@
 /**
  * Please note:
- * 
+ *
  * Translations are provided as an illustration only and are
  * not guaranteed to be accurate or error-free.
- * 
+ *
  * They are designed to show developers where to store t heir
  * chosen phrase or spelling variant in the target language.
  */
@@ -46,7 +46,7 @@ export const AG_CHARTS_LOCALE_IT_IT: Record<string, string> = {
     dialogInputColorPicker: 'Colore',
     dialogInputColorPickerAltText: 'Colore del testo',
     dialogInputExtendChannelEnd: 'Estendi estremità del canale',
-    dialogInputExtendChannelStart: 'Estendi l\'inizio del canale',
+    dialogInputExtendChannelStart: "Estendi l'inizio del canale",
     dialogInputExtendLineEnd: 'Estendi estremità di linea',
     dialogInputExtendLineStart: 'Estendi inizio linea',
     dialogInputFontSize: 'Dimensione',
@@ -122,5 +122,5 @@ export const AG_CHARTS_LOCALE_IT_IT: Record<string, string> = {
     toolbarZoomPanStart: "Panoramica all'inizio",
     toolbarZoomReset: 'Reimposta lo zoom',
     toolbarZoomZoomIn: 'Ingrandisci',
-    toolbarZoomZoomOut: 'Riduci lo zoom'
+    toolbarZoomZoomOut: 'Riduci lo zoom',
 };

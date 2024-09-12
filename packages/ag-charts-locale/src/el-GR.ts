@@ -122,5 +122,5 @@ export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
     toolbarZoomPanStart: 'Μετακίνηση στην αρχή',
     toolbarZoomReset: 'Επαναφορά της εστίασης',
     toolbarZoomZoomIn: 'Μεγέθυνση',
-    toolbarZoomZoomOut: 'Σμίκρυνση'
+    toolbarZoomZoomOut: 'Σμίκρυνση',
 };

@@ -1,16 +1,17 @@
 /**
  * Please note:
- * 
+ *
  * Translations are provided as an illustration only and are
  * not guaranteed to be accurate or error-free.
- * 
+ *
  * They are designed to show developers where to store t heir
  * chosen phrase or spelling variant in the target language.
  */
 
 export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     ariaAnnounceChart: 'diagram, ${seriesCount}[number] sorozat',
-    ariaAnnounceFlowProportionLink: 'hivatkozás ${index} a(z) ${count} közül, ${from}-tól ${to}-ig, ${sizeName} ${size}',
+    ariaAnnounceFlowProportionLink:
+        'hivatkozás ${index} a(z) ${count} közül, ${from}-tól ${to}-ig, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: '${count} közül ${index} csomópont, ${description}',
     ariaAnnounceGaugeChart: 'mérőműszer diagram, ${caption}',
     ariaAnnounceHierarchyChart: 'hierarchia diagram, ${caption}',
@@ -122,5 +123,5 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     toolbarZoomPanStart: 'Lapozás az elejére',
     toolbarZoomReset: 'Nagyítás visszaállítása',
     toolbarZoomZoomIn: 'Nagyítás',
-    toolbarZoomZoomOut: 'Kicsinyítés'
+    toolbarZoomZoomOut: 'Kicsinyítés',
 };

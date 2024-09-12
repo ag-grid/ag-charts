@@ -1,9 +1,9 @@
 /**
  * Please note:
- * 
+ *
  * Translations are provided as an illustration only and are
  * not guaranteed to be accurate or error-free.
- * 
+ *
  * They are designed to show developers where to store t heir
  * chosen phrase or spelling variant in the target language.
  */
@@ -122,5 +122,5 @@ export const AG_CHARTS_LOCALE_ZH_HK: Record<string, string> = {
     toolbarZoomPanStart: '移到起點',
     toolbarZoomReset: '重設縮放',
     toolbarZoomZoomIn: '放大',
-    toolbarZoomZoomOut: '縮小'
+    toolbarZoomZoomOut: '縮小',
 };
