@@ -143,9 +143,9 @@ export class Group extends Node {
         counts.groups += 1;
         counts.nonGroups -= 1;
 
-        if (this.opts?.layer !== true || this.layer != null) return counts;
+        if (this.opts?.layer !== true) return counts;
 
-        if (counts.nonGroups > 0) {
+        if (this.layer == null && counts.nonGroups > 0) {
             this.initialiseLayer();
         }
 
