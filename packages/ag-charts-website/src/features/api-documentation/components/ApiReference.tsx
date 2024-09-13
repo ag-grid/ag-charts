@@ -278,6 +278,7 @@ function ApiReferenceRow({
                     prefixPath={prefixPath}
                     required={!config.hideRequired && !member.optional}
                     hasChildProps={hasChildProps}
+                    childPropsOnClick={onDetailsToggle}
                 />
                 <PropertyType
                     name={memberName}

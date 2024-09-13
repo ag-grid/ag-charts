@@ -197,6 +197,15 @@
 
     position: relative;
     top: -1px;
+    transition: transform 0.33s ease-in-out;
+
+    .expandedChildProps & {
+        transform: rotate(90deg);
+    }
+}
+
+.propNameExpander {
+    cursor: pointer;
 }
 
 .parentProperties {
@@ -294,6 +303,10 @@ a.metaValue {
 }
 
 .childButton {
+    svg {
+        transition: transform 0.33s ease-in-out;
+    }
+
     &:hover svg {
         fill: var(--color-link-hover) !important;
     }
