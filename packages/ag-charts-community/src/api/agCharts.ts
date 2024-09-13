@@ -31,10 +31,6 @@ import { MementoCaretaker } from './state/memento';
 const debug = Debug.create(true, 'opts');
 
 function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'gauge' {
-    if ((options as AgGaugeOptions).type === 'radial-gauge' || (options as AgGaugeOptions).type === 'linear-gauge') {
-        return 'gauge';
-    }
-
     if (isAgCartesianChartOptions(options)) {
         return 'cartesian';
     } else if (isAgPolarChartOptions(options)) {

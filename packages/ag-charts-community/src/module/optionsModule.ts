@@ -102,7 +102,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (this.presetType != null) {
             const presetOptions = (PRESETS as any)[this.presetType]?.(options, () => this.activeTheme) ?? options;
             this.debug('>>> AgCharts.createOrUpdate() - applying preset', options, presetOptions);
-            options = presetOptions;
+            userOptions = presetOptions;
+            options = deepClone(presetOptions);
         }
 
         if (!enterpriseModule.isEnterprise) {
