@@ -1320,7 +1320,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private hideOverlays() {
-        this.colorPicker.hide();
+        this.colorPicker.hide({ lastFocus: null });
         this.textSizeMenu.hide();
         this.lineStyleTypeMenu.hide();
         this.lineStrokeWidthMenu.hide();
