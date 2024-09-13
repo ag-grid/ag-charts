@@ -34,7 +34,8 @@ export const validateCrossLineValues = (
     type: 'line' | 'range',
     value: any,
     range: any,
-    scale: Scale<any, number>
+    scale: Scale<any, number>,
+    visibilityCheck?: () => boolean
 ): boolean => {
     const lineCrossLine = type === 'line' && value !== undefined;
     const rangeCrossLine = type === 'range' && range !== undefined;
@@ -49,9 +50,7 @@ export const validateCrossLineValues = (
     const validEnd = checkDatum(end, isContinuous) && !isNaN(scale.convert(end));
 
     if ((lineCrossLine && validStart) || (rangeCrossLine && validStart && validEnd)) {
-        const domain = scale.getDomain?.() ?? scale.domain;
-        // TODO support clipping if only end is out-of-bounds
-        return start >= domain[0] && start <= domain[1] && (lineCrossLine || (end >= start && end <= domain[1]));
+        return visibilityCheck?.() ?? true;
     }
 
     const message = [`Expecting crossLine`];
