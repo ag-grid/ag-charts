@@ -8,6 +8,7 @@ type BaseAttributeTypeMap = {
     'aria-label': string | undefined;
     'aria-labelledby': ElementID;
     'aria-live': 'assertive' | 'polite';
+    'aria-selected': boolean;
     class: string;
     id: ElementID;
     tabindex: 0 | -1;

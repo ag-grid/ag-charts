@@ -1,3 +1,5 @@
+import { setAttribute } from 'packages/ag-charts-community/src/sparklines-util';
+
 import { _ModuleSupport, type _Scene, _Util } from 'ag-charts-community';
 import type { AgIconName } from 'ag-charts-types';
 
@@ -124,6 +126,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             for (const [key, tab] of Object.entries(tabs)) {
                 tab.panel.classList.toggle('ag-charts-dialog__tab-panel--active', key === active);
                 tabButtons[key].classList.toggle('ag-charts-dialog__tab-button--active', key === active);
+                setAttribute(tabButtons[key], 'aria-selected', key === active);
                 if (key === active) tab.onShow?.();
             }
         };
