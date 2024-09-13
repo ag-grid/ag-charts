@@ -16,7 +16,7 @@ const {
     getWindow,
     mapValues,
 } = _ModuleSupport;
-const { Vec2, setAttributes } = _Util;
+const { Vec2, setAttribute, setAttributes } = _Util;
 
 export interface DialogOptions extends PopoverOptions {}
 
@@ -124,6 +124,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             for (const [key, tab] of Object.entries(tabs)) {
                 tab.panel.classList.toggle('ag-charts-dialog__tab-panel--active', key === active);
                 tabButtons[key].classList.toggle('ag-charts-dialog__tab-button--active', key === active);
+                setAttribute(tabButtons[key], 'aria-selected', key === active);
                 if (key === active) tab.onShow?.();
             }
         };
