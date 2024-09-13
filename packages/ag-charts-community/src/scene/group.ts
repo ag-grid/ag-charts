@@ -350,7 +350,7 @@ export class Group extends Node {
         const skipInvisible = opts?.skipInvisible ?? true;
 
         for (const n of nodes) {
-            if (skipInvisible && (!n.visible || n.datum?.fadeOut)) continue;
+            if (skipInvisible && (!n.visible || n.transitionOut)) continue;
 
             const bbox = n.getBBox();
 

@@ -266,7 +266,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.range = this.scale.range.slice() as [number, number];
         this.crossLines.forEach((crossLine) => this.initCrossLine(crossLine));
 
-        this.title.caption.node.rotation = -Math.PI / 2;
         this.axisGroup.appendChild(this.title.caption.node);
 
         this.animationManager = moduleCtx.animationManager;

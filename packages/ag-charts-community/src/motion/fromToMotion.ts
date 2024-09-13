@@ -120,7 +120,7 @@ export function fromToMotion<
                 status = calculateStatus(node, node.datum, getDatumId, diff);
             }
 
-            node.datum.fadeOut = status === 'removed';
+            node.transitionOut = status === 'removed';
 
             const { phase, start, finish, delay, duration, ...from } = fromFn(node, node.datum, status, ctx);
             const {
