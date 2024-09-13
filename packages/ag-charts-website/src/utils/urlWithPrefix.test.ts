@@ -1,11 +1,11 @@
 import { urlWithPrefix } from './urlWithPrefix';
 
-describe.skip('urlWithPrefix', () => {
+describe('urlWithPrefix', () => {
     test.each`
         url                      | framework       | expected
-        ${'./docs'}              | ${'javascript'} | ${'/ag-charts/javascript-data-grid/docs'}
-        ${'./docs'}              | ${'react'}      | ${'/ag-charts/react-data-grid/docs'}
-        ${'./docs/path'}         | ${'react'}      | ${'/ag-charts/react-data-grid/docs/path'}
+        ${'./docs'}              | ${'javascript'} | ${'/ag-charts/javascript/docs'}
+        ${'./docs'}              | ${'react'}      | ${'/ag-charts/react/docs'}
+        ${'./docs/path'}         | ${'react'}      | ${'/ag-charts/react/docs/path'}
         ${'/gallery'}            | ${'react'}      | ${'/ag-charts/gallery'}
         ${'https://youtube.com'} | ${'react'}      | ${'https://youtube.com'}
     `(
@@ -18,9 +18,9 @@ describe.skip('urlWithPrefix', () => {
 
     test.each`
         url                      | framework       | expected
-        ${'./docs'}              | ${'javascript'} | ${'/ag-charts/javascript-data-grid/docs/'}
-        ${'./docs'}              | ${'react'}      | ${'/ag-charts/react-data-grid/docs/'}
-        ${'./docs/path'}         | ${'react'}      | ${'/ag-charts/react-data-grid/docs/path/'}
+        ${'./docs'}              | ${'javascript'} | ${'/ag-charts/javascript/docs/'}
+        ${'./docs'}              | ${'react'}      | ${'/ag-charts/react/docs/'}
+        ${'./docs/path'}         | ${'react'}      | ${'/ag-charts/react/docs/path/'}
         ${'/gallery'}            | ${'react'}      | ${'/ag-charts/gallery/'}
         ${'https://youtube.com'} | ${'react'}      | ${'https://youtube.com/'}
     `(
@@ -34,7 +34,7 @@ describe.skip('urlWithPrefix', () => {
     test('does not add trailing slash for urls with #', () => {
         const url = './docs/path#some-hash';
         expect(urlWithPrefix({ url, framework: 'javascript', siteBaseUrl: '' })).toBe(
-            '/javascript-data-grid/docs/path#some-hash'
+            '/javascript/docs/path#some-hash'
         );
     });
 
