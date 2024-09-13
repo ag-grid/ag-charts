@@ -18,20 +18,22 @@ const options: AgFinancialChartOptions = {
                         __type: 'date',
                         value: 'Thu Mar 21 2024 18:30:00 GMT+0000 (Greenwich Mean Time)',
                     },
-                    y: 39862.89027982327,
+                    y: 39859.35027982327,
                 },
                 end: {
                     x: {
                         __type: 'date',
-                        value: 'Thu Mar 21 2024 18:38:00 GMT+0000 (Greenwich Mean Time)',
+                        value: 'Thu Mar 21 2024 18:39:00 GMT+0000 (Greenwich Mean Time)',
                     },
-                    y: 39844.70176730486,
+                    y: 39836.36176730486,
                 },
                 text: {
                     label: 'Trend line',
                     position: 'center',
                     alignment: 'center',
                 },
+                extendStart: true,
+                extendEnd: true,
             },
             {
                 type: 'parallel-channel',
@@ -63,28 +65,29 @@ const options: AgFinancialChartOptions = {
                     position: 'top',
                     alignment: 'left',
                 },
+                extendStart: true,
             },
             {
                 type: 'disjoint-channel',
-                startHeight: 16.872238586154708,
-                endHeight: 4.666789396178501,
+                startHeight: 29.948914431675803,
+                endHeight: 12.78416347381426,
                 start: {
                     x: {
                         __type: 'date',
-                        value: 'Thu Mar 21 2024 19:27:00 GMT+0000 (Greenwich Mean Time)',
+                        value: 'Thu Mar 21 2024 19:31:00 GMT+0000 (Greenwich Mean Time)',
                     },
-                    y: 39851.402798232695,
+                    y: 39843.62007363771,
                 },
                 end: {
                     x: {
                         __type: 'date',
-                        value: 'Thu Mar 21 2024 19:17:00 GMT+0000 (Greenwich Mean Time)',
+                        value: 'Thu Mar 21 2024 19:22:00 GMT+0000 (Greenwich Mean Time)',
                     },
-                    y: 39845.30007363771,
+                    y: 39835.032798232695,
                 },
                 text: {
                     label: 'Disjoint channel',
-                    position: 'bottom',
+                    position: 'top',
                     alignment: 'right',
                 },
             },
@@ -114,6 +117,8 @@ const options: AgFinancialChartOptions = {
                 axisLabel: {
                     enabled: true,
                 },
+                strokeWidth: 3,
+                lineStyle: 'dotted',
             },
         ],
     },
