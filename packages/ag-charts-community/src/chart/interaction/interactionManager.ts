@@ -277,7 +277,7 @@ export class InteractionManager extends InteractionStateListener<InteractionType
                 event,
                 ...coords,
             });
-            this.debug('Dispatching canvas overlay event', pointerEvent);
+            this.debug('Dispatching canvas overlay event', pointerEvent, this.getState());
             dispatchTypedEvent(this.listeners, pointerEvent);
         }
     }
@@ -329,7 +329,7 @@ export class InteractionManager extends InteractionStateListener<InteractionType
         L extends Listeners<T, (event: PreventableEvent & E) => void>,
     >(listeners: L, event: E) {
         const preventableEvent = buildPreventable(event);
-        this.debug('Dispatching typed event', preventableEvent);
+        this.debug('Dispatching typed event', preventableEvent, this.getState());
         listeners.dispatchWrapHandlers(event.type, (handler, e) => handler(e), preventableEvent);
     }
 
@@ -352,7 +352,7 @@ export class InteractionManager extends InteractionStateListener<InteractionType
         if (coords == null) return;
 
         const pointerEvent = this.buildPointerEvent({ type, event, ...coords });
-        this.debug('Dispatching pointer event', pointerEvent);
+        this.debug('Dispatching pointer event', pointerEvent, this.getState());
         dispatchTypedEvent(this.listeners, pointerEvent);
     }
 
@@ -576,7 +576,7 @@ export class InteractionManager extends InteractionStateListener<InteractionType
             targetElement,
         };
 
-        this.debug('InteractionManager - builtEvent: ', builtEvent);
+        this.debug('InteractionManager - builtEvent: ', builtEvent, this.getState());
         return builtEvent;
     }
 }
