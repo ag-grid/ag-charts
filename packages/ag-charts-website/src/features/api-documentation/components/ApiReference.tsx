@@ -110,15 +110,14 @@ export function ChildPropertiesButton({
 }) {
     return (
         <button
-            className={classnames(styles.childButton, 'button-style-none', {
+            className={classnames(styles.childButton, 'button-as-link', {
                 [styles.isExpanded]: isExpanded,
             })}
             onClick={onClick}
             aria-label={`See child properties of ${name}`}
         >
-            <span>
-                See child properties of <span className={styles.childButtonName}>{name}</span>
-            </span>
+            <Icon svgClasses={styles.childChevron} name="chevronRight" />
+            <span>See child properties</span>
         </button>
     );
 }
@@ -221,24 +220,26 @@ function NodeFactory({ member, anchorId, genericsMap, prefixPath = [], ...props 
                 isExpanded={isExpanded}
                 onDetailsToggle={toggleExpanded}
             />
-            {hasMembers &&
-                isExpanded &&
-                processMembers(interfaceRef, config, typeArguments)
-                    .filter((childMember) => !skip?.includes(childMember.name))
-                    .map((childMember) => (
-                        <NodeFactory
-                            key={childMember.name}
-                            member={childMember}
-                            anchorId={`${anchorId}-${cleanupName(childMember.name)}`}
-                            prefixPath={prefixPath.concat(member.name)}
-                            genericsMap={(interfaceRef as any).genericsMap}
-                            nestedPath={
-                                hasNestedPages
-                                    ? `${location?.pathname}/${member.name}/${cleanupName(childMember.name)}`
-                                    : undefined
-                            }
-                        />
-                    ))}
+            {hasMembers && isExpanded && (
+                <div className={styles.childPropsList}>
+                    {processMembers(interfaceRef, config, typeArguments)
+                        .filter((childMember) => !skip?.includes(childMember.name))
+                        .map((childMember) => (
+                            <NodeFactory
+                                key={childMember.name}
+                                member={childMember}
+                                anchorId={`${anchorId}-${cleanupName(childMember.name)}`}
+                                prefixPath={prefixPath.concat(member.name)}
+                                genericsMap={(interfaceRef as any).genericsMap}
+                                nestedPath={
+                                    hasNestedPages
+                                        ? `${location?.pathname}/${member.name}/${cleanupName(childMember.name)}`
+                                        : undefined
+                                }
+                            />
+                        ))}
+                </div>
+            )}
         </>
     );
 }
@@ -257,6 +258,7 @@ function ApiReferenceRow({
     const memberType = normalizeType(member.type);
     const additionalDetails = useMemberAdditionalDetails(member);
     const collapsibleType = getCollapsibleType({ additionalDetails, nestedPath });
+    const hasChildProps = collapsibleType === 'childrenProperties';
 
     return (
         <div
@@ -264,7 +266,8 @@ function ApiReferenceRow({
             className={classnames(
                 'property-row',
                 styles.propertyRow,
-                prefixPath && prefixPath.length > 0 && styles.isChildProp
+                prefixPath && prefixPath.length > 0 && styles.isChildProp,
+                isExpanded && hasChildProps && styles.expandedChildProps
             )}
             style={{ '--nested-path-depth': prefixPath?.length ?? 0 } as CSSProperties}
         >
@@ -274,6 +277,8 @@ function ApiReferenceRow({
                     anchorId={anchorId}
                     prefixPath={prefixPath}
                     required={!config.hideRequired && !member.optional}
+                    hasChildProps={hasChildProps}
+                    childPropsOnClick={onDetailsToggle}
                 />
                 <PropertyType
                     name={memberName}
@@ -289,7 +294,7 @@ function ApiReferenceRow({
                     <Markdown remarkPlugins={[remarkBreaks]} urlTransform={(url: string) => urlWithBaseUrl(url)}>
                         {member.docs?.join('\n')}
                     </Markdown>
-                    {collapsibleType === 'childrenProperties' && (
+                    {hasChildProps && (
                         <ChildPropertiesButton name={memberName} isExpanded={isExpanded} onClick={onDetailsToggle} />
                     )}
                 </div>
