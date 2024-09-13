@@ -4,6 +4,8 @@ type BaseAttributeTypeMap = {
     role: 'figure' | 'img' | 'radio' | 'radiogroup' | 'status' | 'switch' | 'tab' | 'tablist' | 'tabpanel';
     'aria-checked': boolean;
     'aria-controls': ElementID;
+    'aria-expanded': boolean;
+    'aria-haspopup': boolean;
     'aria-hidden': boolean;
     'aria-label': string | undefined;
     'aria-labelledby': ElementID;

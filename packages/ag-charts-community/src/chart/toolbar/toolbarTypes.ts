@@ -43,6 +43,7 @@ export interface ToolbarButton extends ToolbarButtonConfig {
     value: any;
     id?: string;
     role?: 'button' | 'switch';
+    haspopup?: boolean;
     checkedOverrides?: ToolbarButtonConfig;
 }
 
