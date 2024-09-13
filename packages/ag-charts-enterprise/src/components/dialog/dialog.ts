@@ -1,5 +1,3 @@
-import { setAttribute } from 'packages/ag-charts-community/src/sparklines-util';
-
 import { _ModuleSupport, type _Scene, _Util } from 'ag-charts-community';
 import type { AgIconName } from 'ag-charts-types';
 
@@ -18,7 +16,7 @@ const {
     getWindow,
     mapValues,
 } = _ModuleSupport;
-const { Vec2, setAttributes } = _Util;
+const { Vec2, setAttribute, setAttributes } = _Util;
 
 export interface DialogOptions extends PopoverOptions {}
 
