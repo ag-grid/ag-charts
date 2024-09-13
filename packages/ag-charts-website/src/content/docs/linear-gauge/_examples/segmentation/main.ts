@@ -20,7 +20,7 @@ const options: AgLinearGaugeOptions = {
 
 const chart = AgCharts.createGauge(options);
 
-function setCount(count: number) {
-    options.segmentation!.interval!.count = count;
+function setSegmentationInterval(interval: any) {
+    options.segmentation!.interval = interval;
     chart.update(options);
 }
