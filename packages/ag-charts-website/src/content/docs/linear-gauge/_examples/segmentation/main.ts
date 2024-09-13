@@ -10,11 +10,17 @@ const options: AgLinearGaugeOptions = {
         max: 100,
     },
     segmentation: {
+        enabled: true,
         interval: {
-            step: 25,
+            count: 4,
         },
         spacing: 2,
     },
 };
 
 const chart = AgCharts.createGauge(options);
+
+function setSegmentationInterval(interval: any) {
+    options.segmentation!.interval = interval;
+    chart.update(options);
+}

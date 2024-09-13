@@ -2,6 +2,7 @@ import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-commun
 
 import { Dialog, type DialogOptions } from '../../../components/dialog/dialog';
 import type { ColorPickerOptions } from '../../color-picker/colorPicker';
+import type { ChannelTextPosition, LineTextAlignment, LineTextPosition } from '../annotationTypes';
 import { LINE_STROKE_WIDTH_ITEMS, TEXT_SIZE_ITEMS } from '../annotationsMenuOptions';
 import type { ChannelPropertiesType, LinePropertiesType } from '../annotationsSuperTypes';
 import { isChannelType } from '../utils/types';
@@ -26,8 +27,8 @@ export interface LinearSettingsDialogLineChangeProps {
 }
 
 export interface LinearSettingsDialogTextChangeProps {
-    alignment?: string;
-    position?: string;
+    alignment?: LineTextAlignment;
+    position?: LineTextPosition | ChannelTextPosition;
     label?: string;
 }
 
@@ -40,7 +41,7 @@ export class AnnotationSettingsDialog extends Dialog {
         const lineTab = this.createLinearLineTab(datum, options);
         const textTab = this.createLinearTextTab(datum, options);
 
-        const tabs = this.createTabs('line', {
+        const tabs = this.createTabs('ariaLabelSettingsTabBar', 'line', {
             line: {
                 label: isChannelType(datum) ? 'dialogHeaderChannel' : 'dialogHeaderLine',
                 panel: lineTab,
@@ -117,10 +118,10 @@ export class AnnotationSettingsDialog extends Dialog {
         const positionAndAlignment = this.createInputGroupLine();
         const textPosition = datum.text.position === 'inside' ? 'center' : datum.text.position;
         const position = this.createPositionRadioGroup(textPosition ?? 'top', (value) =>
-            options.onChangeText({ position: value })
+            options.onChangeText({ position: value as unknown as LineTextPosition | ChannelTextPosition })
         );
         const alignment = this.createAlignmentRadioGroup(datum.text.alignment ?? 'center', (value) =>
-            options.onChangeText({ alignment: value })
+            options.onChangeText({ alignment: value as unknown as LineTextAlignment })
         );
         positionAndAlignment.append(position, alignment);
 

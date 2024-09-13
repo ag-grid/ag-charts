@@ -58,7 +58,7 @@ return (
   template: `<ag-gauge [options]="options"></ag-gauge>`,
 })
 export class AppComponent {
-  public options: AgRadialGaugePreset;
+  public options: AgLinearGaugeOptions;
   constructor() {
     this.options = {
         type: "linear-gauge",
@@ -112,15 +112,9 @@ In this configuration:
 To create a Horizontal Linear Gauge, set `direction: 'horizontal'`.
 
 ```js
-const options = {
-    type: 'linear-gauge',
+{
     direction: 'horizontal',
-    value: 80,
-    scale: {
-        min: 0,
-        max: 100,
-    },
-};
+}
 ```
 
 ## Customisation
@@ -130,16 +124,12 @@ const options = {
 {% chartExampleRunner title="Thickness" name="thickness" type="generated" options={ "exampleHeight": 250 } /%}
 
 ```js
-const options = {
-    type: 'linear-gauge',
-    //...
-
-    thickness: 50
+{
+    thickness: 50;
     bar: {
-        thickness: 25
+        thickness: 25;
     }
 }
-
 ```
 
 In the above configuration:
@@ -170,21 +160,40 @@ In this configuration:
 
 ### Colour Options
 
-Both the bar and scale can be displayed using a gradient, or using a set of colours.
+Both the bar and scale can be displayed using a solid fill.
+
+{% chartExampleRunner title="Fill" name="fill" type="generated" options={ "exampleHeight": 250 } /%}
+
+```js
+{
+    scale: {
+        fill: '#f5f6fa',
+    },
+    bar: {
+        fill: '#4cd137',
+    },
+}
+```
+
+One or more colours can be specified using the `fills` property.
 
 {% chartExampleRunner title="Colour Scales" name="fill-mode" type="generated" options={ "exampleHeight": 300 } /%}
 
 ```js
 {
     bar: {
+        fills: [{ color: '#00a8ff' }, { color: '#9c88ff' }, { color: '#e84118' }],
         fillMode: 'discrete',
     },
 }
 ```
 
-The `fillMode` can be set to `continuous` for a gradient, or `discrete` to use a set of colours.
+In this configuration:
 
-The fills used can be customised using the `fills` property.
+-   `fills` specifies an array of colours to use to fill the bar.
+-   `fillMode` can be set to `continuous` for a gradient, or `discrete` to use a set of colours.
+
+The default behaviour is to space out the colours evenly. This can be customised by using the `stop` property within a fill.
 
 {% chartExampleRunner title="Scale Values" name="scale-values" type="generated" options={ "exampleHeight": 250 } /%}
 
@@ -206,6 +215,7 @@ The fills used can be customised using the `fills` property.
 In this configuration:
 
 -   Each colour stops at the `stop` value, and the next colour begins at that point.
+-   If no `stop` is provided, the fills will be distributed equally.
 -   The last colour is used until the end of the scale or bar.
 -   Both `discrete` and `continuous` modes can be used with colour stops.
 
@@ -213,11 +223,12 @@ In this configuration:
 
 To split the gauge into segments, use the `segmentation` option.
 
-{% chartExampleRunner title="Appearance" name="appearance" type="generated" options={ "exampleHeight": 300 } /%}
+{% chartExampleRunner title="Segmentation" name="segmentation" type="generated" options={ "exampleHeight": 300 } /%}
 
 ```js
 {
     segmentation: {
+        enabled: true,
         interval: {
             count: 4
         },
@@ -228,7 +239,8 @@ To split the gauge into segments, use the `segmentation` option.
 
 In this configuration:
 
--   `segmentation.interval` specifies where the gauge is segmented. Available options are:
+-   `enabled` specifies whether the gauge is segmented.
+-   `segmentation.interval` specifies how the gauge is segmented. Available options are:
     -   `step` - segments the gauge at a fixed interval.
     -   `count` - segments the gauge a fixed number of times.
     -   `values` - segments the gauge at specific scale values.
@@ -309,7 +321,7 @@ In this configuration:
 
 In this configuration:
 
--   `shape` is a [marker shape](#reference-AgRadialGaugePreset-targets-shape).
+-   `shape` is a [marker shape](#reference-AgLinearGaugeOptions-targets-shape).
 -   `placement` indicates the relative placement to the gauge - either `before`, `after`, or `middle`.
 -   `size` is the size of the marker, in pixels.
 -   `spacing` is spacing from the edge of the gauge to the marker. Ignored when `placement` is `middle`.
@@ -324,8 +336,8 @@ To create a bullet chart, use the `line` shape for the target.
 
 {% tabs %}
 
-{% tabItem id="AgRadialGaugePreset" label="Linear Gauge Options" %}
-{% apiReference id="AgLinearGaugePreset" /%}
+{% tabItem id="AgLinearGaugeOptions" label="Linear Gauge Options" %}
+{% apiReference id="AgLinearGaugeOptions" /%}
 {% /tabItem %}
 
 {% /tabs %}

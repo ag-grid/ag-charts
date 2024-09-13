@@ -1143,7 +1143,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             crossLine.sideFlag = -sideFlag as ChartAxisLabelFlipFlag;
             crossLine.direction = rotation === -Math.PI / 2 ? ChartAxisDirection.X : ChartAxisDirection.Y;
             if (crossLine instanceof CartesianCrossLine) {
-                crossLine.label.parallel = crossLine.label.parallel ?? this.label.parallel;
+                crossLine.label.parallel ??= this.label.parallel;
             }
             crossLine.parallelFlipRotation = parallelFlipRotation;
             crossLine.regularFlipRotation = regularFlipRotation;

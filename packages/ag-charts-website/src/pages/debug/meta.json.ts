@@ -1,3 +1,4 @@
+import { agChartsVersion, agGridVersion } from '@constants';
 import { execSync } from 'child_process';
 
 export async function GET() {
@@ -13,6 +14,10 @@ export async function GET() {
             hash,
             shortHash,
             date: gitDate,
+        },
+        versions: {
+            grid: agGridVersion,
+            charts: agChartsVersion,
         },
     };
 

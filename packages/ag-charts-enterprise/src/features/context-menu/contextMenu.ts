@@ -193,6 +193,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             buttons,
             orientation: 'vertical',
             device: this.ctx.focusIndicator.guessDevice(sourceEvent),
+            skipMouseFocusRestore: true, // AG-12849: Avoid series node focus after context-menu item click.
             closeCallback: () => this.doClose(),
         });
     }

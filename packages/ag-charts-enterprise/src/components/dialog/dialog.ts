@@ -16,7 +16,7 @@ const {
     getWindow,
     mapValues,
 } = _ModuleSupport;
-const { Vec2 } = _Util;
+const { Vec2, setAttributes } = _Util;
 
 export interface DialogOptions extends PopoverOptions {}
 
@@ -103,6 +103,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
      * Containers *
      **************/
     protected createTabs<T extends Record<string, { label: string; panel: HTMLElement; onShow?: () => void }>>(
+        tablistLabel: string,
         initial: keyof T,
         tabs: T
     ) {
@@ -112,9 +113,11 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const tabPanelIds = mapValues(tabs, () => createElementId('ag-charts-dialog__tab-panel'));
 
         for (const [key, tab] of Object.entries(tabs)) {
-            tab.panel.id = tabPanelIds[key];
-            tab.panel.role = 'tabpanel';
-            tab.panel.setAttribute('aria-labelledby', tabButtonIds[key]);
+            setAttributes(tab.panel, {
+                id: tabPanelIds[key],
+                role: 'tabpanel',
+                'aria-labelledby': tabButtonIds[key],
+            });
         }
 
         const onPressTab = (active: keyof T) => {
@@ -126,7 +129,12 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         };
 
         const header = createElement('div', 'ag-charts-dialog__header');
-        header.role = 'tablist';
+        header.addEventListener('mousedown', (event) => {
+            // Only start dragging when an empty part of the header is dragged
+            if (event.target instanceof Element && event.target.classList.contains('ag-charts-dialog__header')) {
+                this.onDragStart(event);
+            }
+        });
 
         const dragHandle = this.createHeaderDragHandle();
         const tabButtons = mapValues(tabs, (tab, key) =>
@@ -137,15 +145,19 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                 },
                 {
                     id: tabButtonIds[key],
-                    className: 'ag-charts-dialog__tab-button',
+                    class: 'ag-charts-dialog__tab-button',
                     role: 'tab',
-                    ariaControls: tabPanelIds[key],
+                    'aria-controls': tabPanelIds[key],
                 }
             )
         );
+        const tablist = createElement('div');
+        setAttributes(tablist, { role: 'tablist', 'aria-label': this.ctx.localeManager.t(tablistLabel) });
+        tablist.append(...Object.values(tabButtons));
+
         const closeButton = this.createHeaderCloseButton();
 
-        header.append(dragHandle, ...Object.values(tabButtons), closeButton);
+        header.append(dragHandle, tablist, closeButton);
         element.append(header, ...Object.values(tabs).map((t) => t.panel));
 
         tabs[initial].panel.classList.add('ag-charts-dialog__tab-panel--active');
@@ -172,19 +184,23 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 
     protected createRadioGroup<T extends string>({ label, options, value, onChange }: RadioGroupOptions<T>) {
         const group = this.createInputGroup(label);
-        group.role = 'radiogroup';
-        group.tabIndex = -1;
-        group.ariaLabel = this.ctx.localeManager.t(label);
+        setAttributes(group, {
+            role: 'radiogroup',
+            tabindex: -1,
+            'aria-label': this.ctx.localeManager.t(label),
+        });
 
         const activeClass = 'ag-charts-dialog__button--active';
         const buttons: HTMLButtonElement[] = [];
 
         for (const button of options) {
-            const altTextT = this.ctx.localeManager.t(button.altText);
+            const { icon, altText: altTextKey } = button;
+            const altText = this.ctx.localeManager.t(altTextKey);
 
             const buttonEl = createButton(
                 {
-                    label: createIcon(button.icon),
+                    icon,
+                    altText,
                     onPress: () => {
                         for (const b of Array.from(group.children)) {
                             b.classList.remove(activeClass);
@@ -196,11 +212,10 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                     },
                 },
                 {
-                    className: 'ag-charts-dialog__button',
+                    'aria-checked': button.value === value,
+                    class: 'ag-charts-dialog__button',
                     role: 'radio',
-                    ariaChecked: button.value === value ? 'true' : 'false',
-                    ariaLabel: altTextT,
-                    title: altTextT,
+                    title: altText,
                 }
             );
 
@@ -222,7 +237,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const altTextT = this.ctx.localeManager.t(altText);
         const select = createSelect(
             { value, options, onChange },
-            { className: 'ag-charts-dialog__select', ariaLabel: altTextT, title: altTextT }
+            { class: 'ag-charts-dialog__select', 'aria-label': altTextT, title: altTextT }
         );
         group.append(select);
 
@@ -238,8 +253,10 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const id = `ag-charts__${label}`;
         const group = this.createInputGroup(label, { for: id });
 
-        const checkbox = createCheckbox({ checked, onChange }, 'ag-charts-dialog__checkbox');
-        checkbox.id = id;
+        const checkbox = createCheckbox(
+            { checked, onChange },
+            { class: 'ag-charts-dialog__checkbox', role: 'switch', id }
+        );
 
         group.append(checkbox);
 
@@ -273,10 +290,10 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                 },
             },
             {
-                className: 'ag-charts-dialog__color-picker-button',
-                ariaLabel: altTextT,
+                'aria-label': altTextT,
+                tabindex: 0,
+                class: 'ag-charts-dialog__color-picker-button',
                 title: altTextT,
-                tabIndex: 0,
             }
         );
 
@@ -299,15 +316,15 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const dragHandle = createElement('div', 'ag-charts-dialog__drag-handle');
         const dragHandleIcon = createIcon('drag-handle');
         dragHandle.append(dragHandleIcon);
-        dragHandle.addEventListener('mousedown', this.onDragStart.bind(this, dragHandle));
+        dragHandle.addEventListener('mousedown', (event) => this.onDragStart(event, dragHandle));
 
         return dragHandle;
     }
 
     private createHeaderCloseButton() {
         return createButton(
-            { label: createIcon('close'), onPress: () => this.hide() },
-            'ag-charts-dialog__close-button'
+            { icon: 'close', altText: this.ctx.localeManager.t('iconAltTextClose'), onPress: () => this.hide() },
+            { class: 'ag-charts-dialog__close-button' }
         );
     }
 
@@ -333,7 +350,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         this.hide();
     }
 
-    private onDragStart(dragHandle: HTMLDivElement, event: MouseEvent) {
+    private onDragStart(event: MouseEvent, dragHandle?: HTMLDivElement) {
         const popover = this.getPopoverElement();
         if (!popover) return;
 
@@ -351,12 +368,12 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                 Number(popover.style.getPropertyValue('top').replace('px', ''))
             ),
         };
-        dragHandle.classList.add('ag-charts-dialog__drag-handle--dragging');
+        dragHandle?.classList.add('ag-charts-dialog__drag-handle--dragging');
 
         const onDrag = this.onDrag.bind(this);
         const onDragEnd = () => {
             domManager.removeEventListener('mousemove', onDrag);
-            dragHandle.classList.remove('ag-charts-dialog__drag-handle--dragging');
+            dragHandle?.classList.remove('ag-charts-dialog__drag-handle--dragging');
         };
 
         domManager.addEventListener('mousemove', onDrag);

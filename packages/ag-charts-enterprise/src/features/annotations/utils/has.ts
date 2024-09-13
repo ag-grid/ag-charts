@@ -14,7 +14,7 @@ import { isChannelType, isLineType, isTextType } from './types';
 
 const { isObject } = _ModuleSupport;
 
-export function hasFontSize(datum?: AnnotationProperties): datum is TextualPropertiesType {
+export function hasFontSize(datum?: AnnotationProperties): datum is Exclude<TextualPropertiesType, NoteProperties> {
     return isTextType(datum) && !NoteProperties.is(datum);
 }
 

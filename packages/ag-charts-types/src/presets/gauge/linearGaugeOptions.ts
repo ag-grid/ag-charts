@@ -1,4 +1,4 @@
-import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { DatumCallbackParams } from '../../chart/callbackOptions';
 import type {
     AgChartAutoSizedLabelOptions,
     AgChartAutoSizedSecondaryLabelOptions,
@@ -139,8 +139,8 @@ export interface AgLinearGaugeThemeableOptions extends AgLinearGaugeStyle, AgBas
     // spacing?: PixelSize;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgLinearGaugeTooltipRendererParams>;
-    /** A callback function for adjusting the styles of a particular Linear Gauge based on the input parameters. */
-    itemStyler?: Styler<AgLinearGaugeItemStylerParams, AgLinearGaugeStyle>;
+    // /** A callback function for adjusting the styles of a particular Linear Gauge based on the input parameters. */
+    // itemStyler?: Styler<AgLinearGaugeItemStylerParams, AgLinearGaugeStyle>;
 }
 
 export interface AgLinearGaugePreset extends AgLinearGaugeThemeableOptions {

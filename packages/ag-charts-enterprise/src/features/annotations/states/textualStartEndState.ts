@@ -4,7 +4,7 @@ import type { AnnotationOptionsColorPickerType, Point } from '../annotationTypes
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
 import type { TextualStartEndScene } from '../scenes/textualStartEndScene';
-import { setColor, setFontSize } from '../utils/styles';
+import { setColor } from '../utils/styles';
 import { isTextType } from '../utils/types';
 import { guardCancelAndExit, guardSaveAndExit } from './textualStateUtils';
 
@@ -101,10 +101,8 @@ export abstract class TextualStartEndStateMachine<
             const node = ctx.node();
             if (!datum || !node || !isTextType(datum)) return;
 
-            setFontSize(datum, datum.type, fontSize);
-
+            datum.fontSize = fontSize;
             ctx.updateTextInputFontSize(fontSize);
-
             ctx.update();
         };
 

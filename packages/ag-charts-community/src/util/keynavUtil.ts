@@ -184,12 +184,16 @@ export function initMenuKeyNav(opts: {
     device: MenuDevice;
     menu: HTMLElement;
     buttons: HTMLElement[];
+    // AG-12849: Fixes a very specific case of avoiding series-node focus after clicking on a context menu item.
+    // We should revisit the approach for this in the future.
+    skipMouseFocusRestore?: boolean;
     closeCallback: () => void;
 }): MenuCloser {
-    const { device, orientation, menu, buttons, closeCallback } = opts;
+    const { device, orientation, menu, buttons, closeCallback, skipMouseFocusRestore = false } = opts;
     const { nextKey, prevKey } = PREV_NEXT_KEYS[orientation];
 
-    const menuCloser = new MenuCloserImp(menu, device.lastFocus, closeCallback);
+    const lastFocus = device.type === 'keyboard' || !skipMouseFocusRestore ? device.lastFocus : undefined;
+    const menuCloser = new MenuCloserImp(menu, lastFocus, closeCallback);
     const onEscape = () => menuCloser.close();
     const { destroyFns } = menuCloser;
 

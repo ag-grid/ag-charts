@@ -34,6 +34,8 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
                 strokeWidth: 0,
             },
             segmentation: {
+                enabled: false,
+                interval: {},
                 spacing: 1,
             },
             // @ts-expect-error Private

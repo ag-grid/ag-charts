@@ -17,9 +17,9 @@ import type {
     AnnotationOptionsColorPickerType,
     ChannelAnnotationType,
     Coords,
+    HasFontSizeAnnotationType,
     LineAnnotationType,
     Point,
-    TextualAnnotationType,
 } from './annotationTypes';
 import {
     ANNOTATION_BUTTONS,
@@ -414,6 +414,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     },
                     onChangeText: (props) => {
                         this.state.transition('lineText', props);
+                        if (props.alignment) this.defaults.setDefaultLineTextAlignment(datum.type, props.alignment);
+                        if (props.position) this.defaults.setDefaultLineTextPosition(datum.type, props.position);
+                        this.recordActionAfterNextUpdate(
+                            `Change ${datum.type} text ${Object.entries(props)
+                                .map(([key, value]) => `${key} to ${value}`)
+                                .join(', ')}`
+                        );
                     },
                     onChangeLineColor: (colorOpacity, color, opacity) => {
                         this.setColorAndDefault(datum.type, 'line-color', colorOpacity, color, opacity);
@@ -428,7 +435,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     },
                     onChangeLineStyleType: (lineStyleType: AgAnnotationLineStyleType) => {
                         this.setLineStyleTypeAndDefault(datum.type, lineStyleType);
-                        this.state.transition('lineStyle', { type: lineStyleType });
                         this.updateToolbarLineStyleType(
                             LINE_STYLE_TYPE_ITEMS.find((item) => item.value === lineStyleType) ??
                                 LINE_STYLE_TYPE_ITEMS[0]
@@ -436,11 +442,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     },
                     onChangeLineStyleWidth: (strokeWidth: number) => {
                         this.setLineStyleWidthAndDefault(datum.type, strokeWidth);
-                        this.state.transition('lineStyle', { strokeWidth });
                         this.updateToolbarStrokeWidth({ strokeWidth, value: strokeWidth, label: String(strokeWidth) });
                     },
-                    onChangeTextColor: (_colorOpacity, color, opacity) => {
-                        this.state.transition('lineTextColor', color);
+                    onChangeTextColor: (colorOpacity, color, opacity) => {
+                        this.setColorAndDefault(datum.type, 'text-color', colorOpacity, color, opacity);
                         this.updateToolbarColorPickerFill('text-color', color, opacity);
                     },
                     onChangeHideTextColor: () => {
@@ -451,7 +456,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                         this.update();
                     },
                     onChangeTextFontSize: (fontSize: number) => {
-                        this.state.transition('lineText', { fontSize });
+                        this.setFontSizeAndDefault(datum.type, fontSize);
                     },
                 });
             },
@@ -845,11 +850,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onTextSizeMenuPress(item: MenuItem<number>, datum?: AnnotationProperties) {
-        if (!isTextType(datum)) return;
+        if (!hasFontSize(datum)) return;
 
         const fontSize = item.value;
         this.setFontSizeAndDefault(datum.type, fontSize);
-        this.state.transition('fontSize', fontSize);
         this.textSizeMenu.hide();
         this.updateToolbarFontSize(fontSize);
     }
@@ -859,7 +863,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         const type = item.value;
         this.setLineStyleTypeAndDefault(datum.type, type);
-        this.state.transition('lineStyle', { type });
         this.lineStyleTypeMenu.hide();
         this.updateToolbarLineStyleType(item);
     }
@@ -871,7 +874,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         const strokeWidth = item.value;
         this.setLineStyleWidthAndDefault(datum.type, strokeWidth);
-        this.state.transition('lineStyle', { strokeWidth });
         this.lineStrokeWidthMenu.hide();
         this.updateToolbarStrokeWidth(item);
     }
@@ -999,7 +1001,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.defaults.setDefaultColor(datumType, colorPickerType, colorOpacity, color, opacity);
     }
 
-    private setFontSizeAndDefault(datumType: TextualAnnotationType, fontSize: number) {
+    private setFontSizeAndDefault(datumType: HasFontSizeAnnotationType, fontSize: number) {
+        this.state.transition('fontSize', fontSize);
         this.defaults.setDefaultFontSize(datumType, fontSize);
         this.recordActionAfterNextUpdate(`Change ${datumType} font size to ${fontSize}`, ['annotations', 'defaults']);
     }
@@ -1008,11 +1011,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         datumType: LineAnnotationType | ChannelAnnotationType,
         styleType: AgAnnotationLineStyleType
     ) {
+        this.state.transition('lineStyle', { type: styleType });
         this.defaults.setDefaultLineStyleType(datumType, styleType);
         this.recordActionAfterNextUpdate(`Change ${datumType} line style to ${styleType}`, ['annotations', 'defaults']);
     }
 
     private setLineStyleWidthAndDefault(datumType: LineAnnotationType | ChannelAnnotationType, strokeWidth: number) {
+        this.state.transition('lineStyle', { strokeWidth });
         this.defaults.setDefaultLineStyleWidth(datumType, strokeWidth);
         this.recordActionAfterNextUpdate(`Change ${datumType} stroke width to ${strokeWidth}`, [
             'annotations',
@@ -1315,7 +1320,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private hideOverlays() {
-        this.colorPicker.hide();
+        this.colorPicker.hide({ lastFocus: null });
         this.textSizeMenu.hide();
         this.lineStyleTypeMenu.hide();
         this.lineStrokeWidthMenu.hide();

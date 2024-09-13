@@ -3,17 +3,15 @@ import { AgCharts, AgRadialGaugeOptions } from 'ag-charts-enterprise';
 const options: AgRadialGaugeOptions = {
     type: 'radial-gauge',
     container: document.getElementById('myChart'),
-    value: 85,
+    value: 80,
     scale: {
         min: 0,
         max: 100,
+        fill: '#f5f6fa',
     },
-    segmentation: {
-        interval: {
-            count: 4,
-        },
-        spacing: 2,
+    bar: {
+        fill: '#4cd137',
     },
 };
 
-const chart = AgCharts.createGauge(options);
+AgCharts.createGauge(options);

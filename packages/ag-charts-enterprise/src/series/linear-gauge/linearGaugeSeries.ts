@@ -451,7 +451,7 @@ export class LinearGaugeSeries
         const containerX = horizontal ? xScale.convert(value) : x1;
         const containerY = horizontal ? y1 : yScale.convert(value);
 
-        const inset = (segmentation.spacing ?? 0) / 2;
+        const inset = segmentation.enabled ? segmentation.spacing / 2 : 0;
         const horizontalInset = horizontal ? inset : 0;
         const verticalInset = horizontal ? 0 : inset;
 
@@ -464,7 +464,7 @@ export class LinearGaugeSeries
         const cornersOnAllItems = cornerMode === 'item';
 
         const maxTicks = Math.ceil(mainAxisSize);
-        let segments = segmentation.interval.getSegments(mainAxisScale, maxTicks);
+        let segments = segmentation.enabled ? segmentation.interval.getSegments(mainAxisScale, maxTicks) : undefined;
 
         const barFill = bar.fill ?? this.createLinearGradient(bar.fills, bar.fillMode);
         const scaleFill =
@@ -535,9 +535,7 @@ export class LinearGaugeSeries
                 verticalInset,
             });
         } else {
-            if (segmentation.spacing === 0 || segments == null) {
-                segments = domain;
-            }
+            segments ??= domain;
 
             const clipX0 = originX + x0 - barXInset;
             const clipY0 = originY + y0 - barYInset;

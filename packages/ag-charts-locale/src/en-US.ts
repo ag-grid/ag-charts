@@ -45,6 +45,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaLabelNavigatorMaximum: 'Maximum',
     // Screen reader text for ranges toolbar
     ariaLabelRangesToolbar: 'Ranges',
+    // Screen reader text for the settings dialog tab-bar
+    ariaLabelSettingsTabBar: 'Settings',
     // Screen reader text for zoom toolbar
     ariaLabelZoomToolbar: 'Zoom',
     // Screen reader text for the value of the navigator's range
@@ -67,6 +69,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     iconAltTextAlignCenter: 'Center',
     // Alt-text for the 'position-right' icon
     iconAltTextAlignRight: 'Right',
+    // Alt-text for the 'close' icon
+    iconAltTextClose: 'Close',
     // Default text for the 'loading data' overlay
     overlayLoadingData: 'Loading data...',
     // Default text for the 'no data' overlay

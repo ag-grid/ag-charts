@@ -50,7 +50,7 @@ jobs:
               run: |
                   yarn install --ignore-scripts
 
-            - name: Create Relase Branch
+            - name: Create Release Branch
               id: git_branch
               if: ${{ github.event.inputs.type == 'create' }}
               run: |

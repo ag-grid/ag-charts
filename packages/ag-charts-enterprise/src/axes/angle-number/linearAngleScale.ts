@@ -1,7 +1,7 @@
 import { _Scale, _Util } from 'ag-charts-community';
 
 const { LinearScale, Invalidating } = _Scale;
-const { isNumberEqual, range, isDenseInterval } = _Util;
+const { range, isDenseInterval, isNumberEqual } = _Util;
 
 export class LinearAngleScale extends LinearScale {
     @Invalidating
@@ -46,18 +46,13 @@ export class LinearAngleScale extends LinearScale {
             niceTickCount /= 2;
             step *= 2;
         }
-        return {
-            count: niceTickCount,
-            step,
-        };
+        return { count: niceTickCount, step };
     }
 
     protected override updateNiceDomain() {
         super.updateNiceDomain();
 
-        if (!this.hasNiceRange()) {
-            return;
-        }
+        if (!this.hasNiceRange()) return;
 
         const reversed = this.niceDomain[0] > this.niceDomain[1];
         const start = reversed ? this.niceDomain[1] : this.niceDomain[0];
