@@ -1,4 +1,4 @@
-import { HIDDEN_API_OPTIONS } from './constants';
+import { HIDDEN_API_INTERFACE_MEMBERS, HIDDEN_SERIES_TYPES } from './constants';
 import type { ApiReferenceNode, ApiReferenceType, InterfaceNode } from './types';
 
 /**
@@ -10,19 +10,20 @@ export function patchDocInterfaces(resolvedEntries: ApiReferenceNode[]) {
     return interfaceReference;
 }
 
+function getTypeUnion(typeRef: ApiReferenceNode | undefined): string[] {
+    if (typeRef?.kind === 'typeAlias') {
+        if (typeof typeRef.type === 'string') {
+            return [typeRef.type];
+        }
+        if (typeof typeRef.type === 'object' && typeRef.type.kind === 'union') {
+            return typeRef.type.type.filter((type): type is string => typeof type === 'string');
+        }
+    }
+    return [];
+}
+
 function patchAgChartOptionsReference(reference: ApiReferenceType) {
     const interfaceRef = reference.get('AgChartOptions');
-    const getTypeUnion = (typeRef: ApiReferenceNode | undefined): string[] => {
-        if (typeRef?.kind === 'typeAlias') {
-            if (typeof typeRef.type === 'string') {
-                return [typeRef.type];
-            }
-            if (typeof typeRef.type === 'object' && typeRef.type.kind === 'union') {
-                return typeRef.type.type.filter((type): type is string => typeof type === 'string');
-            }
-        }
-        return [];
-    };
 
     const axisOptions: string[] = [];
     const seriesOptions: string[] = [];
@@ -55,7 +56,10 @@ function patchAgChartOptionsReference(reference: ApiReferenceType) {
                 );
                 axisOptions.push(...axisOptionUnion);
             } else if (member.name === 'series') {
-                seriesOptions.push(...getTypeUnion(reference.get(member.type.type)));
+                const series = getTypeUnion(reference.get(member.type.type)).filter(
+                    (series) => !HIDDEN_SERIES_TYPES.includes(series)
+                );
+                seriesOptions.push(...series);
             }
         }
     }
@@ -104,7 +108,7 @@ function updateInterfaceReferences(content: ApiReferenceNode[]) {
         content.map((item: InterfaceNode) => [item.name, item])
     );
 
-    for (const [interfaceName, hiddenKeys] of Object.entries(HIDDEN_API_OPTIONS)) {
+    for (const [interfaceName, hiddenKeys] of Object.entries(HIDDEN_API_INTERFACE_MEMBERS)) {
         removeMembersFromInterface(interfacesReference.get(interfaceName), hiddenKeys as string[]);
     }
 
