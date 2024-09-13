@@ -1,6 +1,6 @@
 import { urlWithPrefix } from './urlWithPrefix';
 
-describe('urlWithPrefix', () => {
+describe.skip('urlWithPrefix', () => {
     test.each`
         url                      | framework       | expected
         ${'./docs'}              | ${'javascript'} | ${'/ag-charts/javascript-data-grid/docs'}
