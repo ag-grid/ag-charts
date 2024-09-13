@@ -14,7 +14,7 @@ import { Version } from '@ag-website-shared/components/whats-new/components/Vers
 import whatsNewData from '@ag-website-shared/content/whats-new/data.json';
 import { getIsProduction, getIsArchive, GRID_STAGING_SITE_URL } from '@utils/env';
 import { agGridVersion } from '@constants';
-import HomepageGalleryExamples from '@features/homepage/components/HomepageGalleryExamples.astro';
+import { HomepageGalleryExamples } from '@features/homepage/components/HomepageGalleryExamples';
 import HomepageDocsExample from '@features/homepage/components/HomepageDocsExample.astro';
 
 const { blogPrefix } = whatsNewData['charts'];
@@ -150,7 +150,7 @@ const AG_GRID_CHARTS_CDN_URL = isProduction
                     <h2>AG Charts JavaScript Charting Library</h2>
                     <h3>JavaScript Charts <br /> Designed for Every Use Case</h3>
                 </div>
-                <HomepageGalleryExamples examples={exampleData} pageName={'bar'} />
+                <HomepageGalleryExamples client:load examples={exampleData} pageName={'bar'} />
                 <div class={styles.ctaButton}>
                     <a
                         href={urlWithBaseUrl(

@@ -1,7 +1,10 @@
 import { Icon, type IconName } from '@ag-website-shared/components/icon/Icon';
+import LoadingLogo from '@ag-website-shared/images/inline-svgs/ag-grid-logomark-loading.svg?react';
+import { getLoadingIFrameId, getLoadingLogoId } from '@features/example-runner/utils/getLoadingLogoId';
+import { onMessageRemoveLoadingLogo } from '@features/example-runner/utils/onMessageRemoveLoadingLogo';
 import { GalleryExampleRunner } from '@features/gallery/components/GalleryExampleRunner';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import styles from './HomepageGalleryExamples.module.scss';
 
@@ -12,13 +15,21 @@ interface Props {
         buttonText: string;
         icon: string;
     }>;
-    loadingIFrameId: string;
+    pageName: string;
 }
 
-export const HomepageGalleryExamples = ({ examples, loadingIFrameId }: Props) => {
+export const HomepageGalleryExamples = ({ examples, pageName }: Props) => {
     const [currentExampleName, setCurrentExampleName] = useState(examples[0].exampleName);
     const currentExample = examples.find((example) => example.exampleName === currentExampleName) || examples[0];
     const { title, exampleName } = currentExample;
+    const loadingLogoId = getLoadingLogoId({ pageName, exampleName });
+    const loadingIFrameId = getLoadingIFrameId({ pageName, exampleName });
+
+    useEffect(() => {
+        const { cleanUp } = onMessageRemoveLoadingLogo({ pageName, exampleName });
+
+        return cleanUp;
+    }, [pageName, exampleName]);
 
     const handleExampleSelect = (exampleName: string) => {
         setCurrentExampleName(exampleName);
@@ -48,6 +59,7 @@ export const HomepageGalleryExamples = ({ examples, loadingIFrameId }: Props) =>
                 ))}
             </div>
             <div className={styles.exampleContainer}>
+                <LoadingLogo id={loadingLogoId} />
                 <GalleryExampleRunner
                     title={title}
                     exampleName={exampleName}

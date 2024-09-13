@@ -87,7 +87,15 @@
 }
 
 .exampleContainer {
+    position: relative;
     width: 100%;
+
+    :global(.logomark) {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -100%) scale(2);
+    }
 }
 
 .sideContainer {
