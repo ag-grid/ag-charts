@@ -293,11 +293,8 @@ export class InteractionManager extends InteractionStateListener<InteractionType
             event.preventDefault();
             return;
         }
-        // AG-12037 Interacting with HTML buttons can also fire events on the series, which we don't want.
-        // AG-12604 Same thing with <input> tags
-        const ignoredTags: (string | undefined)[] = ['button', 'input'];
-        const targetTags = [target?.tagName?.toLowerCase(), target?.role];
-        if (targetTags.some((tag) => ignoredTags.includes(tag))) {
+
+        if (this.ignoreEvent(type, target)) {
             return;
         }
 
@@ -305,6 +302,20 @@ export class InteractionManager extends InteractionStateListener<InteractionType
             // Async dispatch to avoid blocking the event-processing thread.
             this.dispatchEvent(event, type).catch((e) => Logger.errorOnce(e));
         }
+    }
+
+    private ignoreEvent(
+        type: InteractionTypes | undefined,
+        target: (EventTarget & { ariaDisabled?: string; tagName?: string; role?: string }) | null
+    ) {
+        // AG-12824 Don't ignore contextmenu events.
+        if (type === 'contextmenu') return false;
+
+        // AG-12037 Interacting with HTML buttons can also fire events on the series, which we don't want.
+        // AG-12604 Same thing with <input> tags
+        const ignoredTags: (string | undefined)[] = ['button', 'input'];
+        const targetTags = [target?.tagName?.toLowerCase(), target?.role];
+        return targetTags.some((tag) => ignoredTags.includes(tag));
     }
 
     private async dispatchEvent(event: SupportedEvent, type: InteractionTypes) {
