@@ -40,9 +40,8 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         this.destroyFns.push(
             seriesRegion.addListener('hover', (event) => this.show(event), mouseMoveStates),
             seriesRegion.addListener('drag', (event) => this.show(event), InteractionState.Annotations),
-            seriesRegion.addListener('wheel', () => this.hide(), InteractionState.Default),
+            seriesRegion.addListener('drag', () => this.hide(), InteractionState.ZoomDrag),
             seriesRegion.addListener('leave', () => this.hide(), InteractionState.Default),
-            ctx.zoomManager.addListener('zoom-pan-start', () => this.hide()),
             ctx.zoomManager.addListener('zoom-change', () => this.hide()),
             () => this.destroyElements(),
             () => this.wrapper.remove(),

@@ -199,9 +199,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             this.updateAxisZoom.bind(this)
         );
 
-        const { Default, ZoomDrag, Animation } = _ModuleSupport.InteractionState;
+        const { Default, ZoomDrag, Animation, Annotations } = _ModuleSupport.InteractionState;
         const draggableState = Default | Animation | ZoomDrag;
         const clickableState = Default | Animation;
+        const wheelableState = draggableState | Annotations;
         const region = ctx.regionManager.getRegion(REGIONS.SERIES);
         const horizontalAxesRegion = ctx.regionManager.getRegion(REGIONS.HORIZONTAL_AXES);
         const verticalAxesRegion = ctx.regionManager.getRegion(REGIONS.VERTICAL_AXES);
@@ -224,7 +225,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             horizontalAxesRegion.addListener('drag-end', (event) => this.onDragEnd(event), draggableState),
             horizontalAxesRegion.addListener('leave', () => this.onAxisLeave(), clickableState),
             horizontalAxesRegion.addListener('hover', (event) => this.onAxisHover(event, ChartAxisDirection.X)),
-            region.addListener('wheel', (event) => this.onWheel(event), clickableState),
+            region.addListener('wheel', (event) => this.onWheel(event), wheelableState),
             ctx.gestureDetector.addListener('pinch-move', (event) => this.onPinchMove(event as PinchEvent)),
             ctx.toolbarManager.addListener('button-pressed', (event) =>
                 this.toolbar.onButtonPress(event, this.getModuleProperties())
