@@ -92,9 +92,12 @@ export class ContextMenuRegistry {
     public dispatchContext<T extends ContextType>(
         type: T,
         pointerEvent: PointerInteractionEvent<'contextmenu'>,
-        context: ContextTypeMap[T]
+        context: ContextTypeMap[T],
+        position?: { x: number; y: number }
     ) {
-        const { offsetX: x, offsetY: y, sourceEvent } = pointerEvent;
+        const { sourceEvent } = pointerEvent;
+        const x = position?.x ?? pointerEvent.offsetX;
+        const y = position?.y ?? pointerEvent.offsetY;
         this.listeners.dispatch('', buildPreventable({ type, x, y, context, sourceEvent }));
     }
 

@@ -1,3 +1,4 @@
+import type { BBox } from '../../scene/bbox';
 import { createId } from '../../util/id';
 import type { TypedEvent } from '../../util/observable';
 import { BaseManager } from '../baseManager';
@@ -7,6 +8,7 @@ import { ChartUpdateType } from '../chartUpdateType';
 import { InteractionState } from '../interaction/interactionManager';
 import type { RegionEvent } from '../interaction/regionManager';
 import { REGIONS } from '../interaction/regions';
+import type { LayoutCompleteEvent } from '../layout/layoutManager';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import { Tooltip } from '../tooltip/tooltip';
 import { type Series } from './series';
@@ -30,6 +32,7 @@ export class SeriesAreaManager extends BaseManager {
     readonly id = createId(this);
 
     private series: Series<any, any>[] = [];
+    private seriesRect?: BBox;
 
     private readonly subManagers: SeriesAreaSubManager[];
 
@@ -57,7 +60,8 @@ export class SeriesAreaManager extends BaseManager {
         this.destroyFns.push(
             () => this.subManagers.forEach((s) => s.destroy()),
             seriesRegion.addListener('contextmenu', (event) => this.onContextMenu(event), InteractionState.All),
-            this.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender())
+            this.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender()),
+            this.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event))
         );
     }
 
@@ -80,6 +84,10 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
+    private layoutComplete(event: LayoutCompleteEvent): void {
+        this.seriesRect = event.series.rect;
+    }
+
     private onContextMenu(event: RegionEvent<'contextmenu'>): void {
         // If there is already a context menu visible, then re-pick the highlighted node.
         // We check InteractionState.Default too just in case we were in ContextMenu and the
@@ -87,7 +95,16 @@ export class SeriesAreaManager extends BaseManager {
         const { Default, ContextMenu } = InteractionState;
 
         let pickedNode: SeriesNodeDatum | undefined;
-        if (this.ctx.interactionManager.getState() & (Default | ContextMenu)) {
+        let position: { x: number; y: number } | undefined;
+        if (this.ctx.focusIndicator.guessDevice(event.sourceEvent).type === 'keyboard') {
+            pickedNode = this.ctx.highlightManager.getActiveHighlight();
+            if (pickedNode && this.seriesRect && pickedNode.midPoint) {
+                position = {
+                    x: this.seriesRect.x + pickedNode.midPoint.x,
+                    y: this.seriesRect.y + pickedNode.midPoint.y,
+                };
+            }
+        } else if (this.ctx.interactionManager.getState() & (Default | ContextMenu)) {
             const match = pickNode(this.series, { x: event.regionOffsetX, y: event.regionOffsetY }, 'context-menu');
             if (match) {
                 this.ctx.highlightManager.updateHighlight(this.id);
@@ -95,6 +112,6 @@ export class SeriesAreaManager extends BaseManager {
             }
         }
 
-        this.ctx.contextMenuRegistry.dispatchContext('series', event, { pickedNode });
+        this.ctx.contextMenuRegistry.dispatchContext('series', event, { pickedNode }, position);
     }
 }
