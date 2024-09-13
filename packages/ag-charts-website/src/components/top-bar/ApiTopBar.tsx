@@ -47,7 +47,7 @@ export const ApiTopBar: FunctionComponent<Props> = ({ menuItems, fullPath }) => 
                     <nav>
                         <ul className="list-style-none">
                             {menuItemsWithFrameworkLinks.map(({ title, path }) => (
-                                <li key={path} className={pagePath === path ? styles.active : ''}>
+                                <li key={path} className={pagePath.startsWith(path) ? styles.active : ''}>
                                     <a href={urlWithBaseUrl(path)}>{title}</a>
                                 </li>
                             ))}
