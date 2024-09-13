@@ -148,7 +148,12 @@
     gap: $spacing-size-4;
 
     @container (max-width: #{$breakpoint-table-small}) {
+        margin-top: $spacing-size-3;
         width: 100%;
+
+        .expandedChildProps & {
+            padding-left: $spacing-size-6;
+        }
     }
 }
 
@@ -434,7 +439,9 @@ button.seeMore {
     }
 
     .rightColumn {
-        padding-left: calc($spacing-size-4 * var(--nested-path-depth));
+        @container (min-width: #{$breakpoint-table-small}) {
+            padding-left: calc($spacing-size-4 * var(--nested-path-depth));
+        }
     }
 }
 
