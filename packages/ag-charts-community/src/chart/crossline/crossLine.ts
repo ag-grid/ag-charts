@@ -49,7 +49,9 @@ export const validateCrossLineValues = (
     const validEnd = checkDatum(end, isContinuous) && !isNaN(scale.convert(end));
 
     if ((lineCrossLine && validStart) || (rangeCrossLine && validStart && validEnd)) {
-        return true;
+        const domain = scale.getDomain?.() ?? scale.domain;
+        // TODO support clipping if only end is out-of-bounds
+        return start >= domain[0] && start <= domain[1] && (lineCrossLine || (end >= start && end <= domain[1]));
     }
 
     const message = [`Expecting crossLine`];
