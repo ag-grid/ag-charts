@@ -125,17 +125,17 @@ To create a Horizontal Linear Gauge, set `direction: 'horizontal'`.
 
 ```js
 {
-    thickness: 50;
+    thickness: 100;
     bar: {
-        thickness: 25;
+        thickness: 50;
     }
 }
 ```
 
 In the above configuration:
 
--   The thickness of the scale is specified as 50 pixels.
--   The thickness of the bar is specified as 25 pixels.
+-   The thickness of the scale is specified as 100 pixels.
+-   The thickness of the bar is specified as 50 pixels.
 -   It is also possible to use `thicknessRatio` to specify the width of the bar as a proportion of the scale.
 
 <!-- ### Labels
@@ -158,7 +158,51 @@ In this configuration:
 
 -   The scale labels are hidden using the `scale.label.enabled` option. See the [API Reference](#api-reference) for more details about customising the scale label style and interval. -->
 
-### Colour Options
+### Segmentation
+
+To split the gauge into segments, set `segmentation.enabled` to `true`.
+
+{% chartExampleRunner title="Segmentation" name="segmentation" type="generated" options={ "exampleHeight": 300 } /%}
+
+```js
+{
+    segmentation: {
+        enabled: true,
+        interval: {
+            count: 4
+        },
+        spacing: 2,
+    },
+}
+```
+
+In this configuration:
+
+-   `segmentation.interval` specifies how the gauge is segmented. Available options are:
+    -   `step` - segments the gauge at a fixed interval.
+    -   `count` - segments the gauge a fixed number of times.
+    -   `values` - segments the gauge at specific scale values.
+-   `spacing` defines the spacing between each segment.
+
+### Corner Radius
+
+{% chartExampleRunner title="Corner Radius" name="corner-radius" type="generated" options={ "exampleHeight": 350 } /%}
+
+```js
+{
+    cornerRadius: 99,
+    cornerMode: 'container',
+}
+```
+
+In this configuration:
+
+-   `cornerRadius` specifies the amount of curvature applied to each corner.
+-   `cornerMode` can be set to `container` to apply rounded corners only to the start and end of the gauge, or `item` for all visual items within the gauge.
+
+## Colour Options
+
+### Single Colour
 
 Both the bar and scale can be displayed using a solid fill.
 
@@ -175,7 +219,9 @@ Both the bar and scale can be displayed using a solid fill.
 }
 ```
 
-One or more colours can be specified using the `fills` property.
+### Multiple Colours
+
+Multiple colours can be specified using the `fills` property.
 
 {% chartExampleRunner title="Colour Scales" name="fill-mode" type="generated" options={ "exampleHeight": 300 } /%}
 
@@ -191,9 +237,11 @@ One or more colours can be specified using the `fills` property.
 In this configuration:
 
 -   `fills` specifies an array of colours to use to fill the bar.
--   `fillMode` can be set to `continuous` for a gradient, or `discrete` to use a set of colours.
+-   `fillMode` can be set to `continuous` for a gradient, or `discrete` to use blocks of solid colours.
 
-The default behaviour is to space out the colours evenly. This can be customised by using the `stop` property within a fill.
+The default behaviour is to space out the colours evenly. This can be customised by using colour stops.
+
+### Colour Stops
 
 {% chartExampleRunner title="Scale Values" name="scale-values" type="generated" options={ "exampleHeight": 250 } /%}
 
@@ -218,49 +266,6 @@ In this configuration:
 -   If no `stop` is provided, the fills will be distributed equally.
 -   The last colour is used until the end of the scale or bar.
 -   Both `discrete` and `continuous` modes can be used with colour stops.
-
-### Segmentation
-
-To split the gauge into segments, use the `segmentation` option.
-
-{% chartExampleRunner title="Segmentation" name="segmentation" type="generated" options={ "exampleHeight": 300 } /%}
-
-```js
-{
-    segmentation: {
-        enabled: true,
-        interval: {
-            count: 4
-        },
-        spacing: 2,
-    },
-}
-```
-
-In this configuration:
-
--   `enabled` specifies whether the gauge is segmented.
--   `segmentation.interval` specifies how the gauge is segmented. Available options are:
-    -   `step` - segments the gauge at a fixed interval.
-    -   `count` - segments the gauge a fixed number of times.
-    -   `values` - segments the gauge at specific scale values.
--   `spacing` defines the spacing between each segment.
-
-### Corner Radius
-
-{% chartExampleRunner title="Corner Radius" name="corner-radius" type="generated" options={ "exampleHeight": 350 } /%}
-
-```js
-{
-    cornerRadius: 99,
-    cornerMode: 'container',
-}
-```
-
-In this configuration:
-
--   `cornerRadius` specifies the amount of curvature applied to each corner.
--   `cornerMode` can be set to `container` to apply rounded corners only to the start and end of the gauge, or `item` for all visual items within the gauge.
 
 ## Targets
 
@@ -328,9 +333,44 @@ In this configuration:
 
 ## Bullet Series
 
+The Linear Gauge is used to create a Bullet Series.
+
 {% chartExampleRunner title="Bullet" name="bullet" type="generated" options={ "exampleHeight": 250 } /%}
 
-To create a bullet chart, use the `line` shape for the target.
+```js
+{
+    type: "linear-gauge",
+    //...
+
+    thickness: 50,
+    value: 50,
+    scale: {
+        min: 0,
+        max: 100,
+        fills: [{ color: "#A6A6A5" }, { color: "#BFBFBF" }, { color: "#D9D9D9" }],
+        fillMode: "discrete",
+    },
+    bar: {
+        thickness: 25,
+        fill: "black",
+    },
+    targets: [
+    {
+        value: 60,
+        shape: "line",
+        size: 20,
+        placement: "middle",
+        strokeWidth: 2
+    },
+    ],
+}
+```
+
+In the above configuration:
+
+-   The bar `thickness` is set to less that the gauge thickness.
+-   The scale has a number of `fills` and a `fillMode` of `discrete`.
+-   The target has `line` shape with a `strokeWidth` of 2 and is placed in the `middle`.
 
 ## API Reference
 
