@@ -51,11 +51,11 @@
     color: white;
 }
 
-.ag-chart-context-menu__item:hover {
+.ag-chart-context-menu__item:focus {
     background: rgb(33, 150, 243, 0.1);
 }
 
-.ag-chart-context-menu__item:hover.ag-charts-dark-context-menu {
+.ag-chart-context-menu__item:focus.ag-charts-dark-context-menu {
     background: rgb(33, 150, 243, 0.1);
 }
 
@@ -79,7 +79,7 @@
     text-align: left;
 }
 
-.ag-chart-context-menu__item[aria-disabled='true']:hover {
+.ag-chart-context-menu__item[aria-disabled='true']:focus {
     background: inherit;
     cursor: inherit;
 }
