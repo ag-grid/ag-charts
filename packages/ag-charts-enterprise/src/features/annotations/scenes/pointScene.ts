@@ -103,10 +103,11 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
         this.handle.toggleLocked(datum.locked ?? false);
     }
 
-    protected updateAnchor(_datum: Datum, point: _Util.Vec2, context: AnnotationContext) {
+    protected updateAnchor(datum: Datum, point: _Util.Vec2, context: AnnotationContext) {
+        const coords = this.getHandleCoords(datum, point);
         return {
-            x: point.x + context.seriesRect.x,
-            y: point.y + context.seriesRect.y,
+            x: coords.x + context.seriesRect.x,
+            y: coords.y + context.seriesRect.y,
             position: this.anchor.position,
         };
     }
