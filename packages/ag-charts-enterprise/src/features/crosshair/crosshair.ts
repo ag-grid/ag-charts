@@ -160,10 +160,10 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             line.lineDash = lineDash;
             line.lineDashOffset = lineDashOffset;
 
-            line.y1 ||= 0;
-            line.y2 ||= isVertical ? bounds.height : 0;
-            line.x1 ||= 0;
-            line.x2 ||= isVertical ? 0 : bounds.width;
+            line.y1 = 0;
+            line.y2 = isVertical ? bounds.height : 0;
+            line.x1 = 0;
+            line.x2 = isVertical ? 0 : bounds.width;
         });
     }
 
