@@ -253,8 +253,10 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const id = `ag-charts__${label}`;
         const group = this.createInputGroup(label, { for: id });
 
-        const checkbox = createCheckbox({ checked, onChange }, { class: 'ag-charts-dialog__checkbox' });
-        checkbox.id = id;
+        const checkbox = createCheckbox(
+            { checked, onChange },
+            { class: 'ag-charts-dialog__checkbox', role: 'switch', id }
+        );
 
         group.append(checkbox);
 

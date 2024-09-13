@@ -2,6 +2,7 @@ import type { AgIconName } from 'ag-charts-types';
 
 import { type AttributeSet, type InputAttributeSet, setAttribute, setAttributes } from '../util/attributeUtil';
 import { createElement } from '../util/dom';
+import { isButtonClickEvent } from '../util/keynavUtil';
 
 // These types force a compilation error if the developer tries to add an icon-only
 // menu item without an accessible text alternative.
@@ -34,6 +35,12 @@ export function createCheckbox(options: CheckboxOptions, attrs?: AttributeSet) {
     checkbox.type = 'checkbox';
     checkbox.checked = options.checked;
     checkbox.addEventListener('change', (event) => options.onChange(checkbox.checked, event));
+    checkbox.addEventListener('keydown', (event) => {
+        if (isButtonClickEvent(event)) {
+            event.preventDefault();
+            checkbox.click();
+        }
+    });
     setAttributes(checkbox, attrs);
     return checkbox;
 }

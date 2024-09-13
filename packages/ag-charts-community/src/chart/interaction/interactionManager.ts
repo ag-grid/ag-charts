@@ -294,7 +294,10 @@ export class InteractionManager extends InteractionStateListener<InteractionType
             return;
         }
         // AG-12037 Interacting with HTML buttons can also fire events on the series, which we don't want.
-        if ([target?.tagName?.toLowerCase(), target?.role].includes('button')) {
+        // AG-12604 Same thing with <input> tags
+        const ignoredTags: (string | undefined)[] = ['button', 'input'];
+        const targetTags = [target?.tagName?.toLowerCase(), target?.role];
+        if (targetTags.some((tag) => ignoredTags.includes(tag))) {
             return;
         }
 

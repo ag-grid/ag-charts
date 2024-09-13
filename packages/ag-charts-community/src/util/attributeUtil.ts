@@ -1,7 +1,7 @@
 type ElementID = string;
 
 type BaseAttributeTypeMap = {
-    role: 'figure' | 'img' | 'radio' | 'radiogroup' | 'status' | 'tab' | 'tablist' | 'tabpanel';
+    role: 'figure' | 'img' | 'radio' | 'radiogroup' | 'status' | 'switch' | 'tab' | 'tablist' | 'tabpanel';
     'aria-checked': boolean;
     'aria-controls': ElementID;
     'aria-hidden': boolean;
