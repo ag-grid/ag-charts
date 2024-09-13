@@ -432,6 +432,10 @@ button.seeMore {
         background-color: var(--color-util-gray-300);
         pointer-events: none;
     }
+
+    .rightColumn {
+        padding-left: calc($spacing-size-4 * var(--nested-path-depth));
+    }
 }
 
 .isChildProp {
