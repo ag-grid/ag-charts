@@ -17,6 +17,8 @@ const seriesType: AgToolbarOptions['seriesType'] = {
         {
             tooltip: 'toolbarSeriesTypeDropdown',
             value: 'type',
+            // @ts-expect-error
+            haspopup: true,
         },
     ],
 };
@@ -31,18 +33,24 @@ const annotations: AgToolbarOptions['annotations'] = {
             tooltip: 'toolbarAnnotationsLineAnnotations',
             value: 'line-menu',
             section: 'line-annotations',
+            // @ts-expect-error
+            haspopup: true,
         },
         {
             icon: 'text-annotation',
             tooltip: 'toolbarAnnotationsTextAnnotations',
             value: 'text-menu',
             section: 'text-annotations',
+            // @ts-expect-error
+            haspopup: true,
         },
         {
             icon: 'arrow-drawing',
             tooltip: 'toolbarAnnotationsShapeAnnotations',
             value: 'shape-menu',
             section: 'shape-annotations',
+            // @ts-expect-error
+            haspopup: true,
         },
         {
             icon: 'delete',

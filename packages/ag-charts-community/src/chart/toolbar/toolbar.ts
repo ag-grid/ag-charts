@@ -4,7 +4,7 @@ import type { LayoutContext, ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
-import { setAttribute } from '../../util/attributeUtil';
+import { setAttribute, setAttributes } from '../../util/attributeUtil';
 import { createElement, getWindow } from '../../util/dom';
 import { initToolbarKeyNav, makeAccessibleClickListener } from '../../util/keynavUtil';
 import { clamp } from '../../util/number';
@@ -752,7 +752,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         const button = createElement('button');
         button.classList.add(styles.elements.button);
         button.dataset.toolbarGroup = group;
-        button.tabIndex = -1;
+        setAttribute(button, 'tabindex', -1);
+        if (options.haspopup) {
+            setAttributes(button, { 'aria-haspopup': true, 'aria-expanded': false });
+        }
 
         button.dataset.toolbarId = this.buttonId(options);
         button.addEventListener(
@@ -771,8 +774,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
 
         if (options.role === 'switch') {
-            button.role = options.role;
-            button.ariaChecked = false.toString();
+            setAttributes(button, { role: options.role, 'aria-checked': false });
         }
         this.updateButton(button, options);
 

@@ -1,3 +1,5 @@
+import { setAttribute } from './attributeUtil';
+
 function addRemovableEventListener<K extends keyof WindowEventMap>(
     destroyFns: (() => void)[],
     elem: Window,
@@ -173,6 +175,7 @@ class MenuCloserImp implements MenuCloser {
     finishClosing() {
         this.destroyFns.forEach((d) => d());
         this.destroyFns.length = 0;
+        setAttribute(this.lastFocus, 'aria-expanded', false);
         this.lastFocus?.focus();
         this.lastFocus = undefined;
     }
@@ -191,6 +194,8 @@ export function initMenuKeyNav(opts: {
 }): MenuCloser {
     const { device, orientation, menu, buttons, closeCallback, skipMouseFocusRestore = false } = opts;
     const { nextKey, prevKey } = PREV_NEXT_KEYS[orientation];
+
+    setAttribute(device.lastFocus, 'aria-expanded', true);
 
     const lastFocus = device.type === 'keyboard' || !skipMouseFocusRestore ? device.lastFocus : undefined;
     const menuCloser = new MenuCloserImp(menu, lastFocus, closeCallback);
