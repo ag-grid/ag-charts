@@ -1294,7 +1294,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         if (title.enabled && params.anyTickVisible) {
             const tickBBox = Group.computeChildrenBBox([tickLineGroup, tickLabelGroup, lineNode]);
             spacing += tickBBox.width + (this.tickLabelGroup.visible ? 0 : this.seriesAreaPadding);
-            // console.log(tickLabelGroup.getBBox());
         }
         this.setTitleProps(title.caption, { spacing });
     }
