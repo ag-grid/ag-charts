@@ -158,8 +158,18 @@ export function prepareAreaPathAnimation(newData: AreaSeriesNodeDataContext, old
         { scales: oldData.scales, data: oldData.fillData.phantomSpans, visible: oldData.visible }
     );
     const strokeSpans = pairUpSpans(
-        { scales: newData.scales, data: newData.strokeData.spans, visible: newData.visible },
-        { scales: oldData.scales, data: oldData.strokeData.spans, visible: oldData.visible }
+        {
+            scales: newData.scales,
+            data: newData.strokeData.spans,
+            visible: newData.visible,
+            zeroData: newData.fillData.phantomSpans,
+        },
+        {
+            scales: oldData.scales,
+            data: oldData.strokeData.spans,
+            visible: oldData.visible,
+            zeroData: oldData.fillData.phantomSpans,
+        }
     );
 
     const fadeMode = 'none';
