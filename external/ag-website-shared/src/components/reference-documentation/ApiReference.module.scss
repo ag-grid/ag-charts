@@ -443,6 +443,10 @@ button.seeMore {
             padding-left: calc($spacing-size-4 * var(--nested-path-depth));
         }
     }
+
+    .propertyRow:last-child {
+        border-bottom: none;
+    }
 }
 
 .isChildProp {
