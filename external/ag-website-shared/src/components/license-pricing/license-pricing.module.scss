@@ -19,11 +19,11 @@
     display: flex;
     align-items: center;
     flex-direction: column;
-    padding-top: $spacing-size-12 + ($spacing-size-1 / 2);
+    padding-top: calc($spacing-size-12 + ($spacing-size-1 / 2));
     background: linear-gradient(
         to bottom,
         transparent,
-        color-mix(in srgb, var(--background) 5%, transparent) ($spacing-size-12 + 64px / 2),
+        color-mix(in srgb, var(--background) 5%, transparent) calc($spacing-size-12 + 64px / 2),
         transparent 0
     );
 
