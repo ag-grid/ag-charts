@@ -17,11 +17,11 @@ export interface AgZoomRatio {
     /** The minimum value of the axis zoom ratio.
      *  Default: `0`
      */
-    start?: number;
+    start?: Ratio;
     /** The maximum value of the axis zoom ratio.
      *  Default: `1`
      */
-    end?: number;
+    end?: Ratio;
 }
 
 export interface AgZoomButtons extends Omit<AgToolbarZoomGroup, 'align' | 'position'> {}
