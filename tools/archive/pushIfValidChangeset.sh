@@ -8,7 +8,7 @@ fi
 
 RELEASE_BRANCH=$1
 
-NON_PACKAGE_JSON_COUNT=`git status --porcelain | grep -Ev "package.json|yarn.lock|version.t|.env.*" | wc -l`
+NON_PACKAGE_JSON_COUNT=`git status --porcelain | grep -Ev "package.json|yarn.lock|version.t|.env.*|*.zip" | wc -l`
 
 if [ $NON_PACKAGE_JSON_COUNT -ne 0 ];
 then
