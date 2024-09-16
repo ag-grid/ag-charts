@@ -187,15 +187,17 @@ export class AgChartInstanceProxy implements AgChartProxy {
             }
         }
 
-        const options: ChartExtendedOptions = mergeDefaults(
-            {
-                container: document.createElement('div'),
-                width,
-                height,
-            },
-            overrideOptions,
-            processedOptions
-        );
+        const defaultOpts: ChartExtendedOptions = {
+            container: document.createElement('div'),
+            width,
+            height,
+        };
+
+        if (opts.width != null && opts.height != null) {
+            defaultOpts.overrideDevicePixelRatio = 1;
+        }
+
+        const options: ChartExtendedOptions = mergeDefaults(defaultOpts, overrideOptions, processedOptions);
 
         const cloneProxy = await this.factoryApi.createOrUpdate(options);
         await cloneProxy.setState(state);
