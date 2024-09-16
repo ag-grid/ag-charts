@@ -15,16 +15,25 @@
 }
 
 .introSection {
-    width: 80%;
-    margin: 0 auto;
     display: flex;
     align-items: center;
     flex-direction: column;
-    margin-bottom: $spacing-size-8;
+    padding-top: $spacing-size-12 + ($spacing-size-1 / 2);
+    background: linear-gradient(
+        to bottom,
+        transparent,
+        color-mix(in srgb, var(--background) 5%, transparent) ($spacing-size-12 + 64px / 2),
+        transparent 0
+    );
+    --background: var(--color-bg-brand-solid);
 
     p {
         text-align: center;
         text-wrap: balance;
+    }
+
+    #{$selector-darkmode} & {
+        --background: var(--color-fg-primary);
     }
 }
 
@@ -490,7 +499,6 @@
     cursor: pointer;
     user-select: none;
     box-shadow: var(--shadow-sm);
-    margin-bottom: $spacing-size-4;
 
     #{$selector-darkmode} & {
         border: 2px solid var(--color-bg-primary);
@@ -627,14 +635,6 @@
     transition: all 0.3s ease-in;
 }
 
-.switchContainer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    top: 42px;
-}
-
 .toggleBackground {
     opacity: 0.7;
     position: absolute;
@@ -663,19 +663,6 @@
 .toggleWrapper {
     top: 48px;
     max-height: 70px; // Prevents 1px height change on toggle
-}
-
-.gradient {
-    position: absolute;
-    top: -70px;
-    height: 100px;
-    width: 100vw;
-    background: linear-gradient(transparent, var(--color-bg-brand-solid));
-    opacity: 0.05;
-
-    #{$selector-darkmode} & {
-        background: linear-gradient(transparent, var(--color-fg-primary));
-    }
 }
 
 .videoPrompt {
