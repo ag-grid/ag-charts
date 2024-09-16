@@ -720,7 +720,7 @@ export abstract class Series<
                     (key) => (activeStyle.strokeWidth ?? 0) + Math.abs(center[key] - point[key])
                 );
                 const customSize = Math.max(bb.width + dx, bb.height + dy);
-                point.size = marker.size = customSize;
+                point.focusSize = customSize;
             }
         }
     }
