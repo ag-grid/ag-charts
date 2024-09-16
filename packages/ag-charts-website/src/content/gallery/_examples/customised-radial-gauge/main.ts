@@ -15,6 +15,7 @@ const firstOptions: AgGaugeOptions = {
         },
     },
     segmentation: {
+        enabled: true,
         interval: {
             values: [65, 75],
         },
@@ -55,6 +56,7 @@ const secondOptions: AgGaugeOptions = {
     startAngle: 180 + 45,
     endAngle: 360 + 180 - 45,
     segmentation: {
+        enabled: true,
         interval: {
             step: 1,
         },
@@ -84,6 +86,7 @@ const thirdOptions: AgGaugeOptions = {
     startAngle: 180 + 45,
     endAngle: 360 + 180 - 45,
     segmentation: {
+        enabled: true,
         interval: {
             values: [50, 60, 70, 80],
         },
