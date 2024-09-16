@@ -126,6 +126,10 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         const { text, isPlaceholder } = datum.getText();
         const wrappedText = wrapText(datum, text, bbox.width);
 
+        if (!isPlaceholder) {
+            datum.set({ text: wrappedText });
+        }
+
         updateTextNode(this.label, wrappedText, isPlaceholder, datum, this.getLabelCoords(datum, bbox));
     }
 
