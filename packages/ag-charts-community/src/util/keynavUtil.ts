@@ -168,6 +168,8 @@ class MenuCloserImp implements MenuCloser {
     }
 
     close() {
+        this.destroyFns.forEach((d) => d());
+        this.destroyFns.length = 0;
         this.closeCallback();
         this.finishClosing();
     }
