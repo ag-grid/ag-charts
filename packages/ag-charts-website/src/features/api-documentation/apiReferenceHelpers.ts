@@ -259,8 +259,8 @@ function formatFunctionCode(name: string, apiNode: FunctionNode, member: MemberN
             if (type.kind === 'typeRef') {
                 return reference.get(type.type);
             }
-            if (type.kind === 'union' || type.kind === 'intersection') {
-                return type.type.map(typeMapper);
+            if (type.kind === 'union' || type.kind === 'intersection' || type.kind === 'tuple') {
+                return type.type.flatMap(typeMapper);
             }
             // eslint-disable-next-line no-console
             console.warn('Unknown type', type);
