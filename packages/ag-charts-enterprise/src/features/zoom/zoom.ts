@@ -240,12 +240,20 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         );
     }
 
+    override destroy(): void {
+        super.destroy();
+
+        this._destroyContextMenuActions?.();
+    }
+
+    private _destroyContextMenuActions: (() => void) | undefined = undefined;
     private onEnabledChange(enabled: boolean) {
         if (!this.contextMenu || !this.toolbar) return;
 
         const zoom = this.getZoom();
         const props = this.getModuleProperties({ enabled });
-        this.contextMenu.registerActions(enabled, zoom);
+        this._destroyContextMenuActions?.();
+        this._destroyContextMenuActions = this.contextMenu.registerActions(enabled, zoom);
         this.onZoomButtonsChange(enabled);
         this.toolbar.toggle(enabled, zoom, props);
     }

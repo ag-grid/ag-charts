@@ -32,13 +32,13 @@ export class ZoomContextMenu {
 
         const { contextMenuRegistry } = this;
 
-        contextMenuRegistry.registerDefaultAction({
+        const destroyZoomToCursor = contextMenuRegistry.registerDefaultAction({
             id: CONTEXT_ZOOM_ACTION_ID,
             type: 'series',
             label: 'contextMenuZoomToCursor',
             action: this.onZoomToHere.bind(this),
         });
-        contextMenuRegistry.registerDefaultAction({
+        const destroyPanToCursor = contextMenuRegistry.registerDefaultAction({
             id: CONTEXT_PAN_ACTION_ID,
             type: 'series',
             label: 'contextMenuPanToCursor',
@@ -46,6 +46,11 @@ export class ZoomContextMenu {
         });
 
         this.toggleActions(zoom);
+
+        return () => {
+            destroyZoomToCursor();
+            destroyPanToCursor();
+        };
     }
 
     public toggleActions(zoom: DefinedZoomState) {
