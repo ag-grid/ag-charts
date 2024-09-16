@@ -27,6 +27,7 @@
       },
       "configurations": {
         "staging": {},
+        "archive": {},
         "production": {}
       }
     },
@@ -50,6 +51,7 @@
       },
       "configurations": {
         "staging": {},
+        "archive": {},
         "production": {}
       }
     },
