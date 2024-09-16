@@ -161,10 +161,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         header.append(dragHandle, tablist, closeButton);
         element.append(header, ...Object.values(tabs).map((t) => t.panel));
 
-        tabs[initial].panel.classList.add('ag-charts-dialog__tab-panel--active');
-        tabs[initial].onShow?.();
-        tabButtons[initial].classList.add('ag-charts-dialog__tab-button--active');
-
+        onPressTab(initial);
         initRovingTabIndex({ orientation: 'horizontal', buttons: Object.values(tabButtons) });
 
         this.initialFocus = tabButtons[initial];
