@@ -251,7 +251,6 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     guard: guardActive,
                     action: () => {
                         this.copied = ctx.copy(this.active!);
-                        ctx.recordAction('Copy annotation');
                     },
                 },
 
@@ -260,7 +259,6 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     action: () => {
                         this.copied = ctx.copy(this.active!);
                         deleteDatum();
-                        ctx.recordAction('Cut annotation');
                     },
                 },
 
@@ -268,7 +266,6 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     guard: guardCopied,
                     action: () => {
                         ctx.paste(this.copied!);
-                        ctx.recordAction('Paste annotation');
                     },
                 },
 
