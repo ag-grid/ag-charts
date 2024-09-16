@@ -1326,6 +1326,13 @@ export abstract class Chart extends Observable {
         return modulesChanged;
     }
 
+    private initSeriesDeclarationOrder(series: Series<any, any>[]) {
+        // Ensure declaration order is set, this is used for correct z-index behavior for combo charts.
+        for (let idx = 0; idx < series.length; idx++) {
+            series[idx]._declarationOrder = idx;
+        }
+    }
+
     private applySeries(
         chart: { series: Series<any, any>[] },
         optSeries: AgChartOptions['series'],
@@ -1339,6 +1346,7 @@ export abstract class Chart extends Observable {
         if (matchResult.status === 'no-overlap') {
             debug(`Chart.applySeries() - creating new series instances, status: ${matchResult.status}`, matchResult);
             chart.series = optSeries.map((opts) => this.createSeries(opts));
+            this.initSeriesDeclarationOrder(chart.series);
             return 'replaced';
         }
 
@@ -1382,10 +1390,7 @@ export abstract class Chart extends Observable {
                 }
             }
         }
-        // Ensure declaration order is set, this is used for correct z-index behavior for combo charts.
-        for (let idx = 0; idx < seriesInstances.length; idx++) {
-            seriesInstances[idx]._declarationOrder = idx;
-        }
+        this.initSeriesDeclarationOrder(seriesInstances);
 
         debug(`Chart.applySeries() - final series instances`, seriesInstances);
         chart.series = seriesInstances;
