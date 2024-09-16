@@ -118,6 +118,11 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
     protected updateLabel(datum: Datum, bbox: _Scene.BBox, coords: LineCoords) {
         const { text, isPlaceholder } = datum.getText();
         const wrappedText = wrapText(datum, text, bbox.width);
+
+        if (!isPlaceholder) {
+            datum.set({ text: wrappedText });
+        }
+
         updateTextNode(this.label, wrappedText, isPlaceholder, datum, this.getLabelCoords(datum, bbox, coords));
     }
 
