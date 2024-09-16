@@ -40,12 +40,16 @@ export class AriaAnnouncementService {
         this.liveElem.style.height = `${event.chart.height}px`;
     }
 
+    clear() {
+        this.liveElem.textContent = '\u00A0'; // NO-BREAK SPACE
+    }
+
     announceValue(id: string, params?: Record<string, any>): void {
         const { localeManager, liveElem } = this;
         const value = localeManager.t(id, params);
         this.debug(`AriaAnnouncementService - announceValue: ${value}`);
 
-        liveElem.textContent = '\u00A0'; // NO-BREAK SPACE
+        this.clear();
         setTimeout(() => (liveElem.innerText = value), 16);
     }
 }

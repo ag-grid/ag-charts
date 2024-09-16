@@ -121,7 +121,7 @@ export class SeriesAreaFocusManager extends BaseManager {
             this.handleSeriesFocus(seriesIndexDelta, datumIndexDelta);
         } else {
             this.ctx.focusIndicator.updateBounds(overlayFocus.rect);
-            this.ctx.ariaAnnouncementService.announceValue(overlayFocus.text);
+            this.ctx.ariaAnnouncementService.clear();
         }
     }
 
