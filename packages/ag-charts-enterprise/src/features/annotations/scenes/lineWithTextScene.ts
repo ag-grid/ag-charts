@@ -76,15 +76,17 @@ export class LineWithTextScene {
 
         const { alignment, position } = datum.text;
 
-        let relativeLine = top;
+        const [actualTop, actualBottom] = top.y1 <= bottom.y1 ? [top, bottom] : [bottom, top];
+
+        let relativeLine = actualTop;
         if (position === 'bottom') {
-            relativeLine = bottom;
+            relativeLine = actualBottom;
         } else if (position === 'inside') {
             relativeLine = {
-                x1: (top.x1 + bottom.x1) / 2,
-                y1: (top.y1 + bottom.y1) / 2,
-                x2: (top.x2 + bottom.x2) / 2,
-                y2: (top.y2 + bottom.y2) / 2,
+                x1: (actualTop.x1 + actualBottom.x1) / 2,
+                y1: (actualTop.y1 + actualBottom.y1) / 2,
+                x2: (actualTop.x2 + actualBottom.x2) / 2,
+                y2: (actualTop.y2 + actualBottom.y2) / 2,
             };
         }
 
