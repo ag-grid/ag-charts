@@ -597,12 +597,19 @@ export class LineSeries extends CartesianSeries<
             return;
         }
 
-        const fns = prepareLinePathAnimation(
-            contextData,
-            previousContextData,
-            this.processedData?.reduced?.diff,
-            this.properties.interpolation
-        );
+        let fns: ReturnType<typeof prepareLinePathAnimation>;
+        try {
+            fns = prepareLinePathAnimation(
+                contextData,
+                previousContextData,
+                this.processedData?.reduced?.diff,
+                this.properties.interpolation
+            );
+        } catch {
+            // @todo(CRT-468) - this code will likely be replaced with area-series implementation
+            fns = undefined;
+        }
+
         if (fns === undefined) {
             skip();
             return;
