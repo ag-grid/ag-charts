@@ -111,11 +111,19 @@ export class ContextMenuRegistry {
         });
     }
 
-    public registerDefaultAction<T extends ContextType>(action: ContextMenuAction<T>) {
-        if (action.id && this.defaultActions.find(({ id }) => id === action.id)) {
-            return;
+    public registerDefaultAction<T extends ContextType>(action: ContextMenuAction<T>): () => void {
+        const didAdd = action.id != null && !this.defaultActions.some(({ id }) => id === action.id);
+
+        if (didAdd) {
+            this.defaultActions.push(action);
         }
-        this.defaultActions.push(action);
+
+        return () => {
+            const index = didAdd ? this.defaultActions.findIndex(({ id }) => id === action.id) : -1;
+            if (index !== -1) {
+                this.defaultActions.splice(index, 1);
+            }
+        };
     }
 
     public enableAction(actionId: string) {

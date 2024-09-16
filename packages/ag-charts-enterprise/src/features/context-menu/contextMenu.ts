@@ -106,21 +106,23 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             this.destroyFns.push(() => observer.disconnect());
         }
 
-        this.registry.registerDefaultAction({
-            id: 'download',
-            type: 'all',
-            label: 'contextMenuDownload',
-            action: () => {
-                const title = ctx.chartService.title;
-                let fileName = 'image';
-                if (title?.enabled && title?.text !== undefined) {
-                    fileName = title.text.replace(/\.+/, '');
-                }
-                this.ctx.chartService.publicApi?.download({ fileName }).catch((e) => {
-                    Logger.error('Unable to download chart', e);
-                });
-            },
-        });
+        this.destroyFns.push(
+            this.registry.registerDefaultAction({
+                id: 'download',
+                type: 'all',
+                label: 'contextMenuDownload',
+                action: () => {
+                    const title = ctx.chartService.title;
+                    let fileName = 'image';
+                    if (title?.enabled && title?.text !== undefined) {
+                        fileName = title.text.replace(/\.+/, '');
+                    }
+                    this.ctx.chartService.publicApi?.download({ fileName }).catch((e) => {
+                        Logger.error('Unable to download chart', e);
+                    });
+                },
+            })
+        );
 
         this.destroyFns.push(this.registry.addListener((e) => this.onContext(e)));
     }
