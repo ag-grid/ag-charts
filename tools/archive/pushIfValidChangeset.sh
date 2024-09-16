@@ -18,5 +18,5 @@ then
 fi
 
 git add -- . ':!*.zip'
-#git commit -am "Version Bump"
-#git push -u origin "$RELEASE_BRANCH"
+git commit -am "Version Bump"
+git push -u origin "$RELEASE_BRANCH"
