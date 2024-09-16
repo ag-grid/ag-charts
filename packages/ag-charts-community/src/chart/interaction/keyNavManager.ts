@@ -31,6 +31,7 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
             interactionManager.addListener('drag-start', (e) => this.onClickStart(e), InteractionState.All),
             interactionManager.addListener('click', (e) => this.onClickStop(e), InteractionState.All),
             interactionManager.addListener('drag-end', (e) => this.onClickStop(e), InteractionState.All),
+            interactionManager.addListener('contextmenu', (e) => this.onClickStop(e), InteractionState.All),
             interactionManager.addListener('wheel', (e) => this.mouseBlur(e)),
             interactionManager.addListener('hover', (e) => this.mouseBlur(e)),
             interactionManager.addListener('drag', (e) => this.mouseBlur(e)),
@@ -54,7 +55,7 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
         this.mouseBlur(event);
     }
 
-    private onClickStop(event: PointerInteractionEvent<'drag-end' | 'click'>) {
+    private onClickStop(event: PointerInteractionEvent<'drag-end' | 'click' | 'contextmenu'>) {
         this.mouseBlur(event);
         this.isClicking = false;
     }
