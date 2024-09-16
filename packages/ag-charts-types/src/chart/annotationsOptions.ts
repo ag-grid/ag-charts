@@ -70,7 +70,7 @@ export interface AgCalloutAnnotationStyles extends AgTextAnnotationStyles, Strok
 export interface AgCommentAnnotationStyles extends AgTextAnnotationStyles, StrokeOptions, FillOptions {}
 
 export interface AgNoteAnnotationStyles extends AgTextAnnotationStyles, StrokeOptions, FillOptions {
-    background: AgNoteAnnotationBackground;
+    background?: AgNoteAnnotationBackground;
 }
 
 // ***********
