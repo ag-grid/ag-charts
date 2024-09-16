@@ -167,12 +167,14 @@ export class AxisTicks {
         if (this.position === 'bottom' || this.position === 'top') {
             const measurer = CachedTextMeasurerPool.getMeasurer({ font: this.label });
 
-            let lastTickPosition = -Infinity;
+            const domain = this.scale.getDomain();
+            const reversed = domain[0] > domain[1];
+            const direction = reversed ? -1 : 1;
+            let lastTickPosition = -Infinity * direction;
             tickData.ticks = tickData.ticks.filter((data) => {
-                if (lastTickPosition < data.translate) {
-                    lastTickPosition = data.translate + measurer.textWidth(data.tickLabel, true);
-                    return true;
-                }
+                if (Math.sign(data.translate - lastTickPosition) !== direction) return false;
+                lastTickPosition = data.translate + measurer.textWidth(data.tickLabel, true) * direction;
+                return true;
             });
         }
 
