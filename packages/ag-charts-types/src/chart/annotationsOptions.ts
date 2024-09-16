@@ -114,6 +114,7 @@ export interface AgLineAnnotation
         LineOptions {
     /** Configuration for the trend line annotation.*/
     type: 'line';
+    /** Configuration for the drag handles. */
     handle?: AgAnnotationHandle;
     /** Configuration for the line text. */
     text?: AgLineAnnotationText;
@@ -138,6 +139,7 @@ export interface AgCrossLineAnnotation extends Lockable, Visible, StrokeOptions,
     value: AgAnnotationValue;
     /** Configuration for the annotation axis label. */
     axisLabel?: AgAnnotationAxisLabel;
+    /** Configuration for the drag handle. */
     handle?: AgAnnotationHandle;
 }
 
@@ -156,6 +158,7 @@ export interface AgParallelChannelAnnotation
     type: 'parallel-channel';
     /** The height of the annotation along the y-axis. */
     height: number;
+    /** Configuration for the drag handles. */
     handle?: AgAnnotationHandle;
     /** Configuration for the line in the middle of the channel. */
     middle?: AgChannelAnnotationMiddle;
@@ -178,6 +181,7 @@ export interface AgDisjointChannelAnnotation
     startHeight: number;
     /** The height of the annotation along the y-axis at the end. */
     endHeight: number;
+    /** Configuration for the drag handles. */
     handle?: AgAnnotationHandle;
     /** The fill colour for the middle of the channel. */
     background?: AgChannelAnnotationBackground;
@@ -202,6 +206,7 @@ export interface AgCommentAnnotation extends TextualPointAnnotation, FillOptions
 export interface AgNoteAnnotation extends TextualPointAnnotation, FillOptions, StrokeOptions {
     /** Configuration for the note annotation. */
     type: 'note';
+    /** The fill and stroke for note icon. */
     background?: AgNoteAnnotationBackground;
 }
 
@@ -212,11 +217,15 @@ export interface AgTextAnnotation extends TextualPointAnnotation {
 
 interface TextualPointAnnotation extends TextualAnnotation, AgAnnotationPoint {}
 interface TextualStartEndAnnotation extends TextualAnnotation {
+    /** The starting point of the annotation. */
     start: AgAnnotationPoint;
+    /** The end point of the annotation. */
     end: AgAnnotationPoint;
 }
 interface TextualAnnotation extends Lockable, Visible, FontOptions {
+    /** Configuration for the drag handle. */
     handle?: AgAnnotationHandle;
+    /** The text content. */
     text: string;
 }
 
@@ -330,7 +339,17 @@ interface Lockable {
 }
 
 interface Extendable {
+    /**
+     * Whether the annotation should be extended away from the start.
+     *
+     * Default: `false`
+     */
     extendStart?: boolean;
+    /**
+     * Whether the annotation should be extended away from the end.
+     *
+     * Default: `false`
+     */
     extendEnd?: boolean;
 }
 
