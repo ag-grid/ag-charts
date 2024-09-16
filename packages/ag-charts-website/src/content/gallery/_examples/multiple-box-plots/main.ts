@@ -66,6 +66,9 @@ const options: AgChartOptions = {
     footnote: {
         text: 'Source: UN International Organization for Migration',
     },
+    padding: {
+        left: 50,
+    },
     series: [
         {
             type: 'box-plot',
