@@ -82,7 +82,7 @@ const extractSubAngularProjectDependencies = (packageDirectory) => {
             }, {});
     }
 
-    return {agSubAngularVersion, agSubAngularGridDeps, agSubAngularChartDeps};
+    return { agSubAngularVersion, agSubAngularGridDeps, agSubAngularChartDeps };
 };
 
 const ROOT_PACKAGE_JSON = '../../../package.json';
@@ -93,7 +93,6 @@ const getPackageInformation = () => {
 
     packageDirectories.forEach((packageDirectory) => {
         if (fs.existsSync(`${packageDirectory}/package.json`)) {
-
             const projectPackageJson = readFile(`${packageDirectory}/package.json`);
 
             const dependencies = getAgDependencies(projectPackageJson);
@@ -105,7 +104,7 @@ const getPackageInformation = () => {
                 ? extractPeerDependencies(projectPackageJson, peerDependencies, gridDependency)
                 : {};
             const agChartDeps = extractDependencies(projectPackageJson, dependencies, devDependencies, chartDependency);
-            const {agSubAngularVersion, agSubAngularGridDeps, agSubAngularChartDeps} =
+            const { agSubAngularVersion, agSubAngularGridDeps, agSubAngularChartDeps } =
                 extractSubAngularProjectDependencies(packageDirectory);
 
             packageInformation[projectPackageJson.name] = {

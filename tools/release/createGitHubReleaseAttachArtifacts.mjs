@@ -142,4 +142,3 @@ async function uploadArtifactsForRelease(release) {
 await validateRelease();
 const release = await createGitHubRelease();
 await uploadArtifactsForRelease(release);
-

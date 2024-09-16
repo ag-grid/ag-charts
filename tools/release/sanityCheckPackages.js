@@ -18,9 +18,7 @@ if (!chartNewVersion) {
 console.log(
     '******************************************************************************************************************************'
 );
-console.log(
-    `Verify Charts Version ${chartNewVersion} are the dependencies used in package.json         `
-);
+console.log(`Verify Charts Version ${chartNewVersion} are the dependencies used in package.json         `);
 console.log(
     '******************************************************************************************************************************'
 );
@@ -30,11 +28,12 @@ let errorFound = false;
 const allPackages = getPackageInformation();
 const packageNames = Object.keys(allPackages);
 packageNames
-    .filter((packageName) =>
-        packageName != 'ag-shared'
-        && packageName !== 'ag-charts-community-examples'
-        && packageName !== 'ag-charts-website'
-        && packageName !== 'ag-charts-task-autogen'
+    .filter(
+        (packageName) =>
+            packageName != 'ag-shared' &&
+            packageName !== 'ag-charts-community-examples' &&
+            packageName !== 'ag-charts-website' &&
+            packageName !== 'ag-charts-task-autogen'
     )
     .forEach((packageName) => {
         const agPackage = allPackages[packageName];
