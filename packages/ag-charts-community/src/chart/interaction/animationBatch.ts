@@ -126,10 +126,7 @@ export class AnimationBatch {
         } while (unusedTime > 0 && !arePhasesComplete());
 
         if (this.animationTimeConsumed > this.maxAnimationTime) {
-            Logger.warnOnce(
-                'Animation batch exceeded max animation time, skipping.',
-                new Map(this.controllers.entries())
-            );
+            this.debug(`Animation batch exceeded max animation time, skipping`, [...this.controllers]);
             this.stop();
         }
     }
