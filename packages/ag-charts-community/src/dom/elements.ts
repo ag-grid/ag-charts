@@ -56,7 +56,7 @@ export function createSelect(options: SelectOptions, attrs?: AttributeSet) {
         ...options.options.map((option) => {
             const optionEl = createElement('option');
             optionEl.value = option.value;
-            optionEl.label = option.label;
+            optionEl.textContent = option.label;
             return optionEl;
         })
     );
