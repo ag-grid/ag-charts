@@ -44,6 +44,9 @@ export class ZoomRange {
 
     public updateDomain(domain: Array<Date | number>) {
         this.domain = domain;
+        if (this.initialStart == null && this.initialEnd == null) {
+            this.updateWith((start, end) => [start, end]);
+        }
     }
 
     public restore(start?: Date | number, end?: Date | number) {
