@@ -322,6 +322,7 @@ export abstract class Chart extends Observable {
                 get performUpdateType() {
                     return thisChart.performUpdateType;
                 },
+                seriesRoot: this.seriesRoot,
             },
             ctx,
             this.getChartType(),
