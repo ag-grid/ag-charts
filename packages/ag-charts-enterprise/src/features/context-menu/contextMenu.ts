@@ -183,6 +183,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             this.element.appendChild(newMenuElement);
         }
 
+        newMenuElement.addEventListener('blur', (ev) => console.log(ev));
+
         this.menuElement = newMenuElement;
 
         this.element.style.display = 'block';
@@ -193,6 +195,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             buttons,
             orientation: 'vertical',
             device: this.ctx.focusIndicator.guessDevice(sourceEvent),
+            autoCloseOnBlur: true,
             skipMouseFocusRestore: true, // AG-12849: Avoid series node focus after context-menu item click.
             closeCallback: () => this.doClose(),
         });

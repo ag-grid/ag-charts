@@ -187,12 +187,22 @@ export function initMenuKeyNav(opts: {
     device: MenuDevice;
     menu: HTMLElement;
     buttons: HTMLElement[];
+    // CRT-481 Automatically close the context menu when change focus with TAB / Shift+TAB
+    autoCloseOnBlur?: boolean;
     // AG-12849: Fixes a very specific case of avoiding series-node focus after clicking on a context menu item.
     // We should revisit the approach for this in the future.
     skipMouseFocusRestore?: boolean;
     closeCallback: () => void;
 }): MenuCloser {
-    const { device, orientation, menu, buttons, closeCallback, skipMouseFocusRestore = false } = opts;
+    const {
+        device,
+        orientation,
+        menu,
+        buttons,
+        closeCallback,
+        autoCloseOnBlur = false,
+        skipMouseFocusRestore = false,
+    } = opts;
     const { nextKey, prevKey } = PREV_NEXT_KEYS[orientation];
 
     setAttribute(device.lastFocus, 'aria-expanded', true);
@@ -215,6 +225,19 @@ export function initMenuKeyNav(opts: {
             buttons[0]?.focus();
         }
     });
+
+    if (autoCloseOnBlur) {
+        const handler = (ev: FocusEvent) => {
+            const buttonArray: (EventTarget | null)[] = buttons;
+            const isLeavingMenu = !buttonArray.includes(ev.relatedTarget);
+            if (isLeavingMenu) {
+                onEscape();
+            }
+        };
+        for (const button of buttons) {
+            addRemovableEventListener(destroyFns, button, 'blur', handler);
+        }
+    }
 
     if (device.type === 'keyboard') {
         buttons[0]?.focus();
