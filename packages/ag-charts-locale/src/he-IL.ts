@@ -64,6 +64,7 @@ export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
     iconAltTextLineStyleDotted: 'מְקוּוָו קָצָר',
     iconAltTextLineStyleSolid: 'מוצק',
     iconAltTextPositionBottom: 'תחתון',
+    iconAltTextPositionCenter: 'מרכז',
     iconAltTextPositionTop: 'למעלה',
     inputTextareaPlaceholder: 'הוסף טקסט',
     overlayLoadingData: 'טוען נתונים...',

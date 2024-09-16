@@ -64,6 +64,7 @@ export const AG_CHARTS_LOCALE_ZH_TW: Record<string, string> = {
     iconAltTextLineStyleDotted: '短虛線',
     iconAltTextLineStyleSolid: '實線',
     iconAltTextPositionBottom: '底部',
+    iconAltTextPositionCenter: '中心',
     iconAltTextPositionTop: '頂端',
     inputTextareaPlaceholder: '添加文字',
     overlayLoadingData: '正在載入數據...',

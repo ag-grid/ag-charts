@@ -64,6 +64,7 @@ export const AG_CHARTS_LOCALE_PT_PT: Record<string, string> = {
     iconAltTextLineStyleDotted: 'Tracejado curto',
     iconAltTextLineStyleSolid: 'Sólido',
     iconAltTextPositionBottom: 'Inferior',
+    iconAltTextPositionCenter: 'Centro',
     iconAltTextPositionTop: 'Topo',
     inputTextareaPlaceholder: 'Adicionar Texto',
     overlayLoadingData: 'Carregando dados...',

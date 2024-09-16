@@ -64,6 +64,7 @@ export const AG_CHARTS_LOCALE_SK_SK: Record<string, string> = {
     iconAltTextLineStyleDotted: 'Krátka pomlčka',
     iconAltTextLineStyleSolid: 'Plná',
     iconAltTextPositionBottom: 'Dno',
+    iconAltTextPositionCenter: 'Stred',
     iconAltTextPositionTop: 'Horná',
     inputTextareaPlaceholder: 'Pridať text',
     overlayLoadingData: 'Načítavam údaje...',

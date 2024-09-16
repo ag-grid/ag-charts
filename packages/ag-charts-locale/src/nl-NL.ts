@@ -64,6 +64,7 @@ export const AG_CHARTS_LOCALE_NL_NL: Record<string, string> = {
     iconAltTextLineStyleDotted: 'Kort-gestreept',
     iconAltTextLineStyleSolid: 'Solid',
     iconAltTextPositionBottom: 'Onderkant',
+    iconAltTextPositionCenter: 'Midden',
     iconAltTextPositionTop: 'Boven',
     inputTextareaPlaceholder: 'Voeg Tekst Toe',
     overlayLoadingData: 'Gegevens laden...',

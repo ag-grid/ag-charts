@@ -64,6 +64,7 @@ export const AG_CHARTS_LOCALE_FR_FR: Record<string, string> = {
     iconAltTextLineStyleDotted: 'Tirets courts',
     iconAltTextLineStyleSolid: 'Solide',
     iconAltTextPositionBottom: 'Bas',
+    iconAltTextPositionCenter: 'Centre',
     iconAltTextPositionTop: 'Haut',
     inputTextareaPlaceholder: 'Ajouter du texte',
     overlayLoadingData: 'Chargement des données...',

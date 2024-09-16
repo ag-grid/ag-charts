@@ -64,6 +64,7 @@ export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
     iconAltTextLineStyleDotted: 'С къси тирета',
     iconAltTextLineStyleSolid: 'Плътна',
     iconAltTextPositionBottom: 'Долу',
+    iconAltTextPositionCenter: 'Център',
     iconAltTextPositionTop: 'Горе',
     inputTextareaPlaceholder: 'Добави текст',
     overlayLoadingData: 'Зареждане на данни...',

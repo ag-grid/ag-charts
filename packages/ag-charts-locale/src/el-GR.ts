@@ -64,6 +64,7 @@ export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
     iconAltTextLineStyleDotted: 'Μικρή παύλα',
     iconAltTextLineStyleSolid: 'Συμπαγές',
     iconAltTextPositionBottom: 'Κάτω',
+    iconAltTextPositionCenter: 'Κέντρο',
     iconAltTextPositionTop: 'Κορυφή',
     inputTextareaPlaceholder: 'Προσθήκη Κειμένου',
     overlayLoadingData: 'Φόρτωση δεδομένων...',

@@ -64,6 +64,7 @@ export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
     iconAltTextLineStyleDotted: 'خط با خط‌چین کوتاه',
     iconAltTextLineStyleSolid: 'یکدست',
     iconAltTextPositionBottom: 'پایین',
+    iconAltTextPositionCenter: 'مرکز',
     iconAltTextPositionTop: 'بالا',
     inputTextareaPlaceholder: 'اضافه کردن متن',
     overlayLoadingData: 'در حال بارگذاری داده...',

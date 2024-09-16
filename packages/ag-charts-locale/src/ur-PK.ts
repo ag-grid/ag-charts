@@ -64,6 +64,7 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
     iconAltTextLineStyleDotted: 'مختصر-ڈیش',
     iconAltTextLineStyleSolid: 'ٹھوس',
     iconAltTextPositionBottom: 'نیچے',
+    iconAltTextPositionCenter: 'درمیان',
     iconAltTextPositionTop: 'اوپر',
     inputTextareaPlaceholder: 'متن شامل کریں',
     overlayLoadingData: 'ڈیٹا لوڈ ہو رہا ہے...',

@@ -64,6 +64,7 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
     iconAltTextLineStyleDotted: 'مُخطط متقطع',
     iconAltTextLineStyleSolid: 'صلب',
     iconAltTextPositionBottom: 'الأسفل',
+    iconAltTextPositionCenter: 'مركز',
     iconAltTextPositionTop: 'أعلى',
     inputTextareaPlaceholder: 'أضف نص',
     overlayLoadingData: 'جارٍ تحميل البيانات...',
