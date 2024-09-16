@@ -132,7 +132,7 @@ export class LineWithTextScene {
         }
 
         let textBaseline: CanvasTextBaseline = 'bottom';
-        if (position === 'bottom' && !offsetInsideTextLabel) {
+        if (position === 'bottom') {
             point = Vec2.rotate(offset, angle + Math.PI / 2, point);
             textBaseline = 'top';
         } else if (position === 'center' && !offsetInsideTextLabel) {
