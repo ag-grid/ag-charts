@@ -558,10 +558,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private createAnnotation(type: AnnotationType, datum: AnnotationProperties, applyDefaults: boolean = true) {
         this.annotationData.push(datum);
 
-        const styles = this.ctx.annotationManager.getAnnotationTypeStyles(type);
-        if (styles) datum.set(styles);
-
         if (applyDefaults) {
+            const styles = this.ctx.annotationManager.getAnnotationTypeStyles(type);
+            if (styles) datum.set(styles);
             this.defaults.applyDefaults(datum);
         }
 
