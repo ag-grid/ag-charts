@@ -44,7 +44,6 @@ import { invertCoords } from './utils/values';
 const {
     BOOLEAN,
     ChartUpdateType,
-    Cursor,
     InteractionState,
     ObserveChanges,
     PropertiesArray,
@@ -308,11 +307,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
             validatePoint: (point: Point) => {
                 const context = this.getAnnotationContext();
-                const valid = context ? validateDatumPoint(context, point) : true;
-                if (!valid) {
-                    this.ctx.cursorManager.updateCursor('annotations', Cursor.NotAllowed);
-                }
-                return valid;
+                return context ? validateDatumPoint(context, point) : true;
             },
 
             getAnnotationType: (index: number) => {
