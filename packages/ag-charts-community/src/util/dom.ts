@@ -93,7 +93,7 @@ export function setElementBBox(element: HTMLElement | undefined, bbox: BBoxValue
 }
 
 export function focusCursorAtEnd(element: HTMLElement) {
-    element.focus();
+    element.focus({ preventScroll: true });
 
     if (element.lastChild?.textContent == null) return;
 
