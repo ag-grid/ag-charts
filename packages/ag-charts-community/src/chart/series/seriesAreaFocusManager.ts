@@ -54,15 +54,21 @@ export class SeriesAreaFocusManager extends BaseManager {
     }
 
     public seriesChanged(series: Series<any, SeriesProperties<any>>[]) {
-        this.series = [...series].sort((a, b) => {
-            let fpA = a.properties.focusPriority ?? Infinity;
-            let fpB = b.properties.focusPriority ?? Infinity;
+        const unsortedSeries = series.map((series, index) => {
+            return {series, index}
+        });
+        const sortedSeries = unsortedSeries.sort((a, b) => {
+            let fpA = a.series.properties.focusPriority ?? Infinity;
+            let fpB = b.series.properties.focusPriority ?? Infinity;
             if (fpA === fpB) {
-                [fpA, fpB] = [a._declarationOrder, b._declarationOrder];
+                [fpA, fpB] = [a.index, b.index];
             }
             // Note: `Infinity-Infinity` results in `NaN`, so use `<` comparison instead of `-` subtraction.
-            return fpA < fpB ? -1 : 1;
+            if (fpA < fpB) return -1;
+            else if(fpA > fpB) return 1;
+            else return 0;
         });
+        this.series = sortedSeries.map((entry) => entry.series);
         this.onBlur();
     }
 
