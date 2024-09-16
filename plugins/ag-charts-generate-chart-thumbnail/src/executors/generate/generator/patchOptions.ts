@@ -41,8 +41,10 @@ export function patchOptions(
 
     if (api === 'createGauge') {
         delete options.title;
-        delete (options as any).targets;
         delete options.legend;
+        (options as any).targets?.forEach((target) => {
+            delete target.text;
+        });
         (options as any).label = {
             ...(options as any).label,
             fontSize: 36,
