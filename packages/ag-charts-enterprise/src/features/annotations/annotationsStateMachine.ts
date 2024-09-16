@@ -223,6 +223,10 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             }
         };
 
+        const actionCancel = () => {
+            ctx.updateTextInputBBox(undefined);
+        };
+
         const guardActive = () => this.active != null;
         const guardCopied = () => this.copied != null;
         const guardActiveHasLineText = () => {
@@ -442,6 +446,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     {
                         guard: guardCancelAndExit,
                         target: States.Idle,
+                        action: actionCancel,
                     },
                     {
                         guard: guardSaveAndExit,
@@ -460,12 +465,14 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     action: actionFontSize,
                 },
 
-                cancel: States.Idle,
+                cancel: {
+                    target: States.Idle,
+                    action: actionCancel,
+                },
 
                 onExit: () => {
                     ctx.stopInteracting();
                     ctx.hideTextInput();
-                    ctx.updateTextInputBBox(undefined);
 
                     const wasActive = this.active;
                     const prevActive = this.active;
