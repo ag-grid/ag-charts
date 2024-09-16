@@ -43,14 +43,14 @@ interface SpanIndices {
     datumIndex: number;
 }
 
-function axisValue(value: any) {
+function toAxisValue(value: any) {
     return transformIntegratedCategoryValue(value).valueOf();
 }
 
 function getAxisIndices({ data }: SpanContext, axisValues: any[]): SpanIndices[] {
     return data.map((datum, datumIndex) => ({
-        xValue0Index: axisValues.indexOf(axisValue(datum.xValue0)),
-        xValue1Index: axisValues.indexOf(axisValue(datum.xValue1)),
+        xValue0Index: axisValues.indexOf(toAxisValue(datum.xValue0)),
+        xValue1Index: axisValues.indexOf(toAxisValue(datum.xValue1)),
         datumIndex,
     }));
 }
@@ -77,8 +77,8 @@ function getAxisValues(newData: SpanContext, oldData: SpanContext): AxisContext 
     // Array.sort does not handle this case
     const allAxisValues = new Set<AxisValue>();
     for (const { xValue0, xValue1 } of newData.data) {
-        const xValue0Value = axisValue(xValue0);
-        const xValue1Value = axisValue(xValue1);
+        const xValue0Value = toAxisValue(xValue0);
+        const xValue1Value = toAxisValue(xValue1);
         allAxisValues.add(xValue0Value).add(xValue1Value);
     }
 
@@ -88,8 +88,8 @@ function getAxisValues(newData: SpanContext, oldData: SpanContext): AxisContext 
 
     const exclusivelyOldAxisValues = [];
     for (const { xValue0, xValue1 } of oldData.data) {
-        const xValue0Value = axisValue(xValue0);
-        const xValue1Value = axisValue(xValue1);
+        const xValue0Value = toAxisValue(xValue0);
+        const xValue1Value = toAxisValue(xValue1);
         if (!allAxisValues.has(xValue0Value)) {
             allAxisValues.add(xValue0Value);
             exclusivelyOldAxisValues.push(xValue0Value);
@@ -178,13 +178,11 @@ function collapseSpan(
 }
 
 function zeroDataSpan(spanDatum: SpanDatum, zeroData: SpanDatum[] | undefined) {
-    const newSpanXValue0 = axisValue(spanDatum.xValue0);
-    const newSpanXValue1 = axisValue(spanDatum.xValue1);
-    const zeroSpan = zeroData?.find(
-        (span) => axisValue(span.xValue0) === newSpanXValue0 && axisValue(span.xValue1) === newSpanXValue1
+    const newSpanXValue0 = toAxisValue(spanDatum.xValue0);
+    const newSpanXValue1 = toAxisValue(spanDatum.xValue1);
+    return zeroData?.find(
+        (span) => toAxisValue(span.xValue0) === newSpanXValue0 && toAxisValue(span.xValue1) === newSpanXValue1
     )?.span;
-
-    return zeroSpan;
 }
 
 function addSpan(
@@ -239,9 +237,9 @@ function alignSpanToContainingSpan(
     postSpanIndices: SpanIndices
 ) {
     const startXValue0 = axisValues[postSpanIndices.xValue0Index];
-    const startDatum = preData.data.find((spanDatum) => axisValue(spanDatum.xValue0) === startXValue0);
+    const startDatum = preData.data.find((spanDatum) => toAxisValue(spanDatum.xValue0) === startXValue0);
     const endXValue1 = axisValues[postSpanIndices.xValue1Index];
-    const endDatum = preData.data.find((spanDatum) => axisValue(spanDatum.xValue1) === endXValue1);
+    const endDatum = preData.data.find((spanDatum) => toAxisValue(spanDatum.xValue1) === endXValue1);
 
     if (startDatum == null || endDatum == null) return;
 
