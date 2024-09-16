@@ -53,8 +53,8 @@ export class SeriesAreaFocusManager extends BaseManager {
         );
     }
 
-    public seriesChanged(series: Series<any, SeriesProperties<any>>[]) {
-        const unsortedSeries = series.map((series, index) => {
+    public seriesChanged(declaredSeries: Series<any, SeriesProperties<any>>[]) {
+        const unsortedSeries = declaredSeries.map((series, index) => {
             return { series, index };
         });
         const sortedSeries = unsortedSeries.sort((a, b) => {
