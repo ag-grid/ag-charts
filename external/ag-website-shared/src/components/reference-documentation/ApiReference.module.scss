@@ -308,6 +308,8 @@ a.metaValue {
 }
 
 .childButton {
+    font-weight: var(--text-semibold);
+
     svg {
         transition: transform 0.33s ease-in-out;
     }
