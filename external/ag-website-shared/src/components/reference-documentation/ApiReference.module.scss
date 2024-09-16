@@ -200,8 +200,9 @@
 .propNameChevron {
     --icon-size: 15px;
 
-    position: relative;
-    top: -1px;
+    position: absolute;
+    top: 4px;
+    left: 2px;
     transition: transform 0.33s ease-in-out;
 
     .expandedChildProps & {
@@ -210,6 +211,8 @@
 }
 
 .propNameExpander {
+    position: relative;
+    padding-left: $spacing-size-6;
     cursor: pointer;
 }
 
