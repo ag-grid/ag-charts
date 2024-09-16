@@ -15,6 +15,7 @@
 }
 
 .introSection {
+    --background: var(--color-bg-brand-solid);
     display: flex;
     align-items: center;
     flex-direction: column;
@@ -25,7 +26,6 @@
         color-mix(in srgb, var(--background) 5%, transparent) ($spacing-size-12 + 64px / 2),
         transparent 0
     );
-    --background: var(--color-bg-brand-solid);
 
     p {
         text-align: center;
