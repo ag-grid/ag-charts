@@ -65,6 +65,7 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     iconAltTextLineStyleDotted: 'Rövid szaggatott',
     iconAltTextLineStyleSolid: 'Folyamatos',
     iconAltTextPositionBottom: 'Alsó',
+    iconAltTextPositionCenter: 'Középre',
     iconAltTextPositionTop: 'Felül',
     inputTextareaPlaceholder: 'Adjon hozzá szöveget',
     overlayLoadingData: 'Adatok betöltése...',

@@ -65,7 +65,7 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     iconAltTextPositionBottom: 'Bottom',
     // Alt-text for the 'position-left' icon
     iconAltTextAlignLeft: 'Left',
-    // Alt-text for the 'position-center' icon
+    // Alt-text for the 'align-center' icon
     iconAltTextAlignCenter: 'Center',
     // Alt-text for the 'position-right' icon
     iconAltTextAlignRight: 'Right',

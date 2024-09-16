@@ -64,6 +64,7 @@ export const AG_CHARTS_LOCALE_JA_JP: Record<string, string> = {
     iconAltTextLineStyleDotted: '短い破線',
     iconAltTextLineStyleSolid: '実線',
     iconAltTextPositionBottom: '下',
+    iconAltTextPositionCenter: '中央',
     iconAltTextPositionTop: '「トップ」',
     inputTextareaPlaceholder: 'テキストを追加',
     overlayLoadingData: 'データを読み込み中...',

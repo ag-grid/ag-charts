@@ -64,6 +64,7 @@ export const AG_CHARTS_LOCALE_IT_IT: Record<string, string> = {
     iconAltTextLineStyleDotted: 'Tratteggiato corto',
     iconAltTextLineStyleSolid: 'Solido',
     iconAltTextPositionBottom: 'In basso',
+    iconAltTextPositionCenter: 'Centro',
     iconAltTextPositionTop: 'In alto',
     inputTextareaPlaceholder: 'Aggiungi testo',
     overlayLoadingData: 'Caricamento dati...',

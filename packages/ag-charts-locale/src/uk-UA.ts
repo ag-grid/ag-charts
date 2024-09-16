@@ -64,6 +64,7 @@ export const AG_CHARTS_LOCALE_UK_UA: Record<string, string> = {
     iconAltTextLineStyleDotted: 'Коротка штрихова',
     iconAltTextLineStyleSolid: 'Суцільна',
     iconAltTextPositionBottom: 'Низ',
+    iconAltTextPositionCenter: 'Центр',
     iconAltTextPositionTop: 'Верх',
     inputTextareaPlaceholder: 'Додати текст',
     overlayLoadingData: 'Завантаження даних...',
