@@ -9295,6 +9295,9 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
           },
         ],
       },
+      "interval": {
+        "minSpacing": NaN,
+      },
       "label": {
         "avoidCollisions": true,
         "color": "rgb(70, 70, 70)",

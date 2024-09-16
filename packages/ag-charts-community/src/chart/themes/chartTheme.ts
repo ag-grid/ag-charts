@@ -237,6 +237,7 @@ export class ChartTheme {
         [CARTESIAN_AXIS_TYPE.LOG]: ChartTheme.getAxisDefaults({
             base: 10,
             line: { enabled: false },
+            interval: { minSpacing: NaN },
         }),
         [CARTESIAN_AXIS_TYPE.CATEGORY]: ChartTheme.getAxisDefaults({
             groupPaddingInner: 0.1,
