@@ -1,4 +1,6 @@
-import type { BBox } from '../../scene/bbox';
+import { BBox } from '../../scene/bbox';
+import type { TranslatableGroup } from '../../scene/group';
+import { Transformable } from '../../scene/transformable';
 import type { TypedEvent } from '../../util/observable';
 import { debouncedAnimationFrame } from '../../util/render';
 import { BaseManager } from '../baseManager';
@@ -16,7 +18,7 @@ import { pickNode } from './util';
 /** Manager that handles all top-down series-area tooltip related concerns and state. */
 export class SeriesAreaTooltipManager extends BaseManager {
     private series: Series<any, any>[] = [];
-    private hoverRect?: BBox;
+    private hoverRect = BBox.zero;
     private lastHover?: RegionEvent<'hover'>;
 
     public constructor(
@@ -24,6 +26,7 @@ export class SeriesAreaTooltipManager extends BaseManager {
         private readonly chart: {
             performUpdateType: ChartUpdateType;
             fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
+            seriesRoot: TranslatableGroup;
         },
         private readonly ctx: ChartContext,
         private readonly tooltip: Tooltip
@@ -117,7 +120,12 @@ export class SeriesAreaTooltipManager extends BaseManager {
             return;
         }
 
-        const pick = pickNode(this.series, { x: regionOffsetX, y: regionOffsetY }, 'tooltip');
+        let pickCoords = { x: regionOffsetX, y: regionOffsetY };
+        if (event.region !== 'series') {
+            pickCoords = Transformable.fromCanvasPoint(this.chart.seriesRoot, offsetX, offsetY);
+        }
+
+        const pick = pickNode(this.series, pickCoords, 'tooltip');
         if (!pick) {
             this.clearTooltip();
             return;

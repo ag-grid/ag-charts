@@ -1,4 +1,5 @@
 import type { BBox } from '../../scene/bbox';
+import type { TranslatableGroup } from '../../scene/group';
 import { createId } from '../../util/id';
 import type { TypedEvent } from '../../util/observable';
 import { BaseManager } from '../baseManager';
@@ -40,6 +41,7 @@ export class SeriesAreaManager extends BaseManager {
         chart: {
             performUpdateType: ChartUpdateType;
             fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
+            seriesRoot: TranslatableGroup;
         },
         private readonly ctx: ChartContext,
         chartType: 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'gauge',

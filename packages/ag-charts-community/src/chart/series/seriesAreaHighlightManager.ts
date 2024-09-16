@@ -1,4 +1,6 @@
 import type { BBox } from '../../scene/bbox';
+import type { TranslatableGroup } from '../../scene/group';
+import { Transformable } from '../../scene/transformable';
 import { debouncedAnimationFrame } from '../../util/render';
 import { BaseManager } from '../baseManager';
 import type { ChartContext } from '../chartContext';
@@ -29,6 +31,7 @@ export class SeriesAreaHighlightManager extends BaseManager {
         private readonly id: string,
         private readonly chart: {
             performUpdateType: ChartUpdateType;
+            seriesRoot: TranslatableGroup;
         },
         private readonly ctx: ChartContext,
         private readonly highlight: ChartHighlight
@@ -123,10 +126,14 @@ export class SeriesAreaHighlightManager extends BaseManager {
             return;
         }
 
-        const { range } = this.highlight;
+        let pickCoords = { x: event.regionOffsetX, y: event.regionOffsetY };
+        if (event.region !== 'series') {
+            pickCoords = Transformable.fromCanvasPoint(this.chart.seriesRoot, offsetX, offsetY);
+        }
 
+        const { range } = this.highlight;
         const intent = range === 'tooltip' ? 'highlight-tooltip' : 'highlight';
-        const found = pickNode(this.series, { x: event.regionOffsetX, y: event.regionOffsetY }, intent);
+        const found = pickNode(this.series, pickCoords, intent);
         if (found) {
             this.ctx.highlightManager.updateHighlight(this.id, found.datum);
             return;
