@@ -21,6 +21,7 @@ import { Selection } from '../scene/selection';
 import { Line } from '../scene/shape/line';
 import { type SpriteDimensions, SpriteRenderer } from '../scene/spriteRenderer';
 import { Transformable } from '../scene/transformable';
+import { DestroyFns } from '../util/destroy';
 import { createElement, getWindow, setElementBBox } from '../util/dom';
 import { createId } from '../util/id';
 import { initRovingTabIndex } from '../util/keynavUtil';
@@ -243,6 +244,7 @@ export class Legend extends BaseProperties {
     private readonly proxyLegendToolbar: HTMLDivElement;
     private readonly proxyLegendPagination: HTMLDivElement;
     private readonly proxyLegendItemDescription: HTMLParagraphElement;
+    private readonly proxyLegendToolbarDestroyFns: DestroyFns = new DestroyFns();
     private proxyPrevButton?: HTMLButtonElement;
     private proxyNextButton?: HTMLButtonElement;
     private pendingHighlightDatum?: HighlightNodeDatum;
@@ -319,6 +321,7 @@ export class Legend extends BaseProperties {
 
         this.pagination.destroy();
         this.itemSelection.clear();
+        this.proxyLegendToolbarDestroyFns.destroy();
     }
 
     private initLegendItemToolbar() {
@@ -353,7 +356,7 @@ export class Legend extends BaseProperties {
             .map((markerLabel) => markerLabel.proxyButton?.button)
             .filter((button): button is HTMLButtonElement => !!button);
         const orientation = this.getOrientation();
-        initRovingTabIndex({ orientation, buttons });
+        this.proxyLegendToolbarDestroyFns.setFns(initRovingTabIndex({ orientation, buttons }));
         this.proxyLegendToolbar.ariaOrientation = orientation;
         this.proxyLegendToolbar.ariaHidden = (buttons.length === 0).toString();
     }
