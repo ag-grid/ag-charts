@@ -62,15 +62,17 @@ export class FocusIndicator {
         this.element.append(child);
     }
 
-    private isShown(): boolean {
-        return getComputedStyle(this.element).visibility === 'visible';
+    // Get the `:focus-visible` CSS state.
+    public isFocusVisible(): boolean {
+        const focusableParent = this.element.parentElement;
+        return focusableParent != null && getComputedStyle(focusableParent).opacity === '1';
     }
 
     public guessDevice(event: Event): MenuDevice {
         const lastFocus = getLastFocus(event);
         if (lastFocus !== undefined) {
             const style = getComputedStyle(lastFocus);
-            if (this.isShown() || (style.outlineStyle !== 'none' && style.outlineWidth !== '0px')) {
+            if (this.isFocusVisible() || (style.outlineStyle !== 'none' && style.outlineWidth !== '0px')) {
                 return { type: 'keyboard', lastFocus };
             }
         }

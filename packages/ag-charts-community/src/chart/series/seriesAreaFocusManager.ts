@@ -171,6 +171,9 @@ export class SeriesAreaFocusManager extends BaseManager {
         focus.datumIndex = datumIndex;
         focus.datum = datum;
 
+        // Only update the highlight/tooltip/status if this is a keyboard user.
+        if (!this.ctx.focusIndicator.isFocusVisible()) return;
+
         // Update user interaction/interface:
         const keyboardEvent = makeKeyboardPointerEvent(this.ctx.focusIndicator, pick);
         if (keyboardEvent !== undefined) {

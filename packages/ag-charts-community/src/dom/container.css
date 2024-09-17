@@ -35,6 +35,7 @@
 }
 
 .ag-charts-canvas-proxy:focus-visible {
+    /* This CSS property is read by FocusIndicator to determine the `:focus-visible` state. */
     opacity: 1;
 }
 
