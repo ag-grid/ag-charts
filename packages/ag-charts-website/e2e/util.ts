@@ -5,7 +5,7 @@ import glob from 'glob';
 const baseUrl = 'http://localhost:4601';
 const fws = ['vanilla', 'typescript', 'reactFunctional', 'reactFunctionalTs', 'angular', 'vue3'] as const;
 
-export const SELECTORS = { canvas: 'canvas' };
+export const SELECTORS = { canvas: '.ag-charts-canvas-proxy' };
 
 export function getExamples() {
     const examples = glob.glob.sync('./src/content/**/_examples/*/main.ts').map((e) => ({ path: e, affected: true }));
