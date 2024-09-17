@@ -293,8 +293,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 [startAngle, endAngle] = [endAngle, startAngle];
             }
 
-            const insetAdjustment = radiusScale.domain.length === 1 ? radiusScale.range[0] : 0;
-            const dataRadius = axisTotalRadius - radiusScale.convert(radiusDatum) - insetAdjustment;
+            const dataRadius = axisTotalRadius - radiusScale.convert(radiusDatum);
             const innerRadius = dataRadius + groupScale.convert(String(groupIndex));
             const outerRadius = innerRadius + barWidth;
             const midRadius = (innerRadius + outerRadius) / 2;
