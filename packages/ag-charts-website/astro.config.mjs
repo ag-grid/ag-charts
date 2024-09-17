@@ -11,6 +11,7 @@ import svgr from 'vite-plugin-svgr';
 import agAutoRedirect from './plugins/agAutoRedirect';
 import agHotModuleReload from './plugins/agHotModuleReload';
 import agHtaccessGen from './plugins/agHtaccessGen';
+import { getAstroRedirectRules } from './src/utils/htaccess/htaccessRules';
 import { getSitemapConfig } from './src/utils/sitemap';
 import { urlWithBaseUrl } from './src/utils/urlWithBaseUrl';
 
@@ -100,10 +101,5 @@ export default defineConfig({
         },
     },
     integrations: [react(), markdoc(), sitemap(getSitemapConfig()), agHtaccessGen({ include: HTACCESS === 'true' })],
-    redirects: {
-        '/javascript/bullet-series': '/javascript/linear-gauge/#bullet-series',
-        '/angular/bullet-series': '/angular/linear-gauge/#bullet-series',
-        '/react/bullet-series': '/react/linear-gauge/#bullet-series',
-        '/vue/bullet-series': '/vue/linear-gauge/#bullet-series',
-    },
+    redirects: getAstroRedirectRules(),
 });
