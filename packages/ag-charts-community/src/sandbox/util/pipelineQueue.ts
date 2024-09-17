@@ -21,7 +21,7 @@ export class PipelineQueue {
 
     private isProcessingSync = false;
     private requestAnimationFrameId: number | null = null;
-    private timerId?: number;
+    private timerId?: number | NodeJS.Timeout;
 
     /**
      * Adds a task to the queue with a specified priority phase.
@@ -35,12 +35,28 @@ export class PipelineQueue {
             this.processAsyncQueue();
         } else if (!this.isProcessingSync) {
             this.isProcessingSync = true;
-            this.timerId = setTimeout(() => this.processSyncQueue()) as any;
+            this.timerId = setTimeout(() => this.processSyncQueue());
         }
     }
 
     /**
-     * Processes synchronous tasks, excluding RENDER tasks.
+     * Clears all tasks and cancels any scheduled async tasks.
+     */
+    clear(): void {
+        this.queue.forEach((tasks) => tasks.clear());
+        if (this.requestAnimationFrameId !== null) {
+            cancelAnimationFrame(this.requestAnimationFrameId);
+            this.requestAnimationFrameId = null;
+        }
+        if (this.isProcessingSync) {
+            clearTimeout(this.timerId);
+            this.isProcessingSync = false;
+            this.timerId = undefined;
+        }
+    }
+
+    /**
+     * Processes tasks before the Render phase synchronously.
      */
     private processSyncQueue(): void {
         for (const [phase, tasks] of this.queue.entries()) {
@@ -57,7 +73,7 @@ export class PipelineQueue {
     }
 
     /**
-     * Processes asynchronous RENDER tasks using requestAnimationFrame.
+     * Processes tasks in the Render phase or later asynchronously via requestAnimationFrame.
      */
     private processAsyncQueue(): void {
         if (this.requestAnimationFrameId !== null) return;
@@ -82,26 +98,13 @@ export class PipelineQueue {
         });
     }
 
+    /**
+     * Executes tasks, optionally working on a snapshot for async processing.
+     */
     private runTasks(tasks: Set<Task>, takeSnapshot?: boolean) {
         for (const task of takeSnapshot ? [...tasks] : tasks) {
             tasks.delete(task);
             task();
-        }
-    }
-
-    /**
-     * Clears all tasks from the queue and cancels any scheduled asynchronous tasks.
-     */
-    clear(): void {
-        this.queue.forEach((tasks) => tasks.clear());
-        if (this.requestAnimationFrameId !== null) {
-            cancelAnimationFrame(this.requestAnimationFrameId);
-            this.requestAnimationFrameId = null;
-        }
-        if (this.isProcessingSync) {
-            clearTimeout(this.timerId);
-            this.isProcessingSync = false;
-            this.timerId = undefined;
         }
     }
 }

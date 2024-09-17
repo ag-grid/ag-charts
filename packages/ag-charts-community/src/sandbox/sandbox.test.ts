@@ -12,12 +12,6 @@ describe('Sandbox tests', () => {
             title: {
                 text: 'Mean Sea Level (mm)',
             },
-            // subtitle: {
-            //     text: 'Mean Sea Level (mm)',
-            // },
-            // footnote: {
-            //     text: 'Mean Sea Level (mm)',
-            // },
             data: DATA_MEAN_SEA_LEVEL,
             series: [
                 {
