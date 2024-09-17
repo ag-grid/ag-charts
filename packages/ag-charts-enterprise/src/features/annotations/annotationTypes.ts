@@ -38,6 +38,14 @@ export type LineAnnotationType =
 
 export type ChannelAnnotationType = AnnotationType.DisjointChannel | AnnotationType.ParallelChannel;
 
+export type HasColorAnnotationType = AnnotationType;
+export type HasLineStyleAnnotationType = LineAnnotationType | ChannelAnnotationType;
+export type HasLineTextAnnotationType = LineAnnotationType | ChannelAnnotationType;
+export type HasFontSizeAnnotationType =
+    | Exclude<TextualAnnotationType, AnnotationType.Note>
+    | LineAnnotationType
+    | ChannelAnnotationType;
+
 export const ANNOTATION_TYPES = Object.values(AnnotationType);
 export const ANNOTATION_BUTTONS = [
     // Lines
@@ -136,3 +144,7 @@ export type AnnotationLineStyle = {
     type?: AgAnnotationLineStyleType;
     strokeWidth?: number;
 };
+
+export type LineTextAlignment = 'left' | 'center' | 'right';
+export type LineTextPosition = 'top' | 'center' | 'bottom';
+export type ChannelTextPosition = 'top' | 'inside' | 'bottom';

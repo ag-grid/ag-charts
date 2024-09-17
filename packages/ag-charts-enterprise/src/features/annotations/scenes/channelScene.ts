@@ -1,4 +1,4 @@
-import { _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { ChannelTextProperties, PointProperties } from '../annotationProperties';
 import type { AnnotationContext, LineCoords } from '../annotationTypes';
@@ -25,6 +25,7 @@ export abstract class ChannelScene<
     protected bottomLine = new CollidableLine();
     protected background = new _Scene.Path({ zIndex: -1 });
     public text?: _Scene.TransformableText;
+    private readonly anchor: _ModuleSupport.ToolbarAnchor = { x: 0, y: 0 };
 
     public update(datum: Datum, context: AnnotationContext) {
         const { locked, visible } = datum;
@@ -42,10 +43,11 @@ export abstract class ChannelScene<
         const topLine = this.extendLine(top, datum, context);
         const bottomLine = this.extendLine(bottom, datum, context);
 
-        this.updateLines(datum, topLine, bottomLine);
+        this.updateLines(datum, topLine, bottomLine, context, top, bottom);
         this.updateHandles(datum, top, bottom);
         this.updateText(datum, top, bottom);
-        this.updateBackground(datum, topLine, bottomLine);
+        this.updateBackground(datum, topLine, bottomLine, context);
+        this.updateAnchor(top, bottom);
 
         for (const handle of Object.values(this.handles)) {
             handle.toggleLocked(locked ?? false);
@@ -67,8 +69,7 @@ export abstract class ChannelScene<
     }
 
     override getAnchor() {
-        const bbox = this.computeBBoxWithoutHandles();
-        return { x: bbox.x + bbox.width / 2, y: bbox.y };
+        return this.anchor;
     }
 
     override getCursor() {
@@ -91,20 +92,42 @@ export abstract class ChannelScene<
         return topLine.containsPoint(x, y) || bottomLine.containsPoint(x, y) || Boolean(text?.containsPoint(x, y));
     }
 
-    protected abstract updateLines(datum: Datum, top: LineCoords, bottom: LineCoords): void;
+    protected abstract updateLines(
+        datum: Datum,
+        top: LineCoords,
+        bottom: LineCoords,
+        context: AnnotationContext,
+        naturalTop: LineCoords,
+        naturalBottom: LineCoords
+    ): void;
 
     protected abstract updateHandles(datum: Datum, top: LineCoords, bottom: LineCoords): void;
 
     protected abstract updateText(datum: Datum, top: LineCoords, bottom: LineCoords): void;
 
-    protected updateBackground(datum: Datum, top: LineCoords, bottom: LineCoords) {
+    protected updateBackground(datum: Datum, top: LineCoords, bottom: LineCoords, context: AnnotationContext) {
         const { background } = this;
+        const { seriesRect } = context;
 
         background.path.clear(true);
-        background.path.moveTo(top.x1, top.y1);
-        background.path.lineTo(top.x2, top.y2);
-        background.path.lineTo(bottom.x2, bottom.y2);
-        background.path.lineTo(bottom.x1, bottom.y1);
+
+        const bounds = {
+            x1: 0,
+            y1: 0,
+            x2: seriesRect.width,
+            y2: seriesRect.height,
+        };
+
+        const points = this.getBackgroundPoints(datum, top, bottom, bounds);
+        for (let i = 0; i < points.length; i++) {
+            const point = points[i];
+            if (i === 0) {
+                background.path.moveTo(point.x, point.y);
+            } else {
+                background.path.lineTo(point.x, point.y);
+            }
+        }
+
         background.path.closePath();
         background.checkPathDirty();
         background.setProperties({
@@ -112,4 +135,22 @@ export abstract class ChannelScene<
             fillOpacity: datum.background.fillOpacity,
         });
     }
+
+    protected updateAnchor(top: LineCoords, bottom: LineCoords) {
+        const { x, y } = _Scene.Transformable.toCanvasPoint(
+            this.topLine,
+            (top.x1 + top.x2) / 2,
+            Math.min(top.y1, top.y2, bottom.y1, bottom.y2)
+        );
+
+        this.anchor.x = x;
+        this.anchor.y = y;
+    }
+
+    protected abstract getBackgroundPoints(
+        datum: Datum,
+        top: LineCoords,
+        bottom: LineCoords,
+        bounds: LineCoords
+    ): Array<_Util.Vec2>;
 }

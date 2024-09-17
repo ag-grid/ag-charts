@@ -4,7 +4,7 @@ import type { LayoutContext, ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
-import { setAttribute } from '../../util/attributeUtil';
+import { setAttribute, setAttributes } from '../../util/attributeUtil';
 import { createElement, getWindow } from '../../util/dom';
 import { initToolbarKeyNav, makeAccessibleClickListener } from '../../util/keynavUtil';
 import { clamp } from '../../util/number';
@@ -158,6 +158,8 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             ctx.toolbarManager.addListener('proxy-group-options', this.onProxyGroupOptions.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.Toolbar, this.onLayoutStart.bind(this)),
             ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
+            ctx.updateService.addListener('pre-dom-update', this.onPreDomUpdate.bind(this)),
+            ctx.updateService.addListener('update-complete', this.onUpdateComplete.bind(this)),
             ctx.localeManager.addListener('locale-changed', () => {
                 this.hasNewLocale = true;
             }),
@@ -247,6 +249,20 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         if (this.enabled) {
             this.refreshInnerLayout(opts.series.rect);
         }
+    }
+
+    private toggleButtonsClass(className: string, enabled: boolean) {
+        for (const button of Object.values(this.groupButtons).flat()) {
+            button.classList.toggle(className, enabled);
+        }
+    }
+
+    private onPreDomUpdate() {
+        this.toggleButtonsClass(styles.modifiers.button.withTransition, false);
+    }
+
+    private onUpdateComplete() {
+        this.toggleButtonsClass(styles.modifiers.button.withTransition, true);
     }
 
     private onButtonUpdated(event: ToolbarButtonUpdatedEvent) {
@@ -736,7 +752,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         const button = createElement('button');
         button.classList.add(styles.elements.button);
         button.dataset.toolbarGroup = group;
-        button.tabIndex = -1;
+        setAttribute(button, 'tabindex', -1);
+        if (options.haspopup) {
+            setAttributes(button, { 'aria-haspopup': true, 'aria-expanded': false });
+        }
 
         button.dataset.toolbarId = this.buttonId(options);
         button.addEventListener(
@@ -755,14 +774,9 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
 
         if (options.role === 'switch') {
-            button.role = options.role;
-            button.ariaChecked = false.toString();
+            setAttributes(button, { role: options.role, 'aria-checked': false });
         }
         this.updateButton(button, options);
-
-        getWindow().requestAnimationFrame(() => {
-            button.classList.add(styles.modifiers.button.withTransition);
-        });
 
         this.destroyFns.push(() => button.remove());
 

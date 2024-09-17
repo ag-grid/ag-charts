@@ -1,5 +1,5 @@
 import {
-    type AgGaugeSeriesFillMode,
+    type AgGaugeFillMode,
     type AgLinearGaugeMarkerShape,
     type AgLinearGaugeTargetPlacement,
     type FontStyle,
@@ -82,6 +82,17 @@ interface LinearGaugeNodeDataContext
     targetData: LinearGaugeTargetDatum[];
     scaleData: LinearGaugeNodeDatum[];
 }
+
+const horizontalTargetPlacementRotation: Record<AgLinearGaugeTargetPlacement, number> = {
+    before: 180,
+    middle: 0,
+    after: 0,
+};
+const verticalTargetPlacementRotation: Record<AgLinearGaugeTargetPlacement, number> = {
+    before: 90,
+    middle: 0,
+    after: -90,
+};
 
 export class LinearGaugeSeries
     extends _ModuleSupport.Series<
@@ -193,7 +204,7 @@ export class LinearGaugeSeries
             },
         });
 
-        this.scaleGroup.pointerEvents = PointerEvents.None;
+        this.itemGroup.pointerEvents = PointerEvents.None;
         this.itemTargetLabelGroup.pointerEvents = PointerEvents.None;
         // this.itemLabelGroup.pointerEvents = PointerEvents.None;
     }
@@ -232,11 +243,7 @@ export class LinearGaugeSeries
         return value.toFixed(dp);
     }
 
-    private createLinearGradient(
-        fills: GaugeStopProperties[],
-        fillMode: AgGaugeSeriesFillMode | undefined,
-        segments: number[] | undefined
-    ) {
+    private createLinearGradient(fills: GaugeStopProperties[], fillMode: AgGaugeFillMode) {
         const { properties, originX, originY, horizontal } = this;
         const { thickness, defaultColorRange } = properties;
 
@@ -245,7 +252,7 @@ export class LinearGaugeSeries
 
         const length = range[1] - range[0];
 
-        const stops = getColorStops(fills, defaultColorRange, domain, fillMode, segments);
+        const stops = getColorStops(fills, defaultColorRange, domain, fillMode);
 
         return new LinearGradient(
             'oklch',
@@ -262,6 +269,9 @@ export class LinearGaugeSeries
             const {
                 text = defaultTarget.text,
                 value = defaultTarget.value ?? 0,
+                shape = defaultTarget.shape ?? 'triangle',
+                rotation = defaultTarget.rotation ?? 0,
+                strokeWidth = defaultTarget.strokeWidth ?? 0,
                 placement = defaultTarget.placement ?? 'middle',
                 spacing = defaultTarget.spacing ?? 0,
                 size = defaultTarget.size ?? 0,
@@ -281,31 +291,6 @@ export class LinearGaugeSeries
                 fontFamily: labelFontFamily = defaultTarget.label.fontFamily,
                 spacing: labelSpacing = defaultTarget.label.spacing ?? 0,
             } = target.label;
-
-            let {
-                shape = defaultTarget.shape,
-                rotation = defaultTarget.rotation,
-                strokeWidth = defaultTarget.strokeWidth,
-            } = target;
-            switch (placement) {
-                case 'before':
-                    shape ??= 'triangle';
-                    rotation ??= 90;
-                    break;
-                case 'after':
-                    shape ??= 'triangle';
-                    rotation ??= -90;
-                    break;
-                default:
-                    shape ??= 'circle';
-                    rotation ??= 0;
-            }
-            if (shape === 'line') {
-                rotation += 90;
-            }
-            rotation = toRadians(rotation);
-
-            strokeWidth ??= shape === 'line' ? 2 : 0;
 
             return {
                 text,
@@ -466,7 +451,7 @@ export class LinearGaugeSeries
         const containerX = horizontal ? xScale.convert(value) : x1;
         const containerY = horizontal ? y1 : yScale.convert(value);
 
-        const inset = (segmentation.spacing ?? 0) / 2;
+        const inset = segmentation.enabled ? segmentation.spacing / 2 : 0;
         const horizontalInset = horizontal ? inset : 0;
         const verticalInset = horizontal ? 0 : inset;
 
@@ -479,15 +464,19 @@ export class LinearGaugeSeries
         const cornersOnAllItems = cornerMode === 'item';
 
         const maxTicks = Math.ceil(mainAxisSize);
-        let segments = segmentation.getSegments(mainAxisScale, maxTicks);
+        let segments = segmentation.enabled ? segmentation.interval.getSegments(mainAxisScale, maxTicks) : undefined;
 
-        const barFill = bar.fill ?? this.createLinearGradient(bar.fills, bar.fillMode, segments);
+        const barFill = bar.fill ?? this.createLinearGradient(bar.fills, bar.fillMode);
         const scaleFill =
             scale.fill ??
             (bar.enabled && scale.fills.length === 0 ? scale.defaultFill : undefined) ??
-            this.createLinearGradient(scale.fills, scale.fillMode, segments);
+            this.createLinearGradient(scale.fills, scale.fillMode);
 
         if (segments == null && cornersOnAllItems) {
+            const segmentStart = Math.min(...domain);
+            const segmentEnd = Math.max(...domain);
+            const datum = { value, segmentStart, segmentEnd };
+
             if (bar.enabled) {
                 const barAppliedCornerRadius = Math.min(cornerRadius, barThickness / 2, mainAxisSize / 2);
                 const barCornerInset = barAppliedCornerRadius * (mainAxis.isReversed() ? -1 : 1);
@@ -498,7 +487,7 @@ export class LinearGaugeSeries
                 nodeData.push({
                     series: this,
                     itemId: `value`,
-                    datum: value,
+                    datum,
                     type: NodeDataType.Node,
                     x0: originX + x0 - barCornerXInset - barXInset,
                     y0: originY + y0 - barCornerYInset - barYInset,
@@ -527,12 +516,12 @@ export class LinearGaugeSeries
             scaleData.push({
                 series: this,
                 itemId: `scale`,
-                datum: value,
+                datum,
                 type: NodeDataType.Node,
                 x0: originX + x0 - scaleCornerXInset,
                 y0: originY + y0 - scaleCornerYInset,
-                x1: originX + x1 + 2 * scaleCornerXInset,
-                y1: originY + y1 + 2 * scaleCornerYInset,
+                x1: originX + x1 + scaleCornerXInset,
+                y1: originY + y1 + scaleCornerYInset,
                 clipX0: undefined,
                 clipY0: undefined,
                 clipX1: undefined,
@@ -546,9 +535,7 @@ export class LinearGaugeSeries
                 verticalInset,
             });
         } else {
-            if (segmentation.spacing == null || segments == null) {
-                segments = domain;
-            }
+            segments ??= domain;
 
             const clipX0 = originX + x0 - barXInset;
             const clipY0 = originY + y0 - barYInset;
@@ -556,14 +543,15 @@ export class LinearGaugeSeries
             const clipY1 = originY + containerY + barYInset;
 
             for (let i = 0; i < segments.length - 1; i += 1) {
-                const startValue = segments[i + 0];
-                const endValue = segments[i + 1];
+                const segmentStart = segments[i + 0];
+                const segmentEnd = segments[i + 1];
+                const datum = { value, segmentStart, segmentEnd };
 
                 const isStart = i === 0;
                 const isEnd = i === segments.length - 2;
 
-                const itemStart = mainAxisScale.convert(startValue);
-                const itemEnd = mainAxisScale.convert(endValue);
+                const itemStart = mainAxisScale.convert(segmentStart);
+                const itemEnd = mainAxisScale.convert(segmentEnd);
 
                 const startCornerRadius = cornersOnAllItems || isStart ? cornerRadius : 0;
                 const endCornerRadius = cornersOnAllItems || isEnd ? cornerRadius : 0;
@@ -576,7 +564,7 @@ export class LinearGaugeSeries
                     nodeData.push({
                         series: this,
                         itemId: `value-${i}`,
-                        datum: value,
+                        datum,
                         type: NodeDataType.Node,
                         x0: originX + (horizontal ? itemStart : x0),
                         y0: originY + (horizontal ? y0 : itemStart),
@@ -599,7 +587,7 @@ export class LinearGaugeSeries
                 scaleData.push({
                     series: this,
                     itemId: `scale-${i}`,
-                    datum: value,
+                    datum,
                     type: NodeDataType.Node,
                     x0: originX + (horizontal ? itemStart : x0),
                     y0: originY + (horizontal ? y0 : itemStart),
@@ -656,13 +644,15 @@ export class LinearGaugeSeries
         //     });
         // }
 
+        const targetPlacementRotation = horizontal
+            ? horizontalTargetPlacementRotation
+            : verticalTargetPlacementRotation;
         for (let i = 0; i < targets.length; i += 1) {
             const target = targets[i];
             const {
                 value: targetValue,
                 text,
                 shape,
-                rotation,
                 size,
                 fill,
                 fillOpacity,
@@ -674,12 +664,13 @@ export class LinearGaugeSeries
             } = target;
 
             const targetPoint = this.getTargetPoint(target);
+            const targetRotation = toRadians(target.rotation + targetPlacementRotation[target.placement]);
 
             targetData.push({
                 series: this,
                 itemId: `target-${i}`,
                 midPoint: targetPoint,
-                datum: targetValue,
+                datum: { value: targetValue },
                 type: NodeDataType.Target,
                 value: targetValue,
                 text,
@@ -687,7 +678,7 @@ export class LinearGaugeSeries
                 y: targetPoint.y,
                 shape,
                 size,
-                rotation,
+                rotation: targetRotation,
                 fill,
                 fillOpacity,
                 stroke,
@@ -804,7 +795,7 @@ export class LinearGaugeSeries
             rect.bottomRightCornerRadius = bottomRightCornerRadius;
             rect.bottomLeftCornerRadius = bottomLeftCornerRadius;
 
-            if (animationDisabled) {
+            if (animationDisabled || rect.previousDatum == null) {
                 rect.setProperties(resetLinearGaugeSeriesResetRectFunction(rect, datum));
             }
         });
@@ -856,8 +847,7 @@ export class LinearGaugeSeries
         isHighlight: boolean;
     }) {
         const { targetSelection, isHighlight } = opts;
-        const { horizontal, properties } = this;
-        const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
+        const highlightStyle = isHighlight ? this.properties.highlightStyle.item : undefined;
 
         targetSelection.each((target, datum) => {
             const {
@@ -884,7 +874,7 @@ export class LinearGaugeSeries
             target.lineDashOffset = highlightStyle?.lineDashOffset ?? lineDashOffset;
             target.translationX = x;
             target.translationY = y;
-            target.rotation = (horizontal ? Math.PI / 2 : 0) + rotation;
+            target.rotation = rotation;
         });
     }
 
@@ -1069,15 +1059,23 @@ export class LinearGaugeSeries
         return [];
     }
 
-    private readonly nodeDatum: any = { series: this, datum: this };
+    private readonly nodeDatum: any = { series: this, datum: {} };
     override pickNode(
         point: _Scene.Point,
         intent: _ModuleSupport.SeriesNodePickIntent
     ): _ModuleSupport.PickResult | undefined {
         switch (intent) {
             case 'event':
-            case 'context-menu':
-                return undefined;
+            case 'context-menu': {
+                const sectorTarget = this.scaleGroup.pickNode(point.x, point.y);
+                return sectorTarget != null
+                    ? {
+                          pickMode: _ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH,
+                          match: sectorTarget.datum,
+                          distance: 0,
+                      }
+                    : undefined;
+            }
             case 'tooltip':
             case 'highlight':
             case 'highlight-tooltip': {
@@ -1088,7 +1086,11 @@ export class LinearGaugeSeries
                           match: highlightedTarget.datum,
                           distance: 0,
                       }
-                    : { pickMode: _ModuleSupport.SeriesNodePickMode.NEAREST_NODE, match: this.nodeDatum, distance: 0 };
+                    : {
+                          pickMode: _ModuleSupport.SeriesNodePickMode.NEAREST_NODE,
+                          match: this.nodeDatum,
+                          distance: 0,
+                      };
             }
         }
     }
@@ -1100,17 +1102,18 @@ export class LinearGaugeSeries
             return EMPTY_TOOLTIP_CONTENT;
         }
 
-        const datum = this.highlightDatum(nodeDatum);
+        const highlightDatum = this.highlightDatum(nodeDatum);
 
-        const value = datum?.value ?? properties.value;
-        const text = datum?.text;
+        const value = highlightDatum?.value ?? properties.value;
+        const text = highlightDatum?.text;
         const { tooltip } = properties;
 
         const title = text ?? '';
         const content = this.formatLabel(value);
 
-        const itemId = datum?.itemId;
-        const color = datum?.fill;
+        const itemId = highlightDatum?.itemId;
+        const datum = undefined;
+        const color = highlightDatum?.fill;
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: color },

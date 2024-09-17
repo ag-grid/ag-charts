@@ -19,7 +19,7 @@
 
 /* Button */
 .ag-charts-button {
-    background: var(--ag-charts-input-background);
+    background: var(--ag-charts-input-background-color);
     border: 1px solid var(--ag-charts-input-border-color);
     border-radius: var(--ag-charts-input-border-radius);
     cursor: pointer;
@@ -28,7 +28,7 @@
 }
 
 .ag-charts-button:hover {
-    background: var(--ag-charts-input-background--hover);
+    background: var(--ag-charts-input-background-color--hover);
 }
 
 .ag-charts-button:has(.ag-charts-icon) {
@@ -38,30 +38,31 @@
 /* Checkbox */
 .ag-charts-checkbox {
     appearance: none;
-    background: var(--ag-charts-input-checkbox-background);
+    background: var(--ag-charts-input-checkbox-background-color);
     border-radius: 9px;
     cursor: pointer;
     height: 18px;
     margin: 0;
+    transition-duration: var(--ag-charts-input-transition-duration--fast);
     transition-property: margin;
     width: 29px;
 }
 
 .ag-charts-checkbox::before {
     display: block;
-    background: var(--ag-charts-input-background);
+    background: var(--ag-charts-input-background-color);
     border-radius: 7px;
     content: ' ';
     height: 14px;
     margin: 2px;
+    transition-duration: var(--ag-charts-input-transition-duration--fast);
     transition-property: margin;
-    transition-duration: var(--ag-charts-input-transition-duration);
     transition-timing-function: var(--ag-charts-input-transition-easing);
     width: 14px;
 }
 
 .ag-charts-checkbox:checked {
-    background: var(--ag-charts-input-checkbox-background--checked);
+    background: var(--ag-charts-input-checkbox-background-color--checked);
 }
 
 .ag-charts-checkbox:checked::before {
@@ -70,17 +71,18 @@
 
 /* Select */
 .ag-charts-select {
-    background: var(--ag-charts-input-background);
+    background: var(--ag-charts-input-background-color);
     border: 1px solid var(--ag-charts-input-border-color);
     border-radius: var(--ag-charts-input-border-radius);
     padding: 3px 2px 4px;
+    font-size: inherit;
 }
 
 /* Textarea */
 .ag-charts-textarea {
     --line-height: 1.38;
 
-    background: var(--ag-charts-input-background);
+    background: var(--ag-charts-input-background-color);
     border: 1px solid var(--ag-charts-input-border-color);
     border-radius: var(--ag-charts-input-border-radius);
     line-height: var(--line-height);

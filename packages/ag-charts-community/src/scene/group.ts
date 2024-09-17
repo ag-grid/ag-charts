@@ -143,9 +143,9 @@ export class Group extends Node {
         counts.groups += 1;
         counts.nonGroups -= 1;
 
-        if (this.opts?.layer !== true || this.layer != null) return counts;
+        if (this.opts?.layer !== true) return counts;
 
-        if (counts.nonGroups > 0) {
+        if (this.layer == null && counts.nonGroups > 0) {
             this.initialiseLayer();
         }
 
@@ -350,7 +350,7 @@ export class Group extends Node {
         const skipInvisible = opts?.skipInvisible ?? true;
 
         for (const n of nodes) {
-            if (skipInvisible && !n.visible) continue;
+            if (skipInvisible && (!n.visible || n.transitionOut)) continue;
 
             const bbox = n.getBBox();
 

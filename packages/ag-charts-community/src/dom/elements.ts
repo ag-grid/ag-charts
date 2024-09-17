@@ -1,19 +1,28 @@
 import type { AgIconName } from 'ag-charts-types';
 
+import { type AttributeSet, type InputAttributeSet, setAttribute, setAttributes } from '../util/attributeUtil';
 import { createElement } from '../util/dom';
-import { isPlainObject } from '../util/type-guards';
+import { isButtonClickEvent } from '../util/keynavUtil';
 
-type Attrs<T extends HTMLElement = HTMLElement> = string | Partial<T>;
+// These types force a compilation error if the developer tries to add an icon-only
+// menu item without an accessible text alternative.
+type LabelAndIcon = { label: string; icon?: AgIconName; altText?: undefined };
+type IconOnly = { label?: undefined; icon: AgIconName; altText: string };
+export type LabelIcon = LabelAndIcon | IconOnly;
 
-export interface ButtonOptions {
-    label: string | HTMLElement;
+export type ButtonOptions = LabelIcon & {
     onPress: (event: MouseEvent) => void;
-}
-export function createButton(options: ButtonOptions, attrs?: Attrs<HTMLButtonElement>) {
+};
+export function createButton(options: ButtonOptions, attrs?: AttributeSet) {
     const button = createElement('button', getClassName('ag-charts-input ag-charts-button', attrs));
-    button.append(options.label);
+    if (options.label !== undefined) {
+        button.append(options.label);
+    } else {
+        button.append(createIcon(options.icon));
+        button.ariaLabel = options.altText;
+    }
     button.addEventListener('click', options.onPress);
-    applyAttrs(button, attrs);
+    setAttributes(button, attrs);
     return button;
 }
 
@@ -21,12 +30,18 @@ export interface CheckboxOptions {
     checked: boolean;
     onChange: (checked: boolean, event: Event) => void;
 }
-export function createCheckbox(options: CheckboxOptions, attrs?: Attrs<HTMLInputElement>) {
+export function createCheckbox(options: CheckboxOptions, attrs?: AttributeSet) {
     const checkbox = createElement('input', getClassName('ag-charts-input ag-charts-checkbox', attrs));
     checkbox.type = 'checkbox';
     checkbox.checked = options.checked;
     checkbox.addEventListener('change', (event) => options.onChange(checkbox.checked, event));
-    applyAttrs(checkbox, attrs);
+    checkbox.addEventListener('keydown', (event) => {
+        if (isButtonClickEvent(event)) {
+            event.preventDefault();
+            checkbox.click();
+        }
+    });
+    setAttributes(checkbox, attrs);
     return checkbox;
 }
 
@@ -35,19 +50,19 @@ export interface SelectOptions {
     value: string;
     onChange: (value: string, event: Event) => void;
 }
-export function createSelect(options: SelectOptions, attrs?: Attrs<HTMLSelectElement>) {
+export function createSelect(options: SelectOptions, attrs?: AttributeSet) {
     const select = createElement('select', getClassName('ag-charts-input ag-charts-select', attrs));
     select.append(
         ...options.options.map((option) => {
             const optionEl = createElement('option');
             optionEl.value = option.value;
-            optionEl.label = option.label;
+            optionEl.textContent = option.label;
             return optionEl;
         })
     );
     select.value = options.value;
     select.addEventListener('change', (event) => options.onChange(select.value, event));
-    applyAttrs(select, attrs);
+    setAttributes(select, attrs);
     return select;
 }
 
@@ -55,29 +70,21 @@ export interface TextAreaOptions {
     value: string;
     onChange: (value: string, event: Event) => void;
 }
-export function createTextArea(options: TextAreaOptions, attrs?: Attrs<HTMLTextAreaElement>) {
+export function createTextArea(options: TextAreaOptions, attrs?: InputAttributeSet) {
     const textArea = createElement('textarea', getClassName('ag-charts-input ag-charts-textarea', attrs));
     textArea.value = options.value;
     textArea.addEventListener('input', (event) => options.onChange(textArea.value, event));
-    applyAttrs(textArea, attrs);
+    setAttributes(textArea, attrs);
     return textArea;
 }
 
 export function createIcon(icon?: AgIconName) {
     const el = createElement('span', `ag-charts-icon ag-charts-icon-${icon}`);
-    el.ariaHidden = 'true';
+    setAttribute(el, 'aria-hidden', true);
     return el;
 }
 
-function getClassName(baseClass: string, attrs?: Attrs) {
+function getClassName(baseClass: string, attrs?: AttributeSet) {
     if (attrs == null) return baseClass;
-    if (typeof attrs === 'string') return `${baseClass} ${attrs}`;
-    return `${baseClass} ${attrs.className}`;
-}
-
-function applyAttrs(element: HTMLElement, attrs?: Attrs) {
-    if (!isPlainObject(attrs)) return;
-    for (const [key, value] of Object.entries(attrs)) {
-        if (value != null) element.setAttribute(key, `${value}`);
-    }
+    return `${baseClass} ${attrs.class}`;
 }

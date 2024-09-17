@@ -1,13 +1,13 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 import type {
-    AgGaugeSeriesFillMode,
+    AgGaugeFillMode,
+    AgLinearGaugeItemStylerParams,
+    AgLinearGaugeLabelFormatterParams,
     AgLinearGaugeMarkerShape,
-    AgLinearGaugeSeriesItemStylerParams,
-    AgLinearGaugeSeriesLabelFormatterParams,
-    AgLinearGaugeSeriesOptions,
-    AgLinearGaugeSeriesStyle,
-    AgLinearGaugeSeriesTooltipRendererParams,
+    AgLinearGaugeOptions,
+    AgLinearGaugeStyle,
     AgLinearGaugeTargetPlacement,
+    AgLinearGaugeTooltipRendererParams,
     FontStyle,
     FontWeight,
     MarkerShape,
@@ -164,8 +164,8 @@ export class LinearGaugeBarProperties extends BaseProperties {
     @Validate(OBJECT_ARRAY)
     fills = new PropertiesArray<GaugeStopProperties>(GaugeStopProperties);
 
-    @Validate(FILL_MODE, { optional: true })
-    fillMode: AgGaugeSeriesFillMode | undefined;
+    @Validate(FILL_MODE)
+    fillMode: AgGaugeFillMode = 'continuous';
 
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined;
@@ -193,8 +193,8 @@ export class LinearGaugeScaleProperties extends BaseProperties {
     @Validate(OBJECT_ARRAY)
     fills = new PropertiesArray<GaugeStopProperties>(GaugeStopProperties);
 
-    @Validate(FILL_MODE, { optional: true })
-    fillMode: AgGaugeSeriesFillMode | undefined;
+    @Validate(FILL_MODE)
+    fillMode: AgGaugeFillMode = 'continuous';
 
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined;
@@ -221,17 +221,17 @@ export class LinearGaugeScaleProperties extends BaseProperties {
     defaultFill: string = 'black';
 }
 
-export class LinearGaugeLabelProperties extends AutoSizedLabel<AgLinearGaugeSeriesLabelFormatterParams> {
+export class LinearGaugeLabelProperties extends AutoSizedLabel<AgLinearGaugeLabelFormatterParams> {
     @Validate(STRING, { optional: true })
     text?: string;
 }
 
-export class LinearGaugeSecondaryLabelProperties extends AutoSizedSecondaryLabel<AgLinearGaugeSeriesLabelFormatterParams> {
+export class LinearGaugeSecondaryLabelProperties extends AutoSizedSecondaryLabel<AgLinearGaugeLabelFormatterParams> {
     @Validate(STRING, { optional: true })
     text?: string;
 }
 
-export class LinearGaugeSeriesProperties extends SeriesProperties<AgLinearGaugeSeriesOptions> {
+export class LinearGaugeSeriesProperties extends SeriesProperties<AgLinearGaugeOptions> {
     @Validate(NUMBER)
     value: number = 0;
 
@@ -269,7 +269,7 @@ export class LinearGaugeSeriesProperties extends SeriesProperties<AgLinearGaugeS
     readonly bar = new LinearGaugeBarProperties();
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgLinearGaugeSeriesItemStylerParams<unknown>, AgLinearGaugeSeriesStyle>;
+    itemStyler?: Styler<AgLinearGaugeItemStylerParams, AgLinearGaugeStyle>;
 
     @Validate(OBJECT)
     readonly label = new LinearGaugeLabelProperties();
@@ -278,5 +278,5 @@ export class LinearGaugeSeriesProperties extends SeriesProperties<AgLinearGaugeS
     readonly secondaryLabel = new LinearGaugeSecondaryLabelProperties();
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgLinearGaugeSeriesTooltipRendererParams<any>>();
+    readonly tooltip = new SeriesTooltip<AgLinearGaugeTooltipRendererParams>();
 }

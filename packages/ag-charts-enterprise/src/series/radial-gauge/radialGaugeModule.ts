@@ -1,5 +1,6 @@
 import { type _ModuleSupport, _Theme } from 'ag-charts-community';
 
+import defaultColorStops from '../gauge-util/defaultColorStops';
 import { RadialGaugeSeries } from './radialGaugeSeries';
 
 const {
@@ -33,11 +34,17 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
             bar: {
                 strokeWidth: 0,
             },
+            segmentation: {
+                enabled: false,
+                interval: {},
+                spacing: 2,
+            },
             // @ts-expect-error Private
             defaultTarget: {
                 fill: DEFAULT_LABEL_COLOUR,
                 stroke: DEFAULT_LABEL_COLOUR,
                 size: 10,
+                shape: 'triangle',
                 placement: 'outside',
                 spacing: 5,
                 label: {
@@ -88,7 +95,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 defaultFill: hierarchyFills?.[1],
                 stroke: hierarchyFills?.[2],
             },
-            defaultColorRange: colorRange,
+            defaultColorRange: defaultColorStops(colorRange),
         };
     },
 };

@@ -4,7 +4,7 @@ import { NODE_UPDATE_STATE_TO_PHASE_MAPPING, fromToMotion, staticFromToMotion } 
 import { BBox } from '../../../scene/bbox';
 import type { Group } from '../../../scene/group';
 import type { Node } from '../../../scene/node';
-import type { Point } from '../../../scene/point';
+import type { Point, SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import { Transformable } from '../../../scene/transformable';
 import { clamp } from '../../../util/number';
@@ -160,7 +160,7 @@ type MarkerSeries<TDatum> = {
     contentGroup: Group;
 };
 
-export function computeMarkerFocusBounds<TDatum extends { point: Point }>(
+export function computeMarkerFocusBounds<TDatum extends { point: Point & SizedPoint }>(
     series: MarkerSeries<TDatum>,
     { datumIndex }: PickFocusInputs
 ): BBox | undefined {
@@ -168,9 +168,10 @@ export function computeMarkerFocusBounds<TDatum extends { point: Point }>(
     if (nodeData === undefined) return undefined;
 
     const datum = nodeData[datumIndex];
-    if (datum === undefined || datum.point === undefined) return undefined;
+    const { point } = datum;
+    if (datum == null || point == null) return undefined;
 
-    const size = series.getFormattedMarkerStyle(datum).size;
+    const size = point.focusSize ?? series.getFormattedMarkerStyle(datum).size;
     const radius = size / 2;
     const x = datum.point.x - radius;
     const y = datum.point.y - radius;

@@ -1,14 +1,14 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 import type {
     AgChartLabelFormatterParams,
-    AgGaugeSeriesFillMode,
+    AgGaugeFillMode,
+    AgRadialGaugeItemStylerParams,
+    AgRadialGaugeLabelFormatterParams,
     AgRadialGaugeMarkerShape,
-    AgRadialGaugeSeriesItemStylerParams,
-    AgRadialGaugeSeriesLabelFormatterParams,
-    AgRadialGaugeSeriesOptions,
-    AgRadialGaugeSeriesStyle,
-    AgRadialGaugeSeriesTooltipRendererParams,
+    AgRadialGaugeOptions,
+    AgRadialGaugeStyle,
     AgRadialGaugeTargetPlacement,
+    AgRadialGaugeTooltipRendererParams,
     FontStyle,
     FontWeight,
     Formatter,
@@ -118,7 +118,7 @@ export type RadialGaugeLabelDatum = {
     lineHeight: number | undefined;
     formatter:
         | Formatter<
-              AgChartLabelFormatterParams<any> & _ModuleSupport.RequireOptional<AgRadialGaugeSeriesLabelFormatterParams>
+              AgChartLabelFormatterParams<any> & _ModuleSupport.RequireOptional<AgRadialGaugeLabelFormatterParams>
           >
         | undefined;
 };
@@ -182,8 +182,8 @@ export class RadialGaugeBarProperties extends BaseProperties {
     @Validate(OBJECT_ARRAY)
     fills = new PropertiesArray<GaugeStopProperties>(GaugeStopProperties);
 
-    @Validate(FILL_MODE, { optional: true })
-    fillMode: AgGaugeSeriesFillMode | undefined;
+    @Validate(FILL_MODE)
+    fillMode: AgGaugeFillMode = 'continuous';
 
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined;
@@ -211,8 +211,8 @@ export class RadialGaugeScaleProperties extends BaseProperties {
     @Validate(OBJECT_ARRAY)
     fills = new PropertiesArray<GaugeStopProperties>(GaugeStopProperties);
 
-    @Validate(FILL_MODE, { optional: true })
-    fillMode: AgGaugeSeriesFillMode | undefined;
+    @Validate(FILL_MODE)
+    fillMode: AgGaugeFillMode = 'continuous';
 
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined;
@@ -271,17 +271,17 @@ export class RadialGaugeNeedleProperties extends BaseProperties {
     lineDashOffset: number = 0;
 }
 
-export class RadialGaugeLabelProperties extends AutoSizedLabel<AgRadialGaugeSeriesLabelFormatterParams> {
+export class RadialGaugeLabelProperties extends AutoSizedLabel<AgRadialGaugeLabelFormatterParams> {
     @Validate(STRING, { optional: true })
     text?: string;
 }
 
-export class RadialGaugeSecondaryLabelProperties extends AutoSizedSecondaryLabel<AgRadialGaugeSeriesLabelFormatterParams> {
+export class RadialGaugeSecondaryLabelProperties extends AutoSizedSecondaryLabel<AgRadialGaugeLabelFormatterParams> {
     @Validate(STRING, { optional: true })
     text?: string;
 }
 
-export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeSeriesOptions> {
+export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeOptions> {
     @Validate(NUMBER)
     value!: number;
 
@@ -316,7 +316,7 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeS
     cornerMode: 'container' | 'item' = 'container';
 
     @Validate(NUMBER)
-    margin: number = 0;
+    spacing: number = 0;
 
     @Validate(OBJECT)
     readonly scale = new RadialGaugeScaleProperties();
@@ -328,7 +328,7 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeS
     readonly needle = new RadialGaugeNeedleProperties();
 
     @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgRadialGaugeSeriesItemStylerParams<unknown>, AgRadialGaugeSeriesStyle>;
+    itemStyler?: Styler<AgRadialGaugeItemStylerParams, AgRadialGaugeStyle>;
 
     @Validate(OBJECT)
     readonly label = new RadialGaugeLabelProperties();
@@ -337,7 +337,7 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeS
     readonly secondaryLabel = new RadialGaugeSecondaryLabelProperties();
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgRadialGaugeSeriesTooltipRendererParams<any>>();
+    readonly tooltip = new SeriesTooltip<AgRadialGaugeTooltipRendererParams>();
 
     override isValid(warningPrefix?: string | undefined): boolean {
         if (!super.isValid(warningPrefix)) return false;

@@ -2,8 +2,6 @@
     display: flex;
     flex-direction: column;
     font-size: 14px;
-    gap: var(--ag-charts-input-spacing);
-    padding-bottom: var(--ag-charts-input-padding);
 }
 
 /**************
@@ -13,13 +11,13 @@
 .ag-charts-dialog__tabs {
     display: flex;
     flex-direction: column;
-    gap: var(--ag-charts-input-spacing);
 }
 
 /* Header */
 .ag-charts-dialog__header {
     border-bottom: 1px solid var(--ag-charts-border-color);
     display: flex;
+    gap: var(--ag-charts-input-spacing);
 }
 
 .ag-charts-dialog__drag-handle {
@@ -40,6 +38,7 @@
     border: 0;
     border-bottom: 2px solid transparent;
     border-radius: 0;
+    color: var(--ag-charts-dialog-tab-color--inactive);
     margin-bottom: -1px;
     padding: var(--ag-charts-input-padding) calc(var(--ag-charts-input-padding) / 2);
 }
@@ -50,9 +49,14 @@
 
 .ag-charts-dialog__tab-button--active {
     border-color: currentColor;
+    color: inherit;
 }
 
-.ag-charts-dialog__close-button {
+.ag-charts-dialog__drag-handle + .ag-charts-dialog__tab-button {
+    margin-left: calc(var(--ag-charts-input-spacing) * -1);
+}
+
+.ag-charts-button.ag-charts-dialog__close-button {
     background: none;
     border: 0;
     margin-left: auto;
@@ -65,15 +69,16 @@
     z-index: calc(var(--ag-charts-layer-ui-overlay) + 1);
 }
 
-/* Tab content */
-.ag-charts-dialog__tab-content {
+/* Tab panel */
+.ag-charts-dialog__tab-panel {
     display: none;
     flex-direction: column;
-    gap: var(--ag-charts-input-spacing);
-    margin: 0 var(--ag-charts-input-spacing);
+    gap: calc(var(--ag-charts-input-spacing) * 2);
+    margin: 0 calc(var(--ag-charts-input-spacing) * 2);
+    padding: calc(var(--ag-charts-input-spacing) * 2) 0;
 }
 
-.ag-charts-dialog__tab-content--active {
+.ag-charts-dialog__tab-panel--active {
     display: flex;
 }
 
@@ -109,7 +114,7 @@
 }
 
 .ag-charts-dialog__button.ag-charts-dialog__button--active {
-    background: var(--ag-charts-input-background--active);
+    background: var(--ag-charts-input-background-color--active);
     border-color: var(--ag-charts-input-border-color--active);
     color: var(--ag-charts-input-color--active);
     z-index: var(--input-layer-active);

@@ -8,16 +8,7 @@ export function patchOptions(
 ) {
     delete options.subtitle;
     delete options.footnote;
-    delete options.legend;
     delete options.gradientLegend;
-    if (api === 'createGauge') {
-        delete options.title;
-        delete (options as any).targets;
-        (options as any).label = {
-            ...(options as any).label,
-            fontSize: 36,
-        };
-    }
 
     options.legend = { enabled: false };
 
@@ -48,13 +39,23 @@ export function patchOptions(
         axis.title = { enabled: false };
     });
 
-    // The bullet series are the only other chart types with multiple examples
-    // They've been designed using the old padding values, so leave as-is for now
-    if (multiple && api === 'createGauge') {
+    if (api === 'createGauge') {
+        delete options.title;
+        delete options.legend;
+        (options as any).targets?.forEach((target) => {
+            delete target.text;
+        });
+        (options as any).label = {
+            ...(options as any).label,
+            fontSize: 36,
+        };
+    }
+
+    if (multiple) {
         options.padding = {
-            top: 0,
+            top: 5,
             right: 0,
-            bottom: 0,
+            bottom: 5,
             left: 0,
         };
     } else {

@@ -131,8 +131,10 @@ AG Charts Angular Charting Library comes with every feature you'd expect:
 | [Synchronization](https://ag-grid.com/charts/angular/sync/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                    | ❌                  | ✅                   |
 | [Zoom](https://ag-grid.com/charts/angular/zoom/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                               | ❌                  | ✅                   |
 
-> [!IMPORTANT]
-> Visit the [Pricing](https://ag-grid.com/charts/license-pricing/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github) page for a full comparison.
+<blockquote>
+    <p>ℹ️ <b>Note:</b></p>
+    <span>Visit the <a href="https://ag-grid.com/charts/license-pricing/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Pricing</a> page for a full comparison.</span>
+</blockquote>
 
 ### Financial Charts
 
@@ -283,8 +285,10 @@ template:
 
 <!-- END SETUP -->
 
-> [!IMPORTANT]
-> For more information on building Angular Charts with AG Charts, refer to our [Documentation](https://ag-grid.com/charts/angular/quick-start/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github).
+<blockquote>
+    <p>ℹ️ <b>Note:</b></p>
+    <span>For more information on building  Angular Charts with AG Charts, refer to our <a href="https://ag-grid.com/charts/angular/quick-start/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github">Documentation</a>.</span>
+</blockquote>
 
 ## 🤝 Support
 

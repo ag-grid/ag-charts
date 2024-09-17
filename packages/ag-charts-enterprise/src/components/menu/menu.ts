@@ -1,5 +1,4 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { AgIconName } from 'ag-charts-types';
 
 import { AnchoredPopover, type AnchoredPopoverOptions } from '../popover/anchoredPopover';
 
@@ -13,12 +12,7 @@ export interface MenuOptions<Value = any> extends AnchoredPopoverOptions {
     menuItemRole?: 'menuitem' | 'menuitemradio';
 }
 
-// These types force a compilation error if the developer tries to add an icon-only
-// menu item without an accessible text alternative.
-type LabelAndIcon = { label: string; icon?: AgIconName; altText?: undefined };
-type IconOnly = { label?: undefined; icon: AgIconName; altText: string };
-
-export type MenuItem<Value = any> = (LabelAndIcon | IconOnly) & {
+export type MenuItem<Value = any> = _ModuleSupport.LabelIcon & {
     value: Value;
     strokeWidth?: number;
 };

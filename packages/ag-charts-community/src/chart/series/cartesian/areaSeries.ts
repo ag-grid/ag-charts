@@ -61,6 +61,9 @@ import {
 } from './markerUtil';
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 
+const CROSS_FILTER_AREA_FILL_OPACITY_FACTOR = 0.125;
+const CROSS_FILTER_AREA_STROKE_OPACITY_FACTOR = 0.25;
+
 type AreaAnimationData = CartesianAnimationData<
     Group,
     MarkerSelectionDatum,
@@ -104,7 +107,7 @@ export class AreaSeries extends CartesianSeries<
         }
 
         const { data, visible, seriesGrouping: { groupIndex = this.id, stackCount = 1 } = {} } = this;
-        const { xKey, yKey, connectMissingData, normalizedTo } = this.properties;
+        const { xKey, yKey, yFilterKey, connectMissingData, normalizedTo } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
@@ -137,6 +140,7 @@ export class AreaSeries extends CartesianSeries<
             props: [
                 keyProperty(xKey, xScaleType, { id: 'xValue' }),
                 valueProperty(yKey, yScaleType, { id: `yValueRaw`, ...common }),
+                ...(yFilterKey != null ? [valueProperty(yFilterKey, yScaleType, { id: 'yFilterRaw' })] : []),
                 ...groupStackValueProperty(yKey, yScaleType, {
                     id: `yValueStack`,
                     ...common,
@@ -214,6 +218,7 @@ export class AreaSeries extends CartesianSeries<
         const {
             yKey,
             xKey,
+            yFilterKey,
             marker,
             label,
             fill: seriesFill,
@@ -228,6 +233,8 @@ export class AreaSeries extends CartesianSeries<
         const xOffset = (xScale.bandwidth ?? 0) / 2;
 
         const defs = dataModel.resolveProcessedDataDefsByIds(this, [`yValueEnd`, `yValueRaw`, `yValueCumulative`]);
+        const yFilterIndex =
+            yFilterKey != null ? dataModel.resolveProcessedDataIndexById(this, 'yFilterRaw') : undefined;
         const yValueStackIndex = dataModel.resolveProcessedDataIndexById(this, 'yValueStack');
 
         const createMarkerCoordinate = (xDatum: any, yEnd: number, rawYDatum: any): SizedPoint => {
@@ -255,6 +262,7 @@ export class AreaSeries extends CartesianSeries<
         const { visibleSameStackCount } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
 
         let datumIdx = -1;
+        let crossFiltering = false;
         groupedData?.forEach((datumGroup) => {
             const {
                 keys,
@@ -275,6 +283,11 @@ export class AreaSeries extends CartesianSeries<
                 // marker data
                 const point = createMarkerCoordinate(xDatum, +yValueCumulative, yDatum);
 
+                const selected = yFilterIndex != null ? values[yFilterIndex] === yDatum : undefined;
+                if (selected === false) {
+                    crossFiltering = true;
+                }
+
                 if (validPoint && marker) {
                     markerData.push({
                         index: datumIdx,
@@ -291,6 +304,7 @@ export class AreaSeries extends CartesianSeries<
                         fill: marker.fill ?? seriesFill,
                         stroke: marker.stroke ?? seriesStroke,
                         strokeWidth: marker.strokeWidth ?? this.getStrokeWidth(this.properties.strokeWidth),
+                        selected,
                     });
                 }
 
@@ -494,6 +508,7 @@ export class AreaSeries extends CartesianSeries<
             scales: this.calculateScaling(),
             visible: this.visible,
             stackVisible: visibleSameStackCount > 0,
+            crossFiltering,
         };
 
         return context;
@@ -517,6 +532,7 @@ export class AreaSeries extends CartesianSeries<
     }) {
         const { opacity, visible, animationEnabled } = opts;
         const [fill, stroke] = opts.paths;
+        const crossFiltering = this.contextNodeData?.crossFiltering === true;
 
         const strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
         stroke.setProperties({
@@ -525,7 +541,8 @@ export class AreaSeries extends CartesianSeries<
             pointerEvents: PointerEvents.None,
             stroke: this.properties.stroke,
             strokeWidth,
-            strokeOpacity: this.properties.strokeOpacity,
+            strokeOpacity:
+                this.properties.strokeOpacity * (crossFiltering ? CROSS_FILTER_AREA_STROKE_OPACITY_FACTOR : 1),
             lineDash: this.properties.lineDash,
             lineDashOffset: this.properties.lineDashOffset,
             opacity,
@@ -536,7 +553,7 @@ export class AreaSeries extends CartesianSeries<
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
             fill: this.properties.fill,
-            fillOpacity: this.properties.fillOpacity,
+            fillOpacity: this.properties.fillOpacity * (crossFiltering ? CROSS_FILTER_AREA_FILL_OPACITY_FACTOR : 1),
             fillShadow: this.properties.shadow,
             opacity,
             visible: visible || animationEnabled,
@@ -599,13 +616,14 @@ export class AreaSeries extends CartesianSeries<
         markerSelection: Selection<Marker, MarkerSelectionDatum>;
     }) {
         const { nodeData, markerSelection } = opts;
+        const markersEnabled = this.properties.marker.enabled || this.contextNodeData?.crossFiltering === true;
 
         if (this.properties.marker.isDirty()) {
             markerSelection.clear();
             markerSelection.cleanup();
         }
 
-        return markerSelection.update(this.properties.marker.enabled ? nodeData : []);
+        return markerSelection.update(markersEnabled ? nodeData : []);
     }
 
     protected override async updateMarkerNodes(opts: {
@@ -624,7 +642,9 @@ export class AreaSeries extends CartesianSeries<
         });
 
         markerSelection.each((node, datum) => {
-            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey }, baseStyle);
+            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey }, baseStyle, {
+                selected: datum.selected,
+            });
         });
 
         if (!highlighted) {
@@ -813,6 +833,11 @@ export class AreaSeries extends CartesianSeries<
             pathFadeInAnimation(this, 'fill_path_properties', animationManager, 'add', fill);
             pathFadeInAnimation(this, 'stroke_path_properties', animationManager, 'add', stroke);
             seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
+            return;
+        }
+
+        if (contextData.crossFiltering !== previousContextData.crossFiltering) {
+            skip();
             return;
         }
 

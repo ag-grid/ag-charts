@@ -4,7 +4,7 @@ import type { AnnotationOptionsColorPickerType, Point } from '../annotationTypes
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import type { TextualPointProperties } from '../properties/textualPointProperties';
 import type { TextualPointScene } from '../scenes/textualPointScene';
-import { setColor, setFontSize } from '../utils/styles';
+import { setColor } from '../utils/styles';
 import { isTextType } from '../utils/types';
 import { guardCancelAndExit, guardSaveAndExit } from './textualStateUtils';
 
@@ -34,7 +34,6 @@ export abstract class TextualPointStateMachine<
         const actionCreate = ({ point }: { point: Point }) => {
             const datum = this.createDatum();
             datum.set({ x: point.x, y: point.y });
-            datum.placeholderText = 'Add Text';
             ctx.create(datum);
         };
 
@@ -91,10 +90,8 @@ export abstract class TextualPointStateMachine<
             const node = ctx.node();
             if (!datum || !node || !isTextType(datum)) return;
 
-            setFontSize(datum, datum.type, fontSize);
-
+            datum.fontSize = fontSize;
             ctx.updateTextInputFontSize(fontSize);
-
             ctx.update();
         };
 
@@ -104,11 +101,7 @@ export abstract class TextualPointStateMachine<
 
         const actionSave = ({ textInputValue }: { textInputValue?: string }) => {
             if (textInputValue != null && textInputValue.length > 0) {
-                const datum = ctx.datum();
-                if (datum) {
-                    datum.placeholderText = undefined;
-                    datum.set({ text: textInputValue });
-                }
+                ctx.datum()?.set({ text: textInputValue });
                 ctx.update();
                 ctx.recordAction(`Create ${ctx.node()?.type} annotation`);
             } else {

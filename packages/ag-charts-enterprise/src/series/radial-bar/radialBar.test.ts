@@ -174,6 +174,17 @@ describe('RadialBarSeries', () => {
         await compare();
     });
 
+    it(`should render single datum radial bar as expected`, async () => {
+        const options: AgChartOptions = {
+            ...EXAMPLE_OPTIONS,
+            data: EXAMPLE_OPTIONS.data?.slice(0, 1),
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
     describe('initial animation', () => {
         const animate = spyOnAnimationManager();
 

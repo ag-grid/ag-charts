@@ -17,9 +17,6 @@ import type { AgWaterfallSeriesThemeableOptions } from '../series/cartesian/wate
 import type { AgChordSeriesThemeableOptions } from '../series/flow-proportion/chordOptions';
 import type { AgBaseFlowProportionThemeOptions } from '../series/flow-proportion/flowProportionOptions';
 import type { AgSankeySeriesOptions, AgSankeySeriesThemeableOptions } from '../series/flow-proportion/sankeyOptions';
-import type { AgBaseGaugeThemeOptions } from '../series/gauge/gaugeOptions';
-import type { AgLinearGaugeSeriesThemeableOptions } from '../series/gauge/linearGaugeOptions';
-import type { AgRadialGaugeSeriesThemeableOptions } from '../series/gauge/radialGaugeOptions';
 import type { AgBaseHierarchyThemeOptions, AgHierarchySeriesOptions } from '../series/hierarchy/hierarchyOptions';
 import type { AgSunburstSeriesThemeableOptions } from '../series/hierarchy/sunburstOptions';
 import type { AgTreemapSeriesThemeableOptions } from '../series/hierarchy/treemapOptions';
@@ -178,12 +175,6 @@ export interface AgSankeyThemeOverrides extends AgBaseFlowProportionThemeOptions
 export interface AgChordThemeOverrides extends AgBaseFlowProportionThemeOptions {
     series?: AgChordSeriesThemeableOptions;
 }
-export interface AgRadialGaugeThemeOverrides extends AgBaseGaugeThemeOptions {
-    series?: AgRadialGaugeSeriesThemeableOptions;
-}
-export interface AgLinearGaugeThemeOverrides extends AgBaseGaugeThemeOptions {
-    series?: AgLinearGaugeSeriesThemeableOptions;
-}
 
 export interface AgCommonThemeableAxisOptions extends AgCartesianAxesTheme, AgPolarAxesTheme {}
 
@@ -257,10 +248,6 @@ export interface AgChartThemeOverrides {
     sankey?: AgSankeyThemeOverrides;
     /** Chord series theme overrides. */
     chord?: AgChordThemeOverrides;
-    /** radial gauge theme overrides. */
-    'radial-gauge'?: AgRadialGaugeThemeOverrides;
-    /** radial gauge theme overrides. */
-    'linear-gauge'?: AgLinearGaugeThemeOverrides;
 }
 
 // Use Typescript function types to verify that all series types are present in the manually
@@ -278,7 +265,7 @@ type VerifyAgBaseChartThemeOverrides<T = AgBaseChartOptions> = {
 };
 
 // Verification checks for completeness/correctness.
-const __THEME_OVERRIDES = {} as Required<AgChartThemeOverrides>;
+const __THEME_OVERRIDES = undefined as any as Required<AgChartThemeOverrides>;
 // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
 // @ts-ignore
 let __VERIFY_THEME_OVERRIDES: Required<VerifyAgBaseChartThemeOverrides> = undefined as any;

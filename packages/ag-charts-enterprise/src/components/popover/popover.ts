@@ -12,6 +12,8 @@ export interface PopoverConstructorOptions {
 export interface PopoverOptions {
     ariaLabel?: string;
     class?: string;
+    initialFocus?: HTMLElement;
+    sourceEvent?: Event;
     onHide?: () => void;
 }
 
@@ -26,6 +28,7 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
 
     private readonly moduleId: string;
     private readonly element: HTMLElement;
+    private lastFocus?: HTMLElement;
 
     constructor(
         protected readonly ctx: _ModuleSupport.ModuleContext,
@@ -51,11 +54,15 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         popover.element.append(this.element);
     }
 
-    public hide() {
+    public hide(opts?: { lastFocus?: null | undefined }) {
+        const { lastFocus = this.lastFocus } = opts ?? {};
         // Ensure no side-effects in `onHide()` listeners are caused by modules eagerly hiding the popover when it is
         // already hidden.
         if (this.element.children.length === 0) return;
         this.hideFns.forEach((fn) => fn());
+
+        lastFocus?.focus();
+        this.lastFocus = undefined;
     }
 
     protected removeChildren() {
@@ -84,6 +91,14 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         this.hideFns.push(() => this.removeChildren());
         if (options.onHide) {
             this.hideFns.push(options.onHide);
+        }
+
+        if (options.initialFocus && options.sourceEvent) {
+            const { lastFocus } = this.ctx.focusIndicator.guessDevice(options.sourceEvent);
+            if (lastFocus !== undefined) {
+                options.initialFocus.focus();
+                this.lastFocus = lastFocus;
+            }
         }
 
         return popover;

@@ -277,7 +277,7 @@ export class InteractionManager extends InteractionStateListener<InteractionType
                 event,
                 ...coords,
             });
-            this.debug('Dispatching canvas overlay event', pointerEvent);
+            this.debug('Dispatching canvas overlay event', pointerEvent, this.getState());
             dispatchTypedEvent(this.listeners, pointerEvent);
         }
     }
@@ -293,8 +293,8 @@ export class InteractionManager extends InteractionStateListener<InteractionType
             event.preventDefault();
             return;
         }
-        // AG-12037 Interacting with HTML buttons can also fire events on the series, which we don't want.
-        if ([target?.tagName?.toLowerCase(), target?.role].includes('button')) {
+
+        if (this.ignoreEvent(type, target)) {
             return;
         }
 
@@ -302,6 +302,20 @@ export class InteractionManager extends InteractionStateListener<InteractionType
             // Async dispatch to avoid blocking the event-processing thread.
             this.dispatchEvent(event, type).catch((e) => Logger.errorOnce(e));
         }
+    }
+
+    private ignoreEvent(
+        type: InteractionTypes | undefined,
+        target: (EventTarget & { ariaDisabled?: string; tagName?: string; role?: string }) | null
+    ) {
+        // AG-12824 Don't ignore contextmenu events.
+        if (type === 'contextmenu') return false;
+
+        // AG-12037 Interacting with HTML buttons can also fire events on the series, which we don't want.
+        // AG-12604 Same thing with <input> tags
+        const ignoredTags: (string | undefined)[] = ['button', 'input'];
+        const targetTags = [target?.tagName?.toLowerCase(), target?.role];
+        return targetTags.some((tag) => ignoredTags.includes(tag));
     }
 
     private async dispatchEvent(event: SupportedEvent, type: InteractionTypes) {
@@ -326,7 +340,7 @@ export class InteractionManager extends InteractionStateListener<InteractionType
         L extends Listeners<T, (event: PreventableEvent & E) => void>,
     >(listeners: L, event: E) {
         const preventableEvent = buildPreventable(event);
-        this.debug('Dispatching typed event', preventableEvent);
+        this.debug('Dispatching typed event', preventableEvent, this.getState());
         listeners.dispatchWrapHandlers(event.type, (handler, e) => handler(e), preventableEvent);
     }
 
@@ -349,7 +363,7 @@ export class InteractionManager extends InteractionStateListener<InteractionType
         if (coords == null) return;
 
         const pointerEvent = this.buildPointerEvent({ type, event, ...coords });
-        this.debug('Dispatching pointer event', pointerEvent);
+        this.debug('Dispatching pointer event', pointerEvent, this.getState());
         dispatchTypedEvent(this.listeners, pointerEvent);
     }
 
@@ -573,7 +587,7 @@ export class InteractionManager extends InteractionStateListener<InteractionType
             targetElement,
         };
 
-        this.debug('InteractionManager - builtEvent: ', builtEvent);
+        this.debug('InteractionManager - builtEvent: ', builtEvent, this.getState());
         return builtEvent;
     }
 }

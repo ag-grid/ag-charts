@@ -57,9 +57,13 @@ export class AgChartInstanceProxy implements AgChartProxy {
 
     @ActionOnSet<AgChartInstanceProxy>({
         oldValue(chart) {
+            if (!chart.destroyed) {
+                chart.publicApi = undefined;
+            }
             AgChartInstanceProxy.chartInstances.delete(chart);
         },
         newValue(chart) {
+            chart.publicApi = this;
             AgChartInstanceProxy.chartInstances.set(chart, this);
         },
     })
@@ -71,7 +75,6 @@ export class AgChartInstanceProxy implements AgChartProxy {
         private readonly licenseManager?: LicenseManager
     ) {
         this.chart = chart;
-        chart.publicApi = this;
     }
 
     async update(options: AgChartOptions) {
@@ -120,22 +123,22 @@ export class AgChartInstanceProxy implements AgChartProxy {
         const {
             factoryApi: { caretaker },
             chart: {
-                ctx: { annotationManager, zoomManager },
+                ctx: { annotationManager },
             },
         } = this;
 
-        return caretaker.save(annotationManager, zoomManager) as Required<AgChartState>;
+        return caretaker.save(annotationManager) as Required<AgChartState>;
     }
 
     async setState(state: AgChartState) {
         const {
             factoryApi: { caretaker },
             chart: {
-                ctx: { annotationManager, zoomManager },
+                ctx: { annotationManager },
             },
         } = this;
 
-        caretaker.restore(state, annotationManager, zoomManager);
+        caretaker.restore(state, annotationManager);
         await this.chart.waitForUpdate();
     }
 
@@ -187,15 +190,17 @@ export class AgChartInstanceProxy implements AgChartProxy {
             }
         }
 
-        const options: ChartExtendedOptions = mergeDefaults(
-            {
-                container: document.createElement('div'),
-                width,
-                height,
-            },
-            overrideOptions,
-            processedOptions
-        );
+        const defaultOpts: ChartExtendedOptions = {
+            container: document.createElement('div'),
+            width,
+            height,
+        };
+
+        if (opts.width != null && opts.height != null) {
+            defaultOpts.overrideDevicePixelRatio = 1;
+        }
+
+        const options: ChartExtendedOptions = mergeDefaults(defaultOpts, overrideOptions, processedOptions);
 
         const cloneProxy = await this.factoryApi.createOrUpdate(options);
         await cloneProxy.setState(state);

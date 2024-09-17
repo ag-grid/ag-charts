@@ -17,6 +17,7 @@ const menuEntry = await getEntry('menu', 'data');
     title="AG Charts Pipeline"
     description="Lists feature requests and bugs in our backlog. Find items planned for the next release or check their status. Search by release date, issue number or summary."
     showSearchBar={true}
+    showDocsNav={true}
 >
     <div class="layout-grid">
         <PagesNavigationFromLocalStorage client:load menuData={menuEntry.data} framework={framework} />

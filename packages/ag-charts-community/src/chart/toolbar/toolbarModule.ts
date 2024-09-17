@@ -17,6 +17,8 @@ const seriesType: AgToolbarOptions['seriesType'] = {
         {
             tooltip: 'toolbarSeriesTypeDropdown',
             value: 'type',
+            // @ts-expect-error
+            haspopup: true,
         },
     ],
 };
@@ -31,18 +33,24 @@ const annotations: AgToolbarOptions['annotations'] = {
             tooltip: 'toolbarAnnotationsLineAnnotations',
             value: 'line-menu',
             section: 'line-annotations',
+            // @ts-expect-error
+            haspopup: true,
         },
         {
             icon: 'text-annotation',
             tooltip: 'toolbarAnnotationsTextAnnotations',
             value: 'text-menu',
             section: 'text-annotations',
+            // @ts-expect-error
+            haspopup: true,
         },
         {
             icon: 'arrow-drawing',
             tooltip: 'toolbarAnnotationsShapeAnnotations',
             value: 'shape-menu',
             section: 'shape-annotations',
+            // @ts-expect-error
+            haspopup: true,
         },
         {
             icon: 'delete',
@@ -63,34 +71,48 @@ const annotationOptions: AgToolbarOptions['annotationOptions'] = {
             icon: 'text-annotation',
             tooltip: 'toolbarAnnotationsTextColor',
             value: 'text-color',
+            // @ts-expect-error
+            haspopup: true,
         },
         {
             icon: 'line-color',
             tooltip: 'toolbarAnnotationsLineColor',
             value: 'line-color',
+            // @ts-expect-error
+            haspopup: true,
         },
         {
             icon: 'fill-color',
             tooltip: 'toolbarAnnotationsFillColor',
             value: 'fill-color',
+            // @ts-expect-error
+            haspopup: true,
         },
         {
             tooltip: 'toolbarAnnotationsTextSize',
             value: 'text-size',
+            // @ts-expect-error
+            haspopup: true,
         },
         {
             tooltip: 'toolbarAnnotationsLineStrokeWidth',
             value: 'line-stroke-width',
+            // @ts-expect-error
+            haspopup: true,
         },
         {
             icon: 'line-style-solid',
             tooltip: 'toolbarAnnotationsLineStyle',
             value: 'line-style-type',
+            // @ts-expect-error
+            haspopup: true,
         },
         {
             icon: 'settings',
             tooltip: 'toolbarAnnotationsSettings',
             value: 'settings',
+            // @ts-expect-error
+            haspopup: true,
         },
         {
             role: 'switch',

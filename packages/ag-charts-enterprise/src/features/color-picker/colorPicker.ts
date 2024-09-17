@@ -27,16 +27,11 @@ const getHsva = (input: string) => {
 };
 
 export class ColorPicker extends AnchoredPopover<ColorPickerOptions> {
-    private lastFocus?: HTMLElement;
     private hasChanged = false;
     private onChangeHide?: () => void;
 
     constructor(ctx: _ModuleSupport.ModuleContext, options?: PopoverConstructorOptions) {
         super(ctx, 'color-picker', options);
-        this.hideFns.push(() => {
-            this.lastFocus?.focus();
-            this.lastFocus = undefined;
-        });
         this.hideFns.push(() => {
             if (this.hasChanged) this.onChangeHide?.();
         });
@@ -47,15 +42,9 @@ export class ColorPicker extends AnchoredPopover<ColorPickerOptions> {
         this.onChangeHide = options.onChangeHide;
 
         const { element, initialFocus } = this.createColorPicker(options);
-        const popover = this.showWithChildren([element], options);
+        const popover = this.showWithChildren([element], { initialFocus, ...options });
         popover.classList.add('ag-charts-color-picker');
         popover.setAttribute('role', 'dialog');
-
-        const { type, lastFocus } = this.ctx.focusIndicator.guessDevice(options.sourceEvent);
-        if (type === 'keyboard' && lastFocus !== undefined) {
-            initialFocus.focus();
-            this.lastFocus = lastFocus;
-        }
     }
 
     private createColorPicker(opts: ColorPickerOptions) {

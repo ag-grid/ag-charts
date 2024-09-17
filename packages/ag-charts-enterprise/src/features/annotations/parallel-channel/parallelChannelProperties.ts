@@ -69,6 +69,8 @@ export class ParallelChannelProperties extends Annotation(
                 return this.background.fill;
             case `line-color`:
                 return this.stroke;
+            case 'text-color':
+                return this.text.color;
         }
     }
 

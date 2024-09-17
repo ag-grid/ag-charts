@@ -52,6 +52,7 @@ export default defineMarkdocConfig({
                 title: { type: String, required: true },
                 name: { type: String, required: true },
                 type: { type: String },
+                isInline: { type: Boolean, default: true },
                 options: { type: Object },
             },
         },

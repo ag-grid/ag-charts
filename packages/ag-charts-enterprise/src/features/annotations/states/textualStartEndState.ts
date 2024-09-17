@@ -4,7 +4,7 @@ import type { AnnotationOptionsColorPickerType, Point } from '../annotationTypes
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
 import type { TextualStartEndScene } from '../scenes/textualStartEndScene';
-import { setColor, setFontSize } from '../utils/styles';
+import { setColor } from '../utils/styles';
 import { isTextType } from '../utils/types';
 import { guardCancelAndExit, guardSaveAndExit } from './textualStateUtils';
 
@@ -36,7 +36,6 @@ export abstract class TextualStartEndStateMachine<
         const actionCreate = ({ point }: { point: Point }) => {
             const datum = this.createDatum();
             datum.set({ start: point, end: point, visible: true });
-            datum.placeholderText = 'Add Text';
             ctx.create(datum);
         };
 
@@ -47,9 +46,7 @@ export abstract class TextualStartEndStateMachine<
         const onStartEditing = () => {
             ctx.showTextInput();
             const datum = ctx.datum();
-            if (datum) {
-                datum.visible = false;
-            }
+            if (datum) datum.visible = false;
         };
 
         const onStopEditing = () => {
@@ -74,11 +71,7 @@ export abstract class TextualStartEndStateMachine<
 
         const onEndClick = ({ point }: { point: Point }) => {
             ctx.showAnnotationOptions();
-            const datum = ctx.datum();
-            if (datum) {
-                datum.set({ end: point });
-                datum.placeholderText = undefined;
-            }
+            ctx.datum()?.set({ end: point });
             ctx.node()?.toggleHandles({ end: true });
         };
 
@@ -108,10 +101,8 @@ export abstract class TextualStartEndStateMachine<
             const node = ctx.node();
             if (!datum || !node || !isTextType(datum)) return;
 
-            setFontSize(datum, datum.type, fontSize);
-
+            datum.fontSize = fontSize;
             ctx.updateTextInputFontSize(fontSize);
-
             ctx.update();
         };
 

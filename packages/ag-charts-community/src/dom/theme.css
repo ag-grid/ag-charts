@@ -75,7 +75,8 @@
     --ag-charts-popover-font-size-small: var(--ag-charts-toolbar-font-size-small);
 
     /* Dialog */
-    --ag-charts-dialog-input-group-label-color: color-mix(in srgb, transparent, var(--ag-charts-foreground-color) 65%);
+    --ag-charts-dialog-input-group-label-color: color-mix(in srgb, transparent, var(--ag-charts-foreground-color) 55%);
+    --ag-charts-dialog-tab-color--inactive: color-mix(in srgb, transparent, var(--ag-charts-foreground-color) 55%);
 
     /* Buttons */
     --ag-charts-button-radius: var(--ag-border-radius, 4px);
@@ -96,13 +97,13 @@
     --ag-charts-icon-size: 20px;
 
     /* Inputs - Shared */
-    --ag-charts-input-background: var(--ag-charts-background-color);
-    --ag-charts-input-background--hover: var(--ag-charts-hover-color);
-    --ag-charts-input-background--active: var(--ag-charts-hover-color);
+    --ag-charts-input-background-color: var(--ag-charts-background-color);
+    --ag-charts-input-background-color--hover: var(--ag-charts-hover-color);
+    --ag-charts-input-background-color--active: var(--ag-charts-hover-color);
     --ag-charts-input-border-color: var(--ag-charts-border-color);
     --ag-charts-input-border-color--active: var(--ag-charts-active-color);
     --ag-charts-input-border-radius: var(--ag-border-radius, 4px);
-    --ag-charts-input-color: var(--ag-charts-active-color);
+    --ag-charts-input-color--active: var(--ag-charts-active-color);
     --ag-charts-input-focus-outline: var(--ag-charts-focus-border);
     --ag-charts-input-focus-box-shadow: var(--ag-charts-focus-border-shadow);
     --ag-charts-input-font-family: var(--ag-charts-font-family);
@@ -111,12 +112,13 @@
     --ag-charts-input-padding-large: 10px;
     --ag-charts-input-placeholder-color: #888888;
     --ag-charts-input-spacing: 8px;
-    --ag-charts-input-transition-duration: 0.1s;
+    --ag-charts-input-transition-duration: 0.25s;
+    --ag-charts-input-transition-duration--fast: 0.1s;
     --ag-charts-input-transition-timing-function: ease-out;
 
     /* Inputs - Checkbox */
-    --ag-charts-input-checkbox-background: #babbbc;
-    --ag-charts-input-checkbox-background--checked: var(--ag-charts-active-color);
+    --ag-charts-input-checkbox-background-color: #babbbc;
+    --ag-charts-input-checkbox-background-color--checked: var(--ag-charts-active-color);
 }
 
 .ag-charts-theme-default-dark {

@@ -195,8 +195,7 @@ export class Animation<T extends AnimationValue> implements IAnimation {
         // state, allowing us to run the update processing once and then skip any further updates.
         // This additionally allows animation phases to progress if all animations in a phase are
         // no-ops.
-        if (animationValuesEqual(opts.from, opts.to)) return 0;
-        return calculatedDuration;
+        return animationValuesEqual(opts.from, opts.to) ? 0 : calculatedDuration;
     }
 
     play(initialUpdate = false) {
@@ -283,7 +282,7 @@ export class Animation<T extends AnimationValue> implements IAnimation {
     }
 
     private interpolateValue(a: any, b: any) {
-        if (a === undefined || b === undefined) {
+        if (a == null || b == null) {
             return;
         } else if (isInterpolating(a)) {
             return (d: number) => a[interpolate](b, d);
@@ -296,7 +295,9 @@ export class Animation<T extends AnimationValue> implements IAnimation {
                 case 'string':
                     return interpolateColor(a, b);
                 case 'boolean':
-                    if (a === b) return () => a;
+                    if (a === b) {
+                        return () => a;
+                    }
                     break;
             }
         } catch (e) {

@@ -1,7 +1,8 @@
 import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
 
 import { Dialog, type DialogOptions } from '../../../components/dialog/dialog';
-import type { AnnotationLineStyle } from '../annotationTypes';
+import type { ColorPickerOptions } from '../../color-picker/colorPicker';
+import type { ChannelTextPosition, LineTextAlignment, LineTextPosition } from '../annotationTypes';
 import { LINE_STROKE_WIDTH_ITEMS, TEXT_SIZE_ITEMS } from '../annotationsMenuOptions';
 import type { ChannelPropertiesType, LinePropertiesType } from '../annotationsSuperTypes';
 import { isChannelType } from '../utils/types';
@@ -10,21 +11,24 @@ const { focusCursorAtEnd } = _ModuleSupport;
 
 interface LinearSettingsDialogOptions extends DialogOptions {
     onChangeLine: (props: LinearSettingsDialogLineChangeProps) => void;
-    onChangeLineStyle: (lineStyle: AnnotationLineStyle) => void;
     onChangeText: (props: LinearSettingsDialogTextChangeProps) => void;
+    onChangeLineColor: Required<ColorPickerOptions>['onChange'];
+    onChangeHideLineColor: Required<ColorPickerOptions>['onChangeHide'];
+    onChangeLineStyleType: (lineStyleType: AgAnnotationLineStyleType) => void;
+    onChangeLineStyleWidth: (strokeWidth: number) => void;
+    onChangeTextColor: Required<ColorPickerOptions>['onChange'];
+    onChangeHideTextColor: Required<ColorPickerOptions>['onChangeHide'];
+    onChangeTextFontSize: (fontSize: number) => void;
 }
 
 export interface LinearSettingsDialogLineChangeProps {
     extendStart?: boolean;
     extendEnd?: boolean;
-    stroke?: string;
 }
 
 export interface LinearSettingsDialogTextChangeProps {
-    alignment?: string;
-    color?: string;
-    fontSize?: number;
-    position?: string;
+    alignment?: LineTextAlignment;
+    position?: LineTextPosition | ChannelTextPosition;
     label?: string;
 }
 
@@ -37,14 +41,14 @@ export class AnnotationSettingsDialog extends Dialog {
         const lineTab = this.createLinearLineTab(datum, options);
         const textTab = this.createLinearTextTab(datum, options);
 
-        const tabs = this.createTabs('line', {
+        const tabs = this.createTabs('ariaLabelSettingsTabBar', 'line', {
             line: {
                 label: isChannelType(datum) ? 'dialogHeaderChannel' : 'dialogHeaderLine',
-                content: lineTab,
+                panel: lineTab,
             },
             text: {
                 label: 'dialogHeaderText',
-                content: textTab.content,
+                panel: textTab.panel,
                 onShow: textTab.onShow,
             },
         });
@@ -57,83 +61,86 @@ export class AnnotationSettingsDialog extends Dialog {
         datum: LinePropertiesType | ChannelPropertiesType,
         options: LinearSettingsDialogOptions
     ) {
-        const content = this.createTabContent();
+        const panel = this.createTabPanel();
 
         const colorAndStrokeWidth = this.createInputGroupLine();
-        const colorPicker = this.createColorPickerInput(datum.getDefaultColor('line-color'), (value) => {
-            options.onChangeLine({ stroke: value });
-        });
-        const strokeWidth = this.createStrokeWidthSelect(datum.strokeWidth ?? 2, (value) => {
-            options.onChangeLineStyle({ strokeWidth: value });
-        });
+        const colorPicker = this.createColorPickerInput(
+            datum.getDefaultColor('line-color'),
+            options.onChangeLineColor,
+            options.onChangeHideLineColor
+        );
+        const strokeWidth = this.createStrokeWidthSelect(datum.strokeWidth ?? 2, options.onChangeLineStyleWidth);
         colorAndStrokeWidth.append(colorPicker, strokeWidth);
 
-        const lineStyle = this.createLineStyleRadioGroup(datum.lineStyle ?? 'solid', (value) =>
-            options.onChangeLineStyle({ type: value })
-        );
+        const lineStyle = this.createLineStyleRadioGroup(datum.lineStyle ?? 'solid', options.onChangeLineStyleType);
 
-        content.append(colorAndStrokeWidth, lineStyle);
+        panel.append(colorAndStrokeWidth, lineStyle);
 
         if ('extendStart' in datum && 'extendEnd' in datum) {
-            content.append(
+            panel.append(
                 this.createCheckbox({
-                    label: isChannelType(datum) ? 'Extend channel start' : 'Extend line start',
+                    label: isChannelType(datum) ? 'dialogInputExtendChannelStart' : 'dialogInputExtendLineStart',
                     checked: datum.extendStart ?? false,
                     onChange: (extendStart) => options.onChangeLine({ extendStart }),
                 }),
                 this.createCheckbox({
-                    label: isChannelType(datum) ? 'Extend channel end' : 'Extend line end',
+                    label: isChannelType(datum) ? 'dialogInputExtendChannelEnd' : 'dialogInputExtendLineEnd',
                     checked: datum.extendEnd ?? false,
                     onChange: (extendEnd) => options.onChangeLine({ extendEnd }),
                 })
             );
         }
 
-        return content;
+        return panel;
     }
 
     private createLinearTextTab(
         datum: LinePropertiesType | ChannelPropertiesType,
         options: LinearSettingsDialogOptions
     ) {
-        const content = this.createTabContent();
+        const panel = this.createTabPanel();
 
         const textArea = this.createTextArea({
-            placeholder: 'dialogInputTextareaPlaceholder',
+            placeholder: 'inputTextareaPlaceholder',
             value: datum.text.label,
             onChange: (value) => options.onChangeText({ label: value }),
         });
 
         const fontSizeAndColor = this.createInputGroupLine();
-        const fontSize = this.createFontSizeSelect(datum.text.fontSize, (value) =>
-            options.onChangeText({ fontSize: value })
+        const fontSize = this.createFontSizeSelect(datum.text.fontSize, options.onChangeTextFontSize);
+        const colorPicker = this.createColorPickerInput(
+            datum.text.color,
+            options.onChangeTextColor,
+            options.onChangeHideTextColor
         );
-        const colorPicker = this.createColorPickerInput(datum.text.color, (value) => {
-            options.onChangeText({ color: value });
-        });
         fontSizeAndColor.append(fontSize, colorPicker);
 
         const positionAndAlignment = this.createInputGroupLine();
         const textPosition = datum.text.position === 'inside' ? 'center' : datum.text.position;
         const position = this.createPositionRadioGroup(textPosition ?? 'top', (value) =>
-            options.onChangeText({ position: value })
+            options.onChangeText({ position: value as unknown as LineTextPosition | ChannelTextPosition })
         );
         const alignment = this.createAlignmentRadioGroup(datum.text.alignment ?? 'center', (value) =>
-            options.onChangeText({ alignment: value })
+            options.onChangeText({ alignment: value as unknown as LineTextAlignment })
         );
         positionAndAlignment.append(position, alignment);
 
-        content.append(textArea, fontSizeAndColor, positionAndAlignment);
+        panel.append(textArea, fontSizeAndColor, positionAndAlignment);
 
-        return { content, onShow: () => focusCursorAtEnd(textArea) };
+        return { panel, onShow: () => focusCursorAtEnd(textArea) };
     }
 
-    private createColorPickerInput(color: string | undefined, onChange: (value: string) => void) {
+    private createColorPickerInput(
+        color: string | undefined,
+        onChange: Required<ColorPickerOptions>['onChange'],
+        onChangeHide: Required<ColorPickerOptions>['onChangeHide']
+    ) {
         return this.createColorPicker({
             label: 'dialogInputColorPicker',
             altText: 'dialogInputColorPickerAltText',
             value: color,
             onChange,
+            onChangeHide,
         });
     }
 

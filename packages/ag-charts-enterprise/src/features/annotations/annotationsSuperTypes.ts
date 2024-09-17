@@ -29,7 +29,7 @@ import type { AnnotationScene as AnnotationSceneNode } from './scenes/annotation
 import type { TextProperties } from './text/textProperties';
 import type { TextScene } from './text/textScene';
 
-export type ShapePropertyType = ArrowUpProperties | ArrowDownProperties;
+export type ShapePropertiesType = ArrowUpProperties | ArrowDownProperties;
 export type TextualPropertiesType = CalloutProperties | CommentProperties | NoteProperties | TextProperties;
 export type LinePropertiesType = LineProperties | HorizontalLineProperties | VerticalLineProperties | ArrowProperties;
 export type ChannelPropertiesType = ParallelChannelProperties | DisjointChannelProperties;
@@ -38,7 +38,7 @@ export type AnnotationProperties =
     | LinePropertiesType
     | ChannelPropertiesType
     | TextualPropertiesType
-    | ShapePropertyType;
+    | ShapePropertiesType;
 
 export type AnnotationScene =
     // Lines
@@ -68,6 +68,8 @@ export interface AnnotationsStateMachineContext {
     startInteracting: () => void;
     stopInteracting: () => void;
 
+    copy: (index: number) => AnnotationProperties | undefined;
+    paste: (datum: AnnotationProperties) => void;
     create: (type: AnnotationType, datum: AnnotationProperties) => void;
     delete: (index: number) => void;
     deleteAll: () => void;
@@ -85,7 +87,7 @@ export interface AnnotationsStateMachineContext {
     updateTextInputBBox: (bbox?: _Scene.BBox) => void;
 
     showAnnotationOptions: (index: number) => void;
-    showAnnotationSettings: (index: number, lastFocus: HTMLElement | undefined) => void;
+    showAnnotationSettings: (index: number, sourceEvent?: Event) => void;
 
     recordAction: (label: string) => void;
 
@@ -98,6 +100,12 @@ export interface AnnotationTypeConfig<Datum extends _ModuleSupport.BasePropertie
     datum: Constructor<Datum>;
     scene: Constructor<Scene>;
     update: (node: AnnotationSceneNode, datum: _ModuleSupport.BaseProperties, context: AnnotationContext) => void;
+    copy: (
+        node: AnnotationSceneNode,
+        datum: _ModuleSupport.BaseProperties,
+        copiedDatum: _ModuleSupport.BaseProperties,
+        context: AnnotationContext
+    ) => Datum | undefined;
     createState: (
         ctx: AnnotationsStateMachineContext & {
             delete: () => void;

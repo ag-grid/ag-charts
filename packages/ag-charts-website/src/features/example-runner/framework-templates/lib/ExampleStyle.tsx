@@ -88,6 +88,10 @@ export const ExampleStyle = ({
             --button-hover-background-color: rgba(0, 0, 0, 0.1);
         }
 
+        :root[data-dark-mode='false'] {
+            background: white;
+        }
+
         :root[data-dark-mode='true'] {
             background: #192232;
             color: white;

@@ -78,7 +78,7 @@ export class AppComponent {
 {% if isFramework("vue") %}
 
 ```js
-template: `<aag-gauge:options="options"/>`,
+template: `<ag-gauge:options="options"/>`,
 components: {
     'ag-gauge': AgGauge,
 },
@@ -162,75 +162,27 @@ In this configuration:
 -   The second label displays a fixed `text` string. This option is only available for inner labels.
 -   The scale labels are hidden using the `scale.label.enabled` option. See the [API Reference](#api-reference) for more details about customising the scale label style and interval.
 
-### Colour Options
-
-Both the bar and scale have the same colour options and are configured in the same way. If the bar is enabled, it will display above the scale.
-
-{% chartExampleRunner title="Colour Scales" name="color-scales" type="generated" options={ "exampleHeight": 300 } /%}
-
-```js
-{
-    bar: {
-        // fill: '#E84118', - sets a single colour
-        fills: [
-            { color: '#E84118' },
-            { color: '#9C88FF' },
-            { color: '#00A8FF' }
-        ], //colours are allocated equally
-        fillMode: 'discrete', //'discrete' | 'continuous'
-    },
-}
-```
-
-In this configuration:
-
--   Providing a `fill` value of a single string will result in a solid colour. This overrides the `fills` property.
--   Providing a `fills` array will equally divide the entire scale or bar into the provided colours.
--   The `fillMode` determines if the `fills` colours are shown as discrete blocks or as a continuous gradient.
-
-To configure explicit colour stops, provide `stop` values within the `fills` array.
-
-{% chartExampleRunner title="Scale Values" name="scale-values" type="generated" options={ "exampleHeight": 250 } /%}
-
-```js
-{
-    bar: {
-        fills: [
-            { color: '#E84118', stop: 35 },
-            { color: '#FBC531', stop: 45 },
-            { color: '#4CD137', stop: 55 },
-            { color: '#FBC531', stop: 65 },
-            { color: '#E84118' },
-        ],
-        fillMode: 'discrete',
-    },
-}
-```
-
-In this configuration:
-
--   Each colour stops at the `stop` value, and the next colour begins at that point.
--   The last colour is used until the end of the scale or bar.
--   Both `discrete` and `continuous` modes can be used with colour stops.
-
 ### Segmentation
 
-To split the gauge into segments, use the `segmentation` option.
+To split the gauge into segments, set `segmentation.enabled` to `true`.
 
-{% chartExampleRunner title="Appearance" name="appearance" type="generated" options={ "exampleHeight": 300 } /%}
+{% chartExampleRunner title="Segmentation" name="segmentation" type="generated" options={ "exampleHeight": 300 } /%}
 
 ```js
 {
     segmentation: {
-        interval: {step: 4}
-        spacing: 4,
+        enabled: true,
+        interval: {
+            count: 4
+        },
+        spacing: 2,
     },
 }
 ```
 
 In this configuration:
 
--   `segmentation.interval` specifies where the gauge is segmented. Available options are:
+-   `segmentation.interval` specifies how the gauge is segmented. Available options are:
     -   `step` - segments the gauge at a fixed interval.
     -   `count` - segments the gauge a fixed number of times.
     -   `values` - segments the gauge at specific scale values.
@@ -267,6 +219,73 @@ The `startAngle` and `endAngle` properties can be used to customise the start an
 
 -   Angles are calculated clockwise, starting from the top of the gauge.
 -   `endAngle` must be greater than `startAngle`.
+
+## Colour Options
+
+### Single Colour
+
+Both the bar and scale can be displayed using a solid fill.
+
+{% chartExampleRunner title="Fill" name="fill" type="generated" options={ "exampleHeight": 250 } /%}
+
+```js
+{
+    scale: {
+        fill: '#f5f6fa',
+    },
+    bar: {
+        fill: '#4cd137',
+    },
+}
+```
+
+### Multiple Colours
+
+Multiple colours can be specified using the `fills` property.
+
+{% chartExampleRunner title="Colour Scales" name="fill-mode" type="generated" options={ "exampleHeight": 300 } /%}
+
+```js
+{
+    bar: {
+        fills: [{ color: '#00a8ff' }, { color: '#9c88ff' }, { color: '#e84118' }],
+        fillMode: 'discrete',
+    },
+}
+```
+
+In this configuration:
+
+-   `fills` specifies an array of colours to use to fill the bar.
+-   `fillMode` can be set to `continuous` for a gradient, or `discrete` to use blocks of solid colours.
+
+The default behaviour is to space out the colours evenly. This can be customised by using colour stops.
+
+### Colour Stops
+
+{% chartExampleRunner title="Scale Values" name="scale-values" type="generated" options={ "exampleHeight": 250 } /%}
+
+```js
+{
+    bar: {
+        fills: [
+            { color: '#E84118', stop: 35 },
+            { color: '#FBC531', stop: 45 },
+            { color: '#4CD137', stop: 55 },
+            { color: '#FBC531', stop: 65 },
+            { color: '#E84118' },
+        ],
+        fillMode: 'discrete',
+    },
+}
+```
+
+In this configuration:
+
+-   Each colour stops at the `stop` value, and the next colour begins at that point.
+-   If no `stop` is provided, the fills will be distributed equally.
+-   The last colour is used until the end of the scale or bar.
+-   Both `discrete` and `continuous` modes can be used with colour stops.
 
 ## Targets
 

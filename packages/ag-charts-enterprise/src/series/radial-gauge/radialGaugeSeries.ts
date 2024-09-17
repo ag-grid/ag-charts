@@ -1,5 +1,5 @@
 import {
-    type AgGaugeSeriesFillMode,
+    type AgGaugeFillMode,
     type AgRadialGaugeMarkerShape,
     type AgRadialGaugeTargetPlacement,
     type FontStyle,
@@ -99,6 +99,11 @@ interface RadialGaugeNodeDataContext
     scaleData: RadialGaugeNodeDatum[];
 }
 
+const targetPlacementRotation: Record<AgRadialGaugeTargetPlacement, number> = {
+    inside: 90,
+    middle: 0,
+    outside: -90,
+};
 const outsideLabelPlacements: Array<{ textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline }> = [
     { textAlign: 'left', textBaseline: 'top' },
     { textAlign: 'right', textBaseline: 'top' },
@@ -228,7 +233,7 @@ export class RadialGaugeSeries
             },
         });
 
-        this.scaleGroup.pointerEvents = PointerEvents.None;
+        this.itemGroup.pointerEvents = PointerEvents.None;
         this.itemTargetLabelGroup.pointerEvents = PointerEvents.None;
         this.itemLabelGroup.pointerEvents = PointerEvents.None;
     }
@@ -258,11 +263,7 @@ export class RadialGaugeSeries
         return formatLabel(value, this.axes[ChartAxisDirection.X]);
     }
 
-    private createConicGradient(
-        fills: GaugeStopProperties[],
-        fillMode: AgGaugeSeriesFillMode | undefined,
-        segments: number[] | undefined
-    ) {
+    private createConicGradient(fills: GaugeStopProperties[], fillMode: AgGaugeFillMode) {
         const { centerX, centerY, radius } = this;
         const { domain, range } = this.axes[ChartAxisDirection.X]!.scale;
         const [startAngle, endAngle] = range;
@@ -271,7 +272,7 @@ export class RadialGaugeSeries
         const conicAngle = normalizeAngle360((startAngle + endAngle) / 2 + Math.PI);
         const sweepAngle = normalizeAngle360Inclusive(endAngle - startAngle);
 
-        const stops = getColorStops(fills, defaultColorRange, domain, fillMode, segments).map(
+        const stops = getColorStops(fills, defaultColorRange, domain, fillMode).map(
             ({ color, offset }): _Scene.GradientColorStop => {
                 offset = Math.min(Math.max(offset, 0), 1);
                 const angle = startAngle + sweepAngle * offset;
@@ -296,6 +297,9 @@ export class RadialGaugeSeries
             const {
                 text = defaultTarget.text,
                 value = defaultTarget.value ?? 0,
+                shape = defaultTarget.shape ?? 'triangle',
+                rotation = defaultTarget.rotation ?? 0,
+                strokeWidth = defaultTarget.strokeWidth ?? 0,
                 placement = defaultTarget.placement ?? 'middle',
                 spacing = defaultTarget.spacing ?? 0,
                 size = defaultTarget.size ?? 0,
@@ -315,28 +319,6 @@ export class RadialGaugeSeries
                 fontFamily: labelFontFamily = defaultTarget.label.fontFamily,
                 spacing: labelSpacing = defaultTarget.label.spacing ?? 0,
             } = target.label;
-
-            let {
-                shape = defaultTarget.shape,
-                rotation = defaultTarget.rotation,
-                strokeWidth = defaultTarget.strokeWidth,
-            } = target;
-            switch (placement) {
-                case 'outside':
-                    shape ??= 'triangle';
-                    rotation ??= 180;
-                    break;
-                case 'inside':
-                    shape ??= 'triangle';
-                    rotation ??= 0;
-                    break;
-                default:
-                    shape ??= 'circle';
-                    rotation ??= 0;
-            }
-            rotation = toRadians(rotation);
-
-            strokeWidth ??= shape === 'line' ? 2 : 0;
 
             return {
                 text,
@@ -474,15 +456,17 @@ export class RadialGaugeSeries
         const containerEndAngle = angleScale.convert(value);
 
         const maxTicks = Math.ceil(normalizeAngle360Inclusive(containerEndAngle - containerStartAngle) * radius);
-        let segments = segmentation.getSegments(angleAxis.scale, maxTicks);
+        let segments = segmentation.enabled ? segmentation.interval.getSegments(angleAxis.scale, maxTicks) : undefined;
 
-        const barFill = bar.fill ?? this.createConicGradient(bar.fills, bar.fillMode, segments);
+        const barFill = bar.fill ?? this.createConicGradient(bar.fills, bar.fillMode);
         const scaleFill =
             scale.fill ??
             (bar.enabled && scale.fills.length === 0 ? scale.defaultFill : undefined) ??
-            this.createConicGradient(scale.fills, scale.fillMode, segments);
+            this.createConicGradient(scale.fills, scale.fillMode);
 
         if (segments == null && cornersOnAllItems) {
+            const [segmentStart, segmentEnd] = domain;
+            const datum = { value, segmentStart, segmentEnd };
             const appliedCornerRadius = Math.min(cornerRadius, (outerRadius - innerRadius) / 2);
             const angleInset = appliedCornerRadius / ((innerRadius + outerRadius) / 2);
 
@@ -490,7 +474,7 @@ export class RadialGaugeSeries
                 nodeData.push({
                     series: this,
                     itemId: `value`,
-                    datum: value,
+                    datum,
                     type: NodeDataType.Node,
                     centerX,
                     centerY,
@@ -509,7 +493,7 @@ export class RadialGaugeSeries
             scaleData.push({
                 series: this,
                 itemId: `scale`,
-                datum: value,
+                datum,
                 type: NodeDataType.Node,
                 centerX,
                 centerY,
@@ -524,25 +508,24 @@ export class RadialGaugeSeries
                 fill: scaleFill,
             });
         } else {
-            if (segmentation.spacing == null || segments == null) {
-                segments = domain;
-            }
+            segments ??= domain;
 
             for (let i = 0; i < segments.length - 1; i += 1) {
-                const startValue = segments[i + 0];
-                const endValue = segments[i + 1];
+                const segmentStart = segments[i + 0];
+                const segmentEnd = segments[i + 1];
+                const datum = { value, segmentStart, segmentEnd };
 
                 const isStart = i === 0;
                 const isEnd = i === segments.length - 2;
 
-                const itemStartAngle = angleScale.convert(startValue);
-                const itemEndAngle = angleScale.convert(endValue);
+                const itemStartAngle = angleScale.convert(segmentStart);
+                const itemEndAngle = angleScale.convert(segmentEnd);
 
                 if (bar.enabled) {
                     nodeData.push({
                         series: this,
                         itemId: `value-${i}`,
-                        datum: value,
+                        datum,
                         type: NodeDataType.Node,
                         centerX,
                         centerY,
@@ -561,7 +544,7 @@ export class RadialGaugeSeries
                 scaleData.push({
                     series: this,
                     itemId: `scale-${i}`,
-                    datum: value,
+                    datum,
                     type: NodeDataType.Node,
                     centerX,
                     centerY,
@@ -634,7 +617,6 @@ export class RadialGaugeSeries
                 text,
                 size,
                 shape,
-                rotation,
                 fill,
                 fillOpacity,
                 stroke,
@@ -650,6 +632,7 @@ export class RadialGaugeSeries
 
             const targetRadius = this.getTargetRadius(target);
             const targetAngle = angleScale.convert(targetValue);
+            const targetRotation = toRadians(target.rotation + targetPlacementRotation[target.placement]);
 
             targetData.push({
                 series: this,
@@ -658,7 +641,7 @@ export class RadialGaugeSeries
                     x: targetRadius * Math.cos(targetAngle) + centerX,
                     y: targetRadius * Math.sin(targetAngle) + centerY,
                 },
-                datum: targetValue,
+                datum: { value: targetValue },
                 type: NodeDataType.Target,
                 value: targetValue,
                 text,
@@ -667,8 +650,8 @@ export class RadialGaugeSeries
                 shape,
                 radius: targetRadius,
                 angle: targetAngle,
+                rotation: targetRotation,
                 size,
-                rotation,
                 fill,
                 fillOpacity,
                 stroke,
@@ -798,7 +781,7 @@ export class RadialGaugeSeries
             sector.radialEdgeInset = (sectorSpacing + sector.strokeWidth) / 2;
             sector.concentricEdgeInset = sector.strokeWidth / 2;
 
-            if (animationDisabled) {
+            if (animationDisabled || sector.previousDatum == null) {
                 sector.setProperties(resetRadialGaugeSeriesResetSectorFunction(sector, datum));
             }
         });
@@ -926,7 +909,7 @@ export class RadialGaugeSeries
             target.lineDashOffset = highlightStyle?.lineDashOffset ?? lineDashOffset;
             target.translationX = centerX + radius * Math.cos(angle);
             target.translationY = centerY + radius * Math.sin(angle);
-            target.rotation = angle + Math.PI / 2 + rotation;
+            target.rotation = angle + rotation;
         });
     }
 
@@ -1004,7 +987,7 @@ export class RadialGaugeSeries
         if (angleAxis == null) return;
 
         const { labelSelection, radius, textAlign, verticalAlign } = this;
-        const { label, secondaryLabel, margin: padding, innerRadiusRatio } = this.properties;
+        const { label, secondaryLabel, spacing: padding, innerRadiusRatio } = this.properties;
 
         formatRadialGaugeLabels(
             this,
@@ -1130,15 +1113,23 @@ export class RadialGaugeSeries
         return [];
     }
 
-    private readonly nodeDatum: any = { series: this, datum: this };
+    private readonly nodeDatum: any = { series: this, datum: {} };
     override pickNode(
         point: _Scene.Point,
         intent: _ModuleSupport.SeriesNodePickIntent
     ): _ModuleSupport.PickResult | undefined {
         switch (intent) {
             case 'event':
-            case 'context-menu':
-                return undefined;
+            case 'context-menu': {
+                const sectorTarget = this.scaleGroup.pickNode(point.x, point.y);
+                return sectorTarget != null
+                    ? {
+                          pickMode: _ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH,
+                          match: sectorTarget.datum,
+                          distance: 0,
+                      }
+                    : undefined;
+            }
             case 'tooltip':
             case 'highlight':
             case 'highlight-tooltip': {
@@ -1149,7 +1140,11 @@ export class RadialGaugeSeries
                           match: highlightedTarget.datum,
                           distance: 0,
                       }
-                    : { pickMode: _ModuleSupport.SeriesNodePickMode.NEAREST_NODE, match: this.nodeDatum, distance: 0 };
+                    : {
+                          pickMode: _ModuleSupport.SeriesNodePickMode.NEAREST_NODE,
+                          match: this.nodeDatum,
+                          distance: 0,
+                      };
             }
         }
     }
@@ -1161,17 +1156,18 @@ export class RadialGaugeSeries
             return EMPTY_TOOLTIP_CONTENT;
         }
 
-        const datum = this.highlightDatum(nodeDatum);
+        const highlightDatum = this.highlightDatum(nodeDatum);
 
-        const value = datum?.value ?? properties.value;
-        const text = datum?.text;
+        const value = highlightDatum?.value ?? properties.value;
+        const text = highlightDatum?.text;
         const { tooltip } = properties;
 
         const title = text ?? '';
         const content = this.formatLabel(value);
 
-        const itemId = datum?.itemId;
-        const color = datum?.fill;
+        const itemId = highlightDatum?.itemId;
+        const datum = undefined;
+        const color = highlightDatum?.fill;
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: color },

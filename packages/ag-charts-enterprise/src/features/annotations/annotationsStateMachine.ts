@@ -18,7 +18,7 @@ import type {
 } from './settings-dialog/settingsDialog';
 import { guardCancelAndExit, guardSaveAndExit } from './states/textualStateUtils';
 import { hasLineStyle, hasLineText } from './utils/has';
-import { setColor, setFontSize, setLineStyle } from './utils/styles';
+import { setColor, setLineStyle } from './utils/styles';
 import { isChannelType, isTextType } from './utils/types';
 
 const { StateMachine } = _ModuleSupport;
@@ -38,6 +38,10 @@ type AnnotationEvent =
     | 'dragEnd'
     | 'keyDown'
     // Data events
+    | 'selectLast'
+    | 'copy'
+    | 'cut'
+    | 'paste'
     | 'cancel'
     | 'reset'
     | 'delete'
@@ -61,6 +65,8 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
     private hovered?: number;
     // eslint-disable-next-line @typescript-eslint/prefer-readonly
     private active?: number;
+    // eslint-disable-next-line @typescript-eslint/prefer-readonly
+    private copied?: AnnotationProperties;
 
     constructor(ctx: AnnotationsStateMachineContext) {
         // A `click` is preceeded by the `dragStart` and `dragEnd` events, since `dragStart` also selects the annotation we
@@ -177,11 +183,14 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
         const actionFontSize = (fontSize: number) => {
             const datum = ctx.datum(this.active!);
             const node = ctx.node(this.active!);
-            if (!datum || !node || !isTextType(datum)) return;
+            if (!datum || !node) return;
 
-            setFontSize(datum, datum.type, fontSize);
-
-            ctx.updateTextInputFontSize(fontSize);
+            if (isTextType(datum)) {
+                datum.fontSize = fontSize;
+                ctx.updateTextInputFontSize(fontSize);
+            } else if (hasLineText(datum)) {
+                datum.text.fontSize = fontSize;
+            }
 
             ctx.update();
         };
@@ -191,8 +200,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             const node = ctx.node(this.active!);
             if (!datum || !node || !hasLineStyle(datum)) return;
 
-            setLineStyle(datum, datum.type, lineStyle);
-
+            setLineStyle(datum, lineStyle);
             ctx.update();
         };
 
@@ -215,7 +223,12 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             }
         };
 
+        const actionCancel = () => {
+            ctx.updateTextInputBBox(undefined);
+        };
+
         const guardActive = () => this.active != null;
+        const guardCopied = () => this.copied != null;
         const guardActiveHasLineText = () => {
             if (this.active == null) return false;
             const datum = ctx.datum(this.active);
@@ -232,6 +245,34 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 hover: ({ offset }: { offset: _Util.Vec2 }) => {
                     this.hovered = ctx.hoverAtCoords(offset, this.active);
+                },
+
+                copy: {
+                    guard: guardActive,
+                    action: () => {
+                        this.copied = ctx.copy(this.active!);
+                    },
+                },
+
+                cut: {
+                    guard: guardActive,
+                    action: () => {
+                        this.copied = ctx.copy(this.active!);
+                        deleteDatum();
+                    },
+                },
+
+                paste: {
+                    guard: guardCopied,
+                    action: () => {
+                        ctx.paste(this.copied!);
+                    },
+                },
+
+                selectLast: () => {
+                    const previousActive = this.active;
+                    this.active = ctx.selectLast();
+                    ctx.select(this.active, previousActive);
                 },
 
                 click: [
@@ -298,6 +339,11 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                         const datum = getTypedDatum(ctx.datum(this.active!));
                         datum?.set(props);
                         ctx.update();
+                        ctx.recordAction(
+                            `Change ${datum?.type} ${Object.entries(props)
+                                .map(([key, value]) => `${key} to ${value}`)
+                                .join(', ')}`
+                        );
                     },
                 },
 
@@ -316,7 +362,6 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                         }
                         datum.text.set(props);
                         ctx.update();
-                        ctx.recordAction(`Update ${datum.type} text`);
                     },
                 },
 
@@ -327,8 +372,8 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 toolbarPressSettings: {
                     guard: guardActiveHasLineText,
-                    action: (lastFocus: HTMLElement | undefined) => {
-                        ctx.showAnnotationSettings(this.active!, lastFocus);
+                    action: (sourceEvent: Event) => {
+                        ctx.showAnnotationSettings(this.active!, sourceEvent);
                     },
                 },
 
@@ -398,6 +443,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     {
                         guard: guardCancelAndExit,
                         target: States.Idle,
+                        action: actionCancel,
                     },
                     {
                         guard: guardSaveAndExit,
@@ -416,12 +462,14 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     action: actionFontSize,
                 },
 
-                cancel: States.Idle,
+                cancel: {
+                    target: States.Idle,
+                    action: actionCancel,
+                },
 
                 onExit: () => {
                     ctx.stopInteracting();
                     ctx.hideTextInput();
-                    ctx.updateTextInputBBox(undefined);
 
                     const wasActive = this.active;
                     const prevActive = this.active;

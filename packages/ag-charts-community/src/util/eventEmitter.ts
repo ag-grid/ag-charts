@@ -40,4 +40,16 @@ export class EventEmitter<EventMap extends object> {
     emit<K extends keyof EventMap>(eventName: K, event: EventMap[K]) {
         this.events.get(eventName)?.forEach((callback) => callback(event));
     }
+
+    /**
+     * Clears all listeners for a specific event or all events if no event name is provided.
+     * @param eventName (Optional) The name of the event to clear listeners for. If not provided, all listeners for all events are cleared.
+     */
+    clear<K extends keyof EventMap>(eventName?: K) {
+        if (eventName) {
+            this.events.delete(eventName);
+        } else {
+            this.events.clear();
+        }
+    }
 }

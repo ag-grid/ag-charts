@@ -12,7 +12,15 @@ import { buildBounds } from '../../utils/position';
 import { ColorPicker } from '../color-picker/colorPicker';
 import { TextInput } from '../text-input/textInput';
 import { AnnotationDefaults } from './annotationDefaults';
-import type { AnnotationContext, AnnotationOptionsColorPickerType, Coords, Point } from './annotationTypes';
+import type {
+    AnnotationContext,
+    AnnotationOptionsColorPickerType,
+    ChannelAnnotationType,
+    Coords,
+    HasFontSizeAnnotationType,
+    LineAnnotationType,
+    Point,
+} from './annotationTypes';
 import {
     ANNOTATION_BUTTONS,
     ANNOTATION_BUTTON_GROUPS,
@@ -36,7 +44,6 @@ import { invertCoords } from './utils/values';
 const {
     BOOLEAN,
     ChartUpdateType,
-    Cursor,
     InteractionState,
     ObserveChanges,
     PropertiesArray,
@@ -211,6 +218,25 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 return hovered;
             },
 
+            copy: (index: number) => {
+                const node = this.annotations.at(index);
+                const datum = getTypedDatum(this.annotationData.at(index));
+                if (!node || !datum) {
+                    return;
+                }
+
+                return this.createAnnotationDatumCopy({ node, datum });
+            },
+
+            paste: (datum: AnnotationProperties) => {
+                this.createAnnotation(datum.type, datum, false);
+
+                this.postUpdateFns.push(() => {
+                    this.state.transitionAsync('selectLast');
+                    this.state.transitionAsync('copy');
+                });
+            },
+
             select: (index?: number, previous?: number) => {
                 const {
                     annotations,
@@ -268,18 +294,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             },
 
             create: (type: AnnotationType, datum: AnnotationProperties) => {
-                this.annotationData.push(datum);
-
-                const styles = this.ctx.annotationManager.getAnnotationTypeStyles(type);
-                if (styles) datum.set(styles);
-
-                this.defaults.applyDefaults(datum);
-                this.resetToolbarButtonStates();
-
-                this.removeAmbientKeyboardListener?.();
-                this.removeAmbientKeyboardListener = undefined;
-
-                this.update();
+                this.createAnnotation(type, datum);
             },
 
             delete: (index: number) => {
@@ -292,11 +307,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
             validatePoint: (point: Point) => {
                 const context = this.getAnnotationContext();
-                const valid = context ? validateDatumPoint(context, point) : true;
-                if (!valid) {
-                    this.ctx.cursorManager.updateCursor('annotations', Cursor.NotAllowed);
-                }
-                return valid;
+                return context ? validateDatumPoint(context, point) : true;
             },
 
             getAnnotationType: (index: number) => {
@@ -312,7 +323,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             },
 
             recordAction: (label: string) => {
-                this.recordActionAfterNextUpdate('annotations', label);
+                this.recordActionAfterNextUpdate(label);
             },
 
             update: () => {
@@ -354,6 +365,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                         width: datum.width,
                     },
                     text: datum.text,
+                    placeholderText: datum.placeholderText,
                     onChange: (_text, bbox) => {
                         this.state.transition('updateTextInputBBox', bbox);
                     },
@@ -386,22 +398,60 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 ctx.toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
             },
 
-            showAnnotationSettings: (active: number, lastFocus: HTMLElement | undefined) => {
+            showAnnotationSettings: (active: number, sourceEvent?: Event) => {
                 const datum = this.annotationData.at(active);
                 if (!isLineType(datum) && !isChannelType(datum)) return;
                 this.settingsDialog.showLineOrChannel(datum, {
                     ariaLabel: this.ctx.localeManager.t('ariaLabelAnnotationSettingsDialog'),
+                    sourceEvent,
                     onChangeLine: (props) => {
                         this.state.transition('lineProps', props);
                     },
-                    onChangeLineStyle: (props) => {
-                        this.state.transition('lineStyle', props);
-                    },
                     onChangeText: (props) => {
                         this.state.transition('lineText', props);
+                        if (props.alignment) this.defaults.setDefaultLineTextAlignment(datum.type, props.alignment);
+                        if (props.position) this.defaults.setDefaultLineTextPosition(datum.type, props.position);
+                        this.recordActionAfterNextUpdate(
+                            `Change ${datum.type} text ${Object.entries(props)
+                                .map(([key, value]) => `${key} to ${value}`)
+                                .join(', ')}`
+                        );
                     },
-                    onHide: () => {
-                        lastFocus?.focus();
+                    onChangeLineColor: (colorOpacity, color, opacity) => {
+                        this.setColorAndDefault(datum.type, 'line-color', colorOpacity, color, opacity);
+                        this.updateToolbarColorPickerFill('line-color', color, opacity);
+                    },
+                    onChangeHideLineColor: () => {
+                        this.recordActionAfterNextUpdate(
+                            `Change ${datum.type} line-color to ${datum.getDefaultColor('line-color')}`,
+                            ['annotations', 'defaults']
+                        );
+                        this.update();
+                    },
+                    onChangeLineStyleType: (lineStyleType: AgAnnotationLineStyleType) => {
+                        this.setLineStyleTypeAndDefault(datum.type, lineStyleType);
+                        this.updateToolbarLineStyleType(
+                            LINE_STYLE_TYPE_ITEMS.find((item) => item.value === lineStyleType) ??
+                                LINE_STYLE_TYPE_ITEMS[0]
+                        );
+                    },
+                    onChangeLineStyleWidth: (strokeWidth: number) => {
+                        this.setLineStyleWidthAndDefault(datum.type, strokeWidth);
+                        this.updateToolbarStrokeWidth({ strokeWidth, value: strokeWidth, label: String(strokeWidth) });
+                    },
+                    onChangeTextColor: (colorOpacity, color, opacity) => {
+                        this.setColorAndDefault(datum.type, 'text-color', colorOpacity, color, opacity);
+                        this.updateToolbarColorPickerFill('text-color', color, opacity);
+                    },
+                    onChangeHideTextColor: () => {
+                        this.recordActionAfterNextUpdate(
+                            `Change ${datum.type} text-color to ${datum.getDefaultColor('text-color')}`,
+                            ['annotations', 'defaults']
+                        );
+                        this.update();
+                    },
+                    onChangeTextFontSize: (fontSize: number) => {
+                        this.setFontSizeAndDefault(datum.type, fontSize);
                     },
                 });
             },
@@ -436,9 +486,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             seriesRegion.addListener('drag-start', this.onDragStart.bind(this), Default | ZoomDrag | AnnotationsState),
             seriesRegion.addListener('drag', this.onDrag.bind(this), Default | ZoomDrag | AnnotationsState),
             seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
-            ctx.keyNavManager.addListener('cancel', this.onCancel.bind(this)),
-            ctx.keyNavManager.addListener('delete', this.onDelete.bind(this)),
+            ctx.keyNavManager.addListener('cancel', this.onCancel.bind(this), Default | AnnotationsState),
+            ctx.keyNavManager.addListener('delete', this.onDelete.bind(this), Default | AnnotationsState),
             ctx.interactionManager.addListener('keydown', this.onKeyDown.bind(this), AnnotationsState),
+            ctx.interactionManager.addListener('keydown', this.onCopyPaste.bind(this), All),
             ...otherRegions.map((region) => region.addListener('click', this.onCancel.bind(this), All)),
 
             // Services
@@ -476,6 +527,53 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         );
     }
 
+    private createAnnotationDatumCopy({
+        node,
+        datum,
+    }: {
+        node: AnnotationScene;
+        datum: AnnotationProperties;
+    }): AnnotationProperties | undefined {
+        const { type } = datum;
+
+        if (!(type in annotationConfigs)) {
+            throw new Error(
+                `AG Charts - Cannot set property of unknown type [${type}], expected one of [${Object.keys(annotationConfigs)}], ignoring.`
+            );
+        }
+
+        const config = annotationConfigs[type];
+
+        const newDatum = new config.datum();
+        newDatum.set(datum.toJson());
+
+        const context = this.getAnnotationContext();
+        if (!context) {
+            return;
+        }
+
+        return config.copy(node, datum, newDatum, context);
+    }
+
+    private createAnnotation(type: AnnotationType, datum: AnnotationProperties, applyDefaults: boolean = true) {
+        this.annotationData.push(datum);
+
+        if (applyDefaults) {
+            const styles = this.ctx.annotationManager.getAnnotationTypeStyles(type);
+            if (styles) datum.set(styles);
+            this.defaults.applyDefaults(datum);
+        }
+
+        if ('setLocaleManager' in datum) datum.setLocaleManager(this.ctx.localeManager);
+
+        this.resetToolbarButtonStates();
+
+        this.removeAmbientKeyboardListener?.();
+        this.removeAmbientKeyboardListener = undefined;
+
+        this.update();
+    }
+
     private onRestoreAnnotations(event: { annotations?: any }) {
         if (!this.enabled) return;
 
@@ -497,7 +595,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (event.value === 'clear') {
             this.clear();
-            this.recordActionAfterNextUpdate('annotations', 'Clear all annotations');
+            this.recordActionAfterNextUpdate('Clear all annotations');
             return;
         }
 
@@ -569,8 +667,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     onChange: datum != null ? this.onColorPickerChange.bind(this, event.value, datum) : undefined,
                     onChangeHide: ((type: AnnotationOptionsColorPickerType) => {
                         this.recordActionAfterNextUpdate(
-                            'defaults',
-                            `Change ${node?.type} ${event.value} to ${datum?.getDefaultColor(type)}`
+                            `Change ${node?.type} ${event.value} to ${datum?.getDefaultColor(type)}`,
+                            ['annotations', 'defaults']
                         );
                     }).bind(this, event.value),
                 });
@@ -604,8 +702,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             }
 
             case AnnotationOptions.Settings: {
-                const { lastFocus } = this.ctx.focusIndicator.guessDevice(event.sourceEvent);
-                state.transition('toolbarPressSettings', lastFocus);
+                state.transition('toolbarPressSettings', event.sourceEvent);
                 break;
             }
         }
@@ -688,9 +785,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         color: string,
         opacity: number
     ) {
-        this.state.transition('color', { colorPickerType, colorOpacity, color, opacity });
-        this.defaults.setDefaultColor(datum.type, colorPickerType, colorOpacity, color, opacity);
-
+        this.setColorAndDefault(datum.type, colorPickerType, colorOpacity, color, opacity);
         this.updateToolbarColorPickerFill(colorPickerType, colorOpacity);
     }
 
@@ -749,15 +844,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onTextSizeMenuPress(item: MenuItem<number>, datum?: AnnotationProperties) {
-        if (!isTextType(datum)) return;
+        if (!hasFontSize(datum)) return;
 
         const fontSize = item.value;
-        this.defaults.setDefaultFontSize(datum.type, fontSize);
-        this.recordActionAfterNextUpdate('defaults', `Change ${datum?.type} font size to ${fontSize}`);
-
-        this.state.transition('fontSize', fontSize);
+        this.setFontSizeAndDefault(datum.type, fontSize);
         this.textSizeMenu.hide();
-
         this.updateToolbarFontSize(fontSize);
     }
 
@@ -765,13 +856,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (!hasLineStyle(datum)) return;
 
         const type = item.value;
-
-        this.defaults.setDefaultLineStyleType(datum.type, type);
-        this.recordActionAfterNextUpdate('defaults', `Change ${datum?.type} line style to ${type}`);
-
-        this.state.transition('lineStyle', { type });
+        this.setLineStyleTypeAndDefault(datum.type, type);
         this.lineStyleTypeMenu.hide();
-
         this.updateToolbarLineStyleType(item);
     }
 
@@ -781,13 +867,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         const strokeWidth = item.value;
-
-        this.defaults.setDefaultLineStyleWidth(datum.type, strokeWidth);
-        this.recordActionAfterNextUpdate('defaults', `Change ${datum?.type} stroke width to ${strokeWidth}`);
-
-        this.state.transition('lineStyle', { strokeWidth });
+        this.setLineStyleWidthAndDefault(datum.type, strokeWidth);
         this.lineStrokeWidthMenu.hide();
-
         this.updateToolbarStrokeWidth(item);
     }
 
@@ -891,19 +972,51 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         return { layout: axisLayout, context: axisCtx, bounds, button };
     }
 
-    private recordActionAfterNextUpdate(type: 'annotations' | 'defaults', label: string) {
+    private recordActionAfterNextUpdate(label: string, types: Array<'annotations' | 'defaults'> = ['annotations']) {
         const {
             defaults,
             ctx: { annotationManager, historyManager },
         } = this;
 
+        const originators = types.map((type) => (type === 'defaults' ? defaults : annotationManager));
         this.postUpdateFns.push(() => {
-            if (type === 'defaults') {
-                historyManager.record(label, annotationManager, defaults);
-            } else {
-                historyManager.record(label, annotationManager);
-            }
+            historyManager.record(label, ...originators);
         });
+    }
+
+    private setColorAndDefault(
+        datumType: AnnotationType,
+        colorPickerType: AnnotationOptionsColorPickerType,
+        colorOpacity: string,
+        color: string,
+        opacity: number
+    ) {
+        this.state.transition('color', { colorPickerType, colorOpacity, color, opacity });
+        this.defaults.setDefaultColor(datumType, colorPickerType, colorOpacity, color, opacity);
+    }
+
+    private setFontSizeAndDefault(datumType: HasFontSizeAnnotationType, fontSize: number) {
+        this.state.transition('fontSize', fontSize);
+        this.defaults.setDefaultFontSize(datumType, fontSize);
+        this.recordActionAfterNextUpdate(`Change ${datumType} font size to ${fontSize}`, ['annotations', 'defaults']);
+    }
+
+    private setLineStyleTypeAndDefault(
+        datumType: LineAnnotationType | ChannelAnnotationType,
+        styleType: AgAnnotationLineStyleType
+    ) {
+        this.state.transition('lineStyle', { type: styleType });
+        this.defaults.setDefaultLineStyleType(datumType, styleType);
+        this.recordActionAfterNextUpdate(`Change ${datumType} line style to ${styleType}`, ['annotations', 'defaults']);
+    }
+
+    private setLineStyleWidthAndDefault(datumType: LineAnnotationType | ChannelAnnotationType, strokeWidth: number) {
+        this.state.transition('lineStyle', { strokeWidth });
+        this.defaults.setDefaultLineStyleWidth(datumType, strokeWidth);
+        this.recordActionAfterNextUpdate(`Change ${datumType} stroke width to ${strokeWidth}`, [
+            'annotations',
+            'defaults',
+        ]);
     }
 
     private updateAnnotations() {
@@ -1086,6 +1199,21 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         state.transition('keyDown', { key, shiftKey, textInputValue });
     }
 
+    private onCopyPaste(event: _ModuleSupport.KeyInteractionEvent<'keydown'>) {
+        const { sourceEvent } = event;
+        const modifierKey = sourceEvent.ctrlKey || sourceEvent.metaKey;
+
+        if (modifierKey && sourceEvent.key === 'c') {
+            this.state.transition('copy');
+        } else if (modifierKey && sourceEvent.key === 'x') {
+            this.state.transition('cut');
+            this.recordActionAfterNextUpdate('Cut annotation');
+        } else if (modifierKey && sourceEvent.key === 'v') {
+            this.state.transition('paste');
+            this.recordActionAfterNextUpdate('Paste annotation');
+        }
+    }
+
     private beginAnnotationPlacement(annotation: AnnotationType) {
         this.cancel();
 
@@ -1188,7 +1316,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private hideOverlays() {
-        this.colorPicker.hide();
+        this.colorPicker.hide({ lastFocus: null });
         this.textSizeMenu.hide();
         this.lineStyleTypeMenu.hide();
         this.lineStrokeWidthMenu.hide();

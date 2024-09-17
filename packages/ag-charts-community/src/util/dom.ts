@@ -105,3 +105,8 @@ export function focusCursorAtEnd(element: HTMLElement) {
     selection?.removeAllRanges();
     selection?.addRange(range);
 }
+
+let _id = 0;
+export function createElementId(label?: string) {
+    return `${label ?? 'ag-charts-element'}-${_id++}`;
+}

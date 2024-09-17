@@ -24,6 +24,7 @@ const {
     PORT,
     PUBLIC_SITE_URL,
     PUBLIC_BASE_URL = DEFAULT_BASE_URL,
+    PUBLIC_GRID_VERSION,
     PUBLIC_HTTPS_SERVER = '1',
     PUBLIC_GALLERY_IMAGE_DPR_ENHANCEMENT,
     HTACCESS = 'false',
@@ -40,6 +41,7 @@ console.log(
             PORT,
             PUBLIC_SITE_URL,
             PUBLIC_BASE_URL,
+            PUBLIC_GRID_VERSION,
             OUTPUT_DIR,
             PUBLIC_GALLERY_IMAGE_DPR_ENHANCEMENT,
             HTACCESS,
@@ -98,4 +100,10 @@ export default defineConfig({
         },
     },
     integrations: [react(), markdoc(), sitemap(getSitemapConfig()), agHtaccessGen({ include: HTACCESS === 'true' })],
+    redirects: {
+        '/javascript/bullet-series': '/javascript/linear-gauge/#bullet-series',
+        '/angular/bullet-series': '/angular/linear-gauge/#bullet-series',
+        '/react/bullet-series': '/react/linear-gauge/#bullet-series',
+        '/vue/bullet-series': '/vue/linear-gauge/#bullet-series',
+    },
 });

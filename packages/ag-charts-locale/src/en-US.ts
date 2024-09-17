@@ -45,6 +45,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaLabelNavigatorMaximum: 'Maximum',
     // Screen reader text for ranges toolbar
     ariaLabelRangesToolbar: 'Ranges',
+    // Screen reader text for the settings dialog tab-bar
+    ariaLabelSettingsTabBar: 'Settings',
     // Screen reader text for zoom toolbar
     ariaLabelZoomToolbar: 'Zoom',
     // Screen reader text for the value of the navigator's range
@@ -63,10 +65,12 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     iconAltTextPositionBottom: 'Bottom',
     // Alt-text for the 'position-left' icon
     iconAltTextAlignLeft: 'Left',
-    // Alt-text for the 'position-center' icon
+    // Alt-text for the 'align-center' icon
     iconAltTextAlignCenter: 'Center',
     // Alt-text for the 'position-right' icon
     iconAltTextAlignRight: 'Right',
+    // Alt-text for the 'close' icon
+    iconAltTextClose: 'Close',
     // Default text for the 'loading data' overlay
     overlayLoadingData: 'Loading data...',
     // Default text for the 'no data' overlay
@@ -210,6 +214,14 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     dialogInputColorPicker: 'Color',
     // Text for the annotation dialog's color picker alt text
     dialogInputColorPickerAltText: 'Text Color',
+    // Text for the annotation dialog's extend channel start checkbox
+    dialogInputExtendChannelStart: 'Extend channel start',
+    // Text for the annotation dialog's extend channel end checkbox
+    dialogInputExtendChannelEnd: 'Extend channel end',
+    // Text for the annotation dialog's extend line start checkbox
+    dialogInputExtendLineStart: 'Extend line start',
+    // Text for the annotation dialog's extend line end checkbox
+    dialogInputExtendLineEnd: 'Extend line end',
     // Text for the annotation dialog's font size select box label
     dialogInputFontSize: 'Size',
     // Text for the annotation dialog's font size select box alt text
@@ -220,6 +232,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     dialogInputPosition: 'Position',
     // Text for the annotation dialog's stroke width label
     dialogInputStrokeWidth: 'Weight',
-    // Text for the annotation dialog's textarea placeholder
-    dialogInputTextareaPlaceholder: 'Add Text',
+    // Text for the annotation dialog's stroke width label
+    dialogInputStrokeWidthAltText: 'Line Weight',
+    // Text for text area input placeholders
+    inputTextareaPlaceholder: 'Add Text',
 };

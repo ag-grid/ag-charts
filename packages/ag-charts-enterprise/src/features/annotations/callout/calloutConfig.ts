@@ -10,6 +10,11 @@ export const calloutConfig: AnnotationTypeConfig<CalloutProperties, CalloutScene
     datum: CalloutProperties,
     scene: CalloutScene,
     isDatum: CalloutProperties.is,
+    copy: (node, datum, copiedDatum, context) => {
+        if (CalloutProperties.is(datum) && CalloutProperties.is(copiedDatum) && CalloutScene.is(node)) {
+            return node.copy(datum, copiedDatum, context);
+        }
+    },
     update: (node, datum, context) => {
         if (CalloutProperties.is(datum) && CalloutScene.is(node)) {
             node.update(datum, context);

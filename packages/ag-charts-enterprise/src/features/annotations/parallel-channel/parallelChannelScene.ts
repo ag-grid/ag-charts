@@ -157,19 +157,26 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         );
     }
 
-    override updateLines(datum: ParallelChannelProperties, top: LineCoords, bottom: LineCoords) {
+    override updateLines(
+        datum: ParallelChannelProperties,
+        top: LineCoords,
+        bottom: LineCoords,
+        context: AnnotationContext,
+        naturalTop: LineCoords,
+        naturalBottom: LineCoords
+    ) {
         const { topLine, middleLine, bottomLine } = this;
         const { lineDashOffset, stroke, strokeOpacity, strokeWidth } = datum;
 
         const lineDash = datum.getLineDash();
 
         const lineStyles = {
+            lineCap: datum.getLineCap(),
             lineDash,
             lineDashOffset,
             stroke,
             strokeOpacity,
             strokeWidth,
-            lineCap: datum.getLineCap(),
         };
 
         topLine.setProperties({
@@ -187,11 +194,19 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
             ...lineStyles,
         });
 
+        const middlePoints = this.extendLine(
+            {
+                x1: naturalTop.x1,
+                y1: naturalBottom.y1 + (naturalTop.y1 - naturalBottom.y1) / 2,
+                x2: naturalTop.x2,
+                y2: naturalBottom.y2 + (naturalTop.y2 - naturalBottom.y2) / 2,
+            },
+            datum,
+            context
+        );
+
         middleLine.setProperties({
-            x1: top.x1,
-            y1: bottom.y1 + (top.y1 - bottom.y1) / 2,
-            x2: top.x2,
-            y2: bottom.y2 + (top.y2 - bottom.y2) / 2,
+            ...middlePoints,
             lineDash: datum.middle.lineDash ?? lineDash,
             lineDashOffset: datum.middle.lineDashOffset ?? lineDashOffset,
             stroke: datum.middle.stroke ?? stroke,
@@ -230,4 +245,30 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
     }
 
     override updateText = LineWithTextScene.updateChannelText.bind(this, true);
+
+    protected override getBackgroundPoints(
+        datum: ParallelChannelProperties,
+        top: LineCoords,
+        bottom: LineCoords,
+        bounds: LineCoords
+    ) {
+        const isFlippedX = top.x1 > top.x2;
+        const isFlippedY = top.y1 > top.y2;
+        const outOfBoundsStart = top.x1 !== bottom.x1 && top.y1 !== bottom.y1;
+        const outOfBoundsEnd = top.x2 !== bottom.x2 && top.y2 !== bottom.y2;
+
+        const points = Vec2.from(top);
+
+        if (datum.extendEnd && outOfBoundsEnd) {
+            points.push(Vec2.from(isFlippedX ? bounds.x1 : bounds.x2, isFlippedY ? bounds.y1 : bounds.y2));
+        }
+
+        points.push(...Vec2.from(bottom).reverse());
+
+        if (datum.extendStart && outOfBoundsStart) {
+            points.push(Vec2.from(isFlippedX ? bounds.x2 : bounds.x1, isFlippedY ? bounds.y2 : bounds.y1));
+        }
+
+        return points;
+    }
 }

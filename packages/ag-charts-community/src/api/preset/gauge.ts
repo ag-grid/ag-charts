@@ -1,14 +1,15 @@
 import {
+    type AgBaseGaugePresetOptions,
     type AgCartesianAxisOptions,
     type AgCartesianAxisPosition,
     type AgGaugeChartOptions,
     type AgGaugeOptions,
     type AgLinearGaugeOptions,
-    type AgLinearGaugeSeriesOptions,
+    type AgLinearGaugePreset,
     type AgPolarAxisOptions,
     type AgRadialGaugeOptions,
-    type AgRadialGaugeSeriesOptions,
-    type AgRadialGaugeSeriesScale,
+    type AgRadialGaugePreset,
+    type AgRadialGaugeScale,
 } from 'ag-charts-types';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -39,7 +40,7 @@ function isLinearGauge(opts: AgGaugeOptions): opts is AgLinearGaugeOptions {
 }
 
 type ScaleStyle = Pick<
-    AgRadialGaugeSeriesScale,
+    AgRadialGaugeScale,
     | 'fills'
     | 'fillMode'
     | 'fill'
@@ -53,42 +54,43 @@ type ScaleStyle = Pick<
 
 function radialGaugeOptions(opts: AgRadialGaugeOptions) {
     const {
-        container,
         animation,
-        width,
+        background,
+        container,
+        contextMenu,
+        footnote,
         height,
-        minWidth,
+        listeners,
+        locale,
         minHeight,
+        minWidth,
+        padding,
+        subtitle,
         theme,
         title,
-        subtitle,
-        padding,
-        listeners,
+        width,
         type,
-        id,
-        data,
-        visible,
         cursor,
         nodeClickRange,
-        showInLegend,
         tooltip,
         value,
         scale = {},
         startAngle,
         endAngle,
-        itemStyler,
         highlightStyle,
         segmentation,
         bar,
         needle,
         targets,
+        outerRadius,
+        innerRadius,
         outerRadiusRatio,
         innerRadiusRatio,
         cornerRadius,
         cornerMode,
         label,
         secondaryLabel,
-        margin,
+        spacing,
         ...rest
     } = opts;
     assertEmpty(rest);
@@ -111,18 +113,22 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
     } = scale;
     assertEmpty(scaleRest);
 
-    const chartOpts = pickProps(opts, {
-        container,
+    const chartOpts = pickProps<AgBaseGaugePresetOptions>(opts, {
         animation,
-        width,
+        background,
+        container,
+        contextMenu,
+        footnote,
         height,
-        minWidth,
+        listeners,
+        locale,
         minHeight,
+        minWidth,
+        padding,
+        subtitle,
         theme,
         title,
-        subtitle,
-        padding,
-        listeners,
+        width,
     });
 
     const scaleOpts = pickProps<ScaleStyle>(scale, {
@@ -136,33 +142,30 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         lineDash: scaleLineDash,
         lineDashOffset: scaleLineDashOffset,
     });
-    const seriesOpts = pickProps<AgRadialGaugeSeriesOptions>(opts, {
+    const seriesOpts = pickProps<AgRadialGaugePreset>(opts, {
         startAngle: IGNORED_PROP,
         endAngle: IGNORED_PROP,
         needle: needle != null ? { enabled: true, ...needle } : IGNORED_PROP,
         scale: scaleOpts,
         type,
-        id,
-        data,
-        visible,
         cursor,
         nodeClickRange,
-        showInLegend,
         listeners,
         tooltip,
         value,
-        itemStyler,
         highlightStyle,
         segmentation,
         bar,
         targets,
+        outerRadius,
+        innerRadius,
         outerRadiusRatio,
         innerRadiusRatio,
         cornerRadius,
         cornerMode,
         label,
         secondaryLabel,
-        margin,
+        spacing,
         ...rest,
     });
 
@@ -194,42 +197,39 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
 
 function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
     const {
-        container,
         animation,
-        width,
+        background,
+        container,
+        contextMenu,
+        footnote,
         height,
-        minWidth,
+        listeners,
+        locale,
         minHeight,
+        minWidth,
+        padding,
+        subtitle,
         theme,
         title,
-        subtitle,
-        padding,
-        listeners,
+        width,
         type,
-        id,
-        data,
-        visible,
         cursor,
         nodeClickRange,
-        showInLegend,
         tooltip,
         value,
         scale = {},
-        direction,
+        direction = 'vertical',
         thickness,
-        itemStyler,
         highlightStyle,
-        segments,
+        segmentation,
         bar,
-        background,
         targets,
         target,
-        barSpacing,
         cornerRadius,
         cornerMode,
-        label,
-        secondaryLabel,
-        margin,
+        // label,
+        // secondaryLabel,
+        // spacing,
         ...rest
     } = opts;
     assertEmpty(rest);
@@ -252,18 +252,22 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
     } = scale;
     assertEmpty(scaleRest);
 
-    const chartOpts = pickProps(opts, {
-        container,
+    const chartOpts = pickProps<AgBaseGaugePresetOptions>(opts, {
         animation,
-        width,
+        background,
+        container,
+        contextMenu,
+        footnote,
         height,
-        minWidth,
+        listeners,
+        locale,
         minHeight,
+        minWidth,
+        padding,
+        subtitle,
         theme,
         title,
-        subtitle,
-        padding,
-        listeners,
+        width,
     });
     const scaleOpts = pickProps<ScaleStyle>(scale, {
         fills: scaleFills,
@@ -276,33 +280,26 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         lineDash: scaleLineDash,
         lineDashOffset: scaleLineDashOffset,
     });
-    const seriesOpts = pickProps<AgLinearGaugeSeriesOptions>(opts, {
+    const seriesOpts = pickProps<AgLinearGaugePreset>(opts, {
         scale: scaleOpts,
         type,
-        id,
-        data,
-        visible,
         cursor,
         nodeClickRange,
-        showInLegend,
         listeners,
         tooltip,
         value,
         direction,
         thickness,
-        itemStyler,
         highlightStyle,
-        segments,
+        segmentation,
         bar,
-        background,
         targets,
         target,
-        barSpacing,
         cornerRadius,
         cornerMode,
-        label,
-        secondaryLabel,
-        margin,
+        // label,
+        // secondaryLabel,
+        // spacing,
         ...rest,
     });
 
@@ -364,17 +361,38 @@ export function gauge(opts: AgGaugeOptions): AgGaugeChartOptions {
         return linearGaugeOptions(opts);
     }
 
-    const { container, animation, width, height, minWidth, minHeight, theme, title, seriesArea, listeners } = opts;
-    return pickProps(opts, {
-        container,
+    const {
         animation,
-        width,
+        background,
+        container,
+        contextMenu,
+        footnote,
         height,
-        minWidth,
+        listeners,
+        locale,
         minHeight,
+        minWidth,
+        padding,
+        subtitle,
         theme,
         title,
-        seriesArea,
+        width,
+    } = opts;
+    return pickProps<AgBaseGaugePresetOptions>(opts, {
+        animation,
+        background,
+        container,
+        contextMenu,
+        footnote,
+        height,
         listeners,
+        locale,
+        minHeight,
+        minWidth,
+        padding,
+        subtitle,
+        theme,
+        title,
+        width,
     });
 }

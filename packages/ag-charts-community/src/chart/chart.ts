@@ -43,9 +43,8 @@ import { axisRegistry } from './factory/axisRegistry';
 import { EXPECTED_ENTERPRISE_MODULES } from './factory/expectedEnterpriseModules';
 import { legendRegistry } from './factory/legendRegistry';
 import { seriesRegistry } from './factory/seriesRegistry';
-import { REGIONS } from './interaction/regions';
+import { REGIONS, SimpleRegionBBoxProvider } from './interaction/regions';
 import { SyncManager } from './interaction/syncManager';
-import { ZoomManager } from './interaction/zoomManager';
 import { Keyboard } from './keyboard';
 import { Layers } from './layers';
 import { LayoutElement } from './layout/layoutManager';
@@ -229,8 +228,6 @@ export abstract class Chart extends Observable {
     chartAnimationPhase: ChartAnimationPhase = 'initial';
 
     public readonly modulesManager = new ModulesManager();
-    // FIXME: zoomManager should be owned by ctx, but it can't because it is used by CartesianChart.onAxisChange before ctx is initialised
-    public readonly zoomManager = new ZoomManager();
     public readonly ctx: ChartContext;
     protected readonly seriesLayerManager: SeriesLayerManager;
     protected readonly seriesAreaManager: SeriesAreaManager;
@@ -309,7 +306,12 @@ export abstract class Chart extends Observable {
         this.container = container;
 
         const moduleContext = this.getModuleContext();
-        ctx.regionManager.addRegion(REGIONS.SERIES, this.seriesRoot, this.ctx.axisManager.axisGridGroup);
+        ctx.regionManager.addRegion(
+            REGIONS.SERIES,
+            this.seriesRoot,
+            new SimpleRegionBBoxProvider(this.seriesRoot, () => this.seriesRect ?? BBox.zero),
+            this.ctx.axisManager.axisGridGroup
+        );
         ctx.regionManager.addRegion(REGIONS.HORIZONTAL_AXES);
         ctx.regionManager.addRegion(REGIONS.VERTICAL_AXES);
 
@@ -320,6 +322,7 @@ export abstract class Chart extends Observable {
                 get performUpdateType() {
                     return thisChart.performUpdateType;
                 },
+                seriesRoot: this.seriesRoot,
             },
             ctx,
             this.getChartType(),
@@ -434,7 +437,6 @@ export abstract class Chart extends Observable {
         this.animationRect = undefined;
 
         this.ctx.destroy();
-        this.zoomManager.destroy();
         this.destroyed = true;
 
         Object.freeze(this);
@@ -541,6 +543,7 @@ export abstract class Chart extends Observable {
         let updateDeferred = false;
         switch (performUpdateType) {
             case ChartUpdateType.FULL:
+                this.ctx.updateService.dispatchPreDomUpdate();
                 this.updateDOM();
             // fallthrough
 
@@ -1191,7 +1194,7 @@ export abstract class Chart extends Observable {
 
     private applyInitialState(initialState?: AgInitialStateOptions) {
         const {
-            ctx: { annotationManager, historyManager, stateManager, zoomManager },
+            ctx: { annotationManager, historyManager, stateManager },
         } = this;
 
         if (initialState?.annotations != null) {
@@ -1203,9 +1206,9 @@ export abstract class Chart extends Observable {
             stateManager.setState(annotationManager, annotations);
         }
 
-        if (initialState?.zoom != null) {
-            stateManager.setState(zoomManager, initialState.zoom);
-        }
+        // if (initialState?.zoom != null) {
+        //     stateManager.setState(zoomManager, initialState.zoom);
+        // }
 
         if (initialState != null) {
             historyManager.clear();
@@ -1323,6 +1326,13 @@ export abstract class Chart extends Observable {
         return modulesChanged;
     }
 
+    private initSeriesDeclarationOrder(series: Series<any, any>[]) {
+        // Ensure declaration order is set, this is used for correct z-index behavior for combo charts.
+        for (let idx = 0; idx < series.length; idx++) {
+            series[idx]._declarationOrder = idx;
+        }
+    }
+
     private applySeries(
         chart: { series: Series<any, any>[] },
         optSeries: AgChartOptions['series'],
@@ -1336,6 +1346,7 @@ export abstract class Chart extends Observable {
         if (matchResult.status === 'no-overlap') {
             debug(`Chart.applySeries() - creating new series instances, status: ${matchResult.status}`, matchResult);
             chart.series = optSeries.map((opts) => this.createSeries(opts));
+            this.initSeriesDeclarationOrder(chart.series);
             return 'replaced';
         }
 
@@ -1379,10 +1390,7 @@ export abstract class Chart extends Observable {
                 }
             }
         }
-        // Ensure declaration order is set, this is used for correct z-index behavior for combo charts.
-        for (let idx = 0; idx < seriesInstances.length; idx++) {
-            seriesInstances[idx]._declarationOrder = idx;
-        }
+        this.initSeriesDeclarationOrder(seriesInstances);
 
         debug(`Chart.applySeries() - final series instances`, seriesInstances);
         chart.series = seriesInstances;

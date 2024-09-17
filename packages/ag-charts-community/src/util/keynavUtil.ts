@@ -1,3 +1,5 @@
+import { setAttribute } from './attributeUtil';
+
 function addRemovableEventListener<K extends keyof WindowEventMap>(
     destroyFns: (() => void)[],
     elem: Window,
@@ -166,6 +168,8 @@ class MenuCloserImp implements MenuCloser {
     }
 
     close() {
+        this.destroyFns.forEach((d) => d());
+        this.destroyFns.length = 0;
         this.closeCallback();
         this.finishClosing();
     }
@@ -173,6 +177,7 @@ class MenuCloserImp implements MenuCloser {
     finishClosing() {
         this.destroyFns.forEach((d) => d());
         this.destroyFns.length = 0;
+        setAttribute(this.lastFocus, 'aria-expanded', false);
         this.lastFocus?.focus();
         this.lastFocus = undefined;
     }
@@ -184,12 +189,28 @@ export function initMenuKeyNav(opts: {
     device: MenuDevice;
     menu: HTMLElement;
     buttons: HTMLElement[];
+    // CRT-481 Automatically close the context menu when change focus with TAB / Shift+TAB
+    autoCloseOnBlur?: boolean;
+    // AG-12849: Fixes a very specific case of avoiding series-node focus after clicking on a context menu item.
+    // We should revisit the approach for this in the future.
+    skipMouseFocusRestore?: boolean;
     closeCallback: () => void;
 }): MenuCloser {
-    const { device, orientation, menu, buttons, closeCallback } = opts;
+    const {
+        device,
+        orientation,
+        menu,
+        buttons,
+        closeCallback,
+        autoCloseOnBlur = false,
+        skipMouseFocusRestore = false,
+    } = opts;
     const { nextKey, prevKey } = PREV_NEXT_KEYS[orientation];
 
-    const menuCloser = new MenuCloserImp(menu, device.lastFocus, closeCallback);
+    setAttribute(device.lastFocus, 'aria-expanded', true);
+
+    const lastFocus = device.type === 'keyboard' || !skipMouseFocusRestore ? device.lastFocus : undefined;
+    const menuCloser = new MenuCloserImp(menu, lastFocus, closeCallback);
     const onEscape = () => menuCloser.close();
     const { destroyFns } = menuCloser;
 
@@ -206,6 +227,19 @@ export function initMenuKeyNav(opts: {
             buttons[0]?.focus();
         }
     });
+
+    if (autoCloseOnBlur) {
+        const handler = (ev: FocusEvent) => {
+            const buttonArray: (EventTarget | null)[] = buttons;
+            const isLeavingMenu = !buttonArray.includes(ev.relatedTarget);
+            if (isLeavingMenu) {
+                onEscape();
+            }
+        };
+        for (const button of buttons) {
+            addRemovableEventListener(destroyFns, button, 'blur', handler);
+        }
+    }
 
     if (device.type === 'keyboard') {
         buttons[0]?.focus();

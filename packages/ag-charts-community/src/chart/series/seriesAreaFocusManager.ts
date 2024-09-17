@@ -53,15 +53,20 @@ export class SeriesAreaFocusManager extends BaseManager {
         );
     }
 
-    public seriesChanged(series: Series<any, SeriesProperties<any>>[]) {
-        this.series = [...series].sort((a, b) => {
+    public seriesChanged(declaredSeries: Series<any, SeriesProperties<any>>[]) {
+        this.series = [...declaredSeries].sort((a, b) => {
             let fpA = a.properties.focusPriority ?? Infinity;
             let fpB = b.properties.focusPriority ?? Infinity;
             if (fpA === fpB) {
                 [fpA, fpB] = [a._declarationOrder, b._declarationOrder];
             }
             // Note: `Infinity-Infinity` results in `NaN`, so use `<` comparison instead of `-` subtraction.
-            return fpA < fpB ? -1 : 1;
+            if (fpA < fpB) {
+                return -1;
+            } else if (fpA > fpB) {
+                return 1;
+            }
+            return 0;
         });
         this.onBlur();
     }
@@ -121,7 +126,7 @@ export class SeriesAreaFocusManager extends BaseManager {
             this.handleSeriesFocus(seriesIndexDelta, datumIndexDelta);
         } else {
             this.ctx.focusIndicator.updateBounds(overlayFocus.rect);
-            this.ctx.ariaAnnouncementService.announceValue(overlayFocus.text);
+            this.ctx.ariaAnnouncementService.clear();
         }
     }
 

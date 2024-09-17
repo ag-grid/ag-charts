@@ -10,6 +10,11 @@ export const textConfig: AnnotationTypeConfig<TextProperties, TextScene> = {
     datum: TextProperties,
     scene: TextScene,
     isDatum: TextProperties.is,
+    copy: (node, datum, copiedDatum, context) => {
+        if (TextProperties.is(datum) && TextProperties.is(copiedDatum) && TextScene.is(node)) {
+            return node.copy(datum, copiedDatum, context);
+        }
+    },
     update: (node, datum, context) => {
         if (TextProperties.is(datum) && TextScene.is(node)) {
             node.update(datum, context);

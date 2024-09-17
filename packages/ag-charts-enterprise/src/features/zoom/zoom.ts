@@ -199,9 +199,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             this.updateAxisZoom.bind(this)
         );
 
-        const { Default, ZoomDrag, Animation } = _ModuleSupport.InteractionState;
+        const { Default, ZoomDrag, Animation, Annotations } = _ModuleSupport.InteractionState;
         const draggableState = Default | Animation | ZoomDrag;
         const clickableState = Default | Animation;
+        const wheelableState = draggableState | Annotations;
         const region = ctx.regionManager.getRegion(REGIONS.SERIES);
         const horizontalAxesRegion = ctx.regionManager.getRegion(REGIONS.HORIZONTAL_AXES);
         const verticalAxesRegion = ctx.regionManager.getRegion(REGIONS.VERTICAL_AXES);
@@ -224,7 +225,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             horizontalAxesRegion.addListener('drag-end', (event) => this.onDragEnd(event), draggableState),
             horizontalAxesRegion.addListener('leave', () => this.onAxisLeave(), clickableState),
             horizontalAxesRegion.addListener('hover', (event) => this.onAxisHover(event, ChartAxisDirection.X)),
-            region.addListener('wheel', (event) => this.onWheel(event), clickableState),
+            region.addListener('wheel', (event) => this.onWheel(event), wheelableState),
             ctx.gestureDetector.addListener('pinch-move', (event) => this.onPinchMove(event as PinchEvent)),
             ctx.toolbarManager.addListener('button-pressed', (event) =>
                 this.toolbar.onButtonPress(event, this.getModuleProperties())
@@ -239,12 +240,20 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         );
     }
 
+    override destroy(): void {
+        super.destroy();
+
+        this._destroyContextMenuActions?.();
+    }
+
+    private _destroyContextMenuActions: (() => void) | undefined = undefined;
     private onEnabledChange(enabled: boolean) {
         if (!this.contextMenu || !this.toolbar) return;
 
         const zoom = this.getZoom();
         const props = this.getModuleProperties({ enabled });
-        this.contextMenu.registerActions(enabled, zoom);
+        this._destroyContextMenuActions?.();
+        this._destroyContextMenuActions = this.contextMenu.registerActions(enabled, zoom);
         this.onZoomButtonsChange(enabled);
         this.toolbar.toggle(enabled, zoom, props);
     }
@@ -634,7 +643,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const {
             panner,
             seriesRect,
-            ctx: { tooltipManager, updateService, zoomManager },
+            ctx: { tooltipManager, zoomManager },
         } = this;
 
         if (!seriesRect) return;
@@ -646,7 +655,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
 
         tooltipManager.updateTooltip(TOOLTIP_ID);
-        updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
     private updateAxes(axes?: Array<_ModuleSupport.AxisLayout>) {

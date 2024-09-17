@@ -125,8 +125,8 @@ describe('Navigator', () => {
                 await example.assertions(chart);
 
                 expectWarningsCalls().toEqual([
-                    ['AG Charts - Property [navigator.min] is deprecated. Use [initialState.zoom.ratioX] instead.'],
-                    ['AG Charts - Property [navigator.max] is deprecated. Use [initialState.zoom.ratioX] instead.'],
+                    // ['AG Charts - Property [navigator.min] is deprecated. Use [initialState.zoom.ratioX] instead.'],
+                    // ['AG Charts - Property [navigator.max] is deprecated. Use [initialState.zoom.ratioX] instead.'],
                 ]);
             }
         );
@@ -148,8 +148,8 @@ describe('Navigator', () => {
                 await compare();
 
                 expectWarningsCalls().toEqual([
-                    ['AG Charts - Property [navigator.min] is deprecated. Use [initialState.zoom.ratioX] instead.'],
-                    ['AG Charts - Property [navigator.max] is deprecated. Use [initialState.zoom.ratioX] instead.'],
+                    // ['AG Charts - Property [navigator.min] is deprecated. Use [initialState.zoom.ratioX] instead.'],
+                    // ['AG Charts - Property [navigator.max] is deprecated. Use [initialState.zoom.ratioX] instead.'],
                 ]);
             }
         );

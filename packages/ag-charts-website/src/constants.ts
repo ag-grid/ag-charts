@@ -28,6 +28,8 @@ export const agChartsVueVersion = import.meta.env?.PUBLIC_PACKAGE_VERSION ?? 'un
 
 export const agLibraryVersion = agChartsVersion;
 
+export const agGridVersion = import.meta.env?.PUBLIC_GRID_VERSION ?? 'unknown';
+
 export const NPM_CDN = 'https://cdn.jsdelivr.net/npm';
 export const PUBLISHED_URLS = {
     'ag-charts-react': `${NPM_CDN}/ag-charts-react@${agChartsReactVersion}/`,
@@ -66,9 +68,10 @@ export const SITE_BASE_URL =
  */
 export const SITE_URL = import.meta.env?.SITE_URL || import.meta.env?.PUBLIC_SITE_URL;
 
+export const GRID_STAGING_SITE_URL = 'https://grid-staging.ag-grid.com';
 export const STAGING_SITE_URL = 'https://charts-staging.ag-grid.com';
 // NOTE: no `/charts` folder here, as it is just for comparing hostname
-export const PRODUCTION_SITE_URL = 'https://ag-grid.com';
+export const PRODUCTION_SITE_URLS = ['https://ag-grid.com', 'https://www.ag-grid.com'];
 export const USE_PUBLISHED_PACKAGES = ['1', 'true'].includes(import.meta.env?.PUBLIC_USE_PUBLISHED_PACKAGES);
 export const FAIL_ON_UNMATCHED_GLOBS = ['1', 'true'].includes(import.meta.env?.FAIL_ON_UNMATCHED_GLOBS) ?? true;
 /**

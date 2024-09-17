@@ -63,6 +63,17 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
         this.handle.toggleDragging(false);
     }
 
+    public copy(datum: Datum, copiedDatum: Datum, context: AnnotationContext) {
+        const coords = convertPoint(datum, context);
+
+        const point = invertCoords({ x: coords.x - 30, y: coords.y - 30 }, context);
+
+        copiedDatum.x = point.x;
+        copiedDatum.y = point.y;
+
+        return copiedDatum;
+    }
+
     override getAnchor(): _ModuleSupport.ToolbarAnchor {
         return this.anchor;
     }
@@ -92,10 +103,11 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
         this.handle.toggleLocked(datum.locked ?? false);
     }
 
-    protected updateAnchor(_datum: Datum, point: _Util.Vec2, context: AnnotationContext) {
+    protected updateAnchor(datum: Datum, point: _Util.Vec2, context: AnnotationContext) {
+        const coords = this.getHandleCoords(datum, point);
         return {
-            x: point.x + context.seriesRect.x,
-            y: point.y + context.seriesRect.y,
+            x: coords.x + context.seriesRect.x,
+            y: coords.y + context.seriesRect.y,
             position: this.anchor.position,
         };
     }

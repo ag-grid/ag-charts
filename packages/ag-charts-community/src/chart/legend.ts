@@ -259,18 +259,20 @@ export class Legend extends BaseProperties {
         );
         this.pagination.attachPagination(this.group);
 
-        ctx.contextMenuRegistry.registerDefaultAction({
-            id: ID_LEGEND_VISIBILITY,
-            type: 'legend',
-            label: 'contextMenuToggleSeriesVisibility',
-            action: (params) => this.contextToggleVisibility(params),
-        });
-        ctx.contextMenuRegistry.registerDefaultAction({
-            id: ID_LEGEND_OTHER_SERIES,
-            type: 'legend',
-            label: 'contextMenuToggleOtherSeries',
-            action: (params) => this.contextToggleOtherSeries(params),
-        });
+        this.destroyFns.push(
+            ctx.contextMenuRegistry.registerDefaultAction({
+                id: ID_LEGEND_VISIBILITY,
+                type: 'legend',
+                label: 'contextMenuToggleSeriesVisibility',
+                action: (params) => this.contextToggleVisibility(params),
+            }),
+            ctx.contextMenuRegistry.registerDefaultAction({
+                id: ID_LEGEND_OTHER_SERIES,
+                type: 'legend',
+                label: 'contextMenuToggleOtherSeries',
+                action: (params) => this.contextToggleOtherSeries(params),
+            })
+        );
 
         const { Default, Animation, ContextMenu } = InteractionState;
         const animationState = Default | Animation;
@@ -886,6 +888,7 @@ export class Legend extends BaseProperties {
             markerLabel.translationX = x;
             markerLabel.translationY = y;
         });
+        this.updateItemProxyButtons();
     }
 
     private updatePageNumber(pageNumber: number) {

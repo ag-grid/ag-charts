@@ -50,6 +50,7 @@ export interface MarkerSelectionDatum extends CartesianSeriesNodeDatum {
     readonly stroke?: string;
     readonly strokeWidth: number;
     readonly cumulativeValue: number;
+    readonly selected: boolean | undefined;
 }
 
 export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum {
@@ -72,6 +73,7 @@ export interface AreaSeriesNodeDataContext
     fillData: AreaFillPathDatum;
     strokeData: AreaStrokePathDatum;
     stackVisible: boolean;
+    crossFiltering: boolean;
 }
 
 interface SpanAnimation {
@@ -156,8 +158,18 @@ export function prepareAreaPathAnimation(newData: AreaSeriesNodeDataContext, old
         { scales: oldData.scales, data: oldData.fillData.phantomSpans, visible: oldData.visible }
     );
     const strokeSpans = pairUpSpans(
-        { scales: newData.scales, data: newData.strokeData.spans, visible: newData.visible },
-        { scales: oldData.scales, data: oldData.strokeData.spans, visible: oldData.visible }
+        {
+            scales: newData.scales,
+            data: newData.strokeData.spans,
+            visible: newData.visible,
+            zeroData: newData.fillData.phantomSpans,
+        },
+        {
+            scales: oldData.scales,
+            data: oldData.strokeData.spans,
+            visible: oldData.visible,
+            zeroData: oldData.fillData.phantomSpans,
+        }
     );
 
     const fadeMode = 'none';

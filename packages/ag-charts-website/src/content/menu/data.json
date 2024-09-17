@@ -431,15 +431,15 @@
                         "isEnterprise": true
                     },
                     {
-                        "title": "Bullet",
-                        "icon": "chartsBullet",
-                        "path": "bullet-series",
-                        "isEnterprise": true
-                    },
-                    {
                         "title": "Radial Gauge",
                         "icon": "chartsRadialGauge",
                         "path": "radial-gauge",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Linear Gauge",
+                        "icon": "chartsLinearGauge",
+                        "path": "linear-gauge",
                         "isEnterprise": true
                     }
                 ]
