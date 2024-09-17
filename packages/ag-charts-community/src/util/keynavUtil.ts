@@ -57,11 +57,12 @@ function containsPoint(container: Element, event: MouseEvent) {
     return false;
 }
 
+function hasNoModifiers(event: KeyboardEvent | MouseEvent): boolean {
+    return !(event.shiftKey || event.altKey || event.ctrlKey || event.metaKey);
+}
+
 function matchesKey(event: KeyboardEvent, key: string, ...morekeys: string[]): boolean {
-    return (
-        !(event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) &&
-        (event.key === key || morekeys.some((altkey) => event.key === altkey))
-    );
+    return hasNoModifiers(event) && (event.key === key || morekeys.some((altkey) => event.key === altkey));
 }
 
 function linkTwoButtons(destroyFns: (() => void)[], src: HTMLElement, dst: HTMLElement | undefined, key: string) {
@@ -263,7 +264,6 @@ export function isButtonClickEvent(event: KeyboardEvent | MouseEvent): boolean {
     if ('button' in event) {
         return event.button === 0;
     }
-    return (
-        !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey && ['Enter', 'Space'].includes(event.code)
-    );
+    // AG-12871 Use `key` for Enter to also include the Numpad Enter key.
+    return hasNoModifiers(event) && (event.code === 'Space' || event.key === 'Enter');
 }
