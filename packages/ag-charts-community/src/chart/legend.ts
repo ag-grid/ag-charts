@@ -352,10 +352,9 @@ export class Legend extends BaseProperties {
             .nodes()
             .map((markerLabel) => markerLabel.proxyButton?.button)
             .filter((button): button is HTMLButtonElement => !!button);
-        initRovingTabIndex({
-            orientation: this.getOrientation(),
-            buttons,
-        });
+        const orientation = this.getOrientation();
+        initRovingTabIndex({ orientation, buttons });
+        this.proxyLegendToolbar.ariaOrientation = orientation;
         this.proxyLegendToolbar.ariaHidden = (buttons.length === 0).toString();
     }
 
@@ -436,7 +435,9 @@ export class Legend extends BaseProperties {
         if (this.reverseOrder) {
             data.reverse();
         }
-        const proxyToolbarNeedsUpdate = this.itemSelection.nodes().length === 0;
+        const proxyToolbarNeedsUpdate =
+            this.itemSelection.nodes().length === 0 ||
+            this.proxyLegendToolbar.ariaOrientation !== this.getOrientation();
         this.itemSelection.update(data);
 
         if (proxyToolbarNeedsUpdate) {
