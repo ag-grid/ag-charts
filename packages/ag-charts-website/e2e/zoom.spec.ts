@@ -10,10 +10,11 @@ test.describe('zoom', () => {
 
         await gotoExample(page, url);
 
-        const { canvas, width } = await locateCanvas(page);
+        const { width } = await locateCanvas(page);
         let height = 0;
         const updateCanvasSize = async () => {
-            height = Number(await canvas.getAttribute('height'));
+            const { height: newHeight } = await locateCanvas(page);
+            height = newHeight;
         };
 
         await updateCanvasSize();

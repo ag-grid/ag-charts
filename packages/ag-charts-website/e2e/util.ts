@@ -119,9 +119,14 @@ export async function dragCanvas(
 }
 
 export async function locateCanvas(page: Page) {
-    const canvas = await page.locator('canvas');
-    const width = Number(await canvas.getAttribute('width'));
-    const height = Number(await canvas.getAttribute('height'));
+    const canvasElem = await page.locator('canvas');
+    const canvas = await page.locator(SELECTORS.canvas);
+    const width = Number(await canvasElem.getAttribute('width'));
+    const height = Number(await canvasElem.getAttribute('height'));
+
+    if ([width, height].some((n) => [-Infinity, 0, Infinity].includes(n) || isNaN(n))) {
+        throw new Error(`Invalid canvasDims: { width: ${width}, height: ${height} }`);
+    }
 
     return { canvas, width, height };
 }

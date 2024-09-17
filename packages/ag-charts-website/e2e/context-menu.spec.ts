@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrls } from './util';
+import { SELECTORS, gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrls } from './util';
 
 test.describe('context-menu', () => {
     setupIntrinsicAssertions();
@@ -12,9 +12,7 @@ test.describe('context-menu', () => {
             test('zoom and pan', async ({ page }) => {
                 await gotoExample(page, url);
 
-                const canvas = await page.locator(SELECTORS.canvas);
-                const width = Number(await canvas.getAttribute('width'));
-                const height = Number(await canvas.getAttribute('height'));
+                const { width, height } = await locateCanvas(page);
 
                 await page.click(SELECTORS.canvas, {
                     button: 'right',
