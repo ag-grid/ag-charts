@@ -1,8 +1,10 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 import type {
+    AgChartLabelFormatterParams,
     AgGaugeFillMode,
     AgLinearGaugeItemStylerParams,
     AgLinearGaugeLabelFormatterParams,
+    AgLinearGaugeLabelPlacement,
     AgLinearGaugeMarkerShape,
     AgLinearGaugeOptions,
     AgLinearGaugeStyle,
@@ -10,6 +12,7 @@ import type {
     AgLinearGaugeTooltipRendererParams,
     FontStyle,
     FontWeight,
+    Formatter,
     MarkerShape,
     Styler,
 } from 'ag-charts-types';
@@ -17,7 +20,7 @@ import type {
 import { CORNER_MODE, FILL_MODE, TARGET_MARKER_SHAPE } from '../gauge-util/properties';
 import { GaugeSegmentationProperties } from '../gauge-util/segmentation';
 import { GaugeStopProperties } from '../gauge-util/stops';
-import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
+import { AutoSizedLabel } from '../util/autoSizedLabel';
 
 const {
     BaseProperties,
@@ -41,6 +44,20 @@ const {
 const { Label } = _Scene;
 
 const TARGET_PLACEMENT = UNION(['before', 'after', 'middle'], 'a placement');
+const LABEL_PLACEMENT = UNION(
+    [
+        'inside-start',
+        'outside-start',
+        'inside-end',
+        'outside-end',
+        'inside',
+        'bar-inside',
+        'bar-inside-end',
+        'bar-outside-end',
+        'bar-end',
+    ],
+    'an placement'
+);
 const DIRECTION = UNION(['horizontal', 'vertical'], 'an orientation');
 
 export enum NodeDataType {
@@ -98,6 +115,25 @@ export interface LinearGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum {
     lineDashOffset: number;
     label: LinearGaugeTargetDatumLabel;
 }
+export type LinearGaugeLabelDatum = {
+    placement: AgLinearGaugeLabelPlacement;
+    avoidCollisions: boolean;
+    spacing: number;
+    text: string | undefined;
+    value: number;
+    fill: string | undefined;
+    fontStyle: FontStyle | undefined;
+    fontWeight: FontWeight | undefined;
+    fontSize: number;
+    minimumFontSize: number | undefined;
+    fontFamily: string;
+    lineHeight: number | undefined;
+    formatter:
+        | Formatter<
+              AgChartLabelFormatterParams<any> & _ModuleSupport.RequireOptional<AgLinearGaugeLabelFormatterParams>
+          >
+        | undefined;
+};
 
 class LinearGaugeDefaultTargetLabelProperties extends Label<never> {
     @Validate(NUMBER, { optional: true })
@@ -224,11 +260,12 @@ export class LinearGaugeScaleProperties extends BaseProperties {
 export class LinearGaugeLabelProperties extends AutoSizedLabel<AgLinearGaugeLabelFormatterParams> {
     @Validate(STRING, { optional: true })
     text?: string;
-}
 
-export class LinearGaugeSecondaryLabelProperties extends AutoSizedSecondaryLabel<AgLinearGaugeLabelFormatterParams> {
-    @Validate(STRING, { optional: true })
-    text?: string;
+    @Validate(LABEL_PLACEMENT)
+    placement: AgLinearGaugeLabelPlacement = 'inside';
+
+    @Validate(BOOLEAN)
+    avoidCollisions: boolean = true;
 }
 
 export class LinearGaugeSeriesProperties extends SeriesProperties<AgLinearGaugeOptions> {
@@ -273,9 +310,6 @@ export class LinearGaugeSeriesProperties extends SeriesProperties<AgLinearGaugeO
 
     @Validate(OBJECT)
     readonly label = new LinearGaugeLabelProperties();
-
-    @Validate(OBJECT)
-    readonly secondaryLabel = new LinearGaugeSecondaryLabelProperties();
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgLinearGaugeTooltipRendererParams>();

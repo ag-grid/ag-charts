@@ -4,23 +4,30 @@ import {
     type AgLinearGaugeTargetPlacement,
     type FontStyle,
     type FontWeight,
-    type TextAlign,
-    type VerticalAlign,
     _ModuleSupport,
+    _Scale,
     _Scene,
     _Util,
 } from 'ag-charts-community';
 
+import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
 import { LineMarker } from '../gauge-util/lineMarker';
 import { type GaugeStopProperties, getColorStops } from '../gauge-util/stops';
+import { getLineHeight } from '../util/labelFormatter';
 import {
+    type LinearGaugeLabelDatum,
+    LinearGaugeLabelProperties,
     type LinearGaugeNodeDatum,
     LinearGaugeSeriesProperties,
     type LinearGaugeTargetDatum,
     type LinearGaugeTargetDatumLabel,
     NodeDataType,
 } from './linearGaugeSeriesProperties';
-import { prepareLinearGaugeSeriesAnimationFunctions, resetLinearGaugeSeriesResetRectFunction } from './linearGaugeUtil';
+import {
+    formatLinearGaugeLabels,
+    prepareLinearGaugeSeriesAnimationFunctions,
+    resetLinearGaugeSeriesResetRectFunction,
+} from './linearGaugeUtil';
 
 const {
     fromToMotion,
@@ -29,9 +36,10 @@ const {
     StateMachine,
     createDatumId,
     ChartAxisDirection,
+    CachedTextMeasurerPool,
     EMPTY_TOOLTIP_CONTENT,
 } = _ModuleSupport;
-const { BBox, Group, PointerEvents, Selection, Rect, Text, LinearGradient, getMarker } = _Scene;
+const { BBox, Group, PointerEvents, Selection, Rect, Text, LinearGradient, getMarker, easing } = _Scene;
 const { toRadians } = _Util;
 
 interface TargetLabel {
@@ -75,8 +83,6 @@ export type GaugeAnimationEvent =
     | 'skip';
 export type GaugeAnimationData = { duration?: number };
 
-type LinearGaugeLabelDatum = never;
-
 interface LinearGaugeNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<LinearGaugeNodeDatum, LinearGaugeLabelDatum> {
     targetData: LinearGaugeTargetDatum[];
@@ -110,10 +116,6 @@ export class LinearGaugeSeries
 
     override properties = new LinearGaugeSeriesProperties();
 
-    // REMOVE ME
-    textAlign: TextAlign = 'center';
-    verticalAlign: VerticalAlign = 'middle';
-
     public originX = 0;
     public originY = 0;
     get horizontal() {
@@ -122,12 +124,46 @@ export class LinearGaugeSeries
     get thickness() {
         return this.properties.thickness;
     }
+    computeInset(direction: _ModuleSupport.ChartAxisDirection, scale: _Scale.Scale<any, any>): number {
+        const { label } = this.properties;
+        let factor: 1 | -1;
+        switch (label.placement) {
+            case 'outside-start':
+                factor = 1;
+                break;
+            case 'outside-end':
+                factor = -1;
+                break;
+            default:
+                return 0;
+        }
+
+        let size: number | undefined;
+        if (direction === ChartAxisDirection.Y) {
+            size = getLineHeight(label, label.fontSize);
+        } else if (label.text != null) {
+            const font = label.getFont();
+            const { width } = CachedTextMeasurerPool.measureText(label.text, { font });
+            size = width;
+        } else {
+            const font = label.getFont();
+            size = scale.ticks?.()?.reduce((accum, tick) => {
+                const text = getLabelText(this, this.labelDatum(label, tick));
+                if (text == null) return accum;
+
+                const { width } = CachedTextMeasurerPool.measureText(text, { font });
+                return Math.max(accum, width);
+            }, 0);
+        }
+
+        return factor * (label.spacing + (size ?? 0));
+    }
 
     private readonly scaleGroup = this.contentGroup.appendChild(new Group({ name: 'scaleGroup' }));
     private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
     private readonly itemTargetGroup = this.contentGroup.appendChild(new Group({ name: 'itemTargetGroup' }));
     private readonly itemTargetLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemTargetLabelGroup' }));
-    // private readonly itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
+    private readonly itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
     private readonly highlightTargetGroup = this.highlightGroup.appendChild(
         new Group({ name: 'itemTargetLabelGroup' })
     );
@@ -147,10 +183,10 @@ export class LinearGaugeSeries
         this.itemTargetLabelGroup,
         Text
     );
-    // private labelSelection: _Scene.Selection<_Scene.Text, LinearGaugeLabelDatum> = Selection.select(
-    //     this.itemLabelGroup,
-    //     Text
-    // );
+    private labelSelection: _Scene.Selection<_Scene.Text, LinearGaugeLabelDatum> = Selection.select(
+        this.itemLabelGroup,
+        Text
+    );
     private highlightTargetSelection: _Scene.Selection<_Scene.Marker, LinearGaugeTargetDatum> = Selection.select(
         this.highlightTargetGroup,
         (datum) => this.markerFactory(datum)
@@ -206,7 +242,7 @@ export class LinearGaugeSeries
 
         this.itemGroup.pointerEvents = PointerEvents.None;
         this.itemTargetLabelGroup.pointerEvents = PointerEvents.None;
-        // this.itemLabelGroup.pointerEvents = PointerEvents.None;
+        this.itemLabelGroup.pointerEvents = PointerEvents.None;
     }
 
     override get hasData(): boolean {
@@ -233,21 +269,16 @@ export class LinearGaugeSeries
     }
 
     private formatLabel(value: number) {
-        const angleAxis = this.axes[ChartAxisDirection.X];
-        if (angleAxis == null) return '';
-
-        const [min, max] = angleAxis.scale.domain;
-        const minLog10 = min !== 0 ? Math.ceil(Math.log10(Math.abs(min))) : 0;
-        const maxLog10 = max !== 0 ? Math.ceil(Math.log10(Math.abs(max))) : 0;
-        const dp = Math.max(2 - Math.max(minLog10, maxLog10), 0);
-        return value.toFixed(dp);
+        const { axes, horizontal } = this;
+        const mainAxis = horizontal ? axes[ChartAxisDirection.X] : axes[ChartAxisDirection.Y];
+        return formatLabel(value, mainAxis);
     }
 
     private createLinearGradient(fills: GaugeStopProperties[], fillMode: AgGaugeFillMode) {
-        const { properties, originX, originY, horizontal } = this;
+        const { properties, originX, originY, horizontal, axes } = this;
         const { thickness, defaultColorRange } = properties;
 
-        const mainAxis = horizontal ? this.axes[ChartAxisDirection.X] : this.axes[ChartAxisDirection.Y];
+        const mainAxis = horizontal ? axes[ChartAxisDirection.X] : axes[ChartAxisDirection.Y];
         const { domain, range } = mainAxis!.scale;
 
         const length = range[1] - range[0];
@@ -399,22 +430,44 @@ export class LinearGaugeSeries
         };
     }
 
+    labelDatum(label: LinearGaugeLabelProperties, value: number): LinearGaugeLabelDatum {
+        const {
+            placement,
+            avoidCollisions,
+            spacing,
+            text,
+            color: fill,
+            fontSize,
+            minimumFontSize,
+            fontStyle,
+            fontWeight,
+            fontFamily,
+            lineHeight,
+            formatter = (params) => this.formatLabel(params.value),
+        } = label;
+        return {
+            placement,
+            avoidCollisions,
+            spacing,
+            text,
+            value,
+            fill,
+            fontSize,
+            minimumFontSize,
+            fontStyle,
+            fontWeight,
+            fontFamily,
+            lineHeight,
+            formatter,
+        };
+    }
+
     override async createNodeData() {
         const { id: seriesId, properties, originX, originY, horizontal } = this;
 
         if (!properties.isValid()) return;
 
-        const {
-            value,
-            segmentation,
-            thickness,
-            cornerRadius,
-            cornerMode,
-            bar,
-            scale,
-            // label,
-            // secondaryLabel,
-        } = properties;
+        const { value, segmentation, thickness, cornerRadius, cornerMode, bar, scale, label } = properties;
         const targets = this.getTargets();
 
         const xAxis = this.axes[ChartAxisDirection.X];
@@ -608,41 +661,9 @@ export class LinearGaugeSeries
             }
         }
 
-        // if (label.enabled) {
-        //     const { color: fill, fontSize, fontStyle, fontWeight, fontFamily, lineHeight, formatter } = label;
-        //     labelData.push({
-        //         label: LabelType.Primary,
-        //         centerX,
-        //         centerY,
-        //         text: label.text,
-        //         value,
-        //         fill,
-        //         fontSize,
-        //         fontStyle,
-        //         fontWeight,
-        //         fontFamily,
-        //         lineHeight,
-        //         formatter,
-        //     });
-        // }
-
-        // if (secondaryLabel.enabled) {
-        //     const { color: fill, fontSize, fontStyle, fontWeight, fontFamily, lineHeight, formatter } = secondaryLabel;
-        //     labelData.push({
-        //         label: LabelType.Secondary,
-        //         centerX,
-        //         centerY,
-        //         text: secondaryLabel.text,
-        //         value,
-        //         fill,
-        //         fontSize,
-        //         fontStyle,
-        //         fontWeight,
-        //         fontFamily,
-        //         lineHeight,
-        //         formatter,
-        //     });
-        // }
+        if (label.enabled) {
+            labelData.push(this.labelDatum(label, value));
+        }
 
         const targetPlacementRotation = horizontal
             ? horizontalTargetPlacementRotation
@@ -715,7 +736,7 @@ export class LinearGaugeSeries
     override async update({ seriesRect }: { seriesRect?: _Scene.BBox }): Promise<void> {
         const {
             datumSelection,
-            // labelSelection,
+            labelSelection,
             targetSelection,
             targetLabelSelection,
             scaleSelection,
@@ -729,7 +750,7 @@ export class LinearGaugeSeries
         this.contentGroup.opacity = this.getOpacity();
 
         const nodeData = this.contextNodeData?.nodeData ?? [];
-        // const labelData = this.contextNodeData?.labelData ?? [];
+        const labelData = this.contextNodeData?.labelData ?? [];
         const targetData = this.contextNodeData?.targetData ?? [];
         const scaleData = this.contextNodeData?.scaleData ?? [];
 
@@ -747,8 +768,8 @@ export class LinearGaugeSeries
         this.datumSelection = await this.updateDatumSelection({ nodeData, datumSelection });
         await this.updateDatumNodes({ datumSelection });
 
-        // this.labelSelection = await this.updateLabelSelection({ labelData, labelSelection });
-        // await this.updateLabelNodes({ labelSelection });
+        this.labelSelection = await this.updateLabelSelection({ labelData, labelSelection });
+        await this.updateLabelNodes({ labelSelection });
 
         this.highlightTargetSelection = await this.updateTargetSelection({
             targetData: highlightTargetDatum != null ? [highlightTargetDatum] : [],
@@ -909,63 +930,78 @@ export class LinearGaugeSeries
         });
     }
 
-    // private async updateLabelSelection(opts: {
-    //     labelData: LinearGaugeLabelDatum[];
-    //     labelSelection: _Scene.Selection<_Scene.Text, LinearGaugeLabelDatum>;
-    // }) {
-    //     return opts.labelSelection.update(opts.labelData, undefined, (datum) => datum.label);
-    // }
+    private async updateLabelSelection(opts: {
+        labelData: LinearGaugeLabelDatum[];
+        labelSelection: _Scene.Selection<_Scene.Text, LinearGaugeLabelDatum>;
+    }) {
+        return opts.labelSelection.update(opts.labelData, undefined, (_datum) => 'primary');
+    }
 
-    // private async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, LinearGaugeLabelDatum> }) {
-    //     const { labelSelection } = opts;
-    //     const animationDisabled = this.ctx.animationManager.isSkipped();
+    private async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, LinearGaugeLabelDatum> }) {
+        const { labelSelection } = opts;
+        const animationDisabled = this.ctx.animationManager.isSkipped();
 
-    //     labelSelection.each((label, datum) => {
-    //         label.fill = datum.fill;
-    //         label.fontStyle = datum.fontStyle;
-    //         label.fontWeight = datum.fontWeight;
-    //         label.fontFamily = datum.fontFamily;
-    //     });
+        labelSelection.each((label, datum) => {
+            label.fill = datum.fill;
+            label.fontStyle = datum.fontStyle;
+            label.fontWeight = datum.fontWeight;
+            label.fontFamily = datum.fontFamily;
+        });
 
-    //     if (animationDisabled || this.labelsHaveExplicitText()) {
-    //         this.formatLabelText();
-    //     }
-    // }
+        if (animationDisabled || this.labelsHaveExplicitText()) {
+            this.formatLabelText();
+        }
+    }
 
-    // labelsHaveExplicitText() {
-    //     for (const { datum } of this.labelSelection) {
-    //         if (datum.text == null) {
-    //             return false;
-    //         }
-    //     }
+    labelsHaveExplicitText() {
+        for (const { datum } of this.labelSelection) {
+            if (datum.text == null) {
+                return false;
+            }
+        }
 
-    //     return true;
-    // }
+        return true;
+    }
 
-    // formatLabelText(datum?: { label: number; secondaryLabel: number }) {
-    //     const angleAxis = this.axes[ChartAxisDirection.X];
-    //     if (angleAxis == null) return;
+    formatLabelText(datum?: { label: number }) {
+        const { labelSelection, horizontal, axes } = this;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
+        if (xAxis == null || yAxis == null) return;
+        const [x0, x1] = xAxis.range;
+        const [y0, y1] = yAxis.range;
 
-    //     const { labelSelection, textAlign, verticalAlign } = this;
-    //     const { label, secondaryLabel, margin: padding } = this.properties;
+        const x = this.originX + Math.min(x0, x1);
+        const y = this.originY + Math.min(y0, y1);
+        const width = Math.abs(x1 - x0);
+        const height = Math.abs(y1 - y0);
 
-    //     formatLinearGaugeLabels(
-    //         this,
-    //         labelSelection,
-    //         label,
-    //         secondaryLabel,
-    //         { padding, textAlign, verticalAlign },
-    //         0,
-    //         (value) => this.formatLabel(value),
-    //         datum
-    //     );
-    // }
+        const value = datum?.label ?? this.properties.value;
+
+        let barBBox: _Scene.BBox;
+        if (horizontal) {
+            const xValue = xAxis.scale.convert(value);
+            barBBox = new BBox(x, y, xValue - x, height);
+        } else {
+            const yValue = yAxis.scale.convert(value);
+            barBBox = new BBox(x, yValue, width, height - yValue);
+        }
+
+        const bboxes = {
+            scale: new BBox(x, y, width, height),
+            bar: barBBox,
+        };
+
+        const { margin: padding } = this.properties;
+
+        formatLinearGaugeLabels(this, labelSelection, { padding, horizontal }, bboxes, datum);
+    }
 
     protected resetAllAnimation() {
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
         resetMotion([this.datumSelection], resetLinearGaugeSeriesResetRectFunction);
-        // this.formatLabelText();
+        this.formatLabelText();
     }
 
     resetAnimation(phase: _ModuleSupport.ChartAnimationPhase) {
@@ -976,43 +1012,37 @@ export class LinearGaugeSeries
         }
     }
 
-    // private animateLabelText(params: { from?: number; phase?: _ModuleSupport.AnimationPhase } = {}) {
-    //     const { animationManager } = this.ctx;
+    private animateLabelText(params: { from?: number; phase?: _ModuleSupport.AnimationPhase } = {}) {
+        const { animationManager } = this.ctx;
 
-    //     let labelFrom = 0;
-    //     let labelTo = 0;
-    //     let secondaryLabelFrom = 0;
-    //     let secondaryLabelTo = 0;
-    //     this.labelSelection.each((label, datum) => {
-    //         // Reset animation
-    //         label.opacity = 1;
+        let labelFrom = 0;
+        let labelTo = 0;
+        this.labelSelection.each((label, datum) => {
+            // Reset animation
+            label.opacity = 1;
 
-    //         if (datum.label === LabelType.Primary) {
-    //             labelFrom = label.previousDatum?.value ?? params.from ?? datum.value;
-    //             labelTo = datum.value;
-    //         } else if (datum.label === LabelType.Secondary) {
-    //             secondaryLabelFrom = label.previousDatum?.value ?? params.from ?? datum.value;
-    //             secondaryLabelTo = datum.value;
-    //         }
-    //     });
+            labelFrom = label.previousDatum?.value ?? params.from ?? datum.value;
+            labelTo = datum.value;
+        });
 
-    //     if (this.labelsHaveExplicitText()) {
-    //         // Ignore
-    //     } else if (labelFrom === labelTo && secondaryLabelFrom === secondaryLabelTo) {
-    //         this.formatLabelText({ label: labelTo, secondaryLabel: secondaryLabelTo });
-    //     } else if (!this.labelsHaveExplicitText()) {
-    //         const animationId = `${this.id}_labels`;
+        if (this.labelsHaveExplicitText()) {
+            // Ignore
+        } else if (labelFrom === labelTo) {
+            this.formatLabelText({ label: labelTo });
+        } else {
+            const animationId = `${this.id}_labels`;
 
-    //         animationManager.animate({
-    //             id: animationId,
-    //             groupId: 'label',
-    //             from: { label: labelFrom, secondaryLabel: secondaryLabelFrom },
-    //             to: { label: labelTo, secondaryLabel: secondaryLabelTo },
-    //             phase: params.phase ?? 'update',
-    //             onUpdate: (datum) => this.formatLabelText(datum),
-    //         });
-    //     }
-    // }
+            animationManager.animate({
+                id: animationId,
+                groupId: 'label',
+                from: { label: labelFrom },
+                to: { label: labelTo },
+                phase: params.phase ?? 'update',
+                ease: easing.easeOut,
+                onUpdate: (datum) => this.formatLabelText(datum),
+            });
+        }
+    }
 
     animateEmptyUpdateReady() {
         const { animationManager } = this.ctx;
@@ -1020,16 +1050,9 @@ export class LinearGaugeSeries
         const { node } = prepareLinearGaugeSeriesAnimationFunctions(true, this.horizontal);
         fromToMotion(this.id, 'node', animationManager, [this.datumSelection], node, (_sector, datum) => datum.itemId!);
 
-        // fromToMotion(
-        //     this.id,
-        //     'label',
-        //     animationManager,
-        //     [this.labelSelection],
-        //     fadeInFns,
-        //     (_label, datum) => datum.label
-        // );
+        fromToMotion(this.id, 'label', animationManager, [this.labelSelection], fadeInFns, () => 'primary');
 
-        // this.animateLabelText({ from: 0, phase: 'initial' });
+        this.animateLabelText({ from: 0, phase: 'initial' });
     }
 
     animateWaitingUpdateReady() {
@@ -1038,7 +1061,7 @@ export class LinearGaugeSeries
         const { node } = prepareLinearGaugeSeriesAnimationFunctions(false, this.horizontal);
         fromToMotion(this.id, 'node', animationManager, [this.datumSelection], node, (_sector, datum) => datum.itemId!);
 
-        // this.animateLabelText();
+        this.animateLabelText();
     }
 
     protected animateReadyResize() {

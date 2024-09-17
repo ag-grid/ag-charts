@@ -11,7 +11,7 @@ import {
     _Util,
 } from 'ag-charts-community';
 
-import { formatLabel } from '../gauge-util/label';
+import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
 import { LineMarker } from '../gauge-util/lineMarker';
 import { type GaugeStopProperties, getColorStops } from '../gauge-util/stops';
 import { RadialGaugeNeedle } from './radialGaugeNeedle';
@@ -25,9 +25,7 @@ import {
     type RadialGaugeTargetDatumLabel,
 } from './radialGaugeSeriesProperties';
 import {
-    fadeInFns,
     formatRadialGaugeLabels,
-    getLabelText,
     prepareRadialGaugeSeriesAnimationFunctions,
     resetRadialGaugeSeriesResetNeedleFunction,
     resetRadialGaugeSeriesResetSectorFunction,
@@ -562,15 +560,26 @@ export class RadialGaugeSeries
         }
 
         if (!needle.enabled && label.enabled) {
-            const { color: fill, fontSize, fontStyle, fontWeight, fontFamily, lineHeight, formatter } = label;
+            const {
+                text,
+                color: fill,
+                fontSize,
+                minimumFontSize,
+                fontStyle,
+                fontWeight,
+                fontFamily,
+                lineHeight,
+                formatter = (params) => this.formatLabel(params.value),
+            } = label;
             labelData.push({
                 label: LabelType.Primary,
                 centerX,
                 centerY,
-                text: label.text,
+                text,
                 value,
                 fill,
                 fontSize,
+                minimumFontSize,
                 fontStyle,
                 fontWeight,
                 fontFamily,
@@ -580,15 +589,26 @@ export class RadialGaugeSeries
         }
 
         if (!needle.enabled && secondaryLabel.enabled) {
-            const { color: fill, fontSize, fontStyle, fontWeight, fontFamily, lineHeight, formatter } = secondaryLabel;
+            const {
+                text,
+                color: fill,
+                fontSize,
+                minimumFontSize,
+                fontStyle,
+                fontWeight,
+                fontFamily,
+                lineHeight,
+                formatter,
+            } = secondaryLabel;
             labelData.push({
                 label: LabelType.Secondary,
                 centerX,
                 centerY,
-                text: secondaryLabel.text,
+                text,
                 value,
                 fill,
                 fontSize,
+                minimumFontSize,
                 fontStyle,
                 fontWeight,
                 fontFamily,
@@ -987,16 +1007,13 @@ export class RadialGaugeSeries
         if (angleAxis == null) return;
 
         const { labelSelection, radius, textAlign, verticalAlign } = this;
-        const { label, secondaryLabel, spacing: padding, innerRadiusRatio } = this.properties;
+        const { spacing: padding, innerRadiusRatio } = this.properties;
 
         formatRadialGaugeLabels(
             this,
             labelSelection,
-            label,
-            secondaryLabel,
             { padding, textAlign, verticalAlign },
             radius * innerRadiusRatio,
-            (value) => this.formatLabel(value),
             datum
         );
     }
@@ -1043,7 +1060,7 @@ export class RadialGaugeSeries
             this.formatLabelText();
         } else if (labelFrom === labelTo && secondaryLabelFrom === secondaryLabelTo) {
             this.formatLabelText({ label: labelTo, secondaryLabel: secondaryLabelTo });
-        } else if (!this.labelsHaveExplicitText()) {
+        } else {
             const animationId = `${this.id}_labels`;
 
             animationManager.animate({
@@ -1200,21 +1217,18 @@ export class RadialGaugeSeries
     }
 
     getCaptionText(): string {
-        const { value, label, secondaryLabel } = this.properties;
+        const { value } = this.properties;
 
         const description: string[] = [];
 
         description.push(this.formatLabel(value));
 
-        const labelText = getLabelText(this, label, value);
-        if (labelText != null) {
-            description.push(labelText);
-        }
-
-        const secondaryLabelText = getLabelText(this, secondaryLabel, value);
-        if (secondaryLabelText != null) {
-            description.push(secondaryLabelText);
-        }
+        this.labelSelection.each((_label, datum) => {
+            const text = getLabelText(this, datum);
+            if (text != null) {
+                description.push(text);
+            }
+        });
 
         return description.join('. ');
     }

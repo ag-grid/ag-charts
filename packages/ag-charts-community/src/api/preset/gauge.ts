@@ -227,9 +227,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         target,
         cornerRadius,
         cornerMode,
-        // label,
-        // secondaryLabel,
-        // spacing,
+        label,
         ...rest
     } = opts;
     assertEmpty(rest);
@@ -297,9 +295,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         target,
         cornerRadius,
         cornerMode,
-        // label,
-        // secondaryLabel,
-        // spacing,
+        label,
         ...rest,
     });
 
