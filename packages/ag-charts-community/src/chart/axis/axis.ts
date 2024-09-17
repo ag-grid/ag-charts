@@ -669,19 +669,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     protected getTransformBox(bbox: BBox) {
         const matrix = new Matrix();
-        const {
-            rotation: axisRotation,
-            translationX,
-            translationY,
-            rotationCenterX,
-            rotationCenterY,
-        } = this.getAxisTransform();
-        Matrix.updateTransformMatrix(matrix, 1, 1, axisRotation, translationX, translationY, {
-            scalingCenterX: 0,
-            scalingCenterY: 0,
-            rotationCenterX,
-            rotationCenterY,
-        });
+        const { rotation, translationX, translationY } = this.getAxisTransform();
+        Matrix.updateTransformMatrix(matrix, 1, 1, rotation, translationX, translationY);
         return matrix.transformBBox(bbox);
     }
 
@@ -1183,29 +1172,20 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     protected getAxisTransform() {
         return {
             rotation: toRadians(this.rotation),
-            rotationCenterX: 0,
-            rotationCenterY: 0,
             translationX: Math.floor(this.translation.x),
             translationY: Math.floor(this.translation.y),
         };
     }
 
     updatePosition() {
-        const { crossLineGroup, axisGroup, gridGroup, translation, gridLineGroupSelection, gridPadding, gridLength } =
-            this;
+        const { crossLineGroup, axisGroup, gridGroup, translation } = this;
         const { rotation } = this.calculateRotations();
-        const sideFlag = this.label.getSideFlag();
         const translationX = Math.floor(translation.x);
         const translationY = Math.floor(translation.y);
 
         crossLineGroup.setProperties({ rotation, translationX, translationY });
         gridGroup.setProperties({ rotation, translationX, translationY });
         axisGroup.datum = this.getAxisTransform();
-
-        gridLineGroupSelection.each((line) => {
-            line.x1 = gridPadding;
-            line.x2 = -sideFlag * gridLength + gridPadding;
-        });
     }
 
     updateSecondaryAxisTicks(_primaryTickCount: number | undefined): any[] {
@@ -1261,7 +1241,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             line.setProperties({
                 x1: gridPadding,
                 x2: -sideFlag * gridLength + gridPadding,
-                fill: undefined,
                 stroke,
                 strokeWidth: width,
                 lineDash,
