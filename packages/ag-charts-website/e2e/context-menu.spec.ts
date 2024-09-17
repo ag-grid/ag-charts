@@ -18,6 +18,8 @@ test.describe('context-menu', () => {
                     button: 'right',
                     position: { x: width * (2 / 3), y: height / 2 },
                 });
+                await expect(page).toHaveScreenshot('zoom-contextmenu.png', { animations: 'disabled' });
+
                 await page.locator('.ag-chart-context-menu__item').filter({ hasText: 'Zoom to here' }).click();
                 await expect(page).toHaveScreenshot('zoom-to-here.png', { animations: 'disabled' });
 
