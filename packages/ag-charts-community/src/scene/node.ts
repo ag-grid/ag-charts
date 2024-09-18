@@ -1,4 +1,4 @@
-import { Destructible } from '../util/destroy';
+import { Destructible, type WeakPtr } from '../util/destroy';
 import { createId } from '../util/id';
 import { toIterable } from '../util/iterator';
 import { BBox } from './bbox';
@@ -84,7 +84,7 @@ export abstract class Node extends Destructible {
     protected dirtyZIndex: boolean = false;
 
     private childNodes?: Set<Node>;
-    private parentNode?: Node;
+    private parentNode?: WeakPtr<Node>;
     private virtualChildrenCount: number = 0;
 
     private cachedBBox?: BBox;
@@ -133,7 +133,7 @@ export abstract class Node extends Destructible {
      * Some arbitrary data bound to the node.
      */
     get datum() {
-        return this._datum ?? this.parentNode?.datum;
+        return this._datum ?? this.parentNode?.ptr.datum;
     }
 
     set datum(datum: any) {
@@ -200,7 +200,7 @@ export abstract class Node extends Destructible {
         if (includeSelf) {
             yield node;
         }
-        while ((node = node.parentNode)) {
+        while ((node = node.parentNode?.ptr)) {
             yield node;
         }
     }
@@ -244,7 +244,7 @@ export abstract class Node extends Destructible {
      * Checks if the node is the root (has no parent).
      */
     isRoot() {
-        return !this.parentNode;
+        return !this.parentNode?.ptr;
     }
 
     /**
@@ -258,10 +258,10 @@ export abstract class Node extends Destructible {
     append(nodes: Iterable<Node> | Node) {
         this.childNodes ??= new Set();
         for (const node of toIterable(nodes)) {
-            node.parentNode?.removeChild(node);
+            node.parentNode?.ptr.removeChild(node);
             this.childNodes.add(node);
 
-            node.parentNode = this;
+            node.parentNode = { ptr: this };
             node._setLayerManager(this.layerManager);
 
             if (node.isVirtual) {
@@ -299,7 +299,7 @@ export abstract class Node extends Destructible {
     }
 
     remove() {
-        return this.parentNode?.removeChild(this) ?? false;
+        return this.parentNode?.ptr.removeChild(this) ?? false;
     }
 
     clear() {
@@ -313,7 +313,7 @@ export abstract class Node extends Destructible {
     }
 
     destructor(): void {
-        this.parentNode?.removeChild(this);
+        this.parentNode?.ptr.removeChild(this);
     }
 
     setProperties<T>(this: T, styles: { [K in keyof T]?: T[K] }, pickKeys?: (keyof T)[]) {
@@ -396,7 +396,7 @@ export abstract class Node extends Destructible {
         this.cachedBBox = undefined;
         this._dirty = Math.max(_dirty, type);
         if (this.parentNode) {
-            this.parentNode.markDirty(parentType);
+            this.parentNode.ptr.markDirty(parentType);
         } else if (this.layerManager) {
             this.layerManager.markDirty();
         }
@@ -422,7 +422,7 @@ export abstract class Node extends Destructible {
 
     protected onZIndexChange() {
         if (this.parentNode) {
-            this.parentNode.dirtyZIndex = true;
+            this.parentNode.ptr.dirtyZIndex = true;
         }
     }
 }

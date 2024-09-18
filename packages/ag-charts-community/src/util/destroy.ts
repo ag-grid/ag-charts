@@ -108,3 +108,5 @@ export class UniqueOptPtr<T extends Destroyable> extends Destructible {
         return this.guardedPtr;
     }
 }
+
+export type WeakPtr<T extends Destroyable> = undefined | { ptr: T; destroy?: undefined };
