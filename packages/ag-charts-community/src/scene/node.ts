@@ -1,3 +1,4 @@
+import { Destructible } from '../util/destroy';
 import { createId } from '../util/id';
 import { toIterable } from '../util/iterator';
 import { BBox } from './bbox';
@@ -45,7 +46,7 @@ export type ChildNodeCounts = {
  * Abstract scene graph node.
  * Each node can have zero or one parent and belong to zero or one scene.
  */
-export abstract class Node {
+export abstract class Node extends Destructible {
     static _nextSerialNumber = 0;
 
     static *extractBBoxes(nodes: Iterable<Node>, skipInvisible?: boolean) {
@@ -121,6 +122,7 @@ export abstract class Node {
     zIndexSubOrder?: ZIndexSubOrder = undefined; // Discriminators for render order within a zIndex
 
     constructor(options?: NodeOptions) {
+        super();
         this.name = options?.name;
         this.isVirtual = options?.isVirtual ?? false;
         this.tag = options?.tag ?? NaN;
@@ -310,7 +312,7 @@ export abstract class Node {
         this.virtualChildrenCount = 0;
     }
 
-    destroy(): void {
+    destructor(): void {
         this.parentNode?.removeChild(this);
     }
 

@@ -44,8 +44,8 @@ export class LegendMarkerLabel extends Translatable(Group) {
         this.append([this.symbolsGroup, label]);
     }
 
-    override destroy() {
-        super.destroy();
+    override destructor() {
+        super.destructor();
         this.destroyProxyButton();
     }
 

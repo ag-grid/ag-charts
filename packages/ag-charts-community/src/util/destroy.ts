@@ -46,14 +46,14 @@ export abstract class Destructible implements Destroyable {
 
 // Arrays with a destroy() method and destructor.
 // Do not override destroy(), only implement the destructor().
-class DestructibleArray<T> extends Array<T> implements Destroyable  {
+class DestructibleArray<T> extends Array<T> implements Destroyable {
     destroy() {
         this.destructor();
     }
 
     protected destructor() {
         for (const elem of this) {
-            if (isDestroyable( elem)) {
+            if (isDestroyable(elem)) {
                 elem.destroy();
             }
         }
@@ -61,7 +61,7 @@ class DestructibleArray<T> extends Array<T> implements Destroyable  {
     }
 }
 
-export class DestroyFns extends DestructibleArray<()=>void> {
+export class DestroyFns extends DestructibleArray<() => void> {
     protected override destructor() {
         this.clear();
     }
