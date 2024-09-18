@@ -100,10 +100,31 @@ export interface AgLinearGaugeTargetOptions extends FillOptions, StrokeOptions, 
     label?: AgLinearGaugeTargetLabelOptions;
 }
 
+export type AgLinearGaugeLabelPlacement =
+    | 'inside-start'
+    | 'outside-start'
+    | 'inside-end'
+    | 'outside-end'
+    | 'inside'
+    | 'bar-inside'
+    | 'bar-inside-end'
+    | 'bar-outside-end'
+    | 'bar-end';
+
 export interface AgLinearGaugeLabelOptions
     extends AgChartAutoSizedLabelOptions<never, AgLinearGaugeLabelFormatterParams> {
     /** Text to always display. */
     text?: string;
+    /** Distance between the shape edges and the text. */
+    spacing?: PixelSize;
+    /**
+     * Avoid axis label collisions with the bar and/or scale.
+     *
+     * Default: `true`
+     */
+    avoidCollisions?: boolean;
+    /** Placement of the label. */
+    placement?: AgLinearGaugeLabelPlacement;
 }
 
 export interface AgLinearGaugeSecondaryLabelOptions
@@ -131,12 +152,8 @@ export interface AgLinearGaugeThemeableOptions extends AgLinearGaugeStyle, AgBas
     target?: AgLinearGaugeTargetOptions;
     /** Configuration for the bar. */
     bar?: AgLinearGaugeBarStyle;
-    // /** Configuration for the labels shown inside the shape. */
-    // label?: AgLinearGaugeLabelOptions;
-    // /** Configuration for the labels shown inside the shape. */
-    // secondaryLabel?: AgLinearGaugeSecondaryLabelOptions;
-    // /** Distance between the shape edges and the text. */
-    // spacing?: PixelSize;
+    /** Configuration for the labels shown inside the shape. */
+    label?: AgLinearGaugeLabelOptions;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgLinearGaugeTooltipRendererParams>;
     // /** A callback function for adjusting the styles of a particular Linear Gauge based on the input parameters. */

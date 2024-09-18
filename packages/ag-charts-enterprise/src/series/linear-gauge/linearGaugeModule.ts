@@ -8,7 +8,7 @@ const {
     DEFAULT_FONT_FAMILY,
     DEFAULT_HIERARCHY_FILLS,
     DEFAULT_LABEL_COLOUR,
-    DEFAULT_MUTED_LABEL_COLOUR,
+    DEFAULT_INVERTED_LABEL_COLOUR,
     CARTESIAN_AXIS_TYPE,
 } = _Theme;
 
@@ -57,20 +57,15 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
             },
             label: {
                 enabled: true,
+                placement: 'inside-start',
                 fontWeight: FONT_WEIGHT.NORMAL,
-                fontSize: 56,
-                minimumFontSize: 18,
-                fontFamily: DEFAULT_FONT_FAMILY,
-                color: DEFAULT_LABEL_COLOUR,
-            },
-            secondaryLabel: {
-                enabled: true,
-                fontWeight: FONT_WEIGHT.NORMAL,
-                fontSize: 14,
+                fontSize: 24,
                 minimumFontSize: 12,
+                spacing: 18,
                 fontFamily: DEFAULT_FONT_FAMILY,
-                color: DEFAULT_MUTED_LABEL_COLOUR,
+                color: DEFAULT_INVERTED_LABEL_COLOUR,
             },
+            margin: 4,
             tooltip: {
                 enabled: false,
             },

@@ -143,11 +143,24 @@ export class GaugeChart extends Chart {
 
         const { horizontal, thickness } = series;
 
-        const width = Math.max(horizontal ? seriesRect.width : thickness, 0);
-        const height = Math.max(horizontal ? thickness : seriesRect.height, 0);
+        let horizontalInset = 0;
+        let verticalInset = 0;
+        if (horizontal) {
+            xAxis.updateScale();
+            horizontalInset = series.computeInset(ChartAxisDirection.X, xAxis.scale);
+        } else {
+            yAxis.updateScale();
+            verticalInset = series.computeInset(ChartAxisDirection.Y, yAxis.scale);
+        }
 
-        const x0 = seriesRect.x + (seriesRect.width - width) / 2;
-        const y0 = seriesRect.y + (seriesRect.height - height) / 2;
+        const seriesWidth = seriesRect.width - Math.abs(horizontalInset);
+        const seriesHeight = seriesRect.height - Math.abs(verticalInset);
+
+        const width = Math.max(horizontal ? seriesWidth : thickness, 0);
+        const height = Math.max(horizontal ? thickness : seriesHeight, 0);
+
+        const x0 = seriesRect.x + (seriesWidth - width) / 2 + Math.max(horizontalInset, 0);
+        const y0 = seriesRect.y + (seriesHeight - height) / 2 - Math.min(verticalInset, 0);
 
         xAxis.range = [0, width];
         xAxis.gridLength = width;
