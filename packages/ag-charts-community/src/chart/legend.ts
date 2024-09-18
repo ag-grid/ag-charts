@@ -349,6 +349,9 @@ export class Legend extends BaseProperties {
                     this.pagination.setPage(markerLabel.pageIndex);
                 },
             });
+            makeKeyboardPointerEvent;
+            markerLabel;
+            i;
         });
 
         const buttons: HTMLButtonElement[] = this.itemSelection
@@ -438,12 +441,14 @@ export class Legend extends BaseProperties {
         if (this.reverseOrder) {
             data.reverse();
         }
-        const proxyToolbarNeedsUpdate =
-            this.itemSelection.nodes().length === 0 ||
-            this.proxyLegendToolbar.ariaOrientation !== this.getOrientation();
+        const orientationChange = this.proxyLegendToolbar.ariaOrientation !== this.getOrientation();
+        const proxyToolbarNeedsUpdate = orientationChange || this.itemSelection.nodes().length === 0;
         this.itemSelection.update(data);
 
         if (proxyToolbarNeedsUpdate) {
+            if (orientationChange) {
+                this.itemSelection.each((markerLabel) => markerLabel.destroyProxyButton());
+            }
             this.initLegendItemToolbar();
         }
 
