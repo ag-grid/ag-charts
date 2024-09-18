@@ -4,6 +4,7 @@ import * as examples from './examples';
 import {
     cartesianChartAssertions,
     flowProportionChartAssertions,
+    gaugeAssertions,
     hierarchyChartAssertions,
     polarChartAssertions,
     repeat,
@@ -11,6 +12,7 @@ import {
 import type { ChartOrProxy } from './utils';
 
 export type TestCase = {
+    type?: 'chart' | 'gauge';
     options: AgChartOptions;
     enterprise: boolean;
     assertions: (chart: ChartOrProxy) => Promise<void>;
@@ -177,6 +179,12 @@ export const COMMUNITY_AND_ENTERPRISE_EXAMPLES: Record<string, TestCase> = {
             seriesTypes: ['line', 'line', 'line', 'line'],
         }),
         enterprise: false,
+    },
+    SIMPLE_RADIAL_GAUGE_EXAMPLE: {
+        type: 'gauge',
+        options: examples.SIMPLE_RADIAL_GAUGE_EXAMPLE,
+        assertions: gaugeAssertions(),
+        enterprise: true,
     },
 };
 
