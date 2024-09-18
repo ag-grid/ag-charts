@@ -30,14 +30,26 @@ export abstract class Destructible implements Destroyable {
         for (const key of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) {
             if (typeof (this as any)[key] === 'function' && key !== 'constructor') {
                 (this as any)[key] = () => {
-                    throw new ZombieError(`Method '${key}' cannot be called on a destroyed object ${this}.`);
+                    throw new ZombieError(`Method '${key}' cannot be called on a destroyed object.`);
                 };
             }
         }
 
-        // Nullify all instance properties (optional but helpful)
+        this.nullifyProperties();
+    }
+
+    private nullifyProperties() {
         for (const key of Object.keys(this)) {
-            (this as any)[key] = null;
+            // Define getter and setter that throws an error when accessed
+            Object.defineProperty(this, key, {
+                get() {
+                    throw new ZombieError(`Property '${key}' cannot be accessed on a destroyed object.`);
+                },
+                set(_value: unknown) {
+                    throw new ZombieError(`Property '${key}' cannot be modified on a destroyed object.`);
+                },
+                configurable: true,
+            });
         }
     }
 
