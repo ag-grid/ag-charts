@@ -13,12 +13,18 @@ Object.defineProperty(Canvas.prototype, 'transferToImageBitmap', {
         bitmap.getContext('2d').drawImage(this, 0, 0, width, height);
         return bitmap;
     },
+    enumerable: false,
+    writable: true,
+    configurable: true,
 });
 
 Object.defineProperty(NodeCanvasRenderingContext2D.prototype, 'createConicGradient', {
     value: function createConicGradient(startAngle: number, x: number, y: number) {
         return new ConicGradient(this, startAngle, x, y);
     },
+    enumerable: false,
+    writable: true,
+    configurable: true,
 });
 
 export class MockContext {
