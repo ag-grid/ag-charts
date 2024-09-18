@@ -4,6 +4,7 @@ import * as examples from './examples';
 import {
     cartesianChartAssertions,
     flowProportionChartAssertions,
+    gaugeAssertions,
     hierarchyChartAssertions,
     polarChartAssertions,
     repeat,
@@ -177,6 +178,11 @@ export const COMMUNITY_AND_ENTERPRISE_EXAMPLES: Record<string, TestCase> = {
             seriesTypes: ['line', 'line', 'line', 'line'],
         }),
         enterprise: false,
+    },
+    SIMPLE_RADIAL_GAUGE_EXAMPLE: {
+        options: examples.SIMPLE_RADIAL_GAUGE_EXAMPLE,
+        assertions: gaugeAssertions(),
+        enterprise: true,
     },
 };
 
