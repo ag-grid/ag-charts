@@ -221,18 +221,13 @@
       "outputs": ["{workspaceRoot}/reports/{projectRoot}/benchmarks"],
       "options": {
         "commands": [
-          "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --runInBand --testPathPattern '.*/benchmarks/.*'"
+          "jest --listTests --testPathPattern '.*/benchmarks/.*' 2>/dev/null | xargs -L 1 -P 0 node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --runInBand"
         ]
       },
       "configurations": {
-        "watch": {
-          "commands": [
-            "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --runInBand --testPathPattern '.*/benchmarks/.*' --watch"
-          ]
-        },
         "update": {
           "commands": [
-            "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --runInBand --testPathPattern '.*/benchmarks/.*' -u"
+            "jest --listTests --testPathPattern '.*/benchmarks/.*' 2>/dev/null | xargs -L 1 -P 0 node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --runInBand -u"
           ]
         }
       },
