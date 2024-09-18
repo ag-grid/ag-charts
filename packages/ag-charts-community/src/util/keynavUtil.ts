@@ -1,4 +1,5 @@
 import { setAttribute } from './attributeUtil';
+import { DestroyFns, Destructible } from './destroy';
 
 function addRemovableEventListener<K extends keyof WindowEventMap>(
     destroyFns: (() => void)[],
@@ -153,27 +154,30 @@ export interface MenuCloser {
     finishClosing(): void;
 }
 
-class MenuCloserImp implements MenuCloser {
-    public readonly destroyFns: (() => void)[] = [];
+class MenuCloserImp extends Destructible implements MenuCloser {
+    public readonly destroyFns: DestroyFns = new DestroyFns();
 
     constructor(
         menu: HTMLElement,
         private lastFocus: HTMLElement | undefined,
         public readonly closeCallback: () => void
     ) {
-        this.destroyFns.push(addMouseCloseListener(this.destroyFns, menu, () => this.close()));
+        super();
+        const mouseDestroys: (() => void)[] = [];
+        addMouseCloseListener(mouseDestroys, menu, () => this.close());
+        this.destroyFns.push(...mouseDestroys);
     }
 
+    destructor() {}
+
     close() {
-        this.destroyFns.forEach((d) => d());
-        this.destroyFns.length = 0;
+        this.destroyFns.clear();
         this.closeCallback();
         this.finishClosing();
     }
 
     finishClosing() {
-        this.destroyFns.forEach((d) => d());
-        this.destroyFns.length = 0;
+        this.destroyFns.clear();
         setAttribute(this.lastFocus, 'aria-expanded', false);
         this.lastFocus?.focus();
         this.lastFocus = undefined;
