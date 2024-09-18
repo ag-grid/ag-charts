@@ -1,11 +1,23 @@
 import type { Direction } from 'ag-charts-types';
 
 import type { LocaleManager } from '../locale/localeManager';
+import { Destructible } from '../util/destroy';
 import { createElement } from '../util/dom';
 import { BoundedText } from './boundedText';
 import type { DOMManager } from './domManager';
 
-export type ListSwitch = { button: HTMLButtonElement; listitem: HTMLElement };
+export class ListSwitch extends Destructible {
+    constructor(
+        public button: HTMLButtonElement,
+        public listitem: HTMLElement
+    ) {
+        super();
+    }
+    protected destructor() {
+        this.button.remove();
+        this.listitem.remove();
+    }
+}
 
 type ElemParams<T extends ProxyElementType> = {
     readonly type: T;
@@ -92,7 +104,7 @@ function allocateResult<T extends keyof ProxyMeta>(type: T): ProxyMeta[T]['resul
     } else if ('text' === type) {
         return new BoundedText();
     } else if ('listswitch' === type) {
-        return { button: createElement('button'), listitem: createElement('div') };
+        return new ListSwitch(createElement('button'), createElement('div'));
     } else {
         throw Error('AG Charts - error allocating meta');
     }

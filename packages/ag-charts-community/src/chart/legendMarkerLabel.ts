@@ -10,6 +10,7 @@ import { Text } from '../scene/shape/text';
 import type { SpriteDimensions, SpriteRenderer } from '../scene/spriteRenderer';
 import { Translatable } from '../scene/transformable';
 import { arraysEqual } from '../util/array';
+import { UniqueOptPtr } from '../util/destroy';
 import { iterate } from '../util/iterator';
 import { ProxyPropertyOnWrite } from '../util/proxy';
 import type { Marker } from './marker/marker';
@@ -44,18 +45,7 @@ export class LegendMarkerLabel extends Translatable(Group) {
         this.append([this.symbolsGroup, label]);
     }
 
-    override destructor() {
-        super.destructor();
-        this.destroyProxyButton();
-    }
-
-    destroyProxyButton() {
-        this.proxyButton?.button.remove();
-        this.proxyButton?.listitem.remove();
-        this.proxyButton = undefined;
-    }
-
-    proxyButton?: ListSwitch;
+    readonly proxyButton: UniqueOptPtr<ListSwitch> = new UniqueOptPtr();
 
     pageIndex: number = NaN;
 

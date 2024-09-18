@@ -76,3 +76,35 @@ export class DestroyFns extends DestructibleArray<() => void> {
         this.push(...destroyFns);
     }
 }
+
+export class UniquePtr<T extends Destroyable> extends Destructible {
+    constructor(private guardedPtr: T) {
+        super();
+    }
+    destructor() {
+        this.guardedPtr.destroy();
+    }
+    set ptr(ptr: T) {
+        this.guardedPtr.destroy();
+        this.guardedPtr = ptr;
+    }
+    get ptr(): T {
+        return this.guardedPtr;
+    }
+}
+
+export class UniqueOptPtr<T extends Destroyable> extends Destructible {
+    constructor(private guardedPtr?: T) {
+        super();
+    }
+    destructor() {
+        this.guardedPtr?.destroy();
+    }
+    set ptr(ptr: T | undefined) {
+        this.guardedPtr?.destroy();
+        this.guardedPtr = ptr;
+    }
+    get ptr(): T | undefined {
+        return this.guardedPtr;
+    }
+}
