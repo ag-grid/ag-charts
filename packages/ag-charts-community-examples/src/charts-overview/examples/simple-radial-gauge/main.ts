@@ -1,4 +1,4 @@
-import { AgCharts, AgGaugeOptions } from 'ag-charts-enterprise';
+import { AgCharts, AgGaugeOptions } from 'ag-charts-community';
 
 const options: AgGaugeOptions = {
     type: 'radial-gauge',
