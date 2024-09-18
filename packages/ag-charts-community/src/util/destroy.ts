@@ -5,13 +5,22 @@ class ZombieError extends Error {
     }
 }
 
+interface Destroyable {
+    destroy(): void;
+}
+
+function isDestroyable(obj: unknown): obj is Destroyable {
+    return typeof obj === 'object' && obj != null && 'destroy' in obj && typeof obj['destroy'] === 'function';
+}
+
 // Destroyed objects are turned into 'zombie objects' like it ObjC/Swift.
-export abstract class Destructible {
+// Do not override destroy(), only implement the destructor().
+export abstract class Destructible implements Destroyable {
     destroy() {
         // Automatically destroy any destructible members
         for (const key of Object.keys(this)) {
             const property = (this as any)[key];
-            if (property instanceof Destructible) {
+            if (isDestroyable(property)) {
                 property.destroy();
             }
         }
@@ -35,24 +44,35 @@ export abstract class Destructible {
     protected abstract destructor(): void;
 }
 
-export class DestroyFns extends Destructible {
-    private destroyFns: (() => void)[] = [];
+// Arrays with a destroy() method and destructor.
+// Do not override destroy(), only implement the destructor().
+class DestructibleArray<T> extends Array<T> implements Destroyable  {
+    destroy() {
+        this.destructor();
+    }
 
-    destructor() {
+    protected destructor() {
+        for (const elem of this) {
+            if (isDestroyable( elem)) {
+                elem.destroy();
+            }
+        }
+        this.length = 0;
+    }
+}
+
+export class DestroyFns extends DestructibleArray<()=>void> {
+    protected override destructor() {
         this.clear();
     }
 
     clear() {
-        this.destroyFns.forEach((fn) => fn());
-        this.destroyFns.length = 0;
-    }
-
-    push(...destroyFns: (() => void)[]) {
-        this.destroyFns.push(...destroyFns);
+        this.forEach((fn) => fn());
+        this.length = 0;
     }
 
     setFns(destroyFns: (() => void)[]) {
         this.clear();
-        this.destroyFns = destroyFns;
+        this.push(...destroyFns);
     }
 }
