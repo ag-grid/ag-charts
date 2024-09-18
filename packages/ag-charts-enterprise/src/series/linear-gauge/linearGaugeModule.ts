@@ -56,7 +56,7 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
                 },
             },
             label: {
-                enabled: true,
+                enabled: false,
                 placement: 'inside-start',
                 fontWeight: FONT_WEIGHT.NORMAL,
                 fontSize: 24,
