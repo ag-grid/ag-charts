@@ -22,6 +22,7 @@ type MatrixTransformType<T> = T &
     LocalToParentCoordinateSpaceTransforms &
     ParentToLocalCoordinateSpaceTransforms & {
         updateMatrix(matrix: Matrix): void;
+        computeBBoxWithoutTransforms(): BBox | undefined;
     };
 
 export function isMatrixTransform<N extends Node>(node: N): node is MatrixTransformType<N> {
@@ -99,6 +100,10 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
             if (!bbox) return bbox;
 
             return this.toParent(bbox);
+        }
+
+        computeBBoxWithoutTransforms() {
+            return super.computeBBox();
         }
 
         override pickNode(x: number, y: number, localCoords = false) {
