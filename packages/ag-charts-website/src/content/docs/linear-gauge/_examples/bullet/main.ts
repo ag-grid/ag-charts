@@ -25,9 +25,6 @@ const options: AgLinearGaugeOptions = {
             strokeWidth: 2,
         },
     ],
-    label: {
-        enabled: false,
-    },
 };
 
 AgCharts.createGauge(options);
