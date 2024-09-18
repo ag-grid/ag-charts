@@ -349,9 +349,6 @@ export class Legend extends BaseProperties {
                     this.pagination.setPage(markerLabel.pageIndex);
                 },
             });
-            makeKeyboardPointerEvent;
-            markerLabel;
-            i;
         });
 
         const buttons: HTMLButtonElement[] = this.itemSelection
