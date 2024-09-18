@@ -9,9 +9,9 @@ The data is represented by a bar indicating the value.
 
 {% chartExampleRunner title="Simple Linear Gauge" name="simple-linear-gauge" type="generated" /%}
 
-To create a Linear Gauge, use the `createGauge` API with the type `linear-gauge`.
-
 {% if isFramework("javascript") %}
+
+To create a Linear Gauge, use the `createGauge` API with the type `linear-gauge`.
 
 ```js
 const options = {
@@ -31,6 +31,8 @@ AgCharts.createGauge(options);
 
 {% if isFramework("react") %}
 
+To create a Linear Gauge, use the `<AgGauge />` component with the type `linear-gauge`.
+
 ```jsx
 const [options, setOptions] = useState({
     type: 'linear-gauge',
@@ -49,6 +51,8 @@ return (
 {% /if %}
 
 {% if isFramework("angular") %}
+
+To create a Linear Gauge, use the `<ag-gauge />` component with the type `linear-gauge`.
 
 ```js
 @Component({
@@ -76,6 +80,8 @@ export class AppComponent {
 {% /if %}
 
 {% if isFramework("vue") %}
+
+To create a Linear Gauge, use the `AgGauge` component with the type `linear-gauge`.
 
 ```js
 template: `<ag-gauge:options="options"/>`,
@@ -304,14 +310,14 @@ In this configuration:
         {
             value: 30,
             shape: 'triangle',
-            placement: 'outside',
+            placement: 'before',
             fill: 'white',
             strokeWidth: 2,
             spacing: 8,
         },
         {
             value: 75,
-            placement: 'inside',
+            placement: 'after',
             shape: 'triangle',
             fill: 'white',
             strokeWidth: 2,

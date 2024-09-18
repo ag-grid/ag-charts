@@ -18,6 +18,11 @@ Header add Access-Control-Allow-Origin "*"
 Header add Access-Control-Allow-Methods: "GET,POST,OPTIONS,DELETE,PUT"
 
 Options -Indexes
+
+Redirect 301 /charts/angular/bullet-series /charts/angular/linear-gauge/#bullet-series
+Redirect 301 /charts/javascript/bullet-series /charts/javascript/linear-gauge/#bullet-series
+Redirect 301 /charts/react/bullet-series /charts/react/linear-gauge/#bullet-series
+Redirect 301 /charts/vue/bullet-series /charts/vue/linear-gauge/#bullet-series
 `;
 
 export default function createPlugin(options: Options): AstroIntegration {

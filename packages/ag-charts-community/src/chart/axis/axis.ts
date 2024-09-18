@@ -1,11 +1,4 @@
-import type {
-    AgAxisCaptionFormatterParams,
-    CssColor,
-    FontFamily,
-    FontSize,
-    FontStyle,
-    FontWeight,
-} from 'ag-charts-types';
+import type { AgAxisBoundSeries, CssColor, FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-types';
 
 import type { AxisContext } from '../../module/axisContext';
 import type { ModuleInstance } from '../../module/baseModule';
@@ -273,8 +266,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.range = this.scale.range.slice() as [number, number];
         this.crossLines.forEach((crossLine) => this.initCrossLine(crossLine));
 
-        this.destroyFns.push(this.title.caption.registerInteraction(this.moduleCtx));
-        this.title.caption.node.rotation = -Math.PI / 2;
         this.axisGroup.appendChild(this.title.caption.node);
 
         this.animationManager = moduleCtx.animationManager;
@@ -293,10 +284,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             },
         });
 
-        this._crossLines = [];
-
         let previousSize: { width: number; height: number } | undefined = undefined;
         this.destroyFns.push(
+            this.title.caption.registerInteraction(this.moduleCtx),
             moduleCtx.layoutManager.addListener('layout:complete', (e) => {
                 // Fire resize animation action if chart canvas size changes.
                 if (previousSize != null && jsonDiff(e.chart, previousSize) != null) {
@@ -642,8 +632,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             const caption = new Caption();
             const spacing = BBox.merge(boxes).width;
             this.setTitleProps(caption, { spacing });
-            const titleNode = caption.node;
-            const titleBox = titleNode.getBBox();
+            const titleBox = caption.node.getBBox();
             if (titleBox) {
                 boxes.push(titleBox);
             }
@@ -680,19 +669,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     protected getTransformBox(bbox: BBox) {
         const matrix = new Matrix();
-        const {
-            rotation: axisRotation,
-            translationX,
-            translationY,
-            rotationCenterX,
-            rotationCenterY,
-        } = this.getAxisTransform();
-        Matrix.updateTransformMatrix(matrix, 1, 1, axisRotation, translationX, translationY, {
-            scalingCenterX: 0,
-            scalingCenterY: 0,
-            rotationCenterX,
-            rotationCenterY,
-        });
+        const { rotation, translationX, translationY } = this.getAxisTransform();
+        Matrix.updateTransformMatrix(matrix, 1, 1, rotation, translationX, translationY);
         return matrix.transformBBox(bbox);
     }
 
@@ -1194,29 +1172,20 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     protected getAxisTransform() {
         return {
             rotation: toRadians(this.rotation),
-            rotationCenterX: 0,
-            rotationCenterY: 0,
             translationX: Math.floor(this.translation.x),
             translationY: Math.floor(this.translation.y),
         };
     }
 
     updatePosition() {
-        const { crossLineGroup, axisGroup, gridGroup, translation, gridLineGroupSelection, gridPadding, gridLength } =
-            this;
+        const { crossLineGroup, axisGroup, gridGroup, translation } = this;
         const { rotation } = this.calculateRotations();
-        const sideFlag = this.label.getSideFlag();
         const translationX = Math.floor(translation.x);
         const translationY = Math.floor(translation.y);
 
         crossLineGroup.setProperties({ rotation, translationX, translationY });
         gridGroup.setProperties({ rotation, translationX, translationY });
         axisGroup.datum = this.getAxisTransform();
-
-        gridLineGroupSelection.each((line) => {
-            line.x1 = gridPadding;
-            line.x2 = -sideFlag * gridLength + gridPadding;
-        });
     }
 
     updateSecondaryAxisTicks(_primaryTickCount: number | undefined): any[] {
@@ -1272,7 +1241,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             line.setProperties({
                 x1: gridPadding,
                 x2: -sideFlag * gridLength + gridPadding,
-                fill: undefined,
                 stroke,
                 strokeWidth: width,
                 lineDash,
@@ -1365,19 +1333,16 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     protected getTitleFormatterParams() {
-        const boundSeries = this.boundSeries.reduce<AgAxisCaptionFormatterParams['boundSeries']>((acc, next) => {
-            const keys = next.getKeys(this.direction);
-            const names = next.getNames(this.direction);
+        const { direction } = this;
+        const boundSeries: AgAxisBoundSeries[] = [];
+        for (const series of this.boundSeries) {
+            const keys = series.getKeys(direction);
+            const names = series.getNames(direction);
             for (let idx = 0; idx < keys.length; idx++) {
-                acc.push({ key: keys[idx], name: names[idx] });
+                boundSeries.push({ key: keys[idx], name: names[idx] });
             }
-            return acc;
-        }, []);
-        return {
-            direction: this.direction,
-            boundSeries,
-            defaultValue: this.title?.text,
-        };
+        }
+        return { direction, boundSeries, defaultValue: this.title?.text };
     }
 
     normaliseDataDomain(d: D[]): { domain: D[]; clipped: boolean } {
@@ -1487,7 +1452,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const selectionCtx = prepareAxisAnimationContext(this);
         resetMotion([this.axisGroup], resetAxisGroupFn());
         resetMotion([gridLineGroupSelection, tickLineGroupSelection], resetAxisSelectionFn(selectionCtx));
-        resetMotion([tickLabelGroupSelection], resetAxisLabelSelectionFn() as any);
+        resetMotion([tickLabelGroupSelection], resetAxisLabelSelectionFn());
         resetMotion([lineNode], resetAxisLineSelectionFn());
     }
 

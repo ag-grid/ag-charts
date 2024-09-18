@@ -60,6 +60,8 @@ export abstract class Node extends ChangeDetectable {
     protected _datum?: any;
     protected _previousDatum?: any;
 
+    public transitionOut?: boolean;
+
     /**
      * Some arbitrary data bound to the node.
      */
