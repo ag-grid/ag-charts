@@ -77,11 +77,16 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
     }
 
     private show(event: _ModuleSupport.PointerInteractionEvent<'hover' | 'drag'>) {
-        if (!this.enabled) return;
+        const { offsetX: x, offsetY: y } = event;
+
+        if (!(this.enabled && this.seriesRect.containsPoint(x, y))) {
+            this.hide();
+            return;
+        }
 
         this.toggleVisibility(true);
 
-        const buttonCoords = this.getButtonCoordinates({ x: event.offsetX, y: event.offsetY });
+        const buttonCoords = this.getButtonCoordinates({ x, y });
         this.coords = this.getAxisCoordinates(buttonCoords);
         this.updatePosition(buttonCoords);
     }

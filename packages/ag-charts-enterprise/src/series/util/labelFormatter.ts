@@ -122,7 +122,7 @@ type SizeFittingHeightFn<Meta> = (
     meta: Meta;
 };
 
-function getLineHeight(labelProps: AgChartAutoSizedLabelOptions<any, any>, fontSize: number) {
+export function getLineHeight(labelProps: AgChartAutoSizedLabelOptions<any, any>, fontSize: number) {
     if (labelProps.lineHeight != null && labelProps.fontSize != null) {
         return (labelProps.lineHeight * fontSize) / labelProps.fontSize;
     } else {
@@ -257,7 +257,7 @@ export function formatSingleLabel<Meta>(
             maxHeight: availableHeight,
             font: textSizeProps,
             textWrap: props.wrapping,
-            overflow: allowTruncation ? props.overflowStrategy : 'hide',
+            overflow: (allowTruncation ? props.overflowStrategy : undefined) ?? 'hide',
         });
 
         if (!lines.length) return;
