@@ -217,7 +217,7 @@ export function initMenuKeyNav(opts: {
 
     menu.role = 'menu';
     menu.ariaOrientation = orientation;
-    initRovingTabIndex({ orientation, buttons, onEscape, wrapAround: true });
+    destroyFns.push(...initRovingTabIndex({ orientation, buttons, onEscape, wrapAround: true }));
 
     // Add handlers for the menu element itself.
     menu.tabIndex = -1;
