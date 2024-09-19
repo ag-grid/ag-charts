@@ -46,21 +46,17 @@ export function benchmark(
     callback: () => Promise<void>,
     timeoutMs = 10000
 ) {
-    const isGcEnabled = 'gc' in global;
-    if (!isGcEnabled) {
-        global.console.warn('GC flags disabled - invoke via `npm run benchmark` to collect heap usage stats');
+    if (!global.gc) {
+        throw new Error('GC flags disabled - invoke via `npm run benchmark` to collect heap usage stats');
     }
     function getMemoryUsage(): NodeJS.MemoryUsage | null {
         return process.memoryUsage();
     }
 
-    beforeEach(() => {
-        global.gc?.();
-    });
-
     it(
         name,
         async () => {
+            global.gc?.();
             const memoryUsageBefore = getMemoryUsage();
             const start = performance.now();
             await callback();
