@@ -6,7 +6,7 @@ import { setupEnterpriseModules } from '../setup';
 setupEnterpriseModules();
 
 export function prepareEnterpriseTestOptions<T extends AgChartOptions>(options: T, container = document.body) {
-    if (!options.animation && !options.series?.some(({ type }) => type === 'treemap')) {
+    if (!options.animation) {
         // Default to animation off.
         options.animation ??= { enabled: false };
     }

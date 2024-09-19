@@ -46,65 +46,48 @@ export function benchmark(
     callback: () => Promise<void>,
     timeoutMs = 10000
 ) {
-    const isGcEnabled = 'gc' in global;
-    if (!isGcEnabled) {
-        global.console.warn('GC flags disabled - invoke via `npm run benchmark` to collect heap usage stats');
+    if (!global.gc) {
+        throw new Error('GC flags disabled - invoke via `npm run benchmark` to collect heap usage stats');
     }
-    function getMemoryUsage(): NodeJS.MemoryUsage | null {
-        if (!global.gc) return null;
-        global.gc();
-        return process.memoryUsage();
-    }
-
-    beforeEach(() => {
-        if (!global.gc) return;
-        global.gc();
-    });
 
     it(
         name,
         async () => {
-            const memoryUsageBefore = getMemoryUsage();
+            global.gc?.();
+            const memoryUsageBefore = process.memoryUsage();
             const start = performance.now();
             await callback();
             const duration = performance.now() - start;
-            const memoryUsageAfter = getMemoryUsage();
-            const canvasInstances = memoryUsageBefore && memoryUsageAfter && ctx.canvasCtx.getActiveCanvasInstances();
-
+            const memoryUsageAfter = process.memoryUsage();
+            const canvasInstances = ctx.canvasCtx.getActiveCanvasInstances();
             const { currentTestName, testPath } = expect.getState();
+
             if (testPath == null || currentTestName == null) {
                 throw new Error('Unable to resolve current test name.');
             }
 
             const memoryUse = recordTiming(testPath, currentTestName, {
                 timeMs: duration,
-                memory:
-                    memoryUsageBefore && memoryUsageAfter
-                        ? {
-                              before: memoryUsageBefore,
-                              after: memoryUsageAfter,
-                              nativeAllocations: canvasInstances
-                                  ? {
-                                        canvas: {
-                                            count: canvasInstances.length,
-                                            bytes: canvasInstances.reduce(
-                                                (totalBytes, canvas) => totalBytes + getBitmapMemoryUsage(canvas),
-                                                0
-                                            ),
-                                        },
-                                    }
-                                  : undefined,
-                          }
-                        : undefined,
+                memory: {
+                    before: memoryUsageBefore,
+                    after: memoryUsageAfter,
+                    nativeAllocations: {
+                        canvas: {
+                            count: canvasInstances.length,
+                            bytes: canvasInstances.reduce(
+                                (totalBytes, canvas) => totalBytes + getBitmapMemoryUsage(canvas),
+                                0
+                            ),
+                        },
+                    },
+                },
             });
 
             const newImageData = extractImageData(ctx.canvasCtx);
             expect(newImageData).toMatchImageSnapshot({ failureThresholdType: 'pixel', failureThreshold: 5 });
 
-            if (memoryUse != null) {
-                const BYTES_PER_MB = 1024 ** 2;
-                expect(memoryUse / BYTES_PER_MB).toBeLessThanOrEqual(expectations.expectedMaxMemoryMB);
-            }
+            const BYTES_PER_MB = 1024 ** 2;
+            expect(memoryUse / BYTES_PER_MB).toBeLessThanOrEqual(expectations.expectedMaxMemoryMB);
         },
         timeoutMs
     );

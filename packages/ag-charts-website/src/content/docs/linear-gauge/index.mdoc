@@ -144,14 +144,18 @@ In the above configuration:
 -   The thickness of the bar is specified as 50 pixels.
 -   It is also possible to use `thicknessRatio` to specify the width of the bar as a proportion of the scale.
 
-<!-- ### Labels
+### Labels
 
-//TODO
+An inner labels can be configured with the `label` property.
 
 {% chartExampleRunner title="Labels" name="labels" type="generated" options={ "exampleHeight": 250 } /%}
 
 ```js
 {
+    label: {
+        enabled: true,
+        placement: 'inside-start',
+    },
     scale: {
         label: {
             enabled: false,
@@ -162,7 +166,8 @@ In the above configuration:
 
 In this configuration:
 
--   The scale labels are hidden using the `scale.label.enabled` option. See the [API Reference](#api-reference) for more details about customising the scale label style and interval. -->
+-   The label placement in relation to the gauge is configured by the `placement` property.
+-   The scale labels are hidden using the `scale.label.enabled` option. See the [API Reference](#api-reference) for more details about customising the scale label style and interval.
 
 ### Segmentation
 
@@ -369,9 +374,6 @@ The Linear Gauge is used to create a Bullet Series.
             strokeWidth: 2,
         },
     ],
-    label: {
-        enabled: false,
-    }
 }
 ```
 

@@ -1,4 +1,4 @@
-import { AgCharts, AgLinearGaugeOptions } from 'ag-charts-enterprise';
+import { AgCharts, AgLinearGaugeLabelPlacement, AgLinearGaugeOptions } from 'ag-charts-enterprise';
 
 const options: AgLinearGaugeOptions = {
     type: 'linear-gauge',
@@ -12,14 +12,28 @@ const options: AgLinearGaugeOptions = {
             enabled: false,
         },
     },
-    // label: {
-    //     formatter({ value }) {
-    //         return `${value.toFixed(0)}%`;
-    //     },
-    // },
-    // secondaryLabel: {
-    //     text: 'Test Score',
-    // },
+    label: {
+        enabled: true,
+        placement: 'inside-start',
+    },
 };
 
-AgCharts.createGauge(options);
+const chart = AgCharts.createGauge(options);
+
+const placementColors: Record<AgLinearGaugeLabelPlacement, string> = {
+    'inside-start': 'white',
+    'outside-start': '#888',
+    'inside-end': '#888',
+    'outside-end': '#888',
+    inside: 'white',
+    'bar-inside': 'white',
+    'bar-inside-end': 'white',
+    'bar-outside-end': '#888',
+    'bar-end': 'white',
+};
+
+function setLabelPlacement(placement: AgLinearGaugeLabelPlacement) {
+    options.label!.placement = placement;
+    options.label!.color = placementColors[placement];
+    chart.update(options);
+}

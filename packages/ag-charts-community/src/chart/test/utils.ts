@@ -277,6 +277,13 @@ export function flowProportionChartAssertions(params?: { seriesTypes?: string[] 
     };
 }
 
+export function gaugeAssertions() {
+    return async (chartOrProxy: ChartOrProxy) => {
+        const chart = deproxy(chartOrProxy);
+        expect(chart?.constructor?.name).toEqual('GaugeChart');
+    };
+}
+
 const checkTargetValid = (target: HTMLElement) => {
     if (!target.isConnected) throw new Error('Chart must be configured with a container for event testing to work');
 };
