@@ -4,16 +4,10 @@ import * as path from 'path';
 
 export interface BenchmarkMeasurement {
     timeMs: number;
-    memory?: {
+    memory: {
         before: NodeJS.MemoryUsage;
         after: NodeJS.MemoryUsage;
-        nativeAllocations?: Record<
-            string,
-            {
-                count: number;
-                bytes: number;
-            }
-        >;
+        nativeAllocations: Record<string, { count: number; bytes: number }>;
     };
 }
 
@@ -29,7 +23,7 @@ export function recordTiming(suitePath: string, name: string, measurement: Bench
     }
     records.get(suitePath)?.set(name, measurement);
 
-    return measurement.memory ? getRelativeMemoryUsage(measurement.memory) : undefined;
+    return getRelativeMemoryUsage(measurement.memory);
 }
 
 export function logTimings() {

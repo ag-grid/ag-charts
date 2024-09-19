@@ -86,10 +86,8 @@ export function benchmark(
             const newImageData = extractImageData(ctx.canvasCtx);
             expect(newImageData).toMatchImageSnapshot({ failureThresholdType: 'pixel', failureThreshold: 5 });
 
-            if (memoryUse != null) {
-                const BYTES_PER_MB = 1024 ** 2;
-                expect(memoryUse / BYTES_PER_MB).toBeLessThanOrEqual(expectations.expectedMaxMemoryMB);
-            }
+            const BYTES_PER_MB = 1024 ** 2;
+            expect(memoryUse / BYTES_PER_MB).toBeLessThanOrEqual(expectations.expectedMaxMemoryMB);
         },
         timeoutMs
     );
