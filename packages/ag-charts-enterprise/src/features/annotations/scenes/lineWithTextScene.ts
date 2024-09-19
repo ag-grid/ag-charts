@@ -4,6 +4,7 @@ import type { ChannelTextProperties, LineTextProperties } from '../annotationPro
 import type { LineCoords } from '../annotationTypes';
 import type { AnnotationScene } from './annotationScene';
 import type { CollidableLine } from './collidableLineScene';
+import { CollidableText } from './collidableTextScene';
 import { DivariantHandle } from './handle';
 
 const { Vec2 } = _Util;
@@ -19,7 +20,7 @@ interface Numbers {
 
 export class LineWithTextScene {
     static updateLineText<Datum extends { strokeWidth?: number; text?: LineTextProperties }>(
-        this: AnnotationScene & { line: CollidableLine; text?: _Scene.TransformableText },
+        this: AnnotationScene & { line: CollidableLine; text?: CollidableText },
         datum: Datum,
         coords: LineCoords
     ) {
@@ -32,7 +33,7 @@ export class LineWithTextScene {
         if (!datum.text?.label) return;
 
         if (this.text == null) {
-            this.text = new _Scene.TransformableText();
+            this.text = new CollidableText();
             this.appendChild(this.text);
         }
 

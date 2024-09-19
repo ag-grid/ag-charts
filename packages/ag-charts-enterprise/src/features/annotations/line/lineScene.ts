@@ -4,6 +4,7 @@ import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { ArrowCapScene, type CapScene } from '../scenes/capScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
+import type { CollidableText } from '../scenes/collidableTextScene';
 import { DivariantHandle } from '../scenes/handle';
 import { LineWithTextScene } from '../scenes/lineWithTextScene';
 import { LinearScene } from '../scenes/linearScene';
@@ -25,7 +26,7 @@ export class LineScene extends LinearScene<LineTypeProperties> {
     public readonly line = new CollidableLine();
     private readonly start = new DivariantHandle();
     private readonly end = new DivariantHandle();
-    public text?: _Scene.TransformableText;
+    public text?: CollidableText;
     private startCap?: CapScene;
     private endCap?: CapScene;
     private readonly anchor: _ModuleSupport.ToolbarAnchor = { x: 0, y: 0 };
