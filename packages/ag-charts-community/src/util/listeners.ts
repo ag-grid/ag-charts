@@ -1,3 +1,4 @@
+import { Destructible } from './destroy';
 import { Logger } from './logger';
 
 type Handler = (...args: any[]) => void;
@@ -7,7 +8,7 @@ export type Listener<H extends Handler> = {
     handler: H;
 };
 
-export class Listeners<EventType extends string, EventHandler extends Handler> {
+export class Listeners<EventType extends string, EventHandler extends Handler> extends Destructible {
     protected readonly registeredListeners: Map<EventType, Listener<EventHandler>[]> = new Map();
 
     public addListener<T extends EventType>(eventType: T, handler: EventHandler) {
@@ -63,7 +64,7 @@ export class Listeners<EventType extends string, EventHandler extends Handler> {
         return this.registeredListeners.get(eventType) ?? [];
     }
 
-    destroy() {
+    protected override destructor() {
         this.registeredListeners.clear();
     }
 }

@@ -60,6 +60,8 @@ export class SeriesAreaTooltipManager extends BaseManager {
         );
     }
 
+    protected override destructor() {}
+
     public seriesChanged(series: Series<any, any>[]) {
         this.series = series;
     }

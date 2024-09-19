@@ -1,6 +1,7 @@
+import { Destructible } from './destroy';
 import { Logger } from './logger';
 
-export class CallbackCache {
+export class CallbackCache extends Destructible {
     private cache: WeakMap<Function, Map<string, any>> = new WeakMap();
 
     call<F extends (...args: any[]) => any>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
@@ -43,5 +44,9 @@ export class CallbackCache {
 
     invalidateCache() {
         this.cache = new WeakMap();
+    }
+
+    protected override destructor() {
+        this.invalidateCache();
     }
 }

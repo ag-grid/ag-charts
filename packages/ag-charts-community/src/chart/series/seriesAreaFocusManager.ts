@@ -76,6 +76,8 @@ export class SeriesAreaFocusManager extends BaseManager {
         );
     }
 
+    protected override destructor() {}
+
     public seriesChanged(declaredSeries: Series<any, SeriesProperties<any>>[]) {
         this.series = [...declaredSeries].sort((a, b) => {
             let fpA = a.properties.focusPriority ?? Infinity;

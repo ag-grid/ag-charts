@@ -27,6 +27,8 @@ export class AnnotationManager
         super();
     }
 
+    protected override destructor() {}
+
     public createMemento() {
         return this.annotations;
     }

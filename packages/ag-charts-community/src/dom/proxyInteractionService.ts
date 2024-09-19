@@ -1,7 +1,7 @@
 import type { Direction } from 'ag-charts-types';
 
 import type { LocaleManager } from '../locale/localeManager';
-import { Destructible } from '../util/destroy';
+import { DestroyFns, Destructible } from '../util/destroy';
 import { createElement } from '../util/dom';
 import { BoundedText } from './boundedText';
 import type { DOMManager } from './domManager';
@@ -116,17 +116,17 @@ function allocateMeta<T extends keyof ProxyMeta>(params: ProxyMeta[T]['params'])
     return meta;
 }
 
-export class ProxyInteractionService {
-    private readonly destroyFns: Array<() => void> = [];
+export class ProxyInteractionService extends Destructible {
+    private readonly destroyFns = new DestroyFns();
 
     constructor(
         private readonly localeManager: LocaleManager,
         private readonly domManager: DOMManager
-    ) {}
-
-    destroy() {
-        this.destroyFns.forEach((fn) => fn());
+    ) {
+        super();
     }
+
+    protected override destructor() {}
 
     private addLocalisation(fn: () => void) {
         fn();

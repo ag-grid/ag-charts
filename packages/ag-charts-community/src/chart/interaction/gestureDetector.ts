@@ -67,7 +67,7 @@ export class GestureDetector extends BaseManager<GestureEventTypes, GestureEvent
         this.domManager.addEventListener('touchcancel', this.touchcancel);
     }
 
-    override destroy() {
+    protected override destructor() {
         this.domManager.removeEventListener('touchstart', this.touchstart);
         this.domManager.removeEventListener('touchmove', this.touchmove);
         this.domManager.removeEventListener('touchend', this.touchend);

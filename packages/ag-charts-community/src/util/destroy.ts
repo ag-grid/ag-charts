@@ -69,7 +69,7 @@ class DestructibleArray<T> extends Array<T> implements Destroyable {
 
     protected destructor() {
         for (const elem of this) {
-            if (isDestroyable(elem)) {
+            if (isDestroyable(elem) && !isWeak(elem)) {
                 elem.destroy();
             }
         }

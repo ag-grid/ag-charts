@@ -1,17 +1,19 @@
 import { Path } from '../scene/shape/path';
 import { Transformable } from '../scene/transformable';
 import type { BBoxValues } from '../util/bboxinterface';
+import { Destructible } from '../util/destroy';
 import { getDocument, getWindow, setElementBBox } from '../util/dom';
 import type { DOMManager } from './domManager';
 
 const FOCUS_INDICATOR_CSS_CLASS = 'ag-charts-focus-indicator';
-export class FocusIndicator {
+export class FocusIndicator extends Destructible {
     private readonly element: HTMLElement;
     private readonly svg: SVGSVGElement;
     private readonly path: SVGPathElement;
     private readonly div: HTMLDivElement;
 
     constructor(private readonly domManager: DOMManager) {
+        super();
         this.div = getDocument().createElement('div');
         this.svg = getDocument().createElementNS('http://www.w3.org/2000/svg', 'svg');
         this.path = getDocument().createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -23,7 +25,7 @@ export class FocusIndicator {
         this.element.append(this.svg);
     }
 
-    destroy() {
+    protected override destructor() {
         this.domManager.removeStyles(FOCUS_INDICATOR_CSS_CLASS);
         this.domManager.removeChild('series-area', FOCUS_INDICATOR_CSS_CLASS);
     }

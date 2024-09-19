@@ -85,6 +85,8 @@ export interface ToolbarProxyGroupOptionsEvent extends ToolbarBaseEvent<'proxy-g
 }
 
 export class ToolbarManager extends BaseManager<EventTypes, ToolbarEvent> {
+    protected override destructor() {}
+
     static isGroup<T extends ToolbarGroup>(
         group: T,
         event: ToolbarEvent

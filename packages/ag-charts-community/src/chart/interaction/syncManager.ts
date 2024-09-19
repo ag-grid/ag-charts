@@ -42,6 +42,8 @@ export class SyncManager extends BaseManager {
         super();
     }
 
+    protected override destructor() {}
+
     subscribe(groupId: GroupId = SyncManager.DEFAULT_GROUP) {
         let syncGroup = this.get(groupId);
         if (!syncGroup) {

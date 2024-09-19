@@ -218,9 +218,7 @@ export class InteractionManager extends InteractionStateListener<InteractionType
         }
     }
 
-    override destroy() {
-        super.destroy();
-
+    protected override destructor() {
         for (const type of WINDOW_EVENT_HANDLERS) {
             getWindow().removeEventListener(type, this.eventHandler);
         }

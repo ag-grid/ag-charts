@@ -29,6 +29,8 @@ export interface AxisHoverChartEvent extends ChartEvent<'axis-hover'> {
 }
 
 export class ChartEventManager extends BaseManager<ChartEventType, ChartEvents> {
+    protected override destructor() {}
+
     legendItemClick(series: any, itemId: any, enabled: boolean, legendItemName?: string) {
         const event: LegendItemClickChartEvent = {
             type: 'legend-item-click',

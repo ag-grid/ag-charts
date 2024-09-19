@@ -1,5 +1,6 @@
 import type { AgContextMenuOptions } from 'ag-charts-types';
 
+import { DestroyFns, Destructible } from '../../util/destroy';
 import { Listeners } from '../../util/listeners';
 import type { CategoryLegendDatum } from '../legendDatum';
 import type { SeriesNodeDatum } from '../series/seriesTypes';
@@ -47,21 +48,22 @@ export type ContextMenuAction<K extends ContextType> = {
     action: ContextMenuCallback<K>;
 };
 
-export class ContextMenuRegistry {
+export class ContextMenuRegistry extends Destructible {
     private readonly defaultActions: Array<ContextMenuAction<ContextType>> = [];
     private readonly disabledActions: Set<string> = new Set();
     private readonly hiddenActions: Set<string> = new Set();
     private readonly listeners: Listeners<'', (e: ContextMenuEvent) => void> = new Listeners();
-    private readonly destroyFns: (() => void)[];
+    private readonly destroyFns = new DestroyFns();
 
     public constructor(regionManager: RegionManager) {
+        super();
         const { Default, ContextMenu } = InteractionState;
-        this.destroyFns = [regionManager.listenAll('contextmenu', (e) => this.onContextMenu(e), Default | ContextMenu)];
+        this.destroyFns.push(
+            regionManager.listenAll('contextmenu', (e) => this.onContextMenu(e), Default | ContextMenu)
+        );
     }
 
-    public destroy() {
-        this.destroyFns.forEach((d) => d());
-    }
+    protected override destructor() {}
 
     private onContextMenu(event: PointerInteractionEvent<'contextmenu'> & { region: string }) {
         const type = ContextMenuRegistry.toContextType(event.region);

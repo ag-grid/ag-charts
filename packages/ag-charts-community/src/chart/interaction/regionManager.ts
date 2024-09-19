@@ -1,6 +1,7 @@
 import { Node } from '../../scene/node';
 import type { BBoxProvider } from '../../util/bboxinterface';
 import { Debug } from '../../util/debug';
+import { DestroyFns, Destructible } from '../../util/destroy';
 import { Listeners } from '../../util/listeners';
 import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
 import { InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
@@ -64,7 +65,7 @@ function nodeToBBoxProvider(node: RegionNodeType) {
     return new NodeRegionBBoxProvider(node.node, node.id);
 }
 
-export class RegionManager {
+export class RegionManager extends Destructible {
     private readonly debug = Debug.create(true, 'region');
 
     private current?: { region: Region; bboxProvider?: BBoxProvider };
@@ -72,10 +73,11 @@ export class RegionManager {
     private leftCanvas = false;
 
     private readonly regions: Map<RegionName, Region> = new Map();
-    private readonly destroyFns: (() => void)[] = [];
+    private readonly destroyFns = new DestroyFns();
     private readonly allRegionsListeners = new RegionListeners();
 
     constructor(private readonly interactionManager: InteractionManager) {
+        super();
         this.destroyFns.push(
             ...POINTER_INTERACTION_TYPES.map((eventName) =>
                 interactionManager.addListener(eventName, this.processPointerEvent.bind(this), InteractionState.All)
@@ -83,10 +85,7 @@ export class RegionManager {
         );
     }
 
-    public destroy() {
-        this.destroyFns.forEach((fn) => fn());
-
-        this.current = undefined;
+    protected override destructor() {
         for (const region of this.regions.values()) {
             region.listeners.destroy();
         }

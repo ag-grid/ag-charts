@@ -33,9 +33,7 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
         return this.interactionManager.getState();
     }
 
-    public override destroy() {
-        super.destroy();
-    }
+    protected override destructor() {}
 
     private onBlur(event: FocusInteractionEvent<'blur'>) {
         this.dispatch('blur', 0, event);

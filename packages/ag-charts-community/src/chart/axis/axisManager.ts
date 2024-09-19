@@ -1,6 +1,7 @@
 import type { AxisContext } from '../../module/axisContext';
 import { Group } from '../../scene/group';
 import { Layer } from '../../scene/layer';
+import { Destructible } from '../../util/destroy';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import { ZIndexMap } from '../zIndexMap';
 
@@ -12,13 +13,14 @@ type Axis = {
     destroy(): void;
 };
 
-export class AxisManager {
+export class AxisManager extends Destructible {
     private readonly axes: Map<ChartAxisDirection, AxisContext[]> = new Map();
 
     readonly axisGridGroup: Layer;
     readonly axisGroup: Layer;
 
     public constructor(private readonly sceneRoot: Group) {
+        super();
         this.axisGridGroup = new Layer({ name: 'Axes-Grids', zIndex: ZIndexMap.AXIS_GRID });
         this.axisGroup = new Layer({ name: 'Axes', zIndex: ZIndexMap.AXIS });
 
@@ -53,9 +55,7 @@ export class AxisManager {
         return this.axes.get(direction) ?? [];
     }
 
-    destroy() {
+    protected override destructor() {
         this.axes.clear();
-        this.sceneRoot.removeChild(this.axisGroup);
-        this.sceneRoot.removeChild(this.axisGridGroup);
     }
 }

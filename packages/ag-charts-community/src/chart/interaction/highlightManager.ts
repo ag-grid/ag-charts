@@ -26,6 +26,8 @@ export class HighlightManager extends BaseManager<'highlight-change', HighlightC
     private readonly highlightStates = new StateTracker<HighlightNodeDatum>();
     private activeHighlight?: HighlightNodeDatum;
 
+    protected override destructor() {}
+
     public updateHighlight(callerId: string, highlightedDatum?: HighlightNodeDatum) {
         const { activeHighlight: previousHighlight } = this;
         this.highlightStates.set(callerId, highlightedDatum);

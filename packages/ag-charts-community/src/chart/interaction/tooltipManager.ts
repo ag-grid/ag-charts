@@ -1,5 +1,6 @@
 import type { DOMManager } from '../../dom/domManager';
 import { Transformable } from '../../scene/transformable';
+import { Destructible } from '../../util/destroy';
 import { StateTracker } from '../../util/stateTracker';
 import type { ErrorBoundSeriesNodeDatum, SeriesNodeDatum } from '../series/seriesTypes';
 import type { Tooltip, TooltipContent, TooltipMeta } from '../tooltip/tooltip';
@@ -14,7 +15,7 @@ interface TooltipState {
  * Manages the tooltip HTML an element. Tracks the requested HTML from distinct dependents and
  * handles conflicting tooltip requests.
  */
-export class TooltipManager {
+export class TooltipManager extends Destructible {
     private readonly stateTracker = new StateTracker<TooltipState>();
     private readonly suppressState = new StateTracker(false);
     private appliedState: TooltipState | null = null;
@@ -23,6 +24,7 @@ export class TooltipManager {
         private readonly domManager: DOMManager,
         private readonly tooltip: Tooltip
     ) {
+        super();
         tooltip.setup(domManager);
 
         domManager.addListener('hidden', () => this.tooltip.toggle(false));
@@ -53,7 +55,7 @@ export class TooltipManager {
         return this.stateTracker.get(callerId)?.meta;
     }
 
-    public destroy() {
+    protected override destructor() {
         this.domManager.removeStyles('tooltip');
     }
 

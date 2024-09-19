@@ -67,6 +67,8 @@ export class SeriesAreaManager extends BaseManager {
         );
     }
 
+    protected override destructor() {}
+
     public dataChanged() {
         for (const manager of this.subManagers) {
             manager.dataChanged?.();

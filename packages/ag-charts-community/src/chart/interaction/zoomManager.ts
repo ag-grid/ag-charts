@@ -66,6 +66,8 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
     private axes?: LayoutCompleteEvent['axes'];
 
+    protected override destructor() {}
+
     public addLayoutListeners(layoutManager: LayoutManager) {
         this.destroyFns.push(
             layoutManager.addListener('layout:complete', (event) => {

@@ -8,6 +8,7 @@ import type { ModuleContext } from '../module/moduleContext';
 import type { Group } from '../scene/group';
 import { Scene } from '../scene/scene';
 import { CallbackCache } from '../util/callbackCache';
+import { Destructible, weak } from '../util/destroy';
 import type { Mutex } from '../util/mutex';
 import { AnnotationManager } from './annotation/annotationManager';
 import { AxisManager } from './axis/axisManager';
@@ -32,7 +33,7 @@ import { SeriesStateManager } from './series/seriesStateManager';
 import type { Tooltip } from './tooltip/tooltip';
 import { type UpdateCallback, UpdateService } from './updateService';
 
-export class ChartContext implements ModuleContext {
+export class ChartContext extends Destructible implements ModuleContext {
     readonly callbackCache = new CallbackCache();
     readonly chartEventManager = new ChartEventManager();
     readonly highlightManager = new HighlightManager();
@@ -58,7 +59,7 @@ export class ChartContext implements ModuleContext {
     keyNavManager: KeyNavManager;
     proxyInteractionService: ProxyInteractionService;
     regionManager: RegionManager;
-    scene: Scene;
+    @weak scene: Scene;
     syncManager: SyncManager;
     tooltipManager: TooltipManager;
     updateService: UpdateService;
@@ -75,6 +76,7 @@ export class ChartContext implements ModuleContext {
             pixelRatio?: number;
         }
     ) {
+        super();
         const { scene, root, syncManager, container, updateCallback, updateMutex, pixelRatio } = vars;
 
         this.chartService = chart;
@@ -110,22 +112,5 @@ export class ChartContext implements ModuleContext {
         this.zoomManager.addLayoutListeners(this.layoutManager);
     }
 
-    destroy() {
-        // chart.ts handles the destruction of the scene.
-        this.animationManager.destroy();
-        this.axisManager.destroy();
-        this.callbackCache.invalidateCache();
-        this.chartEventManager.destroy();
-        this.contextMenuRegistry.destroy();
-        this.domManager.destroy();
-        this.focusIndicator.destroy();
-        this.highlightManager.destroy();
-        this.interactionManager.destroy();
-        this.keyNavManager.destroy();
-        this.proxyInteractionService.destroy();
-        this.regionManager.destroy();
-        this.syncManager.destroy();
-        this.tooltipManager.destroy();
-        this.zoomManager.destroy();
-    }
+    protected override destructor() {}
 }

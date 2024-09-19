@@ -1,6 +1,7 @@
 import type { AdditionalAnimationOptions, AnimationOptions, AnimationValue, IAnimation } from '../../motion/animation';
 import { Animation } from '../../motion/animation';
 import { Debug } from '../../util/debug';
+import { Destructible } from '../../util/destroy';
 import { getWindow } from '../../util/dom';
 import { EventEmitter, type EventListener } from '../../util/eventEmitter';
 import { Logger } from '../../util/logger';
@@ -26,7 +27,7 @@ function validAnimationDuration(testee?: number) {
  * Manage animations across a chart, running all animations through only one `requestAnimationFrame` callback,
  * preventing duplicate animations and handling their lifecycle.
  */
-export class AnimationManager {
+export class AnimationManager extends Destructible {
     public defaultDuration = 1000;
 
     private batch = new AnimationBatch(this.defaultDuration * 1.5);
@@ -44,7 +45,9 @@ export class AnimationManager {
     constructor(
         private readonly interactionManager: InteractionManager,
         private readonly chartUpdateMutex: Mutex
-    ) {}
+    ) {
+        super();
+    }
 
     public addListener<K extends keyof AnimationEventMap>(eventName: K, listener: EventListener<AnimationEventMap[K]>) {
         return this.events.on(eventName, listener);
@@ -299,7 +302,7 @@ export class AnimationManager {
         this.batch.stoppedCbs.add(cb);
     }
 
-    public destroy() {
+    protected override destructor() {
         this.stop();
         this.events.clear();
     }

@@ -119,9 +119,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         }
     }
 
-    override destroy() {
-        super.destroy();
-
+    protected override destructor() {
         this.observer?.unobserve(this.element);
         if (this.container) {
             this.sizeMonitor.unobserve(this.container);
