@@ -29,7 +29,7 @@ export function recordTiming(suitePath: string, name: string, measurement: Bench
     }
     records.get(suitePath)?.set(name, measurement);
 
-    return measurement.memory ? getTotalMemoryUsage(measurement.memory) : undefined;
+    return measurement.memory ? getRelativeMemoryUsage(measurement.memory) : undefined;
 }
 
 export function logTimings() {
@@ -85,6 +85,15 @@ function collectTimings<T>(format: (measurement: BenchmarkMeasurement) => T): Ma
 
 function getTotalMemoryUsage(memoryStats: NonNullable<BenchmarkMeasurement['memory']>): number {
     const jsHeapSize = memoryStats.after.heapUsed;
+    if (!memoryStats.nativeAllocations) return jsHeapSize;
+    return Object.values(memoryStats.nativeAllocations).reduce(
+        (totalBytes, { bytes }) => totalBytes + bytes,
+        jsHeapSize
+    );
+}
+
+function getRelativeMemoryUsage(memoryStats: NonNullable<BenchmarkMeasurement['memory']>): number {
+    const jsHeapSize = Math.max(0, memoryStats.before.heapUsed - memoryStats.after.heapUsed);
     if (!memoryStats.nativeAllocations) return jsHeapSize;
     return Object.values(memoryStats.nativeAllocations).reduce(
         (totalBytes, { bytes }) => totalBytes + bytes,

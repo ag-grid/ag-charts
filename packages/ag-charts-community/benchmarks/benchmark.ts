@@ -51,14 +51,11 @@ export function benchmark(
         global.console.warn('GC flags disabled - invoke via `npm run benchmark` to collect heap usage stats');
     }
     function getMemoryUsage(): NodeJS.MemoryUsage | null {
-        if (!global.gc) return null;
-        global.gc();
         return process.memoryUsage();
     }
 
     beforeEach(() => {
-        if (!global.gc) return;
-        global.gc();
+        global.gc?.();
     });
 
     it(
