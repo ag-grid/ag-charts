@@ -3,10 +3,10 @@ import { _Scene, _Util } from 'ag-charts-community';
 import { AnnotationType } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { DivariantHandle } from '../scenes/handle';
-import { ShapeScene } from '../scenes/shapeScene';
+import { ShapePointScene } from '../scenes/shapePointScene';
 import type { ArrowUpProperties } from './arrowUpProperties';
 
-export class ArrowUpScene extends ShapeScene<ArrowUpProperties> {
+export class ArrowUpScene extends ShapePointScene<ArrowUpProperties> {
     static override is(value: unknown): value is ArrowUpScene {
         return AnnotationScene.isCheck(value, AnnotationType.ArrowUp);
     }
