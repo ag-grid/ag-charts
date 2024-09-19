@@ -59,7 +59,9 @@ export const SITE_BASE_URL =
     // Use node env value during Astro build
     globalThis.process?.env?.PUBLIC_BASE_URL?.replace(/\/?$/, '/') ||
     // `.env.*` override (for client side)
-    import.meta.env?.PUBLIC_BASE_URL?.replace(/\/?$/, '/');
+    import.meta.env?.PUBLIC_BASE_URL?.replace(/\/?$/, '/') ||
+    // Use Astro base url for e2e tests
+    import.meta.env?.BASE_URL;
 
 /*
  * Site URL
