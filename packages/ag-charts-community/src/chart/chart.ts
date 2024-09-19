@@ -353,7 +353,7 @@ export abstract class Chart extends Observable {
                 this.update(ChartUpdateType.SCENE_RENDER);
             }),
             ctx.zoomManager.addListener('zoom-change', () => {
-                this.series.map((s) => (s as any).animationState?.transition('updateData'));
+                this.series.forEach((s) => (s as any).animationState?.transition('updateData'));
                 const skipAnimations = this.chartAnimationPhase !== 'initial';
                 this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true, skipAnimations });
             })

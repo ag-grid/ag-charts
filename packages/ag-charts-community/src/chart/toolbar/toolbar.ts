@@ -289,15 +289,13 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             return buttonVisible ? false : first;
         };
 
-        childNodes.reduce<boolean>(
-            (first, button) => setFirstClass(first, button, styles.modifiers.button.first),
-            true
-        );
+        let first = true;
+        childNodes.forEach((button) => (first = setFirstClass(first, button, styles.modifiers.button.first)));
 
-        childNodes.reduceRight<boolean>(
-            (last, button) => setFirstClass(last, button, styles.modifiers.button.last),
-            true
-        );
+        let last = true;
+        [...childNodes]
+            .reverse()
+            .forEach((button) => (last = setFirstClass(last, button, styles.modifiers.button.last)));
     }
 
     private onButtonToggled(event: ToolbarButtonToggledEvent) {
