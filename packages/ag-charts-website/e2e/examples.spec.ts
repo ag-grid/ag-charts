@@ -89,6 +89,9 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
     legend: {
         'legend-position': { clickOrder: 'reverse' },
     },
+    'linear-gauge': {
+        labels: { skipCanvasUpdateCheck: true },
+    },
     'radial-gauge': {
         needle: { skipCanvasUpdateCheck: true },
     },

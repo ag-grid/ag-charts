@@ -443,6 +443,8 @@ export class LinearGaugeSeries
             fontWeight,
             fontFamily,
             lineHeight,
+            wrapping,
+            overflowStrategy,
             formatter = (params) => this.formatLabel(params.value),
         } = label;
         return {
@@ -458,6 +460,8 @@ export class LinearGaugeSeries
             fontWeight,
             fontFamily,
             lineHeight,
+            wrapping,
+            overflowStrategy,
             formatter,
         };
     }
