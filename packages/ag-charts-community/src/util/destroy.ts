@@ -93,34 +93,51 @@ export class DestroyFns extends DestructibleArray<() => void> {
     }
 }
 
-export class UniquePtr<T extends Destroyable> extends Destructible {
-    constructor(private guardedPtr: T) {
-        super();
-    }
-    destructor() {
-        this.guardedPtr.destroy();
-    }
-    set ptr(ptr: T) {
-        this.guardedPtr.destroy();
-        this.guardedPtr = ptr;
-    }
-    get ptr(): T {
-        return this.guardedPtr;
-    }
-}
-
-export class UniqueOptPtr<T extends Destroyable> extends Destructible {
+class UniqueOptionalRef<T extends Destroyable> extends Destructible {
     constructor(private guardedPtr?: T) {
         super();
     }
     destructor() {
         this.guardedPtr?.destroy();
     }
-    set ptr(ptr: T | undefined) {
+    setref(ref: T | undefined): T | undefined {
+        const oldRef = this.guardedPtr;
         this.guardedPtr?.destroy();
-        this.guardedPtr = ptr;
+        this.guardedPtr = ref;
+        return oldRef;
     }
-    get ptr(): T | undefined {
+    deref(): T | undefined {
         return this.guardedPtr;
     }
+}
+
+export function weak(target: unknown, propertyKey: string): void {
+    let weakRef: WeakRef<object> | undefined;
+    Object.defineProperty(target, propertyKey, {
+        get: function () {
+            return weakRef?.deref();
+        },
+        set: function (newValue: any) {
+            weakRef = new WeakRef(newValue);
+        },
+        configurable: true,
+        enumerable: true,
+    });
+}
+
+export function unique(target: unknown, propertyKey: string): void {
+    const privatePropertyKey = `_${propertyKey}`;
+    (target as any)[privatePropertyKey] = new UniqueOptionalRef();
+    Object.defineProperty(target, propertyKey, {
+        get: function () {
+            const ref: UniqueOptionalRef<Destroyable> = this[privatePropertyKey];
+            return ref?.deref();
+        },
+        set: function (newValue: any) {
+            const ref: UniqueOptionalRef<Destroyable> = this[privatePropertyKey];
+            ref.setref(newValue);
+        },
+        configurable: true,
+        enumerable: true,
+    });
 }

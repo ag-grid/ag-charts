@@ -10,7 +10,7 @@ import { Text } from '../scene/shape/text';
 import type { SpriteDimensions, SpriteRenderer } from '../scene/spriteRenderer';
 import { Translatable } from '../scene/transformable';
 import { arraysEqual } from '../util/array';
-import { UniqueOptPtr } from '../util/destroy';
+import { unique, weak } from '../util/destroy';
 import { iterate } from '../util/iterator';
 import { ProxyPropertyOnWrite } from '../util/proxy';
 import type { Marker } from './marker/marker';
@@ -19,13 +19,13 @@ import type { MarkerConstructor } from './marker/util';
 export class LegendMarkerLabel extends Translatable(Group) {
     static readonly className = 'MarkerLabel';
 
-    private readonly label = new Text();
+    @weak private readonly label = new Text();
 
-    private readonly symbolsGroup: Group = new Group({
+    @weak private readonly symbolsGroup: Group = new Group({
         name: 'legend-markerLabel-symbols',
     });
 
-    private readonly bitmap = new Image();
+    @weak private readonly bitmap = new Image();
     private bitmapDirty = true;
 
     private enabled: boolean = true;
@@ -45,7 +45,7 @@ export class LegendMarkerLabel extends Translatable(Group) {
         this.append([this.symbolsGroup, label]);
     }
 
-    readonly proxyButton: UniqueOptPtr<ListSwitch> = new UniqueOptPtr();
+    @unique proxyButton?: ListSwitch = undefined;
 
     pageIndex: number = NaN;
 

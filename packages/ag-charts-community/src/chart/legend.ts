@@ -314,7 +314,7 @@ export class Legend extends BaseProperties {
     private initLegendItemToolbar() {
         this.itemSelection.each((markerLabel, _, i) => {
             // Create the hidden CSS button.
-            markerLabel.proxyButton.ptr ??= this.ctx.proxyInteractionService.createProxyElement({
+            markerLabel.proxyButton ??= this.ctx.proxyInteractionService.createProxyElement({
                 type: 'listswitch',
                 id: `ag-charts-legend-item-${i}`,
                 textContent: this.getItemAriaText(i),
@@ -325,7 +325,7 @@ export class Legend extends BaseProperties {
                 // Retrieve the datum from the node rather than from the method parameter.
                 // The method parameter `datum` gets destroyed when the data is refreshed
                 // using Series.getLegendData(). But the scene node will stay the same.
-                onclick: (ev) => this.onClick(ev, markerLabel.datum, markerLabel.proxyButton.ptr!.button),
+                onclick: (ev) => this.onClick(ev, markerLabel.datum, markerLabel.proxyButton!.button),
                 ondblclick: (ev) => this.onDoubleClick(ev, markerLabel.datum),
                 onmouseenter: (ev) => this.onHover(ev, markerLabel),
                 onmouseleave: () => this.onLeave(),
@@ -337,7 +337,7 @@ export class Legend extends BaseProperties {
 
         const buttons: HTMLButtonElement[] = this.itemSelection
             .nodes()
-            .map((markerLabel) => markerLabel.proxyButton.ptr?.button)
+            .map((markerLabel) => markerLabel.proxyButton?.button)
             .filter((button): button is HTMLButtonElement => !!button);
         const orientation = this.getOrientation();
         this.proxyLegendToolbarDestroyFns.setFns(initRovingTabIndex({ orientation, buttons }));
@@ -428,7 +428,7 @@ export class Legend extends BaseProperties {
 
         if (proxyToolbarNeedsUpdate) {
             if (orientationChange) {
-                this.itemSelection.each((markerLabel) => (markerLabel.proxyButton.ptr = undefined));
+                this.itemSelection.each((markerLabel) => (markerLabel.proxyButton = undefined));
             }
             this.initLegendItemToolbar();
         }
@@ -717,7 +717,7 @@ export class Legend extends BaseProperties {
     }
 
     private updateItemProxyButtons() {
-        this.itemSelection.each((l) => setElementBBox(l.proxyButton.ptr?.listitem, Transformable.toCanvas(l)));
+        this.itemSelection.each((l) => setElementBBox(l.proxyButton?.listitem, Transformable.toCanvas(l)));
     }
 
     private updatePaginationProxyButtons(oldPages: Page[] | undefined) {
@@ -1169,8 +1169,8 @@ export class Legend extends BaseProperties {
 
     private onLocaleChanged() {
         this.itemSelection.each(({ proxyButton }, _, i) => {
-            if (proxyButton.ptr?.button != null) {
-                proxyButton.ptr.button.textContent = this.getItemAriaText(i);
+            if (proxyButton?.button != null) {
+                proxyButton.button.textContent = this.getItemAriaText(i);
             }
         });
         this.proxyLegendItemDescription.textContent = this.getItemAriaDescription();
