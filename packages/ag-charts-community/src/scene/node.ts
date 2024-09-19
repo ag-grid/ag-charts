@@ -1,7 +1,7 @@
 import { createId } from '../util/id';
 import { iterate, toIterable } from '../util/iterator';
 import { BBox } from './bbox';
-import { ChangeDetectable, RedrawType, SceneChangeDetection } from './changeDetectable';
+import { RedrawType, SceneChangeDetection } from './changeDetectable';
 import type { LayersManager, ZIndexSubOrder } from './layersManager';
 
 export { SceneChangeDetection, RedrawType };
@@ -45,11 +45,13 @@ export type ChildNodeCounts = {
  * Abstract scene graph node.
  * Each node can have zero or one parent and belong to zero or one scene.
  */
-export abstract class Node extends ChangeDetectable {
+export abstract class Node {
     static _nextSerialNumber = 0;
 
     /** Unique number to allow creation order to be easily determined. */
     readonly serialNumber = Node._nextSerialNumber++;
+
+    protected _dirty: RedrawType = RedrawType.MAJOR;
 
     /**
      * Unique node ID in the form `ClassName-NaturalNumber`.
@@ -250,7 +252,6 @@ export abstract class Node extends ChangeDetectable {
     }
 
     constructor({ isVirtual, tag, zIndex, name }: NodeOptions = {}) {
-        super();
         this.name = name;
         this.isVirtual = isVirtual ?? false;
         this.tag = tag ?? NaN;
@@ -355,7 +356,7 @@ export abstract class Node extends ChangeDetectable {
         }
     }
 
-    override markDirty(_source: Node, type = RedrawType.TRIVIAL, parentType = type) {
+    markDirty(_source: Node, type = RedrawType.TRIVIAL, parentType = type) {
         const _dirty = this._dirty;
         // Short-circuit case to avoid needing to percolate all dirty flag changes if redundant.
         const dirtyTypeBelowHighWatermark = _dirty > type || (_dirty === type && type === parentType);
@@ -376,7 +377,7 @@ export abstract class Node extends ChangeDetectable {
         return this._dirty;
     }
 
-    override markClean(opts?: { force?: boolean; recursive?: boolean | 'virtual' }) {
+    markClean(opts?: { force?: boolean; recursive?: boolean | 'virtual' }) {
         const { force = false, recursive = true } = opts ?? {};
 
         if (this._dirty === RedrawType.NONE && !force) {
