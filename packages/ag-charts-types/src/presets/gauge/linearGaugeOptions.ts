@@ -118,7 +118,7 @@ export interface AgLinearGaugeLabelOptions
     /** Distance between the shape edges and the text. */
     spacing?: PixelSize;
     /**
-     * Avoid axis label collisions with the bar and/or scale.
+     * Avoid label collisions with the bar and/or scale.
      *
      * Default: `true`
      */

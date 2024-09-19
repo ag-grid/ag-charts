@@ -14,7 +14,9 @@ import type {
     FontWeight,
     Formatter,
     MarkerShape,
+    OverflowStrategy,
     Styler,
+    TextWrap,
 } from 'ag-charts-types';
 
 import { CORNER_MODE, FILL_MODE, TARGET_MARKER_SHAPE } from '../gauge-util/properties';
@@ -128,6 +130,8 @@ export type LinearGaugeLabelDatum = {
     minimumFontSize: number | undefined;
     fontFamily: string;
     lineHeight: number | undefined;
+    wrapping: TextWrap;
+    overflowStrategy: OverflowStrategy;
     formatter:
         | Formatter<
               AgChartLabelFormatterParams<any> & _ModuleSupport.RequireOptional<AgLinearGaugeLabelFormatterParams>

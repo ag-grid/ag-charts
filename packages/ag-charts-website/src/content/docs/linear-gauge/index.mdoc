@@ -148,13 +148,14 @@ In the above configuration:
 
 An inner labels can be configured with the `label` property.
 
-{% chartExampleRunner title="Labels" name="labels" type="generated" options={ "exampleHeight": 250 } /%}
+{% chartExampleRunner title="Labels" name="labels" type="generated" options={ "exampleHeight": 300 } /%}
 
 ```js
 {
     label: {
         enabled: true,
         placement: 'inside-start',
+        avoidCollisions: true,
     },
     scale: {
         label: {
@@ -167,6 +168,7 @@ An inner labels can be configured with the `label` property.
 In this configuration:
 
 -   The label placement in relation to the gauge is configured by the `placement` property.
+-   The label is configured to avoid simultaneously overlapping the bar and scale with the `avoidCollisions` property.
 -   The scale labels are hidden using the `scale.label.enabled` option. See the [API Reference](#api-reference) for more details about customising the scale label style and interval.
 
 ### Segmentation

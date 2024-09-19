@@ -1,10 +1,27 @@
-import { type TextAlign, type _ModuleSupport, _Scene } from 'ag-charts-community';
+import {
+    type FontFamily,
+    type FontSize,
+    type FontStyle,
+    type FontWeight,
+    type TextAlign,
+    _ModuleSupport,
+    _Scene,
+} from 'ag-charts-community';
 
 import { getLabelText } from '../gauge-util/label';
-import { formatSingleLabel } from '../util/labelFormatter';
+import { type LabelFormatting, formatSingleLabel, getLineHeight } from '../util/labelFormatter';
 import type { LinearGaugeLabelDatum } from './linearGaugeSeriesProperties';
 
+const { CachedTextMeasurerPool } = _ModuleSupport;
 const { BBox } = _Scene;
+
+interface TextProperties {
+    fontSize: FontSize;
+    fontStyle?: FontStyle;
+    fontWeight?: FontWeight;
+    fontFamily?: FontFamily;
+    lineHeight?: number;
+}
 
 export interface AnimatableRectDatum {
     x0: number;
@@ -213,9 +230,33 @@ export function formatLinearGaugeLabels(
             meta: null,
         });
 
-        const labelMeta =
-            labelText != null ? formatSingleLabel(labelText, labelDatum, { padding }, sizeFittingHeight) : undefined;
-        const layout = labelMeta?.[0];
+        let layout: LabelFormatting | undefined;
+        const sizeToFit =
+            labelDatum.avoidCollisions &&
+            labelDatum.placement !== 'outside-start' &&
+            labelDatum.placement !== 'outside-end';
+        if (labelText == null) {
+            return;
+        } else if (sizeToFit) {
+            const labelMeta = formatSingleLabel(labelText, labelDatum, { padding }, sizeFittingHeight);
+            layout = labelMeta?.[0];
+        } else {
+            const font: TextProperties = {
+                fontSize: labelDatum.fontSize,
+                fontStyle: labelDatum.fontStyle,
+                fontWeight: labelDatum.fontWeight,
+                fontFamily: labelDatum.fontFamily,
+                lineHeight: labelDatum.lineHeight,
+            };
+            const { width, height } = CachedTextMeasurerPool.measureText(labelText, { font });
+            layout = {
+                text: labelText,
+                fontSize: labelDatum.fontSize,
+                lineHeight: getLineHeight(labelDatum, labelDatum.fontSize),
+                width,
+                height,
+            };
+        }
 
         if (layout == null) {
             label.visible = false;
