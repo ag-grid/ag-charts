@@ -46,8 +46,13 @@ export class LegendMarkerLabel extends Translatable(Group) {
 
     override destroy() {
         super.destroy();
+        this.destroyProxyButton();
+    }
+
+    destroyProxyButton() {
         this.proxyButton?.button.remove();
         this.proxyButton?.listitem.remove();
+        this.proxyButton = undefined;
     }
 
     proxyButton?: ListSwitch;
