@@ -14,7 +14,6 @@ import type { PlacedLabel, PointLabelDatum } from '../scene/util/labelPlacement'
 import { isPointLabelDatum, placeLabels } from '../scene/util/labelPlacement';
 import { groupBy } from '../util/array';
 import { sleep } from '../util/async';
-import { setAttribute } from '../util/attributeUtil';
 import { Debug } from '../util/debug';
 import { createId } from '../util/id';
 import { jsonApply, jsonDiff } from '../util/json';
@@ -658,8 +657,7 @@ export abstract class Chart extends Observable {
     }
 
     private updateAriaLabels() {
-        setAttribute(this.ctx.scene.canvas.element, 'role', 'img');
-        setAttribute(this.ctx.scene.canvas.element, 'aria-label', this.getAriaLabel());
+        this.ctx.domManager.updateCanvasLabel(this.getAriaLabel());
     }
 
     private checkUpdateShortcut(checkUpdateType: ChartUpdateType) {

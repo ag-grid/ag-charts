@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { gotoExample, setupIntrinsicAssertions, toExamplePageUrls } from './util';
+import { SELECTORS, gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrls } from './util';
 
 test.describe('context-menu', () => {
     setupIntrinsicAssertions();
@@ -12,18 +12,18 @@ test.describe('context-menu', () => {
             test('zoom and pan', async ({ page }) => {
                 await gotoExample(page, url);
 
-                const canvas = await page.locator('canvas');
-                const width = Number(await canvas.getAttribute('width'));
-                const height = Number(await canvas.getAttribute('height'));
+                const { width, height } = await locateCanvas(page);
 
-                await page.click('canvas', {
+                await page.click(SELECTORS.canvas, {
                     button: 'right',
                     position: { x: width * (2 / 3), y: height / 2 },
                 });
+                await expect(page).toHaveScreenshot('zoom-contextmenu.png', { animations: 'disabled' });
+
                 await page.locator('.ag-chart-context-menu__item').filter({ hasText: 'Zoom to here' }).click();
                 await expect(page).toHaveScreenshot('zoom-to-here.png', { animations: 'disabled' });
 
-                await page.click('canvas', {
+                await page.click(SELECTORS.canvas, {
                     button: 'right',
                     position: { x: width / 10, y: height / 2 },
                 });

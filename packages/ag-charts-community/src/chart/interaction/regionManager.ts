@@ -1,4 +1,3 @@
-import type { FocusIndicator } from '../../dom/focusIndicator';
 import { Node } from '../../scene/node';
 import type { BBoxProvider } from '../../util/bboxinterface';
 import { Debug } from '../../util/debug';
@@ -76,10 +75,7 @@ export class RegionManager {
     private readonly destroyFns: (() => void)[] = [];
     private readonly allRegionsListeners = new RegionListeners();
 
-    constructor(
-        private readonly interactionManager: InteractionManager,
-        private readonly focusIndicator: FocusIndicator
-    ) {
+    constructor(private readonly interactionManager: InteractionManager) {
         this.destroyFns.push(
             ...POINTER_INTERACTION_TYPES.map((eventName) =>
                 interactionManager.addListener(eventName, this.processPointerEvent.bind(this), InteractionState.All)
@@ -95,7 +91,6 @@ export class RegionManager {
             region.listeners.destroy();
         }
 
-        this.focusIndicator.destroy();
         this.regions.clear();
     }
 

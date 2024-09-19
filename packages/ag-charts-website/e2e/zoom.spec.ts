@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { dragCanvas, gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrl } from './util';
+import { SELECTORS, dragCanvas, gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrl } from './util';
 
 test.describe('zoom', () => {
     setupIntrinsicAssertions();
@@ -10,10 +10,11 @@ test.describe('zoom', () => {
 
         await gotoExample(page, url);
 
-        const { canvas, width } = await locateCanvas(page);
+        const { width } = await locateCanvas(page);
         let height = 0;
         const updateCanvasSize = async () => {
-            height = Number(await canvas.getAttribute('height'));
+            const { height: newHeight } = await locateCanvas(page);
+            height = newHeight;
         };
 
         await updateCanvasSize();
@@ -31,7 +32,7 @@ test.describe('zoom', () => {
         const withNavigatorXAxisRight = { x: width / 4, y: height - 80 };
 
         // 1. Click the zoom-in button the floating zoom buttons
-        await page.hover('canvas', { position: { x: 100, y: height - 100 } });
+        await page.hover(SELECTORS.canvas, { position: { x: 100, y: height - 100 } });
         const zoomIn = await page.locator('[data-toolbar-id="zoom-in"]');
         await zoomIn.click();
         await zoomIn.click();

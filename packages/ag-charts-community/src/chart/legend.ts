@@ -49,7 +49,6 @@ import { gridLayout } from './gridLayout';
 import type { HighlightNodeDatum } from './interaction/highlightManager';
 import { InteractionState } from './interaction/interactionManager';
 import type { RegionEvent } from './interaction/regionManager';
-import { NodeRegionBBoxProvider } from './interaction/regions';
 import { makeKeyboardPointerEvent } from './keyboardUtil';
 import { Layers } from './layers';
 import { LayoutElement } from './layout/layoutManager';
@@ -331,7 +330,6 @@ export class Legend extends BaseProperties {
                 ariaChecked: !!markerLabel.datum.enabled,
                 ariaDescribedBy: this.proxyLegendItemDescription.id,
                 parent: this.proxyLegendToolbar,
-                focusable: new NodeRegionBBoxProvider(markerLabel),
                 // Retrieve the datum from the node rather than from the method parameter.
                 // The method parameter `datum` gets destroyed when the data is refreshed
                 // using Series.getLegendData(). But the scene node will stay the same.
@@ -745,7 +743,6 @@ export class Legend extends BaseProperties {
                     textContent: { id: 'ariaLabelLegendPagePrevious' },
                     tabIndex: 0,
                     parent: this.proxyLegendPagination,
-                    focusable: new NodeRegionBBoxProvider(this.pagination.previousButton),
                     onclick: () => this.pagination.clickPrevious(),
                 });
                 this.proxyNextButton ??= this.ctx.proxyInteractionService.createProxyElement({
@@ -754,7 +751,6 @@ export class Legend extends BaseProperties {
                     textContent: { id: 'ariaLabelLegendPageNext' },
                     tabIndex: 0,
                     parent: this.proxyLegendPagination,
-                    focusable: new NodeRegionBBoxProvider(this.pagination.nextButton),
                     onclick: () => this.pagination.clickNext(),
                 });
                 this.proxyLegendPagination.ariaHidden = 'false';
