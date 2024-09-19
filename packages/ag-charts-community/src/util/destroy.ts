@@ -112,13 +112,14 @@ class UniqueOptionalRef<T extends Destroyable> extends Destructible {
 }
 
 export function weak(target: unknown, propertyKey: string): void {
-    let weakRef: WeakRef<object> | undefined;
+    const privatePropertyKey = `_${propertyKey}`;
     Object.defineProperty(target, propertyKey, {
         get: function () {
-            return weakRef?.deref();
+            const weakRef: WeakRef<any> = this[privatePropertyKey];
+            return weakRef ? weakRef.deref() : undefined;
         },
         set: function (newValue: any) {
-            weakRef = new WeakRef(newValue);
+            this[privatePropertyKey] = new WeakRef(newValue);
         },
         configurable: true,
         enumerable: true,
