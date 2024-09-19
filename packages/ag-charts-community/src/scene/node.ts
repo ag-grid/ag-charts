@@ -1,4 +1,4 @@
-import { Destructible, type WeakPtr } from '../util/destroy';
+import { Destructible } from '../util/destroy';
 import { createId } from '../util/id';
 import { toIterable } from '../util/iterator';
 import { BBox } from './bbox';
@@ -84,7 +84,7 @@ export abstract class Node extends Destructible {
     protected dirtyZIndex: boolean = false;
 
     private childNodes?: Set<Node>;
-    private parentNode?: WeakPtr<Node>;
+    private parentNode?: WeakRef<Node>;
     private virtualChildrenCount: number = 0;
 
     private cachedBBox?: BBox;
@@ -133,7 +133,7 @@ export abstract class Node extends Destructible {
      * Some arbitrary data bound to the node.
      */
     get datum() {
-        return this._datum ?? this.parentNode?.ptr.datum;
+        return this._datum ?? this.parentNode?.deref()?.datum;
     }
 
     set datum(datum: any) {
@@ -200,7 +200,7 @@ export abstract class Node extends Destructible {
         if (includeSelf) {
             yield node;
         }
-        while ((node = node.parentNode?.ptr)) {
+        while ((node = node.parentNode?.deref())) {
             yield node;
         }
     }
@@ -299,7 +299,7 @@ export abstract class Node extends Destructible {
     }
 
     remove() {
-        return this.parentNode?.ptr.removeChild(this) ?? false;
+        return this.parentNode?.deref()?.removeChild(this) ?? false;
     }
 
     clear() {
@@ -313,7 +313,7 @@ export abstract class Node extends Destructible {
     }
 
     destructor(): void {
-        this.parentNode?.ptr.removeChild(this);
+        this.parentNode?.deref()?.removeChild(this);
     }
 
     setProperties<T>(this: T, styles: { [K in keyof T]?: T[K] }, pickKeys?: (keyof T)[]) {
@@ -396,7 +396,7 @@ export abstract class Node extends Destructible {
         this.cachedBBox = undefined;
         this._dirty = Math.max(_dirty, type);
         if (this.parentNode) {
-            this.parentNode.ptr.markDirty(parentType);
+            this.parentNode.deref()?.markDirty(parentType);
         } else if (this.layerManager) {
             this.layerManager.markDirty();
         }
@@ -421,8 +421,9 @@ export abstract class Node extends Destructible {
     }
 
     protected onZIndexChange() {
-        if (this.parentNode) {
-            this.parentNode.ptr.dirtyZIndex = true;
+        const ref = this.parentNode?.deref();
+        if (ref) {
+            ref.dirtyZIndex = true;
         }
     }
 }

@@ -13,6 +13,10 @@ function isDestroyable(obj: unknown): obj is Destroyable {
     return typeof obj === 'object' && obj != null && 'destroy' in obj && typeof obj['destroy'] === 'function';
 }
 
+function isWeak(obj: unknown): obj is WeakRef<object> {
+    return obj instanceof WeakRef;
+}
+
 // Destroyed objects are turned into 'zombie objects' like it ObjC/Swift.
 // Do not override destroy(), only implement the destructor().
 export abstract class Destructible implements Destroyable {
@@ -20,7 +24,7 @@ export abstract class Destructible implements Destroyable {
         // Automatically destroy any destructible members
         for (const key of Object.keys(this)) {
             const property = (this as any)[key];
-            if (isDestroyable(property)) {
+            if (isDestroyable(property) && !isWeak(property)) {
                 property.destroy();
             }
         }
@@ -120,5 +124,3 @@ export class UniqueOptPtr<T extends Destroyable> extends Destructible {
         return this.guardedPtr;
     }
 }
-
-export type WeakPtr<T extends Destroyable> = undefined | { ptr: T; destroy?: undefined };
