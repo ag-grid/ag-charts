@@ -235,14 +235,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         const { scale: xScale } = xAxis;
         const { scale: yScale } = yAxis;
         const { xKey, yKey, xName, yName, fill, stroke, strokeWidth, cornerRadius } = this.properties;
-        const {
-            formatter: labelFormatter = (params) => String(params.value),
-            fontStyle: labelFontStyle,
-            fontWeight: labelFontWeight,
-            fontSize: labelFontSize,
-            fontFamily: labelFontFamily,
-            color: labelColor,
-        } = this.properties.label;
+        const labelFormatter = this.properties.label.formatter ?? ((params) => String(params.value));
 
         const nodeData: HistogramNodeDatum[] = [];
         const context = {
@@ -280,6 +273,8 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             let selectionDatumLabel = undefined;
             if (total !== 0) {
                 selectionDatumLabel = {
+                    x: x + w / 2,
+                    y: y + h / 2,
                     text:
                         callbackCache.call(labelFormatter, {
                             value: total,
@@ -290,13 +285,6 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
                             xName,
                             yName,
                         }) ?? String(total),
-                    fontStyle: labelFontStyle,
-                    fontWeight: labelFontWeight,
-                    fontSize: labelFontSize,
-                    fontFamily: labelFontFamily,
-                    fill: labelColor,
-                    x: x + w / 2,
-                    y: y + h / 2,
                 };
             }
 
@@ -427,20 +415,19 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
     }
 
     protected async updateLabelNodes(opts: { labelSelection: Selection<Text, HistogramNodeDatum> }) {
+        const { fontStyle, fontWeight, fontFamily, fontSize, color } = this.properties.label;
         const labelEnabled = this.isLabelEnabled();
 
         opts.labelSelection.each((text, datum) => {
-            const label = datum.label;
-
-            if (label && labelEnabled) {
-                text.text = label.text;
-                text.x = label.x;
-                text.y = label.y;
-                text.fontStyle = label.fontStyle;
-                text.fontWeight = label.fontWeight;
-                text.fontSize = label.fontSize;
-                text.fontFamily = label.fontFamily;
-                text.fill = label.fill;
+            if (labelEnabled && datum?.label) {
+                text.text = datum.label.text;
+                text.x = datum.label.x;
+                text.y = datum.label.y;
+                text.fontStyle = fontStyle;
+                text.fontWeight = fontWeight;
+                text.fontFamily = fontFamily;
+                text.fontSize = fontSize;
+                text.fill = color;
                 text.visible = true;
             } else {
                 text.visible = false;

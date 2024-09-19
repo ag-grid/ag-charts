@@ -2,8 +2,6 @@ import type {
     AgHistogramSeriesLabelFormatterParams,
     AgHistogramSeriesOptions,
     AgHistogramSeriesTooltipRendererParams,
-    FontStyle,
-    FontWeight,
 } from 'ag-charts-types';
 
 import type { BBox } from '../../../scene/bbox';
@@ -46,11 +44,6 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
         readonly text: string;
         readonly x: number;
         readonly y: number;
-        readonly fontStyle?: FontStyle;
-        readonly fontWeight?: FontWeight;
-        readonly fontSize: number;
-        readonly fontFamily: string;
-        readonly fill?: string;
     };
 }
 

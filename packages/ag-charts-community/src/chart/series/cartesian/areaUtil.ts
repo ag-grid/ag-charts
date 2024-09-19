@@ -1,5 +1,3 @@
-import type { FontStyle, FontWeight } from 'ag-charts-types';
-
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Point, SizedPoint } from '../../../scene/point';
 import type { Path } from '../../../scene/shape/path';
@@ -56,16 +54,7 @@ export interface MarkerSelectionDatum extends CartesianSeriesNodeDatum {
 export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum {
     readonly index: number;
     readonly itemId: any;
-    readonly label?: {
-        readonly text: string;
-        readonly fontStyle?: FontStyle;
-        readonly fontWeight?: FontWeight;
-        readonly fontSize: number;
-        readonly fontFamily: string;
-        readonly textAlign: CanvasTextAlign;
-        readonly textBaseline: CanvasTextBaseline;
-        readonly fill?: string;
-    };
+    readonly labelText: string;
 }
 
 export interface AreaSeriesNodeDataContext

@@ -1,4 +1,4 @@
-import type { AgBarSeriesStyle, AgErrorBoundSeriesTooltipRendererParams, FontStyle, FontWeight } from 'ag-charts-types';
+import type { AgBarSeriesStyle, AgErrorBoundSeriesTooltipRendererParams } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
@@ -54,13 +54,8 @@ import { adjustLabelPlacement, updateLabelNode } from './labelUtil';
 
 interface BarNodeLabelDatum extends Readonly<Point> {
     readonly text: string;
-    readonly fontStyle?: FontStyle;
-    readonly fontWeight?: FontWeight;
-    readonly fontSize: number;
-    readonly fontFamily: string;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
-    readonly fill?: string;
 }
 
 interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum, Readonly<Point> {
@@ -314,14 +309,6 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 height: barAlongX ? barWidth * crossScale : Math.abs(bboxBottom - bboxHeight),
             };
 
-            const {
-                fontStyle: labelFontStyle,
-                fontWeight: labelFontWeight,
-                fontSize: labelFontSize,
-                fontFamily: labelFontFamily,
-                color: labelColor,
-                placement,
-            } = label;
             const lengthRatioMultiplier = this.shouldFlipXY() ? rect.height : rect.width;
 
             return {
@@ -358,15 +345,10 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                     labelText != null
                         ? {
                               text: labelText,
-                              fill: labelColor,
-                              fontStyle: labelFontStyle,
-                              fontWeight: labelFontWeight,
-                              fontSize: labelFontSize,
-                              fontFamily: labelFontFamily,
                               ...adjustLabelPlacement({
                                   isPositive,
                                   isVertical: !barAlongX,
-                                  placement,
+                                  placement: label.placement,
                                   rect,
                               }),
                           }
