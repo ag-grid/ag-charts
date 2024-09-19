@@ -293,9 +293,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         childNodes.forEach((button) => (first = setFirstClass(first, button, styles.modifiers.button.first)));
 
         let last = true;
-        [...childNodes]
-            .reverse()
-            .forEach((button) => (last = setFirstClass(last, button, styles.modifiers.button.last)));
+        childNodes.toReversed().forEach((button) => (last = setFirstClass(last, button, styles.modifiers.button.last)));
     }
 
     private onButtonToggled(event: ToolbarButtonToggledEvent) {
