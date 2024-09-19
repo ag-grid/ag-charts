@@ -60,8 +60,8 @@ export function benchmark(
             const duration = performance.now() - start;
             const memoryUsageAfter = process.memoryUsage();
             const canvasInstances = ctx.canvasCtx.getActiveCanvasInstances();
-
             const { currentTestName, testPath } = expect.getState();
+
             if (testPath == null || currentTestName == null) {
                 throw new Error('Unable to resolve current test name.');
             }
