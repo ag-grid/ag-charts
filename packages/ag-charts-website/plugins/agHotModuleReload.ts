@@ -4,7 +4,7 @@ import type { Plugin, ViteDevServer } from 'vite';
 import { getIsDev } from '../src/utils/env';
 import { getDevFileList, getExampleRootFileUrl } from '../src/utils/pages';
 
-const BUILD_QUEUE_EMPTY_FILE = '../../node_modules/.cache/ag-charts.build-queue.empty';
+const BUILD_QUEUE_EMPTY_FILE = '../../node_modules/.cache/ag-build-queue.empty';
 
 export default function createAgHotModuleReload(watchIntegration: boolean): Plugin {
     return {

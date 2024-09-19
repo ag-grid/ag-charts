@@ -77,7 +77,7 @@
       "options": {
         "parallel": true,
         "commands": [
-          "node {projectRoot}/../../external/ag-website-shared/scripts/watch/watch.js",
+          "node {projectRoot}/../../external/ag-website-shared/scripts/watch/watch.js charts",
           "nx run ag-charts-website:dev"
         ]
       },
@@ -100,7 +100,7 @@
         "parallel": false,
         "commands": [
           "nx run ag-charts-website-gallery_simple-bar_main.ts:generate-thumbnail",
-          "node {projectRoot}/../../external/ag-website-shared/scripts/watch/watch.js & nx run ag-charts-website:dev"
+          "node {projectRoot}/../../external/ag-website-shared/scripts/watch/watch.js charts & nx run ag-charts-website:dev"
         ]
       },
       "configurations": {
