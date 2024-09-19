@@ -189,22 +189,22 @@ async function touchBuildQueueEmptyFile() {
     }
 }
 
-const CONSEQUTIVE_RESPAWN_THRESHOLD_MS = 500;
+const CONSECUTIVE_RESPAWN_THRESHOLD_MS = 500;
 async function run() {
     let lastRespawn;
-    let consequtiveRespawns = 0;
+    let consecutiveRespawns = 0;
     while (true) {
         lastRespawn = Date.now();
         success('Starting watch...');
         await spawnNxWatch(processWatchOutput);
 
-        if (Date.now() - lastRespawn < CONSEQUTIVE_RESPAWN_THRESHOLD_MS) {
-            consequtiveRespawns++;
+        if (Date.now() - lastRespawn < CONSECUTIVE_RESPAWN_THRESHOLD_MS) {
+            consecutiveRespawns++;
         } else {
-            consequtiveRespawns = 0;
+            consecutiveRespawns = 0;
         }
 
-        if (consequtiveRespawns > 5) {
+        if (consecutiveRespawns > 5) {
             respawnError();
             return;
         }
