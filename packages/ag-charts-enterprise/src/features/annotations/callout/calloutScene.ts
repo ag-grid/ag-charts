@@ -3,7 +3,6 @@ import { _Scene, type _Util } from 'ag-charts-community';
 import { type AnnotationContext, AnnotationType, type Bounds, type Coords, type LineCoords } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { TextualStartEndScene } from '../scenes/textualStartEndScene';
-import { convertLine } from '../utils/values';
 import type { CalloutProperties } from './calloutProperties';
 
 const { drawCorner } = _Scene;
@@ -75,11 +74,12 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
             : { fill: undefined, strokeWidth: 0 };
     }
 
-    protected override updateAnchor(datum: CalloutProperties, bbox: _Scene.BBox, context: AnnotationContext) {
-        const coords = convertLine(datum, context);
-        if (!coords) {
-            return this.anchor;
-        }
+    protected override updateAnchor(
+        datum: CalloutProperties,
+        coords: LineCoords,
+        context: AnnotationContext,
+        bbox: _Scene.BBox
+    ) {
         const { bodyBounds } = this.getDimensions(datum, bbox, coords) ?? {};
         const bounds = bodyBounds ?? bbox;
         return {
