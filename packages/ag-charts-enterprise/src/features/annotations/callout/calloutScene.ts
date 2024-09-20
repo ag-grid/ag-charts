@@ -82,7 +82,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
     ) {
         const { bodyBounds } = this.getDimensions(datum, bbox, coords) ?? {};
         const bounds = bodyBounds ?? bbox;
-        return {
+        this.anchor = {
             x: bounds.x + context.seriesRect.x,
             y: bounds.y + context.seriesRect.y - bounds.height,
             position: this.anchor.position,
