@@ -144,9 +144,9 @@
    differs per theme. */
 .ag-charts-toolbar__button--with-transition {
     transition:
-        background-color 0.25s ease-in-out,
-        border-color 0.25s ease-in-out,
-        color 0.25s ease-in-out;
+        background-color 1s ease-in-out,
+        border-color 1s ease-in-out,
+        color 1s ease-in-out;
 }
 
 .ag-charts-toolbar__button[data-toolbar-group='ranges'] {
