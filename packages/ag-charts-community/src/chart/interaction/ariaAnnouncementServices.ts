@@ -24,17 +24,12 @@ export class AriaAnnouncementService {
         private readonly domManager: DOMManager,
         private readonly layoutManager: LayoutManager
     ) {
-        const preventDefault = (e: Event) => e.preventDefault();
-
         this.liveElem = AriaAnnouncementService.createAnnouncer();
         this.domManager.addChild('canvas-proxy', 'ag-charts-canvas-proxy', this.liveElem);
 
-        // In Chromium, clicking on a <div> starts text highlight, which we don't want.
-        this.liveElem.parentNode?.addEventListener('mousedown', preventDefault);
         this.destroyFns.push(
             this.layoutManager.addListener('layout:complete', (ev) => this.onResize(ev)),
             () => this.domManager.removeChild('canvas-proxy', 'ag-charts-canvas-proxy'),
-            () => this.liveElem.parentNode?.removeEventListener('mousedown', preventDefault)
         );
     }
 
