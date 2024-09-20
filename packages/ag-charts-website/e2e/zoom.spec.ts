@@ -74,42 +74,35 @@ test.describe('zoom', () => {
     });
 
     test('crosshairs', async ({ page }) => {
+        const xAxisLabel = '.ag-crosshair-label[data-key="pointer"][data-axis-id="NumberAxis-2"]';
+        const yAxisLabel = '.ag-crosshair-label[data-key="yKey"]';
         const { url } = toExamplePageUrl('zoom-test', 'e2e-zoom-crosshairs', 'vanilla');
 
         await gotoExample(page, url);
 
         const { canvas, width, height } = await locateCanvas(page);
-        const midPoint = { x: width / 2, y: height / 2 };
+        const midPoint = { x: Math.round(width / 2), y: Math.round(height / 2) };
 
         // Expect crosshairs to be visible on first hover.
         await canvas.hover({ position: midPoint });
-        await expect(
-            page.locator('.ag-crosshair-label[data-key="pointer"][data-axis-id="NumberAxis-2"]')
-        ).toBeVisible();
-        await expect(page.locator('.ag-crosshair-label[data-key="yKey"]')).toBeVisible();
+        await expect(page.locator(xAxisLabel)).toBeVisible();
+        await expect(page.locator(yAxisLabel)).toBeVisible();
 
         // Mousewheel to zoom should remove crosshairs.
         await page.mouse.wheel(0, -100);
-        await expect(
-            page.locator('.ag-crosshair-label[data-key="pointer"][data-axis-id="NumberAxis-2"]')
-        ).not.toBeVisible();
-        await expect(page.locator('.ag-crosshair-label[data-key="yKey"]')).not.toBeVisible();
+        await expect(page.locator(xAxisLabel)).not.toBeVisible();
+        await expect(page.locator(yAxisLabel)).not.toBeVisible();
 
         await expect(page).toHaveScreenshot('zoom-crosshairs-after-wheel-zoom.png', { animations: 'disabled' });
 
         // Expect crosshairs to become visible on second hover.
         await canvas.hover({ position: midPoint });
-        await expect(
-            page.locator('.ag-crosshair-label[data-key="pointer"][data-axis-id="NumberAxis-2"]')
-        ).toBeVisible();
-        await expect(page.locator('.ag-crosshair-label[data-key="yKey"]')).toBeVisible();
+        await expect(page.locator(xAxisLabel)).toBeVisible();
+        await expect(page.locator(yAxisLabel)).toBeVisible();
 
         // Drag canvas (pan zoom)
         await dragCanvas(page, midPoint, { x: midPoint.x + 50, y: midPoint.y });
-        await expect(
-            page.locator('.ag-crosshair-label[data-key="pointer"][data-axis-id="NumberAxis-2"]')
-        ).not.toBeVisible();
-        await expect(page.locator('.ag-crosshair-label[data-key="yKey"]')).not.toBeVisible();
-        await expect(page).toHaveScreenshot('zoom-crosshairs-after-pan.png', { animations: 'disabled' });
+        await expect(page.locator(xAxisLabel)).not.toBeVisible();
+        await expect(page.locator(yAxisLabel)).not.toBeVisible();
     });
 });

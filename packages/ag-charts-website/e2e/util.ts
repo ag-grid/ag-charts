@@ -121,8 +121,8 @@ export async function dragCanvas(
     await page.mouse.down();
     for (let step = 0; step < steps; step++) {
         await page.mouse.move(
-            canvasBBox.x + start.x + ((end.x - start.x) * step) / steps,
-            canvasBBox.y + start.y + ((end.y - start.y) * step) / steps
+            Math.round(canvasBBox.x + start.x + ((end.x - start.x) * step) / steps),
+            Math.round(canvasBBox.y + start.y + ((end.y - start.y) * step) / steps)
         );
     }
     await page.mouse.up();
