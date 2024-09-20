@@ -5,7 +5,7 @@ import type { ShapePointProperties } from '../properties/shapePointProperties';
 import { convertPoint } from '../utils/values';
 import { PointScene } from './pointScene';
 
-export abstract class ShapeScene<Datum extends ShapePointProperties> extends PointScene<Datum> {
+export abstract class ShapePointScene<Datum extends ShapePointProperties> extends PointScene<Datum> {
     override type = AnnotationType.ArrowUp;
 
     protected abstract shape: _Scene.Marker;

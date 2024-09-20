@@ -4794,9 +4794,9 @@
   integrity sha512-vKLsoR4xQxg4Z+6rU/F65ItTUz/EXbD+j/d4mlq2GW8TsA4Tc8Kdma2JTAAJ5hrKWUQzkR/Esn2fjsqiVRYaQg==
 
 "@octokit/plugin-paginate-graphql@^5.0.0":
-  version "5.2.2"
-  resolved "https://registry.yarnpkg.com/@octokit/plugin-paginate-graphql/-/plugin-paginate-graphql-5.2.2.tgz#54e2afef55bb204eb945a891b85a169b9ddad1f8"
-  integrity sha512-7znSVvlNAOJisCqAnjN1FtEziweOHSjPGAuc5W58NeGNAr/ZB57yCsjQbXDlWsVryA7hHQaEQPcBbJYFawlkyg==
+  version "5.2.3"
+  resolved "https://registry.yarnpkg.com/@octokit/plugin-paginate-graphql/-/plugin-paginate-graphql-5.2.3.tgz#19882ff4694066b0937aea85b7e8eac512df4e9a"
+  integrity sha512-EzFueuXVU3VHv5FwEXbdznn9EmyF0vA5LGDX6a8fJ9YJAlDgdYHRKJMO4Ghl2PPPJBxIPMDUJMnlUHqcvP7AnQ==
 
 "@octokit/plugin-paginate-rest@^11.0.0":
   version "11.3.3"
