@@ -138,25 +138,24 @@ export class LinearGaugeSeries
                 return 0;
         }
 
-        let size: number | undefined;
+        const lines =
+            label.text?.split('\n') ??
+            scale.ticks?.().map((tick) => getLabelText(this, this.labelDatum(label, tick)) ?? '');
+        if (lines == null) return 0;
+
+        let size: number;
         if (direction === ChartAxisDirection.Y) {
-            size = getLineHeight(label, label.fontSize);
-        } else if (label.text != null) {
-            const font = label.getFont();
-            const { width } = CachedTextMeasurerPool.measureText(label.text, { font });
-            size = width;
+            size = getLineHeight(label, label.fontSize) * lines.length;
         } else {
             const font = label.getFont();
-            size = scale.ticks?.()?.reduce((accum, tick) => {
-                const text = getLabelText(this, this.labelDatum(label, tick));
-                if (text == null) return accum;
 
+            size = lines.reduce((accum, text) => {
                 const { width } = CachedTextMeasurerPool.measureText(text, { font });
                 return Math.max(accum, width);
             }, 0);
         }
 
-        return factor * (label.spacing + (size ?? 0));
+        return factor * (label.spacing + size);
     }
 
     private readonly scaleGroup = this.contentGroup.appendChild(new Group({ name: 'scaleGroup' }));
