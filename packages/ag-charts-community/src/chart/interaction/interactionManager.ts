@@ -162,6 +162,7 @@ export class InteractionManager extends InteractionStateListener<InteractionType
     private mouseDown = false;
     private touchDown = false;
     private pointerCaptureCanvasElement?: HTMLElement = undefined;
+    private dragPreStartElement?: HTMLElement;
     private dragStartElement?: HTMLElement;
     private readonly clickHistory: [PointerHistoryEvent] = [{ offsetX: NaN, offsetY: NaN, type: 'mousedown' }];
     private readonly dblclickHistory: [PointerHistoryEvent, PointerHistoryEvent, PointerHistoryEvent] = [
@@ -285,7 +286,10 @@ export class InteractionManager extends InteractionStateListener<InteractionType
     private processEvent(event: SupportedEvent) {
         this.debug('Received raw event', event);
 
-        const type = this.decideInteractionEventTypes(event);
+        let types = this.decideInteractionEventTypes(event);
+        if (types != null && !Array.isArray(types)) {
+            types = [types];
+        }
 
         // AG-11385 Ignore clicks on focusable & disabled elements.
         const target: (EventTarget & { ariaDisabled?: string; tagName?: string; role?: string }) | null = event.target;
@@ -294,11 +298,9 @@ export class InteractionManager extends InteractionStateListener<InteractionType
             return;
         }
 
-        if (this.ignoreEvent(type, target)) {
-            return;
-        }
+        for (const type of types ?? []) {
+            if (this.ignoreEvent(type, target)) continue;
 
-        if (type != null) {
             // Async dispatch to avoid blocking the event-processing thread.
             this.dispatchEvent(event, type).catch((e) => Logger.errorOnce(e));
         }
@@ -382,16 +384,22 @@ export class InteractionManager extends InteractionStateListener<InteractionType
             partialAssign(['offsetX', 'offsetY'], this.dblclickHistory[2], this.dblclickHistory[0]);
             partialAssign(['offsetX', 'offsetY'], this.dblclickHistory[0], event);
         }
-        this.dragStartElement = this.getEventHTMLTarget(event);
+        this.dragPreStartElement = this.getEventHTMLTarget(event);
     }
 
     private recordUp(event: SupportedEvent) {
         if (event instanceof MouseEvent) {
             partialAssign(['offsetX', 'offsetY'], this.dblclickHistory[1], event);
         }
-        this.dragStartElement = undefined;
+        this.dragPreStartElement = undefined;
+        if (this.dragStartElement) {
+            this.dragStartElement = undefined;
+            return true;
+        }
+        return false;
     }
-    private decideInteractionEventTypes(event: SupportedEvent): InteractionTypes | undefined {
+
+    private decideInteractionEventTypes(event: SupportedEvent): InteractionTypes | InteractionTypes[] | undefined {
         const dragStart = 'drag-start';
 
         if (this.pointerCaptureCanvasElement?.isConnected === false) {
@@ -422,14 +430,14 @@ export class InteractionManager extends InteractionStateListener<InteractionType
                 }
                 this.mouseDown = true;
                 this.recordDown(event);
-                return dragStart;
+                return;
             case 'touchstart':
                 if (!this.isEventOverElement(event)) {
                     return;
                 }
                 this.touchDown = true;
                 this.recordDown(event);
-                return dragStart;
+                return;
 
             case 'touchmove':
             case 'mousemove':
@@ -438,7 +446,12 @@ export class InteractionManager extends InteractionStateListener<InteractionType
                     // we're in the middle of a drag/slide.
                     return;
                 }
-                return this.mouseDown || this.touchDown ? 'drag' : 'hover';
+                if (!this.mouseDown && !this.touchDown) return 'hover';
+                if (this.dragStartElement) return 'drag';
+
+                this.dragStartElement = this.dragPreStartElement;
+                this.dragPreStartElement = undefined;
+                return [dragStart, 'drag'];
 
             case 'mouseup':
                 if (!this.mouseDown && !this.isEventOverElement(event)) {
@@ -447,8 +460,7 @@ export class InteractionManager extends InteractionStateListener<InteractionType
                     return;
                 }
                 this.mouseDown = false;
-                this.recordUp(event);
-                return 'drag-end';
+                return this.recordUp(event) ? 'drag-end' : undefined;
             case 'touchend':
                 if (!this.touchDown && !this.isEventOverElement(event)) {
                     // We only care about these events if the target is the canvas, unless
@@ -456,8 +468,7 @@ export class InteractionManager extends InteractionStateListener<InteractionType
                     return;
                 }
                 this.touchDown = false;
-                this.recordUp(event);
-                return 'drag-end';
+                return this.recordUp(event) ? 'drag-end' : undefined;
 
             case 'mouseleave':
             case 'touchcancel':

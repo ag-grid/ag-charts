@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords } from '../annotationTypes';
 import type { PointProperties } from '../properties/pointProperties';
@@ -95,8 +95,8 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
         return false;
     }
 
-    protected updateHandle(datum: Datum, point: _Util.Vec2) {
-        const { x, y } = this.getHandleCoords(datum, point);
+    protected updateHandle(datum: Datum, point: _Util.Vec2, bbox?: _Scene.BBox) {
+        const { x, y } = this.getHandleCoords(datum, point, bbox);
         const styles = this.getHandleStyles(datum);
 
         this.handle.update({ ...styles, x, y });
@@ -112,7 +112,7 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
         };
     }
 
-    protected getHandleCoords(_datum: Datum, point: _Util.Vec2): _Util.Vec2 {
+    protected getHandleCoords(_datum: Datum, point: _Util.Vec2, _bbox?: _Scene.BBox): _Util.Vec2 {
         return {
             x: point.x,
             y: point.y,
