@@ -194,9 +194,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             menu: newMenuElement,
             buttons,
             orientation: 'vertical',
-            device: this.ctx.focusIndicator.guessDevice(sourceEvent),
+            sourceEvent,
             autoCloseOnBlur: true,
-            skipMouseFocusRestore: true, // AG-12849: Avoid series node focus after context-menu item click.
             closeCallback: () => this.doClose(),
         });
     }
