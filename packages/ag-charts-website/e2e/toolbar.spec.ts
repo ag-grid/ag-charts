@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
+import { SELECTORS, gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrl } from './util';
 
 test.describe('toolbar', () => {
     setupIntrinsicAssertions();
@@ -9,6 +9,8 @@ test.describe('toolbar', () => {
 
     test('line', async ({ page }) => {
         await gotoExample(page, url);
+
+        const { bbox } = await locateCanvas(page);
 
         await page.locator('[data-toolbar-group="annotations"][data-toolbar-id="line-menu"]').click();
         await expect(page).toHaveScreenshot('line-1-popover.png', { animations: 'disabled' });
@@ -24,11 +26,8 @@ test.describe('toolbar', () => {
         await page.click(SELECTORS.canvas, { position: { x: 200, y: 200 } });
         await expect(page).toHaveScreenshot('line-4-complete.png', { animations: 'disabled' });
 
-        const canvasPos = await page.locator(SELECTORS.canvas).boundingBox();
-        if (!canvasPos) throw new Error('Unable to get canvas bbox');
-
         // Click like a human, on the page, not a very specific DOM element.
-        await page.mouse.click(canvasPos.x + 300, canvasPos.y + 300);
+        await page.mouse.click(bbox.x + 300, bbox.y + 300);
 
         await page.keyboard.press('ControlOrMeta+z');
         await expect(page).toHaveScreenshot('line-5-undo.png', { animations: 'disabled' });
@@ -37,7 +36,7 @@ test.describe('toolbar', () => {
         await expect(page).toHaveScreenshot('line-6-redo.png', { animations: 'disabled' });
 
         // Click like a human, on the page, not a very specific DOM element.
-        await page.mouse.click(canvasPos.x + 150, canvasPos.y + 150);
+        await page.mouse.click(bbox.x + 150, bbox.y + 150);
 
         await page.keyboard.press('ControlOrMeta+c');
         await expect(page).toHaveScreenshot('line-7-copy.png', { animations: 'disabled' });
