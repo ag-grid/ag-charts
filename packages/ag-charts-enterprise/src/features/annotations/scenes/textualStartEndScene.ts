@@ -73,10 +73,9 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         };
     }
 
-    protected override getHandleStyles(datum: Datum, handle: 'start' | 'end'): AgAnnotationHandleStyles {
+    protected override getHandleStyles(datum: Datum, handle?: 'start' | 'end'): AgAnnotationHandleStyles {
         return {
             ...super.getHandleStyles(datum, handle),
-
             stroke: datum.handle.stroke ?? datum.color,
         };
     }

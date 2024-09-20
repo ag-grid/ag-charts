@@ -30,7 +30,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
 
         this.updateHandles(datum, coords);
 
-        this.anchor = this.updateAnchor(datum, coords, context);
+        this.updateAnchor(datum, coords, context);
     }
 
     override toggleHandles(show: boolean | Partial<Record<'start' | 'end', boolean>>) {
@@ -111,13 +111,8 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         this.end.toggleLocked(datum.locked ?? false);
     }
 
-    protected updateAnchor(
-        _datum: Datum,
-        coords: LineCoords,
-        context: AnnotationContext,
-        _bbox?: _Scene.BBox
-    ): _ModuleSupport.ToolbarAnchor {
-        return {
+    protected updateAnchor(_datum: Datum, coords: LineCoords, context: AnnotationContext, _bbox?: _Scene.BBox) {
+        this.anchor = {
             x: coords.x1 + context.seriesRect.x,
             y: coords.y1 + context.seriesRect.y,
             position: this.anchor.position,
@@ -136,7 +131,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         };
     }
 
-    protected getHandleStyles(datum: Datum, _handle: 'start' | 'end'): AgAnnotationHandleStyles {
+    protected getHandleStyles(datum: Datum, _handle?: 'start' | 'end'): AgAnnotationHandleStyles {
         return {
             fill: datum.handle.fill,
             stroke: datum.handle.stroke,
