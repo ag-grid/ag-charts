@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
+import { SELECTORS, gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrl } from './util';
 
 test.describe('toolbar', () => {
     setupIntrinsicAssertions();
@@ -9,6 +9,8 @@ test.describe('toolbar', () => {
 
     test('line', async ({ page }) => {
         await gotoExample(page, url);
+
+        const { bbox } = await locateCanvas(page);
 
         await page.locator('[data-toolbar-group="annotations"][data-toolbar-id="line-menu"]').click();
         await expect(page).toHaveScreenshot('line-1-popover.png', { animations: 'disabled' });
@@ -24,20 +26,22 @@ test.describe('toolbar', () => {
         await page.click(SELECTORS.canvas, { position: { x: 200, y: 200 } });
         await expect(page).toHaveScreenshot('line-4-complete.png', { animations: 'disabled' });
 
-        await page.click(SELECTORS.canvas, { position: { x: 300, y: 300 } });
+        // Click like a human, on the page, not a very specific DOM element.
+        await page.mouse.click(bbox.x + 300, bbox.y + 300);
 
-        await page.locator(SELECTORS.canvas).press('ControlOrMeta+z');
+        await page.keyboard.press('ControlOrMeta+z');
         await expect(page).toHaveScreenshot('line-5-undo.png', { animations: 'disabled' });
 
-        await page.locator(SELECTORS.canvas).press('ControlOrMeta+y');
+        await page.keyboard.press('ControlOrMeta+y');
         await expect(page).toHaveScreenshot('line-6-redo.png', { animations: 'disabled' });
 
-        await page.click(SELECTORS.canvas, { position: { x: 150, y: 150 } });
+        // Click like a human, on the page, not a very specific DOM element.
+        await page.mouse.click(bbox.x + 150, bbox.y + 150);
 
-        await page.locator(SELECTORS.canvas).press('ControlOrMeta+c');
+        await page.keyboard.press('ControlOrMeta+c');
         await expect(page).toHaveScreenshot('line-7-copy.png', { animations: 'disabled' });
 
-        await page.locator(SELECTORS.canvas).press('ControlOrMeta+v');
+        await page.keyboard.press('ControlOrMeta+v');
         await expect(page).toHaveScreenshot('line-8-paste.png', { animations: 'disabled' });
     });
 
