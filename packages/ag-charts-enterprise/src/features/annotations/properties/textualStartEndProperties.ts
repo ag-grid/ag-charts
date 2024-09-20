@@ -1,13 +1,14 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-import { Annotation, Font, Handle, Label, Line, Localisable } from '../annotationProperties';
+import { Font, Label } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, type Padding } from '../annotationTypes';
 import type { AnnotationTextAlignment, AnnotationTextPosition } from '../text/util';
 import { convertPoint } from '../utils/values';
+import { StartEndProperties } from './startEndProperties';
 
-const { STRING, BaseProperties, Validate } = _ModuleSupport;
+const { STRING, Validate } = _ModuleSupport;
 
-export class TextualStartEndProperties extends Annotation(Localisable(Line(Handle(Label(Font(BaseProperties)))))) {
+export class TextualStartEndProperties extends Label(Font(StartEndProperties)) {
     @Validate(STRING)
     text: string = '';
 
@@ -21,11 +22,11 @@ export class TextualStartEndProperties extends Annotation(Localisable(Line(Handl
         return super.isValid(warningPrefix);
     }
 
-    getDefaultColor(_colorPickerType: AnnotationOptionsColorPickerType) {
+    override getDefaultColor(_colorPickerType: AnnotationOptionsColorPickerType) {
         return this.color;
     }
 
-    getDefaultOpacity(_colorPickerType: AnnotationOptionsColorPickerType): number | undefined {
+    override getDefaultOpacity(_colorPickerType: AnnotationOptionsColorPickerType): number | undefined {
         return undefined;
     }
 
