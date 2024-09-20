@@ -29,7 +29,7 @@ export class AriaAnnouncementService {
 
         this.destroyFns.push(
             this.layoutManager.addListener('layout:complete', (ev) => this.onResize(ev)),
-            () => this.domManager.removeChild('canvas-proxy', 'ag-charts-canvas-proxy'),
+            () => this.domManager.removeChild('canvas-proxy', 'ag-charts-canvas-proxy')
         );
     }
 
