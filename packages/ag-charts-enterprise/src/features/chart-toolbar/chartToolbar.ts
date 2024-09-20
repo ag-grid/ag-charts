@@ -1,10 +1,8 @@
 import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import { Menu, type MenuItem } from '../../components/menu/menu';
+const { ActionOnSet, MenuPopover, Validate, BOOLEAN } = _ModuleSupport;
 
-const { ActionOnSet, Validate, BOOLEAN } = _ModuleSupport;
-
-const menuItems: MenuItem<AgPriceVolumeChartType>[] = [
+const menuItems: _ModuleSupport.MenuItemOptions<AgPriceVolumeChartType>[] = [
     { label: 'toolbarSeriesTypeOHLC', icon: 'ohlc-series', value: 'ohlc' },
     { label: 'toolbarSeriesTypeCandles', icon: 'candlestick-series', value: 'candlestick' },
     { label: 'toolbarSeriesTypeHollowCandles', icon: 'hollow-candlestick-series', value: 'hollow-candlestick' },
@@ -26,7 +24,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
     })
     enabled: boolean = false;
 
-    private readonly menu = new Menu(this.ctx, 'chart-toolbar');
+    private readonly menu = new MenuPopover(this.ctx, 'chart-toolbar');
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();

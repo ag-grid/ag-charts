@@ -35,6 +35,14 @@ export interface LayoutState {
     series: { visible: boolean; rect: BBox; paddedRect: BBox; shouldFlipXY?: boolean };
 }
 
+export interface LayoutRegisterElementOptions {
+    display?: 'inline' | 'block';
+    position: 'top' | 'right' | 'bottom' | 'left';
+    align: 'start' | 'middle' | 'end';
+    size: number;
+    element: LayoutElement;
+}
+
 interface EventMap {
     'layout:complete': LayoutCompleteEvent;
 }
@@ -56,6 +64,16 @@ export class LayoutManager {
     }
 
     registerElement(element: LayoutElement, listener: EventListener<LayoutContext>) {
+        if (this.elements.has(element)) {
+            this.elements.get(element)!.add(listener);
+        } else {
+            this.elements.set(element, new Set([listener]));
+        }
+        return () => this.elements.get(element)?.delete(listener);
+    }
+
+    NEW_registerElement(options: LayoutRegisterElementOptions, listener: EventListener<{ x: number; y: number }>) {
+        const { element } = options;
         if (this.elements.has(element)) {
             this.elements.get(element)!.add(listener);
         } else {

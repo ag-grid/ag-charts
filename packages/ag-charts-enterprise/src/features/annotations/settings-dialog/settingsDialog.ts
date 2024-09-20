@@ -1,7 +1,7 @@
 import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
+import type { ColorPickerOptions } from 'ag-charts-community/src/components/color-picker/colorPicker';
+import { Dialog, type DialogOptions } from 'ag-charts-community/src/components/dialog/dialog';
 
-import { Dialog, type DialogOptions } from '../../../components/dialog/dialog';
-import type { ColorPickerOptions } from '../../color-picker/colorPicker';
 import type { ChannelTextPosition, LineTextAlignment, LineTextPosition } from '../annotationTypes';
 import { LINE_STROKE_WIDTH_ITEMS, TEXT_SIZE_ITEMS } from '../annotationsMenuOptions';
 import type { ChannelPropertiesType, LinePropertiesType } from '../annotationsSuperTypes';
