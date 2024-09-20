@@ -1,5 +1,6 @@
 .ag-charts-wrapper {
     position: relative;
+    user-select: none;
 }
 
 .ag-charts-canvas-center {
@@ -17,6 +18,7 @@
 .ag-charts-canvas-container,
 .ag-charts-canvas {
     position: relative;
+    user-select: none;
 }
 
 .ag-charts-canvas-container > *,
@@ -47,6 +49,7 @@
 
 .ag-charts-canvas-overlay {
     pointer-events: none;
+    user-select: none;
     position: absolute;
     inset: 0;
 }
