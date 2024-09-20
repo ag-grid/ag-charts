@@ -35,8 +35,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         this.updateLabel(datum, bbox, coords);
         this.updateHandles(datum, coords, bbox);
         this.updateShape(datum, bbox, coords);
-
-        this.anchor = this.updateAnchor(datum, coords, context, bbox);
+        this.updateAnchor(datum, coords, context, bbox);
     }
 
     override containsPoint(x: number, y: number) {
