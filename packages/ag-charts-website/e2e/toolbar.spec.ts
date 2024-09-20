@@ -24,20 +24,25 @@ test.describe('toolbar', () => {
         await page.click(SELECTORS.canvas, { position: { x: 200, y: 200 } });
         await expect(page).toHaveScreenshot('line-4-complete.png', { animations: 'disabled' });
 
-        await page.click(SELECTORS.canvas, { position: { x: 300, y: 300 } });
+        const canvasPos = await page.locator(SELECTORS.canvas).boundingBox();
+        if (!canvasPos) throw new Error('Unable to get canvas bbox');
 
-        await page.locator(SELECTORS.canvas).press('ControlOrMeta+z');
+        // Click like a human, on the page, not a very specific DOM element.
+        await page.mouse.click(canvasPos.x + 300, canvasPos.y + 300);
+
+        await page.keyboard.press('ControlOrMeta+z');
         await expect(page).toHaveScreenshot('line-5-undo.png', { animations: 'disabled' });
 
-        await page.locator(SELECTORS.canvas).press('ControlOrMeta+y');
+        await page.keyboard.press('ControlOrMeta+y');
         await expect(page).toHaveScreenshot('line-6-redo.png', { animations: 'disabled' });
 
-        await page.click(SELECTORS.canvas, { position: { x: 150, y: 150 } });
+        // Click like a human, on the page, not a very specific DOM element.
+        await page.mouse.click(canvasPos.x + 150, canvasPos.y + 150);
 
-        await page.locator(SELECTORS.canvas).press('ControlOrMeta+c');
+        await page.keyboard.press('ControlOrMeta+c');
         await expect(page).toHaveScreenshot('line-7-copy.png', { animations: 'disabled' });
 
-        await page.locator(SELECTORS.canvas).press('ControlOrMeta+v');
+        await page.keyboard.press('ControlOrMeta+v');
         await expect(page).toHaveScreenshot('line-8-paste.png', { animations: 'disabled' });
     });
 
