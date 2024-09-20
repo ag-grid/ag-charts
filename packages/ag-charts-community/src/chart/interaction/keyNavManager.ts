@@ -3,7 +3,6 @@ import type {
     InteractionEvent,
     InteractionManager,
     KeyInteractionEvent,
-    PointerInteractionEvent,
 } from './interactionManager';
 import { InteractionState } from './interactionManager';
 import { InteractionStateListener } from './interactionStateListener';
@@ -21,21 +20,9 @@ export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = Preventab
 // navigation commands. For example, keybindings might be different on macOS and Windows,
 // or the charts might include options to reconfigure keybindings.
 export class KeyNavManager extends InteractionStateListener<KeyNavEventType, KeyNavEvent> {
-    private hasBrowserFocus: boolean = false;
-    private isMouseBlurred: boolean = false;
-    private isClicking: boolean = false;
-
     constructor(readonly interactionManager: InteractionManager) {
         super();
         this.destroyFns.push(
-            interactionManager.addListener('drag-start', (e) => this.onClickStart(e), InteractionState.All),
-            interactionManager.addListener('click', (e) => this.onClickStop(e), InteractionState.All),
-            interactionManager.addListener('drag-end', (e) => this.onClickStop(e), InteractionState.All),
-            interactionManager.addListener('contextmenu', (e) => this.onClickStop(e), InteractionState.All),
-            interactionManager.addListener('wheel', (e) => this.mouseBlur(e)),
-            interactionManager.addListener('hover', (e) => this.mouseBlur(e)),
-            interactionManager.addListener('drag', (e) => this.mouseBlur(e)),
-
             interactionManager.addListener('blur', (e) => this.onBlur(e), InteractionState.All),
             interactionManager.addListener('focus', (e) => this.onFocus(e), InteractionState.All),
             interactionManager.addListener('keydown', (e) => this.onKeyDown(e), InteractionState.All)
@@ -50,47 +37,15 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
         super.destroy();
     }
 
-    private onClickStart(event: PointerInteractionEvent<'drag-start'>) {
-        this.isClicking = true;
-        this.mouseBlur(event);
-    }
-
-    private onClickStop(event: PointerInteractionEvent<'drag-end' | 'click' | 'contextmenu'>) {
-        this.mouseBlur(event);
-        this.isClicking = false;
-    }
-
-    private mouseBlur(event: PointerInteractionEvent) {
-        if (!this.hasBrowserFocus) return;
-
-        if (!this.isMouseBlurred) {
-            this.dispatch('blur', 0, event);
-            this.isMouseBlurred = true;
-        }
-    }
-
     private onBlur(event: FocusInteractionEvent<'blur'>) {
-        this.hasBrowserFocus = false;
-        this.isMouseBlurred = false;
         this.dispatch('blur', 0, event);
     }
 
     private onFocus(event: FocusInteractionEvent<'focus'>) {
-        this.hasBrowserFocus = true;
-
-        if (this.isClicking) {
-            this.isMouseBlurred = true;
-            return;
-        }
-
         this.dispatch('focus', 0, event);
     }
 
     private onKeyDown(event: KeyInteractionEvent<'keydown'>) {
-        if (!this.hasBrowserFocus) return;
-
-        this.isMouseBlurred = false;
-
         const { code, altKey, shiftKey, metaKey, ctrlKey } = event.sourceEvent;
         if (altKey || shiftKey || metaKey || ctrlKey) return;
 
