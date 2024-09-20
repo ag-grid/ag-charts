@@ -112,9 +112,19 @@ export async function dragCanvas(
     end: { x: number; y: number },
     options = { steps: 4 }
 ) {
-    await page.hover(SELECTORS.canvas, { position: start });
+    const { steps } = options;
+    const canvas = await page.locator(SELECTORS.canvas).first();
+    const canvasBBox = await canvas.boundingBox();
+    if (!canvasBBox) throw new Error("Couldn't get the canvas bbox");
+
+    await page.mouse.move(canvasBBox.x + start.x, canvasBBox.y + start.y);
     await page.mouse.down();
-    await page.mouse.move(end.x - start.x, end.y - start.y, options);
+    for (let step = 0; step < steps; step++) {
+        await page.mouse.move(
+            Math.round(canvasBBox.x + start.x + ((end.x - start.x) * step) / steps),
+            Math.round(canvasBBox.y + start.y + ((end.y - start.y) * step) / steps)
+        );
+    }
     await page.mouse.up();
 }
 
