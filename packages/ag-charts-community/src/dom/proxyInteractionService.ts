@@ -11,11 +11,16 @@ type ElemParams<T extends ProxyElementType> = {
     readonly type: T;
     readonly id: string;
     readonly parent: HTMLElement | DOMElementClass;
+    readonly cursor?: 'pointer';
 };
 
 type InteractParams<T extends ProxyElementType> = ElemParams<T> & {
     readonly tabIndex?: number;
     readonly onclick?: (ev: MouseEvent) => void;
+    readonly ondblclick?: (ev: MouseEvent) => void;
+    readonly onmouseenter?: (ev: MouseEvent) => void;
+    readonly onmouseleave?: (ev: MouseEvent) => void;
+    readonly oncontextmenu?: (ev: MouseEvent) => void;
     readonly onchange?: (ev: Event) => void;
     readonly onfocus?: (ev: FocusEvent) => void;
     readonly onblur?: (ev: FocusEvent) => void;
@@ -202,16 +207,20 @@ export class ProxyInteractionService {
     }
 
     private initElement<T extends ProxyElementType, TElem extends HTMLElement>(params: ElemParams<T>, element: TElem) {
-        const { id } = params;
+        const { id, cursor } = params;
         element.id = id;
         element.classList.toggle('ag-charts-proxy-elem', true);
+        if (cursor) {
+            element.style.cursor = cursor;
+        }
     }
 
     private initInteract<T extends ProxyElementType, TElem extends HTMLElement>(
         params: InteractParams<T>,
         element: TElem
     ) {
-        const { onclick, onchange, onfocus, onblur, tabIndex } = params;
+        const { onclick, ondblclick, onmouseenter, onmouseleave, oncontextmenu, onchange, onfocus, onblur, tabIndex } =
+            params;
         this.initElement(params, element);
 
         if (tabIndex !== undefined) {
@@ -220,6 +229,18 @@ export class ProxyInteractionService {
 
         if (onclick) {
             element.addEventListener('click', onclick);
+        }
+        if (ondblclick) {
+            element.addEventListener('dblclick', ondblclick);
+        }
+        if (onmouseenter) {
+            element.addEventListener('mouseenter', onmouseenter);
+        }
+        if (onmouseleave) {
+            element.addEventListener('mouseleave', onmouseleave);
+        }
+        if (oncontextmenu) {
+            element.addEventListener('contextmenu', oncontextmenu);
         }
         if (onfocus) {
             element.addEventListener('focus', onfocus);
