@@ -311,7 +311,8 @@ export class CartesianChart extends Chart {
         const newAxisAreaWidths = new Map<AgCartesianAxisPosition, number>();
         const axisOffsets = new Map<string, number>();
         for (const [position, axes] of axisGroups.entries()) {
-            newAxisAreaWidths.set(position, this.calculateAxisArea(axes, axisWidths, axisOffsets));
+            const isVertical = position === 'left' || position === 'right';
+            newAxisAreaWidths.set(position, this.calculateAxisArea(axes, axisWidths, axisOffsets, isVertical));
         }
 
         // Step 3) position all axes taking adjacent positions into account.
@@ -475,9 +476,16 @@ export class CartesianChart extends Chart {
         axis.gridLength = isLeftRight ? width : height;
     }
 
-    private calculateAxisArea(axes: ChartAxis[], axisWidths: Map<string, number>, axisOffsets: Map<string, number>) {
+    private calculateAxisArea(
+        axes: ChartAxis[],
+        axisWidths: Map<string, number>,
+        axisOffsets: Map<string, number>,
+        isVertical: boolean
+    ) {
+        const { width, height, canvas } = this.ctx.scene;
+        // Adjust offset for pixel ratio to prevent alignment issues with series rendering.
+        let currentOffset = isVertical ? height % canvas.pixelRatio : width % canvas.pixelRatio;
         let totalAxisWidth = 0;
-        let currentOffset = 0;
 
         for (const axis of axes) {
             axisOffsets.set(axis.id, currentOffset);

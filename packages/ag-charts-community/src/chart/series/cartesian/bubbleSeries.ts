@@ -15,7 +15,7 @@ import { CachedTextMeasurerPool } from '../../../util/textMeasurer';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
-import { createDatumId, keyProperty, valueProperty } from '../../data/processors';
+import { createDatumId, valueProperty } from '../../data/processors';
 import type { CategoryLegendDatum } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
@@ -99,9 +99,6 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         } = this.properties;
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                keyProperty(xKey, xScaleType, { id: 'xKey-raw' }),
-                keyProperty(yKey, yScaleType, { id: 'yKey-raw' }),
-                ...(labelKey ? [keyProperty(labelKey, 'band', { id: `labelKey-raw` })] : []),
                 valueProperty(xKey, xScaleType, { id: `xValue` }),
                 valueProperty(yKey, yScaleType, { id: `yValue` }),
                 ...(xFilterKey != null ? [valueProperty(xFilterKey, xScaleType, { id: `xFilterValue` })] : []),

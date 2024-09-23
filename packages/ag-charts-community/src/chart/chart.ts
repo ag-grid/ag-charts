@@ -14,7 +14,6 @@ import type { PlacedLabel, PointLabelDatum } from '../scene/util/labelPlacement'
 import { isPointLabelDatum, placeLabels } from '../scene/util/labelPlacement';
 import { groupBy } from '../util/array';
 import { sleep } from '../util/async';
-import { setAttribute } from '../util/attributeUtil';
 import { Debug } from '../util/debug';
 import { createId } from '../util/id';
 import { jsonApply, jsonDiff } from '../util/json';
@@ -353,7 +352,7 @@ export abstract class Chart extends Observable {
                 this.update(ChartUpdateType.SCENE_RENDER);
             }),
             ctx.zoomManager.addListener('zoom-change', () => {
-                this.series.map((s) => (s as any).animationState?.transition('updateData'));
+                this.series.forEach((s) => (s as any).animationState?.transition('updateData'));
                 const skipAnimations = this.chartAnimationPhase !== 'initial';
                 this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true, skipAnimations });
             })
@@ -658,8 +657,7 @@ export abstract class Chart extends Observable {
     }
 
     private updateAriaLabels() {
-        setAttribute(this.ctx.scene.canvas.element, 'role', 'img');
-        setAttribute(this.ctx.scene.canvas.element, 'aria-label', this.getAriaLabel());
+        this.ctx.domManager.updateCanvasLabel(this.getAriaLabel());
     }
 
     private checkUpdateShortcut(checkUpdateType: ChartUpdateType) {

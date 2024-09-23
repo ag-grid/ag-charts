@@ -1,6 +1,27 @@
-import { type _ModuleSupport, _Scene } from 'ag-charts-community';
+import {
+    type FontFamily,
+    type FontSize,
+    type FontStyle,
+    type FontWeight,
+    type TextAlign,
+    _ModuleSupport,
+    _Scene,
+} from 'ag-charts-community';
 
+import { getLabelText } from '../gauge-util/label';
+import { type LabelFormatting, formatSingleLabel, getLineHeight } from '../util/labelFormatter';
+import type { LinearGaugeLabelDatum } from './linearGaugeSeriesProperties';
+
+const { CachedTextMeasurerPool } = _ModuleSupport;
 const { BBox } = _Scene;
+
+interface TextProperties {
+    fontSize: FontSize;
+    fontStyle?: FontStyle;
+    fontWeight?: FontWeight;
+    fontFamily?: FontFamily;
+    lineHeight?: number;
+}
 
 export interface AnimatableRectDatum {
     x0: number;
@@ -158,4 +179,185 @@ export function resetLinearGaugeSeriesResetRectFunction(_node: _Scene.Rect, datu
     const clipBBox = computeClipBBox(datum);
     const visible = clipBBoxVisibility(datum, clipBBox);
     return { x, y, width, height, clipBBox, visible };
+}
+
+enum Align {
+    Before = 'Before',
+    After = 'After',
+    Center = 'Center',
+}
+
+const horizontalTextAligns: Record<Align, TextAlign> = {
+    [Align.Before]: 'right',
+    [Align.Center]: 'center',
+    [Align.After]: 'left',
+};
+
+const verticalTextBaselines: Record<Align, CanvasTextBaseline> = {
+    [Align.Before]: 'top',
+    [Align.Center]: 'middle',
+    [Align.After]: 'bottom',
+};
+
+const horizontalAlignFactors: Record<Align, number> = {
+    [Align.Before]: -1,
+    [Align.Center]: -0.5,
+    [Align.After]: 0,
+};
+
+const verticalAlignFactors: Record<Align, number> = {
+    [Align.Before]: 0,
+    [Align.Center]: -0.5,
+    [Align.After]: -1,
+};
+
+export function formatLinearGaugeLabels(
+    series: _ModuleSupport.Series<any, any>,
+    selection: _Scene.Selection<_Scene.Text, LinearGaugeLabelDatum>,
+    opts: { padding: number; horizontal: boolean },
+    bboxes: { scale: _Scene.BBox; bar: _Scene.BBox },
+    datumOverrides?: { label: number | undefined }
+) {
+    const { scale, bar } = bboxes;
+    const { padding, horizontal } = opts;
+
+    selection.each((label, labelDatum) => {
+        const labelText = getLabelText(series, labelDatum, datumOverrides?.label);
+
+        const sizeFittingHeight = () => ({
+            width: scale.width,
+            height: scale.height,
+            meta: null,
+        });
+
+        let layout: LabelFormatting | undefined;
+        const sizeToFit =
+            labelDatum.avoidCollisions &&
+            labelDatum.placement !== 'outside-start' &&
+            labelDatum.placement !== 'outside-end';
+        if (labelText == null) {
+            return;
+        } else if (sizeToFit) {
+            const labelMeta = formatSingleLabel(labelText, labelDatum, { padding }, sizeFittingHeight);
+            layout = labelMeta?.[0];
+        } else {
+            const font: TextProperties = {
+                fontSize: labelDatum.fontSize,
+                fontStyle: labelDatum.fontStyle,
+                fontWeight: labelDatum.fontWeight,
+                fontFamily: labelDatum.fontFamily,
+                lineHeight: labelDatum.lineHeight,
+            };
+            const { width, height } = CachedTextMeasurerPool.measureText(labelText, { font });
+            layout = {
+                text: labelText,
+                fontSize: labelDatum.fontSize,
+                lineHeight: getLineHeight(labelDatum, labelDatum.fontSize),
+                width,
+                height,
+            };
+        }
+
+        if (layout == null) {
+            label.visible = false;
+            return;
+        }
+
+        const scale0 = horizontal ? scale.x : scale.y + scale.height;
+        const scale1 = horizontal ? scale.x + scale.width : scale.y;
+        const bar0 = horizontal ? bar.x : bar.y + bar.height;
+        const bar1 = horizontal ? bar.x + bar.width : bar.y;
+
+        const offset = labelDatum.spacing * (horizontal ? 1 : -1);
+
+        let bounds0: number;
+        let bounds1: number;
+        let s: number;
+        let align: Align;
+        switch (labelDatum.placement) {
+            case 'outside-start':
+                bounds0 = -Infinity;
+                bounds1 = Infinity;
+                s = scale0 - offset;
+                align = Align.Before;
+                break;
+            case 'outside-end':
+                bounds0 = -Infinity;
+                bounds1 = Infinity;
+                s = scale1 + offset;
+                align = Align.After;
+                break;
+            case 'inside-start':
+                bounds0 = scale0;
+                bounds1 = bar1;
+                s = scale0 + offset;
+                align = Align.After;
+                break;
+            case 'inside-end':
+                bounds0 = bar1;
+                bounds1 = scale1;
+                s = scale1 - offset;
+                align = Align.Before;
+                break;
+            case 'inside':
+                bounds0 = scale0;
+                bounds1 = scale1;
+                s = (scale0 + scale1) / 2;
+                align = Align.Center;
+                break;
+            case 'bar-inside':
+                bounds0 = bar0;
+                bounds1 = bar1;
+                s = (bar0 + bar1) / 2;
+                align = Align.Center;
+                break;
+            case 'bar-inside-end':
+                bounds0 = bar0;
+                bounds1 = bar1;
+                s = bar1 - offset;
+                align = Align.Before;
+                break;
+            case 'bar-outside-end':
+                bounds0 = bar1;
+                bounds1 = scale1;
+                s = bar1 + offset;
+                align = Align.After;
+                break;
+            case 'bar-end':
+                bounds0 = -Infinity;
+                bounds1 = Infinity;
+                s = bar1;
+                align = Align.Center;
+                break;
+        }
+
+        const x = horizontal ? s : scale.x + scale.width / 2;
+        const y = horizontal ? scale.y + scale.height / 2 : s;
+
+        let s0: number;
+        let s1: number;
+        if (horizontal) {
+            s0 = x + horizontalAlignFactors[align] * layout.width;
+            s1 = s0 + layout.width;
+        } else {
+            s0 = y + verticalAlignFactors[align] * layout.height;
+            s1 = s0 + layout.height;
+        }
+
+        const inside = Math.min(s0, s1) >= Math.min(bounds0, bounds1) && Math.max(s0, s1) <= Math.max(bounds0, bounds1);
+        if (labelDatum.avoidCollisions && !inside) {
+            label.visible = false;
+            return;
+        }
+
+        label.visible = true;
+        label.text = layout.text;
+        label.fontSize = layout.fontSize;
+        label.lineHeight = layout.lineHeight;
+
+        label.textAlign = horizontal ? horizontalTextAligns[align] : 'center';
+        label.textBaseline = horizontal ? 'middle' : verticalTextBaselines[align];
+        label.x = x;
+        label.y = y;
+    });
 }

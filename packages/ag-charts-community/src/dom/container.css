@@ -1,5 +1,6 @@
 .ag-charts-wrapper {
     position: relative;
+    user-select: none;
 }
 
 .ag-charts-canvas-center {
@@ -17,11 +18,14 @@
 .ag-charts-canvas-container,
 .ag-charts-canvas {
     position: relative;
+    user-select: none;
 }
 
 .ag-charts-canvas-container > *,
+.ag-charts-canvas-proxy > *,
 .ag-charts-canvas > * {
     display: block;
+    pointer-events: none;
 }
 
 .ag-charts-canvas-proxy {
@@ -29,7 +33,12 @@
     top: 0;
     left: 0;
     opacity: 0;
-    pointer-events: none;
+    pointer-events: auto;
+}
+
+.ag-charts-canvas-proxy:focus-visible {
+    /* This CSS property is read by FocusIndicator to determine the `:focus-visible` state. */
+    opacity: 1;
 }
 
 .ag-charts-tab-guard {
@@ -40,6 +49,7 @@
 
 .ag-charts-canvas-overlay {
     pointer-events: none;
+    user-select: none;
     position: absolute;
     inset: 0;
 }

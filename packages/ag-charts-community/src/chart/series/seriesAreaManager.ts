@@ -98,7 +98,7 @@ export class SeriesAreaManager extends BaseManager {
 
         let pickedNode: SeriesNodeDatum | undefined;
         let position: { x: number; y: number } | undefined;
-        if (this.ctx.focusIndicator.guessDevice(event.sourceEvent).type === 'keyboard') {
+        if (this.ctx.focusIndicator.isFocusVisible()) {
             pickedNode = this.ctx.highlightManager.getActiveHighlight();
             if (pickedNode && this.seriesRect && pickedNode.midPoint) {
                 position = {

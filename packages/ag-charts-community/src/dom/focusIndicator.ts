@@ -27,14 +27,14 @@ export class FocusIndicator {
     private readonly div: HTMLDivElement;
 
     constructor(private readonly domManager: DOMManager) {
-        const { block, elements, modifiers } = focusStyles;
+        const { block, elements } = focusStyles;
         this.div = getDocument().createElement('div');
         this.svg = getDocument().createElementNS('http://www.w3.org/2000/svg', 'svg');
         this.path = getDocument().createElementNS('http://www.w3.org/2000/svg', 'path');
         this.svg.append(this.path);
 
-        this.element = domManager.addChild('canvas-overlay', block);
-        this.element.classList.add(block, elements.indicator, modifiers.hidden);
+        this.element = domManager.addChild('canvas-proxy', block);
+        this.element.classList.add(block, elements.indicator);
         this.element.ariaHidden = 'true';
         this.element.append(this.svg);
     }
@@ -46,7 +46,7 @@ export class FocusIndicator {
 
     updateBounds(bounds: Path | BBoxValues | undefined) {
         if (bounds === undefined) {
-            this.element.classList.add(focusStyles.modifiers.hidden);
+            // skip
         } else if (bounds instanceof Path) {
             const transform = (x: number, y: number) => Transformable.toCanvasPoint(bounds, x, y);
             this.path.setAttribute('d', bounds.computeSVGDataPath(transform));
@@ -58,20 +58,21 @@ export class FocusIndicator {
     }
 
     private show(child: Element) {
-        this.element.classList.remove(focusStyles.modifiers.hidden);
         this.element.innerHTML = '';
         this.element.append(child);
     }
 
-    private isShown(): boolean {
-        return !this.element.classList.contains(focusStyles.modifiers.hidden);
+    // Get the `:focus-visible` CSS state.
+    public isFocusVisible(): boolean {
+        const focusableParent = this.element.parentElement;
+        return focusableParent != null && getComputedStyle(focusableParent).opacity === '1';
     }
 
     public guessDevice(event: Event): MenuDevice {
         const lastFocus = getLastFocus(event);
         if (lastFocus !== undefined) {
             const style = getComputedStyle(lastFocus);
-            if (this.isShown() || (style.outlineStyle !== 'none' && style.outlineWidth !== '0px')) {
+            if (this.isFocusVisible() || (style.outlineStyle !== 'none' && style.outlineWidth !== '0px')) {
                 return { type: 'keyboard', lastFocus };
             }
         }

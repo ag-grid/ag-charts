@@ -12,7 +12,6 @@ import { ActionOnSet, ObserveChanges } from '../../util/proxy';
 import { AND, BOOLEAN, GREATER_THAN, LESS_THAN, OBJECT, POSITIVE_NUMBER, RATIO, Validate } from '../../util/validation';
 import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
 import type { RegionEvent } from '../interaction/regionManager';
-import { NodeRegionBBoxProvider } from '../interaction/regions';
 import type { ZoomChangeEvent } from '../interaction/zoomManager';
 import { type LayoutCompleteEvent, LayoutElement } from '../layout/layoutManager';
 import { RangeHandle } from './shapes/rangeHandle';
@@ -113,7 +112,6 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
                 ariaLabel: { id: 'ariaLabelNavigatorMinimum' },
                 ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
-                focusable: new NodeRegionBBoxProvider(this.minHandle),
                 onchange: (ev) => this.onMinSliderChange(ev),
             }),
             this.ctx.proxyInteractionService.createProxyElement({
@@ -122,7 +120,6 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
                 ariaLabel: { id: 'ariaLabelNavigatorRange' },
                 ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
-                focusable: this.maskVisibleRange,
                 onchange: (ev) => this.onPanSliderChange(ev),
             }),
             this.ctx.proxyInteractionService.createProxyElement({
@@ -131,7 +128,6 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
                 ariaLabel: { id: 'ariaLabelNavigatorMaximum' },
                 ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
-                focusable: new NodeRegionBBoxProvider(this.maxHandle),
                 onchange: (ev) => this.onMaxSliderChange(ev),
             }),
         ];

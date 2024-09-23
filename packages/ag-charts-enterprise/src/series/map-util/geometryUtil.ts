@@ -61,7 +61,7 @@ export function largestPolygon(geometry: _ModuleSupport.Geometry): _ModuleSuppor
         case 'GeometryCollection': {
             let maxArea: number | undefined;
             let maxPolygon: _ModuleSupport.Position[][] | undefined;
-            geometry.geometries.map((g) => {
+            geometry.geometries.forEach((g) => {
                 const polygon = largestPolygon(g);
                 if (polygon == null) return;
 
@@ -106,7 +106,7 @@ export function largestLineString(geometry: _ModuleSupport.Geometry): _ModuleSup
         case 'GeometryCollection': {
             let maxLength: number | undefined;
             let maxLineString: _ModuleSupport.Position[] | undefined;
-            geometry.geometries.map((g) => {
+            geometry.geometries.forEach((g) => {
                 const lineString = largestLineString(g);
                 if (lineString == null) return;
 

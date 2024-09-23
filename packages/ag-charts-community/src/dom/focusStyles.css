@@ -21,7 +21,3 @@
     stroke: var(--ag-charts-focus-border-color);
     stroke-width: 2px;
 }
-
-.ag-charts-focus--hidden {
-    visibility: hidden;
-}

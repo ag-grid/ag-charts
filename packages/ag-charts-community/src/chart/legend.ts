@@ -21,6 +21,7 @@ import { Selection } from '../scene/selection';
 import { Line } from '../scene/shape/line';
 import { type SpriteDimensions, SpriteRenderer } from '../scene/spriteRenderer';
 import { Transformable } from '../scene/transformable';
+import { DestroyFns } from '../util/destroy';
 import { createElement, getWindow, setElementBBox } from '../util/dom';
 import { createId } from '../util/id';
 import { initRovingTabIndex } from '../util/keynavUtil';
@@ -49,7 +50,6 @@ import { gridLayout } from './gridLayout';
 import type { HighlightNodeDatum } from './interaction/highlightManager';
 import { InteractionState } from './interaction/interactionManager';
 import type { RegionEvent } from './interaction/regionManager';
-import { NodeRegionBBoxProvider } from './interaction/regions';
 import { makeKeyboardPointerEvent } from './keyboardUtil';
 import { Layers } from './layers';
 import { LayoutElement } from './layout/layoutManager';
@@ -243,6 +243,7 @@ export class Legend extends BaseProperties {
     private readonly proxyLegendToolbar: HTMLDivElement;
     private readonly proxyLegendPagination: HTMLDivElement;
     private readonly proxyLegendItemDescription: HTMLParagraphElement;
+    private readonly proxyLegendToolbarDestroyFns: DestroyFns = new DestroyFns();
     private proxyPrevButton?: HTMLButtonElement;
     private proxyNextButton?: HTMLButtonElement;
     private pendingHighlightDatum?: HighlightNodeDatum;
@@ -319,6 +320,7 @@ export class Legend extends BaseProperties {
 
         this.pagination.destroy();
         this.itemSelection.clear();
+        this.proxyLegendToolbarDestroyFns.destroy();
     }
 
     private initLegendItemToolbar() {
@@ -331,7 +333,6 @@ export class Legend extends BaseProperties {
                 ariaChecked: !!markerLabel.datum.enabled,
                 ariaDescribedBy: this.proxyLegendItemDescription.id,
                 parent: this.proxyLegendToolbar,
-                focusable: new NodeRegionBBoxProvider(markerLabel),
                 // Retrieve the datum from the node rather than from the method parameter.
                 // The method parameter `datum` gets destroyed when the data is refreshed
                 // using Series.getLegendData(). But the scene node will stay the same.
@@ -352,10 +353,9 @@ export class Legend extends BaseProperties {
             .nodes()
             .map((markerLabel) => markerLabel.proxyButton?.button)
             .filter((button): button is HTMLButtonElement => !!button);
-        initRovingTabIndex({
-            orientation: this.getOrientation(),
-            buttons,
-        });
+        const orientation = this.getOrientation();
+        this.proxyLegendToolbarDestroyFns.setFns(initRovingTabIndex({ orientation, buttons }));
+        this.proxyLegendToolbar.ariaOrientation = orientation;
         this.proxyLegendToolbar.ariaHidden = (buttons.length === 0).toString();
     }
 
@@ -436,10 +436,14 @@ export class Legend extends BaseProperties {
         if (this.reverseOrder) {
             data.reverse();
         }
-        const proxyToolbarNeedsUpdate = this.itemSelection.nodes().length === 0;
+        const orientationChange = this.proxyLegendToolbar.ariaOrientation !== this.getOrientation();
+        const proxyToolbarNeedsUpdate = orientationChange || this.itemSelection.nodes().length === 0;
         this.itemSelection.update(data);
 
         if (proxyToolbarNeedsUpdate) {
+            if (orientationChange) {
+                this.itemSelection.each((markerLabel) => markerLabel.destroyProxyButton());
+            }
             this.initLegendItemToolbar();
         }
 
@@ -745,7 +749,6 @@ export class Legend extends BaseProperties {
                     textContent: { id: 'ariaLabelLegendPagePrevious' },
                     tabIndex: 0,
                     parent: this.proxyLegendPagination,
-                    focusable: new NodeRegionBBoxProvider(this.pagination.previousButton),
                     onclick: () => this.pagination.clickPrevious(),
                 });
                 this.proxyNextButton ??= this.ctx.proxyInteractionService.createProxyElement({
@@ -754,7 +757,6 @@ export class Legend extends BaseProperties {
                     textContent: { id: 'ariaLabelLegendPageNext' },
                     tabIndex: 0,
                     parent: this.proxyLegendPagination,
-                    focusable: new NodeRegionBBoxProvider(this.pagination.nextButton),
                     onclick: () => this.pagination.clickNext(),
                 });
                 this.proxyLegendPagination.ariaHidden = 'false';

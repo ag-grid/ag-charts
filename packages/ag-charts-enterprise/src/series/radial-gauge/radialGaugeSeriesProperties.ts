@@ -114,6 +114,7 @@ export type RadialGaugeLabelDatum = {
     fontStyle: FontStyle | undefined;
     fontWeight: FontWeight | undefined;
     fontSize: number;
+    minimumFontSize: number | undefined;
     fontFamily: string;
     lineHeight: number | undefined;
     formatter:

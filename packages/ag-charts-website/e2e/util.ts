@@ -5,6 +5,8 @@ import glob from 'glob';
 const baseUrl = 'http://localhost:4601';
 const fws = ['vanilla', 'typescript', 'reactFunctional', 'reactFunctionalTs', 'angular', 'vue3'] as const;
 
+export const SELECTORS = { canvas: '.ag-charts-canvas-proxy' };
+
 export function getExamples() {
     const examples = glob.glob.sync('./src/content/**/_examples/*/main.ts').map((e) => ({ path: e, affected: true }));
     if (process.env.NX_BASE && process.env.AG_FORCE_ALL_TESTS !== '1') {
@@ -94,8 +96,8 @@ export async function gotoExample(page: Page, url: string) {
     // Wait for synchronous JS execution to complete before we start waiting
     // for <canvas/> to appear.
     await page.evaluate(() => 1);
-    await expect(page.locator('canvas').first()).toBeVisible();
-    for (const elements of await page.locator('canvas').all()) {
+    await expect(page.locator(SELECTORS.canvas).first()).toBeVisible();
+    for (const elements of await page.locator(SELECTORS.canvas).all()) {
         await expect(elements).toBeVisible();
     }
     for (const elements of await page.locator('.ag-charts-wrapper').all()) {
@@ -110,16 +112,35 @@ export async function dragCanvas(
     end: { x: number; y: number },
     options = { steps: 4 }
 ) {
-    await page.hover('canvas', { position: start });
+    const { steps } = options;
+    const canvas = await page.locator(SELECTORS.canvas).first();
+    const canvasBBox = await canvas.boundingBox();
+    if (!canvasBBox) throw new Error("Couldn't get the canvas bbox");
+
+    await page.mouse.move(canvasBBox.x + start.x, canvasBBox.y + start.y);
     await page.mouse.down();
-    await page.mouse.move(end.x - start.x, end.y - start.y, options);
+    for (let step = 0; step < steps; step++) {
+        await page.mouse.move(
+            Math.round(canvasBBox.x + start.x + ((end.x - start.x) * step) / steps),
+            Math.round(canvasBBox.y + start.y + ((end.y - start.y) * step) / steps)
+        );
+    }
     await page.mouse.up();
 }
 
 export async function locateCanvas(page: Page) {
-    const canvas = await page.locator('canvas');
-    const width = Number(await canvas.getAttribute('width'));
-    const height = Number(await canvas.getAttribute('height'));
+    const canvasElem = await page.locator('canvas');
+    const canvas = await page.locator(SELECTORS.canvas);
+    const width = Number(await canvasElem.getAttribute('width'));
+    const height = Number(await canvasElem.getAttribute('height'));
+    const bbox = await canvas.boundingBox();
 
-    return { canvas, width, height };
+    if ([width, height].some((n) => [-Infinity, 0, Infinity].includes(n) || isNaN(n))) {
+        throw new Error(`Invalid canvasDims: { width: ${width}, height: ${height} }`);
+    }
+    if (bbox == null) {
+        throw new Error(`Invalid canvas bbox!`);
+    }
+
+    return { canvas, width, height, bbox };
 }

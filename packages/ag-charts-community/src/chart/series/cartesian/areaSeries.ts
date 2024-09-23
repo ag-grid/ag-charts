@@ -114,7 +114,7 @@ export class AreaSeries extends CartesianSeries<
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
         const { xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
-        const currentIds = {
+        const idMap = {
             value: `area-stack-${groupIndex}-yValue`,
             values: `area-stack-${groupIndex}-yValues`,
             stack: `area-stack-${groupIndex}-yValue-stack`,
@@ -123,7 +123,7 @@ export class AreaSeries extends CartesianSeries<
 
         const extraProps = [];
         if (isDefined(normalizedTo)) {
-            extraProps.push(normaliseGroupTo(Object.values(currentIds), normalizedTo, 'range'));
+            extraProps.push(normaliseGroupTo(Object.values(idMap), normalizedTo, 'range'));
         }
         if (animationEnabled) {
             extraProps.push(animationValidation());
@@ -141,36 +141,20 @@ export class AreaSeries extends CartesianSeries<
                 keyProperty(xKey, xScaleType, { id: 'xValue' }),
                 valueProperty(yKey, yScaleType, { id: `yValueRaw`, ...common }),
                 ...(yFilterKey != null ? [valueProperty(yFilterKey, yScaleType, { id: 'yFilterRaw' })] : []),
-                ...groupStackValueProperty(yKey, yScaleType, {
-                    id: `yValueStack`,
-                    ...common,
-                    groupId: currentIds.stack,
-                }),
-                valueProperty(yKey, yScaleType, {
-                    id: `yValue`,
-                    ...common,
-                    groupId: currentIds.value,
-                }),
+                ...groupStackValueProperty(yKey, yScaleType, { id: `yValueStack`, ...common, groupId: idMap.stack }),
+                valueProperty(yKey, yScaleType, { id: `yValue`, ...common, groupId: idMap.value }),
                 ...groupAccumulativeValueProperty(
                     yKey,
                     'window',
                     'current',
-                    {
-                        id: `yValueEnd`,
-                        ...common,
-                        groupId: currentIds.values,
-                    },
+                    { id: `yValueEnd`, ...common, groupId: idMap.values },
                     yScaleType
                 ),
                 ...groupAccumulativeValueProperty(
                     yKey,
                     'normal',
                     'current',
-                    {
-                        id: `yValueCumulative`,
-                        ...common,
-                        groupId: currentIds.marker,
-                    },
+                    { id: `yValueCumulative`, ...common, groupId: idMap.marker },
                     yScaleType
                 ),
                 ...extraProps,
@@ -330,18 +314,7 @@ export class AreaSeries extends CartesianSeries<
                         datum: seriesDatum,
                         x: point.x,
                         y: point.y,
-                        label: labelText
-                            ? {
-                                  text: labelText,
-                                  fontStyle: label.fontStyle,
-                                  fontWeight: label.fontWeight,
-                                  fontSize: label.fontSize,
-                                  fontFamily: label.fontFamily,
-                                  textAlign: 'center',
-                                  textBaseline: 'bottom',
-                                  fill: label.color,
-                              }
-                            : undefined,
+                        labelText,
                     });
                 }
             });
@@ -665,16 +638,16 @@ export class AreaSeries extends CartesianSeries<
         const { labelSelection } = opts;
         const { enabled: labelEnabled, fontStyle, fontWeight, fontSize, fontFamily, color } = this.properties.label;
         labelSelection.each((text, datum) => {
-            const { x, y, label } = datum;
+            const { x, y, labelText } = datum;
 
-            if (label && labelEnabled && this.visible) {
+            if (labelText && labelEnabled && this.visible) {
                 text.fontStyle = fontStyle;
                 text.fontWeight = fontWeight;
                 text.fontSize = fontSize;
                 text.fontFamily = fontFamily;
-                text.textAlign = label.textAlign;
-                text.textBaseline = label.textBaseline;
-                text.text = label.text;
+                text.textAlign = 'center';
+                text.textBaseline = 'bottom';
+                text.text = labelText;
                 text.x = x;
                 text.y = y - 10;
                 text.fill = color;

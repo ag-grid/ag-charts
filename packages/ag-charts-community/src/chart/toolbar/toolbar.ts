@@ -251,18 +251,28 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
     }
 
-    private toggleButtonsClass(className: string, enabled: boolean) {
+    private toggleButtonsTransition(enabled: boolean) {
+        const className = styles.modifiers.button.withTransition;
+
         for (const button of Object.values(this.groupButtons).flat()) {
+            if (enabled && !button.classList.contains(className)) {
+                // AG-12489
+                // Chrome in particular is a little too lazy when it comes to style updates
+                // This means that a previous style update may be done *after* we add the transition modifier
+                // Force a style recalculation on the current styles before adding this modifier
+                // so the transition isn't applied where it shouldn't be
+                button.getBoundingClientRect();
+            }
             button.classList.toggle(className, enabled);
         }
     }
 
     private onPreDomUpdate() {
-        this.toggleButtonsClass(styles.modifiers.button.withTransition, false);
+        this.toggleButtonsTransition(false);
     }
 
     private onUpdateComplete() {
-        this.toggleButtonsClass(styles.modifiers.button.withTransition, true);
+        this.toggleButtonsTransition(true);
     }
 
     private onButtonUpdated(event: ToolbarButtonUpdatedEvent) {
@@ -289,15 +299,11 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             return buttonVisible ? false : first;
         };
 
-        childNodes.reduce<boolean>(
-            (first, button) => setFirstClass(first, button, styles.modifiers.button.first),
-            true
-        );
+        let first = true;
+        childNodes.forEach((button) => (first = setFirstClass(first, button, styles.modifiers.button.first)));
 
-        childNodes.reduceRight<boolean>(
-            (last, button) => setFirstClass(last, button, styles.modifiers.button.last),
-            true
-        );
+        let last = true;
+        childNodes.toReversed().forEach((button) => (last = setFirstClass(last, button, styles.modifiers.button.last)));
     }
 
     private onButtonToggled(event: ToolbarButtonToggledEvent) {

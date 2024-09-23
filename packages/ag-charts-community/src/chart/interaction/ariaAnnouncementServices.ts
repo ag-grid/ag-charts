@@ -15,6 +15,7 @@ export class AriaAnnouncementService {
         e.classList.add('ag-charts-aria-announcer');
         setAttribute(e, 'role', 'status');
         setAttribute(e, 'aria-live', 'assertive');
+        e.style.opacity = '0';
         return e;
     }
 

@@ -45,7 +45,7 @@ describe('Gallery Examples', () => {
         for (const [exampleName, example] of Object.entries(ENTERPRISE_GALLERY_EXAMPLES)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
                 const options: AgChartOptions = prepareEnterpriseTestOptions(example.options);
-                chart = AgCharts.create(options);
+                chart = example.type === 'gauge' ? AgCharts.createGauge(options as any) : AgCharts.create(options);
                 await waitForChartStability(chart);
                 await example.assertions(chart);
             });
@@ -61,7 +61,7 @@ describe('Gallery Examples', () => {
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
-                chart = AgCharts.create(options);
+                chart = example.type === 'gauge' ? AgCharts.createGauge(options as any) : AgCharts.create(options);
                 await compare();
 
                 if (example.extraScreenshotActions) {
@@ -91,7 +91,7 @@ describe('Gallery Examples', () => {
                     options = { ...example.options };
                     prepareEnterpriseTestOptions(options);
 
-                    chart = AgCharts.create(options);
+                    chart = example.type === 'gauge' ? AgCharts.createGauge(options as any) : AgCharts.create(options);
                     await waitForChartStability(chart);
                 });
 
