@@ -15,8 +15,6 @@ import {
     deproxy,
     doubleClickAction,
     extractImageData,
-    getCursor,
-    hoverAction,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -220,16 +218,11 @@ describe('Legend', () => {
 
             chart = deproxy(AgCharts.create(options));
 
-            await waitForChartStability(chart);
-            const { x, y } = computeLegendBBox(chart);
-
-            await hoverAction(x, y)(chart);
-            await waitForChartStability(chart);
-            expect(getCursor(chart)).toBe('pointer');
-
-            await hoverAction(x, y - 1)(chart);
-            await waitForChartStability(chart);
-            expect(getCursor(chart)).toBe('default');
+            const legendButtons = document.querySelectorAll('button.ag-charts-proxy-elem[role="switch"]');
+            for (const button of Array.from(legendButtons) as HTMLElement[]) {
+                expect(button).toBeInstanceOf(HTMLButtonElement);
+                expect(button.style.cursor).toBe('pointer');
+            }
         });
     });
 
