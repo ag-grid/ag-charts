@@ -195,6 +195,7 @@ export class ProxyInteractionService {
             button.textContent = params.textContent;
             button.role = 'switch';
             button.ariaChecked = params.ariaChecked.toString();
+            button.style.pointerEvents = 'auto'; // TODO(olegat) this should be part of CSS once all element types support pointer events.
             button.setAttribute('aria-describedby', params.ariaDescribedBy);
 
             listitem.role = 'listitem';
