@@ -172,20 +172,14 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
     const axesOpts: AgPolarAxisOptions[] = [
         {
             type: 'angle-number',
-            min: scaleMin ?? 0,
-            max: scaleMax ?? 1,
-            startAngle: startAngle ?? 270,
-            endAngle: endAngle ?? 270 + 180,
+            min: scaleMin,
+            max: scaleMax,
+            startAngle: startAngle,
+            endAngle: endAngle,
             interval: scaleInterval ?? {},
             label: scaleLabel ?? {},
-            nice: false,
-            line: {
-                enabled: false,
-            },
         },
-        {
-            type: 'radius-number',
-        },
+        { type: 'radius-number' },
     ];
 
     return {
@@ -319,25 +313,13 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         interval: scaleInterval,
         label: axisLabel,
         nice: false,
-        line: {
-            enabled: false,
-        },
-        gridLine: {
-            enabled: false,
-        },
     };
     const crossAxis: AgCartesianAxisOptions = {
         type: 'number',
         position: crossAxisPosition,
         min: 0,
         max: 1,
-        line: {
-            enabled: false,
-        },
         label: {
-            enabled: false,
-        },
-        gridLine: {
             enabled: false,
         },
     };

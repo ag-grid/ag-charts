@@ -1,3 +1,5 @@
+import type { AgLinearGaugeThemeableOptions } from '../presets/gauge/linearGaugeOptions';
+import type { AgRadialGaugeThemeableOptions } from '../presets/gauge/radialGaugeOptions';
 import type { AgAreaSeriesThemeableOptions } from '../series/cartesian/areaOptions';
 import type { AgBarSeriesThemeableOptions } from '../series/cartesian/barOptions';
 import type { AgBoxPlotSeriesThemeableOptions } from '../series/cartesian/boxPlotOptions';
@@ -75,7 +77,7 @@ export interface AgBaseChartThemeOptions {
     /** The palette to use. If specified, this replaces the palette from the base theme. */
     palette?: AgChartThemePalette;
     /** Configuration from this object is merged over the defaults specified in the base theme. */
-    overrides?: AgChartThemeOverrides;
+    overrides?: AgThemeOverrides;
 }
 
 /** This object is used to define the configuration for a custom chart theme. */
@@ -175,6 +177,9 @@ export interface AgSankeyThemeOverrides extends AgBaseFlowProportionThemeOptions
 export interface AgChordThemeOverrides extends AgBaseFlowProportionThemeOptions {
     series?: AgChordSeriesThemeableOptions;
 }
+// NOTE: no series nesting
+export interface AgRadialGaugeThemeOverrides extends AgRadialGaugeThemeableOptions {}
+export interface AgLinearGaugeThemeOverrides extends AgLinearGaugeThemeableOptions {}
 
 export interface AgCommonThemeableAxisOptions extends AgCartesianAxesTheme, AgPolarAxesTheme {}
 
@@ -183,6 +188,8 @@ export interface AgCommonThemeableChartOptions extends AgBaseThemeableChartOptio
     annotations?: AgAnnotationsThemeableOptions;
     locale?: AgLocaleThemeableOptions;
 }
+
+export type AgGaugeThemeOverrides = AgRadialGaugeThemeOverrides | AgLinearGaugeThemeOverrides;
 
 export interface AgChartThemeOverrides {
     /** Common theme overrides for series. */
@@ -249,6 +256,15 @@ export interface AgChartThemeOverrides {
     /** Chord series theme overrides. */
     chord?: AgChordThemeOverrides;
 }
+
+export interface AgPresetOverrides {
+    /** Radial gauge theme overrides. */
+    'radial-gauge'?: AgRadialGaugeThemeOverrides;
+    /** Linear Gauge theme overrides. */
+    'linear-gauge'?: AgLinearGaugeThemeOverrides;
+}
+
+export interface AgThemeOverrides extends AgChartThemeOverrides, AgPresetOverrides {}
 
 // Use Typescript function types to verify that all series types are present in the manually
 // maintained AgBaseChartThemeOverrides type.

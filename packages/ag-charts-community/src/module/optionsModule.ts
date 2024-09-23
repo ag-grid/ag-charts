@@ -3,6 +3,8 @@ import {
     type AgCartesianAxisOptions,
     type AgChartOptions,
     type AgPolarAxisOptions,
+    type AgPresetOptions,
+    type AgPresetOverrides,
     type AgTooltipPositionOptions,
     AgTooltipPositionType,
 } from 'ag-charts-types';
@@ -99,17 +101,30 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         let options = deepClone(userOptions, cloneOptions);
 
+        this.activeTheme = getChartTheme(options.theme);
+
         if (this.presetType != null) {
-            const presetOptions = (PRESETS as any)[this.presetType]?.(options, () => this.activeTheme) ?? options;
+            const presetConstructor: ((options: AgPresetOptions, activeTheme: () => ChartTheme) => T) | undefined = (
+                PRESETS as any
+            )[this.presetType];
+            const presetParams = options as any as AgPresetOptions;
+            const presetOptions = presetConstructor?.(presetParams, () => this.activeTheme) ?? options;
             this.debug('>>> AgCharts.createOrUpdate() - applying preset', options, presetOptions);
-            options = presetOptions;
+
+            const chartType = this.optionsType(presetOptions);
+            const presetTheme = this.activeTheme.presets[chartType as any as keyof AgPresetOverrides];
+            if (presetTheme != null) {
+                const themedOptions = mergeDefaults(presetParams, presetTheme);
+                options = presetConstructor?.(themedOptions, () => this.activeTheme) ?? themedOptions;
+            } else {
+                options = presetOptions;
+            }
         }
 
         if (!enterpriseModule.isEnterprise) {
             removeUsedEnterpriseOptions(options);
         }
 
-        this.activeTheme = getChartTheme(options.theme);
         if (this.presetType) {
             options = this.activeTheme.templateTheme(options);
         }
