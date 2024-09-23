@@ -328,7 +328,7 @@ export class Legend extends BaseProperties {
                 ondblclick: (ev) => this.onDoubleClick(ev, markerLabel.datum),
                 onmouseenter: (ev) => this.onHover(ev, markerLabel),
                 onmouseleave: () => this.onLeave(),
-                oncontextmenu: (ev) => this.onContextClick(ev, markerLabel.datum),
+                oncontextmenu: (ev) => this.onContextClick(ev, markerLabel),
                 onblur: () => this.onLeave(),
                 onfocus: (ev) => this.onHover(ev, markerLabel),
             });
@@ -983,7 +983,8 @@ export class Legend extends BaseProperties {
         this.doDoubleClick(this.findNode(params).datum);
     }
 
-    private onContextClick(sourceEvent: MouseEvent, legendItem: CategoryLegendDatum) {
+    private onContextClick(sourceEvent: MouseEvent, node: LegendMarkerLabel) {
+        const legendItem: CategoryLegendDatum = node.datum;
         if (this.preventHidingAll && this.contextMenuDatum?.enabled && this.getVisibleItemCount() <= 1) {
             this.ctx.contextMenuRegistry.disableAction(ID_LEGEND_VISIBILITY);
         } else {
@@ -991,12 +992,13 @@ export class Legend extends BaseProperties {
         }
 
         const { button, offsetX, offsetY } = sourceEvent;
+        const { x: canvasOffsetX, y: canvasOffsetY } = Transformable.toCanvasPoint(node, offsetX, offsetY);
         const event: PointerInteractionEvent<'contextmenu'> = {
             type: 'contextmenu',
             sourceEvent,
             button,
-            offsetX,
-            offsetY,
+            offsetX: canvasOffsetX,
+            offsetY: canvasOffsetY,
             deltaX: 0,
             deltaY: 0,
             pageX: NaN,
