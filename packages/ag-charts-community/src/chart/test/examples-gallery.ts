@@ -186,6 +186,12 @@ export const COMMUNITY_AND_ENTERPRISE_EXAMPLES: Record<string, TestCase> = {
         assertions: gaugeAssertions(),
         enterprise: true,
     },
+    SIMPLE_LINEAR_GAUGE_EXAMPLE: {
+        type: 'gauge',
+        options: examples.SIMPLE_LINEAR_GAUGE_EXAMPLE,
+        assertions: gaugeAssertions(),
+        enterprise: true,
+    },
 };
 
 export const EXAMPLES = Object.entries(COMMUNITY_AND_ENTERPRISE_EXAMPLES)
