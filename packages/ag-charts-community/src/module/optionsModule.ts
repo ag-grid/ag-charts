@@ -105,19 +105,19 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const presetConstructor: ((options: AgPresetOptions, activeTheme: () => ChartTheme) => T) | undefined = (
                 PRESETS as any
             )[this.presetType];
-            const presetParams = options as any as AgPresetOptions;
-            const presetOptions = presetConstructor?.(presetParams, () => this.activeTheme) ?? options;
-            this.debug('>>> AgCharts.createOrUpdate() - applying preset', options, presetOptions);
 
-            const activeTheme = getChartTheme(options.theme);
-            const presetType = this.optionsType(presetOptions) as any as keyof AgPresetOverrides;
-            const presetTheme = activeTheme.presets[presetType];
+            // Note financial charts defines the theme in its returned options
+            // so we need to get the theme before and after applying the preset
+            const presetType = (options as any).type as keyof AgPresetOverrides | undefined;
+            const presetTheme = presetType != null ? getChartTheme(options.theme).presets[presetType] : undefined;
+
+            let presetParams = options as any as AgPresetOptions;
             if (presetTheme != null) {
-                const themedOptions = mergeDefaults(presetParams, presetTheme);
-                options = presetConstructor?.(themedOptions, () => this.activeTheme) ?? themedOptions;
-            } else {
-                options = presetOptions;
+                presetParams = mergeDefaults(presetParams, presetTheme);
             }
+
+            this.debug('>>> AgCharts.createOrUpdate() - applying preset', options, presetParams);
+            options = presetConstructor?.(presetParams, () => this.activeTheme) ?? options;
         }
 
         if (!enterpriseModule.isEnterprise) {
