@@ -102,8 +102,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (this.presetType != null) {
             const presetOptions = (PRESETS as any)[this.presetType]?.(options, () => this.activeTheme) ?? options;
             this.debug('>>> AgCharts.createOrUpdate() - applying preset', options, presetOptions);
-            userOptions = presetOptions;
-            options = deepClone(presetOptions);
+            options = presetOptions;
         }
 
         if (!enterpriseModule.isEnterprise) {
@@ -154,7 +153,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             this.processedOptions.legend.enabled = this.processedOptions.series!.length > 1;
         }
 
-        this.enableConfiguredOptions(this.processedOptions);
+        this.enableConfiguredOptions(this.processedOptions, options);
 
         if (!enterpriseModule.isEnterprise) {
             removeUsedEnterpriseOptions(this.processedOptions, true);
@@ -540,10 +539,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
     }
 
-    private enableConfiguredOptions(options: T) {
+    private enableConfiguredOptions(options: T, userOptions: T) {
         // Set `enabled: true` for all option objects where the user has provided values.
         jsonWalk<any>(
-            this.userOptions,
+            userOptions,
             (visitingUserOpts, visitingMergedOpts) => {
                 if (
                     visitingMergedOpts &&

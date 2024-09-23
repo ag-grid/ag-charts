@@ -172,7 +172,10 @@ class AgChartsInternal {
         });
 
         let chart = proxy?.chart;
-        if (chart == null || chartType(userOptions) !== chartType(chart?.chartOptions.processedOptions)) {
+        if (
+            chart == null ||
+            chartType(chartOptions.processedOptions) !== chartType(chart?.chartOptions.processedOptions)
+        ) {
             chart = AgChartsInternal.createChartInstance(chartOptions, chart);
             styles?.forEach(([id, css]) => {
                 chart?.ctx.domManager.addStyles(id, css);
