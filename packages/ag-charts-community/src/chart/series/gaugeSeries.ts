@@ -1,6 +1,5 @@
 import type { TextAlign, VerticalAlign } from 'ag-charts-types';
 
-import type { Scale } from '../../scale/scale';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { Series } from './series';
 
@@ -24,5 +23,5 @@ export interface LinearGaugeSeries extends GaugeSeries {
     readonly horizontal: boolean;
     readonly thickness: number;
     // Negative numbers for leading inset, positive for trailing
-    computeInset(direction: ChartAxisDirection, scale: Scale<number, number>): number;
+    computeInset(direction: ChartAxisDirection, ticks: number[]): number;
 }
