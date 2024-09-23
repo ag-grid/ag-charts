@@ -1,7 +1,7 @@
 import type { TextAlign, VerticalAlign } from 'ag-charts-types';
 
-import { LinearScale } from '../integrated-charts-scene';
 import type { LayoutContext } from '../module/baseModule';
+import { LinearScale } from '../scale/linearScale';
 import type { BBox } from '../scene/bbox';
 import { sectorBox } from '../scene/util/sector';
 import { isBetweenAngles, normalizeAngle360Inclusive } from '../util/angle';
