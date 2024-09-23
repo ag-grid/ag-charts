@@ -178,9 +178,9 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         const newMenuElement = this.renderMenu();
 
+        this.menuCloser?.close();
         if (this.menuElement) {
             this.element.replaceChild(newMenuElement, this.menuElement);
-            this.menuCloser?.close();
         } else {
             this.element.appendChild(newMenuElement);
         }
