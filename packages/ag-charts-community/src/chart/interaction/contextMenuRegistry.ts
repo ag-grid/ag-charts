@@ -98,6 +98,7 @@ export class ContextMenuRegistry {
         const { sourceEvent } = pointerEvent;
         const x = position?.x ?? pointerEvent.offsetX;
         const y = position?.y ?? pointerEvent.offsetY;
+        sourceEvent.stopPropagation();
         this.listeners.dispatch('', buildPreventable({ type, x, y, context, sourceEvent }));
     }
 
