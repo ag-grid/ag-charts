@@ -106,21 +106,23 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             this.destroyFns.push(() => observer.disconnect());
         }
 
-        this.registry.registerDefaultAction({
-            id: 'download',
-            type: 'all',
-            label: 'contextMenuDownload',
-            action: () => {
-                const title = ctx.chartService.title;
-                let fileName = 'image';
-                if (title?.enabled && title?.text !== undefined) {
-                    fileName = title.text.replace(/\.+/, '');
-                }
-                this.ctx.chartService.publicApi?.download({ fileName }).catch((e) => {
-                    Logger.error('Unable to download chart', e);
-                });
-            },
-        });
+        this.destroyFns.push(
+            this.registry.registerDefaultAction({
+                id: 'download',
+                type: 'all',
+                label: 'contextMenuDownload',
+                action: () => {
+                    const title = ctx.chartService.title;
+                    let fileName = 'image';
+                    if (title?.enabled && title?.text !== undefined) {
+                        fileName = title.text.replace(/\.+/, '');
+                    }
+                    this.ctx.chartService.publicApi?.download({ fileName }).catch((e) => {
+                        Logger.error('Unable to download chart', e);
+                    });
+                },
+            })
+        );
 
         this.destroyFns.push(this.registry.addListener((e) => this.onContext(e)));
     }
@@ -193,6 +195,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             buttons,
             orientation: 'vertical',
             device: this.ctx.focusIndicator.guessDevice(sourceEvent),
+            autoCloseOnBlur: true,
+            skipMouseFocusRestore: true, // AG-12849: Avoid series node focus after context-menu item click.
             closeCallback: () => this.doClose(),
         });
     }
@@ -303,6 +307,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         el.textContent = this.ctx.localeManager.t(label);
         el.role = 'menuitem';
         el.onclick = makeAccessibleClickListener(el, this.createButtonOnClick(type, callback));
+        el.addEventListener('mouseover', () => el.focus());
         return el;
     }
 

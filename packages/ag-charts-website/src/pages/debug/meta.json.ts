@@ -1,4 +1,5 @@
-import { agChartsVersion, agGridVersion } from '@constants';
+import { SITE_BASE_URL, SITE_URL, agChartsVersion, agGridVersion } from '@constants';
+import { getIsArchive, getIsDev, getIsProduction, getIsStaging } from '@utils/env';
 import { execSync } from 'child_process';
 
 export async function GET() {
@@ -18,6 +19,16 @@ export async function GET() {
         versions: {
             grid: agGridVersion,
             charts: agChartsVersion,
+        },
+        site: {
+            baseUrl: SITE_BASE_URL,
+            siteUrl: SITE_URL,
+        },
+        env: {
+            isDev: getIsDev(),
+            isStaging: getIsStaging(),
+            isProduction: getIsProduction(),
+            isArchive: getIsArchive(),
         },
     };
 

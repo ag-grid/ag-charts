@@ -541,7 +541,7 @@ export abstract class Series<
             const { tooltip } = this.properties;
             maxDistance = typeof tooltip.range === 'number' ? tooltip.range : Infinity;
             exactMatchOnly ||= tooltip.range === 'exact';
-        } else if (intent === 'event') {
+        } else if (intent === 'event' || intent === 'context-menu') {
             const { nodeClickRange } = this.properties;
             maxDistance = typeof nodeClickRange === 'number' ? nodeClickRange : Infinity;
             exactMatchOnly ||= nodeClickRange === 'exact';
@@ -720,7 +720,7 @@ export abstract class Series<
                     (key) => (activeStyle.strokeWidth ?? 0) + Math.abs(center[key] - point[key])
                 );
                 const customSize = Math.max(bb.width + dx, bb.height + dy);
-                point.size = marker.size = customSize;
+                point.focusSize = customSize;
             }
         }
     }

@@ -166,7 +166,7 @@ export class GradientLegend {
 
         let angle: number;
         if (this.isVertical()) {
-            angle = 180;
+            angle = 0;
             gradientRect.width = thickness;
             gradientRect.height = Math.min(shrinkRect.height, preferredLength);
         } else {

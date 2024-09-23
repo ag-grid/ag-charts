@@ -336,16 +336,21 @@ export class ExtendedPath2D {
                     const A1 = params[pi++];
                     const ccw = params[pi++];
 
+                    const sweepSign = ccw ? -1 : 1;
+                    const sweep = normalizeAngle360((A1 - A0) * sweepSign) * sweepSign;
+
+                    // A bezier curve can handle at most one quarter turn
+                    const arcSections = Math.max((Math.abs(sweep) / (Math.PI / 2)) | 0, 1);
+
+                    const step = sweep / arcSections;
+                    const h = (4 / 3) * Math.tan(step / 4);
+
                     const move = buffer.length === 0 ? 'M' : 'L';
                     addCommand(move, cx + Math.cos(A0) * r, cy + Math.sin(A0) * r);
 
-                    // A bezier curve can handle at most one quarter turn
-                    const arcSections = Math.max((Math.abs(A1 - A0) / (Math.PI / 2)) | 0, 1);
-
-                    const step = (A1 - A0) * (ccw ? -1 : 1);
                     for (let i = 0; i < arcSections; i += 1) {
-                        const a0 = A0 + (step * (i + 0)) / arcSections;
-                        const a1 = A0 + (step * (i + 1)) / arcSections;
+                        const a0 = A0 + step * (i + 0);
+                        const a1 = A0 + step * (i + 1);
 
                         // "Approximation of circular arcs by cubic polynomials",
                         // Michael Goldapp, Computer Aided Geometric Design 8 (1991) 227-238
@@ -353,8 +358,6 @@ export class ExtendedPath2D {
                         const rCosStart = r * Math.cos(a0);
                         const rSinEnd = r * Math.sin(a1);
                         const rCosEnd = r * Math.cos(a1);
-
-                        const h = (4 / 3) * Math.tan((a1 - a0) / 4);
 
                         addCommand(
                             'C',

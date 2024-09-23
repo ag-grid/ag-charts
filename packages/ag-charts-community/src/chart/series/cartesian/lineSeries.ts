@@ -147,33 +147,21 @@ export class LineSeries extends CartesianSeries<
                     yKey,
                     'window',
                     'current',
-                    {
-                        id: `yValueEnd`,
-                        ...common,
-                        groupId: ids[0],
-                    },
+                    { id: `yValueEnd`, ...common, groupId: ids[0] },
                     yScaleType
                 ),
                 ...groupAccumulativeValueProperty(
                     yKey,
                     'window-trailing',
                     'current',
-                    {
-                        id: `yValueStart`,
-                        ...common,
-                        groupId: ids[1],
-                    },
+                    { id: `yValueStart`, ...common, groupId: ids[1] },
                     yScaleType
                 ),
                 ...groupAccumulativeValueProperty(
                     yKey,
                     'normal',
                     'current',
-                    {
-                        id: `yValueCumulative`,
-                        ...common,
-                        groupId: ids[2],
-                    },
+                    { id: `yValueCumulative`, ...common, groupId: ids[2] },
                     yScaleType
                 )
             );
@@ -291,18 +279,7 @@ export class LineSeries extends CartesianSeries<
                     lengthRatioMultiplier: this.properties.marker.getDiameter(),
                     lengthMax: Infinity,
                 },
-                label: labelText
-                    ? {
-                          text: labelText,
-                          fontStyle: label.fontStyle,
-                          fontWeight: label.fontWeight,
-                          fontSize: label.fontSize,
-                          fontFamily: label.fontFamily,
-                          textAlign: 'center',
-                          textBaseline: 'bottom',
-                          fill: label.color,
-                      }
-                    : undefined,
+                labelText,
                 selected,
             });
             moveTo = false;
@@ -417,18 +394,16 @@ export class LineSeries extends CartesianSeries<
         const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = this.properties.label;
 
         opts.labelSelection.each((text, datum) => {
-            const { point, label } = datum;
-
-            if (datum && label && enabled) {
+            if (enabled && datum?.labelText) {
                 text.fontStyle = fontStyle;
                 text.fontWeight = fontWeight;
                 text.fontSize = fontSize;
                 text.fontFamily = fontFamily;
-                text.textAlign = label.textAlign;
-                text.textBaseline = label.textBaseline;
-                text.text = label.text;
-                text.x = point.x;
-                text.y = point.y - 10;
+                text.textAlign = 'center';
+                text.textBaseline = 'bottom';
+                text.text = datum.labelText;
+                text.x = datum.point.x;
+                text.y = datum.point.y - 10;
                 text.fill = color;
                 text.visible = true;
             } else {
@@ -597,12 +572,19 @@ export class LineSeries extends CartesianSeries<
             return;
         }
 
-        const fns = prepareLinePathAnimation(
-            contextData,
-            previousContextData,
-            this.processedData?.reduced?.diff,
-            this.properties.interpolation
-        );
+        let fns: ReturnType<typeof prepareLinePathAnimation>;
+        try {
+            fns = prepareLinePathAnimation(
+                contextData,
+                previousContextData,
+                this.processedData?.reduced?.diff,
+                this.properties.interpolation
+            );
+        } catch {
+            // @todo(CRT-468) - this code will likely be replaced with area-series implementation
+            fns = undefined;
+        }
+
         if (fns === undefined) {
             skip();
             return;

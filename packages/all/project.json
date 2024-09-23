@@ -129,6 +129,7 @@
     "clean": { "cache": false, "command": "rimraf dist/ 'packages/*/dist/'" },
     "benchmark": {
       "dependsOn": ["ag-charts-community:benchmark"],
+      "cache": false,
       "command": "node ./tools/benchmark/collate-reports.js"
     },
     "generate-docs-example": {

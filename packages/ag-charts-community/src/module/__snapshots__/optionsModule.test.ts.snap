@@ -380,34 +380,41 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "tooltip": "toolbarAnnotationsTextColor",
           "value": "text-color",
         },
         {
+          "haspopup": true,
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsLineColor",
           "value": "line-color",
         },
         {
+          "haspopup": true,
           "icon": "fill-color",
           "tooltip": "toolbarAnnotationsFillColor",
           "value": "fill-color",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsLineStrokeWidth",
           "value": "line-stroke-width",
         },
         {
+          "haspopup": true,
           "icon": "line-style-solid",
           "tooltip": "toolbarAnnotationsLineStyle",
           "value": "line-style-type",
         },
         {
+          "haspopup": true,
           "icon": "settings",
           "tooltip": "toolbarAnnotationsSettings",
           "value": "settings",
@@ -437,18 +444,21 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "trend-line-drawing",
           "section": "line-annotations",
           "tooltip": "toolbarAnnotationsLineAnnotations",
           "value": "line-menu",
         },
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "section": "text-annotations",
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
         },
         {
+          "haspopup": true,
           "icon": "arrow-drawing",
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
@@ -508,6 +518,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "tooltip": "toolbarSeriesTypeDropdown",
           "value": "type",
         },
@@ -979,34 +990,41 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "tooltip": "toolbarAnnotationsTextColor",
           "value": "text-color",
         },
         {
+          "haspopup": true,
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsLineColor",
           "value": "line-color",
         },
         {
+          "haspopup": true,
           "icon": "fill-color",
           "tooltip": "toolbarAnnotationsFillColor",
           "value": "fill-color",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsLineStrokeWidth",
           "value": "line-stroke-width",
         },
         {
+          "haspopup": true,
           "icon": "line-style-solid",
           "tooltip": "toolbarAnnotationsLineStyle",
           "value": "line-style-type",
         },
         {
+          "haspopup": true,
           "icon": "settings",
           "tooltip": "toolbarAnnotationsSettings",
           "value": "settings",
@@ -1036,18 +1054,21 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "trend-line-drawing",
           "section": "line-annotations",
           "tooltip": "toolbarAnnotationsLineAnnotations",
           "value": "line-menu",
         },
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "section": "text-annotations",
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
         },
         {
+          "haspopup": true,
           "icon": "arrow-drawing",
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
@@ -1107,6 +1128,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "tooltip": "toolbarSeriesTypeDropdown",
           "value": "type",
         },
@@ -1724,34 +1746,41 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "tooltip": "toolbarAnnotationsTextColor",
           "value": "text-color",
         },
         {
+          "haspopup": true,
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsLineColor",
           "value": "line-color",
         },
         {
+          "haspopup": true,
           "icon": "fill-color",
           "tooltip": "toolbarAnnotationsFillColor",
           "value": "fill-color",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsLineStrokeWidth",
           "value": "line-stroke-width",
         },
         {
+          "haspopup": true,
           "icon": "line-style-solid",
           "tooltip": "toolbarAnnotationsLineStyle",
           "value": "line-style-type",
         },
         {
+          "haspopup": true,
           "icon": "settings",
           "tooltip": "toolbarAnnotationsSettings",
           "value": "settings",
@@ -1781,18 +1810,21 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "trend-line-drawing",
           "section": "line-annotations",
           "tooltip": "toolbarAnnotationsLineAnnotations",
           "value": "line-menu",
         },
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "section": "text-annotations",
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
         },
         {
+          "haspopup": true,
           "icon": "arrow-drawing",
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
@@ -1852,6 +1884,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "tooltip": "toolbarSeriesTypeDropdown",
           "value": "type",
         },
@@ -2472,34 +2505,41 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "tooltip": "toolbarAnnotationsTextColor",
           "value": "text-color",
         },
         {
+          "haspopup": true,
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsLineColor",
           "value": "line-color",
         },
         {
+          "haspopup": true,
           "icon": "fill-color",
           "tooltip": "toolbarAnnotationsFillColor",
           "value": "fill-color",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsLineStrokeWidth",
           "value": "line-stroke-width",
         },
         {
+          "haspopup": true,
           "icon": "line-style-solid",
           "tooltip": "toolbarAnnotationsLineStyle",
           "value": "line-style-type",
         },
         {
+          "haspopup": true,
           "icon": "settings",
           "tooltip": "toolbarAnnotationsSettings",
           "value": "settings",
@@ -2529,18 +2569,21 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "trend-line-drawing",
           "section": "line-annotations",
           "tooltip": "toolbarAnnotationsLineAnnotations",
           "value": "line-menu",
         },
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "section": "text-annotations",
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
         },
         {
+          "haspopup": true,
           "icon": "arrow-drawing",
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
@@ -2600,6 +2643,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "tooltip": "toolbarSeriesTypeDropdown",
           "value": "type",
         },
@@ -2907,34 +2951,41 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "tooltip": "toolbarAnnotationsTextColor",
           "value": "text-color",
         },
         {
+          "haspopup": true,
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsLineColor",
           "value": "line-color",
         },
         {
+          "haspopup": true,
           "icon": "fill-color",
           "tooltip": "toolbarAnnotationsFillColor",
           "value": "fill-color",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsLineStrokeWidth",
           "value": "line-stroke-width",
         },
         {
+          "haspopup": true,
           "icon": "line-style-solid",
           "tooltip": "toolbarAnnotationsLineStyle",
           "value": "line-style-type",
         },
         {
+          "haspopup": true,
           "icon": "settings",
           "tooltip": "toolbarAnnotationsSettings",
           "value": "settings",
@@ -2964,18 +3015,21 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "trend-line-drawing",
           "section": "line-annotations",
           "tooltip": "toolbarAnnotationsLineAnnotations",
           "value": "line-menu",
         },
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "section": "text-annotations",
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
         },
         {
+          "haspopup": true,
           "icon": "arrow-drawing",
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
@@ -3035,6 +3089,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "tooltip": "toolbarSeriesTypeDropdown",
           "value": "type",
         },
@@ -3491,34 +3546,41 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "tooltip": "toolbarAnnotationsTextColor",
           "value": "text-color",
         },
         {
+          "haspopup": true,
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsLineColor",
           "value": "line-color",
         },
         {
+          "haspopup": true,
           "icon": "fill-color",
           "tooltip": "toolbarAnnotationsFillColor",
           "value": "fill-color",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsLineStrokeWidth",
           "value": "line-stroke-width",
         },
         {
+          "haspopup": true,
           "icon": "line-style-solid",
           "tooltip": "toolbarAnnotationsLineStyle",
           "value": "line-style-type",
         },
         {
+          "haspopup": true,
           "icon": "settings",
           "tooltip": "toolbarAnnotationsSettings",
           "value": "settings",
@@ -3548,18 +3610,21 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "trend-line-drawing",
           "section": "line-annotations",
           "tooltip": "toolbarAnnotationsLineAnnotations",
           "value": "line-menu",
         },
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "section": "text-annotations",
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
         },
         {
+          "haspopup": true,
           "icon": "arrow-drawing",
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
@@ -3619,6 +3684,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "tooltip": "toolbarSeriesTypeDropdown",
           "value": "type",
         },
@@ -4196,34 +4262,41 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "tooltip": "toolbarAnnotationsTextColor",
           "value": "text-color",
         },
         {
+          "haspopup": true,
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsLineColor",
           "value": "line-color",
         },
         {
+          "haspopup": true,
           "icon": "fill-color",
           "tooltip": "toolbarAnnotationsFillColor",
           "value": "fill-color",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsLineStrokeWidth",
           "value": "line-stroke-width",
         },
         {
+          "haspopup": true,
           "icon": "line-style-solid",
           "tooltip": "toolbarAnnotationsLineStyle",
           "value": "line-style-type",
         },
         {
+          "haspopup": true,
           "icon": "settings",
           "tooltip": "toolbarAnnotationsSettings",
           "value": "settings",
@@ -4253,18 +4326,21 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "trend-line-drawing",
           "section": "line-annotations",
           "tooltip": "toolbarAnnotationsLineAnnotations",
           "value": "line-menu",
         },
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "section": "text-annotations",
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
         },
         {
+          "haspopup": true,
           "icon": "arrow-drawing",
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
@@ -4324,6 +4400,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "tooltip": "toolbarSeriesTypeDropdown",
           "value": "type",
         },
@@ -4645,34 +4722,41 @@ by Occupation",
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "tooltip": "toolbarAnnotationsTextColor",
           "value": "text-color",
         },
         {
+          "haspopup": true,
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsLineColor",
           "value": "line-color",
         },
         {
+          "haspopup": true,
           "icon": "fill-color",
           "tooltip": "toolbarAnnotationsFillColor",
           "value": "fill-color",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsLineStrokeWidth",
           "value": "line-stroke-width",
         },
         {
+          "haspopup": true,
           "icon": "line-style-solid",
           "tooltip": "toolbarAnnotationsLineStyle",
           "value": "line-style-type",
         },
         {
+          "haspopup": true,
           "icon": "settings",
           "tooltip": "toolbarAnnotationsSettings",
           "value": "settings",
@@ -4702,18 +4786,21 @@ by Occupation",
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "trend-line-drawing",
           "section": "line-annotations",
           "tooltip": "toolbarAnnotationsLineAnnotations",
           "value": "line-menu",
         },
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "section": "text-annotations",
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
         },
         {
+          "haspopup": true,
           "icon": "arrow-drawing",
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
@@ -4773,6 +4860,7 @@ by Occupation",
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "tooltip": "toolbarSeriesTypeDropdown",
           "value": "type",
         },
@@ -5091,34 +5179,41 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "tooltip": "toolbarAnnotationsTextColor",
           "value": "text-color",
         },
         {
+          "haspopup": true,
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsLineColor",
           "value": "line-color",
         },
         {
+          "haspopup": true,
           "icon": "fill-color",
           "tooltip": "toolbarAnnotationsFillColor",
           "value": "fill-color",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsLineStrokeWidth",
           "value": "line-stroke-width",
         },
         {
+          "haspopup": true,
           "icon": "line-style-solid",
           "tooltip": "toolbarAnnotationsLineStyle",
           "value": "line-style-type",
         },
         {
+          "haspopup": true,
           "icon": "settings",
           "tooltip": "toolbarAnnotationsSettings",
           "value": "settings",
@@ -5148,18 +5243,21 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "trend-line-drawing",
           "section": "line-annotations",
           "tooltip": "toolbarAnnotationsLineAnnotations",
           "value": "line-menu",
         },
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "section": "text-annotations",
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
         },
         {
+          "haspopup": true,
           "icon": "arrow-drawing",
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
@@ -5219,6 +5317,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "tooltip": "toolbarSeriesTypeDropdown",
           "value": "type",
         },
@@ -5524,34 +5623,41 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "tooltip": "toolbarAnnotationsTextColor",
           "value": "text-color",
         },
         {
+          "haspopup": true,
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsLineColor",
           "value": "line-color",
         },
         {
+          "haspopup": true,
           "icon": "fill-color",
           "tooltip": "toolbarAnnotationsFillColor",
           "value": "fill-color",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsLineStrokeWidth",
           "value": "line-stroke-width",
         },
         {
+          "haspopup": true,
           "icon": "line-style-solid",
           "tooltip": "toolbarAnnotationsLineStyle",
           "value": "line-style-type",
         },
         {
+          "haspopup": true,
           "icon": "settings",
           "tooltip": "toolbarAnnotationsSettings",
           "value": "settings",
@@ -5581,18 +5687,21 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "trend-line-drawing",
           "section": "line-annotations",
           "tooltip": "toolbarAnnotationsLineAnnotations",
           "value": "line-menu",
         },
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "section": "text-annotations",
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
         },
         {
+          "haspopup": true,
           "icon": "arrow-drawing",
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
@@ -5652,6 +5761,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "tooltip": "toolbarSeriesTypeDropdown",
           "value": "type",
         },
@@ -5959,34 +6069,41 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "tooltip": "toolbarAnnotationsTextColor",
           "value": "text-color",
         },
         {
+          "haspopup": true,
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsLineColor",
           "value": "line-color",
         },
         {
+          "haspopup": true,
           "icon": "fill-color",
           "tooltip": "toolbarAnnotationsFillColor",
           "value": "fill-color",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsLineStrokeWidth",
           "value": "line-stroke-width",
         },
         {
+          "haspopup": true,
           "icon": "line-style-solid",
           "tooltip": "toolbarAnnotationsLineStyle",
           "value": "line-style-type",
         },
         {
+          "haspopup": true,
           "icon": "settings",
           "tooltip": "toolbarAnnotationsSettings",
           "value": "settings",
@@ -6016,18 +6133,21 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "trend-line-drawing",
           "section": "line-annotations",
           "tooltip": "toolbarAnnotationsLineAnnotations",
           "value": "line-menu",
         },
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "section": "text-annotations",
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
         },
         {
+          "haspopup": true,
           "icon": "arrow-drawing",
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
@@ -6087,6 +6207,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "tooltip": "toolbarSeriesTypeDropdown",
           "value": "type",
         },
@@ -6473,34 +6594,41 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "tooltip": "toolbarAnnotationsTextColor",
           "value": "text-color",
         },
         {
+          "haspopup": true,
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsLineColor",
           "value": "line-color",
         },
         {
+          "haspopup": true,
           "icon": "fill-color",
           "tooltip": "toolbarAnnotationsFillColor",
           "value": "fill-color",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsLineStrokeWidth",
           "value": "line-stroke-width",
         },
         {
+          "haspopup": true,
           "icon": "line-style-solid",
           "tooltip": "toolbarAnnotationsLineStyle",
           "value": "line-style-type",
         },
         {
+          "haspopup": true,
           "icon": "settings",
           "tooltip": "toolbarAnnotationsSettings",
           "value": "settings",
@@ -6530,18 +6658,21 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "trend-line-drawing",
           "section": "line-annotations",
           "tooltip": "toolbarAnnotationsLineAnnotations",
           "value": "line-menu",
         },
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "section": "text-annotations",
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
         },
         {
+          "haspopup": true,
           "icon": "arrow-drawing",
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
@@ -6601,6 +6732,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "tooltip": "toolbarSeriesTypeDropdown",
           "value": "type",
         },
@@ -6991,34 +7123,41 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "tooltip": "toolbarAnnotationsTextColor",
           "value": "text-color",
         },
         {
+          "haspopup": true,
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsLineColor",
           "value": "line-color",
         },
         {
+          "haspopup": true,
           "icon": "fill-color",
           "tooltip": "toolbarAnnotationsFillColor",
           "value": "fill-color",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsLineStrokeWidth",
           "value": "line-stroke-width",
         },
         {
+          "haspopup": true,
           "icon": "line-style-solid",
           "tooltip": "toolbarAnnotationsLineStyle",
           "value": "line-style-type",
         },
         {
+          "haspopup": true,
           "icon": "settings",
           "tooltip": "toolbarAnnotationsSettings",
           "value": "settings",
@@ -7048,18 +7187,21 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "trend-line-drawing",
           "section": "line-annotations",
           "tooltip": "toolbarAnnotationsLineAnnotations",
           "value": "line-menu",
         },
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "section": "text-annotations",
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
         },
         {
+          "haspopup": true,
           "icon": "arrow-drawing",
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
@@ -7119,6 +7261,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "tooltip": "toolbarSeriesTypeDropdown",
           "value": "type",
         },
@@ -7752,34 +7895,41 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "tooltip": "toolbarAnnotationsTextColor",
           "value": "text-color",
         },
         {
+          "haspopup": true,
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsLineColor",
           "value": "line-color",
         },
         {
+          "haspopup": true,
           "icon": "fill-color",
           "tooltip": "toolbarAnnotationsFillColor",
           "value": "fill-color",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsLineStrokeWidth",
           "value": "line-stroke-width",
         },
         {
+          "haspopup": true,
           "icon": "line-style-solid",
           "tooltip": "toolbarAnnotationsLineStyle",
           "value": "line-style-type",
         },
         {
+          "haspopup": true,
           "icon": "settings",
           "tooltip": "toolbarAnnotationsSettings",
           "value": "settings",
@@ -7809,18 +7959,21 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "trend-line-drawing",
           "section": "line-annotations",
           "tooltip": "toolbarAnnotationsLineAnnotations",
           "value": "line-menu",
         },
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "section": "text-annotations",
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
         },
         {
+          "haspopup": true,
           "icon": "arrow-drawing",
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
@@ -7880,6 +8033,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "tooltip": "toolbarSeriesTypeDropdown",
           "value": "type",
         },
@@ -8930,34 +9084,41 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "tooltip": "toolbarAnnotationsTextColor",
           "value": "text-color",
         },
         {
+          "haspopup": true,
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsLineColor",
           "value": "line-color",
         },
         {
+          "haspopup": true,
           "icon": "fill-color",
           "tooltip": "toolbarAnnotationsFillColor",
           "value": "fill-color",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsLineStrokeWidth",
           "value": "line-stroke-width",
         },
         {
+          "haspopup": true,
           "icon": "line-style-solid",
           "tooltip": "toolbarAnnotationsLineStyle",
           "value": "line-style-type",
         },
         {
+          "haspopup": true,
           "icon": "settings",
           "tooltip": "toolbarAnnotationsSettings",
           "value": "settings",
@@ -8987,18 +9148,21 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "trend-line-drawing",
           "section": "line-annotations",
           "tooltip": "toolbarAnnotationsLineAnnotations",
           "value": "line-menu",
         },
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "section": "text-annotations",
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
         },
         {
+          "haspopup": true,
           "icon": "arrow-drawing",
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
@@ -9058,6 +9222,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "tooltip": "toolbarSeriesTypeDropdown",
           "value": "type",
         },
@@ -9129,6 +9294,9 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
             "stroke": "rgb(224,234,241)",
           },
         ],
+      },
+      "interval": {
+        "minSpacing": NaN,
       },
       "label": {
         "avoidCollisions": true,
@@ -9366,34 +9534,41 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "tooltip": "toolbarAnnotationsTextColor",
           "value": "text-color",
         },
         {
+          "haspopup": true,
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsLineColor",
           "value": "line-color",
         },
         {
+          "haspopup": true,
           "icon": "fill-color",
           "tooltip": "toolbarAnnotationsFillColor",
           "value": "fill-color",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsLineStrokeWidth",
           "value": "line-stroke-width",
         },
         {
+          "haspopup": true,
           "icon": "line-style-solid",
           "tooltip": "toolbarAnnotationsLineStyle",
           "value": "line-style-type",
         },
         {
+          "haspopup": true,
           "icon": "settings",
           "tooltip": "toolbarAnnotationsSettings",
           "value": "settings",
@@ -9423,18 +9598,21 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "trend-line-drawing",
           "section": "line-annotations",
           "tooltip": "toolbarAnnotationsLineAnnotations",
           "value": "line-menu",
         },
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "section": "text-annotations",
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
         },
         {
+          "haspopup": true,
           "icon": "arrow-drawing",
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
@@ -9494,6 +9672,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "tooltip": "toolbarSeriesTypeDropdown",
           "value": "type",
         },
@@ -10221,34 +10400,41 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "tooltip": "toolbarAnnotationsTextColor",
           "value": "text-color",
         },
         {
+          "haspopup": true,
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsLineColor",
           "value": "line-color",
         },
         {
+          "haspopup": true,
           "icon": "fill-color",
           "tooltip": "toolbarAnnotationsFillColor",
           "value": "fill-color",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsLineStrokeWidth",
           "value": "line-stroke-width",
         },
         {
+          "haspopup": true,
           "icon": "line-style-solid",
           "tooltip": "toolbarAnnotationsLineStyle",
           "value": "line-style-type",
         },
         {
+          "haspopup": true,
           "icon": "settings",
           "tooltip": "toolbarAnnotationsSettings",
           "value": "settings",
@@ -10278,18 +10464,21 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "trend-line-drawing",
           "section": "line-annotations",
           "tooltip": "toolbarAnnotationsLineAnnotations",
           "value": "line-menu",
         },
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "section": "text-annotations",
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
         },
         {
+          "haspopup": true,
           "icon": "arrow-drawing",
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
@@ -10349,6 +10538,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "tooltip": "toolbarSeriesTypeDropdown",
           "value": "type",
         },
@@ -10793,34 +10983,41 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "tooltip": "toolbarAnnotationsTextColor",
           "value": "text-color",
         },
         {
+          "haspopup": true,
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsLineColor",
           "value": "line-color",
         },
         {
+          "haspopup": true,
           "icon": "fill-color",
           "tooltip": "toolbarAnnotationsFillColor",
           "value": "fill-color",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsLineStrokeWidth",
           "value": "line-stroke-width",
         },
         {
+          "haspopup": true,
           "icon": "line-style-solid",
           "tooltip": "toolbarAnnotationsLineStyle",
           "value": "line-style-type",
         },
         {
+          "haspopup": true,
           "icon": "settings",
           "tooltip": "toolbarAnnotationsSettings",
           "value": "settings",
@@ -10850,18 +11047,21 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "trend-line-drawing",
           "section": "line-annotations",
           "tooltip": "toolbarAnnotationsLineAnnotations",
           "value": "line-menu",
         },
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "section": "text-annotations",
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
         },
         {
+          "haspopup": true,
           "icon": "arrow-drawing",
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
@@ -10921,6 +11121,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "tooltip": "toolbarSeriesTypeDropdown",
           "value": "type",
         },
@@ -11507,34 +11708,41 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "tooltip": "toolbarAnnotationsTextColor",
           "value": "text-color",
         },
         {
+          "haspopup": true,
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsLineColor",
           "value": "line-color",
         },
         {
+          "haspopup": true,
           "icon": "fill-color",
           "tooltip": "toolbarAnnotationsFillColor",
           "value": "fill-color",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsLineStrokeWidth",
           "value": "line-stroke-width",
         },
         {
+          "haspopup": true,
           "icon": "line-style-solid",
           "tooltip": "toolbarAnnotationsLineStyle",
           "value": "line-style-type",
         },
         {
+          "haspopup": true,
           "icon": "settings",
           "tooltip": "toolbarAnnotationsSettings",
           "value": "settings",
@@ -11564,18 +11772,21 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "trend-line-drawing",
           "section": "line-annotations",
           "tooltip": "toolbarAnnotationsLineAnnotations",
           "value": "line-menu",
         },
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "section": "text-annotations",
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
         },
         {
+          "haspopup": true,
           "icon": "arrow-drawing",
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
@@ -11635,6 +11846,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "tooltip": "toolbarSeriesTypeDropdown",
           "value": "type",
         },
@@ -12124,34 +12336,41 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "tooltip": "toolbarAnnotationsTextColor",
           "value": "text-color",
         },
         {
+          "haspopup": true,
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsLineColor",
           "value": "line-color",
         },
         {
+          "haspopup": true,
           "icon": "fill-color",
           "tooltip": "toolbarAnnotationsFillColor",
           "value": "fill-color",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsLineStrokeWidth",
           "value": "line-stroke-width",
         },
         {
+          "haspopup": true,
           "icon": "line-style-solid",
           "tooltip": "toolbarAnnotationsLineStyle",
           "value": "line-style-type",
         },
         {
+          "haspopup": true,
           "icon": "settings",
           "tooltip": "toolbarAnnotationsSettings",
           "value": "settings",
@@ -12181,18 +12400,21 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "trend-line-drawing",
           "section": "line-annotations",
           "tooltip": "toolbarAnnotationsLineAnnotations",
           "value": "line-menu",
         },
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "section": "text-annotations",
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
         },
         {
+          "haspopup": true,
           "icon": "arrow-drawing",
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
@@ -12252,6 +12474,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "tooltip": "toolbarSeriesTypeDropdown",
           "value": "type",
         },
@@ -12566,34 +12789,41 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "tooltip": "toolbarAnnotationsTextColor",
           "value": "text-color",
         },
         {
+          "haspopup": true,
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsLineColor",
           "value": "line-color",
         },
         {
+          "haspopup": true,
           "icon": "fill-color",
           "tooltip": "toolbarAnnotationsFillColor",
           "value": "fill-color",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsLineStrokeWidth",
           "value": "line-stroke-width",
         },
         {
+          "haspopup": true,
           "icon": "line-style-solid",
           "tooltip": "toolbarAnnotationsLineStyle",
           "value": "line-style-type",
         },
         {
+          "haspopup": true,
           "icon": "settings",
           "tooltip": "toolbarAnnotationsSettings",
           "value": "settings",
@@ -12623,18 +12853,21 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "trend-line-drawing",
           "section": "line-annotations",
           "tooltip": "toolbarAnnotationsLineAnnotations",
           "value": "line-menu",
         },
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "section": "text-annotations",
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
         },
         {
+          "haspopup": true,
           "icon": "arrow-drawing",
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
@@ -12694,6 +12927,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "tooltip": "toolbarSeriesTypeDropdown",
           "value": "type",
         },
@@ -13296,34 +13530,41 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "tooltip": "toolbarAnnotationsTextColor",
           "value": "text-color",
         },
         {
+          "haspopup": true,
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsLineColor",
           "value": "line-color",
         },
         {
+          "haspopup": true,
           "icon": "fill-color",
           "tooltip": "toolbarAnnotationsFillColor",
           "value": "fill-color",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsLineStrokeWidth",
           "value": "line-stroke-width",
         },
         {
+          "haspopup": true,
           "icon": "line-style-solid",
           "tooltip": "toolbarAnnotationsLineStyle",
           "value": "line-style-type",
         },
         {
+          "haspopup": true,
           "icon": "settings",
           "tooltip": "toolbarAnnotationsSettings",
           "value": "settings",
@@ -13353,18 +13594,21 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "trend-line-drawing",
           "section": "line-annotations",
           "tooltip": "toolbarAnnotationsLineAnnotations",
           "value": "line-menu",
         },
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "section": "text-annotations",
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
         },
         {
+          "haspopup": true,
           "icon": "arrow-drawing",
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
@@ -13424,6 +13668,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "tooltip": "toolbarSeriesTypeDropdown",
           "value": "type",
         },
@@ -13920,34 +14165,41 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "tooltip": "toolbarAnnotationsTextColor",
           "value": "text-color",
         },
         {
+          "haspopup": true,
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsLineColor",
           "value": "line-color",
         },
         {
+          "haspopup": true,
           "icon": "fill-color",
           "tooltip": "toolbarAnnotationsFillColor",
           "value": "fill-color",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsLineStrokeWidth",
           "value": "line-stroke-width",
         },
         {
+          "haspopup": true,
           "icon": "line-style-solid",
           "tooltip": "toolbarAnnotationsLineStyle",
           "value": "line-style-type",
         },
         {
+          "haspopup": true,
           "icon": "settings",
           "tooltip": "toolbarAnnotationsSettings",
           "value": "settings",
@@ -13977,18 +14229,21 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "trend-line-drawing",
           "section": "line-annotations",
           "tooltip": "toolbarAnnotationsLineAnnotations",
           "value": "line-menu",
         },
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "section": "text-annotations",
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
         },
         {
+          "haspopup": true,
           "icon": "arrow-drawing",
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
@@ -14048,6 +14303,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "tooltip": "toolbarSeriesTypeDropdown",
           "value": "type",
         },
@@ -14736,34 +14992,41 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "tooltip": "toolbarAnnotationsTextColor",
           "value": "text-color",
         },
         {
+          "haspopup": true,
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsLineColor",
           "value": "line-color",
         },
         {
+          "haspopup": true,
           "icon": "fill-color",
           "tooltip": "toolbarAnnotationsFillColor",
           "value": "fill-color",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsLineStrokeWidth",
           "value": "line-stroke-width",
         },
         {
+          "haspopup": true,
           "icon": "line-style-solid",
           "tooltip": "toolbarAnnotationsLineStyle",
           "value": "line-style-type",
         },
         {
+          "haspopup": true,
           "icon": "settings",
           "tooltip": "toolbarAnnotationsSettings",
           "value": "settings",
@@ -14793,18 +15056,21 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "trend-line-drawing",
           "section": "line-annotations",
           "tooltip": "toolbarAnnotationsLineAnnotations",
           "value": "line-menu",
         },
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "section": "text-annotations",
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
         },
         {
+          "haspopup": true,
           "icon": "arrow-drawing",
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
@@ -14864,6 +15130,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "tooltip": "toolbarSeriesTypeDropdown",
           "value": "type",
         },
@@ -15337,34 +15604,41 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "tooltip": "toolbarAnnotationsTextColor",
           "value": "text-color",
         },
         {
+          "haspopup": true,
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsLineColor",
           "value": "line-color",
         },
         {
+          "haspopup": true,
           "icon": "fill-color",
           "tooltip": "toolbarAnnotationsFillColor",
           "value": "fill-color",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsLineStrokeWidth",
           "value": "line-stroke-width",
         },
         {
+          "haspopup": true,
           "icon": "line-style-solid",
           "tooltip": "toolbarAnnotationsLineStyle",
           "value": "line-style-type",
         },
         {
+          "haspopup": true,
           "icon": "settings",
           "tooltip": "toolbarAnnotationsSettings",
           "value": "settings",
@@ -15394,18 +15668,21 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "trend-line-drawing",
           "section": "line-annotations",
           "tooltip": "toolbarAnnotationsLineAnnotations",
           "value": "line-menu",
         },
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "section": "text-annotations",
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
         },
         {
+          "haspopup": true,
           "icon": "arrow-drawing",
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
@@ -15465,6 +15742,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "tooltip": "toolbarSeriesTypeDropdown",
           "value": "type",
         },
@@ -16008,34 +16286,41 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "tooltip": "toolbarAnnotationsTextColor",
           "value": "text-color",
         },
         {
+          "haspopup": true,
           "icon": "line-color",
           "tooltip": "toolbarAnnotationsLineColor",
           "value": "line-color",
         },
         {
+          "haspopup": true,
           "icon": "fill-color",
           "tooltip": "toolbarAnnotationsFillColor",
           "value": "fill-color",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsTextSize",
           "value": "text-size",
         },
         {
+          "haspopup": true,
           "tooltip": "toolbarAnnotationsLineStrokeWidth",
           "value": "line-stroke-width",
         },
         {
+          "haspopup": true,
           "icon": "line-style-solid",
           "tooltip": "toolbarAnnotationsLineStyle",
           "value": "line-style-type",
         },
         {
+          "haspopup": true,
           "icon": "settings",
           "tooltip": "toolbarAnnotationsSettings",
           "value": "settings",
@@ -16065,18 +16350,21 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "icon": "trend-line-drawing",
           "section": "line-annotations",
           "tooltip": "toolbarAnnotationsLineAnnotations",
           "value": "line-menu",
         },
         {
+          "haspopup": true,
           "icon": "text-annotation",
           "section": "text-annotations",
           "tooltip": "toolbarAnnotationsTextAnnotations",
           "value": "text-menu",
         },
         {
+          "haspopup": true,
           "icon": "arrow-drawing",
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
@@ -16136,6 +16424,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "align": "start",
       "buttons": [
         {
+          "haspopup": true,
           "tooltip": "toolbarSeriesTypeDropdown",
           "value": "type",
         },

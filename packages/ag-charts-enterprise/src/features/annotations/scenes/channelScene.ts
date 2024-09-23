@@ -4,6 +4,7 @@ import type { ChannelTextProperties, PointProperties } from '../annotationProper
 import type { AnnotationContext, LineCoords } from '../annotationTypes';
 import { convertLine } from '../utils/values';
 import { CollidableLine } from './collidableLineScene';
+import type { CollidableText } from './collidableTextScene';
 import type { Handle } from './handle';
 import { LinearScene } from './linearScene';
 
@@ -24,7 +25,7 @@ export abstract class ChannelScene<
     protected topLine = new CollidableLine();
     protected bottomLine = new CollidableLine();
     protected background = new _Scene.Path({ zIndex: -1 });
-    public text?: _Scene.TransformableText;
+    public text?: CollidableText;
     private readonly anchor: _ModuleSupport.ToolbarAnchor = { x: 0, y: 0 };
 
     public update(datum: Datum, context: AnnotationContext) {

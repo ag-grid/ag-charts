@@ -304,12 +304,7 @@ export abstract class RadialColumnSeriesBase<
                 startAngle = -0.5 * Math.PI;
                 endAngle = 1.5 * Math.PI;
             } else {
-                let groupAngle = angleScale.convert(angleDatum);
-
-                if (visibleGroupCount === 1) {
-                    groupAngle -= groupScale.bandwidth / 2;
-                }
-
+                const groupAngle = angleScale.convert(angleDatum);
                 startAngle = normalizeAngle360(groupAngle + groupScale.convert(String(groupIndex)));
                 endAngle = normalizeAngle360(startAngle + groupScale.bandwidth);
             }

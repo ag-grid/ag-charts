@@ -14,7 +14,6 @@ import type { PlacedLabel, PointLabelDatum } from '../scene/util/labelPlacement'
 import { isPointLabelDatum, placeLabels } from '../scene/util/labelPlacement';
 import { groupBy } from '../util/array';
 import { sleep } from '../util/async';
-import { setAttribute } from '../util/attributeUtil';
 import { Debug } from '../util/debug';
 import { createId } from '../util/id';
 import { jsonApply, jsonDiff } from '../util/json';
@@ -322,6 +321,7 @@ export abstract class Chart extends Observable {
                 get performUpdateType() {
                     return thisChart.performUpdateType;
                 },
+                seriesRoot: this.seriesRoot,
             },
             ctx,
             this.getChartType(),
@@ -352,7 +352,7 @@ export abstract class Chart extends Observable {
                 this.update(ChartUpdateType.SCENE_RENDER);
             }),
             ctx.zoomManager.addListener('zoom-change', () => {
-                this.series.map((s) => (s as any).animationState?.transition('updateData'));
+                this.series.forEach((s) => (s as any).animationState?.transition('updateData'));
                 const skipAnimations = this.chartAnimationPhase !== 'initial';
                 this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true, skipAnimations });
             })
@@ -657,8 +657,7 @@ export abstract class Chart extends Observable {
     }
 
     private updateAriaLabels() {
-        setAttribute(this.ctx.scene.canvas.element, 'role', 'img');
-        setAttribute(this.ctx.scene.canvas.element, 'aria-label', this.getAriaLabel());
+        this.ctx.domManager.updateCanvasLabel(this.getAriaLabel());
     }
 
     private checkUpdateShortcut(checkUpdateType: ChartUpdateType) {
@@ -1325,6 +1324,13 @@ export abstract class Chart extends Observable {
         return modulesChanged;
     }
 
+    private initSeriesDeclarationOrder(series: Series<any, any>[]) {
+        // Ensure declaration order is set, this is used for correct z-index behavior for combo charts.
+        for (let idx = 0; idx < series.length; idx++) {
+            series[idx]._declarationOrder = idx;
+        }
+    }
+
     private applySeries(
         chart: { series: Series<any, any>[] },
         optSeries: AgChartOptions['series'],
@@ -1338,6 +1344,7 @@ export abstract class Chart extends Observable {
         if (matchResult.status === 'no-overlap') {
             debug(`Chart.applySeries() - creating new series instances, status: ${matchResult.status}`, matchResult);
             chart.series = optSeries.map((opts) => this.createSeries(opts));
+            this.initSeriesDeclarationOrder(chart.series);
             return 'replaced';
         }
 
@@ -1381,10 +1388,7 @@ export abstract class Chart extends Observable {
                 }
             }
         }
-        // Ensure declaration order is set, this is used for correct z-index behavior for combo charts.
-        for (let idx = 0; idx < seriesInstances.length; idx++) {
-            seriesInstances[idx]._declarationOrder = idx;
-        }
+        this.initSeriesDeclarationOrder(seriesInstances);
 
         debug(`Chart.applySeries() - final series instances`, seriesInstances);
         chart.series = seriesInstances;

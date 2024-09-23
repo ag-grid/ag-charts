@@ -1,13 +1,9 @@
 import { type TextAlign, type VerticalAlign, type _ModuleSupport, _Scene } from 'ag-charts-community';
 
+import { getLabelText } from '../gauge-util/label';
 import { type LabelFormatting, formatSingleLabel, formatStackedLabels } from '../util/labelFormatter';
 import type { RadialGaugeNeedle } from './radialGaugeNeedle';
-import {
-    LabelType,
-    type RadialGaugeLabelDatum,
-    type RadialGaugeLabelProperties,
-    type RadialGaugeSecondaryLabelProperties,
-} from './radialGaugeSeriesProperties';
+import { LabelType, type RadialGaugeLabelDatum } from './radialGaugeSeriesProperties';
 
 const { SectorBox } = _Scene;
 
@@ -34,11 +30,6 @@ type SectorAnimation = {
 type AnimatableNeedleDatum = {
     radius: number;
     angle: number;
-};
-
-export const fadeInFns: _ModuleSupport.FromToFns<_Scene.Node, any, any> = {
-    fromFn: () => ({ opacity: 0, phase: 'initial' }),
-    toFn: () => ({ opacity: 1 }),
 };
 
 export function computeClipSector(datum: AnimatableSectorDatum) {
@@ -167,22 +158,6 @@ export function resetRadialGaugeSeriesResetNeedleFunction(_node: RadialGaugeNeed
     return { rotation: angle };
 }
 
-export function getLabelText(
-    series: _ModuleSupport.Series<any, any>,
-    label: RadialGaugeLabelProperties | RadialGaugeSecondaryLabelProperties,
-    value: number | undefined,
-    defaultFormatter?: (value: number) => string
-) {
-    if (label.text != null) {
-        return label.text;
-    } else if (value != null) {
-        const labelFormat = label?.formatter?.({ seriesId: series.id, datum: undefined, value });
-        if (labelFormat != null) return String(labelFormat);
-
-        return defaultFormatter?.(value);
-    }
-}
-
 const verticalAlignFactors: Record<VerticalAlign, number> = {
     top: 0,
     middle: 0.5,
@@ -192,11 +167,8 @@ const verticalAlignFactors: Record<VerticalAlign, number> = {
 export function formatRadialGaugeLabels(
     series: _ModuleSupport.Series<any, any>,
     selection: _Scene.Selection<_Scene.Text, RadialGaugeLabelDatum>,
-    labelProps: RadialGaugeLabelProperties,
-    secondaryLabelProps: RadialGaugeSecondaryLabelProperties,
     opts: { padding: number; textAlign: TextAlign; verticalAlign: VerticalAlign },
     innerRadius: number,
-    defaultFormatter: (value: number) => string,
     datumOverrides?: { label: number | undefined; secondaryLabel: number | undefined }
 ) {
     const { padding, textAlign, verticalAlign } = opts;
@@ -211,13 +183,15 @@ export function formatRadialGaugeLabels(
         }
     });
 
-    const labelText = getLabelText(series, labelProps, datumOverrides?.label ?? labelDatum?.value, defaultFormatter);
+    if (labelDatum == null) return;
+
+    const labelText = getLabelText(series, labelDatum, datumOverrides?.label);
     if (labelText == null) return;
-    const secondaryLabelText = getLabelText(
-        series,
-        secondaryLabelProps,
-        datumOverrides?.secondaryLabel ?? secondaryLabelDatum?.value
-    );
+
+    const secondaryLabelText =
+        secondaryLabelDatum != null
+            ? getLabelText(series, secondaryLabelDatum, datumOverrides?.secondaryLabel)
+            : undefined;
 
     const params = { padding };
     const horizontalFactor = textAlign === 'center' ? 2 : 1;
@@ -231,12 +205,12 @@ export function formatRadialGaugeLabels(
     let labelLayout: LabelFormatting | undefined;
     let secondaryLabelLayout: LabelFormatting | undefined;
     let height: number;
-    if (secondaryLabelText != null) {
+    if (secondaryLabelDatum != null && secondaryLabelText != null) {
         const layout = formatStackedLabels(
             labelText,
-            labelProps,
+            labelDatum,
             secondaryLabelText,
-            secondaryLabelProps,
+            secondaryLabelDatum,
             params,
             sizeFittingHeight
         );
@@ -245,7 +219,7 @@ export function formatRadialGaugeLabels(
         secondaryLabelLayout = layout?.secondaryLabel;
         height = layout?.height ?? 0;
     } else {
-        const layout = formatSingleLabel(labelText, labelProps, params, sizeFittingHeight);
+        const layout = formatSingleLabel(labelText, labelDatum, params, sizeFittingHeight);
 
         labelLayout = layout?.[0];
         secondaryLabelLayout = undefined;

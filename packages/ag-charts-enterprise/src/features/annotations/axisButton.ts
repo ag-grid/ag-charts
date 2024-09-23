@@ -40,9 +40,9 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         this.destroyFns.push(
             seriesRegion.addListener('hover', (event) => this.show(event), mouseMoveStates),
             seriesRegion.addListener('drag', (event) => this.show(event), InteractionState.Annotations),
-            seriesRegion.addListener('wheel', () => this.hide(), InteractionState.Default),
+            seriesRegion.addListener('drag', () => this.hide(), InteractionState.ZoomDrag),
             seriesRegion.addListener('leave', () => this.hide(), InteractionState.Default),
-            ctx.layoutManager.addListener('layout:complete', () => this.hide()),
+            ctx.zoomManager.addListener('zoom-change', () => this.hide()),
             () => this.destroyElements(),
             () => this.wrapper.remove(),
             () => this.button.remove()
@@ -77,11 +77,16 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
     }
 
     private show(event: _ModuleSupport.PointerInteractionEvent<'hover' | 'drag'>) {
-        if (!this.enabled) return;
+        const { offsetX: x, offsetY: y } = event;
+
+        if (!(this.enabled && this.seriesRect.containsPoint(x, y))) {
+            this.hide();
+            return;
+        }
 
         this.toggleVisibility(true);
 
-        const buttonCoords = this.getButtonCoordinates({ x: event.offsetX, y: event.offsetY });
+        const buttonCoords = this.getButtonCoordinates({ x, y });
         this.coords = this.getAxisCoordinates(buttonCoords);
         this.updatePosition(buttonCoords);
     }

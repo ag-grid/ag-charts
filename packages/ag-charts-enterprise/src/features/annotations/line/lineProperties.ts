@@ -1,24 +1,14 @@
 import { type PixelSize, _ModuleSupport, type _Scene } from 'ag-charts-community';
 
-import {
-    Annotation,
-    Cappable,
-    Extendable,
-    Handle,
-    Line,
-    LineStyle,
-    LineTextProperties,
-    Stroke,
-} from '../annotationProperties';
+import { Cappable, Extendable, LineStyle, LineTextProperties, Stroke } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
+import { StartEndProperties } from '../properties/startEndProperties';
 import { getLineCap, getLineDash } from '../utils/line';
 import { validateDatumLine } from '../utils/validation';
 
-const { OBJECT, STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
+const { OBJECT, STRING, Validate, isObject } = _ModuleSupport;
 
-export abstract class LineTypeProperties extends Annotation(
-    Line(Handle(Cappable(Extendable(Stroke(LineStyle(BaseProperties))))))
-) {
+export abstract class LineTypeProperties extends Cappable(Extendable(Stroke(LineStyle(StartEndProperties)))) {
     @Validate(OBJECT, { optional: true })
     text = new LineTextProperties();
 
@@ -29,7 +19,7 @@ export abstract class LineTypeProperties extends Annotation(
         return super.isValid(warningPrefix) && validateDatumLine(context, this, warningPrefix);
     }
 
-    getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType) {
+    override getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType) {
         switch (colorPickerType) {
             case 'line-color':
                 return this.stroke;
@@ -38,7 +28,7 @@ export abstract class LineTypeProperties extends Annotation(
         }
     }
 
-    getDefaultOpacity(_colorPickerType: AnnotationOptionsColorPickerType) {
+    override getDefaultOpacity(_colorPickerType: AnnotationOptionsColorPickerType) {
         return this.strokeOpacity;
     }
 

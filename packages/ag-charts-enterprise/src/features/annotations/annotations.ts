@@ -44,7 +44,6 @@ import { invertCoords } from './utils/values';
 const {
     BOOLEAN,
     ChartUpdateType,
-    Cursor,
     InteractionState,
     ObserveChanges,
     PropertiesArray,
@@ -308,11 +307,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
             validatePoint: (point: Point) => {
                 const context = this.getAnnotationContext();
-                const valid = context ? validateDatumPoint(context, point) : true;
-                if (!valid) {
-                    this.ctx.cursorManager.updateCursor('annotations', Cursor.NotAllowed);
-                }
-                return valid;
+                return context ? validateDatumPoint(context, point) : true;
             },
 
             getAnnotationType: (index: number) => {
@@ -563,10 +558,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private createAnnotation(type: AnnotationType, datum: AnnotationProperties, applyDefaults: boolean = true) {
         this.annotationData.push(datum);
 
-        const styles = this.ctx.annotationManager.getAnnotationTypeStyles(type);
-        if (styles) datum.set(styles);
-
         if (applyDefaults) {
+            const styles = this.ctx.annotationManager.getAnnotationTypeStyles(type);
+            if (styles) datum.set(styles);
             this.defaults.applyDefaults(datum);
         }
 
@@ -1213,8 +1207,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             this.state.transition('copy');
         } else if (modifierKey && sourceEvent.key === 'x') {
             this.state.transition('cut');
+            this.recordActionAfterNextUpdate('Cut annotation');
         } else if (modifierKey && sourceEvent.key === 'v') {
             this.state.transition('paste');
+            this.recordActionAfterNextUpdate('Paste annotation');
         }
     }
 
@@ -1320,7 +1316,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private hideOverlays() {
-        this.colorPicker.hide();
+        this.colorPicker.hide({ lastFocus: null });
         this.textSizeMenu.hide();
         this.lineStyleTypeMenu.hide();
         this.lineStrokeWidthMenu.hide();

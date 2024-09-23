@@ -52,6 +52,8 @@ function sub(a: Vec2, b: Vec2 | number): Vec2 {
 /**
  * Multiply the components of `a` and `b`.
  */
+function multiply(a: Vec2, b: Vec2): Vec2;
+function multiply(a: Vec2, b: number): Vec2;
 function multiply(a: Vec2, b: Vec2 | number): Vec2 {
     if (typeof b === 'number') {
         return { x: a.x * b, y: a.y * b };
@@ -169,10 +171,6 @@ function equal(a: Vec2, b: Vec2): boolean {
  */
 function from(x: number, y: number): Vec2;
 /**
- * Create a vector from a box containing a `width` and `height`.
- */
-function from(bbox: { width: number; height: number }): Vec2;
-/**
  * Create a vector from a html element's `offsetWidth` and `offsetHeight`.
  */
 function from(element: { offsetWidth: number; offsetHeight: number }): Vec2;
@@ -181,15 +179,19 @@ function from(element: { offsetWidth: number; offsetHeight: number }): Vec2;
  */
 function from(regionEvent: { regionOffsetX: number; regionOffsetY: number }): Vec2;
 /**
- * Create a vector from a line or box containing a pair of coordinates.
+ * Create a pair of vectors of the top left and bottom right of a bounding box.
+ */
+function from(bbox: { x: number; y: number; width: number; height: number }): [Vec2, Vec2];
+/**
+ * Create a pair of vectors from a line or box containing a pair of coordinates.
  */
 function from(pair: { x1: number; y1: number; x2: number; y2: number }): [Vec2, Vec2];
 function from(
     a:
         | number
-        | { width: number; height: number }
         | { offsetWidth: number; offsetHeight: number }
         | { regionOffsetX: number; regionOffsetY: number }
+        | { x: number; y: number; width: number; height: number }
         | { x1: number; y1: number; x2: number; y2: number },
     b?: number
 ): Vec2 | [Vec2, Vec2] {
@@ -207,7 +209,10 @@ function from(
     }
 
     if ('width' in a) {
-        return { x: a.width, y: a.height };
+        return [
+            { x: a.x, y: a.y },
+            { x: a.x + a.width, y: a.y + a.height },
+        ];
     }
 
     if ('x1' in a) {

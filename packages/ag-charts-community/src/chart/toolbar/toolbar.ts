@@ -4,7 +4,7 @@ import type { LayoutContext, ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
-import { setAttribute } from '../../util/attributeUtil';
+import { setAttribute, setAttributes } from '../../util/attributeUtil';
 import { createElement, getWindow } from '../../util/dom';
 import { initToolbarKeyNav, makeAccessibleClickListener } from '../../util/keynavUtil';
 import { clamp } from '../../util/number';
@@ -251,18 +251,28 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
     }
 
-    private toggleButtonsClass(className: string, enabled: boolean) {
+    private toggleButtonsTransition(enabled: boolean) {
+        const className = styles.modifiers.button.withTransition;
+
         for (const button of Object.values(this.groupButtons).flat()) {
+            if (enabled && !button.classList.contains(className)) {
+                // AG-12489
+                // Chrome in particular is a little too lazy when it comes to style updates
+                // This means that a previous style update may be done *after* we add the transition modifier
+                // Force a style recalculation on the current styles before adding this modifier
+                // so the transition isn't applied where it shouldn't be
+                button.getBoundingClientRect();
+            }
             button.classList.toggle(className, enabled);
         }
     }
 
     private onPreDomUpdate() {
-        this.toggleButtonsClass(styles.modifiers.button.withTransition, false);
+        this.toggleButtonsTransition(false);
     }
 
     private onUpdateComplete() {
-        this.toggleButtonsClass(styles.modifiers.button.withTransition, true);
+        this.toggleButtonsTransition(true);
     }
 
     private onButtonUpdated(event: ToolbarButtonUpdatedEvent) {
@@ -289,15 +299,11 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             return buttonVisible ? false : first;
         };
 
-        childNodes.reduce<boolean>(
-            (first, button) => setFirstClass(first, button, styles.modifiers.button.first),
-            true
-        );
+        let first = true;
+        childNodes.forEach((button) => (first = setFirstClass(first, button, styles.modifiers.button.first)));
 
-        childNodes.reduceRight<boolean>(
-            (last, button) => setFirstClass(last, button, styles.modifiers.button.last),
-            true
-        );
+        let last = true;
+        childNodes.toReversed().forEach((button) => (last = setFirstClass(last, button, styles.modifiers.button.last)));
     }
 
     private onButtonToggled(event: ToolbarButtonToggledEvent) {
@@ -752,7 +758,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         const button = createElement('button');
         button.classList.add(styles.elements.button);
         button.dataset.toolbarGroup = group;
-        button.tabIndex = -1;
+        setAttribute(button, 'tabindex', -1);
+        if (options.haspopup) {
+            setAttributes(button, { 'aria-haspopup': true, 'aria-expanded': false });
+        }
 
         button.dataset.toolbarId = this.buttonId(options);
         button.addEventListener(
@@ -771,8 +780,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
 
         if (options.role === 'switch') {
-            button.role = options.role;
-            button.ariaChecked = false.toString();
+            setAttributes(button, { role: options.role, 'aria-checked': false });
         }
         this.updateButton(button, options);
 

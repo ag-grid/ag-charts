@@ -17,6 +17,7 @@ export interface AgCartesianChartOptions extends AgBaseCartesianChartOptions, Ag
     /**
      * A predefined theme name or an object containing theme overrides.
      *
+     *
      * See: [Themes Reference](/themes-api/)
      */
     theme?: AgChartTheme | AgChartThemeName;

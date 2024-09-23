@@ -52,7 +52,10 @@ describe('TreemapSeries', () => {
         };
 
         it('should render a complex chart', async () => {
-            const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
+            const options: AgChartOptions = {
+                ...SIMPLIFIED_EXAMPLE,
+                animation: { enabled: false },
+            };
             prepareEnterpriseTestOptions(options);
 
             chart = deproxy(AgCharts.create(options));
@@ -61,7 +64,10 @@ describe('TreemapSeries', () => {
 
         const childAtDepth = [0, 0, 0, 0];
         it.each([0, 1, 2, 3])(`should render highlight at depth %s`, async (depth) => {
-            const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
+            const options: AgChartOptions = {
+                ...SIMPLIFIED_EXAMPLE,
+                animation: { enabled: false },
+            };
             prepareEnterpriseTestOptions(options);
 
             chart = deproxy(AgCharts.create(options));
@@ -91,7 +97,10 @@ describe('TreemapSeries', () => {
 
         for (const [exampleName, example] of Object.entries(examples)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
-                const options: AgChartOptions = { ...example.options };
+                const options: AgChartOptions = {
+                    ...example.options,
+                    animation: { enabled: false },
+                };
                 prepareEnterpriseTestOptions(options);
 
                 chart = AgCharts.create(options);
@@ -100,7 +109,10 @@ describe('TreemapSeries', () => {
             });
 
             it(`for ${exampleName} it should render to canvas as expected`, async () => {
-                const options: AgChartOptions = { ...example.options };
+                const options: AgChartOptions = {
+                    ...example.options,
+                    animation: { enabled: false },
+                };
                 prepareEnterpriseTestOptions(options);
 
                 chart = AgCharts.create(options);
@@ -152,6 +164,7 @@ describe('TreemapSeries', () => {
                     },
                 ],
                 ...(testParams.chartOptions ?? {}),
+                animation: { enabled: false },
             };
             prepareEnterpriseTestOptions(options);
             const newChart = deproxy(AgCharts.create(options));

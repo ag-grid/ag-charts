@@ -621,6 +621,7 @@
             {
                 "title": "Radial Gauge",
                 "seriesName": "radial-gauge",
+                "seriesLink": "./radial-gauge/",
                 "icon": "chartsRadialGauge",
                 "enterprise": true,
                 "examples": [
@@ -639,6 +640,7 @@
             {
                 "title": "Linear Gauge",
                 "seriesName": "linear-gauge",
+                "seriesLink": "./linear-gauge/",
                 "icon": "chartsLinearGauge",
                 "enterprise": true,
                 "examples": [

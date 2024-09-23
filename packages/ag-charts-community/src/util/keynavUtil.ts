@@ -1,3 +1,5 @@
+import { setAttribute } from './attributeUtil';
+
 function addRemovableEventListener<K extends keyof WindowEventMap>(
     destroyFns: (() => void)[],
     elem: Window,
@@ -55,11 +57,12 @@ function containsPoint(container: Element, event: MouseEvent) {
     return false;
 }
 
+function hasNoModifiers(event: KeyboardEvent | MouseEvent): boolean {
+    return !(event.shiftKey || event.altKey || event.ctrlKey || event.metaKey);
+}
+
 function matchesKey(event: KeyboardEvent, key: string, ...morekeys: string[]): boolean {
-    return (
-        !(event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) &&
-        (event.key === key || morekeys.some((altkey) => event.key === altkey))
-    );
+    return hasNoModifiers(event) && (event.key === key || morekeys.some((altkey) => event.key === altkey));
 }
 
 function linkTwoButtons(destroyFns: (() => void)[], src: HTMLElement, dst: HTMLElement | undefined, key: string) {
@@ -166,6 +169,8 @@ class MenuCloserImp implements MenuCloser {
     }
 
     close() {
+        this.destroyFns.forEach((d) => d());
+        this.destroyFns.length = 0;
         this.closeCallback();
         this.finishClosing();
     }
@@ -173,6 +178,7 @@ class MenuCloserImp implements MenuCloser {
     finishClosing() {
         this.destroyFns.forEach((d) => d());
         this.destroyFns.length = 0;
+        setAttribute(this.lastFocus, 'aria-expanded', false);
         this.lastFocus?.focus();
         this.lastFocus = undefined;
     }
@@ -184,18 +190,34 @@ export function initMenuKeyNav(opts: {
     device: MenuDevice;
     menu: HTMLElement;
     buttons: HTMLElement[];
+    // CRT-481 Automatically close the context menu when change focus with TAB / Shift+TAB
+    autoCloseOnBlur?: boolean;
+    // AG-12849: Fixes a very specific case of avoiding series-node focus after clicking on a context menu item.
+    // We should revisit the approach for this in the future.
+    skipMouseFocusRestore?: boolean;
     closeCallback: () => void;
 }): MenuCloser {
-    const { device, orientation, menu, buttons, closeCallback } = opts;
+    const {
+        device,
+        orientation,
+        menu,
+        buttons,
+        closeCallback,
+        autoCloseOnBlur = false,
+        skipMouseFocusRestore = false,
+    } = opts;
     const { nextKey, prevKey } = PREV_NEXT_KEYS[orientation];
 
-    const menuCloser = new MenuCloserImp(menu, device.lastFocus, closeCallback);
+    setAttribute(device.lastFocus, 'aria-expanded', true);
+
+    const lastFocus = device.type === 'keyboard' || !skipMouseFocusRestore ? device.lastFocus : undefined;
+    const menuCloser = new MenuCloserImp(menu, lastFocus, closeCallback);
     const onEscape = () => menuCloser.close();
     const { destroyFns } = menuCloser;
 
     menu.role = 'menu';
     menu.ariaOrientation = orientation;
-    initRovingTabIndex({ orientation, buttons, onEscape, wrapAround: true });
+    destroyFns.push(...initRovingTabIndex({ orientation, buttons, onEscape, wrapAround: true }));
 
     // Add handlers for the menu element itself.
     menu.tabIndex = -1;
@@ -206,6 +228,19 @@ export function initMenuKeyNav(opts: {
             buttons[0]?.focus();
         }
     });
+
+    if (autoCloseOnBlur) {
+        const handler = (ev: FocusEvent) => {
+            const buttonArray: (EventTarget | null)[] = buttons;
+            const isLeavingMenu = !buttonArray.includes(ev.relatedTarget);
+            if (isLeavingMenu) {
+                onEscape();
+            }
+        };
+        for (const button of buttons) {
+            addRemovableEventListener(destroyFns, button, 'blur', handler);
+        }
+    }
 
     if (device.type === 'keyboard') {
         buttons[0]?.focus();
@@ -229,7 +264,6 @@ export function isButtonClickEvent(event: KeyboardEvent | MouseEvent): boolean {
     if ('button' in event) {
         return event.button === 0;
     }
-    return (
-        !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey && ['Enter', 'Space'].includes(event.code)
-    );
+    // AG-12871 Use `key` for Enter to also include the Numpad Enter key.
+    return hasNoModifiers(event) && (event.code === 'Space' || event.key === 'Enter');
 }

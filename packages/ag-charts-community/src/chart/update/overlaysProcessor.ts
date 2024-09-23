@@ -1,6 +1,7 @@
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
+import { setAttribute } from '../../util/attributeUtil';
 import type { DataService } from '../data/dataService';
 import type { AnimationManager } from '../interaction/animationManager';
 import type { LayoutCompleteEvent, LayoutManager } from '../layout/layoutManager';
@@ -50,13 +51,19 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         this.overlayElem.style.width = `${rect.width}px`;
         this.overlayElem.style.height = `${rect.height}px`;
 
-        this.toggleOverlay(this.overlays.loading, rect, isLoading);
-        this.toggleOverlay(this.overlays.noData, rect, !isLoading && !hasData);
-        this.toggleOverlay(this.overlays.noVisibleSeries, rect, hasData && !anySeriesVisible);
+        const loadingShown = isLoading;
+        const noDataShown = !isLoading && !hasData;
+        const noVisibleSeriesShown = hasData && !anySeriesVisible;
+
+        this.toggleOverlay(this.overlays.loading, rect, loadingShown);
+        this.toggleOverlay(this.overlays.noData, rect, noDataShown);
+        this.toggleOverlay(this.overlays.noVisibleSeries, rect, noVisibleSeriesShown);
+
+        const shown = loadingShown || noDataShown || noVisibleSeriesShown;
+        setAttribute(this.overlayElem, 'aria-hidden', !shown);
     }
 
     private toggleOverlay(overlay: Overlay, seriesRect: BBox, visible: boolean) {
-        this.overlayElem.ariaHidden = (!visible).toString();
         if (visible) {
             const element = overlay.getElement(this.animationManager, this.localeManager, seriesRect);
             this.overlayElem.appendChild(element);

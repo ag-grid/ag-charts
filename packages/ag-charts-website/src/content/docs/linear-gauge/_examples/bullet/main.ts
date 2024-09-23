@@ -16,7 +16,15 @@ const options: AgLinearGaugeOptions = {
         thickness: 25,
         fill: 'black',
     },
-    targets: [{ value: 60, shape: 'line', size: 20, placement: 'middle', strokeWidth: 2 }],
+    targets: [
+        {
+            value: 60,
+            shape: 'line',
+            size: 20,
+            placement: 'middle',
+            strokeWidth: 2,
+        },
+    ],
 };
 
 AgCharts.createGauge(options);

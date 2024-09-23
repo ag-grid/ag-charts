@@ -1,11 +1,12 @@
-import { _Scene } from 'ag-charts-community';
+import { _Scene, _Util } from 'ag-charts-community';
 
 import { AnnotationType } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
-import { ShapeScene } from '../scenes/shapeScene';
+import { DivariantHandle } from '../scenes/handle';
+import { ShapePointScene } from '../scenes/shapePointScene';
 import type { ArrowUpProperties } from './arrowUpProperties';
 
-export class ArrowUpScene extends ShapeScene<ArrowUpProperties> {
+export class ArrowUpScene extends ShapePointScene<ArrowUpProperties> {
     static override is(value: unknown): value is ArrowUpScene {
         return AnnotationScene.isCheck(value, AnnotationType.ArrowUp);
     }
@@ -17,5 +18,12 @@ export class ArrowUpScene extends ShapeScene<ArrowUpProperties> {
     constructor() {
         super();
         this.append([this.shape]);
+    }
+
+    protected override getHandleCoords(datum: ArrowUpProperties, point: _Util.Vec2): _Util.Vec2 {
+        const halfSize = DivariantHandle.HANDLE_SIZE / 2;
+        const handleCoords = super.getHandleCoords(datum, point);
+        handleCoords.y -= halfSize;
+        return handleCoords;
     }
 }
