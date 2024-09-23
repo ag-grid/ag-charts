@@ -7,9 +7,7 @@ import {
     _Util,
 } from 'ag-charts-community';
 
-import { Menu, type MenuItem } from '../../components/menu/menu';
 import { buildBounds } from '../../utils/position';
-import { ColorPicker } from '../color-picker/colorPicker';
 import { TextInput } from '../text-input/textInput';
 import { AnnotationDefaults } from './annotationDefaults';
 import type {
@@ -43,8 +41,10 @@ import { invertCoords } from './utils/values';
 
 const {
     BOOLEAN,
+    ColorPicker,
     ChartUpdateType,
     InteractionState,
+    MenuPopover,
     ObserveChanges,
     PropertiesArray,
     ToolbarManager,
@@ -66,7 +66,7 @@ type AnnotationAxis = {
 
 const AXIS_TYPE = UNION(['x', 'y', 'xy'], 'an axis type');
 
-const LINE_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
+const LINE_ANNOTATION_ITEMS: _ModuleSupport.MenuItemOptions<AnnotationType>[] = [
     {
         label: 'toolbarAnnotationsTrendLine',
         icon: 'trend-line-drawing',
@@ -94,14 +94,14 @@ const LINE_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
     },
 ];
 
-const TEXT_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
+const TEXT_ANNOTATION_ITEMS: _ModuleSupport.MenuItemOptions<AnnotationType>[] = [
     { label: 'toolbarAnnotationsText', icon: 'text-annotation', value: AnnotationType.Text },
     { label: 'toolbarAnnotationsComment', icon: 'comment-annotation', value: AnnotationType.Comment },
     { label: 'toolbarAnnotationsCallout', icon: 'callout-annotation', value: AnnotationType.Callout },
     { label: 'toolbarAnnotationsNote', icon: 'note-annotation', value: AnnotationType.Note },
 ];
 
-const SHAPE_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
+const SHAPE_ANNOTATION_ITEMS: _ModuleSupport.MenuItemOptions<AnnotationType>[] = [
     { label: 'toolbarAnnotationsArrow', icon: 'arrow-drawing', value: AnnotationType.Arrow },
     { label: 'toolbarAnnotationsArrowUp', icon: 'arrow-up-drawing', value: AnnotationType.ArrowUp },
     { label: 'toolbarAnnotationsArrowDown', icon: 'arrow-down-drawing', value: AnnotationType.ArrowDown },
@@ -164,10 +164,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.createAnnotationScene.bind(this)
     );
     private readonly colorPicker = new ColorPicker(this.ctx);
-    private readonly textSizeMenu = new Menu(this.ctx, 'text-size');
-    private readonly lineStyleTypeMenu = new Menu(this.ctx, 'annotations-line-style-type');
-    private readonly lineStrokeWidthMenu = new Menu(this.ctx, 'annotations-line-stroke-width');
-    private readonly annotationMenu = new Menu(this.ctx, 'annotations');
+    private readonly textSizeMenu = new MenuPopover(this.ctx, 'text-size');
+    private readonly lineStyleTypeMenu = new MenuPopover(this.ctx, 'annotations-line-style-type');
+    private readonly lineStrokeWidthMenu = new MenuPopover(this.ctx, 'annotations-line-stroke-width');
+    private readonly annotationMenu = new MenuPopover(this.ctx, 'annotations');
     private readonly settingsDialog = new AnnotationSettingsDialog(this.ctx);
     private readonly textInput = new TextInput(this.ctx);
 

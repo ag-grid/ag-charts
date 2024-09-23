@@ -2,6 +2,7 @@ import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import { Popover, type PopoverOptions } from './popover';
 
+const { getWindow } = _ModuleSupport;
 const { clamp } = _Util;
 
 export interface AnchoredPopoverOptions extends PopoverOptions {
@@ -40,9 +41,7 @@ export abstract class AnchoredPopover<
 
         // Wait for the DOM to be ready to reposition the element, so it is able to calculate if it will overflow the
         // bounding box
-        _ModuleSupport.getWindow().requestAnimationFrame(() => {
-            this.repositionWithinBounds();
-        });
+        getWindow().requestAnimationFrame(() => this.repositionWithinBounds());
 
         return popover;
     }

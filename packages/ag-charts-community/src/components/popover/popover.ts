@@ -1,5 +1,7 @@
 import { _ModuleSupport, type _Util } from 'ag-charts-community';
 
+import type { ElementProvider } from '../componentTypes';
+
 const { BaseModuleInstance, createElement } = _ModuleSupport;
 const canvasOverlay = 'canvas-overlay';
 
@@ -22,7 +24,7 @@ export interface PopoverOptions {
  */
 export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
     extends BaseModuleInstance
-    implements _ModuleSupport.ModuleInstance
+    implements _ModuleSupport.ModuleInstance, ElementProvider
 {
     protected readonly hideFns: Array<() => void> = [];
 
@@ -63,6 +65,14 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
 
         lastFocus?.focus();
         this.lastFocus = undefined;
+    }
+
+    getElement() {
+        return this.getPopoverElement();
+    }
+
+    getElementId() {
+        return this.moduleId;
     }
 
     protected removeChildren() {
