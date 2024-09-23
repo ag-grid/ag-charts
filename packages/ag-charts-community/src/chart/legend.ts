@@ -1135,6 +1135,8 @@ export class Legend extends BaseProperties {
     private onHover(event: FocusEvent | MouseEvent, node: LegendMarkerLabel) {
         if (!this.enabled) throw new Error('AG Charts - onHover handler called on disabled legend');
 
+        this.pagination.setPage(node.pageIndex);
+
         const datum: CategoryLegendDatum | undefined = node.datum;
         const series = datum ? this.ctx.chartService.series.find((s) => s.id === datum?.id) : undefined;
         if (datum && this.truncatedItems.has(datum.itemId ?? datum.id)) {
