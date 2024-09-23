@@ -113,24 +113,23 @@ export async function dragCanvas(
     options = { steps: 4 }
 ) {
     const { steps } = options;
-    const canvas = await page.locator(SELECTORS.canvas).first();
-    const canvasBBox = await canvas.boundingBox();
-    if (!canvasBBox) throw new Error("Couldn't get the canvas bbox");
+    const point = await canvasToPageTransformer(page);
+    let p = point(start.x, start.y);
 
-    await page.mouse.move(canvasBBox.x + start.x, canvasBBox.y + start.y);
+    await page.mouse.move(p.x, p.y);
     await page.mouse.down();
     for (let step = 0; step < steps; step++) {
-        await page.mouse.move(
-            Math.round(canvasBBox.x + start.x + ((end.x - start.x) * step) / steps),
-            Math.round(canvasBBox.y + start.y + ((end.y - start.y) * step) / steps)
-        );
+        const x = start.x + ((end.x - start.x) * step) / steps;
+        const y = start.y + ((end.y - start.y) * step) / steps;
+        p = point(x, y);
+        await page.mouse.move(Math.round(p.x), Math.round(p.y));
     }
     await page.mouse.up();
 }
 
 export async function locateCanvas(page: Page) {
-    const canvasElem = await page.locator('canvas');
-    const canvas = await page.locator(SELECTORS.canvas);
+    const canvasElem = page.locator('canvas');
+    const canvas = page.locator(SELECTORS.canvas);
     const width = Number(await canvasElem.getAttribute('width'));
     const height = Number(await canvasElem.getAttribute('height'));
     const bbox = await canvas.boundingBox();
@@ -143,4 +142,14 @@ export async function locateCanvas(page: Page) {
     }
 
     return { canvas, width, height, bbox };
+}
+
+type PointTransformer = (x: number, y: number) => { x: number; y: number };
+
+export async function canvasToPageTransformer(page: Page): Promise<PointTransformer> {
+    const offset = await (await page.$(SELECTORS.canvas)).boundingBox();
+    if (!offset) throw new Error("Couldn't get the canvas bbox");
+    return (x: number, y: number) => {
+        return { x: offset.x + x, y: offset.y + y };
+    };
 }

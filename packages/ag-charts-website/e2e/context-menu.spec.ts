@@ -1,6 +1,12 @@
 import { expect, test } from '@playwright/test';
 
-import { SELECTORS, gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrls } from './util';
+import {
+    canvasToPageTransformer,
+    gotoExample,
+    locateCanvas,
+    setupIntrinsicAssertions,
+    toExamplePageUrls,
+} from './util';
 
 test.describe('context-menu', () => {
     setupIntrinsicAssertions();
@@ -11,20 +17,18 @@ test.describe('context-menu', () => {
                 await gotoExample(page, url);
 
                 const { width, height } = await locateCanvas(page);
+                const point = await canvasToPageTransformer(page);
+                let p: { x: number; y: number };
 
-                await page.click(SELECTORS.canvas, {
-                    button: 'right',
-                    position: { x: width * (2 / 3), y: height / 2 },
-                });
+                p = point(width * (2 / 3), height / 2);
+                await page.mouse.click(p.x, p.y, { button: 'right' });
                 await expect(page).toHaveScreenshot('zoom-contextmenu.png', { animations: 'disabled' });
 
                 await page.locator('.ag-chart-context-menu__item').filter({ hasText: 'Zoom to here' }).click();
                 await expect(page).toHaveScreenshot('zoom-to-here.png', { animations: 'disabled' });
 
-                await page.click(SELECTORS.canvas, {
-                    button: 'right',
-                    position: { x: width / 10, y: height / 2 },
-                });
+                p = point(width / 10, height / 2);
+                await page.mouse.click(p.x, p.y, { button: 'right' });
 
                 await page.locator('.ag-chart-context-menu__item').filter({ hasText: 'Pan to here' }).click();
                 await expect(page).toHaveScreenshot('pan-to-here.png', { animations: 'disabled' });
@@ -34,30 +38,31 @@ test.describe('context-menu', () => {
 
     for (const { framework, url } of toExamplePageUrls('context-menu', 'context-menu-actions')) {
         test.describe(`for ${framework}`, () => {
-            const title = { x: 400, y: 40 };
-            const seriesNodesHit = { x: 350, y: 260 };
-            const seriesNodesMiss = { x: 285, y: 300 };
-            const legendItem2 = { x: 460, y: 540 };
             test('items update', async ({ page }) => {
                 await gotoExample(page, url);
-                const { canvas } = SELECTORS;
+                const point = await canvasToPageTransformer(page);
 
-                await page.click(canvas, { button: 'left', position: title });
+                const title = point(400, 40);
+                const seriesNodesHit = point(350, 260);
+                const seriesNodesMiss = point(285, 300);
+                const legendItem2 = point(460, 540);
+
+                await page.mouse.click(title.x, title.y, { button: 'left' });
                 await expect(page).toHaveScreenshot('contextmenu-left-click.png', { animations: 'disabled' });
 
-                await page.click(canvas, { button: 'right', position: seriesNodesHit });
+                await page.mouse.click(seriesNodesHit.x, seriesNodesHit.y, { button: 'right' });
                 await expect(page).toHaveScreenshot('contextmenu-series-blue-node.png', { animations: 'disabled' });
 
-                await page.click(canvas, { button: 'right', position: legendItem2 });
+                await page.mouse.click(legendItem2.x, legendItem2.y, { button: 'right' });
                 await expect(page).toHaveScreenshot('contextmenu-legend-orange-node.png', { animations: 'disabled' });
 
-                await page.click(canvas, { button: 'right', position: title });
+                await page.mouse.click(title.x, title.y, { button: 'right' });
                 await expect(page).toHaveScreenshot('contextmenu-title.png', { animations: 'disabled' });
 
-                await page.click(canvas, { button: 'right', position: seriesNodesMiss });
+                await page.mouse.click(seriesNodesMiss.x, seriesNodesMiss.y, { button: 'right' });
                 await expect(page).toHaveScreenshot('contextmenu-series-no-node.png', { animations: 'disabled' });
 
-                await page.click(canvas, { button: 'left', position: legendItem2 });
+                await page.mouse.click(legendItem2.x, legendItem2.y, { button: 'left' });
                 await expect(page).toHaveScreenshot('contextmenu-legend-click.png', { animations: 'disabled' });
             });
         });
