@@ -70,6 +70,16 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
                 enabled: false,
             },
         },
+        axes: {
+            [_Theme.CARTESIAN_AXIS_TYPE.NUMBER]: {
+                line: {
+                    enabled: false,
+                },
+                gridLine: {
+                    enabled: false,
+                },
+            },
+        },
     },
     paletteFactory(params) {
         const { takeColors, colorsCount, userPalette, themeTemplateParameters } = params;

@@ -3,6 +3,8 @@ import {
     type AgCartesianAxisOptions,
     type AgChartOptions,
     type AgPolarAxisOptions,
+    type AgPresetOptions,
+    type AgPresetOverrides,
     type AgTooltipPositionOptions,
     AgTooltipPositionType,
 } from 'ag-charts-types';
@@ -100,9 +102,22 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         let options = deepClone(userOptions, cloneOptions);
 
         if (this.presetType != null) {
-            const presetOptions = (PRESETS as any)[this.presetType]?.(options, () => this.activeTheme) ?? options;
-            this.debug('>>> AgCharts.createOrUpdate() - applying preset', options, presetOptions);
-            options = presetOptions;
+            const presetConstructor: ((options: AgPresetOptions, activeTheme: () => ChartTheme) => T) | undefined = (
+                PRESETS as any
+            )[this.presetType];
+
+            // Note financial charts defines the theme in its returned options
+            // so we need to get the theme before and after applying the preset
+            const presetType = (options as any).type as keyof AgPresetOverrides | undefined;
+            const presetTheme = presetType != null ? getChartTheme(options.theme).presets[presetType] : undefined;
+
+            let presetParams = options as any as AgPresetOptions;
+            if (presetTheme != null) {
+                presetParams = mergeDefaults(presetParams, presetTheme);
+            }
+
+            this.debug('>>> AgCharts.createOrUpdate() - applying preset', options, presetParams);
+            options = presetConstructor?.(presetParams, () => this.activeTheme) ?? options;
         }
 
         if (!enterpriseModule.isEnterprise) {

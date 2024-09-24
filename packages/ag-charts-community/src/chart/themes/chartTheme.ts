@@ -5,6 +5,8 @@ import type {
     AgChartThemePalette,
     AgCommonThemeableChartOptions,
     AgPaletteColors,
+    AgPresetOverrides,
+    AgThemeOverrides,
 } from 'ag-charts-types';
 
 import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
@@ -89,6 +91,17 @@ const CHART_TYPE_CONFIG: { [k in ChartType]: ChartTypeConfig } = {
     },
 };
 
+type OverridesKey = keyof AgThemeOverrides;
+
+const PRESET_OVERRIDES_TYPES: Record<keyof AgPresetOverrides, true> = {
+    'radial-gauge': true,
+    'linear-gauge': true,
+};
+
+function isPresetOverridesType(type: OverridesKey): type is keyof AgPresetOverrides {
+    return PRESET_OVERRIDES_TYPES[type as keyof AgPresetOverrides] === true;
+}
+
 const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).reduce<
     (keyof AgCommonThemeableChartOptions)[]
 >((r, { commonOptions }) => r.concat(commonOptions), []);
@@ -102,6 +115,7 @@ export class ChartTheme {
     readonly paletteType: PaletteType;
 
     readonly config: any;
+    readonly presets: AgPresetOverrides;
 
     private static getAxisDefaults(overrideDefaults?: object) {
         return mergeDefaults(overrideDefaults, {
@@ -269,9 +283,10 @@ export class ChartTheme {
     constructor(options: AgChartTheme = {}) {
         const { overrides, palette } = deepClone(options) as AgChartThemeOptions;
         const defaults = this.createChartConfigPerChartType(this.getDefaults());
+        const presets: Record<string, any> = {};
 
         if (overrides) {
-            this.mergeOverrides(defaults, overrides);
+            this.mergeOverrides(defaults, presets, overrides);
         }
 
         const { fills, strokes, ...otherColors } = this.getDefaultColors();
@@ -283,9 +298,10 @@ export class ChartTheme {
         this.paletteType = paletteType(palette);
 
         this.config = Object.freeze(this.templateTheme(defaults));
+        this.presets = presets;
     }
 
-    private mergeOverrides(defaults: AgChartThemeOverrides, overrides: AgChartThemeOverrides) {
+    private mergeOverrides(defaults: AgChartThemeOverrides, presets: AgPresetOverrides, overrides: AgThemeOverrides) {
         for (const { seriesTypes, commonOptions } of Object.values(CHART_TYPE_CONFIG)) {
             const cleanedCommon = { ...overrides.common };
             for (const commonKey of CHART_TYPE_SPECIFIC_COMMON_OPTIONS) {
@@ -295,15 +311,22 @@ export class ChartTheme {
             }
             if (!cleanedCommon) continue;
             for (const s of seriesTypes) {
-                const seriesType = s as keyof AgChartThemeOverrides;
-                defaults[seriesType] = mergeDefaults(cleanedCommon, defaults[seriesType]);
+                const seriesType = s as keyof AgThemeOverrides;
+
+                if (!isPresetOverridesType(seriesType)) {
+                    defaults[seriesType] = mergeDefaults(cleanedCommon, defaults[seriesType]);
+                }
             }
         }
 
         chartTypes.seriesTypes.forEach((s) => {
-            const seriesType = s as keyof AgChartThemeOverrides;
-            if (overrides[seriesType]) {
-                defaults[seriesType] = mergeDefaults(overrides[seriesType], defaults[seriesType]);
+            const seriesType = s as keyof AgThemeOverrides;
+            const seriesOverrides = overrides[seriesType];
+
+            if (isPresetOverridesType(seriesType)) {
+                presets[seriesType] = seriesOverrides as any;
+            } else {
+                defaults[seriesType] = mergeDefaults(seriesOverrides, defaults[seriesType]);
             }
         });
     }

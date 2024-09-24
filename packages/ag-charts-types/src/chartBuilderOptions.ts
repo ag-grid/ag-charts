@@ -76,7 +76,9 @@ export type AgLinearGaugeOptions = AgLinearGaugePreset & AgBaseGaugePresetOption
 export type AgRadialGaugeOptions = AgRadialGaugePreset & AgBaseGaugePresetOptions;
 export type AgGaugeOptions = AgGaugePresets & AgBaseGaugePresetOptions;
 
-export type AgChartInstanceOptions = AgChartOptions | AgFinancialChartOptions;
+export type AgPresetOptions = AgFinancialChartOptions | AgGaugeOptions;
+
+export type AgChartInstanceOptions = AgChartOptions | AgPresetOptions;
 
 type DeepPartial<T> = T extends Array<unknown> ? T : T extends object ? { [K in keyof T]?: DeepPartial<T[K]> } : T;
 
