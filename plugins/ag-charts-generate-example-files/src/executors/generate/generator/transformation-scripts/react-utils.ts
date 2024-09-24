@@ -69,7 +69,9 @@ export function convertFunctionalTemplate(template: string) {
             if (meta) {
                 // 0 original call, 1 function name, 2 arguments
                 if (meta[2]) {
-                    template = template.replace(matcher, `${jsEvent}={() => $1($2)}`);
+                    const containsEventKeyword = meta[2].includes('event');
+                    const args = containsEventKeyword ? '(event)' : '()';
+                    template = template.replace(matcher, `${jsEvent}={${args} => $1($2)}`);
                 } else {
                     template = template.replace(matcher, `${jsEvent}={$1}`);
                 }
