@@ -11,7 +11,7 @@ import type {
     StrokeOptions,
     TextOptions,
 } from '../../types/commonTypes';
-import { TreeNode } from './treeNode';
+import { TreeNode } from '../../util/treeNode';
 
 export interface CanvasContextProperties extends FillOptions, StrokeOptions, LineOptions, FontOptions, TextOptions {
     cursor?: string;

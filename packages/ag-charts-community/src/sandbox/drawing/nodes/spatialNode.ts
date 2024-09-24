@@ -1,6 +1,6 @@
 import type { BBox, Size } from '../../types/commonTypes';
 import type { TransformMatrix } from '../../util/transformMatrix';
-import { TreeNode } from './treeNode';
+import { TreeNode } from '../../util/treeNode';
 
 export abstract class SpatialNode extends TreeNode {
     transform?: TransformMatrix = undefined;

@@ -1,11 +1,12 @@
 import { createElement } from '../../util/dom';
 import { EventEmitter } from '../../util/eventEmitter';
 import type { ImageUrlOptions } from '../chart/chartTypes';
+import { GroupNode } from '../stage/stageNode';
 import type { IStage, StageEventMap } from './drawingTypes';
 import { StageLayout } from './stageLayout';
 
 export class Stage implements IStage {
-    static ElementClassName = 'ag-chart-wrapper'; // ag-charts-stage
+    static ElementClassName = 'ag-charts-stage';
     static ElementStyle = { position: 'relative', userSelect: 'none' };
 
     readonly events = new EventEmitter<StageEventMap>();
@@ -14,6 +15,8 @@ export class Stage implements IStage {
     readonly canvas: HTMLCanvasElement;
     readonly context: CanvasRenderingContext2D;
     readonly rootElement: HTMLDivElement;
+
+    readonly rootNode = new GroupNode();
 
     constructor(
         width: number,
