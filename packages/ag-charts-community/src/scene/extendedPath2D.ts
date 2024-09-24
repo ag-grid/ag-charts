@@ -1,4 +1,4 @@
-import { normalizeAngle360 } from '../util/angle';
+import { normalizeAngle360, normalizeAngle360Inclusive } from '../util/angle';
 import { arcDistanceSquared, lineDistanceSquared } from '../util/distance';
 import { Logger } from '../util/logger';
 import { BBox } from './bbox';
@@ -327,8 +327,6 @@ export class ExtendedPath2D {
                     addCommand('C', params[pi++], params[pi++], params[pi++], params[pi++], params[pi++], params[pi++]);
                     break;
                 case Command.Arc: {
-                    // The SVG arc command is terrible, and it's not possible to apply a matrix transformation to it
-                    // Convert the arc into a series of bezier curves, which can be transformed
                     const cx = params[pi++];
                     const cy = params[pi++];
                     const r = params[pi++];
@@ -337,10 +335,10 @@ export class ExtendedPath2D {
                     const ccw = params[pi++];
 
                     const sweepSign = ccw ? -1 : 1;
-                    const sweep = normalizeAngle360((A1 - A0) * sweepSign) * sweepSign;
+                    const sweep = Math.min(Math.abs(A1 - A0), 2 * Math.PI) * sweepSign;
 
                     // A bezier curve can handle at most one quarter turn
-                    const arcSections = Math.max((Math.abs(sweep) / (Math.PI / 2)) | 0, 1);
+                    const arcSections = Math.max(Math.ceil(Math.abs(sweep) / (Math.PI / 2)), 1);
 
                     const step = sweep / arcSections;
                     const h = (4 / 3) * Math.tan(step / 4);
