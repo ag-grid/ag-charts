@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -eu
 
@@ -10,13 +10,13 @@ if [ "$1" == "--host" ] ; then
 
   npx astro dev --port=4601 --host &
 
-  cd ../..
-  docker run -it --rm --ipc=host --network=host \
+  cd $(git rev-parse --show-toplevel)
+  docker run -t --rm --ipc=host --network=host \
     -v $(pwd):/data:ro \
     -v $(pwd)/reports:/data/reports \
     -v $(pwd)/packages/ag-charts-website/e2e/:/data/packages/ag-charts-website/e2e/ \
-    mcr.microsoft.com/playwright:v1.47.2-noble-arm64 \
-    /bin/bash -il /data/packages/ag-charts-website/playwright.sh $@
+    mcr.microsoft.com/playwright:v1.47.2-noble \
+    /bin/bash -l /data/packages/ag-charts-website/playwright.sh $@
 
   exit $?
 fi
