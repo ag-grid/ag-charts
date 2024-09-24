@@ -1,4 +1,10 @@
-import { Canvas, Image, CanvasRenderingContext2D as NodeCanvasRenderingContext2D, createCanvas } from 'canvas';
+import {
+    Canvas,
+    Image,
+    CanvasRenderingContext2D as NodeCanvasRenderingContext2D,
+    createCanvas,
+    registerFont,
+} from 'canvas';
 
 import { ConicGradient } from './conicGradient';
 
@@ -91,6 +97,10 @@ export function setup(opts: {
         mockCtx = new MockContext(width, height, document),
         mockText = false,
     } = opts;
+
+    registerFont(process.cwd() + '/Arimo-Regular.ttf', {
+        family: 'Arimo',
+    });
     // if (mockText) {
     //     mockCanvasText();
     // }
