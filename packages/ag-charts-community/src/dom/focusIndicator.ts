@@ -26,7 +26,7 @@ export class FocusIndicator {
 
     destroy() {
         this.domManager.removeStyles(focusStyles.block);
-        this.domManager.removeChild('canvas-overlay', focusStyles.block);
+        this.domManager.removeChild('canvas-proxy', focusStyles.block);
     }
 
     updateBounds(bounds: Path | BBoxValues | undefined) {
