@@ -1,5 +1,10 @@
 import type { AgBaseChartOptions } from './chart/chartOptions';
-import type { AgBaseChartThemeOptions, AgChartTheme, AgChartThemeName } from './chart/themeOptions';
+import type {
+    AgBaseChartThemeOptions,
+    AgChartTheme,
+    AgChartThemeName,
+    AgGaugePresetThemeableOptions,
+} from './chart/themeOptions';
 import type { PixelSize } from './chart/types';
 import type { AgFinancialChartPresets } from './presets/financial/financialOptions';
 import type { AgGaugePresets } from './presets/gauge/gaugeOptions';
@@ -52,25 +57,7 @@ export type AgBaseFinancialPresetOptions = Pick<
 
 export type AgFinancialChartOptions = AgFinancialChartPresets & AgBaseFinancialPresetOptions;
 
-export type AgBaseGaugePresetThemeableOptions = Pick<
-    AgBaseChartOptions<any>,
-    | 'animation'
-    | 'background'
-    | 'container'
-    | 'contextMenu'
-    | 'footnote'
-    | 'height'
-    | 'listeners'
-    | 'locale'
-    | 'minHeight'
-    | 'minWidth'
-    | 'padding'
-    | 'subtitle'
-    | 'title'
-    | 'width'
->;
-
-export interface AgBaseGaugePresetOptions extends AgBaseGaugePresetThemeableOptions {
+export interface AgBaseGaugePresetOptions extends AgGaugePresetThemeableOptions {
     theme?: AgChartTheme | AgChartThemeName;
 }
 
