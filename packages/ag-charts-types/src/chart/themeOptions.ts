@@ -178,7 +178,7 @@ export interface AgChordThemeOverrides extends AgBaseFlowProportionThemeOptions 
     series?: AgChordSeriesThemeableOptions;
 }
 
-export type AgGaugePresetThemeableOptions = Pick<
+export type AgBaseGaugePresetThemeOptions = Pick<
     AgBaseChartOptions<any>,
     | 'animation'
     | 'background'
@@ -197,12 +197,12 @@ export type AgGaugePresetThemeableOptions = Pick<
 >;
 
 // Interface needed for docs generation, but listeners conflicts using the extends clause
-type AgRadialGaugeTheme = AgGaugePresetThemeableOptions & AgRadialGaugeThemeableOptions;
+type AgRadialGaugeTheme = AgBaseGaugePresetThemeOptions & AgRadialGaugeThemeableOptions;
 export interface AgRadialGaugeThemeOverrides extends AgRadialGaugeTheme {
     targets?: AgRadialGaugeTarget;
 }
 
-type AgLinearGaugeTheme = AgGaugePresetThemeableOptions & AgLinearGaugeThemeableOptions;
+type AgLinearGaugeTheme = AgBaseGaugePresetThemeOptions & AgLinearGaugeThemeableOptions;
 export interface AgLinearGaugeThemeOverrides extends AgLinearGaugeTheme {
     targets?: AgLinearGaugeTarget;
 }

@@ -1,9 +1,9 @@
 import type { AgBaseChartOptions } from './chart/chartOptions';
 import type {
     AgBaseChartThemeOptions,
+    AgBaseGaugePresetThemeOptions,
     AgChartTheme,
     AgChartThemeName,
-    AgGaugePresetThemeableOptions,
 } from './chart/themeOptions';
 import type { PixelSize } from './chart/types';
 import type { AgFinancialChartPresets } from './presets/financial/financialOptions';
@@ -55,15 +55,15 @@ export type AgBaseFinancialPresetOptions = Pick<
 > &
     Pick<AgCartesianChartOptions, 'initialState' | 'data'>;
 
-export type AgFinancialChartOptions = AgFinancialChartPresets & AgBaseFinancialPresetOptions;
+export type AgFinancialChartOptions = AgBaseFinancialPresetOptions & AgFinancialChartPresets;
 
-export interface AgBaseGaugePresetOptions extends AgGaugePresetThemeableOptions {
+export interface AgBaseGaugePresetOptions extends AgBaseGaugePresetThemeOptions {
     theme?: AgChartTheme | AgChartThemeName;
 }
 
-export type AgLinearGaugeOptions = AgLinearGaugePreset & AgBaseGaugePresetOptions;
-export type AgRadialGaugeOptions = AgRadialGaugePreset & AgBaseGaugePresetOptions;
-export type AgGaugeOptions = AgGaugePresets & AgBaseGaugePresetOptions;
+export type AgLinearGaugeOptions = AgBaseGaugePresetOptions & AgLinearGaugePreset;
+export type AgRadialGaugeOptions = AgBaseGaugePresetOptions & AgRadialGaugePreset;
+export type AgGaugeOptions = AgBaseGaugePresetOptions & AgGaugePresets;
 
 export type AgPresetOptions = AgFinancialChartOptions | AgGaugeOptions;
 
