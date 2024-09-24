@@ -15,7 +15,7 @@
                 "nx.json",
                 "project.json",
                 ".eslintrc.*",
-                "tsconfig{.{base,lib,spec,tools},}.json",
+                "tsconfig*.json",
                 ".vscode/*.json"
             ],
             "options": { "tabWidth": 2 }
