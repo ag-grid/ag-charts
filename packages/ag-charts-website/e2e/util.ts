@@ -2,7 +2,7 @@ import { Page, expect, test } from '@playwright/test';
 import { execSync } from 'child_process';
 import glob from 'glob';
 
-const baseUrl = 'http://localhost:4601';
+const baseUrl = process.env.PUBLIC_SITE_URL;
 const fws = ['vanilla', 'typescript', 'reactFunctional', 'reactFunctionalTs', 'angular', 'vue3'] as const;
 
 export const SELECTORS = { canvas: '.ag-charts-canvas-proxy' };

@@ -63,7 +63,7 @@
     "sass": "^1.77.8"
   },
   "devDependencies": {
-    "@playwright/test": "^1.44.1",
+    "@playwright/test": "^1.47.2",
     "algoliasearch": "4.20.0",
     "puppeteer-core": "7.1.0"
   }
