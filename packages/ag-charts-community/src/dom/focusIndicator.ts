@@ -3,8 +3,8 @@ import { Transformable } from '../scene/transformable';
 import type { BBoxValues } from '../util/bboxinterface';
 import { getDocument, setElementBBox } from '../util/dom';
 import type { DOMManager } from './domManager';
-import * as focusStyles from './focusStyles';
 
+const FOCUS_INDICATOR_CSS_CLASS = 'ag-charts-focus-indicator';
 export class FocusIndicator {
     private readonly element: HTMLElement;
     private readonly svg: SVGSVGElement;
@@ -12,21 +12,20 @@ export class FocusIndicator {
     private readonly div: HTMLDivElement;
 
     constructor(private readonly domManager: DOMManager) {
-        const { block, elements } = focusStyles;
         this.div = getDocument().createElement('div');
         this.svg = getDocument().createElementNS('http://www.w3.org/2000/svg', 'svg');
         this.path = getDocument().createElementNS('http://www.w3.org/2000/svg', 'path');
         this.svg.append(this.path);
 
-        this.element = domManager.addChild('canvas-proxy', block);
-        this.element.classList.add(block, elements.indicator);
+        this.element = domManager.addChild('canvas-proxy',  FOCUS_INDICATOR_CSS_CLASS);
+        this.element.classList.add(FOCUS_INDICATOR_CSS_CLASS);
         this.element.ariaHidden = 'true';
         this.element.append(this.svg);
     }
 
     destroy() {
-        this.domManager.removeStyles(focusStyles.block);
-        this.domManager.removeChild('canvas-proxy', focusStyles.block);
+        this.domManager.removeStyles(FOCUS_INDICATOR_CSS_CLASS);
+        this.domManager.removeChild('canvas-proxy', FOCUS_INDICATOR_CSS_CLASS);
     }
 
     updateBounds(bounds: Path | BBoxValues | undefined) {
