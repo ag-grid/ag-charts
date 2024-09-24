@@ -25,10 +25,10 @@ export class AriaAnnouncementService {
         private readonly layoutManager: LayoutManager
     ) {
         this.liveElem = AriaAnnouncementService.createAnnouncer();
-        this.domManager.addChild('canvas-proxy', 'ag-charts-canvas-proxy', this.liveElem);
+        this.domManager.addChild('series-area', 'ag-charts-aria-announcer', this.liveElem);
         this.destroyFns.push(
             this.layoutManager.addListener('layout:complete', (ev) => this.onResize(ev)),
-            () => this.domManager.removeChild('canvas-proxy', 'ag-charts-canvas-proxy')
+            () => this.domManager.removeChild('series-area', 'ag-charts-aria-announcer')
         );
     }
 

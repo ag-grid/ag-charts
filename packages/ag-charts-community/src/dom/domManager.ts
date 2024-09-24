@@ -10,11 +10,18 @@ import { type Size, SizeMonitor } from '../util/sizeMonitor';
 import BASE_DOM from './domLayout.html';
 
 const CANVAS_CENTER_CLASS = 'canvas-center';
-const DOM_ELEMENT_CLASSES = ['styles', CANVAS_CENTER_CLASS, 'canvas', 'canvas-proxy', 'canvas-overlay'] as const;
+const DOM_ELEMENT_CLASSES = [
+    'styles',
+    CANVAS_CENTER_CLASS,
+    'canvas',
+    'canvas-proxy',
+    'canvas-overlay',
+    'series-area',
+] as const;
 export type DOMElementClass = (typeof DOM_ELEMENT_CLASSES)[number];
 
 type DOMElementConfig = {
-    childElementType: 'style' | 'canvas' | 'div' | 'p';
+    childElementType: 'style' | 'canvas' | 'div';
     style?: Partial<CSSStyleDeclaration>;
     eventTypes?: string[];
 };
@@ -25,6 +32,7 @@ const domElementConfig: Map<DOMElementClass, DOMElementConfig> = new Map([
     ['canvas-proxy', { childElementType: 'div', eventTypes: ['focus', 'blur'] }],
     ['canvas-overlay', { childElementType: 'div' }],
     [CANVAS_CENTER_CLASS, { childElementType: 'div' }],
+    ['series-area', { childElementType: 'div' }],
 ]);
 
 function setupObserver(element: HTMLElement, cb: (intersectionRatio: number) => void) {
@@ -203,7 +211,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     }
 
     setTabIndex(tabIndex: number) {
-        const canvasProxy = this.rootElements['canvas-proxy'].element;
+        const canvasProxy = this.rootElements['series-area'].element;
         if (canvasProxy) {
             canvasProxy.tabIndex = tabIndex;
         }

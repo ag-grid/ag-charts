@@ -17,7 +17,7 @@ export class FocusIndicator {
         this.path = getDocument().createElementNS('http://www.w3.org/2000/svg', 'path');
         this.svg.append(this.path);
 
-        this.element = domManager.addChild('canvas-proxy',  FOCUS_INDICATOR_CSS_CLASS);
+        this.element = domManager.addChild('series-area', FOCUS_INDICATOR_CSS_CLASS);
         this.element.classList.add(FOCUS_INDICATOR_CSS_CLASS);
         this.element.ariaHidden = 'true';
         this.element.append(this.svg);
@@ -25,7 +25,7 @@ export class FocusIndicator {
 
     destroy() {
         this.domManager.removeStyles(FOCUS_INDICATOR_CSS_CLASS);
-        this.domManager.removeChild('canvas-proxy', FOCUS_INDICATOR_CSS_CLASS);
+        this.domManager.removeChild('series-area', FOCUS_INDICATOR_CSS_CLASS);
     }
 
     updateBounds(bounds: Path | BBoxValues | undefined) {
