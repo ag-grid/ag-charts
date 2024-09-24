@@ -1,25 +1,25 @@
-export interface ITreeNode {
-    readonly size: number;
+export interface ITreeNode<TNode extends TreeNode> {
+    readonly childCount: number;
     isLeaf(): boolean;
     isRoot(): boolean;
-    addChild<T extends ITreeNode>(node: T): T;
-    addChildren(...node: ITreeNode[]): void;
-    removeChild(node: ITreeNode): boolean;
-    removeChildren(...node: ITreeNode[]): void;
+    addChild<T extends TNode>(node: T): T;
+    addChildren(...node: TNode[]): void;
+    removeChild(node: TNode): boolean;
+    removeChildren(...node: TNode[]): void;
     remove(): any;
     empty(): void;
-    children(): Generator<ITreeNode, void>;
-    traverseUp(includeSelf?: boolean): Generator<ITreeNode, void>;
+    children(): Generator<TNode, void>;
+    traverseUp(includeSelf?: boolean): Generator<TNode, void>;
 }
 
-export abstract class TreeNode implements ITreeNode {
-    private childNodes?: Set<TreeNode>;
-    private parentNode?: TreeNode;
+export abstract class TreeNode<TNode extends TreeNode = any> implements ITreeNode<TNode> {
+    private childNodes?: Set<TNode>;
+    private parentNode?: TNode;
 
     /**
      * Gets the number of child nodes.
      */
-    get size() {
+    get childCount() {
         return this.childNodes?.size ?? 0;
     }
 
@@ -42,7 +42,7 @@ export abstract class TreeNode implements ITreeNode {
      * @param node The child node to add.
      * @returns The added child node.
      */
-    addChild<T extends TreeNode>(node: T) {
+    addChild<T extends TNode>(node: T) {
         node.parentNode?.removeChild(node);
         node.parentNode = this;
         this.childNodes ??= new Set();
@@ -54,7 +54,7 @@ export abstract class TreeNode implements ITreeNode {
      * Adds multiple child nodes.
      * @param nodes The child nodes to add.
      */
-    addChildren(...nodes: TreeNode[]) {
+    addChildren(...nodes: TNode[]) {
         for (const node of nodes) {
             this.addChild(node);
         }
@@ -65,7 +65,7 @@ export abstract class TreeNode implements ITreeNode {
      * @param node The child node to remove.
      * @returns `true` if the node was removed, `false` otherwise.
      */
-    removeChild(node: TreeNode) {
+    removeChild(node: TNode) {
         if (this.childNodes?.delete(node)) {
             delete node.parentNode;
             return true;
@@ -77,7 +77,7 @@ export abstract class TreeNode implements ITreeNode {
      * Removes multiple child nodes.
      * @param nodes The child nodes to remove.
      */
-    removeChildren(...nodes: TreeNode[]) {
+    removeChildren(...nodes: TNode[]) {
         for (const node of nodes) {
             this.removeChild(node);
         }
@@ -113,13 +113,13 @@ export abstract class TreeNode implements ITreeNode {
      * Traverses up the tree, yielding nodes from this node up to the root.
      * @param includeSelf Whether to include the current node in the traversal.
      */
-    *traverseUp(includeSelf?: boolean) {
+    *traverseUp(includeSelf?: boolean): Generator<TNode, void> {
         let node: TreeNode | undefined = this;
         if (includeSelf) {
-            yield node;
+            yield node as TNode;
         }
         while ((node = node.parentNode)) {
-            yield node;
+            yield node as TNode;
         }
     }
 }

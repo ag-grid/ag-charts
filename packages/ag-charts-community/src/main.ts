@@ -1,8 +1,11 @@
+import './sandbox/bootstrap';
+
 // Documented APIs.
 export { AG_CHARTS_LOCALE_EN_US } from 'ag-charts-locale';
 export * from 'ag-charts-types';
 export * as time from './util/time/index';
 export { AgCharts } from './api/agCharts';
+export { AgCharts as AgChartsV2 } from './sandbox/agCharts';
 export { VERSION } from './version';
 
 // Undocumented APIs used by examples.
