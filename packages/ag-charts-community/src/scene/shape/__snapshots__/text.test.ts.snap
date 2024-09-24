@@ -2,40 +2,40 @@
 
 exports[`Text text measurements should measure text currently 1`] = `
 {
-  "height": 18.666666666666668,
+  "height": 16.81640625,
   "lineHeight": 24,
-  "offsetLeft": 0,
-  "offsetTop": 24,
-  "width": 130.66666666666666,
+  "offsetLeft": 0.38671875,
+  "offsetTop": 22.453125,
+  "width": 123.3046875,
 }
 `;
 
 exports[`Text text measurements should measure text currently 2`] = `
 {
-  "height": 37.333333333333336,
+  "height": 33.890625,
   "lineHeight": 48,
-  "offsetLeft": 178.66666666666666,
-  "offsetTop": 24,
-  "width": 357.3333333333333,
+  "offsetLeft": 129.515625,
+  "offsetTop": 21.1640625,
+  "width": 257.296875,
 }
 `;
 
 exports[`Text text measurements should measure text size currently 1`] = `
 {
-  "height": 18.666666666666664,
-  "lineHeight": 23.999999999999996,
-  "offsetLeft": 0,
-  "offsetTop": 18.666666666666664,
-  "width": 130.66666666666666,
+  "height": 16.81640625,
+  "lineHeight": 24,
+  "offsetLeft": 0.38671875,
+  "offsetTop": 16.453125,
+  "width": 123.3046875,
 }
 `;
 
 exports[`Text text measurements should measure text size currently 2`] = `
 {
-  "height": 37.33333333333333,
-  "lineHeight": 47.99999999999999,
-  "offsetLeft": 0,
-  "offsetTop": 37.33333333333333,
-  "width": 357.3333333333333,
+  "height": 33.890625,
+  "lineHeight": 48,
+  "offsetLeft": 0.8671875,
+  "offsetTop": 33.1640625,
+  "width": 257.296875,
 }
 `;

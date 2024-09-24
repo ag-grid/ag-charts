@@ -100,7 +100,7 @@ export class Text extends Shape {
         const { fill, stroke, strokeWidth } = this;
         const { pixelRatio } = this.layerManager.canvas;
 
-        ctx.font = TextUtils.toFontString(this);
+        ctx.font = '18px @cairo:'; // TextUtils.toFontString(this);
         ctx.textAlign = this.textAlign;
         ctx.textBaseline = this.textBaseline;
 

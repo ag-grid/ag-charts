@@ -1,7 +1,8 @@
 import { Canvas, Image, CanvasRenderingContext2D as NodeCanvasRenderingContext2D, createCanvas } from 'canvas';
 
 import { ConicGradient } from './conicGradient';
-import { mockCanvasText } from './mock-canvas-text';
+
+// import { mockCanvasText } from './mock-canvas-text';
 
 // node-canvas does not support createImageBitmap() yet (https://github.com/Automattic/node-canvas/issues/876).
 // However, the Canvas.drawImage(img,...) method does accept a Canvas-type img parameter. So use as new Canvas
@@ -90,9 +91,9 @@ export function setup(opts: {
         mockCtx = new MockContext(width, height, document),
         mockText = false,
     } = opts;
-    if (mockText) {
-        mockCanvasText();
-    }
+    // if (mockText) {
+    //     mockCanvasText();
+    // }
     const nodeCanvas = createCanvas(width, height);
     mockCtx.ctx.nodeCanvas = nodeCanvas;
     mockCtx.canvasStack = [nodeCanvas];
