@@ -1,6 +1,6 @@
 import { _ModuleSupport, type _Util } from 'ag-charts-community';
 
-const { BaseModuleInstance, createElement } = _ModuleSupport;
+const { BaseModuleInstance, createElement, getLastFocus } = _ModuleSupport;
 const canvasOverlay = 'canvas-overlay';
 
 export interface PopoverConstructorOptions {
@@ -94,7 +94,7 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         }
 
         if (options.initialFocus && options.sourceEvent) {
-            const { lastFocus } = this.ctx.focusIndicator.guessDevice(options.sourceEvent);
+            const lastFocus = getLastFocus(options.sourceEvent);
             if (lastFocus !== undefined) {
                 options.initialFocus.focus();
                 this.lastFocus = lastFocus;

@@ -11,6 +11,7 @@ import type {
     Formatter,
 } from 'ag-charts-types';
 
+import type { ListSwitch } from '../dom/proxyInteractionService';
 import type { LayoutContext } from '../module/baseModule';
 import type { ModuleContext } from '../module/moduleContext';
 import { BBox } from '../scene/bbox';
@@ -48,9 +49,7 @@ import { ChartUpdateType } from './chartUpdateType';
 import type { Page } from './gridLayout';
 import { gridLayout } from './gridLayout';
 import type { HighlightNodeDatum } from './interaction/highlightManager';
-import { InteractionState } from './interaction/interactionManager';
-import type { RegionEvent } from './interaction/regionManager';
-import { makeKeyboardPointerEvent } from './keyboardUtil';
+import { InteractionState, type PointerInteractionEvent } from './interaction/interactionManager';
 import { Layers } from './layers';
 import { LayoutElement } from './layout/layoutManager';
 import type { CategoryLegendDatum, LegendSymbolOptions } from './legendDatum';
@@ -58,7 +57,7 @@ import { LegendMarkerLabel } from './legendMarkerLabel';
 import type { Marker } from './marker/marker';
 import { type MarkerConstructor, getMarker } from './marker/util';
 import { Pagination } from './pagination/pagination';
-import { type TooltipPointerEvent, toTooltipHtml } from './tooltip/tooltip';
+import { type TooltipMeta, type TooltipPointerEvent, toTooltipHtml } from './tooltip/tooltip';
 
 class LegendLabel extends BaseProperties {
     @Validate(POSITIVE_NUMBER, { optional: true })
@@ -254,9 +253,7 @@ export class Legend extends BaseProperties {
         this.item.marker.parent = this;
         this.pagination = new Pagination(
             (type: ChartUpdateType) => ctx.updateService.update(type),
-            (page) => this.updatePageNumber(page),
-            ctx.regionManager,
-            ctx.cursorManager
+            (page) => this.updatePageNumber(page)
         );
         this.pagination.attachPagination(this.group);
 
@@ -275,17 +272,7 @@ export class Legend extends BaseProperties {
             })
         );
 
-        const { Default, Animation, ContextMenu } = InteractionState;
-        const animationState = Default | Animation;
-        const contextMenuState = Default | Animation | ContextMenu;
-        const region = ctx.regionManager.addRegion('legend', this.group);
         this.destroyFns.push(
-            region.addListener('contextmenu', (e) => this.checkContextClick(e), contextMenuState),
-            region.addListener('click', (e) => this.checkLegendClick(e), animationState),
-            region.addListener('dblclick', (e) => this.checkLegendDoubleClick(e), animationState),
-            region.addListener('hover', (e) => this.handleLegendMouseMove(e), animationState),
-            region.addListener('leave', () => this.handleLegendMouseExit(), animationState),
-            region.addListener('enter', (e) => this.handleLegendMouseEnter(e), animationState),
             ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.positionLegend(e)),
             ctx.localeManager.addListener('locale-changed', () => this.onLocaleChanged()),
             () => this.group.parent?.removeChild(this.group)
@@ -333,19 +320,17 @@ export class Legend extends BaseProperties {
                 ariaChecked: !!markerLabel.datum.enabled,
                 ariaDescribedBy: this.proxyLegendItemDescription.id,
                 parent: this.proxyLegendToolbar,
+                cursor: 'pointer',
                 // Retrieve the datum from the node rather than from the method parameter.
                 // The method parameter `datum` gets destroyed when the data is refreshed
                 // using Series.getLegendData(). But the scene node will stay the same.
-                onclick: () => {
-                    this.doClick(markerLabel.datum, markerLabel.proxyButton?.button);
-                },
-                onblur: () => this.handleLegendMouseExit(),
-                onfocus: () => {
-                    const bounds = Transformable.toCanvas(markerLabel);
-                    const event = makeKeyboardPointerEvent(this.ctx.focusIndicator, { bounds, showFocusBox: true });
-                    this.doHover(event, markerLabel.datum);
-                    this.pagination.setPage(markerLabel.pageIndex);
-                },
+                onclick: (ev) => this.onClick(ev, markerLabel.datum, markerLabel.proxyButton!.button),
+                ondblclick: (ev) => this.onDoubleClick(ev, markerLabel.datum),
+                onmouseenter: (ev) => this.onHover(ev, markerLabel),
+                onmouseleave: () => this.onLeave(),
+                oncontextmenu: (ev) => this.onContextClick(ev, markerLabel),
+                onblur: () => this.onLeave(),
+                onfocus: (ev) => this.onHover(ev, markerLabel),
             });
         });
 
@@ -749,7 +734,10 @@ export class Legend extends BaseProperties {
                     textContent: { id: 'ariaLabelLegendPagePrevious' },
                     tabIndex: 0,
                     parent: this.proxyLegendPagination,
-                    onclick: () => this.pagination.clickPrevious(),
+                    cursor: this.pagination.getCursor('previous'),
+                    onclick: (ev) => this.pagination.onClick(ev, 'previous'),
+                    onmouseenter: () => this.pagination.onMouseHover('previous'),
+                    onmouseleave: () => this.pagination.onMouseHover(undefined),
                 });
                 this.proxyNextButton ??= this.ctx.proxyInteractionService.createProxyElement({
                     type: 'button',
@@ -757,7 +745,10 @@ export class Legend extends BaseProperties {
                     textContent: { id: 'ariaLabelLegendPageNext' },
                     tabIndex: 0,
                     parent: this.proxyLegendPagination,
-                    onclick: () => this.pagination.clickNext(),
+                    cursor: this.pagination.getCursor('next'),
+                    onclick: (ev) => this.pagination.onClick(ev, 'next'),
+                    onmouseenter: () => this.pagination.onMouseHover('next'),
+                    onmouseleave: () => this.pagination.onMouseHover(undefined),
                 });
                 this.proxyLegendPagination.ariaHidden = 'false';
             } else {
@@ -958,41 +949,6 @@ export class Legend extends BaseProperties {
             strokeWidth: this.item.marker.strokeWidth ?? defaultLineStrokeWidth,
         };
     }
-    private getDatumForPoint(x: number, y: number): CategoryLegendDatum | undefined {
-        const visibleChildBBoxes: BBox[] = [];
-        const closestLeftTop = { dist: Infinity, datum: undefined as any };
-        for (const child of this.group.children) {
-            if (!child.visible) continue;
-            if (!(child instanceof LegendMarkerLabel)) continue;
-
-            const childBBox = child.getBBox().clone();
-            childBBox.grow(this.item.paddingX / 2, 'horizontal');
-            childBBox.grow(this.item.paddingY / 2, 'vertical');
-            if (childBBox.containsPoint(x, y)) {
-                return child.datum;
-            }
-
-            const distX = x - childBBox.x - this.item.paddingX / 2;
-            const distY = y - childBBox.y - this.item.paddingY / 2;
-            const dist = distX ** 2 + distY ** 2;
-            const toTheLeftTop = distX >= 0 && distY >= 0;
-            if (toTheLeftTop && dist < closestLeftTop.dist) {
-                closestLeftTop.dist = dist;
-                closestLeftTop.datum = child.datum;
-            }
-
-            visibleChildBBoxes.push(childBBox);
-        }
-
-        const pageBBox = BBox.merge(visibleChildBBoxes);
-        if (!pageBBox.containsPoint(x, y)) {
-            // We're not in-between legend items.
-            return;
-        }
-
-        // Fallback to returning closest match to the left/up.
-        return closestLeftTop.datum;
-    }
 
     private computePagedBBox(): BBox {
         // Get BBox without group transforms applied.
@@ -1009,31 +965,52 @@ export class Legend extends BaseProperties {
         return actualBBox;
     }
 
+    private findNode(params: AgChartLegendContextMenuEvent): { datum: CategoryLegendDatum; proxyButton: ListSwitch } {
+        const { datum, proxyButton } =
+            this.itemSelection.select((ml): ml is LegendMarkerLabel => ml.datum?.itemId === params.itemId)[0] ?? {};
+        if (datum === undefined || proxyButton === undefined) {
+            throw new Error(`AG Charts - Missing required properties { datum: ${datum}, proxyButton: ${proxyButton} }`);
+        }
+        return { datum, proxyButton };
+    }
+
     private contextToggleVisibility(params: AgChartLegendContextMenuEvent) {
-        const datum = this.data.find((v) => v.itemId === params.itemId);
-        this.doClick(datum);
+        const { datum, proxyButton } = this.findNode(params);
+        this.doClick(datum, proxyButton.button);
     }
 
     private contextToggleOtherSeries(params: AgChartLegendContextMenuEvent) {
-        const datum = this.data.find((v) => v.itemId === params.itemId);
-        this.doDoubleClick(datum);
+        this.doDoubleClick(this.findNode(params).datum);
     }
 
-    private checkContextClick(event: RegionEvent<'contextmenu'>) {
-        const legendItem = this.getDatumForPoint(event.regionOffsetX, event.regionOffsetY);
-
+    private onContextClick(sourceEvent: MouseEvent, node: LegendMarkerLabel) {
+        const legendItem: CategoryLegendDatum = node.datum;
         if (this.preventHidingAll && this.contextMenuDatum?.enabled && this.getVisibleItemCount() <= 1) {
             this.ctx.contextMenuRegistry.disableAction(ID_LEGEND_VISIBILITY);
         } else {
             this.ctx.contextMenuRegistry.enableAction(ID_LEGEND_VISIBILITY);
         }
 
+        const { button, offsetX, offsetY } = sourceEvent;
+        const { x: canvasOffsetX, y: canvasOffsetY } = Transformable.toCanvasPoint(node, offsetX, offsetY);
+        const event: PointerInteractionEvent<'contextmenu'> = {
+            type: 'contextmenu',
+            sourceEvent,
+            button,
+            offsetX: canvasOffsetX,
+            offsetY: canvasOffsetY,
+            deltaX: 0,
+            deltaY: 0,
+            pageX: NaN,
+            pageY: NaN,
+            preventDefault: () => sourceEvent.preventDefault(),
+            pointerHistory: [],
+        };
         this.ctx.contextMenuRegistry.dispatchContext('legend', event, { legendItem });
     }
 
-    private checkLegendClick(event: RegionEvent<'click'>) {
-        const datum = this.getDatumForPoint(event.regionOffsetX, event.regionOffsetY);
-        if (this.doClick(datum)) {
+    private onClick(event: MouseEvent, datum: CategoryLegendDatum, proxyButton: HTMLButtonElement) {
+        if (this.doClick(datum, proxyButton)) {
             event.preventDefault();
         }
     }
@@ -1042,7 +1019,7 @@ export class Legend extends BaseProperties {
         return this.ctx.chartService.series.flatMap((s) => s.getLegendData('category')).filter((d) => d.enabled).length;
     }
 
-    private doClick(datum: CategoryLegendDatum | undefined, proxyButton?: HTMLButtonElement): boolean {
+    private doClick(datum: CategoryLegendDatum, proxyButton: HTMLButtonElement): boolean {
         const {
             listeners: { legendItemClick },
             ctx: { chartService, highlightManager },
@@ -1071,11 +1048,7 @@ export class Legend extends BaseProperties {
                 }
             }
 
-            proxyButton ??= this.itemSelection.select((ml): ml is LegendMarkerLabel => ml.datum === datum)[0]
-                ?.proxyButton?.button;
-            if (proxyButton) {
-                proxyButton.ariaChecked = newEnabled.toString();
-            }
+            proxyButton.ariaChecked = newEnabled.toString();
             this.ctx.chartEventManager.legendItemClick(series, itemId, newEnabled, datum.legendItemName);
         }
 
@@ -1095,8 +1068,7 @@ export class Legend extends BaseProperties {
         return true;
     }
 
-    private checkLegendDoubleClick(event: RegionEvent<'dblclick'>) {
-        const datum = this.getDatumForPoint(event.regionOffsetX, event.regionOffsetY);
+    private onDoubleClick(event: MouseEvent, datum: CategoryLegendDatum) {
         if (this.doDoubleClick(datum)) {
             event.preventDefault();
         }
@@ -1145,59 +1117,43 @@ export class Legend extends BaseProperties {
         return true;
     }
 
-    private handleLegendMouseMove(event: RegionEvent<'hover'>) {
-        if (!this.enabled) {
-            return;
+    private toTooltipMeta(event: FocusEvent | MouseEvent, node: LegendMarkerLabel): TooltipMeta {
+        let lastPointerEvent: TooltipPointerEvent<'hover' | 'keyboard'>;
+        if (event instanceof FocusEvent) {
+            const { x, y } = Transformable.toCanvas(node).computeCenter();
+            lastPointerEvent = { type: 'keyboard', offsetX: x, offsetY: y } as const;
+        } else {
+            event.preventDefault();
+            const { x, y } = Transformable.toCanvasPoint(node, event.offsetX, event.offsetY);
+            lastPointerEvent = { type: 'hover', offsetX: x, offsetY: y };
         }
 
-        event.preventDefault();
-
-        const { regionOffsetX, regionOffsetY } = event;
-        const datum = this.getDatumForPoint(regionOffsetX, regionOffsetY);
-        this.doHover(event, datum);
+        const { offsetX, offsetY } = lastPointerEvent;
+        return { offsetX, offsetY, lastPointerEvent, showArrow: false };
     }
 
-    private doHover(
-        event: TooltipPointerEvent<'hover' | 'keyboard'> | undefined,
-        datum: CategoryLegendDatum | undefined
-    ) {
-        const { toggleSeries, listeners } = this;
+    private onHover(event: FocusEvent | MouseEvent, node: LegendMarkerLabel) {
+        if (!this.enabled) throw new Error('AG Charts - onHover handler called on disabled legend');
 
-        if (event === undefined || datum === undefined) {
-            this.ctx.cursorManager.updateCursor(this.id);
-            this.updateHighlight();
-            return;
-        }
+        this.pagination.setPage(node.pageIndex);
 
+        const datum: CategoryLegendDatum | undefined = node.datum;
         const series = datum ? this.ctx.chartService.series.find((s) => s.id === datum?.id) : undefined;
         if (datum && this.truncatedItems.has(datum.itemId ?? datum.id)) {
-            const { offsetX, offsetY } = event;
-            this.ctx.tooltipManager.updateTooltip(
-                this.id,
-                { offsetX, offsetY, lastPointerEvent: event, showArrow: false },
-                toTooltipHtml({ content: this.getItemLabel(datum) })
-            );
+            const meta = this.toTooltipMeta(event, node);
+            this.ctx.tooltipManager.updateTooltip(this.id, meta, toTooltipHtml({ content: this.getItemLabel(datum) }));
         } else {
             this.ctx.tooltipManager.removeTooltip(this.id);
         }
 
-        if (toggleSeries || listeners.legendItemClick != null || listeners.legendItemDoubleClick != null) {
-            this.ctx.cursorManager.updateCursor(this.id, 'pointer');
-        }
-
         if (datum?.enabled && series) {
-            this.updateHighlight({
-                series,
-                itemId: datum?.itemId,
-                datum: undefined,
-            });
+            this.updateHighlight({ series, itemId: datum?.itemId, datum: undefined });
         } else {
             this.updateHighlight();
         }
     }
 
-    private handleLegendMouseExit() {
-        this.ctx.cursorManager.updateCursor(this.id);
+    private onLeave() {
         this.ctx.tooltipManager.removeTooltip(this.id);
         this.updateHighlight();
     }
@@ -1213,18 +1169,6 @@ export class Legend extends BaseProperties {
             this.ctx.animationManager.onBatchStop(() => {
                 this.ctx.highlightManager.updateHighlight(this.id, this.pendingHighlightDatum);
             });
-        }
-    }
-
-    private handleLegendMouseEnter(event: RegionEvent<'enter'>) {
-        const {
-            enabled,
-            toggleSeries,
-            listeners: { legendItemClick: clickListener, legendItemDoubleClick: dblclickListener },
-        } = this;
-        const datum = this.getDatumForPoint(event.regionOffsetX, event.regionOffsetY);
-        if (enabled && datum !== undefined && (toggleSeries || clickListener != null || dblclickListener != null)) {
-            this.ctx.cursorManager.updateCursor(this.id, 'pointer');
         }
     }
 
