@@ -82,6 +82,8 @@ export class ChartInstance<T extends AgChartOptions> {
                 return PolarChart;
             case ChartType.Topology:
                 return TopologyChart;
+            case ChartType.Gauge:
+                return TopologyChart;
             default:
                 throw new TypeError('Invalid chartType');
         }

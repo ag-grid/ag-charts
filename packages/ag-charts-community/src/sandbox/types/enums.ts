@@ -3,6 +3,7 @@ export enum ChartType {
     Polar,
     Hierarchy,
     Topology,
+    Gauge,
 }
 
 export enum Direction {
