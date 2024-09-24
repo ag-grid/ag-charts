@@ -1,5 +1,6 @@
-import type { AgLinearGaugeThemeableOptions } from '../presets/gauge/linearGaugeOptions';
-import type { AgRadialGaugeThemeableOptions } from '../presets/gauge/radialGaugeOptions';
+import type { AgBaseGaugePresetThemeableOptions } from '../chartBuilderOptions';
+import type { AgLinearGaugeTarget, AgLinearGaugeThemeableOptions } from '../presets/gauge/linearGaugeOptions';
+import type { AgRadialGaugeTarget, AgRadialGaugeThemeableOptions } from '../presets/gauge/radialGaugeOptions';
 import type { AgAreaSeriesThemeableOptions } from '../series/cartesian/areaOptions';
 import type { AgBarSeriesThemeableOptions } from '../series/cartesian/barOptions';
 import type { AgBoxPlotSeriesThemeableOptions } from '../series/cartesian/boxPlotOptions';
@@ -177,9 +178,17 @@ export interface AgSankeyThemeOverrides extends AgBaseFlowProportionThemeOptions
 export interface AgChordThemeOverrides extends AgBaseFlowProportionThemeOptions {
     series?: AgChordSeriesThemeableOptions;
 }
-// NOTE: no series nesting
-export interface AgRadialGaugeThemeOverrides extends AgRadialGaugeThemeableOptions {}
-export interface AgLinearGaugeThemeOverrides extends AgLinearGaugeThemeableOptions {}
+
+// Interface needed for docs generation, but listeners conflicts using the extends clause
+type AgRadialGaugeTheme = AgBaseGaugePresetThemeableOptions & AgRadialGaugeThemeableOptions;
+export interface AgRadialGaugeThemeOverrides extends AgRadialGaugeTheme {
+    targets?: AgRadialGaugeTarget;
+}
+
+type AgLinearGaugeTheme = AgBaseGaugePresetThemeableOptions & AgLinearGaugeThemeableOptions;
+export interface AgLinearGaugeThemeOverrides extends AgLinearGaugeTheme {
+    targets?: AgLinearGaugeTarget;
+}
 
 export interface AgCommonThemeableAxisOptions extends AgCartesianAxesTheme, AgPolarAxesTheme {}
 

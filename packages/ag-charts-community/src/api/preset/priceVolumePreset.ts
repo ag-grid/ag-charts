@@ -44,6 +44,7 @@ const chartTypes = ['ohlc', 'line', 'step-line', 'hlc', 'high-low', 'candlestick
 
 export function priceVolume(
     opts: AgPriceVolumePreset & AgBaseFinancialPresetOptions,
+    _presetTheme: any,
     getTheme: () => ChartTheme
 ): AgCartesianChartOptions {
     const {

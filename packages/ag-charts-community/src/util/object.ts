@@ -39,7 +39,7 @@ export function mergeDefaults<TSource extends PlainObject, TArgs extends (TSourc
     return target as Intersection<Exclude<TArgs[number], FalsyType>>;
 }
 
-export function mergeArrayDefaults(dataArray: PlainObject[], ...itemDefaults: PlainObject[]) {
+export function mergeArrayDefaults<T extends PlainObject>(dataArray: T[], ...itemDefaults: T[]) {
     if (itemDefaults && isArray(dataArray)) {
         return dataArray.map((item) => mergeDefaults(item, ...itemDefaults));
     }

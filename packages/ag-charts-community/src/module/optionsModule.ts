@@ -102,22 +102,23 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         let options = deepClone(userOptions, cloneOptions);
 
         if (this.presetType != null) {
-            const presetConstructor: ((options: AgPresetOptions, activeTheme: () => ChartTheme) => T) | undefined = (
-                PRESETS as any
-            )[this.presetType];
+            type PresetConstructor = (
+                options: AgPresetOptions,
+                themeOptions: AgPresetOptions | undefined,
+                activeTheme: () => ChartTheme
+            ) => T;
+
+            const presetConstructor: PresetConstructor | undefined = (PRESETS as any)[this.presetType];
+
+            const presetParams = options as any as AgPresetOptions;
 
             // Note financial charts defines the theme in its returned options
             // so we need to get the theme before and after applying the preset
             const presetType = (options as any).type as keyof AgPresetOverrides | undefined;
             const presetTheme = presetType != null ? getChartTheme(options.theme).presets[presetType] : undefined;
 
-            let presetParams = options as any as AgPresetOptions;
-            if (presetTheme != null) {
-                presetParams = mergeDefaults(presetParams, presetTheme);
-            }
-
             this.debug('>>> AgCharts.createOrUpdate() - applying preset', options, presetParams);
-            options = presetConstructor?.(presetParams, () => this.activeTheme) ?? options;
+            options = presetConstructor?.(presetParams, presetTheme, () => this.activeTheme) ?? options;
         }
 
         if (!enterpriseModule.isEnterprise) {

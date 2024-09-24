@@ -52,7 +52,7 @@ export type AgBaseFinancialPresetOptions = Pick<
 
 export type AgFinancialChartOptions = AgFinancialChartPresets & AgBaseFinancialPresetOptions;
 
-export type AgBaseGaugePresetOptions = Pick<
+export type AgBaseGaugePresetThemeableOptions = Pick<
     AgBaseChartOptions<any>,
     | 'animation'
     | 'background'
@@ -68,9 +68,11 @@ export type AgBaseGaugePresetOptions = Pick<
     | 'subtitle'
     | 'title'
     | 'width'
-> & {
+>;
+
+export interface AgBaseGaugePresetOptions extends AgBaseGaugePresetThemeableOptions {
     theme?: AgChartTheme | AgChartThemeName;
-};
+}
 
 export type AgLinearGaugeOptions = AgLinearGaugePreset & AgBaseGaugePresetOptions;
 export type AgRadialGaugeOptions = AgRadialGaugePreset & AgBaseGaugePresetOptions;
