@@ -81,6 +81,16 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 enabled: false,
             },
         },
+        axes: {
+            [_Theme.POLAR_AXIS_TYPE.ANGLE_NUMBER]: {
+                startAngle: 270,
+                endAngle: 270 + 180,
+                nice: false,
+                line: {
+                    enabled: false,
+                },
+            },
+        },
     },
     paletteFactory(params) {
         const { takeColors, colorsCount, userPalette, themeTemplateParameters } = params;

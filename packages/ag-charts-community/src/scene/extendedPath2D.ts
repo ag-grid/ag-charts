@@ -327,8 +327,6 @@ export class ExtendedPath2D {
                     addCommand('C', params[pi++], params[pi++], params[pi++], params[pi++], params[pi++], params[pi++]);
                     break;
                 case Command.Arc: {
-                    // The SVG arc command is terrible, and it's not possible to apply a matrix transformation to it
-                    // Convert the arc into a series of bezier curves, which can be transformed
                     const cx = params[pi++];
                     const cy = params[pi++];
                     const r = params[pi++];
@@ -336,11 +334,16 @@ export class ExtendedPath2D {
                     const A1 = params[pi++];
                     const ccw = params[pi++];
 
-                    const sweepSign = ccw ? -1 : 1;
-                    const sweep = normalizeAngle360((A1 - A0) * sweepSign) * sweepSign;
+                    let sweep = ccw ? A0 - A1 : A1 - A0;
+                    if (sweep < 0) {
+                        sweep += Math.ceil(-sweep / (2 * Math.PI)) * 2 * Math.PI;
+                    }
+                    if (ccw) {
+                        sweep = -sweep;
+                    }
 
                     // A bezier curve can handle at most one quarter turn
-                    const arcSections = Math.max((Math.abs(sweep) / (Math.PI / 2)) | 0, 1);
+                    const arcSections = Math.max(Math.ceil(Math.abs(sweep) / (Math.PI / 2)), 1);
 
                     const step = sweep / arcSections;
                     const h = (4 / 3) * Math.tan(step / 4);

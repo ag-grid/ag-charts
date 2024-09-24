@@ -1,22 +1,26 @@
 <div class="toolbar">
     Placement:
-    <button onClick="setLabelPlacement('inside-start')">Inside Start</button>
-    <button onClick="setLabelPlacement('outside-start')">Outside Start</button>
-    <button onClick="setLabelPlacement('inside-end')">Inside End</button>
-    <button onClick="setLabelPlacement('outside-end')">Outside End</button>
-    <button onClick="setLabelPlacement('inside')">Inside</button>
-    <button onClick="setLabelPlacement('bar-inside')">Bar Inside</button>
-    <button onClick="setLabelPlacement('bar-inside-end')">Bar Inside End</button>
-    <button onClick="setLabelPlacement('bar-outside-end')">Bar Outside End</button>
-    <button onClick="setLabelPlacement('bar-end')">Bar End</button>
-    <hr />
+    <select onchange="setLabelPlacement(event.target.value)">
+        <option value="inside-start" selected>Inside Start</option>
+        <option value="outside-start">Outside Start</option>
+        <option value="inside-end">Inside End</option>
+        <option value="outside-end">Outside End</option>
+        <option value="inside">Inside</option>
+        <option value="bar-inside">Bar Inside</option>
+        <option value="bar-inside-end">Bar Inside End</option>
+        <option value="bar-outside-end">Bar Outside End</option>
+        <option value="bar-end">Bar End</option>
+    </select>
     Avoid Collisions:
-    <button onClick="setAvoidCollisions(true)">On</button>
-    <button onClick="setAvoidCollisions(false)">Off</button>
-    <hr />
+    <select onchange="setAvoidCollisions(event.target.value === 'on')">
+        <option value="on" selected>On</option>
+        <option value="off">Off</option>
+    </select>
     Value:
-    <button onClick="setValue(1)">1</button>
-    <button onClick="setValue(50)">50</button>
-    <button onClick="setValue(99)">99</button>
+    <select onchange="setValue(Number(event.target.value))">
+        <option value="1">1</option>
+        <option value="50" selected>50</option>
+        <option value="99">99</option>
+    </select>
 </div>
 <div id="myChart"></div>

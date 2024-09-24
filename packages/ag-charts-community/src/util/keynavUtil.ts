@@ -153,10 +153,6 @@ export interface MenuCloser {
     finishClosing(): void;
 }
 
-export type MenuDevice =
-    | { type: 'keyboard'; lastFocus: HTMLElement }
-    | { type: 'mouse'; lastFocus: HTMLElement | undefined };
-
 class MenuCloserImp implements MenuCloser {
     public readonly destroyFns: (() => void)[] = [];
 
@@ -187,30 +183,19 @@ class MenuCloserImp implements MenuCloser {
 // https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/menu_role
 export function initMenuKeyNav(opts: {
     orientation: 'vertical';
-    device: MenuDevice;
+    sourceEvent: Event;
     menu: HTMLElement;
     buttons: HTMLElement[];
     // CRT-481 Automatically close the context menu when change focus with TAB / Shift+TAB
     autoCloseOnBlur?: boolean;
-    // AG-12849: Fixes a very specific case of avoiding series-node focus after clicking on a context menu item.
-    // We should revisit the approach for this in the future.
-    skipMouseFocusRestore?: boolean;
     closeCallback: () => void;
 }): MenuCloser {
-    const {
-        device,
-        orientation,
-        menu,
-        buttons,
-        closeCallback,
-        autoCloseOnBlur = false,
-        skipMouseFocusRestore = false,
-    } = opts;
+    const { sourceEvent, orientation, menu, buttons, closeCallback, autoCloseOnBlur = false } = opts;
     const { nextKey, prevKey } = PREV_NEXT_KEYS[orientation];
 
-    setAttribute(device.lastFocus, 'aria-expanded', true);
+    const lastFocus = getLastFocus(sourceEvent);
+    setAttribute(lastFocus, 'aria-expanded', true);
 
-    const lastFocus = device.type === 'keyboard' || !skipMouseFocusRestore ? device.lastFocus : undefined;
     const menuCloser = new MenuCloserImp(menu, lastFocus, closeCallback);
     const onEscape = () => menuCloser.close();
     const { destroyFns } = menuCloser;
@@ -242,12 +227,7 @@ export function initMenuKeyNav(opts: {
         }
     }
 
-    if (device.type === 'keyboard') {
-        buttons[0]?.focus();
-    } else {
-        menu.focus();
-    }
-
+    buttons[0]?.focus();
     return menuCloser;
 }
 
@@ -266,4 +246,11 @@ export function isButtonClickEvent(event: KeyboardEvent | MouseEvent): boolean {
     }
     // AG-12871 Use `key` for Enter to also include the Numpad Enter key.
     return hasNoModifiers(event) && (event.code === 'Space' || event.key === 'Enter');
+}
+
+export function getLastFocus(sourceEvent: Event | undefined): HTMLElement | undefined {
+    if (sourceEvent?.target instanceof HTMLElement && 'tabindex' in sourceEvent.target.attributes) {
+        return sourceEvent.target;
+    }
+    return undefined;
 }

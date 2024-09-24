@@ -59,7 +59,11 @@ export class TextualStartEndProperties extends Label(Font(StartEndProperties)) {
         };
     }
 
-    public getTextInputCoords(context: AnnotationContext): { x: number; y: number } {
+    public getTextInputCoords(context: AnnotationContext, _height: number): { x: number; y: number } {
         return convertPoint(this.end, context);
+    }
+
+    public getTextPosition() {
+        return this.position;
     }
 }

@@ -44,7 +44,7 @@ export const ExampleStyle = ({
             flex: 0 0 100%;
         }
 
-        .toolbar button {
+        .toolbar :is(button, select) {
             appearance: none;
             border: 1px solid var(--button-color-border-primary);
             border-radius: 6px;
@@ -53,12 +53,19 @@ export const ExampleStyle = ({
             background: var(--button-background-color);
             cursor: pointer;
             display: inline-block;
+            font: inherit;
             font-size: 14px;
             font-weight: 500;
             letter-spacing: 0.01em;
+            text-align: center;
+            text-align-last: center;
             padding: 0.375em 1em 0.5em;
             white-space: nowrap;
             transition: background-color 0.25s ease-in-out;
+        }
+
+        .toolbar :is(button, select):hover {
+            background: var(--button-hover-background-color);
         }
 
         .toolbar button:hover {

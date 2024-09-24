@@ -3,6 +3,8 @@ import {
     type AgCartesianAxisOptions,
     type AgChartOptions,
     type AgPolarAxisOptions,
+    type AgPresetOptions,
+    type AgPresetOverrides,
     type AgTooltipPositionOptions,
     AgTooltipPositionType,
 } from 'ag-charts-types';
@@ -100,9 +102,23 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         let options = deepClone(userOptions, cloneOptions);
 
         if (this.presetType != null) {
-            const presetOptions = (PRESETS as any)[this.presetType]?.(options, () => this.activeTheme) ?? options;
-            this.debug('>>> AgCharts.createOrUpdate() - applying preset', options, presetOptions);
-            options = presetOptions;
+            type PresetConstructor = (
+                options: AgPresetOptions,
+                themeOptions: AgPresetOptions | undefined,
+                activeTheme: () => ChartTheme
+            ) => T;
+
+            const presetConstructor: PresetConstructor | undefined = (PRESETS as any)[this.presetType];
+
+            const presetParams = options as any as AgPresetOptions;
+
+            // Note financial charts defines the theme in its returned options
+            // so we need to get the theme before and after applying the preset
+            const presetType = (options as any).type as keyof AgPresetOverrides | undefined;
+            const presetTheme = presetType != null ? getChartTheme(options.theme).presets[presetType] : undefined;
+
+            this.debug('>>> AgCharts.createOrUpdate() - applying preset', options, presetParams);
+            options = presetConstructor?.(presetParams, presetTheme, () => this.activeTheme) ?? options;
         }
 
         if (!enterpriseModule.isEnterprise) {
@@ -153,7 +169,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             this.processedOptions.legend.enabled = this.processedOptions.series!.length > 1;
         }
 
-        this.enableConfiguredOptions(this.processedOptions);
+        this.enableConfiguredOptions(this.processedOptions, options);
 
         if (!enterpriseModule.isEnterprise) {
             removeUsedEnterpriseOptions(this.processedOptions, true);
@@ -539,10 +555,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
     }
 
-    private enableConfiguredOptions(options: T) {
+    private enableConfiguredOptions(options: T, userOptions: T) {
         // Set `enabled: true` for all option objects where the user has provided values.
         jsonWalk<any>(
-            this.userOptions,
+            userOptions,
             (visitingUserOpts, visitingMergedOpts) => {
                 if (
                     visitingMergedOpts &&

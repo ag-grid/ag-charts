@@ -19,8 +19,6 @@ import {
     Validate,
 } from '../../util/validation';
 import { ChartUpdateType } from '../chartUpdateType';
-import type { CursorManager } from '../interaction/cursorManager';
-import type { RegionEvent, RegionManager } from '../interaction/regionManager';
 import type { Marker } from '../marker/marker';
 import { Triangle } from '../marker/triangle';
 import { type MarkerShape, getMarker } from '../marker/util';
@@ -113,9 +111,7 @@ export class Pagination extends BaseProperties {
 
     constructor(
         private readonly chartUpdateCallback: (type: ChartUpdateType) => void,
-        private readonly pageUpdateCallback: (newPage: number) => void,
-        private readonly regionManager: RegionManager,
-        private readonly cursorManager: CursorManager
+        private readonly pageUpdateCallback: (newPage: number) => void
     ) {
         super();
 
@@ -128,12 +124,6 @@ export class Pagination extends BaseProperties {
         });
 
         this.group.append([this.nextButton, this.previousButton, this.labelNode]);
-
-        const region = this.regionManager.addRegion('pagination', this.group);
-        this.destroyFns.push(
-            region.addListener('click', (event) => this.onPaginationClick(event)),
-            region.addListener('hover', (event) => this.onPaginationMouseMove(event))
-        );
 
         this.update();
         this.updateMarkers();
@@ -308,16 +298,6 @@ export class Pagination extends BaseProperties {
         this.previousButtonDisabled = onFirstPage || zeroPagesToDisplay;
     }
 
-    public clickNext() {
-        this.incrementPage();
-        this.onPaginationChanged();
-    }
-
-    public clickPrevious() {
-        this.decrementPage();
-        this.onPaginationChanged();
-    }
-
     public setPage(pageNumber: number) {
         pageNumber = clamp(0, pageNumber, this.totalPages - 1);
         if (this.currentPage !== pageNumber) {
@@ -326,35 +306,24 @@ export class Pagination extends BaseProperties {
         }
     }
 
-    private onPaginationClick(event: RegionEvent<'click'>) {
-        const { regionOffsetX, regionOffsetY } = event;
-        event.preventDefault();
+    public getCursor(node: 'previous' | 'next') {
+        return { previous: this.previousButtonDisabled, next: this.nextButtonDisabled }[node] ? undefined : 'pointer';
+    }
 
-        const node = this.group.pickNode(regionOffsetX, regionOffsetY, true);
-        if (node === this.nextButton && !this.nextButtonDisabled) {
-            this.clickNext();
-        } else if (node === this.previousButton && !this.previousButtonDisabled) {
-            this.clickPrevious();
+    public onClick(event: MouseEvent, node: 'previous' | 'next') {
+        event.preventDefault();
+        if (node === 'next' && !this.nextButtonDisabled) {
+            this.incrementPage();
+            this.onPaginationChanged();
+        } else if (node === 'previous' && !this.previousButtonDisabled) {
+            this.decrementPage();
+            this.onPaginationChanged();
         }
     }
 
-    private onPaginationMouseMove(event: RegionEvent<'hover'>) {
-        const { regionOffsetX, regionOffsetY } = event;
-
-        const node = this.group.pickNode(regionOffsetX, regionOffsetY, true);
-        if (node === this.nextButton && !this.nextButtonDisabled) {
-            this.cursorManager.updateCursor(this.id, 'pointer');
-            this.highlightActive = 'next';
-        } else if (node === this.previousButton && !this.previousButtonDisabled) {
-            this.cursorManager.updateCursor(this.id, 'pointer');
-            this.highlightActive = 'previous';
-        } else {
-            this.cursorManager.updateCursor(this.id);
-            this.highlightActive = undefined;
-        }
-
+    public onMouseHover(node: 'previous' | 'next' | undefined) {
+        this.highlightActive = node;
         this.updateMarkers();
-
         this.chartUpdateCallback(ChartUpdateType.SCENE_RENDER);
     }
 

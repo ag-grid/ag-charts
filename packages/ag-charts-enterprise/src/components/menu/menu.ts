@@ -34,7 +34,7 @@ export class Menu extends AnchoredPopover {
             orientation: 'vertical',
             menu: popover,
             buttons: rows,
-            device: this.ctx.focusIndicator.guessDevice(options.sourceEvent),
+            sourceEvent: options.sourceEvent,
             closeCallback: () => this.hide(),
         });
         this.hideFns.push(() => {

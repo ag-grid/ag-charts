@@ -6,11 +6,15 @@ import {
     type AgGaugeOptions,
     type AgLinearGaugeOptions,
     type AgLinearGaugePreset,
+    type AgLinearGaugeThemeOverrides,
     type AgPolarAxisOptions,
     type AgRadialGaugeOptions,
     type AgRadialGaugePreset,
     type AgRadialGaugeScale,
+    type AgRadialGaugeThemeOverrides,
 } from 'ag-charts-types';
+
+import { mergeArrayDefaults, mergeDefaults } from '../../util/object';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function assertEmpty(_t: Record<string, never>) {}
@@ -172,20 +176,14 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
     const axesOpts: AgPolarAxisOptions[] = [
         {
             type: 'angle-number',
-            min: scaleMin ?? 0,
-            max: scaleMax ?? 1,
-            startAngle: startAngle ?? 270,
-            endAngle: endAngle ?? 270 + 180,
+            min: scaleMin,
+            max: scaleMax,
+            startAngle: startAngle,
+            endAngle: endAngle,
             interval: scaleInterval ?? {},
             label: scaleLabel ?? {},
-            nice: false,
-            line: {
-                enabled: false,
-            },
         },
-        {
-            type: 'radius-number',
-        },
+        { type: 'radius-number' },
     ];
 
     return {
@@ -319,25 +317,13 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         interval: scaleInterval,
         label: axisLabel,
         nice: false,
-        line: {
-            enabled: false,
-        },
-        gridLine: {
-            enabled: false,
-        },
     };
     const crossAxis: AgCartesianAxisOptions = {
         type: 'number',
         position: crossAxisPosition,
         min: 0,
         max: 1,
-        line: {
-            enabled: false,
-        },
         label: {
-            enabled: false,
-        },
-        gridLine: {
             enabled: false,
         },
     };
@@ -350,11 +336,40 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
     };
 }
 
-export function gauge(opts: AgGaugeOptions): AgGaugeChartOptions {
+function applyThemeDefaults(
+    opts: AgRadialGaugeOptions,
+    presetTheme: AgRadialGaugeThemeOverrides | undefined
+): AgRadialGaugeOptions;
+function applyThemeDefaults(
+    opts: AgLinearGaugeOptions,
+    presetTheme: AgLinearGaugeThemeOverrides | undefined
+): AgLinearGaugeOptions;
+function applyThemeDefaults(
+    opts: AgGaugeOptions,
+    presetTheme: AgRadialGaugeThemeOverrides | AgLinearGaugeThemeOverrides | undefined
+): AgGaugeOptions {
+    if (presetTheme == null) return opts;
+
+    const { targets: targetsTheme, ...gaugeTheme } = presetTheme;
+    opts = mergeDefaults(opts, gaugeTheme);
+
+    if (opts.targets != null && targetsTheme != null) {
+        opts.targets = mergeArrayDefaults(opts.targets, targetsTheme) as any[];
+    }
+
+    return opts;
+}
+
+export function gauge(
+    opts: AgGaugeOptions,
+    presetTheme: AgRadialGaugeThemeOverrides | AgLinearGaugeThemeOverrides | undefined
+): AgGaugeChartOptions {
     if (isRadialGauge(opts)) {
-        return radialGaugeOptions(opts);
+        const radialGaugeOpts = applyThemeDefaults(opts, presetTheme as any);
+        return radialGaugeOptions(radialGaugeOpts);
     } else if (isLinearGauge(opts)) {
-        return linearGaugeOptions(opts);
+        const linearGaugeOpts = applyThemeDefaults(opts, presetTheme as any);
+        return linearGaugeOptions(linearGaugeOpts);
     }
 
     const {

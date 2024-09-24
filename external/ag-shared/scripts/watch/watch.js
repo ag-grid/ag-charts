@@ -1,16 +1,19 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+/**
+ * Watch nx dev environments in a queue
+ *
+ * Use `nx` to watch projects, batch up the changes, and update `BUILD_QUEUE_EMPTY_FILE`
+ * once the changes settle down. This ensures multiple updates triggered in parallel get
+ * batched up into one update event. Watching `BUILD_QUEUE_EMPTY_FILE` in another process
+ * can be used to trigger further updates eg, website refresh.
+ *
+ * Usage: node ./watch [charts|grid]
+ */
 const { spawn } = require('child_process');
 const fs = require('node:fs/promises');
-
-const QUIET_PERIOD_MS = 1000;
-const BATCH_LIMIT = 50;
-const PROJECT_ECHO_LIMIT = 3;
-const IGNORED_PROJECTS = ['all', 'ag-charts-website'];
-const NX_ARGS = ['--output-style', 'compact'];
-const BUILD_QUEUE_EMPTY_FILE = 'node_modules/.cache/ag-charts.build-queue.empty';
-
-if ((process.env.BUILD_FWS ?? '0') !== '1') {
-    IGNORED_PROJECTS.push('ag-charts-angular', 'ag-charts-react', 'ag-charts-vue3');
-}
+const { QUIET_PERIOD_MS, BATCH_LIMIT, PROJECT_ECHO_LIMIT, NX_ARGS, BUILD_QUEUE_EMPTY_FILE } = require('./constants');
+const chartsConfig = require('./chartsWatch.config');
+const gridConfig = require('./gridWatch.config');
 
 const RED = '\x1b[;31m';
 const GREEN = '\x1b[;32m';
@@ -20,6 +23,7 @@ const RESET = '\x1b[m';
 function success(msg, ...args) {
     console.log(`*** ${GREEN}${msg}${RESET}`, ...args);
 }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function warning(msg, ...args) {
     console.log(`*** ${YELLOW}${msg}${RESET}`, ...args);
 }
@@ -90,32 +94,6 @@ function spawnNxRun(target, config, projects) {
     return exitPromise;
 }
 
-function nxProjectBuildTarget(project) {
-    if (project.startsWith('ag-charts-website-')) {
-        return [[project, ['generate'], 'watch']];
-    }
-
-    switch (project) {
-        case 'ag-charts-locale':
-        case 'ag-charts-types':
-            return [
-                [project, ['build'], 'watch'],
-                [project, ['docs-resolved-interfaces'], 'watch'],
-                ['ag-charts-community', ['build'], 'watch'],
-                ['ag-charts-enterprise', ['build'], 'watch'],
-            ];
-        case 'ag-charts-community':
-            return [
-                [project, ['build'], 'watch'],
-                ['ag-charts-enterprise', ['build'], 'watch'],
-            ];
-        case 'ag-charts-enterprise':
-            return [[project, ['build'], 'watch']];
-    }
-
-    return [[project, ['build'], undefined]];
-}
-
 let timeout;
 function scheduleBuild() {
     if (buildBuffer.length > 0) {
@@ -125,11 +103,10 @@ function scheduleBuild() {
 }
 
 let buildBuffer = [];
-function processWatchOutput(rawProject) {
-    if (IGNORED_PROJECTS.includes(rawProject)) return;
+function processWatchOutput({ project: rawProject, getProjectBuildTargets }) {
     if (rawProject === '') return;
 
-    for (const [project, targets, config] of nxProjectBuildTarget(rawProject)) {
+    for (const [project, targets, config] of getProjectBuildTargets(rawProject)) {
         for (const target of targets) {
             buildBuffer.push([project, config, target]);
         }
@@ -189,22 +166,28 @@ async function touchBuildQueueEmptyFile() {
     }
 }
 
-const CONSEQUTIVE_RESPAWN_THRESHOLD_MS = 500;
-async function run() {
+const CONSECUTIVE_RESPAWN_THRESHOLD_MS = 500;
+async function run(config) {
+    const { ignoredProjects, getProjectBuildTargets } = config;
+
     let lastRespawn;
-    let consequtiveRespawns = 0;
+    let consecutiveRespawns = 0;
     while (true) {
         lastRespawn = Date.now();
         success('Starting watch...');
-        await spawnNxWatch(processWatchOutput);
+        await spawnNxWatch((project) => {
+            if (ignoredProjects.includes(project)) return;
 
-        if (Date.now() - lastRespawn < CONSEQUTIVE_RESPAWN_THRESHOLD_MS) {
-            consequtiveRespawns++;
+            processWatchOutput({ project, getProjectBuildTargets });
+        });
+
+        if (Date.now() - lastRespawn < CONSECUTIVE_RESPAWN_THRESHOLD_MS) {
+            consecutiveRespawns++;
         } else {
-            consequtiveRespawns = 0;
+            consecutiveRespawns = 0;
         }
 
-        if (consequtiveRespawns > 5) {
+        if (consecutiveRespawns > 5) {
             respawnError();
             return;
         }
@@ -238,4 +221,11 @@ process.on('beforeExit', () => {
     spawnedChildren.clear();
 });
 
-run();
+const library = process.argv[2];
+if (!['charts', 'grid'].includes(library)) {
+    const msg = 'Invalid library to watch. Options: charts, grid';
+    error(msg);
+    throw new Error(msg);
+}
+const config = library === 'charts' ? chartsConfig : gridConfig;
+run(config);
