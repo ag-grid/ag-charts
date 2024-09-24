@@ -41,12 +41,6 @@
     opacity: 1;
 }
 
-.ag-charts-tab-guard {
-    width: 0;
-    height: 0;
-    opacity: 0;
-}
-
 .ag-charts-canvas-overlay {
     pointer-events: none;
     user-select: none;
