@@ -1,4 +1,4 @@
-import { normalizeAngle360, normalizeAngle360Inclusive } from '../util/angle';
+import { normalizeAngle360 } from '../util/angle';
 import { arcDistanceSquared, lineDistanceSquared } from '../util/distance';
 import { Logger } from '../util/logger';
 import { BBox } from './bbox';
@@ -334,8 +334,13 @@ export class ExtendedPath2D {
                     const A1 = params[pi++];
                     const ccw = params[pi++];
 
-                    const sweepSign = ccw ? -1 : 1;
-                    const sweep = Math.min(Math.abs(A1 - A0), 2 * Math.PI) * sweepSign;
+                    let sweep = ccw ? A0 - A1 : A1 - A0;
+                    if (sweep < 0) {
+                        sweep += Math.ceil(-sweep / (2 * Math.PI)) * 2 * Math.PI;
+                    }
+                    if (ccw) {
+                        sweep = -sweep;
+                    }
 
                     // A bezier curve can handle at most one quarter turn
                     const arcSections = Math.max(Math.ceil(Math.abs(sweep) / (Math.PI / 2)), 1);
