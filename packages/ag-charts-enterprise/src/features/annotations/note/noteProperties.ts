@@ -8,12 +8,18 @@ import {
     type Padding,
 } from '../annotationTypes';
 import { TextualPointProperties } from '../properties/textualPointProperties';
-import { LABEL_OFFSET } from './noteScene';
+import { getBBox } from '../text/util';
 
 const { OBJECT, STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
 const { clamp } = _Util;
 
-const DEFAULT_NOTE_PADDING = 10;
+export const DEFAULT_NOTE_PADDING = 10;
+export const HANDLE_SIZE = 11;
+export const ICON_HEIGHT = 20;
+export const ICON_WIDTH = 22;
+export const ICON_SPACING = 10;
+export const LABEL_OFFSET = ICON_HEIGHT + ICON_SPACING;
+export const TOOLBAR_OFFSET = 34;
 
 class NoteBackgroundProperties extends Fill(Stroke(BaseProperties)) {}
 
@@ -28,7 +34,7 @@ export class NoteProperties extends Fill(Stroke(TextualPointProperties)) {
     @Validate(OBJECT, { optional: true })
     background = new NoteBackgroundProperties();
 
-    override position = 'bottom' as const;
+    override position: 'bottom' | 'top' = 'bottom' as const;
     override alignment = 'center' as const;
     override width = 200;
 
@@ -60,15 +66,32 @@ export class NoteProperties extends Fill(Stroke(TextualPointProperties)) {
         };
     }
 
-    public override getTextInputCoords(context: AnnotationContext) {
-        const { width } = this;
+    public override getTextInputCoords(context: AnnotationContext, height: number) {
+        const { width, text } = this;
         const { seriesRect } = context;
-        const coords = super.getTextInputCoords(context);
-        const padding = this.getPadding();
+        const textInputCoords = super.getTextInputCoords(context, height);
+        const padding = this.getPadding().top;
 
-        coords.x = clamp(width / 2, coords.x, seriesRect.width - width / 2);
-        coords.y = coords.y - padding.top - LABEL_OFFSET;
+        const bbox = getBBox(this, text, textInputCoords, undefined);
 
-        return coords;
+        bbox.x = clamp(width / 2, bbox.x, seriesRect.width - width / 2);
+
+        const topY = bbox.y - LABEL_OFFSET - padding * 2;
+        const bottomY = bbox.y + HANDLE_SIZE + padding * 2;
+
+        const textHeight = Math.max(bbox.height, height);
+
+        if (topY - textHeight - TOOLBAR_OFFSET < seriesRect.y) {
+            bbox.y = bottomY;
+            this.position = 'top';
+        } else {
+            bbox.y = topY + padding;
+            this.position = 'bottom';
+        }
+
+        return {
+            x: bbox.x,
+            y: bbox.y,
+        };
     }
 }

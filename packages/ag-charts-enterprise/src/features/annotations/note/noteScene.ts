@@ -5,12 +5,7 @@ import { AnnotationScene } from '../scenes/annotationScene';
 import { DivariantHandle } from '../scenes/handle';
 import { TextualPointScene } from '../scenes/textualPointScene';
 import { convertPoint } from '../utils/values';
-import type { NoteProperties } from './noteProperties';
-
-const ICON_HEIGHT = 20;
-const ICON_WIDTH = 22;
-const ICON_SPACING = 10;
-export const LABEL_OFFSET = ICON_HEIGHT + ICON_SPACING;
+import { ICON_HEIGHT, ICON_WIDTH, LABEL_OFFSET, type NoteProperties, TOOLBAR_OFFSET } from './noteProperties';
 
 const { Layers, TextWrapper } = _ModuleSupport;
 const { clamp } = _Util;
@@ -49,10 +44,24 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
     }
 
     override getTextBBox(datum: NoteProperties, coords: _Util.Vec2, context: AnnotationContext) {
-        const { seriesRect } = context;
         const bbox = super.getTextBBox(datum, coords, context);
 
-        bbox.x = clamp(datum.width / 2, bbox.x, seriesRect.width - bbox.width / 2);
+        const { seriesRect } = context;
+
+        bbox.x -= datum.width / 2;
+        bbox.x = clamp(0, bbox.x, seriesRect.width - bbox.width);
+
+        const padding = datum.getPadding().top;
+        const topY = bbox.y - LABEL_OFFSET - padding * 2;
+        const bottomY = bbox.y + DivariantHandle.HANDLE_SIZE + padding * 2;
+
+        if (topY - bbox.height - TOOLBAR_OFFSET < seriesRect.y) {
+            bbox.y = bottomY;
+            datum.position = 'top';
+        } else {
+            bbox.y = topY + padding;
+            datum.position = 'bottom';
+        }
 
         return bbox;
     }
@@ -88,10 +97,12 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         shape.cornerRadius = 4;
 
         const padding = datum.getPadding().top;
-        shape.x = bbox.x - datum.width / 2 - padding;
+        const isPositionTop = datum.position === 'top';
+
+        shape.x = bbox.x - padding;
         shape.width = datum.width + padding * 2;
         shape.height = bbox.height + padding * 2;
-        shape.y = bbox.y - shape.height - LABEL_OFFSET;
+        shape.y = bbox.y + (isPositionTop ? 0 : -bbox.height) - padding;
     }
 
     private updateIcon(datum: NoteProperties, context: AnnotationContext) {
@@ -120,24 +131,18 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
     }
 
     protected override updateAnchor(datum: NoteProperties, bbox: _Scene.BBox, context: AnnotationContext) {
-        const anchor = super.updateAnchor(datum, bbox, context);
         const padding = datum.getPadding().top;
+        const isPositionTop = datum.position === 'top';
+        const direction = isPositionTop ? 1 : -1;
+
         return {
-            x: anchor.x,
-            y: anchor.y - padding * 2 - LABEL_OFFSET,
-            position: 'above' as const,
+            x: bbox.x + context.seriesRect.x + datum.width / 2,
+            y: bbox.y + context.seriesRect.y + direction * (bbox.height + padding),
+            position: isPositionTop ? ('below' as const) : ('above' as const),
         };
     }
 
-    protected override getLabelCoords(datum: NoteProperties, bbox: _Scene.BBox): _Util.Vec2 {
-        const padding = datum.getPadding().top;
-        return {
-            x: bbox.x - datum.width / 2,
-            y: bbox.y - LABEL_OFFSET - padding,
-        };
-    }
-
-    protected override getHandleCoords(_datum: NoteProperties, _bbox: _Scene.BBox, coords: _Util.Vec2): _Util.Vec2 {
+    protected override getHandleCoords(_datum: NoteProperties, coords: _Util.Vec2, _bbox: _Scene.BBox): _Util.Vec2 {
         return {
             x: coords.x,
             y: coords.y + DivariantHandle.HANDLE_SIZE / 2 + 4,

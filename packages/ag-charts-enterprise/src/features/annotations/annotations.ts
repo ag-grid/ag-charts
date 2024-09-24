@@ -339,7 +339,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             showTextInput: (active: number) => {
                 const datum = getTypedDatum(this.annotationData.at(active));
                 const node = this.annotations.at(active);
-                if (!node || !datum || !('getTextInputCoords' in datum)) return;
+                if (!node || !datum || !('getTextInputCoords' in datum) || !('getTextPosition' in datum)) return;
 
                 const styles = {
                     color: datum.color,
@@ -352,14 +352,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
                 const context = this.getAnnotationContext()!;
 
-                const getTextInputCoords = () =>
-                    Vec2.add(datum.getTextInputCoords(context), Vec2.required(this.seriesRect));
+                const getTextInputCoords = (height: number) =>
+                    Vec2.add(datum.getTextInputCoords(context, height), Vec2.required(this.seriesRect));
+
+                const getTextPosition = () => datum.getTextPosition();
 
                 this.textInput.show({
                     styles,
                     layout: {
                         getTextInputCoords,
-                        position: datum.position,
+                        getTextPosition: getTextPosition,
                         alignment: datum.alignment,
                         textAlign: datum.textAlign,
                         width: datum.width,
