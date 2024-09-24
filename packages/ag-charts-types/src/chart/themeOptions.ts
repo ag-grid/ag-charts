@@ -1,5 +1,5 @@
-import type { AgLinearGaugeThemeableOptions } from '../presets/gauge/linearGaugeOptions';
-import type { AgRadialGaugeThemeableOptions } from '../presets/gauge/radialGaugeOptions';
+import type { AgLinearGaugeTarget, AgLinearGaugeThemeableOptions } from '../presets/gauge/linearGaugeOptions';
+import type { AgRadialGaugeTarget, AgRadialGaugeThemeableOptions } from '../presets/gauge/radialGaugeOptions';
 import type { AgAreaSeriesThemeableOptions } from '../series/cartesian/areaOptions';
 import type { AgBarSeriesThemeableOptions } from '../series/cartesian/barOptions';
 import type { AgBoxPlotSeriesThemeableOptions } from '../series/cartesian/boxPlotOptions';
@@ -177,9 +177,35 @@ export interface AgSankeyThemeOverrides extends AgBaseFlowProportionThemeOptions
 export interface AgChordThemeOverrides extends AgBaseFlowProportionThemeOptions {
     series?: AgChordSeriesThemeableOptions;
 }
-// NOTE: no series nesting
-export interface AgRadialGaugeThemeOverrides extends AgRadialGaugeThemeableOptions {}
-export interface AgLinearGaugeThemeOverrides extends AgLinearGaugeThemeableOptions {}
+
+export type AgBaseGaugePresetThemeOptions = Pick<
+    AgBaseChartOptions<any>,
+    | 'animation'
+    | 'background'
+    | 'container'
+    | 'contextMenu'
+    | 'footnote'
+    | 'height'
+    | 'listeners'
+    | 'locale'
+    | 'minHeight'
+    | 'minWidth'
+    | 'padding'
+    | 'subtitle'
+    | 'title'
+    | 'width'
+>;
+
+// Interface needed for docs generation, but listeners conflicts using the extends clause
+type AgRadialGaugeTheme = AgBaseGaugePresetThemeOptions & AgRadialGaugeThemeableOptions;
+export interface AgRadialGaugeThemeOverrides extends AgRadialGaugeTheme {
+    targets?: AgRadialGaugeTarget;
+}
+
+type AgLinearGaugeTheme = AgBaseGaugePresetThemeOptions & AgLinearGaugeThemeableOptions;
+export interface AgLinearGaugeThemeOverrides extends AgLinearGaugeTheme {
+    targets?: AgLinearGaugeTarget;
+}
 
 export interface AgCommonThemeableAxisOptions extends AgCartesianAxesTheme, AgPolarAxesTheme {}
 
