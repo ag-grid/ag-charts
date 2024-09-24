@@ -77,8 +77,8 @@ export class CommentProperties extends Fill(Stroke(TextualPointProperties)) {
         };
     }
 
-    public override getTextInputCoords(context: AnnotationContext) {
-        const coords = super.getTextInputCoords(context);
+    public override getTextInputCoords(context: AnnotationContext, height: number) {
+        const coords = super.getTextInputCoords(context, height);
 
         const padding = this.getPadding();
 

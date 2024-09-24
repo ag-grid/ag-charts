@@ -73,8 +73,8 @@ export class CalloutProperties extends Fill(Stroke(TextualStartEndProperties)) {
         };
     }
 
-    override getTextInputCoords(context: AnnotationContext) {
-        const coords = super.getTextInputCoords(context);
+    override getTextInputCoords(context: AnnotationContext, height: number) {
+        const coords = super.getTextInputCoords(context, height);
         const padding = this.getPadding();
 
         const paddingLeft = typeof padding === 'number' ? padding : padding?.left ?? 0;

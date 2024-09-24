@@ -10,8 +10,8 @@ const moduleId = 'text-input';
 const canvasOverlay = 'canvas-overlay';
 
 interface Layout {
-    getTextInputCoords: () => _Util.Vec2;
-    position: AnnotationTextPosition;
+    getTextInputCoords: (height: number) => _Util.Vec2;
+    getTextPosition: () => AnnotationTextPosition;
     alignment: 'left' | 'center' | 'right';
     textAlign: TextAlign;
     width?: number;
@@ -21,7 +21,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
     private readonly element: HTMLElement;
     private layout: Layout = {
         getTextInputCoords: () => ({ x: 0, y: 0 }),
-        position: 'center',
+        getTextPosition: () => 'center',
         alignment: 'center',
         textAlign: 'center',
     };
@@ -98,7 +98,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.element.innerHTML = '';
         this.layout = {
             getTextInputCoords: () => ({ x: 0, y: 0 }),
-            position: 'center',
+            getTextPosition: () => 'center',
             alignment: 'center',
             textAlign: 'center',
         };
@@ -128,14 +128,14 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         if (!textArea) return;
 
         const sceneRect = this.ctx.domManager.getBoundingClientRect();
-        const { width, getTextInputCoords, position, alignment, textAlign } = this.layout;
+        const { width, getTextInputCoords, getTextPosition, alignment, textAlign } = this.layout;
 
         // must be set before getting `textArea` bounding rect
         element.style.setProperty('width', width ? `${width}px` : 'unset');
 
         const textRect = textArea.getBoundingClientRect();
 
-        const point = getTextInputCoords();
+        const point = getTextInputCoords(textRect.height);
         let horizontalPosition = point.x;
         if (alignment === 'center') {
             horizontalPosition -= (width ?? textRect.width) / 2;
@@ -143,6 +143,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
             horizontalPosition -= width ?? textRect.width;
         }
 
+        const position = getTextPosition();
         let verticalPosition = point.y;
         if (position === 'center') {
             verticalPosition -= textRect.height / 2;
