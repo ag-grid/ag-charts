@@ -1,6 +1,7 @@
 import type { TextAlign, VerticalAlign } from 'ag-charts-types';
 
 import type { LayoutContext } from '../module/baseModule';
+import { LinearScale } from '../scale/linearScale';
 import type { BBox } from '../scene/bbox';
 import { sectorBox } from '../scene/util/sector';
 import { isBetweenAngles, normalizeAngle360Inclusive } from '../util/angle';
@@ -145,12 +146,17 @@ export class GaugeChart extends Chart {
 
         let horizontalInset = 0;
         let verticalInset = 0;
+
+        // Must be done on a new scale, as the domain isn't set on the axes
+        const scale = new LinearScale();
+        scale.domain = [0, 100];
+        scale.range = horizontal ? xAxis.range : yAxis.range;
+        const ticks = scale.ticks();
+
         if (horizontal) {
-            xAxis.updateScale();
-            horizontalInset = series.computeInset(ChartAxisDirection.X, xAxis.scale);
+            horizontalInset = series.computeInset(ChartAxisDirection.X, ticks);
         } else {
-            yAxis.updateScale();
-            verticalInset = series.computeInset(ChartAxisDirection.Y, yAxis.scale);
+            verticalInset = series.computeInset(ChartAxisDirection.Y, ticks);
         }
 
         const seriesWidth = seriesRect.width - Math.abs(horizontalInset);

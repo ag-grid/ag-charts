@@ -124,7 +124,7 @@ export class LinearGaugeSeries
     get thickness() {
         return this.properties.thickness;
     }
-    computeInset(direction: _ModuleSupport.ChartAxisDirection, scale: _Scale.Scale<any, any>): number {
+    computeInset(direction: _ModuleSupport.ChartAxisDirection, ticks: number[]): number {
         const { label } = this.properties;
         let factor: 1 | -1;
         switch (label.placement) {
@@ -138,18 +138,16 @@ export class LinearGaugeSeries
                 return 0;
         }
 
-        const lines =
-            label.text?.split('\n') ??
-            scale.ticks?.().map((tick) => getLabelText(this, this.labelDatum(label, tick)) ?? '');
-        if (lines == null) return 0;
+        const lines = label.text?.split('\n');
 
         let size: number;
         if (direction === ChartAxisDirection.Y) {
-            size = getLineHeight(label, label.fontSize) * lines.length;
+            size = getLineHeight(label, label.fontSize) * (lines?.length ?? 1);
         } else {
             const font = label.getFont();
+            const linesOrTicks = lines ?? ticks.map((tick) => getLabelText(this, this.labelDatum(label, tick)) ?? '');
 
-            size = lines.reduce((accum, text) => {
+            size = linesOrTicks.reduce((accum, text) => {
                 const { width } = CachedTextMeasurerPool.measureText(text, { font });
                 return Math.max(accum, width);
             }, 0);

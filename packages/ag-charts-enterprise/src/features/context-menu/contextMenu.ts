@@ -178,9 +178,9 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         const newMenuElement = this.renderMenu();
 
+        this.menuCloser?.close();
         if (this.menuElement) {
             this.element.replaceChild(newMenuElement, this.menuElement);
-            this.menuCloser?.close();
         } else {
             this.element.appendChild(newMenuElement);
         }
@@ -194,9 +194,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             menu: newMenuElement,
             buttons,
             orientation: 'vertical',
-            device: this.ctx.focusIndicator.guessDevice(sourceEvent),
+            sourceEvent,
             autoCloseOnBlur: true,
-            skipMouseFocusRestore: true, // AG-12849: Avoid series node focus after context-menu item click.
             closeCallback: () => this.doClose(),
         });
     }

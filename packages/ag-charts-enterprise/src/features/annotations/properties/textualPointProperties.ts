@@ -52,7 +52,11 @@ export class TextualPointProperties extends Annotation(Point(Handle(Label(Font(B
         };
     }
 
-    public getTextInputCoords(context: AnnotationContext) {
+    public getTextInputCoords(context: AnnotationContext, _height: number) {
         return convertPoint(this, context);
+    }
+
+    public getTextPosition() {
+        return this.position;
     }
 }
