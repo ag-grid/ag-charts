@@ -3,14 +3,14 @@ import type { Direction } from 'ag-charts-types';
 import type { LocaleManager } from '../locale/localeManager';
 import { createElement } from '../util/dom';
 import { BoundedText } from './boundedText';
-import type { DOMElementClass, DOMManager } from './domManager';
+import type { DOMManager } from './domManager';
 
 export type ListSwitch = { button: HTMLButtonElement; listitem: HTMLElement };
 
 type ElemParams<T extends ProxyElementType> = {
     readonly type: T;
     readonly id: string;
-    readonly parent: HTMLElement | DOMElementClass;
+    readonly parent: HTMLElement | 'canvas-proxy';
     readonly cursor?: 'pointer';
 };
 

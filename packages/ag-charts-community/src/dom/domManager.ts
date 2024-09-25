@@ -9,29 +9,24 @@ import { type Size, SizeMonitor } from '../util/sizeMonitor';
 // TODO move to utils
 import BASE_DOM from './domLayout.html';
 
-const CANVAS_CENTER_CLASS = 'canvas-center';
+/* eslint-disable sonarjs/no-duplicate-string */
 const DOM_ELEMENT_CLASSES = [
     'styles',
-    CANVAS_CENTER_CLASS,
     'canvas',
-    'canvas-proxy',
+    'canvas-center',
     'canvas-overlay',
+    'canvas-proxy',
     'series-area',
 ] as const;
-export type DOMElementClass = (typeof DOM_ELEMENT_CLASSES)[number];
-
-type DOMElementConfig = {
-    childElementType: 'style' | 'canvas' | 'div';
-    style?: Partial<CSSStyleDeclaration>;
-    eventTypes?: string[];
-};
+type DOMElementClass = (typeof DOM_ELEMENT_CLASSES)[number];
+type DOMElementConfig = { childElementType: 'style' | 'canvas' | 'div'; style?: Partial<CSSStyleDeclaration> };
 
 const domElementConfig: Map<DOMElementClass, DOMElementConfig> = new Map([
     ['styles', { childElementType: 'style' }],
     ['canvas', { childElementType: 'canvas' }],
-    ['canvas-proxy', { childElementType: 'div', eventTypes: ['focus', 'blur'] }],
+    ['canvas-proxy', { childElementType: 'div' }],
     ['canvas-overlay', { childElementType: 'div' }],
-    [CANVAS_CENTER_CLASS, { childElementType: 'div' }],
+    ['canvas-center', { childElementType: 'div' }],
     ['series-area', { childElementType: 'div' }],
 ]);
 
@@ -147,7 +142,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     }
 
     private updateContainerSize() {
-        const { style: centerStyle } = this.rootElements[CANVAS_CENTER_CLASS].element;
+        const { style: centerStyle } = this.rootElements['canvas-center'].element;
 
         centerStyle.width = `${this.containerSize?.width ?? 0}px`;
         centerStyle.height = `${this.containerSize?.height ?? 0}px`;
@@ -211,15 +206,16 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     }
 
     setTabIndex(tabIndex: 0 | -1) {
-        const canvasProxy = this.rootElements['series-area'].element;
-        if (canvasProxy) {
-            canvasProxy.tabIndex = tabIndex;
-        }
+        this.rootElements['series-area'].element.tabIndex = tabIndex;
     }
 
     updateCanvasLabel(ariaLabel: string) {
-        const canvasProxy = this.rootElements['canvas-proxy'].element;
-        setAttribute(canvasProxy, 'aria-label', ariaLabel);
+        setAttribute(this.rootElements['canvas-proxy'].element, 'aria-label', ariaLabel);
+    }
+
+    private getEventElement<K extends keyof HTMLElementEventMap>(defaultElem: HTMLElement, eventType: K) {
+        // For now, the only element managed by DOMManager that is focusable is 'series-area'
+        return ['focus', 'blur'].includes(eventType) ? this.rootElements['series-area'].element : defaultElem;
     }
 
     addEventListenerOnElement<K extends keyof HTMLElementEventMap>(
@@ -228,7 +224,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
         options?: boolean | AddEventListenerOptions
     ) {
-        const { element } = this.rootElements[elementType];
+        const element = this.getEventElement(this.rootElements[elementType].element, type);
         element.addEventListener(type, listener, options);
         return () => {
             element.removeEventListener(type, listener, options);
@@ -240,18 +236,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
         options?: boolean | AddEventListenerOptions
     ) {
-        this.element.addEventListener(type, listener, options);
-
-        domElementConfig.forEach((config, elType) => {
-            if (!config.eventTypes?.includes(type)) return;
-
-            const els = this.rootElements[elType];
-            els.listeners.push([type, listener, options]);
-            els.element.addEventListener(type, listener);
-            els.children.forEach((el) => {
-                el.addEventListener(type, listener);
-            });
-        });
+        this.getEventElement(this.element, type).addEventListener(type, listener, options);
     }
 
     removeEventListener<K extends keyof HTMLElementEventMap>(
@@ -259,18 +244,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
         options?: boolean | EventListenerOptions
     ) {
-        this.element.removeEventListener(type, listener, options);
-
-        domElementConfig.forEach((config, elType) => {
-            if (!config.eventTypes?.includes(type)) return;
-
-            const els = this.rootElements[elType];
-            els.listeners = els.listeners.filter(([t, l]) => t !== type && l !== listener);
-            els.element.removeEventListener(type, listener);
-            els.children.forEach((el) => {
-                el.removeEventListener(type, listener, options);
-            });
-        });
+        this.getEventElement(this.element, type).removeEventListener(type, listener, options);
     }
 
     /** Get the main chart area client bound rect. */
