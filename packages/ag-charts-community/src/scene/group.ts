@@ -272,12 +272,16 @@ export class Group extends Node {
             clipBBox = Transformable.toCanvas(this, clipRect);
         }
 
-        const children = [...this.children()];
+        let children: Iterable<Node> | Node[] = this.children();
         if (dirtyZIndex) {
-            this.sortChildren(children);
-            if (forceRender !== 'dirtyTransform') forceRender = true;
+            children = [...children];
+            this.sortChildren(children as Node[]);
+            if (forceRender !== 'dirtyTransform') {
+                forceRender = true;
+            }
         } else if (this.hasVirtualChildren()) {
-            this.sortChildren(children);
+            children = [...children];
+            this.sortChildren(children as Node[]);
         }
 
         // Reduce churn if renderCtx is identical.

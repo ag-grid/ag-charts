@@ -213,7 +213,7 @@ export class ErrorBarNode extends _Scene.Group {
 export class ErrorBarGroup extends _Scene.Group {
     nearestSquared(x: number, y: number): _ModuleSupport.PickNodeDatumResult {
         const { nearest, distanceSquared } = nearestSquaredInContainer(x, y, {
-            children: [...this.children()] as ErrorBarNode[],
+            children: this.children() as Iterable<ErrorBarNode>,
         });
         if (nearest !== undefined && !isNaN(distanceSquared)) {
             return { datum: nearest.datum, distanceSquared };

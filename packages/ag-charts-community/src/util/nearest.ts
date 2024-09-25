@@ -9,7 +9,7 @@ type NearestCalculator<TNearest> = {
 };
 
 type DistantContainer<TNearest> = {
-    get children(): NearestCalculator<TNearest>[];
+    children: Iterable<NearestCalculator<TNearest>>;
     transformPoint?: (x: number, y: number) => { x: number; y: number };
 };
 
