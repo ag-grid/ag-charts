@@ -36,7 +36,7 @@ describe('Node', () => {
 
             expect(result).not.toBe(bboxRef);
 
-            testee.markDirty(testee, RedrawType.TRIVIAL);
+            testee.markDirty(RedrawType.TRIVIAL);
             expect(testee.getBBox()).not.toBe(result);
         });
 
@@ -44,10 +44,10 @@ describe('Node', () => {
             const bboxRef = BBox.zero.clone().grow(20);
             const testee = new FixedTestNode(bboxRef);
             testee.getBBox(); // Populate cache.
-            testee.markDirty(testee, RedrawType.TRIVIAL);
+            testee.markDirty(RedrawType.TRIVIAL);
 
             const result = testee.getBBox();
-            testee.markDirty(testee, RedrawType.TRIVIAL);
+            testee.markDirty(RedrawType.TRIVIAL);
             expect(testee.getBBox()).not.toBe(result);
         });
 
@@ -87,7 +87,7 @@ describe('Node', () => {
                 expect(result).not.toBe(bboxRef);
                 expect(testee.getBBox()).toBe(result);
 
-                child.markDirty(child, RedrawType.TRIVIAL);
+                child.markDirty(RedrawType.TRIVIAL);
                 expect(testee.getBBox()).not.toBe(result);
             });
 
@@ -100,11 +100,11 @@ describe('Node', () => {
                 expect(result).not.toBe(bboxRef);
                 expect(testee.getBBox()).toBe(result);
 
-                child.markDirty(child, RedrawType.TRIVIAL);
+                child.markDirty(RedrawType.TRIVIAL);
                 const result2 = testee.getBBox();
                 expect(result2).not.toBe(result);
 
-                child.markDirty(child, RedrawType.TRIVIAL);
+                child.markDirty(RedrawType.TRIVIAL);
                 expect(testee.getBBox()).not.toBe(result);
                 expect(testee.getBBox()).not.toBe(result2);
             });

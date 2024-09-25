@@ -164,7 +164,7 @@ export class LegendMarkerLabel extends Translatable(Group) {
                 line.x2 = shift + length;
                 line.y1 = 0;
                 line.y2 = 0;
-                line.markDirty(this, RedrawType.MAJOR);
+                line.markDirty(RedrawType.MAJOR);
                 lineTop = -line.strokeWidth / 2;
                 lineX1 = line.x1;
                 lineX2 = line.x2;

@@ -58,7 +58,7 @@ export class CollidableLine extends _Scene.Line {
 
     public setClipMask(mask?: ShapeClipMask) {
         if (_ModuleSupport.jsonDiff(this.clipMask, mask) != null) {
-            this.markDirty(this, _Scene.RedrawType.MAJOR);
+            this.markDirty(_Scene.RedrawType.MAJOR);
         }
 
         this.clipMask = mask;

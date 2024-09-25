@@ -109,7 +109,7 @@ function buildCheckDirtyChain(setterFn: Function, opts: SceneChangeDetectionOpti
             const change = setterFn.call(this, value);
 
             if (change !== NO_CHANGE && value != null && value._dirty > RedrawType.NONE) {
-                this.markDirty(value, value._dirty);
+                this.markDirty(value._dirty);
             }
 
             return change;
@@ -126,7 +126,7 @@ function buildNormalSetter(privateKey: string, opts: SceneChangeDetectionOptions
         const oldValue = this[privateKey];
         if (value !== oldValue) {
             this[privateKey] = value;
-            this.markDirty(this, redraw);
+            this.markDirty(redraw);
             changeCb?.(this);
             return value;
         }
@@ -159,7 +159,7 @@ function buildPathSetter(privateKey: string, opts: SceneChangeDetectionOptions) 
             this[privateKey] = value;
             if (!this._dirtyPath) {
                 this._dirtyPath = true;
-                this.markDirty(this, redraw);
+                this.markDirty(redraw);
             }
             return value;
         }

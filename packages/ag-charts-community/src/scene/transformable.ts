@@ -55,7 +55,7 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
         private _dirtyTransform = true;
         markDirtyTransform() {
             this._dirtyTransform = true;
-            super.markDirty(this, RedrawType.MAJOR);
+            super.markDirty(RedrawType.MAJOR);
         }
 
         updateMatrix(_matrix: Matrix) {

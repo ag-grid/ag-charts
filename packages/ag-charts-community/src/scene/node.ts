@@ -94,7 +94,7 @@ export abstract class Node {
     protected isContainerNode: boolean = false;
 
     /**
-     * Indicates if this node should be substituted for it's children when traversing the scene
+     * Indicates if this node should be substituted for its children when traversing the scene
      * graph. This allows intermingling of child-nodes that are managed by different chart classes
      * without breaking scene-graph encapsulation.
      */
@@ -208,7 +208,7 @@ export abstract class Node {
 
         this.cachedBBox = undefined;
         this.dirtyZIndex = true;
-        this.markDirty(this, RedrawType.MAJOR);
+        this.markDirty(RedrawType.MAJOR);
     }
 
     appendChild<T extends Node>(node: T): T {
@@ -230,7 +230,7 @@ export abstract class Node {
 
         this.cachedBBox = undefined;
         this.dirtyZIndex = true;
-        this.markDirty(node, RedrawType.MAJOR);
+        this.markDirty(RedrawType.MAJOR);
 
         return true;
     }
@@ -354,11 +354,11 @@ export abstract class Node {
         }
     }
 
-    markDirty(_source: Node, type = RedrawType.TRIVIAL, parentType = type) {
-        const _dirty = this._dirty;
+    markDirty(type = RedrawType.TRIVIAL, parentType = type) {
+        const { _dirty } = this;
         // Short-circuit case to avoid needing to percolate all dirty flag changes if redundant.
         const dirtyTypeBelowHighWatermark = _dirty > type || (_dirty === type && type === parentType);
-        // If parent node cached a bbox previously, this node will have a cached bbox too. Therefore
+        // If parent node cached a bbox previously, this node will have a cached bbox too. Therefore,
         // if this node has no cached bbox, we don't need to force clearing of parents cached bbox.
         const noParentCachedBBox = this.cachedBBox == null;
         if (noParentCachedBBox && dirtyTypeBelowHighWatermark) return;
@@ -366,7 +366,7 @@ export abstract class Node {
         this.cachedBBox = undefined;
         this._dirty = Math.max(_dirty, type);
         if (this.parentNode) {
-            this.parentNode.markDirty(this, parentType);
+            this.parentNode.markDirty(parentType);
         } else if (this.layerManager) {
             this.layerManager.markDirty();
         }
