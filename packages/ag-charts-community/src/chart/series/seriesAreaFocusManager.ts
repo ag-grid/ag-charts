@@ -1,7 +1,7 @@
 import type { AgChartClickEvent } from 'ag-charts-types';
 
 import type { BBox } from '../../scene/bbox';
-import { setAttribute } from '../../sparklines-util';
+import { setAttribute } from '../../util/attributeUtil';
 import { clamp } from '../../util/number';
 import type { TypedEvent } from '../../util/observable';
 import { BaseManager } from '../baseManager';
