@@ -39,6 +39,7 @@ export * from './series/cartesian/cartesianOptions';
 export * from './series/cartesian/cartesianSeriesTooltipOptions';
 export * from './series/cartesian/cartesianSeriesTypes';
 export * from './series/cartesian/commonOptions';
+export * from './series/cartesian/funnelOptions';
 export * from './series/cartesian/heatmapOptions';
 export * from './series/cartesian/histogramOptions';
 export * from './series/cartesian/lineOptions';
