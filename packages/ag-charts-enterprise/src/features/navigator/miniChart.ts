@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-const { Validate, BOOLEAN, POSITIVE_NUMBER, zIndexLayers, ActionOnSet, CategoryAxis, GroupedCategoryAxis, TextUtils } =
+const { Validate, BOOLEAN, POSITIVE_NUMBER, zIndexMap, ActionOnSet, CategoryAxis, GroupedCategoryAxis, TextUtils } =
     _ModuleSupport;
 
 const { Padding, Logger } = _Util;
@@ -22,13 +22,13 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     readonly root = new Group({ name: 'root' });
     readonly seriesRoot = this.root.appendChild(
-        new TranslatableGroup({ name: 'Series-root', layer: true, zIndex: zIndexLayers.SERIES_LAYER })
+        new TranslatableGroup({ name: 'Series-root', layer: true, zIndex: zIndexMap.SERIES_LAYER })
     );
     readonly axisGridGroup = this.root.appendChild(
-        new Group({ name: 'Axes-Grids', layer: true, zIndex: zIndexLayers.AXIS_GRID })
+        new Group({ name: 'Axes-Grids', layer: true, zIndex: zIndexMap.AXIS_GRID })
     );
     readonly axisGroup = this.root.appendChild(
-        new Group({ name: 'Axes-Grids', layer: true, zIndex: zIndexLayers.AXIS_GRID })
+        new Group({ name: 'Axes-Grids', layer: true, zIndex: zIndexMap.AXIS_GRID })
     );
 
     public data: any = [];

@@ -1,7 +1,7 @@
 import { Group } from '../../scene/group';
 import type { ZIndexSubOrder } from '../../scene/layersManager';
 import { clamp } from '../../util/number';
-import { zIndexLayers } from '../zIndexLayers';
+import { zIndexMap } from '../zIndexMap';
 import type { SeriesGrouping } from './seriesStateManager';
 
 export type SeriesGroupZIndexSubOrderType =
@@ -89,21 +89,21 @@ export class SeriesLayerManager {
                 new Group({
                     name: `${type}-content`,
                     layer: true,
-                    zIndex: zIndexLayers.SERIES_LAYER,
+                    zIndex: zIndexMap.SERIES_LAYER,
                     zIndexSubOrder: seriesConfig.getGroupZIndexSubOrder('data'),
                 })
             ),
             highlight: this.highlightRoot.appendChild(
                 new Group({
                     name: `${type}-highlight`,
-                    zIndex: zIndexLayers.SERIES_LAYER,
+                    zIndex: zIndexMap.SERIES_LAYER,
                     zIndexSubOrder: seriesConfig.getGroupZIndexSubOrder('highlight'),
                 })
             ),
             annotation: this.annotationRoot.appendChild(
                 new Group({
                     name: `${type}-annotation`,
-                    zIndex: zIndexLayers.SERIES_LAYER,
+                    zIndex: zIndexMap.SERIES_LAYER,
                     zIndexSubOrder: seriesConfig.getGroupZIndexSubOrder('annotation'),
                 })
             ),

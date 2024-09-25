@@ -2,7 +2,7 @@ import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { Handle } from './handle';
 
-const { zIndexLayers, isObject } = _ModuleSupport;
+const { zIndexMap, isObject } = _ModuleSupport;
 
 export abstract class AnnotationScene extends _Scene.Group {
     static isCheck(value: unknown, type: string) {
@@ -10,7 +10,7 @@ export abstract class AnnotationScene extends _Scene.Group {
     }
 
     override name = 'AnnotationScene';
-    override zIndex = zIndexLayers.CHART_ANNOTATION;
+    override zIndex = zIndexMap.CHART_ANNOTATION;
 
     public abstract type: string;
     public abstract activeHandle?: string;

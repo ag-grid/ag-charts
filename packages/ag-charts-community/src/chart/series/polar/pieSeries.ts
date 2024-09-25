@@ -36,7 +36,7 @@ import type { LegendItemClickChartEvent } from '../../interaction/chartEventMana
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { Circle } from '../../marker/circle';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
-import { zIndexLayers } from '../../zIndexLayers';
+import { zIndexMap } from '../../zIndexMap';
 import { SeriesNodeEvent, type SeriesNodeEventTypes, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import type { SeriesNodeDatum } from '../seriesTypes';
@@ -129,7 +129,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         new TranslatableGroup({
             name: `${this.id}-background`,
             layer: true,
-            zIndex: zIndexLayers.SERIES_BACKGROUND,
+            zIndex: zIndexMap.SERIES_BACKGROUND,
         })
     );
 

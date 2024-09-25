@@ -62,7 +62,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.cartesianSeries = series;
         this.groupNode = new ErrorBarGroup({
             name: `${annotationGroup.id}-errorBars`,
-            zIndex: _ModuleSupport.Layers.SERIES_LAYER_ZINDEX,
+            zIndex: _ModuleSupport.zIndexMap.SERIES_LAYER,
             zIndexSubOrder: series.getGroupZIndexSubOrder('annotation'),
         });
 
