@@ -40,6 +40,10 @@ export class Line extends Shape implements DistantObject {
         this.y2 = value;
     }
 
+    get midPoint(): { x: number; y: number } {
+        return { x: (this.x1 + this.x2) / 2, y: (this.y1 + this.y2) / 2 };
+    }
+
     protected override computeBBox(): BBox {
         return new BBox(
             Math.min(this.x1, this.x2),
