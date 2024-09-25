@@ -92,7 +92,7 @@ export class Group extends Node {
 
     protected getComputedOpacity() {
         let opacity = 1;
-        for (const node of this.traverseUp()) {
+        for (const node of this.traverseUp(true)) {
             if (node instanceof Group) {
                 opacity *= node.opacity;
             }
@@ -101,7 +101,7 @@ export class Group extends Node {
     }
 
     protected getVisibility() {
-        for (const node of this.traverseUp()) {
+        for (const node of this.traverseUp(true)) {
             if (!node.visible) {
                 return false;
             }

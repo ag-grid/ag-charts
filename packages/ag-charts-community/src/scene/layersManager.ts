@@ -59,7 +59,11 @@ export class LayersManager {
         const { zIndex = this.nextZIndex++, name, zIndexSubOrder, getComputedOpacity, getVisibility } = opts;
         const canvas = new HdpiCanvas({ width, height, pixelRatio });
 
-        const newLayer: SceneLayer = {
+        if (zIndex >= this.nextZIndex) {
+            this.nextZIndex = zIndex + 1;
+        }
+
+        this.layersMap.set(canvas, {
             id: this.nextLayerId++,
             name,
             canvas,
@@ -67,17 +71,11 @@ export class LayersManager {
             zIndexSubOrder,
             getComputedOpacity,
             getVisibility,
-        };
-
-        if (zIndex >= this.nextZIndex) {
-            this.nextZIndex = zIndex + 1;
-        }
-
-        this.layersMap.set(canvas, newLayer);
+        });
 
         this.debug('Scene.addLayer() - layers', this.layersMap);
 
-        return newLayer.canvas;
+        return canvas;
     }
 
     removeLayer(canvas: HdpiCanvas) {

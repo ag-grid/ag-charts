@@ -117,16 +117,14 @@ export abstract class Node {
         return this._layerManager;
     }
 
-    *ancestors() {
+    *traverseUp(includeSelf?: boolean) {
         let node: Node | undefined = this;
+        if (includeSelf) {
+            yield node;
+        }
         while ((node = node.parentNode)) {
             yield node;
         }
-    }
-
-    *traverseUp() {
-        yield this;
-        yield* this.ancestors();
     }
 
     /**

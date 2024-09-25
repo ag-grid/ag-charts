@@ -261,7 +261,7 @@ export class Transformable {
      */
     static fromCanvas(node: Node, bbox: BBox) {
         const parents = [];
-        for (const parent of node.ancestors()) {
+        for (const parent of node.traverseUp()) {
             if (isMatrixTransform(parent)) {
                 parents.unshift(parent);
             }
@@ -285,7 +285,7 @@ export class Transformable {
         } else if (isMatrixTransform(node)) {
             bbox = node.toParent(bbox);
         }
-        for (const parent of node.ancestors()) {
+        for (const parent of node.traverseUp()) {
             if (isMatrixTransform(parent)) {
                 bbox = parent.toParent(bbox);
             }
@@ -298,7 +298,7 @@ export class Transformable {
      */
     static fromCanvasPoint(node: Node, x: number, y: number) {
         const parents = [];
-        for (const parent of node.ancestors()) {
+        for (const parent of node.traverseUp()) {
             if (isMatrixTransform(parent)) {
                 parents.unshift(parent);
             }
@@ -319,7 +319,7 @@ export class Transformable {
         if (isMatrixTransform(node)) {
             ({ x, y } = node.toParentPoint(x, y));
         }
-        for (const parent of node.ancestors()) {
+        for (const parent of node.traverseUp()) {
             if (isMatrixTransform(parent)) {
                 ({ x, y } = parent.toParentPoint(x, y));
             }
