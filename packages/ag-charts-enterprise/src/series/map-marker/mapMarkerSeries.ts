@@ -75,7 +75,6 @@ export class MapMarkerSeries
         new Group({
             name: 'markerGroup',
             layer: true,
-            isVirtual: false,
             zIndex: Layers.SERIES_LAYER_ZINDEX,
             zIndexSubOrder: this.getGroupZIndexSubOrder('marker'),
         })

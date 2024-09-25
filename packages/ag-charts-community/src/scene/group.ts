@@ -79,11 +79,9 @@ export class Group extends Node {
     }
 
     private initialiseLayer() {
-        if (this.layer) return;
+        if (!this.opts?.layer || !this._layerManager) return;
 
-        if (!this._layerManager || this.opts?.layer !== true) return;
-
-        this.layer = this._layerManager.addLayer({
+        this.layer ??= this._layerManager.addLayer({
             name: this.name,
             zIndex: this.zIndex,
             zIndexSubOrder: this.zIndexSubOrder,
@@ -151,16 +149,13 @@ export class Group extends Node {
         counts.groups += 1;
         counts.nonGroups -= 1;
 
-        if (this.opts?.layer !== true) {
-            return counts;
-        }
-
-        if (this.layer == null && counts.nonGroups > 0) {
-            this.initialiseLayer();
-        }
-
-        if (this.opts?.nonEmptyChildDerivedZIndex && counts.nonGroups > 0) {
-            this.deriveZIndexFromChildren();
+        if (this.opts?.layer && counts.nonGroups > 0) {
+            if (this.layer == null) {
+                this.initialiseLayer();
+            }
+            if (this.opts?.nonEmptyChildDerivedZIndex) {
+                this.deriveZIndexFromChildren();
+            }
         }
 
         return counts;

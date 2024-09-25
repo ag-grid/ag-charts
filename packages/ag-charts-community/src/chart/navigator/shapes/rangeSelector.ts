@@ -15,12 +15,7 @@ export class RangeSelector extends Group {
 
     constructor(children: Node[]) {
         super({ name: 'rangeSelectorGroup', layer: true, zIndex: Layers.NAVIGATOR_ZINDEX });
-        this.isContainerNode = true;
-
-        this.background = new TranslatableGroup({ name: 'navigator-background' });
-        this.background.zIndex = 1;
-
-        this.appendChild(this.background);
+        this.background = this.appendChild(new TranslatableGroup({ name: 'navigator-background', zIndex: 1 }));
         this.append(children);
     }
 

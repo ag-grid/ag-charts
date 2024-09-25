@@ -27,10 +27,15 @@ export abstract class AnnotationScene extends _Scene.Group {
         this.toggleHandles(hovered);
     }
 
+    private *nonHandleChildren() {
+        for (const child of this.children()) {
+            if (!(child instanceof Handle)) {
+                yield child;
+            }
+        }
+    }
+
     protected computeBBoxWithoutHandles() {
-        return _Scene.Transformable.toCanvas(
-            this,
-            _Scene.Group.computeChildrenBBox([...this.children()].filter((node) => !(node instanceof Handle)))
-        );
+        return _Scene.Transformable.toCanvas(this, _Scene.Group.computeChildrenBBox(this.nonHandleChildren()));
     }
 }
