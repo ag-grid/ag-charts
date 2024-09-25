@@ -16,8 +16,8 @@ export class Group extends Node {
 
     protected static compareChildren(a: Node, b: Node) {
         return compoundAscending(
-            [a.zIndex, ...(a.zIndexSubOrder ?? [undefined, undefined]), a.id],
-            [b.zIndex, ...(b.zIndexSubOrder ?? [undefined, undefined]), b.id],
+            [a.zIndex, ...(a.zIndexSubOrder ?? [undefined, undefined]), a.serialNumber],
+            [b.zIndex, ...(b.zIndexSubOrder ?? [undefined, undefined]), b.serialNumber],
             ascendingStringNumberUndefined
         );
     }
@@ -170,7 +170,7 @@ export class Group extends Node {
         let lastChild: Node | undefined;
         for (const child of this.children()) {
             if (!child._childNodeCounts.nonGroups) continue;
-            if (!lastChild || Group.compareChildren(lastChild, child) > 0) {
+            if (!lastChild || Group.compareChildren(lastChild, child) < 0) {
                 lastChild = child;
             }
         }
