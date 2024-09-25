@@ -32,12 +32,14 @@
     position: absolute;
     top: 0;
     left: 0;
-    opacity: 0;
     pointer-events: auto;
 }
 
+/* This `opacity` CSS property is read by FocusIndicator to determine the `:focus-visible` state. */
+.ag-charts-canvas-proxy > * {
+    opacity: 0;
+}
 .ag-charts-series-area:focus-visible {
-    /* This CSS property is read by FocusIndicator to determine the `:focus-visible` state. */
     opacity: 1;
 }
 
