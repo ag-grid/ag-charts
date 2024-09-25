@@ -1,5 +1,5 @@
 import { createId } from '../util/id';
-import { iterate, toIterable } from '../util/iterator';
+import { toIterable } from '../util/iterator';
 import { BBox } from './bbox';
 import { RedrawType, SceneChangeDetection } from './changeDetectable';
 import type { LayersManager, ZIndexSubOrder } from './layersManager';
@@ -109,10 +109,7 @@ export abstract class Node {
         this._layerManager = value;
         this._debug = value?.debug;
 
-        for (const child of this._children) {
-            child._setLayerManager(value);
-        }
-        for (const child of this._virtualChildren) {
+        for (const child of this.children(false)) {
             child._setLayerManager(value);
         }
     }
@@ -137,29 +134,36 @@ export abstract class Node {
         return this._parent;
     }
 
-    private readonly _virtualChildren: Node[] = [];
-    private readonly _children: Node[] = [];
-
     private childNodes?: Set<Node>;
     private virtualChildrenCount: number = 0;
 
-    *children(): Generator<Node, void, undefined> {
-        const children = this._virtualChildren.length
-            ? this._children.concat(this._virtualChildren.flatMap((next) => [...next.children()]))
-            : this._children;
-        yield* children;
+    *children(flattenVirtual = true): Generator<Node, void, undefined> {
+        if (!this.childNodes) return;
+        const virtualChildren = [];
+        for (const child of this.childNodes) {
+            if (flattenVirtual && child.isVirtual) {
+                virtualChildren.push(child.children());
+            } else {
+                yield child;
+            }
+        }
+        for (const vChildren of virtualChildren) {
+            yield* vChildren;
+        }
     }
 
-    protected get virtualChildren(): Node[] {
-        return this._virtualChildren;
+    *virtualChildren(): Generator<Node, void, undefined> {
+        if (!this.childNodes || !this.virtualChildrenCount) return;
+        for (const child of this.childNodes) {
+            if (child.isVirtual) {
+                yield child;
+            }
+        }
     }
 
     hasVirtualChildren() {
-        return this._virtualChildren.length > 0;
+        return this.virtualChildrenCount > 0;
     }
-
-    // Used to check for duplicate nodes.
-    private childSet: { [id: string]: boolean } = {}; // new Set<Node>()
 
     setProperties<T>(this: T, styles: { [K in keyof T]?: T[K] }, pickKeys?: (keyof T)[]) {
         if (pickKeys) {
@@ -181,29 +185,17 @@ export abstract class Node {
      * @param nodes A node or nodes to append.
      */
     append(nodes: Iterable<Node> | Node) {
-        nodes = toIterable(nodes);
-
-        for (const node of nodes) {
-            if (node.parent) {
-                throw new Error(`${node} already belongs to another parent: ${node.parent}.`);
-            }
-            if (node.layerManager) {
-                throw new Error(`${node} already belongs to a scene: ${node.layerManager}.`);
-            }
-            if (this.childSet[node.id]) {
-                // Cast to `any` to avoid `Property 'name' does not exist on type 'Function'`.
-                throw new Error(`Duplicate ${(node.constructor as any).name} node: ${node}`);
-            }
-
-            if (node.isVirtual) {
-                this._virtualChildren.push(node);
-            } else {
-                this._children.push(node);
-            }
-            this.childSet[node.id] = true;
+        this.childNodes ??= new Set();
+        for (const node of toIterable(nodes)) {
+            node.parent?.removeChild(node);
+            this.childNodes.add(node);
 
             node._parent = this;
             node._setLayerManager(this.layerManager);
+
+            if (node.isVirtual) {
+                this.virtualChildrenCount++;
+            }
         }
 
         this.cachedBBox = undefined;
@@ -225,16 +217,10 @@ export abstract class Node {
         }
 
         if (node.isVirtual) {
-            const i = this._virtualChildren.indexOf(node);
-            if (i < 0) error();
-            this._virtualChildren.splice(i, 1);
-        } else {
-            const i = this._children.indexOf(node);
-            if (i < 0) error();
-            this._children.splice(i, 1);
+            this.virtualChildrenCount--;
         }
 
-        delete this.childSet[node.id];
+        this.childNodes?.delete(node);
         node._parent = undefined;
         node._setLayerManager();
 
@@ -246,14 +232,13 @@ export abstract class Node {
     }
 
     clear() {
-        for (const child of iterate(this._virtualChildren, this._children)) {
+        for (const child of this.children(false)) {
             child._parent = undefined;
             child._setLayerManager();
         }
+        this.childNodes?.clear();
         this.cachedBBox = undefined;
-        this._virtualChildren.length = 0;
-        this._children.length = 0;
-        this.childSet = {};
+        this.virtualChildrenCount = 0;
     }
 
     constructor({ isVirtual, tag, zIndex, name }: NodeOptions = {}) {
@@ -385,19 +370,12 @@ export abstract class Node {
     markClean(opts?: { force?: boolean; recursive?: boolean | 'virtual' }) {
         const { force = false, recursive = true } = opts ?? {};
 
-        if (this._dirty === RedrawType.NONE && !force) {
-            return;
-        }
+        if (this._dirty === RedrawType.NONE && !force) return;
 
         this._dirty = RedrawType.NONE;
 
-        if (recursive !== false) {
-            for (const child of this._virtualChildren) {
-                child.markClean({ force });
-            }
-        }
-        if (recursive === true) {
-            for (const child of this._children) {
+        for (const child of this.children(false)) {
+            if (child.isVirtual ? recursive !== false : recursive === true) {
                 child.markClean({ force });
             }
         }
@@ -432,21 +410,13 @@ export abstract class Node {
 
     get nodeCount() {
         let count = 1;
-        let dirtyCount = this._dirty >= RedrawType.NONE ? 1 : 0;
         let visibleCount = this.visible ? 1 : 0;
+        let dirtyCount = this._dirty >= RedrawType.NONE ? 1 : 0;
 
-        const countChild = (child: Node) => {
-            const { count: childCount, visibleCount: childVisibleCount, dirtyCount: childDirtyCount } = child.nodeCount;
-            count += childCount;
-            visibleCount += childVisibleCount;
-            dirtyCount += childDirtyCount;
-        };
-
-        for (const child of this._children) {
-            countChild(child);
-        }
-        for (const child of this._virtualChildren) {
-            countChild(child);
+        for (const child of this.children(false)) {
+            count += child.nodeCount.count;
+            dirtyCount += child.nodeCount.dirtyCount;
+            visibleCount += child.nodeCount.visibleCount;
         }
 
         return { count, visibleCount, dirtyCount };
