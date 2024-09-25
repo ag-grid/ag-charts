@@ -42,7 +42,7 @@ export class FlowProportionChart extends Chart {
         for (const group of [seriesRoot, annotationRoot, highlightRoot]) {
             group.translationX = Math.floor(layoutBox.x);
             group.translationY = Math.floor(layoutBox.y);
-            group.setClipRectInGroupCoordinateSpace(seriesRect.clone());
+            group.setClipRectInGroupCoordinateSpace(seriesRect);
         }
 
         this.ctx.layoutManager.emitLayoutComplete(ctx, {

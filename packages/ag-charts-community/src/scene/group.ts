@@ -14,6 +14,14 @@ export class Group extends Node {
         return value instanceof Group;
     }
 
+    protected static compareChildren(a: Node, b: Node) {
+        return compoundAscending(
+            [a.zIndex, ...(a.zIndexSubOrder ?? [undefined, undefined]), a.id],
+            [b.zIndex, ...(b.zIndexSubOrder ?? [undefined, undefined]), b.id],
+            ascendingStringNumberUndefined
+        );
+    }
+
     private clipRect?: BBox;
     protected layer?: HdpiCanvas;
 
@@ -143,7 +151,9 @@ export class Group extends Node {
         counts.groups += 1;
         counts.nonGroups -= 1;
 
-        if (this.opts?.layer !== true) return counts;
+        if (this.opts?.layer !== true) {
+            return counts;
+        }
 
         if (this.layer == null && counts.nonGroups > 0) {
             this.initialiseLayer();
@@ -156,12 +166,14 @@ export class Group extends Node {
         return counts;
     }
 
-    deriveZIndexFromChildren() {
-        const children = [...this.children()].filter((c) => c._childNodeCounts.nonGroups > 0);
-
-        this.sortChildren(children);
-
-        const lastChild = children.at(-1);
+    private deriveZIndexFromChildren() {
+        let lastChild: Node | undefined;
+        for (const child of this.children()) {
+            if (!child._childNodeCounts.nonGroups) continue;
+            if (!lastChild || Group.compareChildren(lastChild, child) > 0) {
+                lastChild = child;
+            }
+        }
         this.zIndex = lastChild?.zIndex ?? -Infinity;
         this.zIndexSubOrder = lastChild?.zIndexSubOrder;
     }
@@ -265,13 +277,11 @@ export class Group extends Node {
             clipBBox = Transformable.toCanvas(this, clipRect);
         }
 
-        const hasVirtualChildren = this.hasVirtualChildren();
-        // const children = hasVirtualChildren ? [...this.children()] : (this as any)._children;
         const children = [...this.children()];
         if (dirtyZIndex) {
             this.sortChildren(children);
             if (forceRender !== 'dirtyTransform') forceRender = true;
-        } else if (hasVirtualChildren) {
+        } else if (this.hasVirtualChildren()) {
             this.sortChildren(children);
         }
 
@@ -310,12 +320,10 @@ export class Group extends Node {
             ctx.restore();
         }
 
-        if (hasVirtualChildren) {
-            // Mark virtual nodes as clean and their virtual children - all other nodes have already
-            // been visited and marked clean.
-            for (const child of this.virtualChildren()) {
-                child.markClean({ recursive: 'virtual' });
-            }
+        // Mark virtual nodes as clean and their virtual children.
+        // All other nodes have already been visited and marked clean.
+        for (const child of this.virtualChildren()) {
+            child.markClean({ recursive: 'virtual' });
         }
 
         if (layer) {
@@ -335,13 +343,7 @@ export class Group extends Node {
 
     private sortChildren(children: Node[]) {
         this.dirtyZIndex = false;
-        children.sort((a, b) =>
-            compoundAscending(
-                [a.zIndex, ...(a.zIndexSubOrder ?? [undefined, undefined]), a.serialNumber],
-                [b.zIndex, ...(b.zIndexSubOrder ?? [undefined, undefined]), b.serialNumber],
-                ascendingStringNumberUndefined
-            )
-        );
+        children.sort(Group.compareChildren);
     }
 
     static computeChildrenBBox(nodes: Iterable<Node>, opts?: { skipInvisible: boolean }) {
