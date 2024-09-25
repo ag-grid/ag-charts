@@ -25,6 +25,7 @@ import { BoxPlotModule } from './series/box-plot/main';
 import { BulletModule } from './series/bullet/bulletModule';
 import { CandlestickModule } from './series/candlestick/main';
 import { ChordModule } from './series/chord/main';
+import { ConeFunnelModule } from './series/cone-funnel/coneFunnelModule';
 import { FunnelModule } from './series/funnel/funnelModule';
 import { HeatmapModule } from './series/heatmap/main';
 import { LinearGaugeModule } from './series/linear-gauge/main';
@@ -59,6 +60,7 @@ export function setupEnterpriseModules() {
         BoxPlotModule,
         CandlestickModule,
         ChordModule,
+        ConeFunnelModule,
         FunnelModule,
         OhlcModule,
         BulletModule,

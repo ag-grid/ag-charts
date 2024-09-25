@@ -8,6 +8,8 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
+import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
+
 const { Label } = _Scene;
 const {
     AbstractBarSeriesProperties,
@@ -53,7 +55,10 @@ export class FunnelConnector extends BaseProperties {
     lineDashOffset: number = 0;
 }
 
-export class FunnelProperties extends AbstractBarSeriesProperties<AgFunnelSeriesOptions> {
+export class FunnelProperties
+    extends AbstractBarSeriesProperties<AgFunnelSeriesOptions>
+    implements BaseFunnelProperties<AgFunnelSeriesOptions>
+{
     @Validate(STRING)
     xKey!: string;
 
@@ -61,10 +66,10 @@ export class FunnelProperties extends AbstractBarSeriesProperties<AgFunnelSeries
     yKey!: string;
 
     @Validate(STRING, { optional: true })
-    xName?: string;
+    xName: string | undefined;
 
     @Validate(STRING, { optional: true })
-    yName?: string;
+    yName: string | undefined;
 
     @Validate(COLOR_STRING_ARRAY)
     fills: string[] = [];

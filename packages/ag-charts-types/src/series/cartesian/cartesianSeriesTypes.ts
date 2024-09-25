@@ -4,6 +4,7 @@ import type { AgBoxPlotSeriesOptions } from './boxPlotOptions';
 import type { AgBubbleSeriesOptions } from './bubbleOptions';
 import type { AgBulletSeriesOptions } from './bulletOptions';
 import type { AgCandlestickSeriesOptions } from './candlestickOptions';
+import type { AgConeFunnelSeriesOptions } from './coneFunnelOptions';
 import type { AgFunnelSeriesOptions } from './funnelOptions';
 import type { AgHeatmapSeriesOptions } from './heatmapOptions';
 import type { AgHistogramSeriesOptions } from './histogramOptions';
@@ -21,6 +22,7 @@ export type AgCartesianSeriesOptions =
     | AgBubbleSeriesOptions
     | AgBulletSeriesOptions
     | AgCandlestickSeriesOptions
+    | AgConeFunnelSeriesOptions
     | AgFunnelSeriesOptions
     | AgHeatmapSeriesOptions
     | AgHistogramSeriesOptions
