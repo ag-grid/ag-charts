@@ -30,7 +30,6 @@ if [ "$1" == "--host" ] ; then
   exit $?
 fi
 
-npm i -g @playwright/test@1.47.2 wait-on@8.0.1
 echo "Waiting for connection to ${PUBLIC_SITE_URL}..."
 npx wait-on ${PUBLIC_SITE_URL}
 echo "Connected to ${PUBLIC_SITE_URL}!"

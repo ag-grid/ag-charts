@@ -124,6 +124,7 @@
     "vite": "5.0.10",
     "vite-tsconfig-paths": "~4.2.0",
     "vitest": "1.5.3",
+    "wait-on": "^8.0.1",
     "ws": "8.9.0",
     "yargs": "^17.7.2"
   },
