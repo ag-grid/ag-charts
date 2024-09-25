@@ -30,3 +30,8 @@ export enum ExtendedDirection {
     Left = 'left',
     TopLeft = 'top-left',
 }
+
+export enum DirectionType {
+    Horizontal = 'horizontal',
+    Vertical = 'vertical',
+}
