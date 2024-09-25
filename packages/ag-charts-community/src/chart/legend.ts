@@ -288,7 +288,7 @@ export class Legend extends BaseProperties {
             region.addListener('enter', (e) => this.handleLegendMouseEnter(e), animationState),
             ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.positionLegend(e)),
             ctx.localeManager.addListener('locale-changed', () => this.onLocaleChanged()),
-            () => this.group.parent?.removeChild(this.group)
+            () => this.group.remove()
         );
 
         this.proxyLegendToolbar = this.ctx.proxyInteractionService.createProxyContainer({

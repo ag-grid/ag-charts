@@ -68,7 +68,7 @@ export abstract class Node {
      * Some arbitrary data bound to the node.
      */
     get datum() {
-        return this._datum ?? this._parent?.datum;
+        return this._datum ?? this.parentNode?.datum;
     }
     set datum(datum: any) {
         if (this._datum !== datum) {
@@ -119,7 +119,7 @@ export abstract class Node {
 
     *ancestors() {
         let node: Node | undefined = this;
-        while ((node = node.parent)) {
+        while ((node = node.parentNode)) {
             yield node;
         }
     }
@@ -129,12 +129,22 @@ export abstract class Node {
         yield* this.ancestors();
     }
 
-    private _parent?: Node;
-    get parent(): Node | undefined {
-        return this._parent;
+    /**
+     * Checks if the node is a leaf (has no children).
+     */
+    isLeaf() {
+        return !this.childNodes?.size;
+    }
+
+    /**
+     * Checks if the node is the root (has no parent).
+     */
+    isRoot() {
+        return !this.parentNode;
     }
 
     private childNodes?: Set<Node>;
+    private parentNode?: Node;
     private virtualChildrenCount: number = 0;
 
     *children(flattenVirtual = true): Generator<Node, void, undefined> {
@@ -187,10 +197,10 @@ export abstract class Node {
     append(nodes: Iterable<Node> | Node) {
         this.childNodes ??= new Set();
         for (const node of toIterable(nodes)) {
-            node.parent?.removeChild(node);
+            node.parentNode?.removeChild(node);
             this.childNodes.add(node);
 
-            node._parent = this;
+            node.parentNode = this;
             node._setLayerManager(this.layerManager);
 
             if (node.isVirtual) {
@@ -208,32 +218,32 @@ export abstract class Node {
         return node;
     }
 
-    removeChild<T extends Node>(node: T): T {
-        const error = () => {
-            throw new Error(`The node to be removed is not a child of this node.`);
-        };
-        if (node.parent !== this) {
-            error();
+    removeChild(node: Node): boolean {
+        if (!this.childNodes?.delete(node)) {
+            return false;
         }
+
+        delete node.parentNode;
+        node._setLayerManager();
 
         if (node.isVirtual) {
             this.virtualChildrenCount--;
         }
 
-        this.childNodes?.delete(node);
-        node._parent = undefined;
-        node._setLayerManager();
-
         this.cachedBBox = undefined;
         this.dirtyZIndex = true;
         this.markDirty(node, RedrawType.MAJOR);
 
-        return node;
+        return true;
+    }
+
+    remove() {
+        return this.parentNode?.removeChild(this) ?? false;
     }
 
     clear() {
         for (const child of this.children(false)) {
-            child._parent = undefined;
+            delete child.parentNode;
             child._setLayerManager();
         }
         this.childNodes?.clear();
@@ -249,7 +259,7 @@ export abstract class Node {
     }
 
     destroy(): void {
-        this.parent?.removeChild(this);
+        this.parentNode?.removeChild(this);
     }
 
     containsPoint(_x: number, _y: number): boolean {
@@ -357,8 +367,8 @@ export abstract class Node {
 
         this.cachedBBox = undefined;
         this._dirty = Math.max(_dirty, type);
-        if (this.parent) {
-            this.parent.markDirty(this, parentType);
+        if (this.parentNode) {
+            this.parentNode.markDirty(this, parentType);
         } else if (this.layerManager) {
             this.layerManager.markDirty();
         }
@@ -423,8 +433,8 @@ export abstract class Node {
     }
 
     protected onZIndexChange() {
-        if (this.parent) {
-            this.parent.dirtyZIndex = true;
+        if (this.parentNode) {
+            this.parentNode.dirtyZIndex = true;
         }
     }
 }

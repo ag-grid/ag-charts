@@ -112,16 +112,19 @@ export function debugSceneNodeHighlight(ctx: CanvasRenderingContext2D, debugNode
 }
 
 export function buildTree(node: Node): BuildTree {
-    if (!Debug.check(true, DebugSelectors.SCENE)) return {};
+    if (!Debug.check(true, DebugSelectors.SCENE)) {
+        return {};
+    }
 
+    const { parentNode } = node as any;
     return {
         node,
         name: node.name ?? node.id,
         dirty: RedrawType[node.dirty],
-        ...(node.parent?.isVirtual
+        ...(parentNode?.isVirtual
             ? {
-                  virtualParentDirty: RedrawType[node.parent.dirty],
-                  virtualParent: node.parent,
+                  virtualParentDirty: RedrawType[parentNode.dirty],
+                  virtualParent: parentNode,
               }
             : {}),
         ...Array.from(node.children(), (c) => buildTree(c)).reduce<Record<string, {}>>((result, childTree) => {

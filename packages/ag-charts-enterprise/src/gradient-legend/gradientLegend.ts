@@ -100,7 +100,7 @@ export class GradientLegend {
         this.destroyFns.push(
             ctx.highlightManager.addListener('highlight-change', () => this.onChartHoverChange()),
             ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.onStartLayout(e)),
-            () => this.legendGroup.parent?.removeChild(this.legendGroup)
+            () => this.legendGroup.remove()
         );
     }
 
