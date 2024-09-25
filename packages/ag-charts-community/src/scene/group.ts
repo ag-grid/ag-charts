@@ -3,7 +3,7 @@ import { nodeCount } from '../util/debug.util';
 import { clamp } from '../util/number';
 import { BBox } from './bbox';
 import type { HdpiCanvas } from './canvas/hdpiCanvas';
-import type { LayersManager, ZIndexSubOrder } from './layersManager';
+import type { ZIndexSubOrder } from './layersManager';
 import type { ChildNodeCounts, RenderContext } from './node';
 import { Node, RedrawType, SceneChangeDetection } from './node';
 import { Rotatable, Scalable, Transformable, Translatable } from './transformable';
@@ -13,6 +13,18 @@ export class Group extends Node {
 
     static is(value: unknown): value is Group {
         return value instanceof Group;
+    }
+
+    static computeChildrenBBox(nodes: Iterable<Node>, skipInvisible = true) {
+        function* visible() {
+            for (const n of nodes) {
+                if (!skipInvisible || (n.visible && !n.transitionOut)) {
+                    const bbox = n.getBBox();
+                    if (bbox) yield bbox;
+                }
+            }
+        }
+        return BBox.merge(visible());
     }
 
     protected static compareChildren(a: Node, b: Node) {
@@ -32,24 +44,16 @@ export class Group extends Node {
     })
     opacity: number = 1;
 
-    protected override onZIndexChange() {
-        super.onZIndexChange();
-        if (this.layer) {
-            this._layerManager?.moveLayer(this.layer, this.zIndex, this.zIndexSubOrder);
-        }
-    }
-
     constructor(
         protected readonly opts?: {
-            readonly layer?: boolean;
+            readonly name?: string;
+            readonly isVirtual?: boolean;
             readonly zIndex?: number;
             readonly zIndexSubOrder?: ZIndexSubOrder;
-            readonly isVirtual?: boolean;
-            readonly name?: string;
-            readonly nonEmptyChildDerivedZIndex?: boolean;
+            readonly layer?: boolean; // TODO remove
         }
     ) {
-        super({ isVirtual: opts?.isVirtual, name: opts?.name });
+        super(opts);
 
         const { zIndex, zIndexSubOrder } = opts ?? {};
 
@@ -60,26 +64,6 @@ export class Group extends Node {
         if (zIndexSubOrder !== undefined) {
             this.zIndexSubOrder = zIndexSubOrder;
         }
-    }
-
-    override _setLayerManager(layersManager?: LayersManager) {
-        if (this.layer) {
-            this._layerManager?.removeLayer(this.layer);
-            this.layer = undefined;
-        }
-        super._setLayerManager(layersManager);
-    }
-
-    private initialiseLayer() {
-        if (!this.opts?.layer || !this._layerManager) return;
-
-        this.layer ??= this._layerManager.addLayer({
-            name: this.name,
-            zIndex: this.zIndex,
-            zIndexSubOrder: this.zIndexSubOrder,
-            getComputedOpacity: () => this.getComputedOpacity(),
-            getVisibility: () => this.getVisibility(),
-        });
     }
 
     protected getComputedOpacity() {
@@ -101,28 +85,6 @@ export class Group extends Node {
         return true;
     }
 
-    protected override onVisibleChange() {
-        if (this.layer) {
-            this.layer.enabled = this.visible;
-        }
-    }
-
-    override markDirty(type = RedrawType.TRIVIAL) {
-        if (this.isVirtual) {
-            // Always percolate directly for virtual nodes - they don't exist for rendering purposes.
-            super.markDirty(type);
-            return;
-        }
-
-        // Downgrade dirty-ness percolated to parent in special cases.
-        let parentType = type;
-        if (type < RedrawType.MINOR || this.layer != null) {
-            parentType = RedrawType.TRIVIAL;
-        }
-
-        super.markDirty(type, parentType);
-    }
-
     // We consider a group to be boundless, thus any point belongs to it.
     override containsPoint(_x: number, _y: number): boolean {
         return true;
@@ -141,28 +103,7 @@ export class Group extends Node {
         counts.groups += 1;
         counts.nonGroups -= 1;
 
-        if (this.opts?.layer && counts.nonGroups > 0) {
-            if (this.layer == null) {
-                this.initialiseLayer();
-            }
-            if (this.opts?.nonEmptyChildDerivedZIndex) {
-                this.deriveZIndexFromChildren();
-            }
-        }
-
         return counts;
-    }
-
-    private deriveZIndexFromChildren() {
-        let lastChild: Node | undefined;
-        for (const child of this.children()) {
-            if (!child._childNodeCounts.nonGroups) continue;
-            if (!lastChild || Group.compareChildren(lastChild, child) < 0) {
-                lastChild = child;
-            }
-        }
-        this.zIndex = lastChild?.zIndex ?? -Infinity;
-        this.zIndexSubOrder = lastChild?.zIndexSubOrder;
     }
 
     override render(renderCtx: RenderContext) {
@@ -189,7 +130,7 @@ export class Group extends Node {
         if (layer) {
             // If bounding-box of a layer changes, force re-render.
             const currentBBox = this.getBBox();
-            if (this.lastBBox === undefined || !this.lastBBox.equals(currentBBox)) {
+            if (!this.lastBBox?.equals(currentBBox)) {
                 forceRender = 'dirtyTransform';
                 this.lastBBox = currentBBox;
             }
@@ -337,39 +278,6 @@ export class Group extends Node {
     private sortChildren(children: Node[]) {
         this.dirtyZIndex = false;
         children.sort(Group.compareChildren);
-    }
-
-    static computeChildrenBBox(nodes: Iterable<Node>, opts?: { skipInvisible: boolean }) {
-        let left = Infinity;
-        let right = -Infinity;
-        let top = Infinity;
-        let bottom = -Infinity;
-        const skipInvisible = opts?.skipInvisible ?? true;
-
-        for (const n of nodes) {
-            if (skipInvisible && (!n.visible || n.transitionOut)) continue;
-
-            const bbox = n.getBBox();
-
-            if (!bbox) continue;
-
-            const { x, y, width, height } = bbox;
-
-            if (x < left) {
-                left = x;
-            }
-            if (y < top) {
-                top = y;
-            }
-            if (x + width > right) {
-                right = x + width;
-            }
-            if (y + height > bottom) {
-                bottom = y + height;
-            }
-        }
-
-        return new BBox(left, top, right - left, bottom - top);
     }
 
     setClipRect(bbox?: BBox) {

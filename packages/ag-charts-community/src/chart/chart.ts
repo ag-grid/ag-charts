@@ -122,7 +122,7 @@ export abstract class Chart extends Observable {
     readonly highlightRoot = new TranslatableLayer({
         name: `${this.id}-highlight-root`,
         zIndex: zIndexMap.SERIES_HIGHLIGHT,
-        nonEmptyChildDerivedZIndex: true,
+        deriveZIndexFromChildren: true, // TODO remove feature
     });
     readonly annotationRoot = new TranslatableLayer({
         name: `${this.id}-annotation-root`,

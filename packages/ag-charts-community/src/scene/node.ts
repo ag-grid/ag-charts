@@ -50,41 +50,34 @@ export abstract class Node {
 
     /** Unique number to allow creation order to be easily determined. */
     readonly serialNumber = Node._nextSerialNumber++;
+    readonly childNodeCounts: ChildNodeCounts = { groups: 0, nonGroups: 0 };
 
-    protected _dirty: RedrawType = RedrawType.MAJOR;
-
-    /**
-     * Unique node ID in the form `ClassName-NaturalNumber`.
-     */
+    /** Unique node ID in the form `ClassName-NaturalNumber`. */
     readonly id = createId(this);
     readonly name?: string;
-
-    protected _datum?: any;
-    protected _previousDatum?: any;
-
-    public transitionOut?: boolean;
-
-    /**
-     * Some arbitrary data bound to the node.
-     */
-    get datum() {
-        return this._datum ?? this.parentNode?.datum;
-    }
-    set datum(datum: any) {
-        if (this._datum !== datum) {
-            this._previousDatum = this._datum;
-            this._datum = datum;
-        }
-    }
-    get previousDatum(): any {
-        return this._previousDatum;
-    }
 
     /**
      * Some number to identify this node, typically within a `Group` node.
      * Usually this will be some enum value used as a selector.
      */
     tag: number;
+    transitionOut?: boolean;
+    pointerEvents: PointerEvents = PointerEvents.All;
+
+    protected _datum?: any;
+    protected _previousDatum?: any;
+
+    protected _debug?: (...args: any[]) => void;
+    protected _layerManager?: LayersManager;
+
+    protected _dirty: RedrawType = RedrawType.MAJOR;
+    protected dirtyZIndex: boolean = false;
+
+    private childNodes?: Set<Node>;
+    private parentNode?: Node;
+    private virtualChildrenCount: number = 0;
+
+    private cachedBBox?: BBox;
 
     /**
      * To simplify the type system (especially in Selections) we don't have the `Parent` node
@@ -100,11 +93,88 @@ export abstract class Node {
      */
     readonly isVirtual: boolean;
 
-    // Note: _setScene and _setParent methods are not meant for end users,
-    // but they are not quite private either, rather, they have package level visibility.
+    @SceneChangeDetection<Node>({
+        redraw: RedrawType.MAJOR,
+        changeCb: (target) => target.onVisibleChange(),
+    })
+    visible: boolean = true;
 
-    protected _debug?: (...args: any[]) => void;
-    protected _layerManager?: LayersManager;
+    @SceneChangeDetection<Node>({
+        redraw: RedrawType.TRIVIAL,
+        changeCb: (target) => target.onZIndexChange(),
+    })
+    zIndex: number = 0;
+
+    @SceneChangeDetection<Node>({
+        redraw: RedrawType.TRIVIAL,
+        changeCb: (target) => target.onZIndexChange(),
+    })
+    zIndexSubOrder?: ZIndexSubOrder = undefined; // Discriminators for render order within a zIndex
+
+    constructor(options?: NodeOptions) {
+        this.name = options?.name;
+        this.isVirtual = options?.isVirtual ?? false;
+        this.tag = options?.tag ?? NaN;
+        this.zIndex = options?.zIndex ?? 0;
+    }
+
+    /**
+     * Some arbitrary data bound to the node.
+     */
+    get datum() {
+        return this._datum ?? this.parentNode?.datum;
+    }
+
+    set datum(datum: any) {
+        if (this._datum !== datum) {
+            this._previousDatum = this._datum;
+            this._datum = datum;
+        }
+    }
+
+    get previousDatum(): any {
+        return this._previousDatum;
+    }
+
+    get layerManager(): LayersManager | undefined {
+        return this._layerManager;
+    }
+
+    get dirty() {
+        return this._dirty;
+    }
+
+    /** Perform any pre-rendering initialization. */
+    preRender(): ChildNodeCounts {
+        this.childNodeCounts.groups = 0;
+        this.childNodeCounts.nonGroups = 1; // Assume this node isn't a group.
+
+        for (const child of this.children()) {
+            const childCounts = child.preRender();
+            this.childNodeCounts.groups += childCounts.groups;
+            this.childNodeCounts.nonGroups += childCounts.nonGroups;
+        }
+
+        return this.childNodeCounts;
+    }
+
+    render(renderCtx: RenderContext): void {
+        const { stats } = renderCtx;
+
+        this._dirty = RedrawType.NONE;
+
+        if (renderCtx.debugNodeSearch) {
+            const idOrName = this.name ?? this.id;
+            if (renderCtx.debugNodeSearch.some((v) => (typeof v === 'string' ? v === idOrName : v.test(idOrName)))) {
+                renderCtx.debugNodes[this.name ?? this.id] = this;
+            }
+        }
+
+        if (stats) {
+            stats.nodesRendered++;
+        }
+    }
+
     _setLayerManager(value?: LayersManager) {
         this._layerManager = value;
         this._debug = value?.debug;
@@ -112,9 +182,6 @@ export abstract class Node {
         for (const child of this.children(false)) {
             child._setLayerManager(value);
         }
-    }
-    get layerManager(): LayersManager | undefined {
-        return this._layerManager;
     }
 
     *traverseUp(includeSelf?: boolean) {
@@ -126,24 +193,6 @@ export abstract class Node {
             yield node;
         }
     }
-
-    /**
-     * Checks if the node is a leaf (has no children).
-     */
-    isLeaf() {
-        return !this.childNodes?.size;
-    }
-
-    /**
-     * Checks if the node is the root (has no parent).
-     */
-    isRoot() {
-        return !this.parentNode;
-    }
-
-    private childNodes?: Set<Node>;
-    private parentNode?: Node;
-    private virtualChildrenCount: number = 0;
 
     *children(flattenVirtual = true): Generator<Node, void, undefined> {
         if (!this.childNodes) return;
@@ -173,15 +222,18 @@ export abstract class Node {
         return this.virtualChildrenCount > 0;
     }
 
-    setProperties<T>(this: T, styles: { [K in keyof T]?: T[K] }, pickKeys?: (keyof T)[]) {
-        if (pickKeys) {
-            for (const key of pickKeys) {
-                (this as any)[key] = styles[key];
-            }
-        } else {
-            Object.assign(this as any, styles);
-        }
-        return this;
+    /**
+     * Checks if the node is a leaf (has no children).
+     */
+    isLeaf() {
+        return !this.childNodes?.size;
+    }
+
+    /**
+     * Checks if the node is the root (has no parent).
+     */
+    isRoot() {
+        return !this.parentNode;
     }
 
     /**
@@ -249,15 +301,19 @@ export abstract class Node {
         this.virtualChildrenCount = 0;
     }
 
-    constructor({ isVirtual, tag, zIndex, name }: NodeOptions = {}) {
-        this.name = name;
-        this.isVirtual = isVirtual ?? false;
-        this.tag = tag ?? NaN;
-        this.zIndex = zIndex ?? 0;
-    }
-
     destroy(): void {
         this.parentNode?.removeChild(this);
+    }
+
+    setProperties<T>(this: T, styles: { [K in keyof T]?: T[K] }, pickKeys?: (keyof T)[]) {
+        if (pickKeys) {
+            for (const key of pickKeys) {
+                (this as any)[key] = styles[key];
+            }
+        } else {
+            Object.assign(this as any, styles);
+        }
+        return this;
     }
 
     containsPoint(_x: number, _y: number): boolean {
@@ -305,8 +361,6 @@ export abstract class Node {
         }
     }
 
-    private cachedBBox?: BBox;
-
     getBBox(): BBox {
         if (this.cachedBBox == null) {
             this.cachedBBox = Object.freeze(this.computeBBox());
@@ -317,41 +371,6 @@ export abstract class Node {
 
     protected computeBBox(): BBox | undefined {
         return;
-    }
-
-    readonly _childNodeCounts: ChildNodeCounts = {
-        groups: 0,
-        nonGroups: 0,
-    };
-    /** Perform any pre-rendering initialization. */
-    preRender(): ChildNodeCounts {
-        this._childNodeCounts.groups = 0;
-        this._childNodeCounts.nonGroups = 1; // Assume this node isn't a group.
-
-        for (const child of this.children()) {
-            const childCounts = child.preRender();
-            this._childNodeCounts.groups += childCounts.groups;
-            this._childNodeCounts.nonGroups += childCounts.nonGroups;
-        }
-
-        return this._childNodeCounts;
-    }
-
-    render(renderCtx: RenderContext): void {
-        const { stats } = renderCtx;
-
-        this._dirty = RedrawType.NONE;
-
-        if (renderCtx.debugNodeSearch) {
-            const idOrName = this.name ?? this.id;
-            if (renderCtx.debugNodeSearch.some((v) => (typeof v === 'string' ? v === idOrName : v.test(idOrName)))) {
-                renderCtx.debugNodes[this.name ?? this.id] = this;
-            }
-        }
-
-        if (stats) {
-            stats.nodesRendered++;
-        }
     }
 
     markDirty(type = RedrawType.TRIVIAL, parentType = type) {
@@ -371,9 +390,6 @@ export abstract class Node {
             this.layerManager.markDirty();
         }
     }
-    get dirty() {
-        return this._dirty;
-    }
 
     markClean(opts?: { force?: boolean; recursive?: boolean | 'virtual' }) {
         const { force = false, recursive = true } = opts ?? {};
@@ -389,32 +405,9 @@ export abstract class Node {
         }
     }
 
-    @SceneChangeDetection<Node>({
-        redraw: RedrawType.MAJOR,
-        changeCb: (target) => target.onVisibleChange(),
-    })
-    visible: boolean = true;
-
     protected onVisibleChange() {
         // Override point for subclasses to react to visibility changes.
     }
-
-    protected dirtyZIndex: boolean = false;
-
-    @SceneChangeDetection<Node>({
-        redraw: RedrawType.TRIVIAL,
-        changeCb: (target) => target.onZIndexChange(),
-    })
-    zIndex: number = 0;
-
-    @SceneChangeDetection<Node>({
-        redraw: RedrawType.TRIVIAL,
-        changeCb: (target) => target.onZIndexChange(),
-    })
-    /** Discriminators for render order within a zIndex. */
-    zIndexSubOrder?: ZIndexSubOrder = undefined;
-
-    pointerEvents: PointerEvents = PointerEvents.All;
 
     protected onZIndexChange() {
         if (this.parentNode) {
