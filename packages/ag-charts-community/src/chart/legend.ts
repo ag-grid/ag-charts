@@ -600,9 +600,8 @@ export class Legend extends BaseProperties {
                 const { shape: markerShape = symbol.marker.shape } = itemMarker;
                 const MarkerCtr = getMarker(markerShape);
 
-                lines.push(new Line());
-                // Important! marker must be created after line to ensure zIndex correctness
-                markers.push(new MarkerCtr());
+                lines.push(new Line({ zIndex: 0 }));
+                markers.push(new MarkerCtr({ zIndex: 1 }));
             });
 
             markerLabel.updateSymbols(markers, lines);
@@ -961,7 +960,7 @@ export class Legend extends BaseProperties {
     private getDatumForPoint(x: number, y: number): CategoryLegendDatum | undefined {
         const visibleChildBBoxes: BBox[] = [];
         const closestLeftTop = { dist: Infinity, datum: undefined as any };
-        for (const child of this.group.children) {
+        for (const child of this.group.children()) {
             if (!child.visible) continue;
             if (!(child instanceof LegendMarkerLabel)) continue;
 
@@ -996,7 +995,7 @@ export class Legend extends BaseProperties {
 
     private computePagedBBox(): BBox {
         // Get BBox without group transforms applied.
-        let actualBBox = Group.computeChildrenBBox(this.group.children);
+        let actualBBox = Group.computeChildrenBBox(this.group.children());
         if (this.pages.length <= 1) {
             return actualBBox;
         }
@@ -1127,7 +1126,6 @@ export class Legend extends BaseProperties {
         if (toggleSeries) {
             const legendData = chartService.series.flatMap((s) => s.getLegendData('category'));
             const numVisibleItems = legendData.filter((d) => d.enabled).length;
-
             const clickedItem = legendData.find((d) => d.itemId === itemId && d.seriesId === seriesId);
 
             this.ctx.chartEventManager.legendItemDoubleClick(

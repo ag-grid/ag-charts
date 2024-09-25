@@ -124,56 +124,52 @@ export function buildTree(node: Node): BuildTree {
                   virtualParent: node.parent,
               }
             : {}),
-        ...node.children
-            .map((c) => buildTree(c))
-            .reduce<Record<string, {}>>((result, childTree) => {
-                let { name: treeNodeName } = childTree;
-                const {
-                    node: {
-                        visible,
-                        opacity,
-                        zIndex,
-                        zIndexSubOrder,
-                        translationX,
-                        translationY,
-                        rotation,
-                        scalingX,
-                        scalingY,
-                    },
-                    node: childNode,
-                    virtualParent,
-                } = childTree;
-                if (!visible || opacity <= 0) {
-                    treeNodeName = `(${treeNodeName})`;
-                }
-                if (childNode instanceof Group && childNode.isLayer()) {
-                    treeNodeName = `*${treeNodeName}*`;
-                }
-                const key = [
-                    `${treeNodeName ?? '<unknown>'}`,
-                    `z: ${zIndex}`,
-                    zIndexSubOrder &&
-                        `zo: ${zIndexSubOrder
-                            .map((v: any) => (typeof v === 'function' ? `${v()} (fn)` : v))
-                            .join(' / ')}`,
-                    virtualParent && `(virtual parent)`,
-                    translationX && `x: ${translationX}`,
-                    translationY && `y: ${translationY}`,
-                    rotation && `r: ${rotation}`,
-                    scalingX != null && scalingX !== 1 && `sx: ${scalingX}`,
-                    scalingY != null && scalingY !== 1 && `sy: ${scalingY}`,
-                ]
-                    .filter((v) => !!v)
-                    .join(' ');
+        ...Array.from(node.children(), (c) => buildTree(c)).reduce<Record<string, {}>>((result, childTree) => {
+            let { name: treeNodeName } = childTree;
+            const {
+                node: {
+                    visible,
+                    opacity,
+                    zIndex,
+                    zIndexSubOrder,
+                    translationX,
+                    translationY,
+                    rotation,
+                    scalingX,
+                    scalingY,
+                },
+                node: childNode,
+                virtualParent,
+            } = childTree;
+            if (!visible || opacity <= 0) {
+                treeNodeName = `(${treeNodeName})`;
+            }
+            if (childNode instanceof Group && childNode.isLayer()) {
+                treeNodeName = `*${treeNodeName}*`;
+            }
+            const key = [
+                `${treeNodeName ?? '<unknown>'}`,
+                `z: ${zIndex}`,
+                zIndexSubOrder &&
+                    `zo: ${zIndexSubOrder.map((v: any) => (typeof v === 'function' ? `${v()} (fn)` : v)).join(' / ')}`,
+                virtualParent && `(virtual parent)`,
+                translationX && `x: ${translationX}`,
+                translationY && `y: ${translationY}`,
+                rotation && `r: ${rotation}`,
+                scalingX != null && scalingX !== 1 && `sx: ${scalingX}`,
+                scalingY != null && scalingY !== 1 && `sy: ${scalingY}`,
+            ]
+                .filter((v) => !!v)
+                .join(' ');
 
-                let selectedKey = key;
-                let index = 1;
-                while (result[selectedKey] != null && index < 100) {
-                    selectedKey = `${key} (${index++})`;
-                }
-                result[selectedKey] = childTree;
-                return result;
-            }, {}),
+            let selectedKey = key;
+            let index = 1;
+            while (result[selectedKey] != null && index < 100) {
+                selectedKey = `${key} (${index++})`;
+            }
+            result[selectedKey] = childTree;
+            return result;
+        }, {}),
     };
 }
 
@@ -185,7 +181,7 @@ export function buildDirtyTree(node: Node): {
         return { dirtyTree: {}, paths: [] };
     }
 
-    const childrenDirtyTree = node.children.map((c) => buildDirtyTree(c)).filter((c) => c.paths.length > 0);
+    const childrenDirtyTree = Array.from(node.children(), (c) => buildDirtyTree(c)).filter((c) => c.paths.length > 0);
     const name = Group.is(node) ? node.name ?? node.id : node.id;
     const paths = childrenDirtyTree.length
         ? childrenDirtyTree.flatMap((c) => c.paths).map((p) => `${name}.${p}`)

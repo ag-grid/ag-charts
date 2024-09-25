@@ -131,7 +131,7 @@ export class Group extends Node {
     }
 
     protected override computeBBox(): BBox {
-        return Group.computeChildrenBBox(this.children);
+        return Group.computeChildrenBBox(this.children());
     }
 
     private lastBBox?: BBox = undefined;
@@ -157,7 +157,7 @@ export class Group extends Node {
     }
 
     deriveZIndexFromChildren() {
-        const children = this.children.filter((c) => c._childNodeCounts.nonGroups > 0);
+        const children = [...this.children()].filter((c) => c._childNodeCounts.nonGroups > 0);
 
         this.sortChildren(children);
 
@@ -168,14 +168,14 @@ export class Group extends Node {
 
     override render(renderCtx: RenderContext) {
         const { opts: { name = undefined } = {}, _debug: debug } = this;
-        const { dirty, dirtyZIndex, layer, children, clipRect } = this;
+        const { dirty, dirtyZIndex, layer, clipRect } = this;
         let { ctx, forceRender, clipBBox } = renderCtx;
         const { resized, stats } = renderCtx;
 
         const isDirty = dirty >= RedrawType.MINOR || dirtyZIndex || resized;
         let isChildDirty = isDirty;
         let isChildLayerDirty = false;
-        for (const child of children) {
+        for (const child of this.children()) {
             isChildDirty ||= child.layerManager == null && child.dirty >= RedrawType.TRIVIAL;
             isChildLayerDirty ||= child.layerManager != null && child.dirty >= RedrawType.TRIVIAL;
             if (isChildDirty) {
@@ -266,6 +266,8 @@ export class Group extends Node {
         }
 
         const hasVirtualChildren = this.hasVirtualChildren();
+        // const children = hasVirtualChildren ? [...this.children()] : (this as any)._children;
+        const children = [...this.children()];
         if (dirtyZIndex) {
             this.sortChildren(children);
             if (forceRender !== 'dirtyTransform') forceRender = true;

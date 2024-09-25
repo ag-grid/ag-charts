@@ -5,7 +5,7 @@ import { Node, RedrawType } from './node';
 
 class TestNode extends Node {
     protected override computeBBox(): BBox | undefined {
-        return BBox.merge(this.children.map((c) => c.getBBox()));
+        return BBox.merge(Array.from(this.children(), (c) => c.getBBox()));
     }
 }
 

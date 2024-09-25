@@ -70,14 +70,14 @@ export abstract class Node {
     get datum() {
         return this._datum ?? this._parent?.datum;
     }
-    get previousDatum(): any {
-        return this._previousDatum;
-    }
     set datum(datum: any) {
         if (this._datum !== datum) {
             this._previousDatum = this._datum;
+            this._datum = datum;
         }
-        this._datum = datum;
+    }
+    get previousDatum(): any {
+        return this._previousDatum;
     }
 
     /**
@@ -139,10 +139,15 @@ export abstract class Node {
 
     private readonly _virtualChildren: Node[] = [];
     private readonly _children: Node[] = [];
-    get children(): Node[] {
-        return this._virtualChildren.length
-            ? this._children.concat(this._virtualChildren.flatMap((next) => next.children))
+
+    private childNodes?: Set<Node>;
+    private virtualChildrenCount: number = 0;
+
+    *children(): Generator<Node, void, undefined> {
+        const children = this._virtualChildren.length
+            ? this._children.concat(this._virtualChildren.flatMap((next) => [...next.children()]))
             : this._children;
+        yield* children;
     }
 
     protected get virtualChildren(): Node[] {
@@ -277,7 +282,7 @@ export abstract class Node {
             return;
         }
 
-        const { children } = this;
+        const children = [...this.children()];
 
         if (children.length > 1_000) {
             // Try to optimise which children to interrogate; BBox calculation is an approximation
@@ -330,7 +335,7 @@ export abstract class Node {
         this._childNodeCounts.groups = 0;
         this._childNodeCounts.nonGroups = 1; // Assume this node isn't a group.
 
-        for (const child of this.children) {
+        for (const child of this.children()) {
             const childCounts = child.preRender();
             this._childNodeCounts.groups += childCounts.groups;
             this._childNodeCounts.nonGroups += childCounts.nonGroups;

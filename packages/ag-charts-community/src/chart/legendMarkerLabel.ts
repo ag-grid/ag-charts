@@ -94,7 +94,7 @@ export class LegendMarkerLabel extends Translatable(Group) {
         this._markers = markers;
         this._lines = lines;
         this.symbolsGroup.clear();
-        this.symbolsGroup.append([this.bitmap, ...markers, ...lines]);
+        this.symbolsGroup.append([this.bitmap, ...lines, ...markers]);
     }
 
     setEnabled(enabled: boolean) {
