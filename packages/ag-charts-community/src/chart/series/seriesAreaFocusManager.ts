@@ -26,8 +26,8 @@ class SeriesAreaAriaLabel {
         setAttribute(element.parentElement, 'aria-labelledby', id);
     }
     layoutComplete(event: LayoutCompleteEvent) {
-        this.element.style.width = `${event.chart.width}px`;
-        this.element.style.height = `${event.chart.height}px`;
+        this.element.parentElement!.style.width = `${event.chart.width}px`;
+        this.element.parentElement!.style.height = `${event.chart.height}px`;
     }
     set text(text: string) {
         this.element.textContent = text;

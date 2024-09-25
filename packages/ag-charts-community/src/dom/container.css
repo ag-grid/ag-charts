@@ -22,17 +22,9 @@
 }
 
 .ag-charts-canvas-container > *,
-.ag-charts-canvas-proxy > *,
 .ag-charts-canvas > * {
     display: block;
     pointer-events: none;
-}
-
-.ag-charts-canvas-proxy {
-    position: absolute;
-    top: 0;
-    left: 0;
-    pointer-events: auto;
 }
 
 /* This `opacity` CSS property is read by FocusIndicator to determine the `:focus-visible` state. */
@@ -42,7 +34,11 @@
 .ag-charts-series-area:focus-visible {
     opacity: 1;
 }
+.ag-charts-series-area {
+    pointer-events: auto;
+}
 
+.ag-charts-canvas-proxy,
 .ag-charts-canvas-overlay {
     pointer-events: none;
     user-select: none;
