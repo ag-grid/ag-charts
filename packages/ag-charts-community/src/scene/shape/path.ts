@@ -1,4 +1,5 @@
-import type { DistantObject } from '../../util//nearest';
+import { nodeCount } from '../../util/debug.util';
+import type { DistantObject } from '../../util/nearest';
 import { ExtendedPath2D } from '../extendedPath2D';
 import type { RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
@@ -107,7 +108,7 @@ export class Path extends Shape implements DistantObject {
         const { ctx, forceRender, stats } = renderCtx;
 
         if (this.dirty === RedrawType.NONE && !forceRender) {
-            if (stats) stats.nodesSkipped += this.nodeCount.count;
+            if (stats) stats.nodesSkipped += nodeCount(this).count;
             return;
         }
 

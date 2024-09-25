@@ -1,4 +1,5 @@
 import { ascendingStringNumberUndefined, compoundAscending } from '../util/compare';
+import { nodeCount } from '../util/debug.util';
 import { clamp } from '../util/number';
 import { BBox } from './bbox';
 import type { HdpiCanvas } from './canvas/hdpiCanvas';
@@ -196,12 +197,12 @@ export class Group extends Node {
 
         if (!isDirty && !isChildDirty && !isChildLayerDirty && !forceRender) {
             if (name && stats) {
-                debug?.({ name, result: 'skipping', renderCtx, counts: this.nodeCount, group: this });
+                debug?.({ name, result: 'skipping', renderCtx, counts: nodeCount(this), group: this });
             }
 
             if (layer && stats) {
                 stats.layersSkipped++;
-                stats.nodesSkipped += this.nodeCount.count;
+                stats.nodesSkipped += nodeCount(this).count;
             }
 
             this.markClean({ recursive: false });
@@ -288,13 +289,13 @@ export class Group extends Node {
             if (!child.visible || !groupVisible) {
                 // Skip invisible children, but make sure their dirty flag is reset.
                 child.markClean();
-                if (stats) skipped += child.nodeCount.count;
+                if (stats) skipped += nodeCount(child).count;
                 continue;
             }
 
             if (!forceRender && child.dirty === RedrawType.NONE) {
                 // Skip children that don't need to be redrawn.
-                if (stats) skipped += child.nodeCount.count;
+                if (stats) skipped += nodeCount(child).count;
                 continue;
             }
 
@@ -329,7 +330,7 @@ export class Group extends Node {
         }
 
         if (name && stats) {
-            debug?.({ name, result: 'rendered', skipped, renderCtx, counts: this.nodeCount, group: this });
+            debug?.({ name, result: 'rendered', skipped, renderCtx, counts: nodeCount(this), group: this });
         }
     }
 

@@ -1,3 +1,4 @@
+import { nodeCount } from '../../util/debug.util';
 import { BBox } from '../bbox';
 import type { NodeOptions, RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
@@ -49,7 +50,7 @@ export class Range extends Shape {
         const { ctx, forceRender, stats } = renderCtx;
 
         if (this.dirty === RedrawType.NONE && !forceRender) {
-            if (stats) stats.nodesSkipped += this.nodeCount.count;
+            if (stats) stats.nodesSkipped += nodeCount(this).count;
             return;
         }
 

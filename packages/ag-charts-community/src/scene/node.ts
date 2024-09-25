@@ -416,20 +416,6 @@ export abstract class Node {
 
     pointerEvents: PointerEvents = PointerEvents.All;
 
-    get nodeCount() {
-        let count = 1;
-        let visibleCount = this.visible ? 1 : 0;
-        let dirtyCount = this._dirty >= RedrawType.NONE ? 1 : 0;
-
-        for (const child of this.children(false)) {
-            count += child.nodeCount.count;
-            dirtyCount += child.nodeCount.dirtyCount;
-            visibleCount += child.nodeCount.visibleCount;
-        }
-
-        return { count, visibleCount, dirtyCount };
-    }
-
     protected onZIndexChange() {
         if (this.parentNode) {
             this.parentNode.dirtyZIndex = true;

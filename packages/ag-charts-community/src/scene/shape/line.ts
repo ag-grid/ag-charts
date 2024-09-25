@@ -1,3 +1,4 @@
+import { nodeCount } from '../../util/debug.util';
 import { lineDistanceSquared } from '../../util/distance';
 import type { DistantObject } from '../../util/nearest';
 import { BBox } from '../bbox';
@@ -72,7 +73,7 @@ export class Line extends Shape implements DistantObject {
         const { ctx, forceRender, stats, devicePixelRatio } = renderCtx;
 
         if (this.dirty === RedrawType.NONE && !forceRender) {
-            if (stats) stats.nodesSkipped += this.nodeCount.count;
+            if (stats) stats.nodesSkipped += nodeCount(this).count;
             return;
         }
 
