@@ -1,6 +1,7 @@
 import type { AgChartCaptionOptions, PixelSize } from 'ag-charts-types';
 
 import type { EventEmitter } from '../../util/eventEmitter';
+import { AxesCoordinator } from '../axes/axesCoordinator';
 import type { CartesianChartAxes, PolarChartAxes } from '../axes/axesTypes';
 import type { IStage } from '../drawing/drawingTypes';
 import type {
@@ -22,11 +23,12 @@ export interface IChartOptions<T extends AgChartOptions> {
     validate(options: Partial<T>): boolean;
 }
 
-export interface IChart<T extends AgChartOptions> {
+export interface IChart<T extends AgChartOptions, TCoordinate = any> {
     events: EventEmitter<ChartEventMap<T>>;
     options: IChartOptions<T>;
     stage: IStage;
     pipeline: PipelineQueue;
+    axesCoordinator?: AxesCoordinator<any, TCoordinate>;
     setOptions(options: IChartOptions<T>): void;
     waitForUpdate(): Promise<void>;
     remove(): void;

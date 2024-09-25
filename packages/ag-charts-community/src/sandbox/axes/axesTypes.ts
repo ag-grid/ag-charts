@@ -2,9 +2,18 @@ import type { IModule } from '../modules/modulesTypes';
 import type { IScale } from '../scales/scaleTypes';
 import type { Direction } from '../types/enums';
 import type { MapTypes } from '../types/generics';
+import { PolarCoordinate } from './axesEnums';
 
 export interface IAxis extends IModule {
     readonly scale: IScale<any, any>;
+}
+
+export interface ICartesianAxis extends IAxis {
+    position: `${Direction}`;
+}
+
+export interface IPolarAxis extends IAxis {
+    position: `${PolarCoordinate}`;
 }
 
 export interface AxisTickOptions {
@@ -47,7 +56,6 @@ export interface ContinuousCartesianAxisOptions<T extends string> extends Cartes
 
 export type CartesianChartAxes =
     | CartesianAxisOptions<'category'>
-    | CartesianAxisOptions<'ordinal-time'>
     | ContinuousCartesianAxisOptions<'log'>
     | ContinuousCartesianAxisOptions<'number'>
     | ContinuousCartesianAxisOptions<'time'>;

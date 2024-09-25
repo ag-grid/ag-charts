@@ -1,6 +1,6 @@
 import { PolarCoordinate } from '../axes/axesEnums';
 import type { PolarChartAxes } from '../axes/axesTypes';
-import type { PolarCoordinator } from '../axes/polarCoordinator';
+import { PolarCoordinator } from '../axes/polarCoordinator';
 import { BaseChart } from './baseChart';
 import type { PolarChartOptions } from './chartTypes';
 
@@ -11,6 +11,8 @@ export class PolarChart extends BaseChart<PolarChartOptions> {
         [PolarCoordinate.Radial]: ['radius'],
         [PolarCoordinate.Angular]: ['angle'],
     };
+
+    override axesCoordinator = new PolarCoordinator();
 
     protected axes?: PolarCoordinator[];
 }

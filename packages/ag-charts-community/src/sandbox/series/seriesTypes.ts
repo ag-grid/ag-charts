@@ -1,5 +1,5 @@
+import type { CartesianCoordinate } from '../axes/axesEnums';
 import type { IModule } from '../modules/modulesTypes';
-import type { DirectionType } from '../types/enums';
 
 export interface ISeries<TDatum = any> extends IModule {
     data?: TDatum;
@@ -42,7 +42,7 @@ export interface BarSeriesOptions extends ChartSeries<'bar'> {
     xName?: string;
     yName?: string;
     normalizedTo?: number;
-    direction?: `${DirectionType}`;
+    direction?: `${CartesianCoordinate}`;
     grouped?: boolean;
     stacked?: boolean;
     stackGroup?: string;

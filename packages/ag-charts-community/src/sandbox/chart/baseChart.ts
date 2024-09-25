@@ -1,5 +1,5 @@
 import { EventEmitter } from '../../util/eventEmitter';
-import { CartesianCoordinate } from '../axes/axesEnums';
+import { AxesCoordinator } from '../axes/axesCoordinator';
 import { DataPipeline } from '../data/dataPipeline';
 import { CategoryProcessor, NumberProcessor } from '../data/dataProcessor';
 import type { IStage } from '../drawing/drawingTypes';
@@ -11,16 +11,19 @@ import { SizeObserver } from '../util/resizeObserver';
 import type { ChartOptions } from './chartOptions';
 import type { AgChartOptions, ChartEventMap, IChart } from './chartTypes';
 
-export abstract class BaseChart<T extends AgChartOptions> implements IChart<T> {
+export abstract class BaseChart<TOptions extends AgChartOptions, TCoordinate = unknown>
+    implements IChart<TOptions, TCoordinate>
+{
     static DefaultAxes?: object[];
     static DefaultKeysMap?: object;
 
     private static sizeObserver = new SizeObserver();
 
-    readonly events = new EventEmitter<ChartEventMap<T>>();
+    readonly axesCoordinator?: AxesCoordinator<any, TCoordinate>;
+    readonly events = new EventEmitter<ChartEventMap<TOptions>>();
     readonly pipeline = new PipelineQueue();
 
-    private pendingOptions: ChartOptions<T> | null = null;
+    private pendingOptions: ChartOptions<TOptions> | null = null;
 
     protected dataPipeline = new DataPipeline();
     protected scales?: any[];
@@ -28,12 +31,12 @@ export abstract class BaseChart<T extends AgChartOptions> implements IChart<T> {
 
     constructor(
         public readonly stage: IStage,
-        public options: ChartOptions<T>
+        public options: ChartOptions<TOptions>
     ) {
         this.setOptions(options);
     }
 
-    setOptions(options: ChartOptions<T>) {
+    setOptions(options: ChartOptions<TOptions>) {
         this.pendingOptions = options;
         this.pipeline.enqueue(PipelinePhase.OptionsUpdate, this.handlePendingOptions);
     }
@@ -58,14 +61,16 @@ export abstract class BaseChart<T extends AgChartOptions> implements IChart<T> {
 
         const { DefaultAxes, DefaultKeysMap } = this.constructor as any;
         const { axes = DefaultAxes, series } = fullOptions;
-        const keysMap = new Map<string, Set<string>>();
+        const keysMap = new Map<TCoordinate | null, Set<string>>();
+
+        const getKeys = (axisCoordinate: TCoordinate) =>
+            keysMap.get(axisCoordinate) ?? keysMap.set(axisCoordinate, new Set()).get(axisCoordinate)!;
 
         for (const seriesOptions of series) {
             const seriesModule = moduleRegistry.getModule<SeriesModule<any>>(seriesOptions.type);
             const seriesKeysMap = Object.entries<string[]>(seriesModule?.axesKeysMap ?? DefaultKeysMap);
             for (const [axisCoordinate, axisKeys] of seriesKeysMap) {
-                const axisCoordinateKeys =
-                    keysMap.get(axisCoordinate) ?? keysMap.set(axisCoordinate, new Set()).get(axisCoordinate)!;
+                const axisCoordinateKeys = getKeys(axisCoordinate as TCoordinate);
                 for (let key of axisKeys) {
                     key += 'Key';
                     if (Object.hasOwn(seriesOptions, key)) {
@@ -83,10 +88,7 @@ export abstract class BaseChart<T extends AgChartOptions> implements IChart<T> {
          */
 
         for (const axis of axes) {
-            const direction =
-                axis.position === 'bottom' || axis.position === 'top'
-                    ? CartesianCoordinate.Horizontal
-                    : CartesianCoordinate.Vertical;
+            const direction = this.axesCoordinator?.getAxisCoordinate(axis) ?? null;
             for (const key of keysMap.get(direction)!) {
                 this.dataPipeline.addProcessor(
                     key,
@@ -97,15 +99,15 @@ export abstract class BaseChart<T extends AgChartOptions> implements IChart<T> {
 
         this.dataPipeline.processData(fullOptions.data);
 
-        // console.log({ axes, series, keysMap });
-        // console.log(this.dataPipeline.getResults());
+        console.log({ axes, series, keysMap });
+        console.log(this.dataPipeline.getResults());
 
         // if (fullOptions.axes ?? DefaultAxes) {
         // 'x' and 'y' represent the values inside `xKey` and `yKey`
         // }
     }
 
-    protected onOptionsChange(options: ChartOptions<T>) {
+    protected onOptionsChange(options: ChartOptions<TOptions>) {
         const { fullOptions, optionsDiff } = options;
 
         this.options = options;
