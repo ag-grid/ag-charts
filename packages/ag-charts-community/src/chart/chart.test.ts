@@ -566,7 +566,7 @@ describe('Chart', () => {
             expect(elements.length).toEqual(1);
 
             expect(elements[0].querySelectorAll('canvas')).toHaveLength(1);
-            expect(elements[0].querySelectorAll('.ag-charts-focus')).toHaveLength(1);
+            expect(elements[0].querySelectorAll('.ag-charts-focus-indicator')).toHaveLength(1);
         });
 
         it('should cleanup DOM on destroy()', async () => {
@@ -576,7 +576,7 @@ describe('Chart', () => {
             expect(elements.length).toEqual(0);
 
             expect(document.querySelectorAll('canvas')).toHaveLength(0);
-            expect(document.querySelectorAll('.ag-charts-focus')).toHaveLength(0);
+            expect(document.querySelectorAll('.ag-charts-focus-indicator')).toHaveLength(0);
             expect(document.querySelectorAll('div')).toHaveLength(0);
         });
 
@@ -599,7 +599,7 @@ describe('Chart', () => {
             expect(elements).toHaveLength(1);
 
             expect(elements[0].querySelectorAll('canvas')).toHaveLength(1);
-            expect(elements[0].querySelectorAll('.ag-charts-focus')).toHaveLength(1);
+            expect(elements[0].querySelectorAll('.ag-charts-focus-indicator')).toHaveLength(1);
             expect(elements[0].querySelectorAll('.ag-charts-toolbar')).toHaveLength(0);
         });
     });
