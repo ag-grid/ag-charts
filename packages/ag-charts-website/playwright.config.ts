@@ -93,7 +93,7 @@ export default defineConfig({
 
     /* Run your local dev server before starting the tests */
     webServer:
-        process.env.HOSTNAME === 'docker-desktop'
+        process.env.HOSTNAME === 'docker-desktop' || process.env.CI
             ? undefined
             : {
                   env: {

@@ -15,6 +15,11 @@ if [ "$1" == "--host" ] ; then
     -v $(pwd):/data:ro \
     -v $(pwd)/reports:/data/reports \
     -v $(pwd)/packages/ag-charts-website/e2e/:/data/packages/ag-charts-website/e2e/ \
+    -e CI \
+    -e NX_PARALLEL \
+    -e NX_BASE \
+    -e AG_FORCE_ALL_TESTS \
+    -e AG_SKIP_NATIVE_DEP_VERSION_CHECK \
     mcr.microsoft.com/playwright:v1.47.2-noble \
     /bin/bash -l /data/packages/ag-charts-website/playwright.sh $@
 
