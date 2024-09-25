@@ -19,7 +19,7 @@ export const FUNNEL_SERIES_THEME: {
             fontFamily: _Theme.DEFAULT_FONT_FAMILY,
             color: _Theme.DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
         },
-        connector: {
+        dropOff: {
             enabled: true,
             fillOpacity: 0.2,
             strokeWidth: 0,

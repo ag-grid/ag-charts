@@ -22,8 +22,8 @@ export interface AgFunnelSeriesTooltipRendererParams<TDatum = any>
         AgFunnelSeriesOptionsNames,
         AgSeriesTooltipRendererParams<TDatum> {}
 
-export interface AgFunnelSeriesConnector extends FillOptions, StrokeOptions, LineDashOptions {
-    /** Whether to draw connectors between adjacent bars. */
+export interface AgFunnelSeriesDropOff extends FillOptions, StrokeOptions, LineDashOptions {
+    /** Whether to draw drop-offs between adjacent bars. */
     enabled?: boolean;
 }
 
@@ -40,8 +40,8 @@ export interface AgFunnelSeriesThemeableOptions<TDatum = any> extends AgBaseCart
     strokeWidth?: PixelSize;
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a bar and the start of the next bar. */
     spacing?: Ratio;
-    /** Configuration for connectors between adjacent bars. */
-    connector?: AgFunnelSeriesConnector;
+    /** Configuration for drop-offs between adjacent bars. */
+    dropOff?: AgFunnelSeriesDropOff;
     /**
      * Bar rendering direction.
      *

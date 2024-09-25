@@ -8,7 +8,7 @@ import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOption
 export interface AgConeFunnelSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {
     /** Spacing between label and the associated divider. */
     spacing?: PixelSize;
-    /** The placement of the label in relation to the divider between connectors. */
+    /** The placement of the label in relation to the divider between drop-offs. */
     placement?: 'before' | 'middle' | 'after';
 }
 
@@ -27,15 +27,15 @@ export interface AgConeFunnelSeriesTooltipRendererParams<TDatum = any>
         AgSeriesTooltipRendererParams<TDatum> {}
 
 export interface AgConeFunnelSeriesThemeableOptions<TDatum = any> extends AgBaseCartesianThemeableOptions<TDatum> {
-    /** The colours to cycle through for the fills of the connectors. */
+    /** The colours to cycle through for the fills of the drop-offs. */
     fills?: CssColor[];
-    /** The colours to cycle through for the strokes of the connectors. */
+    /** The colours to cycle through for the strokes of the drop-offs. */
     strokes?: CssColor[];
-    /** The opacity of the fill for the connectors. */
+    /** The opacity of the fill for the drop-offs. */
     fillOpacity?: Opacity;
-    /** The opacity of the stroke for the connectors. */
+    /** The opacity of the stroke for the drop-offs. */
     strokeOpacity?: Opacity;
-    /** The width in pixels of the stroke for the connectors. */
+    /** The width in pixels of the stroke for the drop-offs. */
     strokeWidth?: PixelSize;
     /**
      * Bar rendering direction.
@@ -43,7 +43,7 @@ export interface AgConeFunnelSeriesThemeableOptions<TDatum = any> extends AgBase
      * __Note:__ This option affects the layout direction of X and Y data values.
      */
     direction?: 'horizontal' | 'vertical';
-    /** Configuration for the labels shown on between connectors. */
+    /** Configuration for the labels shown on between drop-offs. */
     label?: AgConeFunnelSeriesLabelOptions<TDatum, AgConeFunnelSeriesLabelFormatterParams>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgConeFunnelSeriesTooltipRendererParams>;

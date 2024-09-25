@@ -29,7 +29,7 @@ const {
 
 class FunnelSeriesLabel extends Label<AgFunnelSeriesLabelFormatterParams> {}
 
-export class FunnelConnector extends BaseProperties {
+export class FunnelDropOff extends BaseProperties {
     @Validate(BOOLEAN)
     enabled: boolean = true;
 
@@ -99,7 +99,7 @@ export class FunnelProperties
     itemStyler?: Styler<AgFunnelSeriesItemStylerParams<unknown>, AgFunnelSeriesStyle>;
 
     @Validate(OBJECT)
-    readonly connector = new FunnelConnector();
+    readonly dropOff = new FunnelDropOff();
 
     @Validate(OBJECT)
     readonly shadow = new DropShadow().set({ enabled: false });

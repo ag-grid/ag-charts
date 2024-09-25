@@ -43,7 +43,7 @@ export class FunnelSeries extends BaseFunnelSeries<_Scene.Rect> {
     }
 
     protected override connectorEnabled() {
-        return this.properties.connector.enabled;
+        return this.properties.dropOff.enabled;
     }
 
     protected override barStyle(): FunnelSeriesShapeStyle {
@@ -61,7 +61,7 @@ export class FunnelSeries extends BaseFunnelSeries<_Scene.Rect> {
 
     protected override connectorStyle(): FunnelSeriesShapeStyle {
         const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
-            this.properties.connector;
+            this.properties.dropOff;
         return { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset };
     }
 
