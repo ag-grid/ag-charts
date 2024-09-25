@@ -376,6 +376,13 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             yLowKey,
             yHighKey,
             highlightStyle: { item: itemHighlightStyle },
+            fillOpacity,
+            strokeOpacity,
+            strokeWidth,
+            lineDash,
+            lineDashOffset,
+            itemStyler,
+            shadow: fillShadow,
         } = this.properties;
 
         const xAxis = this.axes[ChartAxisDirection.X];
@@ -389,15 +396,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
 
         datumSelection.each((rect, datum) => {
-            const {
-                fillOpacity,
-                strokeOpacity,
-                strokeWidth,
-                lineDash,
-                lineDashOffset,
-                itemStyler,
-                shadow: fillShadow,
-            } = this.properties;
             const style: _ModuleSupport.RectConfig = {
                 fill: datum.fill,
                 stroke: datum.stroke,

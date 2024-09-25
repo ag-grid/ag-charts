@@ -1,7 +1,8 @@
 import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, Opacity, PixelSize } from '../../chart/types';
+import type { CssColor, Opacity, PixelSize, Ratio } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
@@ -37,6 +38,8 @@ export interface AgFunnelSeriesThemeableOptions<TDatum = any> extends AgBaseCart
     strokeOpacity?: Opacity;
     /** The width in pixels of the stroke for the bars. */
     strokeWidth?: PixelSize;
+    /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a bar and the start of the next bar. */
+    spacing?: Ratio;
     /** Configuration for connectors between adjacent bars. */
     connector?: AgFunnelSeriesConnector;
     /**
@@ -49,6 +52,8 @@ export interface AgFunnelSeriesThemeableOptions<TDatum = any> extends AgBaseCart
     crisp?: boolean;
     /** Configuration for the labels shown on bars. */
     label?: AgFunnelSeriesLabelOptions<TDatum, AgFunnelSeriesLabelFormatterParams>;
+    /** Configuration for the shadow used behind the series items. */
+    shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgFunnelSeriesTooltipRendererParams>;
     /** Function used to return formatting for individual bars, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */

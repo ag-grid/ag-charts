@@ -10,7 +10,7 @@ import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 
-const { Label } = _Scene;
+const { Label, DropShadow } = _Scene;
 const {
     AbstractBarSeriesProperties,
     BaseProperties,
@@ -92,14 +92,17 @@ export class FunnelProperties
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(POSITIVE_NUMBER)
-    cornerRadius: number = 0;
+    @Validate(RATIO)
+    spacing: number = 0;
 
     @Validate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgFunnelSeriesItemStylerParams<unknown>, AgFunnelSeriesStyle>;
 
     @Validate(OBJECT)
     readonly connector = new FunnelConnector();
+
+    @Validate(OBJECT)
+    readonly shadow = new DropShadow().set({ enabled: false });
 
     @Validate(OBJECT)
     readonly label = new FunnelSeriesLabel();
