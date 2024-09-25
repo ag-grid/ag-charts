@@ -18,7 +18,7 @@ import type { SeriesNodeDatum } from './seriesTypes';
 
 class SeriesAreaAriaLabel {
     constructor(
-        private element: HTMLElement,
+        private readonly element: HTMLElement,
         public readonly id: string
     ) {
         element.id = id;
@@ -38,7 +38,7 @@ class SeriesAreaAriaLabel {
 export class SeriesAreaFocusManager extends BaseManager {
     private series: Series<any, any>[] = [];
     private seriesRect?: BBox;
-    private ariaLabel: SeriesAreaAriaLabel;
+    private readonly ariaLabel: SeriesAreaAriaLabel;
 
     private readonly focus = {
         hasFocus: false,
