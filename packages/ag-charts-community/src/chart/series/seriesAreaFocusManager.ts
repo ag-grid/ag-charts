@@ -22,7 +22,7 @@ class SeriesAreaAriaLabel {
         public readonly id: string
     ) {
         element.id = id;
-        element.style.opacity = '0';
+        element.style.display = 'none';
         setAttribute(element.parentElement, 'aria-labelledby', id);
     }
     layoutComplete(event: LayoutCompleteEvent) {
