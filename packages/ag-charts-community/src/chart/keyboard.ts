@@ -5,6 +5,6 @@ export class Keyboard extends BaseProperties {
     @Validate(BOOLEAN)
     enabled: boolean = false;
 
-    @Validate(NUMBER)
-    tabIndex?: number;
+    @Validate(NUMBER.restrict({ min: -1, max: 0 }))
+    tabIndex?: 0 | -1;
 }

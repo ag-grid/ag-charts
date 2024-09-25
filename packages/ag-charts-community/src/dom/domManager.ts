@@ -210,7 +210,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         this.element.classList.add(themeClassName);
     }
 
-    setTabIndex(tabIndex: number) {
+    setTabIndex(tabIndex: 0 | -1) {
         const canvasProxy = this.rootElements['series-area'].element;
         if (canvasProxy) {
             canvasProxy.tabIndex = tabIndex;
