@@ -1,6 +1,7 @@
 import type { AgChartClickEvent } from 'ag-charts-types';
 
 import type { BBox } from '../../scene/bbox';
+import { setAttribute } from '../../sparklines-util';
 import { clamp } from '../../util/number';
 import type { TypedEvent } from '../../util/observable';
 import { BaseManager } from '../baseManager';
@@ -15,10 +16,29 @@ import type { PickFocusOutputs, Series } from './series';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesNodeDatum } from './seriesTypes';
 
+class SeriesAreaAriaLabel {
+    constructor(
+        private element: HTMLElement,
+        public readonly id: string
+    ) {
+        element.id = id;
+        element.style.opacity = '0';
+        setAttribute(element.parentElement, 'aria-labelledby', id);
+    }
+    layoutComplete(event: LayoutCompleteEvent) {
+        this.element.style.width = `${event.chart.width}px`;
+        this.element.style.height = `${event.chart.height}px`;
+    }
+    set text(text: string) {
+        this.element.textContent = text;
+    }
+}
+
 /** Manages focus and keyboard navigation concerns around the series area and sub-components. */
 export class SeriesAreaFocusManager extends BaseManager {
     private series: Series<any, any>[] = [];
     private seriesRect?: BBox;
+    private ariaLabel: SeriesAreaAriaLabel;
 
     private readonly focus = {
         hasFocus: false,
@@ -39,7 +59,10 @@ export class SeriesAreaFocusManager extends BaseManager {
     ) {
         super();
 
+        const labelEl = this.ctx.domManager.addChild('series-area', 'series-area-aria-label');
+        this.ariaLabel = new SeriesAreaAriaLabel(labelEl, `${this.id}-aria-label`);
         this.destroyFns.push(
+            () => this.ctx.domManager.removeChild('series-area', 'series-area-aria-label'),
             this.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
             this.ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
             this.ctx.keyNavManager.addListener('blur', () => this.onBlur()),
@@ -81,6 +104,7 @@ export class SeriesAreaFocusManager extends BaseManager {
 
     private layoutComplete(event: LayoutCompleteEvent): void {
         this.seriesRect = event.series.rect;
+        this.ariaLabel.layoutComplete(event);
     }
 
     private refreshFocus() {
@@ -126,7 +150,6 @@ export class SeriesAreaFocusManager extends BaseManager {
             this.handleSeriesFocus(seriesIndexDelta, datumIndexDelta);
         } else {
             this.ctx.focusIndicator.updateBounds(overlayFocus.rect);
-            this.ctx.ariaAnnouncementService.clear();
         }
     }
 
@@ -179,10 +202,9 @@ export class SeriesAreaFocusManager extends BaseManager {
         if (keyboardEvent !== undefined) {
             const html = focus.series.getTooltipHtml(datum);
             const meta = TooltipManager.makeTooltipMeta(keyboardEvent, datum);
-            const aria = this.getDatumAriaText(datum, html);
             this.ctx.highlightManager.updateHighlight(this.id, datum);
             this.ctx.tooltipManager.updateTooltip(this.id, meta, html);
-            this.ctx.ariaAnnouncementService.announceValue('ariaAnnounceHoverDatum', { datum: aria });
+            this.ariaLabel.text = this.getDatumAriaText(datum, html);
         }
     }
 
@@ -202,6 +224,8 @@ export class SeriesAreaFocusManager extends BaseManager {
 
     private getDatumAriaText(datum: SeriesNodeDatum, html: TooltipContent): string {
         const description = html.ariaLabel;
-        return datum.series.getDatumAriaText?.(datum, description) ?? description;
+        return this.ctx.localeManager.t('ariaAnnounceHoverDatum', {
+            datum: datum.series.getDatumAriaText?.(datum, description) ?? description,
+        });
     }
 }
