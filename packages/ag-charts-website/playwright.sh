@@ -3,7 +3,11 @@
 set -eu
 
 cd $(dirname $0)
+
 export $(cat .env.test:e2e.docker | grep -v '^#' | xargs)
+if [ "${CI:-}" != "" ] ; then
+    export PUBLIC_SITE_URL=http://172.17.0.1:4601
+fi
 
 if [ "$1" == "--host" ] ; then
   shift
