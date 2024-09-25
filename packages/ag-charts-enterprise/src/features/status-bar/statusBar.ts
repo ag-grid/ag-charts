@@ -119,7 +119,7 @@ export class StatusBar
     private readonly highlightManager: _ModuleSupport.HighlightManager;
     private readonly labelGroup = new _Scene.TranslatableGroup({
         name: 'StatusBar',
-        zIndex: Layers.CHART_OVERLAY_ZINDEX,
+        zIndex: Layers.STATUS_BAR_ZINDEX,
         layer: true,
     });
     private readonly backgroundNode = this.labelGroup.appendChild(new Rect());
