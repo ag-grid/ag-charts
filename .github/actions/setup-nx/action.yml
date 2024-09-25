@@ -9,10 +9,6 @@ inputs:
         description: 'Restore Nx Cache.'
         required: false
         default: 'true'
-    playwright_install:
-        description: 'Setup Playwright for execution.'
-        required: false
-        default: 'false'
     cache_mode:
         description: 'Read/write mode for caches'
         require: false
@@ -128,17 +124,3 @@ runs:
           shell: bash
           run: |
               yarn check --integrity || yarn install --ci
-
-        - name: Cache playwright binaries
-          uses: actions/cache@v4
-          if: inputs.playwright_install == 'true'
-          id: playwright-cache
-          with:
-              path: |
-                  ~/.cache/ms-playwright
-              key: playwright-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-
-        - name: playwright install
-          if: inputs.playwright_install == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
-          shell: bash
-          run: npx playwright install chromium --with-deps
