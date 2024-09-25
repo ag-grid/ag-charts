@@ -35,8 +35,10 @@ export class Group extends Node {
         );
     }
 
-    private clipRect?: BBox;
+    // should all be private
+    protected clipRect?: BBox;
     protected layer?: HdpiCanvas;
+    protected lastBBox?: BBox = undefined;
 
     @SceneChangeDetection({
         redraw: RedrawType.MAJOR,
@@ -54,35 +56,8 @@ export class Group extends Node {
         }
     ) {
         super(opts);
-
-        const { zIndex, zIndexSubOrder } = opts ?? {};
-
         this.isContainerNode = true;
-        if (zIndex !== undefined) {
-            this.zIndex = zIndex;
-        }
-        if (zIndexSubOrder !== undefined) {
-            this.zIndexSubOrder = zIndexSubOrder;
-        }
-    }
-
-    protected getComputedOpacity() {
-        let opacity = 1;
-        for (const node of this.traverseUp(true)) {
-            if (node instanceof Group) {
-                opacity *= node.opacity;
-            }
-        }
-        return opacity;
-    }
-
-    protected getVisibility() {
-        for (const node of this.traverseUp(true)) {
-            if (!node.visible) {
-                return false;
-            }
-        }
-        return true;
+        this.zIndexSubOrder = opts?.zIndexSubOrder;
     }
 
     // We consider a group to be boundless, thus any point belongs to it.
@@ -93,8 +68,6 @@ export class Group extends Node {
     protected override computeBBox(): BBox {
         return Group.computeChildrenBBox(this.children());
     }
-
-    private lastBBox?: BBox = undefined;
 
     override preRender(): ChildNodeCounts {
         const counts = super.preRender();
@@ -118,9 +91,7 @@ export class Group extends Node {
         for (const child of this.children()) {
             isChildDirty ||= child.layerManager == null && child.dirty >= RedrawType.TRIVIAL;
             isChildLayerDirty ||= child.layerManager != null && child.dirty >= RedrawType.TRIVIAL;
-            if (isChildDirty) {
-                break;
-            }
+            if (isChildDirty) break;
         }
 
         if (name) {
@@ -137,19 +108,17 @@ export class Group extends Node {
         }
 
         if (!isDirty && !isChildDirty && !isChildLayerDirty && !forceRender) {
-            if (name && stats) {
-                debug?.({ name, result: 'skipping', renderCtx, counts: nodeCount(this), group: this });
+            if (stats) {
+                if (name) {
+                    debug?.({ name, result: 'skipping', renderCtx, counts: nodeCount(this), group: this });
+                }
+                if (layer) {
+                    stats.layersSkipped++;
+                    stats.nodesSkipped += nodeCount(this).count;
+                }
             }
-
-            if (layer && stats) {
-                stats.layersSkipped++;
-                stats.nodesSkipped += nodeCount(this).count;
-            }
-
             this.markClean({ recursive: false });
-
-            // Nothing to do.
-            return;
+            return; // Nothing to do.
         }
 
         const groupVisible = this.visible;

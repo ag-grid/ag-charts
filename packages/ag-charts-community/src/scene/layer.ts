@@ -9,13 +9,12 @@ export class Layer extends Group {
     constructor(
         protected override readonly opts?: {
             name?: string;
-            isVirtual?: boolean;
             zIndex?: number;
             zIndexSubOrder?: ZIndexSubOrder;
             deriveZIndexFromChildren?: boolean; // TODO remove feature
         }
     ) {
-        super({ ...opts, layer: true });
+        super(opts);
     }
 
     static override is(value: unknown): value is Layer {
@@ -23,7 +22,7 @@ export class Layer extends Group {
     }
 
     override markDirty(type = RedrawType.TRIVIAL) {
-        super.markDirty(type, !this.isVirtual && this.layer != null ? RedrawType.TRIVIAL : type);
+        super.markDirty(type, this.layer != null ? RedrawType.TRIVIAL : type);
     }
 
     override preRender(): ChildNodeCounts {
@@ -63,6 +62,25 @@ export class Layer extends Group {
             this.layer = undefined;
         }
         super._setLayerManager(layersManager);
+    }
+
+    private getComputedOpacity() {
+        let opacity = 1;
+        for (const node of this.traverseUp(true)) {
+            if (node instanceof Group) {
+                opacity *= node.opacity;
+            }
+        }
+        return opacity;
+    }
+
+    private getVisibility() {
+        for (const node of this.traverseUp(true)) {
+            if (!node.visible) {
+                return false;
+            }
+        }
+        return true;
     }
 
     protected override onVisibleChange() {
