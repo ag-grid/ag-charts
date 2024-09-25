@@ -8,6 +8,7 @@ import type { AgBulletSeriesThemeableOptions } from '../series/cartesian/bulletO
 import type { AgCandlestickSeriesThemeableOptions } from '../series/cartesian/candlestickOptions';
 import type { AgBaseCartesianThemeOptions, AgCartesianAxesTheme } from '../series/cartesian/cartesianOptions';
 import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
+import type { AgConeFunnelSeriesThemeableOptions } from '../series/cartesian/coneFunnelOptions';
 import type { AgFunnelSeriesThemeableOptions } from '../series/cartesian/funnelOptions';
 import type { AgHeatmapSeriesThemeableOptions } from '../series/cartesian/heatmapOptions';
 import type { AgHistogramSeriesThemeableOptions } from '../series/cartesian/histogramOptions';
@@ -108,6 +109,9 @@ export interface AgBoxPlotSeriesThemeOverrides extends AgBaseCartesianThemeOptio
 }
 export interface AgCandlestickSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
     series?: AgCandlestickSeriesThemeableOptions;
+}
+export interface AConeFunnelSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
+    series?: AgConeFunnelSeriesThemeableOptions;
 }
 export interface AgFunnelSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
     series?: AgFunnelSeriesThemeableOptions;
@@ -237,10 +241,12 @@ export interface AgChartThemeOverrides {
     bar?: AgBarSeriesThemeOverrides;
     /** Box-plot series theme overrides. */
     'box-plot'?: AgBoxPlotSeriesThemeOverrides;
-    /** Funnel series theme overrides. */
-    funnel?: AgFunnelSeriesThemeOverrides;
     /** Candlestick series theme overrides. */
     candlestick?: AgCandlestickSeriesThemeOverrides;
+    /** Cone Funnel series theme overrides. */
+    'cone-funnel'?: AConeFunnelSeriesThemeOverrides;
+    /** Funnel series theme overrides. */
+    funnel?: AgFunnelSeriesThemeOverrides;
     /** ohlc series theme overrides. */
     ohlc?: AgOhlcSeriesThemeOverrides;
     /** Histogram series theme overrides. */
