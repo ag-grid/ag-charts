@@ -150,11 +150,11 @@ export function buildTree(node: Node): BuildTree {
             if (childNode instanceof Group && childNode.isLayer()) {
                 treeNodeName = `*${treeNodeName}*`;
             }
+            const subOrder = zIndexSubOrder?.map((v: any) => (typeof v === 'function' ? `${v()} (fn)` : v)).join(' / ');
             const key = [
                 `${treeNodeName ?? '<unknown>'}`,
                 `z: ${zIndex}`,
-                zIndexSubOrder &&
-                    `zo: ${zIndexSubOrder.map((v: any) => (typeof v === 'function' ? `${v()} (fn)` : v)).join(' / ')}`,
+                subOrder && `zo: ${subOrder}`,
                 virtualParent && `(virtual parent)`,
                 translationX && `x: ${translationX}`,
                 translationY && `y: ${translationY}`,

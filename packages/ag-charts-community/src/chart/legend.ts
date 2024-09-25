@@ -952,15 +952,11 @@ export class Legend extends BaseProperties {
     private computePagedBBox(): BBox {
         // Get BBox without group transforms applied.
         let actualBBox = Group.computeChildrenBBox(this.group.children());
-        if (this.pages.length <= 1) {
-            return actualBBox;
+        if (this.pages.length > 1) {
+            const [maxPageWidth, maxPageHeight] = this.maxPageSize;
+            actualBBox.height = Math.max(maxPageHeight, actualBBox.height);
+            actualBBox.width = Math.max(maxPageWidth, actualBBox.width);
         }
-
-        const [maxPageWidth, maxPageHeight] = this.maxPageSize;
-        actualBBox = actualBBox.clone();
-        actualBBox.height = Math.max(maxPageHeight, actualBBox.height);
-        actualBBox.width = Math.max(maxPageWidth, actualBBox.width);
-
         return actualBBox;
     }
 
