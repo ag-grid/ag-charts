@@ -38,10 +38,6 @@ export class Group extends Node {
         }
     }
 
-    isLayer() {
-        return this.layer != null;
-    }
-
     constructor(
         protected readonly opts?: {
             readonly layer?: boolean;

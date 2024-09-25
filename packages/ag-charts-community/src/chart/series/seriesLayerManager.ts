@@ -1,4 +1,5 @@
 import { Group } from '../../scene/group';
+import { Layer } from '../../scene/layer';
 import type { ZIndexSubOrder } from '../../scene/layersManager';
 import { clamp } from '../../util/number';
 import { zIndexMap } from '../zIndexMap';
@@ -86,9 +87,8 @@ export class SeriesLayerManager {
             id: lookupIndex,
             seriesIds: [],
             group: this.seriesRoot.appendChild(
-                new Group({
+                new Layer({
                     name: `${type}-content`,
-                    layer: true,
                     zIndex: zIndexMap.SERIES_LAYER,
                     zIndexSubOrder: seriesConfig.getGroupZIndexSubOrder('data'),
                 })

@@ -25,7 +25,7 @@ const {
     computeMarkerFocusBounds,
 } = _ModuleSupport;
 const { ColorScale, LinearScale } = _Scale;
-const { Group, Selection, Text, getMarker } = _Scene;
+const { Layer, Selection, Text, getMarker } = _Scene;
 const { sanitizeHtml, Logger } = _Util;
 
 export interface MapMarkerNodeDataContext
@@ -72,9 +72,8 @@ export class MapMarkerSeries
     private readonly sizeScale = new LinearScale();
 
     private readonly markerGroup = this.contentGroup.appendChild(
-        new Group({
+        new Layer({
             name: 'markerGroup',
-            layer: true,
             zIndex: zIndexMap.SERIES_LAYER,
             zIndexSubOrder: this.getGroupZIndexSubOrder('marker'),
         })

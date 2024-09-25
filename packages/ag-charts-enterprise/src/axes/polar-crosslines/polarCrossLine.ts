@@ -22,7 +22,7 @@ const {
     MATCHING_CROSSLINE_TYPE,
 } = _ModuleSupport;
 
-const { Group } = _Scene;
+const { Layer } = _Scene;
 const { createId } = _Util;
 
 export class PolarCrossLineLabel extends BaseProperties implements AgBaseCrossLineLabelOptions {
@@ -115,8 +115,8 @@ export abstract class PolarCrossLine extends BaseProperties implements _ModuleSu
     axisInnerRadius: number = 0;
     axisOuterRadius: number = 0;
 
-    readonly group = new Group({ name: `${this.id}`, layer: true, zIndex: PolarCrossLine.LINE_LAYER_ZINDEX });
-    readonly labelGroup = new Group({ name: `${this.id}`, layer: true, zIndex: PolarCrossLine.LABEL_LAYER_ZINDEX });
+    readonly group = new Layer({ name: this.id, zIndex: PolarCrossLine.LINE_LAYER_ZINDEX });
+    readonly labelGroup = new Layer({ name: this.id, zIndex: PolarCrossLine.LABEL_LAYER_ZINDEX });
 
     abstract update(visible: boolean): void;
 

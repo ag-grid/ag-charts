@@ -5,6 +5,7 @@ import { fromToMotion } from '../../../motion/fromToMotion';
 import { LinearScale } from '../../../scale/linearScale';
 import { BBox } from '../../../scene/bbox';
 import { Group, TranslatableGroup } from '../../../scene/group';
+import { TranslatableLayer } from '../../../scene/layer';
 import { PointerEvents } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
@@ -126,9 +127,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
     // The group node that contains the background graphics.
     readonly backgroundGroup = this.rootGroup.appendChild(
-        new TranslatableGroup({
+        new TranslatableLayer({
             name: `${this.id}-background`,
-            layer: true,
             zIndex: zIndexMap.SERIES_BACKGROUND,
         })
     );

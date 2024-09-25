@@ -8,6 +8,7 @@ import type { AxisOptionModule, ChartOptions } from '../module/optionsModule';
 import type { SeriesOptionModule } from '../module/optionsModuleTypes';
 import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
+import { Layer, TranslatableLayer } from '../scene/layer';
 import type { Node } from '../scene/node';
 import type { Scene } from '../scene/scene';
 import type { PlacedLabel, PointLabelDatum } from '../scene/util/labelPlacement';
@@ -118,15 +119,13 @@ export abstract class Chart extends Observable {
     className?: string;
 
     readonly seriesRoot = new TranslatableGroup({ name: `${this.id}-series-root` });
-    readonly highlightRoot = new TranslatableGroup({
+    readonly highlightRoot = new TranslatableLayer({
         name: `${this.id}-highlight-root`,
-        layer: true,
         zIndex: zIndexMap.SERIES_HIGHLIGHT,
         nonEmptyChildDerivedZIndex: true,
     });
-    readonly annotationRoot = new TranslatableGroup({
+    readonly annotationRoot = new TranslatableLayer({
         name: `${this.id}-annotation-root`,
-        layer: true,
         zIndex: zIndexMap.SERIES_ANNOTATION,
     });
 
@@ -255,7 +254,7 @@ export abstract class Chart extends Observable {
         const container = resources?.container ?? options.processedOptions.container ?? undefined;
 
         const root = new Group({ name: 'root' });
-        const titleGroup = new Group({ name: 'titles', layer: true, zIndex: zIndexMap.SERIES_LABEL });
+        const titleGroup = new Layer({ name: 'titles', zIndex: zIndexMap.SERIES_LABEL });
         // Prevent the scene from rendering chart components in an invalid state
         // (before first layout is performed).
         root.visible = false;

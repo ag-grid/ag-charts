@@ -18,7 +18,7 @@ const {
     Validate,
     LayoutElement,
 } = _ModuleSupport;
-const { Group, Rect, Triangle, TranslatableGroup, LinearGradient } = _Scene;
+const { Group, Rect, Triangle, TranslatableLayer, LinearGradient } = _Scene;
 const { createId } = _Util;
 
 class GradientBar extends BaseProperties {
@@ -50,11 +50,7 @@ export class GradientLegend {
     private readonly axisTicks: _ModuleSupport.AxisTicks;
     private readonly highlightManager: _ModuleSupport.HighlightManager;
 
-    private readonly legendGroup = new TranslatableGroup({
-        name: 'legend',
-        layer: true,
-        zIndex: zIndexMap.LEGEND,
-    });
+    private readonly legendGroup = new TranslatableLayer({ name: 'legend', zIndex: zIndexMap.LEGEND });
     private readonly gradientRect = new Rect();
     private readonly arrow = new Triangle();
 

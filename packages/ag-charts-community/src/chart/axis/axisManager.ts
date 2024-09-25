@@ -1,5 +1,6 @@
 import type { AxisContext } from '../../module/axisContext';
 import { Group } from '../../scene/group';
+import { Layer } from '../../scene/layer';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import { zIndexMap } from '../zIndexMap';
 
@@ -14,12 +15,12 @@ type Axis = {
 export class AxisManager {
     private readonly axes: Map<ChartAxisDirection, AxisContext[]> = new Map();
 
-    readonly axisGridGroup: Group;
-    readonly axisGroup: Group;
+    readonly axisGridGroup: Layer;
+    readonly axisGroup: Layer;
 
     public constructor(private readonly sceneRoot: Group) {
-        this.axisGridGroup = new Group({ name: 'Axes-Grids', layer: true, zIndex: zIndexMap.AXIS_GRID });
-        this.axisGroup = new Group({ name: 'Axes', layer: true, zIndex: zIndexMap.AXIS });
+        this.axisGridGroup = new Layer({ name: 'Axes-Grids', zIndex: zIndexMap.AXIS_GRID });
+        this.axisGroup = new Layer({ name: 'Axes', zIndex: zIndexMap.AXIS });
 
         this.sceneRoot.appendChild(this.axisGroup);
         this.sceneRoot.appendChild(this.axisGridGroup);

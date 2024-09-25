@@ -10,7 +10,7 @@ import { ContinuousScale } from '../../scale/continuousScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
-import { Group } from '../../scene/group';
+import { Layer } from '../../scene/layer';
 import { PointerEvents } from '../../scene/node';
 import type { Point } from '../../scene/point';
 import { Range } from '../../scene/shape/range';
@@ -164,8 +164,8 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     regularFlipRotation: number = 0;
     direction: ChartAxisDirection = ChartAxisDirection.X;
 
-    readonly group = new Group({ name: `${this.id}`, layer: true, zIndex: CartesianCrossLine.LINE_LAYER_ZINDEX });
-    readonly labelGroup = new Group({ name: `${this.id}`, layer: true, zIndex: CartesianCrossLine.LABEL_LAYER_ZINDEX });
+    readonly group = new Layer({ name: this.id, zIndex: CartesianCrossLine.LINE_LAYER_ZINDEX });
+    readonly labelGroup = new Layer({ name: this.id, zIndex: CartesianCrossLine.LABEL_LAYER_ZINDEX });
     private readonly crossLineRange = new Range();
     private readonly crossLineLabel = new TransformableText();
     private labelPoint?: Point = undefined;

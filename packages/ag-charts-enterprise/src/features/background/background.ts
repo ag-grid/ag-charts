@@ -18,10 +18,6 @@ export class Background extends _ModuleSupport.Background<Image> {
     })
     override image = new Image();
 
-    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
-        super(ctx);
-    }
-
     protected override onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
         super.onLayoutComplete(event);
         if (this.image) {

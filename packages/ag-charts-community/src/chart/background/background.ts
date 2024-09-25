@@ -31,15 +31,10 @@ export class Background<TImage = never> extends BaseModuleInstance implements Mo
     @ProxyPropertyOnWrite('textNode')
     text?: string;
 
-    constructor(
-        ctx: ModuleContext,
-        private readonly zIndex: number = zIndexMap.SERIES_BACKGROUND,
-        private readonly layer: boolean = false
-    ) {
+    constructor(protected readonly ctx: ModuleContext) {
         super();
 
-        this.node = new Group({ name: 'background', zIndex: this.zIndex, layer: this.layer });
-
+        this.node = this.createNode();
         this.node.append([this.rectNode, this.textNode]);
 
         this.visible = true;
@@ -48,6 +43,10 @@ export class Background<TImage = never> extends BaseModuleInstance implements Mo
             ctx.scene.attachNode(this.node),
             ctx.layoutManager.addListener('layout:complete', (e) => this.onLayoutComplete(e))
         );
+    }
+
+    protected createNode() {
+        return new Group({ name: 'background', zIndex: zIndexMap.SERIES_BACKGROUND });
     }
 
     protected onLayoutComplete(e: LayoutCompleteEvent) {

@@ -6,6 +6,7 @@ import { SimpleTextMeasurer } from '../util/textMeasurer';
 import { isString } from '../util/type-guards';
 import { BBox } from './bbox';
 import { Group } from './group';
+import { Layer } from './layer';
 import type { LayersManager } from './layersManager';
 import { type Node, RedrawType, type RenderContext } from './node';
 import { Transformable } from './transformable';
@@ -147,7 +148,7 @@ export function buildTree(node: Node): BuildTree {
             if (!visible || opacity <= 0) {
                 treeNodeName = `(${treeNodeName})`;
             }
-            if (childNode instanceof Group && childNode.isLayer()) {
+            if (Layer.is(childNode)) {
                 treeNodeName = `*${treeNodeName}*`;
             }
             const subOrder = zIndexSubOrder?.map((v: any) => (typeof v === 'function' ? `${v()} (fn)` : v)).join(' / ');
