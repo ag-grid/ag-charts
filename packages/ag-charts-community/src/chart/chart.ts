@@ -45,7 +45,6 @@ import { seriesRegistry } from './factory/seriesRegistry';
 import { REGIONS, SimpleRegionBBoxProvider } from './interaction/regions';
 import { SyncManager } from './interaction/syncManager';
 import { Keyboard } from './keyboard';
-import { Layers } from './layers';
 import { LayoutElement } from './layout/layoutManager';
 import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
 import { guessInvalidPositions } from './mapping/prepareAxis';
@@ -64,6 +63,7 @@ import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
 import type { UpdateProcessor } from './update/processor';
 import type { UpdateOpts } from './updateService';
+import { zIndexLayers } from './zIndexLayers';
 
 const debug = Debug.create(true, 'opts');
 
@@ -121,13 +121,13 @@ export abstract class Chart extends Observable {
     readonly highlightRoot = new TranslatableGroup({
         name: `${this.id}-highlight-root`,
         layer: true,
-        zIndex: Layers.SERIES_HIGHLIGHT_ZINDEX,
+        zIndex: zIndexLayers.SERIES_HIGHLIGHT,
         nonEmptyChildDerivedZIndex: true,
     });
     readonly annotationRoot = new TranslatableGroup({
         name: `${this.id}-annotation-root`,
         layer: true,
-        zIndex: Layers.SERIES_ANNOTATION_ZINDEX,
+        zIndex: zIndexLayers.SERIES_ANNOTATION,
     });
 
     readonly tooltip: Tooltip;
@@ -255,7 +255,7 @@ export abstract class Chart extends Observable {
         const container = resources?.container ?? options.processedOptions.container ?? undefined;
 
         const root = new Group({ name: 'root' });
-        const titleGroup = new Group({ name: 'titles', layer: true, zIndex: Layers.SERIES_LABEL_ZINDEX });
+        const titleGroup = new Group({ name: 'titles', layer: true, zIndex: zIndexLayers.SERIES_LABEL });
         // Prevent the scene from rendering chart components in an invalid state
         // (before first layout is performed).
         root.visible = false;

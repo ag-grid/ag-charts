@@ -7,7 +7,7 @@ import { TextualPointScene } from '../scenes/textualPointScene';
 import { convertPoint } from '../utils/values';
 import { ICON_HEIGHT, ICON_WIDTH, LABEL_OFFSET, type NoteProperties, TOOLBAR_OFFSET } from './noteProperties';
 
-const { Layers, TextWrapper } = _ModuleSupport;
+const { zIndexLayers, TextWrapper } = _ModuleSupport;
 const { clamp } = _Util;
 
 export class NoteScene extends TextualPointScene<NoteProperties> {
@@ -164,7 +164,7 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         this.label.visible = hovered;
         this.shape.visible = hovered;
 
-        this.zIndex = hovered ? Layers.CHART_ANNOTATION_FOCUSED_ZINDEX : Layers.CHART_ANNOTATION_ZINDEX;
+        this.zIndex = hovered ? zIndexLayers.CHART_ANNOTATION_FOCUSED : zIndexLayers.CHART_ANNOTATION;
     }
 
     override toggleActive(active: boolean) {

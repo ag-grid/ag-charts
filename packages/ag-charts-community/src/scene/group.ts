@@ -42,7 +42,7 @@ export class Group extends Node {
         return this.layer != null;
     }
 
-    public constructor(
+    constructor(
         protected readonly opts?: {
             readonly layer?: boolean;
             readonly zIndex?: number;
@@ -66,15 +66,10 @@ export class Group extends Node {
     }
 
     override _setLayerManager(layersManager?: LayersManager) {
-        if (this._layerManager && this.layer) {
-            this._layerManager.removeLayer(this.layer);
+        if (this.layer) {
+            this._layerManager?.removeLayer(this.layer);
             this.layer = undefined;
         }
-
-        if (this.layer) {
-            throw new Error('AG Charts - unable to deregister scene rendering layer!');
-        }
-
         super._setLayerManager(layersManager);
     }
 
@@ -274,7 +269,7 @@ export class Group extends Node {
             clipBBox = Transformable.toCanvas(this, clipRect);
         }
 
-        let children: Iterable<Node> | Node[] = this.children();
+        let children: Iterable<Node> = this.children();
         if (dirtyZIndex) {
             children = [...children];
             this.sortChildren(children as Node[]);

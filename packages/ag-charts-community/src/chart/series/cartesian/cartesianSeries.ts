@@ -20,9 +20,9 @@ import { CategoryAxis } from '../../axis/categoryAxis';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from '../../interaction/chartEventManager';
-import { Layers } from '../../layers';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
+import { zIndexLayers } from '../../zIndexLayers';
 import { DataModelSeries } from '../dataModelSeries';
 import type {
     SeriesConstructorOpts,
@@ -163,21 +163,21 @@ export abstract class CartesianSeries<
     private readonly dataNodeGroup = this.contentGroup.appendChild(
         new Group({
             name: `${this.id}-series-dataNodes`,
-            zIndex: Layers.SERIES_LAYER_ZINDEX,
+            zIndex: zIndexLayers.SERIES_LAYER,
             zIndexSubOrder: this.getGroupZIndexSubOrder('data'),
         })
     );
     private readonly markerGroup = this.contentGroup.appendChild(
         new Group({
             name: `${this.id}-series-markers`,
-            zIndex: Layers.SERIES_LAYER_ZINDEX,
+            zIndex: zIndexLayers.SERIES_LAYER,
             zIndexSubOrder: this.getGroupZIndexSubOrder('marker'),
         })
     );
     override readonly labelGroup = this.contentGroup.appendChild(
         new TranslatableGroup({
             name: `${this.id}-series-labels`,
-            zIndex: Layers.SERIES_LABEL_ZINDEX,
+            zIndex: zIndexLayers.SERIES_LABEL,
             zIndexSubOrder: this.getGroupZIndexSubOrder('labels'),
         })
     );
@@ -248,7 +248,7 @@ export abstract class CartesianSeries<
         this.paths = [];
         for (let index = 0; index < pathsPerSeries.length; index++) {
             this.paths[index] = new Path({ name: `${this.id}-${pathsPerSeries[index]}` });
-            this.paths[index].zIndex = Layers.SERIES_LAYER_ZINDEX;
+            this.paths[index].zIndex = zIndexLayers.SERIES_LAYER;
             this.paths[index].zIndexSubOrder = this.getGroupZIndexSubOrder('paths', index);
             this.contentGroup.appendChild(this.paths[index]);
         }
@@ -471,7 +471,7 @@ export abstract class CartesianSeries<
         if (hasMarkers) {
             markerGroup.opacity = opacity;
             markerGroup.zIndex =
-                dataNodeGroup.zIndex >= Layers.SERIES_LAYER_ZINDEX ? dataNodeGroup.zIndex : dataNodeGroup.zIndex + 1;
+                dataNodeGroup.zIndex >= zIndexLayers.SERIES_LAYER ? dataNodeGroup.zIndex : dataNodeGroup.zIndex + 1;
             markerGroup.visible = visible;
         }
 

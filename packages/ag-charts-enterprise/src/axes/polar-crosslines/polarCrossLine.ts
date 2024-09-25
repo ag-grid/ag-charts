@@ -4,7 +4,7 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 const {
     BaseProperties,
     ChartAxisDirection,
-    Layers,
+    zIndexLayers,
     ARRAY,
     BOOLEAN,
     COLOR_STRING,
@@ -61,9 +61,9 @@ export class PolarCrossLineLabel extends BaseProperties implements AgBaseCrossLi
 }
 
 export abstract class PolarCrossLine extends BaseProperties implements _ModuleSupport.CrossLine {
-    protected static readonly LINE_LAYER_ZINDEX = Layers.SERIES_CROSSLINE_LINE_ZINDEX;
-    protected static readonly RANGE_LAYER_ZINDEX = Layers.SERIES_CROSSLINE_RANGE_ZINDEX;
-    protected static readonly LABEL_LAYER_ZINDEX = Layers.SERIES_LABEL_ZINDEX;
+    protected static readonly LINE_LAYER_ZINDEX = zIndexLayers.SERIES_CROSSLINE_LINE;
+    protected static readonly RANGE_LAYER_ZINDEX = zIndexLayers.SERIES_CROSSLINE_RANGE;
+    protected static readonly LABEL_LAYER_ZINDEX = zIndexLayers.SERIES_LABEL;
     readonly id = createId(this);
 
     @Validate(BOOLEAN, { optional: true })

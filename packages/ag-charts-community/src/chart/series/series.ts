@@ -30,10 +30,10 @@ import type { ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartMode } from '../chartMode';
 import type { DataController } from '../data/dataController';
-import { Layers } from '../layers';
 import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent } from '../tooltip/tooltip';
+import { zIndexLayers } from '../zIndexLayers';
 import type { BaseSeriesEvent, SeriesEventType } from './seriesEvents';
 import type { SeriesGroupZIndexSubOrderType } from './seriesLayerManager';
 import type { SeriesProperties } from './seriesProperties';
@@ -315,7 +315,7 @@ export abstract class Series<
             new TranslatableGroup({
                 name: `${this.internalId}-content`,
                 isVirtual: contentGroupVirtual,
-                zIndex: Layers.SERIES_LAYER_ZINDEX,
+                zIndex: zIndexLayers.SERIES_LAYER,
                 zIndexSubOrder: this.getGroupZIndexSubOrder('data'),
             })
         );
@@ -323,7 +323,7 @@ export abstract class Series<
         this.highlightGroup = new TranslatableGroup({
             name: `${this.internalId}-highlight`,
             isVirtual: contentGroupVirtual,
-            zIndex: Layers.SERIES_LAYER_ZINDEX,
+            zIndex: zIndexLayers.SERIES_LAYER,
             zIndexSubOrder: this.getGroupZIndexSubOrder('highlight'),
         });
         this.highlightNode = this.highlightGroup.appendChild(new Group({ name: 'highlightNode', zIndex: 0 }));
@@ -334,14 +334,14 @@ export abstract class Series<
         this.labelGroup = this.rootGroup.appendChild(
             new TranslatableGroup({
                 name: `${this.internalId}-series-labels`,
-                zIndex: Layers.SERIES_LABEL_ZINDEX,
+                zIndex: zIndexLayers.SERIES_LABEL,
             })
         );
 
         this.annotationGroup = new Group({
             name: `${this.id}-annotation`,
             isVirtual: contentGroupVirtual,
-            zIndex: Layers.SERIES_LAYER_ZINDEX,
+            zIndex: zIndexLayers.SERIES_LAYER,
             zIndexSubOrder: this.getGroupZIndexSubOrder('annotation'),
         });
     }

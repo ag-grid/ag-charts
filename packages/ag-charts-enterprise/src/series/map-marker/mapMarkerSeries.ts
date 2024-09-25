@@ -20,7 +20,7 @@ const {
     createDatumId,
     DataModelSeries,
     SeriesNodePickMode,
-    Layers,
+    zIndexLayers,
     valueProperty,
     computeMarkerFocusBounds,
 } = _ModuleSupport;
@@ -75,7 +75,7 @@ export class MapMarkerSeries
         new Group({
             name: 'markerGroup',
             layer: true,
-            zIndex: Layers.SERIES_LAYER_ZINDEX,
+            zIndex: zIndexLayers.SERIES_LAYER,
             zIndexSubOrder: this.getGroupZIndexSubOrder('marker'),
         })
     );

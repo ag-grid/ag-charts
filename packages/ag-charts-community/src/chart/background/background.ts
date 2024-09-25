@@ -6,8 +6,8 @@ import { Rect } from '../../scene/shape/rect';
 import { Text } from '../../scene/shape/text';
 import { ProxyPropertyOnWrite } from '../../util/proxy';
 import { BOOLEAN, COLOR_STRING, OBJECT, STRING, Validate } from '../../util/validation';
-import { Layers } from '../layers';
 import type { LayoutCompleteEvent } from '../layout/layoutManager';
+import { zIndexLayers } from '../zIndexLayers';
 
 export class Background<TImage = never> extends BaseModuleInstance implements ModuleInstance {
     protected readonly node;
@@ -33,7 +33,7 @@ export class Background<TImage = never> extends BaseModuleInstance implements Mo
 
     constructor(
         ctx: ModuleContext,
-        private readonly zIndex: number = Layers.SERIES_BACKGROUND_ZINDEX,
+        private readonly zIndex: number = zIndexLayers.SERIES_BACKGROUND,
         private readonly layer: boolean = false
     ) {
         super();

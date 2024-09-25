@@ -13,7 +13,7 @@ const {
     POSITIVE_NUMBER,
     BaseProperties,
     AxisTicks,
-    Layers,
+    zIndexLayers,
     ProxyProperty,
     Validate,
     LayoutElement,
@@ -53,7 +53,7 @@ export class GradientLegend {
     private readonly legendGroup = new TranslatableGroup({
         name: 'legend',
         layer: true,
-        zIndex: Layers.LEGEND_ZINDEX,
+        zIndex: zIndexLayers.LEGEND,
     });
     private readonly gradientRect = new Rect();
     private readonly arrow = new Triangle();

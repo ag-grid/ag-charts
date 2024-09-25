@@ -50,7 +50,6 @@ import type { Page } from './gridLayout';
 import { gridLayout } from './gridLayout';
 import type { HighlightNodeDatum } from './interaction/highlightManager';
 import { InteractionState, type PointerInteractionEvent } from './interaction/interactionManager';
-import { Layers } from './layers';
 import { LayoutElement } from './layout/layoutManager';
 import type { CategoryLegendDatum, LegendSymbolOptions } from './legendDatum';
 import { LegendMarkerLabel } from './legendMarkerLabel';
@@ -58,6 +57,7 @@ import type { Marker } from './marker/marker';
 import { type MarkerConstructor, getMarker } from './marker/util';
 import { Pagination } from './pagination/pagination';
 import { type TooltipMeta, type TooltipPointerEvent, toTooltipHtml } from './tooltip/tooltip';
+import { zIndexLayers } from './zIndexLayers';
 
 class LegendLabel extends BaseProperties {
     @Validate(POSITIVE_NUMBER, { optional: true })
@@ -164,7 +164,7 @@ export class Legend extends BaseProperties {
 
     readonly id = createId(this);
 
-    private readonly group = new TranslatableGroup({ name: 'legend', layer: true, zIndex: Layers.LEGEND_ZINDEX });
+    private readonly group = new TranslatableGroup({ name: 'legend', layer: true, zIndex: zIndexLayers.LEGEND });
 
     private readonly itemSelection: Selection<LegendMarkerLabel, CategoryLegendDatum> = Selection.select(
         this.group,
