@@ -4,7 +4,7 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { LinearScale } from '../../../scale/linearScale';
 import { BBox } from '../../../scene/bbox';
-import { Group, TranslatableGroup } from '../../../scene/group';
+import { Group } from '../../../scene/group';
 import { TranslatableLayer } from '../../../scene/layer';
 import { PointerEvents } from '../../../scene/node';
 import type { Point } from '../../../scene/point';

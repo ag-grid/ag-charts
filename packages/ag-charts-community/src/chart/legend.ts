@@ -15,7 +15,7 @@ import type { ListSwitch } from '../dom/proxyInteractionService';
 import type { LayoutContext } from '../module/baseModule';
 import type { ModuleContext } from '../module/moduleContext';
 import { BBox } from '../scene/bbox';
-import { Group, TranslatableGroup } from '../scene/group';
+import { Group } from '../scene/group';
 import { TranslatableLayer } from '../scene/layer';
 import { RedrawType } from '../scene/node';
 import type { Scene } from '../scene/scene';
