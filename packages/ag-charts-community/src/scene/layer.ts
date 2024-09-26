@@ -64,7 +64,7 @@ export class Layer extends Group {
             return super.render(renderCtx);
         }
 
-        const { opts: { name } = {}, _debug: debug, dirtyZIndex, clipRect } = this;
+        const { opts: { name } = {}, _debug: debug, clipRect } = this;
         const { isDirty, isChildDirty, isChildLayerDirty } = this.isDirty(renderCtx);
         const { stats } = renderCtx;
 
@@ -87,30 +87,24 @@ export class Layer extends Group {
         const { context: ctx } = this.layer;
 
         ctx.save();
-        // ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 
         if (forceRender !== 'dirtyTransform') {
-            forceRender = isChildDirty || dirtyZIndex;
+            forceRender = isChildDirty || this.dirtyZIndex;
         }
         if (forceRender) {
             this.layer.clear();
         }
 
         if (clipBBox) {
-            // clipBBox is in the canvas coordinate space, when we hit a layer we apply the new clipping at which point there are no transforms in play
+            // clipBBox is in the canvas coordinate space, when we hit a layer we
+            // apply the new clipping at which point there are no transforms in play
             const { width, height, x, y } = clipBBox;
-
-            debug?.(() => ({
-                name,
-                clipBBox,
-                ctxTransform: ctx.getTransform(),
-                renderCtx,
-                group: this,
-            }));
 
             ctx.beginPath();
             ctx.rect(x, y, width, height);
             ctx.clip();
+
+            debug?.(() => ({ name, clipBBox, renderCtx, group: this, ctxTransform: ctx.getTransform() }));
         }
 
         ctx.setTransform(renderCtxTransform);
@@ -130,18 +124,7 @@ export class Layer extends Group {
             clipBBox = Transformable.toCanvas(this, clipRect);
         }
 
-        let children: Iterable<Node> = this.children();
-        if (dirtyZIndex) {
-            children = [...children];
-            this.sortChildren(children as Node[]);
-            if (forceRender !== 'dirtyTransform') {
-                forceRender = true;
-            }
-        } else if (this.hasVirtualChildren()) {
-            children = [...children];
-            this.sortChildren(children as Node[]);
-        }
-
+        const children = this.sortedChildren();
         this.renderChildren(children, { ...renderCtx, ctx, forceRender, clipBBox });
 
         super.render(renderCtx, true); // Calls markClean().
@@ -158,10 +141,6 @@ export class Layer extends Group {
 
         if (stats) stats.layersRendered++;
         ctx.restore();
-
-        if (forceRender) {
-            this.layer.snapshot();
-        }
 
         ctx.verifyDepthZero?.(); // Check for save/restore depth of zero!
 

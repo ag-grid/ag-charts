@@ -111,7 +111,7 @@ export class Group extends Node {
             return super.render(renderCtx);
         }
 
-        const { opts: { name } = {}, _debug: debug, dirtyZIndex, clipRect } = this;
+        const { opts: { name } = {}, _debug: debug, clipRect } = this;
         const { isDirty, isChildDirty, isChildLayerDirty } = this.isDirty(renderCtx);
         const { ctx, stats } = renderCtx;
 
@@ -121,6 +121,10 @@ export class Group extends Node {
             this.debugSkip(renderCtx);
             this.markClean({ recursive: false });
             return; // Nothing to do.
+        }
+
+        if (forceRender !== 'dirtyTransform') {
+            forceRender ||= this.dirtyZIndex;
         }
 
         // Only apply opacity if this isn't a distinct layer - opacity will be applied
@@ -142,19 +146,7 @@ export class Group extends Node {
             clipBBox = Transformable.toCanvas(this, clipRect);
         }
 
-        let children: Iterable<Node> = this.children();
-        if (dirtyZIndex) {
-            children = [...children];
-            this.sortChildren(children as Node[]);
-            if (forceRender !== 'dirtyTransform') {
-                forceRender = true;
-            }
-        } else if (this.hasVirtualChildren()) {
-            children = [...children];
-            this.sortChildren(children as Node[]);
-        }
-
-        // Reduce churn if renderCtx is identical.
+        const children = this.sortedChildren();
         const renderCtxChanged = forceRender !== renderCtx.forceRender || clipBBox !== renderCtx.clipBBox;
         this.renderChildren(children, renderCtxChanged ? { ...renderCtx, forceRender, clipBBox } : renderCtx);
         super.render(renderCtx); // Calls markClean().
@@ -179,6 +171,15 @@ export class Group extends Node {
                 group: this,
             });
         }
+    }
+
+    protected sortedChildren() {
+        let children: Iterable<Node> = this.children();
+        if (this.dirtyZIndex || this.hasVirtualChildren()) {
+            children = [...children].sort(Group.compareChildren);
+            this.dirtyZIndex = false;
+        }
+        return children;
     }
 
     protected renderChildren(children: Iterable<Node>, renderCtx: RenderContext) {
@@ -206,11 +207,6 @@ export class Group extends Node {
             child.render(renderCtx);
             ctx.restore();
         }
-    }
-
-    protected sortChildren(children: Node[]) {
-        this.dirtyZIndex = false;
-        children.sort(Group.compareChildren);
     }
 
     /**

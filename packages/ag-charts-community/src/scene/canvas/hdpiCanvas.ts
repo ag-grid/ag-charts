@@ -79,10 +79,6 @@ export class HdpiCanvas {
         this.height = height;
     }
 
-    snapshot() {
-        // No-op for compatibility with HdpiOffscreenCanvas.
-    }
-
     clear() {
         this.context.save();
         this.context.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
