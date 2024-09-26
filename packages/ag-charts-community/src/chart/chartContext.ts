@@ -14,7 +14,6 @@ import { AxisManager } from './axis/axisManager';
 import type { ChartService } from './chartService';
 import { DataService } from './data/dataService';
 import { AnimationManager } from './interaction/animationManager';
-import { AriaAnnouncementService } from './interaction/ariaAnnouncementServices';
 import { ChartEventManager } from './interaction/chartEventManager';
 import { ContextMenuRegistry } from './interaction/contextMenuRegistry';
 import { CursorManager } from './interaction/cursorManager';
@@ -46,7 +45,6 @@ export class ChartContext implements ModuleContext {
 
     animationManager: AnimationManager;
     annotationManager: AnnotationManager;
-    ariaAnnouncementService: AriaAnnouncementService;
     axisManager: AxisManager;
     chartService: ChartService;
     contextMenuRegistry: ContextMenuRegistry;
@@ -102,11 +100,6 @@ export class ChartContext implements ModuleContext {
         this.regionManager = new RegionManager(this.interactionManager);
         this.contextMenuRegistry = new ContextMenuRegistry(this.regionManager);
         this.gestureDetector = new GestureDetector(this.domManager);
-        this.ariaAnnouncementService = new AriaAnnouncementService(
-            this.localeManager,
-            this.domManager,
-            this.layoutManager
-        );
         this.updateService = new UpdateService(updateCallback);
         this.proxyInteractionService = new ProxyInteractionService(this.localeManager, this.domManager);
         this.historyManager = new HistoryManager(this.domManager);
@@ -120,7 +113,6 @@ export class ChartContext implements ModuleContext {
     destroy() {
         // chart.ts handles the destruction of the scene.
         this.animationManager.destroy();
-        this.ariaAnnouncementService.destroy();
         this.axisManager.destroy();
         this.callbackCache.invalidateCache();
         this.chartEventManager.destroy();

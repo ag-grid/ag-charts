@@ -22,31 +22,23 @@
 }
 
 .ag-charts-canvas-container > *,
-.ag-charts-canvas-proxy > *,
 .ag-charts-canvas > * {
     display: block;
     pointer-events: none;
 }
 
-.ag-charts-canvas-proxy {
-    position: absolute;
-    top: 0;
-    left: 0;
+/* This `opacity` CSS property is read by FocusIndicator to determine the `:focus-visible` state. */
+.ag-charts-canvas-proxy > * {
     opacity: 0;
+}
+.ag-charts-series-area:focus-visible {
+    opacity: 1;
+}
+.ag-charts-series-area {
     pointer-events: auto;
 }
 
-.ag-charts-canvas-proxy:focus-visible {
-    /* This CSS property is read by FocusIndicator to determine the `:focus-visible` state. */
-    opacity: 1;
-}
-
-.ag-charts-tab-guard {
-    width: 0;
-    height: 0;
-    opacity: 0;
-}
-
+.ag-charts-canvas-proxy,
 .ag-charts-canvas-overlay {
     pointer-events: none;
     user-select: none;

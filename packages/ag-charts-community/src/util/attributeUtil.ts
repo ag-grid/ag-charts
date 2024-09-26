@@ -1,3 +1,5 @@
+import type { Nullable } from './types';
+
 type ElementID = string;
 
 type BaseAttributeTypeMap = {
@@ -25,19 +27,19 @@ export type AttributeSet = Partial<{ [K in keyof BaseAttributeTypeMap]: BaseAttr
 export type InputAttributeSet = Partial<{ [K in keyof InputAttributeTypeMap]: InputAttributeTypeMap[K] }>;
 
 export function setAttribute<A extends keyof BaseAttributeTypeMap>(
-    e: HTMLElement | undefined,
+    e: Nullable<HTMLElement>,
     qualifiedName: A,
     value: BaseAttributeTypeMap[A]
 ): void;
 
 export function setAttribute<A extends keyof InputAttributeTypeMap>(
-    e: HTMLTextAreaElement | undefined,
+    e: Nullable<HTMLTextAreaElement>,
     qualifiedName: A,
     value: InputAttributeTypeMap[A]
 ): void;
 
 export function setAttribute<A extends keyof BaseAttributeTypeMap>(
-    e: HTMLElement | undefined,
+    e: Nullable<HTMLElement>,
     qualifiedName: A,
     value: BaseAttributeTypeMap[A]
 ) {
@@ -48,9 +50,9 @@ export function setAttribute<A extends keyof BaseAttributeTypeMap>(
     }
 }
 
-export function setAttributes(e: HTMLElement | undefined, attrs: AttributeSet | undefined): void;
-export function setAttributes(e: HTMLTextAreaElement | undefined, attrs: InputAttributeTypeMap | undefined): void;
-export function setAttributes(e: HTMLElement | undefined, attrs: AttributeSet | undefined) {
+export function setAttributes(e: Nullable<HTMLElement>, attrs: AttributeSet | undefined): void;
+export function setAttributes(e: Nullable<HTMLTextAreaElement>, attrs: InputAttributeTypeMap | undefined): void;
+export function setAttributes(e: Nullable<HTMLElement>, attrs: AttributeSet | undefined) {
     if (attrs == null) return;
 
     let key: keyof typeof attrs;
