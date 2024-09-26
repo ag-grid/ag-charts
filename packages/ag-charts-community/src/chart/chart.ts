@@ -55,7 +55,7 @@ import { ModulesManager } from './modulesManager';
 import { ChartOverlays } from './overlay/chartOverlays';
 import { getLoadingSpinner } from './overlay/loadingSpinner';
 import { type Series, SeriesGroupingChangedEvent } from './series/series';
-import { SeriesAreaManager } from './series/seriesAreaManager';
+import { type SeriesAreaChartDependencies, SeriesAreaManager } from './series/seriesAreaManager';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesGrouping } from './series/seriesStateManager';
 import type { ISeries } from './series/seriesTypes';
@@ -312,24 +312,9 @@ export abstract class Chart extends Observable {
         );
         ctx.regionManager.addRegion(REGIONS.HORIZONTAL_AXES);
         ctx.regionManager.addRegion(REGIONS.VERTICAL_AXES);
-
-        const thisChart = this;
-        this.seriesAreaManager = new SeriesAreaManager(
-            {
-                fireEvent: this.fireEvent.bind(thisChart),
-                get performUpdateType() {
-                    return thisChart.performUpdateType;
-                },
-                seriesRoot: this.seriesRoot,
-            },
-            ctx,
-            this.getChartType(),
-            this.tooltip,
-            this.highlight,
-            this.overlays
-        );
-
         ctx.regionManager.addRegion('root', root);
+
+        this.seriesAreaManager = new SeriesAreaManager(this.initSeriesAreaDependencies());
         this._destroyFns.push(
             ctx.layoutManager.registerElement(LayoutElement.Caption, (e) => {
                 e.layoutBox.shrink(this.padding.toJson());
@@ -358,6 +343,14 @@ export abstract class Chart extends Observable {
         );
 
         this.parentResize(ctx.domManager.containerSize);
+    }
+
+    private initSeriesAreaDependencies(): SeriesAreaChartDependencies {
+        const { ctx, tooltip, highlight, overlays, seriesRoot } = this;
+        const chartType = this.getChartType();
+        const fireEvent = this.fireEvent.bind(this);
+        const getUpdateType = () => this.performUpdateType;
+        return { fireEvent, getUpdateType, chartType, ctx, tooltip, highlight, overlays, seriesRoot };
     }
 
     getModuleContext(): ModuleContext {

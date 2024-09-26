@@ -27,6 +27,17 @@ import type { SeriesProperties } from './seriesProperties';
 import type { ISeries, SeriesNodeDatum } from './seriesTypes';
 import { pickNode } from './util';
 
+export interface SeriesAreaChartDependencies {
+    fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
+    getUpdateType(): ChartUpdateType;
+    chartType: 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'gauge';
+    seriesRoot: TranslatableGroup;
+    ctx: ChartContext;
+    tooltip: Tooltip;
+    highlight: ChartHighlight;
+    overlays: ChartOverlays;
+}
+
 class SeriesAreaAriaLabel {
     constructor(
         private readonly element: HTMLElement,
@@ -68,33 +79,22 @@ export class SeriesAreaManager extends BaseManager {
         datum: undefined as SeriesNodeDatum | undefined,
     };
 
-    public constructor(
-        private readonly chart: {
-            performUpdateType: ChartUpdateType;
-            fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
-            seriesRoot: TranslatableGroup;
-        },
-        private readonly ctx: ChartContext,
-        private readonly chartType: 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'gauge',
-        private readonly tooltip: Tooltip,
-        private readonly highlight: ChartHighlight,
-        private readonly overlays: ChartOverlays
-    ) {
+    public constructor(private readonly chart: SeriesAreaChartDependencies) {
         super();
 
-        const seriesRegion = this.ctx.regionManager.getRegion(REGIONS.SERIES);
-        const horizontalAxesRegion = this.ctx.regionManager.getRegion(REGIONS.HORIZONTAL_AXES);
-        const verticalAxesRegion = this.ctx.regionManager.getRegion(REGIONS.VERTICAL_AXES);
+        const seriesRegion = chart.ctx.regionManager.getRegion(REGIONS.SERIES);
+        const horizontalAxesRegion = chart.ctx.regionManager.getRegion(REGIONS.HORIZONTAL_AXES);
+        const verticalAxesRegion = chart.ctx.regionManager.getRegion(REGIONS.VERTICAL_AXES);
         const mouseMoveStates = InteractionState.Default | InteractionState.Annotations;
 
-        const labelEl = this.ctx.domManager.addChild('series-area', 'series-area-aria-label');
+        const labelEl = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label');
         this.ariaLabel = new SeriesAreaAriaLabel(labelEl, `${this.id}-aria-label`);
 
         this.destroyFns.push(
-            () => this.ctx.domManager.removeChild('series-area', 'series-area-aria-label'),
-            this.ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
-            this.ctx.regionManager.listenAll('dblclick', (event) => this.onClick(event)),
-            this.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
+            () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label'),
+            chart.ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
+            chart.ctx.regionManager.listenAll('dblclick', (event) => this.onClick(event)),
+            chart.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
             seriesRegion.addListener('hover', (event) => this.onHover(event)),
             seriesRegion.addListener('leave', () => this.onLeave()),
             horizontalAxesRegion.addListener('leave', () => this.onLeave()),
@@ -107,20 +107,20 @@ export class SeriesAreaManager extends BaseManager {
             horizontalAxesRegion.addListener('leave', () => this.onLeave()),
             verticalAxesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
             verticalAxesRegion.addListener('leave', () => this.onLeave()),
-            this.ctx.animationManager.addListener('animation-start', () => this.clearAll()),
-            this.ctx.domManager.addListener('resize', () => this.clearAll()),
-            this.ctx.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
-            this.ctx.keyNavManager.addListener('blur', () => this.clearAll()),
-            this.ctx.keyNavManager.addListener('focus', (event) => this.onFocus(event)),
-            this.ctx.keyNavManager.addListener('nav-hori', (event) => this.onNavHori(event)),
-            this.ctx.keyNavManager.addListener('nav-vert', (event) => this.onNavVert(event)),
-            this.ctx.keyNavManager.addListener('submit', (event) => this.onSubmit(event)),
-            this.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
-            this.ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
-            this.ctx.regionManager.listenAll('dblclick', (event) => this.onClick(event)),
-            this.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender()),
-            this.ctx.zoomManager.addListener('zoom-change', () => this.clearAll()),
-            this.ctx.zoomManager.addListener('zoom-pan-start', () => this.clearAll())
+            chart.ctx.animationManager.addListener('animation-start', () => this.clearAll()),
+            chart.ctx.domManager.addListener('resize', () => this.clearAll()),
+            chart.ctx.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
+            chart.ctx.keyNavManager.addListener('blur', () => this.clearAll()),
+            chart.ctx.keyNavManager.addListener('focus', (event) => this.onFocus(event)),
+            chart.ctx.keyNavManager.addListener('nav-hori', (event) => this.onNavHori(event)),
+            chart.ctx.keyNavManager.addListener('nav-vert', (event) => this.onNavVert(event)),
+            chart.ctx.keyNavManager.addListener('submit', (event) => this.onSubmit(event)),
+            chart.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
+            chart.ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
+            chart.ctx.regionManager.listenAll('dblclick', (event) => this.onClick(event)),
+            chart.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender()),
+            chart.ctx.zoomManager.addListener('zoom-change', () => this.clearAll()),
+            chart.ctx.zoomManager.addListener('zoom-pan-start', () => this.clearAll())
         );
     }
 
@@ -140,7 +140,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private update(type?: ChartUpdateType, opts?: UpdateOpts) {
-        this.ctx.updateService.update(type, opts);
+        this.chart.ctx.updateService.update(type, opts);
     }
 
     public seriesChanged(series: Series<SeriesNodeDatum, SeriesProperties<object>>[]) {
@@ -176,42 +176,42 @@ export class SeriesAreaManager extends BaseManager {
 
         let pickedNode: SeriesNodeDatum | undefined;
         let position: { x: number; y: number } | undefined;
-        if (this.ctx.focusIndicator.isFocusVisible()) {
-            pickedNode = this.ctx.highlightManager.getActiveHighlight();
+        if (this.chart.ctx.focusIndicator.isFocusVisible()) {
+            pickedNode = this.chart.ctx.highlightManager.getActiveHighlight();
             if (pickedNode && this.seriesRect && pickedNode.midPoint) {
                 position = {
                     x: this.seriesRect.x + pickedNode.midPoint.x,
                     y: this.seriesRect.y + pickedNode.midPoint.y,
                 };
             }
-        } else if (this.ctx.interactionManager.getState() & (Default | ContextMenu)) {
+        } else if (this.chart.ctx.interactionManager.getState() & (Default | ContextMenu)) {
             const match = pickNode(this.series, { x: event.regionOffsetX, y: event.regionOffsetY }, 'context-menu');
             if (match) {
-                this.ctx.highlightManager.updateHighlight(this.id);
+                this.chart.ctx.highlightManager.updateHighlight(this.id);
                 pickedNode = match.datum;
             }
         }
 
         this.clearAll();
-        this.ctx.contextMenuRegistry.dispatchContext('series', event, { pickedNode }, position);
+        this.chart.ctx.contextMenuRegistry.dispatchContext('series', event, { pickedNode }, position);
     }
 
     private onLeave(): void {
-        this.ctx.cursorManager.updateCursor(this.id);
-        if (!this.ctx.focusIndicator.isFocusVisible()) this.clearAll();
+        this.chart.ctx.cursorManager.updateCursor(this.id);
+        if (!this.chart.ctx.focusIndicator.isFocusVisible()) this.clearAll();
     }
 
     private onHover(event: RegionEvent<'hover' | 'drag'>): void {
         this.pendingHoverEvent = event;
         this.hoverScheduler.schedule();
 
-        if (this.ctx.interactionManager.getState() === InteractionState.Default) {
+        if (this.chart.ctx.interactionManager.getState() === InteractionState.Default) {
             const { regionOffsetX, regionOffsetY } = event;
             const found = pickNode(this.series, { x: regionOffsetX, y: regionOffsetY }, 'event');
             if (found?.series.hasEventListener('nodeClick') || found?.series.hasEventListener('nodeDoubleClick')) {
-                this.ctx.cursorManager.updateCursor(this.id, 'pointer');
+                this.chart.ctx.cursorManager.updateCursor(this.id, 'pointer');
             } else {
-                this.ctx.cursorManager.updateCursor(this.id);
+                this.chart.ctx.cursorManager.updateCursor(this.id);
             }
         }
     }
@@ -293,22 +293,22 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private refreshFocus() {
-        if (this.ctx.focusIndicator.isFocusVisible()) {
+        if (this.chart.ctx.focusIndicator.isFocusVisible()) {
             this.handleSeriesFocus(0, 0);
         }
     }
 
     private handleFocus(seriesIndexDelta: number, datumIndexDelta: number) {
-        const overlayFocus = this.overlays.getFocusInfo(this.ctx.localeManager);
+        const overlayFocus = this.chart.overlays.getFocusInfo(this.chart.ctx.localeManager);
         if (overlayFocus == null) {
             this.handleSeriesFocus(seriesIndexDelta, datumIndexDelta);
         } else {
-            this.ctx.focusIndicator.updateBounds(overlayFocus.rect);
+            this.chart.ctx.focusIndicator.updateBounds(overlayFocus.rect);
         }
     }
 
     private handleSeriesFocus(otherIndexDelta: number, datumIndexDelta: number) {
-        if (this.chartType === 'hierarchy') {
+        if (this.chart.chartType === 'hierarchy') {
             this.handleHierarchySeriesFocus(otherIndexDelta, datumIndexDelta);
             return;
         }
@@ -349,22 +349,22 @@ export class SeriesAreaManager extends BaseManager {
         focus.datum = datum;
 
         // Only update the highlight/tooltip/status if this is a keyboard user.
-        if (!this.ctx.focusIndicator.isFocusVisible()) return;
+        if (!this.chart.ctx.focusIndicator.isFocusVisible()) return;
 
         // Update user interaction/interface:
-        const keyboardEvent = makeKeyboardPointerEvent(this.ctx.focusIndicator, pick);
+        const keyboardEvent = makeKeyboardPointerEvent(this.chart.ctx.focusIndicator, pick);
         if (keyboardEvent !== undefined) {
             const html = focus.series.getTooltipHtml(datum);
             const meta = TooltipManager.makeTooltipMeta(keyboardEvent, datum);
-            this.ctx.highlightManager.updateHighlight(this.id, datum);
-            this.ctx.tooltipManager.updateTooltip(this.id, meta, html);
+            this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
+            this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, html);
             this.ariaLabel.text = this.getDatumAriaText(datum, html);
         }
     }
 
     private getDatumAriaText(datum: SeriesNodeDatum, html: TooltipContent): string {
         const description = html.ariaLabel;
-        return this.ctx.localeManager.t('ariaAnnounceHoverDatum', {
+        return this.chart.ctx.localeManager.t('ariaAnnounceHoverDatum', {
             datum: datum.series.getDatumAriaText?.(datum, description) ?? description,
         });
     }
@@ -372,24 +372,24 @@ export class SeriesAreaManager extends BaseManager {
     private clearHighlight() {
         this.pendingHoverEvent = undefined;
         this.appliedHoverEvent = undefined;
-        this.ctx.highlightManager.updateHighlight(this.id);
+        this.chart.ctx.highlightManager.updateHighlight(this.id);
     }
 
     private clearTooltip() {
-        this.ctx.tooltipManager.removeTooltip(this.id);
+        this.chart.ctx.tooltipManager.removeTooltip(this.id);
         this.pendingHoverEvent = undefined;
     }
 
     private clearAll() {
         this.clearHighlight();
         this.clearTooltip();
-        this.ctx.focusIndicator.updateBounds(undefined);
+        this.chart.ctx.focusIndicator.updateBounds(undefined);
     }
 
     private readonly hoverScheduler = debouncedAnimationFrame(() => {
         if (!this.pendingHoverEvent) return;
 
-        if (this.chart.performUpdateType <= ChartUpdateType.SERIES_UPDATE) {
+        if (this.chart.getUpdateType() <= ChartUpdateType.SERIES_UPDATE) {
             // Reschedule until the current update processing is complete, if we try to
             // perform a highlight mid-update then we may not have fresh node data to work with.
             this.hoverScheduler.schedule();
@@ -400,7 +400,7 @@ export class SeriesAreaManager extends BaseManager {
     });
 
     private handleHover(redisplay: boolean) {
-        if (this.ctx.focusIndicator.isFocusVisible()) return;
+        if (this.chart.ctx.focusIndicator.isFocusVisible()) return;
 
         this.appliedHoverEvent = this.pendingHoverEvent;
         this.pendingHoverEvent = undefined;
@@ -408,19 +408,19 @@ export class SeriesAreaManager extends BaseManager {
         const event = this.appliedHoverEvent;
         if (!event) return;
 
-        const state = this.ctx.interactionManager.getState();
+        const state = this.chart.ctx.interactionManager.getState();
         if (state !== InteractionState.Default && state !== InteractionState.Annotations) return;
 
         const { offsetX, offsetY, targetElement } = event;
-        if (redisplay ? this.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(offsetX, offsetY)) {
+        if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(offsetX, offsetY)) {
             this.clearAll();
             return;
         }
 
         if (
             targetElement &&
-            this.tooltip.interactive &&
-            this.ctx.domManager.isManagedChildDOMElement(targetElement, 'canvas-overlay', DEFAULT_TOOLTIP_CLASS)
+            this.chart.tooltip.interactive &&
+            this.chart.ctx.domManager.isManagedChildDOMElement(targetElement, 'canvas-overlay', DEFAULT_TOOLTIP_CLASS)
         ) {
             // Skip tooltip update if tooltip is interactive, and the source event was for a tooltip HTML element.
             return;
@@ -432,26 +432,26 @@ export class SeriesAreaManager extends BaseManager {
 
         const tooltipPick = pickNode(this.series, pickCoords, 'tooltip');
         const highlightPick =
-            this.highlight.range === 'tooltip'
+            this.chart.highlight.range === 'tooltip'
                 ? pickNode(this.series, pickCoords, 'highlight-tooltip')
                 : pickNode(this.series, pickCoords, 'highlight');
 
         if (tooltipPick) {
             const html = tooltipPick.series.getTooltipHtml(tooltipPick.datum);
-            const tooltipEnabled = this.tooltip.enabled && tooltipPick.series.tooltipEnabled;
+            const tooltipEnabled = this.chart.tooltip.enabled && tooltipPick.series.tooltipEnabled;
             const shouldUpdateTooltip = tooltipEnabled && html != null;
             if (shouldUpdateTooltip) {
                 const meta = TooltipManager.makeTooltipMeta(event, tooltipPick.datum);
-                this.ctx.tooltipManager.updateTooltip(this.id, meta, html);
+                this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, html);
             }
         } else {
             this.clearTooltip();
         }
 
         if (highlightPick) {
-            this.ctx.highlightManager.updateHighlight(this.id, highlightPick.datum);
+            this.chart.ctx.highlightManager.updateHighlight(this.id, highlightPick.datum);
         } else {
-            this.ctx.highlightManager.updateHighlight(this.id); // FIXME: clearHighlight?
+            this.chart.ctx.highlightManager.updateHighlight(this.id); // FIXME: clearHighlight?
         }
     }
 
@@ -470,10 +470,10 @@ export class SeriesAreaManager extends BaseManager {
 
         // Adjust cursor if a specific datum is highlighted, rather than just a series.
         if (lastSeries?.properties.cursor && lastDatum) {
-            this.ctx.cursorManager.updateCursor(lastSeries.id);
+            this.chart.ctx.cursorManager.updateCursor(lastSeries.id);
         }
         if (newSeries?.properties.cursor && newSeries?.properties.cursor !== 'default' && newDatum) {
-            this.ctx.cursorManager.updateCursor(newSeries.id, newSeries.properties.cursor);
+            this.chart.ctx.cursorManager.updateCursor(newSeries.id, newSeries.properties.cursor);
         }
 
         const updateAll = newSeries == null || lastSeries == null;
