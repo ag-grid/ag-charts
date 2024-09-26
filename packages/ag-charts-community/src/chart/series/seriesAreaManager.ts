@@ -1,10 +1,11 @@
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types';
 
-import { Transformable } from '../../integrated-charts-scene';
 import type { BBox } from '../../scene/bbox';
 import type { TranslatableGroup } from '../../scene/group';
-import { clamp, setAttribute } from '../../sparklines-util';
+import { Transformable } from '../../scene/transformable';
+import { setAttribute } from '../../util/attributeUtil';
 import { createId } from '../../util/id';
+import { clamp } from '../../util/number';
 import type { TypedEvent } from '../../util/observable';
 import { debouncedAnimationFrame } from '../../util/render';
 import { BaseManager } from '../baseManager';
