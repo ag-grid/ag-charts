@@ -438,7 +438,7 @@
                     },
                     {
                         "title": "Cone Funnel",
-                        "icon": "chartsFunnel",
+                        "icon": "chartsConeFunnel",
                         "path": "cone-funnel-series",
                         "isEnterprise": true
                     },

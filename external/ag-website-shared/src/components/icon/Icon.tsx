@@ -7,6 +7,7 @@ import Chord from '@ag-website-shared/images/inline-svgs/chord.svg?react';
 import CodeResult from '@ag-website-shared/images/inline-svgs/code-result.svg?react';
 import CodeSandboxIcon from '@ag-website-shared/images/inline-svgs/codesandbox.svg?react';
 import ColumnsIcon from '@ag-website-shared/images/inline-svgs/columns.svg?react';
+import ConeFunnel from '@ag-website-shared/images/inline-svgs/cone-funnel.svg?react';
 import CrossIcon from '@ag-website-shared/images/inline-svgs/cross.svg?react';
 import EnterpriseIcon from '@ag-website-shared/images/inline-svgs/enterprise.svg?react';
 import EscapeIcon from '@ag-website-shared/images/inline-svgs/escape.svg?react';
@@ -125,6 +126,7 @@ const CHARTS_ICON_MAP = {
     chartsSunburst: CarbonIcon.ChartSunburst,
     chartsIcicle: CarbonIcon.ChartClusterBar,
     chartsFunnel: Funnel,
+    chartsConeFunnel: ConeFunnel,
     chartsPyramid: CarbonIcon.UpToTop,
     chartsLinearGauge: CarbonIcon.ChartBullet,
     chartsMap: CarbonIcon.Plan,

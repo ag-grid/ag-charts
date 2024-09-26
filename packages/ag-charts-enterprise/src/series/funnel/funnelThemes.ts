@@ -1,9 +1,37 @@
 import {
     type AgCategoryAxisThemeOptions,
+    type AgFunnelSeriesOptions,
     type AgFunnelSeriesThemeableOptions,
     type AgNumberAxisThemeOptions,
     _Theme,
 } from 'ag-charts-community';
+
+export function funnelSeriesAxes(series: Pick<AgFunnelSeriesOptions, 'direction' | 'stageLabel'>) {
+    const { placement, ...categoryLabel } = series?.stageLabel ?? {};
+    return series?.direction !== 'vertical'
+        ? [
+              {
+                  type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
+                  position: placement === 'after' ? _Theme.POSITION.RIGHT : _Theme.POSITION.LEFT,
+                  label: categoryLabel,
+              },
+              {
+                  type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
+                  position: _Theme.POSITION.BOTTOM,
+              },
+          ]
+        : [
+              {
+                  type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
+                  position: _Theme.POSITION.LEFT,
+              },
+              {
+                  type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
+                  position: placement === 'before' ? _Theme.POSITION.TOP : _Theme.POSITION.BOTTOM,
+                  label: categoryLabel,
+              },
+          ];
+}
 
 export const FUNNEL_SERIES_THEME: {
     series: AgFunnelSeriesThemeableOptions;

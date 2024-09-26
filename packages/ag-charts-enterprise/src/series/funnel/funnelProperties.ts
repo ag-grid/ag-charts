@@ -15,7 +15,9 @@ const {
     AbstractBarSeriesProperties,
     BaseProperties,
     SeriesTooltip,
+    AxisLabel,
     Validate,
+    UNION,
     BOOLEAN,
     COLOR_STRING_ARRAY,
     COLOR_STRING,
@@ -28,6 +30,11 @@ const {
 } = _ModuleSupport;
 
 class FunnelSeriesLabel extends Label<AgFunnelSeriesLabelFormatterParams> {}
+
+class FunnelSeriesStageLabel extends AxisLabel {
+    @Validate(UNION(['before', 'after'], 'a placement'))
+    placement?: string;
+}
 
 export class FunnelDropOff extends BaseProperties {
     @Validate(BOOLEAN)
@@ -106,6 +113,9 @@ export class FunnelProperties
 
     @Validate(OBJECT)
     readonly label = new FunnelSeriesLabel();
+
+    @Validate(OBJECT)
+    readonly stageLabel = new FunnelSeriesStageLabel();
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgFunnelSeriesTooltipRendererParams<unknown>>();
