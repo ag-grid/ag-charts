@@ -6,7 +6,7 @@ import { ChannelScene } from '../scenes/channelScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
 import { LineWithTextScene } from '../scenes/lineWithTextScene';
-import { validateDatumPoint } from '../utils/validation';
+import { isPoint, validateDatumPoint } from '../utils/validation';
 import { convertPoint, invertCoords } from '../utils/values';
 import type { ParallelChannelProperties } from './parallelChannelProperties';
 
@@ -71,28 +71,46 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         handles[activeHandle].toggleDragging(true);
 
         const prev = datum.toJson();
-        let moves: Array<ChannelHandle> = [];
+        let moves: Array<[ChannelHandle, ChannelHandle | undefined]> = [];
 
         switch (activeHandle) {
             case 'topLeft':
             case 'bottomLeft':
-                moves = ['topLeft', 'bottomLeft'];
+                moves = [
+                    ['topLeft', 'topRight'],
+                    ['bottomLeft', 'bottomRight'],
+                ];
                 break;
             case 'topMiddle':
-                moves = ['topLeft', 'topRight'];
+                moves = [
+                    ['topLeft', undefined],
+                    ['topRight', undefined],
+                ];
                 offset.y -= UnivariantHandle.HANDLE_SIZE / 2;
                 break;
             case 'topRight':
             case 'bottomRight':
-                moves = ['topRight', 'bottomRight'];
+                moves = [
+                    ['topRight', 'topLeft'],
+                    ['bottomRight', 'bottomLeft'],
+                ];
                 break;
             case 'bottomMiddle':
-                moves = ['bottomLeft', 'bottomRight'];
+                moves = [
+                    ['bottomLeft', undefined],
+                    ['bottomRight', undefined],
+                ];
                 offset.y -= UnivariantHandle.HANDLE_SIZE / 2;
                 break;
         }
 
-        const invertedMoves = moves.map((move) => invertCoords(Vec2.add(handles[move].handle, offset), context));
+        const invertedMoves = moves
+            .map(([handle, originHandle]) =>
+                datum.snapToAngle && originHandle
+                    ? this.snapToAngle(target, context, handle, originHandle)
+                    : invertCoords(Vec2.add(handles[handle].handle, offset), context)
+            )
+            .filter(isPoint);
 
         // Do not move any handles if some of them are trying to move to invalid points
         if (invertedMoves.some((invertedMove) => !validateDatumPoint(context, invertedMove))) {
@@ -114,7 +132,7 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
 
         // Move the start and end points if required
         for (const [index, invertedMove] of invertedMoves.entries()) {
-            switch (moves[index]) {
+            switch (moves[index][0]) {
                 case 'topLeft':
                     datum.start.x = invertedMove.x;
                     datum.start.y = invertedMove.y;

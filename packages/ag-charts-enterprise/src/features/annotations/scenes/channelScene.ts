@@ -1,21 +1,25 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import type { ChannelTextProperties, PointProperties } from '../annotationProperties';
-import type { AnnotationContext, LineCoords } from '../annotationTypes';
-import { convertLine } from '../utils/values';
+import type { ChannelTextProperties } from '../annotationProperties';
+import type { AnnotationContext, Coords, LineCoords, Point } from '../annotationTypes';
+import { convertLine, invertCoords } from '../utils/values';
 import { CollidableLine } from './collidableLineScene';
 import type { CollidableText } from './collidableTextScene';
 import type { Handle } from './handle';
 import { LinearScene } from './linearScene';
+
+const { Vec2, toRadians } = _Util;
+
+type ChannelHandle = Partial<'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight' | 'topMiddle' | 'bottomMiddle'>;
 
 export abstract class ChannelScene<
     Datum extends {
         background: { fill?: string; fillOpacity?: number };
         locked?: boolean;
         visible?: boolean;
-        start: Pick<PointProperties, 'x' | 'y'>;
-        end: Pick<PointProperties, 'x' | 'y'>;
-        bottom: { start: Pick<PointProperties, 'x' | 'y'>; end: Pick<PointProperties, 'x' | 'y'> };
+        start: Point;
+        end: Point;
+        bottom: { start: Point; end: Point };
         strokeWidth?: number;
         text?: ChannelTextProperties;
     },
@@ -53,6 +57,32 @@ export abstract class ChannelScene<
         for (const handle of Object.values(this.handles)) {
             handle.toggleLocked(locked ?? false);
         }
+    }
+
+    snapToAngle(
+        target: Coords,
+        context: AnnotationContext,
+        handle: ChannelHandle,
+        originHandle?: ChannelHandle,
+        direction?: -1 | 1
+    ): Point | undefined {
+        if (!handle || !originHandle) return;
+
+        const { handles } = this;
+
+        const fixed = handles[originHandle].handle;
+        const active = handles[handle].drag(target).point;
+
+        const angleStep = toRadians(45);
+
+        const r = Vec2.distance(fixed, active);
+        const angle = Math.atan2(active.y - fixed.y, active.x - fixed.x);
+        const snapAngle = Math.round(angle / angleStep) * angleStep;
+
+        const x = fixed.x + r * Math.cos(snapAngle);
+        const y = fixed.y + r * Math.sin(snapAngle) * (direction ?? 1);
+
+        return invertCoords({ x, y }, context);
     }
 
     override toggleActive(active: boolean) {
