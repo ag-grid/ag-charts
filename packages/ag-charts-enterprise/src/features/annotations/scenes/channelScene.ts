@@ -64,7 +64,7 @@ export abstract class ChannelScene<
         context: AnnotationContext,
         handle: ChannelHandle,
         originHandle?: ChannelHandle,
-        direction?: -1 | 1
+        direction?: number
     ): Point | undefined {
         if (!handle || !originHandle) return;
 
@@ -73,16 +73,7 @@ export abstract class ChannelScene<
         const fixed = handles[originHandle].handle;
         const active = handles[handle].drag(target).point;
 
-        const angleStep = toRadians(45);
-
-        const r = Vec2.distance(fixed, active);
-        const angle = Math.atan2(active.y - fixed.y, active.x - fixed.x);
-        const snapAngle = Math.round(angle / angleStep) * angleStep;
-
-        const x = fixed.x + r * Math.cos(snapAngle);
-        const y = fixed.y + r * Math.sin(snapAngle) * (direction ?? 1);
-
-        return invertCoords({ x, y }, context);
+        return invertCoords(Vec2.snapToAngle(fixed, active, 45, direction), context);
     }
 
     override toggleActive(active: boolean) {

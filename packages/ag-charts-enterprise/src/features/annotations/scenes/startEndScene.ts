@@ -76,10 +76,11 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         target: Coords,
         context: AnnotationContext
     ): Pick<PointProperties, 'x' | 'y'> | undefined {
+        const { activeHandle } = this;
+
         const handles: ActiveHandle[] = ['start', 'end'];
         const fixedHandle = handles.find((handle) => handle !== activeHandle);
 
-        const { activeHandle } = this;
         if (!activeHandle || !fixedHandle) return;
 
         this[activeHandle].toggleDragging(true);
@@ -87,16 +88,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         const fixed = convertPoint(datum[fixedHandle], context);
         const active = this[activeHandle].drag(target).point;
 
-        const angleStep = toRadians(45);
-
-        const r = Vec2.distance(fixed, active);
-        const angle = Math.atan2(active.y - fixed.y, active.x - fixed.x);
-        const snapAngle = Math.round(angle / angleStep) * angleStep;
-
-        const x = fixed.x + r * Math.cos(snapAngle);
-        const y = fixed.y + r * Math.sin(snapAngle);
-
-        return invertCoords({ x, y }, context);
+        return invertCoords(Vec2.snapToAngle(fixed, active, 45), context);
     }
 
     override stopDragging() {

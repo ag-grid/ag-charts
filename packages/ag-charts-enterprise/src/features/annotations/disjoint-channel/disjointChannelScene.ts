@@ -78,7 +78,7 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
                       });
 
                 const bottomStart = datum.snapToAngle
-                    ? this.snapToAngle(target, context, 'bottomLeft', 'bottomRight', direction)
+                    ? this.snapToAngle(target, context, 'bottomLeft', 'bottomRight', -direction)
                     : invert({
                           x: handles.bottomLeft.handle.x + offset.x,
                           y: handles.bottomLeft.handle.y + offset.y * -direction,
