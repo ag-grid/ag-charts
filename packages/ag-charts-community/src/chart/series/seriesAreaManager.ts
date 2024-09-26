@@ -101,61 +101,33 @@ export class SeriesAreaManager extends BaseManager {
             horizontalAxesRegion.addListener('leave', () => this.onLeave()),
             verticalAxesRegion.addListener('leave', () => this.onLeave()),
             seriesRegion.addListener('contextmenu', (event) => this.onContextMenu(event), InteractionState.All),
-            this.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender()),
-            this.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
-            this.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
-            this.ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
+            seriesRegion.addListener('drag', (event) => this.onHover(event), mouseMoveStates),
+            seriesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
+            seriesRegion.addListener('leave', () => this.onLeave()),
+            horizontalAxesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
+            horizontalAxesRegion.addListener('leave', () => this.onLeave()),
+            verticalAxesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
+            verticalAxesRegion.addListener('leave', () => this.onLeave()),
+            this.ctx.animationManager.addListener('animation-start', () => this.clearAll()),
+            this.ctx.domManager.addListener('resize', () => this.clearAll()),
+            this.ctx.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
             this.ctx.keyNavManager.addListener('blur', () => this.onBlur()),
             this.ctx.keyNavManager.addListener('focus', (event) => this.onFocus(event)),
-            this.ctx.keyNavManager.addListener('nav-vert', (event) => this.onNavVert(event)),
             this.ctx.keyNavManager.addListener('nav-hori', (event) => this.onNavHori(event)),
+            this.ctx.keyNavManager.addListener('nav-vert', (event) => this.onNavVert(event)),
             this.ctx.keyNavManager.addListener('submit', (event) => this.onSubmit(event)),
-            this.ctx.zoomManager.addListener('zoom-change', () => {
-                this.ctx.focusIndicator.updateBounds(undefined);
-            }),
             this.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
-            this.ctx.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
-            seriesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
-            seriesRegion.addListener('drag', (event) => this.onHover(event), mouseMoveStates),
-            horizontalAxesRegion.addListener('hover', (event) => this.onHover(event)),
-            verticalAxesRegion.addListener('hover', (event) => this.onHover(event)),
-
-            // Cases where highlight should be cleared.
-            this.ctx.domManager.addListener('resize', () => this.clearHighlight()),
-            seriesRegion.addListener('leave', () => this.clearHighlight(), mouseMoveStates),
-            this.ctx.keyNavManager.addListener('blur', () => this.clearHighlight()),
-            this.ctx.animationManager.addListener('animation-start', () => this.clearHighlight()),
-            this.ctx.zoomManager.addListener('zoom-pan-start', () => this.clearHighlight()),
-            this.ctx.zoomManager.addListener('zoom-change', () => this.clearHighlight()),
-
-            this.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
-            seriesRegion.addListener(
-                'hover',
-                (event) => this.onHover(event),
-                InteractionState.Default | InteractionState.Annotations
-            ),
-            horizontalAxesRegion.addListener('hover', (event) => this.onHover(event)),
-            verticalAxesRegion.addListener('hover', (event) => this.onHover(event)),
-
-            // Events that clear tooltip.
-            seriesRegion.addListener('leave', () => this.clearTooltip()),
-            seriesRegion.addListener('contextmenu', () => this.clearTooltip(), InteractionState.All),
-            horizontalAxesRegion.addListener('leave', () => this.clearTooltip()),
-            verticalAxesRegion.addListener('leave', () => this.clearTooltip()),
-            this.ctx.keyNavManager.addListener('blur', () => this.clearTooltip()),
-            this.ctx.animationManager.addListener('animation-start', () => this.clearTooltip()),
-            this.ctx.domManager.addListener('resize', () => this.clearTooltip()),
-            this.ctx.zoomManager.addListener('zoom-pan-start', () => this.clearTooltip()),
-            this.ctx.zoomManager.addListener('zoom-change', () => this.clearTooltip())
+            this.ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
+            this.ctx.regionManager.listenAll('dblclick', (event) => this.onClick(event)),
+            this.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender()),
+            this.ctx.zoomManager.addListener('zoom-change', () => this.clearAll()),
+            this.ctx.zoomManager.addListener('zoom-pan-start', () => this.clearAll())
         );
     }
 
     public dataChanged() {
-        this.ctx.focusIndicator.updateBounds(undefined);
-
         this.stashedHoverEvent ??= this.appliedHoverEvent;
-        this.clearHighlight();
-        this.clearTooltip();
+        this.clearAll();
     }
 
     private preSceneRender() {
@@ -221,11 +193,13 @@ export class SeriesAreaManager extends BaseManager {
             }
         }
 
+        this.clearAll();
         this.ctx.contextMenuRegistry.dispatchContext('series', event, { pickedNode }, position);
     }
 
     private onLeave(): void {
         this.ctx.cursorManager.updateCursor(this.id);
+        if (!this.ctx.focusIndicator.isFocusVisible()) this.clearAll();
     }
 
     private onHover(event: RegionEvent<'hover' | 'drag'>): void {
@@ -275,16 +249,9 @@ export class SeriesAreaManager extends BaseManager {
         event.preventDefault();
     }
 
-    private onAnimationStart() {
-        if (this.focus.hasFocus) {
-            this.onBlur();
-        }
-    }
-
     private onBlur(): void {
-        this.ctx.focusIndicator.updateBounds(undefined);
         this.focus.hasFocus = false;
-        // Do not consume blur events to allow the browser-focus to leave the canvas element.
+        this.clearAll();
     }
 
     private onSubmit(event: KeyNavEvent<'submit'>): void {
@@ -421,6 +388,12 @@ export class SeriesAreaManager extends BaseManager {
         this.pendingHoverEvent = undefined;
     }
 
+    private clearAll() {
+        this.clearHighlight();
+        this.clearTooltip();
+        this.ctx.focusIndicator.updateBounds(undefined);
+    }
+
     private readonly hoverScheduler = debouncedAnimationFrame(() => {
         if (!this.pendingHoverEvent) return;
 
@@ -448,8 +421,7 @@ export class SeriesAreaManager extends BaseManager {
 
         const { offsetX, offsetY, targetElement } = event;
         if (redisplay ? this.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(offsetX, offsetY)) {
-            this.clearHighlight();
-            this.clearTooltip();
+            this.clearAll();
             return;
         }
 
