@@ -207,7 +207,7 @@ export class LegendMarkerLabel extends Translatable(Group) {
         const clippedWidth = Math.max(lastMarker?.size ?? 0, lastSymbolProps?.length ?? 0);
         const clipRect = new BBox(bbox.x + clippedWidth / 2, bbox.y, clippedWidth, bbox.height);
 
-        this.symbolsGroup.setClipRectInGroupCoordinateSpace(clipRect);
+        this.symbolsGroup.setClipRect(clipRect);
     }
 
     protected override computeBBox(): BBox {

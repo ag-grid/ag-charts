@@ -1325,11 +1325,11 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     clipTickLines(x: number, y: number, width: number, height: number) {
-        this.tickLineGroup.setClipRectInGroupCoordinateSpace(new BBox(x, y, width, height));
+        this.tickLineGroup.setClipRect(new BBox(x, y, width, height));
     }
 
     clipGrid(x: number, y: number, width: number, height: number) {
-        this.gridGroup.setClipRectInGroupCoordinateSpace(new BBox(x, y, width, height));
+        this.gridGroup.setClipRect(new BBox(x, y, width, height));
     }
 
     protected getTitleFormatterParams() {

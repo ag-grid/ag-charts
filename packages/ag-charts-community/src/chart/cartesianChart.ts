@@ -47,9 +47,9 @@ export class CartesianChart extends Chart {
 
     private setRootClipRects(clipRect: BBox | undefined) {
         const { seriesRoot, annotationRoot, highlightRoot } = this;
-        seriesRoot.setClipRectInGroupCoordinateSpace(clipRect);
-        highlightRoot.setClipRectInGroupCoordinateSpace(clipRect);
-        annotationRoot.setClipRectInGroupCoordinateSpace(clipRect);
+        seriesRoot.setClipRect(clipRect);
+        highlightRoot.setClipRect(clipRect);
+        annotationRoot.setClipRect(clipRect);
     }
 
     private lastUpdateClipRect: BBox | undefined = undefined;
