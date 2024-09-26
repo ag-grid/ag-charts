@@ -1,3 +1,4 @@
+import type { AgBaseAxisLabelOptions } from '../../chart/axisOptions';
 import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
@@ -7,6 +8,11 @@ import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../se
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 export interface AgFunnelSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {}
+
+export interface AgFunnelSeriesStageLabelOptions extends AgBaseAxisLabelOptions {
+    /** Placement */
+    placement?: 'before' | 'after';
+}
 
 export interface AgFunnelSeriesItemStylerParams<TDatum>
     extends DatumCallbackParams<TDatum>,
@@ -52,6 +58,8 @@ export interface AgFunnelSeriesThemeableOptions<TDatum = any> extends AgBaseCart
     crisp?: boolean;
     /** Configuration for the labels shown on bars. */
     label?: AgFunnelSeriesLabelOptions<TDatum, AgFunnelSeriesLabelFormatterParams>;
+    /** Configuration for the stage labels. */
+    stageLabel?: AgFunnelSeriesStageLabelOptions;
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */

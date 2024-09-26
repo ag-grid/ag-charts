@@ -13,17 +13,16 @@ export const ConeFunnelModule: _ModuleSupport.SeriesModule<'cone-funnel'> = {
     moduleFactory: (ctx) => new ConeFunnelSeries(ctx),
     solo: true,
     tooltipDefaults: { range: 'nearest' },
-    defaultAxes: [
-        {
-            type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
-            position: _Theme.POSITION.BOTTOM,
-        },
-        {
-            type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
-            position: _Theme.POSITION.LEFT,
-        },
-    ],
-    swapDefaultAxesCondition: (series) => series?.direction !== 'vertical',
+    defaultAxes: (series) =>
+        series?.direction !== 'vertical'
+            ? [
+                  { type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY, position: _Theme.POSITION.LEFT },
+                  { type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER, position: _Theme.POSITION.BOTTOM },
+              ]
+            : [
+                  { type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER, position: _Theme.POSITION.LEFT },
+                  { type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY, position: _Theme.POSITION.BOTTOM },
+              ],
     themeTemplate: CONE_FUNNEL_SERIES_THEME,
 
     paletteFactory: ({ takeColors, colorsCount }) => {

@@ -12,18 +12,17 @@ export const BulletModule: _ModuleSupport.SeriesModule<'bullet'> = {
     solo: true,
     moduleFactory: (ctx) => new BulletSeries(ctx),
     tooltipDefaults: { range: 'exact' },
-    defaultAxes: [
-        {
-            type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
-            position: _Theme.POSITION.LEFT,
-        },
-        {
-            type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
-            position: _Theme.POSITION.BOTTOM,
-        },
-    ],
+    defaultAxes: (series) =>
+        series?.direction === 'horizontal'
+            ? [
+                  { type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER, position: _Theme.POSITION.BOTTOM },
+                  { type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY, position: _Theme.POSITION.LEFT },
+              ]
+            : [
+                  { type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER, position: _Theme.POSITION.LEFT },
+                  { type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY, position: _Theme.POSITION.BOTTOM },
+              ],
     themeTemplate: BULLET_SERIES_THEME,
-    swapDefaultAxesCondition: (series) => series?.direction === 'horizontal',
     paletteFactory: ({ takeColors, colorsCount, themeTemplateParameters }) => {
         const {
             fills: [fill],

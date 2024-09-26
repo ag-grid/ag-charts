@@ -13,17 +13,32 @@ export const FunnelModule: _ModuleSupport.SeriesModule<'funnel'> = {
     moduleFactory: (ctx) => new FunnelSeries(ctx),
     solo: true,
     tooltipDefaults: { range: 'exact' },
-    defaultAxes: [
-        {
-            type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
-            position: _Theme.POSITION.BOTTOM,
-        },
-        {
-            type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
-            position: _Theme.POSITION.LEFT,
-        },
-    ],
-    swapDefaultAxesCondition: (series) => series?.direction !== 'vertical',
+    defaultAxes: (series) => {
+        const { placement, ...categoryLabel } = series?.stageLabel ?? {};
+        return series?.direction !== 'vertical'
+            ? [
+                  {
+                      type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
+                      position: placement === 'after' ? _Theme.POSITION.RIGHT : _Theme.POSITION.LEFT,
+                      label: categoryLabel,
+                  },
+                  {
+                      type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
+                      position: _Theme.POSITION.BOTTOM,
+                  },
+              ]
+            : [
+                  {
+                      type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
+                      position: _Theme.POSITION.LEFT,
+                  },
+                  {
+                      type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
+                      position: placement === 'before' ? _Theme.POSITION.TOP : _Theme.POSITION.BOTTOM,
+                      label: categoryLabel,
+                  },
+              ];
+    },
     themeTemplate: FUNNEL_SERIES_THEME,
 
     paletteFactory: ({ takeColors }) => {

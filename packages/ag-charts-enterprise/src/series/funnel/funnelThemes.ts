@@ -12,7 +12,7 @@ export const FUNNEL_SERIES_THEME: {
     series: {
         direction: 'horizontal' as const,
         strokeWidth: 0,
-        spacing: 0.3,
+        spacing: 0.25,
         label: {
             enabled: true,
             fontSize: 12,

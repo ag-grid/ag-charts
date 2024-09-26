@@ -15,17 +15,16 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
     stackable: true,
     groupable: true,
     tooltipDefaults: { range: 'exact' },
-    defaultAxes: [
-        {
-            type: CARTESIAN_AXIS_TYPE.NUMBER,
-            position: POSITION.LEFT,
-        },
-        {
-            type: CARTESIAN_AXIS_TYPE.CATEGORY,
-            position: POSITION.BOTTOM,
-        },
-    ],
-    swapDefaultAxesCondition: (series) => series?.direction === 'horizontal',
+    defaultAxes: (series) =>
+        series?.direction === 'horizontal'
+            ? [
+                  { type: CARTESIAN_AXIS_TYPE.NUMBER, position: POSITION.BOTTOM },
+                  { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: POSITION.LEFT },
+              ]
+            : [
+                  { type: CARTESIAN_AXIS_TYPE.NUMBER, position: POSITION.LEFT },
+                  { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: POSITION.BOTTOM },
+              ],
     themeTemplate: {
         series: {
             direction: 'vertical',
