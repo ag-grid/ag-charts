@@ -70,16 +70,21 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
             case 'topLeft':
             case 'bottomLeft': {
                 const direction = activeHandle === 'topLeft' ? 1 : -1;
-                const start = invert({
-                    x: handles.topLeft.handle.x + offset.x,
-                    y: handles.topLeft.handle.y + offset.y * direction,
-                });
-                const bottomStart = invert({
-                    x: handles.bottomLeft.handle.x + offset.x,
-                    y: handles.bottomLeft.handle.y + offset.y * -direction,
-                });
+                const start = datum.snapToAngle
+                    ? this.snapToAngle(target, context, 'topLeft', 'topRight', direction)
+                    : invert({
+                          x: handles.topLeft.handle.x + offset.x,
+                          y: handles.topLeft.handle.y + offset.y * direction,
+                      });
 
-                if (!start || !bottomStart || datum.start.y == null) return;
+                const bottomStart = datum.snapToAngle
+                    ? this.snapToAngle(target, context, 'bottomLeft', 'bottomRight', direction)
+                    : invert({
+                          x: handles.bottomLeft.handle.x + offset.x,
+                          y: handles.bottomLeft.handle.y + offset.y * -direction,
+                      });
+
+                if (!start || start.y == null || !bottomStart || bottomStart.y == null || datum.start.y == null) return;
 
                 const startHeight = datum.startHeight + (start.y - datum.start.y) * 2;
 
@@ -91,12 +96,14 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
             }
 
             case 'topRight': {
-                const end = invert({
-                    x: handles.topRight.handle.x + offset.x,
-                    y: handles.topRight.handle.y + offset.y,
-                });
+                const end = datum.snapToAngle
+                    ? this.snapToAngle(target, context, 'topRight', 'topLeft')
+                    : invert({
+                          x: handles.topRight.handle.x + offset.x,
+                          y: handles.topRight.handle.y + offset.y,
+                      });
 
-                if (!end || datum.end.y == null) return;
+                if (!end || end.y == null || datum.end.y == null) return;
 
                 const endHeight = datum.endHeight + (end.y - datum.end.y) * 2;
 
