@@ -1,6 +1,9 @@
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types';
+
+import { Transformable } from '../../integrated-charts-scene';
 import type { BBox } from '../../scene/bbox';
 import type { TranslatableGroup } from '../../scene/group';
+import { clamp, setAttribute } from '../../sparklines-util';
 import { createId } from '../../util/id';
 import type { TypedEvent } from '../../util/observable';
 import { BaseManager } from '../baseManager';
@@ -8,20 +11,21 @@ import type { ChartContext } from '../chartContext';
 import type { ChartHighlight } from '../chartHighlight';
 import { ChartUpdateType } from '../chartUpdateType';
 import { InteractionState } from '../interaction/interactionManager';
+import type { KeyNavEvent } from '../interaction/keyNavManager';
 import type { RegionEvent } from '../interaction/regionManager';
 import { REGIONS } from '../interaction/regions';
+import { TooltipManager } from '../interaction/tooltipManager';
+import { makeKeyboardPointerEvent } from '../keyboardUtil';
 import type { LayoutCompleteEvent } from '../layout/layoutManager';
 import type { ChartOverlays } from '../overlay/chartOverlays';
-import { Tooltip } from '../tooltip/tooltip';
+import { Tooltip, type TooltipContent } from '../tooltip/tooltip';
 import type { UpdateOpts } from '../updateService';
-import { type Series } from './series';
-import { SeriesAreaFocusManager } from './seriesAreaFocusManager';
+import { type PickFocusOutputs, type Series } from './series';
 import { SeriesAreaHighlightManager } from './seriesAreaHighlightManager';
 import { SeriesAreaTooltipManager } from './seriesAreaTooltipManager';
+import type { SeriesProperties } from './seriesProperties';
 import type { SeriesNodeDatum } from './seriesTypes';
 import { pickNode } from './util';
-import { Transformable } from '../../integrated-charts-scene';
-import type { SeriesProperties } from './seriesProperties';
 
 interface SeriesAreaSubManager {
     seriesChanged(series: Series<any, any>[]): void;
@@ -31,12 +35,40 @@ interface SeriesAreaSubManager {
     destroy(): void;
 }
 
+class SeriesAreaAriaLabel {
+    constructor(
+        private readonly element: HTMLElement,
+        public readonly id: string
+    ) {
+        element.id = id;
+        element.style.display = 'none';
+        setAttribute(element.parentElement, 'aria-labelledby', id);
+    }
+    layoutComplete(event: LayoutCompleteEvent) {
+        this.element.parentElement!.style.width = `${event.chart.width}px`;
+        this.element.parentElement!.style.height = `${event.chart.height}px`;
+    }
+    set text(text: string) {
+        this.element.textContent = text;
+    }
+}
+
 /** Manager that handles all top-down series-area related concerns and state. */
 export class SeriesAreaManager extends BaseManager {
     readonly id = createId(this);
 
     private series: Series<any, any>[] = [];
     private seriesRect?: BBox;
+    private readonly ariaLabel: SeriesAreaAriaLabel;
+
+    private readonly focus = {
+        hasFocus: false,
+        sortedSeries: [] as Series<SeriesNodeDatum, SeriesProperties<object>>[],
+        series: undefined as Series<any, any> | undefined,
+        seriesIndex: 0,
+        datumIndex: 0,
+        datum: undefined as SeriesNodeDatum | undefined,
+    };
 
     private readonly subManagers: SeriesAreaSubManager[];
 
@@ -47,15 +79,14 @@ export class SeriesAreaManager extends BaseManager {
             seriesRoot: TranslatableGroup;
         },
         private readonly ctx: ChartContext,
-        chartType: 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'gauge',
+        private readonly chartType: 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'gauge',
         tooltip: Tooltip,
         highlight: ChartHighlight,
-        overlays: ChartOverlays
+        private readonly overlays: ChartOverlays
     ) {
         super();
 
         this.subManagers = [
-            new SeriesAreaFocusManager(this.id, chart, ctx, chartType, overlays),
             new SeriesAreaHighlightManager(this.id, chart, ctx, highlight),
             new SeriesAreaTooltipManager(this.id, chart, ctx, tooltip),
         ];
@@ -64,7 +95,10 @@ export class SeriesAreaManager extends BaseManager {
         const horizontalAxesRegion = this.ctx.regionManager.getRegion(REGIONS.HORIZONTAL_AXES);
         const verticalAxesRegion = this.ctx.regionManager.getRegion(REGIONS.VERTICAL_AXES);
 
+        const labelEl = this.ctx.domManager.addChild('series-area', 'series-area-aria-label');
+        this.ariaLabel = new SeriesAreaAriaLabel(labelEl, `${this.id}-aria-label`);
         this.destroyFns.push(
+            () => this.ctx.domManager.removeChild('series-area', 'series-area-aria-label'),
             () => this.subManagers.forEach((s) => s.destroy()),
             this.ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
             this.ctx.regionManager.listenAll('dblclick', (event) => this.onClick(event)),
@@ -75,17 +109,29 @@ export class SeriesAreaManager extends BaseManager {
             verticalAxesRegion.addListener('leave', () => this.onLeave()),
             seriesRegion.addListener('contextmenu', (event) => this.onContextMenu(event), InteractionState.All),
             this.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender()),
-            this.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event))
+            this.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
+            this.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
+            this.ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
+            this.ctx.keyNavManager.addListener('blur', () => this.onBlur()),
+            this.ctx.keyNavManager.addListener('focus', (event) => this.onFocus(event)),
+            this.ctx.keyNavManager.addListener('nav-vert', (event) => this.onNavVert(event)),
+            this.ctx.keyNavManager.addListener('nav-hori', (event) => this.onNavHori(event)),
+            this.ctx.keyNavManager.addListener('submit', (event) => this.onSubmit(event)),
+            this.ctx.zoomManager.addListener('zoom-change', () => {
+                this.ctx.focusIndicator.updateBounds(undefined);
+            })
         );
     }
 
     public dataChanged() {
+        this.ctx.focusIndicator.updateBounds(undefined);
         for (const manager of this.subManagers) {
             manager.dataChanged?.();
         }
     }
 
     private preSceneRender() {
+        this.refreshFocus();
         for (const manager of this.subManagers) {
             manager.preSceneRender?.();
         }
@@ -96,7 +142,22 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     public seriesChanged(series: Series<SeriesNodeDatum, SeriesProperties<object>>[]) {
+        this.focus.sortedSeries = [...series].sort((a, b) => {
+            let fpA = a.properties.focusPriority ?? Infinity;
+            let fpB = b.properties.focusPriority ?? Infinity;
+            if (fpA === fpB) {
+                [fpA, fpB] = [a._declarationOrder, b._declarationOrder];
+            }
+            // Note: `Infinity-Infinity` results in `NaN`, so use `<` comparison instead of `-` subtraction.
+            if (fpA < fpB) {
+                return -1;
+            } else if (fpA > fpB) {
+                return 1;
+            }
+            return 0;
+        });
         this.series = series;
+        this.onBlur();
 
         for (const manager of this.subManagers) {
             manager.seriesChanged([...this.series]);
@@ -105,6 +166,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private layoutComplete(event: LayoutCompleteEvent): void {
         this.seriesRect = event.series.rect;
+        this.ariaLabel.layoutComplete(event);
     }
 
     private onContextMenu(event: RegionEvent<'contextmenu'>): void {
@@ -161,6 +223,50 @@ export class SeriesAreaManager extends BaseManager {
         this.chart.fireEvent(newEvent);
     }
 
+    private onFocus(event: KeyNavEvent<'focus'>): void {
+        this.handleFocus(0, 0);
+        event.preventDefault();
+        this.focus.hasFocus = true;
+    }
+
+    private onNavVert(event: KeyNavEvent<'nav-vert'>): void {
+        this.focus.seriesIndex += event.delta;
+        this.handleFocus(event.delta, 0);
+        event.preventDefault();
+    }
+
+    private onNavHori(event: KeyNavEvent<'nav-hori'>): void {
+        this.focus.datumIndex += event.delta;
+        this.handleFocus(0, event.delta);
+        event.preventDefault();
+    }
+
+    private onAnimationStart() {
+        if (this.focus.hasFocus) {
+            this.onBlur();
+        }
+    }
+
+    private onBlur(): void {
+        this.ctx.focusIndicator.updateBounds(undefined);
+        this.focus.hasFocus = false;
+        // Do not consume blur events to allow the browser-focus to leave the canvas element.
+    }
+
+    private onSubmit(event: KeyNavEvent<'submit'>): void {
+        const { series, datum } = this.focus;
+        const sourceEvent = event.sourceEvent.sourceEvent;
+        if (series !== undefined && datum !== undefined) {
+            series.fireNodeClickEvent(sourceEvent, datum);
+        } else {
+            this.chart.fireEvent<AgChartClickEvent>({
+                type: 'click',
+                event: sourceEvent,
+            });
+        }
+        event.preventDefault();
+    }
+
     private checkSeriesNodeClick(event: RegionEvent<'click' | 'dblclick'> & { preventZoomDblClick?: boolean }) {
         let point = { x: event.regionOffsetX, y: event.regionOffsetY };
         if (event.region !== 'series') {
@@ -190,5 +296,83 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         return false;
+    }
+
+    private refreshFocus() {
+        if (this.focus.hasFocus) {
+            this.handleSeriesFocus(0, 0);
+        }
+    }
+
+    private handleFocus(seriesIndexDelta: number, datumIndexDelta: number) {
+        this.focus.hasFocus = true;
+        const overlayFocus = this.overlays.getFocusInfo(this.ctx.localeManager);
+        if (overlayFocus == null) {
+            this.handleSeriesFocus(seriesIndexDelta, datumIndexDelta);
+        } else {
+            this.ctx.focusIndicator.updateBounds(overlayFocus.rect);
+        }
+    }
+
+    private handleSeriesFocus(otherIndexDelta: number, datumIndexDelta: number) {
+        if (this.chartType === 'hierarchy') {
+            this.handleHierarchySeriesFocus(otherIndexDelta, datumIndexDelta);
+            return;
+        }
+        const { focus, seriesRect } = this;
+        const visibleSeries = focus.sortedSeries.filter((s) => s.visible);
+        if (visibleSeries.length === 0) return;
+
+        // Update focused series:
+        focus.seriesIndex = clamp(0, focus.seriesIndex, visibleSeries.length - 1);
+        focus.series = visibleSeries[focus.seriesIndex];
+
+        // Update focused datum:
+        const { datumIndex, seriesIndex: otherIndex } = focus;
+        const pick = focus.series.pickFocus({ datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect });
+        this.updatePickedFocus(pick);
+    }
+
+    private handleHierarchySeriesFocus(otherIndexDelta: number, datumIndexDelta: number) {
+        // Hierarchial charts (treemap, sunburst) can only have 1 series. So we'll repurpose the focus.seriesIndex
+        // value to control the focused depth. This allows the hierarchial charts to piggy-back on the base keyboard
+        // handling implementation.
+        this.focus.series = this.focus.sortedSeries[0];
+        const {
+            focus: { series, seriesIndex: otherIndex, datumIndex },
+            seriesRect,
+        } = this;
+        if (series === undefined) return;
+        const pick = series.pickFocus({ datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect });
+        this.updatePickedFocus(pick);
+    }
+
+    private updatePickedFocus(pick: PickFocusOutputs | undefined) {
+        const { focus } = this;
+        if (pick === undefined || focus.series === undefined) return;
+
+        const { datum, datumIndex } = pick;
+        focus.datumIndex = datumIndex;
+        focus.datum = datum;
+
+        // Only update the highlight/tooltip/status if this is a keyboard user.
+        if (!this.ctx.focusIndicator.isFocusVisible()) return;
+
+        // Update user interaction/interface:
+        const keyboardEvent = makeKeyboardPointerEvent(this.ctx.focusIndicator, pick);
+        if (keyboardEvent !== undefined) {
+            const html = focus.series.getTooltipHtml(datum);
+            const meta = TooltipManager.makeTooltipMeta(keyboardEvent, datum);
+            this.ctx.highlightManager.updateHighlight(this.id, datum);
+            this.ctx.tooltipManager.updateTooltip(this.id, meta, html);
+            this.ariaLabel.text = this.getDatumAriaText(datum, html);
+        }
+    }
+
+    private getDatumAriaText(datum: SeriesNodeDatum, html: TooltipContent): string {
+        const description = html.ariaLabel;
+        return this.ctx.localeManager.t('ariaAnnounceHoverDatum', {
+            datum: datum.series.getDatumAriaText?.(datum, description) ?? description,
+        });
     }
 }
