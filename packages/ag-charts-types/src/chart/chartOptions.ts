@@ -146,7 +146,7 @@ export interface AgKeyboardOptions {
      *
      * Default: `0`
      */
-    tabIndex?: 0 | -1;
+    tabIndex?: number;
 }
 
 export interface AgBaseThemeableChartOptions<TDatum = any> {
