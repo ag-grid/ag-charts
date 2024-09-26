@@ -111,11 +111,10 @@ export class Group extends Node {
             return super.render(renderCtx);
         }
 
-        const { opts: { name } = {}, _debug: debug, clipRect } = this;
+        const { opts: { name } = {}, _debug: debug } = this;
         const { isDirty, isChildDirty, isChildLayerDirty } = this.isDirty(renderCtx);
         const { ctx, stats } = renderCtx;
-
-        let { forceRender, clipBBox } = renderCtx;
+        let { forceRender } = renderCtx;
 
         if (!isDirty && !isChildDirty && !isChildLayerDirty && !forceRender) {
             this.debugSkip(renderCtx);
@@ -127,31 +126,16 @@ export class Group extends Node {
             forceRender ||= this.dirtyZIndex;
         }
 
-        // Only apply opacity if this isn't a distinct layer - opacity will be applied
-        // at composition time.
         ctx.globalAlpha *= this.opacity;
 
-        if (clipRect) {
-            // clipRect is in the group's coordinate space
-            const { x, y, width, height } = clipRect;
-            ctx.save();
-
-            debug?.(() => ({ name, clipRect, ctxTransform: ctx.getTransform(), renderCtx, group: this }));
-
-            ctx.beginPath();
-            ctx.rect(x, y, width, height);
-            ctx.clip();
-
-            // clipBBox is in the canvas coordinate space, when we hit a layer we apply the new clipping at which point there are no transforms in play
-            clipBBox = Transformable.toCanvas(this, clipRect);
-        }
-
         const children = this.sortedChildren();
+        const clipBBox = this.renderClip(renderCtx) ?? renderCtx.clipBBox;
         const renderCtxChanged = forceRender !== renderCtx.forceRender || clipBBox !== renderCtx.clipBBox;
+
         this.renderChildren(children, renderCtxChanged ? { ...renderCtx, forceRender, clipBBox } : renderCtx);
         super.render(renderCtx); // Calls markClean().
 
-        if (clipRect) {
+        if (this.clipRect) {
             ctx.restore();
         }
 
@@ -180,6 +164,32 @@ export class Group extends Node {
             this.dirtyZIndex = false;
         }
         return children;
+    }
+
+    protected renderClip(renderCtx: RenderContext) {
+        if (!this.clipRect) return;
+
+        // clipRect is in the group's coordinate space
+        const { x, y, width, height } = this.clipRect;
+        const { ctx } = renderCtx;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(x, y, width, height);
+        ctx.clip();
+
+        this._debug?.(() => ({
+            name: this.opts?.name,
+            clipRect: this.clipRect,
+            ctxTransform: ctx.getTransform(),
+            renderCtx,
+            group: this,
+        }));
+
+        // clipBBox is in the canvas coordinate space,
+        // when we hit a layer we apply the new clipping
+        // at which point there are no transforms in play
+        return Transformable.toCanvas(this, this.clipRect);
     }
 
     protected renderChildren(children: Iterable<Node>, renderCtx: RenderContext) {

@@ -4,7 +4,7 @@ import { nodeCount } from './debug.util';
 import { Group } from './group';
 import type { LayersManager, ZIndexSubOrder } from './layersManager';
 import { type ChildNodeCounts, Node, RedrawType, type RenderContext } from './node';
-import { Transformable, Translatable } from './transformable';
+import { Translatable } from './transformable';
 
 export class Layer extends Group {
     static override className = 'Layer';
@@ -83,17 +83,19 @@ export class Layer extends Group {
             return; // Nothing to do.
         }
 
+        if (forceRender !== 'dirtyTransform') {
+            forceRender = isChildDirty || this.dirtyZIndex;
+        }
+
+        if (forceRender) {
+            this.layer.clear();
+        }
+
+        const children = this.sortedChildren();
         const renderCtxTransform = renderCtx.ctx.getTransform();
         const { context: ctx } = this.layer;
 
         ctx.save();
-
-        if (forceRender !== 'dirtyTransform') {
-            forceRender = isChildDirty || this.dirtyZIndex;
-        }
-        if (forceRender) {
-            this.layer.clear();
-        }
 
         if (clipBBox) {
             // clipBBox is in the canvas coordinate space, when we hit a layer we
@@ -109,24 +111,11 @@ export class Layer extends Group {
 
         ctx.setTransform(renderCtxTransform);
 
-        if (clipRect) {
-            // clipRect is in the group's coordinate space
-            const { x, y, width, height } = clipRect;
-            ctx.save();
-
-            debug?.(() => ({ name, clipRect, ctxTransform: ctx.getTransform(), renderCtx, group: this }));
-
-            ctx.beginPath();
-            ctx.rect(x, y, width, height);
-            ctx.clip();
-
-            // clipBBox is in the canvas coordinate space, when we hit a layer we apply the new clipping at which point there are no transforms in play
-            clipBBox = Transformable.toCanvas(this, clipRect);
+        if (this.clipRect) {
+            clipBBox = this.renderClip({ ...renderCtx, ctx });
         }
 
-        const children = this.sortedChildren();
         this.renderChildren(children, { ...renderCtx, ctx, forceRender, clipBBox });
-
         super.render(renderCtx, true); // Calls markClean().
 
         if (clipRect) {
