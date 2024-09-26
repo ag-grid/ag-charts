@@ -12,13 +12,14 @@ export const FUNNEL_SERIES_THEME: {
     series: {
         direction: 'horizontal' as const,
         strokeWidth: 0,
+        spacing: 0.3,
         label: {
             enabled: true,
             fontSize: 12,
             fontFamily: _Theme.DEFAULT_FONT_FAMILY,
             color: _Theme.DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
         },
-        connector: {
+        dropOff: {
             enabled: true,
             fillOpacity: 0.2,
             strokeWidth: 0,

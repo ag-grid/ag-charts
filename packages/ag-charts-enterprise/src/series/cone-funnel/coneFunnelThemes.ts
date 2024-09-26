@@ -37,7 +37,6 @@ export const CONE_FUNNEL_SERIES_THEME: {
             },
         },
         [_Theme.CARTESIAN_AXIS_TYPE.CATEGORY]: {
-            paddingInner: 1,
             line: {
                 enabled: false,
             },

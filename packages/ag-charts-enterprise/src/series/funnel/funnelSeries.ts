@@ -38,8 +38,12 @@ export class FunnelSeries extends BaseFunnelSeries<_Scene.Rect> {
         });
     }
 
+    override getBandScalePadding() {
+        return { inner: this.properties.spacing, outer: 0 };
+    }
+
     protected override connectorEnabled() {
-        return this.properties.connector.enabled;
+        return this.properties.dropOff.enabled;
     }
 
     protected override barStyle(): FunnelSeriesShapeStyle {
@@ -57,7 +61,7 @@ export class FunnelSeries extends BaseFunnelSeries<_Scene.Rect> {
 
     protected override connectorStyle(): FunnelSeriesShapeStyle {
         const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
-            this.properties.connector;
+            this.properties.dropOff;
         return { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset };
     }
 
@@ -102,6 +106,13 @@ export class FunnelSeries extends BaseFunnelSeries<_Scene.Rect> {
         const {
             yKey,
             highlightStyle: { item: itemHighlightStyle },
+            fillOpacity,
+            strokeOpacity,
+            strokeWidth,
+            lineDash,
+            lineDashOffset,
+            itemStyler,
+            shadow: fillShadow,
         } = this.properties;
 
         const xAxis = this.axes[ChartAxisDirection.X];
@@ -115,7 +126,6 @@ export class FunnelSeries extends BaseFunnelSeries<_Scene.Rect> {
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
 
         datumSelection.each((rect, datum) => {
-            const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, itemStyler } = this.properties;
             const style: _ModuleSupport.RectConfig = {
                 fill: datum.fill,
                 stroke: datum.stroke,
@@ -123,8 +133,8 @@ export class FunnelSeries extends BaseFunnelSeries<_Scene.Rect> {
                 strokeOpacity,
                 lineDash,
                 lineDashOffset,
+                fillShadow,
                 strokeWidth: this.getStrokeWidth(strokeWidth),
-                cornerRadius: this.properties.cornerRadius,
             };
             const visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 

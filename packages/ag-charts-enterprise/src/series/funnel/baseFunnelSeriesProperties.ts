@@ -17,7 +17,6 @@ export interface BaseFunnelProperties<SeriesOptions extends object>
     yName: string | undefined;
     fills: string[];
     strokes: string[];
-    cornerRadius: number;
     itemStyler?: Styler<AgFunnelSeriesItemStylerParams<unknown>, AgFunnelSeriesStyle>;
     label: FunnelSeriesLabel;
     tooltip: _ModuleSupport.SeriesTooltip<AgFunnelSeriesTooltipRendererParams<unknown>>;
