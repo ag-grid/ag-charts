@@ -102,6 +102,8 @@ export class SeriesAreaTooltipManager extends BaseManager {
     });
 
     private handleHover(event: RegionEvent<'hover'>, redisplay: boolean) {
+        if (this.ctx.focusIndicator.isFocusVisible()) return;
+
         const state = this.ctx.interactionManager.getState();
         if (state !== InteractionState.Default && state !== InteractionState.Annotations) return;
 
