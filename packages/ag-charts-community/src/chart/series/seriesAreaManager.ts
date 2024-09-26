@@ -20,21 +20,12 @@ import { TooltipManager } from '../interaction/tooltipManager';
 import { makeKeyboardPointerEvent } from '../keyboardUtil';
 import type { LayoutCompleteEvent } from '../layout/layoutManager';
 import type { ChartOverlays } from '../overlay/chartOverlays';
-import { Tooltip, type TooltipContent } from '../tooltip/tooltip';
+import { DEFAULT_TOOLTIP_CLASS, Tooltip, type TooltipContent } from '../tooltip/tooltip';
 import type { UpdateOpts } from '../updateService';
 import { type PickFocusOutputs, type Series } from './series';
-import { SeriesAreaTooltipManager } from './seriesAreaTooltipManager';
 import type { SeriesProperties } from './seriesProperties';
 import type { ISeries, SeriesNodeDatum } from './seriesTypes';
 import { pickNode } from './util';
-
-interface SeriesAreaSubManager {
-    seriesChanged(series: Series<any, any>[]): void;
-    dataChanged?: () => void;
-    preSceneRender?: () => void;
-
-    destroy(): void;
-}
 
 class SeriesAreaAriaLabel {
     constructor(
@@ -54,7 +45,6 @@ class SeriesAreaAriaLabel {
     }
 }
 
-/** Manager that handles all top-down series-area related concerns and state. */
 export class SeriesAreaManager extends BaseManager {
     readonly id = createId(this);
 
@@ -79,8 +69,6 @@ export class SeriesAreaManager extends BaseManager {
         datum: undefined as SeriesNodeDatum | undefined,
     };
 
-    private readonly subManagers: SeriesAreaSubManager[];
-
     public constructor(
         private readonly chart: {
             performUpdateType: ChartUpdateType;
@@ -89,13 +77,11 @@ export class SeriesAreaManager extends BaseManager {
         },
         private readonly ctx: ChartContext,
         private readonly chartType: 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'gauge',
-        tooltip: Tooltip,
+        private readonly tooltip: Tooltip,
         private readonly highlight: ChartHighlight,
         private readonly overlays: ChartOverlays
     ) {
         super();
-
-        this.subManagers = [new SeriesAreaTooltipManager(this.id, chart, ctx, tooltip)];
 
         const seriesRegion = this.ctx.regionManager.getRegion(REGIONS.SERIES);
         const horizontalAxesRegion = this.ctx.regionManager.getRegion(REGIONS.HORIZONTAL_AXES);
@@ -107,7 +93,6 @@ export class SeriesAreaManager extends BaseManager {
 
         this.destroyFns.push(
             () => this.ctx.domManager.removeChild('series-area', 'series-area-aria-label'),
-            () => this.subManagers.forEach((s) => s.destroy()),
             this.ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
             this.ctx.regionManager.listenAll('dblclick', (event) => this.onClick(event)),
             this.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
@@ -141,7 +126,27 @@ export class SeriesAreaManager extends BaseManager {
             this.ctx.keyNavManager.addListener('blur', () => this.clearHighlight()),
             this.ctx.animationManager.addListener('animation-start', () => this.clearHighlight()),
             this.ctx.zoomManager.addListener('zoom-pan-start', () => this.clearHighlight()),
-            this.ctx.zoomManager.addListener('zoom-change', () => this.clearHighlight())
+            this.ctx.zoomManager.addListener('zoom-change', () => this.clearHighlight()),
+
+            this.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
+            seriesRegion.addListener(
+                'hover',
+                (event) => this.onHover(event),
+                InteractionState.Default | InteractionState.Annotations
+            ),
+            horizontalAxesRegion.addListener('hover', (event) => this.onHover(event)),
+            verticalAxesRegion.addListener('hover', (event) => this.onHover(event)),
+
+            // Events that clear tooltip.
+            seriesRegion.addListener('leave', () => this.clearTooltip()),
+            seriesRegion.addListener('contextmenu', () => this.clearTooltip(), InteractionState.All),
+            horizontalAxesRegion.addListener('leave', () => this.clearTooltip()),
+            verticalAxesRegion.addListener('leave', () => this.clearTooltip()),
+            this.ctx.keyNavManager.addListener('blur', () => this.clearTooltip()),
+            this.ctx.animationManager.addListener('animation-start', () => this.clearTooltip()),
+            this.ctx.domManager.addListener('resize', () => this.clearTooltip()),
+            this.ctx.zoomManager.addListener('zoom-pan-start', () => this.clearTooltip()),
+            this.ctx.zoomManager.addListener('zoom-change', () => this.clearTooltip())
         );
     }
 
@@ -150,9 +155,7 @@ export class SeriesAreaManager extends BaseManager {
 
         this.stashedHoverEvent ??= this.appliedHoverEvent;
         this.clearHighlight();
-        for (const manager of this.subManagers) {
-            manager.dataChanged?.();
-        }
+        this.clearTooltip();
     }
 
     private preSceneRender() {
@@ -162,9 +165,6 @@ export class SeriesAreaManager extends BaseManager {
             this.pendingHoverEvent = this.stashedHoverEvent;
             this.stashedHoverEvent = undefined;
             this.handleHover(true);
-        }
-        for (const manager of this.subManagers) {
-            manager.preSceneRender?.();
         }
     }
 
@@ -189,10 +189,6 @@ export class SeriesAreaManager extends BaseManager {
         });
         this.series = series;
         this.onBlur();
-
-        for (const manager of this.subManagers) {
-            manager.seriesChanged([...this.series]);
-        }
     }
 
     private layoutComplete(event: LayoutCompleteEvent): void {
@@ -420,6 +416,11 @@ export class SeriesAreaManager extends BaseManager {
         this.ctx.highlightManager.updateHighlight(this.id);
     }
 
+    private clearTooltip() {
+        this.ctx.tooltipManager.removeTooltip(this.id);
+        this.pendingHoverEvent = undefined;
+    }
+
     private readonly hoverScheduler = debouncedAnimationFrame(() => {
         if (!this.pendingHoverEvent) return;
 
@@ -434,6 +435,8 @@ export class SeriesAreaManager extends BaseManager {
     });
 
     private handleHover(redisplay: boolean) {
+        if (this.ctx.focusIndicator.isFocusVisible()) return;
+
         this.appliedHoverEvent = this.pendingHoverEvent;
         this.pendingHoverEvent = undefined;
 
@@ -443,26 +446,49 @@ export class SeriesAreaManager extends BaseManager {
         const state = this.ctx.interactionManager.getState();
         if (state !== InteractionState.Default && state !== InteractionState.Annotations) return;
 
-        const { offsetX, offsetY } = event;
+        const { offsetX, offsetY, targetElement } = event;
         if (redisplay ? this.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(offsetX, offsetY)) {
             this.clearHighlight();
+            this.clearTooltip();
             return;
         }
 
+        if (
+            targetElement &&
+            this.tooltip.interactive &&
+            this.ctx.domManager.isManagedChildDOMElement(targetElement, 'canvas-overlay', DEFAULT_TOOLTIP_CLASS)
+        ) {
+            // Skip tooltip update if tooltip is interactive, and the source event was for a tooltip HTML element.
+            return;
+        }
         let pickCoords = { x: event.regionOffsetX, y: event.regionOffsetY };
         if (event.region !== 'series') {
             pickCoords = Transformable.fromCanvasPoint(this.chart.seriesRoot, offsetX, offsetY);
         }
 
-        const { range } = this.highlight;
-        const intent = range === 'tooltip' ? 'highlight-tooltip' : 'highlight';
-        const found = pickNode(this.series, pickCoords, intent);
-        if (found) {
-            this.ctx.highlightManager.updateHighlight(this.id, found.datum);
-            return;
+        const tooltipPick = pickNode(this.series, pickCoords, 'tooltip');
+        const highlightPick =
+            this.highlight.range === 'tooltip'
+                ? pickNode(this.series, pickCoords, 'highlight-tooltip')
+                : pickNode(this.series, pickCoords, 'highlight');
+
+        if (tooltipPick) {
+            const html = tooltipPick.series.getTooltipHtml(tooltipPick.datum);
+            const tooltipEnabled = this.tooltip.enabled && tooltipPick.series.tooltipEnabled;
+            const shouldUpdateTooltip = tooltipEnabled && html != null;
+            if (shouldUpdateTooltip) {
+                const meta = TooltipManager.makeTooltipMeta(event, tooltipPick.datum);
+                this.ctx.tooltipManager.updateTooltip(this.id, meta, html);
+            }
+        } else {
+            this.clearTooltip();
         }
 
-        this.ctx.highlightManager.updateHighlight(this.id);
+        if (highlightPick) {
+            this.ctx.highlightManager.updateHighlight(this.id, highlightPick.datum);
+        } else {
+            this.ctx.highlightManager.updateHighlight(this.id); // FIXME: clearHighlight?
+        }
     }
 
     private changeHighlightDatum(event: HighlightChangeEvent) {
