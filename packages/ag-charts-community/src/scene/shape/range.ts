@@ -1,5 +1,5 @@
-import { nodeCount } from '../../util/debug.util';
 import { BBox } from '../bbox';
+import { nodeCount } from '../debug.util';
 import type { NodeOptions, RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
 import { Shape } from './shape';

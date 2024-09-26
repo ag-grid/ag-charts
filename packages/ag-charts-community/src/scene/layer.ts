@@ -1,6 +1,6 @@
-import { nodeCount } from '../util/debug.util';
 import { BBox } from './bbox';
 import type { HdpiCanvas } from './canvas/hdpiCanvas';
+import { nodeCount } from './debug.util';
 import { Group } from './group';
 import type { LayersManager, ZIndexSubOrder } from './layersManager';
 import { type ChildNodeCounts, Node, RedrawType, type RenderContext } from './node';
@@ -142,33 +142,9 @@ export class Layer extends Group {
             this.sortChildren(children as Node[]);
         }
 
-        const childRenderContext = { ...renderCtx, ctx, forceRender, clipBBox };
+        this.renderChildren(children, { ...renderCtx, ctx, forceRender, clipBBox });
 
-        // Render visible children.
-        let skipped = 0;
-        for (const child of children) {
-            if (!child.visible || !this.visible) {
-                // Skip invisible children, but make sure their dirty flag is reset.
-                child.markClean();
-                if (stats) skipped += nodeCount(child).count;
-                continue;
-            }
-
-            if (!forceRender && child.dirty === RedrawType.NONE) {
-                // Skip children that don't need to be redrawn.
-                if (stats) skipped += nodeCount(child).count;
-                continue;
-            }
-
-            // Render marks this node (and children) as clean - no need to explicitly markClean().
-            ctx.save();
-            child.render(childRenderContext);
-            ctx.restore();
-        }
-        if (stats) stats.nodesSkipped += skipped;
-
-        // Render marks this node as clean - no need to explicitly markClean().
-        super.render(renderCtx, true);
+        super.render(renderCtx, true); // Calls markClean().
 
         if (clipRect) {
             ctx.restore();
@@ -190,7 +166,14 @@ export class Layer extends Group {
         ctx.verifyDepthZero?.(); // Check for save/restore depth of zero!
 
         if (name && stats) {
-            debug?.({ name, result: 'rendered', skipped, renderCtx, counts: nodeCount(this), group: this });
+            debug?.({
+                name,
+                renderCtx,
+                result: 'rendered',
+                skipped: stats.nodesSkipped,
+                counts: nodeCount(this),
+                group: this,
+            });
         }
     }
 

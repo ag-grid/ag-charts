@@ -1,7 +1,7 @@
 import { ascendingStringNumberUndefined, compoundAscending } from '../util/compare';
-import { nodeCount } from '../util/debug.util';
 import { clamp } from '../util/number';
 import { BBox } from './bbox';
+import { nodeCount } from './debug.util';
 import type { ZIndexSubOrder } from './layersManager';
 import type { ChildNodeCounts, RenderContext } from './node';
 import { Node, RedrawType, SceneChangeDetection } from './node';
@@ -123,7 +123,6 @@ export class Group extends Node {
             return; // Nothing to do.
         }
 
-        const groupVisible = this.visible;
         // Only apply opacity if this isn't a distinct layer - opacity will be applied
         // at composition time.
         ctx.globalAlpha *= this.opacity;
@@ -156,34 +155,9 @@ export class Group extends Node {
         }
 
         // Reduce churn if renderCtx is identical.
-        const renderContextChanged = forceRender !== renderCtx.forceRender || clipBBox !== renderCtx.clipBBox;
-        const childRenderContext = renderContextChanged ? { ...renderCtx, forceRender, clipBBox } : renderCtx;
-
-        // Render visible children.
-        let skipped = 0;
-        for (const child of children) {
-            if (!child.visible || !groupVisible) {
-                // Skip invisible children, but make sure their dirty flag is reset.
-                child.markClean();
-                if (stats) skipped += nodeCount(child).count;
-                continue;
-            }
-
-            if (!forceRender && child.dirty === RedrawType.NONE) {
-                // Skip children that don't need to be redrawn.
-                if (stats) skipped += nodeCount(child).count;
-                continue;
-            }
-
-            // Render marks this node (and children) as clean - no need to explicitly markClean().
-            ctx.save();
-            child.render(childRenderContext);
-            ctx.restore();
-        }
-        if (stats) stats.nodesSkipped += skipped;
-
-        // Render marks this node as clean - no need to explicitly markClean().
-        super.render(renderCtx);
+        const renderCtxChanged = forceRender !== renderCtx.forceRender || clipBBox !== renderCtx.clipBBox;
+        this.renderChildren(children, renderCtxChanged ? { ...renderCtx, forceRender, clipBBox } : renderCtx);
+        super.render(renderCtx); // Calls markClean().
 
         if (clipRect) {
             ctx.restore();
@@ -196,7 +170,41 @@ export class Group extends Node {
         }
 
         if (name && stats) {
-            debug?.({ name, result: 'rendered', skipped, renderCtx, counts: nodeCount(this), group: this });
+            debug?.({
+                name,
+                renderCtx,
+                result: 'rendered',
+                skipped: stats.nodesSkipped,
+                counts: nodeCount(this),
+                group: this,
+            });
+        }
+    }
+
+    protected renderChildren(children: Iterable<Node>, renderCtx: RenderContext) {
+        const { ctx, forceRender, stats } = renderCtx;
+        for (const child of children) {
+            // Skip invisible children, but make sure their dirty flag is reset.
+            if (!child.visible || !this.visible) {
+                child.markClean();
+                if (stats) {
+                    stats.nodesSkipped += nodeCount(child).count;
+                }
+                continue;
+            }
+
+            // Skip children that don't need to be redrawn.
+            if (!forceRender && child.dirty === RedrawType.NONE) {
+                if (stats) {
+                    stats.nodesSkipped += nodeCount(child).count;
+                }
+                continue;
+            }
+
+            // Render marks this node (and children) as clean - no need to explicitly markClean().
+            ctx.save();
+            child.render(renderCtx);
+            ctx.restore();
         }
     }
 

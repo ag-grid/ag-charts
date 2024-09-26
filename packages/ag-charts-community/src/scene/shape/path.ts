@@ -1,5 +1,5 @@
-import { nodeCount } from '../../util/debug.util';
 import type { DistantObject } from '../../util/nearest';
+import { nodeCount } from '../debug.util';
 import { ExtendedPath2D } from '../extendedPath2D';
 import type { RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';

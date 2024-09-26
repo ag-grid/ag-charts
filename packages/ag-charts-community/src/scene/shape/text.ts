@@ -1,8 +1,8 @@
 import type { FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-types';
 
-import { nodeCount } from '../../util/debug.util';
 import { CachedTextMeasurerPool, type MeasureOptions, TextUtils } from '../../util/textMeasurer';
 import { BBox } from '../bbox';
+import { nodeCount } from '../debug.util';
 import type { RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
 import { Rotatable, Translatable } from '../transformable';
