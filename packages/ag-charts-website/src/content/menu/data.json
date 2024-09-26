@@ -431,6 +431,18 @@
                         "isEnterprise": true
                     },
                     {
+                        "title": "Funnel",
+                        "icon": "chartsFunnel",
+                        "path": "funnel-series",
+                        "isEnterprise": true
+                    },
+                    {
+                        "title": "Cone Funnel",
+                        "icon": "chartsFunnel",
+                        "path": "cone-funnel-series",
+                        "isEnterprise": true
+                    },
+                    {
                         "title": "Radial Gauge",
                         "icon": "chartsRadialGauge",
                         "path": "radial-gauge",
