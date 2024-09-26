@@ -62,7 +62,7 @@ type Axes = Record<Required<AgCartesianSeriesOptions>['type'], AgCartesianChartO
         'linear-gauge': AgCartesianChartOptions['axes'];
     };
 
-type SeriesDefaultAxes<SeriesType extends RequiredSeriesType> = Axes[SeriesType];
+type SeriesDefaultAxes<SeriesType extends RequiredSeriesType> = Axes[SeriesType] | ((series: any) => Axes[SeriesType]);
 
 export type SeriesTooltipDefaults = {
     range: 'exact' | 'nearest';

@@ -2,6 +2,7 @@ import type { SeriesModule } from '../../../module/coreModules';
 import { singleSeriesPaletteFactory } from '../../../module/theme';
 import { CARTESIAN_AXIS_TYPE, FONT_WEIGHT, POSITION } from '../../themes/constants';
 import { DEFAULT_FONT_FAMILY, DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
+import { swapAxisCondition } from '../../themes/util';
 import { BarSeries } from './barSeries';
 
 export const BarSeriesModule: SeriesModule<'bar'> = {
@@ -15,17 +16,13 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
     stackable: true,
     groupable: true,
     tooltipDefaults: { range: 'exact' },
-    defaultAxes: [
-        {
-            type: CARTESIAN_AXIS_TYPE.NUMBER,
-            position: POSITION.LEFT,
-        },
-        {
-            type: CARTESIAN_AXIS_TYPE.CATEGORY,
-            position: POSITION.BOTTOM,
-        },
-    ],
-    swapDefaultAxesCondition: (series) => series?.direction === 'horizontal',
+    defaultAxes: swapAxisCondition(
+        [
+            { type: CARTESIAN_AXIS_TYPE.NUMBER, position: POSITION.LEFT },
+            { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: POSITION.BOTTOM },
+        ],
+        (series) => series?.direction === 'horizontal'
+    ),
     themeTemplate: {
         series: {
             direction: 'vertical',

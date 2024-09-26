@@ -14,16 +14,13 @@ export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
     identifier: 'box-plot',
     moduleFactory: (ctx) => new BoxPlotSeries(ctx),
     tooltipDefaults: { range: 'exact' },
-    defaultAxes: [
-        {
-            type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
-            position: _Theme.POSITION.LEFT,
-        },
-        {
-            type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
-            position: _Theme.POSITION.BOTTOM,
-        },
-    ],
+    defaultAxes: _Theme.swapAxisCondition(
+        [
+            { type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER, position: _Theme.POSITION.LEFT },
+            { type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY, position: _Theme.POSITION.BOTTOM },
+        ],
+        (series) => series?.direction === 'horizontal'
+    ),
     themeTemplate: BOX_PLOT_SERIES_THEME,
     groupable: true,
 
@@ -51,6 +48,4 @@ export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
             backgroundFill,
         };
     },
-
-    swapDefaultAxesCondition: ({ direction }) => direction === 'horizontal',
 };

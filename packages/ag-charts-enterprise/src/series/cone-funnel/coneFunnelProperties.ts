@@ -11,7 +11,9 @@ const { Label } = _Scene;
 const {
     AbstractBarSeriesProperties,
     SeriesTooltip,
+    AxisLabel,
     Validate,
+    UNION,
     COLOR_STRING_ARRAY,
     LINE_DASH,
     OBJECT,
@@ -21,11 +23,16 @@ const {
 } = _ModuleSupport;
 
 class ConeFunnelSeriesLabel extends Label<AgConeFunnelSeriesLabelFormatterParams> {
-    @Validate(STRING)
+    @Validate(UNION(['before', 'middle', 'after'], 'a placement'))
     placement: string | undefined;
 
     @Validate(POSITIVE_NUMBER)
     spacing: number = 0;
+}
+
+class ConeFunnelSeriesStageLabel extends AxisLabel {
+    @Validate(UNION(['before', 'after'], 'a placement'))
+    placement?: string;
 }
 
 export class ConeFunnelProperties
@@ -67,6 +74,9 @@ export class ConeFunnelProperties
 
     @Validate(OBJECT)
     readonly label = new ConeFunnelSeriesLabel();
+
+    @Validate(OBJECT)
+    readonly stageLabel = new ConeFunnelSeriesStageLabel();
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgConeFunnelSeriesTooltipRendererParams<unknown>>();
