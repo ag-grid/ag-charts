@@ -61,7 +61,6 @@ export class SeriesAreaManager extends BaseManager {
     private hoverRect?: BBox;
 
     private readonly focus = {
-        hasFocus: false,
         sortedSeries: [] as Series<SeriesNodeDatum, SeriesProperties<object>>[],
         series: undefined as Series<any, any> | undefined,
         seriesIndex: 0,
@@ -111,7 +110,7 @@ export class SeriesAreaManager extends BaseManager {
             this.ctx.animationManager.addListener('animation-start', () => this.clearAll()),
             this.ctx.domManager.addListener('resize', () => this.clearAll()),
             this.ctx.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
-            this.ctx.keyNavManager.addListener('blur', () => this.onBlur()),
+            this.ctx.keyNavManager.addListener('blur', () => this.clearAll()),
             this.ctx.keyNavManager.addListener('focus', (event) => this.onFocus(event)),
             this.ctx.keyNavManager.addListener('nav-hori', (event) => this.onNavHori(event)),
             this.ctx.keyNavManager.addListener('nav-vert', (event) => this.onNavVert(event)),
@@ -160,7 +159,7 @@ export class SeriesAreaManager extends BaseManager {
             return 0;
         });
         this.series = series;
-        this.onBlur();
+        this.clearAll();
     }
 
     private layoutComplete(event: LayoutCompleteEvent): void {
@@ -234,7 +233,6 @@ export class SeriesAreaManager extends BaseManager {
     private onFocus(event: KeyNavEvent<'focus'>): void {
         this.handleFocus(0, 0);
         event.preventDefault();
-        this.focus.hasFocus = true;
     }
 
     private onNavVert(event: KeyNavEvent<'nav-vert'>): void {
@@ -247,11 +245,6 @@ export class SeriesAreaManager extends BaseManager {
         this.focus.datumIndex += event.delta;
         this.handleFocus(0, event.delta);
         event.preventDefault();
-    }
-
-    private onBlur(): void {
-        this.focus.hasFocus = false;
-        this.clearAll();
     }
 
     private onSubmit(event: KeyNavEvent<'submit'>): void {
@@ -300,13 +293,12 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private refreshFocus() {
-        if (this.focus.hasFocus) {
+        if (this.ctx.focusIndicator.isFocusVisible()) {
             this.handleSeriesFocus(0, 0);
         }
     }
 
     private handleFocus(seriesIndexDelta: number, datumIndexDelta: number) {
-        this.focus.hasFocus = true;
         const overlayFocus = this.overlays.getFocusInfo(this.ctx.localeManager);
         if (overlayFocus == null) {
             this.handleSeriesFocus(seriesIndexDelta, datumIndexDelta);
