@@ -1,4 +1,4 @@
-import { type Node, RedrawType } from '../scene/node';
+import { type Node, RedrawType } from './node';
 
 export function nodeCount(node: Node) {
     let count = 1;
