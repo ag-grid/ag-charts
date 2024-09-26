@@ -559,6 +559,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const { callbackCache } = this.moduleCtx;
         const { formatter = (p) => p.defaultValue } = title;
         const text = callbackCache.call(formatter, this.getTitleFormatterParams());
+        caption.text = text;
 
         titleNode.setProperties({ visible: true, text, textBaseline, x, y, rotation });
     }
