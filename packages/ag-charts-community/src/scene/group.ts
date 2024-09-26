@@ -2,7 +2,6 @@ import { ascendingStringNumberUndefined, compoundAscending } from '../util/compa
 import { nodeCount } from '../util/debug.util';
 import { clamp } from '../util/number';
 import { BBox } from './bbox';
-import type { HdpiCanvas } from './canvas/hdpiCanvas';
 import type { ZIndexSubOrder } from './layersManager';
 import type { ChildNodeCounts, RenderContext } from './node';
 import { Node, RedrawType, SceneChangeDetection } from './node';
@@ -35,10 +34,7 @@ export class Group extends Node {
         );
     }
 
-    // should all be private
     protected clipRect?: BBox;
-    protected layer?: HdpiCanvas;
-    protected lastBBox?: BBox = undefined;
 
     @SceneChangeDetection({
         redraw: RedrawType.MAJOR,
@@ -79,12 +75,9 @@ export class Group extends Node {
         return counts;
     }
 
-    override render(renderCtx: RenderContext) {
-        const { opts: { name = undefined } = {}, _debug: debug } = this;
-        const { dirty, dirtyZIndex, layer, clipRect } = this;
-        let { ctx, forceRender, clipBBox } = renderCtx;
-        const { resized, stats } = renderCtx;
-
+    protected isDirty(renderCtx: RenderContext) {
+        const { resized } = renderCtx;
+        const { dirty, dirtyZIndex } = this;
         const isDirty = dirty >= RedrawType.MINOR || dirtyZIndex || resized;
         let isChildDirty = isDirty;
         let isChildLayerDirty = false;
@@ -94,72 +87,46 @@ export class Group extends Node {
             if (isChildDirty) break;
         }
 
-        if (name) {
-            debug?.({ name, group: this, isDirty, isChildDirty, renderCtx, forceRender });
+        if (this.opts?.name) {
+            this._debug?.({ name: this.opts.name, group: this, isDirty, isChildDirty, renderCtx });
         }
 
-        if (layer) {
-            // If bounding-box of a layer changes, force re-render.
-            const currentBBox = this.getBBox();
-            if (!this.lastBBox?.equals(currentBBox)) {
-                forceRender = 'dirtyTransform';
-                this.lastBBox = currentBBox;
-            }
+        return { isDirty, isChildDirty, isChildLayerDirty };
+    }
+
+    protected debugSkip(renderCtx: RenderContext) {
+        if (renderCtx.stats && this.opts?.name) {
+            this._debug?.({
+                name: this.opts.name,
+                group: this,
+                result: 'skipping',
+                counts: nodeCount(this),
+                renderCtx,
+            });
         }
+    }
+
+    override render(renderCtx: RenderContext, skip?: boolean) {
+        if (skip) {
+            return super.render(renderCtx);
+        }
+
+        const { opts: { name } = {}, _debug: debug, dirtyZIndex, clipRect } = this;
+        const { isDirty, isChildDirty, isChildLayerDirty } = this.isDirty(renderCtx);
+        const { ctx, stats } = renderCtx;
+
+        let { forceRender, clipBBox } = renderCtx;
 
         if (!isDirty && !isChildDirty && !isChildLayerDirty && !forceRender) {
-            if (stats) {
-                if (name) {
-                    debug?.({ name, result: 'skipping', renderCtx, counts: nodeCount(this), group: this });
-                }
-                if (layer) {
-                    stats.layersSkipped++;
-                    stats.nodesSkipped += nodeCount(this).count;
-                }
-            }
+            this.debugSkip(renderCtx);
             this.markClean({ recursive: false });
             return; // Nothing to do.
         }
 
         const groupVisible = this.visible;
-        if (layer) {
-            const canvasCtxTransform = ctx.getTransform();
-
-            // Switch context to the canvas layer we use for this group.
-            ctx = layer.context;
-            ctx.save();
-            ctx.setTransform(layer.pixelRatio, 0, 0, layer.pixelRatio, 0, 0);
-
-            if (forceRender !== 'dirtyTransform') {
-                forceRender = isChildDirty || dirtyZIndex;
-            }
-            if (forceRender) {
-                layer.clear();
-            }
-
-            if (clipBBox) {
-                // clipBBox is in the canvas coordinate space, when we hit a layer we apply the new clipping at which point there are no transforms in play
-                const { width, height, x, y } = clipBBox;
-
-                debug?.(() => ({
-                    name,
-                    clipBBox,
-                    ctxTransform: ctx.getTransform(),
-                    renderCtx,
-                    group: this,
-                }));
-
-                ctx.beginPath();
-                ctx.rect(x, y, width, height);
-                ctx.clip();
-            }
-
-            ctx.setTransform(canvasCtxTransform);
-        } else {
-            // Only apply opacity if this isn't a distinct layer - opacity will be applied
-            // at composition time.
-            ctx.globalAlpha *= this.opacity;
-        }
+        // Only apply opacity if this isn't a distinct layer - opacity will be applied
+        // at composition time.
+        ctx.globalAlpha *= this.opacity;
 
         if (clipRect) {
             // clipRect is in the group's coordinate space
@@ -189,9 +156,8 @@ export class Group extends Node {
         }
 
         // Reduce churn if renderCtx is identical.
-        const renderContextChanged =
-            forceRender !== renderCtx.forceRender || clipBBox !== renderCtx.clipBBox || ctx !== renderCtx.ctx;
-        const childRenderContext = renderContextChanged ? { ...renderCtx, ctx, forceRender, clipBBox } : renderCtx;
+        const renderContextChanged = forceRender !== renderCtx.forceRender || clipBBox !== renderCtx.clipBBox;
+        const childRenderContext = renderContextChanged ? { ...renderCtx, forceRender, clipBBox } : renderCtx;
 
         // Render visible children.
         let skipped = 0;
@@ -229,22 +195,12 @@ export class Group extends Node {
             child.markClean({ recursive: 'virtual' });
         }
 
-        if (layer) {
-            if (stats) stats.layersRendered++;
-            ctx.restore();
-
-            if (forceRender) layer.snapshot();
-
-            // Check for save/restore depth of zero!
-            layer.context.verifyDepthZero?.();
-        }
-
         if (name && stats) {
             debug?.({ name, result: 'rendered', skipped, renderCtx, counts: nodeCount(this), group: this });
         }
     }
 
-    private sortChildren(children: Node[]) {
+    protected sortChildren(children: Node[]) {
         this.dirtyZIndex = false;
         children.sort(Group.compareChildren);
     }
