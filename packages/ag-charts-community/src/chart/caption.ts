@@ -90,11 +90,11 @@ export class Caption extends BaseProperties implements CaptionLike {
     private truncated = false;
     private proxyText?: BoundedText;
 
-    registerInteraction(moduleCtx: ModuleContext) {
+    registerInteraction(moduleCtx: ModuleContext, where: 'beforebegin' | 'afterend') {
         const { regionManager, proxyInteractionService, layoutManager } = moduleCtx;
         const region = regionManager.getRegion('root');
         const destroyFns = [
-            layoutManager.addListener('layout:complete', () => this.updateA11yText(proxyInteractionService)),
+            layoutManager.addListener('layout:complete', () => this.updateA11yText(proxyInteractionService, where)),
             region.addListener('hover', (event) => this.handleMouseMove(moduleCtx, event)),
             region.addListener('leave', (event) => this.handleMouseLeave(moduleCtx, event)),
         ];
@@ -115,12 +115,12 @@ export class Caption extends BaseProperties implements CaptionLike {
         this.truncated = wrappedText.includes(TextUtils.EllipsisChar);
     }
 
-    updateA11yText(proxyService: ProxyInteractionService) {
+    updateA11yText(proxyService: ProxyInteractionService, where: 'beforebegin' | 'afterend') {
         if (this.enabled && this.text) {
             const bbox = Transformable.toCanvas(this.node);
             if (bbox) {
                 const { id } = this;
-                this.proxyText ??= proxyService.createProxyElement({ type: 'text', id, parent: 'canvas-proxy' });
+                this.proxyText ??= proxyService.createProxyElement({ type: 'text', id, parent: where });
                 this.proxyText.textContent = this.text;
                 this.proxyText.updateBounds(bbox);
             }

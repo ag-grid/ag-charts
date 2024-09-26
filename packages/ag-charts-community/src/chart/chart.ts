@@ -342,9 +342,9 @@ export abstract class Chart extends Observable {
                 this.data = event.data;
             }),
 
-            this.title.registerInteraction(moduleContext),
-            this.subtitle.registerInteraction(moduleContext),
-            this.footnote.registerInteraction(moduleContext),
+            this.title.registerInteraction(moduleContext, 'beforebegin'),
+            this.subtitle.registerInteraction(moduleContext, 'beforebegin'),
+            this.footnote.registerInteraction(moduleContext, 'afterend'),
 
             ctx.interactionManager.addListener('page-left', () => this.destroy()),
 
