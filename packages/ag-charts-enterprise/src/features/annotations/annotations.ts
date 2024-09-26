@@ -1170,7 +1170,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         const offset = Vec2.from(event);
         const point = invertCoords(offset, context);
-        state.transition('drag', { context, offset, point });
+
+        const shiftKey = (event.sourceEvent as MouseEvent).shiftKey;
+        state.transition('drag', { context, offset, point, shiftKey });
     }
 
     private onDragEnd() {

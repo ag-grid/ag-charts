@@ -41,10 +41,12 @@ export class DragStateMachine<
             },
 
             dragging: {
-                drag: ({ offset, context }) => {
+                drag: ({ offset, context, shiftKey }) => {
                     this.hasMoved = Vec2.lengthSquared(Vec2.sub(offset, this.dragStart!)) > 0;
                     ctx.setSelectedWithDrag();
-                    ctx.node()?.drag(ctx.datum()!, offset, context);
+                    const datum = ctx.datum()!;
+                    datum.set({ snapToAngle: shiftKey });
+                    ctx.node()?.drag(datum, offset, context);
                     ctx.update();
                 },
 

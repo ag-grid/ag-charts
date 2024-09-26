@@ -1,16 +1,19 @@
 import { type AgAnnotationHandleStyles, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
+import type { PointProperties } from '../annotationProperties';
 import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
 import type { StartEndProperties } from '../properties/startEndProperties';
 import { validateDatumPoint } from '../utils/validation';
-import { convertLine, invertCoords } from '../utils/values';
+import { convertLine, convertPoint, invertCoords } from '../utils/values';
 import { DivariantHandle } from './handle';
 import { LinearScene } from './linearScene';
 
-const { Vec2 } = _Util;
+export type ActiveHandle = 'start' | 'end';
+
+const { Vec2, toRadians } = _Util;
 
 export abstract class StartEndScene<Datum extends StartEndProperties> extends LinearScene<Datum> {
-    override activeHandle?: 'start' | 'end';
+    override activeHandle?: ActiveHandle;
 
     protected readonly start = new DivariantHandle();
     protected readonly end = new DivariantHandle();
@@ -52,18 +55,48 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
     }
 
     override dragHandle(datum: Datum, target: Coords, context: AnnotationContext) {
-        const { activeHandle, dragState } = this;
+        const { activeHandle } = this;
 
-        if (!activeHandle || !dragState) return;
+        if (!activeHandle) return;
 
         this[activeHandle].toggleDragging(true);
-        const coords = Vec2.add(dragState.end, Vec2.sub(target, dragState.offset));
-        const point = invertCoords(coords, context);
 
-        if (!validateDatumPoint(context, point)) return;
+        const point = datum.snapToAngle
+            ? this.snapToAngle(datum, target, context)
+            : invertCoords(this[activeHandle].drag(target).point, context);
+
+        if (!point || !validateDatumPoint(context, point)) return;
 
         datum[activeHandle].x = point.x;
         datum[activeHandle].y = point.y;
+    }
+
+    snapToAngle(
+        datum: Datum,
+        target: Coords,
+        context: AnnotationContext
+    ): Pick<PointProperties, 'x' | 'y'> | undefined {
+        const handles: ActiveHandle[] = ['start', 'end'];
+        const fixedHandle = handles.find((handle) => handle !== activeHandle);
+
+        const { activeHandle } = this;
+        if (!activeHandle || !fixedHandle) return;
+
+        this[activeHandle].toggleDragging(true);
+
+        const fixed = convertPoint(datum[fixedHandle], context);
+        const active = this[activeHandle].drag(target).point;
+
+        const angleStep = toRadians(45);
+
+        const r = Vec2.distance(fixed, active);
+        const angle = Math.atan2(active.y - fixed.y, active.x - fixed.x);
+        const snapAngle = Math.round(angle / angleStep) * angleStep;
+
+        const x = fixed.x + r * Math.cos(snapAngle);
+        const y = fixed.y + r * Math.sin(snapAngle);
+
+        return invertCoords({ x, y }, context);
     }
 
     override stopDragging() {
