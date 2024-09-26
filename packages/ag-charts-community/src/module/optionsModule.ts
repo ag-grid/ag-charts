@@ -365,6 +365,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     protected setSeriesGroupingOptions(allSeries: GroupingSeriesOptions[]) {
+        // When downloading a chart, the series grouping may already be calculated
+        const groupingPreConfigured = allSeries.every((s) => s.seriesGrouping != null);
+        if (groupingPreConfigured) {
+            return allSeries.map(({ stacked: _, grouped: __, ...seriesOptions }) => seriesOptions) as T['series'];
+        }
+
         const seriesGroups = this.getSeriesGrouping(allSeries);
 
         this.debug('setSeriesGroupingOptions() - series grouping: ', seriesGroups);
