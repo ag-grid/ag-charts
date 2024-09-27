@@ -74,12 +74,16 @@ export interface AgGroupedCategoryAxisOptions extends AgBaseCartesianAxisOptions
 
 export interface AgNumberAxisOptions extends Omit<AgBaseCartesianAxisOptions, 'interval'>, AgContinuousAxisOptions {
     type: 'number';
+    /** Display all ticks and crosshair values as positive values. */
+    absolute?: boolean;
 }
 
 export interface AgLogAxisOptions extends Omit<AgBaseCartesianAxisOptions, 'interval'>, AgContinuousAxisOptions {
     type: 'log';
     /** The base of the logarithm used. */
     base?: number;
+    /** Display all ticks and crosshair values as positive values. */
+    absolute?: boolean;
 }
 
 export interface AgTimeAxisOptions
