@@ -56,7 +56,12 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
         }
     }
 
-    override dragHandle(datum: DisjointChannelProperties, target: Coords, context: AnnotationContext) {
+    override dragHandle(
+        datum: DisjointChannelProperties,
+        target: Coords,
+        context: AnnotationContext,
+        shiftKey: boolean
+    ) {
         const { activeHandle, handles } = this;
         if (activeHandle == null) return;
 
@@ -65,20 +70,21 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
 
         const invert = (coords: Coords) => invertCoords(coords, context);
         const prev = datum.toJson();
+        const angle = datum.snapToAngle;
 
         switch (activeHandle) {
             case 'topLeft':
             case 'bottomLeft': {
                 const direction = activeHandle === 'topLeft' ? 1 : -1;
-                const start = datum.snapToAngle
-                    ? this.snapToAngle(target, context, 'topLeft', 'topRight', direction)
+                const start = shiftKey
+                    ? this.snapToAngle(target, context, 'topLeft', 'topRight', angle, direction)
                     : invert({
                           x: handles.topLeft.handle.x + offset.x,
                           y: handles.topLeft.handle.y + offset.y * direction,
                       });
 
-                const bottomStart = datum.snapToAngle
-                    ? this.snapToAngle(target, context, 'bottomLeft', 'bottomRight', -direction)
+                const bottomStart = shiftKey
+                    ? this.snapToAngle(target, context, 'bottomLeft', 'bottomRight', angle, -direction)
                     : invert({
                           x: handles.bottomLeft.handle.x + offset.x,
                           y: handles.bottomLeft.handle.y + offset.y * -direction,
@@ -96,8 +102,8 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
             }
 
             case 'topRight': {
-                const end = datum.snapToAngle
-                    ? this.snapToAngle(target, context, 'topRight', 'topLeft')
+                const end = shiftKey
+                    ? this.snapToAngle(target, context, 'topRight', 'topLeft', angle)
                     : invert({
                           x: handles.topRight.handle.x + offset.x,
                           y: handles.topRight.handle.y + offset.y,

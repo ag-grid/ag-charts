@@ -10,7 +10,7 @@ export class DragStateMachine<
     D extends AnnotationProperties,
     N extends {
         dragStart: (datum: D, offset: _Util.Vec2, context: AnnotationContext) => void;
-        drag: (datum: D, offset: _Util.Vec2, context: AnnotationContext) => void;
+        drag: (datum: D, offset: _Util.Vec2, context: AnnotationContext, shiftKey: boolean) => void;
         stopDragging: () => void;
     },
 > extends StateMachine<'idle' | 'dragging', 'drag' | 'dragStart' | 'dragEnd'> {
@@ -45,8 +45,7 @@ export class DragStateMachine<
                     this.hasMoved = Vec2.lengthSquared(Vec2.sub(offset, this.dragStart!)) > 0;
                     ctx.setSelectedWithDrag();
                     const datum = ctx.datum()!;
-                    datum.set({ snapToAngle: shiftKey });
-                    ctx.node()?.drag(datum, offset, context);
+                    ctx.node()?.drag(datum, offset, context, shiftKey);
                     ctx.update();
                 },
 

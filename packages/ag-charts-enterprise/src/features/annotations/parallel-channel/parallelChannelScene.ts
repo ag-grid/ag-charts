@@ -63,7 +63,12 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         }
     }
 
-    override dragHandle(datum: ParallelChannelProperties, target: Coords, context: AnnotationContext) {
+    override dragHandle(
+        datum: ParallelChannelProperties,
+        target: Coords,
+        context: AnnotationContext,
+        shiftKey: boolean
+    ) {
         const { activeHandle, handles } = this;
         if (activeHandle == null) return;
 
@@ -104,10 +109,11 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
                 break;
         }
 
+        const angle = datum.snapToAngle;
         const invertedMoves = moves
             .map(([handle, originHandle]) =>
-                datum.snapToAngle && originHandle
-                    ? this.snapToAngle(target, context, handle, originHandle)
+                shiftKey && originHandle
+                    ? this.snapToAngle(target, context, handle, originHandle, angle)
                     : invertCoords(Vec2.add(handles[handle].handle, offset), context)
             )
             .filter(isPoint);

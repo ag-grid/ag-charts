@@ -10,7 +10,7 @@ import { LinearScene } from './linearScene';
 
 export type ActiveHandle = 'start' | 'end';
 
-const { Vec2, toRadians } = _Util;
+const { Vec2 } = _Util;
 
 export abstract class StartEndScene<Datum extends StartEndProperties> extends LinearScene<Datum> {
     override activeHandle?: ActiveHandle;
@@ -54,14 +54,14 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         this.end.toggleActive(active);
     }
 
-    override dragHandle(datum: Datum, target: Coords, context: AnnotationContext) {
+    override dragHandle(datum: Datum, target: Coords, context: AnnotationContext, shiftKey: boolean) {
         const { activeHandle } = this;
 
         if (!activeHandle) return;
 
         this[activeHandle].toggleDragging(true);
 
-        const point = datum.snapToAngle
+        const point = shiftKey
             ? this.snapToAngle(datum, target, context)
             : invertCoords(this[activeHandle].drag(target).point, context);
 
@@ -88,7 +88,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         const fixed = convertPoint(datum[fixedHandle], context);
         const active = this[activeHandle].drag(target).point;
 
-        return invertCoords(Vec2.snapToAngle(fixed, active, 45), context);
+        return invertCoords(Vec2.snapToAngle(fixed, active, datum.snapToAngle), context);
     }
 
     override stopDragging() {
