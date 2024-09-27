@@ -39,7 +39,7 @@ export class FunnelSeries extends BaseFunnelSeries<_Scene.Rect> {
     }
 
     override getBandScalePadding() {
-        return { inner: this.properties.spacing, outer: 0 };
+        return { inner: this.properties.spacingRatio, outer: 0 };
     }
 
     protected override connectorEnabled() {

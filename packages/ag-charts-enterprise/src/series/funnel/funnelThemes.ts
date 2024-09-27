@@ -8,7 +8,7 @@ import {
 
 export function funnelSeriesAxes(series: Pick<AgFunnelSeriesOptions, 'direction' | 'stageLabel'>) {
     const { placement, ...categoryLabel } = series?.stageLabel ?? {};
-    return series?.direction !== 'vertical'
+    return series?.direction !== 'horizontal'
         ? [
               {
                   type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
@@ -38,9 +38,9 @@ export const FUNNEL_SERIES_THEME: {
     axes: { number: AgNumberAxisThemeOptions; category: AgCategoryAxisThemeOptions };
 } = {
     series: {
-        direction: 'horizontal' as const,
+        direction: 'vertical',
         strokeWidth: 0,
-        spacing: 0.25,
+        spacingRatio: 0.25,
         label: {
             enabled: true,
             fontSize: 12,

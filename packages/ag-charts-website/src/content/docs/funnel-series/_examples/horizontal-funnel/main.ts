@@ -13,7 +13,7 @@ const options: AgChartOptions = {
             type: 'funnel',
             xKey: 'group',
             yKey: 'value',
-            direction: 'vertical',
+            direction: 'horizontal',
         },
     ],
 };

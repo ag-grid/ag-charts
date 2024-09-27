@@ -100,7 +100,7 @@ export class FunnelProperties
     lineDashOffset: number = 0;
 
     @Validate(RATIO)
-    spacing: number = 0;
+    spacingRatio: number = 0;
 
     @Validate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgFunnelSeriesItemStylerParams<unknown>, AgFunnelSeriesStyle>;

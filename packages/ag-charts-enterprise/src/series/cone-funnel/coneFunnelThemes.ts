@@ -12,7 +12,7 @@ export const CONE_FUNNEL_SERIES_THEME: {
     axes: { number: AgNumberAxisThemeOptions; category: AgCategoryAxisThemeOptions };
 } = {
     series: {
-        direction: 'horizontal' as const,
+        direction: 'vertical',
         strokeWidth: 0,
         label: {
             enabled: true,

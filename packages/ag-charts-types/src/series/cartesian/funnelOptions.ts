@@ -33,7 +33,9 @@ export interface AgFunnelSeriesDropOff extends FillOptions, StrokeOptions, LineD
     enabled?: boolean;
 }
 
-export interface AgFunnelSeriesThemeableOptions<TDatum = any> extends AgBaseCartesianThemeableOptions<TDatum> {
+export interface AgFunnelSeriesThemeableOptions<TDatum = any>
+    extends AgBaseCartesianThemeableOptions<TDatum>,
+        LineDashOptions {
     /** The colours to cycle through for the fills of the bars. */
     fills?: CssColor[];
     /** The colours to cycle through for the strokes of the bars. */
@@ -45,7 +47,7 @@ export interface AgFunnelSeriesThemeableOptions<TDatum = any> extends AgBaseCart
     /** The width in pixels of the stroke for the bars. */
     strokeWidth?: PixelSize;
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a bar and the start of the next bar. */
-    spacing?: Ratio;
+    spacingRatio?: Ratio;
     /** Configuration for drop-offs between adjacent bars. */
     dropOff?: AgFunnelSeriesDropOff;
     /**

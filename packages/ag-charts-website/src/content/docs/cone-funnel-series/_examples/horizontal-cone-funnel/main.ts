@@ -19,7 +19,7 @@ const options: AgChartOptions = {
             type: 'cone-funnel',
             xKey: 'group',
             yKey: 'value',
-            direction: 'vertical',
+            direction: 'horizontal',
         },
     ],
 };
