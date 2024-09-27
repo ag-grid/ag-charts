@@ -224,7 +224,7 @@ export class Group extends Node {
      * Transforms bbox given in the canvas coordinate space to bbox in this group's coordinate space and
      * sets this group's clipRect to the transformed bbox.
      * @param bbox clipRect bbox in the canvas coordinate space.
-     * @param transformToGroupSpace set to false to keep provided bbox coordinate space.
+     * @param transformToGroupSpace set false to keep provided bbox coordinate space.
      */
     setClipRect(bbox?: BBox, transformToGroupSpace = true) {
         if (transformToGroupSpace) {
