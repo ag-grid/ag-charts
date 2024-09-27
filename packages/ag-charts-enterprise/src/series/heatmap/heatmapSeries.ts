@@ -293,6 +293,13 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         return new Rect();
     }
 
+    override async update(params: { seriesRect?: _Scene.BBox }) {
+        // Animations are unsupported by heat-map, so prevent all animations.
+        this.ctx.animationManager.skipCurrentBatch();
+
+        return super.update(params);
+    }
+
     protected override async updateDatumSelection(opts: {
         nodeData: HeatmapNodeDatum[];
         datumSelection: _Scene.Selection<_Scene.Rect, HeatmapNodeDatum>;
