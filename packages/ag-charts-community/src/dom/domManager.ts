@@ -410,7 +410,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         children.set(id, newChild);
         if (insert) {
             const queryResult = element.querySelector(insert.query);
-            if (!(queryResult instanceof HTMLElement)) {
+            if (queryResult == null) {
                 throw new Error(`AG Charts - addChild query failed ${insert.query}`);
             }
             queryResult.insertAdjacentElement(insert.where, newChild);
