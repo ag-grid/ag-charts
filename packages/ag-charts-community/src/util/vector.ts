@@ -251,14 +251,14 @@ function origin(): Vec2 {
     return { x: 0, y: 0 };
 }
 
-function snapToAngle(origin: Vec2, a: Vec2, step: number, direction: number = 1) {
-    const angleStep = toRadians(step);
-    const r = distance(origin, a);
-    const angle = Math.atan2(a.y - origin.y, a.x - origin.x);
-    const snapAngle = Math.round(angle / angleStep) * angleStep;
+function snapToAngle(center: Vec2, a: Vec2, step: number, direction: number = 1) {
+    const stepRadians = toRadians(step);
+    const r = distance(center, a);
+    const theta = Math.atan2(a.y - center.y, a.x - center.x);
+    const snapTheta = Math.round(theta / stepRadians) * stepRadians;
 
     return {
-        x: origin.x + r * Math.cos(snapAngle),
-        y: origin.y + r * Math.sin(snapAngle) * direction,
+        x: center.x + r * Math.cos(snapTheta),
+        y: center.y + r * Math.sin(snapTheta) * direction,
     };
 }
