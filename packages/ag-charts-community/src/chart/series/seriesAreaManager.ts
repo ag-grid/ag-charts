@@ -93,13 +93,6 @@ export class SeriesAreaManager extends BaseManager {
 
         this.destroyFns.push(
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label'),
-            chart.ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
-            chart.ctx.regionManager.listenAll('dblclick', (event) => this.onClick(event)),
-            chart.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
-            seriesRegion.addListener('hover', (event) => this.onHover(event)),
-            seriesRegion.addListener('leave', () => this.onLeave()),
-            horizontalAxesRegion.addListener('leave', () => this.onLeave()),
-            verticalAxesRegion.addListener('leave', () => this.onLeave()),
             seriesRegion.addListener('contextmenu', (event) => this.onContextMenu(event), InteractionState.All),
             seriesRegion.addListener('drag', (event) => this.onHover(event), mouseMoveStates),
             seriesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
