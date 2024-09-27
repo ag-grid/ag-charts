@@ -20,6 +20,7 @@ const DOM_ELEMENT_CLASSES = [
 ] as const;
 type DOMElementClass = (typeof DOM_ELEMENT_CLASSES)[number];
 type DOMElementConfig = { childElementType: 'style' | 'canvas' | 'div'; style?: Partial<CSSStyleDeclaration> };
+type DOMInsertOption = { where: InsertPosition; query: string };
 
 const domElementConfig: Map<DOMElementClass, DOMElementConfig> = new Map([
     ['styles', { childElementType: 'style' }],
@@ -387,7 +388,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         return this.element.style.cursor;
     }
 
-    addChild(domElementClass: DOMElementClass, id: string, child?: HTMLElement) {
+    addChild(domElementClass: DOMElementClass, id: string, child?: HTMLElement, insert?: DOMInsertOption) {
         const { element, children, listeners } = this.rootElements[domElementClass];
 
         if (!children) {
@@ -407,7 +408,15 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             newChild.addEventListener(type, fn as any, opts);
         }
         children.set(id, newChild);
-        element?.appendChild(newChild);
+        if (insert) {
+            const queryResult = element.querySelector(insert.query);
+            if (!(queryResult instanceof HTMLElement)) {
+                throw new Error(`AG Charts - addChild query failed ${insert.query}`);
+            }
+            queryResult.insertAdjacentElement(insert.where, newChild);
+        } else {
+            element?.appendChild(newChild);
+        }
         return newChild;
     }
 

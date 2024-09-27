@@ -286,7 +286,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         let previousSize: { width: number; height: number } | undefined = undefined;
         this.destroyFns.push(
-            this.title.caption.registerInteraction(this.moduleCtx),
+            this.title.caption.registerInteraction(this.moduleCtx, 'afterend'),
             moduleCtx.layoutManager.addListener('layout:complete', (e) => {
                 // Fire resize animation action if chart canvas size changes.
                 if (previousSize != null && jsonDiff(e.chart, previousSize) != null) {
@@ -559,6 +559,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const { callbackCache } = this.moduleCtx;
         const { formatter = (p) => p.defaultValue } = title;
         const text = callbackCache.call(formatter, this.getTitleFormatterParams());
+        caption.text = text;
 
         titleNode.setProperties({ visible: true, text, textBaseline, x, y, rotation });
     }

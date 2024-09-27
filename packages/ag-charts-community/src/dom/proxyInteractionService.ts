@@ -10,7 +10,7 @@ export type ListSwitch = { button: HTMLButtonElement; listitem: HTMLElement };
 type ElemParams<T extends ProxyElementType> = {
     readonly type: T;
     readonly id: string;
-    readonly parent: HTMLElement | 'canvas-proxy';
+    readonly parent: HTMLElement | 'beforebegin' | 'afterend';
     readonly cursor?: 'pointer';
 };
 
@@ -258,7 +258,8 @@ export class ProxyInteractionService {
     private setParent<T extends ProxyElementType, TElem extends HTMLElement>(params: ElemParams<T>, element: TElem) {
         const { id, parent } = params;
         if (typeof parent === 'string') {
-            this.domManager.addChild(parent, id, element);
+            const insert = { where: parent, query: '.ag-charts-series-area' };
+            this.domManager.addChild('canvas-proxy', id, element, insert);
         } else {
             parent.appendChild(element);
         }
