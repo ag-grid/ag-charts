@@ -48,6 +48,15 @@ export type ChildNodeCounts = {
 export abstract class Node {
     static _nextSerialNumber = 0;
 
+    static *extractBBoxes(nodes: Iterable<Node>, skipInvisible?: boolean) {
+        for (const n of nodes) {
+            if (!skipInvisible || (n.visible && !n.transitionOut)) {
+                const bbox = n.getBBox();
+                if (bbox) yield bbox;
+            }
+        }
+    }
+
     /** Unique number to allow creation order to be easily determined. */
     readonly serialNumber = Node._nextSerialNumber++;
     readonly childNodeCounts: ChildNodeCounts = { groups: 0, nonGroups: 0 };

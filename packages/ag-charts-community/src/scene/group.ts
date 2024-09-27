@@ -14,17 +14,8 @@ export class Group extends Node {
         return value instanceof Group;
     }
 
-    static *extractBBoxes(nodes: Iterable<Node>, skipInvisible?: boolean) {
-        for (const n of nodes) {
-            if (!skipInvisible || (n.visible && !n.transitionOut)) {
-                const bbox = n.getBBox();
-                if (bbox) yield bbox;
-            }
-        }
-    }
-
     static computeChildrenBBox(nodes: Iterable<Node>, skipInvisible = true) {
-        return BBox.merge(Group.extractBBoxes(nodes, skipInvisible));
+        return BBox.merge(Node.extractBBoxes(nodes, skipInvisible));
     }
 
     protected static compareChildren(a: Node, b: Node) {
