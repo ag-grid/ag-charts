@@ -64,7 +64,7 @@ import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
 import type { UpdateProcessor } from './update/processor';
 import type { UpdateOpts } from './updateService';
-import { zIndexMap } from './zIndexMap';
+import { ZIndexMap } from './zIndexMap';
 
 const debug = Debug.create(true, 'opts');
 
@@ -121,12 +121,12 @@ export abstract class Chart extends Observable {
     readonly seriesRoot = new TranslatableGroup({ name: `${this.id}-series-root` });
     readonly highlightRoot = new TranslatableLayer({
         name: `${this.id}-highlight-root`,
-        zIndex: zIndexMap.SERIES_HIGHLIGHT,
+        zIndex: ZIndexMap.SERIES_HIGHLIGHT,
         deriveZIndexFromChildren: true, // TODO remove feature
     });
     readonly annotationRoot = new TranslatableLayer({
         name: `${this.id}-annotation-root`,
-        zIndex: zIndexMap.SERIES_ANNOTATION,
+        zIndex: ZIndexMap.SERIES_ANNOTATION,
     });
 
     readonly tooltip: Tooltip;
@@ -254,7 +254,7 @@ export abstract class Chart extends Observable {
         const container = resources?.container ?? options.processedOptions.container ?? undefined;
 
         const root = new Group({ name: 'root' });
-        const titleGroup = new Layer({ name: 'titles', zIndex: zIndexMap.SERIES_LABEL });
+        const titleGroup = new Layer({ name: 'titles', zIndex: ZIndexMap.SERIES_LABEL });
         // Prevent the scene from rendering chart components in an invalid state
         // (before first layout is performed).
         root.visible = false;

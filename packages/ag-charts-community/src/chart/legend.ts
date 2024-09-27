@@ -58,7 +58,7 @@ import type { Marker } from './marker/marker';
 import { type MarkerConstructor, getMarker } from './marker/util';
 import { Pagination } from './pagination/pagination';
 import { type TooltipMeta, type TooltipPointerEvent, toTooltipHtml } from './tooltip/tooltip';
-import { zIndexMap } from './zIndexMap';
+import { ZIndexMap } from './zIndexMap';
 
 class LegendLabel extends BaseProperties {
     @Validate(POSITIVE_NUMBER, { optional: true })
@@ -165,7 +165,7 @@ export class Legend extends BaseProperties {
 
     readonly id = createId(this);
 
-    private readonly group = new TranslatableLayer({ name: 'legend', zIndex: zIndexMap.LEGEND });
+    private readonly group = new TranslatableLayer({ name: 'legend', zIndex: ZIndexMap.LEGEND });
 
     private readonly itemSelection: Selection<LegendMarkerLabel, CategoryLegendDatum> = Selection.select(
         this.group,

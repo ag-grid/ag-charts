@@ -37,7 +37,7 @@ import type { LegendItemClickChartEvent } from '../../interaction/chartEventMana
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { Circle } from '../../marker/circle';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
-import { zIndexMap } from '../../zIndexMap';
+import { ZIndexMap } from '../../zIndexMap';
 import { SeriesNodeEvent, type SeriesNodeEventTypes, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import type { SeriesNodeDatum } from '../seriesTypes';
@@ -132,7 +132,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
     readonly backgroundGroup = this.rootGroup.appendChild(
         new TranslatableLayer({
             name: `${this.id}-background`,
-            zIndex: zIndexMap.SERIES_BACKGROUND,
+            zIndex: ZIndexMap.SERIES_BACKGROUND,
         })
     );
 

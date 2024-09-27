@@ -28,7 +28,7 @@ export class Layer extends Group {
     }
 
     override markDirty(type = RedrawType.TRIVIAL) {
-        super.markDirty(type, this.layer != null ? RedrawType.TRIVIAL : type);
+        super.markDirty(type, RedrawType.TRIVIAL);
     }
 
     override preRender(): ChildNodeCounts {

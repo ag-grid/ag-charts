@@ -7,7 +7,7 @@ type AgCrosshairLabelRendererResult = any;
 
 const { Group, TranslatableLayer, Line, BBox } = _Scene;
 const { createId } = _Util;
-const { POSITIVE_NUMBER, RATIO, BOOLEAN, COLOR_STRING, LINE_DASH, OBJECT, InteractionState, Validate, zIndexMap } =
+const { POSITIVE_NUMBER, RATIO, BOOLEAN, COLOR_STRING, LINE_DASH, OBJECT, InteractionState, Validate, ZIndexMap } =
     _ModuleSupport;
 
 export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
@@ -48,12 +48,12 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     private readonly crosshairGroup: _Scene.TranslatableLayer = new TranslatableLayer({
         name: 'crosshairs',
-        zIndex: zIndexMap.SERIES_CROSSHAIR,
+        zIndex: ZIndexMap.SERIES_CROSSHAIR,
     });
     protected readonly lineGroup = this.crosshairGroup.appendChild(
         new Group({
             name: `${this.id}-crosshair-lines`,
-            zIndex: zIndexMap.SERIES_CROSSHAIR,
+            zIndex: ZIndexMap.SERIES_CROSSHAIR,
         })
     );
     protected lineGroupSelection = _Scene.Selection.select(this.lineGroup, Line, false);

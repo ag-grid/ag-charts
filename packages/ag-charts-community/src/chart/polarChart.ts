@@ -9,7 +9,7 @@ import type { TransferableResources } from './chart';
 import { Chart } from './chart';
 import { ChartAxisDirection } from './chartAxisDirection';
 import { PolarSeries } from './series/polar/polarSeries';
-import { zIndexMap } from './zIndexMap';
+import { ZIndexMap } from './zIndexMap';
 
 export class PolarChart extends Chart {
     static readonly className = 'PolarChart';
@@ -19,7 +19,7 @@ export class PolarChart extends Chart {
 
     constructor(options: ChartOptions, resources?: TransferableResources) {
         super(options, resources);
-        this.ctx.axisManager.axisGroup.zIndex = zIndexMap.AXIS_FOREGROUND;
+        this.ctx.axisManager.axisGroup.zIndex = ZIndexMap.AXIS_FOREGROUND;
     }
 
     override getChartType() {

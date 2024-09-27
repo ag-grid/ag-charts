@@ -2,7 +2,7 @@ import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { Image } from '../image/image';
 
-const { zIndexMap, ActionOnSet, Validate, ProxyPropertyOnWrite, OBJECT, RATIO, COLOR_STRING } = _ModuleSupport;
+const { ZIndexMap, ActionOnSet, Validate, ProxyPropertyOnWrite, OBJECT, RATIO, COLOR_STRING } = _ModuleSupport;
 
 export class Foreground extends _ModuleSupport.Background<Image> {
     @Validate(OBJECT, { optional: true })
@@ -27,7 +27,7 @@ export class Foreground extends _ModuleSupport.Background<Image> {
     fillOpacity?: number = undefined;
 
     protected override createNode() {
-        return new _Scene.Layer({ name: 'foreground', zIndex: zIndexMap.FOREGROUND });
+        return new _Scene.Layer({ name: 'foreground', zIndex: ZIndexMap.FOREGROUND });
     }
 
     protected override onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {

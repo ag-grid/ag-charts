@@ -37,7 +37,7 @@ import {
 } from '../../util/validation';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { calculateLabelRotation } from '../label';
-import { zIndexMap } from '../zIndexMap';
+import { ZIndexMap } from '../zIndexMap';
 import { type CrossLine, type CrossLineType, MATCHING_CROSSLINE_TYPE, validateCrossLineValues } from './crossLine';
 import type { CrossLineLabelPosition } from './crossLineLabelPosition';
 import {
@@ -114,9 +114,9 @@ class CartesianCrossLineLabel extends BaseProperties implements AgCartesianCross
 type NodeData = number[];
 
 export class CartesianCrossLine extends BaseProperties implements CrossLine<CartesianCrossLineLabel> {
-    protected static readonly LINE_LAYER_ZINDEX = zIndexMap.SERIES_CROSSLINE_LINE;
-    protected static readonly RANGE_LAYER_ZINDEX = zIndexMap.SERIES_CROSSLINE_RANGE;
-    protected static readonly LABEL_LAYER_ZINDEX = zIndexMap.SERIES_LABEL;
+    protected static readonly LINE_LAYER_ZINDEX = ZIndexMap.SERIES_CROSSLINE_LINE;
+    protected static readonly RANGE_LAYER_ZINDEX = ZIndexMap.SERIES_CROSSLINE_RANGE;
+    protected static readonly LABEL_LAYER_ZINDEX = ZIndexMap.SERIES_LABEL;
 
     static readonly className = 'CrossLine';
     readonly id = createId(this);

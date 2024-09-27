@@ -2,7 +2,7 @@ import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSuppo
 
 const {
     CachedTextMeasurerPool,
-    zIndexMap,
+    ZIndexMap,
     LayoutElement,
     Validate,
     BaseProperties,
@@ -119,7 +119,7 @@ export class StatusBar
     private readonly highlightManager: _ModuleSupport.HighlightManager;
     private readonly labelGroup = new _Scene.TranslatableLayer({
         name: 'StatusBar',
-        zIndex: zIndexMap.STATUS_BAR,
+        zIndex: ZIndexMap.STATUS_BAR,
     });
     private readonly backgroundNode = this.labelGroup.appendChild(new Rect());
     private readonly labels = [

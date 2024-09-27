@@ -43,7 +43,7 @@ import type { AnimationManager } from '../interaction/animationManager';
 import { calculateLabelBBox, calculateLabelRotation, getLabelSpacing, getTextAlign, getTextBaseline } from '../label';
 import type { AxisLayout } from '../layout/layoutManager';
 import type { ISeries } from '../series/seriesTypes';
-import { zIndexMap } from '../zIndexMap';
+import { ZIndexMap } from '../zIndexMap';
 import { AxisGridLine } from './axisGridLine';
 import { AxisInterval } from './axisInterval';
 import { AxisLabel } from './axisLabel';
@@ -188,23 +188,23 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     interactionEnabled = true;
 
-    readonly axisGroup = new TransformableGroup({ name: `${this.id}-axis`, zIndex: zIndexMap.AXIS });
+    readonly axisGroup = new TransformableGroup({ name: `${this.id}-axis`, zIndex: ZIndexMap.AXIS });
 
     protected lineNode = this.axisGroup.appendChild(new TranslatableLine({ name: `${this.id}-Axis-line` }));
     protected readonly tickLineGroup = this.axisGroup.appendChild(
-        new Group({ name: `${this.id}-Axis-tick-lines`, zIndex: zIndexMap.AXIS })
+        new Group({ name: `${this.id}-Axis-tick-lines`, zIndex: ZIndexMap.AXIS })
     );
     protected readonly tickLabelGroup = this.axisGroup.appendChild(
-        new Group({ name: `${this.id}-Axis-tick-labels`, zIndex: zIndexMap.AXIS })
+        new Group({ name: `${this.id}-Axis-tick-labels`, zIndex: ZIndexMap.AXIS })
     );
     protected readonly crossLineGroup = new TransformableGroup({ name: `${this.id}-CrossLines` });
-    protected readonly labelGroup = new Group({ name: `${this.id}-Labels`, zIndex: zIndexMap.SERIES_ANNOTATION });
+    protected readonly labelGroup = new Group({ name: `${this.id}-Labels`, zIndex: ZIndexMap.SERIES_ANNOTATION });
 
     readonly gridGroup = new TransformableGroup({ name: `${this.id}-Axis-grid` });
     protected readonly gridLineGroup = this.gridGroup.appendChild(
         new Group({
             name: `${this.id}-gridLines`,
-            zIndex: zIndexMap.AXIS_GRID,
+            zIndex: ZIndexMap.AXIS_GRID,
         })
     );
 

@@ -1,7 +1,7 @@
 /**
  * Constants to declare the expected nominal zIndex for all types of layer in chart rendering.
  */
-export enum zIndexMap {
+export enum ZIndexMap {
     SERIES_BACKGROUND,
     AXIS_GRID,
     AXIS,

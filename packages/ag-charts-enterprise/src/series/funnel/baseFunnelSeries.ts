@@ -7,7 +7,7 @@ import { prepareConnectorAnimationFunctions, resetConnectorSelectionsFn } from '
 
 const {
     SeriesNodePickMode,
-    zIndexMap,
+    ZIndexMap,
     valueProperty,
     keyProperty,
     ChartAxisDirection,
@@ -116,7 +116,7 @@ export abstract class BaseFunnelSeries<
     protected readonly connectorNodeGroup = this.contentGroup.appendChild(
         new Group({
             name: `${this.id}-series-connectorNodes`,
-            zIndex: zIndexMap.SERIES_LAYER,
+            zIndex: ZIndexMap.SERIES_LAYER,
             zIndexSubOrder: this.getGroupZIndexSubOrder('data'),
         })
     );

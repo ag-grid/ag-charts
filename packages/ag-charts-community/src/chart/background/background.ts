@@ -7,7 +7,7 @@ import { Text } from '../../scene/shape/text';
 import { ProxyPropertyOnWrite } from '../../util/proxy';
 import { BOOLEAN, COLOR_STRING, OBJECT, STRING, Validate } from '../../util/validation';
 import type { LayoutCompleteEvent } from '../layout/layoutManager';
-import { zIndexMap } from '../zIndexMap';
+import { ZIndexMap } from '../zIndexMap';
 
 export class Background<TImage = never> extends BaseModuleInstance implements ModuleInstance {
     protected readonly node;
@@ -46,7 +46,7 @@ export class Background<TImage = never> extends BaseModuleInstance implements Mo
     }
 
     protected createNode() {
-        return new Group({ name: 'background', zIndex: zIndexMap.SERIES_BACKGROUND });
+        return new Group({ name: 'background', zIndex: ZIndexMap.SERIES_BACKGROUND });
     }
 
     protected onLayoutComplete(e: LayoutCompleteEvent) {

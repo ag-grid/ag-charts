@@ -14,16 +14,17 @@ export class Group extends Node {
         return value instanceof Group;
     }
 
-    static computeChildrenBBox(nodes: Iterable<Node>, skipInvisible = true) {
-        function* visible() {
-            for (const n of nodes) {
-                if (!skipInvisible || (n.visible && !n.transitionOut)) {
-                    const bbox = n.getBBox();
-                    if (bbox) yield bbox;
-                }
+    static *extractBBoxes(nodes: Iterable<Node>, skipInvisible?: boolean) {
+        for (const n of nodes) {
+            if (!skipInvisible || (n.visible && !n.transitionOut)) {
+                const bbox = n.getBBox();
+                if (bbox) yield bbox;
             }
         }
-        return BBox.merge(visible());
+    }
+
+    static computeChildrenBBox(nodes: Iterable<Node>, skipInvisible = true) {
+        return BBox.merge(Group.extractBBoxes(nodes, skipInvisible));
     }
 
     protected static compareChildren(a: Node, b: Node) {
@@ -223,10 +224,10 @@ export class Group extends Node {
      * Transforms bbox given in the canvas coordinate space to bbox in this group's coordinate space and
      * sets this group's clipRect to the transformed bbox.
      * @param bbox clipRect bbox in the canvas coordinate space.
-     * @param useGroupCoordinateSpace keep provided bbox coordinate space.
+     * @param transformToGroupSpace set to false to keep provided bbox coordinate space.
      */
-    setClipRect(bbox?: BBox, useGroupCoordinateSpace = true) {
-        if (useGroupCoordinateSpace) {
+    setClipRect(bbox?: BBox, transformToGroupSpace = true) {
+        if (transformToGroupSpace) {
             this.clipRect = bbox ? Transformable.fromCanvas(this, bbox) : undefined;
         } else {
             this.clipRect = bbox;

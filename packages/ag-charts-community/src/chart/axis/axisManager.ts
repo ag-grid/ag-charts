@@ -2,7 +2,7 @@ import type { AxisContext } from '../../module/axisContext';
 import { Group } from '../../scene/group';
 import { Layer } from '../../scene/layer';
 import type { ChartAxisDirection } from '../chartAxisDirection';
-import { zIndexMap } from '../zIndexMap';
+import { ZIndexMap } from '../zIndexMap';
 
 type Axis = {
     createAxisContext(): AxisContext;
@@ -19,8 +19,8 @@ export class AxisManager {
     readonly axisGroup: Layer;
 
     public constructor(private readonly sceneRoot: Group) {
-        this.axisGridGroup = new Layer({ name: 'Axes-Grids', zIndex: zIndexMap.AXIS_GRID });
-        this.axisGroup = new Layer({ name: 'Axes', zIndex: zIndexMap.AXIS });
+        this.axisGridGroup = new Layer({ name: 'Axes-Grids', zIndex: ZIndexMap.AXIS_GRID });
+        this.axisGroup = new Layer({ name: 'Axes', zIndex: ZIndexMap.AXIS });
 
         this.sceneRoot.appendChild(this.axisGroup);
         this.sceneRoot.appendChild(this.axisGridGroup);
