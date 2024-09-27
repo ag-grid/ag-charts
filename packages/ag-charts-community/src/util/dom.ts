@@ -1,6 +1,12 @@
 import type { BBoxValues } from './bboxinterface';
 
-const verifiedGlobals = {} as { document: Document; window: Window };
+type StyleComputingFn = (elt: Element, pseudoElt?: string | null) => CSSStyleDeclaration;
+
+const verifiedGlobals = {} as {
+    document: Document;
+    window: Window;
+    getComputedStyle: StyleComputingFn;
+};
 
 if (typeof window !== 'undefined') {
     verifiedGlobals.window = window;
@@ -14,6 +20,10 @@ if (typeof document !== 'undefined') {
     verifiedGlobals.document = global.document;
 }
 
+if (typeof getComputedStyle !== 'undefined') {
+    verifiedGlobals.getComputedStyle = getComputedStyle;
+}
+
 export function getDocument<E>(): Document & E;
 export function getDocument<K extends keyof Document>(propertyName: K): Document[K];
 export function getDocument<K extends keyof Document>(propertyName?: K) {
@@ -25,6 +35,10 @@ export function getWindow<K extends keyof Window>(propertyName: K): Window[K];
 export function getWindow<R = unknown>(propertyName: string): R;
 export function getWindow<K extends keyof Window>(propertyName?: K) {
     return propertyName ? verifiedGlobals.window?.[propertyName] : verifiedGlobals.window;
+}
+
+export function getComputedStyleFn(): StyleComputingFn | undefined {
+    return verifiedGlobals.getComputedStyle;
 }
 
 export function createElement<K extends keyof HTMLElementTagNameMap>(
