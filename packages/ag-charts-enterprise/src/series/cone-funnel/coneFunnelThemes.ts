@@ -2,11 +2,13 @@ import {
     type AgCategoryAxisThemeOptions,
     type AgConeFunnelSeriesThemeableOptions,
     type AgNumberAxisThemeOptions,
+    type AgSeriesAreaOptions,
     _Theme,
 } from 'ag-charts-community';
 
 export const CONE_FUNNEL_SERIES_THEME: {
     series: AgConeFunnelSeriesThemeableOptions;
+    seriesArea: AgSeriesAreaOptions;
     axes: { number: AgNumberAxisThemeOptions; category: AgCategoryAxisThemeOptions };
 } = {
     series: {
@@ -19,6 +21,12 @@ export const CONE_FUNNEL_SERIES_THEME: {
             color: _Theme.DEFAULT_LABEL_COLOUR,
             placement: 'before',
             spacing: 4,
+        },
+    },
+    seriesArea: {
+        padding: {
+            top: 20,
+            bottom: 20,
         },
     },
     axes: {
