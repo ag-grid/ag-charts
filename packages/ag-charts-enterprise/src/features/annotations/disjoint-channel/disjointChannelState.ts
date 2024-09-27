@@ -23,33 +23,34 @@ export class DisjointChannelStateMachine extends StateMachine<
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(ctx: DisjointChannelStateMachineContext) {
-        const actionCreate = ({ point }: { point: Point }) => {
+        const actionCreate = ({ point }: { point: () => Point }) => {
             const datum = new DisjointChannelProperties();
-            datum.set({ start: point, end: point, startHeight: 0, endHeight: 0 });
+            const origin = point();
+            datum.set({ start: origin, end: origin, startHeight: 0, endHeight: 0 });
             ctx.create(datum);
         };
 
-        const actionEndUpdate = ({ point }: { point: Point }) => {
+        const actionEndUpdate = ({ point }: { point: (origin?: Point, snapToAngle?: number) => Point }) => {
             ctx.guardDragClickDoubleEvent.hover();
-            ctx.datum()?.set({ end: point });
+
+            const datum = ctx.datum();
+            datum?.set({ end: point(datum?.start, datum?.snapToAngle) });
+
             ctx.node()?.toggleHandles({ topRight: false, bottomLeft: false, bottomRight: false });
             ctx.update();
         };
 
-        const actionEndFinish = ({ point }: { point: Point }) => {
-            ctx.datum()?.set({ end: point });
-        };
-
-        const actionHeightUpdate = ({ point }: { point: Point }) => {
+        const actionHeightUpdate = ({ point }: { point: () => Point }) => {
             const datum = ctx.datum();
 
             if (datum?.start.y == null || datum?.end.y == null) return;
 
-            const endHeight = datum.end.y - (point.y ?? 0);
+            const y = point().y;
+            const endHeight = datum.end.y - (y ?? 0);
             const startHeight = (datum.start.y - datum.end.y) * 2 + endHeight;
 
             const bottomStart = { x: datum.start.x, y: datum.start.y - startHeight };
-            const bottomEnd = { x: datum.end.x, y: point.y };
+            const bottomEnd = { x: datum.end.x, y };
 
             ctx.node()?.toggleHandles({ bottomLeft: false });
 
@@ -61,16 +62,17 @@ export class DisjointChannelStateMachine extends StateMachine<
             ctx.update();
         };
 
-        const actionHeightFinish = ({ point }: { point: Point }) => {
+        const actionHeightFinish = ({ point }: { point: () => Point }) => {
             const datum = ctx.datum();
 
             if (datum?.start.y == null || datum?.end.y == null) return;
 
-            const endHeight = datum.end.y - (point.y ?? 0);
+            const y = point().y;
+            const endHeight = datum.end.y - (y ?? 0);
             const startHeight = (datum.start.y - datum.end.y) * 2 + endHeight;
 
             const bottomStart = { x: datum.start.x, y: datum.start.y - endHeight };
-            const bottomEnd = { x: datum.end.x, y: point.y };
+            const bottomEnd = { x: datum.end.x, y };
 
             ctx.node()?.toggleHandles(true);
 
@@ -106,7 +108,6 @@ export class DisjointChannelStateMachine extends StateMachine<
                     // transition causing the start and end to be at the same point.
                     guard: ctx.guardDragClickDoubleEvent.guard,
                     target: 'height',
-                    action: actionEndFinish,
                 },
                 reset: {
                     target: StateMachine.parent,

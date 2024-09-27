@@ -39,7 +39,7 @@ import { getLineStyle } from './utils/line';
 import { isChannelType, isLineType, isTextType } from './utils/types';
 import { updateAnnotation } from './utils/update';
 import { validateDatumPoint } from './utils/validation';
-import { invertCoords } from './utils/values';
+import { convertPoint, invertCoords } from './utils/values';
 
 const {
     BOOLEAN,
@@ -1090,10 +1090,18 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const context = this.getAnnotationContext();
         if (!context) return;
 
-        const offset = Vec2.from(event);
-        const point = invertCoords(offset, context);
+        const shiftKey = (event.sourceEvent as MouseEvent).shiftKey;
 
-        state.transition('hover', { offset, point });
+        const offset = Vec2.from(event);
+        const point = (origin?: Point, snapToAngle: number = 1) =>
+            shiftKey
+                ? invertCoords(
+                      Vec2.snapToAngle(origin ? convertPoint(origin, context) : Vec2.origin(), offset, snapToAngle),
+                      context
+                  )
+                : invertCoords(offset, context);
+
+        state.transition('hover', { offset, point, shiftKey });
     }
 
     private onClick(event: _ModuleSupport.RegionEvent<'click'>) {
@@ -1103,7 +1111,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (!context) return;
 
         const offset = Vec2.from(event);
-        const point = invertCoords(offset, context);
+        const point = () => invertCoords(offset, context);
         const textInputValue = this.textInput.getValue();
 
         state.transition('click', { offset, point, textInputValue });
@@ -1141,9 +1149,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             return;
         }
 
-        const point = invertCoords(coords, context);
+        const point = () => invertCoords(coords, context);
 
-        if (!validateDatumPoint(context, point)) {
+        if (!validateDatumPoint(context, point())) {
             return;
         }
 
@@ -1169,7 +1177,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (!context) return;
 
         const offset = Vec2.from(event);
-        const point = invertCoords(offset, context);
+        const point = () => invertCoords(offset, context);
 
         const shiftKey = (event.sourceEvent as MouseEvent).shiftKey;
         state.transition('drag', { context, offset, point, shiftKey });

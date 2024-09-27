@@ -8,7 +8,7 @@ import type { CollidableText } from './collidableTextScene';
 import type { Handle } from './handle';
 import { LinearScene } from './linearScene';
 
-const { Vec2, toRadians } = _Util;
+const { Vec2 } = _Util;
 
 type ChannelHandle = Partial<'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight' | 'topMiddle' | 'bottomMiddle'>;
 
