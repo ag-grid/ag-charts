@@ -465,6 +465,10 @@
                 "feature": false,
                 "items": [
                     {
+                        "title": "Upgrade to AG Charts 10.3",
+                        "path": "upgrade-to-ag-charts-10-3"
+                    },
+                    {
                         "title": "Upgrade to AG Charts 10.2",
                         "path": "upgrade-to-ag-charts-10-2"
                     },
