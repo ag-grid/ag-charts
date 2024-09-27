@@ -2,8 +2,9 @@ import { DarkTheme } from './darkTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_ANNOTATION_COLOR,
-    DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
-    DEFAULT_GAUGE_SERIES_COLOUR_RANGE,
+    DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
+    DEFAULT_FUNNEL_SERIES_COLOR_RANGE,
+    DEFAULT_GAUGE_SERIES_COLOR_RANGE,
 } from './symbols';
 
 const MATERIAL_DARK_FILLS = {
@@ -49,12 +50,21 @@ export class MaterialDark extends DarkTheme {
     override getTemplateParameters() {
         const params = super.getTemplateParameters();
 
-        params.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
+        params.set(DEFAULT_DIVERGING_SERIES_COLOR_RANGE, [
             MATERIAL_DARK_FILLS.ORANGE,
             MATERIAL_DARK_FILLS.YELLOW,
             MATERIAL_DARK_FILLS.GREEN,
         ]);
-        params.set(DEFAULT_GAUGE_SERIES_COLOUR_RANGE, [
+        params.set(DEFAULT_FUNNEL_SERIES_COLOR_RANGE, [
+            '#2196f3', // 500
+            '#208FEC', // (interpolated)
+            '#1E88E5', // 600
+            '#1C7FDC', // (interpolated)
+            '#1976d2', // 700
+            '#176EC9', // (interpolated)
+            '#1565c0', // 800
+        ]);
+        params.set(DEFAULT_GAUGE_SERIES_COLOR_RANGE, [
             MATERIAL_DARK_FILLS.GREEN,
             MATERIAL_DARK_FILLS.YELLOW,
             MATERIAL_DARK_FILLS.RED,

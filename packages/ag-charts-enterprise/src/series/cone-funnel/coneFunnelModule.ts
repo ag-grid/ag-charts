@@ -17,8 +17,10 @@ export const ConeFunnelModule: _ModuleSupport.SeriesModule<'cone-funnel'> = {
     defaultAxes: funnelSeriesAxes,
     themeTemplate: CONE_FUNNEL_SERIES_THEME,
 
-    paletteFactory: ({ takeColors, colorsCount }) => {
-        const { fills, strokes } = takeColors(colorsCount);
-        return { fills, strokes };
+    paletteFactory: ({ userPalette, themeTemplateParameters, takeColors, colorsCount }) => {
+        const { fills: userFills } = takeColors(colorsCount);
+        const defaultFills = themeTemplateParameters.get(_Theme.DEFAULT_FUNNEL_SERIES_COLOR_RANGE) as string[];
+        const fills = userPalette === 'inbuilt' ? defaultFills : [userFills[0], userFills[1]];
+        return { fills, strokes: fills.slice(0) };
     },
 };

@@ -5,7 +5,7 @@ import { MapShapeSeries } from './mapShapeSeries';
 
 const {
     DEFAULT_INVERTED_LABEL_COLOUR,
-    DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
+    DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
     DEFAULT_BACKGROUND_COLOUR,
     singleSeriesPaletteFactory,
 } = _Theme;
@@ -37,7 +37,7 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
     paletteFactory: (opts) => {
         const { takeColors, colorsCount, userPalette, themeTemplateParameters } = opts;
         const { fill } = singleSeriesPaletteFactory(opts);
-        const defaultColorRange = themeTemplateParameters.get(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE);
+        const defaultColorRange = themeTemplateParameters.get(DEFAULT_DIVERGING_SERIES_COLOR_RANGE);
         const { fills } = takeColors(colorsCount);
         return {
             fill,

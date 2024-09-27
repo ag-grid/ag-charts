@@ -50,7 +50,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
     },
     paletteFactory: ({ takeColors, colorsCount, themeTemplateParameters }) => {
         const { fills, strokes } = takeColors(colorsCount);
-        const defaultColorRange = themeTemplateParameters.get(_Theme.DEFAULT_DIVERGING_SERIES_COLOUR_RANGE);
+        const defaultColorRange = themeTemplateParameters.get(_Theme.DEFAULT_DIVERGING_SERIES_COLOR_RANGE);
         return { fills, strokes, colorRange: defaultColorRange };
     },
 };

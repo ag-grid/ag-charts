@@ -84,7 +84,7 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
     paletteFactory(params) {
         const { takeColors, colorsCount, userPalette, themeTemplateParameters } = params;
         const { fills } = takeColors(colorsCount);
-        const defaultColorRange = themeTemplateParameters.get(_Theme.DEFAULT_GAUGE_SERIES_COLOUR_RANGE) as
+        const defaultColorRange = themeTemplateParameters.get(_Theme.DEFAULT_GAUGE_SERIES_COLOR_RANGE) as
             | string[]
             | undefined;
         const hierarchyFills = themeTemplateParameters.get(DEFAULT_HIERARCHY_FILLS);

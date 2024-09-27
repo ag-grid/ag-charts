@@ -2,8 +2,9 @@ import { DarkTheme } from './darkTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_ANNOTATION_COLOR,
-    DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
-    DEFAULT_GAUGE_SERIES_COLOUR_RANGE,
+    DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
+    DEFAULT_FUNNEL_SERIES_COLOR_RANGE,
+    DEFAULT_GAUGE_SERIES_COLOR_RANGE,
 } from './symbols';
 
 const VIVID_DARK_FILLS = {
@@ -49,12 +50,22 @@ export class VividDark extends DarkTheme {
     override getTemplateParameters() {
         const params = super.getTemplateParameters();
 
-        params.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
+        params.set(DEFAULT_DIVERGING_SERIES_COLOR_RANGE, [
             VIVID_DARK_FILLS.ORANGE,
             VIVID_DARK_FILLS.YELLOW,
             VIVID_DARK_FILLS.GREEN,
         ]);
-        params.set(DEFAULT_GAUGE_SERIES_COLOUR_RANGE, [
+        params.set(DEFAULT_FUNNEL_SERIES_COLOR_RANGE, [
+            '#0083ff',
+            '#0076e6',
+            '#0069cc',
+            '#005cb3',
+            '#004f99',
+            '#004280',
+            '#003466',
+            '#00274c',
+        ]);
+        params.set(DEFAULT_GAUGE_SERIES_COLOR_RANGE, [
             VIVID_DARK_FILLS.GREEN,
             VIVID_DARK_FILLS.YELLOW,
             VIVID_DARK_FILLS.RED,

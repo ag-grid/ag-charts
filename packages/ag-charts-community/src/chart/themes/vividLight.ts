@@ -2,8 +2,9 @@ import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_ANNOTATION_COLOR,
-    DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
-    DEFAULT_GAUGE_SERIES_COLOUR_RANGE,
+    DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
+    DEFAULT_FUNNEL_SERIES_COLOR_RANGE,
+    DEFAULT_GAUGE_SERIES_COLOR_RANGE,
 } from './symbols';
 
 const VIVID_FILLS = {
@@ -49,8 +50,18 @@ export class VividLight extends ChartTheme {
     override getTemplateParameters() {
         const params = super.getTemplateParameters();
 
-        params.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [VIVID_FILLS.ORANGE, VIVID_FILLS.YELLOW, VIVID_FILLS.GREEN]);
-        params.set(DEFAULT_GAUGE_SERIES_COLOUR_RANGE, [VIVID_FILLS.GREEN, VIVID_FILLS.YELLOW, VIVID_FILLS.RED]);
+        params.set(DEFAULT_DIVERGING_SERIES_COLOR_RANGE, [VIVID_FILLS.ORANGE, VIVID_FILLS.YELLOW, VIVID_FILLS.GREEN]);
+        params.set(DEFAULT_FUNNEL_SERIES_COLOR_RANGE, [
+            '#0083ff',
+            '#1a8fff',
+            '#339cff',
+            '#4da8ff',
+            '#66b5ff',
+            '#80c1ff',
+            '#99cdff',
+            '#b3daff',
+        ]);
+        params.set(DEFAULT_GAUGE_SERIES_COLOR_RANGE, [VIVID_FILLS.GREEN, VIVID_FILLS.YELLOW, VIVID_FILLS.RED]);
 
         params.set(DEFAULT_ANNOTATION_COLOR, VIVID_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, VIVID_FILLS.BLUE);
