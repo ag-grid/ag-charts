@@ -156,6 +156,10 @@ export abstract class BaseFunnelSeries<
         this.connectorNodeGroup.pointerEvents = PointerEvents.None;
     }
 
+    protected override isVertical(): boolean {
+        return !super.isVertical();
+    }
+
     protected abstract connectorEnabled(): boolean;
 
     protected abstract barStyle(): FunnelSeriesShapeStyle;
