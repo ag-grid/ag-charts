@@ -55,6 +55,7 @@ export const FUNNEL_SERIES_THEME: {
     },
     axes: {
         [_Theme.CARTESIAN_AXIS_TYPE.NUMBER]: {
+            nice: false,
             gridLine: {
                 enabled: false,
             },

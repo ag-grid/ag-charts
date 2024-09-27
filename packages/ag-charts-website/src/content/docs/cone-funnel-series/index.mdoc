@@ -5,6 +5,45 @@ description: '$framework Cone Funnel Series shows the change of a value over a s
 
 A Cone Funnel Series shows the change of a value over a set of processes.
 
-## Simple Funnel
+## Simple Cone Funnel
 
 {% chartExampleRunner title="Cone Funnel Chart" name="simple-cone-funnel" type="generated" /%}
+
+To create a Funnel Series, use the `funnel` series type.
+
+```js
+series: [
+    {
+        type: 'cone-funnel',
+        xKey: 'group',
+        yKey: 'value'
+    },
+],
+```
+
+In this configuration:
+
+-   `xKey` defines the categories, and is mapped to the stages of the funnel.
+-   `yKey` provides the numerical values, corresponding values of each stage.
+
+## Horizontal Cone Funnel
+
+{% chartExampleRunner title="Horizontal Cone Funnel Chart" name="horizontal-cone-funnel" type="generated" /%}
+
+To create a horizontal Funnel Series, set the divider `direction` to `vertical`.
+
+```js
+{
+    direction: 'vertical',
+}
+```
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgConeFunnelSeriesOptions" label="Cone Funnel Series" %}
+{% apiReference id="AgConeFunnelSeriesOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}
