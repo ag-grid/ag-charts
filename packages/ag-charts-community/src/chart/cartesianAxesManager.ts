@@ -13,7 +13,6 @@ const directions: AgCartesianAxisPosition[] = ['top', 'right', 'bottom', 'left']
 type AreaWidthMap = Map<AgCartesianAxisPosition, number>;
 
 export class CartesianAxesManager {
-    private _lastCrossLineIds?: string[] = undefined;
     private _lastAxisAreaWidths: AreaWidthMap = new Map();
     private _lastClipSeries = false;
     private _lastVisibility = true;
@@ -21,29 +20,15 @@ export class CartesianAxesManager {
     constructor(protected ctx: ChartContext) {}
 
     updateAxes(axes: ChartAxis[], layoutBox: BBox, seriesPadding: Padding, seriesRect?: BBox) {
-        // FIXME - the crosslines get regenerated when switching between light/dark mode.
-        // Ideally, even in this case this updateAxes logic would still work. But there's more work to make that happen.
-        const crossLineIds = axes.flatMap((axis) => axis.crossLines ?? []).map((crossLine) => crossLine.id);
-        const axesValid =
-            this._lastCrossLineIds != null &&
-            this._lastCrossLineIds.length === crossLineIds.length &&
-            this._lastCrossLineIds.every((id, index) => crossLineIds[index] === id);
-
         let axisAreaWidths: AreaWidthMap;
         let clipSeries: boolean;
         let visibility: boolean;
-        if (axesValid) {
-            // Start with a good approximation from the last update - this should mean that in many resize
-            // cases that only a single pass is needed \o/.
-            axisAreaWidths = new Map(this._lastAxisAreaWidths.entries());
-            clipSeries = this._lastClipSeries;
-            visibility = this._lastVisibility;
-        } else {
-            axisAreaWidths = new Map();
-            clipSeries = false;
-            visibility = true;
-            this._lastCrossLineIds = crossLineIds;
-        }
+
+        // Start with a good approximation from the last update - this should mean that in many resize
+        // cases that only a single pass is needed \o/.
+        axisAreaWidths = new Map(this._lastAxisAreaWidths.entries());
+        clipSeries = this._lastClipSeries;
+        visibility = this._lastVisibility;
 
         // Clean any positions which aren't valid with the current axis status (otherwise we end up
         // never being able to find a stable result).
@@ -66,14 +51,12 @@ export class CartesianAxesManager {
                 }
             }
             if (visibility !== otherVisibility || clipSeries !== otherClipSeries) {
-                console.log(2);
                 return false;
             }
             // Check for existing axis positions and equality.
             for (const [p, w] of axisAreaWidths.entries()) {
                 const otherW = otherAxisWidths.get(p);
                 if ((w != null || otherW != null) && w !== otherW) {
-                    console.log(3);
                     return false;
                 }
             }
@@ -82,11 +65,9 @@ export class CartesianAxesManager {
 
         const ceilValues = <K extends string>(map: Map<K, number>) => {
             for (const [key, value] of map.entries()) {
-                if (value && Math.abs(value) === Infinity) {
-                    map.set(key, 0);
-                    continue;
+                if (value != null) {
+                    map.set(key, Number.isFinite(value) ? Math.ceil(value) : 0);
                 }
-                map.set(key, value != null ? Math.ceil(value) : value);
             }
             return map;
         };
@@ -212,15 +193,15 @@ export class CartesianAxesManager {
         // Step 2) calculate axis offsets and total depth for each position.
         const newAxisAreaWidths = new Map<AgCartesianAxisPosition, number>();
         const axisOffsets = new Map<string, number>();
-        for (const [position, axes] of axisGroups.entries()) {
+        for (const [position, groupAxes] of axisGroups.entries()) {
             const isVertical = position === 'left' || position === 'right';
-            newAxisAreaWidths.set(position, this.calculateAxisArea(axes, axisWidths, axisOffsets, isVertical));
+            newAxisAreaWidths.set(position, this.calculateAxisArea(groupAxes, axisWidths, axisOffsets, isVertical));
         }
 
         // Step 3) position all axes taking adjacent positions into account.
-        for (const [position, axes] of axisGroups.entries()) {
+        for (const [position, groupAxes] of axisGroups.entries()) {
             this.positionAxes({
-                axes,
+                axes: groupAxes,
                 position,
                 axisWidths,
                 axisOffsets,
