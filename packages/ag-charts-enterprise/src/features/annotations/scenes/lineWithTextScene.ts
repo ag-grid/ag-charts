@@ -71,7 +71,7 @@ export class LineWithTextScene {
         if (!datum.text?.label) return;
 
         if (this.text == null) {
-            this.text = new _Scene.TransformableText();
+            this.text = new CollidableText();
             this.appendChild(this.text);
         }
 
