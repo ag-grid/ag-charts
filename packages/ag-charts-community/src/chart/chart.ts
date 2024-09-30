@@ -245,7 +245,7 @@ export abstract class Chart extends Observable {
         return this.queuedUserOptions.at(-1) ?? this.chartOptions.userOptions;
     }
 
-    protected constructor(options: ChartOptions, resources?: TransferableResources) {
+    constructor(options: ChartOptions, resources?: TransferableResources) {
         super();
 
         this.chartOptions = options;
@@ -724,6 +724,7 @@ export abstract class Chart extends Observable {
         if (oldValue == null && newValue.length === 0) return;
 
         this.ctx.axisManager.updateAxes(oldValue ?? [], newValue);
+        this.ctx?.zoomManager.updateAxes(newValue);
     }
 
     protected onSeriesChange(newValue: Series<any, any>[], oldValue?: Series<any, any>[]) {

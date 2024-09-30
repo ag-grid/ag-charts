@@ -355,12 +355,12 @@ export abstract class CartesianSeries<
         await this.updateNodes(highlightItems, seriesHighlighted, visible);
 
         const animationData = this.getAnimationData(seriesRect, previousContextData);
-        if (!animationData) return;
-
-        if (resize) {
-            this.animationState.transition('resize', animationData);
+        if (animationData) {
+            if (resize) {
+                this.animationState.transition('resize', animationData);
+            }
+            this.animationState.transition('update', animationData);
         }
-        this.animationState.transition('update', animationData);
     }
 
     protected async updateSelections(anySeriesItemEnabled: boolean) {

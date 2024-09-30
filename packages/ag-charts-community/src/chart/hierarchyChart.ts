@@ -1,15 +1,9 @@
 import type { LayoutContext } from '../module/baseModule';
-import type { ChartOptions } from '../module/optionsModule';
-import type { TransferableResources } from './chart';
 import { Chart } from './chart';
 
 export class HierarchyChart extends Chart {
     static readonly className = 'HierarchyChart';
     static readonly type = 'hierarchy' as const;
-
-    constructor(options: ChartOptions, resources?: TransferableResources) {
-        super(options, resources);
-    }
 
     override getChartType() {
         return 'hierarchy' as const;
