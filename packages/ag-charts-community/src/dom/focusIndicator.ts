@@ -1,7 +1,7 @@
 import { Path } from '../scene/shape/path';
 import { Transformable } from '../scene/transformable';
 import type { BBoxValues } from '../util/bboxinterface';
-import { getComputedStyleFn, getDocument, setElementBBox } from '../util/dom';
+import { getDocument, setElementBBox } from '../util/dom';
 import type { DOMManager } from './domManager';
 
 const FOCUS_INDICATOR_CSS_CLASS = 'ag-charts-focus-indicator';
@@ -48,8 +48,7 @@ export class FocusIndicator {
 
     // Get the `:focus-visible` CSS state.
     public isFocusVisible(): boolean {
-        const getComputedStyle = getComputedStyleFn();
         const focusableParent = this.element.parentElement;
-        return focusableParent != null && !!getComputedStyle && getComputedStyle(focusableParent).opacity === '1';
+        return focusableParent != null && getComputedStyle(focusableParent).opacity === '1';
     }
 }
