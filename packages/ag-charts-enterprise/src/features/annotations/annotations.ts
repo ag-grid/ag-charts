@@ -1227,9 +1227,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onDelete() {
-        this.cancel();
         this.delete();
-        this.reset();
         this.update();
     }
 

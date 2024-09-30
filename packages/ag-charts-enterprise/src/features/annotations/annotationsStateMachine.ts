@@ -426,8 +426,12 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 delete: () => {
                     if (this.active == null) return;
+                    this.transition('cancel');
+
                     ctx.delete(this.active);
                     ctx.recordAction(`Delete ${ctx.datum(this.active!)?.type} annotation`);
+
+                    this.transition('reset');
                 },
 
                 deleteAll: () => {
