@@ -10,10 +10,11 @@ import { ChartAxisDirection } from './chartAxisDirection';
 import type { ChartContext } from './chartContext';
 
 const directions: AgCartesianAxisPosition[] = ['top', 'right', 'bottom', 'left'];
+type AreaWidthMap = Map<AgCartesianAxisPosition, number>;
 
 export class CartesianAxesManager {
     private _lastCrossLineIds?: string[] = undefined;
-    private _lastAxisAreaWidths: Map<AgCartesianAxisPosition, number> = new Map();
+    private _lastAxisAreaWidths: AreaWidthMap = new Map();
     private _lastClipSeries = false;
     private _lastVisibility = true;
 
@@ -28,7 +29,7 @@ export class CartesianAxesManager {
             this._lastCrossLineIds.length === crossLineIds.length &&
             this._lastCrossLineIds.every((id, index) => crossLineIds[index] === id);
 
-        let axisAreaWidths: typeof this._lastAxisAreaWidths;
+        let axisAreaWidths: AreaWidthMap;
         let clipSeries: boolean;
         let visibility: boolean;
         if (axesValid) {
@@ -65,12 +66,14 @@ export class CartesianAxesManager {
                 }
             }
             if (visibility !== otherVisibility || clipSeries !== otherClipSeries) {
+                console.log(2);
                 return false;
             }
             // Check for existing axis positions and equality.
             for (const [p, w] of axisAreaWidths.entries()) {
                 const otherW = otherAxisWidths.get(p);
                 if ((w != null || otherW != null) && w !== otherW) {
+                    console.log(3);
                     return false;
                 }
             }
@@ -118,18 +121,20 @@ export class CartesianAxesManager {
             axis.update();
         }
 
-        const clipRectPadding = 5;
         axes.forEach((axis) => {
             // update visibility of crosslines
             axis.setCrossLinesVisible(visibility);
 
             if (!seriesRect) return;
 
+            const gridLinePadding = Math.ceil((axis.gridLine?.width ?? 0) / 2);
+            const axisLinePadding = Math.ceil(axis.line?.width ?? 0);
+
             axis.clipGrid(
                 seriesRect.x,
                 seriesRect.y,
-                seriesRect.width + clipRectPadding,
-                seriesRect.height + clipRectPadding
+                seriesRect.width + (axis.direction === ChartAxisDirection.X ? gridLinePadding : axisLinePadding),
+                seriesRect.height + (axis.direction === ChartAxisDirection.Y ? gridLinePadding : axisLinePadding)
             );
 
             switch (axis.position) {
@@ -138,8 +143,8 @@ export class CartesianAxesManager {
                     axis.clipTickLines(
                         layoutBox.x,
                         seriesRect.y,
-                        layoutBox.width + clipRectPadding,
-                        seriesRect.height + clipRectPadding
+                        layoutBox.width + gridLinePadding,
+                        seriesRect.height + gridLinePadding
                     );
                     break;
                 case 'top':
@@ -147,8 +152,8 @@ export class CartesianAxesManager {
                     axis.clipTickLines(
                         seriesRect.x,
                         layoutBox.y,
-                        seriesRect.width + clipRectPadding,
-                        layoutBox.height + clipRectPadding
+                        seriesRect.width + gridLinePadding,
+                        layoutBox.height + gridLinePadding
                     );
                     break;
             }
@@ -440,4 +445,24 @@ export class CartesianAxesManager {
             axis.updatePosition();
         }
     }
+
+    // private shouldRecalculate(otherAxisWidths: AreaWidthMap, otherClipSeries: boolean, otherVisibility: boolean) {
+    //     // Check for new axis positions.
+    //     for (const key of otherAxisWidths.keys()) {
+    //         if (!axisAreaWidths.has(key)) {
+    //             return true;
+    //         }
+    //     }
+    //     if (visibility !== otherVisibility || clipSeries !== otherClipSeries) {
+    //         return true;
+    //     }
+    //     // Check for existing axis positions and equality.
+    //     for (const [p, w] of axisAreaWidths.entries()) {
+    //         const otherW = otherAxisWidths.get(p);
+    //         if ((w != null || otherW != null) && w !== otherW) {
+    //             return true;
+    //         }
+    //     }
+    //     return false;
+    // }
 }
