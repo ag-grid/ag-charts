@@ -126,4 +126,46 @@ test.describe('toolbar', () => {
         await page.click(SELECTORS.canvas, { position: { x: 100, y: 100 } });
         await expect(page).toHaveScreenshot('callout-6-change-fill-color.png', { animations: 'disabled' });
     });
+
+    test('AG-13008 delete annotation', async ({ page }) => {
+        await gotoExample(page, url);
+
+        // Test 1. Check that the Delete & Backspace keys work:
+        await page.locator(SELECTORS.textAnnotationMenu).click();
+        await page.locator(SELECTORS.commentMenuItem).click();
+        await page.click(SELECTORS.canvas, { position: { x: 200, y: 200 } });
+        await page.keyboard.type('this sentence is missing a word');
+        await page.keyboard.press('Backspace');
+        await page.keyboard.press('Backspace');
+        await page.keyboard.press('Backspace');
+        await page.keyboard.press('Backspace');
+        await page.keyboard.press('Backspace');
+        await page.keyboard.press('Home');
+        await page.keyboard.press('Delete');
+        await expect(page).toHaveScreenshot('delete-erased-text.png');
+
+        // Test 2. Check that Backspace key deletes the annotation when in idle state:
+        // (Click away from the annotation, then reclick it to go into idle state)
+        await page.click(SELECTORS.canvas, { position: { x: 300, y: 400 } });
+        await page.click(SELECTORS.canvas, { position: { x: 200, y: 200 } });
+        await page.keyboard.press('Backspace');
+        await expect(page).toHaveScreenshot('delete-annotation-removed.png');
+
+        // Test 3. Check that the Delete button works in text-editing state:
+        await page.locator(SELECTORS.textAnnotationMenu).click();
+        await page.locator(SELECTORS.commentMenuItem).click();
+        await page.click(SELECTORS.canvas, { position: { x: 200, y: 200 } });
+        await page.locator(SELECTORS.annotationOptionsDeleteButton).click();
+        await expect(page).toHaveScreenshot('delete-annotation-removed.png');
+
+        // Test 4. Check that the Delete button works in idle state:
+        // (Click away from the annotation, then reclick it to go into idle state)
+        await page.locator(SELECTORS.textAnnotationMenu).click();
+        await page.locator(SELECTORS.commentMenuItem).click();
+        await page.click(SELECTORS.canvas, { position: { x: 200, y: 200 } });
+        await page.click(SELECTORS.canvas, { position: { x: 300, y: 400 } });
+        await page.click(SELECTORS.canvas, { position: { x: 200, y: 200 } });
+        await page.locator(SELECTORS.annotationOptionsDeleteButton).click();
+        await expect(page).toHaveScreenshot('delete-annotation-removed.png');
+    });
 });
