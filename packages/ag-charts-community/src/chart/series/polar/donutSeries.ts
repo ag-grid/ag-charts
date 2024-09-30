@@ -4,7 +4,8 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { LinearScale } from '../../../scale/linearScale';
 import { BBox } from '../../../scene/bbox';
-import { Group, TranslatableGroup } from '../../../scene/group';
+import { Group } from '../../../scene/group';
+import { TranslatableLayer } from '../../../scene/layer';
 import { PointerEvents } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
@@ -33,10 +34,10 @@ import {
     valueProperty,
 } from '../../data/processors';
 import type { LegendItemClickChartEvent } from '../../interaction/chartEventManager';
-import { Layers } from '../../layers';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { Circle } from '../../marker/circle';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
+import { ZIndexMap } from '../../zIndexMap';
 import { SeriesNodeEvent, type SeriesNodeEventTypes, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import type { SeriesNodeDatum } from '../seriesTypes';
@@ -129,10 +130,9 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
     // The group node that contains the background graphics.
     readonly backgroundGroup = this.rootGroup.appendChild(
-        new TranslatableGroup({
+        new TranslatableLayer({
             name: `${this.id}-background`,
-            layer: true,
-            zIndex: Layers.SERIES_BACKGROUND_ZINDEX,
+            zIndex: ZIndexMap.SERIES_BACKGROUND,
         })
     );
 

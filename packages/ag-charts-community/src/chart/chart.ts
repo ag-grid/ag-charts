@@ -8,6 +8,7 @@ import type { AxisOptionModule, ChartOptions } from '../module/optionsModule';
 import type { SeriesOptionModule } from '../module/optionsModuleTypes';
 import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
+import { Layer, TranslatableLayer } from '../scene/layer';
 import type { Node } from '../scene/node';
 import type { Scene } from '../scene/scene';
 import type { PlacedLabel, PointLabelDatum } from '../scene/util/labelPlacement';
@@ -45,7 +46,6 @@ import { seriesRegistry } from './factory/seriesRegistry';
 import { REGIONS, SimpleRegionBBoxProvider } from './interaction/regions';
 import { SyncManager } from './interaction/syncManager';
 import { Keyboard } from './keyboard';
-import { Layers } from './layers';
 import { LayoutElement } from './layout/layoutManager';
 import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
 import { guessInvalidPositions } from './mapping/prepareAxis';
@@ -64,6 +64,7 @@ import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
 import type { UpdateProcessor } from './update/processor';
 import type { UpdateOpts } from './updateService';
+import { ZIndexMap } from './zIndexMap';
 
 const debug = Debug.create(true, 'opts');
 
@@ -118,16 +119,14 @@ export abstract class Chart extends Observable {
     className?: string;
 
     readonly seriesRoot = new TranslatableGroup({ name: `${this.id}-series-root` });
-    readonly highlightRoot = new TranslatableGroup({
+    readonly highlightRoot = new TranslatableLayer({
         name: `${this.id}-highlight-root`,
-        layer: true,
-        zIndex: Layers.SERIES_HIGHLIGHT_ZINDEX,
-        nonEmptyChildDerivedZIndex: true,
+        zIndex: ZIndexMap.SERIES_HIGHLIGHT,
+        deriveZIndexFromChildren: true, // TODO remove feature
     });
-    readonly annotationRoot = new TranslatableGroup({
+    readonly annotationRoot = new TranslatableLayer({
         name: `${this.id}-annotation-root`,
-        layer: true,
-        zIndex: Layers.SERIES_ANNOTATION_ZINDEX,
+        zIndex: ZIndexMap.SERIES_ANNOTATION,
     });
 
     readonly tooltip: Tooltip;
@@ -255,7 +254,7 @@ export abstract class Chart extends Observable {
         const container = resources?.container ?? options.processedOptions.container ?? undefined;
 
         const root = new Group({ name: 'root' });
-        const titleGroup = new Group({ name: 'titles', layer: true, zIndex: Layers.SERIES_LABEL_ZINDEX });
+        const titleGroup = new Layer({ name: 'titles', zIndex: ZIndexMap.SERIES_LABEL });
         // Prevent the scene from rendering chart components in an invalid state
         // (before first layout is performed).
         root.visible = false;
@@ -735,7 +734,7 @@ export abstract class Chart extends Observable {
         for (const series of newValue) {
             if (oldValue?.includes(series)) continue;
 
-            if (series.rootGroup.parent == null) {
+            if (series.rootGroup.isRoot()) {
                 this.seriesLayerManager.requestGroup(series);
             }
 
@@ -1006,7 +1005,7 @@ export abstract class Chart extends Observable {
         const { series, seriesGrouping, oldGrouping } = event;
 
         // Short-circuit if series isn't already attached to the scene-graph yet.
-        if (series.rootGroup.parent == null) return;
+        if (series.rootGroup.isRoot()) return;
 
         this.seriesLayerManager.changeGroup({
             internalId: series.internalId,

@@ -13,12 +13,12 @@ const {
     POSITIVE_NUMBER,
     BaseProperties,
     AxisTicks,
-    Layers,
+    ZIndexMap,
     ProxyProperty,
     Validate,
     LayoutElement,
 } = _ModuleSupport;
-const { Group, Rect, Triangle, TranslatableGroup, LinearGradient } = _Scene;
+const { Group, Rect, Triangle, TranslatableLayer, LinearGradient } = _Scene;
 const { createId } = _Util;
 
 class GradientBar extends BaseProperties {
@@ -50,11 +50,7 @@ export class GradientLegend {
     private readonly axisTicks: _ModuleSupport.AxisTicks;
     private readonly highlightManager: _ModuleSupport.HighlightManager;
 
-    private readonly legendGroup = new TranslatableGroup({
-        name: 'legend',
-        layer: true,
-        zIndex: Layers.LEGEND_ZINDEX,
-    });
+    private readonly legendGroup = new TranslatableLayer({ name: 'legend', zIndex: ZIndexMap.LEGEND });
     private readonly gradientRect = new Rect();
     private readonly arrow = new Triangle();
 
@@ -100,7 +96,7 @@ export class GradientLegend {
         this.destroyFns.push(
             ctx.highlightManager.addListener('highlight-change', () => this.onChartHoverChange()),
             ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.onStartLayout(e)),
-            () => this.legendGroup.parent?.removeChild(this.legendGroup)
+            () => this.legendGroup.remove()
         );
     }
 

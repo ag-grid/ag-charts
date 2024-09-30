@@ -2,6 +2,7 @@ import type { FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-type
 
 import { CachedTextMeasurerPool, type MeasureOptions, TextUtils } from '../../util/textMeasurer';
 import { BBox } from '../bbox';
+import { nodeCount } from '../debug.util';
 import type { RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
 import { Rotatable, Translatable } from '../transformable';
@@ -88,12 +89,12 @@ export class Text extends Shape {
         const { ctx, forceRender, stats } = renderCtx;
 
         if (this.dirty === RedrawType.NONE && !forceRender) {
-            if (stats) stats.nodesSkipped += this.nodeCount.count;
+            if (stats) stats.nodesSkipped += nodeCount(this).count;
             return;
         }
 
         if (!this.lines.length || !this.layerManager) {
-            if (stats) stats.nodesSkipped += this.nodeCount.count;
+            if (stats) stats.nodesSkipped += nodeCount(this).count;
             return;
         }
 

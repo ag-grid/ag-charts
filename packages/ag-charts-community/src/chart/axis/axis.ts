@@ -41,9 +41,9 @@ import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
 import type { AnimationManager } from '../interaction/animationManager';
 import { calculateLabelBBox, calculateLabelRotation, getLabelSpacing, getTextAlign, getTextBaseline } from '../label';
-import { Layers } from '../layers';
 import type { AxisLayout } from '../layout/layoutManager';
 import type { ISeries } from '../series/seriesTypes';
+import { ZIndexMap } from '../zIndexMap';
 import { AxisGridLine } from './axisGridLine';
 import { AxisInterval } from './axisInterval';
 import { AxisLabel } from './axisLabel';
@@ -188,23 +188,23 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     interactionEnabled = true;
 
-    readonly axisGroup = new TransformableGroup({ name: `${this.id}-axis`, zIndex: Layers.AXIS_ZINDEX });
+    readonly axisGroup = new TransformableGroup({ name: `${this.id}-axis`, zIndex: ZIndexMap.AXIS });
 
     protected lineNode = this.axisGroup.appendChild(new TranslatableLine({ name: `${this.id}-Axis-line` }));
     protected readonly tickLineGroup = this.axisGroup.appendChild(
-        new Group({ name: `${this.id}-Axis-tick-lines`, zIndex: Layers.AXIS_ZINDEX })
+        new Group({ name: `${this.id}-Axis-tick-lines`, zIndex: ZIndexMap.AXIS })
     );
     protected readonly tickLabelGroup = this.axisGroup.appendChild(
-        new Group({ name: `${this.id}-Axis-tick-labels`, zIndex: Layers.AXIS_ZINDEX })
+        new Group({ name: `${this.id}-Axis-tick-labels`, zIndex: ZIndexMap.AXIS })
     );
     protected readonly crossLineGroup = new TransformableGroup({ name: `${this.id}-CrossLines` });
-    protected readonly labelGroup = new Group({ name: `${this.id}-Labels`, zIndex: Layers.SERIES_ANNOTATION_ZINDEX });
+    protected readonly labelGroup = new Group({ name: `${this.id}-Labels`, zIndex: ZIndexMap.SERIES_ANNOTATION });
 
     readonly gridGroup = new TransformableGroup({ name: `${this.id}-Axis-grid` });
     protected readonly gridLineGroup = this.gridGroup.appendChild(
         new Group({
             name: `${this.id}-gridLines`,
-            zIndex: Layers.AXIS_GRID_ZINDEX,
+            zIndex: ZIndexMap.AXIS_GRID,
         })
     );
 
@@ -1326,11 +1326,11 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     clipTickLines(x: number, y: number, width: number, height: number) {
-        this.tickLineGroup.setClipRectInGroupCoordinateSpace(new BBox(x, y, width, height));
+        this.tickLineGroup.setClipRect(new BBox(x, y, width, height));
     }
 
     clipGrid(x: number, y: number, width: number, height: number) {
-        this.gridGroup.setClipRectInGroupCoordinateSpace(new BBox(x, y, width, height));
+        this.gridGroup.setClipRect(new BBox(x, y, width, height));
     }
 
     protected getTitleFormatterParams() {

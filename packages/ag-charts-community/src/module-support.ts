@@ -57,7 +57,7 @@ export * from './chart/interaction/toolbarManager';
 export * from './chart/interaction/tooltipManager';
 export * from './chart/toolbar/toolbarTypes';
 export * from './chart/interaction/zoomManager';
-export * from './chart/layers';
+export * from './chart/zIndexMap';
 export * from './chart/series/series';
 export * from './chart/series/seriesEvents';
 export * from './chart/series/seriesLabelUtil';

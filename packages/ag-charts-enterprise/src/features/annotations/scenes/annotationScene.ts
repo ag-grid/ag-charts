@@ -2,7 +2,7 @@ import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { Handle } from './handle';
 
-const { Layers, isObject } = _ModuleSupport;
+const { ZIndexMap, isObject } = _ModuleSupport;
 
 export abstract class AnnotationScene extends _Scene.Group {
     static isCheck(value: unknown, type: string) {
@@ -10,7 +10,7 @@ export abstract class AnnotationScene extends _Scene.Group {
     }
 
     override name = 'AnnotationScene';
-    override zIndex = Layers.CHART_ANNOTATION_ZINDEX;
+    override zIndex = ZIndexMap.CHART_ANNOTATION;
 
     public abstract type: string;
     public abstract activeHandle?: string;
@@ -27,10 +27,15 @@ export abstract class AnnotationScene extends _Scene.Group {
         this.toggleHandles(hovered);
     }
 
+    private *nonHandleChildren() {
+        for (const child of this.children()) {
+            if (!(child instanceof Handle)) {
+                yield child;
+            }
+        }
+    }
+
     protected computeBBoxWithoutHandles() {
-        return _Scene.Transformable.toCanvas(
-            this,
-            _Scene.Group.computeChildrenBBox(this.children.filter((node) => !(node instanceof Handle)))
-        );
+        return _Scene.Transformable.toCanvas(this, _Scene.Group.computeChildrenBBox(this.nonHandleChildren()));
     }
 }

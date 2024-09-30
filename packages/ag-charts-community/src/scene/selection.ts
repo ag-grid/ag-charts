@@ -20,7 +20,9 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
             if (predicate(node)) {
                 results.push(node);
             }
-            node.children.forEach(traverse);
+            for (const child of node.children()) {
+                traverse(child);
+            }
         };
         traverse(parent);
         return results;

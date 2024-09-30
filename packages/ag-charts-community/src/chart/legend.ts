@@ -15,7 +15,8 @@ import type { ListSwitch } from '../dom/proxyInteractionService';
 import type { LayoutContext } from '../module/baseModule';
 import type { ModuleContext } from '../module/moduleContext';
 import { BBox } from '../scene/bbox';
-import { Group, TranslatableGroup } from '../scene/group';
+import { Group } from '../scene/group';
+import { TranslatableLayer } from '../scene/layer';
 import { RedrawType } from '../scene/node';
 import type { Scene } from '../scene/scene';
 import { Selection } from '../scene/selection';
@@ -50,7 +51,6 @@ import type { Page } from './gridLayout';
 import { gridLayout } from './gridLayout';
 import type { HighlightNodeDatum } from './interaction/highlightManager';
 import { InteractionState, type PointerInteractionEvent } from './interaction/interactionManager';
-import { Layers } from './layers';
 import { LayoutElement } from './layout/layoutManager';
 import type { CategoryLegendDatum, LegendSymbolOptions } from './legendDatum';
 import { LegendMarkerLabel } from './legendMarkerLabel';
@@ -58,6 +58,7 @@ import type { Marker } from './marker/marker';
 import { type MarkerConstructor, getMarker } from './marker/util';
 import { Pagination } from './pagination/pagination';
 import { type TooltipMeta, type TooltipPointerEvent, toTooltipHtml } from './tooltip/tooltip';
+import { ZIndexMap } from './zIndexMap';
 
 class LegendLabel extends BaseProperties {
     @Validate(POSITIVE_NUMBER, { optional: true })
@@ -164,7 +165,7 @@ export class Legend extends BaseProperties {
 
     readonly id = createId(this);
 
-    private readonly group = new TranslatableGroup({ name: 'legend', layer: true, zIndex: Layers.LEGEND_ZINDEX });
+    private readonly group = new TranslatableLayer({ name: 'legend', zIndex: ZIndexMap.LEGEND });
 
     private readonly itemSelection: Selection<LegendMarkerLabel, CategoryLegendDatum> = Selection.select(
         this.group,
@@ -275,7 +276,7 @@ export class Legend extends BaseProperties {
         this.destroyFns.push(
             ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.positionLegend(e)),
             ctx.localeManager.addListener('locale-changed', () => this.onLocaleChanged()),
-            () => this.group.parent?.removeChild(this.group)
+            () => this.group.remove()
         );
 
         this.proxyLegendToolbar = this.ctx.proxyInteractionService.createProxyContainer({
@@ -346,7 +347,7 @@ export class Legend extends BaseProperties {
 
     public onMarkerShapeChange() {
         this.itemSelection.clear();
-        this.group.markDirty(this.group, RedrawType.MINOR);
+        this.group.markDirty(RedrawType.MINOR);
     }
 
     private getOrientation(): AgChartLegendOrientation {
@@ -585,9 +586,8 @@ export class Legend extends BaseProperties {
                 const { shape: markerShape = symbol.marker.shape } = itemMarker;
                 const MarkerCtr = getMarker(markerShape);
 
-                lines.push(new Line());
-                // Important! marker must be created after line to ensure zIndex correctness
-                markers.push(new MarkerCtr());
+                lines.push(new Line({ zIndex: 0 }));
+                markers.push(new MarkerCtr({ zIndex: 1 }));
             });
 
             markerLabel.updateSymbols(markers, lines);
@@ -952,16 +952,12 @@ export class Legend extends BaseProperties {
 
     private computePagedBBox(): BBox {
         // Get BBox without group transforms applied.
-        let actualBBox = Group.computeChildrenBBox(this.group.children);
-        if (this.pages.length <= 1) {
-            return actualBBox;
+        const actualBBox = Group.computeChildrenBBox(this.group.children());
+        if (this.pages.length > 1) {
+            const [maxPageWidth, maxPageHeight] = this.maxPageSize;
+            actualBBox.height = Math.max(maxPageHeight, actualBBox.height);
+            actualBBox.width = Math.max(maxPageWidth, actualBBox.width);
         }
-
-        const [maxPageWidth, maxPageHeight] = this.maxPageSize;
-        actualBBox = actualBBox.clone();
-        actualBBox.height = Math.max(maxPageHeight, actualBBox.height);
-        actualBBox.width = Math.max(maxPageWidth, actualBBox.width);
-
         return actualBBox;
     }
 
@@ -1099,7 +1095,6 @@ export class Legend extends BaseProperties {
         if (toggleSeries) {
             const legendData = chartService.series.flatMap((s) => s.getLegendData('category'));
             const numVisibleItems = legendData.filter((d) => d.enabled).length;
-
             const clickedItem = legendData.find((d) => d.itemId === itemId && d.seriesId === seriesId);
 
             this.ctx.chartEventManager.legendItemDoubleClick(

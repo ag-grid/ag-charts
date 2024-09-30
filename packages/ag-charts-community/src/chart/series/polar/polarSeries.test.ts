@@ -464,7 +464,7 @@ describe('PolarSeries', () => {
             getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
             getTooltipRenderedValues: (params) => [params.xValue, params.yValue],
             // Returns a highlighted marker
-            getHighlightNode: (_, series) => series.highlightNode.children[0],
+            getHighlightNode: (_, series) => series.highlightNode.children().next().value,
         } as Parameters<typeof testPointerEvents>[0];
 
         testPointerEvents({

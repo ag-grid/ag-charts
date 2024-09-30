@@ -278,7 +278,7 @@ describe('MapMarkerSeries', () => {
             getNodePoint: (item) => [item.midPoint.x, item.midPoint.y],
             getDatumValues: (item, series) => [item.datum[series.properties.idKey]],
             getTooltipRenderedValues: ({ datum, idKey }) => [datum[idKey]],
-            getHighlightNode: (_, series) => series.highlightNode.children[0],
+            getHighlightNode: (_, series) => series.highlightNode.children().next().value,
         });
     });
 });

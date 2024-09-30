@@ -10,7 +10,7 @@ import { ContinuousScale } from '../../scale/continuousScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
-import { Group } from '../../scene/group';
+import { Layer } from '../../scene/layer';
 import { PointerEvents } from '../../scene/node';
 import type { Point } from '../../scene/point';
 import { Range } from '../../scene/shape/range';
@@ -37,7 +37,7 @@ import {
 } from '../../util/validation';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { calculateLabelRotation } from '../label';
-import { Layers } from '../layers';
+import { ZIndexMap } from '../zIndexMap';
 import { type CrossLine, type CrossLineType, MATCHING_CROSSLINE_TYPE, validateCrossLineValues } from './crossLine';
 import type { CrossLineLabelPosition } from './crossLineLabelPosition';
 import {
@@ -114,9 +114,9 @@ class CartesianCrossLineLabel extends BaseProperties implements AgCartesianCross
 type NodeData = number[];
 
 export class CartesianCrossLine extends BaseProperties implements CrossLine<CartesianCrossLineLabel> {
-    protected static readonly LINE_LAYER_ZINDEX = Layers.SERIES_CROSSLINE_LINE_ZINDEX;
-    protected static readonly RANGE_LAYER_ZINDEX = Layers.SERIES_CROSSLINE_RANGE_ZINDEX;
-    protected static readonly LABEL_LAYER_ZINDEX = Layers.SERIES_LABEL_ZINDEX;
+    protected static readonly LINE_LAYER_ZINDEX = ZIndexMap.SERIES_CROSSLINE_LINE;
+    protected static readonly RANGE_LAYER_ZINDEX = ZIndexMap.SERIES_CROSSLINE_RANGE;
+    protected static readonly LABEL_LAYER_ZINDEX = ZIndexMap.SERIES_LABEL;
 
     static readonly className = 'CrossLine';
     readonly id = createId(this);
@@ -164,8 +164,8 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     regularFlipRotation: number = 0;
     direction: ChartAxisDirection = ChartAxisDirection.X;
 
-    readonly group = new Group({ name: `${this.id}`, layer: true, zIndex: CartesianCrossLine.LINE_LAYER_ZINDEX });
-    readonly labelGroup = new Group({ name: `${this.id}`, layer: true, zIndex: CartesianCrossLine.LABEL_LAYER_ZINDEX });
+    readonly group = new Layer({ name: this.id, zIndex: CartesianCrossLine.LINE_LAYER_ZINDEX });
+    readonly labelGroup = new Layer({ name: this.id, zIndex: CartesianCrossLine.LABEL_LAYER_ZINDEX });
     private readonly crossLineRange = new Range();
     private readonly crossLineLabel = new TransformableText();
     private labelPoint?: Point = undefined;

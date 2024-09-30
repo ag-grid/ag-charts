@@ -47,20 +47,20 @@ export class CartesianChart extends Chart {
 
     private setRootClipRects(clipRect: BBox | undefined) {
         const { seriesRoot, annotationRoot, highlightRoot } = this;
-        seriesRoot.setClipRectInGroupCoordinateSpace(clipRect);
-        highlightRoot.setClipRectInGroupCoordinateSpace(clipRect);
-        annotationRoot.setClipRectInGroupCoordinateSpace(clipRect);
+        seriesRoot.setClipRect(clipRect);
+        highlightRoot.setClipRect(clipRect);
+        annotationRoot.setClipRect(clipRect);
     }
 
     private lastUpdateClipRect: BBox | undefined = undefined;
 
     protected performLayout(ctx: LayoutContext) {
         const { firstSeriesTranslation, seriesRoot, annotationRoot, highlightRoot } = this;
-        const { animationRect, seriesRect, visibility, clipSeries } = this.updateAxes(ctx.layoutBox);
+        const { seriesRect, visibility, clipSeries } = this.updateAxes(ctx.layoutBox);
 
         this.seriesRoot.visible = visibility.series;
         this.seriesRect = seriesRect;
-        this.animationRect = animationRect;
+        this.animationRect = ctx.layoutBox;
 
         const { x, y } = seriesRect;
         if (firstSeriesTranslation) {
@@ -266,7 +266,7 @@ export class CartesianChart extends Chart {
         this._lastVisibility = visibility;
         this._lastClipSeries = clipSeries;
 
-        return { seriesRect, animationRect: layoutBox, visibility, clipSeries };
+        return { seriesRect, visibility, clipSeries };
     }
 
     private updateAxesPass(

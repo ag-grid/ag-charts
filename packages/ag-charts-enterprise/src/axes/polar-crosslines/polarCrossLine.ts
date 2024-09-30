@@ -4,7 +4,7 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 const {
     BaseProperties,
     ChartAxisDirection,
-    Layers,
+    ZIndexMap,
     ARRAY,
     BOOLEAN,
     COLOR_STRING,
@@ -22,7 +22,7 @@ const {
     MATCHING_CROSSLINE_TYPE,
 } = _ModuleSupport;
 
-const { Group } = _Scene;
+const { Layer } = _Scene;
 const { createId } = _Util;
 
 export class PolarCrossLineLabel extends BaseProperties implements AgBaseCrossLineLabelOptions {
@@ -61,9 +61,9 @@ export class PolarCrossLineLabel extends BaseProperties implements AgBaseCrossLi
 }
 
 export abstract class PolarCrossLine extends BaseProperties implements _ModuleSupport.CrossLine {
-    protected static readonly LINE_LAYER_ZINDEX = Layers.SERIES_CROSSLINE_LINE_ZINDEX;
-    protected static readonly RANGE_LAYER_ZINDEX = Layers.SERIES_CROSSLINE_RANGE_ZINDEX;
-    protected static readonly LABEL_LAYER_ZINDEX = Layers.SERIES_LABEL_ZINDEX;
+    protected static readonly LINE_LAYER_ZINDEX = ZIndexMap.SERIES_CROSSLINE_LINE;
+    protected static readonly RANGE_LAYER_ZINDEX = ZIndexMap.SERIES_CROSSLINE_RANGE;
+    protected static readonly LABEL_LAYER_ZINDEX = ZIndexMap.SERIES_LABEL;
     readonly id = createId(this);
 
     @Validate(BOOLEAN, { optional: true })
@@ -115,8 +115,8 @@ export abstract class PolarCrossLine extends BaseProperties implements _ModuleSu
     axisInnerRadius: number = 0;
     axisOuterRadius: number = 0;
 
-    readonly group = new Group({ name: `${this.id}`, layer: true, zIndex: PolarCrossLine.LINE_LAYER_ZINDEX });
-    readonly labelGroup = new Group({ name: `${this.id}`, layer: true, zIndex: PolarCrossLine.LABEL_LAYER_ZINDEX });
+    readonly group = new Layer({ name: this.id, zIndex: PolarCrossLine.LINE_LAYER_ZINDEX });
+    readonly labelGroup = new Layer({ name: this.id, zIndex: PolarCrossLine.LABEL_LAYER_ZINDEX });
 
     abstract update(visible: boolean): void;
 

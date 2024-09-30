@@ -119,7 +119,7 @@ export class TopologyChart extends Chart {
         for (const group of [seriesRoot, annotationRoot, highlightRoot]) {
             group.translationX = Math.floor(layoutBox.x);
             group.translationY = Math.floor(layoutBox.y);
-            group.setClipRectInGroupCoordinateSpace(layoutBox.clone());
+            group.setClipRect(layoutBox.clone());
         }
 
         this.ctx.layoutManager.emitLayoutComplete(ctx, {
