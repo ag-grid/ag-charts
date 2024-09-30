@@ -1,10 +1,10 @@
 import { _ModuleSupport, type _Scene, _Util } from 'ag-charts-community';
 import type { AgIconName } from 'ag-charts-types';
 
-import { ColorPicker } from '../../features/color-picker/colorPicker';
-import { Popover, type PopoverOptions } from '../popover/popover';
+import { ColorPicker } from '../color-picker/colorPicker';
 
 const {
+    Popover,
     createButton,
     createCheckbox,
     createElement,
@@ -18,7 +18,7 @@ const {
 } = _ModuleSupport;
 const { Vec2, setAttribute, setAttributes } = _Util;
 
-export interface DialogOptions extends PopoverOptions {}
+export interface DialogOptions extends _ModuleSupport.PopoverOptions {}
 
 interface RadioGroupOptions<T extends string> {
     label: string;

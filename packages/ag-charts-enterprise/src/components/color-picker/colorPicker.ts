@@ -1,14 +1,12 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import { AnchoredPopover, type AnchoredPopoverOptions } from '../../components/popover/anchoredPopover';
-import type { PopoverConstructorOptions } from '../../components/popover/popover';
 import colorPickerTemplate from './colorPickerTemplate.html';
 
-const { createElement } = _ModuleSupport;
+const { AnchoredPopover, createElement } = _ModuleSupport;
 
 const { Color, clamp } = _Util;
 
-export interface ColorPickerOptions extends AnchoredPopoverOptions {
+export interface ColorPickerOptions extends _ModuleSupport.AnchoredPopoverOptions {
     color?: string;
     opacity?: number;
     sourceEvent: Event;
@@ -30,7 +28,7 @@ export class ColorPicker extends AnchoredPopover<ColorPickerOptions> {
     private hasChanged = false;
     private onChangeHide?: () => void;
 
-    constructor(ctx: _ModuleSupport.ModuleContext, options?: PopoverConstructorOptions) {
+    constructor(ctx: _ModuleSupport.ModuleContext, options?: _ModuleSupport.PopoverConstructorOptions) {
         super(ctx, 'color-picker', options);
         this.hideFns.push(() => {
             if (this.hasChanged) this.onChangeHide?.();
