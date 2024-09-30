@@ -80,26 +80,29 @@ export const LicensePricing: FunctionComponent<Props> = ({ defaultSelection }) =
             )}
 
             <div className={styles.introSection}>
-                <div className={styles.toggleWrapper}>
-                    <input
-                        type="checkbox"
-                        id="toggle"
-                        className={styles.toggleCheckbox}
-                        checked={chartsIsSelected}
-                        onChange={handleToggle}
-                    />
-                    <label htmlFor="toggle" className={styles.toggleContainer}>
-                        <div className={styles.gridToggle}>
-                            <GridActive className={styles.gridActive} />
-                            <GridInactive className={styles.gridInactive} />
-                            AG Grid
-                        </div>
-                        <div className={styles.chartsToggle}>
-                            <ChartsActive className={styles.chartsActive} />
-                            <ChartsInactive className={styles.chartsInactive} />
-                            AG Charts
-                        </div>
-                    </label>
+                <div className={styles.gradient}></div>
+                <div className={styles.switchContainer}>
+                    <div className={styles.toggleWrapper}>
+                        <input
+                            type="checkbox"
+                            id="toggle"
+                            className={styles.toggleCheckbox}
+                            checked={chartsIsSelected}
+                            onChange={handleToggle}
+                        />
+                        <label htmlFor="toggle" className={styles.toggleContainer}>
+                            <div className={styles.gridToggle}>
+                                <GridActive className={styles.gridActive} />
+                                <GridInactive className={styles.gridInactive} />
+                                AG Grid
+                            </div>
+                            <div className={styles.chartsToggle}>
+                                <ChartsActive className={styles.chartsActive} />
+                                <ChartsInactive className={styles.chartsInactive} />
+                                AG Charts
+                            </div>
+                        </label>
+                    </div>
                 </div>
             </div>
 
