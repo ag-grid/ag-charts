@@ -61,7 +61,10 @@ test.describe('toolbar', () => {
         await page.click(SELECTORS.canvas, { position: { x: 200, y: 200 } });
         await expect(page).toHaveScreenshot('text-4-start.png', { animations: 'disabled' });
 
-        await page.keyboard.type('Hello, world!');
+        await page.keyboard.type('@Hello, world!?');
+        await page.keyboard.down('Backspace');
+        await page.keyboard.down('Home');
+        await page.keyboard.down('Delete');
         await expect(page).toHaveScreenshot('text-5-input.png', { animations: 'disabled' });
 
         await page.keyboard.down('Enter');
