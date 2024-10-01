@@ -1,26 +1,45 @@
+import { Icon } from '@ag-website-shared/components/icon/Icon';
+import classnames from 'classnames';
+
+import styles from './NewDocsNav.module.scss';
+
 function Item({ itemData }: { itemData?: any }) {
-    return <p style={{ color: 'blue' }}>{itemData.title}</p>;
+    return (
+        <a href="#" className={styles.item}>
+            {itemData.title}
+        </a>
+    );
 }
 
 function Group({ groupData }: { groupData?: any }) {
     return (
-        <div>
-            <p style={{ color: 'red' }}>{groupData.title}</p>
-            {groupData.children.map((childData) => {
-                return <Item itemData={childData} />;
-            })}
+        <div className={styles.group}>
+            <button className={classnames('button-style-none', styles.groupTitle)}>
+                <Icon name="chevronRight" svgClasses={styles.groupChevron} />
+                <span>{groupData.title}</span>
+            </button>
+
+            <div className={styles.groupChildren}>
+                {groupData.children.map((childData) => {
+                    return <Item itemData={childData} />;
+                })}
+            </div>
         </div>
     );
 }
 
 function Section({ sectionData }: { sectionData?: any }) {
     return (
-        <div className="section">
-            <h5 style={{ textTransform: 'uppercase' }}>{sectionData.title}</h5>
+        <div className={styles.section}>
+            <h5 className={styles.sectionTitle}>{sectionData.title}</h5>
 
             {sectionData.children.map((childData) => {
-                if (childData.type === 'item') return <Item itemData={childData} />;
-                if (childData.type === 'group') return <Group groupData={childData} />;
+                return (
+                    <>
+                        {childData.type === 'item' && <Item itemData={childData} />}
+                        {childData.type === 'group' && <Group groupData={childData} />}
+                    </>
+                );
             })}
         </div>
     );
@@ -28,9 +47,14 @@ function Section({ sectionData }: { sectionData?: any }) {
 
 export function NewDocsNav({ menuData }: { menuData?: any }) {
     return (
-        <div className="docs-nav">
-            {menuData.sections.map((sectionData) => {
-                return <Section sectionData={sectionData} />;
+        <div className={styles.docsNav}>
+            {menuData.sections.map((sectionData, i) => {
+                return (
+                    <>
+                        <Section sectionData={sectionData} />
+                        {i !== menuData.sections.length - 1 && <hr className={styles.divider} />}
+                    </>
+                );
             })}
         </div>
     );

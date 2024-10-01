@@ -1,0 +1,73 @@
+@use 'design-system' as *;
+
+.docsNav {
+    --right-margin: #{$spacing-size-16};
+    --nav-max-width: 272px; // TODO: Review magic number
+    --item-min-height: 34px;
+    --indent-size: #{$spacing-size-4};
+    --indent-border-color: #e3e8f0; // TODO: Why isn't this a colour from :root ?
+    --indent-border-offset: #{$spacing-size-1};
+
+    width: calc(var(--layout-width-3-12) - var(--right-margin)); // TODO: Refactor docs nav width
+}
+
+.section {
+    max-width: var(--nav-max-width);
+}
+
+.sectionTitle,
+.groupTitle,
+.item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin: 0;
+    min-height: var(--item-min-height);
+}
+
+.sectionTitle {
+    text-transform: uppercase;
+    color: var(--color-util-gray-500);
+}
+
+.divider {
+    max-width: var(--nav-max-width);
+    margin-top: $spacing-size-12;
+    margin-bottom: $spacing-size-4;
+    background-color: var(--color-border-secondary);
+}
+
+.group {
+}
+
+.groupTitle {
+    position: relative;
+    padding-left: var(--indent-size);
+    font-weight: var(--text-semibold);
+}
+
+// TODO: Refactor icons in buttons so !important not nessisary
+.groupChevron {
+    position: absolute !important;
+    left: calc(var(--indent-border-offset) * -1);
+    top: 7px;
+    bottom: auto !important;
+    width: $spacing-size-5;
+    height: $spacing-size-5;
+    margin: 0 !important;
+    fill: var(--color-util-gray-400) !important;
+}
+
+.groupChildren {
+    --indent-level: 1;
+
+    display: flex;
+    flex-direction: column;
+    padding-left: calc(var(--indent-size) * var(--indent-level) - var(--indent-border-offset));
+    margin-left: var(--indent-border-offset);
+    border-left: 1px solid var(--indent-border-color);
+}
+
+.item {
+    color: var(--color-fg-primary);
+}
