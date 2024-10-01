@@ -1,8 +1,12 @@
+import type { AgBaseAxisOptions, AgCartesianAxisPosition } from 'ag-charts-types';
+
 import type { LayoutContext } from '../module/baseModule';
 import { staticFromToMotion } from '../motion/fromToMotion';
 import type { BBox } from '../scene/bbox';
+import { CartesianAxis } from './axis/cartesianAxis';
 import { CartesianAxesManager } from './cartesianAxesManager';
 import { Chart } from './chart';
+import type { ChartAxis } from './chartAxis';
 import { CartesianSeries } from './series/cartesian/cartesianSeries';
 import type { Series } from './series/series';
 
@@ -25,6 +29,34 @@ export class CartesianChart extends Chart {
 
     override getChartType() {
         return 'cartesian' as const;
+    }
+
+    protected override createAxis(options: AgBaseAxisOptions[], skip: string[]) {
+        const newAxes = super.createAxis(options, skip);
+        const guesses: AgCartesianAxisPosition[] = ['top', 'right', 'bottom', 'left'];
+        const usedPositions = new Set<AgCartesianAxisPosition>();
+        const invalidAxes: ChartAxis[] = [];
+
+        for (const axis of newAxes) {
+            if (axis instanceof CartesianAxis) {
+                if (guesses.includes(axis.position)) {
+                    usedPositions.add(axis.position);
+                } else {
+                    invalidAxes.push(axis);
+                }
+            }
+        }
+
+        for (const axis of invalidAxes) {
+            let nextGuess: AgCartesianAxisPosition | undefined;
+            do {
+                nextGuess = guesses.pop();
+            } while (nextGuess && usedPositions.has(nextGuess));
+            if (nextGuess == null) break;
+            axis.position = nextGuess;
+        }
+
+        return newAxes;
     }
 
     protected performLayout(ctx: LayoutContext) {

@@ -48,7 +48,6 @@ import { SyncManager } from './interaction/syncManager';
 import { Keyboard } from './keyboard';
 import { LayoutElement } from './layout/layoutManager';
 import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
-import { guessInvalidPositions } from './mapping/prepareAxis';
 import { matchSeriesOptions } from './mapping/prepareSeries';
 import { type SeriesOptionsTypes, isAgCartesianChartOptions } from './mapping/types';
 import { ModulesManager } from './modulesManager';
@@ -1506,7 +1505,7 @@ export abstract class Chart extends Observable {
         }
     }
 
-    private createAxis(options: AgBaseAxisOptions[], skip: string[]): ChartAxis[] {
+    protected createAxis(options: AgBaseAxisOptions[], skip: string[]): ChartAxis[] {
         const newAxes: ChartAxis[] = [];
         const moduleContext = this.getModuleContext();
 
@@ -1518,8 +1517,6 @@ export abstract class Chart extends Observable {
 
             newAxes.push(axis);
         }
-
-        guessInvalidPositions(newAxes);
 
         return newAxes;
     }
