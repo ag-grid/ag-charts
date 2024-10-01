@@ -110,6 +110,15 @@ export class AgChartInstanceProxy implements AgChartProxy {
         }
     }
 
+    async __toSVG(opts?: DownloadOptions) {
+        const clone = await this.prepareResizedChart(this, { width: 600, height: 300, ...opts });
+        try {
+            return clone.chart.toSVG();
+        } finally {
+            clone.destroy();
+        }
+    }
+
     async getImageDataURL(opts?: ImageDataUrlOptions) {
         const clone = await this.prepareResizedChart(this, opts);
         try {

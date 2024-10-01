@@ -195,6 +195,10 @@ export abstract class Chart extends Observable {
         return this.ctx.scene.getDataURL(fileFormat);
     }
 
+    toSVG() {
+        return this.ctx.scene.toSVG();
+    }
+
     @Validate(OBJECT)
     readonly padding = new Padding(20);
 

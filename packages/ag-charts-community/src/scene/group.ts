@@ -224,6 +224,26 @@ export class Group extends Node {
             this.clipRect = bbox;
         }
     }
+
+    override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {
+        if (!this.visible) return;
+
+        const defs: SVGElement[] = [];
+        const elements: SVGElement[] = [];
+
+        for (const child of this.sortedChildren()) {
+            const svg = child.toSVG();
+            if (svg != null) {
+                elements.push(...svg.elements);
+
+                if (svg.defs != null) {
+                    defs.push(...svg.defs);
+                }
+            }
+        }
+
+        return { elements, defs };
+    }
 }
 
 export class ScalableGroup extends Scalable(Group) {}

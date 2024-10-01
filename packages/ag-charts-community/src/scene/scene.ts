@@ -214,6 +214,26 @@ export class Scene {
         }
     }
 
+    toSVG() {
+        const svg = this.root?.toSVG();
+
+        if (svg == null) return;
+
+        const root = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        root.setAttribute('width', String(this.width));
+        root.setAttribute('height', String(this.height));
+
+        if (svg.defs != null) {
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            defs.append(...svg.defs);
+            root.append(defs);
+        }
+
+        root.append(...svg.elements);
+
+        return root.outerHTML;
+    }
+
     /** Alternative to destroy() that preserves re-usable resources. */
     strip() {
         const { context, pixelRatio } = this.canvas;
