@@ -1,7 +1,7 @@
 {
   "name": "ag-charts-community",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "packages/ag-charts-community/src",
+  "sourceRoot": "{projectRoot}/src",
   "projectType": "library",
   "targets": {
     "build": {
@@ -30,12 +30,15 @@
       ],
       "outputs": ["{options.outputPath}"],
       "options": {
+        "outputPath": "{projectRoot}/dist/types",
+        "main": "{projectRoot}/src/main.ts",
         "additionalEntryPoints": ["{projectRoot}/src/main-modules.ts"],
+        "tsConfig": "{projectRoot}/tsconfig.types.json",
         "compiler": "tsc"
       },
       "configurations": {
         "watch": {
-          "tsConfig": "packages/ag-charts-community/tsconfig.types.watch.json"
+          "tsConfig": "{projectRoot}/tsconfig.types.watch.json"
         },
         "production": {}
       }
@@ -138,7 +141,7 @@
       "cache": true,
       "options": {
         "mode": "debug-interfaces",
-        "inputs": ["packages/ag-charts-community/src/options"],
+        "inputs": ["{projectRoot}/src/options"],
         "output": "dist/packages/ag-charts-community/debug-interfaces.AUTO.json"
       }
     },
@@ -150,7 +153,7 @@
       "cache": true,
       "options": {
         "mode": "docs-interfaces",
-        "inputs": ["packages/ag-charts-community/src/options"],
+        "inputs": ["{projectRoot}/src/options"],
         "output": "dist/packages/ag-charts-community/resolved-interfaces.AUTO.json"
       }
     },
@@ -178,7 +181,7 @@
       "inputs": ["{projectRoot}/src/**", "{projectRoot}/.dependency-cruiser.js"],
       "outputs": [],
       "options": {
-        "cwd": "packages/ag-charts-community",
+        "cwd": "{projectRoot}",
         "commands": ["npx depcruise src"]
       }
     },
@@ -193,7 +196,7 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}/reports/ag-charts-community.xml"],
       "options": {
-        "jestConfig": "packages/ag-charts-community/jest.config.ts",
+        "jestConfig": "{projectRoot}/jest.config.ts",
         "testPathIgnorePatterns": [".*/benchmarks/.*"],
         "passWithNoTests": false
       },
@@ -250,7 +253,7 @@
       "inputs": ["allTransitiveOutputs"],
       "outputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "options": {
-        "cwd": "packages/ag-charts-community",
+        "cwd": "{projectRoot}",
         "parallel": false,
         "commands": ["mkdir -p ../../dist/packages", "yarn pack -f ../../dist/packages/ag-charts-community.tgz"]
       }

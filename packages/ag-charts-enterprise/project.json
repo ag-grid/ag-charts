@@ -1,7 +1,7 @@
 {
   "name": "ag-charts-enterprise",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "packages/ag-charts-enterprise/src",
+  "sourceRoot": "{projectRoot}/src",
   "projectType": "library",
   "targets": {
     "build": {
@@ -30,12 +30,15 @@
       ],
       "outputs": ["{options.outputPath}"],
       "options": {
+        "outputPath": "{projectRoot}/dist/types",
+        "main": "{projectRoot}/src/main.ts",
         "additionalEntryPoints": ["{projectRoot}/src/main-modules.ts"],
+        "tsConfig": "{projectRoot}/tsconfig.types.json",
         "compiler": "tsc"
       },
       "configurations": {
         "watch": {
-          "tsConfig": "packages/ag-charts-enterprise/tsconfig.types.watch.json"
+          "tsConfig": "{projectRoot}/tsconfig.types.watch.json"
         },
         "production": {}
       }
@@ -171,7 +174,7 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}/reports/ag-charts-enterprise.xml"],
       "options": {
-        "jestConfig": "packages/ag-charts-enterprise/jest.config.ts",
+        "jestConfig": "{projectRoot}/jest.config.ts",
         "testPathIgnorePatterns": [".*/benchmarks/.*"],
         "passWithNoTests": false
       },
@@ -197,7 +200,7 @@
       "inputs": ["allTransitiveOutputs"],
       "outputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "options": {
-        "cwd": "packages/ag-charts-enterprise",
+        "cwd": "{projectRoot}",
         "parallel": false,
         "commands": ["mkdir -p ../../dist/packages", "yarn pack -f ../../dist/packages/ag-charts-enterprise.tgz"]
       }
