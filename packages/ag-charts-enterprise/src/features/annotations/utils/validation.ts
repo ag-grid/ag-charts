@@ -65,5 +65,5 @@ export function validateDatumPointDirection(value: any, context: AnnotationAxisC
 }
 
 export function isPoint(point: Point | undefined): point is Point {
-    return point != null && point.x != null && point.y != null;
+    return point?.x != null && point?.y != null;
 }
