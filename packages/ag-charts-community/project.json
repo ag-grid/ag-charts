@@ -30,9 +30,7 @@
       ],
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "packages/ag-charts-community/dist/types",
-        "main": "packages/ag-charts-community/src/main.ts",
-        "tsConfig": "packages/ag-charts-community/tsconfig.types.json",
+        "additionalEntryPoints": ["{projectRoot}/src/main-modules.ts"],
         "compiler": "tsc"
       },
       "configurations": {
@@ -80,6 +78,7 @@
       "options": {
         "outputPath": "{projectRoot}/dist/package",
         "main": "{projectRoot}/src/main.ts",
+        "additionalEntryPoints": ["{projectRoot}/src/main-modules.ts"],
         "tsConfig": "{projectRoot}/tsconfig.lib.json",
         "esbuildConfig": "esbuild.config.cjs",
         "platform": "browser",

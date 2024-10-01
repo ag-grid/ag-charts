@@ -6,10 +6,17 @@
   "types": "./dist/types/src/main.d.ts",
   "module": "./dist/package/main.esm.mjs",
   "exports": {
-    "import": "./dist/package/main.esm.mjs",
-    "require": "./dist/package/main.cjs.js",
-    "types": "./dist/types/src/main.d.ts",
-    "default": "./dist/package/main.cjs.js"
+    ".": {
+      "import": "./dist/package/main.esm.mjs",
+      "require": "./dist/package/main.cjs.js",
+      "types": "./dist/types/src/main.d.ts",
+      "default": "./dist/package/main.cjs.js"
+    },
+    "./modules": {
+      "import": "./dist/package/main-modules.esm.mjs",
+      "require": "./dist/package/main-modules.cjs.js",
+      "types": "./dist/types/src/main-modules.d.ts"
+    }
   },
   "scripts": {
     "lint:circular": "npx madge --circular --extensions ts src/",
