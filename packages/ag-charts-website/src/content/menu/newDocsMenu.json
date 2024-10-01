@@ -1,0 +1,511 @@
+{
+    "sections": [
+        {
+            "title": "Getting started",
+            "children": [
+                {
+                    "type": "item",
+                    "title": "Quick Start",
+                    "path": "quick-start"
+                },
+                {
+                    "type": "group",
+                    "tittle": "Guides",
+                    "children": [
+                        {
+                            "type": "item",
+                            "title": "Creating a Basic Chart",
+                            "path": "create-a-basic-chart"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Installation",
+                            "path": "installation"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Upgrading to Enterprise",
+                            "path": "licensing"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Installing Your Licence Key",
+                            "path": "license-install"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Migration",
+                            "path": "TODO"
+                        }
+                    ]
+                },
+                {
+                    "type": "group",
+                    "tittle": "Build & Tooling",
+                    "children": [
+                        {
+                            "type": "item",
+                            "title": "Supported Browsers",
+                            "path": "supported-browsers"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Supported Frameworks",
+                            "path": "supported-frameworks"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Security",
+                            "path": "security"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "title": "Core features",
+            "children": [
+                {
+                    "type": "group",
+                    "title": "Axis Configuration",
+                    "children": [
+                        {
+                            "type": "item",
+                            "title": "Axis Types",
+                            "path": "axes-types"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Axis Intervals",
+                            "path": "axes-intervals"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Axis Domain",
+                            "path": "axes-domain"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Axis Labels",
+                            "path": "axes-labels"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Secondary Axes",
+                            "path": "axes-secondary"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Grid Lines",
+                            "path": "axes-grid-lines"
+                        }
+                    ]
+                },
+                {
+                    "type": "group",
+                    "title": "Data elements",
+                    "children": [
+                        {
+                            "title": "item",
+                            "title": "Legend",
+                            "path": "legend"
+                        },
+                        {
+                            "title": "item",
+                            "title": "Series Markers",
+                            "path": "markers"
+                        },
+                        {
+                            "title": "item",
+                            "title": "Cross Lines",
+                            "path": "axes-cross-lines"
+                        },
+                        {
+                            "title": "item",
+                            "title": "Error Bars",
+                            "path": "error-bars",
+                            "isEnterprise": true
+                        }
+                    ]
+                },
+                {
+                    "type": "group",
+                    "title": "Interactive Elements",
+                    "children": [
+                        {
+                            "type": "item",
+                            "title": "Series Highlighting",
+                            "path": "series-highlighting"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Tooltips",
+                            "path": "tooltips"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Animation",
+                            "path": "animation",
+                            "isEnterprise": true
+                        },
+                        {
+                            "type": "item",
+                            "title": "Context Menu",
+                            "path": "context-menu",
+                            "isEnterprise": true
+                        },
+                        {
+                            "type": "item",
+                            "title": "Crosshairs",
+                            "path": "axes-crosshairs",
+                            "isEnterprise": true
+                        },
+                        {
+                            "type": "item",
+                            "title": "Navigator",
+                            "path": "navigator",
+                            "isEnterprise": true
+                        },
+                        {
+                            "type": "item",
+                            "title": "Zoom",
+                            "path": "zoom",
+                            "isEnterprise": true
+                        },
+                        {
+                            "type": "item",
+                            "title": "Synchronization",
+                            "path": "sync",
+                            "isEnterprise": true
+                        },
+                        {
+                            "type": "item",
+                            "title": "Accessibility",
+                            "path": "accessibility"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Localisation",
+                            "path": "localisation"
+                        }
+                    ]
+                },
+                {
+                    "type": "group",
+                    "title": "Layout & Styling",
+                    "children": [
+                        {
+                            "type": "item",
+                            "title": "Themes",
+                            "path": "themes"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Layout",
+                            "path": "layout"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Stylers",
+                            "path": "stylers"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Background",
+                            "path": "background"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Background Image",
+                            "path": "background-image",
+                            "isEnterprise": true
+                        },
+                        {
+                            "type": "item",
+                            "title": "Overlays",
+                            "path": "overlays"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "title": "Specialty Charts",
+            "children": [
+                {
+                    "type": "group",
+                    "title": "Financial Charts",
+                    "isEnterprise": true,
+                    "children": [
+                        {
+                            "type": "item",
+                            "title": "Overview",
+                            "path": "financial-charts",
+                            "isEnterprise": true
+                        },
+                        {
+                            "type": "item",
+                            "title": "Configuration",
+                            "path": "financial-charts-configuration",
+                            "isEnterprise": true
+                        },
+                        {
+                            "type": "item",
+                            "title": "Toolbar",
+                            "path": "financial-charts-toolbar",
+                            "isEnterprise": true
+                        },
+                        {
+                            "type": "item",
+                            "title": "Range Buttons",
+                            "path": "range-buttons",
+                            "isEnterprise": true
+                        }
+                    ]
+                },
+                {
+                    "type": "group",
+                    "title": "Maps",
+                    "isEnterprise": true,
+                    "children": [
+                        {
+                            "type": "item",
+                            "title": "Overview",
+                            "path": "maps",
+                            "isEnterprise": true
+                        },
+                        {
+                            "type": "item",
+                            "title": "Geographic Areas",
+                            "path": "map-shapes",
+                            "isEnterprise": true
+                        },
+                        {
+                            "type": "item",
+                            "title": "Routes and Connections",
+                            "path": "map-lines",
+                            "isEnterprise": true
+                        },
+                        {
+                            "type": "item",
+                            "title": "Markers and Points of Interest",
+                            "path": "map-markers",
+                            "isEnterprise": true
+                        },
+                        {
+                            "type": "item",
+                            "title": "Map Topology",
+                            "path": "map-topology",
+                            "isEnterprise": true
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "title": "Series",
+            "children": [
+                {
+                    "type": "item",
+                    "title": "Bar",
+                    "path": "bar-series",
+                    "icon": "chartsColumn"
+                },
+                {
+                    "type": "item",
+                    "title": "Line",
+                    "path": "line-series",
+                    "icon": "chartsLine"
+                },
+                {
+                    "type": "item",
+                    "title": "Area",
+                    "path": "area-series",
+                    "icon": "chartsArea"
+                },
+                {
+                    "type": "item",
+                    "title": "Scatter",
+                    "path": "scatter-series",
+                    "icon": "chartsScatter"
+                },
+                {
+                    "type": "item",
+                    "title": "Bubble",
+                    "path": "bubble-series",
+                    "icon": "chartsBubble"
+                },
+                {
+                    "type": "item",
+                    "title": "Pie",
+                    "path": "pie-series",
+                    "icon": "chartsPie"
+                },
+                {
+                    "type": "item",
+                    "title": "Donut",
+                    "path": "donut-series",
+                    "icon": "chartsDonut"
+                },
+                {
+                    "type": "item",
+                    "title": "Combination",
+                    "path": "combination-series",
+                    "icon": "chartsCombination"
+                },
+                {
+                    "type": "item",
+                    "title": "Box Plot",
+                    "path": "box-plot-series",
+                    "icon": "chartsBoxPlot",
+                    "isEnterprise": true
+                },
+                {
+                    "type": "item",
+                    "title": "Candlestick",
+                    "path": "candlestick-series",
+                    "icon": "chartsCandlestick",
+                    "isEnterprise": true
+                },
+                {
+                    "type": "item",
+                    "title": "OHLC",
+                    "path": "ohlc-series",
+                    "icon": "chartsOHLC",
+                    "isEnterprise": true
+                },
+                {
+                    "type": "item",
+                    "title": "Heatmap",
+                    "path": "heatmap-series",
+                    "icon": "chartsHeatmap",
+                    "isEnterprise": true
+                },
+                {
+                    "type": "item",
+                    "title": "Histogram",
+                    "path": "histogram-series",
+                    "icon": "chartsHistogram",
+                    "isEnterprise": true
+                },
+                {
+                    "type": "item",
+                    "title": "Nightingale",
+                    "path": "nightingale-series",
+                    "icon": "chartsNightingale",
+                    "isEnterprise": true
+                },
+                {
+                    "type": "item",
+                    "title": "Radar Area",
+                    "path": "radar-area-series",
+                    "icon": "chartsRadarArea",
+                    "isEnterprise": true
+                },
+                {
+                    "type": "item",
+                    "title": "Radar Line",
+                    "path": "radar-line-series",
+                    "icon": "chartsRadar",
+                    "isEnterprise": true
+                },
+                {
+                    "type": "item",
+                    "title": "Radial Bar",
+                    "path": "radial-bar-series",
+                    "icon": "chartsRadialBar",
+                    "isEnterprise": true
+                },
+                {
+                    "type": "item",
+                    "title": "Radial Column",
+                    "path": "radial-column-series",
+                    "icon": "chartsRadialColumn",
+                    "isEnterprise": true
+                },
+                {
+                    "type": "item",
+                    "title": "Range Area",
+                    "path": "range-area-series",
+                    "icon": "chartsRangeArea",
+                    "isEnterprise": true
+                },
+                {
+                    "type": "item",
+                    "title": "Range Bar",
+                    "path": "range-bar-series",
+                    "icon": "chartsRangeBar",
+                    "isEnterprise": true
+                },
+                {
+                    "type": "item",
+                    "title": "Waterfall",
+                    "path": "waterfall-series",
+                    "icon": "chartsWaterfall",
+                    "isEnterprise": true
+                },
+                {
+                    "type": "item",
+                    "title": "Sunburst",
+                    "path": "sunburst-series",
+                    "icon": "chartsSunburst",
+                    "isEnterprise": true
+                },
+                {
+                    "type": "item",
+                    "title": "Treemap",
+                    "path": "treemap-series",
+                    "icon": "chartsTreemap",
+                    "isEnterprise": true
+                },
+                {
+                    "type": "item",
+                    "title": "Sankey",
+                    "path": "sankey-series",
+                    "icon": "chartsSankey",
+                    "isEnterprise": true
+                },
+                {
+                    "type": "item",
+                    "title": "Chord",
+                    "path": "chord-series",
+                    "icon": "chartsChord",
+                    "isEnterprise": true
+                },
+                {
+                    "type": "item",
+                    "title": "Funnel",
+                    "path": "funnel-series",
+                    "icon": "chartsFunnel",
+                    "isEnterprise": true
+                },
+                {
+                    "type": "item",
+                    "title": "Cone Funnel",
+                    "path": "cone-funnel-series",
+                    "icon": "chartsConeFunnel",
+                    "isEnterprise": true
+                }
+            ]
+        },
+        {
+            "title": "Guages",
+            "children": [
+                {
+                    "type": "item",
+                    "title": "Radial Gauge",
+                    "path": "radial-gauge",
+                    "icon": "chartsRadialGauge",
+                    "isEnterprise": true
+                },
+                {
+                    "type": "item",
+                    "title": "Linear Gauge",
+                    "path": "linear-gauge",
+                    "icon": "chartsLinearGauge",
+                    "isEnterprise": true
+                }
+            ]
+        }
+    ]
+}
