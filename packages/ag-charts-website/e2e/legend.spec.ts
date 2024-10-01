@@ -29,6 +29,7 @@ test.describe('legend', () => {
 
             test('AG-13025 hovering ignored on hidden buttons', async ({ page }) => {
                 await gotoExample(page, url);
+                const canvasCenter = page.locator(SELECTORS.canvasCenter);
 
                 const expectedChanged: { dx: number; file: RenewablesScreenshotsFilename }[] = [
                     { dx: 0, file: 'renewables-nothing-highlighted.png' },
@@ -42,14 +43,13 @@ test.describe('legend', () => {
 
                 const bbox0 = await (await page.$(SELECTORS.legendItem0)).boundingBox();
                 const startX = bbox0.x - 5;
-                const y = bbox0.y + bbox0.height / 2;
+                const startY = bbox0.y + bbox0.height / 2;
                 for (let dx = 0; dx < 300; dx += 5) {
-                    const x = startX + dx;
-                    page.mouse.move(x, y);
+                    const nextDx = expectedChanged[i + 1]?.dx ?? Infinity;
+                    if (dx >= nextDx) i++;
 
-                    if (expectedChanged[i].dx > dx) i++;
-                    const { file } = expectedChanged[i];
-                    await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(file);
+                    page.mouse.move(startX + dx, startY);
+                    await expect(canvasCenter).toHaveScreenshot(expectedChanged[i].file);
                 }
             });
         });
