@@ -11,6 +11,7 @@ import { Menu, type MenuItem } from '../../components/menu/menu';
 import { buildBounds } from '../../utils/position';
 import { ColorPicker } from '../color-picker/colorPicker';
 import { TextInput } from '../text-input/textInput';
+import { AxesButtons } from './annotationAxesButtons';
 import { AnnotationDefaults } from './annotationDefaults';
 import type {
     AnnotationContext,
@@ -28,7 +29,15 @@ import {
     stringToAnnotationType,
 } from './annotationTypes';
 import { annotationConfigs, getTypedDatum } from './annotationsConfig';
-import { LINE_STROKE_WIDTH_ITEMS, LINE_STYLE_TYPE_ITEMS, TEXT_SIZE_ITEMS } from './annotationsMenuOptions';
+import {
+    AnnotationOptions,
+    LINE_ANNOTATION_ITEMS,
+    LINE_STROKE_WIDTH_ITEMS,
+    LINE_STYLE_TYPE_ITEMS,
+    SHAPE_ANNOTATION_ITEMS,
+    TEXT_ANNOTATION_ITEMS,
+    TEXT_SIZE_ITEMS,
+} from './annotationsMenuOptions';
 import { AnnotationsStateMachine } from './annotationsStateMachine';
 import type { AnnotationProperties, AnnotationScene } from './annotationsSuperTypes';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
@@ -51,7 +60,6 @@ const {
     ToolbarManager,
     Validate,
     REGIONS,
-    UNION,
     ChartAxisDirection,
 } = _ModuleSupport;
 const { Vec2 } = _Util;
@@ -64,69 +72,6 @@ type AnnotationAxis = {
     bounds: _Scene.BBox;
     button?: AxisButton;
 };
-
-const AXIS_TYPE = UNION(['x', 'y', 'xy'], 'an axis type');
-
-const LINE_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
-    {
-        label: 'toolbarAnnotationsTrendLine',
-        icon: 'trend-line-drawing',
-        value: AnnotationType.Line,
-    },
-    {
-        label: 'toolbarAnnotationsHorizontalLine',
-        icon: 'horizontal-line-drawing',
-        value: AnnotationType.HorizontalLine,
-    },
-    {
-        label: 'toolbarAnnotationsVerticalLine',
-        icon: 'vertical-line-drawing',
-        value: AnnotationType.VerticalLine,
-    },
-    {
-        label: 'toolbarAnnotationsParallelChannel',
-        icon: 'parallel-channel-drawing',
-        value: AnnotationType.ParallelChannel,
-    },
-    {
-        label: 'toolbarAnnotationsDisjointChannel',
-        icon: 'disjoint-channel-drawing',
-        value: AnnotationType.DisjointChannel,
-    },
-];
-
-const TEXT_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
-    { label: 'toolbarAnnotationsText', icon: 'text-annotation', value: AnnotationType.Text },
-    { label: 'toolbarAnnotationsComment', icon: 'comment-annotation', value: AnnotationType.Comment },
-    { label: 'toolbarAnnotationsCallout', icon: 'callout-annotation', value: AnnotationType.Callout },
-    { label: 'toolbarAnnotationsNote', icon: 'note-annotation', value: AnnotationType.Note },
-];
-
-const SHAPE_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
-    { label: 'toolbarAnnotationsArrow', icon: 'arrow-drawing', value: AnnotationType.Arrow },
-    { label: 'toolbarAnnotationsArrowUp', icon: 'arrow-up-drawing', value: AnnotationType.ArrowUp },
-    { label: 'toolbarAnnotationsArrowDown', icon: 'arrow-down-drawing', value: AnnotationType.ArrowDown },
-];
-
-enum AnnotationOptions {
-    Delete = 'delete',
-    LineStrokeWidth = 'line-stroke-width',
-    LineStyleType = 'line-style-type',
-    LineColor = 'line-color',
-    FillColor = 'fill-color',
-    Lock = 'lock',
-    TextColor = 'text-color',
-    TextSize = 'text-size',
-    Settings = 'settings',
-}
-
-class AxesButtons {
-    @Validate(BOOLEAN)
-    public enabled: boolean = true;
-
-    @Validate(AXIS_TYPE, { optional: true })
-    public axes?: 'x' | 'y' | 'xy' = 'y';
-}
 
 export class Annotations extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @ObserveChanges<Annotations>((target, newValue?: boolean, oldValue?: boolean) => {
