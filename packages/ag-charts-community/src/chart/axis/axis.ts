@@ -12,7 +12,6 @@ import { ContinuousScale } from '../../scale/continuousScale';
 import { LogScale } from '../../scale/logScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
-import { TimeScale } from '../../scale/timeScale';
 import { BBox } from '../../scene/bbox';
 import { Group, TransformableGroup } from '../../scene/group';
 import { Matrix } from '../../scene/matrix';
@@ -1043,13 +1042,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const { scale } = this;
 
         if (tickCount && (ContinuousScale.is(scale) || OrdinalTimeScale.is(scale))) {
-            if (typeof tickCount === 'number') {
-                scale.tickCount = tickCount;
-                scale.minTickCount = minTickCount ?? 0;
-                scale.maxTickCount = maxTickCount ?? Infinity;
-            } else if (scale instanceof TimeScale) {
-                this.setTickInterval(tickCount as TickInterval<S>);
-            }
+            scale.tickCount = tickCount;
+            scale.minTickCount = minTickCount ?? 0;
+            scale.maxTickCount = maxTickCount ?? Infinity;
         }
 
         return scale.ticks?.() ?? [];
@@ -1234,18 +1229,21 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             gridLength,
         } = this;
 
-        if (gridLength === 0 || style.length === 0) {
-            return;
-        }
+        const visible = Boolean(gridLength && style.length);
+
         this.gridLineGroupSelection.each((line, _, index) => {
-            const { stroke, lineDash } = style[index % style.length];
-            line.setProperties({
-                x1: gridPadding,
-                x2: -sideFlag * gridLength + gridPadding,
-                stroke,
-                strokeWidth: width,
-                lineDash,
-            });
+            line.visible = visible;
+            if (visible) {
+                const { stroke, lineDash } = style[index % style.length];
+                line.setProperties({
+                    visible,
+                    x1: gridPadding,
+                    x2: -sideFlag * gridLength + gridPadding,
+                    stroke,
+                    strokeWidth: width,
+                    lineDash,
+                });
+            }
         });
     }
 

@@ -13,45 +13,40 @@ const directions: AgCartesianAxisPosition[] = ['top', 'right', 'bottom', 'left']
 type AreaWidthMap = Map<AgCartesianAxisPosition, number>;
 
 export class CartesianAxesManager {
-    private _lastAxisAreaWidths: AreaWidthMap = new Map();
-    private _lastClipSeries = false;
-    private _lastVisibility = true;
+    static AxesPadding = 15; // TODO should come from theme
+
+    private lastState = {
+        axisAreaWidths: new Map<AgCartesianAxisPosition, number>(),
+        clipSeries: false,
+        visibility: true,
+    };
 
     constructor(protected ctx: ChartContext) {}
 
     updateAxes(axes: ChartAxis[], layoutBox: BBox, seriesPadding: Padding, seriesRect?: BBox) {
-        let axisAreaWidths: AreaWidthMap;
-        let clipSeries: boolean;
-        let visibility: boolean;
+        // Start with a good approximation from the last update.
+        // This should mean that in many resize cases that only a single pass is needed.
+        let { clipSeries, visibility } = this.lastState;
+        let axisAreaWidths = new Map();
 
-        // Start with a good approximation from the last update - this should mean that in many resize
-        // cases that only a single pass is needed \o/.
-        axisAreaWidths = new Map(this._lastAxisAreaWidths.entries());
-        clipSeries = this._lastClipSeries;
-        visibility = this._lastVisibility;
-
-        // Clean any positions which aren't valid with the current axis status (otherwise we end up
-        // never being able to find a stable result).
-        const liveAxisWidths = new Set(axes.map((a) => a.position));
-        for (const position of axisAreaWidths.keys()) {
-            if (!liveAxisWidths.has(position)) {
-                axisAreaWidths.delete(position);
+        // Clean any positions which aren't valid with the current axis status,
+        // Otherwise we end up never being able to find a stable result.
+        const lastAxisAreaWidths = this.lastState.axisAreaWidths;
+        for (const { position } of axes) {
+            if (position && lastAxisAreaWidths.has(position)) {
+                axisAreaWidths.set(position, lastAxisAreaWidths.get(position));
             }
         }
 
-        const stableOutputs = <T extends typeof axisAreaWidths>(
-            otherAxisWidths: T,
-            otherClipSeries: boolean,
-            otherVisibility: boolean
-        ) => {
+        const stableOutputs = (otherAxisWidths: AreaWidthMap, otherClipSeries: boolean, otherVisibility: boolean) => {
+            if (visibility !== otherVisibility || clipSeries !== otherClipSeries) {
+                return false;
+            }
             // Check for new axis positions.
             for (const key of otherAxisWidths.keys()) {
                 if (!axisAreaWidths.has(key)) {
                     return false;
                 }
-            }
-            if (visibility !== otherVisibility || clipSeries !== otherClipSeries) {
-                return false;
             }
             // Check for existing axis positions and equality.
             for (const [p, w] of axisAreaWidths.entries()) {
@@ -63,19 +58,10 @@ export class CartesianAxesManager {
             return true;
         };
 
-        const ceilValues = <K extends string>(map: Map<K, number>) => {
-            for (const [key, value] of map.entries()) {
-                if (value != null) {
-                    map.set(key, Number.isFinite(value) ? Math.ceil(value) : 0);
-                }
-            }
-            return map;
-        };
-
         // Iteratively try to resolve axis widths - since X axis width affects Y axis range,
         // and vice-versa, we need to iteratively try and find a fit for the axes and their
         // ticks/labels.
-        let lastPassAxisAreaWidths: typeof axisAreaWidths = new Map();
+        let lastPassAxisAreaWidths: AreaWidthMap = new Map();
         let lastPassVisibility: boolean | undefined;
         let lastPassClipSeries = false;
         let count = 0;
@@ -86,11 +72,13 @@ export class CartesianAxesManager {
                 visibility = lastPassVisibility;
             }
 
-            const result = this.updateAxesPass(axes, axisAreaWidths, layoutBox.clone(), seriesPadding, seriesRect);
-            lastPassAxisAreaWidths = ceilValues(result.axisAreaWidths);
-            lastPassVisibility = result.visibility;
-            lastPassClipSeries = result.clipSeries;
-            ({ seriesRect } = result);
+            ({
+                seriesRect,
+                visibility: lastPassVisibility,
+                clipSeries: lastPassClipSeries,
+                axisAreaWidths: lastPassAxisAreaWidths,
+            } = this.updateAxesPass(axes, axisAreaWidths, layoutBox.clone(), seriesPadding, seriesRect));
+            // lastPassAxisAreaWidths = ceilValues(result.axisAreaWidths);
 
             if (count++ > 10) {
                 Logger.warn('unable to find stable axis layout.');
@@ -100,13 +88,6 @@ export class CartesianAxesManager {
 
         for (const axis of axes) {
             axis.update();
-        }
-
-        axes.forEach((axis) => {
-            // update visibility of crosslines
-            axis.setCrossLinesVisible(visibility);
-
-            if (!seriesRect) return;
 
             const gridLinePadding = Math.ceil((axis.gridLine?.width ?? 0) / 2);
             const axisLinePadding = Math.ceil(axis.line?.width ?? 0);
@@ -138,11 +119,9 @@ export class CartesianAxesManager {
                     );
                     break;
             }
-        });
+        }
 
-        this._lastAxisAreaWidths = axisAreaWidths;
-        this._lastVisibility = visibility;
-        this._lastClipSeries = clipSeries;
+        this.lastState = { axisAreaWidths, clipSeries, visibility };
 
         return { seriesRect, visibility, clipSeries };
     }
@@ -172,13 +151,13 @@ export class CartesianAxesManager {
         // Step 1) Calculate individual axis widths.
         for (const axis of axes) {
             const { position = 'left' } = axis;
-
             const { clipSeries: newClipSeries, axisThickness } = this.calculateAxisDimensions({
                 axis,
                 seriesRect,
                 primaryTickCounts,
                 clipSeries,
             });
+
             axisWidths.set(axis.id, axisThickness);
 
             if (axisGroups.has(position)) {
@@ -372,12 +351,13 @@ export class CartesianAxesManager {
             const axisThickness = axisWidths.get(axis.id) ?? 0;
             totalAxisWidth = Math.max(totalAxisWidth, currentOffset + axisThickness);
             if (axis.layoutConstraints.stacked) {
-                // for multiple axes in the same direction and position, apply padding at the top of each inner axis (i.e. between axes).
-                currentOffset += axisThickness + 15;
+                // for multiple axes in the same direction and position
+                // apply padding at the top of each inner axis (i.e. between axes).
+                currentOffset += axisThickness + CartesianAxesManager.AxesPadding;
             }
         }
 
-        return totalAxisWidth;
+        return Math.ceil(totalAxisWidth);
     }
 
     private positionAxes(opts: {
@@ -428,14 +408,14 @@ export class CartesianAxesManager {
     }
 
     // private shouldRecalculate(otherAxisWidths: AreaWidthMap, otherClipSeries: boolean, otherVisibility: boolean) {
+    //     if (visibility !== otherVisibility || clipSeries !== otherClipSeries) {
+    //         return true;
+    //     }
     //     // Check for new axis positions.
     //     for (const key of otherAxisWidths.keys()) {
     //         if (!axisAreaWidths.has(key)) {
     //             return true;
     //         }
-    //     }
-    //     if (visibility !== otherVisibility || clipSeries !== otherClipSeries) {
-    //         return true;
     //     }
     //     // Check for existing axis positions and equality.
     //     for (const [p, w] of axisAreaWidths.entries()) {

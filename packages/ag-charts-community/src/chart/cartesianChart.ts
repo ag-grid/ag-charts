@@ -36,6 +36,11 @@ export class CartesianChart extends Chart {
             this.seriesRect?.clone()
         );
 
+        for (const axis of this.axes) {
+            // update visibility of crossLines
+            axis.setCrossLinesVisible(visibility);
+        }
+
         this.seriesRoot.visible = visibility;
         this.seriesRect = seriesRect;
         this.animationRect = ctx.layoutBox;

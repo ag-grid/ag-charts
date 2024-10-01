@@ -215,16 +215,16 @@ export abstract class AngleAxis<
     }
 
     protected override updateLabels() {
-        const { label, tickLabelGroupSelection } = this;
+        const { label } = this;
 
-        const ticks = this.tickData;
-        tickLabelGroupSelection.update(label.enabled ? (ticks as any[]) : []).each((node, _, index) => {
+        this.tickLabelGroupSelection.update(this.label.enabled ? (this.tickData as any) : []).each((node, _, index) => {
             const labelDatum = this.labelData[index];
             if (!labelDatum || labelDatum.hidden) {
                 node.visible = false;
                 return;
             }
 
+            node.visible = true;
             node.text = labelDatum.text;
             node.setFont(label);
             node.fill = label.color;
@@ -232,14 +232,9 @@ export abstract class AngleAxis<
             node.y = labelDatum.y;
             node.textAlign = labelDatum.textAlign;
             node.textBaseline = labelDatum.textBaseline;
-            node.visible = true;
-            if (labelDatum.rotation) {
-                node.rotation = labelDatum.rotation;
-                node.rotationCenterX = labelDatum.x;
-                node.rotationCenterY = labelDatum.y;
-            } else {
-                node.rotation = 0;
-            }
+            node.rotation = labelDatum.rotation;
+            node.rotationCenterX = labelDatum.x;
+            node.rotationCenterY = labelDatum.y;
         });
     }
 
