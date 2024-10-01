@@ -76,44 +76,35 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         handles[activeHandle].toggleDragging(true);
 
         const prev = datum.toJson();
-        let moves: Array<[ChannelHandle, ChannelHandle | undefined]> = [];
+        let moves: Array<ChannelHandle> = [];
+        let origins: Array<ChannelHandle> = [];
 
         switch (activeHandle) {
             case 'topLeft':
             case 'bottomLeft':
-                moves = [
-                    ['topLeft', 'topRight'],
-                    ['bottomLeft', 'bottomRight'],
-                ];
+                moves = ['topLeft', 'bottomLeft'];
+                origins = ['topRight', 'bottomRight'];
                 break;
             case 'topMiddle':
-                moves = [
-                    ['topLeft', undefined],
-                    ['topRight', undefined],
-                ];
+                moves = ['topLeft', 'topRight'];
                 offset.y -= UnivariantHandle.HANDLE_SIZE / 2;
                 break;
             case 'topRight':
             case 'bottomRight':
-                moves = [
-                    ['topRight', 'topLeft'],
-                    ['bottomRight', 'bottomLeft'],
-                ];
+                moves = ['topRight', 'bottomRight'];
+                origins = ['topLeft', 'bottomLeft'];
                 break;
             case 'bottomMiddle':
-                moves = [
-                    ['bottomLeft', undefined],
-                    ['bottomRight', undefined],
-                ];
+                moves = ['bottomLeft', 'bottomRight'];
                 offset.y -= UnivariantHandle.HANDLE_SIZE / 2;
                 break;
         }
 
         const angle = datum.snapToAngle;
         const invertedMoves = moves
-            .map(([handle, originHandle]) =>
-                shiftKey && originHandle
-                    ? this.snapToAngle(target, context, handle, originHandle, angle)
+            .map((handle, index) =>
+                shiftKey && origins[index]
+                    ? this.snapToAngle(target, context, handle, origins[index], angle)
                     : invertCoords(Vec2.add(handles[handle].handle, offset), context)
             )
             .filter(isPoint);
@@ -138,7 +129,7 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
 
         // Move the start and end points if required
         for (const [index, invertedMove] of invertedMoves.entries()) {
-            switch (moves[index][0]) {
+            switch (moves[index]) {
                 case 'topLeft':
                     datum.start.x = invertedMove.x;
                     datum.start.y = invertedMove.y;
