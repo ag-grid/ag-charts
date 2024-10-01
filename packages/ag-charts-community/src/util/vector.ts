@@ -105,7 +105,7 @@ function normalized(a: Vec2): Vec2 {
  * Find the angle between two vectors.
  */
 function angle(a: Vec2, b: Vec2 = origin()) {
-    return Math.atan2(a.y, a.x) - Math.atan2(b.y, b.x);
+    return Math.acos(a.x * b.x + a.y * b.y) / (Math.hypot(a.x, a.y) * Math.hypot(b.x, b.y));
 }
 
 /**
