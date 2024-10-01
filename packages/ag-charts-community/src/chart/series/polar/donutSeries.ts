@@ -22,6 +22,7 @@ import { sanitizeHtml } from '../../../util/sanitize';
 import { isFiniteNumber } from '../../../util/type-guards';
 import type { Has } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
+import { ChartUpdateType } from '../../chartUpdateType';
 import type { DataController } from '../../data/dataController';
 import { DataModel, getMissCount } from '../../data/dataModel';
 import {
@@ -1480,6 +1481,12 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             this.nodeData[itemId].enabled = enabled;
         }
         this.nodeDataRefresh = true;
+    }
+
+    // Used for grid
+    setLegendState(enabledItems: boolean[]) {
+        this.seriesItemEnabled = enabledItems;
+        this.ctx.updateService.update(ChartUpdateType.SERIES_UPDATE);
     }
 
     toggleOtherSeriesItems(legendItemName: string, enabled: boolean): void {
