@@ -33,7 +33,7 @@ const headings =
         getTabItemSlug: (id) => `${DOCS_TAB_ITEM_ID_PREFIX}${id}`,
     });
 
-const { data: menuData } = await getEntry('menu', 'data');
+const { data: menuData } = await getEntry('menu', 'docsMenu');
 const menuItems = Object.values(menuData);
 
 const { data: versionsData } = await getEntry('versions', 'ag-charts-versions');

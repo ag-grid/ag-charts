@@ -10,7 +10,7 @@ import classnames from 'classnames';
 const path = Astro.url.pathname;
 const framework = getFrameworkFromPath(path);
 
-const menuEntry = await getEntry('menu', 'data');
+const menuEntry = await getEntry('menu', 'docsMenu');
 ---
 
 <Layout
