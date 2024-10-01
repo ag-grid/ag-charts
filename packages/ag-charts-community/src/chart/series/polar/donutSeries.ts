@@ -663,10 +663,10 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
         if (title) {
             const dy = this.getTitleTranslationY();
-            const titleBox = title.node.getBBox();
-            title.node.visible =
-                title.enabled && isFinite(dy) && !this.bboxIntersectsSurroundingSeries(titleBox, 0, dy);
             title.node.y = isFinite(dy) ? dy : 0;
+
+            const titleBox = title.node.getBBox();
+            title.node.visible = title.enabled && isFinite(dy) && !this.bboxIntersectsSurroundingSeries(titleBox);
         }
 
         for (const circle of [this.zerosumInnerRing, this.zerosumOuterRing]) {
@@ -788,9 +788,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         this.contentGroup.visible = isVisible;
         this.highlightGroup.visible = isVisible && highlightedDatum?.series === this;
         this.highlightLabel.visible = isVisible && highlightedDatum?.series === this;
-        if (this.labelGroup) {
-            this.labelGroup.visible = isVisible;
-        }
+        this.labelGroup.visible = isVisible;
 
         this.contentGroup.opacity = this.getOpacity();
 
@@ -933,16 +931,16 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         return { textLength, hasVerticalOverflow, hasSurroundingSeriesOverflow };
     }
 
-    private bboxIntersectsSurroundingSeries(box: BBox, dx = 0, dy = 0) {
+    private bboxIntersectsSurroundingSeries(box: BBox) {
         const { surroundingRadius } = this;
         if (surroundingRadius == null) {
             return false;
         }
         const corners = [
-            { x: box.x + dx, y: box.y + dy },
-            { x: box.x + box.width + dx, y: box.y + dy },
-            { x: box.x + box.width + dx, y: box.y + box.height + dy },
-            { x: box.x + dx, y: box.y + box.height + dy },
+            { x: box.x, y: box.y },
+            { x: box.x + box.width, y: box.y },
+            { x: box.x + box.width, y: box.y + box.height },
+            { x: box.x, y: box.y + box.height },
         ];
         const sur2 = surroundingRadius ** 2;
         return corners.some((corner) => corner.x ** 2 + corner.y ** 2 > sur2);

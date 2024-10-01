@@ -635,10 +635,10 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
         if (title) {
             const dy = this.getTitleTranslationY();
-            const titleBox = title.node.getBBox();
-            title.node.visible =
-                title.enabled && isFinite(dy) && !this.bboxIntersectsSurroundingSeries(titleBox, 0, dy);
             title.node.y = isFinite(dy) ? dy : 0;
+
+            const titleBox = title.node.getBBox();
+            title.node.visible = title.enabled && isFinite(dy) && !this.bboxIntersectsSurroundingSeries(titleBox);
         }
 
         this.zerosumOuterRing.fillOpacity = 0;
@@ -874,16 +874,16 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         return { textLength, hasVerticalOverflow, hasSurroundingSeriesOverflow };
     }
 
-    private bboxIntersectsSurroundingSeries(box: BBox, dx = 0, dy = 0) {
+    private bboxIntersectsSurroundingSeries(box: BBox) {
         const { surroundingRadius } = this;
         if (surroundingRadius == null) {
             return false;
         }
         const corners = [
-            { x: box.x + dx, y: box.y + dy },
-            { x: box.x + box.width + dx, y: box.y + dy },
-            { x: box.x + box.width + dx, y: box.y + box.height + dy },
-            { x: box.x + dx, y: box.y + box.height + dy },
+            { x: box.x, y: box.y },
+            { x: box.x + box.width, y: box.y },
+            { x: box.x + box.width, y: box.y + box.height },
+            { x: box.x, y: box.y + box.height },
         ];
         const sur2 = surroundingRadius ** 2;
         return corners.some((corner) => corner.x ** 2 + corner.y ** 2 > sur2);
