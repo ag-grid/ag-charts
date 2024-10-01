@@ -1034,6 +1034,19 @@ export class Legend extends BaseProperties {
         }
 
         let newEnabled = enabled;
+        let defaultPrevented = false;
+        legendItemClick?.({
+            type: 'click',
+            enabled: newEnabled,
+            itemId,
+            seriesId: series.id,
+            preventDefault() {
+                defaultPrevented = true;
+            },
+        });
+
+        if (defaultPrevented) return true;
+
         if (toggleSeries) {
             newEnabled = !enabled;
 
@@ -1060,7 +1073,6 @@ export class Legend extends BaseProperties {
 
         this.ctx.updateService.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true });
 
-        legendItemClick?.({ type: 'click', enabled: newEnabled, itemId, seriesId: series.id });
         return true;
     }
 
@@ -1092,6 +1104,19 @@ export class Legend extends BaseProperties {
             return false;
         }
 
+        let defaultPrevented = false;
+        legendItemDoubleClick?.({
+            type: 'dblclick',
+            enabled: true,
+            itemId,
+            seriesId: series.id,
+            preventDefault() {
+                defaultPrevented = true;
+            },
+        });
+
+        if (defaultPrevented) return true;
+
         if (toggleSeries) {
             const legendData = chartService.series.flatMap((s) => s.getLegendData('category'));
             const numVisibleItems = legendData.filter((d) => d.enabled).length;
@@ -1108,7 +1133,6 @@ export class Legend extends BaseProperties {
 
         this.ctx.updateService.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true });
 
-        legendItemDoubleClick?.({ type: 'dblclick', enabled: true, itemId, seriesId: series.id });
         return true;
     }
 
