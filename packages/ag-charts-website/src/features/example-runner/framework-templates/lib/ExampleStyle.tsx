@@ -73,9 +73,7 @@ export const ExampleStyle = ({
 
         .toolbar select {
             padding-right: 2.4em;
-            background-repeat: no-repeat;
-            background-position: center right 4px;
-            background-image: var(--select-chevron);
+            background: no-repeat center right 4px var(--select-chevron);
         }
     `;
 
