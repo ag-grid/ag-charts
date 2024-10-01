@@ -139,12 +139,14 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
 
         override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] | undefined } | undefined {
             const svg = super.toSVG();
-            if (svg == null) return;
+
+            const matrix = this[TRANSFORM_MATRIX];
+            if (matrix.identity || svg == null) return svg;
 
             const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
             g.append(...svg.elements);
 
-            const [a, b, c, d, e, f] = this[TRANSFORM_MATRIX].e;
+            const [a, b, c, d, e, f] = matrix.e;
             g.setAttribute('transform', `matrix(${a} ${b} ${c} ${d} ${e} ${f})`);
 
             return {
