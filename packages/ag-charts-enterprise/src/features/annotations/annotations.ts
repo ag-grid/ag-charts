@@ -34,6 +34,7 @@ import type { AnnotationProperties, AnnotationScene } from './annotationsSuperTy
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
 import { AnnotationSettingsDialog } from './settings-dialog/settingsDialog';
 import { calculateAxisLabelPadding } from './utils/axis';
+import { snapToAngle } from './utils/coords';
 import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasLineText, hasTextColor } from './utils/has';
 import { getLineStyle } from './utils/line';
 import { isChannelType, isLineType, isTextType } from './utils/types';
@@ -1093,10 +1094,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const shiftKey = (event.sourceEvent as MouseEvent).shiftKey;
 
         const offset = Vec2.from(event);
-        const point = (origin?: Point, snapToAngle: number = 1) =>
+        const point = (origin?: Point, angleStep: number = 1) =>
             shiftKey
                 ? invertCoords(
-                      Vec2.snapToAngle(origin ? convertPoint(origin, context) : Vec2.origin(), offset, snapToAngle),
+                      snapToAngle(offset, origin ? convertPoint(origin, context) : Vec2.origin(), angleStep),
                       context
                   )
                 : invertCoords(offset, context);

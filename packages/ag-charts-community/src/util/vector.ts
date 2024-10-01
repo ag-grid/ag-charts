@@ -1,5 +1,3 @@
-import { toRadians } from './angle';
-
 export const Vec2 = {
     add,
     angle,
@@ -15,7 +13,6 @@ export const Vec2 = {
     length,
     lengthSquared,
     multiply,
-    snapToAngle,
     normalized,
     origin,
     required,
@@ -249,16 +246,4 @@ function required(a?: Partial<Vec2>): Vec2 {
  */
 function origin(): Vec2 {
     return { x: 0, y: 0 };
-}
-
-function snapToAngle(center: Vec2, a: Vec2, step: number, direction: number = 1) {
-    const stepRadians = toRadians(step);
-    const r = distance(center, a);
-    const theta = Math.atan2(a.y - center.y, a.x - center.x);
-    const snapTheta = Math.round(theta / stepRadians) * stepRadians;
-
-    return {
-        x: center.x + r * Math.cos(snapTheta),
-        y: center.y + r * Math.sin(snapTheta) * direction,
-    };
 }

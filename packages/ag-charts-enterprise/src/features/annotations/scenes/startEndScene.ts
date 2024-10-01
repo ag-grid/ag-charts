@@ -3,14 +3,13 @@ import { type AgAnnotationHandleStyles, _ModuleSupport, _Scene, _Util } from 'ag
 import type { PointProperties } from '../annotationProperties';
 import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
 import type { StartEndProperties } from '../properties/startEndProperties';
+import { snapToAngle } from '../utils/coords';
 import { validateDatumPoint } from '../utils/validation';
 import { convertLine, convertPoint, invertCoords } from '../utils/values';
 import { DivariantHandle } from './handle';
 import { LinearScene } from './linearScene';
 
 export type ActiveHandle = 'start' | 'end';
-
-const { Vec2 } = _Util;
 
 export abstract class StartEndScene<Datum extends StartEndProperties> extends LinearScene<Datum> {
     override activeHandle?: ActiveHandle;
@@ -88,7 +87,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         const fixed = convertPoint(datum[fixedHandle], context);
         const active = this[activeHandle].drag(target).point;
 
-        return invertCoords(Vec2.snapToAngle(fixed, active, datum.snapToAngle), context);
+        return invertCoords(snapToAngle(active, fixed, datum.snapToAngle), context);
     }
 
     override stopDragging() {

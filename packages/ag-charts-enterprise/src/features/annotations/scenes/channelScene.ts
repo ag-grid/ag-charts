@@ -2,13 +2,12 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { ChannelTextProperties } from '../annotationProperties';
 import type { AnnotationContext, Coords, LineCoords, Point } from '../annotationTypes';
+import { snapToAngle } from '../utils/coords';
 import { convertLine, invertCoords } from '../utils/values';
 import { CollidableLine } from './collidableLineScene';
 import type { CollidableText } from './collidableTextScene';
 import type { Handle } from './handle';
 import { LinearScene } from './linearScene';
-
-const { Vec2 } = _Util;
 
 type ChannelHandle = Partial<'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight' | 'topMiddle' | 'bottomMiddle'>;
 
@@ -72,7 +71,7 @@ export abstract class ChannelScene<
         const fixed = handles[originHandle].handle;
         const active = handles[handle].drag(target).point;
 
-        return invertCoords(Vec2.snapToAngle(fixed, active, angle, direction), context);
+        return invertCoords(snapToAngle(active, fixed, angle, direction), context);
     }
 
     override toggleActive(active: boolean) {
