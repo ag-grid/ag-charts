@@ -31,9 +31,10 @@ export abstract class TextualPointStateMachine<
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(ctx: TextualPointStateMachineContext<Datum, Node>) {
-        const actionCreate = ({ point }: { point: Point }) => {
+        const actionCreate = ({ point }: { point: () => Point }) => {
             const datum = this.createDatum();
-            datum.set({ x: point.x, y: point.y });
+            const { x, y } = point();
+            datum.set({ x, y });
             ctx.create(datum);
         };
 

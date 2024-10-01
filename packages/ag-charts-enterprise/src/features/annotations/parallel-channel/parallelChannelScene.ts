@@ -6,7 +6,7 @@ import { ChannelScene } from '../scenes/channelScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
 import { LineWithTextScene } from '../scenes/lineWithTextScene';
-import { validateDatumPoint } from '../utils/validation';
+import { isPoint, validateDatumPoint } from '../utils/validation';
 import { convertPoint, invertCoords } from '../utils/values';
 import type { ParallelChannelProperties } from './parallelChannelProperties';
 
@@ -63,7 +63,12 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         }
     }
 
-    override dragHandle(datum: ParallelChannelProperties, target: Coords, context: AnnotationContext) {
+    override dragHandle(
+        datum: ParallelChannelProperties,
+        target: Coords,
+        context: AnnotationContext,
+        snapping: boolean
+    ) {
         const { activeHandle, handles } = this;
         if (activeHandle == null) return;
 
@@ -72,11 +77,13 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
 
         const prev = datum.toJson();
         let moves: Array<ChannelHandle> = [];
+        let origins: Array<ChannelHandle> = [];
 
         switch (activeHandle) {
             case 'topLeft':
             case 'bottomLeft':
                 moves = ['topLeft', 'bottomLeft'];
+                origins = ['topRight', 'bottomRight'];
                 break;
             case 'topMiddle':
                 moves = ['topLeft', 'topRight'];
@@ -85,6 +92,7 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
             case 'topRight':
             case 'bottomRight':
                 moves = ['topRight', 'bottomRight'];
+                origins = ['topLeft', 'bottomLeft'];
                 break;
             case 'bottomMiddle':
                 moves = ['bottomLeft', 'bottomRight'];
@@ -92,7 +100,14 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
                 break;
         }
 
-        const invertedMoves = moves.map((move) => invertCoords(Vec2.add(handles[move].handle, offset), context));
+        const angle = datum.snapToAngle;
+        const invertedMoves = moves
+            .map((handle, index) =>
+                snapping && origins[index]
+                    ? this.snapToAngle(target, context, handle, origins[index], angle)
+                    : invertCoords(Vec2.add(handles[handle].handle, offset), context)
+            )
+            .filter(isPoint);
 
         // Do not move any handles if some of them are trying to move to invalid points
         if (invertedMoves.some((invertedMove) => !validateDatumPoint(context, invertedMove))) {

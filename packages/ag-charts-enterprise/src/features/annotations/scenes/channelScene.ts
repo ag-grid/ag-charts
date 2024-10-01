@@ -1,21 +1,24 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import type { ChannelTextProperties, PointProperties } from '../annotationProperties';
-import type { AnnotationContext, LineCoords } from '../annotationTypes';
-import { convertLine } from '../utils/values';
+import type { ChannelTextProperties } from '../annotationProperties';
+import type { AnnotationContext, Coords, LineCoords, Point } from '../annotationTypes';
+import { snapToAngle } from '../utils/coords';
+import { convertLine, invertCoords } from '../utils/values';
 import { CollidableLine } from './collidableLineScene';
 import type { CollidableText } from './collidableTextScene';
 import type { Handle } from './handle';
 import { LinearScene } from './linearScene';
+
+type ChannelHandle = Partial<'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight' | 'topMiddle' | 'bottomMiddle'>;
 
 export abstract class ChannelScene<
     Datum extends {
         background: { fill?: string; fillOpacity?: number };
         locked?: boolean;
         visible?: boolean;
-        start: Pick<PointProperties, 'x' | 'y'>;
-        end: Pick<PointProperties, 'x' | 'y'>;
-        bottom: { start: Pick<PointProperties, 'x' | 'y'>; end: Pick<PointProperties, 'x' | 'y'> };
+        start: Point;
+        end: Point;
+        bottom: { start: Point; end: Point };
         strokeWidth?: number;
         text?: ChannelTextProperties;
     },
@@ -53,6 +56,22 @@ export abstract class ChannelScene<
         for (const handle of Object.values(this.handles)) {
             handle.toggleLocked(locked ?? false);
         }
+    }
+
+    snapToAngle(
+        target: Coords,
+        context: AnnotationContext,
+        handle: ChannelHandle,
+        originHandle: ChannelHandle,
+        angle: number,
+        direction?: number
+    ): Point | undefined {
+        const { handles } = this;
+
+        const fixed = handles[originHandle].handle;
+        const active = handles[handle].drag(target).point;
+
+        return invertCoords(snapToAngle(active, fixed, angle, direction), context);
     }
 
     override toggleActive(active: boolean) {

@@ -36,11 +36,11 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         this.append([this.shape, this.label, this.start, this.end]);
     }
 
-    override drag(datum: CalloutProperties, target: Coords, context: AnnotationContext) {
+    override drag(datum: CalloutProperties, target: Coords, context: AnnotationContext, snapping: boolean) {
         if (datum.locked) return;
 
         if (this.activeHandle === 'end') {
-            this.dragHandle(datum, target, context);
+            this.dragHandle(datum, target, context, snapping);
         } else {
             this.dragAll(datum, target, context);
         }

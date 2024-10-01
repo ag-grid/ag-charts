@@ -34,12 +34,13 @@ import type { AnnotationProperties, AnnotationScene } from './annotationsSuperTy
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
 import { AnnotationSettingsDialog } from './settings-dialog/settingsDialog';
 import { calculateAxisLabelPadding } from './utils/axis';
+import { snapToAngle } from './utils/coords';
 import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasLineText, hasTextColor } from './utils/has';
 import { getLineStyle } from './utils/line';
 import { isChannelType, isLineType, isTextType } from './utils/types';
 import { updateAnnotation } from './utils/update';
 import { validateDatumPoint } from './utils/validation';
-import { invertCoords } from './utils/values';
+import { convertPoint, invertCoords } from './utils/values';
 
 const {
     BOOLEAN,
@@ -490,8 +491,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
             ctx.keyNavManager.addListener('cancel', this.onCancel.bind(this), Default | AnnotationsState),
             ctx.keyNavManager.addListener('delete', this.onDelete.bind(this), Default | AnnotationsState),
-            ctx.interactionManager.addListener('keydown', this.onKeyDown.bind(this), AnnotationsState),
-            ctx.interactionManager.addListener('keydown', this.onCopyPaste.bind(this), All),
+            ctx.interactionManager.addListener('keydown', this.onTextInput.bind(this), AnnotationsState),
+            ctx.interactionManager.addListener('keydown', this.onKeyDown.bind(this), All),
+            ctx.interactionManager.addListener('keyup', this.onKeyUp.bind(this), All),
             ...otherRegions.map((region) => region.addListener('click', this.onCancel.bind(this), All)),
 
             // Services
@@ -1090,8 +1092,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const context = this.getAnnotationContext();
         if (!context) return;
 
+        const shiftKey = (event.sourceEvent as MouseEvent).shiftKey;
+
         const offset = Vec2.from(event);
-        const point = invertCoords(offset, context);
+        const point = (origin?: Point, angleStep: number = 1) =>
+            shiftKey
+                ? invertCoords(
+                      snapToAngle(offset, origin ? convertPoint(origin, context) : Vec2.origin(), angleStep),
+                      context
+                  )
+                : invertCoords(offset, context);
 
         state.transition('hover', { offset, point });
     }
@@ -1103,7 +1113,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (!context) return;
 
         const offset = Vec2.from(event);
-        const point = invertCoords(offset, context);
+        const point = () => invertCoords(offset, context);
         const textInputValue = this.textInput.getValue();
 
         state.transition('click', { offset, point, textInputValue });
@@ -1141,9 +1151,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             return;
         }
 
-        const point = invertCoords(coords, context);
+        const point = () => invertCoords(coords, context);
 
-        if (!validateDatumPoint(context, point)) {
+        if (!validateDatumPoint(context, point())) {
             return;
         }
 
@@ -1169,7 +1179,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (!context) return;
 
         const offset = Vec2.from(event);
-        const point = invertCoords(offset, context);
+        const point = () => invertCoords(offset, context);
+
         state.transition('drag', { context, offset, point });
     }
 
@@ -1189,7 +1200,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.update();
     }
 
-    private onKeyDown(event: _ModuleSupport.KeyInteractionEvent<'keydown'>) {
+    private onTextInput(event: _ModuleSupport.KeyInteractionEvent<'keydown'>) {
         const { state } = this;
 
         const context = this.getAnnotationContext();
@@ -1201,9 +1212,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         state.transition('keyDown', { key, shiftKey, textInputValue });
     }
 
-    private onCopyPaste(event: _ModuleSupport.KeyInteractionEvent<'keydown'>) {
+    private onKeyDown(event: _ModuleSupport.KeyInteractionEvent<'keydown'>) {
         const { sourceEvent } = event;
+        const { shiftKey } = sourceEvent;
         const modifierKey = sourceEvent.ctrlKey || sourceEvent.metaKey;
+
+        this.state.transition('keyDown', { shiftKey });
 
         if (modifierKey && sourceEvent.key === 'c') {
             this.state.transition('copy');
@@ -1214,6 +1228,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             this.state.transition('paste');
             this.recordActionAfterNextUpdate('Paste annotation');
         }
+    }
+
+    private onKeyUp(event: _ModuleSupport.KeyInteractionEvent<'keyup'>) {
+        const { shiftKey } = event.sourceEvent;
+
+        this.state.transition('keyUp', { shiftKey });
     }
 
     private beginAnnotationPlacement(annotation: AnnotationType) {

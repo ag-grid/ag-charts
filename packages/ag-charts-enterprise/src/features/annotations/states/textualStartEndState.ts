@@ -33,9 +33,10 @@ export abstract class TextualStartEndStateMachine<
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(ctx: TextualStartEndStateMachineContext<Datum, Node>) {
-        const actionCreate = ({ point }: { point: Point }) => {
+        const actionCreate = ({ point }: { point: () => Point }) => {
             const datum = this.createDatum();
-            datum.set({ start: point, end: point, visible: true });
+            const origin = point();
+            datum.set({ start: origin, end: origin, visible: true });
             ctx.create(datum);
         };
 
@@ -62,16 +63,15 @@ export abstract class TextualStartEndStateMachine<
             ctx.update();
         };
 
-        const onEndHover = ({ point }: { point: Point }) => {
-            ctx.datum()?.set({ end: point });
+        const onEndHover = ({ point }: { point: () => Point }) => {
+            ctx.datum()?.set({ end: point() });
             ctx.node()?.toggleActive(true);
             ctx.node()?.toggleHandles({ end: false });
             ctx.update();
         };
 
-        const onEndClick = ({ point }: { point: Point }) => {
+        const onEndClick = () => {
             ctx.showAnnotationOptions();
-            ctx.datum()?.set({ end: point });
             ctx.node()?.toggleHandles({ end: true });
         };
 

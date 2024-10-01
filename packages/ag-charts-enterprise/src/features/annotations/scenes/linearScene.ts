@@ -66,17 +66,17 @@ export abstract class LinearScene<
         };
     }
 
-    public drag(datum: Datum, target: Coords, context: AnnotationContext) {
+    public drag(datum: Datum, target: Coords, context: AnnotationContext, snapping: boolean) {
         if (datum.locked) return;
 
         if (this.activeHandle) {
-            this.dragHandle(datum, target, context);
+            this.dragHandle(datum, target, context, snapping);
         } else {
             this.dragAll(datum, target, context);
         }
     }
 
-    protected abstract dragHandle(datum: Datum, target: Coords, context: AnnotationContext): void;
+    protected abstract dragHandle(datum: Datum, target: Coords, context: AnnotationContext, snapping: boolean): void;
 
     protected dragAll(datum: Datum, target: Coords, context: AnnotationContext) {
         const { dragState } = this;

@@ -117,7 +117,11 @@ export interface AnnotationTypeConfig<Datum extends _ModuleSupport.BasePropertie
         helpers: AnnotationsStateMachineHelperFns
     ) => _ModuleSupport.StateMachine<any, any>;
     dragState: (
-        ctx: AnnotationsStateMachineContext & { setSelectedWithDrag: () => void },
+        ctx: AnnotationsStateMachineContext & {
+            setSelectedWithDrag: () => void;
+            setSnapping: (snapping: boolean) => void;
+            getSnapping: () => boolean;
+        },
         helpers: AnnotationsStateMachineHelperFns
     ) => _ModuleSupport.StateMachine<any, any>;
 }
