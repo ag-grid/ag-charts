@@ -12,7 +12,7 @@ export const SELECTORS = {
     legendItem1: '#ag-charts-legend-item-1',
     legendItem2: '#ag-charts-legend-item-2',
 
-    annotationOptionsDeleteButton: '[data-toolbar-group="annotationOptions"][data-popover-id="delete"]',
+    annotationOptionsDeleteButton: '[data-toolbar-group="annotationOptions"][data-toolbar-id="delete"]',
     commentMenuItem: '[data-popover-id="comment"]',
     textAnnotationMenu: '[data-toolbar-group="annotations"][data-toolbar-id="text-menu"]',
 } as const;
