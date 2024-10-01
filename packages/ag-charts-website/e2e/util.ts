@@ -5,7 +5,13 @@ import glob from 'glob';
 const baseUrl = process.env.PUBLIC_SITE_URL;
 const fws = ['vanilla', 'typescript', 'reactFunctional', 'reactFunctionalTs', 'angular', 'vue3'] as const;
 
-export const SELECTORS = { canvas: '.ag-charts-canvas-proxy' };
+export const SELECTORS = {
+    canvas: '.ag-charts-canvas-proxy',
+    canvasCenter: '.ag-charts-canvas-center',
+    legendItem0: '#ag-charts-legend-item-0',
+    legendItem1: '#ag-charts-legend-item-1',
+    legendItem2: '#ag-charts-legend-item-2',
+} as const;
 
 export function getExamples() {
     const examples = glob.glob.sync('./src/content/**/_examples/*/main.ts').map((e) => ({ path: e, affected: true }));
