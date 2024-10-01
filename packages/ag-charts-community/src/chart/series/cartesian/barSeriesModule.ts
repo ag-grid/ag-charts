@@ -1,6 +1,6 @@
 import type { SeriesModule } from '../../../module/coreModules';
 import { singleSeriesPaletteFactory } from '../../../module/theme';
-import { CARTESIAN_AXIS_TYPE, FONT_WEIGHT, POSITION } from '../../themes/constants';
+import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, FONT_WEIGHT } from '../../themes/constants';
 import { DEFAULT_FONT_FAMILY, DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 import { swapAxisCondition } from '../../themes/util';
 import { BarSeries } from './barSeries';
@@ -18,8 +18,8 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
     tooltipDefaults: { range: 'exact' },
     defaultAxes: swapAxisCondition(
         [
-            { type: CARTESIAN_AXIS_TYPE.NUMBER, position: POSITION.LEFT },
-            { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: POSITION.BOTTOM },
+            { type: CARTESIAN_AXIS_TYPE.NUMBER, position: CARTESIAN_POSITION.LEFT },
+            { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: CARTESIAN_POSITION.BOTTOM },
         ],
         (series) => series?.direction === 'horizontal'
     ),

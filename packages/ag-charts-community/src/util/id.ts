@@ -18,6 +18,5 @@ export function createId(instance: any): string {
 }
 
 export function uuid() {
-    const url = URL.createObjectURL(new Blob());
-    return url.split('/').at(-1)!;
+    return crypto.randomUUID();
 }

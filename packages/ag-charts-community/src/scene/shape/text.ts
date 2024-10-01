@@ -21,9 +21,6 @@ export interface TextSizeProperties {
 export class Text extends Shape {
     static readonly className = 'Text';
 
-    // The default line spacing for document editors is usually 1.15
-    static defaultLineHeightRatio = 1.15;
-
     static override defaultStyles = Object.assign({}, Shape.defaultStyles, {
         textAlign: 'start' as CanvasTextAlign,
         fontStyle: undefined,
@@ -208,9 +205,7 @@ export class Text extends Shape {
 
         element.textContent = this.text ?? '';
 
-        return {
-            elements: [element],
-        };
+        return { elements: [element] };
     }
 }
 
