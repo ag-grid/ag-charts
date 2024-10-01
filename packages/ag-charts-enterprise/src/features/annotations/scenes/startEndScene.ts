@@ -53,14 +53,14 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         this.end.toggleActive(active);
     }
 
-    override dragHandle(datum: Datum, target: Coords, context: AnnotationContext, shiftKey: boolean) {
+    override dragHandle(datum: Datum, target: Coords, context: AnnotationContext, snapping: boolean) {
         const { activeHandle } = this;
 
         if (!activeHandle) return;
 
         this[activeHandle].toggleDragging(true);
 
-        const point = shiftKey
+        const point = snapping
             ? this.snapToAngle(datum, target, context)
             : invertCoords(this[activeHandle].drag(target).point, context);
 

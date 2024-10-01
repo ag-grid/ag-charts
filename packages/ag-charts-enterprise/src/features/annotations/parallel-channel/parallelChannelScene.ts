@@ -67,7 +67,7 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         datum: ParallelChannelProperties,
         target: Coords,
         context: AnnotationContext,
-        shiftKey: boolean
+        snapping: boolean
     ) {
         const { activeHandle, handles } = this;
         if (activeHandle == null) return;
@@ -103,7 +103,7 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         const angle = datum.snapToAngle;
         const invertedMoves = moves
             .map((handle, index) =>
-                shiftKey && origins[index]
+                snapping && origins[index]
                     ? this.snapToAngle(target, context, handle, origins[index], angle)
                     : invertCoords(Vec2.add(handles[handle].handle, offset), context)
             )

@@ -60,7 +60,7 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
         datum: DisjointChannelProperties,
         target: Coords,
         context: AnnotationContext,
-        shiftKey: boolean
+        snapping: boolean
     ) {
         const { activeHandle, handles } = this;
         if (activeHandle == null) return;
@@ -76,14 +76,14 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
             case 'topLeft':
             case 'bottomLeft': {
                 const direction = activeHandle === 'topLeft' ? 1 : -1;
-                const start = shiftKey
+                const start = snapping
                     ? this.snapToAngle(target, context, 'topLeft', 'topRight', angle, direction)
                     : invert({
                           x: handles.topLeft.handle.x + offset.x,
                           y: handles.topLeft.handle.y + offset.y * direction,
                       });
 
-                const bottomStart = shiftKey
+                const bottomStart = snapping
                     ? this.snapToAngle(target, context, 'bottomLeft', 'bottomRight', angle, -direction)
                     : invert({
                           x: handles.bottomLeft.handle.x + offset.x,
@@ -102,7 +102,7 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
             }
 
             case 'topRight': {
-                const end = shiftKey
+                const end = snapping
                     ? this.snapToAngle(target, context, 'topRight', 'topLeft', angle)
                     : invert({
                           x: handles.topRight.handle.x + offset.x,
