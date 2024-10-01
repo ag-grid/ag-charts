@@ -46,13 +46,13 @@ export interface AgAnnotationAxesButtons extends Toggleable {
 
 export interface AgAnnotationHandleStyles extends FillOptions, StrokeOptions, LineDashOptions {}
 
+// Lines
 export interface AgLineAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineOptions {
     handle?: AgAnnotationHandleStyles;
     text?: AgLineAnnotationTextOptions;
 }
 
-export interface AgShapeAnnotationStyles extends Lockable, Visible, FillOptions {}
-
+// Channels
 export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineOptions {
     handle?: AgAnnotationHandleStyles;
     middle?: AgChannelAnnotationMiddle;
@@ -61,6 +61,7 @@ export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible
     text?: AgChannelAnnotationTextOptions;
 }
 
+// Texts
 export interface AgTextAnnotationStyles extends FontOptions, Lockable, Visible {
     handle?: AgAnnotationHandleStyles;
 }
@@ -72,6 +73,9 @@ export interface AgCommentAnnotationStyles extends AgTextAnnotationStyles, Strok
 export interface AgNoteAnnotationStyles extends AgTextAnnotationStyles, StrokeOptions, FillOptions {
     background?: AgNoteAnnotationBackground;
 }
+
+// Shapes
+export interface AgShapeAnnotationStyles extends Lockable, Visible, FillOptions {}
 
 // ***********
 // * Options *

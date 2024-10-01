@@ -4,14 +4,12 @@ import {
     type AnnotationLineStyle,
     type AnnotationOptionsColorPickerType,
     AnnotationType,
-    type ChannelAnnotationType,
-    type ChannelTextPosition,
+        type ChannelTextPosition,
     type HasColorAnnotationType,
     type HasFontSizeAnnotationType,
     type HasLineStyleAnnotationType,
     type HasLineTextAnnotationType,
-    type LineAnnotationType,
-    type LineTextAlignment,
+        type LineTextAlignment,
     type LineTextPosition,
 } from './annotationTypes';
 import type { AnnotationProperties } from './annotationsSuperTypes';
@@ -27,12 +25,9 @@ interface DefaultsMemento {
 
 type DefaultColors = Map<AnnotationType, Map<AnnotationOptionsColorPickerType, [string, string, number] | undefined>>;
 type DefaultFontSizes = Map<HasFontSizeAnnotationType, number | undefined>;
-type DefaultLineStyles = Map<LineAnnotationType | ChannelAnnotationType, AnnotationLineStyle | undefined>;
-type DefaultLineTextAlignments = Map<LineAnnotationType | ChannelAnnotationType, LineTextAlignment | undefined>;
-type DefaultLineTextPositions = Map<
-    LineAnnotationType | ChannelAnnotationType,
-    LineTextPosition | ChannelTextPosition | undefined
->;
+type DefaultLineStyles = Map<HasLineStyleAnnotationType, AnnotationLineStyle | undefined>;
+type DefaultLineTextAlignments = Map<HasLineTextAnnotationType, LineTextAlignment | undefined>;
+type DefaultLineTextPositions = Map<HasLineTextAnnotationType, LineTextPosition | ChannelTextPosition | undefined>;
 
 export class AnnotationDefaults implements _ModuleSupport.MementoOriginator<DefaultsMemento> {
     mementoOriginatorKey = 'annotation-defaults' as const;

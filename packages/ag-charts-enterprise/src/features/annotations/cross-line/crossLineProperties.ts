@@ -20,9 +20,6 @@ export class HorizontalLineProperties extends Annotation(Value(Handle(AxisLabel(
     @Validate(OBJECT, { optional: true })
     text = new LineTextProperties();
 
-    lineCap?: _Scene.ShapeLineCap = undefined;
-    computedLineDash?: PixelSize[] = undefined;
-
     override isValidWithContext(context: AnnotationContext, warningPrefix: string) {
         return super.isValid(warningPrefix) && validateDatumValue(context, this, warningPrefix);
     }
@@ -56,9 +53,6 @@ export class VerticalLineProperties extends Annotation(Value(Handle(AxisLabel(St
 
     @Validate(OBJECT, { optional: true })
     text = new LineTextProperties();
-
-    lineCap?: _Scene.ShapeLineCap = undefined;
-    computedLineDash?: PixelSize[] = undefined;
 
     override isValidWithContext(context: AnnotationContext, warningPrefix: string) {
         return super.isValid(warningPrefix) && validateDatumValue(context, this, warningPrefix);
