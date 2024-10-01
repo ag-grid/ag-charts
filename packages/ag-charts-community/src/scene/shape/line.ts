@@ -106,4 +106,22 @@ export class Line extends Shape implements DistantObject {
         this.fillShadow?.markClean();
         super.render(renderCtx);
     }
+
+    override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {
+        if (!this.visible) return;
+
+        const element = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+
+        element.setAttribute('x1', String(this.x1));
+        element.setAttribute('y1', String(this.y1));
+        element.setAttribute('x2', String(this.x2));
+        element.setAttribute('y2', String(this.y2));
+        element.setAttribute('stroke', this.stroke ?? 'none');
+        element.setAttribute('stroke-opacity', String(this.strokeOpacity));
+        element.setAttribute('stroke-width', String(this.strokeWidth));
+
+        return {
+            elements: [element],
+        };
+    }
 }
