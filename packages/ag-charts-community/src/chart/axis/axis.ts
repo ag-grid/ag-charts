@@ -435,9 +435,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
      * Creates/removes/updates the scene graph nodes that constitute the axis.
      */
     update(animated = true): number | undefined {
-        if (!this.tickGenerationResult) {
-            return;
-        }
+        if (!this.tickGenerationResult) return;
+
         const { rotation, parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
         const sideFlag = this.label.getSideFlag();
         this.updatePosition();
@@ -585,7 +584,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.updateLayoutState(tickData.fractionDigits);
 
         const boxes: BBox[] = [];
-
         const { x, y1, y2 } = this.getAxisLineCoordinates();
         const lineBox = new BBox(
             x + Math.min(sideFlag * this.seriesAreaPadding, 0),
@@ -593,6 +591,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             this.seriesAreaPadding,
             y2 - y1
         );
+
         boxes.push(lineBox);
 
         if (this.tick.enabled) {
@@ -605,16 +604,15 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         if (this.label.enabled) {
             const tempText = new TransformableText();
-            tickData.ticks.forEach((datum) => {
+            for (const datum of tickData.ticks) {
                 const labelProps = this.getTickLabelProps(datum, {
                     combinedRotation,
                     textAlign,
                     textBaseline,
                     range: this.scale.range,
                 });
-                if (!labelProps.visible) {
-                    return;
-                }
+
+                if (!labelProps.visible) continue;
 
                 tempText.setProperties({
                     ...labelProps,
@@ -625,7 +623,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 if (box) {
                     boxes.push(box);
                 }
-            });
+            }
         }
 
         if (this.title?.enabled) {

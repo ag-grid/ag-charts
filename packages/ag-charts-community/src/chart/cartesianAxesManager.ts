@@ -406,24 +406,4 @@ export class CartesianAxesManager {
             axis.updatePosition();
         }
     }
-
-    // private shouldRecalculate(otherAxisWidths: AreaWidthMap, otherClipSeries: boolean, otherVisibility: boolean) {
-    //     if (visibility !== otherVisibility || clipSeries !== otherClipSeries) {
-    //         return true;
-    //     }
-    //     // Check for new axis positions.
-    //     for (const key of otherAxisWidths.keys()) {
-    //         if (!axisAreaWidths.has(key)) {
-    //             return true;
-    //         }
-    //     }
-    //     // Check for existing axis positions and equality.
-    //     for (const [p, w] of axisAreaWidths.entries()) {
-    //         const otherW = otherAxisWidths.get(p);
-    //         if ((w != null || otherW != null) && w !== otherW) {
-    //             return true;
-    //         }
-    //     }
-    //     return false;
-    // }
 }
