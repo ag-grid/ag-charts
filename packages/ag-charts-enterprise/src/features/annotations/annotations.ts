@@ -1227,6 +1227,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onDelete() {
+        if (this.textInput.isVisible()) return;
         this.cancel();
         this.delete();
         this.reset();
