@@ -1,7 +1,6 @@
 ---
 import { getCollection, getEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
-import { PagesNavigation } from '@components/pages-navigation/components/PagesNavigation';
 import { Header } from '@features/docs/components/Header';
 import { getFrameworkDisplayText } from '@utils/framework';
 import type { Framework } from '@ag-grid-types';
@@ -44,6 +43,10 @@ const description = page.data.description
     ? page.data.description.replace('$framework', frameworkDisplayText) // Use front-matter description
     : getFirstParagraphText(page.body, currentFramework); // Default to 1st paragraph text
 const descriptionWithSeoTagline = `${description} ${seoTagline}`;
+
+// NEW NAV WIP
+import { NewDocsNav } from '@ag-website-shared/components/new-docs-navigation/NewDocsNav';
+const { data: newMenuData } = await getEntry('newMenu', 'newDocsMenu');
 ---
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -58,11 +61,7 @@ const descriptionWithSeoTagline = `${description} ${seoTagline}`;
     showDocsNav={!hidePageMenu}
 >
     <div class:list={[hidePageMenu && styles.noLeftMenu, styles.contentViewport, 'layout-grid', { largeExamples }]}>
-        {
-            !hidePageMenu && (
-                <PagesNavigation client:load menuData={menuData} framework={currentFramework} pageName={pageName} />
-            )
-        }
+        {!hidePageMenu && <NewDocsNav menuData={newMenuData} />}
         <div
             id="doc-content"
             class:list={[

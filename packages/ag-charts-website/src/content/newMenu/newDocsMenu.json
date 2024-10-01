@@ -10,7 +10,7 @@
                 },
                 {
                     "type": "group",
-                    "tittle": "Guides",
+                    "title": "Guides",
                     "children": [
                         {
                             "type": "item",
@@ -41,7 +41,7 @@
                 },
                 {
                     "type": "group",
-                    "tittle": "Build & Tooling",
+                    "title": "Build & Tooling",
                     "children": [
                         {
                             "type": "item",
