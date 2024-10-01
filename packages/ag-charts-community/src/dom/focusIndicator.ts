@@ -33,7 +33,7 @@ export class FocusIndicator {
             // skip
         } else if (bounds instanceof Path) {
             const transform = (x: number, y: number) => Transformable.toCanvasPoint(bounds, x, y);
-            this.path.setAttribute('d', bounds.computeSVGDataPath(transform));
+            this.path.setAttribute('d', bounds.svgPathData(transform));
             this.show(this.svg);
         } else {
             setElementBBox(this.div, bounds);

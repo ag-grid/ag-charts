@@ -30,7 +30,7 @@ export class Path extends Shape implements DistantObject {
     private _clipPath?: ExtendedPath2D;
 
     @ScenePathChangeDetection()
-    clipMode?: 'normal' | 'punch-out';
+    clip: boolean = false;
 
     @ScenePathChangeDetection()
     set clipX(value: number) {
@@ -80,12 +80,12 @@ export class Path extends Shape implements DistantObject {
         return this.distanceSquaredTransformedPoint(x, y);
     }
 
-    computeSVGDataPath(transform: (x: number, y: number) => { x: number; y: number }): string {
+    svgPathData(transform?: (x: number, y: number) => { x: number; y: number }): string {
         if (this.dirtyPath) {
             this.updatePath();
             this.dirtyPath = false;
         }
-        return this.path.computeSVGDataPath(transform);
+        return this.path.toSVG(transform);
     }
 
     protected distanceSquaredTransformedPoint(x: number, y: number): number {
@@ -117,7 +117,7 @@ export class Path extends Shape implements DistantObject {
             this.dirtyPath = false;
         }
 
-        if (!isNaN(this._clipX) && !isNaN(this._clipY) && this.clipMode != null) {
+        if (this.clip && !isNaN(this._clipX) && !isNaN(this._clipY)) {
             ctx.save();
 
             // AG-10477 avoid clipping thick lines that touch the top, bottom and left edges of the clip rect
@@ -126,25 +126,17 @@ export class Path extends Shape implements DistantObject {
             this._clipPath.clear();
             this._clipPath.rect(-margin, -margin, this._clipX + margin, this._clipY + margin + margin);
 
-            if (this.clipMode === 'normal') {
-                // Bound the shape rendered to the clipping path.
-                ctx.clip(this._clipPath?.getPath2D());
-            }
+            // Bound the shape rendered to the clipping path.
+            ctx.clip(this._clipPath?.getPath2D());
 
             if (this._clipX > 0 && this._clipY > 0) {
                 this.drawPath(ctx);
             }
 
-            if (this.clipMode === 'punch-out') {
-                // Bound the shape rendered to the clipping path.
-                ctx.clip(this._clipPath?.getPath2D());
-                // Fallback values, but practically these should never be used.
-                const { x = -10000, y = -10000, width = 20000, height = 20000 } = this.getBBox() ?? {};
-                ctx.clearRect(x, y, width, height);
-            }
-
             ctx.restore();
         } else {
+            this._clipPath = undefined;
+
             this.drawPath(ctx);
         }
 
@@ -154,5 +146,24 @@ export class Path extends Shape implements DistantObject {
 
     protected drawPath(ctx: any) {
         this.fillStroke(ctx, this.path.getPath2D());
+    }
+
+    override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {
+        if (!this.visible) return;
+
+        const element = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+
+        element.setAttribute('d', this.svgPathData());
+        element.setAttribute('fill', typeof this.fill === 'string' ? this.fill : 'none');
+        element.setAttribute('fill-opacity', String(this.fillOpacity));
+        if (this.stroke != null) {
+            element.setAttribute('stroke', this.stroke);
+            element.setAttribute('stroke-opacity', String(this.strokeOpacity));
+            element.setAttribute('stroke-width', String(this.strokeWidth));
+        }
+
+        return {
+            elements: [element],
+        };
     }
 }

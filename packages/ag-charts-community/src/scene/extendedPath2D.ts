@@ -302,7 +302,7 @@ export class ExtendedPath2D {
     }
 
     // https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d
-    computeSVGDataPath(transform: (x: number, y: number) => { x: number; y: number }): string {
+    toSVG(transform: (x: number, y: number) => { x: number; y: number } = (x, y) => ({ x, y })): string {
         const buffer: (string | number)[] = [];
         const { commands, params } = this;
 
