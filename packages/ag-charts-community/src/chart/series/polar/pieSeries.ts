@@ -779,12 +779,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         this.itemSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false));
         this.highlightSelection.each((node, datum, index) => {
             updateSectorFn(node, datum, index, true);
-            if (datum.itemId === highlightedDatum?.itemId) {
-                node.visible = true;
-                updateSectorFn(node, datum, index, true);
-            } else {
-                node.visible = false;
-            }
+
+            node.visible = datum.itemId === highlightedDatum?.itemId;
         });
         this.phantomSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false));
 
