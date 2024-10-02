@@ -1,3 +1,4 @@
+import type { FocusIndicator } from '../../dom/focusIndicator';
 import type {
     FocusInteractionEvent,
     InteractionEvent,
@@ -20,9 +21,14 @@ export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = Preventab
 // navigation commands. For example, keybindings might be different on macOS and Windows,
 // or the charts might include options to reconfigure keybindings.
 export class KeyNavManager extends InteractionStateListener<KeyNavEventType, KeyNavEvent> {
-    constructor(readonly interactionManager: InteractionManager) {
+    constructor(
+        readonly focusIndicator: FocusIndicator,
+        readonly interactionManager: InteractionManager
+    ) {
         super();
         this.destroyFns.push(
+            interactionManager.addListener('hover', () => this.focusIndicator.toggleForceInvisible(true)),
+            interactionManager.addListener('drag-start', () => this.focusIndicator.toggleForceInvisible(true)),
             interactionManager.addListener('blur', (e) => this.onBlur(e), InteractionState.All),
             interactionManager.addListener('focus', (e) => this.onFocus(e), InteractionState.All),
             interactionManager.addListener('keydown', (e) => this.onKeyDown(e), InteractionState.All)
@@ -46,6 +52,7 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
     }
 
     private onKeyDown(event: KeyInteractionEvent<'keydown'>) {
+        this.focusIndicator.toggleForceInvisible(false);
         const { code, altKey, shiftKey, metaKey, ctrlKey } = event.sourceEvent;
         if (altKey || shiftKey || metaKey || ctrlKey) return;
 

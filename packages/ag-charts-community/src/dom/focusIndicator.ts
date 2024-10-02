@@ -10,6 +10,7 @@ export class FocusIndicator {
     private readonly svg: SVGSVGElement;
     private readonly path: SVGPathElement;
     private readonly div: HTMLDivElement;
+    private forceInvisible = false;
 
     constructor(private readonly domManager: DOMManager) {
         this.div = getDocument().createElement('div');
@@ -46,9 +47,15 @@ export class FocusIndicator {
         this.element.append(child);
     }
 
+    // Use with caution! The focus must be visible when using the keyboard.
+    toggleForceInvisible(force: boolean) {
+        this.forceInvisible = force;
+        this.element.classList.toggle(`ag-charts-focus-indicator__force_invisible`, force);
+    }
+
     // Get the `:focus-visible` CSS state.
     public isFocusVisible(): boolean {
-        const focusableParent = this.element.parentElement;
-        return focusableParent != null && getWindow().getComputedStyle(focusableParent).opacity === '1';
+        const parent = this.element.parentElement;
+        return !this.forceInvisible && parent != null && getWindow().getComputedStyle(parent).opacity === '1';
     }
 }
