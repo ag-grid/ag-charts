@@ -8,6 +8,7 @@ import { CollidableLine } from './collidableLineScene';
 import type { CollidableText } from './collidableTextScene';
 import type { Handle } from './handle';
 import { LinearScene } from './linearScene';
+import { WithBackgroundScene } from './withBackgroundScene';
 
 type ChannelHandle = Partial<'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight' | 'topMiddle' | 'bottomMiddle'>;
 
@@ -27,7 +28,7 @@ export abstract class ChannelScene<
 
     protected topLine = new CollidableLine();
     protected bottomLine = new CollidableLine();
-    protected background = new _Scene.Path({ zIndex: -1 });
+    public background = new _Scene.Path({ zIndex: -1 });
     public text?: CollidableText;
     private readonly anchor: _ModuleSupport.ToolbarAnchor = { x: 0, y: 0 };
 
@@ -144,36 +145,7 @@ export abstract class ChannelScene<
 
     protected abstract updateText(datum: Datum, top: LineCoords, bottom: LineCoords): void;
 
-    protected updateBackground(datum: Datum, top: LineCoords, bottom: LineCoords, context: AnnotationContext) {
-        const { background } = this;
-        const { seriesRect } = context;
-
-        background.path.clear(true);
-
-        const bounds = {
-            x1: 0,
-            y1: 0,
-            x2: seriesRect.width,
-            y2: seriesRect.height,
-        };
-
-        const points = this.getBackgroundPoints(datum, top, bottom, bounds);
-        for (let i = 0; i < points.length; i++) {
-            const point = points[i];
-            if (i === 0) {
-                background.path.moveTo(point.x, point.y);
-            } else {
-                background.path.lineTo(point.x, point.y);
-            }
-        }
-
-        background.path.closePath();
-        background.checkPathDirty();
-        background.setProperties({
-            fill: datum.background.fill,
-            fillOpacity: datum.background.fillOpacity,
-        });
-    }
+    protected readonly updateBackground = WithBackgroundScene.updateBackground.bind(this);
 
     protected updateAnchor(top: LineCoords, bottom: LineCoords) {
         const { x, y } = _Scene.Transformable.toCanvasPoint(
@@ -186,7 +158,7 @@ export abstract class ChannelScene<
         this.anchor.y = y;
     }
 
-    protected abstract getBackgroundPoints(
+    public abstract getBackgroundPoints(
         datum: Datum,
         top: LineCoords,
         bottom: LineCoords,

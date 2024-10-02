@@ -56,6 +56,16 @@ export const SHAPE_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
     { label: 'toolbarAnnotationsArrowDown', icon: 'arrow-down-drawing', value: AnnotationType.ArrowDown },
 ];
 
+export const MEASURER_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
+    { label: 'toolbarAnnotationsDateRange', icon: 'date-range-drawing', value: AnnotationType.DateRange },
+    { label: 'toolbarAnnotationsPriceRange', icon: 'price-range-drawing', value: AnnotationType.PriceRange },
+    {
+        label: 'toolbarAnnotationsDatePriceRange',
+        icon: 'date-price-range-drawing',
+        value: AnnotationType.DatePriceRange,
+    },
+];
+
 export const LINE_STROKE_WIDTH_ITEMS: MenuItem<number>[] = [
     { strokeWidth: 1, label: '1', value: 1 },
     { strokeWidth: 2, label: '2', value: 2 },

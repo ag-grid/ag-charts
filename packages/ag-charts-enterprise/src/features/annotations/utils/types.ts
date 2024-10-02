@@ -1,9 +1,15 @@
-import type { ChannelPropertiesType, LinePropertiesType, TextualPropertiesType } from '../annotationsSuperTypes';
+import type {
+    ChannelPropertiesType,
+    LinePropertiesType,
+    MeasurerPropertiesType,
+    TextualPropertiesType,
+} from '../annotationsSuperTypes';
 import { CalloutProperties } from '../callout/calloutProperties';
 import { CommentProperties } from '../comment/commentProperties';
 import { HorizontalLineProperties, VerticalLineProperties } from '../cross-line/crossLineProperties';
 import { DisjointChannelProperties } from '../disjoint-channel/disjointChannelProperties';
 import { ArrowProperties, LineProperties } from '../line/lineProperties';
+import { DatePriceRangeProperties, DateRangeProperties, PriceRangeProperties } from '../measurer/measurerProperties';
 import { NoteProperties } from '../note/noteProperties';
 import { ParallelChannelProperties } from '../parallel-channel/parallelChannelProperties';
 import { TextProperties } from '../text/textProperties';
@@ -28,4 +34,8 @@ export function isTextType(datum: unknown): datum is TextualPropertiesType {
         NoteProperties.is(datum) ||
         TextProperties.is(datum)
     );
+}
+
+export function isMeasurerType(datum: unknown): datum is MeasurerPropertiesType {
+    return DateRangeProperties.is(datum) || PriceRangeProperties.is(datum) || DatePriceRangeProperties.is(datum);
 }

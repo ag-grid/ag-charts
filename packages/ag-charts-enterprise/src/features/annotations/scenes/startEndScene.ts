@@ -31,7 +31,6 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         }
 
         this.updateHandles(datum, coords);
-
         this.updateAnchor(datum, coords, context);
     }
 

@@ -22,6 +22,11 @@ export enum AnnotationType {
     Arrow = 'arrow',
     ArrowUp = 'arrow-up',
     ArrowDown = 'arrow-down',
+
+    // Measurers
+    DateRange = 'date-range',
+    PriceRange = 'price-range',
+    DatePriceRange = 'date-price-range',
 }
 
 export type TextualAnnotationType =
@@ -38,13 +43,19 @@ export type LineAnnotationType =
 
 export type ChannelAnnotationType = AnnotationType.DisjointChannel | AnnotationType.ParallelChannel;
 
+export type MeasurerAnnotationType =
+    | AnnotationType.DateRange
+    | AnnotationType.PriceRange
+    | AnnotationType.DatePriceRange;
+
 export type HasColorAnnotationType = AnnotationType;
-export type HasLineStyleAnnotationType = LineAnnotationType | ChannelAnnotationType;
-export type HasLineTextAnnotationType = LineAnnotationType | ChannelAnnotationType;
+export type HasLineStyleAnnotationType = LineAnnotationType | ChannelAnnotationType | MeasurerAnnotationType;
+export type HasLineTextAnnotationType = LineAnnotationType | ChannelAnnotationType | MeasurerAnnotationType;
 export type HasFontSizeAnnotationType =
     | Exclude<TextualAnnotationType, AnnotationType.Note>
     | LineAnnotationType
-    | ChannelAnnotationType;
+    | ChannelAnnotationType
+    | MeasurerAnnotationType;
 
 export const ANNOTATION_TYPES = Object.values(AnnotationType);
 export const ANNOTATION_BUTTONS = [
@@ -68,7 +79,7 @@ export const ANNOTATION_BUTTONS = [
     AnnotationType.ArrowUp,
     AnnotationType.ArrowDown,
 ] as const;
-export const ANNOTATION_BUTTON_GROUPS = ['line-menu', 'text-menu', 'shape-menu'] as const;
+export const ANNOTATION_BUTTON_GROUPS = ['line-menu', 'text-menu', 'shape-menu', 'measurer-menu'] as const;
 
 export function stringToAnnotationType(value: string) {
     for (const t of ANNOTATION_TYPES) {
@@ -118,6 +129,7 @@ export interface AnnotationAxisContext
         | 'scaleDomain'
         | 'scaleInvert'
         | 'scaleInvertNearest'
+        | 'scaleStep'
         | 'scaleValueFormatter'
         | 'attachLabel'
         | 'inRange'

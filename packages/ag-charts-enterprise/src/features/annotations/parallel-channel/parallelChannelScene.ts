@@ -232,7 +232,7 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
 
     override updateText = LineWithTextScene.updateChannelText.bind(this, true);
 
-    protected override getBackgroundPoints(
+    override getBackgroundPoints(
         datum: ParallelChannelProperties,
         top: LineCoords,
         bottom: LineCoords,

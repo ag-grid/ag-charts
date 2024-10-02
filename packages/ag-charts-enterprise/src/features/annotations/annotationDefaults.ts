@@ -4,12 +4,12 @@ import {
     type AnnotationLineStyle,
     type AnnotationOptionsColorPickerType,
     AnnotationType,
-        type ChannelTextPosition,
+    type ChannelTextPosition,
     type HasColorAnnotationType,
     type HasFontSizeAnnotationType,
     type HasLineStyleAnnotationType,
     type HasLineTextAnnotationType,
-        type LineTextAlignment,
+    type LineTextAlignment,
     type LineTextPosition,
 } from './annotationTypes';
 import type { AnnotationProperties } from './annotationsSuperTypes';
@@ -51,6 +51,9 @@ export class AnnotationDefaults implements _ModuleSupport.MementoOriginator<Defa
         [AnnotationType.Line, undefined],
         [AnnotationType.DisjointChannel, undefined],
         [AnnotationType.ParallelChannel, undefined],
+        [AnnotationType.DateRange, undefined],
+        [AnnotationType.PriceRange, undefined],
+        [AnnotationType.DatePriceRange, undefined],
     ]);
 
     private lineStyles: DefaultLineStyles = new Map([
@@ -60,6 +63,9 @@ export class AnnotationDefaults implements _ModuleSupport.MementoOriginator<Defa
         [AnnotationType.DisjointChannel, undefined],
         [AnnotationType.ParallelChannel, undefined],
         [AnnotationType.Arrow, undefined],
+        [AnnotationType.DateRange, undefined],
+        [AnnotationType.PriceRange, undefined],
+        [AnnotationType.DatePriceRange, undefined],
     ]);
 
     private lineTextAlignments: DefaultLineTextAlignments = new Map([
@@ -69,6 +75,9 @@ export class AnnotationDefaults implements _ModuleSupport.MementoOriginator<Defa
         [AnnotationType.DisjointChannel, undefined],
         [AnnotationType.ParallelChannel, undefined],
         [AnnotationType.Arrow, undefined],
+        [AnnotationType.DateRange, undefined],
+        [AnnotationType.PriceRange, undefined],
+        [AnnotationType.DatePriceRange, undefined],
     ]);
 
     private lineTextPositions: DefaultLineTextPositions = new Map([
@@ -78,6 +87,9 @@ export class AnnotationDefaults implements _ModuleSupport.MementoOriginator<Defa
         [AnnotationType.DisjointChannel, undefined],
         [AnnotationType.ParallelChannel, undefined],
         [AnnotationType.Arrow, undefined],
+        [AnnotationType.DateRange, undefined],
+        [AnnotationType.PriceRange, undefined],
+        [AnnotationType.DatePriceRange, undefined],
     ]);
 
     createMemento() {

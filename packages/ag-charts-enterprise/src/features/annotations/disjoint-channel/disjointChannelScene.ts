@@ -190,7 +190,7 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
 
     override updateText = LineWithTextScene.updateChannelText.bind(this, false);
 
-    protected override getBackgroundPoints(
+    override getBackgroundPoints(
         datum: DisjointChannelProperties,
         top: LineCoords,
         bottom: LineCoords,

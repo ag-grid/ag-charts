@@ -35,6 +35,12 @@ export interface AgAnnotationsThemeableOptions {
     'arrow-up'?: AgShapeAnnotationStyles;
     'arrow-down'?: AgShapeAnnotationStyles;
 
+    // Measurers
+    'date-range'?: AgMeasurerAnnotationStyles;
+    'price-range'?: AgMeasurerAnnotationStyles;
+    'date-price-range'?: AgMeasurerAnnotationStyles;
+    'quick-date-price-range'?: AgMeasurerAnnotationStyles;
+
     // Other
     axesButtons?: AgAnnotationAxesButtons;
 }
@@ -77,6 +83,11 @@ export interface AgNoteAnnotationStyles extends AgTextAnnotationStyles, StrokeOp
 // Shapes
 export interface AgShapeAnnotationStyles extends Lockable, Visible, FillOptions {}
 
+// Measurers
+export interface AgMeasurerAnnotationStyles extends Extendable, Lockable, Visible {
+    statistics: FontOptions;
+}
+
 // ***********
 // * Options *
 // ***********
@@ -102,7 +113,11 @@ export type AgAnnotation =
     // Shapes
     | AgArrowAnnotation
     | AgArrowUpAnnotation
-    | AgArrowDownAnnotation;
+    | AgArrowDownAnnotation
+    // Measurers
+    | AgDateRangeAnnotation
+    | AgPriceRangeAnnotation
+    | AgDatePriceRangeAnnotation;
 
 // ********************
 // * Line Annotations *
@@ -264,6 +279,44 @@ export interface AgArrowUpAnnotation extends AgArrowMarkAnnotation {
 export interface AgArrowDownAnnotation extends AgArrowMarkAnnotation {
     /** Configuration for the arrow down annotation.*/
     type: 'arrow-down';
+}
+
+// ************************
+// * Measurer Annotations *
+// ************************/
+
+export interface AgDateRangeAnnotation extends AgMeasurerAnnotation {
+    /** Configuration for the date range annotation.*/
+    type: 'date-range';
+    extendAbove?: boolean;
+    extendBelow?: boolean;
+}
+
+export interface AgPriceRangeAnnotation extends AgMeasurerAnnotation {
+    /** Configuration for the price range annotation.*/
+    type: 'price-range';
+    extendLeft?: boolean;
+    extendRight?: boolean;
+}
+
+export interface AgDatePriceRangeAnnotation extends AgMeasurerAnnotation {
+    /** Configuration for the price range annotation.*/
+    type: 'date-price-range';
+}
+
+export interface AgMeasurerAnnotation
+    extends AnnotationLinePoints,
+        Extendable,
+        Lockable,
+        Visible,
+        StrokeOptions,
+        LineOptions {
+    /** Configuration for the drag handles. */
+    handle?: AgAnnotationHandle;
+    /** Configuration for the line text. */
+    text?: AgLineAnnotationText;
+    /** */
+    statistics?: FontOptions;
 }
 
 // **************
