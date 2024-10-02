@@ -500,7 +500,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             seriesRegion.addListener('drag', this.onDrag.bind(this), Default | ZoomDrag | AnnotationsState),
             seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
             ctx.keyNavManager.addListener('cancel', this.onCancel.bind(this), Default | AnnotationsState),
-            ctx.keyNavManager.addListener('delete', this.onDelete.bind(this), Default | AnnotationsState),
+            ctx.keyNavManager.addListener('delete', (ev) => this.onDelete(ev), Default | AnnotationsState),
             ctx.interactionManager.addListener('keydown', this.onTextInput.bind(this), AnnotationsState),
             ctx.interactionManager.addListener('keydown', this.onKeyDown.bind(this), All),
             ctx.interactionManager.addListener('keyup', this.onKeyUp.bind(this), All),
@@ -1226,12 +1226,15 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.reset();
     }
 
-    private onDelete() {
+    private onDelete(event: _ModuleSupport.KeyNavEvent<'delete'>) {
         if (this.textInput.isVisible()) return;
         this.cancel();
         this.delete();
         this.reset();
         this.update();
+
+        // AG-13041 Treat the Backspace/Delete key as a mouse event (iff the user is in "mouse mode").
+        this.ctx.focusIndicator.toggleForceInvisible(event.previousInputDevice === 'mouse');
     }
 
     private onTextInput(event: _ModuleSupport.KeyInteractionEvent<'keydown'>) {
