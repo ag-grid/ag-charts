@@ -9,6 +9,8 @@
     --indent-border-offset: #{$spacing-size-1};
 
     width: calc(var(--layout-width-3-12) - var(--right-margin)); // TODO: Refactor docs nav width
+    padding-top: $spacing-size-8; // Temp padding
+    padding-bottom: $spacing-size-32; // Temp padding
 }
 
 .section {
@@ -44,6 +46,10 @@
     position: relative;
     padding-left: var(--indent-size);
     font-weight: var(--text-semibold);
+
+    &:hover {
+        color: var(--color-fg-primary);
+    }
 }
 
 // TODO: Refactor icons in buttons so !important not nessisary
@@ -70,4 +76,14 @@
 
 .item {
     color: var(--color-fg-primary);
+
+    &.hasIcon:not(:last-child) {
+        margin-bottom: $spacing-size-1;
+    }
+}
+
+// TODO: Refactor icons in links so don't need to override icon CSS vars
+.itemIcon {
+    fill: var(--color-fg-secondary);
+    margin-right: $spacing-size-2;
 }

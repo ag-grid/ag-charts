@@ -5,7 +5,9 @@ import styles from './NewDocsNav.module.scss';
 
 function Item({ itemData }: { itemData?: any }) {
     return (
-        <a href="#" className={styles.item}>
+        <a href="#" className={classnames(styles.item, itemData.icon ? styles.hasIcon : '')}>
+            {itemData.icon && <Icon name={itemData.icon} svgClasses={styles.itemIcon} />}
+
             {itemData.title}
         </a>
     );
