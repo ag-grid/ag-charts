@@ -53,6 +53,8 @@ export * from './series/cartesian/waterfallOptions';
 export * from './series/flow-proportion/chordOptions';
 export * from './series/flow-proportion/flowProportionOptions';
 export * from './series/flow-proportion/sankeyOptions';
+export * from './series/standalone/pyramidOptions';
+export * from './series/standalone/standaloneOptions';
 export * from './series/hierarchy/hierarchyOptions';
 export * from './series/hierarchy/sunburstOptions';
 export * from './series/hierarchy/treemapOptions';

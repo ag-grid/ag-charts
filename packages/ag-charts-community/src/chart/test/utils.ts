@@ -281,6 +281,17 @@ export function flowProportionChartAssertions(params?: { seriesTypes?: string[] 
     };
 }
 
+export function standaloneChartAssertions(params?: { seriesTypes?: string[] }) {
+    const { seriesTypes = ['standalone'] } = params ?? {};
+
+    return async (chartOrProxy: ChartOrProxy) => {
+        const chart = deproxy(chartOrProxy);
+        expect(chart?.constructor?.name).toEqual('StandaloneChart');
+        expect(chart.axes).toHaveLength(0);
+        expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
+    };
+}
+
 export function gaugeAssertions() {
     return async (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
