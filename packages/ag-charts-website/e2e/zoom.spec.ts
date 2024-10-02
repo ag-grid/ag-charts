@@ -89,7 +89,7 @@ test.describe('zoom', () => {
         await expect(page.locator(yAxisLabel)).toBeVisible();
 
         // Mousewheel to zoom should remove crosshairs.
-        await page.mouse.wheel(0, -200);
+        await page.mouse.wheel(0, -100);
         await expect(page.locator(xAxisLabel)).not.toBeVisible();
         await expect(page.locator(yAxisLabel)).not.toBeVisible();
 
