@@ -87,3 +87,13 @@
     fill: var(--color-fg-secondary);
     margin-right: $spacing-size-2;
 }
+
+// TODO: Refactor icons in links/buttons so we don't require !important/overrides
+.enterpriseIcon {
+    position: relative;
+    top: 1px;
+    width: $spacing-size-5;
+    height: $spacing-size-5;
+    margin-left: $spacing-size-1 !important;
+    fill: var(--color-enterprise-icon) !important;
+}

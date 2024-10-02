@@ -17,6 +17,8 @@ function Item({ itemData, framework }: { itemData?: any; framework: Framework })
             {itemData.icon && <Icon name={itemData.icon} svgClasses={styles.itemIcon} />}
 
             {itemData.title}
+
+            {itemData.isEnterprise && <Icon name="enterprise" svgClasses={styles.enterpriseIcon} />}
         </a>
     );
 }
@@ -26,7 +28,10 @@ function Group({ groupData, framework }: { groupData?: any; framework: Framework
         <div className={styles.group}>
             <button className={classnames('button-style-none', styles.groupTitle)}>
                 <Icon name="chevronRight" svgClasses={styles.groupChevron} />
+
                 <span>{groupData.title}</span>
+
+                {groupData.isEnterprise && <Icon name="enterprise" svgClasses={styles.enterpriseIcon} />}
             </button>
 
             <div className={styles.groupChildren}>
