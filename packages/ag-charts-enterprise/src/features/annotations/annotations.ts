@@ -1250,15 +1250,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const context = this.getAnnotationContext();
 
         const { sourceEvent } = event;
-        const { shiftKey } = sourceEvent;
-        const modifierKey = sourceEvent.ctrlKey || sourceEvent.metaKey;
+        const { shiftKey, ctrlKey, metaKey } = sourceEvent;
+        const ctrlMeta = ctrlKey || metaKey;
+        const ctrlShift = ctrlKey || shiftKey;
 
         this.state.transition('keyDown', { shiftKey });
 
         const translation = { x: 0, y: 0 };
 
-        const xStep = Math.max(context?.xAxis.scaleBandwidth() ?? 0, modifierKey ? 10 : 1);
-        const yStep = Math.max(context?.yAxis.scaleBandwidth() ?? 0, modifierKey ? 10 : 1);
+        const xStep = Math.max(context?.xAxis.scaleBandwidth() ?? 0, ctrlShift ? 10 : 1);
+        const yStep = Math.max(context?.yAxis.scaleBandwidth() ?? 0, ctrlShift ? 10 : 1);
         switch (sourceEvent.key) {
             case 'ArrowDown':
                 translation.y = yStep;
@@ -1278,7 +1279,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             state.transition('translate', { translation, context });
         }
 
-        if (!modifierKey) {
+        if (!ctrlMeta) {
             return;
         }
 
