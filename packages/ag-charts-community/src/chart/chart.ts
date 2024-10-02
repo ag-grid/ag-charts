@@ -361,7 +361,14 @@ export abstract class Chart extends Observable {
         return this.ctx;
     }
 
-    abstract getChartType(): 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'gauge';
+    abstract getChartType():
+        | 'cartesian'
+        | 'polar'
+        | 'hierarchy'
+        | 'topology'
+        | 'flow-proportion'
+        | 'standalone'
+        | 'gauge';
 
     protected getCaptionText(): string {
         return [this.title, this.subtitle, this.footnote]

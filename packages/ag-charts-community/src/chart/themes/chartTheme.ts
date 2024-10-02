@@ -87,6 +87,9 @@ const CHART_TYPE_CONFIG: { [k in ChartType]: ChartTypeConfig } = {
     get 'flow-proportion'(): ChartTypeConfig {
         return { seriesTypes: chartTypes.flowProportionTypes, commonOptions: [] };
     },
+    get standalone(): ChartTypeConfig {
+        return { seriesTypes: chartTypes.standaloneTypes, commonOptions: [] };
+    },
     get gauge(): ChartTypeConfig {
         return { seriesTypes: chartTypes.gaugeTypes, commonOptions: [] };
     },
@@ -377,6 +380,7 @@ export class ChartTheme {
             getOverridesByType('hierarchy', chartTypes.hierarchyTypes),
             getOverridesByType('topology', chartTypes.topologyTypes),
             getOverridesByType('flow-proportion', chartTypes.flowProportionTypes),
+            getOverridesByType('standalone', chartTypes.standaloneTypes),
             getOverridesByType('gauge', chartTypes.gaugeTypes)
         );
     }
