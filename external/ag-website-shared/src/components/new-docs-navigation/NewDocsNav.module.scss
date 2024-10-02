@@ -83,6 +83,12 @@
     flex-direction: column;
 }
 
+.nestedItems {
+    border-left: 1px solid var(--indent-border-color);
+    margin-left: calc(var(--item-left-offset) + 4px);
+    padding-left: var(--item-left-offset);
+}
+
 .item {
     color: var(--color-fg-primary);
     padding-left: var(--item-left-offset);

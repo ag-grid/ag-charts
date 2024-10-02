@@ -30,7 +30,41 @@
                         {
                             "type": "item",
                             "title": "Installing Your Licence Key",
-                            "path": "license-install"
+                            "path": "license-install",
+                            "children": [
+                                {
+                                    "type": "item",
+                                    "title": "level two - A",
+                                    "path": "level-two-A"
+                                },
+                                {
+                                    "type": "item",
+                                    "title": "level two - B",
+                                    "path": "level-two-B",
+                                    "children": [
+                                        {
+                                            "type": "item",
+                                            "title": "level three - A",
+                                            "path": "level-three-A"
+                                        },
+                                        {
+                                            "type": "item",
+                                            "title": "level three - B",
+                                            "path": "level-three-B"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "item",
+                                    "title": "level two - C",
+                                    "path": "level-two-C"
+                                },
+                                {
+                                    "type": "item",
+                                    "title": "level two - D",
+                                    "path": "level-two-D"
+                                }
+                            ]
                         },
                         {
                             "type": "item",

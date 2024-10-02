@@ -16,13 +16,23 @@ function Item({ itemData, framework, pageName }: { itemData?: any; framework: Fr
     const className = classnames(styles.item, itemData.icon ? styles.hasIcon : '', isActive ? styles.isIsActive : '');
 
     return (
-        <a href={linkUrl} className={className}>
-            {itemData.icon && <Icon name={itemData.icon} svgClasses={styles.itemIcon} />}
+        <>
+            {!itemData.children ? (
+                <a href={linkUrl} className={className}>
+                    {itemData.icon && <Icon name={itemData.icon} svgClasses={styles.itemIcon} />}
 
-            {itemData.title}
+                    {itemData.title}
 
-            {itemData.isEnterprise && <Icon name="enterprise" svgClasses={styles.enterpriseIcon} />}
-        </a>
+                    {itemData.isEnterprise && <Icon name="enterprise" svgClasses={styles.enterpriseIcon} />}
+                </a>
+            ) : (
+                <div className={styles.nestedItems}>
+                    {itemData.children.map((childData) => {
+                        return <Item itemData={childData} framework={framework} pageName={pageName} />;
+                    })}
+                </div>
+            )}
+        </>
     );
 }
 
