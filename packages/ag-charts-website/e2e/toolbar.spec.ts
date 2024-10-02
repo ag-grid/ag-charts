@@ -176,6 +176,7 @@ test.describe('toolbar', () => {
         await page.locator(SELECTORS.textAnnotationMenu).click();
         await page.locator(SELECTORS.commentMenuItem).click();
         await page.mouse.click(hover.x, hover.y, { button: 'left' });
+        await page.keyboard.type('Delete this temporary annotation');
         await page.mouse.click(leave.x, leave.y, { button: 'left' });
         await page.mouse.click(hover.x, hover.y, { button: 'left' });
         await page.locator(SELECTORS.annotationOptionsDeleteButton).click();
