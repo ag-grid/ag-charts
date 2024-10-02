@@ -206,12 +206,8 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         this.element.classList.add(themeClassName);
     }
 
-    getFocusable(): HTMLElement {
-        return this.rootElements['series-area'].element;
-    }
-
     setTabIndex(tabIndex: number /* FIXME: type should be 0 | -1 */) {
-        this.getFocusable().tabIndex = tabIndex;
+        this.rootElements['series-area'].element.tabIndex = tabIndex;
     }
 
     updateCanvasLabel(ariaLabel: string) {

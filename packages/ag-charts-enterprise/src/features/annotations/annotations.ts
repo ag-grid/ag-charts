@@ -35,7 +35,6 @@ import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
 import { AnnotationSettingsDialog } from './settings-dialog/settingsDialog';
 import { calculateAxisLabelPadding } from './utils/axis';
 import { snapToAngle } from './utils/coords';
-import { createFocusMask } from './utils/focusMask';
 import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasLineText, hasTextColor } from './utils/has';
 import { getLineStyle } from './utils/line';
 import { isChannelType, isLineType, isTextType } from './utils/types';
@@ -1233,8 +1232,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.delete();
         this.reset();
         this.update();
-
-        createFocusMask(this.ctx.domManager.getFocusable()).focus();
     }
 
     private onTextInput(event: _ModuleSupport.KeyInteractionEvent<'keydown'>) {

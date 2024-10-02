@@ -26,18 +26,6 @@ type InputAttributeTypeMap = BaseAttributeTypeMap & {
 export type AttributeSet = Partial<{ [K in keyof BaseAttributeTypeMap]: BaseAttributeTypeMap[K] }>;
 export type InputAttributeSet = Partial<{ [K in keyof InputAttributeTypeMap]: InputAttributeTypeMap[K] }>;
 
-type AttributeArray = (keyof BaseAttributeTypeMap)[];
-
-function internalSetAttribute(e: Nullable<HTMLElement>, qualifiedName: string, value: Nullable<string>) {
-    if (e != null) {
-        if (value == null || value === '') {
-            e.removeAttribute(qualifiedName);
-        } else {
-            e.setAttribute(qualifiedName, value.toString());
-        }
-    }
-}
-
 export function setAttribute<A extends keyof BaseAttributeTypeMap>(
     e: Nullable<HTMLElement>,
     qualifiedName: A,
@@ -55,7 +43,11 @@ export function setAttribute<A extends keyof BaseAttributeTypeMap>(
     qualifiedName: A,
     value: BaseAttributeTypeMap[A]
 ) {
-    internalSetAttribute(e, qualifiedName, value?.toString());
+    if (value === undefined || value === '') {
+        e?.removeAttribute(qualifiedName);
+    } else {
+        e?.setAttribute(qualifiedName, value.toString());
+    }
 }
 
 export function setAttributes(e: Nullable<HTMLElement>, attrs: AttributeSet | undefined): void;
@@ -67,13 +59,5 @@ export function setAttributes(e: Nullable<HTMLElement>, attrs: AttributeSet | un
     for (key in attrs) {
         if (key === 'class') continue;
         setAttribute(e as HTMLElement, key, attrs[key]);
-    }
-}
-
-export function copyAttributes(keys: AttributeArray, dst: Nullable<HTMLElement>, src: Nullable<HTMLElement>): void {
-    if (dst == null || src == null) return;
-
-    for (const k of keys) {
-        internalSetAttribute(dst, k, src.getAttribute(k));
     }
 }
