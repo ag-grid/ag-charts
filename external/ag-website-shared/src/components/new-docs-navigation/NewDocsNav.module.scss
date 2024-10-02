@@ -1,6 +1,6 @@
 @use 'design-system' as *;
 
-.docsNav {
+.docsNavOuter {
     --right-margin: #{$spacing-size-16};
     --nav-max-width: 272px; // TODO: Review magic number
     --item-min-height: 34px;
@@ -8,7 +8,15 @@
     --indent-border-color: #e3e8f0; // TODO: Why isn't this a colour from :root ?
     --indent-border-offset: #{$spacing-size-1};
 
+    position: sticky;
     width: calc(var(--layout-width-3-12) - var(--right-margin)); // TODO: Refactor docs nav width
+    height: calc(100vh - var(--layout-site-header-height));
+    top: var(--layout-site-header-height);
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.docsNavInner {
     padding-top: $spacing-size-8; // Temp padding
     padding-bottom: $spacing-size-32; // Temp padding
 }

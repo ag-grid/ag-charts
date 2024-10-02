@@ -62,15 +62,17 @@ function Section({ sectionData, framework }: { sectionData?: any; framework: Fra
 
 export function NewDocsNav({ menuData, framework }: { menuData?: any; framework: Framework }) {
     return (
-        <div className={styles.docsNav}>
-            {menuData.sections.map((sectionData, i) => {
-                return (
-                    <>
-                        <Section sectionData={sectionData} framework={framework} />
-                        {i !== menuData.sections.length - 1 && <hr className={styles.divider} />}
-                    </>
-                );
-            })}
+        <div className={styles.docsNavOuter}>
+            <div className={styles.docsNavInner}>
+                {menuData.sections.map((sectionData, i) => {
+                    return (
+                        <>
+                            <Section sectionData={sectionData} framework={framework} />
+                            {i !== menuData.sections.length - 1 && <hr className={styles.divider} />}
+                        </>
+                    );
+                })}
+            </div>
         </div>
     );
 }
