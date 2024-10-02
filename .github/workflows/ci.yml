@@ -293,6 +293,18 @@ jobs:
                   git cherry-pick ${{steps.test-no-shard.outputs.updateSha}}
                   git push origin HEAD:${{github.head_ref}}
 
+            - uses: actions/github-script@v7
+              if: matrix.shard == 0 && steps.test-no-shard.outputs.updates == 'true' && github.head_ref
+              continue-on-error: true
+              with:
+                  script: |
+                      github.rest.issues.createComment({
+                        issue_number: context.issue.number,
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        body: `Snaspshots automatically updated, please review before merge @${context.issue.user.login}.`
+                      })
+
             - name: Raise PR with Snaspshot Changes
               id: raise-pr
               if: matrix.shard == 0 && steps.test-no-shard.outputs.updates == 'true' && github.ref == 'refs/heads/latest'
