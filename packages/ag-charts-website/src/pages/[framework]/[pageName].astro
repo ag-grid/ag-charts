@@ -61,7 +61,7 @@ const { data: newMenuData } = await getEntry('newMenu', 'newDocsMenu');
     showDocsNav={!hidePageMenu}
 >
     <div class:list={[hidePageMenu && styles.noLeftMenu, styles.contentViewport, 'layout-grid', { largeExamples }]}>
-        {!hidePageMenu && <NewDocsNav menuData={newMenuData} framework={currentFramework} />}
+        {!hidePageMenu && <NewDocsNav menuData={newMenuData} framework={currentFramework} pageName={pageName} />}
         <div
             id="doc-content"
             class:list={[

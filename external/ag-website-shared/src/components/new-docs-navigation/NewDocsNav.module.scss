@@ -3,7 +3,10 @@
 .docsNavOuter {
     --right-margin: #{$spacing-size-16};
     --nav-max-width: 272px; // TODO: Review magic number
+
     --item-min-height: 34px;
+    --item-left-offset: #{$spacing-size-2};
+
     --indent-size: #{$spacing-size-4};
     --indent-border-color: #e3e8f0; // TODO: Why isn't this a colour from :root ?
     --indent-border-offset: #{$spacing-size-1};
@@ -30,20 +33,21 @@
 .item {
     display: flex;
     align-items: center;
-    width: 100%;
     margin: 0;
     min-height: var(--item-min-height);
 }
 
 .sectionTitle {
+    padding-left: var(--item-left-offset);
     text-transform: uppercase;
     color: var(--color-util-gray-500);
 }
 
 .divider {
-    max-width: var(--nav-max-width);
+    max-width: calc(var(--nav-max-width) - var(--item-left-offset));
     margin-top: $spacing-size-12;
     margin-bottom: $spacing-size-4;
+    margin-left: var(--item-left-offset);
     background-color: var(--color-border-secondary);
 }
 
@@ -52,7 +56,7 @@
 
 .groupTitle {
     position: relative;
-    padding-left: var(--indent-size);
+    padding-left: calc(var(--indent-size) + var(--item-left-offset));
     font-weight: var(--text-semibold);
 
     &:hover {
@@ -63,7 +67,7 @@
 // TODO: Refactor icons in buttons so !important not nessisary
 .groupChevron {
     position: absolute !important;
-    left: calc(var(--indent-border-offset) * -1);
+    left: calc(var(--indent-border-offset) * -1 + var(--item-left-offset));
     top: 7px;
     bottom: auto !important;
     width: $spacing-size-5;
@@ -77,13 +81,32 @@
 
     display: flex;
     flex-direction: column;
-    padding-left: calc(var(--indent-size) * var(--indent-level) - var(--indent-border-offset));
-    margin-left: var(--indent-border-offset);
-    border-left: 1px solid var(--indent-border-color);
 }
 
 .item {
     color: var(--color-fg-primary);
+    padding-left: var(--item-left-offset);
+    transition:
+        background-color $transition-default-timing,
+        color $transition-default-timing,
+        border-color $transition-default-timing;
+
+    &:hover {
+        background-color: var(--color-util-brand-50);
+    }
+
+    .groupChildren & {
+        margin-left: calc(var(--indent-size) - var(--indent-border-offset));
+        padding-left: calc(var(--item-left-offset) + var(--indent-border-offset));
+        border-left: 1px solid var(--indent-border-color);
+    }
+
+    &.isIsActive {
+        --indent-border-color: var(--color-util-brand-400);
+
+        background-color: var(--color-util-brand-50);
+        color: var(--color-util-brand-500);
+    }
 
     &.hasIcon:not(:last-child) {
         margin-bottom: $spacing-size-1;
