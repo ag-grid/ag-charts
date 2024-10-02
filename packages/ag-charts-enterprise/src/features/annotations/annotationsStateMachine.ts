@@ -42,6 +42,7 @@ type AnnotationEvent =
     // Data events
     | 'selectLast'
     | 'translate'
+    | 'translateEnd'
     | 'copy'
     | 'cut'
     | 'paste'
@@ -269,8 +270,16 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 translate: {
                     guard: guardActive,
                     action: ({ translation }: { translation: Coords }) => {
+                        ctx.startInteracting();
                         ctx.translate(this.active!, translation);
                         ctx.update();
+                    },
+                },
+
+                translateEnd: {
+                    guard: guardActive,
+                    action: () => {
+                        ctx.stopInteracting();
                     },
                 },
 

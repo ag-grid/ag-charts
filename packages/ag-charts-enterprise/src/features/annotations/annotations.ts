@@ -194,7 +194,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             resetToIdle: () => {
                 ctx.cursorManager.updateCursor('annotations');
                 ctx.interactionManager.popState(InteractionState.Annotations);
-                ctx.interactionManager.popState(InteractionState.AnnotationsSelected);
                 ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: false });
                 ctx.tooltipManager.unsuppressTooltip('annotations');
                 this.hideOverlays();
@@ -272,7 +271,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: false });
 
                 if (selectedNode) {
-                    ctx.interactionManager.pushState(InteractionState.AnnotationsSelected);
                     selectedNode.toggleActive(true);
                     tooltipManager.suppressTooltip('annotations');
                     this.toggleAnnotationOptionsButtons();
@@ -283,7 +281,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                         toolbarManager.changeFloatingAnchor('annotationOptions', selectedNode.getAnchor());
                     });
                 } else {
-                    ctx.interactionManager.popState(InteractionState.AnnotationsSelected);
                     tooltipManager.unsuppressTooltip('annotations');
                 }
 
@@ -476,7 +473,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private setupListeners() {
         const { ctx } = this;
-        const { All, Default, Annotations: AnnotationsState, AnnotationsSelected, ZoomDrag } = InteractionState;
+        const { All, Default, Annotations: AnnotationsState, ZoomDrag } = InteractionState;
 
         const seriesRegion = ctx.regionManager.getRegion(REGIONS.SERIES);
 
@@ -494,21 +491,18 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             )
             .map((region) => ctx.regionManager.getRegion(region));
 
-        const dragState = Default | ZoomDrag | AnnotationsState | AnnotationsSelected;
-        const deleteState = Default | AnnotationsState | AnnotationsSelected;
-
         this.destroyFns.push(
             // Interactions
             seriesRegion.addListener('hover', this.onHover.bind(this), All),
             seriesRegion.addListener('click', this.onClick.bind(this), All),
             seriesRegion.addListener('dblclick', this.onDoubleClick.bind(this), All),
-            seriesRegion.addListener('drag-start', this.onDragStart.bind(this), dragState),
-            seriesRegion.addListener('drag', this.onDrag.bind(this), dragState),
+            seriesRegion.addListener('drag-start', this.onDragStart.bind(this), Default | ZoomDrag | AnnotationsState),
+            seriesRegion.addListener('drag', this.onDrag.bind(this), Default | ZoomDrag | AnnotationsState),
             seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
-            ctx.keyNavManager.addListener('cancel', this.onCancel.bind(this), deleteState),
-            ctx.keyNavManager.addListener('delete', this.onDelete.bind(this), deleteState),
+            ctx.keyNavManager.addListener('cancel', this.onCancel.bind(this), Default | AnnotationsState),
+            ctx.keyNavManager.addListener('delete', this.onDelete.bind(this), Default | AnnotationsState),
             ctx.interactionManager.addListener('keydown', this.onTextInput.bind(this), AnnotationsState),
-            ctx.interactionManager.addListener('keydown', this.onKeyDown.bind(this), AnnotationsSelected),
+            ctx.interactionManager.addListener('keydown', this.onKeyDown.bind(this), All),
             ctx.interactionManager.addListener('keyup', this.onKeyUp.bind(this), All),
             ...otherRegions.map((region) => region.addListener('click', this.onCancel.bind(this), All)),
 
@@ -1307,6 +1301,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const { shiftKey } = event.sourceEvent;
 
         this.state.transition('keyUp', { shiftKey });
+        this.state.transition('translateEnd');
     }
 
     private beginAnnotationPlacement(annotation: AnnotationType) {
