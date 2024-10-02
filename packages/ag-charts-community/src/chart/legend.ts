@@ -717,7 +717,15 @@ export class Legend extends BaseProperties {
     }
 
     private updateItemProxyButtons() {
-        this.itemSelection.each((l) => setElementBBox(l.proxyButton?.listitem, Transformable.toCanvas(l)));
+        this.itemSelection.each((l) => {
+            if (l.proxyButton) {
+                const { listitem, button } = l.proxyButton;
+                const visible = l.pageIndex === this.pagination.currentPage;
+                // TODO(olegat) this should be part of CSS once all element types support pointer events.
+                button.style.pointerEvents = visible ? 'auto' : 'none';
+                setElementBBox(listitem, Transformable.toCanvas(l));
+            }
+        });
     }
 
     private updatePaginationProxyButtons(oldPages: Page[] | undefined) {
